@@ -128,7 +128,20 @@ export default function ViewInspection() {
   if (!data) return null;
 
   const company = getCompanyInfo();
-  const grade = computeGrade(data);
+  // Prefer persisted grade (so historic reports never silently re-grade if rules change);
+  // fall back to recompute for legacy records that pre-date the grading feature.
+  const grade =
+    data.score != null
+      ? {
+          score: data.score,
+          status: data.status || (data.score < 74 ? "FAIL" : "PASS"),
+          auto_fail_count: data.auto_fail_count || 0,
+          yes: data.graded_yes || 0,
+          no: data.graded_no || 0,
+          total: data.graded_total || 0,
+          pass_threshold: 74,
+        }
+      : computeGrade(data);
   const flagged =
     data.hazards_observed === "Yes" || data.stop_work_issued === "Yes";
 
