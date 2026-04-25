@@ -29,7 +29,7 @@ import { toast } from "sonner";
 const inputCls =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
 
-export default function NewInspection() {
+export default function NewInspection({ publicMode = false }) {
   const navigate = useNavigate();
   const [data, setData] = useState(buildDefaults());
   const [saving, setSaving] = useState(false);
@@ -81,7 +81,14 @@ export default function NewInspection() {
     try {
       const res = await api.post("/inspections", data);
       toast.success("Inspection saved");
-      navigate(`/inspect/${res.data.id}`);
+      if (publicMode) {
+        navigate("/thank-you", {
+          state: { projectName: data.project_name },
+          replace: true,
+        });
+      } else {
+        navigate(`/inspect/${res.data.id}`);
+      }
     } catch (e) {
       console.error(e);
       toast.error("Could not save inspection");
@@ -95,14 +102,18 @@ export default function NewInspection() {
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <Link
-            to="/"
-            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="back-link"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Reports
-          </Link>
-          <MasciLogo variant="mark" size="md" />
+          {publicMode ? (
+            <MasciLogo variant="lockup" size="lg" className="hidden sm:block" />
+          ) : (
+            <Link
+              to="/"
+              className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
+              data-testid="back-link"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" /> Reports
+            </Link>
+          )}
+          <MasciLogo variant="mark" size="md" className={publicMode ? "sm:hidden" : ""} />
           <Button
             onClick={submit}
             disabled={saving}

@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import Dashboard from "@/pages/Dashboard";
 import NewInspection from "@/pages/NewInspection";
 import ViewInspection from "@/pages/ViewInspection";
+import ThankYou from "@/pages/ThankYou";
 
 function App() {
   return (
@@ -14,6 +15,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/inspect/new" element={<NewInspection />} />
+          <Route path="/submit" element={<NewInspection publicMode />} />
+          <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/inspect/:id" element={<ViewInspection />} />
         </Routes>
       </BrowserRouter>

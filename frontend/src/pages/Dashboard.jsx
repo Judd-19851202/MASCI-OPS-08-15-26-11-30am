@@ -4,6 +4,7 @@ import { Plus, FileText, AlertTriangle, ShieldCheck, Eye, Trash2, Loader2, Clipb
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
+import { ShareFormDialog } from "@/components/ShareFormDialog";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
@@ -79,6 +80,7 @@ export default function Dashboard() {
           <MasciLogo variant="lockup" size="2xl" className="hidden sm:block" />
           <MasciLogo variant="mark" size="lg" className="sm:hidden" />
           <div className="flex items-center gap-2">
+            <ShareFormDialog />
             <CompanyInfoDialog />
             <Button
               onClick={() => navigate("/inspect/new")}
