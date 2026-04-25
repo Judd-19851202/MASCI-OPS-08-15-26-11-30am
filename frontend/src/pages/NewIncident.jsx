@@ -1,0 +1,891 @@
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  ArrowLeft,
+  Save,
+  Loader2,
+  MapPin,
+  UserPlus,
+  X,
+  AlertTriangle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MasciLogo } from "@/components/MasciLogo";
+import { Section } from "@/components/Section";
+import { YesNo } from "@/components/YesNo";
+import { SignaturePad } from "@/components/SignaturePad";
+import { PhotoUpload } from "@/components/PhotoUpload";
+import {
+  INCIDENT_TYPES,
+  SEVERITY_LEVELS,
+  BODY_PARTS,
+  INJURY_NATURES,
+  ROOT_CAUSE_CATEGORIES,
+  buildIncidentDefaults,
+} from "@/lib/incidentSchema";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import {
+  getCurrentPosition,
+  reverseGeocode,
+  formatCoords,
+} from "@/lib/geolocation";
+import { cn } from "@/lib/utils";
+
+const inputCls =
+  "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
+
+export default function NewIncident({ publicMode = false }) {
+  const navigate = useNavigate();
+  const [data, setData] = useState(buildIncidentDefaults());
+  const [saving, setSaving] = useState(false);
+  const [locating, setLocating] = useState(false);
+
+  const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
+  const setMap = (mapKey, key, value) =>
+    setData((p) => ({ ...p, [mapKey]: { ...p[mapKey], [key]: value } }));
+
+  const useGps = async () => {
+    setLocating(true);
+    try {
+      const pos = await getCurrentPosition();
+      const { latitude, longitude, accuracy } = pos.coords;
+      setData((p) => ({
+        ...p,
+        gps_lat: latitude,
+        gps_lng: longitude,
+        gps_accuracy: accuracy,
+      }));
+      try {
+        const r = await reverseGeocode(latitude, longitude);
+        setData((p) => ({ ...p, location: r.display }));
+        toast.success("Location captured from GPS");
+      } catch {
+        setData((p) => ({
+          ...p,
+          location: formatCoords(latitude, longitude, accuracy),
+        }));
+        toast.warning("Got GPS coordinates, but couldn't look up address");
+      }
+    } catch (e) {
+      toast.error(e?.message || "Could not get GPS location");
+    } finally {
+      setLocating(false);
+    }
+  };
+
+  const addWitness = () =>
+    setData((p) => ({
+      ...p,
+      witnesses: [...p.witnesses, { name: "", statement: "" }],
+    }));
+  const updateWitness = (i, k, v) =>
+    setData((p) => ({
+      ...p,
+      witnesses: p.witnesses.map((w, idx) =>
+        idx === i ? { ...w, [k]: v } : w
+      ),
+    }));
+  const removeWitness = (i) =>
+    setData((p) => ({
+      ...p,
+      witnesses: p.witnesses.filter((_, idx) => idx !== i),
+    }));
+
+  const validate = () => {
+    const required = [
+      ["project_name", "Project Name"],
+      ["location", "Location"],
+      ["incident_date", "Incident Date"],
+      ["incident_time", "Incident Time"],
+      ["reported_by", "Reported By"],
+      ["incident_type", "Incident Type"],
+      ["severity", "Severity"],
+      ["description", "Description / What Happened"],
+    ];
+    for (const [k, l] of required) {
+      if (!String(data[k] || "").trim()) {
+        toast.error(`${l} is required`);
+        return false;
+      }
+    }
+    if (!data.reporter_signature) {
+      toast.error("Reporter signature is required");
+      return false;
+    }
+    return true;
+  };
+
+  const submit = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      const res = await api.post("/incidents", data);
+      toast.success("Incident report saved");
+      if (publicMode) {
+        navigate("/thank-you", {
+          state: {
+            projectName: data.project_name,
+            formType: "Incident Report",
+            returnTo: "/incidents/submit",
+          },
+          replace: true,
+        });
+      } else {
+        navigate(`/incidents/${res.data.id}`);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not save incident report");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const isInjury =
+    data.incident_type === "Injury / Illness" ||
+    ["first_aid", "medical", "restricted", "lost_time", "fatality"].includes(
+      data.severity
+    );
+
+  return (
+    <div className="min-h-screen bg-slate-50 pb-32">
+      <div className="caution-stripe" />
+      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+          {publicMode ? (
+            <MasciLogo variant="lockup" size="lg" className="hidden sm:block" />
+          ) : (
+            <Link
+              to="/incidents"
+              className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
+              data-testid="back-link"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" /> Incidents
+            </Link>
+          )}
+          <MasciLogo
+            variant="mark"
+            size="md"
+            className={publicMode ? "sm:hidden" : ""}
+          />
+          <Button
+            onClick={submit}
+            disabled={saving}
+            className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+            data-testid="submit-top-btn"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-1" />
+            )}
+            Submit
+          </Button>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+        <div className="mb-2">
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
+            New Report
+          </span>
+          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
+            Accident / Incident Report
+          </h1>
+          <div className="mt-3 flex items-start gap-2 p-3 border-2 border-amber-300 bg-amber-50 rounded-md">
+            <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-900 leading-snug">
+              <span className="font-bold">First, secure the scene and the
+              injured.</span>{" "}
+              Call 911 if anyone is seriously hurt. Document this report once
+              the immediate response is complete.
+            </p>
+          </div>
+        </div>
+
+        {/* Section 01 — Report Info */}
+        <Section number="01" title="Report Information">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Project Name *
+              </Label>
+              <Input
+                value={data.project_name}
+                onChange={(e) => set("project_name", e.target.value)}
+                className={inputCls}
+                placeholder="e.g. I-95 Resurfacing - Phase 2"
+                data-testid="input-project-name"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Project Number
+              </Label>
+              <Input
+                value={data.project_number}
+                onChange={(e) => set("project_number", e.target.value)}
+                className={inputCls}
+                data-testid="input-project-number"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Location *
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={useGps}
+                  disabled={locating}
+                  className="h-9 px-3 border-2 border-slate-300 hover:border-red-500 hover:text-red-700 font-bold uppercase tracking-wide text-xs"
+                  data-testid="use-gps-btn"
+                >
+                  {locating ? (
+                    <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                  ) : (
+                    <MapPin className="w-3.5 h-3.5 mr-1" />
+                  )}
+                  Use GPS
+                </Button>
+              </div>
+              <Input
+                value={data.location}
+                onChange={(e) => set("location", e.target.value)}
+                className={inputCls}
+                placeholder="Specific location on site (station, lane, structure...)"
+                data-testid="input-location"
+              />
+              {data.gps_lat != null && (
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1.5 flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-red-700" />
+                  GPS · {formatCoords(data.gps_lat, data.gps_lng, data.gps_accuracy)}
+                </div>
+              )}
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Incident Date *
+              </Label>
+              <Input
+                type="date"
+                value={data.incident_date}
+                onChange={(e) => set("incident_date", e.target.value)}
+                className={inputCls}
+                data-testid="input-incident-date"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Incident Time *
+              </Label>
+              <Input
+                type="time"
+                value={data.incident_time}
+                onChange={(e) => set("incident_time", e.target.value)}
+                className={inputCls}
+                data-testid="input-incident-time"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Date Reported
+              </Label>
+              <Input
+                type="date"
+                value={data.reported_date}
+                onChange={(e) => set("reported_date", e.target.value)}
+                className={inputCls}
+                data-testid="input-reported-date"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Reported By *
+              </Label>
+              <Input
+                value={data.reported_by}
+                onChange={(e) => set("reported_by", e.target.value)}
+                className={inputCls}
+                placeholder="Your name"
+                data-testid="input-reported-by"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Supervisor / Foreman On-Site
+              </Label>
+              <Input
+                value={data.supervisor_name}
+                onChange={(e) => set("supervisor_name", e.target.value)}
+                className={inputCls}
+                data-testid="input-supervisor-name"
+              />
+            </div>
+          </div>
+        </Section>
+
+        {/* Section 02 — Classification & Severity */}
+        <Section number="02" title="Classification & Severity">
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Incident Type *
+            </Label>
+            <Select
+              value={data.incident_type}
+              onValueChange={(v) => set("incident_type", v)}
+            >
+              <SelectTrigger
+                className={inputCls}
+                data-testid="select-incident-type"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {INCIDENT_TYPES.map((t) => (
+                  <SelectItem
+                    key={t}
+                    value={t}
+                    data-testid={`incident-type-${t}`}
+                  >
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Severity Tier *
+            </Label>
+            <p className="text-xs text-slate-500 mt-1 mb-2">
+              Pick the actual outcome. For a near miss, choose Near Miss even
+              if the potential was severe — note the potential in the
+              description.
+            </p>
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+              data-testid="severity-grid"
+            >
+              {SEVERITY_LEVELS.map((s) => {
+                const active = data.severity === s.key;
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => set("severity", s.key)}
+                    className={cn(
+                      "text-left border-2 rounded-md p-3 transition-colors duration-150",
+                      active
+                        ? "border-red-700 bg-red-50"
+                        : "border-slate-200 bg-white hover:border-red-300"
+                    )}
+                    data-testid={`severity-${s.key}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 ${s.color} text-white text-[10px] font-mono uppercase tracking-wider rounded font-bold`}
+                      >
+                        {s.label}
+                      </span>
+                      {active && (
+                        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">
+                          Selected
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-600 mt-1.5 leading-snug">
+                      {s.desc}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                OSHA Recordable?
+              </Label>
+              <YesNo
+                value={data.osha_recordable}
+                onChange={(v) => set("osha_recordable", v)}
+                options={["Yes", "No", "Unsure"]}
+                testId="osha-recordable"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Was Work Stopped?
+              </Label>
+              <YesNo
+                value={data.work_stopped}
+                onChange={(v) => set("work_stopped", v)}
+                testId="work-stopped"
+              />
+            </div>
+          </div>
+        </Section>
+
+        {/* Section 03 — Person involved (only if injury-related) */}
+        {isInjury && (
+          <Section number="03" title="Person Involved">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Name
+                </Label>
+                <Input
+                  value={data.person_name}
+                  onChange={(e) => set("person_name", e.target.value)}
+                  className={inputCls}
+                  data-testid="input-person-name"
+                />
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Role / Trade
+                </Label>
+                <Input
+                  value={data.person_role}
+                  onChange={(e) => set("person_role", e.target.value)}
+                  className={inputCls}
+                  placeholder="Laborer, Operator, Foreman..."
+                  data-testid="input-person-role"
+                />
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Employer
+                </Label>
+                <Input
+                  value={data.person_employer}
+                  onChange={(e) => set("person_employer", e.target.value)}
+                  className={inputCls}
+                  placeholder="MASCI / subcontractor name"
+                  data-testid="input-person-employer"
+                />
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Years Experience
+                </Label>
+                <Input
+                  value={data.person_years_experience}
+                  onChange={(e) =>
+                    set("person_years_experience", e.target.value)
+                  }
+                  className={inputCls}
+                  data-testid="input-person-experience"
+                />
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Body Part Affected
+                </Label>
+                <Select
+                  value={data.body_part}
+                  onValueChange={(v) => set("body_part", v)}
+                >
+                  <SelectTrigger
+                    className={inputCls}
+                    data-testid="select-body-part"
+                  >
+                    <SelectValue placeholder="Select body part..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[60vh]">
+                    {BODY_PARTS.map((b) => (
+                      <SelectItem key={b} value={b}>
+                        {b}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Nature of Injury / Illness
+                </Label>
+                <Select
+                  value={data.injury_nature}
+                  onValueChange={(v) => set("injury_nature", v)}
+                >
+                  <SelectTrigger
+                    className={inputCls}
+                    data-testid="select-injury-nature"
+                  >
+                    <SelectValue placeholder="Select..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[60vh]">
+                    {INJURY_NATURES.map((n) => (
+                      <SelectItem key={n} value={n}>
+                        {n}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="sm:col-span-2">
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Treatment Provided
+                </Label>
+                <Textarea
+                  value={data.treatment_provided}
+                  onChange={(e) => set("treatment_provided", e.target.value)}
+                  className="min-h-[80px] text-base border-2 border-slate-300"
+                  placeholder="First aid given, EMS called, transported by..."
+                  data-testid="input-treatment"
+                />
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Medical Facility
+                </Label>
+                <Input
+                  value={data.medical_facility}
+                  onChange={(e) => set("medical_facility", e.target.value)}
+                  className={inputCls}
+                  placeholder="Clinic / hospital, if applicable"
+                  data-testid="input-medical-facility"
+                />
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Sent Home / Off Site?
+                </Label>
+                <YesNo
+                  value={data.sent_home}
+                  onChange={(v) => set("sent_home", v)}
+                  testId="sent-home"
+                />
+              </div>
+            </div>
+          </Section>
+        )}
+
+        {/* Section 04 — Description */}
+        <Section number="04" title="What Happened">
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Description of Incident *
+            </Label>
+            <Textarea
+              value={data.description}
+              onChange={(e) => set("description", e.target.value)}
+              className="min-h-[160px] text-base border-2 border-slate-300"
+              placeholder="Describe in detail what was happening, what changed, what occurred. Include sequence of events."
+              data-testid="input-description"
+            />
+          </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Immediate Cause
+            </Label>
+            <Textarea
+              value={data.immediate_cause}
+              onChange={(e) => set("immediate_cause", e.target.value)}
+              className="min-h-[80px] text-base border-2 border-slate-300"
+              placeholder="What was the unsafe act or condition that triggered the event?"
+              data-testid="input-immediate-cause"
+            />
+          </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Contributing Factors
+            </Label>
+            <Textarea
+              value={data.contributing_factors}
+              onChange={(e) => set("contributing_factors", e.target.value)}
+              className="min-h-[80px] text-base border-2 border-slate-300"
+              placeholder="Weather, fatigue, training, equipment condition, schedule pressure..."
+              data-testid="input-contributing"
+            />
+          </div>
+        </Section>
+
+        {/* Section 05 — Root cause */}
+        <Section number="05" title="Root Cause Analysis">
+          <p className="text-sm text-slate-600">
+            Check every category that contributed. Pick all that apply.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {ROOT_CAUSE_CATEGORIES.map((opt) => (
+              <label
+                key={opt.key}
+                className="flex items-center gap-3 p-3 border-2 border-slate-200 rounded-md hover:border-red-500 cursor-pointer"
+                data-testid={`root-cause-${opt.key}`}
+              >
+                <Checkbox
+                  checked={!!data.root_causes[opt.key]}
+                  onCheckedChange={(v) => setMap("root_causes", opt.key, !!v)}
+                />
+                <span className="text-base text-slate-800">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Notes / Additional Detail
+            </Label>
+            <Textarea
+              value={data.root_cause_notes}
+              onChange={(e) => set("root_cause_notes", e.target.value)}
+              className="min-h-[80px] text-base border-2 border-slate-300"
+              data-testid="input-root-cause-notes"
+            />
+          </div>
+        </Section>
+
+        {/* Section 06 — Witnesses */}
+        <Section number="06" title="Witnesses">
+          <p className="text-sm text-slate-600">
+            Add anyone who saw the event. Capture short statements while it's
+            fresh.
+          </p>
+          {data.witnesses.map((w, i) => (
+            <div
+              key={i}
+              className="border-2 border-slate-200 rounded-md p-4 space-y-3"
+              data-testid={`witness-${i}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold">
+                  Witness {i + 1}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeWitness(i)}
+                  className="text-slate-500 hover:text-red-600"
+                  data-testid={`witness-remove-${i}`}
+                >
+                  <X className="w-4 h-4 mr-1" /> Remove
+                </Button>
+              </div>
+              <Input
+                value={w.name}
+                onChange={(e) => updateWitness(i, "name", e.target.value)}
+                className={inputCls}
+                placeholder="Name"
+                data-testid={`witness-name-${i}`}
+              />
+              <Textarea
+                value={w.statement}
+                onChange={(e) => updateWitness(i, "statement", e.target.value)}
+                className="min-h-[80px] text-base border-2 border-slate-300"
+                placeholder="What they saw, in their words."
+                data-testid={`witness-statement-${i}`}
+              />
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addWitness}
+            className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm"
+            data-testid="witness-add"
+          >
+            <UserPlus className="w-4 h-4 mr-2" /> Add Witness
+          </Button>
+        </Section>
+
+        {/* Section 07 — Corrective actions */}
+        <Section number="07" title="Corrective Actions & Follow-Up">
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Immediate Actions Taken (on-site, today)
+            </Label>
+            <Textarea
+              value={data.immediate_actions_taken}
+              onChange={(e) =>
+                set("immediate_actions_taken", e.target.value)
+              }
+              className="min-h-[100px] text-base border-2 border-slate-300"
+              placeholder="What was done immediately to make the area safe?"
+              data-testid="input-immediate-actions"
+            />
+          </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Long-Term Corrective Actions
+            </Label>
+            <Textarea
+              value={data.corrective_actions}
+              onChange={(e) => set("corrective_actions", e.target.value)}
+              className="min-h-[100px] text-base border-2 border-slate-300"
+              placeholder="Training, procedure changes, engineering controls..."
+              data-testid="input-corrective"
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Responsible Party
+              </Label>
+              <Input
+                value={data.responsible_party}
+                onChange={(e) => set("responsible_party", e.target.value)}
+                className={inputCls}
+                placeholder="Who owns the follow-up?"
+                data-testid="input-responsible"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Target Completion Date
+              </Label>
+              <Input
+                type="date"
+                value={data.target_completion_date}
+                onChange={(e) =>
+                  set("target_completion_date", e.target.value)
+                }
+                className={inputCls}
+                data-testid="input-target-date"
+              />
+            </div>
+          </div>
+        </Section>
+
+        {/* Section 08 — Notifications */}
+        <Section number="08" title="Notifications Made">
+          <p className="text-sm text-slate-600">
+            Confirm who was notified about this incident.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Safety Manager
+              </Label>
+              <YesNo
+                value={data.notified_safety_manager}
+                onChange={(v) => set("notified_safety_manager", v)}
+                testId="notified-safety"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Project Manager
+              </Label>
+              <YesNo
+                value={data.notified_pm}
+                onChange={(v) => set("notified_pm", v)}
+                testId="notified-pm"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                General Contractor
+              </Label>
+              <YesNo
+                value={data.notified_gc}
+                onChange={(v) => set("notified_gc", v)}
+                testId="notified-gc"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Owner / Agency
+              </Label>
+              <YesNo
+                value={data.notified_owner}
+                onChange={(v) => set("notified_owner", v)}
+                testId="notified-owner"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                OSHA (if catastrophic)
+              </Label>
+              <YesNo
+                value={data.notified_osha}
+                onChange={(v) => set("notified_osha", v)}
+                testId="notified-osha"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Other (free text)
+              </Label>
+              <Input
+                value={data.notified_other}
+                onChange={(e) => set("notified_other", e.target.value)}
+                className={inputCls}
+                placeholder="Insurance, EAP, family..."
+                data-testid="input-notified-other"
+              />
+            </div>
+          </div>
+        </Section>
+
+        <Section number="09" title="Photos / Evidence">
+          <PhotoUpload
+            photos={data.photos}
+            onChange={(photos) => set("photos", photos)}
+          />
+        </Section>
+
+        <Section number="10" title="Signatures">
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Reporter Signature *
+            </Label>
+            <SignaturePad
+              value={data.reporter_signature}
+              onChange={(v) => set("reporter_signature", v)}
+              label="Reporter"
+              testId="reporter-sig"
+            />
+          </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Supervisor Signature
+            </Label>
+            <SignaturePad
+              value={data.supervisor_signature}
+              onChange={(v) => set("supervisor_signature", v)}
+              label="Supervisor"
+              testId="supervisor-sig"
+            />
+          </div>
+        </Section>
+
+        <div className="pt-4">
+          <Button
+            onClick={submit}
+            disabled={saving}
+            className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900"
+            data-testid="submit-bottom-btn"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Saving Report...
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5 mr-2" /> Submit Incident Report
+              </>
+            )}
+          </Button>
+        </div>
+      </main>
+    </div>
+  );
+}

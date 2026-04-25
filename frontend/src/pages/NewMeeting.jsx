@@ -16,6 +16,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { Section } from "@/components/Section";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { TopicPicker } from "@/components/TopicPicker";
 import { TOPIC_CATEGORIES, buildMeetingDefaults } from "@/lib/meetingSchema";
 import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/meetingTopicLibrary";
 import { api } from "@/lib/api";
@@ -333,31 +334,17 @@ export default function NewMeeting({ publicMode = false }) {
               </span>
               Topic Library — Pick a topic to prefill
             </Label>
-            <Select value={templateKey} onValueChange={applyTemplate}>
-              <SelectTrigger
-                className="h-14 text-base mt-2 border-2 border-red-300 bg-white focus-visible:ring-2 focus-visible:ring-red-500"
-                data-testid="select-topic-template"
-              >
-                <SelectValue placeholder="Select a topic..." />
-              </SelectTrigger>
-              <SelectContent className="max-h-[60vh]">
-                <SelectItem value={CUSTOM_TOPIC_KEY} data-testid="topic-template-custom">
-                  ✏️  Custom Topic — fill in your own
-                </SelectItem>
-                {TOPIC_LIBRARY.map((t) => (
-                  <SelectItem
-                    key={t.key}
-                    value={t.key}
-                    data-testid={`topic-template-${t.key}`}
-                  >
-                    {t.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <TopicPicker
+              value={templateKey}
+              onChange={applyTemplate}
+              topics={TOPIC_LIBRARY}
+              customKey={CUSTOM_TOPIC_KEY}
+              placeholder="Search or pick a topic..."
+            />
             <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-              Heavy civil / highway specific topics with prefilled hazards, key points, references, and action items.
-              Pick one and edit anything below — or choose <span className="font-bold">Custom Topic</span> to write your own.
+              {TOPIC_LIBRARY.length}+ heavy civil / highway topics with prefilled hazards, key points,
+              references, and action items. Type to search — or choose{" "}
+              <span className="font-bold">Custom Topic</span> to write your own.
             </p>
           </div>
 

@@ -4,6 +4,7 @@ import {
   ClipboardCheck,
   Users,
   AlertTriangle,
+  AlertOctagon,
   ArrowRight,
   Plus,
   Loader2,
@@ -20,6 +21,8 @@ const Tile = ({ to, icon: Icon, title, desc, count, sub, accent = "red" }) => {
       ? "border-red-700 bg-red-700"
       : accent === "amber"
       ? "border-amber-600 bg-amber-600"
+      : accent === "redDeep"
+      ? "border-red-900 bg-red-900"
       : "border-slate-800 bg-slate-800";
   return (
     <Link
@@ -66,7 +69,7 @@ const NewBtn = ({ to, label, testId }) => (
 );
 
 export default function Hub() {
-  const [counts, setCounts] = useState({ inspections: null, meetings: null, jhas: null });
+  const [counts, setCounts] = useState({ inspections: null, meetings: null, jhas: null, incidents: null });
   const [loading, setLoading] = useState(true);
   const [recent, setRecent] = useState([]);
 
@@ -74,21 +77,24 @@ export default function Hub() {
     let alive = true;
     (async () => {
       try {
-        const [insp, mtgs, jhas] = await Promise.all([
+        const [insp, mtgs, jhas, incs] = await Promise.all([
           api.get("/inspections").catch(() => ({ data: [] })),
           api.get("/meetings").catch(() => ({ data: [] })),
           api.get("/jhas").catch(() => ({ data: [] })),
+          api.get("/incidents").catch(() => ({ data: [] })),
         ]);
         if (!alive) return;
         setCounts({
           inspections: insp.data?.length || 0,
           meetings: mtgs.data?.length || 0,
           jhas: jhas.data?.length || 0,
+          incidents: incs.data?.length || 0,
         });
         const merged = [
           ...(insp.data || []).map((d) => ({ ...d, _kind: "inspection" })),
           ...(mtgs.data || []).map((d) => ({ ...d, _kind: "meeting" })),
           ...(jhas.data || []).map((d) => ({ ...d, _kind: "jha" })),
+          ...(incs.data || []).map((d) => ({ ...d, _kind: "incident" })),
         ]
           .sort((a, b) =>
             String(b.created_at || "").localeCompare(String(a.created_at || ""))
@@ -106,11 +112,10 @@ export default function Hub() {
     };
   }, []);
 
-  const inspAvg =
-    counts.inspections == null ? null : "Avg score on dashboard";
   const inspSub = counts.inspections === 1 ? "report on file" : "reports on file";
   const mtgSub = counts.meetings === 1 ? "meeting logged" : "meetings logged";
   const jhaSub = counts.jhas === 1 ? "analysis on file" : "analyses on file";
+  const incSub = counts.incidents === 1 ? "report on file" : "reports on file";
 
   return (
     <div className="min-h-screen blueprint-bg">
@@ -148,7 +153,7 @@ export default function Hub() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-12">
               <div className="relative">
                 <Tile
                   to="/inspections"
@@ -169,7 +174,7 @@ export default function Hub() {
                   to="/meetings"
                   icon={Users}
                   title="Safety Meetings"
-                  desc="Toolbox talks and daily huddles. Log topic, attendance, and key takeaways — every crew member signs in."
+                  desc="Toolbox talks and daily huddles. 80+ heavy-civil topics with prefilled hazards — every crew member signs in."
                   count={counts.meetings}
                   sub={mtgSub}
                   accent="slate"
@@ -191,6 +196,21 @@ export default function Hub() {
                 />
                 <div className="absolute top-6 right-6 sm:top-8 sm:right-8">
                   <NewBtn to="/jha/new" label="New" testId="hub-new-jha" />
+                </div>
+              </div>
+
+              <div className="relative">
+                <Tile
+                  to="/incidents"
+                  icon={AlertOctagon}
+                  title="Incident Reports"
+                  desc="Document near misses, injuries, and damage. Severity tiers, root cause, witnesses, and follow-up — all in one record."
+                  count={counts.incidents}
+                  sub={incSub}
+                  accent="redDeep"
+                />
+                <div className="absolute top-6 right-6 sm:top-8 sm:right-8">
+                  <NewBtn to="/incidents/new" label="New" testId="hub-new-incident" />
                 </div>
               </div>
             </div>
@@ -215,11 +235,13 @@ export default function Hub() {
                         ? { label: "Inspection", to: `/inspect/${r.id}`, color: "bg-red-700" }
                         : r._kind === "meeting"
                         ? { label: "Meeting", to: `/meetings/${r.id}`, color: "bg-slate-800" }
+                        : r._kind === "incident"
+                        ? { label: "Incident", to: `/incidents/${r.id}`, color: "bg-red-900" }
                         : { label: "JHA", to: `/jha/${r.id}`, color: "bg-amber-600" };
                     const dateStr =
-                      r.inspection_date || r.meeting_date || r.jha_date || r.created_at;
+                      r.inspection_date || r.meeting_date || r.jha_date || r.incident_date || r.created_at;
                     const title =
-                      r.project_name || r.topic || r.job_title || "Untitled";
+                      r.project_name || r.topic || r.job_title || r.incident_type || "Untitled";
                     return (
                       <li key={`${r._kind}-${r.id}`}>
                         <Link

@@ -13,6 +13,9 @@ import ViewMeeting from "@/pages/ViewMeeting";
 import JhaDashboard from "@/pages/JhaDashboard";
 import NewJha from "@/pages/NewJha";
 import ViewJha from "@/pages/ViewJha";
+import IncidentsDashboard from "@/pages/IncidentsDashboard";
+import NewIncident from "@/pages/NewIncident";
+import ViewIncident from "@/pages/ViewIncident";
 
 function App() {
   return (
@@ -43,6 +46,12 @@ function App() {
           <Route path="/jha/new" element={<NewJha />} />
           <Route path="/jha/submit" element={<NewJha publicMode />} />
           <Route path="/jha/:id" element={<ViewJha />} />
+
+          {/* Accident / Incident */}
+          <Route path="/incidents" element={<IncidentsDashboard />} />
+          <Route path="/incidents/new" element={<NewIncident />} />
+          <Route path="/incidents/submit" element={<NewIncident publicMode />} />
+          <Route path="/incidents/:id" element={<ViewIncident />} />
 
           {/* Shared */}
           <Route path="/thank-you" element={<ThankYou />} />

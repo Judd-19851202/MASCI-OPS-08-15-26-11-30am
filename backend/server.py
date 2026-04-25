@@ -384,6 +384,147 @@ async def delete_jha(jha_id: str):
     return {"deleted": True, "id": jha_id}
 
 
+# ============================================================
+# Accident / Incident Reports
+# ============================================================
+class IncidentCreate(BaseModel):
+    """Loose schema – the incident form is large, several optional sections."""
+    model_config = ConfigDict(extra="allow")
+
+    project_name: str
+    project_number: Optional[str] = ""
+    location: str
+    incident_date: str  # YYYY-MM-DD
+    incident_time: str  # HH:MM
+    reported_date: str
+    reported_by: str
+    supervisor_name: Optional[str] = ""
+
+    incident_type: str
+    severity: str  # near_miss / first_aid / medical / restricted / lost_time / fatality
+    osha_recordable: Optional[str] = "No"
+    work_stopped: Optional[str] = "No"
+
+    person_name: Optional[str] = ""
+    person_role: Optional[str] = ""
+    person_employer: Optional[str] = ""
+    person_years_experience: Optional[str] = ""
+    body_part: Optional[str] = ""
+    injury_nature: Optional[str] = ""
+    treatment_provided: Optional[str] = ""
+    medical_facility: Optional[str] = ""
+    sent_home: Optional[str] = "No"
+
+    description: str
+    immediate_cause: Optional[str] = ""
+    contributing_factors: Optional[str] = ""
+    root_causes: Dict[str, Any] = Field(default_factory=dict)
+    root_cause_notes: Optional[str] = ""
+
+    witnesses: List[Dict[str, Any]] = Field(default_factory=list)
+
+    immediate_actions_taken: Optional[str] = ""
+    corrective_actions: Optional[str] = ""
+    responsible_party: Optional[str] = ""
+    target_completion_date: Optional[str] = ""
+
+    notified_safety_manager: Optional[str] = "No"
+    notified_pm: Optional[str] = "No"
+    notified_gc: Optional[str] = "No"
+    notified_owner: Optional[str] = "No"
+    notified_osha: Optional[str] = "No"
+    notified_other: Optional[str] = ""
+
+    photos: List[str] = Field(default_factory=list)
+
+    reporter_signature: Optional[str] = ""
+    supervisor_signature: Optional[str] = ""
+
+
+class Incident(IncidentCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+
+
+class IncidentSummary(BaseModel):
+    id: str
+    project_name: str
+    location: str
+    incident_date: str
+    incident_type: str
+    severity: str
+    person_name: str
+    reported_by: str
+    osha_recordable: str
+    photo_count: int
+    created_at: str
+
+
+@api_router.post("/incidents", response_model=Incident)
+async def create_incident(payload: IncidentCreate):
+    incident = Incident(**payload.model_dump())
+    doc = incident.model_dump()
+    await db.incidents.insert_one(doc)
+    doc.pop("_id", None)
+    return incident
+
+
+@api_router.get("/incidents", response_model=List[IncidentSummary])
+async def list_incidents():
+    cursor = db.incidents.find(
+        {},
+        {
+            "_id": 0,
+            "id": 1,
+            "project_name": 1,
+            "location": 1,
+            "incident_date": 1,
+            "incident_type": 1,
+            "severity": 1,
+            "person_name": 1,
+            "reported_by": 1,
+            "osha_recordable": 1,
+            "photos": 1,
+            "created_at": 1,
+        },
+    ).sort("created_at", -1)
+    docs = await cursor.to_list(1000)
+    return [
+        IncidentSummary(
+            id=d.get("id", ""),
+            project_name=d.get("project_name", ""),
+            location=d.get("location", ""),
+            incident_date=d.get("incident_date", ""),
+            incident_type=d.get("incident_type", ""),
+            severity=d.get("severity", ""),
+            person_name=d.get("person_name", ""),
+            reported_by=d.get("reported_by", ""),
+            osha_recordable=d.get("osha_recordable", "No"),
+            photo_count=len(d.get("photos", []) or []),
+            created_at=d.get("created_at", ""),
+        )
+        for d in docs
+    ]
+
+
+@api_router.get("/incidents/{incident_id}")
+async def get_incident(incident_id: str):
+    doc = await db.incidents.find_one({"id": incident_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return doc
+
+
+@api_router.delete("/incidents/{incident_id}")
+async def delete_incident(incident_id: str):
+    result = await db.incidents.delete_one({"id": incident_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return {"deleted": True, "id": incident_id}
+
+
 app.include_router(api_router)
 
 app.add_middleware(
