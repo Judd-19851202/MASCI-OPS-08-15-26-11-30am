@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Printer, Loader2, AlertTriangle, Trash2 } from "lucide-react";
+import { ArrowLeft, Printer, Loader2, AlertTriangle, Trash2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { api } from "@/lib/api";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { getCompanyInfo } from "@/lib/companyInfo";
 import { computeGrade } from "@/lib/grading";
 import { GradeBanner } from "@/components/Grade";
+import { formatCoords } from "@/lib/geolocation";
 import {
   PPE_ITEMS,
   SITE_HAZARD_ITEMS,
@@ -214,7 +215,32 @@ export default function ViewInspection() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <KV label="Project Name" value={data.project_name} />
             <KV label="Project Number" value={data.project_number} />
-            <KV label="Location" value={data.location} full />
+            <div className="sm:col-span-2">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                Location
+              </div>
+              <div className="text-base text-slate-900 mt-1 whitespace-pre-wrap">
+                {data.location || "—"}
+              </div>
+              {data.gps_lat != null && data.gps_lng != null && (
+                <div
+                  className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-1 flex-wrap"
+                  data-testid="view-gps-coords"
+                >
+                  <MapPin className="w-3 h-3 text-red-700" />
+                  <span>GPS · {formatCoords(data.gps_lat, data.gps_lng, data.gps_accuracy)}</span>
+                  <a
+                    href={`https://www.google.com/maps?q=${data.gps_lat},${data.gps_lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-red-700 hover:text-red-800 font-bold no-print"
+                    data-testid="view-gps-map-link"
+                  >
+                    · Open in Maps
+                  </a>
+                </div>
+              )}
+            </div>
             <KV label="Date" value={formatDateLong(data.inspection_date)} />
             <KV label="Time" value={data.inspection_time} />
             <KV label="Operation" value={data.operation} />

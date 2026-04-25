@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { computeGrade } from "@/lib/grading";
 import { GradeBanner } from "@/components/Grade";
+import { getCurrentPosition, reverseGeocode, formatCoords } from "@/lib/geolocation";
 
 const inputCls =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
@@ -35,6 +36,46 @@ export default function NewInspection({ publicMode = false }) {
   const navigate = useNavigate();
   const [data, setData] = useState(buildDefaults());
   const [saving, setSaving] = useState(false);
+  const [locating, setLocating] = useState(false);
+
+  const useGps = async () => {
+    setLocating(true);
+    try {
+      const pos = await getCurrentPosition();
+      const { latitude, longitude, accuracy } = pos.coords;
+      // Save coords immediately even if reverse geocode fails
+      setData((p) => ({
+        ...p,
+        gps_lat: latitude,
+        gps_lng: longitude,
+        gps_accuracy: accuracy,
+      }));
+      try {
+        const r = await reverseGeocode(latitude, longitude);
+        setData((p) => ({ ...p, location: r.display }));
+        toast.success("Location captured from GPS");
+      } catch {
+        // Couldn't reverse geocode — fall back to coordinates as the location
+        setData((p) => ({
+          ...p,
+          location: formatCoords(latitude, longitude, accuracy),
+        }));
+        toast.warning("Got GPS coordinates, but couldn't look up address");
+      }
+    } catch (e) {
+      const msg =
+        e?.code === 1
+          ? "Location permission denied — enable it in your browser settings"
+          : e?.code === 2
+          ? "Could not determine your location. Try moving to an open area."
+          : e?.code === 3
+          ? "Location lookup timed out. Try again."
+          : e?.message || "Could not get GPS location";
+      toast.error(msg);
+    } finally {
+      setLocating(false);
+    }
+  };
 
   const set = (field, value) => setData((p) => ({ ...p, [field]: value }));
   const setNested = (section, key, value) =>
@@ -179,9 +220,27 @@ export default function NewInspection({ publicMode = false }) {
               />
             </div>
             <div className="sm:col-span-2">
-              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Location *
-              </Label>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Location *
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={useGps}
+                  disabled={locating}
+                  className="h-9 px-3 border-2 border-slate-300 hover:border-red-500 hover:text-red-700 font-bold uppercase tracking-wide text-xs"
+                  data-testid="use-gps-btn"
+                >
+                  {locating ? (
+                    <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                  ) : (
+                    <MapPin className="w-3.5 h-3.5 mr-1" />
+                  )}
+                  Use GPS
+                </Button>
+              </div>
               <Input
                 value={data.location}
                 onChange={(e) => set("location", e.target.value)}
@@ -189,6 +248,15 @@ export default function NewInspection({ publicMode = false }) {
                 placeholder="Address, intersection, station, or GPS"
                 data-testid="input-location"
               />
+              {data.gps_lat != null && data.gps_lng != null && (
+                <div
+                  className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1.5 flex items-center gap-1"
+                  data-testid="gps-coords-display"
+                >
+                  <MapPin className="w-3 h-3 text-red-700" />
+                  GPS · {formatCoords(data.gps_lat, data.gps_lng, data.gps_accuracy)}
+                </div>
+              )}
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
