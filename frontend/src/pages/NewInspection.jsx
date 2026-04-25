@@ -1,0 +1,508 @@
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MasciLogo } from "@/components/MasciLogo";
+import { Section, ChecklistRow } from "@/components/Section";
+import { YesNo } from "@/components/YesNo";
+import { SignaturePad } from "@/components/SignaturePad";
+import { PhotoUpload } from "@/components/PhotoUpload";
+import {
+  PPE_ITEMS,
+  SITE_HAZARD_ITEMS,
+  CONDITIONAL_SECTIONS,
+  buildDefaults,
+} from "@/lib/inspectionSchema";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+
+const inputCls =
+  "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
+
+export default function NewInspection() {
+  const navigate = useNavigate();
+  const [data, setData] = useState(buildDefaults());
+  const [saving, setSaving] = useState(false);
+
+  const set = (field, value) => setData((p) => ({ ...p, [field]: value }));
+  const setNested = (section, key, value) =>
+    setData((p) => ({ ...p, [section]: { ...p[section], [key]: value } }));
+  const setCondTop = (section, field, value) =>
+    setData((p) => ({ ...p, [section]: { ...p[section], [field]: value } }));
+  const setCondItem = (section, key, value) =>
+    setData((p) => ({
+      ...p,
+      [section]: {
+        ...p[section],
+        items: { ...p[section].items, [key]: value },
+      },
+    }));
+
+  const validate = () => {
+    const required = [
+      ["project_name", "Project Name"],
+      ["location", "Location"],
+      ["inspection_date", "Date"],
+      ["inspection_time", "Time"],
+      ["inspector_name", "Inspector Name"],
+      ["foreman_name", "Foreman / Supervisor"],
+      ["work_activity", "Work Activity"],
+    ];
+    for (const [key, label] of required) {
+      if (!String(data[key] || "").trim()) {
+        toast.error(`${label} is required`);
+        return false;
+      }
+    }
+    if (!data.inspector_signature) {
+      toast.error("Inspector signature is required");
+      return false;
+    }
+    if (!data.foreman_signature) {
+      toast.error("Foreman / Supervisor signature is required");
+      return false;
+    }
+    return true;
+  };
+
+  const submit = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      const res = await api.post("/inspections", data);
+      toast.success("Inspection saved");
+      navigate(`/inspect/${res.data.id}`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not save inspection");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 pb-32">
+      <div className="caution-stripe" />
+      <header className="bg-white border-b-2 border-slate-300 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+          <Link
+            to="/"
+            className="inline-flex items-center text-slate-700 hover:text-slate-900 text-sm font-bold uppercase tracking-wide"
+            data-testid="back-link"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" /> Reports
+          </Link>
+          <MasciLogo size="sm" />
+          <Button
+            onClick={submit}
+            disabled={saving}
+            className="h-11 px-4 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold uppercase tracking-wide text-sm"
+            data-testid="submit-top-btn"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+            Submit
+          </Button>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+        <div className="mb-2">
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-yellow-600">
+            New Report
+          </span>
+          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
+            Job Site Safety Inspection
+          </h1>
+        </div>
+
+        {/* Section 1: Project / Inspection Information */}
+        <Section number="01" title="Project / Inspection Information">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Project Name *
+              </Label>
+              <Input
+                value={data.project_name}
+                onChange={(e) => set("project_name", e.target.value)}
+                className={inputCls}
+                placeholder="e.g. I-95 Resurfacing - Phase 2"
+                data-testid="input-project-name"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Project Number
+              </Label>
+              <Input
+                value={data.project_number}
+                onChange={(e) => set("project_number", e.target.value)}
+                className={inputCls}
+                placeholder="Optional"
+                data-testid="input-project-number"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Location *
+              </Label>
+              <Input
+                value={data.location}
+                onChange={(e) => set("location", e.target.value)}
+                className={inputCls}
+                placeholder="Address, intersection, station, or GPS"
+                data-testid="input-location"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Date *
+              </Label>
+              <Input
+                type="date"
+                value={data.inspection_date}
+                onChange={(e) => set("inspection_date", e.target.value)}
+                className={inputCls}
+                data-testid="input-date"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Time *
+              </Label>
+              <Input
+                type="time"
+                value={data.inspection_time}
+                onChange={(e) => set("inspection_time", e.target.value)}
+                className={inputCls}
+                data-testid="input-time"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Operation *
+              </Label>
+              <Select value={data.operation} onValueChange={(v) => set("operation", v)}>
+                <SelectTrigger className={inputCls} data-testid="select-operation">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Day">Day</SelectItem>
+                  <SelectItem value="Night">Night</SelectItem>
+                  <SelectItem value="Weekend">Weekend</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Inspector Name *
+              </Label>
+              <Input
+                value={data.inspector_name}
+                onChange={(e) => set("inspector_name", e.target.value)}
+                className={inputCls}
+                data-testid="input-inspector-name"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Foreman / Supervisor *
+              </Label>
+              <Input
+                value={data.foreman_name}
+                onChange={(e) => set("foreman_name", e.target.value)}
+                className={inputCls}
+                data-testid="input-foreman-name"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Crew / MASCI Personnel Onsite
+              </Label>
+              <Textarea
+                value={data.crew_personnel}
+                onChange={(e) => set("crew_personnel", e.target.value)}
+                className="min-h-[80px] text-base border-2 border-slate-300"
+                placeholder="List crew members or crew lead"
+                data-testid="input-crew"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Subcontractors Onsite
+              </Label>
+              <Textarea
+                value={data.subcontractors}
+                onChange={(e) => set("subcontractors", e.target.value)}
+                className="min-h-[80px] text-base border-2 border-slate-300"
+                placeholder="Company / activity / manpower"
+                data-testid="input-subs"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Weather Conditions
+              </Label>
+              <Input
+                value={data.weather_conditions}
+                onChange={(e) => set("weather_conditions", e.target.value)}
+                className={inputCls}
+                placeholder="Sunny 78°F, light wind…"
+                data-testid="input-weather"
+              />
+            </div>
+          </div>
+        </Section>
+
+        {/* Section 2: Work Activity */}
+        <Section number="02" title="Work Activity Taking Place Onsite">
+          <Textarea
+            value={data.work_activity}
+            onChange={(e) => set("work_activity", e.target.value)}
+            className="min-h-[100px] text-base border-2 border-slate-300"
+            placeholder="Earthwork, pipe, paving, concrete, MOT setup, etc."
+            data-testid="input-work-activity"
+          />
+        </Section>
+
+        {/* Section 3: PPE Compliance */}
+        <Section number="03" title="PPE Compliance">
+          {PPE_ITEMS.map((item) => (
+            <ChecklistRow
+              key={item.key}
+              label={item.label}
+              testId={`ppe-row-${item.key}`}
+            >
+              <YesNo
+                value={data.ppe_compliance[item.key] || ""}
+                onChange={(v) => setNested("ppe_compliance", item.key, v)}
+                testId={`ppe-${item.key}`}
+              />
+            </ChecklistRow>
+          ))}
+        </Section>
+
+        {/* Conditional sections 4-10 */}
+        {CONDITIONAL_SECTIONS.map((sec, idx) => {
+          const sectionNum = String(4 + idx).padStart(2, "0");
+          const block = data[sec.key];
+          const expanded = block.applies === "Yes";
+          return (
+            <Section key={sec.key} number={sectionNum} title={sec.title}>
+              <div>
+                <Label className="text-base text-slate-800 leading-snug block mb-3">
+                  {sec.trigger}
+                </Label>
+                <YesNo
+                  value={block.applies}
+                  onChange={(v) => setCondTop(sec.key, "applies", v)}
+                  options={["No", "Yes"]}
+                  testId={`cond-${sec.key}`}
+                  size="lg"
+                />
+              </div>
+              {expanded && (
+                <div className="mt-3 pt-4 border-t-2 border-dashed border-yellow-400 space-y-1">
+                  {sec.items.map((item) => (
+                    <ChecklistRow
+                      key={item.key}
+                      label={item.label}
+                      testId={`${sec.key}-row-${item.key}`}
+                    >
+                      <YesNo
+                        value={block.items[item.key] || ""}
+                        onChange={(v) => setCondItem(sec.key, item.key, v)}
+                        testId={`${sec.key}-${item.key}`}
+                      />
+                    </ChecklistRow>
+                  ))}
+                  <div className="pt-3">
+                    <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                      Notes
+                    </Label>
+                    <Textarea
+                      value={block.notes}
+                      onChange={(e) => setCondTop(sec.key, "notes", e.target.value)}
+                      className="min-h-[80px] text-base border-2 border-slate-300"
+                      placeholder="Optional notes for this section"
+                      data-testid={`${sec.key}-notes`}
+                    />
+                  </div>
+                </div>
+              )}
+            </Section>
+          );
+        })}
+
+        {/* Section 11: Site Hazards & Housekeeping */}
+        <Section number="11" title="General Site Hazards & Housekeeping">
+          {SITE_HAZARD_ITEMS.map((item) => (
+            <ChecklistRow
+              key={item.key}
+              label={item.label}
+              testId={`hazard-row-${item.key}`}
+            >
+              <YesNo
+                value={data.site_hazards[item.key] || ""}
+                onChange={(v) => setNested("site_hazards", item.key, v)}
+                testId={`hazard-${item.key}`}
+              />
+            </ChecklistRow>
+          ))}
+        </Section>
+
+        {/* Section 12: Corrective Actions */}
+        <Section number="12" title="Safety Issues / Corrective Actions">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Hazards Observed *
+              </Label>
+              <YesNo
+                value={data.hazards_observed}
+                onChange={(v) => set("hazards_observed", v)}
+                testId="hazards-observed"
+                size="lg"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Stop Work Issued *
+              </Label>
+              <YesNo
+                value={data.stop_work_issued}
+                onChange={(v) => set("stop_work_issued", v)}
+                testId="stop-work"
+                size="lg"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                Corrected On Site *
+              </Label>
+              <YesNo
+                value={data.corrected_on_site}
+                onChange={(v) => set("corrected_on_site", v)}
+                options={["Yes", "No", "N/A"]}
+                testId="corrected-onsite"
+                size="lg"
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Responsible Party / Follow-Up Owner
+            </Label>
+            <Input
+              value={data.responsible_party}
+              onChange={(e) => set("responsible_party", e.target.value)}
+              className={inputCls}
+              data-testid="input-responsible-party"
+            />
+          </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Description / Corrective Action Notes
+            </Label>
+            <Textarea
+              value={data.corrective_action_notes}
+              onChange={(e) => set("corrective_action_notes", e.target.value)}
+              className="min-h-[120px] text-base border-2 border-slate-300"
+              placeholder="Describe issue, location, immediate action taken, and follow-up required."
+              data-testid="input-corrective-notes"
+            />
+          </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 block mb-2">
+              Photo Documentation
+            </Label>
+            <PhotoUpload
+              photos={data.photos}
+              onChange={(photos) => set("photos", photos)}
+            />
+          </div>
+        </Section>
+
+        {/* Section 13: Signatures */}
+        <Section number="13" title="Signatures">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Inspector Typed Name *
+                </Label>
+                <Input
+                  value={data.inspector_name}
+                  onChange={(e) => set("inspector_name", e.target.value)}
+                  className={inputCls}
+                  placeholder="Inspector name"
+                  data-testid="input-inspector-typed"
+                />
+              </div>
+              <SignaturePad
+                value={data.inspector_signature}
+                onChange={(v) => set("inspector_signature", v)}
+                label="Inspector Signature *"
+                testId="inspector-signature"
+              />
+            </div>
+            <div className="space-y-3">
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Foreman / Supervisor Typed Name *
+                </Label>
+                <Input
+                  value={data.foreman_name}
+                  onChange={(e) => set("foreman_name", e.target.value)}
+                  className={inputCls}
+                  placeholder="Supervisor name"
+                  data-testid="input-foreman-typed"
+                />
+              </div>
+              <SignaturePad
+                value={data.foreman_signature}
+                onChange={(v) => set("foreman_signature", v)}
+                label="Foreman / Supervisor Signature *"
+                testId="foreman-signature"
+              />
+            </div>
+          </div>
+        </Section>
+
+        <div className="pt-4">
+          <Button
+            onClick={submit}
+            disabled={saving}
+            className="w-full h-16 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg"
+            data-testid="submit-bottom-btn"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Saving Inspection...
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5 mr-2" />
+                Submit Inspection Report
+              </>
+            )}
+          </Button>
+          <p className="text-center text-xs text-slate-500 mt-2 font-mono uppercase tracking-[0.2em]">
+            All fields marked * are required
+          </p>
+        </div>
+      </main>
+    </div>
+  );
+}

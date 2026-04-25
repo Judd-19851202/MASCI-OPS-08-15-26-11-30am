@@ -1,75 +1,51 @@
+@import url("https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+html,
 body {
     margin: 0;
+    background: #f8fafc;
+    color: #0f172a;
     font-family:
-        -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-        sans-serif;
+        "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: light;
 }
 
-code {
+.font-display {
+    font-family: "Chivo", "IBM Plex Sans", sans-serif;
+}
+.font-mono {
     font-family:
-        source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+        "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 @layer base {
     :root {
         --background: 0 0% 100%;
-        --foreground: 0 0% 3.9%;
+        --foreground: 222 47% 11%;
         --card: 0 0% 100%;
-        --card-foreground: 0 0% 3.9%;
+        --card-foreground: 222 47% 11%;
         --popover: 0 0% 100%;
-        --popover-foreground: 0 0% 3.9%;
-        --primary: 0 0% 9%;
-        --primary-foreground: 0 0% 98%;
-        --secondary: 0 0% 96.1%;
-        --secondary-foreground: 0 0% 9%;
-        --muted: 0 0% 96.1%;
-        --muted-foreground: 0 0% 45.1%;
-        --accent: 0 0% 96.1%;
-        --accent-foreground: 0 0% 9%;
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 89.8%;
-        --input: 0 0% 89.8%;
-        --ring: 0 0% 3.9%;
-        --chart-1: 12 76% 61%;
-        --chart-2: 173 58% 39%;
-        --chart-3: 197 37% 24%;
-        --chart-4: 43 74% 66%;
-        --chart-5: 27 87% 67%;
+        --popover-foreground: 222 47% 11%;
+        --primary: 222 47% 11%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 210 40% 96%;
+        --secondary-foreground: 222 47% 11%;
+        --muted: 210 40% 96%;
+        --muted-foreground: 215 16% 47%;
+        --accent: 48 96% 53%;
+        --accent-foreground: 222 47% 11%;
+        --destructive: 0 72% 51%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 215 20% 80%;
+        --input: 215 20% 80%;
+        --ring: 222 47% 11%;
         --radius: 0.5rem;
-    }
-    .dark {
-        --background: 0 0% 3.9%;
-        --foreground: 0 0% 98%;
-        --card: 0 0% 3.9%;
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 3.9%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 0 0% 9%;
-        --secondary: 0 0% 14.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 0 0% 14.9%;
-        --muted-foreground: 0 0% 63.9%;
-        --accent: 0 0% 14.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 14.9%;
-        --input: 0 0% 14.9%;
-        --ring: 0 0% 83.1%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
     }
 }
 
@@ -80,13 +56,90 @@ code {
     body {
         @apply bg-background text-foreground;
     }
+    /* Big, friendly form inputs for gloved hands & sunlight readability. */
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    input[type="email"],
+    input[type="password"],
+    select,
+    textarea {
+        font-size: 16px; /* Prevents iOS zoom-on-focus */
+    }
+}
+
+/* ------------------------- PRINT STYLES ------------------------- */
+@media print {
+    @page {
+        size: Letter portrait;
+        margin: 0.5in;
+    }
+    html,
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    .no-print,
+    .no-print * {
+        display: none !important;
+    }
+    .print-only {
+        display: block !important;
+    }
+    /* Force light theme even if browser tries to invert */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .print-page {
+        background: white !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+    }
+    .print-section {
+        page-break-inside: avoid;
+        border: 1px solid #000 !important;
+        margin-bottom: 12px !important;
+        padding: 12px !important;
+        background: white !important;
+    }
+    .print-section h2 {
+        font-size: 13pt !important;
+        margin-bottom: 6px !important;
+    }
+    .print-row {
+        font-size: 10pt !important;
+        line-height: 1.35 !important;
+    }
+    .print-status-yes {
+        background: #fff !important;
+        border: 1px solid #000 !important;
+        color: #000 !important;
+        font-weight: 700;
+    }
+    .print-status-no {
+        background: #000 !important;
+        color: #fff !important;
+        font-weight: 700;
+    }
+    img {
+        max-width: 100% !important;
+        page-break-inside: avoid;
+    }
+}
+
+/* Hide print-only blocks on screen */
+.print-only {
+    display: none;
 }
 
 @layer base {
     [data-debug-wrapper="true"] {
         display: contents !important;
     }
-
     [data-debug-wrapper="true"] > * {
         margin-left: inherit;
         margin-right: inherit;
