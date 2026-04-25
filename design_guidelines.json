@@ -1,0 +1,78 @@
+{
+  "theme": "light",
+  "archetype": "Swiss & High-Contrast (Industrial/Safety Variant)",
+  "emotional_tone": "Professional, reliable, heavy-duty, zero-BS, authoritative.",
+  "typography": {
+    "heading_font": "Chivo",
+    "body_font": "IBM Plex Sans",
+    "mono_font": "IBM Plex Mono",
+    "scale": {
+      "h1": "text-4xl sm:text-5xl font-black tracking-tight",
+      "h2": "text-2xl sm:text-3xl font-bold tracking-tight",
+      "h3": "text-xl sm:text-2xl font-bold",
+      "body": "text-base lg:text-lg leading-relaxed",
+      "overline": "text-xs font-mono uppercase tracking-[0.2em] text-slate-500"
+    }
+  },
+  "colors": {
+    "primary": "#EAB308", 
+    "primary_text": "#000000",
+    "background": "#FFFFFF",
+    "surface": "#F8FAFC",
+    "text": "#0F172A",
+    "muted_text": "#64748B",
+    "border": "#CBD5E1",
+    "status": {
+      "success": "#16A34A",
+      "danger": "#DC2626",
+      "warning": "#EA580C"
+    }
+  },
+  "spacing_and_layout": {
+    "philosophy": "Massive touch targets for gloved hands. High contrast boundaries. Vertical data entry flow.",
+    "buttons": "Minimum height h-14, ideally h-16 for primary CTAs. Full-width on mobile.",
+    "inputs": "Height h-14. Large text (text-lg) to prevent squinting in sunlight.",
+    "grid_strategy": "Control Room Grid. Dense but clearly separated by thick 2px borders.",
+    "print_layout": "Strict Swiss Grid. Monochrome, removing all gradients/shadows. High-density data tables."
+  },
+  "components": {
+    "toggles": "Segmented controls (YES/NO/N/A) spanning full width. YES = muted green active state, NO = bright red active state.",
+    "cards": "Flat solid surfaces (NO glassmorphism). 1px or 2px solid border (border-slate-300). No soft shadows, use hard drop-shadows if needed.",
+    "camera_upload": "Massive dashed border zone. h-32 minimum. Icon center.",
+    "signature": "Solid border canvas area. Clear 'Clear' button. Must save as base64/image for PDF."
+  },
+  "media": {
+    "image_urls": [
+      {
+        "url": "https://images.unsplash.com/photo-1768677903496-becc4be07258?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTZ8MHwxfHNlYXJjaHwyfHxjb25zdHJ1Y3Rpb24lMjBzaXRlJTIwc2FmZXR5JTIwaW5zcGVjdG9yfGVufDB8fHx8MTc3NzEyNzg4MXww&ixlib=rb-4.1.0&q=85",
+        "category": "hero_or_empty_state",
+        "description": "Construction worker inspects rebar. Use for dashboard hero or 'No recent inspections' empty state."
+      },
+      {
+        "url": "https://images.pexels.com/photos/4458210/pexels-photo-4458210.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "category": "background_texture",
+        "description": "Blueprint texture. Use at extremely low opacity (5-10%) in the background of the auth screen or main dashboard wrapper."
+      }
+    ],
+    "logo": {
+      "strategy": "Typographic",
+      "instructions": "Do not use an image placeholder. Create a purely CSS-based logo: The word 'MASCI' in 'Chivo' font, font-black, tracking-tighter. Add a small safety yellow square (w-3 h-3 bg-yellow-500) next to it."
+    }
+  },
+  "motion_and_interaction": {
+    "hover": "Shift background colors sharply. No slow fades. Hardware-like snapping.",
+    "focus": "2px solid blue (ring-2 ring-blue-600 ring-offset-2) to ensure visibility in glare.",
+    "transitions": "Fast, 150ms ease-in-out."
+  },
+  "testing": {
+    "requirements": "All interactive and key informational elements MUST include a `data-testid` attribute. Convention: kebab-case, role-based."
+  },
+  "instructions_to_main_agent": [
+    "Implement pure light mode (forced) for sunlight readability. Disable dark mode inversion.",
+    "Forms must use custom Shadcn inputs with extremely large touch targets (h-14).",
+    "Use react-signature-canvas for the signature pad. Ensure drawing captures cleanly for PDF.",
+    "For PDF generation, strongly recommend using `react-to-print` or `window.print()` with a custom `@media print` CSS block that hides navigation and formats the form data as a clean, branded MASCI report.",
+    "Ensure all inputs, especially YES/NO segmented controls, have clear high-contrast states.",
+    "In the PDF view, apply strict Swiss brutalist typography. Black and white, thin borders, highly professional. Ensure no page breaks inside critical sections."
+  ]
+}
