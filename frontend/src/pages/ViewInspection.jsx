@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { getCompanyInfo } from "@/lib/companyInfo";
 import {
   PPE_ITEMS,
   SITE_HAZARD_ITEMS,
@@ -124,35 +125,36 @@ export default function ViewInspection() {
   }
   if (!data) return null;
 
+  const company = getCompanyInfo();
   const flagged =
     data.hazards_observed === "Yes" || data.stop_work_issued === "Yes";
 
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="caution-stripe no-print" />
-      <header className="bg-white border-b-2 border-slate-300 sticky top-0 z-10 no-print">
+      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <Link
             to="/"
-            className="inline-flex items-center text-slate-700 hover:text-slate-900 text-sm font-bold uppercase tracking-wide"
+            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="back-link"
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Reports
           </Link>
-          <MasciLogo size="sm" />
+          <MasciLogo variant="mark" size="md" />
           <div className="flex gap-2">
             <Button
               variant="outline"
               size="icon"
               onClick={handleDelete}
-              className="h-11 w-11 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
+              className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
               data-testid="delete-btn"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
             <Button
               onClick={() => window.print()}
-              className="h-11 px-4 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold uppercase tracking-wide text-sm"
+              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
               data-testid="print-btn"
             >
               <Printer className="w-4 h-4 mr-1" /> Print / PDF
@@ -284,15 +286,43 @@ export default function ViewInspection() {
                 Photo Documentation ({data.photos.length})
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {data.photos.map((p, i) => (
-                  <img
-                    key={i}
-                    src={p}
-                    alt={`Finding ${i + 1}`}
-                    className="w-full aspect-square object-cover rounded-md border-2 border-slate-200"
-                    data-testid={`view-photo-${i}`}
-                  />
-                ))}
+                {data.photos.map((p, i) => {
+                  const stamp = `${(company.company_name || "MASCI").toUpperCase()} · ${
+                    (data.id || "").slice(0, 8).toUpperCase()
+                  } · ${formatDateLong(data.inspection_date)}`;
+                  return (
+                    <div
+                      key={i}
+                      className="relative w-full aspect-square rounded-md overflow-hidden border-2 border-slate-200 bg-white"
+                      data-testid={`view-photo-${i}`}
+                    >
+                      <img
+                        src={p}
+                        alt={`Finding ${i + 1}`}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                      {/* Diagonal MASCI watermark — visible on screen and print */}
+                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                        <span
+                          className="font-display font-black text-white/30 select-none"
+                          style={{
+                            transform: "rotate(-30deg)",
+                            fontSize: "clamp(14px, 6vw, 28px)",
+                            letterSpacing: "0.2em",
+                            textShadow: "0 1px 2px rgba(0,0,0,0.4)",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {(company.company_name || "MASCI").toUpperCase()}
+                        </span>
+                      </div>
+                      {/* Bottom traceability strip */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/65 text-white px-1.5 py-1 font-mono text-[8px] uppercase tracking-wider truncate">
+                        {stamp}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -343,9 +373,50 @@ export default function ViewInspection() {
           </div>
         </ReportSection>
 
-        <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8">
-          Generated {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · MASCI Job Site Safety
+        <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8 print-section">
+          Generated {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || "MASCI"} Job Site Safety
         </div>
+
+        {/* Print-only company info footer */}
+        {(company.address || company.phone || company.email || company.license_number || company.website) && (
+          <div className="print-only border-t-2 border-black pt-3 mt-2 text-[9pt] leading-snug print-section">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="font-display font-black text-[11pt] text-black">
+                  {company.company_name || "MASCI"}
+                </div>
+                {company.tagline && (
+                  <div className="font-mono text-[8pt] uppercase tracking-[0.2em] text-black">
+                    {company.tagline}
+                  </div>
+                )}
+              </div>
+              <div className="text-right text-black">
+                {company.address && <div>{company.address}</div>}
+                {company.city_state_zip && <div>{company.city_state_zip}</div>}
+                {(company.phone || company.email) && (
+                  <div>
+                    {company.phone}
+                    {company.phone && company.email ? " · " : ""}
+                    {company.email}
+                  </div>
+                )}
+                {(company.license_number || company.website) && (
+                  <div>
+                    {company.license_number && (
+                      <span>License #{company.license_number}</span>
+                    )}
+                    {company.license_number && company.website ? " · " : ""}
+                    {company.website}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="text-center mt-2 font-mono text-[8pt] uppercase tracking-[0.2em] text-black border-t border-black pt-2">
+              Confidential Safety Inspection Record · Report ID {data.id?.slice(0, 8).toUpperCase()}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

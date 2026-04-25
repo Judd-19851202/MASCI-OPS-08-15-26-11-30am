@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Plus, FileText, AlertTriangle, ShieldCheck, Eye, Trash2, Loader2, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
@@ -77,15 +78,18 @@ export default function Dashboard() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
           <MasciLogo variant="lockup" size="2xl" className="hidden sm:block" />
           <MasciLogo variant="mark" size="lg" className="sm:hidden" />
-          <Button
-            onClick={() => navigate("/inspect/new")}
-            className="h-12 sm:h-14 px-5 sm:px-7 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm sm:text-base border-b-4 border-red-900"
-            data-testid="new-inspection-btn"
-          >
-            <Plus className="w-5 h-5 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">New Inspection</span>
-            <span className="sm:hidden">New</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <CompanyInfoDialog />
+            <Button
+              onClick={() => navigate("/inspect/new")}
+              className="h-12 sm:h-14 px-5 sm:px-7 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm sm:text-base border-b-4 border-red-900"
+              data-testid="new-inspection-btn"
+            >
+              <Plus className="w-5 h-5 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">New Inspection</span>
+              <span className="sm:hidden">New</span>
+            </Button>
+          </div>
         </div>
       </header>
 
