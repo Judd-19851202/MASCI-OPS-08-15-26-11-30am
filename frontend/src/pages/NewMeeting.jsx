@@ -17,6 +17,7 @@ import { Section } from "@/components/Section";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { TOPIC_CATEGORIES, buildMeetingDefaults } from "@/lib/meetingSchema";
+import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/meetingTopicLibrary";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import {
@@ -33,8 +34,41 @@ export default function NewMeeting({ publicMode = false }) {
   const [data, setData] = useState(buildMeetingDefaults());
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [templateKey, setTemplateKey] = useState(CUSTOM_TOPIC_KEY);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
+
+  const applyTemplate = (key) => {
+    setTemplateKey(key);
+    if (key === CUSTOM_TOPIC_KEY) {
+      // Clear prefilled fields so they can write their own
+      setData((p) => ({
+        ...p,
+        topic: "",
+        topic_category: "Hazard-Specific",
+        hazards_reviewed: "",
+        discussion_notes: "",
+        references_cited: "",
+        action_items: "",
+        topic_template_key: CUSTOM_TOPIC_KEY,
+      }));
+      toast.info("Custom topic — all topic fields cleared.");
+      return;
+    }
+    const t = findTopic(key);
+    if (!t) return;
+    setData((p) => ({
+      ...p,
+      topic: t.title,
+      topic_category: t.category,
+      hazards_reviewed: t.hazards_reviewed,
+      discussion_notes: t.discussion_notes,
+      references_cited: t.references_cited,
+      action_items: t.action_items,
+      topic_template_key: t.key,
+    }));
+    toast.success(`Loaded "${t.title}" — all fields are editable.`);
+  };
 
   const useGps = async () => {
     setLocating(true);
@@ -292,6 +326,41 @@ export default function NewMeeting({ publicMode = false }) {
         </Section>
 
         <Section number="02" title="Topic & Discussion">
+          <div className="bg-red-50 border-2 border-red-200 rounded-md p-4">
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold flex items-center gap-2">
+              <span className="inline-flex w-5 h-5 items-center justify-center rounded bg-red-700 text-white text-[10px] font-black">
+                +
+              </span>
+              Topic Library — Pick a topic to prefill
+            </Label>
+            <Select value={templateKey} onValueChange={applyTemplate}>
+              <SelectTrigger
+                className="h-14 text-base mt-2 border-2 border-red-300 bg-white focus-visible:ring-2 focus-visible:ring-red-500"
+                data-testid="select-topic-template"
+              >
+                <SelectValue placeholder="Select a topic..." />
+              </SelectTrigger>
+              <SelectContent className="max-h-[60vh]">
+                <SelectItem value={CUSTOM_TOPIC_KEY} data-testid="topic-template-custom">
+                  ✏️  Custom Topic — fill in your own
+                </SelectItem>
+                {TOPIC_LIBRARY.map((t) => (
+                  <SelectItem
+                    key={t.key}
+                    value={t.key}
+                    data-testid={`topic-template-${t.key}`}
+                  >
+                    {t.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+              Heavy civil / highway specific topics with prefilled hazards, key points, references, and action items.
+              Pick one and edit anything below — or choose <span className="font-bold">Custom Topic</span> to write your own.
+            </p>
+          </div>
+
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               Topic / Subject *
