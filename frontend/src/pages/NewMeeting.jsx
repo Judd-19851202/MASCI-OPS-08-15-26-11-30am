@@ -17,6 +17,7 @@ import { Section } from "@/components/Section";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { TopicPicker } from "@/components/TopicPicker";
+import { JobPicker } from "@/components/JobPicker";
 import { TOPIC_CATEGORIES, buildMeetingDefaults } from "@/lib/meetingSchema";
 import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/meetingTopicLibrary";
 import { api } from "@/lib/api";
@@ -38,6 +39,17 @@ export default function NewMeeting({ publicMode = false }) {
   const [templateKey, setTemplateKey] = useState(CUSTOM_TOPIC_KEY);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
+
+  const applyJob = (job) => {
+    setData((p) => ({
+      ...p,
+      project_name: job ? job.project_name : "",
+      project_number: job ? job.project_number : "",
+      // Only prefill location if user hasn't entered one yet
+      location: p.location || (job && job.location) || "",
+    }));
+    if (job) toast.success(`Job loaded: #${job.project_number}`);
+  };
 
   const applyTemplate = (key) => {
     setTemplateKey(key);
@@ -208,6 +220,21 @@ export default function NewMeeting({ publicMode = false }) {
         </div>
 
         <Section number="01" title="Meeting Information">
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              MASCI Job
+            </Label>
+            <div className="mt-2">
+              <JobPicker
+                projectName={data.project_name}
+                projectNumber={data.project_number}
+                onSelect={applyJob}
+              />
+            </div>
+            <p className="text-xs text-slate-500 mt-1.5">
+              Pick a current job to auto-fill name + number — or choose Custom Job to type your own.
+            </p>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">

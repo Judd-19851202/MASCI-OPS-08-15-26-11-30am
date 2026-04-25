@@ -26,6 +26,7 @@ import { Section } from "@/components/Section";
 import { YesNo } from "@/components/YesNo";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { JobPicker } from "@/components/JobPicker";
 import {
   INCIDENT_TYPES,
   SEVERITY_LEVELS,
@@ -55,6 +56,16 @@ export default function NewIncident({ publicMode = false }) {
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
   const setMap = (mapKey, key, value) =>
     setData((p) => ({ ...p, [mapKey]: { ...p[mapKey], [key]: value } }));
+
+  const applyJob = (job) => {
+    setData((p) => ({
+      ...p,
+      project_name: job ? job.project_name : "",
+      project_number: job ? job.project_number : "",
+      location: p.location || (job && job.location) || "",
+    }));
+    if (job) toast.success(`Job loaded: #${job.project_number}`);
+  };
 
   const useGps = async () => {
     setLocating(true);
@@ -217,6 +228,21 @@ export default function NewIncident({ publicMode = false }) {
 
         {/* Section 01 — Report Info */}
         <Section number="01" title="Report Information">
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              MASCI Job
+            </Label>
+            <div className="mt-2">
+              <JobPicker
+                projectName={data.project_name}
+                projectNumber={data.project_number}
+                onSelect={applyJob}
+              />
+            </div>
+            <p className="text-xs text-slate-500 mt-1.5">
+              Pick a current job to auto-fill name + number — or choose Custom Job to type your own.
+            </p>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">

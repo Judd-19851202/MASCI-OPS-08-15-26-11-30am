@@ -17,6 +17,7 @@ import { Section, ChecklistRow } from "@/components/Section";
 import { YesNo } from "@/components/YesNo";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { JobPicker } from "@/components/JobPicker";
 import {
   PPE_ITEMS,
   SITE_HAZARD_ITEMS,
@@ -37,6 +38,16 @@ export default function NewInspection({ publicMode = false }) {
   const [data, setData] = useState(buildDefaults());
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
+
+  const applyJob = (job) => {
+    setData((p) => ({
+      ...p,
+      project_name: job ? job.project_name : "",
+      project_number: job ? job.project_number : "",
+      location: p.location || (job && job.location) || "",
+    }));
+    if (job) toast.success(`Job loaded: #${job.project_number}`);
+  };
 
   const useGps = async () => {
     setLocating(true);
@@ -194,6 +205,21 @@ export default function NewInspection({ publicMode = false }) {
 
         {/* Section 1: Project / Inspection Information */}
         <Section number="01" title="Project / Inspection Information">
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              MASCI Job
+            </Label>
+            <div className="mt-2">
+              <JobPicker
+                projectName={data.project_name}
+                projectNumber={data.project_number}
+                onSelect={applyJob}
+              />
+            </div>
+            <p className="text-xs text-slate-500 mt-1.5">
+              Pick a current job to auto-fill name + number — or choose Custom Job to type your own.
+            </p>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
