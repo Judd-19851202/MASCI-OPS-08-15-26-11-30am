@@ -24,19 +24,23 @@ export const SITE_HAZARD_ITEMS = [
   { key: "housekeeping", label: "Housekeeping acceptable" },
 ];
 
-// Conditional sections: top-level Yes/No, with sub-checklist and notes when YES.
+// Conditional sections: top-level Yes/No. Sub-checklist + notes appear when YES is selected.
+// Items are VERBATIM from the original MASCI form (provided by user).
+// `autoFail: true` items, when answered NO, flag the report as a critical safety failure.
 export const CONDITIONAL_SECTIONS = [
   {
     key: "equipment",
     title: "Equipment & Vehicle Safety",
     trigger: "Is equipment or company vehicle operation taking place onsite?",
     items: [
-      { key: "pre_op_inspection", label: "Pre-operation inspection / walk-around completed" },
-      { key: "operator_qualified", label: "Operator qualified / authorized" },
-      { key: "seat_belts", label: "Seat belts worn while operating" },
-      { key: "backup_alarms", label: "Back-up alarms / spotters in use" },
-      { key: "swing_radius", label: "Swing radius / blind spots controlled" },
-      { key: "fire_extinguisher", label: "Fire extinguisher present and inspected" },
+      { key: "daily_inspections", label: "Daily equipment inspections completed" },
+      { key: "seatbelts", label: "Seatbelts used", autoFail: true },
+      { key: "backup_alarms", label: "Backup alarms / horns operational" },
+      { key: "lights_strobes", label: "Lights, strobes, and beacons operational where required" },
+      { key: "fire_extinguishers", label: "Fire extinguishers present, charged, and accessible" },
+      { key: "no_leaks_defects", label: "Equipment free of visible leaks or unsafe defects" },
+      { key: "spotters", label: "Spotters used where required" },
+      { key: "parked_safely", label: "Equipment parked/staged safely when not in use" },
     ],
   },
   {
@@ -44,11 +48,12 @@ export const CONDITIONAL_SECTIONS = [
     title: "Traffic Control / MOT Safety",
     trigger: "Is MOT, traffic control, flagging, lane closure, or public traffic exposure present?",
     items: [
-      { key: "tcp_onsite", label: "Approved Traffic Control Plan (TCP) onsite" },
-      { key: "signage_devices", label: "Signage and devices match TCP" },
-      { key: "flaggers_certified", label: "Flaggers certified and in proper PPE" },
-      { key: "buffer_taper", label: "Buffer / taper lengths correct for speed" },
-      { key: "night_lighting", label: "Night work lighting / retroreflectivity adequate" },
+      { key: "mot_matches_plan", label: "MOT setup matches approved plan / field condition", autoFail: true },
+      { key: "devices_installed", label: "Signs, cones, barrels, barricades, and devices properly installed" },
+      { key: "flaggers_trained", label: "Flaggers trained, visible, and positioned safely" },
+      { key: "public_exposure", label: "Pedestrian/public exposure controlled" },
+      { key: "night_lighting", label: "Night lighting adequate if working at night" },
+      { key: "workers_protected", label: "Workers protected from live traffic / equipment movement", autoFail: true },
     ],
   },
   {
@@ -56,10 +61,15 @@ export const CONDITIONAL_SECTIONS = [
     title: "MOT – Work From Moving Trucks / Fall Protection",
     trigger: "Are workers placing/removing MOT or working from the back of moving trucks/equipment?",
     items: [
-      { key: "speed_controlled", label: "Truck speed controlled (5 mph or less during placement)" },
-      { key: "secure_footing", label: "Workers maintain secure footing / handholds" },
-      { key: "no_riding_outside", label: "No personnel riding outside designated areas" },
-      { key: "communication", label: "Driver / worker communication established" },
+      { key: "harness_worn", label: "Full-body harness worn by exposed workers", autoFail: true },
+      { key: "tied_off", label: "Workers tied off while working from moving vehicle/equipment", autoFail: true },
+      { key: "rated_anchor", label: "Approved/rated anchor point used — no improvised tie-off", autoFail: true },
+      { key: "tie_off_maintained", label: "Tie-off maintained during operation" },
+      { key: "truck_speed", label: "Truck speed controlled and coordinated with crew" },
+      { key: "no_mount_dismount", label: "No mounting/dismounting while vehicle is moving" },
+      { key: "driver_comms", label: "Driver/crew communication established" },
+      { key: "platform_clear", label: "Work platform free of slip/trip hazards" },
+      { key: "spotter_awareness", label: "Spotter/traffic awareness maintained" },
     ],
   },
   {
@@ -67,11 +77,12 @@ export const CONDITIONAL_SECTIONS = [
     title: "Fall Protection – General",
     trigger: "Is any fall exposure, elevated work, ladder use, openings, edges, structures, or tie-off required?",
     items: [
-      { key: "guardrails", label: "Guardrails / covers / barricades in place" },
-      { key: "harness_inspected", label: "Personal fall arrest systems inspected before use" },
-      { key: "anchor_points", label: "Anchor points rated 5,000 lbs or engineered" },
-      { key: "ladders_secured", label: "Ladders inspected, secured, proper angle (4:1)" },
-      { key: "rescue_plan", label: "Rescue plan in place for suspended workers" },
+      { key: "fp_in_place", label: "Fall protection in place where required", autoFail: true },
+      { key: "harness_inspected", label: "Harness/lanyard/SRL inspected prior to use" },
+      { key: "approved_anchors", label: "Approved anchor points used", autoFail: true },
+      { key: "guardrails_covers", label: "Guardrails/covers installed and secured where applicable" },
+      { key: "ladders_secured", label: "Ladders used properly and secured as required" },
+      { key: "openings_protected", label: "Open holes/edges protected or clearly marked" },
     ],
   },
   {
@@ -79,12 +90,13 @@ export const CONDITIONAL_SECTIONS = [
     title: "Excavation / Trenching / Underground Utilities",
     trigger: "Is excavation, trenching, pipe work, or underground utility work taking place?",
     items: [
-      { key: "competent_person", label: "Competent person on site" },
-      { key: "utilities_located", label: "Utilities located / 811 ticket valid" },
-      { key: "protective_system", label: "Protective system (slope/shore/shield) in use ≥5 ft" },
-      { key: "spoils_setback", label: "Spoils set back ≥2 ft from edge" },
-      { key: "access_egress_trench", label: "Ladder/ramp access within 25 ft of workers" },
-      { key: "atmospheric", label: "Atmospheric testing where required" },
+      { key: "competent_person", label: "Competent person inspection completed", autoFail: true },
+      { key: "utilities_located", label: "Utilities located/marked and respected", autoFail: true },
+      { key: "protective_system", label: "Protective system used where required: slope, shield, shoring, or bench", autoFail: true },
+      { key: "access_egress", label: "Safe access/egress provided" },
+      { key: "spoil_setback", label: "Spoil pile/materials kept back from edge" },
+      { key: "water_controlled", label: "Water accumulation controlled" },
+      { key: "swing_radius", label: "Employees kept out from under suspended loads and equipment swing radius" },
     ],
   },
   {
@@ -92,11 +104,11 @@ export const CONDITIONAL_SECTIONS = [
     title: "Electrical Safety",
     trigger: "Is electrical work, temporary power, generators, cords, lighting, pumps, or energized equipment present?",
     items: [
-      { key: "gfci", label: "GFCI protection on all 120V circuits" },
-      { key: "cords_inspected", label: "Cords inspected, no damage, proper gauge" },
-      { key: "panels_covered", label: "Panels / boxes covered, no exposed conductors" },
-      { key: "loto", label: "Lockout / tagout procedures followed where required" },
-      { key: "overhead_lines", label: "Overhead line clearance maintained" },
+      { key: "gfci", label: "GFCI protection used where required", autoFail: true },
+      { key: "cords_condition", label: "Cords/tools in good condition with no exposed conductors" },
+      { key: "panels_secured", label: "Panels/generators secured and protected" },
+      { key: "overhead_underground", label: "Overhead/underground electrical hazards identified" },
+      { key: "loto", label: "Lockout/tagout or energy control used when applicable", autoFail: true },
     ],
   },
   {
@@ -104,11 +116,12 @@ export const CONDITIONAL_SECTIONS = [
     title: "Concrete / Asphalt / Paving Operations",
     trigger: "Is concrete, asphalt, milling, paving, forming, sawcutting, or hot work taking place?",
     items: [
-      { key: "burn_protection", label: "Burn protection PPE for hot asphalt / concrete" },
-      { key: "silica_controls", label: "Silica controls in place (water / vacuum / Table 1)" },
-      { key: "saw_guards", label: "Saw blade guards in place and functional" },
-      { key: "rebar_caps", label: "Rebar caps / impalement protection in place" },
-      { key: "rollover_zones", label: "Roller / paver no-go zones marked, spotters used" },
+      { key: "burn_protection", label: "Burn protection and task-specific PPE used" },
+      { key: "rebar_protected", label: "Rebar/dowels protected or capped where exposure exists" },
+      { key: "formwork_stable", label: "Formwork stable and access routes maintained" },
+      { key: "silica_controls", label: "Silica/dust controls used for cutting/grinding/sawing where required" },
+      { key: "separation", label: "Equipment/personnel separation maintained" },
+      { key: "hot_materials", label: "Hot materials, tack, fuel, and chemicals handled safely" },
     ],
   },
 ];

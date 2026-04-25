@@ -23,12 +23,22 @@ export const Section = ({ number, title, children, className = "" }) => {
   );
 };
 
-export const ChecklistRow = ({ label, children, testId }) => (
+export const ChecklistRow = ({ label, children, testId, autoFail = false }) => (
   <div
     className="grid grid-cols-1 md:grid-cols-[1fr_220px] gap-3 md:gap-6 items-start md:items-center py-3 border-b border-slate-100 last:border-b-0"
     data-testid={testId}
   >
-    <span className="text-base text-slate-800 leading-snug">{label}</span>
+    <span className="text-base text-slate-800 leading-snug flex items-start gap-2">
+      <span>{label}</span>
+      {autoFail && (
+        <span
+          className="shrink-0 inline-flex items-center px-1.5 py-0.5 mt-0.5 bg-red-600 text-white text-[9px] font-mono font-bold uppercase tracking-wider rounded"
+          title="Failing this item triggers an automatic safety failure"
+        >
+          Auto-Fail
+        </span>
+      )}
+    </span>
     <div>{children}</div>
   </div>
 );

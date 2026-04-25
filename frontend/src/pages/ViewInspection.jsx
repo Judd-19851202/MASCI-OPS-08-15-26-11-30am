@@ -31,12 +31,26 @@ const StatusBadge = ({ value }) => {
   );
 };
 
-const ReadRow = ({ label, value }) => (
-  <div className="flex items-start justify-between gap-4 py-2 border-b border-slate-100 last:border-b-0 print-row">
-    <span className="text-sm text-slate-700 leading-snug">{label}</span>
-    <StatusBadge value={value} />
-  </div>
-);
+const ReadRow = ({ label, value, autoFail = false }) => {
+  const failed = autoFail && (value || "").toString().toLowerCase() === "no";
+  return (
+    <div
+      className={`flex items-start justify-between gap-4 py-2 border-b border-slate-100 last:border-b-0 print-row ${
+        failed ? "bg-red-50 -mx-2 px-2 rounded" : ""
+      }`}
+    >
+      <span className="text-sm text-slate-700 leading-snug flex items-start gap-2 flex-1">
+        <span>{label}</span>
+        {autoFail && (
+          <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 mt-0.5 bg-red-600 text-white text-[9px] font-mono font-bold uppercase tracking-wider rounded">
+            Auto-Fail
+          </span>
+        )}
+      </span>
+      <StatusBadge value={value} />
+    </div>
+  );
+};
 
 const KV = ({ label, value, full = false }) => (
   <div className={full ? "sm:col-span-2" : ""}>
@@ -214,6 +228,7 @@ export default function ViewInspection() {
                       key={it.key}
                       label={it.label}
                       value={block.items?.[it.key]}
+                      autoFail={it.autoFail}
                     />
                   ))}
                   {block.notes && (

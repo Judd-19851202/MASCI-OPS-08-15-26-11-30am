@@ -317,6 +317,7 @@ export default function NewInspection() {
                     <ChecklistRow
                       key={item.key}
                       label={item.label}
+                      autoFail={item.autoFail}
                       testId={`${sec.key}-row-${item.key}`}
                     >
                       <YesNo
