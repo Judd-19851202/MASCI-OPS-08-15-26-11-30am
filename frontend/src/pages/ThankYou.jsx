@@ -58,7 +58,6 @@ export default function ThankYou() {
               variant="outline"
               className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide"
               data-testid="close-btn"
-              onClick={() => window.close()}
             >
               <a href="#" onClick={(e) => { e.preventDefault(); window.close(); }}>
                 Close Window
