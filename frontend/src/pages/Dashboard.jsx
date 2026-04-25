@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, FileText, AlertTriangle, ShieldCheck, Eye, Trash2, Loader2, ClipboardCheck } from "lucide-react";
+import { Plus, FileText, AlertTriangle, ShieldCheck, Eye, Trash2, Loader2, ClipboardCheck, ShieldX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
+import { GradePill } from "@/components/Grade";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
@@ -64,12 +65,14 @@ export default function Dashboard() {
 
   const stats = {
     total: items.length,
-    hazards: items.filter((i) => i.hazards_observed === "Yes").length,
-    stopWork: items.filter((i) => i.stop_work_issued === "Yes").length,
-    clean:
-      items.filter(
-        (i) => i.hazards_observed !== "Yes" && i.stop_work_issued !== "Yes"
-      ).length,
+    pass: items.filter((i) => i.status === "PASS").length,
+    fail: items.filter((i) => i.status === "FAIL").length,
+    avgScore:
+      items.length === 0
+        ? 0
+        : Math.round(
+            items.reduce((s, i) => s + (i.score || 0), 0) / items.length
+          ),
   };
 
   return (
@@ -116,9 +119,9 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-10">
           <StatPill icon={FileText} value={stats.total} label="Total Reports" tone="slate" />
-          <StatPill icon={ShieldCheck} value={stats.clean} label="No Findings" tone="green" />
-          <StatPill icon={AlertTriangle} value={stats.hazards} label="With Hazards" tone="yellow" />
-          <StatPill icon={ClipboardCheck} value={stats.stopWork} label="Stop Works" tone="red" />
+          <StatPill icon={ShieldCheck} value={stats.pass} label="Passing" tone="green" />
+          <StatPill icon={ShieldX} value={stats.fail} label="Failing" tone="red" />
+          <StatPill icon={AlertTriangle} value={`${stats.avgScore}%`} label="Avg Score" tone="yellow" />
         </div>
 
         <div className="bg-white border-2 border-slate-300 rounded-md overflow-hidden">
@@ -159,6 +162,16 @@ export default function Dashboard() {
             <ul className="divide-y-2 divide-slate-100">
               {items.map((it) => {
                 const flagged = it.hazards_observed === "Yes" || it.stop_work_issued === "Yes";
+                const grade = it.score != null
+                  ? {
+                      score: it.score,
+                      status: it.status || (it.score < 74 ? "FAIL" : "PASS"),
+                      auto_fail_count: it.auto_fail_count || 0,
+                      yes: it.graded_yes || 0,
+                      no: it.graded_no || 0,
+                      total: it.graded_total || 0,
+                    }
+                  : null;
                 return (
                   <li
                     key={it.id}
@@ -171,6 +184,7 @@ export default function Dashboard() {
                         <span className="font-display text-lg font-bold text-slate-900 truncate">
                           {it.project_name || "Untitled Project"}
                         </span>
+                        <GradePill grade={grade} testId={`grade-${it.id}`} />
                         {flagged && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-600 text-white text-[10px] font-mono uppercase tracking-wider rounded">
                             <AlertTriangle className="w-3 h-3" />

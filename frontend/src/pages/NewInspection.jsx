@@ -25,6 +25,8 @@ import {
 } from "@/lib/inspectionSchema";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { computeGrade } from "@/lib/grading";
+import { GradeBanner } from "@/components/Grade";
 
 const inputCls =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
@@ -79,11 +81,21 @@ export default function NewInspection({ publicMode = false }) {
     if (!validate()) return;
     setSaving(true);
     try {
-      const res = await api.post("/inspections", data);
+      const grade = computeGrade(data);
+      const payload = {
+        ...data,
+        score: grade.score,
+        status: grade.status,
+        auto_fail_count: grade.auto_fail_count,
+        graded_yes: grade.yes,
+        graded_no: grade.no,
+        graded_total: grade.total,
+      };
+      const res = await api.post("/inspections", payload);
       toast.success("Inspection saved");
       if (publicMode) {
         navigate("/thank-you", {
-          state: { projectName: data.project_name },
+          state: { projectName: data.project_name, grade },
           replace: true,
         });
       } else {
@@ -135,6 +147,9 @@ export default function NewInspection({ publicMode = false }) {
             Job Site Safety Inspection
           </h1>
         </div>
+
+        {/* Live grade banner */}
+        <GradeBanner grade={computeGrade(data)} label="Live Grade" />
 
         {/* Section 1: Project / Inspection Information */}
         <Section number="01" title="Project / Inspection Information">

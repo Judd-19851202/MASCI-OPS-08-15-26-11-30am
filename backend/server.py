@@ -64,6 +64,14 @@ class InspectionCreate(BaseModel):
     inspector_signature: Optional[str] = ""
     foreman_signature: Optional[str] = ""
 
+    # Grading (computed on the client at submit time)
+    score: Optional[int] = None  # 0-100
+    status: Optional[str] = None  # "PASS" | "FAIL"
+    auto_fail_count: Optional[int] = 0
+    graded_yes: Optional[int] = 0
+    graded_no: Optional[int] = 0
+    graded_total: Optional[int] = 0
+
 
 class Inspection(InspectionCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -83,6 +91,12 @@ class InspectionSummary(BaseModel):
     stop_work_issued: str
     photo_count: int
     created_at: str
+    score: Optional[int] = None
+    status: Optional[str] = None
+    auto_fail_count: Optional[int] = 0
+    graded_yes: Optional[int] = 0
+    graded_no: Optional[int] = 0
+    graded_total: Optional[int] = 0
 
 
 # ------------------------- Routes -------------------------
@@ -117,6 +131,12 @@ async def list_inspections():
             "stop_work_issued": 1,
             "photos": 1,
             "created_at": 1,
+            "score": 1,
+            "status": 1,
+            "auto_fail_count": 1,
+            "graded_yes": 1,
+            "graded_no": 1,
+            "graded_total": 1,
         },
     ).sort("created_at", -1)
     docs = await cursor.to_list(1000)
@@ -134,6 +154,12 @@ async def list_inspections():
                 stop_work_issued=d.get("stop_work_issued", "No"),
                 photo_count=len(d.get("photos", []) or []),
                 created_at=d.get("created_at", ""),
+                score=d.get("score"),
+                status=d.get("status"),
+                auto_fail_count=d.get("auto_fail_count", 0),
+                graded_yes=d.get("graded_yes", 0),
+                graded_no=d.get("graded_no", 0),
+                graded_total=d.get("graded_total", 0),
             )
         )
     return summaries

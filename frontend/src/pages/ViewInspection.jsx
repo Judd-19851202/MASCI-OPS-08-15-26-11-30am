@@ -6,6 +6,8 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { getCompanyInfo } from "@/lib/companyInfo";
+import { computeGrade } from "@/lib/grading";
+import { GradeBanner } from "@/components/Grade";
 import {
   PPE_ITEMS,
   SITE_HAZARD_ITEMS,
@@ -126,6 +128,7 @@ export default function ViewInspection() {
   if (!data) return null;
 
   const company = getCompanyInfo();
+  const grade = computeGrade(data);
   const flagged =
     data.hazards_observed === "Yes" || data.stop_work_issued === "Yes";
 
@@ -190,6 +193,9 @@ export default function ViewInspection() {
             </div>
           )}
         </div>
+
+        {/* Grade banner */}
+        <GradeBanner grade={grade} />
 
         <ReportSection number="01" title="Project / Inspection Information">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
