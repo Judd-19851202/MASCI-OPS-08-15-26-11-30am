@@ -35,7 +35,7 @@ export const MasciLogo = ({
   if (variant === "wordmark") {
     return (
       <img
-        src="/masci-wordmark.jpg"
+        src="/masci-wordmark.png"
         alt="MASCI"
         className={cn(h, "w-auto select-none", className)}
         data-testid="masci-logo-wordmark"
@@ -47,7 +47,7 @@ export const MasciLogo = ({
     <img
       src="/masci-mark.png"
       alt="MASCI"
-      className={cn(h, "w-auto select-none rounded", className)}
+      className={cn(h, "w-auto select-none", className)}
       data-testid="masci-logo-mark"
       draggable={false}
     />
