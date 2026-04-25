@@ -32,7 +32,7 @@ export const PhotoUpload = ({ photos = [], onChange }) => {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="w-full h-32 border-2 border-dashed border-slate-400 bg-slate-50 hover:bg-yellow-50 hover:border-yellow-500 transition-colors duration-150 rounded-md flex flex-col items-center justify-center gap-2 text-slate-700"
+        className="w-full h-32 border-2 border-dashed border-slate-400 bg-slate-50 hover:bg-red-50 hover:border-red-700 transition-colors duration-150 rounded-md flex flex-col items-center justify-center gap-2 text-slate-700"
         data-testid="photo-upload-button"
       >
         <Camera className="w-8 h-8" />

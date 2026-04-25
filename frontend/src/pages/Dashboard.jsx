@@ -73,12 +73,13 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen blueprint-bg">
       <div className="caution-stripe" />
-      <header className="bg-white border-b-2 border-slate-300">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-5 flex items-center justify-between">
-          <MasciLogo size="md" />
+      <header className="bg-slate-900 border-b-4 border-red-700">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+          <MasciLogo variant="lockup" size="2xl" className="hidden sm:block" />
+          <MasciLogo variant="mark" size="lg" className="sm:hidden" />
           <Button
             onClick={() => navigate("/inspect/new")}
-            className="h-12 sm:h-14 px-5 sm:px-7 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold uppercase tracking-wide text-sm sm:text-base"
+            className="h-12 sm:h-14 px-5 sm:px-7 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm sm:text-base border-b-4 border-red-900"
             data-testid="new-inspection-btn"
           >
             <Plus className="w-5 h-5 mr-1 sm:mr-2" />
@@ -100,6 +101,11 @@ export default function Dashboard() {
             Document compliance, capture findings, and produce print-ready reports
             from any device — phone, tablet, or desktop.
           </p>
+          <div className="mt-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.25em]">
+            <span className="text-red-700 font-bold">No Shortcuts</span>
+            <span className="w-1 h-1 rounded-full bg-red-700" />
+            <span className="text-red-700 font-bold">No Exceptions</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-10">
@@ -125,8 +131,8 @@ export default function Dashboard() {
             </div>
           ) : items.length === 0 ? (
             <div className="p-10 sm:p-16 text-center" data-testid="empty-state">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-md bg-yellow-400 mb-5">
-                <ClipboardCheck className="w-8 h-8 text-slate-900" />
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-md bg-red-700 mb-5">
+                <ClipboardCheck className="w-8 h-8 text-white" />
               </div>
               <h3 className="font-display text-2xl font-bold text-slate-900">
                 No inspections yet
@@ -137,7 +143,7 @@ export default function Dashboard() {
               </p>
               <Button
                 onClick={() => navigate("/inspect/new")}
-                className="mt-6 h-12 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide"
+                className="mt-6 h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
                 data-testid="empty-state-cta"
               >
                 <Plus className="w-5 h-5 mr-2" /> Start First Inspection
@@ -151,7 +157,7 @@ export default function Dashboard() {
                   <li
                     key={it.id}
                     onClick={() => navigate(`/inspect/${it.id}`)}
-                    className="p-4 sm:p-5 hover:bg-yellow-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3"
+                    className="p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3"
                     data-testid={`inspection-row-${it.id}`}
                   >
                     <div className="flex-1 min-w-0">

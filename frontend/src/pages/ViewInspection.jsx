@@ -69,7 +69,7 @@ const ReportSection = ({ number, title, children }) => (
     data-testid={`view-section-${number}`}
   >
     <div className="flex items-baseline gap-3 mb-4 pb-2 border-b-2 border-slate-200">
-      <span className="font-mono text-xs uppercase tracking-[0.2em] text-yellow-600">
+      <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
         Section {number}
       </span>
       <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900">
@@ -163,18 +163,24 @@ export default function ViewInspection() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
         {/* Print header */}
-        <div className="flex items-start justify-between border-b-4 border-slate-900 pb-4">
-          <div>
-            <MasciLogo size="lg" />
-            <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-3">
+        <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
+          <div className="flex-1">
+            <MasciLogo variant="lockup" size="2xl" className="hidden sm:block max-w-[420px]" />
+            <MasciLogo variant="mark" size="xl" className="sm:hidden" />
+            <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
               Job Site Safety Inspection Report
             </h1>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1">
               Report ID · {data.id?.slice(0, 8).toUpperCase()}
             </div>
+            <div className="mt-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
+              <span>No Shortcuts</span>
+              <span className="w-1 h-1 rounded-full bg-red-700" />
+              <span>No Exceptions</span>
+            </div>
           </div>
           {flagged && (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-md">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-red-700 text-white rounded-md self-start">
               <AlertTriangle className="w-5 h-5" />
               <span className="font-bold uppercase tracking-wide text-sm">
                 {data.stop_work_issued === "Yes" ? "Stop Work" : "Hazard Found"}

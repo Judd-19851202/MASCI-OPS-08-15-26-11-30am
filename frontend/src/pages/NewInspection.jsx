@@ -93,20 +93,20 @@ export default function NewInspection() {
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
       <div className="caution-stripe" />
-      <header className="bg-white border-b-2 border-slate-300 sticky top-0 z-10">
+      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <Link
             to="/"
-            className="inline-flex items-center text-slate-700 hover:text-slate-900 text-sm font-bold uppercase tracking-wide"
+            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="back-link"
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Reports
           </Link>
-          <MasciLogo size="sm" />
+          <MasciLogo variant="mark" size="md" />
           <Button
             onClick={submit}
             disabled={saving}
-            className="h-11 px-4 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold uppercase tracking-wide text-sm"
+            className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
             data-testid="submit-top-btn"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
@@ -117,7 +117,7 @@ export default function NewInspection() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
         <div className="mb-2">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-yellow-600">
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             New Report
           </span>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
@@ -312,7 +312,7 @@ export default function NewInspection() {
                 />
               </div>
               {expanded && (
-                <div className="mt-3 pt-4 border-t-2 border-dashed border-yellow-400 space-y-1">
+                <div className="mt-3 pt-4 border-t-2 border-dashed border-red-600 space-y-1">
                   {sec.items.map((item) => (
                     <ChecklistRow
                       key={item.key}
@@ -484,7 +484,7 @@ export default function NewInspection() {
           <Button
             onClick={submit}
             disabled={saving}
-            className="w-full h-16 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg"
+            className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900"
             data-testid="submit-bottom-btn"
           >
             {saving ? (

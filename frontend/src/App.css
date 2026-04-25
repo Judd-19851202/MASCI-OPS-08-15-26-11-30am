@@ -11,14 +11,23 @@
     background-size: 24px 24px;
 }
 
-/* Yellow caution stripe accent */
+/* MASCI red/black brand stripe (replaces generic caution yellow) */
 .caution-stripe {
     background: repeating-linear-gradient(
         45deg,
-        #eab308,
-        #eab308 12px,
+        #c8102e,
+        #c8102e 12px,
         #0f172a 12px,
         #0f172a 24px
     );
     height: 6px;
+}
+
+/* MASCI brand red */
+.brand-red {
+    background-color: #c8102e;
+    color: #ffffff;
+}
+.brand-red:hover {
+    background-color: #a30d24;
 }
