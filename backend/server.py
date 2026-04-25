@@ -181,6 +181,209 @@ async def delete_inspection(inspection_id: str):
     return {"deleted": True, "id": inspection_id}
 
 
+# ============================================================
+# Site Safety Meetings (Toolbox Talks)
+# ============================================================
+class MeetingCreate(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    project_name: str
+    project_number: Optional[str] = ""
+    location: str
+    meeting_date: str
+    meeting_time: str
+    conducted_by: str
+    topic: str
+    topic_category: Optional[str] = ""
+    hazards_reviewed: Optional[str] = ""
+    discussion_notes: Optional[str] = ""
+    references_cited: Optional[str] = ""
+    action_items: Optional[str] = ""
+    attendees: List[Dict[str, Any]] = Field(default_factory=list)
+    photos: List[str] = Field(default_factory=list)
+    conductor_signature: Optional[str] = ""
+
+
+class Meeting(MeetingCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+
+
+class MeetingSummary(BaseModel):
+    id: str
+    project_name: str
+    location: str
+    meeting_date: str
+    conducted_by: str
+    topic: str
+    topic_category: str
+    attendee_count: int
+    created_at: str
+
+
+@api_router.post("/meetings", response_model=Meeting)
+async def create_meeting(payload: MeetingCreate):
+    meeting = Meeting(**payload.model_dump())
+    doc = meeting.model_dump()
+    await db.meetings.insert_one(doc)
+    doc.pop("_id", None)
+    return meeting
+
+
+@api_router.get("/meetings", response_model=List[MeetingSummary])
+async def list_meetings():
+    cursor = db.meetings.find(
+        {},
+        {
+            "_id": 0,
+            "id": 1,
+            "project_name": 1,
+            "location": 1,
+            "meeting_date": 1,
+            "conducted_by": 1,
+            "topic": 1,
+            "topic_category": 1,
+            "attendees": 1,
+            "created_at": 1,
+        },
+    ).sort("created_at", -1)
+    docs = await cursor.to_list(1000)
+    return [
+        MeetingSummary(
+            id=d.get("id", ""),
+            project_name=d.get("project_name", ""),
+            location=d.get("location", ""),
+            meeting_date=d.get("meeting_date", ""),
+            conducted_by=d.get("conducted_by", ""),
+            topic=d.get("topic", ""),
+            topic_category=d.get("topic_category", ""),
+            attendee_count=len(d.get("attendees", []) or []),
+            created_at=d.get("created_at", ""),
+        )
+        for d in docs
+    ]
+
+
+@api_router.get("/meetings/{meeting_id}")
+async def get_meeting(meeting_id: str):
+    doc = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    return doc
+
+
+@api_router.delete("/meetings/{meeting_id}")
+async def delete_meeting(meeting_id: str):
+    result = await db.meetings.delete_one({"id": meeting_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    return {"deleted": True, "id": meeting_id}
+
+
+# ============================================================
+# Job Hazard Analysis (JHA / JSA)
+# ============================================================
+class JhaCreate(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    project_name: str
+    project_number: Optional[str] = ""
+    location: str
+    jha_date: str
+    job_title: str
+    job_description: Optional[str] = ""
+    crew_lead: str
+    crew_members: Optional[str] = ""
+    ppe_required: Dict[str, Any] = Field(default_factory=dict)
+    permits_required: Dict[str, Any] = Field(default_factory=dict)
+    tools_equipment: Optional[str] = ""
+    task_steps: List[Dict[str, Any]] = Field(default_factory=list)
+    stop_work_acknowledged: Optional[str] = "Yes"
+    nearest_hospital: Optional[str] = ""
+    emergency_contact: Optional[str] = ""
+    crew_signoffs: List[Dict[str, Any]] = Field(default_factory=list)
+    foreman_signature: Optional[str] = ""
+    photos: List[str] = Field(default_factory=list)
+
+
+class Jha(JhaCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+
+
+class JhaSummary(BaseModel):
+    id: str
+    project_name: str
+    location: str
+    jha_date: str
+    crew_lead: str
+    job_title: str
+    step_count: int
+    signoff_count: int
+    created_at: str
+
+
+@api_router.post("/jhas", response_model=Jha)
+async def create_jha(payload: JhaCreate):
+    jha = Jha(**payload.model_dump())
+    doc = jha.model_dump()
+    await db.jhas.insert_one(doc)
+    doc.pop("_id", None)
+    return jha
+
+
+@api_router.get("/jhas", response_model=List[JhaSummary])
+async def list_jhas():
+    cursor = db.jhas.find(
+        {},
+        {
+            "_id": 0,
+            "id": 1,
+            "project_name": 1,
+            "location": 1,
+            "jha_date": 1,
+            "crew_lead": 1,
+            "job_title": 1,
+            "task_steps": 1,
+            "crew_signoffs": 1,
+            "created_at": 1,
+        },
+    ).sort("created_at", -1)
+    docs = await cursor.to_list(1000)
+    return [
+        JhaSummary(
+            id=d.get("id", ""),
+            project_name=d.get("project_name", ""),
+            location=d.get("location", ""),
+            jha_date=d.get("jha_date", ""),
+            crew_lead=d.get("crew_lead", ""),
+            job_title=d.get("job_title", ""),
+            step_count=len(d.get("task_steps", []) or []),
+            signoff_count=len(d.get("crew_signoffs", []) or []),
+            created_at=d.get("created_at", ""),
+        )
+        for d in docs
+    ]
+
+
+@api_router.get("/jhas/{jha_id}")
+async def get_jha(jha_id: str):
+    doc = await db.jhas.find_one({"id": jha_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="JHA not found")
+    return doc
+
+
+@api_router.delete("/jhas/{jha_id}")
+async def delete_jha(jha_id: str):
+    result = await db.jhas.delete_one({"id": jha_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="JHA not found")
+    return {"deleted": True, "id": jha_id}
+
+
 app.include_router(api_router)
 
 app.add_middleware(

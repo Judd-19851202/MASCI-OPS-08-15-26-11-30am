@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, FileText, AlertTriangle, ShieldCheck, Eye, Trash2, Loader2, ClipboardCheck, ShieldX } from "lucide-react";
+import { Plus, FileText, AlertTriangle, ShieldCheck, Eye, Trash2, Loader2, ClipboardCheck, ShieldX, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -79,18 +79,24 @@ export default function Dashboard() {
     <div className="min-h-screen blueprint-bg">
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="lockup" size="2xl" className="hidden sm:block" />
-          <MasciLogo variant="mark" size="lg" className="sm:hidden" />
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
+          <Link
+            to="/"
+            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
+            data-testid="hub-link"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" /> Hub
+          </Link>
+          <MasciLogo variant="mark" size="md" />
           <div className="flex items-center gap-2">
             <ShareFormDialog />
             <CompanyInfoDialog />
             <Button
               onClick={() => navigate("/inspect/new")}
-              className="h-12 sm:h-14 px-5 sm:px-7 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm sm:text-base border-b-4 border-red-900"
+              className="h-12 px-5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-4 border-red-900"
               data-testid="new-inspection-btn"
             >
-              <Plus className="w-5 h-5 mr-1 sm:mr-2" />
+              <Plus className="w-5 h-5 mr-1" />
               <span className="hidden sm:inline">New Inspection</span>
               <span className="sm:hidden">New</span>
             </Button>

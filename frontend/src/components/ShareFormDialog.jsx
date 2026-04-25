@@ -13,14 +13,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-export const ShareFormDialog = () => {
+export const ShareFormDialog = ({
+  formType = "inspection",
+  path = "/submit",
+  title = "Share Inspection Form",
+  description = "Give this link or QR code to anyone who needs to fill out a safety inspection. No login required — submissions show up here automatically.",
+  testIdPrefix = "share",
+}) => {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const publicUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
-    return `${window.location.origin}/submit`;
-  }, []);
+    return `${window.location.origin}${path}`;
+  }, [path]);
 
   const copy = async () => {
     try {
@@ -89,22 +95,17 @@ export const ShareFormDialog = () => {
         <Button
           variant="outline"
           className="h-12 sm:h-14 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:bg-slate-700 hover:text-white font-bold uppercase tracking-wide text-sm"
-          data-testid="share-form-btn"
+          data-testid={`${testIdPrefix}-form-btn`}
         >
           <Share2 className="w-4 h-4 mr-2" />
           <span className="hidden sm:inline">Share Form</span>
           <span className="sm:hidden">Share</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md" data-testid="share-form-dialog">
+      <DialogContent className="sm:max-w-md" data-testid={`${testIdPrefix}-form-dialog`}>
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl">
-            Share Inspection Form
-          </DialogTitle>
-          <DialogDescription>
-            Give this link or QR code to anyone who needs to fill out a safety
-            inspection. No login required — submissions show up here automatically.
-          </DialogDescription>
+          <DialogTitle className="font-display text-2xl">{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
@@ -118,7 +119,7 @@ export const ShareFormDialog = () => {
                 level="H"
                 marginSize={2}
                 fgColor="#0f172a"
-                data-testid="share-qr"
+                data-testid={`${testIdPrefix}-qr`}
               />
             </div>
             <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
@@ -132,13 +133,13 @@ export const ShareFormDialog = () => {
               readOnly
               value={publicUrl}
               className="h-12 text-sm font-mono border-2 border-slate-300"
-              data-testid="share-url"
+              data-testid={`${testIdPrefix}-url`}
               onFocus={(e) => e.target.select()}
             />
             <Button
               onClick={copy}
               className="h-12 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-sm"
-              data-testid="share-copy"
+              data-testid={`${testIdPrefix}-copy`}
             >
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             </Button>
@@ -149,7 +150,7 @@ export const ShareFormDialog = () => {
             <Button
               onClick={nativeShare}
               className="h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-              data-testid="share-native"
+              data-testid={`${testIdPrefix}-native`}
             >
               <Share2 className="w-4 h-4 mr-2" />
               Share
@@ -158,7 +159,7 @@ export const ShareFormDialog = () => {
               onClick={printQr}
               variant="outline"
               className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide text-sm"
-              data-testid="share-print-qr"
+              data-testid={`${testIdPrefix}-print-qr`}
             >
               <Printer className="w-4 h-4 mr-2" />
               Print QR
@@ -170,7 +171,7 @@ export const ShareFormDialog = () => {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-1 text-sm text-slate-600 hover:text-red-700 font-mono uppercase tracking-wider"
-            data-testid="share-open"
+            data-testid={`${testIdPrefix}-open`}
           >
             Preview the form <ExternalLink className="w-3 h-3" />
           </a>

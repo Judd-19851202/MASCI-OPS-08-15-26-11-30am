@@ -7,6 +7,8 @@ import { MasciLogo } from "@/components/MasciLogo";
 export default function ThankYou() {
   const { state } = useLocation();
   const projectName = state?.projectName || "";
+  const formType = state?.formType || "Inspection";
+  const returnTo = state?.returnTo || "/submit";
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -27,14 +29,14 @@ export default function ThankYou() {
             <CheckCircle2 className="w-12 h-12 text-white" />
           </div>
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
-            Inspection Submitted
+            {formType} Submitted
           </span>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2">
             Thank you.
           </h1>
           {projectName && (
             <p className="text-slate-700 text-base mt-3">
-              Your inspection for{" "}
+              Your {formType.toLowerCase()} for{" "}
               <span className="font-bold">{projectName}</span> has been recorded.
             </p>
           )}
@@ -48,7 +50,7 @@ export default function ThankYou() {
               className="h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide border-b-2 border-red-900"
               data-testid="another-inspection-btn"
             >
-              <Link to="/submit">
+              <Link to={returnTo}>
                 <ClipboardCheck className="w-4 h-4 mr-2" />
                 Submit Another
               </Link>
