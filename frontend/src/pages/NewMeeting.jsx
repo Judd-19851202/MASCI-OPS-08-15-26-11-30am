@@ -18,6 +18,8 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { TopicPicker } from "@/components/TopicPicker";
 import { JobPicker } from "@/components/JobPicker";
+import { LangToggle } from "@/components/LangToggle";
+import { useT } from "@/lib/i18n";
 import { TOPIC_CATEGORIES, buildMeetingDefaults } from "@/lib/meetingSchema";
 import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/meetingTopicLibrary";
 import { api } from "@/lib/api";
@@ -33,6 +35,7 @@ const inputCls =
 
 export default function NewMeeting({ publicMode = false }) {
   const navigate = useNavigate();
+  const { t } = useT();
   const [data, setData] = useState(buildMeetingDefaults());
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -197,32 +200,35 @@ export default function NewMeeting({ publicMode = false }) {
             </Link>
           )}
           <MasciLogo variant="mark" size="md" className={publicMode ? "sm:hidden" : ""} />
-          <Button
-            onClick={submit}
-            disabled={saving}
-            className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-            data-testid="submit-top-btn"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
-            Submit
-          </Button>
+          <div className="flex items-center gap-2">
+            <LangToggle />
+            <Button
+              onClick={submit}
+              disabled={saving}
+              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+              data-testid="submit-top-btn"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+              {t("Submit")}
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
         <div className="mb-2">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            New Report
+            {t("New Report")}
           </span>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            Site Safety Meeting
+            {t("Site Safety Meeting")}
           </h1>
         </div>
 
-        <Section number="01" title="Meeting Information">
+        <Section number="01" title={t("Meeting Information")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              MASCI Job
+              {t("MASCI Job")}
             </Label>
             <div className="mt-2">
               <JobPicker
@@ -232,13 +238,13 @@ export default function NewMeeting({ publicMode = false }) {
               />
             </div>
             <p className="text-xs text-slate-500 mt-1.5">
-              Pick a current job to auto-fill name + number — or choose Custom Job to type your own.
+              {t("Pick a current job to auto-fill name + number — or choose Custom Job to type your own.")}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Project Name *
+                {t("Project Name *")}
               </Label>
               <Input
                 value={data.project_name}
@@ -250,7 +256,7 @@ export default function NewMeeting({ publicMode = false }) {
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Project Number
+                {t("Project Number")}
               </Label>
               <Input
                 value={data.project_number}
@@ -262,7 +268,7 @@ export default function NewMeeting({ publicMode = false }) {
             <div className="sm:col-span-2">
               <div className="flex items-center justify-between gap-2 mb-1">
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                  Location *
+                  {t("Location *")}
                 </Label>
                 <Button
                   type="button"
@@ -278,7 +284,7 @@ export default function NewMeeting({ publicMode = false }) {
                   ) : (
                     <MapPin className="w-3.5 h-3.5 mr-1" />
                   )}
-                  Use GPS
+                  {t("Use GPS")}
                 </Button>
               </div>
               <Input
@@ -296,7 +302,7 @@ export default function NewMeeting({ publicMode = false }) {
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Date *
+                {t("Date *")}
               </Label>
               <Input
                 type="date"
@@ -308,7 +314,7 @@ export default function NewMeeting({ publicMode = false }) {
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Time *
+                {t("Time *")}
               </Label>
               <Input
                 type="time"
@@ -320,19 +326,19 @@ export default function NewMeeting({ publicMode = false }) {
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Conducted By *
+                {t("Conducted By *")}
               </Label>
               <Input
                 value={data.conducted_by}
                 onChange={(e) => set("conducted_by", e.target.value)}
                 className={inputCls}
-                placeholder="Foreman / Supervisor"
+                placeholder={t("Foreman / Supervisor")}
                 data-testid="input-conducted-by"
               />
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Topic Category *
+                {t("Topic Category *")}
               </Label>
               <Select
                 value={data.topic_category}
@@ -353,31 +359,31 @@ export default function NewMeeting({ publicMode = false }) {
           </div>
         </Section>
 
-        <Section number="02" title="Topic & Discussion">
+        <Section number="02" title={t("Topic & Discussion")}>
           <div className="bg-red-50 border-2 border-red-200 rounded-md p-4">
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold flex items-center gap-2">
               <span className="inline-flex w-5 h-5 items-center justify-center rounded bg-red-700 text-white text-[10px] font-black">
                 +
               </span>
-              Topic Library — Pick a topic to prefill
+              {t("Topic Library — Pick a topic to prefill")}
             </Label>
             <TopicPicker
               value={templateKey}
               onChange={applyTemplate}
               topics={TOPIC_LIBRARY}
               customKey={CUSTOM_TOPIC_KEY}
-              placeholder="Search or pick a topic..."
+              placeholder={t("Search or pick a topic...")}
             />
             <p className="text-xs text-slate-600 mt-2 leading-relaxed">
               {TOPIC_LIBRARY.length}+ heavy civil / highway topics with prefilled hazards, key points,
               references, and action items. Type to search — or choose{" "}
-              <span className="font-bold">Custom Topic</span> to write your own.
+              <span className="font-bold">{t("Custom Topic")}</span> to write your own.
             </p>
           </div>
 
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Topic / Subject *
+              {t("Topic / Subject *")}
             </Label>
             <Input
               value={data.topic}
@@ -389,57 +395,57 @@ export default function NewMeeting({ publicMode = false }) {
           </div>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Hazards Reviewed
+              {t("Hazards Reviewed")}
             </Label>
             <Textarea
               value={data.hazards_reviewed}
               onChange={(e) => set("hazards_reviewed", e.target.value)}
               className="min-h-[100px] text-base border-2 border-slate-300"
-              placeholder="What specific hazards were discussed?"
+              placeholder={t("What specific hazards were discussed?")}
               data-testid="input-hazards-reviewed"
             />
           </div>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Discussion Notes / Minutes
+              {t("Discussion Notes / Minutes")}
             </Label>
             <Textarea
               value={data.discussion_notes}
               onChange={(e) => set("discussion_notes", e.target.value)}
               className="min-h-[140px] text-base border-2 border-slate-300"
-              placeholder="Key points, questions, lessons learned..."
+              placeholder={t("Key points, questions, lessons learned...")}
               data-testid="input-discussion-notes"
             />
           </div>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              References Cited
+              {t("References Cited")}
             </Label>
             <Textarea
               value={data.references_cited}
               onChange={(e) => set("references_cited", e.target.value)}
               className="min-h-[80px] text-base border-2 border-slate-300"
-              placeholder="OSHA standards, SDS reviewed, MASCI procedures..."
+              placeholder={t("OSHA standards, SDS reviewed, MASCI procedures...")}
               data-testid="input-references"
             />
           </div>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Action Items / Follow-Up
+              {t("Action Items / Follow-Up")}
             </Label>
             <Textarea
               value={data.action_items}
               onChange={(e) => set("action_items", e.target.value)}
               className="min-h-[80px] text-base border-2 border-slate-300"
-              placeholder="What needs to happen next? Who owns it?"
+              placeholder={t("What needs to happen next? Who owns it?")}
               data-testid="input-action-items"
             />
           </div>
         </Section>
 
-        <Section number="03" title="Attendees">
+        <Section number="03" title={t("Attendees")}>
           <p className="text-sm text-slate-600">
-            Add every person who attended. Each attendee signs to confirm they were present and understood the topic.
+            {t("Add every person who attended. Each attendee signs to confirm they were present and understood the topic.")}
           </p>
           {data.attendees.map((a, i) => (
             <div
@@ -449,7 +455,7 @@ export default function NewMeeting({ publicMode = false }) {
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold">
-                  Attendee {i + 1}
+                  {t("Attendee")} {i + 1}
                 </span>
                 <Button
                   type="button"
@@ -459,20 +465,20 @@ export default function NewMeeting({ publicMode = false }) {
                   className="text-slate-500 hover:text-red-600"
                   data-testid={`attendee-remove-${i}`}
                 >
-                  <X className="w-4 h-4 mr-1" /> Remove
+                  <X className="w-4 h-4 mr-1" /> {t("Remove")}
                 </Button>
               </div>
               <Input
                 value={a.name}
                 onChange={(e) => updateAttendee(i, "name", e.target.value)}
                 className={inputCls}
-                placeholder="Typed name"
+                placeholder={t("Typed name")}
                 data-testid={`attendee-name-${i}`}
               />
               <SignaturePad
                 value={a.signature}
                 onChange={(v) => updateAttendee(i, "signature", v)}
-                label="Signature"
+                label={t("Signature")}
                 testId={`attendee-sig-${i}`}
               />
             </div>
@@ -484,24 +490,24 @@ export default function NewMeeting({ publicMode = false }) {
             className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm"
             data-testid="attendee-add"
           >
-            <UserPlus className="w-4 h-4 mr-2" /> Add Attendee
+            <UserPlus className="w-4 h-4 mr-2" /> {t("Add Attendee")}
           </Button>
         </Section>
 
-        <Section number="04" title="Photos">
+        <Section number="04" title={t("Photos")}>
           <PhotoUpload
             photos={data.photos}
             onChange={(photos) => set("photos", photos)}
           />
         </Section>
 
-        <Section number="05" title="Conductor Signature">
+        <Section number="05" title={t("Conductor Signature")}>
           <p className="text-sm text-slate-600">
-            The person who ran the meeting signs to confirm the record is accurate.
+            {t("The person who ran the meeting signs to confirm the record is accurate.")}
           </p>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Conducted By (Typed) *
+              {t("Conducted By (Typed) *")}
             </Label>
             <Input
               value={data.conducted_by}
@@ -513,7 +519,7 @@ export default function NewMeeting({ publicMode = false }) {
           <SignaturePad
             value={data.conductor_signature}
             onChange={(v) => set("conductor_signature", v)}
-            label="Conductor Signature *"
+            label={t("Conductor Signature") + " *"}
             testId="conductor-sig"
           />
         </Section>
@@ -528,12 +534,12 @@ export default function NewMeeting({ publicMode = false }) {
             {saving ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Saving Meeting...
+                {t("Saving Meeting...")}
               </>
             ) : (
               <>
                 <Save className="w-5 h-5 mr-2" />
-                Submit Meeting
+                {t("Submit Meeting")}
               </>
             )}
           </Button>

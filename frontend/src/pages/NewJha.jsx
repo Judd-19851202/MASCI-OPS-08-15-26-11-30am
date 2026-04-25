@@ -12,6 +12,8 @@ import { YesNo } from "@/components/YesNo";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
+import { LangToggle } from "@/components/LangToggle";
+import { useT } from "@/lib/i18n";
 import {
   PPE_OPTIONS,
   PERMIT_OPTIONS,
@@ -30,6 +32,7 @@ const inputCls =
 
 export default function NewJha({ publicMode = false }) {
   const navigate = useNavigate();
+  const { t } = useT();
   const [data, setData] = useState(buildJhaDefaults());
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -171,29 +174,32 @@ export default function NewJha({ publicMode = false }) {
             </Link>
           )}
           <MasciLogo variant="mark" size="md" className={publicMode ? "sm:hidden" : ""} />
-          <Button
-            onClick={submit}
-            disabled={saving}
-            className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-            data-testid="submit-top-btn"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
-            Submit
-          </Button>
+          <div className="flex items-center gap-2">
+            <LangToggle />
+            <Button
+              onClick={submit}
+              disabled={saving}
+              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+              data-testid="submit-top-btn"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+              {t("Submit")}
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
         <div className="mb-2">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            New Report
+            {t("New Report")}
           </span>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            Job Hazard Analysis
+            {t("Job Hazard Analysis")}
           </h1>
         </div>
 
-        <Section number="01" title="Job / Task Information">
+        <Section number="01" title={t("Job / Task Information")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               MASCI Job
@@ -257,7 +263,7 @@ export default function NewJha({ publicMode = false }) {
           </div>
         </Section>
 
-        <Section number="02" title="Required PPE">
+        <Section number="02" title={t("Required PPE")}>
           <p className="text-sm text-slate-600">Check every PPE item required for this task.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {PPE_OPTIONS.map((opt) => (
@@ -276,7 +282,7 @@ export default function NewJha({ publicMode = false }) {
           </div>
         </Section>
 
-        <Section number="03" title="Required Permits">
+        <Section number="03" title={t("Required Permits")}>
           <p className="text-sm text-slate-600">Check any permits required before this work begins.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {PERMIT_OPTIONS.map((opt) => (
@@ -295,7 +301,7 @@ export default function NewJha({ publicMode = false }) {
           </div>
         </Section>
 
-        <Section number="04" title="Tools & Equipment">
+        <Section number="04" title={t("Tools & Equipment")}>
           <Textarea
             value={data.tools_equipment}
             onChange={(e) => set("tools_equipment", e.target.value)}
@@ -305,7 +311,7 @@ export default function NewJha({ publicMode = false }) {
           />
         </Section>
 
-        <Section number="05" title="Hazard Analysis">
+        <Section number="05" title={t("Hazard Analysis")}>
           <p className="text-sm text-slate-600">
             Walk through each step of the task. For every step, list the potential hazards and the controls / safe practices to mitigate them.
           </p>
@@ -402,7 +408,7 @@ export default function NewJha({ publicMode = false }) {
           </div>
         </Section>
 
-        <Section number="07" title="Crew Sign-Off">
+        <Section number="07" title={t("Crew Sign-Off")}>
           <p className="text-sm text-slate-600">
             Each crew member signs to confirm they understand the hazards and the safe work plan.
           </p>
@@ -453,11 +459,11 @@ export default function NewJha({ publicMode = false }) {
           </Button>
         </Section>
 
-        <Section number="08" title="Photos">
+        <Section number="08" title={t("Photos")}>
           <PhotoUpload photos={data.photos} onChange={(photos) => set("photos", photos)} />
         </Section>
 
-        <Section number="09" title="Foreman Approval">
+        <Section number="09" title={t("Foreman Approval")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">Foreman / Crew Lead (Typed)</Label>
             <Input
@@ -484,11 +490,11 @@ export default function NewJha({ publicMode = false }) {
           >
             {saving ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Saving JHA...
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> {t("Saving JHA...")}
               </>
             ) : (
               <>
-                <Save className="w-5 h-5 mr-2" /> Submit JHA
+                <Save className="w-5 h-5 mr-2" /> {t("Submit JHA")}
               </>
             )}
           </Button>

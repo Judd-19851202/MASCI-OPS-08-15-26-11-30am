@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
+import { LangToggle } from "@/components/LangToggle";
+import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 
@@ -69,6 +71,7 @@ const NewBtn = ({ to, label, testId }) => (
 );
 
 export default function Hub() {
+  const { t } = useT();
   const [counts, setCounts] = useState({ inspections: null, meetings: null, jhas: null, incidents: null });
   const [loading, setLoading] = useState(true);
   const [recent, setRecent] = useState([]);
@@ -112,10 +115,10 @@ export default function Hub() {
     };
   }, []);
 
-  const inspSub = counts.inspections === 1 ? "report on file" : "reports on file";
-  const mtgSub = counts.meetings === 1 ? "meeting logged" : "meetings logged";
-  const jhaSub = counts.jhas === 1 ? "analysis on file" : "analyses on file";
-  const incSub = counts.incidents === 1 ? "report on file" : "reports on file";
+  const inspSub = counts.inspections === 1 ? t("report on file") : t("reports on file");
+  const mtgSub = counts.meetings === 1 ? t("meeting logged") : t("meetings logged");
+  const jhaSub = counts.jhas === 1 ? t("analysis on file") : t("analyses on file");
+  const incSub = counts.incidents === 1 ? t("report on file") : t("reports on file");
 
   return (
     <div className="min-h-screen blueprint-bg">
@@ -124,32 +127,34 @@ export default function Hub() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
           <MasciLogo variant="lockup" size="2xl" className="hidden sm:block" />
           <MasciLogo variant="mark" size="lg" className="sm:hidden" />
-          <CompanyInfoDialog />
+          <div className="flex items-center gap-2">
+            <LangToggle />
+            <CompanyInfoDialog />
+          </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         <div className="mb-10 sm:mb-14">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            MASCI Safety Hub
+            {t("MASCI Safety Hub")}
           </span>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">
-            One front door for every safety form.
+            {t("One front door for every safety form.")}
           </h1>
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
-            Document compliance, run toolbox talks, and analyze hazards before every task.
-            Print or save any record as a branded PDF — works from any device.
+            {t("Document compliance, run toolbox talks, and analyze hazards before every task. Print or save any record as a branded PDF — works from any device.")}
           </p>
           <div className="mt-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.25em]">
-            <span className="text-red-700 font-bold">No Shortcuts</span>
+            <span className="text-red-700 font-bold">{t("No Shortcuts")}</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span className="text-red-700 font-bold">No Exceptions</span>
+            <span className="text-red-700 font-bold">{t("No Exceptions")}</span>
           </div>
         </div>
 
         {loading ? (
           <div className="py-16 flex items-center justify-center text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading...
+            <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading...")}
           </div>
         ) : (
           <>
@@ -158,14 +163,14 @@ export default function Hub() {
                 <Tile
                   to="/inspections"
                   icon={ClipboardCheck}
-                  title="Site Inspections"
-                  desc="Daily and weekly job-site safety inspections. PPE, MOT, fall protection, electrical, and more — graded automatically."
+                  title={t("Site Inspections")}
+                  desc={t("Daily and weekly job-site safety inspections. PPE, MOT, fall protection, electrical, and more — graded automatically.")}
                   count={counts.inspections}
                   sub={inspSub}
                   accent="red"
                 />
                 <div className="absolute top-6 right-6 sm:top-8 sm:right-8">
-                  <NewBtn to="/inspect/new" label="New" testId="hub-new-inspection" />
+                  <NewBtn to="/inspect/new" label={t("New")} testId="hub-new-inspection" />
                 </div>
               </div>
 
@@ -173,14 +178,14 @@ export default function Hub() {
                 <Tile
                   to="/meetings"
                   icon={Users}
-                  title="Safety Meetings"
-                  desc="Toolbox talks and daily huddles. 80+ heavy-civil topics with prefilled hazards — every crew member signs in."
+                  title={t("Safety Meetings")}
+                  desc={t("Toolbox talks and daily huddles. 80+ heavy-civil topics with prefilled hazards — every crew member signs in.")}
                   count={counts.meetings}
                   sub={mtgSub}
                   accent="slate"
                 />
                 <div className="absolute top-6 right-6 sm:top-8 sm:right-8">
-                  <NewBtn to="/meetings/new" label="New" testId="hub-new-meeting" />
+                  <NewBtn to="/meetings/new" label={t("New")} testId="hub-new-meeting" />
                 </div>
               </div>
 
@@ -188,14 +193,14 @@ export default function Hub() {
                 <Tile
                   to="/jha"
                   icon={AlertTriangle}
-                  title="Job Hazard Analysis"
-                  desc="Pre-task JHA / JSA. Walk every step, list hazards, document controls, and get the crew sign-off before work starts."
+                  title={t("Job Hazard Analysis")}
+                  desc={t("Pre-task JHA / JSA. Walk every step, list hazards, document controls, and get the crew sign-off before work starts.")}
                   count={counts.jhas}
                   sub={jhaSub}
                   accent="amber"
                 />
                 <div className="absolute top-6 right-6 sm:top-8 sm:right-8">
-                  <NewBtn to="/jha/new" label="New" testId="hub-new-jha" />
+                  <NewBtn to="/jha/new" label={t("New")} testId="hub-new-jha" />
                 </div>
               </div>
 
@@ -203,14 +208,14 @@ export default function Hub() {
                 <Tile
                   to="/incidents"
                   icon={AlertOctagon}
-                  title="Incident Reports"
-                  desc="Document near misses, injuries, and damage. Severity tiers, root cause, witnesses, and follow-up — all in one record."
+                  title={t("Incident Reports")}
+                  desc={t("Document near misses, injuries, and damage. Severity tiers, root cause, witnesses, and follow-up — all in one record.")}
                   count={counts.incidents}
                   sub={incSub}
                   accent="redDeep"
                 />
                 <div className="absolute top-6 right-6 sm:top-8 sm:right-8">
-                  <NewBtn to="/incidents/new" label="New" testId="hub-new-incident" />
+                  <NewBtn to="/incidents/new" label={t("New")} testId="hub-new-incident" />
                 </div>
               </div>
             </div>
@@ -222,7 +227,7 @@ export default function Hub() {
               >
                 <div className="px-5 py-4 border-b-2 border-slate-200 flex items-center justify-between">
                   <h2 className="font-display text-xl font-bold flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-red-700" /> Recent Activity
+                    <ShieldCheck className="w-5 h-5 text-red-700" /> {t("Recent Activity")}
                   </h2>
                   <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
                     Last {recent.length}
@@ -276,7 +281,7 @@ export default function Hub() {
       </main>
 
       <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 text-center font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-        MASCI · Job Site Safety Program
+        {t("MASCI · Job Site Safety Program")}
       </footer>
     </div>
   );

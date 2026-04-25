@@ -27,6 +27,8 @@ import { YesNo } from "@/components/YesNo";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
+import { LangToggle } from "@/components/LangToggle";
+import { useT } from "@/lib/i18n";
 import {
   INCIDENT_TYPES,
   SEVERITY_LEVELS,
@@ -49,6 +51,7 @@ const inputCls =
 
 export default function NewIncident({ publicMode = false }) {
   const navigate = useNavigate();
+  const { t } = useT();
   const [data, setData] = useState(buildIncidentDefaults());
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -191,46 +194,47 @@ export default function NewIncident({ publicMode = false }) {
             size="md"
             className={publicMode ? "sm:hidden" : ""}
           />
-          <Button
-            onClick={submit}
-            disabled={saving}
-            className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-            data-testid="submit-top-btn"
-          >
-            {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-1" />
-            )}
-            Submit
-          </Button>
+          <div className="flex items-center gap-2">
+            <LangToggle />
+            <Button
+              onClick={submit}
+              disabled={saving}
+              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+              data-testid="submit-top-btn"
+            >
+              {saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-1" />
+              )}
+              {t("Submit")}
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
         <div className="mb-2">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            New Report
+            {t("New Report")}
           </span>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            Accident / Incident Report
+            {t("Accident / Incident Report")}
           </h1>
           <div className="mt-3 flex items-start gap-2 p-3 border-2 border-amber-300 bg-amber-50 rounded-md">
             <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
             <p className="text-sm text-amber-900 leading-snug">
-              <span className="font-bold">First, secure the scene and the
-              injured.</span>{" "}
-              Call 911 if anyone is seriously hurt. Document this report once
-              the immediate response is complete.
+              <span className="font-bold">{t("First, secure the scene and the injured.")}</span>{" "}
+              {t("Call 911 if anyone is seriously hurt. Document this report once the immediate response is complete.")}
             </p>
           </div>
         </div>
 
         {/* Section 01 — Report Info */}
-        <Section number="01" title="Report Information">
+        <Section number="01" title={t("Report Information")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              MASCI Job
+              {t("MASCI Job")}
             </Label>
             <div className="mt-2">
               <JobPicker
@@ -366,10 +370,10 @@ export default function NewIncident({ publicMode = false }) {
         </Section>
 
         {/* Section 02 — Classification & Severity */}
-        <Section number="02" title="Classification & Severity">
+        <Section number="02" title={t("Classification & Severity")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Incident Type *
+              {t("Incident Type *")}
             </Label>
             <Select
               value={data.incident_type}
@@ -382,13 +386,13 @@ export default function NewIncident({ publicMode = false }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {INCIDENT_TYPES.map((t) => (
+                {INCIDENT_TYPES.map((it) => (
                   <SelectItem
-                    key={t}
-                    value={t}
-                    data-testid={`incident-type-${t}`}
+                    key={it}
+                    value={it}
+                    data-testid={`incident-type-${it}`}
                   >
-                    {t}
+                    {t(it)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -397,12 +401,10 @@ export default function NewIncident({ publicMode = false }) {
 
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Severity Tier *
+              {t("Severity Tier *")}
             </Label>
             <p className="text-xs text-slate-500 mt-1 mb-2">
-              Pick the actual outcome. For a near miss, choose Near Miss even
-              if the potential was severe — note the potential in the
-              description.
+              {t("Pick the actual outcome. For a near miss, choose Near Miss even if the potential was severe — note the potential in the description.")}
             </p>
             <div
               className="grid grid-cols-1 sm:grid-cols-2 gap-2"
@@ -427,16 +429,16 @@ export default function NewIncident({ publicMode = false }) {
                       <span
                         className={`inline-flex items-center px-2 py-0.5 ${s.color} text-white text-[10px] font-mono uppercase tracking-wider rounded font-bold`}
                       >
-                        {s.label}
+                        {t(s.label)}
                       </span>
                       {active && (
                         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">
-                          Selected
+                          {t("Selected")}
                         </span>
                       )}
                     </div>
                     <div className="text-xs text-slate-600 mt-1.5 leading-snug">
-                      {s.desc}
+                      {t(s.desc)}
                     </div>
                   </button>
                 );
@@ -447,7 +449,7 @@ export default function NewIncident({ publicMode = false }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                OSHA Recordable?
+                {t("OSHA Recordable?")}
               </Label>
               <YesNo
                 value={data.osha_recordable}
@@ -458,7 +460,7 @@ export default function NewIncident({ publicMode = false }) {
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Was Work Stopped?
+                {t("Was Work Stopped?")}
               </Label>
               <YesNo
                 value={data.work_stopped}
@@ -471,7 +473,7 @@ export default function NewIncident({ publicMode = false }) {
 
         {/* Section 03 — Person involved (only if injury-related) */}
         {isInjury && (
-          <Section number="03" title="Person Involved">
+          <Section number="03" title={t("Person Involved")}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
@@ -606,7 +608,7 @@ export default function NewIncident({ publicMode = false }) {
         )}
 
         {/* Section 04 — Description */}
-        <Section number="04" title="What Happened">
+        <Section number="04" title={t("What Happened")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               Description of Incident *
@@ -679,7 +681,7 @@ export default function NewIncident({ publicMode = false }) {
         </Section>
 
         {/* Section 06 — Witnesses */}
-        <Section number="06" title="Witnesses">
+        <Section number="06" title={t("Witnesses")}>
           <p className="text-sm text-slate-600">
             Add anyone who saw the event. Capture short statements while it's
             fresh.
@@ -733,7 +735,7 @@ export default function NewIncident({ publicMode = false }) {
         </Section>
 
         {/* Section 07 — Corrective actions */}
-        <Section number="07" title="Corrective Actions & Follow-Up">
+        <Section number="07" title={t("Corrective Actions & Follow-Up")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               Immediate Actions Taken (on-site, today)
@@ -791,7 +793,7 @@ export default function NewIncident({ publicMode = false }) {
         </Section>
 
         {/* Section 08 — Notifications */}
-        <Section number="08" title="Notifications Made">
+        <Section number="08" title={t("Notifications Made")}>
           <p className="text-sm text-slate-600">
             Confirm who was notified about this incident.
           </p>
@@ -861,14 +863,14 @@ export default function NewIncident({ publicMode = false }) {
           </div>
         </Section>
 
-        <Section number="09" title="Photos / Evidence">
+        <Section number="09" title={t("Photos / Evidence")}>
           <PhotoUpload
             photos={data.photos}
             onChange={(photos) => set("photos", photos)}
           />
         </Section>
 
-        <Section number="10" title="Signatures">
+        <Section number="10" title={t("Signatures")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               Reporter Signature *
@@ -902,11 +904,11 @@ export default function NewIncident({ publicMode = false }) {
           >
             {saving ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Saving Report...
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> {t("Saving Report...")}
               </>
             ) : (
               <>
-                <Save className="w-5 h-5 mr-2" /> Submit Incident Report
+                <Save className="w-5 h-5 mr-2" /> {t("Submit Incident Report")}
               </>
             )}
           </Button>

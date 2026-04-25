@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { JOB_LIBRARY, CUSTOM_JOB_KEY } from "@/lib/jobLibrary";
+import { useT } from "@/lib/i18n";
 
 /**
  * MASCI Current Jobs picker.
@@ -38,6 +39,7 @@ export function JobPicker({
   className = "",
 }) {
   const [open, setOpen] = useState(false);
+  const { t } = useT();
 
   // Match by project_number first (canonical key), then by exact name.
   const matched = useMemo(() => {
@@ -54,8 +56,8 @@ export function JobPicker({
   const triggerLabel = matched
     ? `${matched.project_name}  ·  #${matched.project_number}`
     : projectName
-    ? `${projectName}${projectNumber ? `  ·  #${projectNumber}` : "  ·  Custom"}`
-    : "Pick a MASCI job — or choose Custom";
+    ? `${projectName}${projectNumber ? `  ·  #${projectNumber}` : `  ·  ${t("Custom")}`}`
+    : t("Pick a MASCI job — or choose Custom");
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -93,14 +95,14 @@ export function JobPicker({
           }
         >
           <CommandInput
-            placeholder="Search by job #, name, route, or city..."
+            placeholder={t("Search by job #, name, route, or city...")}
             className="h-12 text-base"
             data-testid="job-picker-search"
           />
           <CommandList className="max-h-[55vh]">
-            <CommandEmpty>No job matches that search.</CommandEmpty>
+            <CommandEmpty>{t("No job matches that search.")}</CommandEmpty>
 
-            <CommandGroup heading="Custom">
+            <CommandGroup heading={t("Custom")}>
               <CommandItem
                 value="custom job free form not in list"
                 onSelect={() => {
@@ -115,9 +117,9 @@ export function JobPicker({
                     <Pencil className="w-3.5 h-3.5" />
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-slate-900">Custom Job</div>
+                    <div className="font-bold text-slate-900">{t("Custom Job")}</div>
                     <div className="text-xs text-slate-500 mt-0.5">
-                      Type the project name and number manually
+                      {t("Type the project name and number manually")}
                     </div>
                   </div>
                   {matched == null && (projectName || projectNumber) && (

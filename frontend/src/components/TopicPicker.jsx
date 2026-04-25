@@ -15,6 +15,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 /**
  * Searchable topic picker for the Site Safety Meeting form.
@@ -34,6 +35,7 @@ export function TopicPicker({
   placeholder = "Select a topic...",
 }) {
   const [open, setOpen] = useState(false);
+  const { t } = useT();
 
   const selectedLabel = useMemo(() => {
     if (!value || value === customKey) return null;
@@ -73,7 +75,7 @@ export function TopicPicker({
               {selectedLabel
                 ? selectedLabel
                 : value === customKey
-                ? "Custom Topic — write your own"
+                ? t("Custom Topic — write your own")
                 : placeholder}
             </span>
           </span>
@@ -92,14 +94,14 @@ export function TopicPicker({
           }}
         >
           <CommandInput
-            placeholder="Search topics (e.g. trench, silica, heat)..."
+            placeholder={t("Search topics (e.g. trench, silica, heat)...")}
             className="h-12 text-base"
             data-testid="topic-picker-search"
           />
           <CommandList className="max-h-[55vh]">
-            <CommandEmpty>No topic matches that search.</CommandEmpty>
+            <CommandEmpty>{t("No topic matches that search.")}</CommandEmpty>
 
-            <CommandGroup heading="Custom">
+            <CommandGroup heading={t("Custom")}>
               <CommandItem
                 value="custom topic write your own free form"
                 onSelect={() => {
@@ -114,9 +116,9 @@ export function TopicPicker({
                     <Pencil className="w-3.5 h-3.5" />
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-slate-900">Custom Topic</div>
+                    <div className="font-bold text-slate-900">{t("Custom Topic")}</div>
                     <div className="text-xs text-slate-500 mt-0.5">
-                      Clear all fields and write your own
+                      {t("Clear all fields and write your own")}
                     </div>
                   </div>
                   {value === customKey && (

@@ -18,6 +18,8 @@ import { YesNo } from "@/components/YesNo";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
+import { LangToggle } from "@/components/LangToggle";
+import { useT } from "@/lib/i18n";
 import {
   PPE_ITEMS,
   SITE_HAZARD_ITEMS,
@@ -35,6 +37,7 @@ const inputCls =
 
 export default function NewInspection({ publicMode = false }) {
   const navigate = useNavigate();
+  const { t } = useT();
   const [data, setData] = useState(buildDefaults());
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -178,36 +181,39 @@ export default function NewInspection({ publicMode = false }) {
             </Link>
           )}
           <MasciLogo variant="mark" size="md" className={publicMode ? "sm:hidden" : ""} />
-          <Button
-            onClick={submit}
-            disabled={saving}
-            className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-            data-testid="submit-top-btn"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
-            Submit
-          </Button>
+          <div className="flex items-center gap-2">
+            <LangToggle />
+            <Button
+              onClick={submit}
+              disabled={saving}
+              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+              data-testid="submit-top-btn"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+              {t("Submit")}
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
         <div className="mb-2">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            New Report
+            {t("New Report")}
           </span>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            Job Site Safety Inspection
+            {t("Job Site Safety Inspection")}
           </h1>
         </div>
 
         {/* Live grade banner */}
-        <GradeBanner grade={computeGrade(data)} label="Live Grade" />
+        <GradeBanner grade={computeGrade(data)} label={t("Live Grade")} />
 
         {/* Section 1: Project / Inspection Information */}
-        <Section number="01" title="Project / Inspection Information">
+        <Section number="01" title={t("Project / Inspection Information")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              MASCI Job
+              {t("MASCI Job")}
             </Label>
             <div className="mt-2">
               <JobPicker
@@ -385,7 +391,7 @@ export default function NewInspection({ publicMode = false }) {
         </Section>
 
         {/* Section 2: Work Activity */}
-        <Section number="02" title="Work Activity Taking Place Onsite">
+        <Section number="02" title={t("Work Activity Taking Place Onsite")}>
           <Textarea
             value={data.work_activity}
             onChange={(e) => set("work_activity", e.target.value)}
@@ -466,7 +472,7 @@ export default function NewInspection({ publicMode = false }) {
         })}
 
         {/* Section 11: Site Hazards & Housekeeping */}
-        <Section number="11" title="General Site Hazards & Housekeeping">
+        <Section number="11" title={t("General Site Hazards & Housekeeping")}>
           {SITE_HAZARD_ITEMS.map((item) => (
             <ChecklistRow
               key={item.key}
@@ -483,7 +489,7 @@ export default function NewInspection({ publicMode = false }) {
         </Section>
 
         {/* Section 12: Corrective Actions */}
-        <Section number="12" title="Safety Issues / Corrective Actions">
+        <Section number="12" title={t("Safety Issues / Corrective Actions")}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
@@ -555,7 +561,7 @@ export default function NewInspection({ publicMode = false }) {
         </Section>
 
         {/* Section 13: Signatures */}
-        <Section number="13" title="Signatures">
+        <Section number="13" title={t("Signatures")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
               <div>
@@ -610,17 +616,17 @@ export default function NewInspection({ publicMode = false }) {
             {saving ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Saving Inspection...
+                {t("Saving Inspection...")}
               </>
             ) : (
               <>
                 <Save className="w-5 h-5 mr-2" />
-                Submit Inspection Report
+                {t("Submit Inspection")}
               </>
             )}
           </Button>
           <p className="text-center text-xs text-slate-500 mt-2 font-mono uppercase tracking-[0.2em]">
-            All fields marked * are required
+            {t("All fields marked * are required")}
           </p>
         </div>
       </main>

@@ -50,6 +50,7 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - 81-topic library on Safety Meetings with searchable picker (filter by title or category)
 - Incident severity tiers, root-cause checklist, witnesses, OSHA-recordable + work-stopped flags
 - **MASCI Current Jobs picker on every form** (Inspections / Meetings / JHA / Incidents) — searchable by job #, name, route, or city; auto-fills project name + project number (and location when blank); 31 active jobs from `MASCI Current Jobs.pdf`; "Custom Job" option for anything not in the list.
+- **Bilingual UI (English / Spanish)** — language toggle in every form header + Hub. Translates section titles, field labels, placeholders, helper text, severity tier names + descriptions, severity badges, incident-type options, JobPicker + TopicPicker. Choice persists per device via localStorage. **Submitted records stay 100% English** — picking "Tiempo Perdido" stores `lost_time` in DB; printed PDFs stay English (legal record).
 - Backend: CRUD on `/api/incidents` + regression-passed CRUD on inspections/meetings/jhas
 - 39/39 pytest backend, full frontend e2e covering 4-tile hub, picker filter, severity selector, public-mode routing
 - All interactive elements have kebab-case `data-testid`
