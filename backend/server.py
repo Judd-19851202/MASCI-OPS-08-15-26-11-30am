@@ -10,7 +10,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 
 ROOT_DIR = Path(__file__).parent
@@ -904,6 +904,167 @@ async def delete_equipment_inspection(inspection_id: str, _: bool = Depends(requ
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Equipment inspection not found")
     return {"deleted": True, "id": inspection_id}
+
+
+
+@api_router.get("/equipment-status-board")
+async def equipment_status_board(_: bool = Depends(require_admin)):
+    """
+    Per-unit aggregation for the Admin Hub status board.
+
+    For every saved equipment unit (or every unit referenced by an inspection,
+    even if the operator typed it free-form without saving), returns:
+        - last_inspection_date / last_inspected_days_ago
+        - last_status: "ok" | "fail" | "never"
+        - fail_count_14d : how many FAIL items logged in the last 14 days
+        - top_failures : up to 3 most-frequent failing item names (last 30 d)
+        - inspection_count : total all-time count
+    """
+    now = datetime.now(timezone.utc)
+    cutoff_14 = now - timedelta(days=14)
+    cutoff_30 = now - timedelta(days=30)
+
+    saved_cursor = db.equipment_units.find({}, {"_id": 0})
+    saved_units = await saved_cursor.to_list(2000)
+
+    # Pull every inspection (slim projection — skip photos to keep it fast)
+    insp_cursor = db.equipment_inspections.find(
+        {},
+        {
+            "_id": 0,
+            "id": 1,
+            "equipment_type": 1,
+            "equipment_unit": 1,
+            "inspection_date": 1,
+            "created_at": 1,
+            "fail_count": 1,
+            "out_of_service": 1,
+            "checklist": 1,
+            "project_name": 1,
+            "project_number": 1,
+        },
+    ).sort("created_at", -1)
+    inspections = await insp_cursor.to_list(5000)
+
+    def _key(t: str, u: str) -> str:
+        return f"{(t or '').strip()}||{(u or '').strip()}"
+
+    by_unit: Dict[str, Dict[str, Any]] = {}
+    for u in saved_units:
+        k = _key(u.get("equipment_type", ""), u.get("unit_label", ""))
+        by_unit[k] = {
+            "equipment_type": u.get("equipment_type", ""),
+            "equipment_unit": u.get("unit_label", ""),
+            "make": u.get("make", "") or "",
+            "model": u.get("model", "") or "",
+            "serial": u.get("serial", "") or "",
+            "saved": True,
+            "inspection_count": 0,
+            "fail_count_14d": 0,
+            "last_inspection_date": None,
+            "last_inspected_at": None,
+            "last_status": "never",
+            "last_project": "",
+            "last_project_number": "",
+            "_fail_items_30d": {},  # tally
+        }
+
+    def _parse_dt(s: str) -> Optional[datetime]:
+        if not s:
+            return None
+        try:
+            return datetime.fromisoformat(s.replace("Z", "+00:00"))
+        except Exception:
+            return None
+
+    for d in inspections:
+        k = _key(d.get("equipment_type"), d.get("equipment_unit"))
+        if k not in by_unit:
+            by_unit[k] = {
+                "equipment_type": d.get("equipment_type", ""),
+                "equipment_unit": d.get("equipment_unit", ""),
+                "make": "",
+                "model": "",
+                "serial": "",
+                "saved": False,
+                "inspection_count": 0,
+                "fail_count_14d": 0,
+                "last_inspection_date": None,
+                "last_inspected_at": None,
+                "last_status": "never",
+                "last_project": "",
+                "last_project_number": "",
+                "_fail_items_30d": {},
+            }
+
+        bucket = by_unit[k]
+        bucket["inspection_count"] += 1
+
+        created = _parse_dt(d.get("created_at"))
+        if bucket["last_inspected_at"] is None or (
+            created and created > bucket["last_inspected_at"]
+        ):
+            bucket["last_inspected_at"] = created
+            bucket["last_inspection_date"] = d.get("inspection_date") or (
+                created.date().isoformat() if created else None
+            )
+            bucket["last_status"] = (
+                "fail" if (d.get("fail_count") or 0) > 0 else "ok"
+            )
+            bucket["last_project"] = d.get("project_name", "") or ""
+            bucket["last_project_number"] = d.get("project_number", "") or ""
+
+        # 14-day fail count
+        if created and created >= cutoff_14:
+            bucket["fail_count_14d"] += int(d.get("fail_count") or 0)
+
+        # 30-day per-item failure tally
+        if created and created >= cutoff_30:
+            for sec, items in (d.get("checklist") or {}).items():
+                if not isinstance(items, dict):
+                    continue
+                for item_name, res in items.items():
+                    if isinstance(res, dict) and res.get("status") == "fail":
+                        bucket["_fail_items_30d"][item_name] = (
+                            bucket["_fail_items_30d"].get(item_name, 0) + 1
+                        )
+
+    out = []
+    for k, b in by_unit.items():
+        last_at = b.pop("last_inspected_at", None)
+        days_ago = None
+        if last_at:
+            days_ago = max(0, (now - last_at).days)
+        top = sorted(
+            b.pop("_fail_items_30d", {}).items(), key=lambda kv: kv[1], reverse=True
+        )[:3]
+        b["last_inspected_days_ago"] = days_ago
+        b["top_failures"] = [
+            {"item": item, "count": cnt} for item, cnt in top
+        ]
+        out.append(b)
+
+    # Sort: out-of-service first, then by fail count desc, then by stale-ness
+    def _priority(b):
+        oos = 0 if b["last_status"] == "fail" else 1
+        stale = b["last_inspected_days_ago"] if b["last_inspected_days_ago"] is not None else 9999
+        return (oos, -b["fail_count_14d"], -stale, b["equipment_type"], b["equipment_unit"])
+
+    out.sort(key=_priority)
+    return {
+        "generated_at": now.isoformat(),
+        "units": out,
+        "summary": {
+            "total_units": len(out),
+            "out_of_service": sum(1 for b in out if b["last_status"] == "fail"),
+            "never_inspected": sum(1 for b in out if b["last_status"] == "never"),
+            "stale_7d": sum(
+                1
+                for b in out
+                if (b["last_inspected_days_ago"] is None or b["last_inspected_days_ago"] >= 7)
+            ),
+        },
+    }
 
 
 

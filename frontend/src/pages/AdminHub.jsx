@@ -15,6 +15,7 @@ import {
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
+import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { clearAdminToken } from "@/lib/adminAuth";
@@ -218,6 +219,7 @@ export default function AdminHub() {
         )}
 
         <AutoEmailRoutingPanel />
+        <EquipmentStatusBoard />
       </main>
 
       <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 text-center font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
