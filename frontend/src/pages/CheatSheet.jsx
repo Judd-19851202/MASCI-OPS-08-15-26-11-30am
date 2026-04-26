@@ -7,6 +7,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { printReport } from "@/lib/printReport";
+import { PrintWatermark } from "@/components/PrintWatermark";
 
 /**
  * Crew Cheat Sheet — printable 1-page handout for foremen.
@@ -57,6 +58,7 @@ export default function CheatSheet() {
 
   return (
     <div className="min-h-screen blueprint-bg print:bg-white">
+      <PrintWatermark />
       <div className="caution-stripe no-print" />
 
       {/* On-screen toolbar */}

@@ -11,6 +11,7 @@ import { GradeBanner } from "@/components/Grade";
 import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
+import { PrintWatermark } from "@/components/PrintWatermark";
 import {
   PPE_ITEMS,
   SITE_HAZARD_ITEMS,
@@ -155,6 +156,7 @@ export default function ViewInspection() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <PrintWatermark />
       <div className="caution-stripe no-print" />
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
