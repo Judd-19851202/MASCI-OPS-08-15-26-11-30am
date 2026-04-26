@@ -135,7 +135,7 @@ export default function Hub() {
             to="/equipment/new"
             icon={Wrench}
             title={t("Equipment Pre-Op")}
-            desc={t("Daily OSHA walk-around for trucks, excavators, rollers, and tools. PASS / FAIL each item — fail tags the unit out of service.")}
+            desc={t("Daily OSHA walk-around inspections for Heavy Equipment. PASS / FAIL each item — fail tags the unit out of service.")}
             accent="slate"
             testId="hub-tile-equipment"
           />

@@ -72,11 +72,20 @@ PM_TABLE: Dict[str, Dict[str, object]] = {
 }
 
 
-# Always copied on every report (office + safety inbox).
+# Always copied on every COMPLIANCE form (Site Inspection, Safety Meeting,
+# JHA, Incident Report). These are the four legal/compliance forms that the
+# office needs a copy of. Daily Job Reports and Equipment Pre-Op Inspections
+# are operational forms — they go to the assigned PM only (no office CC).
 ALWAYS_CC: List[str] = [
     "jaymn.judd@mascigc.com",
     "safety@mascigc.com",
 ]
+
+# Kinds that get the always-CC pair (compliance docs).
+COMPLIANCE_KINDS = {"inspection", "meeting", "jha", "incident"}
+
+# Kinds that DO NOT get the always-CC — only the assigned PM. Operational docs.
+PM_ONLY_KINDS = {"daily-report", "equipment-inspection"}
 
 
 # ---------------------------------------------------------------------------
@@ -137,31 +146,57 @@ def find_pm_for_record(record: dict) -> Optional[Tuple[str, str]]:
     return None
 
 
-def recipients_for_record(record: dict) -> Dict[str, object]:
+def recipients_for_record(record: dict, kind: Optional[str] = None) -> Dict[str, object]:
     """
     Build the full distribution list for a record.
+
+    Routing rules (per user spec, 2026-02-26):
+      • Compliance kinds (inspection/meeting/jha/incident):
+          PM + ALWAYS_CC (jaymn.judd + safety@). Office must keep a copy.
+      • Operational kinds (daily-report / equipment-inspection):
+          ONLY the assigned PM. Exception: if Jaymn IS the assigned PM
+          (e.g. job 26-06 Knox McRae), he gets it naturally as the PM.
+
     Returns:
       {
         "pm_name": str | None,
         "pm_email": str | None,
         "to":  [pm_email]            (primary recipients)
-        "cc":  ALWAYS_CC minus duplicates
+        "cc":  ALWAYS_CC for compliance, [] for operational
         "all": deduped list of every email
       }
+
+    If `kind` is None we default to compliance behavior for backwards-compat
+    (existing /api/email-report and the introspection helpers).
     """
     pm = find_pm_for_record(record)
     pm_name, pm_email = (pm if pm else (None, None))
+
+    is_pm_only = kind in PM_ONLY_KINDS
 
     to: List[str] = []
     if pm_email:
         to.append(pm_email)
 
-    cc = [e for e in ALWAYS_CC if e and (not pm_email or e.lower() != pm_email.lower())]
-    # If no PM resolved, the always-CC becomes the primary "to" list so the
-    # report still lands somewhere (Jaymn + safety@).
-    if not to:
-        to = cc[:]
-        cc = []
+    if is_pm_only:
+        # Operational doc — PM only, no office CC.
+        cc: List[str] = []
+        # If we couldn't resolve a PM at all (custom / unmapped job),
+        # fall through to Jaymn so the report still lands somewhere
+        # actionable — better than dropping it on the floor.
+        if not to:
+            to = ["jaymn.judd@mascigc.com"]
+    else:
+        # Compliance doc — always CC the office, dedupe if Jaymn is the PM.
+        cc = [
+            e
+            for e in ALWAYS_CC
+            if e and (not pm_email or e.lower() != pm_email.lower())
+        ]
+        if not to:
+            # Unmapped job → office distribution becomes the primary.
+            to = cc[:]
+            cc = []
 
     seen = set()
     all_unique: List[str] = []

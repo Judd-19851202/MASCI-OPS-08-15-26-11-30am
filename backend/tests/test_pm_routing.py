@@ -73,7 +73,8 @@ def test_lookup_unknown_returns_none():
 
 
 def test_recipients_includes_pm_plus_always_cc():
-    dist = recipients_for_record({"project_number": "24-06"})
+    """Compliance forms (inspection/meeting/jha/incident) → PM + always-CC."""
+    dist = recipients_for_record({"project_number": "24-06"}, kind="inspection")
     assert dist["pm_email"] == "davidjewett@mascigc.com"
     assert dist["to"] == ["davidjewett@mascigc.com"]
     assert "jaymn.judd@mascigc.com" in dist["cc"]
@@ -84,7 +85,8 @@ def test_recipients_includes_pm_plus_always_cc():
 
 
 def test_recipients_when_pm_unknown_falls_back_to_always_cc():
-    dist = recipients_for_record({"project_number": "99-99"})
+    """Compliance forms with unmapped job → always-CC becomes the to list."""
+    dist = recipients_for_record({"project_number": "99-99"}, kind="incident")
     assert dist["pm_email"] is None
     assert dist["to"] == list(ALWAYS_CC)
     assert dist["cc"] == []
@@ -92,9 +94,49 @@ def test_recipients_when_pm_unknown_falls_back_to_always_cc():
 
 def test_recipients_dedup_when_pm_is_already_in_always_cc():
     """Jaymn Judd is on Knox McRae (26-06) AND in always-CC → no duplicate."""
-    dist = recipients_for_record({"project_number": "26-06"})
+    dist = recipients_for_record({"project_number": "26-06"}, kind="incident")
     lower = [e.lower() for e in dist["all"]]
     assert lower.count("jaymn.judd@mascigc.com") == 1
+
+
+# ---------------- New per-kind routing rules ----------------
+def test_daily_report_pm_only_no_office_cc():
+    """Daily reports go ONLY to the assigned PM. No Jaymn / safety@ CC."""
+    dist = recipients_for_record({"project_number": "24-06"}, kind="daily-report")
+    assert dist["pm_email"] == "davidjewett@mascigc.com"
+    assert dist["to"] == ["davidjewett@mascigc.com"]
+    assert dist["cc"] == []
+    assert "jaymn.judd@mascigc.com" not in [e.lower() for e in dist["all"]]
+    assert "safety@mascigc.com" not in [e.lower() for e in dist["all"]]
+
+
+def test_equipment_pre_op_pm_only_no_office_cc():
+    """Equipment pre-ops go ONLY to the assigned PM."""
+    dist = recipients_for_record({"project_number": "25-12"}, kind="equipment-inspection")
+    assert dist["pm_email"] == "chriswright@mascigc.com"
+    assert dist["to"] == ["chriswright@mascigc.com"]
+    assert dist["cc"] == []
+    assert "safety@mascigc.com" not in [e.lower() for e in dist["all"]]
+
+
+def test_jaymn_exception_for_knox_mcrae_daily():
+    """Jaymn IS the PM on 26-06 (Knox McRae) → he gets daily reports for that
+    job naturally as the PM. Still no office CC."""
+    dist = recipients_for_record({"project_number": "26-06"}, kind="daily-report")
+    assert dist["pm_name"] == "Jaymn Judd"
+    assert dist["pm_email"] == "jaymn.judd@mascigc.com"
+    assert dist["to"] == ["jaymn.judd@mascigc.com"]
+    assert dist["cc"] == []
+    assert "safety@mascigc.com" not in [e.lower() for e in dist["all"]]
+
+
+def test_unmapped_daily_falls_back_to_jaymn_only():
+    """Daily/Equipment with custom project number → Jaymn handles
+    (better than dropping the report). Still no safety@ CC."""
+    dist = recipients_for_record({"project_number": "99-99"}, kind="daily-report")
+    assert dist["pm_email"] is None
+    assert dist["to"] == ["jaymn.judd@mascigc.com"]
+    assert "safety@mascigc.com" not in [e.lower() for e in dist["all"]]
 
 
 def test_auto_email_disabled_when_key_missing(monkeypatch):

@@ -1033,6 +1033,8 @@ from pdf_render import (  # noqa: E402
 from pm_routing import (  # noqa: E402
     PM_TABLE,
     ALWAYS_CC,
+    COMPLIANCE_KINDS,
+    PM_ONLY_KINDS,
     auto_email_enabled,
     recipients_for_record,
 )
@@ -1095,7 +1097,7 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             )
             return
 
-        dist = recipients_for_record(record)
+        dist = recipients_for_record(record, kind)
         recipients: List[str] = list(dist["all"])  # type: ignore[arg-type]
 
         # Severity fan-out for incidents (Major/Severe currently mirrors the
@@ -1211,19 +1213,21 @@ async def auto_email_preview(
     project_name: str = "",
     severity: str = "",
     osha_recordable: str = "",
+    kind: str = "",
     _: bool = Depends(require_admin),
 ):
     """Admin-only introspection: shows who *would* receive the auto-email
-    for a given project_number / project_name."""
+    for a given project_number / project_name + form kind."""
     fake = {
         "project_number": project_number,
         "project_name": project_name,
         "severity": severity,
         "osha_recordable": osha_recordable,
     }
-    dist = recipients_for_record(fake)
+    dist = recipients_for_record(fake, kind or None)
     return {
         "input": fake,
+        "kind": kind or None,
         "pm_name": dist["pm_name"],
         "pm_email": dist["pm_email"],
         "to": dist["to"],
@@ -1239,6 +1243,8 @@ async def auto_email_routing_table(_: bool = Depends(require_admin)):
     """Returns the full PM → Jobs lookup table (admin-only)."""
     return {
         "always_cc": ALWAYS_CC,
+        "compliance_kinds": sorted(COMPLIANCE_KINDS),
+        "pm_only_kinds": sorted(PM_ONLY_KINDS),
         "auto_email_enabled": auto_email_enabled(),
         "project_managers": [
             {

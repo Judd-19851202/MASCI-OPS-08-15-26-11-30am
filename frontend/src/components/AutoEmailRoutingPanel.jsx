@@ -64,22 +64,26 @@ export default function AutoEmailRoutingPanel() {
       <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1.5">
-            Always copied
+            Compliance forms → PM + Office
           </div>
+          <p className="text-xs text-slate-600 leading-relaxed mb-1">
+            Site Inspections, Safety Meetings, JHAs, Incident Reports.
+          </p>
           <ul className="text-sm text-slate-800 space-y-0.5">
             {(data.always_cc || []).map(e => (
-              <li key={e} className="font-mono">{e}</li>
+              <li key={e} className="font-mono text-xs">+ {e}</li>
             ))}
           </ul>
         </div>
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1.5">
-            How it works
+            Operational forms → PM only
           </div>
-          <p className="text-sm text-slate-700 leading-relaxed">
-            On every form submit the assigned PM is auto-resolved by the
-            project number. The PDF is rendered server-side and emailed to
-            the PM plus the always-copied office inbox.
+          <p className="text-xs text-slate-600 leading-relaxed mb-1">
+            Daily Job Reports, Equipment Pre-Op. PM only — no office CC.
+          </p>
+          <p className="text-xs text-slate-500 italic">
+            Knox McRae (26-06) goes to Jaymn naturally as the assigned PM.
           </p>
         </div>
       </div>
