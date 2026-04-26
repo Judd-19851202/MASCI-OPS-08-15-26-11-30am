@@ -163,7 +163,7 @@ export default function CheatSheet() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-10">
             <div className="bg-slate-50 print:bg-white border-2 border-slate-300 rounded-md p-5">
               <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-slate-700 font-black">
-                {t("Tips for Foremen")}
+                {t("Tips for Supervisors")}
               </div>
               <ul className="mt-3 space-y-2 text-slate-800 text-sm leading-relaxed">
                 <li>

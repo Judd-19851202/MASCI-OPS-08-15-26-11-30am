@@ -233,6 +233,7 @@ const ES = {
   "Office gets the report instantly. You'll see a Thank You screen with the option to file another.":
     "La oficina recibe el reporte al instante. Verá una pantalla de Gracias con la opción de archivar otro.",
   "Tips for Foremen": "Consejos para Capataces",
+  "Tips for Supervisors": "Consejos para Supervisores",
   "Use the ES button to switch the form to Spanish — it submits in English automatically.":
     "Use el botón ES para cambiar el formulario a español — se envía en inglés automáticamente.",
   "Daily Reports require": "Los Reportes Diarios requieren",
