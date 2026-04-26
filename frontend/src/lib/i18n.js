@@ -204,6 +204,59 @@ const ES = {
   "MASCI · Job Site Safety Program": "MASCI · Programa de Seguridad del Sitio",
   "MASCI · Field Safety Reporting Portal":
     "MASCI · Portal de Reportes de Seguridad de Campo",
+  // Crew Cheat Sheet
+  "Crew Cheat Sheet": "Hoja de Referencia de Cuadrilla",
+  "Crew Cheat Sheet · Field Safety Reporting Portal":
+    "Hoja de Referencia · Portal de Reportes de Seguridad de Campo",
+  Office: "Oficina",
+  Print: "Imprimir",
+  "Scan to start": "Escanee para comenzar",
+  "One front door for every safety form.":
+    "Una puerta de entrada para cada formulario de seguridad.",
+  "Open your camera, point it at the QR code, and tap the link. The MASCI Safety Hub opens in your browser. No login. No app to install. Add it to your home screen and you're set.":
+    "Abra la cámara, apúntela al código QR y toque el enlace. El MASCI Safety Hub se abre en su navegador. Sin inicio de sesión. Sin aplicación que instalar. Agréguelo a su pantalla de inicio y listo.",
+  "Step 01": "Paso 01",
+  "Step 02": "Paso 02",
+  "Step 03": "Paso 03",
+  "Step 04": "Paso 04",
+  "Pick the form": "Elija el formulario",
+  "Daily Report, Site Inspection, Safety Meeting, JHA, or Incident — tap the tile.":
+    "Reporte Diario, Inspección, Reunión de Seguridad, JHA o Incidente — toque la tarjeta.",
+  "Fill it on site": "Llénelo en el sitio",
+  "GPS auto-fills location, weather auto-loads, your job is in the picker. Tap to add photos.":
+    "El GPS rellena la ubicación, el clima se carga solo, su obra está en el selector. Toque para agregar fotos.",
+  "Sign + Submit": "Firme + Envíe",
+  "Sign with your finger. Hit Submit. Translates Spanish to English automatically before saving.":
+    "Firme con el dedo. Toque Enviar. Traduce del español al inglés automáticamente antes de guardar.",
+  Done: "Listo",
+  "Office gets the report instantly. You'll see a Thank You screen with the option to file another.":
+    "La oficina recibe el reporte al instante. Verá una pantalla de Gracias con la opción de archivar otro.",
+  "Tips for Foremen": "Consejos para Capataces",
+  "Use the ES button to switch the form to Spanish — it submits in English automatically.":
+    "Use el botón ES para cambiar el formulario a español — se envía en inglés automáticamente.",
+  "Daily Reports require": "Los Reportes Diarios requieren",
+  "at least 6 photos": "al menos 6 fotos",
+  ". Take them as you walk the site.":
+    ". Tómelas mientras camina por el sitio.",
+  "Add the Hub to your home screen so it opens with one tap.":
+    "Agregue el Hub a su pantalla de inicio para abrirlo con un toque.",
+  "If GPS doesn't grab, type the address in the Location field — same result.":
+    "Si el GPS no funciona, escriba la dirección en Ubicación — mismo resultado.",
+  "Stop-the-line · Accidents & Injuries":
+    "Pare la Línea · Accidentes y Lesiones",
+  "Make the scene safe": "Asegure la escena",
+  "and get any injured worker medical attention.":
+    "y consiga atención médica a cualquier trabajador lesionado.",
+  "Call Safety immediately": "Llame a Seguridad inmediatamente",
+  Open: "Abra",
+  "Incident Report": "Reporte de Incidente",
+  "form on the Hub and fill it out as soon as the scene is stable.":
+    "en el Hub y complételo tan pronto como la escena sea estable.",
+  "Then complete your": "Luego complete su",
+  "Daily Report": "Reporte Diario",
+  "— it will prompt you to confirm Safety was notified and the Incident Report was filed before you can submit.":
+    "— le pedirá confirmar que se notificó a Seguridad y que se presentó el Reporte de Incidente antes de poder enviar.",
+  "No Shortcuts · No Exceptions": "Sin Atajos · Sin Excepciones",
 
   // Common form chrome
   "New Report": "Nuevo Reporte",
