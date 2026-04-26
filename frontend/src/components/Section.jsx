@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 
-export const Section = ({ number, title, children, className = "" }) => {
+export const Section = ({ number, title, aside, children, className = "" }) => {
   return (
     <section
       className={cn(
@@ -10,13 +10,16 @@ export const Section = ({ number, title, children, className = "" }) => {
       )}
       data-testid={`section-${number}`}
     >
-      <div className="flex items-baseline gap-3 mb-5 pb-3 border-b-2 border-slate-200">
-        <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
-          Section {number}
-        </span>
-        <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900">
-          {title}
-        </h2>
+      <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b-2 border-slate-200">
+        <div className="flex items-baseline gap-3">
+          <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
+            Section {number}
+          </span>
+          <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900">
+            {title}
+          </h2>
+        </div>
+        {aside && <div className="shrink-0">{aside}</div>}
       </div>
       <div className="space-y-5">{children}</div>
     </section>

@@ -525,6 +525,133 @@ async def delete_incident(incident_id: str):
     return {"deleted": True, "id": incident_id}
 
 
+# ============================================================
+# Daily Job Reports
+# ============================================================
+class DailyReportCreate(BaseModel):
+    """Daily site activity log (replaces Fieldwire daily reports)."""
+    model_config = ConfigDict(extra="allow")
+
+    project_name: str
+    project_number: Optional[str] = ""
+    location: str
+    report_date: str  # YYYY-MM-DD
+    report_number: Optional[str] = ""
+    prepared_by: str
+    superintendent: Optional[str] = ""
+
+    weather_summary: Optional[str] = ""
+    weather_snapshots: List[Dict[str, Any]] = Field(default_factory=list)
+
+    schedule_delays: Optional[str] = "No"
+    schedule_delays_notes: Optional[str] = ""
+    weather_impact: Optional[str] = "No"
+    weather_impact_notes: Optional[str] = ""
+    safety_incidents_today: Optional[str] = "No"
+    injuries_reported: Optional[str] = "No"
+    incident_notes: Optional[str] = ""
+    general_notes: Optional[str] = ""
+
+    masci_crews: List[Dict[str, Any]] = Field(default_factory=list)
+    subcontractors: List[Dict[str, Any]] = Field(default_factory=list)
+    visitors: List[Dict[str, Any]] = Field(default_factory=list)
+    equipment: List[Dict[str, Any]] = Field(default_factory=list)
+    materials: List[Dict[str, Any]] = Field(default_factory=list)
+    activities: List[Dict[str, Any]] = Field(default_factory=list)
+
+    photos: List[str] = Field(default_factory=list)
+
+    prepared_by_signature: Optional[str] = ""
+    superintendent_signature: Optional[str] = ""
+
+
+class DailyReport(DailyReportCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+
+
+class DailyReportSummary(BaseModel):
+    id: str
+    project_name: str
+    project_number: str
+    location: str
+    report_date: str
+    prepared_by: str
+    weather_summary: str
+    photo_count: int
+    crew_count: int
+    sub_count: int
+    visitor_count: int
+    created_at: str
+
+
+@api_router.post("/daily-reports", response_model=DailyReport)
+async def create_daily_report(payload: DailyReportCreate):
+    report = DailyReport(**payload.model_dump())
+    doc = report.model_dump()
+    await db.daily_reports.insert_one(doc)
+    doc.pop("_id", None)
+    return report
+
+
+@api_router.get("/daily-reports", response_model=List[DailyReportSummary])
+async def list_daily_reports():
+    cursor = db.daily_reports.find(
+        {},
+        {
+            "_id": 0,
+            "id": 1,
+            "project_name": 1,
+            "project_number": 1,
+            "location": 1,
+            "report_date": 1,
+            "prepared_by": 1,
+            "weather_summary": 1,
+            "photos": 1,
+            "masci_crews": 1,
+            "subcontractors": 1,
+            "visitors": 1,
+            "created_at": 1,
+        },
+    ).sort("created_at", -1)
+    docs = await cursor.to_list(1000)
+    return [
+        DailyReportSummary(
+            id=d.get("id", ""),
+            project_name=d.get("project_name", ""),
+            project_number=d.get("project_number", ""),
+            location=d.get("location", ""),
+            report_date=d.get("report_date", ""),
+            prepared_by=d.get("prepared_by", ""),
+            weather_summary=d.get("weather_summary", ""),
+            photo_count=len(d.get("photos", []) or []),
+            crew_count=len(d.get("masci_crews", []) or []),
+            sub_count=len(d.get("subcontractors", []) or []),
+            visitor_count=len(d.get("visitors", []) or []),
+            created_at=d.get("created_at", ""),
+        )
+        for d in docs
+    ]
+
+
+@api_router.get("/daily-reports/{report_id}")
+async def get_daily_report(report_id: str):
+    doc = await db.daily_reports.find_one({"id": report_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Daily report not found")
+    return doc
+
+
+@api_router.delete("/daily-reports/{report_id}")
+async def delete_daily_report(report_id: str):
+    result = await db.daily_reports.delete_one({"id": report_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Daily report not found")
+    return {"deleted": True, "id": report_id}
+
+
 app.include_router(api_router)
 
 app.add_middleware(

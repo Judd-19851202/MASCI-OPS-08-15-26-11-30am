@@ -16,6 +16,9 @@ import ViewJha from "@/pages/ViewJha";
 import IncidentsDashboard from "@/pages/IncidentsDashboard";
 import NewIncident from "@/pages/NewIncident";
 import ViewIncident from "@/pages/ViewIncident";
+import DailyReportsDashboard from "@/pages/DailyReportsDashboard";
+import NewDailyReport from "@/pages/NewDailyReport";
+import ViewDailyReport from "@/pages/ViewDailyReport";
 
 function App() {
   return (
@@ -52,6 +55,12 @@ function App() {
           <Route path="/incidents/new" element={<NewIncident />} />
           <Route path="/incidents/submit" element={<NewIncident publicMode />} />
           <Route path="/incidents/:id" element={<ViewIncident />} />
+
+          {/* Daily Job Reports */}
+          <Route path="/daily" element={<DailyReportsDashboard />} />
+          <Route path="/daily/new" element={<NewDailyReport />} />
+          <Route path="/daily/submit" element={<NewDailyReport publicMode />} />
+          <Route path="/daily/:id" element={<ViewDailyReport />} />
 
           {/* Shared */}
           <Route path="/thank-you" element={<ThankYou />} />

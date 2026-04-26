@@ -5,6 +5,7 @@ import {
   Users,
   AlertTriangle,
   AlertOctagon,
+  ClipboardList,
   ArrowRight,
   Plus,
   Loader2,
@@ -70,18 +71,19 @@ const NewBtn = ({ to, label, testId }) => (
 
 export default function Hub() {
   const { t } = useT();
-  const [counts, setCounts] = useState({ inspections: null, meetings: null, jhas: null, incidents: null });
+  const [counts, setCounts] = useState({ inspections: null, meetings: null, jhas: null, incidents: null, daily: null });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const [insp, mtgs, jhas, incs] = await Promise.all([
+        const [insp, mtgs, jhas, incs, daily] = await Promise.all([
           api.get("/inspections").catch(() => ({ data: [] })),
           api.get("/meetings").catch(() => ({ data: [] })),
           api.get("/jhas").catch(() => ({ data: [] })),
           api.get("/incidents").catch(() => ({ data: [] })),
+          api.get("/daily-reports").catch(() => ({ data: [] })),
         ]);
         if (!alive) return;
         setCounts({
@@ -89,6 +91,7 @@ export default function Hub() {
           meetings: mtgs.data?.length || 0,
           jhas: jhas.data?.length || 0,
           incidents: incs.data?.length || 0,
+          daily: daily.data?.length || 0,
         });
       } catch {
         /* noop */
@@ -105,6 +108,7 @@ export default function Hub() {
   const mtgSub = counts.meetings === 1 ? t("meeting logged") : t("meetings logged");
   const jhaSub = counts.jhas === 1 ? t("analysis on file") : t("analyses on file");
   const incSub = counts.incidents === 1 ? t("report on file") : t("reports on file");
+  const dailySub = counts.daily === 1 ? t("report on file") : t("reports on file");
 
   return (
     <div className="min-h-screen blueprint-bg">
@@ -144,7 +148,22 @@ export default function Hub() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
+              <div className="relative">
+                <Tile
+                  to="/daily"
+                  icon={ClipboardList}
+                  title={t("Daily Reports")}
+                  desc={t("End-of-day site log: crews, subs, visitors, equipment, materials, weather, photos. Replaces Fieldwire.")}
+                  count={counts.daily}
+                  sub={dailySub}
+                  accent="red"
+                />
+                <div className="absolute top-6 right-6 sm:top-8 sm:right-8">
+                  <NewBtn to="/daily/new" label={t("New")} testId="hub-new-daily" />
+                </div>
+              </div>
+
               <div className="relative">
                 <Tile
                   to="/inspections"
