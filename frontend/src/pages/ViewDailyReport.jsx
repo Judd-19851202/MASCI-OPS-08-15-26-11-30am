@@ -168,6 +168,7 @@ export default function ViewDailyReport() {
               variant="lockup"
               size="2xl"
               className="hidden sm:block max-w-[420px]"
+              onLight
             />
             <MasciLogo variant="mark" size="xl" className="sm:hidden" />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">

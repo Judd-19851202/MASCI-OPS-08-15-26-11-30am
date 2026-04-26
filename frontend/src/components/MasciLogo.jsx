@@ -9,9 +9,16 @@ import { cn } from "@/lib/utils";
  *   - "wordmark" → /masci-wordmark.png     (red MASCI text)
  *   - "lockup"   → /masci-full-lockup.png  (full MASCI SAFETY badge)
  *
- * All 3 source files have a SOLID BLACK canvas baked in. Mark + wordmark
- * are sized by HEIGHT; the lockup is sized by WIDTH because of its
- * landscape badge proportions.
+ * Each logo ships in TWO forms:
+ *   1. Default  — black canvas keyed to transparent. Drops cleanly onto
+ *                 the slate-900 dark headers used across the app.
+ *   2. -onblack — the original artwork with its solid black canvas intact.
+ *                 Used on light/white surfaces (Cheat Sheet, View page
+ *                 print body) so the white SAFETY text + swoosh stay
+ *                 legible against the dark plate. Pass `onLight` to opt in.
+ *
+ * Mark + wordmark are sized by HEIGHT; the lockup is sized by WIDTH because
+ * of its landscape badge proportions.
  */
 
 const HEIGHT_MAP = {
@@ -31,18 +38,33 @@ const LOCKUP_WIDTH_MAP = {
   "3xl": "w-[28rem]",
 };
 
+const SRC = {
+  mark: { dark: "/masci-mark.png", light: "/masci-mark-onblack.png" },
+  wordmark: {
+    dark: "/masci-wordmark.png",
+    light: "/masci-wordmark-onblack.png",
+  },
+  lockup: {
+    dark: "/masci-full-lockup.png",
+    light: "/masci-full-lockup-onblack.png",
+  },
+};
+
 export const MasciLogo = ({
   variant = "mark",
   className = "",
   size = "md",
+  onLight = false,
 }) => {
+  const src = SRC[variant]?.[onLight ? "light" : "dark"] || SRC.mark.dark;
+
   if (variant === "lockup") {
     const w = LOCKUP_WIDTH_MAP[size] || LOCKUP_WIDTH_MAP.md;
     return (
       <img
-        src="/masci-full-lockup.png"
+        src={src}
         alt="MASCI Safety — No Shortcuts · No Exceptions"
-        className={cn(w, "h-auto select-none rounded-md", className)}
+        className={cn(w, "h-auto select-none", className)}
         data-testid="masci-logo-lockup"
         draggable={false}
       />
@@ -52,9 +74,9 @@ export const MasciLogo = ({
   if (variant === "wordmark") {
     return (
       <img
-        src="/masci-wordmark.png"
+        src={src}
         alt="MASCI"
-        className={cn(h, "w-auto select-none rounded-sm", className)}
+        className={cn(h, "w-auto select-none", className)}
         data-testid="masci-logo-wordmark"
         draggable={false}
       />
@@ -62,9 +84,9 @@ export const MasciLogo = ({
   }
   return (
     <img
-      src="/masci-mark.png"
+      src={src}
       alt="MASCI"
-      className={cn(h, "w-auto select-none rounded-sm", className)}
+      className={cn(h, "w-auto select-none", className)}
       data-testid="masci-logo-mark"
       draggable={false}
     />

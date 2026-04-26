@@ -54,7 +54,7 @@ export default function CheatSheet() {
           {/* Top banner: logo + tagline */}
           <div className="flex items-start justify-between gap-6 pb-6 border-b-4 border-red-700">
             <div className="flex-1">
-              <MasciLogo variant="lockup" size="2xl" />
+              <MasciLogo variant="lockup" size="2xl" onLight />
               <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.3em] text-red-700 font-bold">
                 Crew Cheat Sheet · Field Safety Reporting Portal
               </div>

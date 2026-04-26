@@ -185,7 +185,7 @@ export default function ViewInspection() {
         {/* Print header */}
         <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
-            <MasciLogo variant="lockup" size="2xl" className="hidden sm:block max-w-[420px]" />
+            <MasciLogo variant="lockup" size="2xl" className="hidden sm:block max-w-[420px]" onLight />
             <MasciLogo variant="mark" size="xl" className="sm:hidden" />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
               Job Site Safety Inspection Report
