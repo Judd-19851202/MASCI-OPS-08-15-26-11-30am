@@ -144,15 +144,16 @@ def test_auto_email_disabled_when_key_missing(monkeypatch):
     assert auto_email_enabled() is False
 
 
-def test_auto_email_default_off_when_key_present_but_flag_unset(monkeypatch):
-    """Safety default — explicit opt-in required so preview/test envs
-    don't burn through the production Resend quota."""
+def test_auto_email_default_on_when_key_present_and_flag_unset(monkeypatch):
+    """Production default: auto-email is ON whenever a Resend key exists.
+    The preview/test env explicitly sets AUTO_EMAIL_REPORTS=false in .env to
+    stay safe. Tests opt out with monkeypatch where needed."""
     monkeypatch.setenv("RESEND_API_KEY", "fake-key")
     monkeypatch.delenv("AUTO_EMAIL_REPORTS", raising=False)
-    assert auto_email_enabled() is False
+    assert auto_email_enabled() is True
 
 
-def test_auto_email_disabled_via_explicit_flag(monkeypatch):
+def test_auto_email_disabled_via_explicit_false(monkeypatch):
     monkeypatch.setenv("RESEND_API_KEY", "fake")
     monkeypatch.setenv("AUTO_EMAIL_REPORTS", "false")
     assert auto_email_enabled() is False

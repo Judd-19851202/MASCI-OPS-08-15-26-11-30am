@@ -216,15 +216,15 @@ def recipients_for_record(record: dict, kind: Optional[str] = None) -> Dict[str,
 
 
 def auto_email_enabled() -> bool:
-    """True only when Resend is configured AND auto-dispatch is explicitly
-    enabled. Default = OFF (safest). Production must opt in by setting
-    AUTO_EMAIL_REPORTS=true in the deploy environment.
+    """True only when Resend is configured AND auto-dispatch is enabled.
 
-    Why opt-in by default: the preview environment shares the same Resend
-    key as production. Without this guard, any backend test or smoke run
-    would fire real emails to PMs and burn through the daily quota.
+    Production behavior: enabled by default whenever a RESEND_API_KEY is
+    present. Set `AUTO_EMAIL_REPORTS=false` in the environment to disable
+    (used by the preview / dev env so test runs don't fire real emails).
     """
     if not os.environ.get("RESEND_API_KEY", "").strip():
         return False
     flag = os.environ.get("AUTO_EMAIL_REPORTS", "").strip().lower()
-    return flag in ("true", "1", "yes", "on")
+    if flag in ("false", "0", "no", "off"):
+        return False
+    return True
