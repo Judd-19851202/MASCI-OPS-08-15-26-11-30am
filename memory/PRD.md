@@ -96,7 +96,7 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - **Distribution List** field on PDF footer (PM/GC/DOT recipients, who got a copy)
 - **Severity-tier ops/GC fan-out** — populate `SEVERE_INCIDENT_CC` env with the addresses MASCI wants blasted on Medical+/OSHA-recordable incidents.
 - Multi-user admin (per-account login, audit trail of who viewed/deleted)
-- CSV / multi-report export for monthly compliance reports
+- Resend Pro upgrade ($20/mo, 50,000 emails/month) when foreman volume exceeds free tier 100/day quota.
 
 **P2**
 - Object storage (S3-compatible) for photos once typical record exceeds ~5 MB

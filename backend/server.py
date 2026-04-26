@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends
+from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends, Response
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -905,6 +905,233 @@ async def delete_equipment_inspection(inspection_id: str, _: bool = Depends(requ
         raise HTTPException(status_code=404, detail="Equipment inspection not found")
     return {"deleted": True, "id": inspection_id}
 
+
+
+import csv
+import io
+
+
+# ============================================================
+# Compliance CSV Exports (admin-only)
+# ============================================================
+EXPORTABLE_KINDS = {
+    "inspections": "inspections",
+    "meetings": "meetings",
+    "jhas": "jhas",
+    "incidents": "incidents",
+    "daily-reports": "daily_reports",
+    "equipment-inspections": "equipment_inspections",
+}
+
+# Per-kind row schema — what each CSV column should contain. We deliberately
+# omit photos / signatures (binary blobs) and the raw checklist dict (renders
+# poorly in Excel). Reviewers click into the Admin Hub for the full record.
+EXPORT_FIELDS: Dict[str, List[str]] = {
+    "inspections": [
+        "inspection_date", "inspection_time", "project_name", "project_number",
+        "location", "inspector_name", "foreman_name", "operation",
+        "work_activity", "hazards_observed", "stop_work_issued",
+        "ppe_in_use", "weather_summary", "created_at", "id",
+    ],
+    "meetings": [
+        "meeting_date", "meeting_time", "project_name", "project_number",
+        "location", "presenter_name", "topic_title", "topic_number",
+        "attendee_count", "discussion_summary", "created_at", "id",
+    ],
+    "jhas": [
+        "jha_date", "project_name", "project_number", "location",
+        "supervisor_name", "task_description", "approver_name",
+        "step_count", "created_at", "id",
+    ],
+    "incidents": [
+        "incident_date", "incident_time", "project_name", "project_number",
+        "location", "incident_type", "severity", "osha_recordable",
+        "work_stopped", "person_name", "body_part", "injury_nature",
+        "treatment_provided", "medical_facility",
+        "reporter_name", "supervisor_name",
+        "root_cause_categories", "witness_count",
+        "description", "immediate_action", "follow_up_action",
+        "created_at", "id",
+    ],
+    "daily-reports": [
+        "report_date", "project_name", "project_number", "location",
+        "prepared_by", "superintendent_name",
+        "weather_summary", "high_temp_f", "low_temp_f",
+        "crew_count", "subcontractor_count", "visitor_count",
+        "equipment_count", "material_count", "activity_count",
+        "accident_or_injury", "safety_notified", "safety_notified_who",
+        "safety_notified_time", "incident_report_filled",
+        "incident_report_time",
+        "delays_or_issues", "tomorrows_plan",
+        "created_at", "id",
+    ],
+    "equipment-inspections": [
+        "inspection_date", "inspection_time", "project_name", "project_number",
+        "location", "operator_name", "equipment_type", "equipment_unit",
+        "equipment_make", "equipment_model", "equipment_serial",
+        "hour_meter", "odometer",
+        "pass_count", "fail_count", "na_count", "out_of_service",
+        "deficiency_notes", "corrective_actions",
+        "created_at", "id",
+    ],
+}
+
+
+def _csv_value(v: Any) -> str:
+    """Flatten a record value into a CSV-friendly string."""
+    if v is None:
+        return ""
+    if isinstance(v, (list, tuple)):
+        # Skip image blobs, summarize the rest with semicolons
+        items = [
+            str(x)
+            for x in v
+            if not (isinstance(x, str) and x.startswith("data:image/"))
+        ]
+        return "; ".join(items)
+    if isinstance(v, dict):
+        # e.g. witnesses, root cause categories — flatten one level
+        return "; ".join(f"{k}={_csv_value(val)}" for k, val in v.items())
+    return str(v)
+
+
+def _date_field_for(kind: str) -> str:
+    return {
+        "inspections": "inspection_date",
+        "meetings": "meeting_date",
+        "jhas": "jha_date",
+        "incidents": "incident_date",
+        "daily-reports": "report_date",
+        "equipment-inspections": "inspection_date",
+    }[kind]
+
+
+@api_router.get("/exports/csv")
+async def export_csv(
+    kind: str,
+    start: Optional[str] = None,  # YYYY-MM-DD inclusive
+    end: Optional[str] = None,    # YYYY-MM-DD inclusive
+    _: bool = Depends(require_admin),
+):
+    """Stream a CSV export for one form kind, optionally filtered by date.
+
+    Query params:
+        kind  = inspections | meetings | jhas | incidents | daily-reports | equipment-inspections
+        start = YYYY-MM-DD (inclusive)
+        end   = YYYY-MM-DD (inclusive)
+
+    Both date params are optional — omit for all-time. The date filter is
+    applied to the kind's natural date field (inspection_date / report_date /
+    incident_date / etc.) — string compare works because everything is stored
+    as ISO YYYY-MM-DD.
+    """
+    if kind not in EXPORTABLE_KINDS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown kind '{kind}'. Allowed: {sorted(EXPORTABLE_KINDS.keys())}",
+        )
+
+    coll_name = EXPORTABLE_KINDS[kind]
+    date_field = _date_field_for(kind)
+
+    q: Dict[str, Any] = {}
+    if start or end:
+        cond: Dict[str, str] = {}
+        if start:
+            cond["$gte"] = start
+        if end:
+            cond["$lte"] = end
+        q[date_field] = cond
+
+    # Drop heavy blobs from the projection
+    projection = {
+        "_id": 0,
+        "photos": 0,
+        "signature": 0,
+        "operator_signature": 0,
+        "supervisor_signature": 0,
+        "reporter_signature": 0,
+        "preparer_signature": 0,
+        "approver_signature": 0,
+    }
+
+    cursor = db[coll_name].find(q, projection).sort(date_field, -1)
+    docs = await cursor.to_list(20000)
+
+    fields = list(EXPORT_FIELDS[kind])
+
+    # Synthesize counts that aren't always stored
+    for d in docs:
+        if kind == "meetings" and "attendee_count" not in d:
+            d["attendee_count"] = len(d.get("attendees") or [])
+        if kind == "jhas" and "step_count" not in d:
+            d["step_count"] = len(d.get("steps") or [])
+        if kind == "incidents" and "witness_count" not in d:
+            d["witness_count"] = len(d.get("witnesses") or [])
+        if kind == "incidents" and "root_cause_categories" not in d:
+            cats = d.get("root_causes") or []
+            d["root_cause_categories"] = (
+                "; ".join(cats) if isinstance(cats, list) else str(cats)
+            )
+        if kind == "daily-reports":
+            for k_, src in (
+                ("crew_count", "crew"),
+                ("subcontractor_count", "subcontractors"),
+                ("visitor_count", "visitors"),
+                ("equipment_count", "equipment"),
+                ("material_count", "materials"),
+                ("activity_count", "activities"),
+            ):
+                if k_ not in d:
+                    d[k_] = len(d.get(src) or [])
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(fields)
+    for d in docs:
+        writer.writerow([_csv_value(d.get(f)) for f in fields])
+
+    today = datetime.now(timezone.utc).date().isoformat()
+    range_tag = ""
+    if start and end:
+        range_tag = f"_{start}_to_{end}"
+    elif start:
+        range_tag = f"_from_{start}"
+    elif end:
+        range_tag = f"_through_{end}"
+    filename = f"MASCI_{kind}{range_tag}_{today}.csv"
+
+    return Response(
+        content=buf.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "X-Record-Count": str(len(docs)),
+        },
+    )
+
+
+@api_router.get("/exports/summary")
+async def export_summary(
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    _: bool = Depends(require_admin),
+):
+    """Quick count-per-kind for a given date range — used by the Admin UI to
+    show a foreman 'You have 47 records in this range' before they download."""
+    out: Dict[str, int] = {}
+    for kind, coll_name in EXPORTABLE_KINDS.items():
+        date_field = _date_field_for(kind)
+        q: Dict[str, Any] = {}
+        if start or end:
+            cond: Dict[str, str] = {}
+            if start:
+                cond["$gte"] = start
+            if end:
+                cond["$lte"] = end
+            q[date_field] = cond
+        out[kind] = await db[coll_name].count_documents(q)
+    return {"start": start, "end": end, "counts": out, "total": sum(out.values())}
 
 
 @api_router.get("/equipment-status-board")
