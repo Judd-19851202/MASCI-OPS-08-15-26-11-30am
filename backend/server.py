@@ -942,7 +942,7 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             )
 
         params = {
-            "from": f"MASCI Safety <{sender_email}>",
+            "from": f"MASCI Docs <{sender_email}>",
             "to": recipients,
             "subject": subject,
             "html": render_email_html(kind, record, note),
@@ -1085,7 +1085,7 @@ async def email_report(
         subject = body.subject or f"{title} · {project}".strip(" ·")
 
         params = {
-            "from": f"MASCI Safety <{sender_email}>",
+            "from": f"MASCI Docs <{sender_email}>",
             "to": [r for r in body.recipients if r and r.strip()],
             "subject": subject,
             "html": render_email_html(body.kind, record, body.note or ""),
