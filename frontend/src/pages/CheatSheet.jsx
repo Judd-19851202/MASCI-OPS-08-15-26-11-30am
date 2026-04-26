@@ -23,7 +23,7 @@ export default function CheatSheet() {
   // Production hub URL — locked to the permanent domain so the printed
   // QR code keeps working forever, even while we're testing on the
   // preview/feature URL during development.
-  const hubUrl = "https://safety.mascigc.com/";
+  const hubUrl = "https://mascidocs.com/";
 
   const steps = [
     {

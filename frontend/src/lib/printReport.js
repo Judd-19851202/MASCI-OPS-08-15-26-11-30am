@@ -5,7 +5,7 @@
 // .preview.emergentagent.com. When code in that iframe calls window.print(),
 // it triggers the iframe's print — which has no UI, so nothing visible
 // happens. The native print dialog only fires from the *top-level* browser
-// window. On the deployed standalone domain (safety.mascigc.com) we ARE
+// window. On the deployed standalone domain (mascidocs.com) we ARE
 // the top-level window, so plain window.print() works.
 //
 // This helper handles both:

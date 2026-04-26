@@ -488,7 +488,7 @@ def render_email_html(
         The full safety record is attached as a PDF.
       </p>
       <p style="margin:0 0 18px;font-size:13px;color:#475569;">
-        Filed via the MASCI Field Safety Reporting Portal at safety.mascigc.com.
+        Filed via the MASCI Safety Hub at mascidocs.com.
       </p>
       <hr style="border:0;border-top:1px solid #e2e8f0;margin:18px 0;" />
       <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#94a3b8;">
