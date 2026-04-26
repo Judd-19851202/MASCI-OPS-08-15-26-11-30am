@@ -19,6 +19,9 @@ import ViewIncident from "@/pages/ViewIncident";
 import DailyReportsDashboard from "@/pages/DailyReportsDashboard";
 import NewDailyReport from "@/pages/NewDailyReport";
 import ViewDailyReport from "@/pages/ViewDailyReport";
+import EquipmentDashboard from "@/pages/EquipmentDashboard";
+import NewEquipmentInspection from "@/pages/NewEquipmentInspection";
+import ViewEquipmentInspection from "@/pages/ViewEquipmentInspection";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
 import CheatSheet from "@/pages/CheatSheet";
@@ -56,6 +59,10 @@ function App() {
           <Route path="/daily/new" element={<NewDailyReport />} />
           <Route path="/daily/submit" element={<NewDailyReport publicMode />} />
 
+          <Route path="/equipment/new" element={<NewEquipmentInspection />} />
+          <Route path="/equipment/submit" element={<NewEquipmentInspection publicMode />} />
+          <Route path="/equipment/:id" element={<RedirectWithId base="/admin/equipment" />} />
+
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/cheatsheet" element={<CheatSheet />} />
           <Route path="/cheat-sheet" element={<Navigate to="/cheatsheet" replace />} />
@@ -88,6 +95,9 @@ function App() {
 
           <Route path="/admin/daily" element={A(<DailyReportsDashboard />)} />
           <Route path="/admin/daily/:id" element={A(<ViewDailyReport />)} />
+
+          <Route path="/admin/equipment" element={A(<EquipmentDashboard />)} />
+          <Route path="/admin/equipment/:id" element={A(<ViewEquipmentInspection />)} />
 
           {/* Legacy URL → admin equivalents (admin gate redirects to login if needed) */}
           <Route path="/inspections" element={<Navigate to="/admin/inspections" replace />} />

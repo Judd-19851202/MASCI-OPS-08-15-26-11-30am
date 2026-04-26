@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   AlertOctagon,
   ClipboardList,
+  Wrench,
   Plus,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -129,6 +130,14 @@ export default function Hub() {
             desc={t("Document near misses, injuries, and damage. Severity tiers, root cause, witnesses, and follow-up — all in one record.")}
             accent="redDeep"
             testId="hub-tile-incidents"
+          />
+          <FormTile
+            to="/equipment/new"
+            icon={Wrench}
+            title={t("Equipment Pre-Op")}
+            desc={t("Daily OSHA walk-around for trucks, excavators, rollers, and tools. PASS / FAIL each item — fail tags the unit out of service.")}
+            accent="slate"
+            testId="hub-tile-equipment"
           />
         </div>
       </main>

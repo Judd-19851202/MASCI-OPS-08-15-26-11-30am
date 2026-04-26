@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   AlertOctagon,
   ClipboardList,
+  Wrench,
   ArrowRight,
   Loader2,
   LogOut,
@@ -67,6 +68,7 @@ export default function AdminHub() {
     jhas: null,
     incidents: null,
     daily: null,
+    equipment: null,
   });
   const [loading, setLoading] = useState(true);
 
@@ -74,12 +76,13 @@ export default function AdminHub() {
     let alive = true;
     (async () => {
       try {
-        const [insp, mtgs, jhas, incs, daily] = await Promise.all([
+        const [insp, mtgs, jhas, incs, daily, eq] = await Promise.all([
           api.get("/inspections").catch(() => ({ data: [] })),
           api.get("/meetings").catch(() => ({ data: [] })),
           api.get("/jhas").catch(() => ({ data: [] })),
           api.get("/incidents").catch(() => ({ data: [] })),
           api.get("/daily-reports").catch(() => ({ data: [] })),
+          api.get("/equipment-inspections").catch(() => ({ data: [] })),
         ]);
         if (!alive) return;
         setCounts({
@@ -88,6 +91,7 @@ export default function AdminHub() {
           jhas: jhas.data?.length || 0,
           incidents: incs.data?.length || 0,
           daily: daily.data?.length || 0,
+          equipment: eq.data?.length || 0,
         });
       } catch {
         /* noop */
@@ -200,6 +204,15 @@ export default function AdminHub() {
               sub={counts.incidents === 1 ? "report on file" : "reports on file"}
               accent="redDeep"
               testId="admin-tile-incidents"
+            />
+            <AdminTile
+              to="/admin/equipment"
+              icon={Wrench}
+              title="Equipment Pre-Op"
+              count={counts.equipment}
+              sub={counts.equipment === 1 ? "inspection on file" : "inspections on file"}
+              accent="slate"
+              testId="admin-tile-equipment"
             />
           </div>
         )}

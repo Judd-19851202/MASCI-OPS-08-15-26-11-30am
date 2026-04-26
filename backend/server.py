@@ -711,6 +711,204 @@ async def delete_daily_report(report_id: str, _: bool = Depends(require_admin)):
 
 
 # ============================================================
+# Equipment Inspections (OSHA daily pre-op checklist)
+# ============================================================
+from checklists import CHECKLISTS, EQUIPMENT_TYPES  # noqa: E402
+
+
+class EquipmentInspectionCreate(BaseModel):
+    """Daily pre-shift OSHA equipment inspection."""
+    model_config = ConfigDict(extra="allow")
+
+    project_name: str
+    project_number: Optional[str] = ""
+    location: str
+    inspection_date: str  # YYYY-MM-DD
+    inspection_time: str  # HH:MM
+
+    operator_name: str
+    equipment_type: str  # one of EQUIPMENT_TYPES
+    equipment_unit: str  # e.g. "CAT 320 — Unit #7"
+    equipment_make: Optional[str] = ""
+    equipment_model: Optional[str] = ""
+    equipment_serial: Optional[str] = ""
+
+    # Either or both — different machines have different meters
+    hour_meter: Optional[str] = ""
+    odometer: Optional[str] = ""
+
+    # Checklist results — { section_title: { item: {status: "pass"|"fail"|"na", note: str} } }
+    checklist: Dict[str, Any] = Field(default_factory=dict)
+    fail_count: int = 0
+    pass_count: int = 0
+    na_count: int = 0
+
+    # Free-form notes / corrective actions
+    deficiency_notes: Optional[str] = ""
+    corrective_actions: Optional[str] = ""
+    out_of_service: Optional[str] = "No"  # Yes if any FAIL → don't operate
+
+    photos: List[str] = Field(default_factory=list)
+    operator_signature: Optional[str] = ""
+
+
+class EquipmentInspection(EquipmentInspectionCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+
+
+class EquipmentInspectionSummary(BaseModel):
+    id: str
+    project_name: str
+    project_number: str
+    location: str
+    inspection_date: str
+    operator_name: str
+    equipment_type: str
+    equipment_unit: str
+    fail_count: int
+    out_of_service: str
+    photo_count: int
+    created_at: str
+
+
+@api_router.get("/equipment-types")
+async def list_equipment_types():
+    """Public — list of equipment types + checklist templates."""
+    return {
+        "types": EQUIPMENT_TYPES,
+        "checklists": CHECKLISTS,
+    }
+
+
+# Saved equipment units (so operators don't have to re-type unit numbers).
+class EquipmentUnitCreate(BaseModel):
+    equipment_type: str
+    unit_label: str  # e.g. "CAT 320 #7" — what shows in the dropdown
+    make: Optional[str] = ""
+    model: Optional[str] = ""
+    serial: Optional[str] = ""
+
+
+class EquipmentUnit(EquipmentUnitCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+
+
+@api_router.get("/equipment-units", response_model=List[EquipmentUnit])
+async def list_equipment_units(equipment_type: Optional[str] = None):
+    q = {"equipment_type": equipment_type} if equipment_type else {}
+    cursor = db.equipment_units.find(q, {"_id": 0}).sort("unit_label", 1)
+    docs = await cursor.to_list(500)
+    return [EquipmentUnit(**d) for d in docs]
+
+
+@api_router.post("/equipment-units", response_model=EquipmentUnit)
+async def create_equipment_unit(payload: EquipmentUnitCreate):
+    # De-dup by (type, label) — return the existing if already saved
+    existing = await db.equipment_units.find_one(
+        {
+            "equipment_type": payload.equipment_type,
+            "unit_label": payload.unit_label.strip(),
+        },
+        {"_id": 0},
+    )
+    if existing:
+        return EquipmentUnit(**existing)
+    unit = EquipmentUnit(**payload.model_dump())
+    doc = unit.model_dump()
+    await db.equipment_units.insert_one(doc)
+    doc.pop("_id", None)
+    return unit
+
+
+@api_router.post("/equipment-inspections", response_model=EquipmentInspection)
+async def create_equipment_inspection(payload: EquipmentInspectionCreate):
+    insp = EquipmentInspection(**payload.model_dump())
+    doc = insp.model_dump()
+    await db.equipment_inspections.insert_one(doc)
+    doc.pop("_id", None)
+    # Also remember this unit so it shows up in the dropdown next time
+    if insp.equipment_unit and insp.equipment_type:
+        try:
+            await create_equipment_unit(
+                EquipmentUnitCreate(
+                    equipment_type=insp.equipment_type,
+                    unit_label=insp.equipment_unit,
+                    make=insp.equipment_make or "",
+                    model=insp.equipment_model or "",
+                    serial=insp.equipment_serial or "",
+                )
+            )
+        except Exception:
+            pass
+    schedule_auto_email("equipment-inspection", doc)
+    return insp
+
+
+@api_router.get("/equipment-inspections", response_model=List[EquipmentInspectionSummary])
+async def list_equipment_inspections(_: bool = Depends(require_admin)):
+    cursor = db.equipment_inspections.find(
+        {},
+        {
+            "_id": 0,
+            "id": 1,
+            "project_name": 1,
+            "project_number": 1,
+            "location": 1,
+            "inspection_date": 1,
+            "operator_name": 1,
+            "equipment_type": 1,
+            "equipment_unit": 1,
+            "fail_count": 1,
+            "out_of_service": 1,
+            "photos": 1,
+            "created_at": 1,
+        },
+    ).sort("created_at", -1)
+    docs = await cursor.to_list(1000)
+    return [
+        EquipmentInspectionSummary(
+            id=d.get("id", ""),
+            project_name=d.get("project_name", ""),
+            project_number=d.get("project_number", ""),
+            location=d.get("location", ""),
+            inspection_date=d.get("inspection_date", ""),
+            operator_name=d.get("operator_name", ""),
+            equipment_type=d.get("equipment_type", ""),
+            equipment_unit=d.get("equipment_unit", ""),
+            fail_count=d.get("fail_count", 0) or 0,
+            out_of_service=d.get("out_of_service", "No"),
+            photo_count=len(d.get("photos", []) or []),
+            created_at=d.get("created_at", ""),
+        )
+        for d in docs
+    ]
+
+
+@api_router.get("/equipment-inspections/{inspection_id}")
+async def get_equipment_inspection(inspection_id: str, _: bool = Depends(require_admin)):
+    doc = await db.equipment_inspections.find_one({"id": inspection_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Equipment inspection not found")
+    return doc
+
+
+@api_router.delete("/equipment-inspections/{inspection_id}")
+async def delete_equipment_inspection(inspection_id: str, _: bool = Depends(require_admin)):
+    result = await db.equipment_inspections.delete_one({"id": inspection_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Equipment inspection not found")
+    return {"deleted": True, "id": inspection_id}
+
+
+
+
+# ============================================================
 # Translation (Spanish → English on submit)
 # ============================================================
 # Crews can fill any form in Spanish, but every saved record + printed PDF
@@ -846,6 +1044,7 @@ _KIND_TO_COLLECTION = {
     "jha": "jhas",
     "incident": "incidents",
     "daily-report": "daily_reports",
+    "equipment-inspection": "equipment_inspections",
 }
 
 
@@ -922,13 +1121,28 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         project = record.get("project_name") or "MASCI"
         pm_name = dist.get("pm_name")
         pm_tag = f" · PM: {pm_name}" if pm_name else ""
-        subject = f"[MASCI] {title} · {project}{pm_tag}"
+
+        # Flag equipment failures in the subject so PMs see them at a glance
+        equipment_fail = (
+            kind == "equipment-inspection"
+            and (record.get("fail_count") or 0) > 0
+        )
+        fail_prefix = "EQUIPMENT FAIL · " if equipment_fail else ""
+        subject = f"[MASCI] {fail_prefix}{title} · {project}{pm_tag}"
 
         note = ""
         if kind == "incident" and _is_severe_incident(record):
             note = (
                 "<p style='color:#C8102E;font-weight:700'>"
                 "SEVERE INCIDENT — please review immediately."
+                "</p>"
+            )
+        elif equipment_fail:
+            note = (
+                "<p style='color:#C8102E;font-weight:700'>"
+                f"⚠ EQUIPMENT FAIL — {record.get('fail_count')} item(s) failed inspection. "
+                f"{record.get('equipment_type', '')} {record.get('equipment_unit', '')} "
+                "tagged OUT OF SERVICE."
                 "</p>"
             )
         elif pm_name:

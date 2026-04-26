@@ -348,7 +348,115 @@ KIND_TITLES = {
     "jha": "Job Hazard Analysis",
     "incident": "Accident / Incident Report",
     "daily-report": "Daily Job Report",
+    "equipment-inspection": "Equipment Pre-Op Inspection",
 }
+
+
+def _render_equipment(d: Dict[str, Any]) -> str:
+    """Render an equipment pre-op inspection. Highlights FAIL items + OOS banner."""
+    rows = []
+
+    # OOS banner if anything failed
+    fail_count = d.get("fail_count") or 0
+    oos = (d.get("out_of_service") or "").strip().lower() == "yes" or fail_count > 0
+    if oos:
+        rows.append(
+            "<div class='esc' style='background:#fef2f2;border:2px solid #c8102e;"
+            "border-radius:4px;padding:10px 14px;margin-bottom:12px;'>"
+            "<div style='font-weight:900;font-size:13pt;color:#c8102e;letter-spacing:0.04em;"
+            "text-transform:uppercase;'>⚠ FAIL — DO NOT OPERATE</div>"
+            f"<div style='font-size:9pt;color:#7f1d1d;margin-top:3px;'>"
+            f"{fail_count} item(s) failed inspection. "
+            "This unit is tagged OUT OF SERVICE until corrective action is verified by a supervisor."
+            "</div></div>"
+        )
+
+    # Header / project + equipment ID
+    rows.append(
+        _section(
+            "Project & Equipment",
+            _kv("Project", d.get("project_name"))
+            + _kv("Project #", d.get("project_number"))
+            + _kv("Location", d.get("location"))
+            + _kv("Inspection Date", _fmt_date(d.get("inspection_date")))
+            + _kv("Time", d.get("inspection_time"))
+            + _kv("Operator", d.get("operator_name"))
+            + _kv("Equipment Type", d.get("equipment_type"))
+            + _kv("Unit", d.get("equipment_unit"))
+            + _kv("Make", d.get("equipment_make"))
+            + _kv("Model", d.get("equipment_model"))
+            + _kv("Serial #", d.get("equipment_serial"))
+            + _kv("Hour Meter", d.get("hour_meter"))
+            + _kv("Odometer", d.get("odometer"))
+        )
+    )
+
+    # Checklist — render every section, highlighting fails
+    checklist = d.get("checklist") or {}
+    for section_title, items in checklist.items():
+        if not isinstance(items, dict):
+            continue
+        body = ""
+        for item, result in items.items():
+            status = (result or {}).get("status", "") if isinstance(result, dict) else ""
+            note = (result or {}).get("note", "") if isinstance(result, dict) else ""
+            color = (
+                "#16a34a"
+                if status == "pass"
+                else ("#c8102e" if status == "fail" else "#64748b")
+            )
+            badge = (status or "—").upper()
+            note_html = (
+                f"<div style='font-size:8.5pt;color:#475569;margin-top:2px;'>{escape(str(note))}</div>"
+                if note
+                else ""
+            )
+            body += (
+                f"<div class='kv'>"
+                f"<div class='kv-k' style='flex:0 0 60%;'>{escape(str(item))}</div>"
+                f"<div class='kv-v' style='flex:1;'>"
+                f"<span style='font-family:Courier New,monospace;font-size:8pt;"
+                f"font-weight:900;letter-spacing:0.1em;color:{color};'>{badge}</span>"
+                f"{note_html}</div></div>"
+            )
+        if body:
+            rows.append(_section(section_title, body))
+
+    # Tally
+    rows.append(
+        _section(
+            "Inspection Summary",
+            _kv("Pass Items", d.get("pass_count"))
+            + _kv("Fail Items", d.get("fail_count"))
+            + _kv("N/A Items", d.get("na_count"))
+            + _kv("Out of Service", d.get("out_of_service"))
+        )
+    )
+
+    # Notes
+    if d.get("deficiency_notes") or d.get("corrective_actions"):
+        rows.append(
+            _section(
+                "Notes & Corrective Actions",
+                _kv("Deficiencies", d.get("deficiency_notes"))
+                + _kv("Corrective Actions", d.get("corrective_actions"))
+            )
+        )
+
+    # Photos
+    photos_html = _photos_block(d.get("photos"))
+    if photos_html:
+        rows.append(_section("Photos", photos_html))
+
+    # Signature
+    sig = _signature(
+        "Operator Signature",
+        d.get("operator_signature"),
+        d.get("operator_name") or "",
+    )
+    rows.append(_section("Sign-Off", sig))
+
+    return "\n".join(rows)
 
 
 def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
@@ -358,6 +466,8 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
 
     if kind == "daily-report":
         body = _render_daily(record)
+    elif kind == "equipment-inspection":
+        body = _render_equipment(record)
     else:
         body = _render_generic(title, record)
 
