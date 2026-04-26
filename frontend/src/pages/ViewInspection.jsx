@@ -431,7 +431,7 @@ export default function ViewInspection() {
         </div>
 
         {/* Print-only company info footer */}
-        {(company.address || company.phone || company.email || company.license_number || company.website) && (
+        {(company.address || company.phone || company.email || company.website) && (
           <div className="print-only border-t-2 border-black pt-3 mt-2 text-[9pt] leading-snug print-section">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -454,14 +454,8 @@ export default function ViewInspection() {
                     {company.email}
                   </div>
                 )}
-                {(company.license_number || company.website) && (
-                  <div>
-                    {company.license_number && (
-                      <span>License #{company.license_number}</span>
-                    )}
-                    {company.license_number && company.website ? " · " : ""}
-                    {company.website}
-                  </div>
+                {company.website && (
+                  <div>{company.website}</div>
                 )}
               </div>
             </div>

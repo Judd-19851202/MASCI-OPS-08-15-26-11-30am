@@ -466,8 +466,7 @@ export default function ViewDailyReport() {
         </div>
         {(company.address ||
           company.phone ||
-          company.email ||
-          company.license_number) && (
+          company.email) && (
           <div className="print-only border-t-2 border-black pt-3 mt-2 text-[9pt] leading-snug">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -489,9 +488,6 @@ export default function ViewDailyReport() {
                     {company.phone && company.email ? " · " : ""}
                     {company.email}
                   </div>
-                )}
-                {company.license_number && (
-                  <div>License #{company.license_number}</div>
                 )}
               </div>
             </div>

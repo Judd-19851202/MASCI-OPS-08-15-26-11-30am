@@ -10,7 +10,6 @@ export const DEFAULT_COMPANY_INFO = {
   city_state_zip: "Port Orange, FL 32127-6442",
   phone: "386-322-4500",
   email: "safety@mascigc.com",
-  license_number: "",
   website: "mascigc.com",
 };
 
@@ -45,4 +44,14 @@ export function saveCompanyInfo(info) {
   } catch {
     /* ignore quota errors */
   }
+}
+
+/**
+ * Best-effort tel: URI for a US phone number. Strips everything except
+ * digits and a leading + so dial-out works on iOS/Android.
+ */
+export function buildTelHref(phone) {
+  if (!phone) return "";
+  const cleaned = String(phone).replace(/[^\d+]/g, "");
+  return cleaned ? `tel:${cleaned}` : "";
 }

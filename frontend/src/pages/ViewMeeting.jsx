@@ -269,7 +269,7 @@ export default function ViewMeeting() {
         <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8 print-section">
           Generated {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || "MASCI"} Safety Meeting
         </div>
-        {(company.address || company.phone || company.email || company.license_number) && (
+        {(company.address || company.phone || company.email) && (
           <div className="print-only border-t-2 border-black pt-3 mt-2 text-[9pt] leading-snug print-section">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -288,7 +288,6 @@ export default function ViewMeeting() {
                     {company.email}
                   </div>
                 )}
-                {company.license_number && <div>License #{company.license_number}</div>}
               </div>
             </div>
           </div>

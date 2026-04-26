@@ -435,8 +435,7 @@ export default function ViewIncident() {
         </div>
         {(company.address ||
           company.phone ||
-          company.email ||
-          company.license_number) && (
+          company.email) && (
           <div className="print-only border-t-2 border-black pt-3 mt-2 text-[9pt] leading-snug print-section">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -458,9 +457,6 @@ export default function ViewIncident() {
                     {company.phone && company.email ? " · " : ""}
                     {company.email}
                   </div>
-                )}
-                {company.license_number && (
-                  <div>License #{company.license_number}</div>
                 )}
               </div>
             </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2 } from "lucide-react";
+import { Building2, Phone } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getCompanyInfo, saveCompanyInfo } from "@/lib/companyInfo";
+import {
+  getCompanyInfo,
+  saveCompanyInfo,
+  buildTelHref,
+} from "@/lib/companyInfo";
 import { toast } from "sonner";
 
 const inputCls =
@@ -33,6 +37,8 @@ export const CompanyInfoDialog = ({ trigger }) => {
     toast.success("Company info saved — appears on every printed report");
     setOpen(false);
   };
+
+  const tel = buildTelHref(info.phone);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -55,10 +61,25 @@ export const CompanyInfoDialog = ({ trigger }) => {
             Company Info
           </DialogTitle>
           <DialogDescription>
-            Appears on the print/PDF footer of every inspection report.
-            Stored only on this device.
+            Appears on the print/PDF footer of every safety report. Stored
+            only on this device.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Quick-call CTA — large red pill at the top of the dialog. Uses
+            the tel: URI so a tap on phone dials, on desktop pops the user's
+            default phone app. Disabled silently when no phone is set. */}
+        {tel && (
+          <a
+            href={tel}
+            className="group inline-flex items-center justify-center gap-2 h-14 mt-1 mb-2 rounded-md bg-red-700 hover:bg-red-800 text-white font-display font-black text-lg tracking-tight border-b-4 border-red-900 transition-colors"
+            data-testid="ci-call-now"
+          >
+            <Phone className="w-5 h-5 group-hover:animate-pulse" />
+            Call Office · {info.phone}
+          </a>
+        )}
+
         <div className="grid gap-3 py-2">
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
@@ -98,7 +119,7 @@ export const CompanyInfoDialog = ({ trigger }) => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Phone
+                Office Phone
               </Label>
               <Input
                 value={info.phone}
@@ -106,6 +127,7 @@ export const CompanyInfoDialog = ({ trigger }) => {
                 className={inputCls}
                 placeholder="(555) 555-5555"
                 data-testid="ci-phone"
+                inputMode="tel"
               />
             </div>
             <div>
@@ -121,31 +143,17 @@ export const CompanyInfoDialog = ({ trigger }) => {
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                License #
-              </Label>
-              <Input
-                value={info.license_number}
-                onChange={(e) => set("license_number", e.target.value)}
-                className={inputCls}
-                placeholder="CGC1234567"
-                data-testid="ci-license"
-              />
-            </div>
-            <div>
-              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Website
-              </Label>
-              <Input
-                value={info.website}
-                onChange={(e) => set("website", e.target.value)}
-                className={inputCls}
-                placeholder="masci.com"
-                data-testid="ci-website"
-              />
-            </div>
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Website
+            </Label>
+            <Input
+              value={info.website}
+              onChange={(e) => set("website", e.target.value)}
+              className={inputCls}
+              placeholder="masci.com"
+              data-testid="ci-website"
+            />
           </div>
         </div>
         <DialogFooter>
