@@ -159,6 +159,7 @@ async def create_inspection(payload: InspectionCreate):
     await db.inspections.insert_one(doc)
     # Strip Mongo's _id (insert_one mutates `doc`)
     doc.pop("_id", None)
+    schedule_auto_email("inspection", doc)
     return inspection
 
 
@@ -275,6 +276,7 @@ async def create_meeting(payload: MeetingCreate):
     doc = meeting.model_dump()
     await db.meetings.insert_one(doc)
     doc.pop("_id", None)
+    schedule_auto_email("meeting", doc)
     return meeting
 
 
@@ -378,6 +380,7 @@ async def create_jha(payload: JhaCreate):
     doc = jha.model_dump()
     await db.jhas.insert_one(doc)
     doc.pop("_id", None)
+    schedule_auto_email("jha", doc)
     return jha
 
 
@@ -515,6 +518,7 @@ async def create_incident(payload: IncidentCreate):
     doc = incident.model_dump()
     await db.incidents.insert_one(doc)
     doc.pop("_id", None)
+    schedule_auto_email("incident", doc)
     return incident
 
 
@@ -646,6 +650,7 @@ async def create_daily_report(payload: DailyReportCreate):
     doc = report.model_dump()
     await db.daily_reports.insert_one(doc)
     doc.pop("_id", None)
+    schedule_auto_email("daily-report", doc)
     return report
 
 
@@ -827,6 +832,12 @@ from pdf_render import (  # noqa: E402
     render_record_pdf,
     KIND_TITLES,
 )
+from pm_routing import (  # noqa: E402
+    PM_TABLE,
+    ALWAYS_CC,
+    auto_email_enabled,
+    recipients_for_record,
+)
 
 
 _KIND_TO_COLLECTION = {
@@ -836,6 +847,131 @@ _KIND_TO_COLLECTION = {
     "incident": "incidents",
     "daily-report": "daily_reports",
 }
+
+
+# ------------------------------------------------------------------
+# Auto-email on submit (fire-and-forget — never blocks the response)
+# ------------------------------------------------------------------
+def _filename_for(kind: str, record: dict) -> str:
+    project = record.get("project_name") or "MASCI"
+    date_part = (
+        record.get("report_date")
+        or record.get("inspection_date")
+        or record.get("meeting_date")
+        or record.get("jha_date")
+        or record.get("incident_date")
+        or ""
+    )
+    safe_proj = "".join(
+        c if c.isalnum() else "_" for c in str(project)[:40]
+    ).strip("_")
+    return f"MASCI-{kind}-{safe_proj}-{date_part}.pdf".replace("--", "-")
+
+
+def _is_severe_incident(record: dict) -> bool:
+    """Major/severe incident → always include OSHA-recordable + work-stopped flag."""
+    sev = (record.get("severity") or "").strip().lower()
+    severe = {"medical", "restricted", "lost_time", "fatality"}
+    if sev in severe:
+        return True
+    if (record.get("osha_recordable") or "").strip().lower() == "yes":
+        return True
+    if (record.get("work_stopped") or "").strip().lower() == "yes":
+        return True
+    return False
+
+
+async def _dispatch_auto_email(kind: str, record: dict) -> None:
+    """Render PDF + send via Resend to the assigned PM and the always-CC list.
+
+    Wrapped in a broad try/except so a missing API key, Resend outage, or PDF
+    error never causes the original POST to fail. Logs at WARNING level when
+    skipped and ERROR when something unexpected breaks.
+    """
+    try:
+        if not auto_email_enabled():
+            logger.info(
+                "auto-email skipped (RESEND_API_KEY missing or AUTO_EMAIL_REPORTS=false) "
+                f"— {kind} {record.get('id')}"
+            )
+            return
+
+        dist = recipients_for_record(record)
+        recipients: List[str] = list(dist["all"])  # type: ignore[arg-type]
+
+        # Severity fan-out for incidents (Major/Severe currently mirrors the
+        # always-CC; future ops/GC list can be appended here from env.)
+        if kind == "incident" and _is_severe_incident(record):
+            extra = os.environ.get("SEVERE_INCIDENT_CC", "")
+            for e in [x.strip() for x in extra.split(",") if x.strip()]:
+                if e.lower() not in {r.lower() for r in recipients}:
+                    recipients.append(e)
+
+        if not recipients:
+            logger.warning(f"auto-email: no recipients resolved for {kind} {record.get('id')}")
+            return
+
+        import resend  # noqa: E402
+        resend.api_key = os.environ["RESEND_API_KEY"]
+        sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+
+        pdf_bytes = await asyncio.to_thread(render_record_pdf, kind, record)
+
+        title = KIND_TITLES.get(kind, "MASCI Safety Record")
+        project = record.get("project_name") or "MASCI"
+        pm_name = dist.get("pm_name")
+        pm_tag = f" · PM: {pm_name}" if pm_name else ""
+        subject = f"[MASCI] {title} · {project}{pm_tag}"
+
+        note = ""
+        if kind == "incident" and _is_severe_incident(record):
+            note = (
+                "<p style='color:#C8102E;font-weight:700'>"
+                "SEVERE INCIDENT — please review immediately."
+                "</p>"
+            )
+        elif pm_name:
+            note = f"<p>Auto-routed to <b>{pm_name}</b> based on project number "\
+                   f"<b>{record.get('project_number') or '—'}</b>.</p>"
+        else:
+            note = (
+                "<p><i>No Project Manager could be auto-resolved from the project number "
+                f"<b>{record.get('project_number') or '—'}</b>. Sent to office distribution "
+                "only — please assign a PM in the office.</i></p>"
+            )
+
+        params = {
+            "from": f"MASCI Safety <{sender_email}>",
+            "to": recipients,
+            "subject": subject,
+            "html": render_email_html(kind, record, note),
+            "attachments": [
+                {
+                    "filename": _filename_for(kind, record),
+                    "content": _email_b64.b64encode(pdf_bytes).decode(),
+                }
+            ],
+        }
+
+        result = await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(
+            f"auto-email sent: kind={kind} id={record.get('id')} pm={pm_name} "
+            f"to={recipients} resend_id={(result or {}).get('id')}"
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"auto-email failed for {kind} {record.get('id')}: {e}")
+
+
+def schedule_auto_email(kind: str, record: dict) -> None:
+    """Fire-and-forget wrapper (safe to call from any create endpoint)."""
+    try:
+        asyncio.create_task(_dispatch_auto_email(kind, dict(record)))
+    except RuntimeError:
+        # No running loop — skip silently (e.g. during sync tests)
+        pass
+
+
+# (auto-email-preview / routing-table routes are registered after _email_router below)
 
 
 class EmailReportRequest(BaseModel):
@@ -850,6 +986,55 @@ class EmailReportRequest(BaseModel):
 
 
 _email_router = APIRouter(prefix="/api")
+
+
+@_email_router.get("/auto-email/preview")
+async def auto_email_preview(
+    project_number: str = "",
+    project_name: str = "",
+    severity: str = "",
+    osha_recordable: str = "",
+    _: bool = Depends(require_admin),
+):
+    """Admin-only introspection: shows who *would* receive the auto-email
+    for a given project_number / project_name."""
+    fake = {
+        "project_number": project_number,
+        "project_name": project_name,
+        "severity": severity,
+        "osha_recordable": osha_recordable,
+    }
+    dist = recipients_for_record(fake)
+    return {
+        "input": fake,
+        "pm_name": dist["pm_name"],
+        "pm_email": dist["pm_email"],
+        "to": dist["to"],
+        "cc": dist["cc"],
+        "all_recipients": dist["all"],
+        "auto_email_enabled": auto_email_enabled(),
+        "always_cc": ALWAYS_CC,
+    }
+
+
+@_email_router.get("/auto-email/routing-table")
+async def auto_email_routing_table(_: bool = Depends(require_admin)):
+    """Returns the full PM → Jobs lookup table (admin-only)."""
+    return {
+        "always_cc": ALWAYS_CC,
+        "auto_email_enabled": auto_email_enabled(),
+        "project_managers": [
+            {
+                "pm_name": pm,
+                "pm_email": data["email"],
+                "jobs": [
+                    {"project_number": jn, "project_name": jname}
+                    for (jn, jname) in data["jobs"]  # type: ignore[union-attr]
+                ],
+            }
+            for pm, data in PM_TABLE.items()
+        ],
+    }
 
 
 @_email_router.post("/email-report")
