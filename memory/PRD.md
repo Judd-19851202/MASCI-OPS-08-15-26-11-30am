@@ -54,7 +54,7 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - All 5 modules: list dashboard, new form, view/print, public submit, share-form QR dialog.
 - 81-topic library on Safety Meetings with searchable picker.
 - Incident severity tiers, root-cause checklist, witnesses, OSHA-recordable + work-stopped flags.
-- **Daily Job Reports** — crews/subs/visitors/equipment/materials/activities with Open-Meteo weather, GPS, 6-photo minimum, prepared-by + superintendent signatures, full bilingual UI.
+- **Daily Job Reports** — crews/subs/visitors/equipment/materials/activities with Open-Meteo weather, GPS, 6-photo minimum, prepared-by + superintendent signatures, full bilingual UI, and a **stop-the-line Safety Escalation gate** that triggers when the report flags an accident or injury (must notify Safety with name + time, then confirm an Accident/Incident Report has been filed with its own filing time, before the Daily Report can be submitted).
 - **MASCI Current Jobs picker on every form** (31 active jobs + Custom).
 - **Bilingual UI (English / Spanish)** — language toggle in every form header. Choice persists per device.
 - **Bilingual topic library** — all 81 toolbox-talk topics in construction-trade Spanish.

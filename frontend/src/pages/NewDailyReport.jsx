@@ -162,19 +162,8 @@ export default function NewDailyReport({ publicMode = false }) {
       toast.error("Prepared By is required");
       return false;
     }
-    if ((data.photos || []).length < (data.photo_min || 6)) {
-      toast.error(
-        `At least ${data.photo_min || 6} photos are required (you have ${
-          (data.photos || []).length
-        })`
-      );
-      return false;
-    }
-    if (!data.prepared_by_signature) {
-      toast.error("Signature is required");
-      return false;
-    }
-    // Safety escalation gate
+    // Safety-escalation gate runs BEFORE photos/signature so a stop-the-line
+    // event can never be hidden behind a missing-photos toast.
     const hasAccidentOrInjury =
       data.safety_incidents_today === "Yes" ||
       data.injuries_reported === "Yes";
@@ -203,6 +192,18 @@ export default function NewDailyReport({ publicMode = false }) {
         toast.error("Time the Incident Report was filed is required");
         return false;
       }
+    }
+    if ((data.photos || []).length < (data.photo_min || 6)) {
+      toast.error(
+        `At least ${data.photo_min || 6} photos are required (you have ${
+          (data.photos || []).length
+        })`
+      );
+      return false;
+    }
+    if (!data.prepared_by_signature) {
+      toast.error("Signature is required");
+      return false;
     }
     return true;
   };
@@ -726,6 +727,7 @@ export default function NewDailyReport({ publicMode = false }) {
                     <Link
                       to="/incidents/new"
                       target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 mt-3 px-3 py-2 bg-white text-red-800 hover:bg-red-100 font-mono text-xs uppercase tracking-[0.2em] font-bold rounded"
                       data-testid="open-incident-form-link"
                     >
