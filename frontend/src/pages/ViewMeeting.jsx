@@ -9,6 +9,7 @@ import { formatDateLong } from "@/lib/utils";
 import { getCompanyInfo } from "@/lib/companyInfo";
 import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
+import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { BilingualConsent } from "@/components/BilingualConsent";
 
 const ReportSection = ({ number, title, children }) => (
@@ -60,6 +61,11 @@ export default function ViewMeeting() {
     };
   }, [id, navigate]);
 
+  // Auto-print after the page renders if we landed here via ?autoprint=1
+  useEffect(() => {
+    if (!loading && data) maybeAutoPrint();
+  }, [loading, data]);
+
   const handleDelete = async () => {
     if (!window.confirm("Delete this meeting? This cannot be undone.")) return;
     try {
@@ -106,7 +112,7 @@ export default function ViewMeeting() {
               <Trash2 className="w-4 h-4" />
             </Button>
             <Button
-              onClick={() => window.print()}
+              onClick={printReport}
               className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
               data-testid="print-btn"
             >

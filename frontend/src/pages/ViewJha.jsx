@@ -9,6 +9,7 @@ import { formatDateLong } from "@/lib/utils";
 import { getCompanyInfo } from "@/lib/companyInfo";
 import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
+import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PPE_OPTIONS, PERMIT_OPTIONS } from "@/lib/jhaSchema";
 import { BilingualConsent } from "@/components/BilingualConsent";
 
@@ -51,6 +52,11 @@ export default function ViewJha() {
     return () => { alive = false; };
   }, [id, navigate]);
 
+  // Auto-print after the page renders if we landed here via ?autoprint=1
+  useEffect(() => {
+    if (!loading && data) maybeAutoPrint();
+  }, [loading, data]);
+
   const handleDelete = async () => {
     if (!window.confirm("Delete this JHA? This cannot be undone.")) return;
     try {
@@ -88,7 +94,7 @@ export default function ViewJha() {
             <Button variant="outline" size="icon" onClick={handleDelete} className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400" data-testid="delete-btn">
               <Trash2 className="w-4 h-4" />
             </Button>
-            <Button onClick={() => window.print()} className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900" data-testid="print-btn">
+            <Button onClick={printReport} className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900" data-testid="print-btn">
               <Printer className="w-4 h-4 mr-1" /> Print / PDF
             </Button>
           </div>

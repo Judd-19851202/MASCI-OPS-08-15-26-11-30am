@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
+import { printReport } from "@/lib/printReport";
 
 /**
  * Crew Cheat Sheet — printable 1-page handout for foremen.
@@ -74,7 +75,7 @@ export default function CheatSheet() {
           <div className="flex items-center gap-2">
             <LangToggle />
             <Button
-              onClick={() => window.print()}
+              onClick={printReport}
               className="h-10 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
               data-testid="cheatsheet-print-btn"
             >
