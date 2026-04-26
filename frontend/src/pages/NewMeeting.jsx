@@ -22,6 +22,7 @@ import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { TOPIC_CATEGORIES, buildMeetingDefaults } from "@/lib/meetingSchema";
 import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/meetingTopicLibrary";
+import { TOPIC_LIBRARY_ES } from "@/lib/meetingTopicLibrary.es";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import {
@@ -35,7 +36,7 @@ const inputCls =
 
 export default function NewMeeting({ publicMode = false }) {
   const navigate = useNavigate();
-  const { t } = useT();
+  const { t, lang } = useT();
   const [data, setData] = useState(buildMeetingDefaults());
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -68,22 +69,28 @@ export default function NewMeeting({ publicMode = false }) {
         action_items: "",
         topic_template_key: CUSTOM_TOPIC_KEY,
       }));
-      toast.info("Custom topic — all topic fields cleared.");
+      toast.info(t("Custom topic — all topic fields cleared."));
       return;
     }
-    const t = findTopic(key);
-    if (!t) return;
+    const tpl = findTopic(key);
+    if (!tpl) return;
+    // Use Spanish version if user is in ES, else English canonical.
+    const es = lang === "es" ? TOPIC_LIBRARY_ES[key] : null;
     setData((p) => ({
       ...p,
-      topic: t.title,
-      topic_category: t.category,
-      hazards_reviewed: t.hazards_reviewed,
-      discussion_notes: t.discussion_notes,
-      references_cited: t.references_cited,
-      action_items: t.action_items,
-      topic_template_key: t.key,
+      topic: es?.title || tpl.title,
+      topic_category: tpl.category,
+      hazards_reviewed: es?.hazards_reviewed || tpl.hazards_reviewed,
+      discussion_notes: es?.discussion_notes || tpl.discussion_notes,
+      references_cited: es?.references_cited || tpl.references_cited,
+      action_items: es?.action_items || tpl.action_items,
+      topic_template_key: tpl.key,
     }));
-    toast.success(`Loaded "${t.title}" — all fields are editable.`);
+    toast.success(
+      lang === "es" && es
+        ? `Cargado "${es.title}" — todos los campos editables.`
+        : `Loaded "${tpl.title}" — all fields are editable.`
+    );
   };
 
   const useGps = async () => {
@@ -160,8 +167,46 @@ export default function NewMeeting({ publicMode = false }) {
   const submit = async () => {
     if (!validate()) return;
     setSaving(true);
+
+    // If a template is loaded AND user is in ES, swap unedited Spanish
+    // template content back to the English canonical so the saved record
+    // stays English. User-edited fields are preserved as typed.
+    let payload = data;
+    if (templateKey !== CUSTOM_TOPIC_KEY) {
+      const tpl = findTopic(templateKey);
+      const es = TOPIC_LIBRARY_ES[templateKey];
+      if (tpl && es) {
+        const swapIfPristine = (currentVal, esVal, enVal) =>
+          currentVal === esVal ? enVal : currentVal;
+        payload = {
+          ...data,
+          topic: swapIfPristine(data.topic, es.title, tpl.title),
+          hazards_reviewed: swapIfPristine(
+            data.hazards_reviewed,
+            es.hazards_reviewed,
+            tpl.hazards_reviewed
+          ),
+          discussion_notes: swapIfPristine(
+            data.discussion_notes,
+            es.discussion_notes,
+            tpl.discussion_notes
+          ),
+          references_cited: swapIfPristine(
+            data.references_cited,
+            es.references_cited,
+            tpl.references_cited
+          ),
+          action_items: swapIfPristine(
+            data.action_items,
+            es.action_items,
+            tpl.action_items
+          ),
+        };
+      }
+    }
+
     try {
-      const res = await api.post("/meetings", data);
+      const res = await api.post("/meetings", payload);
       toast.success("Meeting saved");
       if (publicMode) {
         navigate("/thank-you", {
@@ -375,9 +420,8 @@ export default function NewMeeting({ publicMode = false }) {
               placeholder={t("Search or pick a topic...")}
             />
             <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-              {TOPIC_LIBRARY.length}+ heavy civil / highway topics with prefilled hazards, key points,
-              references, and action items. Type to search — or choose{" "}
-              <span className="font-bold">{t("Custom Topic")}</span> to write your own.
+              {TOPIC_LIBRARY.length}+ {t("heavy civil / highway topics with prefilled hazards, key points, references, and action items. Type to search — or choose")}{" "}
+              <span className="font-bold">{t("Custom Topic")}</span> {t("to write your own.")}
             </p>
           </div>
 

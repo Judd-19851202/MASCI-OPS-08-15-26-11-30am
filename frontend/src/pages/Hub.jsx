@@ -143,7 +143,7 @@ export default function Hub() {
             {t("One front door for every safety form.")}
           </h1>
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
-            {t("Document compliance, run toolbox talks, and analyze hazards before every task. Print or save any record as a branded PDF — works from any device.")}
+            {t("Inspections. Meetings. Hazards. Incidents. Handled.")}
           </p>
           <div className="mt-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.25em]">
             <span className="text-red-700 font-bold">{t("No Shortcuts")}</span>

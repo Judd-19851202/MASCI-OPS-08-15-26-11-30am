@@ -49,6 +49,8 @@ const ES = {
   // Branding / hub
   "MASCI Safety Hub": "Centro de Seguridad MASCI",
   "One front door for every safety form.": "Una puerta de entrada para cada formulario de seguridad.",
+  "Inspections. Meetings. Hazards. Incidents. Handled.":
+    "Inspecciones. Reuniones. Peligros. Incidentes. Resueltos.",
   "Document compliance, run toolbox talks, and analyze hazards before every task. Print or save any record as a branded PDF — works from any device.":
     "Documente el cumplimiento, dirija charlas de seguridad y analice los peligros antes de cada tarea. Imprima o guarde cualquier registro como PDF — funciona en cualquier dispositivo.",
   "No Shortcuts": "Sin Atajos",
@@ -167,6 +169,7 @@ const ES = {
     "Buscar temas (ej. zanja, sílice, calor)...",
   "No topic matches that search.": "Ningún tema coincide con esa búsqueda.",
   "Custom Topic": "Tema Personalizado",
+  "Custom Topic — write your own": "Tema Personalizado — escriba el suyo",
   "Clear all fields and write your own": "Borrar todos los campos y escribir el suyo",
   "Search or pick a topic...": "Busque o elija un tema...",
   "Topic / Subject *": "Tema / Asunto *",
@@ -383,6 +386,11 @@ const ES = {
   "Español": "Español",
   "Forms can be filled in Spanish — submitted record stays in English.":
     "Los formularios se pueden llenar en español — el registro enviado se mantiene en inglés.",
+  "heavy civil / highway topics with prefilled hazards, key points, references, and action items. Type to search — or choose":
+    "temas de obra civil pesada / carretera con peligros, puntos clave, referencias y acciones prellenadas. Escriba para buscar — o elija",
+  "to write your own.": "para escribir el suyo.",
+  "Custom topic — all topic fields cleared.":
+    "Tema personalizado — todos los campos limpiados.",
 };
 
 const DICTS = { es: ES, en: {} };

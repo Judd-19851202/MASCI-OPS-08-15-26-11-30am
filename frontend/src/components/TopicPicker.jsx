@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
+import { TOPIC_LIBRARY_ES } from "@/lib/meetingTopicLibrary.es";
 
 /**
  * Searchable topic picker for the Site Safety Meeting form.
@@ -35,13 +36,22 @@ export function TopicPicker({
   placeholder = "Select a topic...",
 }) {
   const [open, setOpen] = useState(false);
-  const { t } = useT();
+  const { t, lang } = useT();
+
+  // Helper: returns the topic title in the active language.
+  const titleFor = (topic) => {
+    if (lang === "es" && TOPIC_LIBRARY_ES[topic.key]?.title) {
+      return TOPIC_LIBRARY_ES[topic.key].title;
+    }
+    return topic.title;
+  };
 
   const selectedLabel = useMemo(() => {
     if (!value || value === customKey) return null;
-    const t = topics.find((t) => t.key === value);
-    return t ? t.title : null;
-  }, [value, topics, customKey]);
+    const found = topics.find((tt) => tt.key === value);
+    return found ? titleFor(found) : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, topics, customKey, lang]);
 
   // Group topics by category for nicer scanning
   const grouped = useMemo(() => {
@@ -133,31 +143,34 @@ export function TopicPicker({
                 key={category}
                 heading={`${category} · ${list.length}`}
               >
-                {list.map((t) => (
-                  <CommandItem
-                    key={t.key}
-                    // include both title and category for searchability
-                    value={`${t.title} ${t.category} ${t.key}`}
-                    onSelect={() => {
-                      onChange(t.key);
-                      setOpen(false);
-                    }}
-                    className="py-2.5 cursor-pointer"
-                    data-testid={`topic-picker-item-${t.key}`}
-                  >
-                    <div className="flex items-start gap-3 w-full">
-                      <span className="inline-flex w-1.5 h-1.5 rounded-full bg-red-700 shrink-0 mt-2" />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-slate-900 leading-snug">
-                          {t.title}
+                {list.map((topic) => {
+                  const displayTitle = titleFor(topic);
+                  return (
+                    <CommandItem
+                      key={topic.key}
+                      // include EN + ES titles + category so search matches either language
+                      value={`${topic.title} ${displayTitle} ${topic.category} ${topic.key}`}
+                      onSelect={() => {
+                        onChange(topic.key);
+                        setOpen(false);
+                      }}
+                      className="py-2.5 cursor-pointer"
+                      data-testid={`topic-picker-item-${topic.key}`}
+                    >
+                      <div className="flex items-start gap-3 w-full">
+                        <span className="inline-flex w-1.5 h-1.5 rounded-full bg-red-700 shrink-0 mt-2" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-slate-900 leading-snug">
+                            {displayTitle}
+                          </div>
                         </div>
+                        {value === topic.key && (
+                          <Check className="w-4 h-4 text-red-700 shrink-0 mt-1" />
+                        )}
                       </div>
-                      {value === t.key && (
-                        <Check className="w-4 h-4 text-red-700 shrink-0 mt-1" />
-                      )}
-                    </div>
-                  </CommandItem>
-                ))}
+                    </CommandItem>
+                  );
+                })}
               </CommandGroup>
             ))}
           </CommandList>
