@@ -19,6 +19,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { TopicPicker } from "@/components/TopicPicker";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
+import { BilingualConsent } from "@/components/BilingualConsent";
 import { useT } from "@/lib/i18n";
 import { TOPIC_CATEGORIES, buildMeetingDefaults } from "@/lib/meetingSchema";
 import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/meetingTopicLibrary";
@@ -519,6 +520,7 @@ export default function NewMeeting({ publicMode = false }) {
                 placeholder={t("Typed name")}
                 data-testid={`attendee-name-${i}`}
               />
+              <BilingualConsent variant="meeting" />
               <SignaturePad
                 value={a.signature}
                 onChange={(v) => updateAttendee(i, "signature", v)}
@@ -560,6 +562,7 @@ export default function NewMeeting({ publicMode = false }) {
               data-testid="input-conducted-by-typed"
             />
           </div>
+          <BilingualConsent variant="meeting" />
           <SignaturePad
             value={data.conductor_signature}
             onChange={(v) => set("conductor_signature", v)}

@@ -9,6 +9,7 @@ import { formatDateLong } from "@/lib/utils";
 import { getCompanyInfo } from "@/lib/companyInfo";
 import { formatCoords } from "@/lib/geolocation";
 import { PPE_OPTIONS, PERMIT_OPTIONS } from "@/lib/jhaSchema";
+import { BilingualConsent } from "@/components/BilingualConsent";
 
 const ReportSection = ({ number, title, children }) => (
   <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
@@ -211,17 +212,21 @@ export default function ViewJha() {
           {(!data.crew_signoffs || data.crew_signoffs.length === 0) ? (
             <div className="text-slate-500 text-sm">No crew sign-offs recorded.</div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {data.crew_signoffs.map((c, i) => (
-                <div key={i} className="border-2 border-slate-200 rounded-md p-3 print-row">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Crew Member {i + 1}</div>
-                  <div className="font-bold text-slate-900 mt-1">{c.name || "—"}</div>
-                  {c.signature && (
-                    <img src={c.signature} alt={`Sig ${i + 1}`} className="max-h-[60px] mt-2 border border-slate-200 rounded" />
-                  )}
-                </div>
-              ))}
-            </div>
+            <>
+              <BilingualConsent variant="jha" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                {data.crew_signoffs.map((c, i) => (
+                  <div key={i} className="border-2 border-slate-200 rounded-md p-3 print-row">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Crew Member {i + 1}</div>
+                    <div className="font-bold text-slate-900 mt-1">{c.name || "—"}</div>
+                    {c.signature && (
+                      <img src={c.signature} alt={`Sig ${i + 1}`} className="max-h-[60px] mt-2 border border-slate-200 rounded" />
+                    )}
+                    <BilingualConsent variant="jha" compact />
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </ReportSection>
 
@@ -249,7 +254,8 @@ export default function ViewJha() {
         <ReportSection number="07" title="Foreman Approval">
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">Foreman / Crew Lead</div>
           <div className="text-base font-bold text-slate-900 mb-2">{data.crew_lead || "—"}</div>
-          <div className="border-2 border-slate-300 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center max-w-md">
+          <BilingualConsent variant="jha" />
+          <div className="border-2 border-slate-300 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center max-w-md mt-3">
             {data.foreman_signature ? (
               <img src={data.foreman_signature} alt="Foreman signature" className="max-h-[120px]" />
             ) : (

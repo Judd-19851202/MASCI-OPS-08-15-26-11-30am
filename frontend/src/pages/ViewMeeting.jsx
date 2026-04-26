@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
 import { getCompanyInfo } from "@/lib/companyInfo";
 import { formatCoords } from "@/lib/geolocation";
+import { BilingualConsent } from "@/components/BilingualConsent";
 
 const ReportSection = ({ number, title, children }) => (
   <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
@@ -180,26 +181,30 @@ export default function ViewMeeting() {
           {data.attendees?.length === 0 ? (
             <div className="text-slate-500 text-sm">No attendees listed.</div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(data.attendees || []).map((a, i) => (
-                <div
-                  key={i}
-                  className="border-2 border-slate-200 rounded-md p-3 print-row"
-                >
-                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                    Attendee {i + 1}
+            <>
+              <BilingualConsent variant="meeting" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                {(data.attendees || []).map((a, i) => (
+                  <div
+                    key={i}
+                    className="border-2 border-slate-200 rounded-md p-3 print-row"
+                  >
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                      Attendee {i + 1}
+                    </div>
+                    <div className="font-bold text-slate-900 mt-1">{a.name || "—"}</div>
+                    {a.signature && (
+                      <img
+                        src={a.signature}
+                        alt={`Signature ${i + 1}`}
+                        className="max-h-[60px] mt-2 border border-slate-200 rounded"
+                      />
+                    )}
+                    <BilingualConsent variant="meeting" compact />
                   </div>
-                  <div className="font-bold text-slate-900 mt-1">{a.name || "—"}</div>
-                  {a.signature && (
-                    <img
-                      src={a.signature}
-                      alt={`Signature ${i + 1}`}
-                      className="max-h-[60px] mt-2 border border-slate-200 rounded"
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </ReportSection>
 
@@ -243,7 +248,8 @@ export default function ViewMeeting() {
             Conducted By
           </div>
           <div className="text-base font-bold text-slate-900 mb-2">{data.conducted_by || "—"}</div>
-          <div className="border-2 border-slate-300 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center max-w-md">
+          <BilingualConsent variant="meeting" />
+          <div className="border-2 border-slate-300 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center max-w-md mt-3">
             {data.conductor_signature ? (
               <img src={data.conductor_signature} alt="Conductor signature" className="max-h-[120px]" />
             ) : (

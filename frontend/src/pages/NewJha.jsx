@@ -13,6 +13,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
+import { BilingualConsent } from "@/components/BilingualConsent";
 import { useT } from "@/lib/i18n";
 import {
   PPE_OPTIONS,
@@ -440,6 +441,7 @@ export default function NewJha({ publicMode = false }) {
                 placeholder="Typed name"
                 data-testid={`signoff-name-${i}`}
               />
+              <BilingualConsent variant="jha" />
               <SignaturePad
                 value={c.signature}
                 onChange={(v) => updateSignoff(i, "signature", v)}
@@ -473,6 +475,7 @@ export default function NewJha({ publicMode = false }) {
               data-testid="input-foreman-typed"
             />
           </div>
+          <BilingualConsent variant="jha" />
           <SignaturePad
             value={data.foreman_signature}
             onChange={(v) => set("foreman_signature", v)}
