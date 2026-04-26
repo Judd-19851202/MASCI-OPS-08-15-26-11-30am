@@ -33,6 +33,12 @@ export function buildDailyReportDefaults() {
     safety_incidents_today: "No", // any accidents
     injuries_reported: "No",
     incident_notes: "",
+    // Safety-escalation gate: required when accident=Yes OR injury=Yes
+    safety_notified: "", // "Yes" | "No"
+    safety_contact_person: "",
+    safety_contact_time: "",
+    incident_report_filled: "", // "Yes" | "No"
+    incident_report_time: "",
     general_notes: "",
 
     // MASCI crews on site

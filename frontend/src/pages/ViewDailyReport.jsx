@@ -250,6 +250,39 @@ export default function ViewDailyReport() {
             {data.incident_notes && (
               <KV label="Detail" value={data.incident_notes} full />
             )}
+            {(data.safety_incidents_today === "Yes" ||
+              data.injuries_reported === "Yes") && (
+              <div className="sm:col-span-2 mt-2 border-2 border-red-600 bg-red-50 rounded-md p-3">
+                <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold mb-2">
+                  Safety Escalation
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <KV label="Safety Notified" value={data.safety_notified} />
+                  {data.safety_notified === "Yes" && (
+                    <>
+                      <KV
+                        label="Contacted"
+                        value={data.safety_contact_person}
+                      />
+                      <KV
+                        label="Time of Contact"
+                        value={data.safety_contact_time}
+                      />
+                      <KV
+                        label="Incident Report Filed"
+                        value={data.incident_report_filled}
+                      />
+                      {data.incident_report_filled === "Yes" && (
+                        <KV
+                          label="Incident Report Time"
+                          value={data.incident_report_time}
+                        />
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
             {data.general_notes && (
               <KV label="General Notes" value={data.general_notes} full />
             )}

@@ -597,6 +597,12 @@ class DailyReportCreate(BaseModel):
     safety_incidents_today: Optional[str] = "No"
     injuries_reported: Optional[str] = "No"
     incident_notes: Optional[str] = ""
+    # Safety-escalation gate (required when accident=Yes OR injury=Yes)
+    safety_notified: Optional[str] = ""
+    safety_contact_person: Optional[str] = ""
+    safety_contact_time: Optional[str] = ""
+    incident_report_filled: Optional[str] = ""
+    incident_report_time: Optional[str] = ""
     general_notes: Optional[str] = ""
 
     masci_crews: List[Dict[str, Any]] = Field(default_factory=list)

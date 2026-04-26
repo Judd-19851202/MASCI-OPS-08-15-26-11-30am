@@ -112,6 +112,27 @@ const ES = {
   "General Notes": "Notas Generales",
   "Anything else worth noting from today...":
     "Cualquier otra cosa que valga la pena anotar de hoy...",
+  // Safety escalation gate
+  "Safety Escalation Required": "Escalación de Seguridad Requerida",
+  "An accident or injury was reported today. Complete the safety escalation steps before submitting this report.":
+    "Se reportó un accidente o lesión hoy. Complete los pasos de escalación de seguridad antes de enviar este reporte.",
+  "Was Safety notified? *": "¿Se notificó a Seguridad? *",
+  "STOP — Contact Safety immediately.": "ALTO — Contacte a Seguridad inmediatamente.",
+  "You cannot submit this Daily Report until Safety has been notified. Call your Safety Manager now, then return and mark Yes above.":
+    "No puede enviar este Reporte Diario hasta que se haya notificado a Seguridad. Llame al Gerente de Seguridad ahora, luego regrese y marque Sí arriba.",
+  "Who Was Contacted? *": "¿A Quién se Contactó? *",
+  "Name + role (e.g. Jaymn Judd, Safety Mgr)":
+    "Nombre + cargo (ej. Jaymn Judd, Gerente de Seguridad)",
+  "Time of Contact *": "Hora de Contacto *",
+  "Has the Accident/Incident Report been filled out? *":
+    "¿Se ha completado el Reporte de Accidente/Incidente? *",
+  "STOP — File the Incident Report first.":
+    "ALTO — Presente primero el Reporte de Incidente.",
+  "An Accident/Incident Report MUST be filed before this Daily Report can be submitted.":
+    "DEBE presentarse un Reporte de Accidente/Incidente antes de poder enviar este Reporte Diario.",
+  "Open Incident Report Form": "Abrir Formulario de Reporte de Incidente",
+  "Time Incident Report Was Filed *":
+    "Hora en que se Presentó el Reporte de Incidente *",
   "MASCI Crews on Site": "Cuadrillas MASCI en Sitio",
   "Subcontractors on Site": "Subcontratistas en Sitio",
   "Site Visitors": "Visitantes del Sitio",

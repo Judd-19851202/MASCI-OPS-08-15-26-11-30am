@@ -174,6 +174,36 @@ export default function NewDailyReport({ publicMode = false }) {
       toast.error("Signature is required");
       return false;
     }
+    // Safety escalation gate
+    const hasAccidentOrInjury =
+      data.safety_incidents_today === "Yes" ||
+      data.injuries_reported === "Yes";
+    if (hasAccidentOrInjury) {
+      if (data.safety_notified !== "Yes") {
+        toast.error(
+          "Safety must be notified before this Daily Report can be submitted"
+        );
+        return false;
+      }
+      if (!data.safety_contact_person.trim()) {
+        toast.error("Who Was Contacted is required");
+        return false;
+      }
+      if (!data.safety_contact_time.trim()) {
+        toast.error("Time of Contact is required");
+        return false;
+      }
+      if (data.incident_report_filled !== "Yes") {
+        toast.error(
+          "An Accident/Incident Report must be filed before this Daily Report can be submitted"
+        );
+        return false;
+      }
+      if (!data.incident_report_time.trim()) {
+        toast.error("Time the Incident Report was filed is required");
+        return false;
+      }
+    }
     return true;
   };
 
@@ -578,6 +608,150 @@ export default function NewDailyReport({ publicMode = false }) {
                 placeholder={t("Describe delays, weather impact, accidents, injuries...")}
                 data-testid="input-incident-notes"
               />
+            </div>
+          )}
+          {/* Safety-escalation gate — fires whenever accident or injury is Yes */}
+          {(data.safety_incidents_today === "Yes" ||
+            data.injuries_reported === "Yes") && (
+            <div
+              className="bg-red-50 border-2 border-red-600 rounded-md p-4 space-y-4"
+              data-testid="safety-escalation-block"
+            >
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-700 mt-0.5 flex-shrink-0" />
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
+                    {t("Safety Escalation Required")}
+                  </div>
+                  <div className="text-sm text-slate-800 mt-1">
+                    {t(
+                      "An accident or injury was reported today. Complete the safety escalation steps before submitting this report."
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 1: Was Safety Notified? */}
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-800 font-bold">
+                  {t("Was Safety notified? *")}
+                </Label>
+                <YesNo
+                  value={data.safety_notified}
+                  onChange={(v) => set("safety_notified", v)}
+                  testId="safety-notified"
+                />
+              </div>
+
+              {/* Stop-the-line: Safety must be contacted */}
+              {data.safety_notified === "No" && (
+                <div
+                  className="bg-red-700 text-white rounded-md p-4 border-b-4 border-red-900"
+                  data-testid="safety-not-notified-warning"
+                >
+                  <div className="font-display font-black text-lg leading-tight">
+                    {t("STOP — Contact Safety immediately.")}
+                  </div>
+                  <div className="text-sm mt-1 text-red-100">
+                    {t(
+                      "You cannot submit this Daily Report until Safety has been notified. Call your Safety Manager now, then return and mark Yes above."
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Who and when? */}
+              {data.safety_notified === "Yes" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-800">
+                      {t("Who Was Contacted? *")}
+                    </Label>
+                    <Input
+                      value={data.safety_contact_person}
+                      onChange={(e) =>
+                        set("safety_contact_person", e.target.value)
+                      }
+                      placeholder={t("Name + role (e.g. Jaymn Judd, Safety Mgr)")}
+                      className={inputCls}
+                      data-testid="input-safety-contact-person"
+                    />
+                  </div>
+                  <div>
+                    <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-800">
+                      {t("Time of Contact *")}
+                    </Label>
+                    <Input
+                      type="time"
+                      value={data.safety_contact_time}
+                      onChange={(e) =>
+                        set("safety_contact_time", e.target.value)
+                      }
+                      className={inputCls}
+                      data-testid="input-safety-contact-time"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Was the Incident Report filed? */}
+              {data.safety_notified === "Yes" && (
+                <div>
+                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-800 font-bold">
+                    {t("Has the Accident/Incident Report been filled out? *")}
+                  </Label>
+                  <YesNo
+                    value={data.incident_report_filled}
+                    onChange={(v) => set("incident_report_filled", v)}
+                    testId="incident-report-filled"
+                  />
+                </div>
+              )}
+
+              {/* Stop-the-line: Incident report must be filed */}
+              {data.safety_notified === "Yes" &&
+                data.incident_report_filled === "No" && (
+                  <div
+                    className="bg-red-700 text-white rounded-md p-4 border-b-4 border-red-900"
+                    data-testid="incident-report-required-warning"
+                  >
+                    <div className="font-display font-black text-lg leading-tight">
+                      {t("STOP — File the Incident Report first.")}
+                    </div>
+                    <div className="text-sm mt-1 text-red-100">
+                      {t(
+                        "An Accident/Incident Report MUST be filed before this Daily Report can be submitted."
+                      )}
+                    </div>
+                    <Link
+                      to="/incidents/new"
+                      target="_blank"
+                      className="inline-flex items-center gap-1 mt-3 px-3 py-2 bg-white text-red-800 hover:bg-red-100 font-mono text-xs uppercase tracking-[0.2em] font-bold rounded"
+                      data-testid="open-incident-form-link"
+                    >
+                      {t("Open Incident Report Form")}
+                    </Link>
+                  </div>
+                )}
+
+              {/* Step 4: Time the Incident Report was filed */}
+              {data.safety_notified === "Yes" &&
+                data.incident_report_filled === "Yes" && (
+                  <div>
+                    <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-800">
+                      {t("Time Incident Report Was Filed *")}
+                    </Label>
+                    <Input
+                      type="time"
+                      value={data.incident_report_time}
+                      onChange={(e) =>
+                        set("incident_report_time", e.target.value)
+                      }
+                      className={inputCls}
+                      data-testid="input-incident-report-time"
+                    />
+                  </div>
+                )}
             </div>
           )}
           <div>
