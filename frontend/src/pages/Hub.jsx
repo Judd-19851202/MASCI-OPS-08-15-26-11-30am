@@ -62,7 +62,7 @@ export default function Hub() {
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="lockup" size="2xl" className="hidden sm:block" onDark />
+          <MasciLogo variant="lockup" size="2xl" className="hidden sm:block" />
           <MasciLogo variant="mark" size="lg" className="sm:hidden" />
           <div className="flex items-center gap-2">
             <LangToggle />
