@@ -14,6 +14,17 @@ const VALID = new Set(["en", "es"]);
 
 let _listeners = new Set();
 let _current = "en";
+
+// Mirror current language onto the <html lang="…"> attribute. Browsers use
+// this to pick the dictionary for native spell-check on <input>/<textarea>,
+// which gives Spanish-speaking crews Spanish red-underline spell check while
+// they fill out the form.
+const _syncHtmlLang = () => {
+  if (typeof document !== "undefined" && document.documentElement) {
+    document.documentElement.lang = _current;
+  }
+};
+
 if (typeof window !== "undefined") {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -21,6 +32,7 @@ if (typeof window !== "undefined") {
   } catch {
     /* localStorage unavailable */
   }
+  _syncHtmlLang();
 }
 
 export const getLang = () => _current;
@@ -33,6 +45,7 @@ export const setLang = (l) => {
   } catch {
     /* noop */
   }
+  _syncHtmlLang();
   _listeners.forEach((fn) => fn());
 };
 

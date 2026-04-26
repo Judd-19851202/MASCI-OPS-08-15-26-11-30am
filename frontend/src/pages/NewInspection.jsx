@@ -19,7 +19,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
-import { useT } from "@/lib/i18n";
+import { useT, getLang } from "@/lib/i18n";
 import {
   PPE_ITEMS,
   SITE_HAZARD_ITEMS,
@@ -137,7 +137,7 @@ export default function NewInspection({ publicMode = false }) {
     setSaving(true);
     try {
       const grade = computeGrade(data);
-      const payload = {
+      let payload = {
         ...data,
         score: grade.score,
         status: grade.status,
@@ -146,11 +146,17 @@ export default function NewInspection({ publicMode = false }) {
         graded_no: grade.no,
         graded_total: grade.total,
       };
+      const lang = getLang();
+      if (lang === "es") {
+        toast.info("Translating to English…");
+        const { translateUserInput } = await import("@/lib/translateOnSubmit");
+        payload = await translateUserInput(payload, "es");
+      }
       const res = await api.post("/inspections", payload);
       toast.success("Inspection saved");
       if (publicMode) {
         navigate("/thank-you", {
-          state: { projectName: data.project_name, grade },
+          state: { projectName: payload.project_name, grade },
           replace: true,
         });
       } else {

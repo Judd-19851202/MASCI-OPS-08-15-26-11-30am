@@ -9,6 +9,7 @@ import { getCompanyInfo } from "@/lib/companyInfo";
 import { computeGrade } from "@/lib/grading";
 import { GradeBanner } from "@/components/Grade";
 import { formatCoords } from "@/lib/geolocation";
+import { MapThumbnail } from "@/components/MapThumbnail";
 import {
   PPE_ITEMS,
   SITE_HAZARD_ITEMS,
@@ -239,6 +240,13 @@ export default function ViewInspection() {
                     · Open in Maps
                   </a>
                 </div>
+              )}
+              {data.gps_lat != null && data.gps_lng != null && (
+                <MapThumbnail
+                  lat={data.gps_lat}
+                  lng={data.gps_lng}
+                  className="mt-2"
+                />
               )}
             </div>
             <KV label="Date" value={formatDateLong(data.inspection_date)} />

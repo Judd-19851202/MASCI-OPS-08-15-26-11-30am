@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
 import { getCompanyInfo } from "@/lib/companyInfo";
 import { formatCoords } from "@/lib/geolocation";
+import { MapThumbnail } from "@/components/MapThumbnail";
 import { BilingualConsent } from "@/components/BilingualConsent";
 
 const ReportSection = ({ number, title, children }) => (
@@ -158,6 +159,13 @@ export default function ViewMeeting() {
                     · Open in Maps
                   </a>
                 </div>
+              )}
+              {data.gps_lat != null && (
+                <MapThumbnail
+                  lat={data.gps_lat}
+                  lng={data.gps_lng}
+                  className="mt-2"
+                />
               )}
             </div>
             <KV label="Date" value={formatDateLong(data.meeting_date)} />

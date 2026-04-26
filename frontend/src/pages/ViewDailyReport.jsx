@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
 import { getCompanyInfo } from "@/lib/companyInfo";
 import { formatCoords } from "@/lib/geolocation";
+import { MapThumbnail } from "@/components/MapThumbnail";
 
 const ReportSection = ({ number, title, children }) => (
   <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print:break-inside-avoid">
@@ -195,6 +196,13 @@ export default function ViewDailyReport() {
                   <MapPin className="w-3 h-3 text-red-700" />
                   GPS · {formatCoords(data.gps_lat, data.gps_lng, data.gps_accuracy)}
                 </div>
+              )}
+              {data.gps_lat != null && (
+                <MapThumbnail
+                  lat={data.gps_lat}
+                  lng={data.gps_lng}
+                  className="mt-2"
+                />
               )}
             </div>
             <KV label="Date" value={formatDateLong(data.report_date)} />

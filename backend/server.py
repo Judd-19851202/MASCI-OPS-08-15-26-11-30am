@@ -652,6 +652,108 @@ async def delete_daily_report(report_id: str):
     return {"deleted": True, "id": report_id}
 
 
+# ============================================================
+# Translation (Spanish → English on submit)
+# ============================================================
+# Crews can fill any form in Spanish, but every saved record + printed PDF
+# must be 100% English (legal/OSHA requirement). At submit time the frontend
+# sends the freeform user-typed string leaves to this endpoint, which calls
+# Claude Haiku 4.5 via the Emergent universal LLM key and returns the same
+# dict shape with English values.
+
+class TranslateRequest(BaseModel):
+    from_lang: str = "es"
+    to_lang: str = "en"
+    strings: Dict[str, str] = Field(default_factory=dict)
+
+
+class TranslateResponse(BaseModel):
+    strings: Dict[str, str]
+
+
+import json as _json  # noqa: E402  (kept local to this section)
+
+
+@api_router.post("/translate", response_model=TranslateResponse)
+async def translate_strings(payload: TranslateRequest):
+    """Translate a flat {key: string} dict between languages.
+
+    Returns the same keys with translated values. If translation fails we
+    return the original strings unchanged so the form submit is never
+    blocked. Empty input is a no-op.
+    """
+    if not payload.strings:
+        return TranslateResponse(strings={})
+
+    # Short-circuit when source & target are identical
+    if payload.from_lang == payload.to_lang:
+        return TranslateResponse(strings=payload.strings)
+
+    api_key = os.environ.get("EMERGENT_LLM_KEY")
+    if not api_key:
+        logger.warning("EMERGENT_LLM_KEY missing — returning input unchanged")
+        return TranslateResponse(strings=payload.strings)
+
+    # Lazy import so cold-start of the rest of the API isn't blocked.
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+    except Exception as e:  # pragma: no cover
+        logger.error(f"emergentintegrations import failed: {e}")
+        return TranslateResponse(strings=payload.strings)
+
+    system = (
+        "You are a translator for a US construction safety reporting app. "
+        "Translate values from {src} to {dst}. The text comes from heavy-civil "
+        "construction crews — preserve technical terms (e.g. excavator, MOT, PPE, "
+        "rebar, lift station, foreman), proper nouns, and numbers exactly. "
+        "Keep the SAME JSON shape: input is a JSON object whose values are the "
+        "strings to translate; reply with ONLY a JSON object using the SAME keys "
+        "and translated values — no commentary, no markdown fences."
+    ).format(src=payload.from_lang, dst=payload.to_lang)
+
+    user_text = (
+        "Translate every value in this JSON object. Reply with the JSON object "
+        "only, same keys, translated values:\n\n"
+        + _json.dumps(payload.strings, ensure_ascii=False)
+    )
+
+    try:
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"translate-{uuid.uuid4().hex[:8]}",
+            system_message=system,
+        ).with_model("anthropic", "claude-haiku-4-5-20251001")
+
+        response = await chat.send_message(UserMessage(text=user_text))
+        text = (response or "").strip()
+
+        # Strip optional ```json fences if the model added them
+        if text.startswith("```"):
+            text = text.strip("`")
+            # remove leading "json\n" if present
+            if text.lower().startswith("json"):
+                text = text[4:].lstrip("\n")
+
+        # Find the first { … } block
+        start = text.find("{")
+        end = text.rfind("}")
+        if start == -1 or end == -1:
+            raise ValueError(f"No JSON object in response: {text[:200]}")
+        parsed = _json.loads(text[start : end + 1])
+        if not isinstance(parsed, dict):
+            raise ValueError("LLM did not return a JSON object")
+
+        # Only keep string values; fall back to original where missing
+        out = {}
+        for k, original in payload.strings.items():
+            v = parsed.get(k)
+            out[k] = v if isinstance(v, str) and v.strip() else original
+        return TranslateResponse(strings=out)
+    except Exception as e:
+        logger.exception(f"Translation failed: {e}")
+        return TranslateResponse(strings=payload.strings)
+
+
 app.include_router(api_router)
 
 app.add_middleware(

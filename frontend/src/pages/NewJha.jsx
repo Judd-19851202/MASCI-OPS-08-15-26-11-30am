@@ -14,7 +14,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
 import { BilingualConsent } from "@/components/BilingualConsent";
-import { useT } from "@/lib/i18n";
+import { useT, getLang } from "@/lib/i18n";
 import {
   PPE_OPTIONS,
   PERMIT_OPTIONS,
@@ -136,12 +136,19 @@ export default function NewJha({ publicMode = false }) {
     if (!validate()) return;
     setSaving(true);
     try {
-      const res = await api.post("/jhas", data);
+      const lang = getLang();
+      let payload = data;
+      if (lang === "es") {
+        toast.info("Translating to English…");
+        const { translateUserInput } = await import("@/lib/translateOnSubmit");
+        payload = await translateUserInput(data, "es");
+      }
+      const res = await api.post("/jhas", payload);
       toast.success("JHA saved");
       if (publicMode) {
         navigate("/thank-you", {
           state: {
-            projectName: data.project_name,
+            projectName: payload.project_name,
             formType: "Job Hazard Analysis",
             returnTo: "/jha/submit",
           },

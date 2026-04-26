@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
 import { getCompanyInfo } from "@/lib/companyInfo";
 import { formatCoords } from "@/lib/geolocation";
+import { MapThumbnail } from "@/components/MapThumbnail";
 import { PPE_OPTIONS, PERMIT_OPTIONS } from "@/lib/jhaSchema";
 import { BilingualConsent } from "@/components/BilingualConsent";
 
@@ -126,6 +127,9 @@ export default function ViewJha() {
                   <span>GPS · {formatCoords(data.gps_lat, data.gps_lng, data.gps_accuracy)}</span>
                   <a href={`https://www.google.com/maps?q=${data.gps_lat},${data.gps_lng}`} target="_blank" rel="noopener noreferrer" className="text-red-700 hover:text-red-800 font-bold no-print">· Open in Maps</a>
                 </div>
+              )}
+              {data.gps_lat != null && (
+                <MapThumbnail lat={data.gps_lat} lng={data.gps_lng} className="mt-2" />
               )}
             </div>
             <KV label="Date" value={formatDateLong(data.jha_date)} />

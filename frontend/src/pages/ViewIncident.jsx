@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
 import { getCompanyInfo } from "@/lib/companyInfo";
 import { formatCoords } from "@/lib/geolocation";
+import { MapThumbnail } from "@/components/MapThumbnail";
 import {
   SEVERITY_LEVELS,
   ROOT_CAUSE_CATEGORIES,
@@ -186,6 +187,13 @@ export default function ViewIncident() {
                     · Open in Maps
                   </a>
                 </div>
+              )}
+              {data.gps_lat != null && (
+                <MapThumbnail
+                  lat={data.gps_lat}
+                  lng={data.gps_lng}
+                  className="mt-2"
+                />
               )}
             </div>
             <KV

@@ -21,10 +21,11 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
-import { useT } from "@/lib/i18n";
+import { useT, getLang } from "@/lib/i18n";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
 import { api } from "@/lib/api";
+import { translateUserInput } from "@/lib/translateOnSubmit";
 import { toast } from "sonner";
 import {
   getCurrentPosition,
@@ -180,12 +181,18 @@ export default function NewDailyReport({ publicMode = false }) {
     if (!validate()) return;
     setSaving(true);
     try {
-      const res = await api.post("/daily-reports", data);
+      const lang = getLang();
+      let payload = data;
+      if (lang === "es") {
+        toast.info("Translating to English…");
+        payload = await translateUserInput(data, "es");
+      }
+      const res = await api.post("/daily-reports", payload);
       toast.success("Daily report saved");
       if (publicMode) {
         navigate("/thank-you", {
           state: {
-            projectName: data.project_name,
+            projectName: payload.project_name,
             formType: "Daily Report",
             returnTo: "/daily/submit",
           },

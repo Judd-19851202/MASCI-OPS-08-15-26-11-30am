@@ -20,7 +20,7 @@ import { TopicPicker } from "@/components/TopicPicker";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
 import { BilingualConsent } from "@/components/BilingualConsent";
-import { useT } from "@/lib/i18n";
+import { useT, getLang } from "@/lib/i18n";
 import { TOPIC_CATEGORIES, buildMeetingDefaults } from "@/lib/meetingSchema";
 import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/meetingTopicLibrary";
 import { TOPIC_LIBRARY_ES } from "@/lib/meetingTopicLibrary.es";
@@ -207,12 +207,18 @@ export default function NewMeeting({ publicMode = false }) {
     }
 
     try {
+      const lang = getLang();
+      if (lang === "es") {
+        toast.info("Translating to English…");
+        const { translateUserInput } = await import("@/lib/translateOnSubmit");
+        payload = await translateUserInput(payload, "es");
+      }
       const res = await api.post("/meetings", payload);
       toast.success("Meeting saved");
       if (publicMode) {
         navigate("/thank-you", {
           state: {
-            projectName: data.project_name,
+            projectName: payload.project_name,
             formType: "Site Safety Meeting",
             returnTo: "/meetings/submit",
           },
