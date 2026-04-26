@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Printer, Loader2, Trash2, MapPin, CheckSquare, AlertTriangle, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Printer, Loader2, Trash2, MapPin, CheckSquare, AlertTriangle, ShieldCheck, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { api } from "@/lib/api";
@@ -11,6 +11,7 @@ import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
+import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { PPE_OPTIONS, PERMIT_OPTIONS } from "@/lib/jhaSchema";
 import { BilingualConsent } from "@/components/BilingualConsent";
 
@@ -36,6 +37,7 @@ export default function ViewJha() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [emailOpen, setEmailOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -95,6 +97,9 @@ export default function ViewJha() {
           <div className="flex gap-2">
             <Button variant="outline" size="icon" onClick={handleDelete} className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400" data-testid="delete-btn">
               <Trash2 className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" onClick={() => setEmailOpen(true)} className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:bg-slate-700 font-bold uppercase tracking-wide text-sm" data-testid="email-btn">
+              <Mail className="w-4 h-4 mr-1" /> Email
             </Button>
             <Button onClick={printReport} className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900" data-testid="print-btn">
               <Printer className="w-4 h-4 mr-1" /> Print / PDF
@@ -297,6 +302,7 @@ export default function ViewJha() {
           </div>
         )}
       </main>
+      <EmailReportDialog open={emailOpen} onOpenChange={setEmailOpen} kind="jha" record={data} />
     </div>
   );
 }

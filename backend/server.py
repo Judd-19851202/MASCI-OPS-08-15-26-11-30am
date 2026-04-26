@@ -809,6 +809,123 @@ async def translate_strings(payload: TranslateRequest):
 
 app.include_router(api_router)
 
+
+# ============================================================
+# Email a saved record as a PDF (Resend)
+# ============================================================
+# Independent router so it imports at startup without forcing a hot-reload
+# of the existing routes. Adds POST /api/email-report which:
+#   1. Looks up the saved record by id from its module's collection.
+#   2. Renders it to a polished PDF via /app/backend/pdf_render.py.
+#   3. Sends via Resend with the PDF attached.
+
+import asyncio  # noqa: E402
+import base64 as _email_b64  # noqa: E402
+
+from pdf_render import (  # noqa: E402
+    render_email_html,
+    render_record_pdf,
+    KIND_TITLES,
+)
+
+
+_KIND_TO_COLLECTION = {
+    "inspection": "inspections",
+    "meeting": "meetings",
+    "jha": "jhas",
+    "incident": "incidents",
+    "daily-report": "daily_reports",
+}
+
+
+class EmailReportRequest(BaseModel):
+    kind: str = Field(
+        ...,
+        description="One of: inspection, meeting, jha, incident, daily-report",
+    )
+    record_id: str
+    recipients: List[str] = Field(..., min_length=1, max_length=20)
+    subject: Optional[str] = ""
+    note: Optional[str] = ""
+
+
+_email_router = APIRouter(prefix="/api")
+
+
+@_email_router.post("/email-report")
+async def email_report(
+    body: EmailReportRequest, _: bool = Depends(require_admin)
+):
+    if body.kind not in _KIND_TO_COLLECTION:
+        raise HTTPException(status_code=400, detail=f"Unknown kind: {body.kind}")
+    coll_name = _KIND_TO_COLLECTION[body.kind]
+    coll = getattr(db, coll_name)
+    record = await coll.find_one({"id": body.record_id}, {"_id": 0})
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+
+    api_key = os.environ.get("RESEND_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="RESEND_API_KEY not configured. Add it to /app/backend/.env and restart backend.",
+        )
+
+    sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+
+    try:
+        import resend  # noqa: E402
+
+        resend.api_key = api_key
+
+        pdf_bytes = render_record_pdf(body.kind, record)
+        title = KIND_TITLES.get(body.kind, "MASCI Safety Record")
+        project = record.get("project_name") or record.get("project") or "MASCI"
+        date_part = (
+            record.get("report_date")
+            or record.get("date")
+            or record.get("incident_date")
+            or ""
+        )
+        safe_proj = "".join(
+            c if c.isalnum() else "_" for c in project[:40]
+        ).strip("_")
+        filename = f"MASCI-{body.kind}-{safe_proj}-{date_part}.pdf".replace(
+            "--", "-"
+        )
+
+        subject = body.subject or f"{title} · {project}".strip(" ·")
+
+        params = {
+            "from": f"MASCI Safety <{sender_email}>",
+            "to": [r for r in body.recipients if r and r.strip()],
+            "subject": subject,
+            "html": render_email_html(body.kind, record, body.note or ""),
+            "attachments": [
+                {
+                    "filename": filename,
+                    "content": _email_b64.b64encode(pdf_bytes).decode(),
+                }
+            ],
+        }
+
+        result = await asyncio.to_thread(resend.Emails.send, params)
+        return {
+            "ok": True,
+            "id": (result or {}).get("id"),
+            "to": params["to"],
+            "filename": filename,
+            "size_bytes": len(pdf_bytes),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"email-report failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Email send failed: {e}")
+
+
+app.include_router(_email_router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

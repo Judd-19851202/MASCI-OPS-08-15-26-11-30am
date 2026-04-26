@@ -7,6 +7,7 @@ import {
   Trash2,
   MapPin,
   CloudSun,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -18,6 +19,7 @@ import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
+import { EmailReportDialog } from "@/components/EmailReportDialog";
 
 const ReportSection = ({ number, title, children }) => (
   <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print:break-inside-avoid">
@@ -87,6 +89,7 @@ export default function ViewDailyReport() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [emailOpen, setEmailOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -157,6 +160,14 @@ export default function ViewDailyReport() {
               data-testid="delete-btn"
             >
               <Trash2 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setEmailOpen(true)}
+              className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-white hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
+              data-testid="email-btn"
+            >
+              <Mail className="w-4 h-4 mr-1" /> Email
             </Button>
             <Button
               onClick={printReport}
@@ -503,6 +514,12 @@ export default function ViewDailyReport() {
           </div>
         )}
       </main>
+      <EmailReportDialog
+        open={emailOpen}
+        onOpenChange={setEmailOpen}
+        kind="daily-report"
+        record={data}
+      />
     </div>
   );
 }

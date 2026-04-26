@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Printer, Loader2, Trash2, MapPin } from "lucide-react";
+import { ArrowLeft, Printer, Loader2, Trash2, MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { api } from "@/lib/api";
@@ -11,6 +11,7 @@ import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
+import { EmailReportDialog } from "@/components/EmailReportDialog";
 import {
   SEVERITY_LEVELS,
   ROOT_CAUSE_CATEGORIES,
@@ -49,6 +50,7 @@ export default function ViewIncident() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [emailOpen, setEmailOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -123,6 +125,14 @@ export default function ViewIncident() {
               data-testid="delete-btn"
             >
               <Trash2 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setEmailOpen(true)}
+              className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
+              data-testid="email-btn"
+            >
+              <Mail className="w-4 h-4 mr-1" /> Email
             </Button>
             <Button
               onClick={printReport}
@@ -472,6 +482,7 @@ export default function ViewIncident() {
           </div>
         )}
       </main>
+      <EmailReportDialog open={emailOpen} onOpenChange={setEmailOpen} kind="incident" record={data} />
     </div>
   );
 }
