@@ -18,12 +18,10 @@ import { useT } from "@/lib/i18n";
 export default function CheatSheet() {
   const { t } = useT();
 
-  // QR points at whatever this build is currently served from — so once the
-  // app is deployed at safety.mascigc.com, the QR auto-resolves there.
-  const hubUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/`
-      : "https://safety.mascigc.com/";
+  // Production hub URL — locked to the permanent domain so the printed
+  // QR code keeps working forever, even while we're testing on the
+  // preview/feature URL during development.
+  const hubUrl = "https://safety.mascigc.com/";
 
   const steps = [
     {

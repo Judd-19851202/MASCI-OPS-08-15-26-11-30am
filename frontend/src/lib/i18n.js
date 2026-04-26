@@ -205,6 +205,7 @@ const ES = {
   "MASCI · Field Safety Reporting Portal":
     "MASCI · Portal de Reportes de Seguridad de Campo",
   // Crew Cheat Sheet
+  "Cheat Sheet": "Hoja de Referencia",
   "Crew Cheat Sheet": "Hoja de Referencia de Cuadrilla",
   "Crew Cheat Sheet · Field Safety Reporting Portal":
     "Hoja de Referencia · Portal de Reportes de Seguridad de Campo",

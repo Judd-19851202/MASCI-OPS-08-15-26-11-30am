@@ -143,7 +143,7 @@ export default function Hub() {
             className="inline-flex items-center gap-2 h-10 px-3 rounded-md border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-mono text-xs uppercase tracking-[0.2em] font-bold transition-colors"
             data-testid="hub-cheatsheet-link"
           >
-            Cheat Sheet
+            {t("Cheat Sheet")}
           </Link>
           <Link
             to="/admin/login"
