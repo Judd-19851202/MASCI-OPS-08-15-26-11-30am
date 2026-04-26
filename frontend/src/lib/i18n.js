@@ -64,6 +64,8 @@ const ES = {
   "One front door for every safety form.": "Una puerta de entrada para cada formulario de seguridad.",
   "Inspections. Meetings. Hazards. Incidents. Handled.":
     "Inspecciones. Reuniones. Peligros. Incidentes. Resueltos.",
+  "Every field-safety form. One digital home.":
+    "Cada formulario de seguridad de campo. Un hogar digital.",
 
   // ============================================================
   // Daily Report
@@ -179,6 +181,8 @@ const ES = {
   "Recent Activity": "Actividad Reciente",
   "Loading...": "Cargando...",
   "MASCI · Job Site Safety Program": "MASCI · Programa de Seguridad del Sitio",
+  "MASCI · Field Safety Reporting Portal":
+    "MASCI · Portal de Reportes de Seguridad de Campo",
 
   // Common form chrome
   "New Report": "Nuevo Reporte",
