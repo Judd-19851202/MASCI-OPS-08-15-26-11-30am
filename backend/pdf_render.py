@@ -400,6 +400,7 @@ def _render_equipment(d: Dict[str, Any]) -> str:
         for item, result in items.items():
             status = (result or {}).get("status", "") if isinstance(result, dict) else ""
             note = (result or {}).get("note", "") if isinstance(result, dict) else ""
+            photo = (result or {}).get("photo", "") if isinstance(result, dict) else ""
             color = (
                 "#16a34a"
                 if status == "pass"
@@ -411,13 +412,19 @@ def _render_equipment(d: Dict[str, Any]) -> str:
                 if note
                 else ""
             )
+            photo_html = (
+                f"<div style='margin-top:4px;'><img src='{escape(photo)}' "
+                f"style='max-width:140px;max-height:100px;border:1px solid #c8102e;'/></div>"
+                if photo and photo.startswith("data:image/")
+                else ""
+            )
             body += (
                 f"<div class='kv'>"
                 f"<div class='kv-k' style='flex:0 0 60%;'>{escape(str(item))}</div>"
                 f"<div class='kv-v' style='flex:1;'>"
                 f"<span style='font-family:Courier New,monospace;font-size:8pt;"
                 f"font-weight:900;letter-spacing:0.1em;color:{color};'>{badge}</span>"
-                f"{note_html}</div></div>"
+                f"{note_html}{photo_html}</div></div>"
             )
         if body:
             rows.append(_section(section_title, body))

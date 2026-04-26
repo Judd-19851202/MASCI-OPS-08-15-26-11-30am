@@ -198,6 +198,13 @@ export default function ViewEquipmentInspection() {
                     {res?.note && (
                       <div className="text-xs text-slate-500 italic mt-0.5">↳ {res.note}</div>
                     )}
+                    {res?.photo && (
+                      <img
+                        src={res.photo}
+                        alt="Failure evidence"
+                        className="mt-2 w-32 h-24 object-cover rounded border-2 border-red-300"
+                      />
+                    )}
                   </div>
                   <StatusPill status={res?.status} />
                 </div>

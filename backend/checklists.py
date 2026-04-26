@@ -41,7 +41,7 @@ _COMMON_LIGHTS_ELECTRICAL = [
     "Work lights functional",
     "Tail lights / brake lights functional",
     "Turn signals / hazard flashers",
-    "Strobe / beacon light (if equipped)",
+    "Strobe / beacon light (Required)",
     "Wiring - no exposed or damaged wires",
 ]
 

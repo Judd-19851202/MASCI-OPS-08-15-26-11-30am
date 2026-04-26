@@ -153,9 +153,13 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       const next = JSON.parse(JSON.stringify(p));
       next.checklist[sectionTitle] = next.checklist[sectionTitle] || {};
       next.checklist[sectionTitle][item] = {
-        ...(next.checklist[sectionTitle][item] || { status: "", note: "" }),
+        ...(next.checklist[sectionTitle][item] || { status: "", note: "", photo: "" }),
         ...patch,
       };
+      // If the user moved status away from FAIL, clear the photo (optional clean-up)
+      if (patch.status && patch.status !== "fail") {
+        next.checklist[sectionTitle][item].photo = "";
+      }
       // Recompute tallies
       let pass = 0,
         fail = 0,
@@ -173,6 +177,41 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       next.out_of_service = fail > 0 ? "Yes" : "No";
       return next;
     });
+  };
+
+  // Compress + read a file → data URL (≤1024px wide, JPEG q=0.78)
+  const readPhoto = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const maxW = 1024;
+          const scale = Math.min(1, maxW / img.width);
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", 0.78));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+  const onFailPhoto = async (sectionTitle, item, file) => {
+    if (!file) return;
+    try {
+      const dataUrl = await readPhoto(file);
+      setItem(sectionTitle, item, { photo: dataUrl });
+    } catch {
+      toast.error("Could not read photo");
+    }
   };
 
   const applyJob = (job) => {
@@ -212,15 +251,39 @@ export default function NewEquipmentInspection({ publicMode = false }) {
 
     // Make sure every checklist item has a status — fail-fast helps OSHA records
     const missing = [];
+    const failNoNote = [];
+    const failShortNote = [];
+    const failNoPhoto = [];
     Object.entries(data.checklist).forEach(([sec, items]) => {
       Object.entries(items).forEach(([item, res]) => {
-        if (!res?.status) missing.push(`${sec} → ${item}`);
+        if (!res?.status) {
+          missing.push(`${sec} → ${item}`);
+        } else if (res.status === "fail") {
+          const note = (res.note || "").trim();
+          if (!note) failNoNote.push(`${sec} → ${item}`);
+          else if (note.length < 10) failShortNote.push(`${sec} → ${item}`);
+          if (!res.photo) failNoPhoto.push(`${sec} → ${item}`);
+        }
       });
     });
     if (missing.length > 0) {
       toast.error(
         `${missing.length} item(s) still need PASS / FAIL / N/A — first: ${missing[0]}`
       );
+      return;
+    }
+    if (failNoNote.length > 0) {
+      toast.error(`FAIL needs a description — first: ${failNoNote[0]}`);
+      return;
+    }
+    if (failShortNote.length > 0) {
+      toast.error(
+        `FAIL description must be at least 10 characters — first: ${failShortNote[0]}`
+      );
+      return;
+    }
+    if (failNoPhoto.length > 0) {
+      toast.error(`FAIL needs a photo — first: ${failNoPhoto[0]}`);
       return;
     }
 
@@ -460,13 +523,18 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           >
             <div className="space-y-3">
               {sec.items.map((item) => {
-                const result = data.checklist?.[sec.title]?.[item] || { status: "", note: "" };
+                const result = data.checklist?.[sec.title]?.[item] || { status: "", note: "", photo: "" };
                 const safeId = (sec.title + "-" + item).replace(/[^a-z0-9]/gi, "-").toLowerCase();
+                const isFail = result.status === "fail";
+                const noteLen = (result.note || "").trim().length;
+                const noteShort = isFail && noteLen > 0 && noteLen < 10;
+                const noteEmpty = isFail && noteLen === 0;
+                const photoMissing = isFail && !result.photo;
                 return (
                   <div
                     key={item}
                     className={`border-2 rounded-md p-3 ${
-                      result.status === "fail"
+                      isFail
                         ? "border-red-700 bg-red-50"
                         : result.status === "pass"
                         ? "border-emerald-300 bg-emerald-50"
@@ -486,7 +554,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                         testId={`btn-pass-${safeId}`}
                       />
                       <StatusBtn
-                        active={result.status === "fail"}
+                        active={isFail}
                         color="bg-red-700"
                         label={t("Fail")}
                         onClick={() => setItem(sec.title, item, { status: "fail" })}
@@ -500,14 +568,72 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                         testId={`btn-na-${safeId}`}
                       />
                     </div>
-                    {(result.status === "fail" || result.note) && (
-                      <Textarea
-                        value={result.note || ""}
-                        onChange={(e) => setItem(sec.title, item, { note: e.target.value })}
-                        placeholder={t("Notes — describe the issue (required for FAIL)")}
-                        className="mt-2 text-sm border-2 border-slate-300"
-                        data-testid={`note-${safeId}`}
-                      />
+                    {(isFail || result.note) && (
+                      <>
+                        <Textarea
+                          value={result.note || ""}
+                          onChange={(e) => setItem(sec.title, item, { note: e.target.value })}
+                          placeholder={t("Describe the issue (required for FAIL — min 10 characters)")}
+                          spellCheck={true}
+                          className={`mt-2 text-sm border-2 ${
+                            noteEmpty || noteShort ? "border-red-500" : "border-slate-300"
+                          }`}
+                          data-testid={`note-${safeId}`}
+                        />
+                        {isFail && (
+                          <div className="text-xs mt-1 flex items-center justify-between gap-2">
+                            <span className={noteEmpty || noteShort ? "text-red-700 font-bold" : "text-slate-500"}>
+                              {noteEmpty
+                                ? t("Description required for FAIL")
+                                : noteShort
+                                ? t("At least 10 characters required")
+                                : t("Description")}
+                            </span>
+                            <span className={noteShort ? "text-red-700 font-mono font-bold" : "text-slate-400 font-mono"}>
+                              {noteLen}/10
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {isFail && (
+                      <div className="mt-2">
+                        {result.photo ? (
+                          <div className="flex items-start gap-2">
+                            <img
+                              src={result.photo}
+                              alt="Failure evidence"
+                              className="w-24 h-24 object-cover rounded border-2 border-red-300"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setItem(sec.title, item, { photo: "" })}
+                              className="text-xs text-red-700 font-bold underline"
+                              data-testid={`remove-photo-${safeId}`}
+                            >
+                              {t("Replace photo")}
+                            </button>
+                          </div>
+                        ) : (
+                          <label
+                            className={`inline-flex items-center gap-2 h-10 px-3 rounded border-2 cursor-pointer text-sm font-bold ${
+                              photoMissing
+                                ? "border-red-700 bg-red-100 text-red-700"
+                                : "border-slate-300 bg-white text-slate-700 hover:border-red-700"
+                            }`}
+                            data-testid={`add-photo-${safeId}`}
+                          >
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="hidden"
+                              onChange={(e) => onFailPhoto(sec.title, item, e.target.files?.[0])}
+                            />
+                            📷 {t("Add photo (required for FAIL)")}
+                          </label>
+                        )}
+                      </div>
                     )}
                   </div>
                 );
