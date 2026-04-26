@@ -914,6 +914,7 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         import resend  # noqa: E402
         resend.api_key = os.environ["RESEND_API_KEY"]
         sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+        reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
 
         pdf_bytes = await asyncio.to_thread(render_record_pdf, kind, record)
 
@@ -952,6 +953,8 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                 }
             ],
         }
+        if reply_to:
+            params["reply_to"] = reply_to
 
         result = await asyncio.to_thread(resend.Emails.send, params)
         logger.info(
