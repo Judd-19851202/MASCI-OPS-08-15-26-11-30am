@@ -31,3 +31,13 @@
 .brand-red:hover {
     background-color: #a30d24;
 }
+
+/* Make sure the MASCI lockup composition prints with full color (Chrome
+   strips background colors on print without these). */
+@media print {
+    [data-testid="masci-logo-lockup"],
+    [data-testid="masci-logo-lockup"] * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
