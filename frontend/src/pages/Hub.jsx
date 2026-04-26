@@ -8,14 +8,12 @@ import {
   ArrowRight,
   Plus,
   Loader2,
-  ShieldCheck,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
-import { formatDateLong } from "@/lib/utils";
 
 const Tile = ({ to, icon: Icon, title, desc, count, sub, accent = "red" }) => {
   const accentCls =
@@ -74,7 +72,6 @@ export default function Hub() {
   const { t } = useT();
   const [counts, setCounts] = useState({ inspections: null, meetings: null, jhas: null, incidents: null });
   const [loading, setLoading] = useState(true);
-  const [recent, setRecent] = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -93,17 +90,6 @@ export default function Hub() {
           jhas: jhas.data?.length || 0,
           incidents: incs.data?.length || 0,
         });
-        const merged = [
-          ...(insp.data || []).map((d) => ({ ...d, _kind: "inspection" })),
-          ...(mtgs.data || []).map((d) => ({ ...d, _kind: "meeting" })),
-          ...(jhas.data || []).map((d) => ({ ...d, _kind: "jha" })),
-          ...(incs.data || []).map((d) => ({ ...d, _kind: "incident" })),
-        ]
-          .sort((a, b) =>
-            String(b.created_at || "").localeCompare(String(a.created_at || ""))
-          )
-          .slice(0, 6);
-        setRecent(merged);
       } catch {
         /* noop */
       } finally {
@@ -219,63 +205,6 @@ export default function Hub() {
                 </div>
               </div>
             </div>
-
-            {recent.length > 0 && (
-              <div
-                className="bg-white border-2 border-slate-300 rounded-md overflow-hidden"
-                data-testid="hub-recent"
-              >
-                <div className="px-5 py-4 border-b-2 border-slate-200 flex items-center justify-between">
-                  <h2 className="font-display text-xl font-bold flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-red-700" /> {t("Recent Activity")}
-                  </h2>
-                  <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-                    Last {recent.length}
-                  </span>
-                </div>
-                <ul className="divide-y-2 divide-slate-100">
-                  {recent.map((r) => {
-                    const cfg =
-                      r._kind === "inspection"
-                        ? { label: "Inspection", to: `/inspect/${r.id}`, color: "bg-red-700" }
-                        : r._kind === "meeting"
-                        ? { label: "Meeting", to: `/meetings/${r.id}`, color: "bg-slate-800" }
-                        : r._kind === "incident"
-                        ? { label: "Incident", to: `/incidents/${r.id}`, color: "bg-red-900" }
-                        : { label: "JHA", to: `/jha/${r.id}`, color: "bg-amber-600" };
-                    const dateStr =
-                      r.inspection_date || r.meeting_date || r.jha_date || r.incident_date || r.created_at;
-                    const title =
-                      r.project_name || r.topic || r.job_title || r.incident_type || "Untitled";
-                    return (
-                      <li key={`${r._kind}-${r.id}`}>
-                        <Link
-                          to={cfg.to}
-                          className="block p-4 sm:p-5 hover:bg-red-50 transition-colors duration-150 flex items-center gap-3"
-                          data-testid={`hub-recent-${r.id}`}
-                        >
-                          <span
-                            className={`shrink-0 inline-flex items-center px-2 py-1 ${cfg.color} text-white text-[10px] font-mono font-bold uppercase tracking-wider rounded`}
-                          >
-                            {cfg.label}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-display font-bold text-slate-900 truncate">
-                              {title}
-                            </div>
-                            <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mt-0.5">
-                              {formatDateLong(dateStr)}
-                              {r.location ? ` · ${r.location}` : ""}
-                            </div>
-                          </div>
-                          <ArrowRight className="w-4 h-4 text-slate-400" />
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
           </>
         )}
       </main>

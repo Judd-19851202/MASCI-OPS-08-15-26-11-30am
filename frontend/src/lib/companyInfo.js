@@ -4,14 +4,14 @@
 const STORAGE_KEY = "masci.companyInfo.v1";
 
 export const DEFAULT_COMPANY_INFO = {
-  company_name: "MASCI",
+  company_name: "MASCI General Contractors Inc.",
   tagline: "No Shortcuts · No Exceptions",
-  address: "",
-  city_state_zip: "",
-  phone: "",
-  email: "",
+  address: "5752 South Ridgewood Avenue",
+  city_state_zip: "Port Orange, FL 32127-6442",
+  phone: "386-322-4500",
+  email: "safety@mascigc.com",
   license_number: "",
-  website: "",
+  website: "mascigc.com",
 };
 
 export function getCompanyInfo() {
@@ -19,7 +19,18 @@ export function getCompanyInfo() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_COMPANY_INFO;
-    return { ...DEFAULT_COMPANY_INFO, ...JSON.parse(raw) };
+    const stored = JSON.parse(raw);
+    // Smart merge: a stored field overrides default ONLY if it is a
+    // non-empty string. Blank/missing fields fall back to defaults so users
+    // who saved with old empty defaults still get the new MASCI values.
+    const out = { ...DEFAULT_COMPANY_INFO };
+    for (const k of Object.keys(DEFAULT_COMPANY_INFO)) {
+      const v = stored?.[k];
+      if (typeof v === "string" && v.trim().length > 0) {
+        out[k] = v;
+      }
+    }
+    return out;
   } catch {
     return DEFAULT_COMPANY_INFO;
   }
