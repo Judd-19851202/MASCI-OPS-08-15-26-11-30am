@@ -9,13 +9,15 @@ import { cn } from "@/lib/utils";
  *   - "wordmark" → /masci-wordmark.png     (red MASCI text)
  *   - "lockup"   → /masci-full-lockup.png  (full MASCI SAFETY badge)
  *
- * Each logo ships in TWO forms:
- *   1. Default  — black canvas keyed to transparent. Drops cleanly onto
- *                 the slate-900 dark headers used across the app.
- *   2. -onblack — the original artwork with its solid black canvas intact.
- *                 Used on light/white surfaces (Cheat Sheet, View page
- *                 print body) so the white SAFETY text + swoosh stay
- *                 legible against the dark plate. Pass `onLight` to opt in.
+ * Each logo ships in TWO derived forms:
+ *   1. Default     — black canvas keyed to transparent. Floats cleanly on
+ *                    the slate-900 dark headers used across the app.
+ *   2. -onlight    — black canvas keyed to transparent AND every near-white
+ *                    element (SAFETY text, swoosh, slogan stripe) recolored
+ *                    to pure black. Drops onto white pages (Cheat Sheet,
+ *                    View page print body) without an ugly black plate.
+ *                    Red and gray brand elements are preserved untouched.
+ *                    Pass `onLight` to opt in.
  *
  * Mark + wordmark are sized by HEIGHT; the lockup is sized by WIDTH because
  * of its landscape badge proportions.
@@ -39,14 +41,14 @@ const LOCKUP_WIDTH_MAP = {
 };
 
 const SRC = {
-  mark: { dark: "/masci-mark.png", light: "/masci-mark-onblack.png" },
+  mark: { dark: "/masci-mark.png", light: "/masci-mark-onlight.png" },
   wordmark: {
     dark: "/masci-wordmark.png",
-    light: "/masci-wordmark-onblack.png",
+    light: "/masci-wordmark-onlight.png",
   },
   lockup: {
     dark: "/masci-full-lockup.png",
-    light: "/masci-full-lockup-onblack.png",
+    light: "/masci-full-lockup-onlight.png",
   },
 };
 
