@@ -290,11 +290,11 @@ export default function NewDailyReport({ publicMode = false }) {
             <MasciLogo variant="lockup" size="lg" className="hidden sm:block" />
           ) : (
             <Link
-              to="/daily"
+              to="/"
               className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
               data-testid="back-link"
             >
-              <ArrowLeft className="w-4 h-4 mr-1" /> {t("Daily Reports")}
+              <ArrowLeft className="w-4 h-4 mr-1" /> {t("Hub")}
             </Link>
           )}
           <MasciLogo

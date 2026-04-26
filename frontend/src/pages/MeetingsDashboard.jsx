@@ -53,11 +53,11 @@ export default function MeetingsDashboard() {
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
           <Link
-            to="/"
+            to="/admin"
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="hub-link"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Hub
+            <ArrowLeft className="w-4 h-4 mr-1" /> Admin
           </Link>
           <MasciLogo variant="mark" size="md" />
           <div className="flex items-center gap-2">
@@ -156,7 +156,7 @@ export default function MeetingsDashboard() {
                   </div>
                   <div className="flex gap-2">
                     <Link
-                      to={`/meetings/${it.id}`}
+                      to={`/admin/meetings/${it.id}`}
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
                       data-testid={`view-${it.id}`}

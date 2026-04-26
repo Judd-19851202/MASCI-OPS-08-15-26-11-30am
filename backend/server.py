@@ -1,9 +1,11 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import hashlib
+import hmac
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
@@ -21,6 +23,51 @@ db = client[os.environ['DB_NAME']]
 
 app = FastAPI(title="MASCI Job Site Safety Inspection API")
 api_router = APIRouter(prefix="/api")
+
+
+# ------------------------- Admin auth -------------------------
+# Simple shared-password gate. The "token" returned to the client is a
+# deterministic HMAC(password, server-secret) so the password itself never
+# leaves the device after login. On every protected request the client
+# sends X-Admin-Token; we recompute and compare in constant time.
+def _admin_token_for(password: str) -> str:
+    secret = os.environ.get("MONGO_URL", "masci-default-secret").encode()
+    return hmac.new(secret, password.encode(), hashlib.sha256).hexdigest()
+
+
+def require_admin(x_admin_token: Optional[str] = Header(default=None)):
+    """FastAPI dependency. Reject unless the request carries a valid token."""
+    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
+    if not expected_pw:
+        # No password configured → admin gate disabled (open mode)
+        return True
+    if not x_admin_token:
+        raise HTTPException(status_code=401, detail="Admin login required")
+    expected = _admin_token_for(expected_pw)
+    if not hmac.compare_digest(x_admin_token, expected):
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+    return True
+
+
+class AdminLoginRequest(BaseModel):
+    password: str
+
+
+@api_router.post("/admin/login")
+async def admin_login(body: AdminLoginRequest):
+    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
+    if not expected_pw:
+        # Gate disabled — anyone can "log in"
+        return {"ok": True, "token": "open-mode"}
+    if not hmac.compare_digest(body.password, expected_pw):
+        raise HTTPException(status_code=401, detail="Wrong password")
+    return {"ok": True, "token": _admin_token_for(expected_pw)}
+
+
+@api_router.get("/admin/check")
+async def admin_check(_: bool = Depends(require_admin)):
+    """Frontend pings this to verify a stored token is still valid."""
+    return {"ok": True}
 
 
 # ------------------------- Models -------------------------
@@ -116,7 +163,7 @@ async def create_inspection(payload: InspectionCreate):
 
 
 @api_router.get("/inspections", response_model=List[InspectionSummary])
-async def list_inspections():
+async def list_inspections(_: bool = Depends(require_admin)):
     cursor = db.inspections.find(
         {},
         {
@@ -166,7 +213,7 @@ async def list_inspections():
 
 
 @api_router.get("/inspections/{inspection_id}")
-async def get_inspection(inspection_id: str):
+async def get_inspection(inspection_id: str, _: bool = Depends(require_admin)):
     doc = await db.inspections.find_one({"id": inspection_id}, {"_id": 0})
     if not doc:
         raise HTTPException(status_code=404, detail="Inspection not found")
@@ -174,7 +221,7 @@ async def get_inspection(inspection_id: str):
 
 
 @api_router.delete("/inspections/{inspection_id}")
-async def delete_inspection(inspection_id: str):
+async def delete_inspection(inspection_id: str, _: bool = Depends(require_admin)):
     result = await db.inspections.delete_one({"id": inspection_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Inspection not found")
@@ -232,7 +279,7 @@ async def create_meeting(payload: MeetingCreate):
 
 
 @api_router.get("/meetings", response_model=List[MeetingSummary])
-async def list_meetings():
+async def list_meetings(_: bool = Depends(require_admin)):
     cursor = db.meetings.find(
         {},
         {
@@ -266,7 +313,7 @@ async def list_meetings():
 
 
 @api_router.get("/meetings/{meeting_id}")
-async def get_meeting(meeting_id: str):
+async def get_meeting(meeting_id: str, _: bool = Depends(require_admin)):
     doc = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
     if not doc:
         raise HTTPException(status_code=404, detail="Meeting not found")
@@ -274,7 +321,7 @@ async def get_meeting(meeting_id: str):
 
 
 @api_router.delete("/meetings/{meeting_id}")
-async def delete_meeting(meeting_id: str):
+async def delete_meeting(meeting_id: str, _: bool = Depends(require_admin)):
     result = await db.meetings.delete_one({"id": meeting_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Meeting not found")
@@ -335,7 +382,7 @@ async def create_jha(payload: JhaCreate):
 
 
 @api_router.get("/jhas", response_model=List[JhaSummary])
-async def list_jhas():
+async def list_jhas(_: bool = Depends(require_admin)):
     cursor = db.jhas.find(
         {},
         {
@@ -369,7 +416,7 @@ async def list_jhas():
 
 
 @api_router.get("/jhas/{jha_id}")
-async def get_jha(jha_id: str):
+async def get_jha(jha_id: str, _: bool = Depends(require_admin)):
     doc = await db.jhas.find_one({"id": jha_id}, {"_id": 0})
     if not doc:
         raise HTTPException(status_code=404, detail="JHA not found")
@@ -377,7 +424,7 @@ async def get_jha(jha_id: str):
 
 
 @api_router.delete("/jhas/{jha_id}")
-async def delete_jha(jha_id: str):
+async def delete_jha(jha_id: str, _: bool = Depends(require_admin)):
     result = await db.jhas.delete_one({"id": jha_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="JHA not found")
@@ -472,7 +519,7 @@ async def create_incident(payload: IncidentCreate):
 
 
 @api_router.get("/incidents", response_model=List[IncidentSummary])
-async def list_incidents():
+async def list_incidents(_: bool = Depends(require_admin)):
     cursor = db.incidents.find(
         {},
         {
@@ -510,7 +557,7 @@ async def list_incidents():
 
 
 @api_router.get("/incidents/{incident_id}")
-async def get_incident(incident_id: str):
+async def get_incident(incident_id: str, _: bool = Depends(require_admin)):
     doc = await db.incidents.find_one({"id": incident_id}, {"_id": 0})
     if not doc:
         raise HTTPException(status_code=404, detail="Incident not found")
@@ -518,7 +565,7 @@ async def get_incident(incident_id: str):
 
 
 @api_router.delete("/incidents/{incident_id}")
-async def delete_incident(incident_id: str):
+async def delete_incident(incident_id: str, _: bool = Depends(require_admin)):
     result = await db.incidents.delete_one({"id": incident_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Incident not found")
@@ -597,7 +644,7 @@ async def create_daily_report(payload: DailyReportCreate):
 
 
 @api_router.get("/daily-reports", response_model=List[DailyReportSummary])
-async def list_daily_reports():
+async def list_daily_reports(_: bool = Depends(require_admin)):
     cursor = db.daily_reports.find(
         {},
         {
@@ -637,7 +684,7 @@ async def list_daily_reports():
 
 
 @api_router.get("/daily-reports/{report_id}")
-async def get_daily_report(report_id: str):
+async def get_daily_report(report_id: str, _: bool = Depends(require_admin)):
     doc = await db.daily_reports.find_one({"id": report_id}, {"_id": 0})
     if not doc:
         raise HTTPException(status_code=404, detail="Daily report not found")
@@ -645,7 +692,7 @@ async def get_daily_report(report_id: str):
 
 
 @api_router.delete("/daily-reports/{report_id}")
-async def delete_daily_report(report_id: str):
+async def delete_daily_report(report_id: str, _: bool = Depends(require_admin)):
     result = await db.daily_reports.delete_one({"id": report_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Daily report not found")

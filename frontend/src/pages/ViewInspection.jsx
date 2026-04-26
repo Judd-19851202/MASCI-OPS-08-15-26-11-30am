@@ -99,7 +99,7 @@ export default function ViewInspection() {
         if (alive) setData(res.data);
       } catch {
         toast.error("Inspection not found");
-        navigate("/");
+        navigate("/admin/inspections");
       } finally {
         if (alive) setLoading(false);
       }
@@ -114,7 +114,7 @@ export default function ViewInspection() {
     try {
       await api.delete(`/inspections/${id}`);
       toast.success("Deleted");
-      navigate("/");
+      navigate("/admin/inspections");
     } catch {
       toast.error("Delete failed");
     }
@@ -153,7 +153,7 @@ export default function ViewInspection() {
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <Link
-            to="/inspections"
+            to="/admin/inspections"
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="back-link"
           >

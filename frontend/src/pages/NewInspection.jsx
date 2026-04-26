@@ -179,11 +179,11 @@ export default function NewInspection({ publicMode = false }) {
             <MasciLogo variant="lockup" size="lg" className="hidden sm:block" />
           ) : (
             <Link
-              to="/inspections"
+              to="/"
               className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
               data-testid="back-link"
             >
-              <ArrowLeft className="w-4 h-4 mr-1" /> Reports
+              <ArrowLeft className="w-4 h-4 mr-1" /> Hub
             </Link>
           )}
           <MasciLogo variant="mark" size="md" className={publicMode ? "sm:hidden" : ""} />

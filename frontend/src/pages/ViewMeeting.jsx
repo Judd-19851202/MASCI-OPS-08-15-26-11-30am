@@ -50,7 +50,7 @@ export default function ViewMeeting() {
         if (alive) setData(res.data);
       } catch {
         toast.error("Meeting not found");
-        navigate("/meetings");
+        navigate("/admin/meetings");
       } finally {
         if (alive) setLoading(false);
       }
@@ -65,7 +65,7 @@ export default function ViewMeeting() {
     try {
       await api.delete(`/meetings/${id}`);
       toast.success("Deleted");
-      navigate("/meetings");
+      navigate("/admin/meetings");
     } catch {
       toast.error("Delete failed");
     }
@@ -88,7 +88,7 @@ export default function ViewMeeting() {
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <Link
-            to="/meetings"
+            to="/admin/meetings"
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="back-link"
           >
