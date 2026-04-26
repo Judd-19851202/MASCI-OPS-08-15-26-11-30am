@@ -77,8 +77,9 @@ export default function AdminLogin() {
             </div>
           </div>
           <p className="text-slate-600 text-sm mt-3 mb-6">
-            For office staff only. Crews on site do not need to log in to fill
-            forms — head back to the{" "}
+            Office sign-in for managers and supervisors. Field crews don't need
+            to sign in to fill out forms — they can start a new one straight
+            from the{" "}
             <Link to="/" className="text-red-700 font-bold hover:underline">
               Hub
             </Link>
