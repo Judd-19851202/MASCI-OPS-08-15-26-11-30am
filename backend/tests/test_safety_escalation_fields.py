@@ -3,13 +3,30 @@ import os
 import requests
 import pytest
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://safety-audit-mobile-1.preview.emergentagent.com").rstrip("/")
+
+def _read_kv(path, key):
+    try:
+        with open(path) as f:
+            for line in f:
+                if line.startswith(f"{key}="):
+                    return line.split("=", 1)[1].strip().strip('"').rstrip("/")
+    except Exception:
+        pass
+    return ""
+
+
+BASE_URL = (
+    _read_kv("/app/frontend/.env", "REACT_APP_BACKEND_URL")
+    or os.environ.get("REACT_APP_BACKEND_URL", "")
+).rstrip("/")
+ADMIN_PW = _read_kv("/app/backend/.env", "ADMIN_PASSWORD") or os.environ.get(
+    "ADMIN_PASSWORD", ""
+)
 
 
 @pytest.fixture(scope="module")
 def admin_token():
-    pw = os.environ.get("ADMIN_PASSWORD", "masci-admin-2026")
-    r = requests.post(f"{BASE_URL}/api/admin/login", json={"password": pw})
+    r = requests.post(f"{BASE_URL}/api/admin/login", json={"password": ADMIN_PW})
     assert r.status_code == 200, r.text
     return r.json()["token"]
 

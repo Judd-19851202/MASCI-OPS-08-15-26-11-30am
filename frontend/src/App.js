@@ -21,6 +21,7 @@ import NewDailyReport from "@/pages/NewDailyReport";
 import ViewDailyReport from "@/pages/ViewDailyReport";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
+import CheatSheet from "@/pages/CheatSheet";
 import { RequireAdmin } from "@/components/RequireAdmin";
 
 // Helper: wrap any element in the admin gate.
@@ -56,6 +57,8 @@ function App() {
           <Route path="/daily/submit" element={<NewDailyReport publicMode />} />
 
           <Route path="/thank-you" element={<ThankYou />} />
+          <Route path="/cheatsheet" element={<CheatSheet />} />
+          <Route path="/cheat-sheet" element={<Navigate to="/cheatsheet" replace />} />
 
           {/* ============================================================
               Admin login (no auth needed to reach the form itself)

@@ -137,31 +137,40 @@ export default function Hub() {
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
           {t("MASCI · Field Safety Reporting Portal")}
         </span>
-        <Link
-          to="/admin/login"
-          className="group inline-flex items-center gap-2 h-10 pl-3 pr-4 rounded-md bg-slate-900 hover:bg-red-700 text-white border-b-2 border-red-700 hover:border-red-900 transition-colors duration-150"
-          data-testid="hub-admin-link"
-        >
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-red-700 group-hover:bg-slate-900 transition-colors">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-3.5 h-3.5 text-white"
-              aria-hidden="true"
-            >
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
-          </span>
-          <span className="font-mono text-xs uppercase tracking-[0.2em] font-bold">
-            Admin Sign In
-          </span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/cheatsheet"
+            className="inline-flex items-center gap-2 h-10 px-3 rounded-md border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-mono text-xs uppercase tracking-[0.2em] font-bold transition-colors"
+            data-testid="hub-cheatsheet-link"
+          >
+            Cheat Sheet
+          </Link>
+          <Link
+            to="/admin/login"
+            className="group inline-flex items-center gap-2 h-10 pl-3 pr-4 rounded-md bg-slate-900 hover:bg-red-700 text-white border-b-2 border-red-700 hover:border-red-900 transition-colors duration-150"
+            data-testid="hub-admin-link"
+          >
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-red-700 group-hover:bg-slate-900 transition-colors">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-3.5 h-3.5 text-white"
+                aria-hidden="true"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </span>
+            <span className="font-mono text-xs uppercase tracking-[0.2em] font-bold">
+              Admin Sign In
+            </span>
+          </Link>
+        </div>
       </footer>
     </div>
   );
