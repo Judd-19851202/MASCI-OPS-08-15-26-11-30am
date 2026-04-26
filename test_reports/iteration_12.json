@@ -1,0 +1,43 @@
+{
+  "summary": "Iteration 12 — Full-stack health check after the kind-aware PM routing refactor. Backend: 131/131 pytest in 24.99s (123 carry-over + 8 new in test_health_check_iter12.py). Frontend: Hub renders all 6 tiles (Daily Reports / Site Inspections / Safety Meetings / JHA / Incident Reports / Equipment Pre-Op) with the new 'Daily OSHA walk-around inspections for Heavy Equipment' copy on the Equipment tile. Admin login with Happy123! lands on /admin showing all 6 admin tiles plus the Auto-Email Routing panel rendering exactly as spec'd: 'COMPLIANCE FORMS → PM + OFFICE' (Site Inspections / Safety Meetings / JHAs / Incident Reports + jaymn.judd + safety@) AND 'OPERATIONAL FORMS → PM ONLY' (Daily Job Reports / Equipment Pre-Op, with the Knox McRae 26-06 → Jaymn-as-PM note). All 4 PMs with correct job counts: David 15 / Chris 8 / Ramon 4 / Jaymn 1. RESEND status badge shows 'LIVE — RESEND CONNECTED'. Backend 'LIVE — RESEND CONNECTED' confirmed. New test coverage: /api/auto-email/preview?project_number=X&kind=Y verified for ALL 6 form kinds × all 4 PMs (24 combinations) plus unmapped fallback for compliance vs operational; all routing rules behave per spec. Equipment-types endpoint returns 23/23. Strobe '(Required)' present 21 times across CHECKLISTS. Equipment PDF render returns valid PDF (>1KB) with FAIL banner when fail_count>0 and embeds per-item photo data URLs (WeasyPrint logs show data:image/png;base64 image loads). /api/translate accepts the flat path-keyed dict that translateOnSubmit.js actually sends (the frontend lib flattens nested form into {dot.path: text} before posting; backend contract is Dict[str,str] → Dict[str,str], not nested). All test inspection records DELETEd in tests; equipment-units left with TEST_ prefix (no DELETE endpoint).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/{form}", "issue": "Auto-email Resend dispatch returning RateLimitError 'You have reached your daily email sending quota.' — env-level limit on the Resend account (free tier daily cap), NOT a code bug. Dispatch path is firing correctly with the right kind and recipients (verified via 'auto-email failed for daily-report <id>' log lines). Action: bump Resend plan or wait 24h."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_health_check_iter12.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Heads-up only: Resend daily quota was hit during this test window. The pipeline IS wired end-to-end — re-test live email delivery once the quota resets or upgrade the Resend plan. No code change needed."
+  ],
+  "critical_code_review_comments": [
+    "pm_routing.recipients_for_record(record, kind) cleanly bifurcates compliance vs operational via COMPLIANCE_KINDS / PM_ONLY_KINDS sets — solid, easy to extend. Backwards-compat preserved (kind=None defaults to compliance behavior).",
+    "Operational unmapped fallback to ['jaymn.judd@mascigc.com'] alone (no safety@) is implemented per spec — verified end-to-end via /api/auto-email/preview?project_number=99-99&kind=daily-report.",
+    "Knox McRae (26-06) dedup case verified: kind=daily-report → ['jaymn.judd@mascigc.com'] only (no duplicate, no safety@). kind=incident → ['jaymn.judd@mascigc.com'] in to + ['safety@mascigc.com'] in cc, no jaymn duplication.",
+    "/api/translate contract is FLAT Dict[str,str], not nested — the review request's wording about 'deeply nested {strings: {...}}' is misleading. The frontend translateOnSubmit.js flattens nested form paths into dot-joined keys (e.g. 'checklist.Engine Compartment.Coolant level.note') BEFORE posting, then setByPath writes back. Backend Pydantic model rejects nested dicts with 422. Contract is internally consistent — just document the flatten step in server.py docstring for the next dev.",
+    "checklists.py: CHECKLISTS values are a list of {title, items} (not a dict of section→items). When grepping/iterating, use sec['items'], not sections.items(). Strobe '(Required)' confirmed at 21 occurrences across 23 templates.",
+    "pdf_render._render_equipment: WeasyPrint correctly embeds data: URL photos in the rendered PDF; observed 'Failed to load image' warnings only for intentionally-malformed test fixtures (1-char base64), not real submissions. Fine.",
+    "AutoEmailRoutingPanel.jsx renders the dual-column 'Compliance / Operational' explainer + 4 collapsible PM rows with correct job counts (15/8/4/1). 'LIVE — RESEND CONNECTED' status badge wired to backend health check.",
+    "Hub.jsx: Equipment Pre-Op tile copy updated to 'Daily OSHA walk-around inspections for Heavy Equipment' as required. The old 'trucks, excavators, rollers, and tools' wording is gone."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_health_check_iter12.py (new — 8 tests, ~165 lines)",
+    "/app/test_reports/iteration_12.json (this file)",
+    "/app/test_reports/pytest/pytest_results.xml (regenerated, 131 cases)"
+  ],
+  "success_rate": {"backend": "100% (131/131)", "frontend": "100% on smoke-tested flows (Hub, Admin login, Admin dashboard, Auto-Email Routing panel, Equipment Pre-Op page render)"},
+  "test_credentials": "ADMIN_PASSWORD=Happy123! from /app/backend/.env. conftest.py auto-attaches X-Admin-Token to every requests.* call hitting REACT_APP_BACKEND_URL.",
+  "seed_data_creation": "1 Site Inspection (project 24-06, inspector 'Routing Test Inspector') created and DELETEd in test_inspection_post_does_not_crash_without_resend_key. equipment-units TEST_ prefixed rows from prior iterations remain — namespaced & safe.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend is at 131/131 across 10 test files. Run: `cd /app/backend && pytest tests/ -v` (~25s). Resend is LIVE but daily-quota-limited at this time — verify dispatch wiring via backend log lines ('auto-email failed for <kind> <id>'), not real Gmail. Routing rules COMPLIANCE_KINDS={inspection,meeting,jha,incident} get PM + ALWAYS_CC; PM_ONLY_KINDS={daily-report,equipment-inspection} get PM only (Jaymn alone if unmapped). Frontend admin/login = Happy123!. All 6 form kinds POST work; auto-email is fire-and-forget. Equipment Pre-Op flow has new per-FAIL photo capture + 10-char note minimum on /equipment/new — UI-only, not exercised in this iteration's playwright run beyond page render.",
+  "rca of the issue": "No bugs found. The kind-aware routing refactor is clean: pm_routing.recipients_for_record(record, kind) inspects kind against COMPLIANCE_KINDS / PM_ONLY_KINDS sets and returns the correct {to, cc, all} distribution; server.py threads kind through schedule_auto_email → _dispatch_auto_email → _resolve_recipients_for_kind without breakage. The only operational concern is the Resend daily quota (env, not code). All 131 backend tests + frontend smoke checks pass — production-ready."
+}
