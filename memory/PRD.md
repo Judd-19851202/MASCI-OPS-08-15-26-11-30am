@@ -35,7 +35,7 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 ### 03. Job Hazard Analysis (`/jha`)
 - Pre-task multi-step hazard/control grid, PPE & permit checklists, crew sign-off, foreman approval signature
 
-### 04. Accident / Incident Reports (`/incidents`) — **NEW**
+### 04. Accident / Incident Reports (`/incidents`)
 - 6 severity tiers: Near Miss → First Aid → Medical → Restricted Duty → Lost Time (DART) → Fatality/Catastrophic
 - 9 incident types (Injury, Near Miss, Property Damage, Vehicle, Environmental, Utility Strike, Public/3rd-Party, Security, Other)
 - Conditional Person-Involved section (body part, injury nature, treatment, medical facility)
@@ -43,6 +43,17 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - Multiple witness statements
 - Notification log (Safety Mgr / PM / GC / Owner / OSHA / Other)
 - Reporter + Supervisor signatures, photo evidence with watermark, printable PDF, public submit link via QR
+
+### 05. Equipment Pre-Op Inspections (`/equipment`) — **NEW (2026-02-26)**
+- 23 equipment types covering every heavy-civil machine: Dozer, Excavator, Loader, Motor Grader, Skid Steer, Paver, Backhoe, Tractor, Telehandler/Forklift, Haul Truck, Water Truck, Shuttle Buggy/Transfer Machine, Steel Drum & Rubber Tire Asphalt Rollers, Asphalt Milling Machine, Dirt Roller, Dirt Mixer, Road Widener, Broom, Curb Machine, Plate Compactor, Walk Behind Saw, Other.
+- OSHA 1926-aligned checklists per type (Fluids & Leaks · Walk-Around · Operator Station · Lights & Electrical · Controls & Brakes · Safety Equipment), each with equipment-specific items (e.g. screed plates for pavers, restraint bar for skid steers, body prop for haul trucks).
+- PASS / FAIL / N/A buttons with required note on FAIL.
+- Optional **hour meter** AND/OR **odometer** (some equipment has only one).
+- Saved equipment units (auto-remembers every unit submitted, picker shows them next time per type).
+- Live tally bar + "FAIL — DO NOT OPERATE" banner the moment any item fails.
+- Operator certification statement + signature; stop-the-line if no items rated.
+- WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
+- **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
 
 ## What's Implemented (2026-04-26)
 - **Field-crew Hub at `/`** — 5 module tiles (Daily Reports, Site Inspections, Safety Meetings, JHA, Incident Reports) each leading to `/<module>/new`. Crews see NO counts, NO record lists, NO delete affordance. Tiny "Admin" link in the footer.
@@ -82,9 +93,7 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - _none active — Hub, 5 modules, auto-translate, map thumbnail, spell check, admin wall, logo fix all complete and tested_
 
 **P1**
-- **Equipment Inspection forms** (daily pre-op for trucks/excavators/rollers/loaders/skid-steers + custom)
 - **Distribution List** field on PDF footer (PM/GC/DOT recipients, who got a copy)
-- **Resend API key + verified sender domain** to flip auto-email from Standby → Live (currently `RESEND_API_KEY=` blank in `/app/backend/.env`).
 - **Severity-tier ops/GC fan-out** — populate `SEVERE_INCIDENT_CC` env with the addresses MASCI wants blasted on Medical+/OSHA-recordable incidents.
 - Multi-user admin (per-account login, audit trail of who viewed/deleted)
 - CSV / multi-report export for monthly compliance reports
