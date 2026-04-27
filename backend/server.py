@@ -6,8 +6,10 @@ import os
 import logging
 import hashlib
 import hmac
+import re
 import time
 import secrets
+import asyncio
 from collections import defaultdict
 from threading import Lock
 from pathlib import Path
@@ -1614,12 +1616,30 @@ async def exports_full_backup(_: bool = Depends(require_admin)):
     /CSV/                — one CSV per kind (no photos/signatures inline)
     /<kind>/json/        — every record as raw JSON (photos + signatures intact)
     /<kind>/pdf/         — every record rendered to PDF via WeasyPrint
-    /backup_log.txt      — manifest with timestamps + counts per kind
+    /crew_hub/           — Crew Hub collections as JSON
+    /safety_aux/         — Equipment unit registry, JHA plan PDFs, trench-box refs
+    /backup_manifest.json — schema + counts + generated_at
+    /backup_log.txt      — human-readable summary
 
     Built in-memory with `zipfile`. Runs sequentially (single request) — for
     a typical contractor day (50–200 records) this finishes in 5–30 sec.
-    Photos can be base64 strings inside the JSON; the .zip is recompressed
-    so duplicate-photo deflation still works fine.
+    """
+    payload, total_records, filename = await _build_backup_zip(db)
+    return Response(
+        content=payload,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "X-Record-Count": str(total_records),
+            "X-Backup-Size-Bytes": str(len(payload)),
+        },
+    )
+
+
+async def _build_backup_zip(db) -> tuple[bytes, int, str]:
+    """Build the full-backup .zip in memory. Returns (payload, record_count, filename).
+
+    Shared by the HTTP download endpoint and the nightly scheduler.
     """
     now = datetime.now(timezone.utc)
     stamp = now.strftime("%Y-%m-%d_%H%M%SZ")
@@ -1773,15 +1793,168 @@ async def exports_full_backup(_: bool = Depends(require_admin)):
 
     payload = buf.getvalue()
     filename = f"MASCI_full_backup_{stamp}.zip"
+    return payload, total_records, filename
+
+
+# ----------------------------------------------------------------------
+# Stored backups — daily scheduled backup saved to disk.
+# ----------------------------------------------------------------------
+BACKUPS_DIR = Path(os.environ.get("BACKUPS_DIR", "/app/backend/backups")).resolve()
+BACKUP_RETENTION_DAYS = int(os.environ.get("BACKUP_RETENTION_DAYS", "14"))
+BACKUP_HOUR_UTC = int(os.environ.get("BACKUP_HOUR_UTC", "2"))   # default 02:00 UTC
+
+
+def _list_stored_backups() -> List[dict]:
+    """Return metadata for every .zip in the backups dir (newest first)."""
+    if not BACKUPS_DIR.exists():
+        return []
+    rows = []
+    for p in sorted(BACKUPS_DIR.glob("MASCI_full_backup_*.zip"), reverse=True):
+        try:
+            st = p.stat()
+            rows.append({
+                "filename": p.name,
+                "size_bytes": st.st_size,
+                "created_at": datetime.fromtimestamp(st.st_mtime, tz=timezone.utc).isoformat(),
+            })
+        except Exception:
+            continue
+    return rows
+
+
+async def _run_scheduled_backup(db) -> Optional[dict]:
+    """Build a backup and persist to BACKUPS_DIR. Prune files older than the
+    retention window. Returns a small summary dict or None on failure."""
+    try:
+        BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+        payload, total_records, filename = await _build_backup_zip(db)
+        out = BACKUPS_DIR / filename
+        # Write atomically via a temp file + rename
+        tmp = out.with_suffix(".zip.tmp")
+        tmp.write_bytes(payload)
+        tmp.replace(out)
+        logger.info(
+            f"[scheduled-backup] wrote {out.name} ({len(payload)/1024/1024:.1f} MB · {total_records} records)"
+        )
+
+        # Prune
+        cutoff = datetime.now(timezone.utc).timestamp() - BACKUP_RETENTION_DAYS * 86400
+        pruned = 0
+        for p in BACKUPS_DIR.glob("MASCI_full_backup_*.zip"):
+            try:
+                if p.stat().st_mtime < cutoff:
+                    p.unlink()
+                    pruned += 1
+            except Exception:
+                continue
+        if pruned:
+            logger.info(f"[scheduled-backup] pruned {pruned} expired backups (> {BACKUP_RETENTION_DAYS} days old)")
+
+        return {
+            "filename": out.name,
+            "size_bytes": len(payload),
+            "records": total_records,
+            "pruned_old": pruned,
+        }
+    except Exception as e:
+        logger.exception(f"[scheduled-backup] FAILED: {e}")
+        return None
+
+
+_backup_task: Optional[asyncio.Task] = None
+
+
+async def _backup_scheduler_loop(db) -> None:
+    """Background loop — wakes up every ~60 s, fires the backup once the
+    current UTC hour equals BACKUP_HOUR_UTC and we haven't already run today.
+    Survives missed ticks (e.g., if the container was asleep at 02:00).
+    """
+    last_run_date = None
+    # Give the app a moment to finish startup before first tick
+    await asyncio.sleep(30)
+    while True:
+        try:
+            now = datetime.now(timezone.utc)
+            today = now.date()
+            if now.hour >= BACKUP_HOUR_UTC and last_run_date != today:
+                logger.info(f"[scheduled-backup] firing for {today}")
+                result = await _run_scheduled_backup(db)
+                if result:
+                    last_run_date = today
+                # If it failed, leave last_run_date alone so we retry next tick.
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            logger.exception(f"[scheduled-backup] loop tick error: {e}")
+        await asyncio.sleep(300)  # 5 min ticks — low overhead, catches missed slots
+
+
+@api_router.get("/admin/backups")
+async def admin_list_backups(_: bool = Depends(require_admin)):
+    """List every stored backup on disk + current schedule settings."""
+    files = _list_stored_backups()
+    total_bytes = sum(f["size_bytes"] for f in files)
+    return {
+        "backups": files,
+        "count": len(files),
+        "total_bytes": total_bytes,
+        "schedule": {
+            "hour_utc": BACKUP_HOUR_UTC,
+            "retention_days": BACKUP_RETENTION_DAYS,
+            "storage_dir": str(BACKUPS_DIR),
+            "enabled": True,
+        },
+    }
+
+
+@api_router.get("/admin/backups/{filename}")
+async def admin_download_stored_backup(
+    filename: str, _: bool = Depends(require_admin)
+):
+    """Download a specific stored backup by filename."""
+    # Strict filename validation — only our own backup files.
+    if not re.fullmatch(r"MASCI_full_backup_[0-9A-Za-z_\-]+\.zip", filename):
+        raise HTTPException(400, "Invalid backup filename")
+    path = BACKUPS_DIR / filename
+    if not path.exists():
+        raise HTTPException(404, "Backup not found")
+    try:
+        data = path.read_bytes()
+    except Exception as e:
+        raise HTTPException(500, f"Could not read backup: {e}")
     return Response(
-        content=payload,
+        content=data,
         media_type="application/zip",
         headers={
             "Content-Disposition": f'attachment; filename="{filename}"',
-            "X-Record-Count": str(total_records),
-            "X-Backup-Size-Bytes": str(len(payload)),
+            "X-Backup-Size-Bytes": str(len(data)),
         },
     )
+
+
+@api_router.delete("/admin/backups/{filename}")
+async def admin_delete_stored_backup(
+    filename: str, _: bool = Depends(require_admin)
+):
+    if not re.fullmatch(r"MASCI_full_backup_[0-9A-Za-z_\-]+\.zip", filename):
+        raise HTTPException(400, "Invalid backup filename")
+    path = BACKUPS_DIR / filename
+    if not path.exists():
+        raise HTTPException(404, "Backup not found")
+    try:
+        path.unlink()
+    except Exception as e:
+        raise HTTPException(500, f"Could not delete: {e}")
+    return {"ok": True, "filename": filename}
+
+
+@api_router.post("/admin/backups/run-now")
+async def admin_run_backup_now(_: bool = Depends(require_admin)):
+    """Trigger an immediate scheduled backup (same path as nightly, just now)."""
+    result = await _run_scheduled_backup(db)
+    if not result:
+        raise HTTPException(500, "Backup failed — see server logs")
+    return {"ok": True, **result}
 
 
 # ----------------------------------------------------------------------
@@ -2595,6 +2768,24 @@ async def _seed_phase1():
     except Exception as e:
         logging.getLogger(__name__).exception(f"Phase 1 seed failed: {e}")
 
+
+@app.on_event("startup")
+async def _start_backup_scheduler():
+    """Kick off the nightly full-backup scheduler as an asyncio task."""
+    global _backup_task
+    if os.environ.get("DISABLE_BACKUP_SCHEDULER", "").lower() in ("1", "true", "yes"):
+        logging.getLogger(__name__).info("[scheduled-backup] DISABLED via env")
+        return
+    try:
+        BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+        _backup_task = asyncio.create_task(_backup_scheduler_loop(db))
+        logging.getLogger(__name__).info(
+            f"[scheduled-backup] scheduler started — {BACKUP_HOUR_UTC:02d}:00 UTC daily · "
+            f"keep {BACKUP_RETENTION_DAYS} days · dir={BACKUPS_DIR}"
+        )
+    except Exception as e:
+        logging.getLogger(__name__).exception(f"[scheduled-backup] startup failed: {e}")
+
 cors_origins_env = os.environ.get('CORS_ORIGINS', '*').strip()
 cors_origin_regex = (os.environ.get('CORS_ORIGIN_REGEX', '') or '').strip() or None
 
@@ -2625,4 +2816,9 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    try:
+        if _backup_task is not None:
+            _backup_task.cancel()
+    except Exception:
+        pass
     client.close()

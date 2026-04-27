@@ -55,6 +55,19 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
 - **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
 
+## What's Implemented (2026-04-27 · Nightly On-Server Backups)
+- **Daily scheduled backup** — `_backup_scheduler_loop` runs as a FastAPI startup task, ticks every 5 min, and fires the backup once per day at `BACKUP_HOUR_UTC` (default 02:00 UTC).
+- **Stored on disk** at `BACKUPS_DIR` (default `/app/backend/backups`). Each run writes `MASCI_full_backup_YYYY-MM-DD_HHMMSSZ.zip` atomically via a `.zip.tmp` rename so a crashed backup can't produce a corrupt file.
+- **Retention** — `BACKUP_RETENTION_DAYS` (default 14). Older zips auto-pruned after each successful run.
+- **New admin endpoints:**
+  - `GET /api/admin/backups` — list every stored backup + schedule config.
+  - `GET /api/admin/backups/{filename}` — download one (strict filename regex — no path traversal).
+  - `DELETE /api/admin/backups/{filename}` — delete one.
+  - `POST /api/admin/backups/run-now` — trigger an immediate backup (same path as nightly).
+- **Admin UI** — new `StoredBackupsPanel` on the Admin Hub, between "Full Off-Site Backup" and "Restore from Backup". Shows the schedule strip (hour, retention, dir, enabled) + every stored file with size/date + Download/Delete buttons + a `Run backup now` CTA.
+- **Env vars:** `BACKUPS_DIR`, `BACKUP_RETENTION_DAYS`, `BACKUP_HOUR_UTC`, `DISABLE_BACKUP_SCHEDULER` (set to `1` to turn off).
+- **Verified end-to-end via curl + screenshot**: scheduler logged on boot, `run-now` produced a 2.4 MB zip with 80 records, list/download/delete all work, admin panel renders.
+
 ## What's Implemented (2026-04-27 · Whole-System Backup & Restore)
 - **Full backup ZIP now covers EVERYTHING on the system** — all 21 MongoDB collections. Adds `safety_aux/equipment_units.json`, `safety_aux/job_hazard_plans.json`, `safety_aux/trench_boxes.json` on top of the 6 safety kinds + 12 Crew Hub collections already being exported. Includes a `backup_manifest.json` (version "2") listing every collection covered so future agents can validate authenticity. Password hashes stay redacted from `crew_hub/users.json`.
 - **Restore from Backup** — new `POST /api/exports/restore` endpoint + Admin Hub panel. Upload any `.zip` produced by "Download Full Backup" and the entire system is rebuilt.

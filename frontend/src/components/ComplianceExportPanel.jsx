@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import RestoreBackupPanel from "@/components/RestoreBackupPanel";
+import StoredBackupsPanel from "@/components/StoredBackupsPanel";
 
 // First day of current month + today (yyyy-mm-dd) — handy default range
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -348,6 +349,9 @@ export default function ComplianceExportPanel() {
           or shared drive after download. Restore it anytime from the panel below.
         </p>
       </div>
+
+      {/* ---------- Stored Backups on Server ---------- */}
+      <StoredBackupsPanel />
 
       {/* ---------- Restore from Backup ---------- */}
       <RestoreBackupPanel />
