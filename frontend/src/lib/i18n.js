@@ -772,6 +772,7 @@ const ES = {
   "Preview": "Vista Previa",
   "Print": "Imprimir",
   "Admin": "Admin",
+  "Crew Hub": "Hub de Cuadrilla",
   "Loading…": "Cargando…",
 };
 

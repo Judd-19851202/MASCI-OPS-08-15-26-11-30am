@@ -1,0 +1,43 @@
+{
+  "iteration": 14,
+  "date": "2026-04-27",
+  "task": "Phase 1 — Crew Hub (Basecamp-style /app section) foundation",
+  "changes": [
+    "backend/auth.py — new module: bcrypt password hashing, PyJWT access+refresh tokens, httpOnly cookie auth, /api/auth/{login,logout,me,change-password,refresh}, /api/users CRUD + reset-password, seed 5 initial users",
+    "backend/projects.py — new module: projects collection, 31 MASCI jobs + HQ auto-seeded, /api/projects list/get, /api/projects/{id}/members CRUD",
+    "backend/server.py — registered new routers + on_event('startup') seed call",
+    "backend/.env — added JWT_SECRET, ACCESS_TOKEN_MINUTES=60, REFRESH_TOKEN_DAYS=7",
+    "backend/requirements.txt — bcrypt==4.1.3, PyJWT==2.12.1 (already installed)",
+    "frontend/src/lib/api.js — withCredentials:true on axios instance (for httpOnly cookie JWT)",
+    "frontend/src/lib/authContext.jsx — new AuthProvider, useAuth hook",
+    "frontend/src/components/RequireUser.jsx — new guard that redirects to /app/login when unauthed and /app/change-password when must_change_password",
+    "frontend/src/pages/app/{Login,ChangePassword,AppLayout,AppHome,ProjectHome,ProjectMembers,UsersAdmin,ToolPlaceholder}.jsx — 8 new pages",
+    "frontend/src/App.js — wrapped BrowserRouter in AuthProvider; added /app/* routes",
+    "frontend/src/pages/Hub.jsx — added 'Crew Hub' footer link to /app",
+    "frontend/src/lib/i18n.js — added 'Crew Hub' Spanish translation",
+    "memory/test_credentials.md — documented 5 seeded users + credentials",
+    "/app/auth_testing.md — new testing playbook"
+  ],
+  "smoke_tests_passed": [
+    "Login with seeded credentials → redirect to /app/change-password (must_change_password=true)",
+    "Change password → land on /app with 32 project cards (HQ + 31 jobs)",
+    "Click HQ project → /app/projects/hq shows 6 tool tiles (Message Board, To-dos, Schedule, Docs, Hill Charts, Members)",
+    "Navigate to /app/users via sidebar → shows all 5 seeded users with role dropdowns, status, reset-pw/disable actions",
+    "Own-account disable button is correctly dimmed",
+    "Sidebar scrolls internally, main content area scrolls independently (h-screen + overflow-hidden on wrapper)",
+    "Logout → redirect to /app/login, cookies cleared",
+    "GET /api/auth/me without cookie → 401",
+    "POST /api/auth/login with correct creds sets httpOnly access_token + refresh_token cookies",
+    "GET /api/projects returns 32 projects (HQ + 31 jobs)",
+    "GET /api/users returns 5 users (admin/owner role gate)",
+    "All 160 existing backend tests still pass"
+  ],
+  "phase_2_stubs": [
+    "/app/projects/:id/messages → ToolPlaceholder 'Message Board'",
+    "/app/projects/:id/todos → ToolPlaceholder 'To-dos'",
+    "/app/projects/:id/schedule → ToolPlaceholder 'Schedule'",
+    "/app/projects/:id/docs → ToolPlaceholder 'Docs & Files'",
+    "/app/projects/:id/hills → ToolPlaceholder 'Hill Charts'"
+  ],
+  "status": "PASS"
+}

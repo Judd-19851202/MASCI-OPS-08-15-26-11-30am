@@ -55,8 +55,17 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
 - **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
 
-## What's Implemented (2026-04-27)
-- **Security hardening pass (2026-04-27):**
+## What's Implemented (2026-04-27 · Phase 1 Crew Hub)
+- **Per-user JWT auth (2026-04-27):** New `/app/*` section kicks off the Basecamp-style Crew Hub. Login at `/app/login` with email+password → httpOnly access_token (60 min) + refresh_token (7 days) cookies. `/app/change-password` enforced on first login. `/api/auth/me`, `/api/auth/logout`, `/api/auth/refresh` round out the flow. bcrypt password hashing, PyJWT HS256 tokens.
+- **Seeded 5 initial users** (David Jewett, Chris Wright, Ramon Rodriguez, Jaymn Judd as `owner`; safety@mascigc.com as `admin`). Default temp password `Welcome2MASCI!` — all forced to change on first login.
+- **Admin Users panel** at `/app/users` (owner/admin role-gated): invite new users with temp password, edit role (owner/admin/member), toggle active, reset password. Own-account disable is blocked.
+- **31 MASCI jobs + HQ seeded as projects** on first boot. HQ auto-includes every active user. Regular projects have explicit membership managed at `/app/projects/:id/members`.
+- **Sidebar layout** with pinned HQ + scrollable project list + Admin section + user footer (avatar + logout). Main content scrolls independently.
+- **5 tool tiles per project** (Message Board, To-dos, Schedule, Docs & Files, Hill Charts) wired to placeholder routes — Phase 2 ships Message Board + To-dos first.
+- **Coexistence with legacy admin:** the existing `X-Admin-Token` / `Happy123!` password flow continues to work for all `/admin/*` safety dashboards. New JWT users will replace it in Phase 4 after 30-day migration.
+- **Backend lint + frontend lint clean, 160/160 existing backend tests still pass.**
+
+## What's Implemented (2026-04-27 · Security Hardening)
   - **Rate limiting** on every public POST endpoint (`/inspections`, `/meetings`, `/jhas`, `/incidents`, `/daily-reports`, `/equipment-units`, `/equipment-inspections`, `/translate`) — per-IP, per-endpoint, default 30/hour, returns 429 on excess. In-memory bucket (single-instance backend, no Redis).
   - **Login throttle** on `/api/admin/login` — 10 failed attempts per IP per 15-minute window → 429 lockout. Successful login resets the counter for that IP.
   - **Admin HMAC secret moved to its own `ADMIN_HMAC_SECRET` env var** (was previously derived from `MONGO_URL` — fragile if Mongo URI ever leaked). Backend warns + auto-generates a per-process secret if the env var is unset.

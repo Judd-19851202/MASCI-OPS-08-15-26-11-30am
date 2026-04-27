@@ -165,6 +165,13 @@ export default function Hub() {
             {t("Cheat Sheet")}
           </Link>
           <Link
+            to="/app"
+            className="inline-flex items-center gap-2 h-10 px-3 rounded-md border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-mono text-xs uppercase tracking-[0.2em] font-bold transition-colors"
+            data-testid="hub-crew-hub-link"
+          >
+            {t("Crew Hub")}
+          </Link>
+          <Link
             to="/admin/login"
             className="group inline-flex items-center gap-2 h-10 pl-3 pr-4 rounded-md bg-slate-900 hover:bg-red-700 text-white border-b-2 border-red-700 hover:border-red-900 transition-colors duration-150"
             data-testid="hub-admin-link"
