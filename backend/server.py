@@ -8,7 +8,7 @@ import hashlib
 import hmac
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone, timedelta
 
@@ -708,6 +708,309 @@ async def delete_daily_report(report_id: str, _: bool = Depends(require_admin)):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Daily report not found")
     return {"deleted": True, "id": report_id}
+
+
+
+# ============================================================
+# Job Hazard Plans (per-job PDF repository — admin uploads, crews view)
+# ============================================================
+class JobHazardPlanUpload(BaseModel):
+    """Admin uploads (or replaces) a Job Hazard Plan for one project."""
+    project_number: str
+    project_name: str = ""
+    location: str = ""
+    filename: str
+    content_type: str = "application/pdf"
+    file_data: str  # data URL: "data:application/pdf;base64,<...>"
+    notes: Optional[str] = ""
+    uploaded_by: Optional[str] = ""
+
+
+class JobHazardPlan(BaseModel):
+    id: str
+    project_number: str
+    project_name: str = ""
+    location: str = ""
+    filename: str
+    content_type: str = "application/pdf"
+    file_size: int = 0
+    notes: Optional[str] = ""
+    uploaded_by: Optional[str] = ""
+    uploaded_at: str
+
+
+def _data_url_to_bytes(data_url: str) -> Tuple[bytes, str]:
+    """Parse `data:<mime>;base64,<...>` → (raw_bytes, mime). Raises on bad format."""
+    if not data_url or "," not in data_url:
+        raise ValueError("file_data must be a data URL")
+    head, b64 = data_url.split(",", 1)
+    mime = "application/octet-stream"
+    if head.startswith("data:") and ";base64" in head:
+        mime = head[5:].split(";", 1)[0] or mime
+    try:
+        raw = _email_b64.b64decode(b64)
+    except Exception as e:  # noqa: BLE001
+        raise ValueError(f"file_data base64 decode failed: {e}")
+    return raw, mime
+
+
+@api_router.get("/job-hazard-plans", response_model=List[JobHazardPlan])
+async def list_job_hazard_plans():
+    """Public — list every uploaded plan (without the heavy file payload)."""
+    cursor = db.job_hazard_plans.find(
+        {},
+        {
+            "_id": 0,
+            "file_data": 0,  # exclude the base64 blob
+        },
+    ).sort("project_number", 1)
+    docs = await cursor.to_list(2000)
+    return [JobHazardPlan(**d) for d in docs]
+
+
+@api_router.get("/job-hazard-plans/{project_number}/file")
+async def download_job_hazard_plan(project_number: str):
+    """Public — stream the raw PDF for a given project number."""
+    doc = await db.job_hazard_plans.find_one({"project_number": project_number}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="No plan uploaded for this job yet")
+    try:
+        raw, mime = _data_url_to_bytes(doc.get("file_data") or "")
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"Stored file is corrupt: {e}")
+
+    safe_name = "".join(
+        c if c.isalnum() or c in ("-", "_", ".", " ") else "_"
+        for c in (doc.get("filename") or f"JHA_{project_number}.pdf")
+    )
+    return Response(
+        content=raw,
+        media_type=mime,
+        headers={
+            "Content-Disposition": f'inline; filename="{safe_name}"',
+        },
+    )
+
+
+@api_router.post("/job-hazard-plans", response_model=JobHazardPlan)
+async def upload_job_hazard_plan(
+    payload: JobHazardPlanUpload,
+    _: bool = Depends(require_admin),
+):
+    """Admin — upload (or REPLACE) a Job Hazard Plan PDF for one project number.
+    Idempotent on project_number — uploading again replaces the prior file."""
+    raw, mime = _data_url_to_bytes(payload.file_data)
+    if len(raw) > 25 * 1024 * 1024:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large ({len(raw)//1024} KB). Max 25 MB per plan.",
+        )
+
+    pn = payload.project_number.strip()
+    if not pn:
+        raise HTTPException(status_code=400, detail="project_number is required")
+
+    plan_id = str(uuid.uuid4())
+    doc = {
+        "id": plan_id,
+        "project_number": pn,
+        "project_name": (payload.project_name or "").strip(),
+        "location": (payload.location or "").strip(),
+        "filename": payload.filename,
+        "content_type": mime,
+        "file_size": len(raw),
+        "file_data": payload.file_data,
+        "notes": (payload.notes or "").strip(),
+        "uploaded_by": (payload.uploaded_by or "").strip(),
+        "uploaded_at": datetime.now(timezone.utc).isoformat(),
+    }
+    # Upsert — one plan per project number (replace on re-upload)
+    await db.job_hazard_plans.update_one(
+        {"project_number": pn},
+        {"$set": doc},
+        upsert=True,
+    )
+    fresh = await db.job_hazard_plans.find_one(
+        {"project_number": pn}, {"_id": 0, "file_data": 0}
+    )
+    return JobHazardPlan(**fresh)
+
+
+@api_router.delete("/job-hazard-plans/{project_number}")
+async def delete_job_hazard_plan(
+    project_number: str,
+    _: bool = Depends(require_admin),
+):
+    res = await db.job_hazard_plans.delete_one({"project_number": project_number})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="No plan exists for this project")
+    return {"deleted": True, "project_number": project_number}
+
+
+# ============================================================
+# Trench Box Tabulated Data (OSHA 1926 Subpart P)
+# ============================================================
+class TrenchBoxCreate(BaseModel):
+    """OSHA tabulated-data record for one trench shield / box. Filled by
+    admin from the manufacturer's data plate — crews then browse read-only."""
+    manufacturer: str
+    model: str
+    serial_number: Optional[str] = ""
+    box_type: Optional[str] = ""  # e.g. "Steel", "Aluminum", "Modular"
+    length_ft: Optional[str] = ""
+    width_min_ft: Optional[str] = ""  # narrowest spread
+    width_max_ft: Optional[str] = ""  # widest spread
+    sidewall_height_ft: Optional[str] = ""
+    sidewall_thickness_in: Optional[str] = ""
+    weight_lbs: Optional[str] = ""
+
+    # Maximum allowable depth by soil type (per OSHA 1926.652 / 1926 Subpart P)
+    max_depth_type_a_ft: Optional[str] = ""
+    max_depth_type_b_ft: Optional[str] = ""
+    max_depth_type_c_60_ft: Optional[str] = ""  # C-60 (60° slope)
+    max_depth_type_c_80_ft: Optional[str] = ""  # C-80 (80° slope)
+
+    spreader_count: Optional[str] = ""
+    stacking_allowed: Optional[str] = "No"
+    stacking_max: Optional[str] = ""
+
+    notes: Optional[str] = ""
+    # Optional manufacturer tabulated-data PDF (data URL, max 10 MB)
+    tabulated_data_file: Optional[str] = ""
+    tabulated_data_filename: Optional[str] = ""
+
+
+class TrenchBox(TrenchBoxCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+    updated_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+
+
+@api_router.get("/trench-boxes", response_model=List[TrenchBox])
+async def list_trench_boxes():
+    """Public — every crew can browse to see what's OSHA-legal for what depth."""
+    cursor = db.trench_boxes.find(
+        {},
+        {
+            "_id": 0,
+            "tabulated_data_file": 0,  # excluded from list (heavy)
+        },
+    ).sort([("manufacturer", 1), ("model", 1)])
+    docs = await cursor.to_list(500)
+    # Re-include empty placeholder so Pydantic doesn't choke
+    for d in docs:
+        d.setdefault("tabulated_data_file", "")
+    return [TrenchBox(**d) for d in docs]
+
+
+@api_router.get("/trench-boxes/{box_id}", response_model=TrenchBox)
+async def get_trench_box(box_id: str):
+    """Public — full record for one trench box (without the file payload)."""
+    doc = await db.trench_boxes.find_one(
+        {"id": box_id}, {"_id": 0, "tabulated_data_file": 0}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Trench box not found")
+    doc.setdefault("tabulated_data_file", "")
+    return TrenchBox(**doc)
+
+
+@api_router.get("/trench-boxes/{box_id}/file")
+async def download_trench_box_file(box_id: str):
+    """Public — stream the manufacturer's tabulated-data PDF (if uploaded)."""
+    doc = await db.trench_boxes.find_one({"id": box_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Trench box not found")
+    data_url = doc.get("tabulated_data_file") or ""
+    if not data_url:
+        raise HTTPException(
+            status_code=404,
+            detail="No manufacturer tabulated-data PDF uploaded for this box",
+        )
+    try:
+        raw, mime = _data_url_to_bytes(data_url)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"File corrupt: {e}")
+    safe_name = "".join(
+        c if c.isalnum() or c in ("-", "_", ".", " ") else "_"
+        for c in (doc.get("tabulated_data_filename")
+                  or f"TabData_{doc.get('manufacturer', '')}_{doc.get('model', '')}.pdf")
+    )
+    return Response(
+        content=raw,
+        media_type=mime,
+        headers={"Content-Disposition": f'inline; filename="{safe_name}"'},
+    )
+
+
+@api_router.post("/trench-boxes", response_model=TrenchBox)
+async def create_trench_box(
+    payload: TrenchBoxCreate,
+    _: bool = Depends(require_admin),
+):
+    if not payload.manufacturer.strip() or not payload.model.strip():
+        raise HTTPException(
+            status_code=400, detail="manufacturer and model are required"
+        )
+    # Lightly validate optional file size
+    if payload.tabulated_data_file:
+        raw, _ = _data_url_to_bytes(payload.tabulated_data_file)
+        if len(raw) > 10 * 1024 * 1024:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Tabulated-data file too large ({len(raw)//1024} KB). Max 10 MB.",
+            )
+    box = TrenchBox(**payload.model_dump())
+    doc = box.model_dump()
+    await db.trench_boxes.insert_one(doc)
+    doc.pop("_id", None)
+    # Don't echo the file blob back
+    doc.pop("tabulated_data_file", None)
+    doc["tabulated_data_file"] = ""
+    return TrenchBox(**doc)
+
+
+@api_router.put("/trench-boxes/{box_id}", response_model=TrenchBox)
+async def update_trench_box(
+    box_id: str,
+    payload: TrenchBoxCreate,
+    _: bool = Depends(require_admin),
+):
+    if payload.tabulated_data_file:
+        raw, _ = _data_url_to_bytes(payload.tabulated_data_file)
+        if len(raw) > 10 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="File too large (max 10 MB)")
+    update = payload.model_dump()
+    update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    # Keep file payload only if user provided a new one
+    if not update.get("tabulated_data_file"):
+        update.pop("tabulated_data_file", None)
+        update.pop("tabulated_data_filename", None)
+    res = await db.trench_boxes.update_one({"id": box_id}, {"$set": update})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Trench box not found")
+    fresh = await db.trench_boxes.find_one(
+        {"id": box_id}, {"_id": 0, "tabulated_data_file": 0}
+    )
+    fresh.setdefault("tabulated_data_file", "")
+    return TrenchBox(**fresh)
+
+
+@api_router.delete("/trench-boxes/{box_id}")
+async def delete_trench_box(box_id: str, _: bool = Depends(require_admin)):
+    res = await db.trench_boxes.delete_one({"id": box_id})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Trench box not found")
+    return {"deleted": True, "id": box_id}
+
+
+
+
+
 
 
 # ============================================================

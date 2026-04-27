@@ -98,7 +98,7 @@ export default function ViewEquipmentInspection() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> All Inspections
           </Link>
-          <MasciLogo variant="mark" size="md" />
+          <MasciLogo variant="mark" size="md" homeLink="/admin" />
           <div className="flex items-center gap-2">
             <Button onClick={() => setEmailOpen(true)} className="h-10 px-3 bg-slate-700 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-xs" data-testid="email-btn">
               <Mail className="w-4 h-4 mr-1" /> Email

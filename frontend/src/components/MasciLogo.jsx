@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 /**
@@ -57,16 +58,31 @@ export const MasciLogo = ({
   className = "",
   size = "md",
   onLight = false,
+  homeLink = null, // e.g. "/" or "/admin" — wraps the logo in a clickable Link
 }) => {
   const src = SRC[variant]?.[onLight ? "light" : "dark"] || SRC.mark.dark;
 
+  const wrap = (img) =>
+    homeLink ? (
+      <Link
+        to={homeLink}
+        aria-label="Go to home"
+        className="inline-block focus:outline-none focus:ring-2 focus:ring-red-700 rounded"
+        data-testid="masci-logo-home-link"
+      >
+        {img}
+      </Link>
+    ) : (
+      img
+    );
+
   if (variant === "lockup") {
     const w = LOCKUP_WIDTH_MAP[size] || LOCKUP_WIDTH_MAP.md;
-    return (
+    return wrap(
       <img
         src={src}
         alt="MASCI Safety — No Shortcuts · No Exceptions"
-        className={cn(w, "h-auto select-none", className)}
+        className={cn(w, "h-auto select-none", homeLink && "cursor-pointer", className)}
         data-testid="masci-logo-lockup"
         draggable={false}
       />
@@ -74,21 +90,21 @@ export const MasciLogo = ({
   }
   const h = HEIGHT_MAP[size] || HEIGHT_MAP.md;
   if (variant === "wordmark") {
-    return (
+    return wrap(
       <img
         src={src}
         alt="MASCI"
-        className={cn(h, "w-auto select-none", className)}
+        className={cn(h, "w-auto select-none", homeLink && "cursor-pointer", className)}
         data-testid="masci-logo-wordmark"
         draggable={false}
       />
     );
   }
-  return (
+  return wrap(
     <img
       src={src}
       alt="MASCI"
-      className={cn(h, "w-auto select-none", className)}
+      className={cn(h, "w-auto select-none", homeLink && "cursor-pointer", className)}
       data-testid="masci-logo-mark"
       draggable={false}
     />

@@ -169,7 +169,7 @@ export default function ViewInspection() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Reports
           </Link>
-          <MasciLogo variant="mark" size="md" />
+          <MasciLogo variant="mark" size="md" homeLink="/admin" />
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -203,8 +203,8 @@ export default function ViewInspection() {
         {/* Print header */}
         <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
-            <MasciLogo variant="lockup" size="2xl" className="hidden sm:block max-w-[420px]" onLight />
-            <MasciLogo variant="mark" size="xl" className="sm:hidden" />
+            <MasciLogo variant="lockup" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink="/admin" />
+            <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink="/admin" />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
               Job Site Safety Inspection Report
             </h1>

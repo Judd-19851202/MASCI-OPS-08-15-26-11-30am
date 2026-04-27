@@ -93,7 +93,7 @@ export default function ViewJha() {
           <Link to="/admin/jha" className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide" data-testid="back-link">
             <ArrowLeft className="w-4 h-4 mr-1" /> JHAs
           </Link>
-          <MasciLogo variant="mark" size="md" />
+          <MasciLogo variant="mark" size="md" homeLink="/admin" />
           <div className="flex gap-2">
             <Button variant="outline" size="icon" onClick={handleDelete} className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400" data-testid="delete-btn">
               <Trash2 className="w-4 h-4" />
@@ -111,8 +111,8 @@ export default function ViewJha() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
         <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
-            <MasciLogo variant="lockup" size="2xl" className="hidden sm:block max-w-[420px]" onLight />
-            <MasciLogo variant="mark" size="xl" className="sm:hidden" />
+            <MasciLogo variant="lockup" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink="/admin" />
+            <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink="/admin" />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
               Job Hazard Analysis
             </h1>

@@ -113,7 +113,6 @@ def test_export_csv_strips_photos_and_signatures():
 
 
 # ---------------- Full backup .zip ----------------
-import io
 import zipfile
 
 

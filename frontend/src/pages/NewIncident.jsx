@@ -187,7 +187,7 @@ export default function NewIncident({ publicMode = false }) {
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           {publicMode ? (
-            <MasciLogo variant="lockup" size="lg" className="hidden sm:block" />
+            <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
           ) : (
             <Link
               to="/"
@@ -201,7 +201,7 @@ export default function NewIncident({ publicMode = false }) {
             variant="mark"
             size="md"
             className={publicMode ? "sm:hidden" : ""}
-          />
+          homeLink="/" />
           <div className="flex items-center gap-2">
             <LangToggle />
             <Button

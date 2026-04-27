@@ -64,7 +64,7 @@ export default function IncidentsDashboard() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Admin
           </Link>
-          <MasciLogo variant="mark" size="md" />
+          <MasciLogo variant="mark" size="md" homeLink="/admin" />
           <div className="flex items-center gap-2">
             <ShareFormDialog
               formType="incident"

@@ -150,7 +150,7 @@ export default function ViewDailyReport() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Daily Reports
           </Link>
-          <MasciLogo variant="mark" size="md" />
+          <MasciLogo variant="mark" size="md" homeLink="/admin" />
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -188,8 +188,8 @@ export default function ViewDailyReport() {
               size="2xl"
               className="hidden sm:block max-w-[420px]"
               onLight
-            />
-            <MasciLogo variant="mark" size="xl" className="sm:hidden" />
+            homeLink="/admin" />
+            <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink="/admin" />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
               Daily Job Report
             </h1>

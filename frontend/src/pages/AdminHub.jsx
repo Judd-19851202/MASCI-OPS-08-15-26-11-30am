@@ -126,8 +126,8 @@ export default function AdminHub() {
               <Home className="w-4 h-4 mr-1" /> Crew Hub
             </Link>
           </div>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" />
+          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/admin" />
+          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/admin" />
           <div className="flex items-center gap-2">
             <CompanyInfoDialog />
             <Button
