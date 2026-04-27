@@ -55,6 +55,15 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
 - **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
 
+## What's Implemented (2026-04-27 · Phase 3.5 Scorecard Layout)
+- **ProjectHome scorecard (2026-04-27):** Rebuilt `/app/projects/:id` as a Basecamp-style "everything at a glance" scorecard. One `GET /api/projects/{id}/scorecard` aggregate endpoint returns latest 3 messages, next 2 events, todo counts, 2 latest docs, top 3 hill scopes — one round trip instead of five.
+  - **Hill Chart snapshot** at the top with inline mini-SVG + colored-dot legend (matches Basecamp IMG_4413 hero area).
+  - **4-card grid** below: Message Board (red accent), To-dos (amber + progress bar), Schedule (emerald + day badges), Docs (blue + uploader info).
+  - **Colored accent bars** per card; empty-state fallbacks on every card.
+  - **Member avatar stack** in the project header (+N badge when >5 members).
+  - **Secondary tiles row**: Hill Charts + Members with live counts.
+- Verified end-to-end with seed data: 2 messages + 2 events + 3/5 todos + 1 doc + 3 hill scopes all render correctly in a 1600×1200 viewport.
+
 ## What's Implemented (2026-04-27 · Phase 2 + Phase 3 Crew Hub tools)
 - **Message Board** (`/app/projects/:id/messages`) — post, list, view, threaded comments, delete. Author avatars + relative timestamps everywhere.
 - **To-dos** (`/app/projects/:id/todos`) — multiple lists per project, inline add with assignee picker + due date, check-off with strikethrough + emerald badge, done items collapsed. `GET /api/me/todos` returns every open todo assigned to the current user across all projects.

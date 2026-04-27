@@ -213,6 +213,17 @@ def build_projects_router(db, get_current_user, require_admin_or_owner):
             raise HTTPException(status_code=404, detail="Membership not found")
         return {"ok": True}
 
+    @router.get("/projects/{project_id}/scorecard")
+    async def project_scorecard(project_id: str, user: dict = Depends(get_current_user)):
+        """Aggregated snapshot of all 5 tool surfaces for the project home."""
+        doc = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Project not found")
+        if user.get("role") not in {"owner", "admin"} and not await _is_member(project_id, user["id"]):
+            raise HTTPException(status_code=403, detail="Not a member of this project")
+        from tools import get_scorecard as _gs  # lazy import to avoid cycle
+        return await _gs(db, project_id)
+
     return router
 
 

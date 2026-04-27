@@ -709,3 +709,67 @@ async def create_tools_indexes(db) -> None:
         await db.hill_scopes.create_index([("project_id", 1), ("created_at", 1)])
     except Exception as e:
         logger.warning(f"tools indexes: {e}")
+
+
+async def get_scorecard(db, project_id: str):
+    """Aggregated snapshot of all 5 tool surfaces for a project — used on
+    the project home scorecard to avoid 5 separate round trips."""
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    # Latest 3 messages
+    msgs = await db.messages.find(
+        {"project_id": project_id}, {"_id": 0}
+    ).sort("created_at", -1).limit(3).to_list(3)
+    msg_out = []
+    for m in msgs:
+        u = await db.users.find_one({"id": m["author_id"]}, {"_id": 0}) or {}
+        msg_out.append({
+            "id": m["id"], "title": m["title"],
+            "body_preview": (m.get("body") or "")[:140],
+            "author_name": u.get("name", "Unknown"),
+            "author_id": m["author_id"],
+            "comment_count": await db.message_comments.count_documents({"message_id": m["id"]}),
+            "created_at": m["created_at"],
+        })
+
+    # Next 2 upcoming events
+    events = await db.events.find(
+        {"project_id": project_id, "starts_at": {"$gte": now_iso[:10]}},
+        {"_id": 0, "id": 1, "title": 1, "starts_at": 1, "ends_at": 1,
+         "all_day": 1, "location": 1},
+    ).sort("starts_at", 1).limit(2).to_list(2)
+
+    # Todo counts
+    all_todos = await db.todos.find(
+        {"project_id": project_id}, {"_id": 0, "completed_at": 1}
+    ).to_list(5000)
+    open_count = sum(1 for t in all_todos if not t.get("completed_at"))
+
+    # 2 latest docs
+    docs = await db.docs.find(
+        {"project_id": project_id}, {"_id": 0, "file_data": 0}
+    ).sort("uploaded_at", -1).limit(2).to_list(2)
+    doc_out = []
+    for d in docs:
+        u = await db.users.find_one({"id": d["uploaded_by"]}, {"_id": 0}) or {}
+        doc_out.append({
+            "id": d["id"], "filename": d["filename"], "category": d["category"],
+            "size_bytes": d.get("size_bytes", 0),
+            "uploaded_at": d["uploaded_at"],
+            "uploaded_by_name": u.get("name", "Unknown"),
+        })
+
+    # Top 3 hill scopes (most recently updated)
+    scopes = await db.hill_scopes.find(
+        {"project_id": project_id, "archived": {"$ne": True}},
+        {"_id": 0, "id": 1, "title": 1, "position": 1, "last_update": 1,
+         "last_note": 1},
+    ).sort("last_update", -1).limit(3).to_list(3)
+
+    return {
+        "messages": msg_out,
+        "events": events,
+        "todos": {"open": open_count, "done": len(all_todos) - open_count, "total": len(all_todos)},
+        "docs": doc_out,
+        "hill_scopes": scopes,
+    }
