@@ -155,8 +155,7 @@ export default function ViewEquipmentInspection() {
             <KV label="Make" value={data.equipment_make} />
             <KV label="Model" value={data.equipment_model} />
             <KV label="Serial #" value={data.equipment_serial} />
-            <KV label="Hour Meter" value={data.hour_meter} />
-            <KV label="Odometer" value={data.odometer} />
+            <KV label="Hour Meter / Odometer" value={data.hour_meter || data.odometer} />
           </div>
         </div>
 

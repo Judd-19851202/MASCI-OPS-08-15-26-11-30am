@@ -283,6 +283,9 @@ export default function NewEquipmentInspection({ publicMode = false }) {
     if (!data.operator_name) return toast.error("Operator name is required");
     if (!data.equipment_type) return toast.error("Equipment type is required");
     if (!data.equipment_unit) return toast.error("Unit number / label is required");
+    if (!String(data.hour_meter || "").trim()) {
+      return toast.error("Hour Meter / Odometer reading is required");
+    }
     if (!data.operator_signature) return toast.error("Operator signature is required");
 
     // Make sure every checklist item has a status — fail-fast helps OSHA records
@@ -600,14 +603,17 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                   <Input value={data.equipment_serial} onChange={(e) => set("equipment_serial", e.target.value)} className={inputCls} data-testid="input-serial" />
                 </div>
                 <div>
-                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Hour Meter")}</Label>
-                  <Input value={data.hour_meter} onChange={(e) => set("hour_meter", e.target.value)} className={inputCls} placeholder="e.g. 4523" data-testid="input-hour-meter" />
-                  <p className="text-xs text-slate-500 mt-1">{t("Leave blank if no hour meter.")}</p>
-                </div>
-                <div>
-                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Odometer")}</Label>
-                  <Input value={data.odometer} onChange={(e) => set("odometer", e.target.value)} className={inputCls} placeholder="e.g. 87,432 mi" data-testid="input-odometer" />
-                  <p className="text-xs text-slate-500 mt-1">{t("Leave blank if no odometer.")}</p>
+                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Hour Meter / Odometer *")}</Label>
+                  <Input
+                    value={data.hour_meter}
+                    onChange={(e) => set("hour_meter", e.target.value)}
+                    className={inputCls}
+                    placeholder="e.g. 4523 hrs or 87,432 mi"
+                    inputMode="decimal"
+                    required
+                    data-testid="input-hour-meter"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">{t("Required — enter hours OR miles.")}</p>
                 </div>
               </div>
             </>

@@ -440,8 +440,7 @@ def _render_equipment(d: Dict[str, Any]) -> str:
             + _kv("Make", d.get("equipment_make"))
             + _kv("Model", d.get("equipment_model"))
             + _kv("Serial #", d.get("equipment_serial"))
-            + _kv("Hour Meter", d.get("hour_meter"))
-            + _kv("Odometer", d.get("odometer"))
+            + _kv("Hour Meter / Odometer", d.get("hour_meter") or d.get("odometer"))
         )
     )
 
