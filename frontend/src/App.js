@@ -14,6 +14,7 @@ import JhaPlansHub from "@/pages/JhaPlansHub";
 import JhaPlansAdmin from "@/pages/JhaPlansAdmin";
 import TrenchBoxes from "@/pages/TrenchBoxes";
 import TrenchBoxesAdmin from "@/pages/TrenchBoxesAdmin";
+import TrenchBoxPoster from "@/pages/TrenchBoxPoster";
 import IncidentsDashboard from "@/pages/IncidentsDashboard";
 import NewIncident from "@/pages/NewIncident";
 import ViewIncident from "@/pages/ViewIncident";
@@ -110,6 +111,7 @@ function App() {
 
           {/* Trench Box admin */}
           <Route path="/admin/trench-boxes" element={A(<TrenchBoxesAdmin />)} />
+          <Route path="/admin/trench-boxes/poster" element={A(<TrenchBoxPoster />)} />
 
           <Route path="/admin/incidents" element={A(<IncidentsDashboard />)} />
           <Route path="/admin/incidents/:id" element={A(<ViewIncident />)} />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Loader2, Trash2, Pencil, Box } from "lucide-react";
+import { ArrowLeft, Plus, Loader2, Trash2, Pencil, Box, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -126,9 +126,18 @@ export default function TrenchBoxesAdmin() {
             <ArrowLeft className="w-4 h-4 mr-1" /> Admin
           </Link>
           <MasciLogo variant="mark" size="md" homeLink="/admin" />
-          <Button onClick={openNew} className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs" data-testid="new-trench-btn">
-            <Plus className="w-4 h-4 mr-1" /> Add Box
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/admin/trench-boxes/poster"
+              className="hidden sm:inline-flex items-center gap-1.5 h-10 px-3 rounded-md border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-mono text-xs uppercase tracking-[0.15em] font-bold"
+              data-testid="open-poster-link"
+            >
+              <Printer className="w-4 h-4" /> QR Poster
+            </Link>
+            <Button onClick={openNew} className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs" data-testid="new-trench-btn">
+              <Plus className="w-4 h-4 mr-1" /> Add Box
+            </Button>
+          </div>
         </div>
       </header>
 

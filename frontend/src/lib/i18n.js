@@ -626,6 +626,96 @@ const ES = {
   "to write your own.": "para escribir el suyo.",
   "Custom topic — all topic fields cleared.":
     "Tema personalizado — todos los campos limpiados.",
+
+  // ============================================================
+  // Job Hazard Plans (file-sharing hub)
+  // ============================================================
+  "Job Hazard Plans": "Planes de Peligros del Trabajo",
+  "Read your job's Hazard Plan PDF before crew breaks ground. One plan per active MASCI job — uploaded by the office.":
+    "Lea el PDF del Plan de Peligros de su trabajo antes de que la cuadrilla comience. Un plan por cada trabajo MASCI activo — subido por la oficina.",
+  "Pick your job to view its Hazard Plan":
+    "Elija su trabajo para ver su Plan de Peligros",
+  "Each MASCI job has its own Job Hazard Plan PDF. Open your job and read it before crew breaks ground. If your job has no plan yet, get with your PM.":
+    "Cada trabajo MASCI tiene su propio PDF del Plan de Peligros. Abra su trabajo y léalo antes de que la cuadrilla comience. Si su trabajo aún no tiene plan, consulte con su Gerente de Proyecto.",
+  "Search by job number, name, or location…":
+    "Buscar por número de trabajo, nombre o ubicación…",
+  "Uploaded": "Subido",
+  "View Plan": "Ver Plan",
+  "Not uploaded yet": "Aún no subido",
+  "No job matches your search.": "Ningún trabajo coincide con su búsqueda.",
+  "Download for offline use": "Descargar para uso sin conexión",
+  "On your phone, hold": "En su teléfono, mantenga presionado",
+  "Save to Files / Downloads": "Guardar en Archivos / Descargas",
+  "to read it where there's no service.":
+    "para leerlo donde no haya señal.",
+  "Hub": "Inicio",
+
+  // ============================================================
+  // Trench Box Tabulated Data
+  // ============================================================
+  "Trench Box Data": "Datos de Cajas de Zanja",
+  "MASCI trench-shield fleet. Size, weight, OSHA max-depth by soil type, and manufacturer tabulated-data PDFs.":
+    "Flota de escudos de zanja MASCI. Tamaño, peso, profundidad máxima OSHA por tipo de suelo, y PDFs de datos tabulados del fabricante.",
+  "Trench Box Tabulated Data": "Datos Tabulados de Cajas de Zanja",
+  "OSHA-compliant trench shields in MASCI fleet":
+    "Escudos de zanja conformes a OSHA en la flota MASCI",
+  "Tap any box to see its size, weight, and maximum allowable depth by soil type (OSHA 1926 Subpart P).":
+    "Toque cualquier caja para ver su tamaño, peso y profundidad máxima permitida por tipo de suelo (OSHA 1926 Subparte P).",
+  "Search by manufacturer, model, serial…":
+    "Buscar por fabricante, modelo, número de serie…",
+  "No trench boxes have been added yet":
+    "Aún no se han agregado cajas de zanja",
+  "An admin will add MASCI's trench-box fleet here. Once added, the data will be searchable on every device.":
+    "Un administrador agregará la flota de cajas de zanja de MASCI aquí. Una vez agregadas, los datos se podrán buscar en cualquier dispositivo.",
+  "Type": "Tipo",
+  "Length (ft)": "Largo (ft)",
+  "Width Min/Max (ft)": "Ancho Mín/Máx (ft)",
+  "Sidewall H × Thickness": "Altura × Espesor de Pared",
+  "Weight (lbs)": "Peso (lbs)",
+  "Spreaders": "Separadores",
+  "Stacking": "Apilable",
+  "Maximum Allowable Depth (OSHA 1926.652)":
+    "Profundidad Máxima Permitida (OSHA 1926.652)",
+  "View Manufacturer Tabulated Data PDF":
+    "Ver PDF de Datos Tabulados del Fabricante",
+
+  // ============================================================
+  // Trench Box Poster (printable QR poster)
+  // ============================================================
+  "Trench Box QR Poster": "Cartel QR de Cajas de Zanja",
+  "Scan before you dig.": "Escanee antes de excavar.",
+  "Every MASCI trench shield. OSHA max-depth by soil type. One scan, one tap, one answer.":
+    "Cada escudo de zanja MASCI. Profundidad máxima OSHA por tipo de suelo. Un escaneo, un toque, una respuesta.",
+  "Open your phone camera. Point it at the QR. Tap the link. Find your shield. Read its Type-C max depth before the bucket touches dirt.":
+    "Abra la cámara del teléfono. Apunte al QR. Toque el enlace. Encuentre su escudo. Lea la profundidad máxima Tipo C antes de que el balde toque tierra.",
+  "Soil Type Quick Reference": "Referencia Rápida de Tipo de Suelo",
+  "Type A — Cohesive (clay)": "Tipo A — Cohesivo (arcilla)",
+  "Most stable. Compact, fine-grained.": "Más estable. Compacto, grano fino.",
+  "Type B — Cohesive or granular": "Tipo B — Cohesivo o granular",
+  "Average. Silty clay, dry rock.": "Promedio. Arcilla limosa, roca seca.",
+  "Type C — Granular / submerged":
+    "Tipo C — Granular / sumergido",
+  "Least stable. Sand, gravel, water.":
+    "Menos estable. Arena, grava, agua.",
+  "When in doubt — call it Type C and get a Competent Person on site before the next bucket.":
+    "Cuando tenga duda — clasifíquelo como Tipo C y traiga a una Persona Competente antes del siguiente balde.",
+  "Fleet on file": "Flota registrada",
+  "MASCI Trench Box Fleet at a Glance":
+    "Flota MASCI de Cajas de Zanja de un Vistazo",
+  "Manufacturer · Model": "Fabricante · Modelo",
+  "Length": "Largo",
+  "Type C-60 Max": "Máx Tipo C-60",
+  "All depths per OSHA 1926.652. Verify against the manufacturer's tabulated data on every job.":
+    "Todas las profundidades según OSHA 1926.652. Verifique con los datos tabulados del fabricante en cada trabajo.",
+  "OSHA 1926 Subpart P · Excavations":
+    "OSHA 1926 Subparte P · Excavaciones",
+  "Post inside every excavation kit toolbox.":
+    "Coloque dentro de cada caja de herramientas de excavación.",
+  "Scan to open MASCI Trench Box Data on any phone.":
+    "Escanee para abrir los Datos de Cajas de Zanja MASCI en cualquier teléfono.",
+  "Open Trench Box Poster": "Abrir Cartel de Caja de Zanja",
+  "Print Poster": "Imprimir Cartel",
+  "Loading…": "Cargando…",
 };
 
 const DICTS = { es: ES, en: {} };
