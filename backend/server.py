@@ -1006,6 +1006,45 @@ def _date_field_for(kind: str) -> str:
     }[kind]
 
 
+def _normalize_export_doc(kind: str, d: Dict[str, Any]) -> None:
+    """Mutate a record in place so derived counts are populated for CSV columns."""
+    if kind == "meetings" and "attendee_count" not in d:
+        d["attendee_count"] = len(d.get("attendees") or [])
+    if kind == "jhas" and "step_count" not in d:
+        d["step_count"] = len(d.get("steps") or [])
+    if kind == "incidents" and "witness_count" not in d:
+        d["witness_count"] = len(d.get("witnesses") or [])
+    if kind == "incidents" and "root_cause_categories" not in d:
+        cats = d.get("root_causes") or []
+        d["root_cause_categories"] = (
+            "; ".join(cats) if isinstance(cats, list) else str(cats)
+        )
+    if kind == "daily-reports":
+        for k_, src in (
+            ("crew_count", "crew"),
+            ("subcontractor_count", "subcontractors"),
+            ("visitor_count", "visitors"),
+            ("equipment_count", "equipment"),
+            ("material_count", "materials"),
+            ("activity_count", "activities"),
+        ):
+            if k_ not in d:
+                d[k_] = len(d.get(src) or [])
+
+
+def _build_csv_bytes(kind: str, docs: List[Dict[str, Any]]) -> bytes:
+    """Render a CSV (UTF-8 bytes) for one kind."""
+    fields = list(EXPORT_FIELDS[kind])
+    for d in docs:
+        _normalize_export_doc(kind, d)
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(fields)
+    for d in docs:
+        writer.writerow([_csv_value(d.get(f)) for f in fields])
+    return buf.getvalue().encode("utf-8")
+
+
 @api_router.get("/exports/csv")
 async def export_csv(
     kind: str,
@@ -1020,10 +1059,7 @@ async def export_csv(
         start = YYYY-MM-DD (inclusive)
         end   = YYYY-MM-DD (inclusive)
 
-    Both date params are optional — omit for all-time. The date filter is
-    applied to the kind's natural date field (inspection_date / report_date /
-    incident_date / etc.) — string compare works because everything is stored
-    as ISO YYYY-MM-DD.
+    Both date params are optional — omit for all-time.
     """
     if kind not in EXPORTABLE_KINDS:
         raise HTTPException(
@@ -1058,38 +1094,7 @@ async def export_csv(
     cursor = db[coll_name].find(q, projection).sort(date_field, -1)
     docs = await cursor.to_list(20000)
 
-    fields = list(EXPORT_FIELDS[kind])
-
-    # Synthesize counts that aren't always stored
-    for d in docs:
-        if kind == "meetings" and "attendee_count" not in d:
-            d["attendee_count"] = len(d.get("attendees") or [])
-        if kind == "jhas" and "step_count" not in d:
-            d["step_count"] = len(d.get("steps") or [])
-        if kind == "incidents" and "witness_count" not in d:
-            d["witness_count"] = len(d.get("witnesses") or [])
-        if kind == "incidents" and "root_cause_categories" not in d:
-            cats = d.get("root_causes") or []
-            d["root_cause_categories"] = (
-                "; ".join(cats) if isinstance(cats, list) else str(cats)
-            )
-        if kind == "daily-reports":
-            for k_, src in (
-                ("crew_count", "crew"),
-                ("subcontractor_count", "subcontractors"),
-                ("visitor_count", "visitors"),
-                ("equipment_count", "equipment"),
-                ("material_count", "materials"),
-                ("activity_count", "activities"),
-            ):
-                if k_ not in d:
-                    d[k_] = len(d.get(src) or [])
-
-    buf = io.StringIO()
-    writer = csv.writer(buf)
-    writer.writerow(fields)
-    for d in docs:
-        writer.writerow([_csv_value(d.get(f)) for f in fields])
+    csv_bytes = _build_csv_bytes(kind, docs)
 
     today = datetime.now(timezone.utc).date().isoformat()
     range_tag = ""
@@ -1102,7 +1107,7 @@ async def export_csv(
     filename = f"MASCI_{kind}{range_tag}_{today}.csv"
 
     return Response(
-        content=buf.getvalue(),
+        content=csv_bytes,
         media_type="text/csv; charset=utf-8",
         headers={
             "Content-Disposition": f'attachment; filename="{filename}"',
@@ -1132,6 +1137,140 @@ async def export_summary(
             q[date_field] = cond
         out[kind] = await db[coll_name].count_documents(q)
     return {"start": start, "end": end, "counts": out, "total": sum(out.values())}
+
+
+# ----------------------------------------------------------------------
+# Full backup — single .zip with everything (CSVs + JSON + PDFs + photos)
+# ----------------------------------------------------------------------
+import asyncio as _backup_asyncio  # noqa: E402
+import json as _backup_json  # noqa: E402
+import zipfile  # noqa: E402
+
+
+def _safe_filename(s: str, max_len: int = 60) -> str:
+    """Make a filesystem-friendly fragment from a free-form string."""
+    cleaned = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in (s or ""))
+    cleaned = cleaned.strip("_") or "untitled"
+    return cleaned[:max_len]
+
+
+def _record_filename(kind: str, record: dict) -> str:
+    """Stable, sortable filename: <date>_<id-prefix>_<project>.<ext>"""
+    date_part = (
+        record.get("inspection_date")
+        or record.get("meeting_date")
+        or record.get("jha_date")
+        or record.get("incident_date")
+        or record.get("report_date")
+        or "0000-00-00"
+    )
+    rid = (record.get("id") or "")[:8]
+    proj = _safe_filename(record.get("project_name") or "MASCI", 40)
+    return f"{date_part}_{rid}_{proj}"
+
+
+@api_router.get("/exports/full-backup")
+async def exports_full_backup(_: bool = Depends(require_admin)):
+    """One-click off-site backup. Streams a single .zip back containing:
+
+    /CSV/                — one CSV per kind (no photos/signatures inline)
+    /<kind>/json/        — every record as raw JSON (photos + signatures intact)
+    /<kind>/pdf/         — every record rendered to PDF via WeasyPrint
+    /backup_log.txt      — manifest with timestamps + counts per kind
+
+    Built in-memory with `zipfile`. Runs sequentially (single request) — for
+    a typical contractor day (50–200 records) this finishes in 5–30 sec.
+    Photos can be base64 strings inside the JSON; the .zip is recompressed
+    so duplicate-photo deflation still works fine.
+    """
+    now = datetime.now(timezone.utc)
+    stamp = now.strftime("%Y-%m-%d_%H%M%SZ")
+
+    buf = io.BytesIO()
+    log_lines: List[str] = [
+        "MASCI Safety Hub — Full Backup",
+        f"Generated: {now.isoformat()}",
+        "Source: mascidocs.com (production)",
+        "",
+        "Per-kind record counts:",
+    ]
+
+    total_records = 0
+    total_pdf_bytes = 0
+    pdf_failures: List[str] = []
+
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
+        for kind, coll_name in EXPORTABLE_KINDS.items():
+            cursor = db[coll_name].find({}, {"_id": 0}).sort("created_at", -1)
+            docs = await cursor.to_list(50000)
+            total_records += len(docs)
+            log_lines.append(f"  {kind:25s} : {len(docs):5d}")
+
+            # /CSV/
+            try:
+                csv_bytes = _build_csv_bytes(kind, [dict(d) for d in docs])
+                zf.writestr(f"CSV/MASCI_{kind}_{stamp}.csv", csv_bytes)
+            except Exception as e:  # noqa: BLE001
+                log_lines.append(f"    [warn] CSV build failed: {e}")
+
+            # /<kind>/json/  + /<kind>/pdf/
+            for d in docs:
+                base = _record_filename(kind, d)
+                try:
+                    zf.writestr(
+                        f"{kind}/json/{base}.json",
+                        _backup_json.dumps(d, indent=2, default=str).encode("utf-8"),
+                    )
+                except Exception as e:  # noqa: BLE001
+                    log_lines.append(f"    [warn] {kind}/{d.get('id')} JSON failed: {e}")
+
+                # PDFs are heavy — only render the kinds we know how to render.
+                # Map the storage kind back to the pdf_render kind.
+                pdf_kind = {
+                    "inspections": "inspection",
+                    "meetings": "meeting",
+                    "jhas": "jha",
+                    "incidents": "incident",
+                    "daily-reports": "daily-report",
+                    "equipment-inspections": "equipment-inspection",
+                }.get(kind)
+                if pdf_kind:
+                    try:
+                        pdf_bytes = await _backup_asyncio.to_thread(
+                            render_record_pdf, pdf_kind, d
+                        )
+                        total_pdf_bytes += len(pdf_bytes)
+                        zf.writestr(f"{kind}/pdf/{base}.pdf", pdf_bytes)
+                    except Exception as e:  # noqa: BLE001
+                        pdf_failures.append(f"{kind}/{d.get('id')}: {e}")
+
+        # Manifest
+        log_lines.append("")
+        log_lines.append("Totals:")
+        log_lines.append(f"  Records:        {total_records}")
+        log_lines.append(f"  PDFs rendered:  {total_pdf_bytes / (1024 * 1024):.1f} MB")
+        log_lines.append(f"  PDF failures:   {len(pdf_failures)}")
+        if pdf_failures:
+            log_lines.append("")
+            log_lines.append("PDF render failures (first 20):")
+            for line in pdf_failures[:20]:
+                log_lines.append(f"  - {line}")
+
+        zf.writestr("backup_log.txt", "\n".join(log_lines).encode("utf-8"))
+
+    payload = buf.getvalue()
+    filename = f"MASCI_full_backup_{stamp}.zip"
+    return Response(
+        content=payload,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "X-Record-Count": str(total_records),
+            "X-Backup-Size-Bytes": str(len(payload)),
+        },
+    )
+
+
 
 
 @api_router.get("/equipment-status-board")

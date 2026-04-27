@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Download, FileSpreadsheet, Loader2 } from "lucide-react";
+import { Download, FileSpreadsheet, Loader2, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +68,36 @@ export default function ComplianceExportPanel() {
   const [counts, setCounts] = useState(null);
   const [loading, setLoading] = useState(false);
   const [downloadingAll, setDownloadingAll] = useState(false);
+  const [fullBackup, setFullBackup] = useState(false);
+
+  const downloadFullBackup = async () => {
+    if (fullBackup) return;
+    setFullBackup(true);
+    toast.info("Building full backup… this can take 30 sec for large jobs");
+    try {
+      const res = await api.get("/exports/full-backup", { responseType: "blob" });
+      const cd = res.headers["content-disposition"] || "";
+      const m = cd.match(/filename="?([^";]+)"?/i);
+      const fname = m ? m[1] : `MASCI_full_backup_${todayIso()}.zip`;
+      const url = URL.createObjectURL(new Blob([res.data], { type: "application/zip" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      const count = res.headers["x-record-count"] || "?";
+      const bytes = parseInt(res.headers["x-backup-size-bytes"] || "0", 10);
+      const mb = bytes ? (bytes / (1024 * 1024)).toFixed(1) : "?";
+      toast.success(`Full backup downloaded — ${count} records · ${mb} MB`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Full backup failed — check console");
+    } finally {
+      setFullBackup(false);
+    }
+  };
 
   const refresh = async (s = start, e = end) => {
     setLoading(true);
@@ -274,6 +304,48 @@ export default function ComplianceExportPanel() {
         CSVs include every field except photos and signatures. Open in Excel,
         Google Sheets, or hand to your OSHA / DOT auditor.
       </p>
+
+      {/* ---------- Full off-site backup (zero-IT manual download) ---------- */}
+      <div className="mt-6 pt-5 border-t-2 border-slate-200">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-red-700 text-white">
+              <Archive className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-display text-base sm:text-lg font-black tracking-tight text-slate-900">
+                Full Off-Site Backup
+              </h3>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-0.5">
+                Single .zip · CSVs + JSON + PDFs + photos
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={downloadFullBackup}
+            disabled={fullBackup}
+            className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs disabled:bg-slate-400"
+            data-testid="full-backup-btn"
+          >
+            {fullBackup ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-1" /> Building…
+              </>
+            ) : (
+              <>
+                <Archive className="w-4 h-4 mr-1" /> Download Full Backup
+              </>
+            )}
+          </Button>
+        </div>
+        <p className="mt-3 text-xs text-slate-600 leading-relaxed">
+          Bundles every record across all 6 modules into a single dated .zip:
+          one CSV per module, every record's raw JSON (photos + signatures
+          intact), every record's PDF, and a manifest log. Drop the .zip on
+          your office NAS / shared drive after download. Daily download is
+          recommended; nothing is deleted from the live system.
+        </p>
+      </div>
     </section>
   );
 }

@@ -110,3 +110,43 @@ def test_export_csv_strips_photos_and_signatures():
     # Even if the projection didn't help, the CSV value flattener strips
     # data:image/* blobs — check no row contains a data URI
     assert "data:image/" not in r.text
+
+
+# ---------------- Full backup .zip ----------------
+import io
+import zipfile
+
+
+def test_full_backup_returns_zip_with_required_structure():
+    r = requests.get(f"{URL}/api/exports/full-backup", headers=_hdr(), timeout=120)
+    assert r.status_code == 200, r.text[:300]
+    assert "application/zip" in r.headers.get("content-type", "")
+    cd = r.headers.get("content-disposition", "")
+    assert "MASCI_full_backup_" in cd
+    assert ".zip" in cd
+    assert "x-record-count" in {k.lower() for k in r.headers.keys()}
+
+    z = zipfile.ZipFile(io.BytesIO(r.content))
+    names = z.namelist()
+
+    # backup_log.txt must be present
+    assert "backup_log.txt" in names
+    log = z.read("backup_log.txt").decode()
+    assert "MASCI Safety Hub — Full Backup" in log
+    assert "Per-kind record counts:" in log
+    assert "Totals:" in log
+
+    # /CSV/ folder has one CSV per kind
+    csv_files = [n for n in names if n.startswith("CSV/")]
+    assert len(csv_files) == 6
+    for kind in (
+        "inspections",
+        "meetings",
+        "jhas",
+        "incidents",
+        "daily-reports",
+        "equipment-inspections",
+    ):
+        assert any(f"MASCI_{kind}_" in n for n in csv_files), (
+            f"Missing CSV for {kind}: {csv_files}"
+        )
