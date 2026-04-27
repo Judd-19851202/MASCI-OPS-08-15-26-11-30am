@@ -3,10 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   ClipboardCheck,
   Users,
-  AlertTriangle,
   AlertOctagon,
   ClipboardList,
   Wrench,
+  Box,
+  FileText,
   ArrowRight,
   Loader2,
   LogOut,
@@ -67,7 +68,8 @@ export default function AdminHub() {
   const [counts, setCounts] = useState({
     inspections: null,
     meetings: null,
-    jhas: null,
+    jhaPlans: null,
+    trenchBoxes: null,
     incidents: null,
     daily: null,
     equipment: null,
@@ -78,10 +80,11 @@ export default function AdminHub() {
     let alive = true;
     (async () => {
       try {
-        const [insp, mtgs, jhas, incs, daily, eq] = await Promise.all([
+        const [insp, mtgs, jhaPlans, trench, incs, daily, eq] = await Promise.all([
           api.get("/inspections").catch(() => ({ data: [] })),
           api.get("/meetings").catch(() => ({ data: [] })),
-          api.get("/jhas").catch(() => ({ data: [] })),
+          api.get("/job-hazard-plans").catch(() => ({ data: [] })),
+          api.get("/trench-boxes").catch(() => ({ data: [] })),
           api.get("/incidents").catch(() => ({ data: [] })),
           api.get("/daily-reports").catch(() => ({ data: [] })),
           api.get("/equipment-inspections").catch(() => ({ data: [] })),
@@ -90,7 +93,8 @@ export default function AdminHub() {
         setCounts({
           inspections: insp.data?.length || 0,
           meetings: mtgs.data?.length || 0,
-          jhas: jhas.data?.length || 0,
+          jhaPlans: jhaPlans.data?.length || 0,
+          trenchBoxes: trench.data?.length || 0,
           incidents: incs.data?.length || 0,
           daily: daily.data?.length || 0,
           equipment: eq.data?.length || 0,
@@ -190,13 +194,22 @@ export default function AdminHub() {
               testId="admin-tile-meetings"
             />
             <AdminTile
-              to="/admin/jha"
-              icon={AlertTriangle}
-              title="Job Hazard Analysis"
-              count={counts.jhas}
-              sub={counts.jhas === 1 ? "analysis on file" : "analyses on file"}
+              to="/admin/jha-plans"
+              icon={FileText}
+              title="Job Hazard Plans"
+              count={counts.jhaPlans}
+              sub={counts.jhaPlans === 1 ? "plan uploaded" : "plans uploaded"}
               accent="amber"
-              testId="admin-tile-jha"
+              testId="admin-tile-jha-plans"
+            />
+            <AdminTile
+              to="/admin/trench-boxes"
+              icon={Box}
+              title="Trench Box Data"
+              count={counts.trenchBoxes}
+              sub={counts.trenchBoxes === 1 ? "box on file" : "boxes on file"}
+              accent="slate"
+              testId="admin-tile-trench-boxes"
             />
             <AdminTile
               to="/admin/incidents"

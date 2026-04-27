@@ -10,7 +10,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { JobPicker } from "@/components/JobPicker";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { JOBS } from "@/lib/jobLibrary";
+import { JOB_LIBRARY as JOBS } from "@/lib/jobLibrary";
 
 const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 

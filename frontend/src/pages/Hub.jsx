@@ -7,6 +7,8 @@ import {
   AlertOctagon,
   ClipboardList,
   Wrench,
+  Box,
+  FileText,
   Plus,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -116,12 +118,20 @@ export default function Hub() {
             testId="hub-tile-meetings"
           />
           <FormTile
-            to="/jha/submit"
-            icon={AlertTriangle}
-            title={t("Job Hazard Analysis")}
-            desc={t("Pre-task JHA / JSA. Walk every step, list hazards, document controls, and get the crew sign-off before work starts.")}
+            to="/jha"
+            icon={FileText}
+            title={t("Job Hazard Plans")}
+            desc={t("Read your job's Hazard Plan PDF before crew breaks ground. One plan per active MASCI job — uploaded by the office.")}
             accent="amber"
             testId="hub-tile-jha"
+          />
+          <FormTile
+            to="/trench-boxes"
+            icon={Box}
+            title={t("Trench Box Data")}
+            desc={t("MASCI trench-shield fleet. Size, weight, OSHA max-depth by soil type, and manufacturer tabulated-data PDFs.")}
+            accent="slate"
+            testId="hub-tile-trench"
           />
           <FormTile
             to="/incidents/submit"

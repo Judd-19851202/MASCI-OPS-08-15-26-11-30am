@@ -10,9 +10,10 @@ import ThankYou from "@/pages/ThankYou";
 import MeetingsDashboard from "@/pages/MeetingsDashboard";
 import NewMeeting from "@/pages/NewMeeting";
 import ViewMeeting from "@/pages/ViewMeeting";
-import JhaDashboard from "@/pages/JhaDashboard";
-import NewJha from "@/pages/NewJha";
-import ViewJha from "@/pages/ViewJha";
+import JhaPlansHub from "@/pages/JhaPlansHub";
+import JhaPlansAdmin from "@/pages/JhaPlansAdmin";
+import TrenchBoxes from "@/pages/TrenchBoxes";
+import TrenchBoxesAdmin from "@/pages/TrenchBoxesAdmin";
 import IncidentsDashboard from "@/pages/IncidentsDashboard";
 import NewIncident from "@/pages/NewIncident";
 import ViewIncident from "@/pages/ViewIncident";
@@ -63,8 +64,13 @@ function App() {
           <Route path="/meetings/new" element={<NewMeeting />} />
           <Route path="/meetings/submit" element={<NewMeeting publicMode />} />
 
-          <Route path="/jha/new" element={<NewJha />} />
-          <Route path="/jha/submit" element={<NewJha publicMode />} />
+          {/* Job Hazard Plans — read-only file repository (replaces the old fillable JHA form) */}
+          <Route path="/jha" element={<JhaPlansHub />} />
+          <Route path="/jha/submit" element={<Navigate to="/jha" replace />} />
+          <Route path="/jha/new" element={<Navigate to="/jha" replace />} />
+
+          {/* Trench Box Tabulated Data — read-only fleet reference */}
+          <Route path="/trench-boxes" element={<TrenchBoxes />} />
 
           <Route path="/incidents/new" element={<NewIncident />} />
           <Route path="/incidents/submit" element={<NewIncident publicMode />} />
@@ -87,10 +93,6 @@ function App() {
 
           {/* ============================================================
               Admin — gated dashboards, view, delete
-              All previous /inspections, /meetings, /jha, /incidents, /daily
-              dashboards & view pages now live under /admin/*. The old
-              top-level URLs redirect to /admin/login (which then bounces
-              back) so any bookmarks the office already has keep working.
               ============================================================ */}
           <Route path="/admin" element={A(<AdminHub />)} />
 
@@ -100,8 +102,14 @@ function App() {
           <Route path="/admin/meetings" element={A(<MeetingsDashboard />)} />
           <Route path="/admin/meetings/:id" element={A(<ViewMeeting />)} />
 
-          <Route path="/admin/jha" element={A(<JhaDashboard />)} />
-          <Route path="/admin/jha/:id" element={A(<ViewJha />)} />
+          {/* Job Hazard Plans admin manager (PDF uploads) */}
+          <Route path="/admin/jha-plans" element={A(<JhaPlansAdmin />)} />
+          {/* Old JHA admin URLs now point at the file manager */}
+          <Route path="/admin/jha" element={<Navigate to="/admin/jha-plans" replace />} />
+          <Route path="/admin/jha/:id" element={<Navigate to="/admin/jha-plans" replace />} />
+
+          {/* Trench Box admin */}
+          <Route path="/admin/trench-boxes" element={A(<TrenchBoxesAdmin />)} />
 
           <Route path="/admin/incidents" element={A(<IncidentsDashboard />)} />
           <Route path="/admin/incidents/:id" element={A(<ViewIncident />)} />
@@ -118,8 +126,6 @@ function App() {
           <Route path="/inspections/:id" element={<RedirectWithId base="/admin/inspections" />} />
           <Route path="/meetings" element={<Navigate to="/admin/meetings" replace />} />
           <Route path="/meetings/:id" element={<RedirectWithId base="/admin/meetings" />} />
-          <Route path="/jha" element={<Navigate to="/admin/jha" replace />} />
-          <Route path="/jha/:id" element={<RedirectWithId base="/admin/jha" />} />
           <Route path="/incidents" element={<Navigate to="/admin/incidents" replace />} />
           <Route path="/incidents/:id" element={<RedirectWithId base="/admin/incidents" />} />
           <Route path="/daily" element={<Navigate to="/admin/daily" replace />} />

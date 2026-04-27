@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
-import { JOBS } from "@/lib/jobLibrary";
+import { JOB_LIBRARY as JOBS } from "@/lib/jobLibrary";
 import { api } from "@/lib/api";
 
 const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
