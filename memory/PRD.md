@@ -14,7 +14,7 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 ## Architecture
 - **Backend:** FastAPI + Motor (MongoDB) at `/app/backend/server.py`. Routes prefixed `/api`.
 - **Frontend:** React 19 + Tailwind + shadcn/ui + lucide-react + react-signature-canvas + qrcode.react + sonner. CRA dev server on port 3000.
-- **Collections:** `inspections`, `meetings`, `jhas`, `incidents`. Photos + signatures stored as base64 data URLs inline.
+- **Collections:** `inspections`, `meetings`, `jhas` (legacy — no UI), `job_hazard_plans` (PDF blobs), `trench_boxes`, `incidents`, `daily_reports`, `equipment_units`, `equipment_inspections`. Photos + signatures stored as base64 data URLs inline.
 - **Design:** Swiss/industrial high-contrast — Chivo display + IBM Plex Sans body. MASCI red `#C8102E` accent. Print-optimized stylesheet.
 
 ## Personas
@@ -54,6 +54,12 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - Operator certification statement + signature; stop-the-line if no items rated.
 - WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
 - **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
+
+## What's Implemented (2026-04-27)
+- **JHA → Job Hazard Plans pivot (2026-04-27):** Old fillable JHA form removed (`NewJha.jsx`, `ViewJha.jsx`, `JhaDashboard.jsx` deleted). Replaced with read-only file-sharing hub at `/jha` (`JhaPlansHub.jsx`) and admin upload manager at `/admin/jha-plans` (`JhaPlansAdmin.jsx`). Legacy `/jha/submit` and `/jha/new` redirect to `/jha`; legacy `/admin/jha` redirects to `/admin/jha-plans`. Old `jhas` collection in MongoDB is left intact (no UI exposes it) — historic records preserved but not viewable.
+- **Trench Box Tabulated Data (2026-04-27):** New OSHA-compliance fleet reference at `/trench-boxes` with admin CRUD at `/admin/trench-boxes`. Backend collection `trench_boxes` with full PUT support and optional manufacturer-PDF attachment.
+- **Hub now has 7 tiles** (Equipment, Daily, Meetings, JHA Plans, Trench Boxes, Incidents, Site Inspections). AdminHub now shows 7 admin tiles tracking the JHA-Plans count and Trench-Box count instead of the deprecated `/api/jhas` count.
+- **160/160 backend pytest passing** (141 carry-over + 19 new in `test_jha_plans_and_trench_boxes.py`).
 
 ## What's Implemented (2026-04-26)
 - **Field-crew Hub at `/`** — 5 module tiles (Daily Reports, Site Inspections, Safety Meetings, JHA, Incident Reports) each leading to `/<module>/new`. Crews see NO counts, NO record lists, NO delete affordance. Tiny "Admin" link in the footer.
