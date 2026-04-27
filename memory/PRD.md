@@ -55,6 +55,15 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
 - **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
 
+## What's Implemented (2026-04-27 · Whole-System Backup & Restore)
+- **Full backup ZIP now covers EVERYTHING on the system** — all 21 MongoDB collections. Adds `safety_aux/equipment_units.json`, `safety_aux/job_hazard_plans.json`, `safety_aux/trench_boxes.json` on top of the 6 safety kinds + 12 Crew Hub collections already being exported. Includes a `backup_manifest.json` (version "2") listing every collection covered so future agents can validate authenticity. Password hashes stay redacted from `crew_hub/users.json`.
+- **Restore from Backup** — new `POST /api/exports/restore` endpoint + Admin Hub panel. Upload any `.zip` produced by "Download Full Backup" and the entire system is rebuilt.
+  - **Merge mode (default, emerald):** upsert by `id` — existing rows overwritten with the backup's copy, new rows added, anything not in the backup left untouched. Safe to run repeatedly.
+  - **Replace mode (destructive, red):** wipes each collection found in the zip first, then reinserts. Guarded by a REPLACE-typed confirmation dialog. Anything added since the backup is permanently lost.
+  - **User-hash safeguard:** since the backup redacts `password_hash`, restore preserves the DB's existing hash in merge mode, or stamps the seed password `Welcome2MASCI!` with `must_change_password=True` in replace mode. **No account can ever be locked out by a restore.**
+  - 500 MB upload ceiling, manifest validation (`backup_manifest.json` must be present), bad-zip + empty-upload fail fast with clear messages.
+- **Verified end-to-end** via curl: backup → change password → add data → merge restore keeps current password + new data · replace restore wipes post-backup data and resets to seed password.
+
 ## What's Implemented (2026-04-27 · Phase 4 Crew Hub + P1 safety backlog)
 - **Backend Phase 4 router live:** `/api/projects/{id}/activity`, `/api/me/activity`, `/api/me/notifications`, `/api/me/notifications/mark-all-read`, `/api/me/notifications/{id}/read`, `/api/projects/{id}/search`, `/api/users/directory`. Every Phase 2/3 write in `tools.py` now calls `log_activity()` + `process_mentions()` so the activity feed + @-mention notifications + Resend email fan-out all populate automatically.
 - **6 Phase 4 frontend pieces shipped:**

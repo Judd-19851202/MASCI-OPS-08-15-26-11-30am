@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import RestoreBackupPanel from "@/components/RestoreBackupPanel";
 
 // First day of current month + today (yyyy-mm-dd) — handy default range
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -339,13 +340,17 @@ export default function ComplianceExportPanel() {
           </Button>
         </div>
         <p className="mt-3 text-xs text-slate-600 leading-relaxed">
-          Bundles every record across all 6 modules into a single dated .zip:
-          one CSV per module, every record's raw JSON (photos + signatures
-          intact), every record's PDF, and a manifest log. Drop the .zip on
-          your office NAS / shared drive after download. Daily download is
-          recommended; nothing is deleted from the live system.
+          One dated .zip covering <strong>everything</strong> on the system: every safety record
+          (CSVs + raw JSON + PDFs + photos + signatures) across all 6 modules,
+          plus the complete <strong>Crew Hub</strong> (projects, users, messages, to-dos, schedule,
+          docs, hill charts, activity log, notifications) and the
+          equipment-unit / JHA-plan / trench-box registries. Drop the .zip on your office NAS
+          or shared drive after download. Restore it anytime from the panel below.
         </p>
       </div>
+
+      {/* ---------- Restore from Backup ---------- */}
+      <RestoreBackupPanel />
     </section>
   );
 }

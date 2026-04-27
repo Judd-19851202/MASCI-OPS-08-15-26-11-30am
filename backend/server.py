@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends, Response, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends, Response, Request, UploadFile, File, Form
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -1731,6 +1731,44 @@ async def exports_full_backup(_: bool = Depends(require_admin)):
         total_records += crew_total
         log_lines.append(f"  Crew Hub subtotal: {crew_total}")
 
+        # ---------- Safety auxiliary collections ----------
+        # Equipment unit registry, JHA plan PDFs, trench-box tabulated data.
+        SAFETY_AUX_COLLECTIONS = [
+            "equipment_units",
+            "job_hazard_plans",
+            "trench_boxes",
+        ]
+        log_lines.append("")
+        log_lines.append("Safety aux collections (JSON only):")
+        aux_total = 0
+        for coll_name in SAFETY_AUX_COLLECTIONS:
+            try:
+                docs = await db[coll_name].find({}, {"_id": 0}).to_list(50000)
+                aux_total += len(docs)
+                log_lines.append(f"  safety_aux/{coll_name:22s} : {len(docs):5d}")
+                zf.writestr(
+                    f"safety_aux/{coll_name}.json",
+                    _backup_json.dumps(docs, indent=2, default=str).encode("utf-8"),
+                )
+            except Exception as e:  # noqa: BLE001
+                log_lines.append(f"    [warn] safety_aux/{coll_name} failed: {e}")
+        total_records += aux_total
+        log_lines.append(f"  Safety aux subtotal: {aux_total}")
+
+        # Manifest identifier — the restore endpoint checks this
+        zf.writestr(
+            "backup_manifest.json",
+            _backup_json.dumps({
+                "source": "mascidocs.com",
+                "generated_at": now.isoformat(),
+                "version": "2",
+                "total_records": total_records,
+                "safety_kinds": list(EXPORTABLE_KINDS.keys()),
+                "crew_hub_collections": [c for c, _ in CREW_HUB_COLLECTIONS],
+                "safety_aux_collections": SAFETY_AUX_COLLECTIONS,
+            }, indent=2).encode("utf-8"),
+        )
+
         zf.writestr("backup_log.txt", "\n".join(log_lines).encode("utf-8"))
 
     payload = buf.getvalue()
@@ -1744,6 +1782,199 @@ async def exports_full_backup(_: bool = Depends(require_admin)):
             "X-Backup-Size-Bytes": str(len(payload)),
         },
     )
+
+
+# ----------------------------------------------------------------------
+# Restore from backup ZIP — upsert every record back into MongoDB.
+# ----------------------------------------------------------------------
+# Map backup kind folder → MongoDB collection name. Pulled from
+# EXPORTABLE_KINDS + the Crew Hub + Safety aux lists above.
+_RESTORE_KIND_TO_COLL = {
+    # Safety kinds — the ZIP stores them under <kind>/json/*.json
+    "inspections": "inspections",
+    "meetings": "meetings",
+    "jhas": "jhas",
+    "incidents": "incidents",
+    "daily-reports": "daily_reports",
+    "equipment-inspections": "equipment_inspections",
+}
+_RESTORE_CREW_HUB = {
+    "projects", "users", "project_members", "messages", "message_comments",
+    "todo_lists", "todos", "events", "docs", "hill_scopes", "activity_log",
+    "notifications",
+}
+_RESTORE_SAFETY_AUX = {"equipment_units", "job_hazard_plans", "trench_boxes"}
+
+
+@api_router.post("/exports/restore")
+async def exports_restore(
+    file: UploadFile = File(...),
+    merge: bool = Form(True),
+    _: bool = Depends(require_admin),
+):
+    """Restore a `/api/exports/full-backup` .zip back into MongoDB.
+
+    - `merge=true` (default): upsert by `id` — existing rows with the same
+      id are overwritten, new rows added, untouched collections untouched.
+    - `merge=false`: wipe the target collection first, then insert. Use with
+      care — this is a full restore to the backup's exact state.
+
+    The zip's `backup_manifest.json` is used to validate that this is a real
+    MASCI backup before we touch any data.
+    """
+    # 1. Read + validate the upload
+    try:
+        payload = await file.read()
+    except Exception as e:
+        raise HTTPException(400, f"Failed to read upload: {e}")
+    if not payload:
+        raise HTTPException(400, "Empty upload")
+    if len(payload) > 500 * 1024 * 1024:  # 500 MB hard ceiling
+        raise HTTPException(413, "Backup file exceeds 500 MB limit")
+
+    try:
+        zf = zipfile.ZipFile(io.BytesIO(payload), "r")
+    except zipfile.BadZipFile:
+        raise HTTPException(400, "Uploaded file is not a valid ZIP archive")
+
+    names = set(zf.namelist())
+    if "backup_manifest.json" not in names:
+        raise HTTPException(
+            400,
+            "backup_manifest.json missing — this does not look like a MASCI "
+            "full-backup .zip. Regenerate via 'Download Full Backup' first.",
+        )
+    try:
+        manifest = _backup_json.loads(zf.read("backup_manifest.json").decode("utf-8"))
+    except Exception as e:
+        raise HTTPException(400, f"Corrupt manifest: {e}")
+
+    # 2. Walk the ZIP and group docs by destination collection.
+    bucket: Dict[str, List[dict]] = {}
+
+    def _add(coll: str, docs: List[dict]):
+        if not docs:
+            return
+        bucket.setdefault(coll, []).extend(docs)
+
+    # 2a. Safety kinds — every json under <kind>/json/*.json
+    for kind, coll in _RESTORE_KIND_TO_COLL.items():
+        prefix = f"{kind}/json/"
+        docs: List[dict] = []
+        for n in names:
+            if n.startswith(prefix) and n.endswith(".json"):
+                try:
+                    docs.append(_backup_json.loads(zf.read(n).decode("utf-8")))
+                except Exception as e:  # noqa: BLE001
+                    logger.warning(f"restore: skipped {n}: {e}")
+        _add(coll, docs)
+
+    # 2b. Crew Hub — single json per collection under crew_hub/<coll>.json
+    for coll in _RESTORE_CREW_HUB:
+        n = f"crew_hub/{coll}.json"
+        if n in names:
+            try:
+                data = _backup_json.loads(zf.read(n).decode("utf-8"))
+                if isinstance(data, list):
+                    _add(coll, data)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"restore: skipped {n}: {e}")
+
+    # 2c. Safety aux
+    for coll in _RESTORE_SAFETY_AUX:
+        n = f"safety_aux/{coll}.json"
+        if n in names:
+            try:
+                data = _backup_json.loads(zf.read(n).decode("utf-8"))
+                if isinstance(data, list):
+                    _add(coll, data)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"restore: skipped {n}: {e}")
+
+    if not bucket:
+        raise HTTPException(
+            400,
+            "No records found in backup (expected files under "
+            "<kind>/json/, crew_hub/ or safety_aux/).",
+        )
+
+    # 3. Write back to MongoDB.
+    summary: Dict[str, dict] = {}
+    # If the users collection is being restored, the export redacts
+    # password_hash. Precompute the seed hash so restored rows always have
+    # a usable password (Welcome2MASCI! + must_change_password).
+    _seed_hash = None
+    if "users" in bucket:
+        try:
+            import bcrypt as _bc  # noqa: E402
+            _seed_hash = _bc.hashpw(b"Welcome2MASCI!", _bc.gensalt()).decode("utf-8")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"restore: could not generate seed hash ({e}); restored users may be locked out")
+
+    for coll, docs in bucket.items():
+        # Strip any _id from the docs (they're exported without, but be safe).
+        clean = []
+        for d in docs:
+            if not isinstance(d, dict):
+                continue
+            d.pop("_id", None)
+            if "id" not in d:
+                d["id"] = str(uuid.uuid4())  # defensive — keep upsert viable
+            # Special-case: restored users lost their password_hash on export.
+            # In merge mode: keep whatever's in DB (pull it first).
+            # In replace mode (or brand-new row): stamp the seed hash +
+            # force password change so no account gets locked out.
+            if coll == "users" and "password_hash" not in d:
+                existing = None
+                if merge:
+                    existing = await db.users.find_one(
+                        {"id": d["id"]}, {"_id": 0, "password_hash": 1}
+                    )
+                if existing and existing.get("password_hash"):
+                    d["password_hash"] = existing["password_hash"]
+                elif _seed_hash:
+                    d["password_hash"] = _seed_hash
+                    d["must_change_password"] = True
+            clean.append(d)
+
+        deleted = 0
+        if not merge:
+            res = await db[coll].delete_many({})
+            deleted = res.deleted_count
+
+        upserted = 0
+        modified = 0
+        inserted = 0
+        for d in clean:
+            try:
+                r = await db[coll].update_one(
+                    {"id": d["id"]}, {"$set": d}, upsert=True,
+                )
+                if r.upserted_id is not None:
+                    inserted += 1
+                elif r.modified_count:
+                    modified += 1
+                upserted += 1
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"restore: {coll}/{d.get('id')} failed: {e}")
+
+        summary[coll] = {
+            "deleted": deleted,
+            "processed": len(clean),
+            "inserted": inserted,
+            "updated": modified,
+        }
+
+    logger.info(f"restore: processed {sum(s['processed'] for s in summary.values())} records across {len(summary)} collections")
+
+    return {
+        "ok": True,
+        "mode": "replace" if not merge else "merge",
+        "backup_generated_at": manifest.get("generated_at"),
+        "backup_version": manifest.get("version", "unknown"),
+        "collections": summary,
+        "total_processed": sum(s["processed"] for s in summary.values()),
+    }
 
 
 
