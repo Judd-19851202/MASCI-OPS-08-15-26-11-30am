@@ -33,7 +33,7 @@ import CheatSheet from "@/pages/CheatSheet";
 import { RequireAdmin } from "@/components/RequireAdmin";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 
-// Crew Hub (Basecamp-style /app section — Phase 1)
+// Crew Hub (Basecamp-style /app section)
 import { RequireUser } from "@/components/RequireUser";
 import Login from "@/pages/app/Login";
 import ChangePassword from "@/pages/app/ChangePassword";
@@ -42,7 +42,11 @@ import AppHome from "@/pages/app/AppHome";
 import ProjectHome from "@/pages/app/ProjectHome";
 import ProjectMembers from "@/pages/app/ProjectMembers";
 import UsersAdmin from "@/pages/app/UsersAdmin";
-import ToolPlaceholder from "@/pages/app/ToolPlaceholder";
+import MessageBoard from "@/pages/app/MessageBoard";
+import TodosPage from "@/pages/app/TodosPage";
+import SchedulePage from "@/pages/app/SchedulePage";
+import DocsPage from "@/pages/app/DocsPage";
+import HillChartsPage from "@/pages/app/HillChartsPage";
 
 const SITE_INSPECTION_CODE = "1982";
 const GateInspection = ({ children }) => (
@@ -107,11 +111,11 @@ function App() {
               <Route path="users" element={U(<UsersAdmin />, ["owner", "admin"])} />
               <Route path="projects/:projectId" element={<ProjectHome />} />
               <Route path="projects/:projectId/members" element={<ProjectMembers />} />
-              <Route path="projects/:projectId/messages" element={<ToolPlaceholder title="Message Board" description="Post announcements, share photos, and discuss work on this project. Shipping in Phase 2." />} />
-              <Route path="projects/:projectId/todos" element={<ToolPlaceholder title="To-dos" description="Lists with assignees and due dates. Shipping in Phase 2." />} />
-              <Route path="projects/:projectId/schedule" element={<ToolPlaceholder title="Schedule" description="Inspections, pre-cons, deliveries — all in one place. Shipping in Phase 3." />} />
-              <Route path="projects/:projectId/docs" element={<ToolPlaceholder title="Docs & Files" description="Submittals, specs, RFIs — organized per project. Shipping in Phase 3." />} />
-              <Route path="projects/:projectId/hills" element={<ToolPlaceholder title="Hill Charts" description="Visual progress tracking for scopes of work. Shipping in Phase 3." />} />
+              <Route path="projects/:projectId/messages" element={<MessageBoard />} />
+              <Route path="projects/:projectId/todos" element={<TodosPage />} />
+              <Route path="projects/:projectId/schedule" element={<SchedulePage />} />
+              <Route path="projects/:projectId/docs" element={<DocsPage />} />
+              <Route path="projects/:projectId/hills" element={<HillChartsPage />} />
             </Route>
 
             {/* ============================================================

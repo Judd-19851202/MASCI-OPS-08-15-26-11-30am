@@ -1,0 +1,37 @@
+{
+  "iteration": 15,
+  "date": "2026-04-27",
+  "task": "Phase 2 + Phase 3 — 5 Crew Hub tools (Message Board, To-dos, Schedule, Docs & Files, Hill Charts)",
+  "changes": [
+    "backend/tools.py — new module, 7 MongoDB collections, ~28 endpoints, MASCI-specific doc categories",
+    "backend/server.py — registered tools router + create_tools_indexes on startup",
+    "frontend/src/lib/crewHubUi.jsx — shared UserAvatar + relativeTime + apiErr utilities",
+    "frontend/src/pages/app/MessageBoard.jsx — list + create + thread + comments + delete",
+    "frontend/src/pages/app/TodosPage.jsx — multiple lists + items + inline add + assign + due date + check off",
+    "frontend/src/pages/app/SchedulePage.jsx — day-grouped event list + create + delete",
+    "frontend/src/pages/app/DocsPage.jsx — 7 MASCI categories + upload/download/delete",
+    "frontend/src/pages/app/HillChartsPage.jsx — draggable SVG dots on sine-wave hill + per-scope update notes",
+    "frontend/src/App.js — routed all 5 real pages (replaced ToolPlaceholder)",
+    "frontend/src/pages/app/ProjectHome.jsx — updated 'All 5 tools live' notice"
+  ],
+  "smoke_tests_passed": [
+    "curl: login → create message → comment → delete chain",
+    "curl: create todo list → add todo → mark complete → me/todos shows 0 open",
+    "curl: create event with time range",
+    "curl: upload tiny PDF (magic bytes validated) → returns size_bytes",
+    "curl: create hill scope → move position 0 → 65 with update note",
+    "curl: DELETE cascades correctly (message deletes its comments, list deletes its items)",
+    "frontend: /app/projects/hq/hills renders sidebar + main pane + add-scope dialog"
+  ],
+  "phase_4_backlog": [
+    "@mentions with auto-complete in message body + comment body",
+    "Global activity feed per project (writes + photo previews)",
+    "'Hey!' inbox / 'My Stuff' page aggregating @mentions + assigned todos across projects",
+    "Search across messages/todos/docs within a project",
+    "Email notifications via Resend on @mention / todo assigned / new post",
+    "Member avatar row on project cards (matches Basecamp screenshot)",
+    "Project-header Hill Chart with timeline range (matches Basecamp screenshot)",
+    "'Scorecard' layout on ProjectHome showing latest message + next event + to-do progress"
+  ],
+  "status": "PASS"
+}

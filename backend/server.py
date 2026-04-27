@@ -2297,11 +2297,14 @@ app.include_router(_email_router)
 # ------------------------- Phase 1: per-user auth + projects (Basecamp-style /app) -------------------------
 from auth import build_auth_router, seed_initial_users  # noqa: E402
 from projects import build_projects_router, seed_initial_projects  # noqa: E402
+from tools import build_tools_router, create_tools_indexes  # noqa: E402
 
 _auth_router, get_current_user, require_admin_or_owner, _optional_user = build_auth_router(db)
 _projects_router = build_projects_router(db, get_current_user, require_admin_or_owner)
+_tools_router = build_tools_router(db, get_current_user, require_admin_or_owner)
 app.include_router(_auth_router)
 app.include_router(_projects_router)
+app.include_router(_tools_router)
 
 
 @app.on_event("startup")
@@ -2309,6 +2312,7 @@ async def _seed_phase1():
     try:
         await seed_initial_users(db)
         await seed_initial_projects(db)
+        await create_tools_indexes(db)
     except Exception as e:
         logging.getLogger(__name__).exception(f"Phase 1 seed failed: {e}")
 

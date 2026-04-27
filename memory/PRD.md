@@ -55,6 +55,16 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
 - **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
 
+## What's Implemented (2026-04-27 · Phase 2 + Phase 3 Crew Hub tools)
+- **Message Board** (`/app/projects/:id/messages`) — post, list, view, threaded comments, delete. Author avatars + relative timestamps everywhere.
+- **To-dos** (`/app/projects/:id/todos`) — multiple lists per project, inline add with assignee picker + due date, check-off with strikethrough + emerald badge, done items collapsed. `GET /api/me/todos` returns every open todo assigned to the current user across all projects.
+- **Schedule** (`/app/projects/:id/schedule`) — day-grouped event list with start/end times, location, description. All-day toggle.
+- **Docs & Files** (`/app/projects/:id/docs`) — 7 MASCI-specific categories (`Submittals`, `Plans & Specs`, `Safety`, `Daily Logs`, `Pictures & Drone`, `Locate Tickets`, `General`). Per-category filter tabs. 30 MB max per file. PDFs open inline, other types force download. `X-Content-Type-Options: nosniff` on every download.
+- **Hill Charts** (`/app/projects/:id/hills`) — SVG hill with draggable dots (pointer + touch). Position 0–50 "figuring it out" / 50–100 "making it happen". Click a dot → edit dialog with slider + update note. Each scope gets a stable color.
+- **7 new MongoDB collections** (`messages`, `message_comments`, `todo_lists`, `todos`, `events`, `docs`, `hill_scopes`) with proper indexes created on startup.
+- **Authorization**: every tool endpoint requires project membership; destructive ops (edit/delete) additionally require author OR owner/admin role.
+- **Verified end-to-end** with a 10-step curl chain (login → create → update → delete for all 5 tools) and a frontend smoke screenshot.
+
 ## What's Implemented (2026-04-27 · Phase 1 Crew Hub)
 - **Per-user JWT auth (2026-04-27):** New `/app/*` section kicks off the Basecamp-style Crew Hub. Login at `/app/login` with email+password → httpOnly access_token (60 min) + refresh_token (7 days) cookies. `/app/change-password` enforced on first login. `/api/auth/me`, `/api/auth/logout`, `/api/auth/refresh` round out the flow. bcrypt password hashing, PyJWT HS256 tokens.
 - **Seeded 5 initial users** (David Jewett, Chris Wright, Ramon Rodriguez, Jaymn Judd as `owner`; safety@mascigc.com as `admin`). Default temp password `Welcome2MASCI!` — all forced to change on first login.

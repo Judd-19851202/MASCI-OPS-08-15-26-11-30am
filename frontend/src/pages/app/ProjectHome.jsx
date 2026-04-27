@@ -134,12 +134,12 @@ export default function ProjectHome() {
         ))}
       </div>
 
-      <div className="mt-10 bg-amber-50 border-2 border-amber-300 rounded-md p-5 flex items-start gap-3" data-testid="phase-2-notice">
+      <div className="mt-10 bg-amber-50 border-2 border-amber-300 rounded-md p-5 flex items-start gap-3" data-testid="phase-notice">
         <Hammer className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-800 font-bold">Phase 1 complete · Phase 2 next</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-800 font-bold">All 5 tools live · Phase 4 next</div>
           <div className="text-sm text-amber-900 mt-1 leading-relaxed">
-            Message Board and To-dos ship in the next build. For now, tool tiles route to a placeholder — use them to show your team the shape of the workspace.
+            Message Board, To-dos, Schedule, Docs & Files, and Hill Charts all ship today. Phase 4 adds @mentions, a global activity feed, a "My Stuff" inbox, and search.
           </div>
         </div>
       </div>
