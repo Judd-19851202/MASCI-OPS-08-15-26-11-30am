@@ -92,7 +92,7 @@ export default function Hub() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
           <FormTile
-            to="/daily/new"
+            to="/daily/submit"
             icon={ClipboardList}
             title={t("Daily Reports")}
             desc={t("End-of-day site log: crews, subs, visitors, equipment, materials, weather, photos. Replaces Fieldwire.")}
@@ -100,7 +100,7 @@ export default function Hub() {
             testId="hub-tile-daily"
           />
           <FormTile
-            to="/inspect/new"
+            to="/inspections/submit"
             icon={ClipboardCheck}
             title={t("Site Inspections")}
             desc={t("Daily and weekly job-site safety inspections. PPE, MOT, fall protection, electrical, and more — graded automatically.")}
@@ -108,7 +108,7 @@ export default function Hub() {
             testId="hub-tile-inspections"
           />
           <FormTile
-            to="/meetings/new"
+            to="/meetings/submit"
             icon={Users}
             title={t("Safety Meetings")}
             desc={t("Toolbox talks and daily huddles. 80+ heavy-civil topics with prefilled hazards — every crew member signs in.")}
@@ -116,7 +116,7 @@ export default function Hub() {
             testId="hub-tile-meetings"
           />
           <FormTile
-            to="/jha/new"
+            to="/jha/submit"
             icon={AlertTriangle}
             title={t("Job Hazard Analysis")}
             desc={t("Pre-task JHA / JSA. Walk every step, list hazards, document controls, and get the crew sign-off before work starts.")}
@@ -124,7 +124,7 @@ export default function Hub() {
             testId="hub-tile-jha"
           />
           <FormTile
-            to="/incidents/new"
+            to="/incidents/submit"
             icon={AlertOctagon}
             title={t("Incident Reports")}
             desc={t("Document near misses, injuries, and damage. Severity tiers, root cause, witnesses, and follow-up — all in one record.")}
@@ -132,7 +132,7 @@ export default function Hub() {
             testId="hub-tile-incidents"
           />
           <FormTile
-            to="/equipment/new"
+            to="/equipment/submit"
             icon={Wrench}
             title={t("Equipment Pre-Op")}
             desc={t("Daily OSHA walk-around inspections for Heavy Equipment. PASS / FAIL each item — fail tags the unit out of service.")}

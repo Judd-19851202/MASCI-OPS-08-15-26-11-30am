@@ -38,6 +38,7 @@ import {
   buildIncidentDefaults,
 } from "@/lib/incidentSchema";
 import { api } from "@/lib/api";
+import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
 import {
   getCurrentPosition,
@@ -154,7 +155,7 @@ export default function NewIncident({ publicMode = false }) {
       }
       const res = await api.post("/incidents", payload);
       toast.success("Incident report saved");
-      if (publicMode) {
+      if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
           state: {
             projectName: payload.project_name,

@@ -20,6 +20,7 @@ import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
 import { useT, getLang } from "@/lib/i18n";
 import { api } from "@/lib/api";
+import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
 
 const inputCls =
@@ -302,7 +303,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           ? `Submitted — ${payload.fail_count} FAIL flagged. Tag out the unit.`
           : "Submitted"
       );
-      if (publicMode) {
+      if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
           state: {
             projectName: payload.project_name,

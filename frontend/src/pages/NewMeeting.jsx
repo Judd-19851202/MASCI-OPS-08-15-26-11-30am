@@ -25,6 +25,7 @@ import { TOPIC_CATEGORIES, buildMeetingDefaults } from "@/lib/meetingSchema";
 import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/meetingTopicLibrary";
 import { TOPIC_LIBRARY_ES } from "@/lib/meetingTopicLibrary.es";
 import { api } from "@/lib/api";
+import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
 import {
   getCurrentPosition,
@@ -215,7 +216,7 @@ export default function NewMeeting({ publicMode = false }) {
       }
       const res = await api.post("/meetings", payload);
       toast.success("Meeting saved");
-      if (publicMode) {
+      if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
           state: {
             projectName: payload.project_name,

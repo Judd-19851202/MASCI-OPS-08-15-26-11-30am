@@ -25,6 +25,7 @@ import { useT, getLang } from "@/lib/i18n";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
 import { api } from "@/lib/api";
+import { isAdmin } from "@/lib/adminAuth";
 import { translateUserInput } from "@/lib/translateOnSubmit";
 import { toast } from "sonner";
 import {
@@ -220,7 +221,7 @@ export default function NewDailyReport({ publicMode = false }) {
       }
       const res = await api.post("/daily-reports", payload);
       toast.success("Daily report saved");
-      if (publicMode) {
+      if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
           state: {
             projectName: payload.project_name,

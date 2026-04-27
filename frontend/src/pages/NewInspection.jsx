@@ -27,6 +27,7 @@ import {
   buildDefaults,
 } from "@/lib/inspectionSchema";
 import { api } from "@/lib/api";
+import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
 import { computeGrade } from "@/lib/grading";
 import { GradeBanner } from "@/components/Grade";
@@ -154,7 +155,7 @@ export default function NewInspection({ publicMode = false }) {
       }
       const res = await api.post("/inspections", payload);
       toast.success("Inspection saved");
-      if (publicMode) {
+      if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
           state: { projectName: payload.project_name, grade },
           replace: true,

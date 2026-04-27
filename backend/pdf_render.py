@@ -279,6 +279,60 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
     }
 
     blocks: List[str] = []
+
+    # Special-case lists that contain a `signature` data URL — render names +
+    # signature images instead of dumping the base64 string in a table.
+    signature_lists = {"attendees", "witnesses"}
+    handled_lists = set()
+    for k in list(d.keys()):
+        if k in skip_keys or k not in signature_lists:
+            continue
+        v = d.get(k)
+        if not isinstance(v, list) or not v:
+            continue
+        rows_html = []
+        for entry in v:
+            if not isinstance(entry, dict):
+                continue
+            name = entry.get("name") or entry.get("witness_name") or "—"
+            company = entry.get("company") or entry.get("trade") or ""
+            sig = entry.get("signature") or entry.get("sig") or ""
+            sig_cell = (
+                f'<img src="{sig}" style="max-height:38px;max-width:140px;'
+                'border-bottom:1px solid #94a3b8;display:block;" />'
+                if sig and isinstance(sig, str) and sig.startswith("data:image/")
+                else (escape(sig) if sig else "—")
+            )
+            rows_html.append(
+                f"<tr><td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;'>"
+                f"{escape(str(name))}</td>"
+                f"<td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;color:#475569;'>"
+                f"{escape(str(company))}</td>"
+                f"<td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;'>"
+                f"{sig_cell}</td></tr>"
+            )
+        if rows_html:
+            blocks.append(
+                _section(
+                    k.replace("_", " ").title(),
+                    "<table style='width:100%;border-collapse:collapse;font-size:9pt;'>"
+                    "<thead><tr>"
+                    "<th style='text-align:left;padding:4px 8px;border-bottom:2px solid #cbd5e1;"
+                    "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+                    "text-transform:uppercase;color:#64748b;'>Name</th>"
+                    "<th style='text-align:left;padding:4px 8px;border-bottom:2px solid #cbd5e1;"
+                    "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+                    "text-transform:uppercase;color:#64748b;'>Company / Trade</th>"
+                    "<th style='text-align:left;padding:4px 8px;border-bottom:2px solid #cbd5e1;"
+                    "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+                    "text-transform:uppercase;color:#64748b;'>Signature</th>"
+                    "</tr></thead><tbody>"
+                    + "".join(rows_html)
+                    + "</tbody></table>",
+                )
+            )
+        handled_lists.add(k)
+
     main_kvs = "".join(
         _kv(k.replace("_", " ").title(), v)
         for k, v in d.items()
@@ -292,7 +346,7 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
 
     # Common nested arrays — render any list of dicts as a generic table
     for k, v in d.items():
-        if k in skip_keys or not isinstance(v, list) or not v:
+        if k in skip_keys or k in handled_lists or not isinstance(v, list) or not v:
             continue
         if not isinstance(v[0], dict):
             continue

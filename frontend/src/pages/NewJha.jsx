@@ -21,6 +21,7 @@ import {
   buildJhaDefaults,
 } from "@/lib/jhaSchema";
 import { api } from "@/lib/api";
+import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
 import {
   getCurrentPosition,
@@ -145,7 +146,7 @@ export default function NewJha({ publicMode = false }) {
       }
       const res = await api.post("/jhas", payload);
       toast.success("JHA saved");
-      if (publicMode) {
+      if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
           state: {
             projectName: payload.project_name,
