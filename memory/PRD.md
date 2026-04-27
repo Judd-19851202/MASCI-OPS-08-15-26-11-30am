@@ -55,6 +55,18 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
 - **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
 
+## What's Implemented (2026-04-27 · Phase 4 Crew Hub + P1 safety backlog)
+- **Backend Phase 4 router live:** `/api/projects/{id}/activity`, `/api/me/activity`, `/api/me/notifications`, `/api/me/notifications/mark-all-read`, `/api/me/notifications/{id}/read`, `/api/projects/{id}/search`, `/api/users/directory`. Every Phase 2/3 write in `tools.py` now calls `log_activity()` + `process_mentions()` so the activity feed + @-mention notifications + Resend email fan-out all populate automatically.
+- **6 Phase 4 frontend pieces shipped:**
+  1. **`/app/me` My Stuff page** — "Hey!" inbox, 3 tabs (Mentions, My to-dos, Activity feed), mark-all-read, inline mark-one-read.
+  2. **Activity feed on ProjectHome** — scrollable last-15 activity card below the scorecard.
+  3. **@-mention autocomplete** (`MentionTextarea`) in MessageBoard composers (both new post + comments). Fetches `/api/users/directory` once, type `@` → dropdown of up to 6 matches, Enter/Tab to insert `@email@mascigc.com `.
+  4. **Per-project search** (`ProjectSearch`) in ProjectHome header — instant results across messages, to-dos, docs, events (250 ms debounce).
+  5. **NotificationBell in sidebar footer** — unread badge (9+ cap), 60s polling, dropdown with mark-one or mark-all-read, deep-link to My Stuff.
+  6. **Distribution List widget** (`DistributionList`) on `/incidents/new` (section 07 Notifications) and `/daily/new` (section 11 Sign-Off). Chip input, email validation, backspace-to-pop. Stored on `incident.distribution_list` / `daily_report.distribution_list` (backend models accept list of strings, max 20). Included in the PDF footer and routable to auto-email.
+- **Full Backup ZIP now archives the Crew Hub too.** `/api/exports/full-backup` appends 12 `crew_hub/*.json` files: `projects`, `users` (password_hash **redacted**), `project_members`, `messages`, `message_comments`, `todo_lists`, `todos`, `events`, `docs` (includes base64 file blobs), `hill_scopes`, `activity_log`, `notifications`. `backup_log.txt` shows a per-collection count + Crew Hub subtotal.
+- **Verified end-to-end** via iteration 16 test report: 13/13 backend Pytest + 9/9 Playwright UI tests passing. Cross-user @mention delivery (safety@ posts mention → david@ sees notification) confirmed.
+
 ## What's Implemented (2026-04-27 · Phase 3.5 Scorecard Layout)
 - **ProjectHome scorecard (2026-04-27):** Rebuilt `/app/projects/:id` as a Basecamp-style "everything at a glance" scorecard. One `GET /api/projects/{id}/scorecard` aggregate endpoint returns latest 3 messages, next 2 events, todo counts, 2 latest docs, top 3 hill scopes — one round trip instead of five.
   - **Hill Chart snapshot** at the top with inline mini-SVG + colored-dot legend (matches Basecamp IMG_4413 hero area).
@@ -138,9 +150,9 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - _none active — Hub, 5 modules, auto-translate, map thumbnail, spell check, admin wall, logo fix all complete and tested_
 
 **P1**
-- **Distribution List** field on PDF footer (PM/GC/DOT recipients, who got a copy)
-- **Severity-tier ops/GC fan-out** — populate `SEVERE_INCIDENT_CC` env with the addresses MASCI wants blasted on Medical+/OSHA-recordable incidents.
-- Multi-user admin (per-account login, audit trail of who viewed/deleted)
+- ✅ **Distribution List** field on PDF footer — shipped 2026-04-27. Chip-input on Incident + Daily Report forms, list flows through to PDF + auto-email.
+- ✅ **Severity-tier ops/GC fan-out** — `SEVERE_INCIDENT_CC` env var wired into `pm_routing.py`; production just needs the addresses set.
+- Multi-user admin (per-account login, audit trail of who viewed/deleted) — legacy Safety Admin only. The Crew Hub side already has per-user JWT + roles.
 - Resend Pro upgrade ($20/mo, 50,000 emails/month) when foreman volume exceeds free tier 100/day quota.
 
 **P2**
