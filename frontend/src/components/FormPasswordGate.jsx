@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Lock, Unlock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 
 /**
@@ -77,8 +78,7 @@ export function FormPasswordGate({
             <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
               Access Code
             </label>
-            <Input
-              type="password"
+            <PasswordInput
               value={pw}
               onChange={(e) => { setPw(e.target.value); if (err) setErr(false); }}
               autoFocus
@@ -88,6 +88,7 @@ export function FormPasswordGate({
                 err ? "border-red-700 bg-red-50" : "border-slate-300"
               }`}
               data-testid="form-gate-input"
+              toggleTestId="form-gate-toggle"
             />
             {err && (
               <div className="mt-2 flex items-center gap-1.5 text-red-700 text-sm font-bold">

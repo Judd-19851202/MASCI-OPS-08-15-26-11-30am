@@ -5,6 +5,7 @@ import { Loader2, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { useAuth } from "@/lib/authContext";
 
@@ -77,15 +78,15 @@ export default function Login() {
                 <Label htmlFor="password" className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-slate-700">
                   Password
                 </Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
                   autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="mt-1.5 h-11"
                   data-testid="login-password"
+                  toggleTestId="login-password-toggle"
                 />
               </div>
               <Button
@@ -98,7 +99,10 @@ export default function Login() {
               </Button>
             </form>
             <p className="mt-6 text-xs text-slate-500 leading-relaxed">
-              Not on the list yet? Ask David, Chris, Ramon, or Jaymn to invite you. Forgot your password? An owner can reset it from the Users panel.
+              <strong className="text-slate-700">First time?</strong> Your login is the <code className="font-mono text-red-700">@mascigc.com</code> email MASCI issued you — not <em>"admin"</em>. Temp password is <code className="font-mono text-red-700">Welcome2MASCI!</code> — you'll be asked to change it right after sign-in. Forgot your password? An owner can reset it from the Users panel.
+            </p>
+            <p className="mt-3 text-[10px] text-slate-400 leading-relaxed">
+              Looking for the Safety Admin console (inspections, equipment, JHA plans)? Use <a href="/admin/login" className="text-red-700 hover:underline font-bold">/admin/login</a> — that's a different system.
             </p>
           </div>
           <div className="mt-4 text-center">

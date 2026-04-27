@@ -16,6 +16,7 @@ import { useAuth } from "@/lib/authContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/PasswordInput";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -234,7 +235,16 @@ function NewUserDialog({ open, onOpenChange, onCreated }) {
           </div>
           <div>
             <Label>Temporary password (≥ 10 chars)</Label>
-            <Input required minLength={10} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5" placeholder="e.g. Welcome2MASCI!" data-testid="new-user-password" />
+            <PasswordInput
+              required
+              minLength={10}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1.5"
+              placeholder="e.g. Welcome2MASCI!"
+              data-testid="new-user-password"
+              toggleTestId="new-user-password-toggle"
+            />
             <p className="text-xs text-slate-500 mt-1">Share this securely. The user must change it on first login.</p>
           </div>
           <DialogFooter>
@@ -283,7 +293,15 @@ function ResetPasswordDialog({ user, onOpenChange, onDone }) {
         <form onSubmit={onSave} className="space-y-4">
           <div>
             <Label>New temporary password (≥ 10 chars)</Label>
-            <Input required minLength={10} value={newPw} onChange={(e) => setNewPw(e.target.value)} className="mt-1.5" data-testid="reset-new-password" />
+            <PasswordInput
+              required
+              minLength={10}
+              value={newPw}
+              onChange={(e) => setNewPw(e.target.value)}
+              className="mt-1.5"
+              data-testid="reset-new-password"
+              toggleTestId="reset-new-password-toggle"
+            />
             <p className="text-xs text-slate-500 mt-1">The user will be forced to change it on next login.</p>
           </div>
           <DialogFooter>

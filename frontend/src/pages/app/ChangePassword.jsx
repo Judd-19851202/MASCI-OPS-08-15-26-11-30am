@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { useAuth } from "@/lib/authContext";
 
@@ -71,22 +72,21 @@ export default function ChangePassword() {
                 <Label className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-slate-700">
                   Current password
                 </Label>
-                <Input
-                  type="password"
+                <PasswordInput
                   autoComplete="current-password"
                   required
                   value={current}
                   onChange={(e) => setCurrent(e.target.value)}
                   className="mt-1.5 h-11"
                   data-testid="change-password-current"
+                  toggleTestId="change-password-current-toggle"
                 />
               </div>
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-slate-700">
                   New password
                 </Label>
-                <Input
-                  type="password"
+                <PasswordInput
                   autoComplete="new-password"
                   minLength={10}
                   required
@@ -94,14 +94,14 @@ export default function ChangePassword() {
                   onChange={(e) => setNext(e.target.value)}
                   className="mt-1.5 h-11"
                   data-testid="change-password-new"
+                  toggleTestId="change-password-new-toggle"
                 />
               </div>
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-slate-700">
                   Confirm new password
                 </Label>
-                <Input
-                  type="password"
+                <PasswordInput
                   autoComplete="new-password"
                   minLength={10}
                   required
@@ -109,6 +109,7 @@ export default function ChangePassword() {
                   onChange={(e) => setConfirm(e.target.value)}
                   className="mt-1.5 h-11"
                   data-testid="change-password-confirm"
+                  toggleTestId="change-password-confirm-toggle"
                 />
               </div>
               <Button

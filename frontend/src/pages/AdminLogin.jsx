@@ -4,6 +4,7 @@ import { Lock, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { api } from "@/lib/api";
 import { setAdminToken } from "@/lib/adminAuth";
@@ -91,15 +92,15 @@ export default function AdminLogin() {
               <Label htmlFor="admin-password" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
                 Admin Password
               </Label>
-              <Input
+              <PasswordInput
                 id="admin-password"
-                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoFocus
                 autoComplete="current-password"
                 className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600"
                 data-testid="admin-password-input"
+                toggleTestId="admin-password-toggle"
               />
             </div>
             <Button
