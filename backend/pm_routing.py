@@ -206,6 +206,21 @@ def recipients_for_record(record: dict, kind: Optional[str] = None) -> Dict[str,
             seen.add(k)
             all_unique.append(e)
 
+    # User-provided ad-hoc distribution list (GC / DOT / additional owners).
+    # Always appended last; deduped case-insensitively.
+    extra = record.get("distribution_list") or []
+    if isinstance(extra, list):
+        for e in extra:
+            if not isinstance(e, str):
+                continue
+            e = e.strip()
+            if not e:
+                continue
+            if e.lower() not in seen:
+                seen.add(e.lower())
+                all_unique.append(e)
+                cc.append(e)
+
     return {
         "pm_name": pm_name,
         "pm_email": pm_email,

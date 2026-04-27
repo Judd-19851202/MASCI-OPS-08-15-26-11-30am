@@ -598,6 +598,9 @@ class IncidentCreate(BaseModel):
 
     reporter_signature: Optional[str] = ""
     supervisor_signature: Optional[str] = ""
+    # Phase 4: ad-hoc CC list. Every email in this array is added to the
+    # auto-email distribution for this record. Max 20 addresses.
+    distribution_list: Optional[List[str]] = Field(default=None, max_length=20)
 
 
 class Incident(IncidentCreate):
@@ -729,6 +732,8 @@ class DailyReportCreate(BaseModel):
 
     prepared_by_signature: Optional[str] = ""
     superintendent_signature: Optional[str] = ""
+    # Phase 4: ad-hoc CC list (GCs / DOT / additional owners).
+    distribution_list: Optional[List[str]] = Field(default=None, max_length=20)
 
 
 class DailyReport(DailyReportCreate):
@@ -2298,6 +2303,7 @@ app.include_router(_email_router)
 from auth import build_auth_router, seed_initial_users  # noqa: E402
 from projects import build_projects_router, seed_initial_projects  # noqa: E402
 from tools import build_tools_router, create_tools_indexes  # noqa: E402
+from phase4 import build_phase4_router, create_phase4_indexes  # noqa: E402
 
 _auth_router, get_current_user, require_admin_or_owner, _optional_user = build_auth_router(db)
 _projects_router = build_projects_router(db, get_current_user, require_admin_or_owner)
@@ -2306,6 +2312,10 @@ app.include_router(_auth_router)
 app.include_router(_projects_router)
 app.include_router(_tools_router)
 
+# Register phase 4 (activity + notifications + search + directory)
+_phase4_router = build_phase4_router(db, get_current_user)
+app.include_router(_phase4_router)
+
 
 @app.on_event("startup")
 async def _seed_phase1():
@@ -2313,6 +2323,7 @@ async def _seed_phase1():
         await seed_initial_users(db)
         await seed_initial_projects(db)
         await create_tools_indexes(db)
+        await create_phase4_indexes(db)
     except Exception as e:
         logging.getLogger(__name__).exception(f"Phase 1 seed failed: {e}")
 

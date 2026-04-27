@@ -18,6 +18,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 
+from phase4 import log_activity, process_mentions, notify_user
+
 logger = logging.getLogger(__name__)
 
 # MASCI-specific doc categories visible on every project.
@@ -224,6 +226,15 @@ def build_tools_router(db, get_current_user, require_admin_or_owner):
         if not m:
             raise HTTPException(403, "Not a member of this project")
 
+    async def _project_member_ids(project_id: str) -> List[str]:
+        if project_id == HQ:
+            docs = await db.users.find({"is_active": True}, {"_id": 0, "id": 1}).to_list(500)
+            return [d["id"] for d in docs]
+        rows = await db.project_members.find(
+            {"project_id": project_id}, {"_id": 0, "user_id": 1}
+        ).to_list(500)
+        return [r["user_id"] for r in rows]
+
     async def _load_project(project_id: str):
         p = await db.projects.find_one({"id": project_id}, {"_id": 0})
         if not p:
@@ -267,6 +278,17 @@ def build_tools_router(db, get_current_user, require_admin_or_owner):
         await db.messages.insert_one(doc)
         doc.pop("_id", None)
         author = await _author_stub(user["id"])
+        await log_activity(
+            db, project_id, "message", "posted", user,
+            target_id=doc["id"], target_label=doc["title"], preview=doc["body"][:200],
+        )
+        # Notify every other member of the project (new post) + @mentions
+        members = await _project_member_ids(project_id)
+        for uid in members:
+            await notify_user(db, uid, "post", project_id, user,
+                              "message", doc["id"], doc["title"], doc["body"])
+        await process_mentions(db, doc["body"], project_id, user,
+                               "message", doc["id"], doc["title"])
         return Message(
             id=doc["id"], project_id=project_id, author=author,
             title=doc["title"], body=doc["body"], comment_count=0,
@@ -331,6 +353,12 @@ def build_tools_router(db, get_current_user, require_admin_or_owner):
         }
         await db.message_comments.insert_one(doc)
         author = await _author_stub(user["id"])
+        await log_activity(
+            db, m["project_id"], "comment", "commented", user,
+            target_id=message_id, target_label=m.get("title", ""), preview=doc["body"][:200],
+        )
+        await process_mentions(db, doc["body"], m["project_id"], user,
+                               "comment", message_id, m.get("title", ""))
         return Comment(
             id=doc["id"], message_id=message_id, author=author,
             body=doc["body"], created_at=doc["created_at"],
@@ -434,6 +462,15 @@ def build_tools_router(db, get_current_user, require_admin_or_owner):
         }
         await db.todos.insert_one(doc)
         assignee = await _author_stub(body.assignee_id) if body.assignee_id else None
+        await log_activity(
+            db, lst["project_id"], "todo", "added", user,
+            target_id=doc["id"], target_label=doc["title"],
+        )
+        if body.assignee_id and body.assignee_id != user["id"]:
+            await notify_user(
+                db, body.assignee_id, "todo_assigned", lst["project_id"], user,
+                "todo", doc["id"], doc["title"],
+            )
         return TodoItem(
             id=doc["id"], list_id=doc["list_id"], project_id=doc["project_id"],
             title=doc["title"], assignee=assignee, due_date=doc["due_date"],
@@ -531,6 +568,8 @@ def build_tools_router(db, get_current_user, require_admin_or_owner):
         }
         await db.events.insert_one(doc)
         doc.pop("_id", None)
+        await log_activity(db, project_id, "event", "added", user,
+                           target_id=doc["id"], target_label=doc["title"])
         return EventModel(**doc)
 
     @r.delete("/events/{event_id}")
@@ -596,6 +635,15 @@ def build_tools_router(db, get_current_user, require_admin_or_owner):
         }
         await db.docs.insert_one(doc)
         uploader = await _author_stub(user["id"])
+        image_url = None
+        if (doc.get("mime") or "").startswith("image/"):
+            image_url = f"/api/docs/{doc['id']}/file"
+        await log_activity(
+            db, project_id, "doc", "uploaded", user,
+            target_id=doc["id"], target_label=doc["filename"],
+            preview=f"{doc['category']} · {doc['size_bytes']//1024} KB",
+            image_url=image_url,
+        )
         return Doc(
             id=doc["id"], project_id=project_id, category=doc["category"],
             filename=doc["filename"], mime=doc["mime"],
@@ -663,6 +711,8 @@ def build_tools_router(db, get_current_user, require_admin_or_owner):
         }
         await db.hill_scopes.insert_one(doc)
         doc.pop("_id", None)
+        await log_activity(db, project_id, "hill", "added", user,
+                           target_id=doc["id"], target_label=doc["title"])
         return HillScope(**doc)
 
     @r.put("/hill-scopes/{scope_id}", response_model=HillScope)
@@ -682,6 +732,11 @@ def build_tools_router(db, get_current_user, require_admin_or_owner):
             patch["last_note"] = body.note
         await db.hill_scopes.update_one({"id": scope_id}, {"$set": patch})
         nd = await db.hill_scopes.find_one({"id": scope_id}, {"_id": 0})
+        await log_activity(
+            db, d["project_id"], "hill", "updated", user,
+            target_id=scope_id, target_label=nd["title"],
+            preview=body.note or f"Moved to {nd['position']}%",
+        )
         return HillScope(**nd)
 
     @r.delete("/hill-scopes/{scope_id}")
