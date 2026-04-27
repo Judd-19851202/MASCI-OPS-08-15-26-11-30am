@@ -15,6 +15,8 @@ import JhaPlansAdmin from "@/pages/JhaPlansAdmin";
 import TrenchBoxes from "@/pages/TrenchBoxes";
 import TrenchBoxesAdmin from "@/pages/TrenchBoxesAdmin";
 import TrenchBoxPoster from "@/pages/TrenchBoxPoster";
+import JhaPlansPoster from "@/pages/JhaPlansPoster";
+import AllPostersPrint from "@/pages/AllPostersPrint";
 import IncidentsDashboard from "@/pages/IncidentsDashboard";
 import NewIncident from "@/pages/NewIncident";
 import ViewIncident from "@/pages/ViewIncident";
@@ -112,6 +114,12 @@ function App() {
           {/* Trench Box admin */}
           <Route path="/admin/trench-boxes" element={A(<TrenchBoxesAdmin />)} />
           <Route path="/admin/trench-boxes/poster" element={A(<TrenchBoxPoster />)} />
+
+          {/* Job Hazard Plans admin poster */}
+          <Route path="/admin/jha-plans/poster" element={A(<JhaPlansPoster />)} />
+
+          {/* Combined "print all 3" posters page */}
+          <Route path="/admin/posters/print-all" element={A(<AllPostersPrint />)} />
 
           <Route path="/admin/incidents" element={A(<IncidentsDashboard />)} />
           <Route path="/admin/incidents/:id" element={A(<ViewIncident />)} />

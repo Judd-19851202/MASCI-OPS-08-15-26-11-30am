@@ -18,6 +18,7 @@ import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
+import SitePostersPanel from "@/components/SitePostersPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { clearAdminToken } from "@/lib/adminAuth";
@@ -233,6 +234,7 @@ export default function AdminHub() {
         )}
 
         <AutoEmailRoutingPanel />
+        <SitePostersPanel />
         <EquipmentStatusBoard />
         <ComplianceExportPanel />
       </main>

@@ -715,6 +715,63 @@ const ES = {
     "Escanee para abrir los Datos de Cajas de Zanja MASCI en cualquier teléfono.",
   "Open Trench Box Poster": "Abrir Cartel de Caja de Zanja",
   "Print Poster": "Imprimir Cartel",
+
+  // ============================================================
+  // JHA Plans Poster (printable QR poster)
+  // ============================================================
+  "Job Hazard Plans QR Poster": "Cartel QR de Planes de Peligros del Trabajo",
+  "Job Hazard Plans · One per active job":
+    "Planes de Peligros del Trabajo · Uno por trabajo activo",
+  "Read the plan before crew breaks ground.":
+    "Lea el plan antes de que la cuadrilla comience.",
+  "Every active MASCI job. Its own Hazard Plan PDF. One scan.":
+    "Cada trabajo MASCI activo. Su propio PDF del Plan de Peligros. Un escaneo.",
+  "Open your phone camera. Point at the QR. Pick your job. Read the Hazard Plan before the first shovel moves. No service? Save the PDF to your phone and read it offline.":
+    "Abra la cámara del teléfono. Apunte al QR. Elija su trabajo. Lea el Plan de Peligros antes de que la primera pala se mueva. ¿Sin señal? Guarde el PDF en su teléfono y léalo sin conexión.",
+  "What's in a Hazard Plan": "Qué hay en un Plan de Peligros",
+  "Site-specific hazards": "Peligros específicos del sitio",
+  "Traffic, utilities, deep cuts, water, overhead lines.":
+    "Tráfico, servicios subterráneos, cortes profundos, agua, líneas aéreas.",
+  "PPE & permits": "EPP y permisos",
+  "What gets worn, what gets pulled before the crew steps in.":
+    "Qué se usa, qué se obtiene antes de que entre la cuadrilla.",
+  "Emergency response": "Respuesta de emergencia",
+  "Nearest hospital, muster point, who calls 911 first.":
+    "Hospital más cercano, punto de reunión, quién llama al 911 primero.",
+  "If you can't find your job's plan in the list — STOP and call your PM. Don't break ground without one.":
+    "Si no encuentra el plan de su trabajo en la lista — DETÉNGASE y llame a su Gerente de Proyecto. No comience sin uno.",
+  "Plans currently uploaded": "Planes cargados actualmente",
+  "Active MASCI jobs": "Trabajos MASCI activos",
+  "jobs covered": "trabajos cubiertos",
+  "Project #": "# de Proyecto",
+  "Project Name": "Nombre del Proyecto",
+  "List shows only jobs that have a plan uploaded. Scan the QR for the live, complete list.":
+    "La lista muestra solo trabajos con un plan cargado. Escanee el QR para la lista completa en vivo.",
+  "Sample of MASCI active jobs. Scan the QR for the live, complete list with download links.":
+    "Muestra de trabajos MASCI activos. Escanee el QR para la lista completa en vivo con enlaces de descarga.",
+  "Post inside every job trailer.": "Coloque dentro de cada tráiler de trabajo.",
+
+  // ============================================================
+  // Site Posters (Admin Hub panel)
+  // ============================================================
+  "Site Posters": "Carteles del Sitio",
+  "Printable handouts for every job trailer":
+    "Folletos imprimibles para cada tráiler de trabajo",
+  "QR-coded posters foremen scan from any phone. One sheet each. Print before every quarterly safety refresh.":
+    "Carteles con código QR que los capataces escanean desde cualquier teléfono. Una hoja cada uno. Imprima antes de cada actualización trimestral de seguridad.",
+  "Print All Posters": "Imprimir Todos los Carteles",
+  "All Site Posters · Print 3 sheets":
+    "Todos los Carteles · Imprimir 3 hojas",
+  "Foreman handout. QR to the Hub + 4-step submit flow + stop-the-line rules.":
+    "Folleto del capataz. QR al Hub + flujo de 4 pasos + reglas para detener la línea.",
+  "Post inside every site trailer.": "Coloque dentro de cada tráiler del sitio.",
+  "OSHA 1926 Subpart P. QR to live trench-shield specs + soil-type quick reference.":
+    "OSHA 1926 Subparte P. QR a especificaciones de escudos en vivo + referencia rápida de tipo de suelo.",
+  "QR to Job Hazard Plans hub + job list + what-to-look-for cheat card.":
+    "QR al Hub de Planes de Peligros + lista de trabajos + tarjeta de qué buscar.",
+  "Preview": "Vista Previa",
+  "Print": "Imprimir",
+  "Admin": "Admin",
   "Loading…": "Cargando…",
 };
 
