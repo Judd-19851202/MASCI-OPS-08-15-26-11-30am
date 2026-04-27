@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends, Response
+from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends, Response, Request
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,6 +6,10 @@ import os
 import logging
 import hashlib
 import hmac
+import time
+import secrets
+from collections import defaultdict
+from threading import Lock
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any, Tuple
@@ -25,14 +29,115 @@ app = FastAPI(title="MASCI Job Site Safety Inspection API")
 api_router = APIRouter(prefix="/api")
 
 
+# ------------------------- Rate limiting (in-memory, single-instance) -------------------------
+# Public POST endpoints (form submissions, translate) are unauthenticated by
+# design — crews submit without logging in. To prevent spam / bot abuse we
+# cap each IP to N submissions per hour per endpoint. Single-instance backend
+# so a process-local dict is sufficient — no Redis required.
+
+_RATE_LOCK = Lock()
+_PUBLIC_POST_BUCKETS: Dict[str, List[float]] = defaultdict(list)
+_LOGIN_FAIL_BUCKETS: Dict[str, List[float]] = defaultdict(list)
+
+PUBLIC_POST_LIMIT_PER_HOUR = int(os.environ.get("PUBLIC_POST_LIMIT_PER_HOUR", "30"))
+LOGIN_MAX_FAILS_PER_WINDOW = int(os.environ.get("LOGIN_MAX_FAILS", "10"))
+LOGIN_LOCKOUT_SECONDS = int(os.environ.get("LOGIN_LOCKOUT_SECONDS", "900"))  # 15 min
+
+
+def _client_ip(request: Request) -> str:
+    """Best-effort client IP. Trusts X-Forwarded-For when present (Kubernetes
+    ingress sets it). Falls back to the immediate peer IP."""
+    xff = request.headers.get("x-forwarded-for") or ""
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def rate_limit_public_post(request: Request):
+    """FastAPI dependency that throttles each (IP, endpoint) to
+    PUBLIC_POST_LIMIT_PER_HOUR submissions. Raises 429 when exceeded.
+    Set RATE_LIMITING=off in .env to disable (e.g., automated tests)."""
+    if os.environ.get("RATE_LIMITING", "on").lower() in ("off", "false", "0"):
+        return
+    ip = _client_ip(request)
+    key = f"{request.url.path}:{ip}"
+    now = time.time()
+    cutoff = now - 3600
+    with _RATE_LOCK:
+        bucket = _PUBLIC_POST_BUCKETS[key]
+        bucket[:] = [t for t in bucket if t > cutoff]
+        if len(bucket) >= PUBLIC_POST_LIMIT_PER_HOUR:
+            raise HTTPException(
+                status_code=429,
+                detail=(
+                    f"Too many submissions from this device "
+                    f"(limit {PUBLIC_POST_LIMIT_PER_HOUR}/hour). "
+                    f"Try again later or contact MASCI safety."
+                ),
+            )
+        bucket.append(now)
+
+
+def _check_login_lockout(ip: str) -> None:
+    cutoff = time.time() - LOGIN_LOCKOUT_SECONDS
+    with _RATE_LOCK:
+        bucket = _LOGIN_FAIL_BUCKETS[ip]
+        bucket[:] = [t for t in bucket if t > cutoff]
+        if len(bucket) >= LOGIN_MAX_FAILS_PER_WINDOW:
+            oldest = bucket[0]
+            wait_s = int(LOGIN_LOCKOUT_SECONDS - (time.time() - oldest))
+            wait_min = max(1, (wait_s + 59) // 60)
+            raise HTTPException(
+                status_code=429,
+                detail=(
+                    f"Too many failed login attempts. "
+                    f"Try again in ~{wait_min} minute(s)."
+                ),
+            )
+
+
+def _record_login_fail(ip: str) -> None:
+    with _RATE_LOCK:
+        _LOGIN_FAIL_BUCKETS[ip].append(time.time())
+
+
+def _reset_login_fails(ip: str) -> None:
+    with _RATE_LOCK:
+        _LOGIN_FAIL_BUCKETS.pop(ip, None)
+
+
 # ------------------------- Admin auth -------------------------
 # Simple shared-password gate. The "token" returned to the client is a
 # deterministic HMAC(password, server-secret) so the password itself never
 # leaves the device after login. On every protected request the client
 # sends X-Admin-Token; we recompute and compare in constant time.
+#
+# The HMAC secret is read from ADMIN_HMAC_SECRET (preferred). If not set,
+# we generate a random per-process secret and warn — every admin will need
+# to log in again on the next backend restart, which is the right safety
+# behavior for an unconfigured deployment.
+def _admin_hmac_secret() -> bytes:
+    explicit = os.environ.get("ADMIN_HMAC_SECRET", "").strip()
+    if explicit:
+        return explicit.encode()
+    # Backwards-compat / first-boot fallback. Cache so all calls within a
+    # process see the same value (so tokens stay valid until restart).
+    global _ADMIN_HMAC_FALLBACK
+    try:
+        return _ADMIN_HMAC_FALLBACK
+    except NameError:
+        pass
+    _ADMIN_HMAC_FALLBACK = secrets.token_bytes(64)
+    logging.getLogger(__name__).warning(
+        "ADMIN_HMAC_SECRET is not set. Generated a random per-process secret. "
+        "Admin tokens will invalidate on backend restart — set ADMIN_HMAC_SECRET "
+        "in backend/.env to a stable random string for production."
+    )
+    return _ADMIN_HMAC_FALLBACK
+
+
 def _admin_token_for(password: str) -> str:
-    secret = os.environ.get("MONGO_URL", "masci-default-secret").encode()
-    return hmac.new(secret, password.encode(), hashlib.sha256).hexdigest()
+    return hmac.new(_admin_hmac_secret(), password.encode(), hashlib.sha256).hexdigest()
 
 
 def require_admin(x_admin_token: Optional[str] = Header(default=None)):
@@ -54,13 +159,17 @@ class AdminLoginRequest(BaseModel):
 
 
 @api_router.post("/admin/login")
-async def admin_login(body: AdminLoginRequest):
+async def admin_login(body: AdminLoginRequest, request: Request):
+    ip = _client_ip(request)
+    _check_login_lockout(ip)
     expected_pw = os.environ.get("ADMIN_PASSWORD", "")
     if not expected_pw:
         # Gate disabled — anyone can "log in"
         return {"ok": True, "token": "open-mode"}
     if not hmac.compare_digest(body.password, expected_pw):
+        _record_login_fail(ip)
         raise HTTPException(status_code=401, detail="Wrong password")
+    _reset_login_fails(ip)
     return {"ok": True, "token": _admin_token_for(expected_pw)}
 
 
@@ -152,7 +261,7 @@ async def root():
     return {"message": "MASCI Inspection API", "ok": True}
 
 
-@api_router.post("/inspections", response_model=Inspection)
+@api_router.post("/inspections", response_model=Inspection, dependencies=[Depends(rate_limit_public_post)])
 async def create_inspection(payload: InspectionCreate):
     inspection = Inspection(**payload.model_dump())
     doc = inspection.model_dump()
@@ -270,7 +379,7 @@ class MeetingSummary(BaseModel):
     created_at: str
 
 
-@api_router.post("/meetings", response_model=Meeting)
+@api_router.post("/meetings", response_model=Meeting, dependencies=[Depends(rate_limit_public_post)])
 async def create_meeting(payload: MeetingCreate):
     meeting = Meeting(**payload.model_dump())
     doc = meeting.model_dump()
@@ -374,7 +483,7 @@ class JhaSummary(BaseModel):
     created_at: str
 
 
-@api_router.post("/jhas", response_model=Jha)
+@api_router.post("/jhas", response_model=Jha, dependencies=[Depends(rate_limit_public_post)])
 async def create_jha(payload: JhaCreate):
     jha = Jha(**payload.model_dump())
     doc = jha.model_dump()
@@ -512,7 +621,7 @@ class IncidentSummary(BaseModel):
     created_at: str
 
 
-@api_router.post("/incidents", response_model=Incident)
+@api_router.post("/incidents", response_model=Incident, dependencies=[Depends(rate_limit_public_post)])
 async def create_incident(payload: IncidentCreate):
     incident = Incident(**payload.model_dump())
     doc = incident.model_dump()
@@ -644,7 +753,7 @@ class DailyReportSummary(BaseModel):
     created_at: str
 
 
-@api_router.post("/daily-reports", response_model=DailyReport)
+@api_router.post("/daily-reports", response_model=DailyReport, dependencies=[Depends(rate_limit_public_post)])
 async def create_daily_report(payload: DailyReportCreate):
     report = DailyReport(**payload.model_dump())
     doc = report.model_dump()
@@ -754,6 +863,17 @@ def _data_url_to_bytes(data_url: str) -> Tuple[bytes, str]:
     return raw, mime
 
 
+def _validate_pdf_or_400(raw: bytes) -> None:
+    """Reject anything that isn't a real PDF. Without this an admin (or
+    anyone with a stolen admin token) could upload an HTML/JS file claiming
+    to be application/pdf and serve XSS via the /file download endpoint."""
+    if not raw or len(raw) < 5 or not raw.startswith(b"%PDF-"):
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file is not a valid PDF. Magic bytes mismatch.",
+        )
+
+
 @api_router.get("/job-hazard-plans", response_model=List[JobHazardPlan])
 async def list_job_hazard_plans():
     """Public — list every uploaded plan (without the heavy file payload)."""
@@ -785,9 +905,13 @@ async def download_job_hazard_plan(project_number: str):
     )
     return Response(
         content=raw,
-        media_type=mime,
+        # Force application/pdf so a maliciously-MIME'd upload can never
+        # be rendered as HTML/JS in the browser (defense in depth — we
+        # also reject non-PDF magic bytes at upload time).
+        media_type="application/pdf",
         headers={
             "Content-Disposition": f'inline; filename="{safe_name}"',
+            "X-Content-Type-Options": "nosniff",
         },
     )
 
@@ -800,6 +924,7 @@ async def upload_job_hazard_plan(
     """Admin — upload (or REPLACE) a Job Hazard Plan PDF for one project number.
     Idempotent on project_number — uploading again replaces the prior file."""
     raw, mime = _data_url_to_bytes(payload.file_data)
+    _validate_pdf_or_400(raw)
     if len(raw) > 25 * 1024 * 1024:
         raise HTTPException(
             status_code=413,
@@ -942,8 +1067,11 @@ async def download_trench_box_file(box_id: str):
     )
     return Response(
         content=raw,
-        media_type=mime,
-        headers={"Content-Disposition": f'inline; filename="{safe_name}"'},
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'inline; filename="{safe_name}"',
+            "X-Content-Type-Options": "nosniff",
+        },
     )
 
 
@@ -959,6 +1087,7 @@ async def create_trench_box(
     # Lightly validate optional file size
     if payload.tabulated_data_file:
         raw, _ = _data_url_to_bytes(payload.tabulated_data_file)
+        _validate_pdf_or_400(raw)
         if len(raw) > 10 * 1024 * 1024:
             raise HTTPException(
                 status_code=413,
@@ -982,6 +1111,7 @@ async def update_trench_box(
 ):
     if payload.tabulated_data_file:
         raw, _ = _data_url_to_bytes(payload.tabulated_data_file)
+        _validate_pdf_or_400(raw)
         if len(raw) > 10 * 1024 * 1024:
             raise HTTPException(status_code=413, detail="File too large (max 10 MB)")
     update = payload.model_dump()
@@ -1110,7 +1240,7 @@ async def list_equipment_units(equipment_type: Optional[str] = None):
     return [EquipmentUnit(**d) for d in docs]
 
 
-@api_router.post("/equipment-units", response_model=EquipmentUnit)
+@api_router.post("/equipment-units", response_model=EquipmentUnit, dependencies=[Depends(rate_limit_public_post)])
 async def create_equipment_unit(payload: EquipmentUnitCreate):
     # De-dup by (type, label) — return the existing if already saved
     existing = await db.equipment_units.find_one(
@@ -1129,7 +1259,7 @@ async def create_equipment_unit(payload: EquipmentUnitCreate):
     return unit
 
 
-@api_router.post("/equipment-inspections", response_model=EquipmentInspection)
+@api_router.post("/equipment-inspections", response_model=EquipmentInspection, dependencies=[Depends(rate_limit_public_post)])
 async def create_equipment_inspection(payload: EquipmentInspectionCreate):
     insp = EquipmentInspection(**payload.model_dump())
     doc = insp.model_dump()
@@ -1760,7 +1890,7 @@ class TranslateResponse(BaseModel):
 import json as _json  # noqa: E402  (kept local to this section)
 
 
-@api_router.post("/translate", response_model=TranslateResponse)
+@api_router.post("/translate", response_model=TranslateResponse, dependencies=[Depends(rate_limit_public_post)])
 async def translate_strings(payload: TranslateRequest):
     """Translate a flat {key: string} dict between languages.
 
@@ -2164,10 +2294,23 @@ async def email_report(
 
 app.include_router(_email_router)
 
+cors_origins_env = os.environ.get('CORS_ORIGINS', '*').strip()
+cors_origin_regex = (os.environ.get('CORS_ORIGIN_REGEX', '') or '').strip() or None
+
+if cors_origins_env == '*' or not cors_origins_env:
+    # Fully-permissive — incompatible with credentials per CORS spec, so
+    # we drop credentials in this mode. Used only when no allow-list is set.
+    _cors_origins: List[str] = ["*"]
+    _cors_credentials = False
+else:
+    _cors_origins = [o.strip() for o in cors_origins_env.split(',') if o.strip()]
+    _cors_credentials = True
+
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_credentials=_cors_credentials,
+    allow_origins=_cors_origins,
+    allow_origin_regex=cors_origin_regex,
     allow_methods=["*"],
     allow_headers=["*"],
 )
