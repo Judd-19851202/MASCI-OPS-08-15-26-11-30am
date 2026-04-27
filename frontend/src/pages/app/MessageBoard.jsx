@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { MentionTextarea } from "@/components/MentionTextarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 export default function MessageBoard() {
@@ -122,7 +123,10 @@ function NewPost({ open, onOpenChange, projectId, onCreated }) {
           </div>
           <div>
             <Label>Message</Label>
-            <Textarea required rows={6} value={body} onChange={(e) => setBody(e.target.value)} className="mt-1.5" data-testid="new-message-body" />
+            <MentionTextarea required rows={6} value={body} onChange={setBody} className="mt-1.5" data-testid="new-message-body" />
+            <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-400 mt-1">
+              Tip: type <span className="font-bold text-slate-700">@</span> to tag a teammate.
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
@@ -230,13 +234,16 @@ function MessageThread({ messageId, onClose, currentUser }) {
                 ))}
               </div>
               <form onSubmit={onComment} className="mt-4 flex gap-2">
-                <Input
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Write a comment…"
-                  data-testid="comment-input"
-                />
-                <Button type="submit" disabled={posting || !newComment.trim()} className="bg-red-700 hover:bg-red-800 text-white">
+                <div className="flex-1">
+                  <MentionTextarea
+                    value={newComment}
+                    onChange={setNewComment}
+                    placeholder="Write a comment… type @ to mention someone"
+                    rows={2}
+                    data-testid="comment-input"
+                  />
+                </div>
+                <Button type="submit" disabled={posting || !newComment.trim()} className="bg-red-700 hover:bg-red-800 text-white self-end">
                   {posting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 </Button>
               </form>

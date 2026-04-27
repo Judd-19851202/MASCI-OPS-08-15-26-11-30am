@@ -47,6 +47,7 @@ import TodosPage from "@/pages/app/TodosPage";
 import SchedulePage from "@/pages/app/SchedulePage";
 import DocsPage from "@/pages/app/DocsPage";
 import HillChartsPage from "@/pages/app/HillChartsPage";
+import MyStuff from "@/pages/app/MyStuff";
 
 const SITE_INSPECTION_CODE = "1982";
 const GateInspection = ({ children }) => (
@@ -108,6 +109,7 @@ function App() {
 
             <Route path="/app" element={U(<AppLayout />)}>
               <Route index element={<AppHome />} />
+              <Route path="me" element={<MyStuff />} />
               <Route path="users" element={U(<UsersAdmin />, ["owner", "admin"])} />
               <Route path="projects/:projectId" element={<ProjectHome />} />
               <Route path="projects/:projectId/members" element={<ProjectMembers />} />

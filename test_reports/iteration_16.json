@@ -1,0 +1,38 @@
+{
+  "iteration": 16,
+  "date": "2026-04-27",
+  "task": "Phase 4 Crew Hub wrap-up — backend regression + full UI verification of all 6 Phase-4 pieces + distribution_list + Full Backup ZIP",
+  "summary": "All Phase 4 deliverables verified end-to-end. 13/13 backend pytest tests pass (health, login for safety+david, /api/users/directory, /api/me/notifications, /api/me/activity, project activity, project search, @mention creates notification, incident+daily accept distribution_list, Full Backup ZIP contains all 12 crew_hub/*.json with password_hash redacted, legacy admin still works). 9/9 Playwright UI tests pass (login, NotificationBell with badge+dropdown+mark-all-read+open-inbox, /app/me with 3 tabs, project activity+search, MessageBoard @mentions autocomplete inserts email+space, incident-dist chip add/invalid-warning/backspace-pop, daily-dist chip add, cross-user mention delivery safety→david, Phase 1-3 pages still render, legacy /admin/login → /admin + /admin/inspections).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "New Message dialog", "issues": ["Radix DialogContent missing aria-describedby (warning only, non-blocking)"]},
+      {"screen": "Hill Charts or similar canvas page", "issues": ["Canvas2D getImageData without willReadFrequently attribute (perf warning, non-blocking)"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phase4_crewhub.py",
+    "/app/test_reports/pytest/phase4_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py is 2398 lines — consider splitting models/routers into modules (code-health, not blocking).",
+    "DistributionList uses the raw email inside data-testid — works fine but consider base64/hash for exotic emails with '+' or unicode in future.",
+    "backend/tests/test_phase4_crewhub.py does not tear down the test message or test incident/daily-report it posts to /api/projects/hq/messages and /api/incidents and /api/daily-reports (3 stray rows per run). Minor cleanup hygiene issue for regression loops."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_phase4_crewhub.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "safety@mascigc.com / Welcome2MASCI! (admin, active), david.jewett@mascigc.com / Welcome2MASCI! (owner, active), legacy admin Happy123!",
+  "seed_data_creation": "Test created 2 Pytest Mention messages on project HQ (one via pytest, one via earlier curl per handoff), plus 1 incident and 1 daily-report with distribution_list. Left in DB as evidence of successful flow — safe to purge.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 4 frontend wiring verified. If re-running test_phase4_crewhub.py, it will create additional Pytest Mention messages (idempotent but adds rows). All data-testids match spec: my-stuff-page, tab-mentions, tab-todos, tab-activity, project-activity-card, activity-feed/activity-empty, new-message-body, mention-autocomplete, mention-option-*, project-search-input, project-search-results, notification-bell, notification-badge, notification-dropdown, notification-mark-all-read, notification-open-inbox, incident-dist-wrapper/input/chip-<email>, daily-dist-wrapper/input/chip-<email>. Full Backup ZIP contains all 12 crew_hub files and users.json is sanitized.",
+  "status": "PASS"
+}

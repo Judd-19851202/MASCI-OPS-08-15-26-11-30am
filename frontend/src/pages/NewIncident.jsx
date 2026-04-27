@@ -28,6 +28,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
+import { DistributionList } from "@/components/DistributionList";
 import { useT, getLang } from "@/lib/i18n";
 import {
   INCIDENT_TYPES,
@@ -868,6 +869,13 @@ export default function NewIncident({ publicMode = false }) {
                 data-testid="input-notified-other"
               />
             </div>
+          </div>
+          <div className="mt-5 pt-5 border-t-2 border-slate-100">
+            <DistributionList
+              value={data.distribution_list}
+              onChange={(v) => set("distribution_list", v)}
+              testIdPrefix="incident-dist"
+            />
           </div>
         </Section>
 

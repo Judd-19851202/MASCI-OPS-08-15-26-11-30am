@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { UserAvatar, relativeTime, apiErr } from "@/lib/crewHubUi";
+import { ProjectSearch } from "@/components/ProjectSearch";
+import { ActivityFeed } from "@/components/ActivityFeed";
 import { toast } from "sonner";
 
 /**
@@ -107,6 +109,10 @@ export default function ProjectHome() {
             )}
           </Link>
         </div>
+        {/* Project search */}
+        <div className="mt-5">
+          <ProjectSearch projectId={project.id} />
+        </div>
       </div>
 
       {/* Hill Chart snapshot at top (like Basecamp IMG_4413) */}
@@ -138,6 +144,19 @@ export default function ProjectHome() {
           badge={`${members.length} ${members.length === 1 ? "person" : "people"}`}
           accent="slate"
         />
+      </div>
+
+      {/* Activity feed */}
+      <div className="bg-white border-2 border-slate-200 border-t-4 border-t-slate-800 rounded-md p-5 mt-4" data-testid="project-activity-card">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="font-display font-black text-slate-900 text-base">Recent activity</div>
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-slate-500 font-bold">
+              · last 15
+            </span>
+          </div>
+        </div>
+        <ActivityFeed projectId={project.id} limit={15} />
       </div>
     </div>
   );

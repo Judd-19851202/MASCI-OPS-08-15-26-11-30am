@@ -41,6 +41,9 @@ export function buildDailyReportDefaults() {
     incident_report_time: "",
     general_notes: "",
 
+    // Distribution list — extra emails to CC on the PDF (PM/GC/DOT/insurance)
+    distribution_list: [],
+
     // MASCI crews on site
     masci_crews: [
       // [{trade, foreman, count, hours, work_performed}]

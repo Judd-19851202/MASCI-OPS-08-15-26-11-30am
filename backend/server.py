@@ -1694,6 +1694,43 @@ async def exports_full_backup(_: bool = Depends(require_admin)):
             for line in pdf_failures[:20]:
                 log_lines.append(f"  - {line}")
 
+        # ---------- Crew Hub collections (Phase 1–4 Basecamp clone) ----------
+        # Internal collaboration data — archived as JSON only (no PDFs).
+        # Photos/file blobs live inside docs.data_base64.
+        CREW_HUB_COLLECTIONS = [
+            ("projects", None),
+            ("users", {"password_hash": 0}),         # redact password hashes
+            ("project_members", None),
+            ("messages", None),
+            ("message_comments", None),
+            ("todo_lists", None),
+            ("todos", None),
+            ("events", None),
+            ("docs", None),                           # includes base64 file blobs
+            ("hill_scopes", None),
+            ("activity_log", None),
+            ("notifications", None),
+        ]
+        log_lines.append("")
+        log_lines.append("Crew Hub collections (JSON only):")
+        crew_total = 0
+        for coll_name, projection in CREW_HUB_COLLECTIONS:
+            try:
+                proj = {"_id": 0}
+                if projection:
+                    proj.update(projection)
+                docs = await db[coll_name].find({}, proj).to_list(50000)
+                crew_total += len(docs)
+                log_lines.append(f"  crew_hub/{coll_name:22s} : {len(docs):5d}")
+                zf.writestr(
+                    f"crew_hub/{coll_name}.json",
+                    _backup_json.dumps(docs, indent=2, default=str).encode("utf-8"),
+                )
+            except Exception as e:  # noqa: BLE001
+                log_lines.append(f"    [warn] crew_hub/{coll_name} failed: {e}")
+        total_records += crew_total
+        log_lines.append(f"  Crew Hub subtotal: {crew_total}")
+
         zf.writestr("backup_log.txt", "\n".join(log_lines).encode("utf-8"))
 
     payload = buf.getvalue()

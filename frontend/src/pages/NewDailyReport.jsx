@@ -21,6 +21,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
+import { DistributionList } from "@/components/DistributionList";
 import { useT, getLang } from "@/lib/i18n";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
@@ -956,6 +957,13 @@ export default function NewDailyReport({ publicMode = false }) {
 
         {/* 11 — Sign-off */}
         <Section number="11" title={t("Sign-Off")}>
+          <div>
+            <DistributionList
+              value={data.distribution_list}
+              onChange={(v) => set("distribution_list", v)}
+              testIdPrefix="daily-dist"
+            />
+          </div>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               {t("Prepared By Signature")} *

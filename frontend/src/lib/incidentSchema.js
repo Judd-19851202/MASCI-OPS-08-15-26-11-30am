@@ -167,6 +167,9 @@ export function buildIncidentDefaults() {
     notified_osha: "No",
     notified_other: "",
 
+    // 07b — Extra distribution list (PM/GC/DOT/insurance emails)
+    distribution_list: [],
+
     // 08 — Evidence
     photos: [], // base64 dataURLs
 

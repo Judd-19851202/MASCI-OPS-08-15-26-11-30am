@@ -8,10 +8,12 @@ import {
   ChevronRight,
   Loader2,
   Shield,
+  Inbox,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/authContext";
 import { MasciLogo } from "@/components/MasciLogo";
+import { NotificationBell } from "@/components/NotificationBell";
 import { toast } from "sonner";
 
 /**
@@ -56,6 +58,7 @@ export default function AppLayout() {
 
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           <SidebarLink to="/app" end icon={Home} label="Home" testId="sidebar-home" />
+          <SidebarLink to="/app/me" icon={Inbox} label="My Stuff" testId="sidebar-my-stuff" />
           {hq && (
             <SidebarLink
               to={`/app/projects/${hq.id}`}
@@ -121,6 +124,7 @@ export default function AppLayout() {
                 {user?.role}
               </div>
             </div>
+            <NotificationBell />
             <button
               onClick={async () => {
                 await logout();
