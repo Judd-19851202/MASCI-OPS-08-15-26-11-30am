@@ -92,20 +92,20 @@ export default function Hub() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
           <FormTile
+            to="/equipment/submit"
+            icon={Wrench}
+            title={t("Equipment Pre-Op")}
+            desc={t("Daily OSHA walk-around inspections for Heavy Equipment. PASS / FAIL each item — fail tags the unit out of service.")}
+            accent="slate"
+            testId="hub-tile-equipment"
+          />
+          <FormTile
             to="/daily/submit"
             icon={ClipboardList}
             title={t("Daily Reports")}
             desc={t("End-of-day site log: crews, subs, visitors, equipment, materials, weather, photos. Replaces Fieldwire.")}
             accent="red"
             testId="hub-tile-daily"
-          />
-          <FormTile
-            to="/inspections/submit"
-            icon={ClipboardCheck}
-            title={t("Site Inspections")}
-            desc={t("Daily and weekly job-site safety inspections. PPE, MOT, fall protection, electrical, and more — graded automatically.")}
-            accent="red"
-            testId="hub-tile-inspections"
           />
           <FormTile
             to="/meetings/submit"
@@ -132,12 +132,12 @@ export default function Hub() {
             testId="hub-tile-incidents"
           />
           <FormTile
-            to="/equipment/submit"
-            icon={Wrench}
-            title={t("Equipment Pre-Op")}
-            desc={t("Daily OSHA walk-around inspections for Heavy Equipment. PASS / FAIL each item — fail tags the unit out of service.")}
-            accent="slate"
-            testId="hub-tile-equipment"
+            to="/inspections/submit"
+            icon={ClipboardCheck}
+            title={t("Site Inspections")}
+            desc={t("Daily and weekly job-site safety inspections. PPE, MOT, fall protection, electrical, and more — graded automatically.")}
+            accent="red"
+            testId="hub-tile-inspections"
           />
         </div>
       </main>

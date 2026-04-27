@@ -26,6 +26,19 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
 import CheatSheet from "@/pages/CheatSheet";
 import { RequireAdmin } from "@/components/RequireAdmin";
+import { FormPasswordGate } from "@/components/FormPasswordGate";
+
+// Site Inspections are gated behind a foreman-only access code
+const SITE_INSPECTION_CODE = "1982";
+const GateInspection = ({ children }) => (
+  <FormPasswordGate
+    storageKey="masci.gate.site-inspection"
+    password={SITE_INSPECTION_CODE}
+    formLabel="Site Inspection"
+  >
+    {children}
+  </FormPasswordGate>
+);
 
 // Helper: wrap any element in the admin gate.
 const A = (el) => <RequireAdmin>{el}</RequireAdmin>;
@@ -42,9 +55,9 @@ function App() {
           <Route path="/" element={<Hub />} />
 
           {/* New / public-submit forms (no auth) */}
-          <Route path="/inspect/new" element={<NewInspection />} />
-          <Route path="/submit" element={<NewInspection publicMode />} />
-          <Route path="/inspections/submit" element={<NewInspection publicMode />} />
+          <Route path="/inspect/new" element={<GateInspection><NewInspection /></GateInspection>} />
+          <Route path="/submit" element={<GateInspection><NewInspection publicMode /></GateInspection>} />
+          <Route path="/inspections/submit" element={<GateInspection><NewInspection publicMode /></GateInspection>} />
           <Route path="/inspections/new" element={<Navigate to="/inspect/new" replace />} />
 
           <Route path="/meetings/new" element={<NewMeeting />} />

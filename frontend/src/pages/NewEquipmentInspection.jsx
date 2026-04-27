@@ -26,6 +26,17 @@ import { toast } from "sonner";
 const inputCls =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2";
 
+// Critical fluid items — failing any of these means the unit physically can't
+// safely operate until the fluid is corrected. Block the inspection from being
+// submitted and show a stop-work dialog the moment FAIL is tapped.
+const CRITICAL_FLUID_ITEMS = new Set([
+  "Engine oil level",
+  "Engine coolant level",
+  "Hydraulic fluid level",
+  "Transmission fluid",
+  "Transmission fluid level",
+]);
+
 const todayIso = () => new Date().toISOString().slice(0, 10);
 const nowHm = () => {
   const d = new Date();
@@ -84,6 +95,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [unitSearch, setUnitSearch] = useState("");
+  const [criticalFluidAlert, setCriticalFluidAlert] = useState(null); // {section, item} when blocking
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
 
@@ -255,11 +267,15 @@ export default function NewEquipmentInspection({ publicMode = false }) {
     const failNoNote = [];
     const failShortNote = [];
     const failNoPhoto = [];
+    const criticalFluidFails = [];
     Object.entries(data.checklist).forEach(([sec, items]) => {
       Object.entries(items).forEach(([item, res]) => {
         if (!res?.status) {
           missing.push(`${sec} → ${item}`);
         } else if (res.status === "fail") {
+          if (CRITICAL_FLUID_ITEMS.has(item)) {
+            criticalFluidFails.push(item);
+          }
           const note = (res.note || "").trim();
           if (!note) failNoNote.push(`${sec} → ${item}`);
           else if (note.length < 10) failShortNote.push(`${sec} → ${item}`);
@@ -267,6 +283,15 @@ export default function NewEquipmentInspection({ publicMode = false }) {
         }
       });
     });
+    if (criticalFluidFails.length > 0) {
+      setCriticalFluidAlert({
+        section: "Fluids & Leaks",
+        item: criticalFluidFails[0],
+        atSubmit: true,
+        all: criticalFluidFails,
+      });
+      return;
+    }
     if (missing.length > 0) {
       toast.error(
         `${missing.length} item(s) still need PASS / FAIL / N/A — first: ${missing[0]}`
@@ -327,6 +352,53 @@ export default function NewEquipmentInspection({ publicMode = false }) {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
+      {/* Critical-fluid stop-work modal */}
+      {criticalFluidAlert && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4"
+          data-testid="critical-fluid-modal"
+        >
+          <div className="max-w-md w-full bg-white rounded-md border-4 border-red-700 shadow-2xl">
+            <div className="bg-red-700 text-white p-5 flex items-start gap-3">
+              <AlertOctagon className="w-8 h-8 shrink-0" />
+              <div>
+                <div className="font-mono text-xs uppercase tracking-[0.25em] font-bold opacity-80">
+                  Stop — Critical Fluid Failure
+                </div>
+                <h2 className="font-display text-2xl font-black tracking-tight mt-1">
+                  Do Not Continue
+                </h2>
+              </div>
+            </div>
+            <div className="p-5 sm:p-6 space-y-4">
+              <p className="text-base text-slate-900 font-bold">
+                {criticalFluidAlert.atSubmit
+                  ? `Critical fluid failure: ${criticalFluidAlert.all.join(", ")}.`
+                  : `${criticalFluidAlert.item} is marked FAIL.`}
+              </p>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                Get with your supervisor immediately to refill the fluid before continuing
+                this inspection. The inspection cannot be submitted while a critical fluid
+                level is failing — running this unit could cause severe damage or injury.
+              </p>
+              <div className="bg-amber-50 border-2 border-amber-300 rounded p-3 text-sm text-amber-900">
+                <b>Once the fluid is filled:</b> change the item from FAIL to PASS,
+                then continue the inspection.
+              </div>
+            </div>
+            <div className="px-5 sm:px-6 pb-5 sm:pb-6 flex flex-col sm:flex-row gap-2">
+              <Button
+                onClick={() => setCriticalFluidAlert(null)}
+                className="flex-1 h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-sm"
+                data-testid="critical-fluid-acknowledge"
+              >
+                I'll get my supervisor
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
@@ -465,17 +537,21 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                     />
                   </div>
                   <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-                    {filteredUnits.map((u) => (
-                      <button
-                        key={u.id}
-                        type="button"
-                        onClick={() => pickUnit(u)}
-                        className="px-3 py-1.5 rounded border border-slate-300 bg-white hover:border-red-700 hover:text-red-700 text-sm font-mono"
-                        data-testid={`btn-saved-unit-${u.id}`}
-                      >
-                        {u.unit_label}
-                      </button>
-                    ))}
+                    {filteredUnits.map((u) => {
+                      const sub = [u.make, u.model].filter(Boolean).join(" ");
+                      return (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => pickUnit(u)}
+                          className="px-3 py-1.5 rounded border border-slate-300 bg-white hover:border-red-700 hover:text-red-700 text-sm text-left"
+                          data-testid={`btn-saved-unit-${u.id}`}
+                        >
+                          <div className="font-mono font-bold">{u.unit_label}</div>
+                          {sub && <div className="text-[10px] text-slate-500 mt-0.5">{sub}</div>}
+                        </button>
+                      );
+                    })}
                     {filteredUnits.length === 0 && (
                       <span className="text-sm text-slate-500 italic">{t("No matches.")}</span>
                     )}
@@ -558,7 +634,12 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                         active={isFail}
                         color="bg-red-700"
                         label={t("Fail")}
-                        onClick={() => setItem(sec.title, item, { status: "fail" })}
+                        onClick={() => {
+                          setItem(sec.title, item, { status: "fail" });
+                          if (CRITICAL_FLUID_ITEMS.has(item)) {
+                            setCriticalFluidAlert({ section: sec.title, item });
+                          }
+                        }}
                         testId={`btn-fail-${safeId}`}
                       />
                       <StatusBtn
