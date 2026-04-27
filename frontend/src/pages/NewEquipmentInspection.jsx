@@ -30,11 +30,34 @@ const inputCls =
 // safely operate until the fluid is corrected. Block the inspection from being
 // submitted and show a stop-work dialog the moment FAIL is tapped.
 const CRITICAL_FLUID_ITEMS = new Set([
+  // Engine / coolant / hydraulic / transmission
   "Engine oil level",
   "Engine coolant level",
   "Hydraulic fluid level",
   "Transmission fluid",
   "Transmission fluid level",
+  "Transmission / drivetrain fluid",
+  // Drivetrain & axles
+  "Tandem drive oil",
+  "Front axle / differential oil",
+  "Rear axle oil",
+  "Differential / final drive oil (front & rear)",
+  // Swing / circle / boom
+  "Swing drive / slew gear oil",
+  "Circle drive lubrication",
+  "Boom extension / chain lubrication",
+  // Pump / water / heat
+  "Water pump oil / lubrication",
+  "Screed heat system fluid (if applicable)",
+  // Gearboxes (auger / conveyor / cutter / mixer / broom)
+  "Auger & conveyor gearbox oil",
+  "Auger / extruder gearbox oil",
+  "Auger gearbox oil",
+  "Conveyor / drag chain gearbox oil",
+  "Conveyor gearbox oil",
+  "Cutter drum drive gearbox oil",
+  "Mixing rotor gearbox oil",
+  "Broom drive motor / gearbox oil",
 ]);
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
