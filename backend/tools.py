@@ -657,11 +657,29 @@ def build_tools_router(db, get_current_user, require_admin_or_owner):
         if not d:
             raise HTTPException(404, "File not found")
         await _check_member(d["project_id"], user)
-        raw, mime = _data_url_to_bytes(d["file_data"])
+        # Two storage backends:
+        #   • Inline data URL  → small files, <12 MB raw (fits in BSON)
+        #   • file_path on disk → big plan sets / photo bundles (up to ~500 MB).
+        #     Used by the Basecamp-import script for files >11.5 MB.
+        media_type = d.get("mime") or "application/octet-stream"
         safe = "".join(c if c.isalnum() or c in ("-", "_", ".", " ") else "_" for c in d["filename"])
-        media_type = d.get("mime") or mime or "application/octet-stream"
-        # PDFs stay inline (foremen view in browser). Other types force download.
         disp = "inline" if media_type == "application/pdf" else "attachment"
+        if d.get("file_path"):
+            from fastapi.responses import FileResponse
+            import os as _os
+            if not _os.path.isfile(d["file_path"]):
+                raise HTTPException(410, "File missing on server")
+            return FileResponse(
+                d["file_path"],
+                media_type=media_type,
+                filename=safe,
+                headers={
+                    "Content-Disposition": f'{disp}; filename="{safe}"',
+                    "X-Content-Type-Options": "nosniff",
+                },
+            )
+        raw, mime = _data_url_to_bytes(d.get("file_data") or "")
+        media_type = d.get("mime") or mime or "application/octet-stream"
         return Response(
             content=raw,
             media_type=media_type,

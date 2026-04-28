@@ -1,5 +1,20 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-28 — Basecamp import for project 24-12 (Oxford Rd) + disk-backed large file storage
+- Imported all **193 files** from 5 Basecamp .zip exports into the Crew Hub Docs library for project 24-12 (CC5744 - OXFORD RD Improvements). Categories auto-mapped from top-level Basecamp folders → MASCI's existing `DOC_CATEGORIES`:
+  - **Submittals · 29** files (CC-5744-24 Oxford submittal packages 002-029, RCP, sanitary, signalization, mast arms, illuminated signs, cabinet, conduit, signal cable, luminaire, copper, cameras, loop assembly, pull boxes, drainage, riser wrap, surcharge wick drain, wet well liner, JCM linestop, fountains, etc.)
+  - **Plans & Specs · 33** files (Hazen plans, FDOT standard plans, full Roadway plan sets Rev 1/3/4, signing/signals plans, landscape plans, GPS model files, .dwg/.dgn drawings, Trimble .tp3 export, .kmz, RFI028)
+  - **Safety · 20** files (incident report form, weekly safety meetings 9/4/25 + 9/10/25 + 9/17/25 + 9/24/25 + 9/25/25 + 8/27/25, weekly inspections 9/10 + 9/17 + 9/24 + photo bundles 8/14/25 + 8/26/25 + 9/17/25, MASCI tool-box-talk template, excavation self-inspection, inspection checklist .xlsx)
+  - **Daily Logs · 110** files (every daily report from 6/16/25 through 4/6/26 — Allen Smathers daily-log series + numbered Daily Reports 1-25 covering Casselberry + Oxford Rd dailies)
+  - **Locate Tickets · 1** (July 2025 Locates)
+- Total ~744 MB across 193 files. Attributed to Jaymn Judd (project owner).
+- **Two-tier storage** to handle Mongo's 16 MB BSON document limit:
+  - 180 files ≤ 11.5 MB → stored as base64 data URLs in `db.docs.file_data` (existing path)
+  - 13 oversized files (12-153 MB — FDOT standard plans, full plan sets, photo bundles) → stored on disk at `/app/backend/storage/project_docs/24-12/{doc_id}.pdf`, with `db.docs.file_path` pointing to the file. Download endpoint streams via `FileResponse` instead of decoding base64. Verified end-to-end with the 153 MB FDOT plans PDF (real `%PDF-1.7` header, full byte count).
+- **Backend change**: `tools.py` `download_doc` endpoint now branches on `file_path` vs `file_data`. Backwards-compatible — existing data-URL docs still work.
+- **Idempotent re-runnable scripts** saved to `/app/backend/scripts/basecamp_import.py` + `basecamp_import_big.py` (each clears prior runs by `notes` regex before re-importing).
+- Verified via UI: David Jewett can navigate to `/app/projects/24-12/docs` and see the full library with category filter chips (All · 193 · Submittals · 29 · Plans & Specs · 33 · Safety · 20 · Daily Logs · 110 · Locate Tickets · 1). Each card shows filename, category, size, "Basecamp import · 2026-04-28" note, JJ avatar, and download/delete buttons.
+
 ## 2026-04-28 — Bilingual completion: high-traffic admin + Crew Hub screens (iter25, ALL GREEN)
 - Translated to Spanish (with full ES dict entries in `i18n.js`):
   - **PersistenceHealthBanner** — danger banner the admin sees on every visit until the prod DB switches to Atlas. ⚠ Sus datos se borrarán en el próximo redespliegue / Solución permanente / etc.
