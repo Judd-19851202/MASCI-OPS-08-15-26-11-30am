@@ -236,7 +236,18 @@ Customer reported data loss after Emergent redeploy — in-container MongoDB and
   - `NewEquipmentInspection.jsx` — Unit # / Label field (auto-fills make/serial on pick).
   - `NewDailyReport.jsx` — Equipment Log → "Unit / Equipment" field (replaces free-text "Description / ID").
 
-## 2026-04-28 — Field-User Feedback Sweep (P0 complete)
+## 2026-04-28 — Suppliers + Employees Live (P0 complete)
+- **234 MASCI employees** seeded from `EmployeeList 4-28-26.xls` (.xls binary parsed with xlrd) — names only, no PII like hire dates. Stored in `employees` collection. Available at `GET /api/employees`. Searchable via the existing `<EmployeeCombo>`.
+- **135 MASCI suppliers / subcontractors** seeded from `Supplier & Vendors.xlsx`. Stored in `suppliers`. Available at `GET /api/suppliers`. New `<SupplierCombo>` component (mirrors EquipmentCombo / EmployeeCombo) with searchable list + free-text fallback for one-off vendors.
+- Wired into Daily Report:
+  - **Section 05 Subcontractors on Site** — Company → SupplierCombo, Foreman → EmployeeCombo.
+  - **Section 08 Material Deliveries** — Supplier → SupplierCombo (Ticket Photo uploader unchanged).
+- Admin upload tooling on `/admin` (mirrors EquipmentMasterPanel / EmployeeMasterPanel):
+  - **MASCI Supplier & Subcontractor List** panel — `.xlsx` or `.csv`, column 1 = company name. Auto-skips dividers ("MASCI", "D-MAC", "NOT LISTED ADD TO NOTES") and header rows.
+- Idempotent startup seed for both employees + suppliers (only runs when collection is empty — won't overwrite admin uploads).
+- ES translations added: "Type or pick a supplier…", "Browse supplier list", "Search by company name…", "Supplier list not uploaded yet — type freely.", "Tip: type freely for one-off vendors not in the list.". RepeatBlock + DR field configs cleaned of hardcoded English placeholder fallbacks so all combos use their `useT()` defaults in ES mode.
+- Validation (testing agent iteration 21): 6/6 backend pytest, frontend EN+ES end-to-end ('Cemex' picker → fills company; 'Alec' → fills foreman; ES placeholders confirmed via attribute). Equipment-fleet 589 + Employees 234 regression intact.
+
 
 ### Daily Report
 - **Auto-generated Report #** — `DR-YYYYMMDD-NNN`. Fetched on form mount via new endpoint `GET /api/daily-reports/next-number`. Editable by user if needed.
