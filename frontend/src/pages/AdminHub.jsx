@@ -19,6 +19,7 @@ import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
 import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
+import BackupHeroPanel from "@/components/BackupHeroPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -135,6 +136,13 @@ export default function AdminHub() {
           <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/admin" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/admin" />
           <div className="flex items-center gap-2">
+            <Link
+              to="/admin/guide"
+              className="inline-flex items-center h-9 px-3 rounded-md bg-slate-800 text-white border-2 border-slate-600 hover:border-amber-500 hover:text-amber-300 text-xs font-bold uppercase tracking-wide"
+              data-testid="admin-guide-link"
+            >
+              📖 Guide
+            </Link>
             <CompanyInfoDialog />
             <Button
               onClick={signOut}
@@ -151,6 +159,9 @@ export default function AdminHub() {
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         {/* Data-loss warning banner — red if running on local Mongo, green if Atlas */}
         <PersistenceHealthBanner />
+
+        {/* ONE-STOP backup + restore hero — 2 giant buttons, nothing else */}
+        <BackupHeroPanel />
 
         <div className="mb-10">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">

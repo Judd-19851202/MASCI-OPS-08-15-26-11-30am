@@ -55,6 +55,14 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
 - **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
 
+## What's Implemented (2026-04-27 · Owner's Manual + One-Stop Backup Hero)
+- **New `/admin/guide` page** — plain-English, print-friendly Owner's Manual. Answers "how do I run this?", "what's in the backup .zip?", "what do I do if data is missing after a deploy?", "what are the passwords?". Linked from a "📖 Guide" button in the admin header. Crews never see it. Print button in the header → print-optimized layout.
+- **New `BackupHeroPanel`** at the very top of the Admin Hub — 2 giant buttons:
+  - 🟥 **BACKUP EVERYTHING** — one click fires `/admin/backups/run-now`, emails the .zip to `BACKUP_EMAIL_TO`, AND downloads it locally in a single flow.
+  - 🟩 **RESTORE FROM FILE** — file picker + a single confirm dialog (always merge mode — safe). No mode toggles, no REPLACE typing, no jargon.
+- Below the hero panel the existing detailed panels (Compliance Export, Full Off-Site Backup, Stored Backups, Restore from Backup with merge/replace modes) remain as "advanced" controls for power users.
+- Goal: the customer never has to touch anything except the 2 hero buttons. Everything else is decoration.
+
 ## What's Implemented (2026-04-27 · Data-Loss Defense-in-Depth)
 Customer reported data loss after Emergent redeploy — in-container MongoDB and `/app/backend/backups/` are BOTH ephemeral per the platform. Built multiple defenses on top of the nightly backup:
 - **Auto-email nightly backup** via Resend — every scheduled backup also attaches the .zip to an email sent to `BACKUP_EMAIL_TO` (default `jaymn.judd@mascigc.com`). Gives the customer a durable off-site copy even without Atlas.

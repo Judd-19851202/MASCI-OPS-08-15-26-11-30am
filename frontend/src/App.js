@@ -29,6 +29,7 @@ import NewEquipmentInspection from "@/pages/NewEquipmentInspection";
 import ViewEquipmentInspection from "@/pages/ViewEquipmentInspection";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
+import AdminGuide from "@/pages/AdminGuide";
 import CheatSheet from "@/pages/CheatSheet";
 import { RequireAdmin } from "@/components/RequireAdmin";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
@@ -125,6 +126,7 @@ function App() {
                 ============================================================ */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={A(<AdminHub />)} />
+            <Route path="/admin/guide" element={A(<AdminGuide />)} />
 
             <Route path="/admin/inspections" element={A(<Dashboard />)} />
             <Route path="/admin/inspections/:id" element={A(<ViewInspection />)} />
