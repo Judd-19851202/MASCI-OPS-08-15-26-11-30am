@@ -1,5 +1,20 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-28 — One-Click Data Fixes Button + Boot Self-Heal
+Made the data healers re-runnable from the admin UI with a hard "are you sure?" gate, and added zero-touch boot-time self-healing so equipment data can never be missing make/model after a redeploy.
+
+- **Backend `POST /api/admin/data-fixes/run`** (server.py): admin-only endpoint that runs both healers (equipment make/model split + project_members seed) and returns a JSON summary `{equipment_master:{total,fixed,...}, project_members:{created,total_after,...}}`. 401 without admin token.
+- **`/app/backend/data_fixes.py` (NEW)**: async-safe healers (`fix_equipment_make_model`, `fix_project_memberships`, `run_all_fixes`, `boot_self_heal`). Reuses the manufacturer dictionary + splitter from `seed_equipment_make_model.py`. Idempotent — only updates rows that need updating.
+- **Boot self-heal**: server.py `_seed_phase1` startup hook now calls `boot_self_heal(db)` which auto-runs the equipment fix on backend boot if any unit has a missing `make`. Logs `[boot-self-heal] equipment_master clean — no fix needed` when nothing to do. Never raises (failure is logged + ignored so a bad fix can't keep the backend from booting).
+- **Frontend `DataFixesPanel.jsx` (NEW)** wired into `AdminHub.jsx` between BackupHeroPanel and EquipmentMasterPanel. Amber "Apply Production Data Fixes" button → opens a "Apply data fixes now?" confirm Dialog with "No, cancel" and "Yes, apply fixes" buttons. Result summary renders inline below the button after success (toast + green panel showing fix counts + last-run timestamp).
+
+### Verified
+- 401 without admin token ✅
+- Run endpoint returns idempotent stats (0 fixed / 0 created on second run) ✅
+- Confirm dialog UX: clicking "No, cancel" leaves nothing changed (verified result panel absent) ✅
+- Clicking "Yes, apply fixes" runs the healers and shows the green result panel ✅
+- Backend boot logs show self-heal ran ✅
+
 ## 2026-04-28 — DATA INTEGRITY FIX: Equipment Make/Model + Project Memberships + Admin Stale-Token Guard
 Three production data bugs fixed in one pass after the OOM/520 stabilisation:
 

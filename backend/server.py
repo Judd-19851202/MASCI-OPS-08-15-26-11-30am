@@ -2468,6 +2468,18 @@ async def admin_run_backup_now(_: bool = Depends(require_admin)):
     return {"ok": True, **result}
 
 
+@api_router.post("/admin/data-fixes/run")
+async def admin_run_data_fixes(_: bool = Depends(require_admin)):
+    """Apply both production data fixes:
+       1. Split `make_model` into `make` + `model` on every equipment unit
+       2. Seed `project_members` so every owner/admin sees every project
+
+    Both fixes are idempotent — safe to re-run any number of times.
+    """
+    from data_fixes import run_all_fixes
+    return await run_all_fixes(db)
+
+
 @api_router.get("/admin/persistence-check")
 async def admin_persistence_check(_: bool = Depends(require_admin)):
     """Report whether the running instance is at risk of data loss on redeploy.
@@ -3356,6 +3368,10 @@ async def _seed_phase1():
         await _seed_employees_from_json()
         await _seed_suppliers_from_json()
         await _create_safety_indexes()
+        # Zero-touch self-heal: auto-split equipment make/model on boot if any
+        # units are missing it. Survives redeploys that wipe the DB.
+        from data_fixes import boot_self_heal
+        await boot_self_heal(db)
     except Exception as e:
         logging.getLogger(__name__).exception(f"Phase 1 seed failed: {e}")
 
