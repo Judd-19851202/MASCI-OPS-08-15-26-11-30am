@@ -3121,17 +3121,35 @@ async def _start_backup_scheduler():
     except Exception as e:
         logging.getLogger(__name__).exception(f"[scheduled-backup] startup failed: {e}")
 
-cors_origins_env = os.environ.get('CORS_ORIGINS', '*').strip()
+cors_origins_env = os.environ.get('CORS_ORIGINS', '').strip()
 cors_origin_regex = (os.environ.get('CORS_ORIGIN_REGEX', '') or '').strip() or None
 
-if cors_origins_env == '*' or not cors_origins_env:
-    # Fully-permissive — incompatible with credentials per CORS spec, so
-    # we drop credentials in this mode. Used only when no allow-list is set.
+# Default safe regex when no env vars are set: allow MASCI's prod domain plus
+# any Emergent preview pod. Browsers reject `Access-Control-Allow-Origin: *`
+# combined with credentialed requests (and the frontend sends credentials),
+# so a regex / explicit list is required for the prod app to actually work
+# in iOS Safari + Cloudflare.
+_DEFAULT_CORS_REGEX = (
+    r"^https://("
+    r"(www\.)?mascidocs\.com"
+    r"|.*\.emergentagent\.com"
+    r"|.*\.preview\.emergentagent\.com"
+    r")$"
+)
+
+if cors_origins_env and cors_origins_env != '*':
+    _cors_origins = [o.strip() for o in cors_origins_env.split(',') if o.strip()]
+    _cors_credentials = True
+elif cors_origins_env == '*':
+    # Explicitly opted into wildcard — credentials must be off per CORS spec.
     _cors_origins: List[str] = ["*"]
     _cors_credentials = False
 else:
-    _cors_origins = [o.strip() for o in cors_origins_env.split(',') if o.strip()]
+    # No env var set → use the safe default regex with credentials enabled.
+    _cors_origins = []
     _cors_credentials = True
+    if not cors_origin_regex:
+        cors_origin_regex = _DEFAULT_CORS_REGEX
 
 app.add_middleware(
     CORSMiddleware,
