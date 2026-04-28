@@ -2472,6 +2472,8 @@ async def list_equipment_parts(_: bool = Depends(require_shop_or_admin)):
 
 @api_router.get("/equipment-parts/{unit_number}")
 async def get_equipment_parts(unit_number: str, _: bool = Depends(require_shop_or_admin)):
+    if not unit_number.strip():
+        raise HTTPException(status_code=400, detail="unit_number required")
     doc = await db.equipment_parts.find_one({"unit_number": unit_number}, {"_id": 0})
     return doc or _empty_parts_doc(unit_number)
 
@@ -2482,6 +2484,8 @@ async def upsert_equipment_parts(
     payload: EquipmentPartsPayload,
     _: bool = Depends(require_shop_or_admin),
 ):
+    if not unit_number.strip():
+        raise HTTPException(status_code=400, detail="unit_number required")
     doc = _empty_parts_doc(unit_number)
     body = payload.model_dump(exclude_unset=True)
     for cat in PART_CATEGORIES:

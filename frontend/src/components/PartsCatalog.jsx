@@ -55,7 +55,11 @@ export default function PartsCatalog() {
     (async () => {
       try {
         const r = await api.get("/equipment-master");
-        setFleet(r.data?.items || []);
+        // Drop entries with no unit_number — they'd resolve to /equipment-parts/
+        // (trailing slash) which the K8s ingress 307s to plain http and the
+        // browser blocks as Mixed Content.
+        const items = (r.data?.items || []).filter((u) => (u.unit_number || "").trim());
+        setFleet(items);
       } catch {
         toast.error(t("Could not load fleet list"));
       }
