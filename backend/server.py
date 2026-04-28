@@ -1840,6 +1840,10 @@ async def _build_backup_zip(db) -> tuple[bytes, int, str]:
 BACKUPS_DIR = Path(os.environ.get("BACKUPS_DIR", "/app/backend/backups")).resolve()
 BACKUP_RETENTION_DAYS = int(os.environ.get("BACKUP_RETENTION_DAYS", "14"))
 BACKUP_HOUR_UTC = int(os.environ.get("BACKUP_HOUR_UTC", "2"))   # default 02:00 UTC
+# Hard ceiling on stored backups to defend against full disks. The /app
+# volume is 9.8 GB; a single full backup is ~750 MB, so 6 files = 4.5 GB
+# which leaves comfortable headroom for the working DB + storage tree.
+BACKUP_KEEP_MAX = int(os.environ.get("BACKUP_KEEP_MAX", "6"))
 
 
 def _list_stored_backups() -> List[dict]:
@@ -1862,9 +1866,50 @@ def _list_stored_backups() -> List[dict]:
 
 async def _run_scheduled_backup(db) -> Optional[dict]:
     """Build a backup and persist to BACKUPS_DIR. Prune files older than the
-    retention window. Returns a small summary dict or None on failure."""
+    retention window and over the max-keep ceiling. Returns a small summary
+    dict or None on failure."""
     try:
         BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+
+        # PRE-FLIGHT PRUNE — clean up before writing so we never run out of
+        # disk mid-backup. Drops .tmp debris from previous failures + enforces
+        # both the retention-days window and the BACKUP_KEEP_MAX ceiling.
+        pre_pruned = 0
+        for p in BACKUPS_DIR.glob("*.zip.tmp"):
+            try:
+                p.unlink()
+                pre_pruned += 1
+            except Exception:
+                continue
+        cutoff = datetime.now(timezone.utc).timestamp() - BACKUP_RETENTION_DAYS * 86400
+        existing = sorted(
+            BACKUPS_DIR.glob("MASCI_full_backup_*.zip"),
+            key=lambda f: f.stat().st_mtime,
+            reverse=True,
+        )
+        # By age
+        for p in existing:
+            try:
+                if p.stat().st_mtime < cutoff:
+                    p.unlink()
+                    pre_pruned += 1
+            except Exception:
+                continue
+        # By count (keep newest BACKUP_KEEP_MAX-1 so the new one fits within cap)
+        existing = sorted(
+            BACKUPS_DIR.glob("MASCI_full_backup_*.zip"),
+            key=lambda f: f.stat().st_mtime,
+            reverse=True,
+        )
+        for p in existing[max(0, BACKUP_KEEP_MAX - 1):]:
+            try:
+                p.unlink()
+                pre_pruned += 1
+            except Exception:
+                continue
+        if pre_pruned:
+            logger.info(f"[scheduled-backup] pre-flight pruned {pre_pruned} old/tmp files")
+
         payload, total_records, filename = await _build_backup_zip(db)
         out = BACKUPS_DIR / filename
         # Write atomically via a temp file + rename
@@ -1874,19 +1919,6 @@ async def _run_scheduled_backup(db) -> Optional[dict]:
         logger.info(
             f"[scheduled-backup] wrote {out.name} ({len(payload)/1024/1024:.1f} MB · {total_records} records)"
         )
-
-        # Prune
-        cutoff = datetime.now(timezone.utc).timestamp() - BACKUP_RETENTION_DAYS * 86400
-        pruned = 0
-        for p in BACKUPS_DIR.glob("MASCI_full_backup_*.zip"):
-            try:
-                if p.stat().st_mtime < cutoff:
-                    p.unlink()
-                    pruned += 1
-            except Exception:
-                continue
-        if pruned:
-            logger.info(f"[scheduled-backup] pruned {pruned} expired backups (> {BACKUP_RETENTION_DAYS} days old)")
 
         # Email the backup off-site — CRITICAL for redeploy safety
         emailed_to = None
@@ -1899,12 +1931,66 @@ async def _run_scheduled_backup(db) -> Optional[dict]:
             "filename": out.name,
             "size_bytes": len(payload),
             "records": total_records,
-            "pruned_old": pruned,
+            "pruned_old": pre_pruned,
             "emailed_to": emailed_to,
         }
     except Exception as e:
         logger.exception(f"[scheduled-backup] FAILED: {e}")
         return None
+
+
+def _strip_base64_blobs(obj, _stats=None):
+    """Recursively walk a parsed JSON document and replace any large
+    base64 / data-URL blob with a small placeholder string. Used by the
+    slim-email backup so 153 MB FDOT plans don't end up in the inbox.
+
+    Returns (new_obj, count_stripped, total_bytes_stripped). Original
+    fields are preserved by name — the value just becomes
+    `"<stripped:base64 N bytes (was field=...)>"` so a future restore
+    can detect it and surface a warning.
+
+    Heuristic: any string longer than 32 KB OR starting with `data:`
+    that contains only base64-safe chars is treated as a blob.
+    """
+    import re as _re3
+    BLOB_KEYS = {"file_data", "file_bytes", "data_url", "photo", "photo_data",
+                 "image", "image_data", "signature", "signature_data",
+                 "pdf_bytes", "blob", "content"}
+    BIG_THRESHOLD = 32 * 1024  # 32 KB
+
+    if _stats is None:
+        _stats = {"count": 0, "bytes": 0}
+
+    def _looks_blob(v: str) -> bool:
+        if not isinstance(v, str):
+            return False
+        if v.startswith("data:") and ";base64," in v[:64]:
+            return True
+        if len(v) >= BIG_THRESHOLD and _re3.fullmatch(r"[A-Za-z0-9+/=\r\n]+", v[:1024] or ""):
+            return True
+        return False
+
+    if isinstance(obj, dict):
+        out = {}
+        for k, v in obj.items():
+            if isinstance(v, str) and (k in BLOB_KEYS or _looks_blob(v)):
+                _stats["count"] += 1
+                _stats["bytes"] += len(v)
+                out[k] = f"<stripped:base64 {len(v)} bytes (key={k})>"
+            else:
+                out[k], _, _ = _strip_base64_blobs(v, _stats)
+        return out, _stats["count"], _stats["bytes"]
+    if isinstance(obj, list):
+        new_list = []
+        for item in obj:
+            new_item, _, _ = _strip_base64_blobs(item, _stats)
+            new_list.append(new_item)
+        return new_list, _stats["count"], _stats["bytes"]
+    if isinstance(obj, str) and _looks_blob(obj):
+        _stats["count"] += 1
+        _stats["bytes"] += len(obj)
+        return f"<stripped:base64 {len(obj)} bytes>", _stats["count"], _stats["bytes"]
+    return obj, _stats["count"], _stats["bytes"]
 
 
 async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -> Optional[str]:
@@ -1938,20 +2024,41 @@ async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -
         try:
             import io as _io2
             import zipfile as _zf2
+            import json as _json2
             slim_buf = _io2.BytesIO()
+            stripped_blob_count = 0
+            stripped_blob_bytes = 0
             with _zf2.ZipFile(payload_in := _io2.BytesIO(payload)) as src, \
                  _zf2.ZipFile(slim_buf, "w", _zf2.ZIP_DEFLATED) as dst:
                 kept = 0
                 for n in src.namelist():
-                    # Keep: collections/, crew_hub/, safety_aux/, <kind>/json/,
-                    # backup_manifest.json, backup_log.txt, CSV/.
-                    # Drop:  disk_files/* and *.pdf (rendered PDFs are recoverable
-                    # from the JSON during restore + via the on-server full zip).
+                    # Drop rendered PDFs, disk-backed files, and CSV duplicates
+                    # — they're recoverable from the JSON sources or live on the
+                    # server's full zip.
                     if n.startswith("disk_files/"):
                         continue
                     if n.endswith(".pdf"):
                         continue
-                    dst.writestr(n, src.read(n))
+                    if n.startswith("CSV/"):
+                        continue
+                    raw = src.read(n)
+                    # For JSON files, also strip base64 file_data / file_bytes
+                    # blobs — those are what blow up `docs/*.json` and
+                    # `collections/jhas.json` past the email cap. Replace each
+                    # blob with `"<stripped:base64 N bytes>"` so the field name
+                    # is preserved (restore can detect & warn).
+                    if n.endswith(".json") and len(raw) > 4096:
+                        try:
+                            doc = _json2.loads(raw)
+                            new_doc, stripped_count, stripped_bytes = _strip_base64_blobs(doc)
+                            if stripped_count:
+                                stripped_blob_count += stripped_count
+                                stripped_blob_bytes += stripped_bytes
+                                raw = _json2.dumps(new_doc, indent=2, default=str).encode("utf-8")
+                        except Exception:
+                            # Not JSON we can parse — leave it alone.
+                            pass
+                    dst.writestr(n, raw)
                     kept += 1
             slim_payload = slim_buf.getvalue()
             slim_mb = len(slim_payload) / (1024 * 1024)
@@ -1968,15 +2075,20 @@ async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -
                 f'padding:10px 14px;border-radius:0 6px 6px 0;color:#92400e;'
                 f'font-size:13px;line-height:1.5;margin:14px 0;">'
                 f'<strong>Note:</strong> The full backup is {size_mb:.0f} MB '
-                f'(includes rendered PDFs + Oxford disk archive). For email, '
+                f'(includes rendered PDFs + project disk archive). For email, '
                 f'we sent a <strong>slim {slim_mb:.1f} MB version</strong> with '
-                f'every record\'s raw JSON ({kept} entries). The full zip lives '
-                f'on the server — sign in to <code>/admin</code> and download '
-                f'<strong>{filename}</strong> from the Stored Backups panel.'
+                f'every record\'s metadata + JSON ({kept} entries). '
+                f'{stripped_blob_count} embedded file blob(s) '
+                f'({stripped_blob_bytes / (1024*1024):.0f} MB total) were '
+                f'stripped — the originals live on the server. Sign in to '
+                f'<code>/admin</code> and download <strong>{filename}</strong> '
+                f'from the Stored Backups panel for the full archive.'
                 f'</p>'
             )
             logger.info(
-                f"[scheduled-backup] full {size_mb:.1f} MB → emailing slim {slim_mb:.1f} MB ({kept} entries)"
+                f"[scheduled-backup] full {size_mb:.1f} MB → emailing slim {slim_mb:.1f} MB "
+                f"({kept} entries, stripped {stripped_blob_count} blobs / "
+                f"{stripped_blob_bytes/1024/1024:.1f} MB)"
             )
         except Exception as e:  # noqa: BLE001
             logger.warning(f"[scheduled-backup] slim build failed: {e}")
@@ -1999,9 +2111,11 @@ async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -
         f'<ul style="color:#334155;font-size:14px;line-height:1.7;padding-left:18px;">'
         f'<li><strong>Generated:</strong> {stamp}</li>'
         f'<li><strong>Records:</strong> {total_records}</li>'
-        f'<li><strong>Size:</strong> {size_mb:.1f} MB</li>'
-        f'<li><strong>File:</strong> <code>{filename}</code></li>'
+        f'<li><strong>Full backup size:</strong> {size_mb:.1f} MB</li>'
+        f'<li><strong>Attachment:</strong> <code>{attachment_name}</code> '
+        f'({len(attachment_payload)/1024/1024:.1f} MB)</li>'
         f'</ul>'
+        f'{slim_notice}'
         f'<p style="color:#475569;font-size:13px;margin-top:18px;">'
         f'<strong>Restore instructions:</strong> sign in to <a href="https://mascidocs.com/admin">'
         f'mascidocs.com/admin</a> → scroll to "Restore from Backup" → Upload this .zip.</p>'
@@ -2019,7 +2133,7 @@ async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -
             "subject": f"MASCI Nightly Backup · {stamp} · {total_records} records",
             "html": html,
             "attachments": [
-                {"filename": filename, "content": b64},
+                {"filename": attachment_name, "content": b64},
             ],
         }
         if reply_to:

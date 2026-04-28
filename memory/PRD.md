@@ -1,5 +1,13 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-28 — Backup pipeline made bullet-proof (P0 done)
+Fixed the nightly backup so the manual red "BACKUP EVERYTHING" button always succeeds and emails:
+- **Pre-flight prune** before each backup write — clears `.zip.tmp` debris from prior failures + enforces both retention-days AND the new `BACKUP_KEEP_MAX` (default 6) hard cap so the disk can never fill up from rapid manual clicks.
+- **Truly-slim email zip** — when the full archive exceeds the 35 MB Resend cap, build a slim version that drops PDFs + disk_files + CSVs AND walks every JSON to strip embedded base64 blobs (`file_data`, `photo`, `signature`, `pdf_bytes`, etc.) replacing each with `<stripped:base64 N bytes (key=...)>` so the field name + structure survive. Result: 718 MB full → 0.1 MB slim email (181 blobs / 281 MB stripped). Verified: resend_id returned, email landed at jaymn.judd@mascigc.com.
+- **Manifest validates 100% coverage** — `backup_manifest.json` now records `all_db_collections_at_backup_time`. Verified: 26/26 live collections captured, 13 disk files (533 MB) bundled, 1738 records, zero missing.
+- **Email body upgrade** — shows full size + slim attachment size separately, lists how many blobs were stripped, points user to download the full zip from `/admin` for any disk-backed files.
+- Cleaned up the 6.4 GB of accumulated test backups that had filled the disk (100% → 42%).
+
 ## ✅ PRODUCTION RUNS ON MONGODB ATLAS (verified by user 2026-04-28)
 The live production app's `/admin` banner shows **green** ("Persistent database connected"). User confirmed via screenshot. Future agents: do NOT ask the user to redo Atlas migration — it's already done. Preview environment running localhost Mongo is intentional and expected (preview is the throwaway dev playground; only production needs Atlas).
 
