@@ -134,7 +134,28 @@ const ES = {
     "Sin coincidencias — el valor escrito se guardará tal cual.",
   "Equipment list not loaded yet.": "Lista de equipo aún no cargada.",
   "Search unit #, make, model, VIN…": "Buscar # de unidad, marca, modelo, VIN…",
-  // Supplier combo (Sections 05 & 08)
+  // Equipment Pre-Op — out-of-service modal
+  "Stop — Major Safety Failure": "Alto — Falla de Seguridad Mayor",
+  "Stop — Critical Fluid Failure": "Alto — Falla Crítica de Fluido",
+  "Unit is OUT OF SERVICE": "Unidad FUERA DE SERVICIO",
+  "Major safety items failing:": "Fallas de seguridad mayor:",
+  "Critical fluid failure:": "Falla crítica de fluido:",
+  "is marked FAIL.": "está marcado como FALLO.",
+  "Do NOT operate this machine. Get with your supervisor immediately and advise that the unit is unsafe. Shop must be notified so the issue can be repaired before the unit goes back in service.":
+    "NO opere esta máquina. Avise a su supervisor de inmediato — la unidad no es segura. El taller debe ser notificado para que el problema se repare antes de que la unidad regrese al servicio.",
+  "Get with your supervisor immediately to refill the fluid before continuing this inspection. The inspection cannot be submitted while a critical fluid level is failing — running this unit could cause severe damage or injury.":
+    "Avise a su supervisor de inmediato para rellenar el fluido antes de continuar con esta inspección. La inspección no puede enviarse mientras un nivel de fluido crítico esté fallando — operar esta unidad podría causar daños severos o lesiones.",
+  "Required actions:": "Acciones requeridas:",
+  "Tell your supervisor — do not operate.": "Avise a su supervisor — no opere.",
+  "Notify shop so unit can be repaired.": "Notifique al taller para que la unidad sea reparada.",
+  "Tag-out the machine.": "Coloque tarjeta de bloqueo en la máquina.",
+  "Once the fluid is filled:": "Una vez rellenado el fluido:",
+  "change the item from FAIL to PASS, then continue the inspection.":
+    "cambie el ítem de FALLO a APROBADO y continúe con la inspección.",
+  "I'll get my supervisor": "Voy por mi supervisor",
+  "Out of Service": "Fuera de Servicio",
+  "Needs Attention": "Requiere Atención",
+
   "Type or pick a supplier…": "Escriba o elija un proveedor…",
   "Browse supplier list": "Ver lista de proveedores",
   "Search by company name…": "Buscar por nombre de la compañía…",

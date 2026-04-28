@@ -62,6 +62,32 @@ const CRITICAL_FLUID_ITEMS = new Set([
   "Broom drive motor / gearbox oil",
 ]);
 
+/**
+ * MAJOR_OUT_OF_SERVICE_ITEMS — safety-critical items that, when marked FAIL,
+ * trigger the same "stop work, get supervisor" modal as a critical fluid
+ * failure and put the unit OUT OF SERVICE. Anything else marked FAIL is
+ * "needs attention" (yellow) — important to log + photograph, but the unit
+ * stays operable until shop reviews it.
+ *
+ * Strings here MUST exactly match the items emitted by checklists.py.
+ */
+const MAJOR_OUT_OF_SERVICE_ITEMS = new Set([
+  "Steps, grab handles, ladders secure & clean",
+  "Air filter / pre-cleaner condition",
+  "ROPS / FOPS structure - no cracks or damage",
+  "Seat & seat belt - functional, not torn",
+  "Horn operational",
+  "Backup alarm operational",
+  "Service brakes - firm pedal, holds machine",
+  "Parking brake - holds machine on grade",
+  "Steering - responsive, no excessive play",
+  "Emergency / kill switch operational",
+]);
+
+/** Combined set: any FAIL of either of these = OUT OF SERVICE (red). */
+const isOutOfServiceItem = (item) =>
+  CRITICAL_FLUID_ITEMS.has(item) || MAJOR_OUT_OF_SERVICE_ITEMS.has(item);
+
 const todayIso = () => new Date().toISOString().slice(0, 10);
 const nowHm = () => {
   const d = new Date();
@@ -198,21 +224,26 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       if (patch.status && patch.status !== "fail") {
         next.checklist[sectionTitle][item].photo = "";
       }
-      // Recompute tallies
+      // Recompute tallies + out-of-service status. The unit is OUT OF SERVICE
+      // only if a critical-fluid OR a major-safety item is failing. Other
+      // FAILs are "needs attention" (yellow) and don't lock the unit out.
       let pass = 0,
         fail = 0,
-        na = 0;
-      Object.values(next.checklist).forEach((sec) => {
-        Object.values(sec).forEach((res) => {
+        na = 0,
+        oos = false;
+      Object.entries(next.checklist).forEach(([secTitle, sec]) => {
+        Object.entries(sec).forEach(([itemName, res]) => {
           if (res?.status === "pass") pass += 1;
-          else if (res?.status === "fail") fail += 1;
-          else if (res?.status === "na") na += 1;
+          else if (res?.status === "fail") {
+            fail += 1;
+            if (isOutOfServiceItem(itemName)) oos = true;
+          } else if (res?.status === "na") na += 1;
         });
       });
       next.pass_count = pass;
       next.fail_count = fail;
       next.na_count = na;
-      next.out_of_service = fail > 0 ? "Yes" : "No";
+      next.out_of_service = oos ? "Yes" : "No";
       return next;
     });
   };
@@ -295,14 +326,14 @@ export default function NewEquipmentInspection({ publicMode = false }) {
     const failNoNote = [];
     const failShortNote = [];
     const failNoPhoto = [];
-    const criticalFluidFails = [];
+    const oosFails = [];
     Object.entries(data.checklist).forEach(([sec, items]) => {
       Object.entries(items).forEach(([item, res]) => {
         if (!res?.status) {
           missing.push(`${sec} → ${item}`);
         } else if (res.status === "fail") {
-          if (CRITICAL_FLUID_ITEMS.has(item)) {
-            criticalFluidFails.push(item);
+          if (isOutOfServiceItem(item)) {
+            oosFails.push(item);
           }
           const note = (res.note || "").trim();
           if (!note) failNoNote.push(`${sec} → ${item}`);
@@ -311,12 +342,15 @@ export default function NewEquipmentInspection({ publicMode = false }) {
         }
       });
     });
-    if (criticalFluidFails.length > 0) {
+    if (oosFails.length > 0) {
+      // Determine if any are critical fluids vs major safety items
+      const fluidFails = oosFails.filter((i) => CRITICAL_FLUID_ITEMS.has(i));
       setCriticalFluidAlert({
-        section: "Fluids & Leaks",
-        item: criticalFluidFails[0],
+        section: fluidFails.length > 0 ? "Fluids & Leaks" : "Major Safety",
+        item: oosFails[0],
         atSubmit: true,
-        all: criticalFluidFails,
+        all: oosFails,
+        kind: fluidFails.length > 0 ? "fluid" : "major",
       });
       return;
     }
@@ -380,7 +414,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
-      {/* Critical-fluid stop-work modal */}
+      {/* Critical-fluid / major-safety stop-work modal */}
       {criticalFluidAlert && (
         <div
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4"
@@ -391,27 +425,50 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               <AlertOctagon className="w-8 h-8 shrink-0" />
               <div>
                 <div className="font-mono text-xs uppercase tracking-[0.25em] font-bold opacity-80">
-                  Stop — Critical Fluid Failure
+                  {criticalFluidAlert.kind === "major"
+                    ? t("Stop — Major Safety Failure")
+                    : t("Stop — Critical Fluid Failure")}
                 </div>
                 <h2 className="font-display text-2xl font-black tracking-tight mt-1">
-                  Do Not Continue
+                  {t("Unit is OUT OF SERVICE")}
                 </h2>
               </div>
             </div>
             <div className="p-5 sm:p-6 space-y-4">
               <p className="text-base text-slate-900 font-bold">
                 {criticalFluidAlert.atSubmit
-                  ? `Critical fluid failure: ${criticalFluidAlert.all.join(", ")}.`
-                  : `${criticalFluidAlert.item} is marked FAIL.`}
+                  ? `${
+                      criticalFluidAlert.kind === "major"
+                        ? t("Major safety items failing:")
+                        : t("Critical fluid failure:")
+                    } ${criticalFluidAlert.all.join(", ")}.`
+                  : `${criticalFluidAlert.item} ${t("is marked FAIL.")}`}
               </p>
               <p className="text-sm text-slate-700 leading-relaxed">
-                Get with your supervisor immediately to refill the fluid before continuing
-                this inspection. The inspection cannot be submitted while a critical fluid
-                level is failing — running this unit could cause severe damage or injury.
+                {criticalFluidAlert.kind === "major"
+                  ? t(
+                      "Do NOT operate this machine. Get with your supervisor immediately and advise that the unit is unsafe. Shop must be notified so the issue can be repaired before the unit goes back in service."
+                    )
+                  : t(
+                      "Get with your supervisor immediately to refill the fluid before continuing this inspection. The inspection cannot be submitted while a critical fluid level is failing — running this unit could cause severe damage or injury."
+                    )}
               </p>
               <div className="bg-amber-50 border-2 border-amber-300 rounded p-3 text-sm text-amber-900">
-                <b>Once the fluid is filled:</b> change the item from FAIL to PASS,
-                then continue the inspection.
+                {criticalFluidAlert.kind === "major" ? (
+                  <>
+                    <b>{t("Required actions:")}</b>
+                    <ul className="list-disc ml-5 mt-1 space-y-0.5">
+                      <li>{t("Tell your supervisor — do not operate.")}</li>
+                      <li>{t("Notify shop so unit can be repaired.")}</li>
+                      <li>{t("Tag-out the machine.")}</li>
+                    </ul>
+                  </>
+                ) : (
+                  <>
+                    <b>{t("Once the fluid is filled:")}</b>{" "}
+                    {t("change the item from FAIL to PASS, then continue the inspection.")}
+                  </>
+                )}
               </div>
             </div>
             <div className="px-5 sm:px-6 pb-5 sm:pb-6 flex flex-col sm:flex-row gap-2">
@@ -420,7 +477,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                 className="flex-1 h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-sm"
                 data-testid="critical-fluid-acknowledge"
               >
-                I'll get my supervisor
+                {t("I'll get my supervisor")}
               </Button>
             </div>
           </div>
@@ -652,6 +709,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                 const result = data.checklist?.[sec.title]?.[item] || { status: "", note: "", photo: "" };
                 const safeId = (sec.title + "-" + item).replace(/[^a-z0-9]/gi, "-").toLowerCase();
                 const isFail = result.status === "fail";
+                const isMajorOos = isFail && isOutOfServiceItem(item);
                 const noteLen = (result.note || "").trim().length;
                 const noteShort = isFail && noteLen > 0 && noteLen < 10;
                 const noteEmpty = isFail && noteLen === 0;
@@ -660,8 +718,10 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                   <div
                     key={item}
                     className={`border-2 rounded-md p-3 ${
-                      isFail
+                      isMajorOos
                         ? "border-red-700 bg-red-50"
+                        : isFail
+                        ? "border-amber-500 bg-amber-50"
                         : result.status === "pass"
                         ? "border-emerald-300 bg-emerald-50"
                         : result.status === "na"
@@ -670,7 +730,21 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                     }`}
                     data-testid={`checklist-item-${safeId}`}
                   >
-                    <div className="text-sm text-slate-900 font-medium">{item}</div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-sm text-slate-900 font-medium">{item}</div>
+                      {isFail && (
+                        <span
+                          className={`shrink-0 font-mono text-[9px] uppercase tracking-[0.18em] font-bold px-2 py-0.5 rounded ${
+                            isMajorOos
+                              ? "bg-red-700 text-white"
+                              : "bg-amber-400 text-amber-900"
+                          }`}
+                          data-testid={`flag-${safeId}`}
+                        >
+                          {isMajorOos ? t("Out of Service") : t("Needs Attention")}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex gap-2 mt-2">
                       <StatusBtn
                         active={result.status === "pass"}
@@ -685,8 +759,12 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                         label={t("Fail")}
                         onClick={() => {
                           setItem(sec.title, item, { status: "fail" });
-                          if (CRITICAL_FLUID_ITEMS.has(item)) {
-                            setCriticalFluidAlert({ section: sec.title, item });
+                          if (isOutOfServiceItem(item)) {
+                            setCriticalFluidAlert({
+                              section: sec.title,
+                              item,
+                              kind: CRITICAL_FLUID_ITEMS.has(item) ? "fluid" : "major",
+                            });
                           }
                         }}
                         testId={`btn-fail-${safeId}`}
