@@ -1049,6 +1049,15 @@ const ES = {
   "Could not send order email.": "No se pudo enviar el correo del pedido.",
   "CLEARED TO OPERATE": "LIBERADO PARA OPERAR",
 
+  // QC tile (coming soon, 2026-04-28)
+  "QC": "Control de Calidad",
+  "Coming Soon": "Próximamente",
+  "In development": "En desarrollo",
+  "Quality Control workflows — inspections, punch lists, NCRs, and turnover packages. Coming soon.":
+    "Flujos de Control de Calidad — inspecciones, listas de pendientes, NCRs y paquetes de entrega. Próximamente.",
+  "Daily QC inspections · pass/fail with photos": "Inspecciones diarias de QC · aprobado/falla con fotos",
+  "Punch list tracking · NCRs · turnover packages": "Seguimiento de pendientes · NCRs · paquetes de entrega",
+
   // ============================================================
   // Persistence + Backup admin panels (2026-04-28)
   // ============================================================

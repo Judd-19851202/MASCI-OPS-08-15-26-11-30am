@@ -6,6 +6,7 @@ import {
   Building2,
   Shield,
   Wrench,
+  ClipboardCheck,
   ArrowRight,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -28,15 +29,59 @@ import { useT } from "@/lib/i18n";
  * the "right neighborhood" for what they're doing.
  */
 
-const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, testId, external }) => {
+const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, testId, external, comingSoon }) => {
+  const { t } = useT();
   // accent classes kept static so Tailwind keeps them in the build
   const styles = {
     red:   { bg: "bg-red-700",   bar: "border-red-700",   ring: "hover:border-red-700",   pill: "text-red-700 bg-red-50" },
     amber: { bg: "bg-amber-600", bar: "border-amber-600", ring: "hover:border-amber-600", pill: "text-amber-700 bg-amber-50" },
     slate: { bg: "bg-slate-900", bar: "border-slate-900", ring: "hover:border-slate-900", pill: "text-slate-800 bg-slate-100" },
     emerald:{ bg: "bg-emerald-700", bar: "border-emerald-700", ring: "hover:border-emerald-700", pill: "text-emerald-700 bg-emerald-50" },
+    blue:  { bg: "bg-blue-700",  bar: "border-blue-700",  ring: "hover:border-blue-700",  pill: "text-blue-700 bg-blue-50" },
   };
   const s = styles[accent] || styles.red;
+
+  // "Coming soon" tiles render as a non-clickable div with a wash-out look
+  // so users can see what's planned without bumping into a dead link.
+  if (comingSoon) {
+    return (
+      <div
+        className="group relative bg-white border-2 border-dashed border-slate-300 rounded-md p-6 sm:p-8 flex flex-col opacity-90 cursor-not-allowed"
+        data-testid={testId}
+        aria-disabled="true"
+      >
+        <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${s.bg} opacity-60`} />
+        <div className="flex items-start justify-between gap-3">
+          <div className={`inline-flex items-center justify-center w-14 h-14 rounded-md ${s.bg} text-white opacity-70`}>
+            <Icon className="w-7 h-7" />
+          </div>
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-900 text-amber-300 font-mono text-[10px] uppercase tracking-[0.2em] font-bold">
+            {t("Coming Soon")}
+          </span>
+        </div>
+        <h3 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-700 mt-4">
+          {title}
+        </h3>
+        <p className="text-slate-500 text-sm sm:text-base mt-2 leading-relaxed">{desc}</p>
+        {bullets && (
+          <ul className="mt-4 space-y-1.5 text-xs sm:text-sm text-slate-500">
+            {bullets.map((b) => (
+              <li key={b} className="flex items-start gap-2">
+                <span className={`mt-1.5 w-1 h-1 rounded-full ${s.bg} shrink-0 opacity-60`} />
+                <span>{b}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-6 pt-5 border-t-2 border-dashed border-slate-200 flex items-center justify-between">
+          <span className="font-mono text-xs uppercase tracking-[0.2em] font-bold text-slate-400">
+            {t("In development")}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Link
       to={to}
@@ -183,6 +228,18 @@ export default function Hub() {
             accent="amber"
             testId="hub-section-shop"
             external
+          />
+          <SectionCard
+            icon={ClipboardCheck}
+            title={t("QC")}
+            desc={t("Quality Control workflows — inspections, punch lists, NCRs, and turnover packages. Coming soon.")}
+            bullets={[
+              t("Daily QC inspections · pass/fail with photos"),
+              t("Punch list tracking · NCRs · turnover packages"),
+            ]}
+            accent="blue"
+            testId="hub-section-qc"
+            comingSoon
           />
         </div>
       </main>

@@ -1,5 +1,9 @@
 # MongoDB Atlas Migration — 15-Minute Setup
 
+> ✅ **PRODUCTION IS ALREADY ON ATLAS** (verified 2026-04-28 by Jaymn — `/admin` banner is green on the live app). This document is kept as reference for future deployments / new environments only.
+
+---
+
 > When the red banner on `/admin` says **"⚠ Your data will be deleted on the next redeploy"** (or in Spanish: **"⚠ Sus datos se borrarán en el próximo redespliegue"**), it's because production Mongo is running **inside the Emergent container**. Every redeploy wipes the container — meaning everything in `db.daily_reports`, `db.equipment_inspections`, `db.docs`, `db.users`, the Crew Hub messages, the Oxford 24-12 Basecamp import, etc. all disappears unless you backup first.
 
 The fix is to point the production app at **MongoDB Atlas** (free tier, hosted by MongoDB themselves). After that, redeploys are safe forever — Atlas runs outside the container.

@@ -1,5 +1,8 @@
 # MASCI Safety Hub — PRD
 
+## ✅ PRODUCTION RUNS ON MONGODB ATLAS (verified by user 2026-04-28)
+The live production app's `/admin` banner shows **green** ("Persistent database connected"). User confirmed via screenshot. Future agents: do NOT ask the user to redo Atlas migration — it's already done. Preview environment running localhost Mongo is intentional and expected (preview is the throwaway dev playground; only production needs Atlas).
+
 ## 2026-04-28 — server.py refactor extended (P1, batches 2-4) + Atlas guide
 - **server.py: 4400 → 3029 lines (1371 lines extracted, -31%).**
 - New route modules in `/app/backend/routes/`:
