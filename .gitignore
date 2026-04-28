@@ -85,21 +85,13 @@ frontend/node_modules/.cache/default-development/8.pack
 frontend/node_modules/.cache/default-development/13.pack
 frontend/node_modules/.cache/default-development/26.pack
 frontend/node_modules/.cache/default-development/29.pack
--e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 frontend/node_modules/.cache/default-development/31.pack
--e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -145,31 +137,19 @@ backend/backups/MASCI_full_backup_2026-04-28_172129Z.zip
 backend/backups/MASCI_full_backup_2026-04-28_172140Z.zip
 frontend/node_modules/.cache/default-development/59.pack
 backend/backups/MASCI_full_backup_2026-04-28_174223Z.zip
--e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 backend/backups/MASCI_full_backup_2026-04-28_183346Z.zip
 backend/backups/MASCI_full_backup_2026-04-28_183329Z.zip
--e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
--e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -179,11 +159,7 @@ frontend/node_modules/.cache/default-development/39.pack
 backend/backups/MASCI_full_backup_2026-04-28_201639Z.zip
 backend/backups/MASCI_full_backup_2026-04-28_201741Z.zip
 backend/backups/MASCI_full_backup_2026-04-28_201803Z.zip
--e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -193,22 +169,14 @@ backend/backups/MASCI_full_backup_2026-04-28_213741Z.zip
 backend/backups/MASCI_full_backup_2026-04-28_213842Z.zip
 frontend/node_modules/.cache/default-development/49.pack
 backend/backups/MASCI_full_backup_2026-04-28_215432Z.zip
--e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 backend/backups/MASCI_full_backup_2026-04-28_224112Z.zip
 backend/backups/MASCI_full_backup_2026-04-28_223759Z.zip
--e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
