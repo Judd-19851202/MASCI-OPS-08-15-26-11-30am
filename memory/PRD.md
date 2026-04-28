@@ -55,8 +55,8 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
 - **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
 
-## What's Implemented (2026-04-27 · MASCI Hub Rebrand)
-App rebranded from "MASCI Safety Hub" to **"MASCI Hub"** — reflects that it's a full operations platform, not just safety.
+## What's Implemented (2026-04-27 · MASCI Hub Rebrand + New Logo)
+App rebranded from "MASCI Safety Hub" to **"MASCI Hub"** — reflects that it's a full operations platform, not just safety. Logo art was also regenerated via Gemini Nano Banana (`gemini-3.1-flash-image-preview`) — 3 lockup variants (dark bg, onblack, onlight) all now say **"MASCI HUB"** instead of "MASCI SAFETY" while preserving the compass icon, red M with checkmark, tagline, core values subtext, and overall composition. Originals archived to `/app/frontend/public/_old_safety_lockups/`. One-off script at `/app/backend/scripts/generate_hub_logos.py` (idempotent — always edits from the archived originals). Verified via MD5 — file on disk and server-served bytes match.
 - **New homepage `/`** (`Hub.jsx`): 4 big section cards instead of 7 mixed tiles:
   - 🦺 **Safety** (red) → `/safety` — Site Inspections, Safety Meetings, Incident Reports, JHA Plans, Trench Box Data
   - 👷 **Field** (amber) → `/field` — Daily Reports, Equipment Pre-Op
@@ -65,9 +65,10 @@ App rebranded from "MASCI Safety Hub" to **"MASCI Hub"** — reflects that it's 
 - **New `SafetySection.jsx`** (`/safety`) — 5 compliance-form tiles with red accent + "← MASCI Hub" back link.
 - **New `FieldSection.jsx`** (`/field`) — 2 daily-ops tiles with amber accent + "← MASCI Hub" back link.
 - Taglines + footers updated ("MASCI · Operations Platform").
-- **Copy updates across codebase:** Login page, backup panels, cheat sheet, share-form dialog, Owner's Manual, PDF headers, email subject lines, i18n Spanish translations, backend fallback titles. The product is now "MASCI Hub" everywhere a user sees it.
+- **Copy updates across codebase:** Login page, backup panels, cheat sheet, share-form dialog, Owner's Manual, PDF headers, email subject lines, i18n Spanish translations, backend fallback titles. The product is now "MASCI Hub" everywhere.
 - **Owner's Manual (`/admin/guide`) updated** with a new "The 4 sections of MASCI Hub" section explaining who uses Safety / Field / Projects / Admin.
-- Logo PNG file still shows "MASCI SAFETY" graphically (not regenerated) — only alt text updated to "MASCI".
+
+## What's Implemented (2026-04-27 · Owner's Manual + One-Stop Backup Hero)
 
 ## What's Implemented (2026-04-27 · Owner's Manual + One-Stop Backup Hero)
 - **New `/admin/guide` page** — plain-English, print-friendly Owner's Manual. Answers "how do I run this?", "what's in the backup .zip?", "what do I do if data is missing after a deploy?", "what are the passwords?". Linked from a "📖 Guide" button in the admin header. Crews never see it. Print button in the header → print-optimized layout.
