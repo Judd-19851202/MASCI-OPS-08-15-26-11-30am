@@ -12,6 +12,7 @@ import {
   Loader2,
   LogOut,
   Home,
+  TrendingUp,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -194,6 +195,15 @@ export default function AdminHub() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
+            <AdminTile
+              to="/admin/pnl"
+              icon={TrendingUp}
+              title="Project P&L Snapshot"
+              count={counts.daily}
+              sub="Live job-cost dashboard"
+              accent="amber"
+              testId="admin-tile-pnl"
+            />
             <AdminTile
               to="/admin/daily"
               icon={ClipboardList}

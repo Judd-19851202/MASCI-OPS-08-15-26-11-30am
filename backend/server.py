@@ -1653,6 +1653,176 @@ async def _seed_suppliers_from_json() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Project P&L Snapshot — aggregate live job-cost data from daily_reports
+# in one shot for a given project + date range.
+# ---------------------------------------------------------------------------
+DEFAULT_LABOR_RATE = float(os.environ.get("DEFAULT_LABOR_RATE", "45.0"))
+
+
+def _coerce_float(v: Any, default: float = 0.0) -> float:
+    try:
+        if v is None or v == "":
+            return default
+        return float(v)
+    except (TypeError, ValueError):
+        return default
+
+
+@api_router.get("/admin/projects/list")
+async def list_projects_in_dailies(_: bool = Depends(require_admin)):
+    """Return distinct {project_number, project_name} tuples seen across all
+    daily reports — gives the P&L picker a curated dropdown so users don't
+    have to type project numbers from memory."""
+    pipeline = [
+        {"$match": {"project_number": {"$nin": [None, ""]}}},
+        {"$group": {
+            "_id": "$project_number",
+            "project_name": {"$last": "$project_name"},
+            "report_count": {"$sum": 1},
+            "last_report_date": {"$max": "$report_date"},
+        }},
+        {"$sort": {"last_report_date": -1}},
+        {"$limit": 500},
+    ]
+    docs = await db.daily_reports.aggregate(pipeline).to_list(500)
+    return {
+        "items": [
+            {
+                "project_number": d["_id"],
+                "project_name": d.get("project_name") or "",
+                "report_count": d.get("report_count", 0),
+                "last_report_date": d.get("last_report_date") or "",
+            }
+            for d in docs
+        ],
+        "count": len(docs),
+    }
+
+
+@api_router.get("/admin/projects/pnl")
+async def project_pnl(
+    project_number: str,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    labor_rate: Optional[float] = None,
+    _: bool = Depends(require_admin),
+):
+    """Live job-cost dashboard for one project + date range.
+
+    Aggregates all matching `daily_reports` and returns:
+      - crew_hours_total + crew_breakdown (by employee)
+      - sub_hours_total + sub_breakdown (by company)
+      - material_lines (one row per ticket)
+      - cost_summary (labor cost, sub cost — sub cost left blank unless rate set)
+      - report_count, date_range_actual
+    """
+    if not project_number:
+        raise HTTPException(status_code=400, detail="project_number is required")
+
+    rate = labor_rate if labor_rate and labor_rate > 0 else DEFAULT_LABOR_RATE
+
+    q: Dict[str, Any] = {"project_number": project_number}
+    # report_date is stored as 'YYYY-MM-DD' string — string compare works lex
+    date_filter: Dict[str, Any] = {}
+    if date_from:
+        date_filter["$gte"] = date_from
+    if date_to:
+        date_filter["$lte"] = date_to
+    if date_filter:
+        q["report_date"] = date_filter
+
+    cursor = db.daily_reports.find(q, {"_id": 0}).sort("report_date", 1)
+    reports = await cursor.to_list(2000)
+
+    crew_by_name: Dict[str, Dict[str, Any]] = {}
+    sub_by_company: Dict[str, Dict[str, Any]] = {}
+    material_lines: List[Dict[str, Any]] = []
+    crew_total_hours = 0.0
+    sub_total_hours = 0.0
+    project_name_seen: Optional[str] = None
+    actual_dates: List[str] = []
+
+    for r in reports:
+        actual_dates.append(r.get("report_date") or "")
+        if not project_name_seen:
+            project_name_seen = r.get("project_name") or None
+
+        # Crew rows
+        for c in (r.get("masci_crews") or []):
+            name = (c.get("name") or "Unnamed").strip() or "Unnamed"
+            hrs = _coerce_float(c.get("hours"))
+            entry = crew_by_name.setdefault(name, {
+                "name": name,
+                "trade": c.get("trade") or "",
+                "days_on_site": 0,
+                "hours": 0.0,
+            })
+            entry["days_on_site"] += 1
+            entry["hours"] += hrs
+            crew_total_hours += hrs
+
+        # Subcontractor rows
+        for s in (r.get("subcontractors") or []):
+            company = (s.get("company") or "Unknown").strip() or "Unknown"
+            count = _coerce_float(s.get("count"))
+            hrs_per_worker = _coerce_float(s.get("hours"))
+            # If "count" + "hours" are filled, multiply for total man-hours.
+            # If only "hours" is filled, treat as crew-hours total for the day.
+            man_hours = count * hrs_per_worker if count and hrs_per_worker else hrs_per_worker
+            entry = sub_by_company.setdefault(company, {
+                "company": company,
+                "trade": s.get("trade") or "",
+                "days_on_site": 0,
+                "headcount_total": 0.0,
+                "hours": 0.0,
+            })
+            entry["days_on_site"] += 1
+            entry["headcount_total"] += count
+            entry["hours"] += man_hours
+            sub_total_hours += man_hours
+
+        # Materials — one row per ticket
+        for m in (r.get("materials") or []):
+            material_lines.append({
+                "report_date": r.get("report_date") or "",
+                "description": m.get("description") or "",
+                "quantity": m.get("quantity") or "",
+                "unit": m.get("unit") or "",
+                "supplier": m.get("supplier") or "",
+                "ticket_number": m.get("ticket_number") or "",
+                "notes": m.get("notes") or "",
+                "ticket_photo_count": len(m.get("ticket_photos") or []),
+            })
+
+    crew_breakdown = sorted(crew_by_name.values(), key=lambda e: -e["hours"])
+    sub_breakdown = sorted(sub_by_company.values(), key=lambda e: -e["hours"])
+
+    labor_cost = round(crew_total_hours * rate, 2)
+
+    return {
+        "project_number": project_number,
+        "project_name": project_name_seen or "",
+        "date_from": min(actual_dates) if actual_dates else date_from,
+        "date_to": max(actual_dates) if actual_dates else date_to,
+        "report_count": len(reports),
+        "labor_rate": rate,
+        "crew_hours_total": round(crew_total_hours, 2),
+        "labor_cost": labor_cost,
+        "crew_breakdown": [
+            {**e, "hours": round(e["hours"], 2), "cost_at_rate": round(e["hours"] * rate, 2)}
+            for e in crew_breakdown
+        ],
+        "sub_hours_total": round(sub_total_hours, 2),
+        "sub_breakdown": [
+            {**e, "hours": round(e["hours"], 2), "headcount_total": round(e["headcount_total"], 2)}
+            for e in sub_breakdown
+        ],
+        "material_count": len(material_lines),
+        "material_lines": material_lines,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Daily Report numbering — see /daily-reports/next-number above (registered
 # before the /{report_id} route so FastAPI matches it correctly).
 # ---------------------------------------------------------------------------
