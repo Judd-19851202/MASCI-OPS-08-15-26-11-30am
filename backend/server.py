@@ -1266,6 +1266,117 @@ async def create_equipment_unit(payload: EquipmentUnitCreate):
     return unit
 
 
+# ---------------------------------------------------------------------------
+# Equipment Master Fleet — sourced from MASCI Equipment List.xlsx
+# Used to populate equipment dropdowns across all forms (Pre-Op, Daily Reports,
+# Incidents, etc.). Operators can still type custom values as a fallback.
+# ---------------------------------------------------------------------------
+EQUIPMENT_MASTER_SEED_FILE = ROOT_DIR / "data" / "equipment_master.json"
+
+
+class EquipmentMasterItem(BaseModel):
+    unit_number: str = ""
+    year: Optional[int] = None
+    make_model: str = ""
+    plate: str = ""
+    vin_serial_number: str = ""
+    comments: str = ""
+    company: str = ""
+    category: str = "Misc Equipment"
+    preop_equipment_type: str = "Other"
+    display_label: str = ""
+
+
+@api_router.get("/equipment-master")
+async def list_equipment_master(category: Optional[str] = None):
+    """Returns the full MASCI fleet, optionally filtered to one category.
+
+    Response shape:
+        {
+          "categories": ["Excavators", "Loaders", ...],   # alpha order
+          "items": [ EquipmentMasterItem, ... ],          # all units
+          "grouped": { "Excavators": [item, ...], ... }   # convenience
+        }
+    """
+    q = {"category": category} if category else {}
+    cursor = db.equipment_master.find(q, {"_id": 0}).sort(
+        [("category", 1), ("unit_number", 1), ("make_model", 1)]
+    )
+    docs = await cursor.to_list(2000)
+    grouped: Dict[str, List[Dict[str, Any]]] = {}
+    for d in docs:
+        grouped.setdefault(d.get("category", "Misc Equipment"), []).append(d)
+    categories = sorted(grouped.keys())
+    return {
+        "categories": categories,
+        "items": docs,
+        "grouped": grouped,
+        "count": len(docs),
+    }
+
+
+async def _seed_equipment_master() -> None:
+    """Idempotent seed of the equipment_master collection from JSON file.
+
+    Re-runs whenever the JSON file's item count differs from what's stored
+    (so updating the seed file ships new equipment automatically on restart).
+    """
+    log = logging.getLogger(__name__)
+    if not EQUIPMENT_MASTER_SEED_FILE.exists():
+        log.info(f"[equipment-master] seed file missing: {EQUIPMENT_MASTER_SEED_FILE}")
+        return
+    try:
+        with open(EQUIPMENT_MASTER_SEED_FILE, "r", encoding="utf-8") as fh:
+            import json as _json_em
+            seed_items = _json_em.load(fh)
+    except Exception as e:
+        log.exception(f"[equipment-master] failed to read seed: {e}")
+        return
+
+    existing_count = await db.equipment_master.count_documents({})
+    if existing_count == len(seed_items) and existing_count > 0:
+        return  # already seeded and matches file
+
+    # Replace the collection contents in one go (safe: no FK relationships)
+    await db.equipment_master.delete_many({})
+    if seed_items:
+        # Ensure each row has an id for stable references
+        for it in seed_items:
+            it.setdefault("id", str(uuid.uuid4()))
+        await db.equipment_master.insert_many(seed_items)
+        # Also push these into the legacy equipment_units collection so the
+        # Pre-Op dropdown picks them up automatically.
+        try:
+            existing_units = {
+                (u.get("equipment_type", ""), u.get("unit_label", "").strip().lower())
+                async for u in db.equipment_units.find({}, {"_id": 0, "equipment_type": 1, "unit_label": 1})
+            }
+            new_units = []
+            for it in seed_items:
+                etype = it.get("preop_equipment_type") or "Other"
+                label = it.get("display_label") or it.get("make_model") or ""
+                if not label.strip():
+                    continue
+                key = (etype, label.strip().lower())
+                if key in existing_units:
+                    continue
+                existing_units.add(key)
+                new_units.append({
+                    "id": str(uuid.uuid4()),
+                    "equipment_type": etype,
+                    "unit_label": label.strip(),
+                    "make": it.get("make_model", ""),
+                    "model": "",
+                    "serial": it.get("vin_serial_number", ""),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                })
+            if new_units:
+                await db.equipment_units.insert_many(new_units)
+        except Exception as e:
+            log.exception(f"[equipment-master] equipment_units fan-out failed: {e}")
+    log.info(f"[equipment-master] seeded {len(seed_items)} units")
+
+
 @api_router.post("/equipment-inspections", response_model=EquipmentInspection, dependencies=[Depends(rate_limit_public_post)])
 async def create_equipment_inspection(payload: EquipmentInspectionCreate):
     insp = EquipmentInspection(**payload.model_dump())
@@ -2889,6 +3000,7 @@ async def _seed_phase1():
         await seed_initial_projects(db)
         await create_tools_indexes(db)
         await create_phase4_indexes(db)
+        await _seed_equipment_master()
     except Exception as e:
         logging.getLogger(__name__).exception(f"Phase 1 seed failed: {e}")
 

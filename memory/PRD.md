@@ -225,3 +225,15 @@ Customer reported data loss after Emergent redeploy — in-container MongoDB and
 2. Test the live pipeline: submit one Site Inspection from `/inspect/new` with `project_number=24-06` and confirm David Jewett + Jaymn + safety@ all receive the PDF.
 3. Decide if next module is **Equipment Pre-Op** or **DOT Vehicle Daily**.
 4. Consider multi-user admin (with audit trail) once 2+ office staff need access.
+
+## 2026-04-28 — Equipment Master Fleet (P0 complete)
+- Parsed `Equipment List.xlsx` (Louis sheet — master) → 589 units across 27 categories.
+- Seed file: `/app/backend/data/equipment_master.json` (committed; auto-syncs to DB on startup if file count differs from `equipment_master` collection count).
+- New endpoint: `GET /api/equipment-master[?category=...]` → `{ categories[], items[], grouped{}, count }`.
+- Pre-Op fan-out: seed also populates legacy `equipment_units` (mapped via `preop_equipment_type`) so existing Pre-Op dropdown auto-fills with master fleet.
+- New shared component: `/app/frontend/src/components/EquipmentCombo.jsx` — searchable, category-grouped picker with always-on free-text fallback (operators can still type custom equipment).
+- Wired into:
+  - `NewEquipmentInspection.jsx` — Unit # / Label field (auto-fills make/serial on pick).
+  - `NewDailyReport.jsx` — Equipment Log → "Unit / Equipment" field (replaces free-text "Description / ID").
+- To refresh fleet later: replace `/app/backend/data/equipment_master.json` and restart backend (`sudo supervisorctl restart backend`); seed is idempotent and replaces collection contents when file count changes.
+

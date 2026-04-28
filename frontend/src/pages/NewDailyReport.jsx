@@ -22,6 +22,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
+import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { useT, getLang } from "@/lib/i18n";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
@@ -283,6 +284,13 @@ export default function NewDailyReport({ publicMode = false }) {
                     className="min-h-[60px] text-base border-2 border-slate-300"
                     placeholder={f.placeholder}
                     data-testid={`${testIdBase}-${f.key}-${i}`}
+                  />
+                ) : f.type === "equipment-combo" ? (
+                  <EquipmentCombo
+                    value={row[f.key] || ""}
+                    onChange={(v) => helpers.update(i, f.key, v)}
+                    placeholder={f.placeholder || "Type or pick a unit…"}
+                    testId={`${testIdBase}-${f.key}-${i}`}
                   />
                 ) : (
                   <Input
@@ -870,7 +878,7 @@ export default function NewDailyReport({ publicMode = false }) {
               notes: "",
             }}
             fields={[
-              { key: "description", label: "Description / ID", full: true },
+              { key: "description", label: "Unit / Equipment", full: true, type: "equipment-combo", placeholder: "Type or pick from MASCI fleet…" },
               { key: "hours_used", label: "Hours Used", type: "number" },
               { key: "time_delivered", label: "Time Delivered", type: "time" },
               { key: "time_removed", label: "Time Removed", type: "time" },

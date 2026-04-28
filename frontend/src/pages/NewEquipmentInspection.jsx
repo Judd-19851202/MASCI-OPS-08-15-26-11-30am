@@ -18,6 +18,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
+import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { useT, getLang } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
@@ -588,7 +589,20 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Unit # / Label *")}</Label>
-                  <Input value={data.equipment_unit} onChange={(e) => set("equipment_unit", e.target.value)} className={inputCls} placeholder="e.g. CAT 320 — Unit #7" data-testid="input-equipment-unit" />
+                  <EquipmentCombo
+                    value={data.equipment_unit}
+                    onChange={(v) => set("equipment_unit", v)}
+                    onPick={(it) => {
+                      setData((p) => ({
+                        ...p,
+                        equipment_unit: it.display_label || it.make_model || "",
+                        equipment_make: it.make_model || p.equipment_make,
+                        equipment_serial: it.vin_serial_number || p.equipment_serial,
+                      }));
+                    }}
+                    placeholder="Type or pick from MASCI fleet (e.g. EXC020, Cat 308)…"
+                    testId="equipment-unit"
+                  />
                 </div>
                 <div>
                   <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Make")}</Label>
