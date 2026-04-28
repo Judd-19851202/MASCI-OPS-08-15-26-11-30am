@@ -188,6 +188,29 @@ class AdminLoginRequest(BaseModel):
     password: str
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# /api/health — DEFENSE LAYER 1
+# Lightweight liveness probe. Does NOT touch the DB, NOT load any state,
+# NOT call any external service. Always responds in <1ms even when the
+# rest of the backend is heavy under a backup build or DB query.
+# Cloudflare + Emergent's deploy infrastructure use this to determine
+# whether the origin container is alive — if this stops responding for
+# >60s the platform routes a Cloudflare 520 to users. Keeping it
+# absolutely synchronous + dependency-free is what prevents production
+# outages.
+# ─────────────────────────────────────────────────────────────────────────
+@api_router.get("/health")
+def api_health():
+    return {"ok": True, "service": "masci-hub", "ts": datetime.now(timezone.utc).isoformat()}
+
+
+@api_router.get("/healthz")
+def api_healthz():
+    return {"ok": True}
+
+
+
+
 @api_router.post("/admin/login")
 async def admin_login(body: AdminLoginRequest, request: Request):
     ip = _client_ip(request)
@@ -1663,6 +1686,11 @@ async def _build_backup_zip(db) -> tuple[bytes, int, str]:
     """Build the full-backup .zip in memory. Returns (payload, record_count, filename).
 
     Shared by the HTTP download endpoint and the nightly scheduler.
+
+    Yields the asyncio event loop after every collection iteration so the
+    backend stays responsive to incoming HTTP requests (and Cloudflare /
+    Emergent platform healthchecks) for the entire duration of the build —
+    even when the resulting zip is ~750 MB.
     """
     now = datetime.now(timezone.utc)
     stamp = now.strftime("%Y-%m-%d_%H%M%SZ")
@@ -1682,6 +1710,7 @@ async def _build_backup_zip(db) -> tuple[bytes, int, str]:
 
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
         for kind, coll_name in EXPORTABLE_KINDS.items():
+            await asyncio.sleep(0)  # yield to event loop — keeps healthcheck alive
             cursor = db[coll_name].find({}, {"_id": 0}).sort("created_at", -1)
             docs = await cursor.to_list(50000)
             total_records += len(docs)
@@ -1724,6 +1753,9 @@ async def _build_backup_zip(db) -> tuple[bytes, int, str]:
                         zf.writestr(f"{kind}/pdf/{base}.pdf", pdf_bytes)
                     except Exception as e:  # noqa: BLE001
                         pdf_failures.append(f"{kind}/{d.get('id')}: {e}")
+                    # Yield after every PDF render — these are the slowest
+                    # piece of the build (WeasyPrint can take 1-3s each).
+                    await asyncio.sleep(0)
 
         # Manifest
         log_lines.append("")
@@ -1762,6 +1794,7 @@ async def _build_backup_zip(db) -> tuple[bytes, int, str]:
         auto_total = 0
         captured_collections: List[str] = list(EXPORTABLE_KINDS.values())
         for coll_name in sorted(all_collections):
+            await asyncio.sleep(0)  # keep event loop alive
             if coll_name in EXCLUDE_FROM_AUTO_BACKUP or coll_name.startswith("system."):
                 continue
             try:
@@ -1791,6 +1824,7 @@ async def _build_backup_zip(db) -> tuple[bytes, int, str]:
         disk_bytes = 0
         if DISK_STORAGE_ROOT.is_dir():
             for f in DISK_STORAGE_ROOT.rglob("*"):
+                await asyncio.sleep(0)  # yield each file — disk_files can be 100MB+
                 if not f.is_file():
                     continue
                 try:
@@ -1840,10 +1874,61 @@ async def _build_backup_zip(db) -> tuple[bytes, int, str]:
 BACKUPS_DIR = Path(os.environ.get("BACKUPS_DIR", "/app/backend/backups")).resolve()
 BACKUP_RETENTION_DAYS = int(os.environ.get("BACKUP_RETENTION_DAYS", "14"))
 BACKUP_HOUR_UTC = int(os.environ.get("BACKUP_HOUR_UTC", "2"))   # default 02:00 UTC
-# Hard ceiling on stored backups to defend against full disks. The /app
-# volume is 9.8 GB; a single full backup is ~750 MB, so 6 files = 4.5 GB
-# which leaves comfortable headroom for the working DB + storage tree.
-BACKUP_KEEP_MAX = int(os.environ.get("BACKUP_KEEP_MAX", "6"))
+# DEFENSE LAYER 2 — Hard ceiling on stored backups. The container volume
+# is small (9.8 GB) and a single full backup is ~750 MB. Keeping 3 max
+# means we use ≤ 2.3 GB on backups, leaving plenty of headroom for the
+# working DB and the disk-backed files. This is the single biggest
+# defense against "backup fills disk → backend crashes → Cloudflare 520".
+BACKUP_KEEP_MAX = int(os.environ.get("BACKUP_KEEP_MAX", "3"))
+# DEFENSE LAYER 3 — Auto-prune trigger. If disk usage exceeds this
+# percentage at boot OR right before a backup write, aggressively purge
+# backups down to BACKUP_KEEP_MAX-1. Acts as an emergency brake.
+BACKUP_DISK_HIGH_WATERMARK = int(os.environ.get("BACKUP_DISK_HIGH_WATERMARK", "75"))
+
+
+def _disk_pct_used(path: str = "/app") -> int:
+    """Return percent disk used at `path` (0-100). Returns 0 on error."""
+    try:
+        import shutil as _sh
+        total, used, _free = _sh.disk_usage(path)
+        return int((used / total) * 100) if total else 0
+    except Exception:
+        return 0
+
+
+def _emergency_prune_backups(reason: str) -> int:
+    """Sync helper. Aggressively prune backups + .tmp files. Safe to call
+    from any context (sync or async via to_thread). Returns count pruned.
+    Catches all exceptions internally — NEVER raises into the caller.
+    """
+    pruned = 0
+    try:
+        BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+        for p in BACKUPS_DIR.glob("*.zip.tmp"):
+            try:
+                p.unlink(); pruned += 1
+            except Exception:
+                continue
+        # Keep BACKUP_KEEP_MAX-1 newest so the next backup fits within cap
+        files = sorted(
+            BACKUPS_DIR.glob("MASCI_full_backup_*.zip"),
+            key=lambda f: f.stat().st_mtime,
+            reverse=True,
+        )
+        keep = max(0, BACKUP_KEEP_MAX - 1)
+        for p in files[keep:]:
+            try:
+                p.unlink(); pruned += 1
+            except Exception:
+                continue
+        if pruned:
+            logger.warning(
+                f"[backup-defense] EMERGENCY PRUNE ({reason}) — "
+                f"deleted {pruned} files, disk now at {_disk_pct_used()}%"
+            )
+    except Exception as e:
+        logger.warning(f"[backup-defense] emergency prune itself failed: {e}")
+    return pruned
 
 
 def _list_stored_backups() -> List[dict]:
@@ -1910,11 +1995,36 @@ async def _run_scheduled_backup(db) -> Optional[dict]:
         if pre_pruned:
             logger.info(f"[scheduled-backup] pre-flight pruned {pre_pruned} old/tmp files")
 
+        # DEFENSE LAYER 5 — Disk high-water-mark check after prune.
+        # If the disk is STILL above the watermark after standard pruning,
+        # bail out instead of building a 750 MB zip we can't write. Better
+        # to skip a backup than crash the backend.
+        pct_after = _disk_pct_used()
+        if pct_after >= BACKUP_DISK_HIGH_WATERMARK:
+            _emergency_prune_backups(reason=f"pre-build disk {pct_after}%")
+            pct_after = _disk_pct_used()
+            if pct_after >= 90:
+                logger.error(
+                    f"[scheduled-backup] ABORT — disk at {pct_after}% even after "
+                    f"emergency prune. Backup skipped to protect backend."
+                )
+                return {
+                    "filename": None,
+                    "size_bytes": 0,
+                    "records": 0,
+                    "pruned_old": pre_pruned,
+                    "emailed_to": None,
+                    "skipped": True,
+                    "reason": f"disk_{pct_after}_percent",
+                }
+
         payload, total_records, filename = await _build_backup_zip(db)
         out = BACKUPS_DIR / filename
-        # Write atomically via a temp file + rename
+        # Write atomically via a temp file + rename — offload the actual
+        # file write to a worker thread because 750 MB of sync IO would
+        # otherwise block the asyncio event loop for several seconds.
         tmp = out.with_suffix(".zip.tmp")
-        tmp.write_bytes(payload)
+        await asyncio.to_thread(tmp.write_bytes, payload)
         tmp.replace(out)
         logger.info(
             f"[scheduled-backup] wrote {out.name} ({len(payload)/1024/1024:.1f} MB · {total_records} records)"
@@ -3230,10 +3340,22 @@ async def _start_backup_scheduler():
         return
     try:
         BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+        # DEFENSE LAYER 4 — Boot-time disk safety check.
+        # If the disk is above the high-water-mark when we start up
+        # (e.g., a previous container crash left the disk full), purge
+        # backups IMMEDIATELY before doing anything else. This guarantees
+        # a fresh boot can never be killed by inherited disk pressure.
+        pct = _disk_pct_used()
+        if pct >= BACKUP_DISK_HIGH_WATERMARK:
+            logging.getLogger(__name__).warning(
+                f"[scheduled-backup] disk at {pct}% on boot — running emergency prune"
+            )
+            _emergency_prune_backups(reason=f"boot disk {pct}%")
         _backup_task = asyncio.create_task(_backup_scheduler_loop(db))
         logging.getLogger(__name__).info(
             f"[scheduled-backup] scheduler started — {BACKUP_HOUR_UTC:02d}:00 UTC daily · "
-            f"keep {BACKUP_RETENTION_DAYS} days · dir={BACKUPS_DIR}"
+            f"keep {BACKUP_RETENTION_DAYS} days · max {BACKUP_KEEP_MAX} files · "
+            f"disk-watermark {BACKUP_DISK_HIGH_WATERMARK}% · dir={BACKUPS_DIR}"
         )
     except Exception as e:
         logging.getLogger(__name__).exception(f"[scheduled-backup] startup failed: {e}")

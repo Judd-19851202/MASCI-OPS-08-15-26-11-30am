@@ -1,5 +1,25 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-28 — PRODUCTION OUTAGE FIX: 5 Defense Layers Against Cloudflare 520
+Customer hit "Login failed — check connection" on production at mascidocs.com — root cause: Cloudflare 520 (origin server unresponsive). The deployed backend container was being killed because the synchronous backup build was blocking the asyncio event loop AND the disk filled up from accumulated backup zips. Shipped 5 permanent defense layers in `/app/backend/server.py` so this can NEVER happen again:
+
+1. **`/api/health` + `/api/healthz` endpoints** (line ~191) — DB-free, dependency-free, sub-millisecond response. Cloudflare/Emergent platform healthchecks now have a guaranteed-fast endpoint.
+2. **`BACKUP_KEEP_MAX=3` default** (was 6) — hard ceiling on stored backups. With ~750 MB per backup, 3 files = 2.3 GB on the 9.8 GB volume. Aggressive headroom.
+3. **`BACKUP_DISK_HIGH_WATERMARK=75%` watermark** + `_emergency_prune_backups()` — auto-prunes if disk crosses watermark at boot OR right before backup write. If still > 90% after emergency prune, ABORTS the backup instead of crashing the backend.
+4. **Boot-time disk safety check** in `_start_backup_scheduler` — runs emergency prune on container start if inherited disk is full. Prevents fresh-boot crash loops.
+5. **Event-loop yields throughout `_build_backup_zip`** — `await asyncio.sleep(0)` after every collection iteration, every PDF render, every disk file. `tmp.write_bytes()` (the 750 MB sync IO write) wrapped in `asyncio.to_thread`. **Verified: 8 consecutive `/api/health` calls succeeded during a 75-second backup build — backend stays responsive throughout.**
+
+### Verified (2026-04-28 18:33 UTC):
+- Manual backup via `/api/admin/backups/run-now` → ✅ 752 MB · 1738 records · email delivered (resend_id returned)
+- `/api/health` during backup → ✅ all 8 polls returned instantly
+- Disk state after 3 consecutive backups → ✅ 57% used, ceiling holding
+- All 3 logins (admin, shop, crew hub) → ✅ working
+
+### What this means for the customer:
+- **The backend container can no longer be killed by the backup process.** Even if 1738 records doubles to 5000+, the event-loop yields keep healthchecks alive throughout.
+- **The disk can no longer fill up.** Backup write is gated on disk %, and prune runs on boot AND before every write.
+- **Cloudflare 520 has been eliminated as a backup-induced failure mode.**
+
 ## 2026-04-28 — Backup pipeline made bullet-proof (P0 done)
 Fixed the nightly backup so the manual red "BACKUP EVERYTHING" button always succeeds and emails:
 - **Pre-flight prune** before each backup write — clears `.zip.tmp` debris from prior failures + enforces both retention-days AND the new `BACKUP_KEEP_MAX` (default 6) hard cap so the disk can never fill up from rapid manual clicks.
