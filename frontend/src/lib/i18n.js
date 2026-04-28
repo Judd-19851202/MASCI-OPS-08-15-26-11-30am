@@ -1047,6 +1047,7 @@ const ES = {
   "Enter at least one email address to send to.": "Ingrese al menos un correo de destino.",
   "Parts order emailed.": "Pedido de partes enviado.",
   "Could not send order email.": "No se pudo enviar el correo del pedido.",
+  "CLEARED TO OPERATE": "LIBERADO PARA OPERAR",
 };
 
 const DICTS = { es: ES, en: {} };

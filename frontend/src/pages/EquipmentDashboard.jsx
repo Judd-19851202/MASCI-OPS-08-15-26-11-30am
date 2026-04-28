@@ -140,12 +140,13 @@ export default function EquipmentDashboard() {
             <ul className="divide-y-2 divide-slate-100">
               {items.map((it) => {
                 const fail = (it.fail_count || 0) > 0;
+                const cleared = it.cleared || (fail && (it.signoff_count || 0) >= it.fail_count);
                 return (
                   <li
                     key={it.id}
                     onClick={() => navigate(`/equipment/${it.id}`)}
                     className={`p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3 ${
-                      fail ? "border-l-4 border-red-700" : ""
+                      fail && !cleared ? "border-l-4 border-red-700" : cleared ? "border-l-4 border-emerald-600" : ""
                     }`}
                     data-testid={`equipment-row-${it.id}`}
                   >
@@ -154,9 +155,14 @@ export default function EquipmentDashboard() {
                         <span className="font-display text-lg font-bold text-slate-900 truncate">
                           {it.equipment_type} · {it.equipment_unit}
                         </span>
-                        {fail && (
+                        {fail && !cleared && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-700 text-white text-[10px] font-mono uppercase tracking-wider rounded">
                             <AlertOctagon className="w-3 h-3" /> {it.fail_count} FAIL
+                          </span>
+                        )}
+                        {cleared && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-mono uppercase tracking-wider rounded" data-testid={`cleared-badge-${it.id}`}>
+                            ✓ CLEARED TO OPERATE
                           </span>
                         )}
                       </div>

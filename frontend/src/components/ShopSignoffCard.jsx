@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { useT } from "@/lib/i18n";
+import { useT, getLang } from "@/lib/i18n";
+import { translateUserInput } from "@/lib/translateOnSubmit";
 import { isShop } from "@/lib/shopAuth";
 import { isAdmin } from "@/lib/adminAuth";
 
@@ -55,13 +56,18 @@ export default function ShopSignoffCard({
     }
     setBusy(true);
     try {
-      const r = await api.post(`/admin/equipment-inspections/${inspectionId}/signoff`, {
+      let payload = {
         section,
         item,
         signed_by: signedBy.trim(),
         action_taken: action,
         notes: notes.trim(),
-      });
+      };
+      // ES → EN: translate freeform "notes" before persisting.
+      // signed_by is a proper noun and action_taken is a fixed enum, so
+      // they're left as-is.
+      payload = await translateUserInput(payload, getLang());
+      const r = await api.post(`/admin/equipment-inspections/${inspectionId}/signoff`, payload);
       toast.success(t("Signed off."));
       onChange && onChange(r.data?.signoff || null);
     } catch {

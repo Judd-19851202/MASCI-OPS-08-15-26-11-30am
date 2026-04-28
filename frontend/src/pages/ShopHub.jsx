@@ -46,7 +46,7 @@ export default function ShopHub() {
   useEffect(() => { load(); }, []); // eslint-disable-line
 
   const failCount = items.filter((i) => (i.fail_count || 0) > 0).length;
-  const totalSigned = items.reduce((acc, i) => acc + ((i.shop_signoffs || []).length), 0);
+  const totalSigned = items.reduce((acc, i) => acc + (i.signoff_count ?? (i.shop_signoffs || []).length), 0);
 
   const onLogout = () => {
     clearShopToken();
@@ -148,12 +148,13 @@ export default function ShopHub() {
               <ul className="divide-y-2 divide-slate-100" data-testid="shop-recent-list">
                 {items.slice(0, 50).map((it) => {
                   const fail = (it.fail_count || 0) > 0;
-                  const signed = (it.shop_signoffs || []).length;
+                  const signed = it.signoff_count ?? (it.shop_signoffs || []).length;
+                  const cleared = it.cleared || (fail && signed >= (it.fail_count || 0));
                   return (
                     <li
                       key={it.id}
                       onClick={() => navigate(`/shop/equipment/${it.id}`)}
-                      className={`p-4 sm:p-5 hover:bg-amber-50 cursor-pointer transition-colors flex flex-col sm:flex-row sm:items-center gap-3 ${fail ? "border-l-4 border-red-700" : ""}`}
+                      className={`p-4 sm:p-5 hover:bg-amber-50 cursor-pointer transition-colors flex flex-col sm:flex-row sm:items-center gap-3 ${fail && !cleared ? "border-l-4 border-red-700" : cleared ? "border-l-4 border-emerald-600" : ""}`}
                       data-testid={`shop-equipment-row-${it.id}`}
                     >
                       <div className="flex-1 min-w-0">
@@ -161,12 +162,17 @@ export default function ShopHub() {
                           <span className="font-display text-lg font-bold text-slate-900 truncate">
                             {it.equipment_type} · {it.equipment_unit}
                           </span>
-                          {fail && (
+                          {fail && !cleared && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-700 text-white text-[10px] font-mono uppercase tracking-wider rounded">
                               <AlertOctagon className="w-3 h-3" /> {it.fail_count} {t("FAIL")}
                             </span>
                           )}
-                          {signed > 0 && (
+                          {cleared && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-mono uppercase tracking-wider rounded" data-testid={`shop-cleared-${it.id}`}>
+                              ✓ {t("CLEARED TO OPERATE")}
+                            </span>
+                          )}
+                          {signed > 0 && !cleared && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-mono uppercase tracking-wider rounded">
                               ✓ {signed} {t("signed")}
                             </span>

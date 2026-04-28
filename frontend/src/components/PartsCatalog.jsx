@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { useT } from "@/lib/i18n";
+import { useT, getLang } from "@/lib/i18n";
+import { translateUserInput } from "@/lib/translateOnSubmit";
 
 /**
  * Per-unit parts catalog. Mechanics:
@@ -121,7 +122,7 @@ export default function PartsCatalog() {
     }
     setSaving(true);
     try {
-      const payload = {
+      let payload = {
         filters: doc.filters || [],
         cutting_edges: doc.cutting_edges || [],
         wiper_blades: doc.wiper_blades || [],
@@ -129,6 +130,12 @@ export default function PartsCatalog() {
         other_wear_items: doc.other_wear_items || [],
         updated_by: updatedBy.trim(),
       };
+      // ES → EN: translate part names + notes before persisting.
+      // Part numbers, sizes, ply, brand are passed through unchanged
+      // (proper nouns / SKUs / numerics — the translateOnSubmit walker
+      // already skips data: URLs, dates, numbers, and the `*_number` key
+      // pattern matches "part_number".)
+      payload = await translateUserInput(payload, getLang());
       const r = await api.put(`/equipment-parts/${encodeURIComponent(unit.unit_number)}`, payload);
       setDoc(r.data);
       toast.success(t("Catalog saved."));
@@ -415,7 +422,7 @@ const OrderCart = ({ cart, unit, removeFromCart, updateCartQty, requestedByDefau
     const ccList = cc.split(/[,;\s]+/).map((s) => s.trim()).filter(Boolean);
     setSending(true);
     try {
-      await api.post("/equipment-parts/order", {
+      let orderPayload = {
         unit_number: unit.unit_number,
         equipment_label: `${unit.make || ""} ${unit.model || ""}`.trim(),
         requested_by: requestedBy.trim(),
@@ -429,7 +436,11 @@ const OrderCart = ({ cart, unit, removeFromCart, updateCartQty, requestedByDefau
           category: it.category || "",
           notes: it.notes || "",
         })),
-      });
+      };
+      // ES → EN: translate freeform fields (additional_notes, item.name,
+      // item.notes). part_number is a SKU and stays as-is via the walker.
+      orderPayload = await translateUserInput(orderPayload, getLang());
+      await api.post("/equipment-parts/order", orderPayload);
       toast.success(t("Parts order emailed."));
       clear();
       setNotes("");

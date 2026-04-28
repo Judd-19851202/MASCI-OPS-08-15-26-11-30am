@@ -324,9 +324,10 @@ async def create_inspection(payload: InspectionCreate):
 
 @api_router.get("/inspections", response_model=List[InspectionSummary])
 async def list_inspections(_: bool = Depends(require_admin)):
-    cursor = db.inspections.find(
-        {},
-        {
+    pipeline = [
+        {"$sort": {"created_at": -1}},
+        {"$limit": 1000},
+        {"$project": {
             "_id": 0,
             "id": 1,
             "project_name": 1,
@@ -336,7 +337,6 @@ async def list_inspections(_: bool = Depends(require_admin)):
             "foreman_name": 1,
             "hazards_observed": 1,
             "stop_work_issued": 1,
-            "photos": 1,
             "created_at": 1,
             "score": 1,
             "status": 1,
@@ -344,9 +344,10 @@ async def list_inspections(_: bool = Depends(require_admin)):
             "graded_yes": 1,
             "graded_no": 1,
             "graded_total": 1,
-        },
-    ).sort("created_at", -1)
-    docs = await cursor.to_list(1000)
+            "photo_count": {"$size": {"$ifNull": ["$photos", []]}},
+        }},
+    ]
+    docs = await db.inspections.aggregate(pipeline).to_list(1000)
     summaries = []
     for d in docs:
         summaries.append(
@@ -359,7 +360,7 @@ async def list_inspections(_: bool = Depends(require_admin)):
                 foreman_name=d.get("foreman_name", ""),
                 hazards_observed=d.get("hazards_observed", "No"),
                 stop_work_issued=d.get("stop_work_issued", "No"),
-                photo_count=len(d.get("photos", []) or []),
+                photo_count=d.get("photo_count", 0) or 0,
                 created_at=d.get("created_at", ""),
                 score=d.get("score"),
                 status=d.get("status"),
@@ -686,9 +687,10 @@ async def create_incident(payload: IncidentCreate):
 
 @api_router.get("/incidents", response_model=List[IncidentSummary])
 async def list_incidents(_: bool = Depends(require_admin)):
-    cursor = db.incidents.find(
-        {},
-        {
+    pipeline = [
+        {"$sort": {"created_at": -1}},
+        {"$limit": 1000},
+        {"$project": {
             "_id": 0,
             "id": 1,
             "project_name": 1,
@@ -699,11 +701,11 @@ async def list_incidents(_: bool = Depends(require_admin)):
             "person_name": 1,
             "reported_by": 1,
             "osha_recordable": 1,
-            "photos": 1,
             "created_at": 1,
-        },
-    ).sort("created_at", -1)
-    docs = await cursor.to_list(1000)
+            "photo_count": {"$size": {"$ifNull": ["$photos", []]}},
+        }},
+    ]
+    docs = await db.incidents.aggregate(pipeline).to_list(1000)
     return [
         IncidentSummary(
             id=d.get("id", ""),
@@ -715,7 +717,7 @@ async def list_incidents(_: bool = Depends(require_admin)):
             person_name=d.get("person_name", ""),
             reported_by=d.get("reported_by", ""),
             osha_recordable=d.get("osha_recordable", "No"),
-            photo_count=len(d.get("photos", []) or []),
+            photo_count=d.get("photo_count", 0) or 0,
             created_at=d.get("created_at", ""),
         )
         for d in docs
@@ -820,9 +822,10 @@ async def create_daily_report(payload: DailyReportCreate):
 
 @api_router.get("/daily-reports", response_model=List[DailyReportSummary])
 async def list_daily_reports(_: bool = Depends(require_admin)):
-    cursor = db.daily_reports.find(
-        {},
-        {
+    pipeline = [
+        {"$sort": {"created_at": -1}},
+        {"$limit": 1000},
+        {"$project": {
             "_id": 0,
             "id": 1,
             "project_name": 1,
@@ -831,14 +834,14 @@ async def list_daily_reports(_: bool = Depends(require_admin)):
             "report_date": 1,
             "prepared_by": 1,
             "weather_summary": 1,
-            "photos": 1,
-            "masci_crews": 1,
-            "subcontractors": 1,
-            "visitors": 1,
             "created_at": 1,
-        },
-    ).sort("created_at", -1)
-    docs = await cursor.to_list(1000)
+            "photo_count": {"$size": {"$ifNull": ["$photos", []]}},
+            "crew_count": {"$size": {"$ifNull": ["$masci_crews", []]}},
+            "sub_count": {"$size": {"$ifNull": ["$subcontractors", []]}},
+            "visitor_count": {"$size": {"$ifNull": ["$visitors", []]}},
+        }},
+    ]
+    docs = await db.daily_reports.aggregate(pipeline).to_list(1000)
     return [
         DailyReportSummary(
             id=d.get("id", ""),
@@ -848,10 +851,10 @@ async def list_daily_reports(_: bool = Depends(require_admin)):
             report_date=d.get("report_date", ""),
             prepared_by=d.get("prepared_by", ""),
             weather_summary=d.get("weather_summary", ""),
-            photo_count=len(d.get("photos", []) or []),
-            crew_count=len(d.get("masci_crews", []) or []),
-            sub_count=len(d.get("subcontractors", []) or []),
-            visitor_count=len(d.get("visitors", []) or []),
+            photo_count=d.get("photo_count", 0) or 0,
+            crew_count=d.get("crew_count", 0) or 0,
+            sub_count=d.get("sub_count", 0) or 0,
+            visitor_count=d.get("visitor_count", 0) or 0,
             created_at=d.get("created_at", ""),
         )
         for d in docs
@@ -1275,6 +1278,8 @@ class EquipmentInspectionSummary(BaseModel):
     out_of_service: str
     photo_count: int
     created_at: str
+    signoff_count: int = 0
+    cleared: bool = False  # True iff every FAIL has been signed off
 
 
 @api_router.get("/equipment-types")
@@ -2072,9 +2077,13 @@ async def create_equipment_inspection(payload: EquipmentInspectionCreate):
 
 @api_router.get("/equipment-inspections", response_model=List[EquipmentInspectionSummary])
 async def list_equipment_inspections(_: bool = Depends(require_shop_or_admin)):
-    cursor = db.equipment_inspections.find(
-        {},
-        {
+    # Use $size to compute photo_count server-side instead of pulling the full
+    # base64 photo array into memory + over the wire (10-100x faster on a
+    # dashboard with N inspections × M photos each).
+    pipeline = [
+        {"$sort": {"created_at": -1}},
+        {"$limit": 1000},
+        {"$project": {
             "_id": 0,
             "id": 1,
             "project_name": 1,
@@ -2086,11 +2095,12 @@ async def list_equipment_inspections(_: bool = Depends(require_shop_or_admin)):
             "equipment_unit": 1,
             "fail_count": 1,
             "out_of_service": 1,
-            "photos": 1,
             "created_at": 1,
-        },
-    ).sort("created_at", -1)
-    docs = await cursor.to_list(1000)
+            "photo_count": {"$size": {"$ifNull": ["$photos", []]}},
+            "signoff_count": {"$size": {"$ifNull": ["$shop_signoffs", []]}},
+        }},
+    ]
+    docs = await db.equipment_inspections.aggregate(pipeline).to_list(1000)
     return [
         EquipmentInspectionSummary(
             id=d.get("id", ""),
@@ -2103,8 +2113,11 @@ async def list_equipment_inspections(_: bool = Depends(require_shop_or_admin)):
             equipment_unit=d.get("equipment_unit", ""),
             fail_count=d.get("fail_count", 0) or 0,
             out_of_service=d.get("out_of_service", "No"),
-            photo_count=len(d.get("photos", []) or []),
+            photo_count=d.get("photo_count", 0) or 0,
             created_at=d.get("created_at", ""),
+            signoff_count=d.get("signoff_count", 0) or 0,
+            cleared=(d.get("fail_count", 0) or 0) > 0
+                    and (d.get("signoff_count", 0) or 0) >= (d.get("fail_count", 0) or 0),
         )
         for d in docs
     ]
@@ -4265,8 +4278,45 @@ async def _seed_phase1():
         await _seed_equipment_master()
         await _seed_employees_from_json()
         await _seed_suppliers_from_json()
+        await _create_safety_indexes()
     except Exception as e:
         logging.getLogger(__name__).exception(f"Phase 1 seed failed: {e}")
+
+
+async def _create_safety_indexes():
+    """Idempotent indexes on the safety + equipment + parts collections.
+
+    Massively speeds up dashboard listings, trends queries, and shop
+    open-items lookups once the dataset grows past a few hundred records.
+    """
+    try:
+        await db.equipment_inspections.create_index("created_at")
+        await db.equipment_inspections.create_index("inspection_date")
+        await db.equipment_inspections.create_index("equipment_unit")
+        await db.equipment_inspections.create_index("project_number")
+        await db.equipment_inspections.create_index("fail_count")
+
+        await db.inspections.create_index("created_at")
+        await db.inspections.create_index("inspection_date")
+        await db.inspections.create_index("project_number")
+
+        await db.daily_reports.create_index("created_at")
+        await db.daily_reports.create_index("report_date")
+        await db.daily_reports.create_index("project_number")
+
+        await db.incidents.create_index("created_at")
+        await db.incidents.create_index("incident_date")
+        await db.incidents.create_index("severity")
+
+        await db.meetings.create_index("created_at")
+        await db.meetings.create_index("meeting_date")
+
+        await db.equipment_parts.create_index("unit_number", unique=True)
+        await db.equipment_master.create_index("unit_number")
+        await db.equipment_master.create_index("category")
+        logging.getLogger(__name__).info("[safety-indexes] ensured")
+    except Exception as e:
+        logging.getLogger(__name__).warning(f"[safety-indexes] failed: {e}")
 
 
 @app.on_event("startup")
