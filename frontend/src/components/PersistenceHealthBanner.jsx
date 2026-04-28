@@ -3,6 +3,7 @@ import { AlertTriangle, ShieldCheck, Download, Loader2, Mail, ExternalLink } fro
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 /**
  * PersistenceHealthBanner — prominent warning when the app is running with
@@ -11,6 +12,7 @@ import { toast } from "sonner";
  * Renders NOTHING when Mongo is Atlas or another external service.
  */
 export default function PersistenceHealthBanner() {
+  const { t } = useT();
   const [status, setStatus] = useState(null);
   const [downloading, setDownloading] = useState(false);
 
@@ -30,7 +32,7 @@ export default function PersistenceHealthBanner() {
   const preDeployBackup = async () => {
     if (downloading) return;
     setDownloading(true);
-    toast.info("Building backup + emailing to " + (status.backup_email_to || "you") + "…");
+    toast.info(t("Building backup + emailing to {dest}…").replace("{dest}", status.backup_email_to || t("you")));
     try {
       // Build + email via the run-now endpoint (which also writes the zip to disk)
       const r1 = await api.post("/admin/backups/run-now");
@@ -46,13 +48,13 @@ export default function PersistenceHealthBanner() {
       URL.revokeObjectURL(url);
       const emailedTo = r1.data.emailed_to;
       if (emailedTo) {
-        toast.success(`Backup saved + emailed to ${emailedTo} + downloaded.`);
+        toast.success(t("Backup saved + emailed to {dest} + downloaded.").replace("{dest}", emailedTo));
       } else {
-        toast.success("Backup saved + downloaded.");
-        toast.warning("Email step skipped — check BACKUP_EMAIL_TO + RESEND_API_KEY.");
+        toast.success(t("Backup saved + downloaded."));
+        toast.warning(t("Email step skipped — check BACKUP_EMAIL_TO + RESEND_API_KEY."));
       }
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Backup failed");
+      toast.error(e?.response?.data?.detail || t("Backup failed"));
     } finally {
       setDownloading(false);
     }
@@ -70,10 +72,10 @@ export default function PersistenceHealthBanner() {
         <div className="flex items-start gap-3">
           <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="flex-1 text-sm">
-            <div className="font-bold font-display">Persistent database connected</div>
+            <div className="font-bold font-display">{t("Persistent database connected")}</div>
             <div className="text-emerald-800 mt-0.5">
-              Mongo host: <code className="font-mono">{status.mongo_host}</code>
-              {status.mongo_is_atlas && " (MongoDB Atlas)"}. Redeploys will not wipe your data.
+              {t("Mongo host:")} <code className="font-mono">{status.mongo_host}</code>
+              {status.mongo_is_atlas && " (MongoDB Atlas)"}. {t("Redeploys will not wipe your data.")}
             </div>
           </div>
         </div>
@@ -91,19 +93,14 @@ export default function PersistenceHealthBanner() {
         <AlertTriangle className="w-6 h-6 text-red-700 shrink-0 mt-0.5" />
         <div className="flex-1">
           <div className="font-display font-black text-red-900 text-base sm:text-lg leading-tight">
-            ⚠ Your data will be deleted on the next redeploy
+            ⚠ {t("Your data will be deleted on the next redeploy")}
           </div>
           <p className="text-sm text-red-900 mt-1.5 leading-relaxed">
-            MongoDB is running <strong>inside this container</strong> (<code className="font-mono text-xs">{status.mongo_host}</code>),
-            which means every new deploy destroys your database. <strong>Before you redeploy next time,
-            always click the button below to grab + email a full backup</strong>, or you will lose
-            everything created since the last nightly backup.
+            {t("MongoDB is running")} <strong>{t("inside this container")}</strong> (<code className="font-mono text-xs">{status.mongo_host}</code>),
+            {" "}{t("which means every new deploy destroys your database.")} <strong>{t("Before you redeploy next time, always click the button below to grab + email a full backup")}</strong>{t(", or you will lose everything created since the last nightly backup.")}
           </p>
           <p className="text-sm text-red-900 mt-2 leading-relaxed">
-            <strong>Permanent fix:</strong> switch the production app to <strong>MongoDB Atlas</strong> (free tier,
-            15-min setup) — see the instructions your developer sent. Once the Atlas connection
-            string is in your Emergent production env vars, this banner will turn green and
-            redeploys become safe forever.
+            <strong>{t("Permanent fix:")}</strong> {t("switch the production app to")} <strong>MongoDB Atlas</strong> {t("(free tier, 15-min setup) — see the instructions your developer sent. Once the Atlas connection string is in your Emergent production env vars, this banner will turn green and redeploys become safe forever.")}
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2 items-center">
@@ -114,18 +111,18 @@ export default function PersistenceHealthBanner() {
               data-testid="pre-deploy-backup-btn"
             >
               {downloading ? (
-                <><Loader2 className="w-4 h-4 animate-spin mr-1.5" /> Building + sending…</>
+                <><Loader2 className="w-4 h-4 animate-spin mr-1.5" /> {t("Building + sending…")}</>
               ) : (
-                <><Download className="w-4 h-4 mr-1.5" /> Backup + email + download NOW</>
+                <><Download className="w-4 h-4 mr-1.5" /> {t("Backup + email + download NOW")}</>
               )}
             </Button>
             {status.backup_email_to ? (
               <span className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.15em] text-red-900 font-bold">
-                <Mail className="w-3 h-3" /> Emails to {status.backup_email_to}
+                <Mail className="w-3 h-3" /> {t("Emails to")} {status.backup_email_to}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.15em] text-amber-700 font-bold">
-                <Mail className="w-3 h-3" /> BACKUP_EMAIL_TO not set
+                <Mail className="w-3 h-3" /> {t("BACKUP_EMAIL_TO not set")}
               </span>
             )}
             <a
@@ -135,13 +132,13 @@ export default function PersistenceHealthBanner() {
               className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.15em] text-red-700 hover:text-red-900 font-bold underline"
               data-testid="atlas-signup-link"
             >
-              Sign up for MongoDB Atlas <ExternalLink className="w-3 h-3" />
+              {t("Sign up for MongoDB Atlas")} <ExternalLink className="w-3 h-3" />
             </a>
           </div>
 
           {status.last_backup && (
             <div className="mt-3 text-[11px] font-mono text-red-900 opacity-75">
-              Last on-server backup: <strong>{status.last_backup.filename}</strong> ·
+              {t("Last on-server backup:")} <strong>{status.last_backup.filename}</strong> ·
               {" "}{new Date(status.last_backup.created_at).toLocaleString()}
             </div>
           )}

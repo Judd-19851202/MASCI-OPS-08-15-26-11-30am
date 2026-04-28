@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 /**
  * BackupHeroPanel — the ONLY thing most admins need to touch.
@@ -19,6 +20,7 @@ import { toast } from "sonner";
  * for advanced use. This panel is the "press this, you're safe" button.
  */
 export default function BackupHeroPanel() {
+  const { t } = useT();
   const [busyBackup, setBusyBackup] = useState(false);
   const [busyRestore, setBusyRestore] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -28,7 +30,7 @@ export default function BackupHeroPanel() {
   const backupNow = async () => {
     if (busyBackup) return;
     setBusyBackup(true);
-    toast.info("Building your complete backup… ~30 seconds");
+    toast.info(t("Building your complete backup… ~30 seconds"));
     try {
       // Fire the run-now (which also emails) + pull the zip in one shot
       const run = await api.post("/admin/backups/run-now");
@@ -44,13 +46,13 @@ export default function BackupHeroPanel() {
       const mb = (run.data.size_bytes / 1024 / 1024).toFixed(1);
       if (run.data.emailed_to) {
         toast.success(
-          `✓ Backed up ${run.data.records} records · ${mb} MB · emailed to ${run.data.emailed_to} · downloaded`,
+          `✓ ${t("Backed up")} ${run.data.records} ${t("records")} · ${mb} MB · ${t("emailed to")} ${run.data.emailed_to} · ${t("downloaded")}`,
         );
       } else {
-        toast.success(`✓ Backed up ${run.data.records} records · ${mb} MB · downloaded`);
+        toast.success(`✓ ${t("Backed up")} ${run.data.records} ${t("records")} · ${mb} MB · ${t("downloaded")}`);
       }
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Backup failed — please try again");
+      toast.error(e?.response?.data?.detail || t("Backup failed — please try again"));
       console.error(e);
     } finally {
       setBusyBackup(false);
@@ -61,12 +63,12 @@ export default function BackupHeroPanel() {
     const f = e.target.files?.[0];
     if (!f) return;
     if (!f.name.toLowerCase().endsWith(".zip")) {
-      toast.error("Please pick a .zip backup file");
+      toast.error(t("Please pick a .zip backup file"));
       e.target.value = "";
       return;
     }
     if (f.size > 500 * 1024 * 1024) {
-      toast.error("File exceeds 500 MB limit");
+      toast.error(t("File exceeds 500 MB limit"));
       e.target.value = "";
       return;
     }
@@ -79,7 +81,7 @@ export default function BackupHeroPanel() {
     if (!pendingFile) return;
     setConfirmOpen(false);
     setBusyRestore(true);
-    toast.info("Restoring backup… ~30 seconds");
+    toast.info(t("Restoring backup… ~30 seconds"));
     const fd = new FormData();
     fd.append("file", pendingFile);
     fd.append("merge", "true");  // Always safe mode from the hero button
@@ -88,11 +90,11 @@ export default function BackupHeroPanel() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success(
-        `✓ Restored ${r.data.total_processed} records across ${Object.keys(r.data.collections || {}).length} collections`,
+        `✓ ${t("Restored")} ${r.data.total_processed} ${t("records across")} ${Object.keys(r.data.collections || {}).length} ${t("collections")}`,
       );
     } catch (e) {
-      const detail = e?.response?.data?.detail || "Restore failed";
-      toast.error(typeof detail === "string" ? detail : "Restore failed — see console");
+      const detail = e?.response?.data?.detail || t("Restore failed");
+      toast.error(typeof detail === "string" ? detail : t("Restore failed — see console"));
       console.error(e);
     } finally {
       setBusyRestore(false);
@@ -111,10 +113,10 @@ export default function BackupHeroPanel() {
         </div>
         <div>
           <h2 className="font-display text-xl sm:text-2xl font-black tracking-tight text-slate-900 leading-tight">
-            Backup &amp; Restore Everything
+            {t("Backup & Restore Everything")}
           </h2>
           <p className="text-sm text-slate-600">
-            Two buttons. Your whole MASCI Hub — every form, every photo, every Crew Hub message.
+            {t("Two buttons. Your whole MASCI Hub — every form, every photo, every Crew Hub message.")}
           </p>
         </div>
       </div>
@@ -137,17 +139,15 @@ export default function BackupHeroPanel() {
             </div>
             <div className="flex-1">
               <div className="font-display text-lg sm:text-xl font-black tracking-tight uppercase">
-                {busyBackup ? "Building backup…" : "Backup Everything"}
+                {busyBackup ? t("Building backup…") : t("Backup Everything")}
               </div>
               <div className="text-xs font-mono uppercase tracking-[0.2em] text-red-200 mt-0.5">
-                Step 1 · Do this before any redeploy
+                {t("Step 1 · Do this before any redeploy")}
               </div>
             </div>
           </div>
           <p className="text-sm text-red-50 leading-relaxed">
-            Downloads a single <code className="bg-white/20 px-1 rounded font-mono text-xs">.zip</code> containing
-            every safety record, photo, signature, PDF, Crew Hub message, to-do, schedule, and doc.
-            Also emails a copy to your inbox.
+            {t("Downloads a single .zip containing every safety record, photo, signature, PDF, Crew Hub message, to-do, schedule, and doc. Also emails a copy to your inbox.")}
           </p>
         </button>
 
@@ -168,16 +168,15 @@ export default function BackupHeroPanel() {
             </div>
             <div className="flex-1">
               <div className="font-display text-lg sm:text-xl font-black tracking-tight uppercase">
-                {busyRestore ? "Restoring…" : "Restore From File"}
+                {busyRestore ? t("Restoring…") : t("Restore From File")}
               </div>
               <div className="text-xs font-mono uppercase tracking-[0.2em] text-emerald-200 mt-0.5">
-                Step 2 · Use after a redeploy to get data back
+                {t("Step 2 · Use after a redeploy to get data back")}
               </div>
             </div>
           </div>
           <p className="text-sm text-emerald-50 leading-relaxed">
-            Pick a MASCI backup <code className="bg-white/20 px-1 rounded font-mono text-xs">.zip</code> from your computer.
-            Every record inside is merged into the live system. Safe — existing data isn't wiped.
+            {t("Pick a MASCI backup .zip from your computer. Every record inside is merged into the live system. Safe — existing data isn't wiped.")}
           </p>
         </button>
 
@@ -192,9 +191,7 @@ export default function BackupHeroPanel() {
       </div>
 
       <div className="mt-4 bg-slate-50 border-l-4 border-slate-400 rounded-r px-3 py-2 text-xs text-slate-700 leading-relaxed">
-        <strong>The .zip is a normal file</strong> — you can open it in Windows Explorer or Mac Finder
-        with no password, no special tool. Each safety record is inside as both a raw <code>.json</code> and a
-        printable <code>.pdf</code>. Photos and signatures are embedded in the JSON. Safe to archive forever.
+        <strong>{t("The .zip is a normal file")}</strong> — {t("you can open it in Windows Explorer or Mac Finder with no password, no special tool. Each safety record is inside as both a raw .json and a printable .pdf. Photos and signatures are embedded in the JSON. Safe to archive forever.")}
       </div>
 
       {/* Restore confirmation */}
@@ -203,24 +200,22 @@ export default function BackupHeroPanel() {
           <DialogHeader>
             <DialogTitle className="font-display font-black flex items-center gap-2 text-emerald-700">
               <Upload className="w-5 h-5" />
-              Restore from <span className="font-mono text-base">{pendingFile?.name}</span>?
+              {t("Restore from")} <span className="font-mono text-base">{pendingFile?.name}</span>?
             </DialogTitle>
             <DialogDescription>
-              Every record inside this .zip will be merged into the live system — existing rows are
-              overwritten with the backup's copy, new rows are added. Anything in the DB that isn't in
-              the backup is left alone. This is safe to run.
+              {t("Every record inside this .zip will be merged into the live system — existing rows are overwritten with the backup's copy, new rows are added. Anything in the DB that isn't in the backup is left alone. This is safe to run.")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => { setConfirmOpen(false); setPendingFile(null); }}>
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               onClick={runRestore}
               className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold uppercase tracking-wide"
               data-testid="hero-restore-confirm-btn"
             >
-              Yes, restore it
+              {t("Yes, restore it")}
             </Button>
           </DialogFooter>
         </DialogContent>

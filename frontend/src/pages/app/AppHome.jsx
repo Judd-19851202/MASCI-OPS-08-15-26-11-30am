@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Building2, MapPin, Loader2, ArrowRight, Home } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/authContext";
+import { useT } from "@/lib/i18n";
 
 /**
  * AppHome — /app landing page. Grid of cards for every project the
@@ -10,6 +11,7 @@ import { useAuth } from "@/lib/authContext";
  */
 export default function AppHome() {
   const { user } = useAuth();
+  const { t } = useT();
   const [projects, setProjects] = useState(null);
 
   useEffect(() => {
@@ -31,27 +33,27 @@ export default function AppHome() {
     <div className="p-8 sm:p-10 max-w-6xl">
       <div className="mb-8">
         <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold">
-          Welcome, {user?.name?.split(" ")[0] || "there"}
+          {t("Welcome,")} {user?.name?.split(" ")[0] || t("there")}
         </div>
         <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-          What are you working on today?
+          {t("What are you working on today?")}
         </h1>
         <p className="text-slate-600 mt-2 text-sm max-w-2xl">
-          Every MASCI job has its own workspace here — message board, to-dos, schedule, docs, and progress tracking. Pick a project to jump in.
+          {t("Every MASCI job has its own workspace here — message board, to-dos, schedule, docs, and progress tracking. Pick a project to jump in.")}
         </p>
       </div>
 
       {projects === null && (
         <div className="flex items-center gap-2 text-slate-500 py-16 justify-center">
-          <Loader2 className="w-5 h-5 animate-spin" /> Loading projects…
+          <Loader2 className="w-5 h-5 animate-spin" /> {t("Loading projects…")}
         </div>
       )}
 
       {projects !== null && projects.length === 0 && (
         <div className="bg-white border-2 border-dashed border-slate-300 rounded-md p-10 text-center">
-          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold">No projects yet</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold">{t("No projects yet")}</div>
           <p className="text-slate-600 mt-2 text-sm">
-            An owner will add you to projects shortly. You still have MASCI HQ below for company-wide announcements.
+            {t("An owner will add you to projects shortly. You still have MASCI HQ below for company-wide announcements.")}
           </p>
         </div>
       )}

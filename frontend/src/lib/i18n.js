@@ -1048,6 +1048,103 @@ const ES = {
   "Parts order emailed.": "Pedido de partes enviado.",
   "Could not send order email.": "No se pudo enviar el correo del pedido.",
   "CLEARED TO OPERATE": "LIBERADO PARA OPERAR",
+
+  // ============================================================
+  // Persistence + Backup admin panels (2026-04-28)
+  // ============================================================
+  "Persistent database connected": "Base de datos persistente conectada",
+  "Mongo host:": "Host de Mongo:",
+  "Redeploys will not wipe your data.": "Los redespliegues no borrarán sus datos.",
+  "Your data will be deleted on the next redeploy":
+    "Sus datos se borrarán en el próximo redespliegue",
+  "MongoDB is running": "MongoDB se está ejecutando",
+  "inside this container": "dentro de este contenedor",
+  "which means every new deploy destroys your database.":
+    "lo que significa que cada nuevo despliegue destruye su base de datos.",
+  "Before you redeploy next time, always click the button below to grab + email a full backup":
+    "Antes de redesplegar, haga clic en el botón a continuación para obtener y enviar por correo una copia de seguridad completa",
+  ", or you will lose everything created since the last nightly backup.":
+    ", o perderá todo lo creado desde la última copia de seguridad nocturna.",
+  "Permanent fix:": "Solución permanente:",
+  "switch the production app to": "cambie la aplicación de producción a",
+  "(free tier, 15-min setup) — see the instructions your developer sent. Once the Atlas connection string is in your Emergent production env vars, this banner will turn green and redeploys become safe forever.":
+    "(plan gratuito, configuración en 15 minutos) — vea las instrucciones que su desarrollador envió. Una vez que la cadena de conexión Atlas esté en sus variables de entorno de producción Emergent, este aviso se pondrá verde y los redespliegues serán seguros para siempre.",
+  "Building backup + emailing to {dest}…": "Creando copia + enviando por correo a {dest}…",
+  "you": "usted",
+  "Backup saved + emailed to {dest} + downloaded.":
+    "Copia guardada + enviada a {dest} + descargada.",
+  "Backup saved + downloaded.": "Copia guardada + descargada.",
+  "Email step skipped — check BACKUP_EMAIL_TO + RESEND_API_KEY.":
+    "Paso de correo omitido — verifique BACKUP_EMAIL_TO + RESEND_API_KEY.",
+  "Backup failed": "La copia de seguridad falló",
+  "Building + sending…": "Creando + enviando…",
+  "Backup + email + download NOW": "Copia + correo + descargar AHORA",
+  "Emails to": "Correos a",
+  "BACKUP_EMAIL_TO not set": "BACKUP_EMAIL_TO no configurado",
+  "Sign up for MongoDB Atlas": "Regístrese en MongoDB Atlas",
+  "Last on-server backup:": "Última copia en servidor:",
+
+  // BackupHeroPanel
+  "Building your complete backup… ~30 seconds": "Creando su copia de seguridad completa… ~30 segundos",
+  "Backed up": "Respaldados",
+  "records": "registros",
+  "emailed to": "enviado a",
+  "downloaded": "descargado",
+  "Backup failed — please try again": "La copia falló — intente de nuevo",
+  "Please pick a .zip backup file": "Elija un archivo .zip de copia de seguridad",
+  "File exceeds 500 MB limit": "El archivo excede el límite de 500 MB",
+  "Restoring backup… ~30 seconds": "Restaurando copia… ~30 segundos",
+  "Restored": "Restaurados",
+  "records across": "registros en",
+  "collections": "colecciones",
+  "Restore failed": "La restauración falló",
+  "Restore failed — see console": "La restauración falló — vea la consola",
+  "Backup & Restore Everything": "Copia y Restauración de Todo",
+  "Two buttons. Your whole MASCI Hub — every form, every photo, every Crew Hub message.":
+    "Dos botones. Todo su MASCI Hub — cada formulario, cada foto, cada mensaje del Hub de Cuadrilla.",
+  "Building backup…": "Creando copia…",
+  "Backup Everything": "Copia de Todo",
+  "Step 1 · Do this before any redeploy": "Paso 1 · Haga esto antes de cualquier redespliegue",
+  "Downloads a single .zip containing every safety record, photo, signature, PDF, Crew Hub message, to-do, schedule, and doc. Also emails a copy to your inbox.":
+    "Descarga un solo .zip que contiene cada registro de seguridad, foto, firma, PDF, mensaje del Hub de Cuadrilla, tarea, horario y documento. También envía una copia a su correo.",
+  "Restoring…": "Restaurando…",
+  "Restore From File": "Restaurar Desde Archivo",
+  "Step 2 · Use after a redeploy to get data back": "Paso 2 · Use después de un redespliegue para recuperar datos",
+  "Pick a MASCI backup .zip from your computer. Every record inside is merged into the live system. Safe — existing data isn't wiped.":
+    "Elija un archivo .zip de copia MASCI de su computadora. Cada registro adentro se fusiona al sistema en vivo. Seguro — los datos existentes no se borran.",
+  "The .zip is a normal file": "El .zip es un archivo normal",
+  "you can open it in Windows Explorer or Mac Finder with no password, no special tool. Each safety record is inside as both a raw .json and a printable .pdf. Photos and signatures are embedded in the JSON. Safe to archive forever.":
+    "puede abrirlo en el Explorador de Windows o el Finder de Mac sin contraseña ni herramienta especial. Cada registro de seguridad está adentro como un .json crudo y un .pdf imprimible. Las fotos y firmas están embebidas en el JSON. Seguro para archivar para siempre.",
+  "Restore from": "Restaurar desde",
+  "Every record inside this .zip will be merged into the live system — existing rows are overwritten with the backup's copy, new rows are added. Anything in the DB that isn't in the backup is left alone. This is safe to run.":
+    "Cada registro adentro de este .zip se fusionará al sistema en vivo — las filas existentes se sobrescriben con la copia de seguridad, se agregan nuevas filas. Lo que no esté en la copia se deja intacto. Es seguro ejecutarlo.",
+  "Cancel": "Cancelar",
+  "Yes, restore it": "Sí, restaurar",
+
+  // ============================================================
+  // Crew Hub Login + AppHome (2026-04-28)
+  // ============================================================
+  "Welcome back,": "Bienvenido de nuevo,",
+  "there": "ahí",
+  "What are you working on today?": "¿En qué está trabajando hoy?",
+  "Every MASCI job has its own workspace here — message board, to-dos, schedule, docs, and progress tracking. Pick a project to jump in.":
+    "Cada trabajo MASCI tiene su propio espacio aquí — tablero de mensajes, tareas, horario, documentos y seguimiento de progreso. Elija un proyecto para entrar.",
+  "Loading projects…": "Cargando proyectos…",
+  "No projects yet": "Aún no hay proyectos",
+  "An owner will add you to projects shortly. You still have MASCI HQ below for company-wide announcements.":
+    "Un propietario lo agregará a los proyectos pronto. Aún tiene MASCI HQ abajo para anuncios de toda la compañía.",
+  "Crew Hub · Sign in": "Hub de Cuadrilla · Iniciar sesión",
+  "Welcome back.": "Bienvenido de nuevo.",
+  "Use the email address MASCI issued you.": "Use el correo electrónico que MASCI le emitió.",
+  "Password": "Contraseña",
+  "Sign in": "Iniciar sesión",
+  "First time?": "¿Primera vez?",
+  "Your login is the @mascigc.com email MASCI issued you — not 'admin'. Temp password is Welcome2MASCI! — you'll be asked to change it right after sign-in. Forgot your password? An owner can reset it from the Users panel.":
+    "Su inicio de sesión es el correo @mascigc.com que MASCI le emitió — no 'admin'. La contraseña temporal es Welcome2MASCI! — se le pedirá cambiarla justo después de iniciar sesión. ¿Olvidó su contraseña? Un propietario puede restablecerla desde el panel de Usuarios.",
+  "Looking for the Safety Admin console (inspections, equipment, JHA plans)? Use":
+    "¿Busca la consola de Admin de Seguridad (inspecciones, equipo, planes JHA)? Use",
+  "that's a different system.": "ese es un sistema diferente.",
+  "Back to MASCI Hub": "Volver al Hub MASCI",
 };
 
 const DICTS = { es: ES, en: {} };

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { useAuth } from "@/lib/authContext";
+import { useT } from "@/lib/i18n";
 
 function apiErr(detail, fallback) {
   if (!detail) return fallback;
@@ -20,6 +21,7 @@ export default function Login() {
   const nav = useNavigate();
   const loc = useLocation();
   const { login } = useAuth();
+  const { t } = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -29,11 +31,11 @@ export default function Login() {
     setSubmitting(true);
     try {
       const user = await login(email.trim().toLowerCase(), password);
-      toast.success(`Welcome back, ${user.name.split(" ")[0] || user.email}`);
+      toast.success(`${t("Welcome back,")} ${user.name.split(" ")[0] || user.email}`);
       const target = user.must_change_password ? "/app/change-password" : (loc.state?.from || "/app");
       nav(target, { replace: true });
     } catch (err) {
-      toast.error(apiErr(err?.response?.data?.detail, "Login failed"));
+      toast.error(apiErr(err?.response?.data?.detail, t("Login failed")));
     } finally {
       setSubmitting(false);
     }
@@ -49,18 +51,18 @@ export default function Login() {
           </div>
           <div className="bg-white border-2 border-slate-200 rounded-md p-7 shadow-2xl">
             <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold mb-1">
-              Crew Hub · Sign in
+              {t("Crew Hub · Sign in")}
             </div>
             <h1 className="font-display text-2xl font-black text-slate-900 tracking-tight">
-              Welcome back.
+              {t("Welcome back.")}
             </h1>
             <p className="text-sm text-slate-600 mt-1.5">
-              Use the email address MASCI issued you.
+              {t("Use the email address MASCI issued you.")}
             </p>
             <form onSubmit={onSubmit} className="mt-6 space-y-4" data-testid="login-form">
               <div>
                 <Label htmlFor="email" className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-slate-700">
-                  Email
+                  {t("Email")}
                 </Label>
                 <Input
                   id="email"
@@ -76,7 +78,7 @@ export default function Login() {
               </div>
               <div>
                 <Label htmlFor="password" className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-slate-700">
-                  Password
+                  {t("Password")}
                 </Label>
                 <PasswordInput
                   id="password"
@@ -95,19 +97,19 @@ export default function Login() {
                 className="w-full h-11 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
                 data-testid="login-submit"
               >
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (<><LogIn className="w-4 h-4 mr-2" /> Sign in</>)}
+                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (<><LogIn className="w-4 h-4 mr-2" /> {t("Sign in")}</>)}
               </Button>
             </form>
             <p className="mt-6 text-xs text-slate-500 leading-relaxed">
-              <strong className="text-slate-700">First time?</strong> Your login is the <code className="font-mono text-red-700">@mascigc.com</code> email MASCI issued you — not <em>"admin"</em>. Temp password is <code className="font-mono text-red-700">Welcome2MASCI!</code> — you'll be asked to change it right after sign-in. Forgot your password? An owner can reset it from the Users panel.
+              <strong className="text-slate-700">{t("First time?")}</strong> {t("Your login is the @mascigc.com email MASCI issued you — not 'admin'. Temp password is Welcome2MASCI! — you'll be asked to change it right after sign-in. Forgot your password? An owner can reset it from the Users panel.")}
             </p>
             <p className="mt-3 text-[10px] text-slate-400 leading-relaxed">
-              Looking for the Safety Admin console (inspections, equipment, JHA plans)? Use <a href="/admin/login" className="text-red-700 hover:underline font-bold">/admin/login</a> — that's a different system.
+              {t("Looking for the Safety Admin console (inspections, equipment, JHA plans)? Use")} <a href="/admin/login" className="text-red-700 hover:underline font-bold">/admin/login</a> — {t("that's a different system.")}
             </p>
           </div>
           <div className="mt-4 text-center">
             <Link to="/" className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 hover:text-red-400" data-testid="back-to-hub">
-              ← Back to MASCI Hub
+              ← {t("Back to MASCI Hub")}
             </Link>
           </div>
         </div>
