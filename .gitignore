@@ -145,3 +145,12 @@ backend/backups/MASCI_full_backup_2026-04-28_172129Z.zip
 backend/backups/MASCI_full_backup_2026-04-28_172140Z.zip
 frontend/node_modules/.cache/default-development/59.pack
 backend/backups/MASCI_full_backup_2026-04-28_174223Z.zip
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
