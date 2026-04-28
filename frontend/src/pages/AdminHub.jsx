@@ -22,6 +22,7 @@ import ComplianceExportPanel from "@/components/ComplianceExportPanel";
 import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 import BackupHeroPanel from "@/components/BackupHeroPanel";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
+import EquipmentPartsPanel from "@/components/EquipmentPartsPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 import SupplierMasterPanel from "@/components/SupplierMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
@@ -169,6 +170,9 @@ export default function AdminHub() {
 
         {/* Replace MASCI equipment fleet (.xlsx) — refreshes every dropdown */}
         <EquipmentMasterPanel />
+
+        {/* Bulk-upload the per-unit parts catalog (filters, cutting edges, etc.) */}
+        <EquipmentPartsPanel />
 
         {/* MASCI employee roster — feeds every employee dropdown */}
         <EmployeeMasterPanel />

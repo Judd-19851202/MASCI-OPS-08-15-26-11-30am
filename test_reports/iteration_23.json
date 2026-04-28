@@ -1,0 +1,45 @@
+{
+  "iteration": 23,
+  "date": "2026-04-28",
+  "task": "Validate Shop Activity Feed (/api/shop/activity + tab) and Equipment Parts Catalog (CRUD + bulk CSV upload + Resend email order) — backend + frontend EN/ES + admin panels.",
+  "summary": "Backend pytest 19/19 PASS (iter23) + iter22 regression 15/15 PASS. All endpoints work: GET /api/shop/activity (shop+admin tokens, signoff appears with section/item/signed_by/action_taken/inspection_id), GET/PUT/GET round-trip on /api/equipment-parts/{unit} (empty doc shape returned for unknown unit, upsert persists with updated_at+updated_by), GET /api/admin/equipment-parts/status (admin-only, shop token returns 403), POST /api/admin/equipment-parts/upload (CSV with mixed categories — 2 units written, 1 malformed row skipped; tires get size/position/ply/brand), POST /api/equipment-parts/order with Resend SUCCEEDED (resend_id returned, toast 'Parts order emailed.' in UI). Validation 400s on empty items / empty send_to / empty requested_by all confirmed. Note: backend returns 403 (not 401) for unauthenticated requests via FastAPI Depends — review_request said 401 but 403 is the actual status; both are auth rejections. Frontend EN: shop-tab-activity → shop-activity-panel + shop-activity-empty render. shop-tab-parts → parts-catalog + parts-fleet-list (100 rows) + parts-fleet-search + parts-editor with all 5 categories (filters/cutting_edges/wiper_blades/tires/other_wear_items). Add Part on filters → row inputs render, cart-add → parts-order-cart + parts-order-table → parts-order-send → 'Parts order emailed.' toast confirmed end-to-end. Frontend ES (verified via screenshot): all tabs render — Bitácora de Actividad / Catálogo de Partes / Tendencias / Inspecciones Recientes / Lista de Equipo / Artículos Abiertos. Parts catalog ES: 'Elija una Unidad', 'Elija una unidad para ver su catálogo de partes', 'Busque la flota de 589 unidades. Cada unidad tiene filtros, cuchillas, plumas, llantas y otros artículos de desgaste.' Header: Consola del Taller / Pre-Op y Equipo / Cerrar Sesión. Admin /admin: equipment-parts-panel + parts-count + parts-upload-btn + parts-upload-input all present. Admin /admin/equipment: admin-activity-panel + admin-open-panel + equipment-trends-panel all present. 589 fleet count intact.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PartsCatalog.jsx (parts-fleet-list)",
+        "issue": "Fleet picker renders rows for equipment_master entries with EMPTY unit_number (visible as bullet-only rows '· Air Compressors' with no leading text). Picking such a row sets selected.unit_number='' and the subsequent GET /api/equipment-parts/ + PUT /api/equipment-parts/ requests hit a trailing-slash URL that the K8s ingress responds to with a 307 redirect to http:// (NOT https://) — browsers BLOCK that as Mixed Content (visible in console: 'Mixed Content: requested an insecure XMLHttpRequest endpoint http://...'). Result: no 'Catalog saved.' toast fires when the user tries to save against an empty-unit row. Order send happens to work because POST /equipment-parts/order has no path param.",
+        "selector": "[data-testid='parts-fleet-pick-']  (empty suffix)",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_shop_activity_parts_iter23.py",
+    "/app/test_reports/pytest/iter23_results.xml",
+    "/app/backend/tests/test_shop_console_iter22.py"
+  ],
+  "action_items": [
+    "Filter out fleet entries with empty/whitespace unit_number in PartsCatalog.jsx (e.g. `useMemo(() => fleet.filter(u => (u.unit_number||'').trim()), [fleet])`) so they don't show in parts-fleet-list and can't be picked.",
+    "Optionally: backend GET/PUT /api/equipment-parts/{unit_number} should 400 when the path-decoded unit_number is empty/whitespace (today FastAPI happily routes /api/equipment-parts/ to the LIST endpoint after a 307, then PUT 405s — but both calls travel via http first).",
+    "Optionally: investigate why the K8s ingress 307-redirects HTTPS → HTTP on trailing slashes for some paths. This is a latent platform issue but is masked by always-correct URLs in other components."
+  ],
+  "critical_code_review_comments": [
+    "Auth gate returns 403 (not 401) when no X-Shop-Token / X-Admin-Token is supplied. Test report templates (and the original review_request) said 401. Recommend documenting the actual 403 behavior or switching require_shop_or_admin to raise 401 for consistency with HTTP semantics (401 = no auth, 403 = wrong auth).",
+    "POST /api/admin/equipment-parts/upload replaces ALL category lists for the affected units (line 2603: 'existing[c] = cats[c]  # replace category fully on upload') — destructive against any in-progress mechanic edits on the same unit. Document this clearly in the admin UI ('Upload OVERWRITES every category for the units listed in the CSV') or switch to merge-by-(name,part_number) on uploads.",
+    "PartsOrderRequest does not enforce minimum length on items[] / send_to[] at the Pydantic layer — relies on manual checks in the route. If a future caller bypasses the route helper, validation is lost. Consider min_length=1 on both fields.",
+    "/api/equipment-parts/{unit_number} accepts unit_number with arbitrary characters; empty string after url-decoding will route to the LIST endpoint via FastAPI's slash-redirect. Add `if not unit_number.strip(): raise HTTPException(400)` at the top of get/put/delete handlers as a defense-in-depth."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_shop_activity_parts_iter23.py (new — 19 tests, all green)"
+  ],
+  "success_rate": {"backend": "100% (19/19 iter23 + 15/15 iter22 regression)", "frontend": "~95% — all UI surfaces render and EN/ES translations correct on every screen; Resend email-order verified end-to-end with toast; 1 high-priority bug: empty-unit fleet rows trigger Mixed Content on save"},
+  "test_credentials": "Admin: Happy123! at /admin/login. Shop: Nothappy123! at /shop/login.",
+  "seed_data_creation": "Backend pytest created 1 FAIL inspection in test_signoff_appears_in_activity (cleaned up via DELETE with X-Admin-Token). CSV upload test wrote 2 TEST_UP* parts records and DELETEd them post-test. PUT round-trip created/deleted 1 TEST_PUT_* record. Resend email test sent 1 real email to safety@mascigc.com with subject body 'TEST_iter23 do not action' (cannot be unsent). UI Playwright test created/saved 1 record against an EMPTY unit_number — the PUT was blocked by browser (Mixed Content) so no DB row was written. No equipment_master / supplier / employee seed data touched.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iter23 features (Activity Feed + Parts Catalog + Resend email order + admin xlsx/csv upload) are functionally complete and all backend tests pass. Only one frontend bug to fix: PartsCatalog.jsx must filter out fleet entries with empty unit_number to prevent the trailing-slash → http:// → Mixed Content path. After fix, just verify a known-good unit (e.g. equipment_master entries with non-empty unit_number — should be ~589 valid + N invalid) saves correctly and shows 'Catalog saved.' toast. Resend integration is LIVE — every successful test emits a real email, so use addresses you don't mind receiving messages at (safety@mascigc.com is configured + benign per main agent). data-testid map: shop-tab-activity, shop-tab-parts, shop-activity-panel/-list/-empty/-refresh, parts-catalog, parts-fleet-list/-search/-pick-{unit}, parts-editor, parts-empty-state, parts-cat-{key}/-{key}-add, parts-row-{key}-{idx}-name/-pn/-qty/-notes/-cart/-del (+ -size/-position/-ply/-brand for tires/wipers), parts-updated-by, parts-save-btn, parts-order-cart/-empty/-table, parts-order-qty-{key}, parts-order-remove-{key}, parts-order-requested-by/-to/-cc/-notes/-send. Admin: admin-activity-panel (on /admin/equipment), equipment-parts-panel + parts-count + parts-upload-btn + parts-upload-input (on /admin).",
+  "rca of the issue": "The empty-unit-row bug originates from equipment_master rows lacking a unit_number field (schema permits it). PartsCatalog's fleet filter uses .toLowerCase() on unit_number but doesn't reject empty values. When picked, selected.unit_number = '' triggers axios calls to '/api/equipment-parts/' (note trailing slash). The Emergent K8s ingress on FastAPI returns a 307 Temporary Redirect with Location header set to http:// (HTTP not HTTPS) for trailing-slash mismatches — likely because uvicorn doesn't honor X-Forwarded-Proto when generating the redirect URL. The browser obeys CSP/Mixed-Content rules and silently blocks the redirected XHR. Fix: PartsCatalog.jsx line ~70 (fleet useMemo): add `.filter(u => (u.unit_number||'').trim())` before the search filter."
+}

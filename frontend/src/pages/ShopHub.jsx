@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
 import OpenItemsPanel from "@/components/OpenItemsPanel";
+import ShopActivityFeed from "@/components/ShopActivityFeed";
+import PartsCatalog from "@/components/PartsCatalog";
 import { LangToggle } from "@/components/LangToggle";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
@@ -24,7 +26,7 @@ export default function ShopHub() {
   const [items, setItems] = useState([]);
   const [equipmentMaster, setEquipmentMaster] = useState({ items: [], grouped: {}, count: 0 });
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("open"); // open | recent | equipment
+  const [tab, setTab] = useState("open"); // open | activity | trends | recent | equipment | parts
 
   const load = async () => {
     setLoading(true);
@@ -99,9 +101,11 @@ export default function ShopHub() {
         <div className="flex border-b-2 border-slate-200">
           {[
             { key: "open", label: t("Open Items") },
+            { key: "activity", label: t("Activity Feed") },
             { key: "trends", label: t("Trends") },
             { key: "recent", label: t("Recent Inspections") },
             { key: "equipment", label: t("Equipment List") },
+            { key: "parts", label: t("Parts Catalog") },
           ].map((s) => (
             <button
               key={s.key}
@@ -122,6 +126,7 @@ export default function ShopHub() {
         {tab === "open" && (
           <OpenItemsPanel baseHref="/shop/equipment" testIdPrefix="shop-open" />
         )}
+        {tab === "activity" && <ShopActivityFeed baseHref="/shop/equipment" testIdPrefix="shop-activity" />}
         {tab === "trends" && <EquipmentTrendsPanel />}
         {tab === "recent" && (
           <div className="bg-white border-2 border-slate-200 rounded-md overflow-hidden">
@@ -192,6 +197,7 @@ export default function ShopHub() {
           </div>
         )}
         {tab === "equipment" && <EquipmentListPanel master={equipmentMaster} loading={loading} />}
+        {tab === "parts" && <PartsCatalog />}
       </main>
     </div>
   );
