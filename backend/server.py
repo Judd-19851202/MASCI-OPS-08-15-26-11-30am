@@ -1737,78 +1737,93 @@ async def _build_backup_zip(db) -> tuple[bytes, int, str]:
             for line in pdf_failures[:20]:
                 log_lines.append(f"  - {line}")
 
-        # ---------- Crew Hub collections (Phase 1–4 Basecamp clone) ----------
-        # Internal collaboration data — archived as JSON only (no PDFs).
-        # Photos/file blobs live inside docs.data_base64.
-        CREW_HUB_COLLECTIONS = [
-            ("projects", None),
-            ("users", {"password_hash": 0}),         # redact password hashes
-            ("project_members", None),
-            ("messages", None),
-            ("message_comments", None),
-            ("todo_lists", None),
-            ("todos", None),
-            ("events", None),
-            ("docs", None),                           # includes base64 file blobs
-            ("hill_scopes", None),
-            ("activity_log", None),
-            ("notifications", None),
-        ]
+        # ====================================================================
+        # AUTO-DISCOVERED COLLECTIONS — every Mongo collection that ISN'T
+        # already exported above gets its JSON dumped here. This means any
+        # NEW collection added in the future (parts catalogs, QC reports,
+        # etc.) is included automatically — no human has to remember to add
+        # it to a list. The only excludes are MongoDB system collections.
+        # ====================================================================
+        EXCLUDE_FROM_AUTO_BACKUP = {
+            # Already covered above
+            *(coll for coll in EXPORTABLE_KINDS.values()),
+            # System / internal
+            "system.indexes",
+        }
+        # Per-collection projection rules — sensitive fields stay redacted
+        # regardless of which path picks the collection up.
+        SENSITIVE_FIELD_REDACTION = {
+            "users": {"password_hash": 0, "_id": 0},
+        }
+
+        all_collections = await db.list_collection_names()
         log_lines.append("")
-        log_lines.append("Crew Hub collections (JSON only):")
-        crew_total = 0
-        for coll_name, projection in CREW_HUB_COLLECTIONS:
+        log_lines.append("Auto-discovered collections (JSON only):")
+        auto_total = 0
+        captured_collections: List[str] = list(EXPORTABLE_KINDS.values())
+        for coll_name in sorted(all_collections):
+            if coll_name in EXCLUDE_FROM_AUTO_BACKUP or coll_name.startswith("system."):
+                continue
             try:
-                proj = {"_id": 0}
-                if projection:
-                    proj.update(projection)
-                docs = await db[coll_name].find({}, proj).to_list(50000)
-                crew_total += len(docs)
-                log_lines.append(f"  crew_hub/{coll_name:22s} : {len(docs):5d}")
+                projection = SENSITIVE_FIELD_REDACTION.get(coll_name, {"_id": 0})
+                docs = await db[coll_name].find({}, projection).to_list(100000)
+                auto_total += len(docs)
+                captured_collections.append(coll_name)
+                log_lines.append(f"  collections/{coll_name:24s} : {len(docs):5d}")
                 zf.writestr(
-                    f"crew_hub/{coll_name}.json",
+                    f"collections/{coll_name}.json",
                     _backup_json.dumps(docs, indent=2, default=str).encode("utf-8"),
                 )
             except Exception as e:  # noqa: BLE001
-                log_lines.append(f"    [warn] crew_hub/{coll_name} failed: {e}")
-        total_records += crew_total
-        log_lines.append(f"  Crew Hub subtotal: {crew_total}")
+                log_lines.append(f"    [warn] collections/{coll_name} failed: {e}")
+        total_records += auto_total
+        log_lines.append(f"  Auto-discovered subtotal: {auto_total}")
 
-        # ---------- Safety auxiliary collections ----------
-        # Equipment unit registry, JHA plan PDFs, trench-box tabulated data.
-        SAFETY_AUX_COLLECTIONS = [
-            "equipment_units",
-            "job_hazard_plans",
-            "trench_boxes",
-        ]
+        # ====================================================================
+        # DISK-BACKED FILES — the /app/backend/storage tree (Oxford 153 MB
+        # FDOT plans + every other big project doc that exceeds Mongo's BSON
+        # limit). These would otherwise be lost on container redeploy.
+        # ====================================================================
+        DISK_STORAGE_ROOT = Path("/app/backend/storage")
         log_lines.append("")
-        log_lines.append("Safety aux collections (JSON only):")
-        aux_total = 0
-        for coll_name in SAFETY_AUX_COLLECTIONS:
-            try:
-                docs = await db[coll_name].find({}, {"_id": 0}).to_list(50000)
-                aux_total += len(docs)
-                log_lines.append(f"  safety_aux/{coll_name:22s} : {len(docs):5d}")
-                zf.writestr(
-                    f"safety_aux/{coll_name}.json",
-                    _backup_json.dumps(docs, indent=2, default=str).encode("utf-8"),
-                )
-            except Exception as e:  # noqa: BLE001
-                log_lines.append(f"    [warn] safety_aux/{coll_name} failed: {e}")
-        total_records += aux_total
-        log_lines.append(f"  Safety aux subtotal: {aux_total}")
+        log_lines.append("Disk-backed files (storage tree):")
+        disk_files_count = 0
+        disk_bytes = 0
+        if DISK_STORAGE_ROOT.is_dir():
+            for f in DISK_STORAGE_ROOT.rglob("*"):
+                if not f.is_file():
+                    continue
+                try:
+                    rel = f.relative_to(DISK_STORAGE_ROOT)
+                    raw = f.read_bytes()
+                    zf.writestr(f"disk_files/{rel.as_posix()}", raw)
+                    disk_files_count += 1
+                    disk_bytes += len(raw)
+                except Exception as e:  # noqa: BLE001
+                    log_lines.append(f"    [warn] disk file {f} failed: {e}")
+            log_lines.append(
+                f"  /app/backend/storage  : {disk_files_count} files, "
+                f"{disk_bytes / (1024 * 1024):.1f} MB"
+            )
+        else:
+            log_lines.append("  (no disk storage tree — nothing to bundle)")
 
-        # Manifest identifier — the restore endpoint checks this
+        # ---------- Backup integrity manifest ----------
+        # Records what was captured so a future restore can verify the zip
+        # didn't lose anything. The integrity-check endpoint compares this
+        # against the live DB and surfaces a warning if a new collection
+        # exists that isn't yet in any backup.
         zf.writestr(
             "backup_manifest.json",
             _backup_json.dumps({
                 "source": "mascidocs.com",
                 "generated_at": now.isoformat(),
-                "version": "2",
+                "version": "3",
                 "total_records": total_records,
-                "safety_kinds": list(EXPORTABLE_KINDS.keys()),
-                "crew_hub_collections": [c for c, _ in CREW_HUB_COLLECTIONS],
-                "safety_aux_collections": SAFETY_AUX_COLLECTIONS,
+                "captured_collections": sorted(set(captured_collections)),
+                "all_db_collections_at_backup_time": sorted(all_collections),
+                "disk_files_count": disk_files_count,
+                "disk_files_bytes": disk_bytes,
             }, indent=2).encode("utf-8"),
         )
 
@@ -1894,7 +1909,17 @@ async def _run_scheduled_backup(db) -> Optional[dict]:
 
 async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -> Optional[str]:
     """Email the backup .zip as an attachment via Resend. No-op if
-    disabled or credentials missing. Returns the recipient email on success."""
+    disabled or credentials missing. Returns the recipient email on success.
+
+    Strategy when the full zip is too big to email (Resend caps at ~40 MB):
+      • Build a SLIM zip in-memory containing only the JSON collections +
+        the manifest + the log (no rendered PDFs, no disk_files/) — usually
+        well under 10 MB even with thousands of records.
+      • Email the slim zip with a notice telling the user the full zip
+        (with PDFs + disk-backed files) is on the server at /admin/backups.
+      • This way the user always has a recovery path via email even when
+        the main archive is huge.
+    """
     to = (os.environ.get("BACKUP_EMAIL_TO") or "").strip()
     if not to:
         return None
@@ -1903,19 +1928,62 @@ async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -
         logger.info("[scheduled-backup] email skipped — RESEND_API_KEY missing")
         return None
 
-    # Resend attachment limit is ~40 MB. Skip email if the zip is too big
-    # but don't fail the whole backup.
+    # Resend attachment limit is ~40 MB.
     max_mb = int(os.environ.get("BACKUP_EMAIL_MAX_MB", "35"))
     size_mb = len(payload) / (1024 * 1024)
+    attachment_payload = payload
+    attachment_name = filename
+    slim_notice = ""
     if size_mb > max_mb:
-        logger.warning(
-            f"[scheduled-backup] email skipped — backup is {size_mb:.1f} MB, "
-            f"over the {max_mb} MB email limit. Admin must download manually."
-        )
-        return None
+        try:
+            import io as _io2
+            import zipfile as _zf2
+            slim_buf = _io2.BytesIO()
+            with _zf2.ZipFile(payload_in := _io2.BytesIO(payload)) as src, \
+                 _zf2.ZipFile(slim_buf, "w", _zf2.ZIP_DEFLATED) as dst:
+                kept = 0
+                for n in src.namelist():
+                    # Keep: collections/, crew_hub/, safety_aux/, <kind>/json/,
+                    # backup_manifest.json, backup_log.txt, CSV/.
+                    # Drop:  disk_files/* and *.pdf (rendered PDFs are recoverable
+                    # from the JSON during restore + via the on-server full zip).
+                    if n.startswith("disk_files/"):
+                        continue
+                    if n.endswith(".pdf"):
+                        continue
+                    dst.writestr(n, src.read(n))
+                    kept += 1
+            slim_payload = slim_buf.getvalue()
+            slim_mb = len(slim_payload) / (1024 * 1024)
+            if slim_mb > max_mb:
+                logger.warning(
+                    f"[scheduled-backup] even slim zip is {slim_mb:.1f} MB > {max_mb} — "
+                    f"email skipped. Admin must download from /admin/backups."
+                )
+                return None
+            attachment_payload = slim_payload
+            attachment_name = filename.replace(".zip", "_slim.zip")
+            slim_notice = (
+                f'<p style="background:#fef3c7;border-left:4px solid #f59e0b;'
+                f'padding:10px 14px;border-radius:0 6px 6px 0;color:#92400e;'
+                f'font-size:13px;line-height:1.5;margin:14px 0;">'
+                f'<strong>Note:</strong> The full backup is {size_mb:.0f} MB '
+                f'(includes rendered PDFs + Oxford disk archive). For email, '
+                f'we sent a <strong>slim {slim_mb:.1f} MB version</strong> with '
+                f'every record\'s raw JSON ({kept} entries). The full zip lives '
+                f'on the server — sign in to <code>/admin</code> and download '
+                f'<strong>{filename}</strong> from the Stored Backups panel.'
+                f'</p>'
+            )
+            logger.info(
+                f"[scheduled-backup] full {size_mb:.1f} MB → emailing slim {slim_mb:.1f} MB ({kept} entries)"
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[scheduled-backup] slim build failed: {e}")
+            return None
 
     import base64 as _bb64
-    b64 = _bb64.b64encode(payload).decode("ascii")
+    b64 = _bb64.b64encode(attachment_payload).decode("ascii")
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     sender = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
     reply_to = os.environ.get("REPLY_TO_EMAIL") or None
@@ -2008,6 +2076,56 @@ async def admin_list_backups(_: bool = Depends(require_admin)):
             "storage_dir": str(BACKUPS_DIR),
             "enabled": True,
         },
+    }
+
+
+@api_router.get("/admin/backups/integrity-check")
+async def admin_backup_integrity_check(_: bool = Depends(require_admin)):
+    """Audit: every Mongo collection currently in the live DB vs the most
+    recent backup's manifest. Surfaces any collection that exists right now
+    but wasn't captured in the last backup — proves nothing is slipping
+    through, and catches new collections automatically.
+
+    Returns:
+      {
+        "last_backup_filename": str | None,
+        "last_backup_at":       iso str | None,
+        "live_collections":     [...],     # everything currently in DB
+        "captured_collections": [...],     # what the last backup contained
+        "missing_from_backup":  [...],     # ⚠ in DB but NOT in last backup
+        "ok":                   bool,
+      }
+
+    NOTE: this route MUST be declared before the parameterized
+    `/admin/backups/{filename}` route below — otherwise the FastAPI router
+    matches the literal "integrity-check" against the {filename} regex.
+    """
+    import json as _ic_json
+    import zipfile as _ic_zip
+    files = _list_stored_backups()
+    last = files[0] if files else None
+    live = sorted(await db.list_collection_names())
+    live = [c for c in live if not c.startswith("system.")]
+    captured: List[str] = []
+    last_at = None
+    if last:
+        zip_path = BACKUPS_DIR / last["filename"]
+        try:
+            with _ic_zip.ZipFile(zip_path) as zf:
+                if "backup_manifest.json" in zf.namelist():
+                    m = _ic_json.loads(zf.read("backup_manifest.json").decode("utf-8"))
+                    captured = sorted(m.get("captured_collections") or m.get("all_db_collections_at_backup_time") or [])
+                    last_at = m.get("generated_at")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"integrity-check: read manifest failed: {e}")
+    missing = [c for c in live if c not in set(captured)]
+    return {
+        "last_backup_filename": last.get("filename") if last else None,
+        "last_backup_at": last_at,
+        "live_collections": live,
+        "captured_collections": captured,
+        "missing_from_backup": missing,
+        "ok": (last is not None and len(missing) == 0),
     }
 
 
@@ -2211,11 +2329,44 @@ async def exports_restore(
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"restore: skipped {n}: {e}")
 
-    if not bucket:
+    # 2d. Auto-discovered collections (backup version 3+) — anything under
+    #     collections/<name>.json that isn't already restored above.
+    for n in names:
+        if not (n.startswith("collections/") and n.endswith(".json")):
+            continue
+        coll = n[len("collections/"):-len(".json")]
+        # Skip collections we've already restored via dedicated paths above.
+        if coll in bucket:
+            continue
+        try:
+            data = _backup_json.loads(zf.read(n).decode("utf-8"))
+            if isinstance(data, list):
+                _add(coll, data)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"restore: skipped {n}: {e}")
+
+    # 2e. Disk-backed files — restore the storage tree (Oxford big PDFs etc.)
+    disk_restored = 0
+    disk_storage_root = Path("/app/backend/storage")
+    for n in names:
+        if not n.startswith("disk_files/") or n.endswith("/"):
+            continue
+        rel = n[len("disk_files/"):]
+        if not rel:
+            continue
+        target = disk_storage_root / rel
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(zf.read(n))
+            disk_restored += 1
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"restore: disk file {n} failed: {e}")
+
+    if not bucket and disk_restored == 0:
         raise HTTPException(
             400,
             "No records found in backup (expected files under "
-            "<kind>/json/, crew_hub/ or safety_aux/).",
+            "<kind>/json/, crew_hub/, safety_aux/, collections/, or disk_files/).",
         )
 
     # 3. Write back to MongoDB.
