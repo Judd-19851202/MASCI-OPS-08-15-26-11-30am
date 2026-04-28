@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Printer, Loader2, Trash2, Mail, AlertOctagon } from "lucide-react";
+import { ArrowLeft, Printer, Loader2, Trash2, Mail, AlertOctagon, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { api } from "@/lib/api";
@@ -9,6 +9,10 @@ import { formatDateLong } from "@/lib/utils";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
+import ShopSignoffCard from "@/components/ShopSignoffCard";
+import { itemSeverity } from "@/lib/equipmentSeverity";
+import { isAdmin } from "@/lib/adminAuth";
+import { useT } from "@/lib/i18n";
 
 const KV = ({ label, value, full = false }) => (
   <div className={full ? "sm:col-span-2" : ""}>
@@ -35,12 +39,17 @@ const StatusPill = ({ status }) => {
   );
 };
 
-export default function ViewEquipmentInspection() {
+export default function ViewEquipmentInspection({ context = "admin" }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useT();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
+
+  const isShopContext = context === "shop";
+  const backHref = isShopContext ? "/shop" : "/admin/equipment";
+  const headerAccent = isShopContext ? "border-amber-500" : "border-red-700";
 
   useEffect(() => {
     let alive = true;
@@ -49,28 +58,40 @@ export default function ViewEquipmentInspection() {
         const res = await api.get(`/equipment-inspections/${id}`);
         if (alive) setData(res.data);
       } catch {
-        toast.error("Inspection not found");
-        navigate("/admin/equipment");
+        toast.error(t("Inspection not found"));
+        navigate(backHref);
       } finally {
         if (alive) setLoading(false);
       }
     })();
     return () => { alive = false; };
-  }, [id, navigate]);
+  }, [id, navigate]); // eslint-disable-line
 
   useEffect(() => {
     if (!loading && data) maybeAutoPrint();
   }, [loading, data]);
 
   const onDelete = async () => {
-    if (!window.confirm("Permanently delete this equipment inspection?")) return;
+    if (!window.confirm(t("Permanently delete this equipment inspection?"))) return;
     try {
       await api.delete(`/equipment-inspections/${id}`);
-      toast.success("Deleted");
-      navigate("/admin/equipment");
+      toast.success(t("Deleted"));
+      navigate(backHref);
     } catch {
-      toast.error("Could not delete");
+      toast.error(t("Could not delete"));
     }
+  };
+
+  // Update a single signoff entry in local state so the UI reflects the
+  // new state without a full reload.
+  const updateSignoff = (section, item, signoffEntry) => {
+    setData((prev) => {
+      if (!prev) return prev;
+      const key = `${section}|${item}`;
+      const current = (prev.shop_signoffs || []).filter((s) => s.key !== key);
+      const next = signoffEntry ? [...current, signoffEntry] : current;
+      return { ...prev, shop_signoffs: next };
+    });
   };
 
   if (loading) {
@@ -83,32 +104,37 @@ export default function ViewEquipmentInspection() {
   if (!data) return null;
 
   const fail = (data.fail_count || 0) > 0;
+  const signoffsByKey = Object.fromEntries(
+    (data.shop_signoffs || []).map((s) => [s.key, s])
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 print:bg-white pb-32 print:pb-0">
       <PrintWatermark />
       <div className="caution-stripe print:hidden" />
 
-      <header className="bg-slate-900 border-b-4 border-red-700 print:hidden">
+      <header className={`bg-slate-900 border-b-4 ${headerAccent} print:hidden`}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <Link
-            to="/admin/equipment"
+            to={backHref}
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="back-link"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> All Inspections
+            <ArrowLeft className="w-4 h-4 mr-1" /> {isShopContext ? t("Shop") : t("All Inspections")}
           </Link>
-          <MasciLogo variant="mark" size="md" homeLink="/admin" />
+          <MasciLogo variant="mark" size="md" homeLink={isShopContext ? "/shop" : "/admin"} />
           <div className="flex items-center gap-2">
             <Button onClick={() => setEmailOpen(true)} className="h-10 px-3 bg-slate-700 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-xs" data-testid="email-btn">
-              <Mail className="w-4 h-4 mr-1" /> Email
+              <Mail className="w-4 h-4 mr-1" /> {t("Email")}
             </Button>
             <Button onClick={() => printReport()} className="h-10 px-3 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs" data-testid="print-btn">
-              <Printer className="w-4 h-4 mr-1" /> Print
+              <Printer className="w-4 h-4 mr-1" /> {t("Print")}
             </Button>
-            <Button onClick={onDelete} variant="outline" className="h-10 px-3 border-2 border-red-700 text-red-700 hover:bg-red-50 font-bold uppercase tracking-wide text-xs" data-testid="delete-btn">
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            {isAdmin() && (
+              <Button onClick={onDelete} variant="outline" className="h-10 px-3 border-2 border-red-700 text-red-700 hover:bg-red-50 font-bold uppercase tracking-wide text-xs" data-testid="delete-btn">
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -190,24 +216,54 @@ export default function ViewEquipmentInspection() {
           <div key={sectionTitle} className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
             <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">{sectionTitle}</h2>
             <div className="space-y-2">
-              {Object.entries(items).map(([item, res]) => (
-                <div key={item} className="flex items-start justify-between gap-3 py-1.5 border-b border-slate-100 last:border-0">
-                  <div className="flex-1 text-sm text-slate-800">
-                    {item}
-                    {res?.note && (
-                      <div className="text-xs text-slate-500 italic mt-0.5">↳ {res.note}</div>
-                    )}
-                    {res?.photo && (
-                      <img
-                        src={res.photo}
-                        alt="Failure evidence"
-                        className="mt-2 w-32 h-24 object-cover rounded border-2 border-red-300"
+              {Object.entries(items).map(([item, res]) => {
+                const isFail = res?.status === "fail";
+                const sev = isFail ? itemSeverity(item) : null;
+                const key = `${sectionTitle}|${item}`;
+                const existing = signoffsByKey[key] || null;
+                return (
+                  <div key={item} className={`py-1.5 border-b border-slate-100 last:border-0 ${
+                    isFail
+                      ? sev === "oos"
+                        ? "border-l-4 border-l-red-700 pl-3"
+                        : "border-l-4 border-l-amber-500 pl-3"
+                      : ""
+                  }`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 text-sm text-slate-800">
+                        {item}
+                        {isFail && (
+                          <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-black tracking-[0.1em] align-middle"
+                            style={sev === "oos" ? { background: "#b91c1c", color: "white" } : { background: "#f59e0b", color: "white" }}>
+                            {sev === "oos" ? <><AlertOctagon className="w-2.5 h-2.5" /> {t("OOS")}</> : <><AlertTriangle className="w-2.5 h-2.5" /> {t("ATTN")}</>}
+                          </span>
+                        )}
+                        {res?.note && (
+                          <div className="text-xs text-slate-500 italic mt-0.5">↳ {res.note}</div>
+                        )}
+                        {res?.photo && (
+                          <img
+                            src={res.photo}
+                            alt="Failure evidence"
+                            className="mt-2 w-32 h-24 object-cover rounded border-2 border-red-300"
+                          />
+                        )}
+                      </div>
+                      <StatusPill status={res?.status} />
+                    </div>
+                    {isFail && (
+                      <ShopSignoffCard
+                        inspectionId={data.id || id}
+                        section={sectionTitle}
+                        item={item}
+                        severity={sev}
+                        existing={existing}
+                        onChange={(entry) => updateSignoff(sectionTitle, item, entry)}
                       />
                     )}
                   </div>
-                  <StatusPill status={res?.status} />
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}

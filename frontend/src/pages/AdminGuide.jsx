@@ -224,11 +224,21 @@ export default function AdminGuide() {
           </ul>
           <p className="mt-3">
             On any inspection detail page, the <strong>Shop Sign-Off</strong> panel lists every FAIL
-            line. The shop person types their name, action taken (Repaired / Tagged out / No action /
-            etc.), optional notes, and signs off. The original FAIL stays in the historical record;
-            the sign-off is logged with timestamp + name. Use <code>/admin/equipment-open-items</code>
-            to see everything still pending across the whole fleet.
+            line. The shop person types their name, action taken (Repaired / Tagged out / Parts ordered /
+            No action needed), optional notes, and signs off. The original FAIL stays in the historical record;
+            the sign-off is logged with timestamp + name. The <strong>Open Shop Items</strong> panel
+            on <code>/admin/equipment</code> shows everything still pending across the whole fleet.
           </p>
+          <div className="mt-4 bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r">
+            <div className="font-bold text-amber-900 uppercase text-sm tracking-wide">Shop Console (separate login)</div>
+            <p className="text-amber-900 text-sm mt-1">
+              Mechanics get their own focused console at <code>/shop</code> — Pre-Op trends, open
+              items, recent inspections, and the full equipment list. Same sign-off endpoint;
+              they don't see incidents / dailies / meetings / inspections / settings.
+              Default password: <strong>Nothappy123!</strong> (changeable via <code>SHOP_PASSWORD</code>
+              env var). Admins automatically have shop access through their admin token.
+            </p>
+          </div>
         </Section>
 
         {/* BACKUP */}

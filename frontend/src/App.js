@@ -33,8 +33,11 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
 import AdminGuide from "@/pages/AdminGuide";
 import ProjectPnlPage from "@/pages/ProjectPnlPage";
+import ShopLogin from "@/pages/ShopLogin";
+import ShopHub from "@/pages/ShopHub";
 import CheatSheet from "@/pages/CheatSheet";
 import { RequireAdmin } from "@/components/RequireAdmin";
+import { RequireShop } from "@/components/RequireShop";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 
 // Crew Hub (Basecamp-style /app section)
@@ -65,6 +68,7 @@ const GateInspection = ({ children }) => (
 );
 
 const A = (el) => <RequireAdmin>{el}</RequireAdmin>;
+const S = (el) => <RequireShop>{el}</RequireShop>;
 const U = (el, roles) => <RequireUser requireRole={roles}>{el}</RequireUser>;
 
 function App() {
@@ -158,7 +162,14 @@ function App() {
             <Route path="/admin/daily/:id" element={A(<ViewDailyReport />)} />
 
             <Route path="/admin/equipment" element={A(<EquipmentDashboard />)} />
-            <Route path="/admin/equipment/:id" element={A(<ViewEquipmentInspection />)} />
+            <Route path="/admin/equipment/:id" element={A(<ViewEquipmentInspection context="admin" />)} />
+
+            {/* ============================================================
+                Shop Console — mechanics-only view, separate password
+                ============================================================ */}
+            <Route path="/shop/login" element={<ShopLogin />} />
+            <Route path="/shop" element={S(<ShopHub />)} />
+            <Route path="/shop/equipment/:id" element={S(<ViewEquipmentInspection context="shop" />)} />
 
             {/* Legacy redirects */}
             <Route path="/inspections" element={<Navigate to="/admin/inspections" replace />} />

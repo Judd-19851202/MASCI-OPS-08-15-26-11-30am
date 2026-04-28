@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getAdminToken, clearAdminToken } from "@/lib/adminAuth";
+import { getShopToken, clearShopToken } from "@/lib/shopAuth";
 import { getJwt, clearJwt } from "@/lib/jwtAuth";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -17,11 +18,15 @@ export const api = axios.create({
   maxBodyLength: 50 * 1024 * 1024,
 });
 
-// Attach Crew-Hub JWT and Safety-Admin token to every request automatically.
+// Attach Crew-Hub JWT, Safety-Admin token, and Shop token to every request.
 api.interceptors.request.use((config) => {
   const adminTok = getAdminToken();
   if (adminTok) {
     config.headers["X-Admin-Token"] = adminTok;
+  }
+  const shopTok = getShopToken();
+  if (shopTok) {
+    config.headers["X-Shop-Token"] = shopTok;
   }
   const jwt = getJwt();
   if (jwt && !config.headers.Authorization) {
@@ -42,6 +47,7 @@ api.interceptors.response.use(
       // clear that. Don't blow away both — admin and crew-hub sessions are
       // independent.
       if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
+      if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
       if (cfg.headers?.Authorization) clearJwt();
     }
     return Promise.reject(err);

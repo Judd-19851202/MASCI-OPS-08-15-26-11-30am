@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Building2,
   Shield,
+  Wrench,
   ArrowRight,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -167,6 +168,20 @@ export default function Hub() {
             ]}
             accent="slate"
             testId="hub-section-admin"
+            external
+          />
+          <SectionCard
+            to="/shop/login"
+            icon={Wrench}
+            eyebrow="Mechanics & Shop"
+            title={t("Shop")}
+            desc={t("Pre-Op trends, open Out-of-Service / Needs-Attention items, and the full equipment list. Sign-off in one tap.")}
+            bullets={[
+              t("Password-gated · sign off on FAILs · clear units back to operate"),
+              t("Trends · Open Items · Equipment List · Recent Inspections"),
+            ]}
+            accent="amber"
+            testId="hub-section-shop"
             external
           />
         </div>

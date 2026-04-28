@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
+import OpenItemsPanel from "@/components/OpenItemsPanel";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
@@ -104,6 +105,9 @@ export default function EquipmentDashboard() {
           </div>
           <div className="p-4 sm:p-5 border-b-2 border-slate-100">
             <EquipmentTrendsPanel />
+          </div>
+          <div className="p-4 sm:p-5 border-b-2 border-slate-100">
+            <OpenItemsPanel baseHref="/admin/equipment" testIdPrefix="admin-open" />
           </div>
           {loading ? (
             <div className="p-12 flex items-center justify-center text-slate-500">

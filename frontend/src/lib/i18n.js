@@ -882,6 +882,112 @@ const ES = {
   "Admin": "Admin",
   "Crew Hub": "Hub de Cuadrilla",
   "Loading…": "Cargando…",
+
+  // ============================================================
+  // Shop Console (mechanics) — 2026-04-28
+  // ============================================================
+  "Shop": "Taller",
+  "Mechanics & Shop": "Mecánicos y Taller",
+  "Shop Console": "Consola del Taller",
+  "Shop Sign In": "Iniciar Sesión Taller",
+  "Shop Password": "Contraseña del Taller",
+  "Enter the shop password": "Ingrese la contraseña del taller",
+  "Welcome to the Shop": "Bienvenido al Taller",
+  "Shop Use Only": "Solo Uso del Taller",
+  "Sign in to review every Pre-Op inspection, sign off on Out-of-Service and Needs-Attention items, and keep the fleet running.":
+    "Inicie sesión para revisar cada inspección Pre-Op, firmar los artículos Fuera de Servicio y de Atención Requerida, y mantener la flota funcionando.",
+  "Pre-Op trends, open Out-of-Service / Needs-Attention items, and the full equipment list. Sign-off in one tap.":
+    "Tendencias Pre-Op, artículos abiertos Fuera de Servicio / Atención Requerida y la lista completa de equipo. Firme con un solo toque.",
+  "Password-gated · sign off on FAILs · clear units back to operate":
+    "Protegido con contraseña · firme las fallas · libere unidades para operar",
+  "Trends · Open Items · Equipment List · Recent Inspections":
+    "Tendencias · Artículos Abiertos · Lista de Equipo · Inspecciones Recientes",
+  "Pre-Op & Equipment": "Pre-Op y Equipo",
+  "Every Pre-Op inspection. Sign off on Out-of-Service and Needs-Attention items so jobs can keep moving.":
+    "Cada inspección Pre-Op. Firme los artículos Fuera de Servicio y de Atención Requerida para que los trabajos sigan adelante.",
+  "Inspections on file": "Inspecciones registradas",
+  "Units flagged FAIL": "Unidades marcadas FALLA",
+  "Shop sign-offs": "Firmas del taller",
+  "Equipment in fleet": "Equipo en la flota",
+  "Open Items": "Artículos Abiertos",
+  "Trends": "Tendencias",
+  "Recent Inspections": "Inspecciones Recientes",
+  "Equipment List": "Lista de Equipo",
+  "Recent Pre-Op Inspections": "Inspecciones Pre-Op Recientes",
+  "No equipment inspections yet.": "Aún no hay inspecciones de equipo.",
+  "MASCI Fleet": "Flota MASCI",
+  "units": "unidades",
+  "Search unit, make, model…": "Buscar unidad, marca, modelo…",
+  "All categories": "Todas las categorías",
+  "No matching equipment.": "No hay equipo que coincida.",
+  "Unit #": "# de Unidad",
+  "Make": "Marca",
+  "Model": "Modelo",
+  "Category": "Categoría",
+  "Could not load shop data": "No se pudo cargar los datos del taller",
+  "Sign out": "Cerrar sesión",
+  "Hub": "Hub",
+
+  // Open Items panel
+  "Open Shop Items": "Artículos Abiertos del Taller",
+  "All severities": "Todas las severidades",
+  "Out of Service only": "Solo Fuera de Servicio",
+  "Needs Attention only": "Solo Atención Requerida",
+  "Refresh": "Actualizar",
+  "All clear.": "Todo en orden.",
+  "Every Pre-Op fail has been signed off by the shop.":
+    "Toda falla Pre-Op ha sido firmada por el taller.",
+  "Severity": "Severidad",
+  "Unit": "Unidad",
+  "Failed item": "Artículo fallido",
+  "Operator": "Operador",
+  "Date": "Fecha",
+  "Action": "Acción",
+  "OUT OF SERVICE": "FUERA DE SERVICIO",
+  "NEEDS ATTENTION": "ATENCIÓN REQUERIDA",
+  "OOS": "FDS",
+  "ATTN": "ATN",
+  "Sign Off": "Firmar",
+  "signed": "firmado",
+  "FAIL": "FALLA",
+
+  // Sign-off card
+  "Shop Sign-Off": "Firma del Taller",
+  "Your name (mechanic / shop)": "Su nombre (mecánico / taller)",
+  "Optional notes (parts replaced, follow-up needed, etc.)":
+    "Notas opcionales (partes reemplazadas, seguimiento necesario, etc.)",
+  "Repaired": "Reparado",
+  "Tagged out of service": "Etiquetado fuera de servicio",
+  "Parts ordered": "Partes ordenadas",
+  "No action needed": "No requiere acción",
+  "Enter your name to sign off.": "Ingrese su nombre para firmar.",
+  "Signed off.": "Firmado.",
+  "Could not save sign-off.": "No se pudo guardar la firma.",
+  "Reopen this item? The shop sign-off stamp will be removed.":
+    "¿Reabrir este artículo? El sello de firma del taller será removido.",
+  "Reopened.": "Reabierto.",
+  "Could not reopen.": "No se pudo reabrir.",
+  "Shop signed off": "Taller firmó",
+  "By": "Por",
+  "Reopen": "Reabrir",
+
+  // ViewEquipmentInspection
+  "Inspection not found": "Inspección no encontrada",
+  "Permanently delete this equipment inspection?":
+    "¿Eliminar permanentemente esta inspección de equipo?",
+  "Deleted": "Eliminado",
+  "Could not delete": "No se pudo eliminar",
+  "All Inspections": "Todas las Inspecciones",
+  "Email": "Correo",
+  "View": "Ver",
+
+  // Auth shared
+  "Login failed": "Inicio de sesión fallido",
+  "Wrong password": "Contraseña incorrecta",
+  "Login failed — check connection":
+    "Inicio de sesión fallido — verifique la conexión",
+  "Verifying…": "Verificando…",
+  "Sign In": "Iniciar Sesión",
 };
 
 const DICTS = { es: ES, en: {} };

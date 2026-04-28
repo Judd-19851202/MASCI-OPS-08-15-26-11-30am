@@ -156,6 +156,34 @@ def require_admin(x_admin_token: Optional[str] = Header(default=None)):
     return True
 
 
+def _shop_token_for(password: str) -> str:
+    return hmac.new(_admin_hmac_secret(), b"shop:" + password.encode(), hashlib.sha256).hexdigest()
+
+
+def require_shop_or_admin(
+    x_admin_token: Optional[str] = Header(default=None),
+    x_shop_token: Optional[str] = Header(default=None),
+):
+    """Accepts either an admin token OR a shop token.
+
+    Used on equipment-inspection read + sign-off routes so the shop can do
+    their job without seeing the rest of the office console.
+    """
+    admin_pw = os.environ.get("ADMIN_PASSWORD", "")
+    shop_pw = os.environ.get("SHOP_PASSWORD", "")
+    if not admin_pw and not shop_pw:
+        return True  # Both gates disabled
+    if x_admin_token and admin_pw:
+        expected = _admin_token_for(admin_pw)
+        if hmac.compare_digest(x_admin_token, expected):
+            return True
+    if x_shop_token and shop_pw:
+        expected = _shop_token_for(shop_pw)
+        if hmac.compare_digest(x_shop_token, expected):
+            return True
+    raise HTTPException(status_code=401, detail="Shop or admin login required")
+
+
 class AdminLoginRequest(BaseModel):
     password: str
 
@@ -178,6 +206,26 @@ async def admin_login(body: AdminLoginRequest, request: Request):
 @api_router.get("/admin/check")
 async def admin_check(_: bool = Depends(require_admin)):
     """Frontend pings this to verify a stored token is still valid."""
+    return {"ok": True}
+
+
+@api_router.post("/shop/login")
+async def shop_login(body: AdminLoginRequest, request: Request):
+    """Mirror of /admin/login but for the shop console (mechanics)."""
+    ip = _client_ip(request)
+    _check_login_lockout(ip)
+    expected_pw = os.environ.get("SHOP_PASSWORD", "")
+    if not expected_pw:
+        return {"ok": True, "token": "open-mode"}
+    if not hmac.compare_digest(body.password, expected_pw):
+        _record_login_fail(ip)
+        raise HTTPException(status_code=401, detail="Wrong password")
+    _reset_login_fails(ip)
+    return {"ok": True, "token": _shop_token_for(expected_pw)}
+
+
+@api_router.get("/shop/check")
+async def shop_check(_: bool = Depends(require_shop_or_admin)):
     return {"ok": True}
 
 
@@ -2023,7 +2071,7 @@ async def create_equipment_inspection(payload: EquipmentInspectionCreate):
 
 
 @api_router.get("/equipment-inspections", response_model=List[EquipmentInspectionSummary])
-async def list_equipment_inspections(_: bool = Depends(require_admin)):
+async def list_equipment_inspections(_: bool = Depends(require_shop_or_admin)):
     cursor = db.equipment_inspections.find(
         {},
         {
@@ -2063,7 +2111,7 @@ async def list_equipment_inspections(_: bool = Depends(require_admin)):
 
 
 @api_router.get("/equipment-inspections/{inspection_id}")
-async def get_equipment_inspection(inspection_id: str, _: bool = Depends(require_admin)):
+async def get_equipment_inspection(inspection_id: str, _: bool = Depends(require_shop_or_admin)):
     doc = await db.equipment_inspections.find_one({"id": inspection_id}, {"_id": 0})
     if not doc:
         raise HTTPException(status_code=404, detail="Equipment inspection not found")
@@ -2143,7 +2191,7 @@ def _iter_failed_items(insp: Dict[str, Any]):
 @api_router.get("/admin/equipment-inspections/trends")
 async def equipment_inspection_trends(
     days: int = 90,
-    _: bool = Depends(require_admin),
+    _: bool = Depends(require_shop_or_admin),
 ):
     """Three leaderboards for the admin: most-problematic equipment units,
     operators with most failed inspections, and jobsites trending bad.
@@ -2224,7 +2272,7 @@ async def equipment_inspection_trends(
 @api_router.get("/admin/equipment-inspections/open-items")
 async def open_signoff_items(
     severity: str = "all",  # oos | attn | all
-    _: bool = Depends(require_admin),
+    _: bool = Depends(require_shop_or_admin),
 ):
     """Returns every still-open FAIL item (no shop sign-off yet) across all
     equipment inspections, sorted by inspection date desc."""
@@ -2270,7 +2318,7 @@ class ShopSignoffPayload(BaseModel):
 async def signoff_inspection_item(
     inspection_id: str,
     payload: ShopSignoffPayload,
-    _: bool = Depends(require_admin),
+    _: bool = Depends(require_shop_or_admin),
 ):
     """Record a shop sign-off on a single FAIL line of an equipment inspection.
 
@@ -2313,7 +2361,7 @@ async def remove_signoff(
     inspection_id: str,
     section: str,
     item: str,
-    _: bool = Depends(require_admin),
+    _: bool = Depends(require_shop_or_admin),
 ):
     """Reopen a previously-signed-off item (e.g. shop made a mistake)."""
     key = f"{section}|{item}"
