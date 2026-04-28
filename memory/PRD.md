@@ -1,5 +1,20 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-28 — Shop Console + Pre-Op Sign-Off (P0 complete)
+- **New 5th Hub tile "Shop"** (amber Wrench, `data-testid="hub-section-shop"`) on `/`. Click → `/shop/login` with its own password gate (`SHOP_PASSWORD=Nothappy123!`, separate from admin's `Happy123!`).
+- **New `/shop` console** (`ShopHub.jsx`) — focused subset of `/admin/equipment`: KPI strip (Inspections on file / Units flagged FAIL / Shop sign-offs / Equipment in fleet) + 4 tabs: **Open Items** (default, lists every still-pending FAIL line, jumps to inspection), **Trends** (reuses `EquipmentTrendsPanel`), **Recent Inspections**, **Equipment List** (filterable 589-unit fleet). No incidents / dailies / meetings / inspections / settings — shop only sees shop stuff.
+- **New `ShopSignoffCard.jsx`** — renders per FAIL line on `/admin/equipment/:id` and `/shop/equipment/:id`. Inputs: signed_by (mechanic name), action_taken (Repaired / Tagged out of service / Parts ordered / No action needed), optional notes. After sign-off, shows green "Shop signed off" stamp with name + timestamp + Reopen button. Original FAIL stays in the historical record; sign-off is logged separately on `equipment_inspections.shop_signoffs[]`.
+- **Severity coloring on FAIL lines** in the View page: **OUT OF SERVICE** items (red, e.g. brakes / horn / tires / fire extinguisher / hydraulic) get a red border + red OOS pill; **NEEDS ATTENTION** items (amber) get amber border + amber ATTN pill. Frontend `equipmentSeverity.js` mirrors backend `MAJOR_OOS_SET`.
+- **Admin retains global view**: `/admin/equipment` now also mounts `<OpenItemsPanel testIdPrefix="admin-open"/>` directly under the Trends panel, so admins see everything the shop sees PLUS the rest of the office console.
+- **Backend auth**:
+  - `POST /api/shop/login` mirrors `/admin/login` (HMAC token via ADMIN_HMAC_SECRET, namespaced by `b"shop:" + password`).
+  - New dependency `require_shop_or_admin` accepts X-Shop-Token OR X-Admin-Token. Applied to `GET /api/equipment-inspections` (list), `GET /api/equipment-inspections/{id}`, `GET /api/admin/equipment-inspections/trends`, `GET /api/admin/equipment-inspections/open-items`, `POST/DELETE /api/admin/equipment-inspections/{id}/signoff`.
+  - DELETE inspection endpoint stays admin-only (shop cannot wipe history).
+- **Bilingual**: ~80 new ES keys in `i18n.js` for the shop console + sign-off + open items + auth flow.
+- **Owner's Manual** (`/admin/guide`) updated with new amber callout explaining the Shop Console + default password.
+- **Validated by testing agent (iteration 22)**: 15/15 backend pytest in `test_shop_console_iter22.py`, frontend EN+ES end-to-end (login → dashboard → sign-off → stamp → reopen → admin parity), 234/135/589 seed counts intact.
+
+
 ## Original Problem Statement
 > "I want/need a fillable form I can send out to inspectors to do site safety inspections, then print or save as PDF... Look at what I have see what we could add or take away to make it awesome & work flawlessly on computers or mobile devices."
 
