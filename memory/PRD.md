@@ -236,6 +236,27 @@ Customer reported data loss after Emergent redeploy — in-container MongoDB and
   - `NewEquipmentInspection.jsx` — Unit # / Label field (auto-fills make/serial on pick).
   - `NewDailyReport.jsx` — Equipment Log → "Unit / Equipment" field (replaces free-text "Description / ID").
 
+## 2026-04-28 — Field-User Feedback Sweep (P0 complete)
+
+### Daily Report
+- **Auto-generated Report #** — `DR-YYYYMMDD-NNN`. Fetched on form mount via new endpoint `GET /api/daily-reports/next-number`. Editable by user if needed.
+- **Section 04 "MASCI Crews on Site" rebuilt** — now a row-table per crew member with Name (EmployeeCombo) + Trade + Start Time + Lunch Minutes + Stop Time → auto-calculated `hours` field (handles overnight shifts) + a sticky "Total crew hours today" footer bar. PDF prints the same table with totals row.
+- **Section 08 Material Deliveries** — added per-row `ticket_photos` uploader; PDF inlines the ticket photos under the materials table.
+- **Photo upload (used everywhere)** — split into two buttons: "From Gallery" (no `capture` attr → iOS shows Library/Take Photo/Choose File sheet) and "Take Photo" (forces camera). Removed the camera-only behavior on iOS.
+- **GPS reliability** — `getCurrentPosition` now retries with low-accuracy + cached fix on timeout; iOS PositionError codes are mapped to actionable user messages (e.g. "Location permission denied. Tap AA in Safari → Website Settings → Location → Allow").
+
+### Cross-form upgrades
+- **EmployeeCombo** (`/app/frontend/src/components/EmployeeCombo.jsx`) — searchable picker fed by `GET /api/employees`. Drop-in component: free-text fallback always works.
+- Added EmployeeCombo to **Site Inspection** (operator), **Incident** (reported_by, supervisor_name, witness names), **Equipment Pre-Op** (operator), **Daily Report** (every crew name).
+
+### Backend
+- Added `GET /api/employees`, `GET /api/admin/employees/status`, `POST /api/admin/employees/upload` (.xlsx or .csv with column "Name" + optional Employee ID/Trade/Role/Crew/Email/Phone), `POST /api/admin/employees`, `DELETE /api/admin/employees/{id}`.
+- Added `GET /api/daily-reports/next-number?date=` — registered BEFORE `/daily-reports/{report_id}` so FastAPI route ordering doesn't swallow it.
+- `pdf_render._render_daily` field mapping fixed (was using stale `crews/materials.name/qty` keys); now matches actual schema and prints crew totals + ticket photos.
+
+### Admin UI
+- New `EmployeeMasterPanel` on `/admin` (mounted directly under `EquipmentMasterPanel`) — counter, last-updated timestamp, single "PICK FILE" button to upload roster.
+
 ## 2026-04-28 — Admin Upload Tool for Equipment Fleet
 - New module `/app/backend/equipment_parser.py` — shared `parse_equipment_xlsx(bytes, sheet="Louis")` used by both startup seed and the admin upload endpoint (single source of truth for parsing rules).
 - New endpoints (admin-only):

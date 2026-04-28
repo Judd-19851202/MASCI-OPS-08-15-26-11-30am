@@ -19,6 +19,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
+import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { useT, getLang } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
@@ -524,7 +525,12 @@ export default function NewEquipmentInspection({ publicMode = false }) {
             </div>
             <div className="sm:col-span-2">
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Operator Name *")}</Label>
-              <Input value={data.operator_name} onChange={(e) => set("operator_name", e.target.value)} className={inputCls} placeholder={t("Your full name")} data-testid="input-operator-name" />
+              <EmployeeCombo
+                value={data.operator_name}
+                onChange={(v) => set("operator_name", v)}
+                placeholder={t("Type or pick from roster…")}
+                testId="input-operator-name"
+              />
             </div>
           </div>
         </Section>

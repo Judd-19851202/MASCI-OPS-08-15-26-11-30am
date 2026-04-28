@@ -27,6 +27,7 @@ import { YesNo } from "@/components/YesNo";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
+import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
 import { useT, getLang } from "@/lib/i18n";
@@ -356,23 +357,21 @@ export default function NewIncident({ publicMode = false }) {
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Reported By *
               </Label>
-              <Input
+              <EmployeeCombo
                 value={data.reported_by}
-                onChange={(e) => set("reported_by", e.target.value)}
-                className={inputCls}
+                onChange={(v) => set("reported_by", v)}
                 placeholder="Your name"
-                data-testid="input-reported-by"
+                testId="input-reported-by"
               />
             </div>
             <div className="sm:col-span-2">
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Supervisor / Foreman On-Site
               </Label>
-              <Input
+              <EmployeeCombo
                 value={data.supervisor_name}
-                onChange={(e) => set("supervisor_name", e.target.value)}
-                className={inputCls}
-                data-testid="input-supervisor-name"
+                onChange={(v) => set("supervisor_name", v)}
+                testId="input-supervisor-name"
               />
             </div>
           </div>
@@ -716,12 +715,11 @@ export default function NewIncident({ publicMode = false }) {
                   <X className="w-4 h-4 mr-1" /> Remove
                 </Button>
               </div>
-              <Input
+              <EmployeeCombo
                 value={w.name}
-                onChange={(e) => updateWitness(i, "name", e.target.value)}
-                className={inputCls}
+                onChange={(v) => updateWitness(i, "name", v)}
                 placeholder="Name"
-                data-testid={`witness-name-${i}`}
+                testId={`witness-name-${i}`}
               />
               <Textarea
                 value={w.statement}
