@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Lock, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { api } from "@/lib/api";
-import { setAdminToken } from "@/lib/adminAuth";
+import { setAdminToken, clearAdminToken } from "@/lib/adminAuth";
 import { toast } from "sonner";
 
 export default function AdminLogin() {
@@ -16,6 +16,13 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Landing on /admin/login means any prior session is over.
+  // Wipe any stale admin token so a bad token can't poison the next call
+  // and so the password field starts from a clean state.
+  useEffect(() => {
+    clearAdminToken();
+  }, []);
+
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!password) {
@@ -23,6 +30,9 @@ export default function AdminLogin() {
       return;
     }
     setSubmitting(true);
+    // Defensive: clear any token immediately before the POST so the
+    // request interceptor doesn't attach a stale X-Admin-Token header.
+    clearAdminToken();
     try {
       const res = await api.post("/admin/login", { password });
       if (res?.data?.ok && res?.data?.token) {

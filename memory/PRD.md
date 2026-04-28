@@ -1,5 +1,26 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-28 — DATA INTEGRITY FIX: Equipment Make/Model + Project Memberships + Admin Stale-Token Guard
+Three production data bugs fixed in one pass after the OOM/520 stabilisation:
+
+1. **Equipment Master split** — every one of the 589 equipment_master docs had `make_model` populated (e.g., "Ingersoll Rand Towable Air Compressor") but `make` and `model` were empty, so the Shop Console fleet table rendered "—" for both columns. Built `/app/backend/scripts/seed_equipment_make_model.py` with a 100+ entry multi-word manufacturer dictionary that splits make_model into the right (make, model) tuple. Result: **589/589 docs now have make + model**, the JSON seed file `/app/backend/data/equipment_master.json` is back-synced from the DB, and the Shop Console "Equipment List" tab renders properly. Verified via screenshot at `/shop` after login.
+2. **Project memberships seeded** — `db.project_members` (used by the `/api/projects` route in `/app/backend/projects.py`) was almost empty: only 1 row across 32 projects. The 4 owners + 1 admin saw the projects via the role-bypass branch BUT `/api/projects/{id}/members` returned empty for every project, breaking the Crew Hub "no projects on jobs" experience for anyone navigating into a project. Built `/app/backend/scripts/seed_project_memberships.py` (idempotent upsert) that links every owner/admin to every non-HQ project. Result: **155 new project_members rows; all 5 privileged users (jaymn.judd, david.jewett, chris.wright, ramon.rodriguez, safety) are now members of all 31 projects** (HQ is implicit). Verified: `GET /api/projects/{any_id}/members` returns 5 members.
+3. **Admin Login stale-token guard** — `/app/frontend/src/pages/AdminLogin.jsx` now calls `clearAdminToken()` on mount AND right before the POST so a stale `X-Admin-Token` header from a previous session can't poison the new login attempt. Verified: API returns valid 64-char token on success and 401 on wrong password.
+
+### Files touched
+- `/app/backend/scripts/seed_equipment_make_model.py` (NEW)
+- `/app/backend/scripts/seed_project_memberships.py` (NEW)
+- `/app/backend/data/equipment_master.json` (regenerated from DB; old version backed up as `equipment_master.20260428-212813.bak.json`)
+- `/app/frontend/src/pages/AdminLogin.jsx` (stale-token guard)
+
+### To run on production
+After Save-to-GitHub + redeploy, run these two scripts once on the production pod:
+```bash
+python3 /app/backend/scripts/seed_equipment_make_model.py
+python3 /app/backend/scripts/seed_project_memberships.py
+```
+They are idempotent — safe to re-run.
+
 ## 2026-04-28 — PRODUCTION OUTAGE FIX: 5 Defense Layers Against Cloudflare 520
 Customer hit "Login failed — check connection" on production at mascidocs.com — root cause: Cloudflare 520 (origin server unresponsive). The deployed backend container was being killed because the synchronous backup build was blocking the asyncio event loop AND the disk filled up from accumulated backup zips. Shipped 5 permanent defense layers in `/app/backend/server.py` so this can NEVER happen again:
 
