@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import {
   ArrowLeft, Printer, ClipboardCheck, Users, AlertOctagon, ClipboardList,
   Wrench, Mail, ShieldCheck, HardDrive, QrCode, HelpCircle, Truck,
+  TrendingUp, Building2, ListChecks,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { Button } from "@/components/ui/button";
@@ -109,7 +110,60 @@ export default function AdminGuide() {
           </ul>
         </Section>
 
-        {/* EQUIPMENT FLEET */}
+        {/* PROJECT P&L */}
+        <Section icon={TrendingUp} title="Project P&L Snapshot — live job-cost dashboard" color="amber">
+          <p>
+            On <code>/admin</code> click the <strong>Project P&amp;L Snapshot</strong> tile (top-left) —
+            or go straight to <code>/admin/pnl</code>. Pick a project, optional date range, your
+            labor rate ($/hr), and you get a live snapshot pulled straight from submitted Daily Reports.
+          </p>
+          <ul className="ml-5 list-disc space-y-1 mt-2">
+            <li><strong>Crew hrs by employee</strong> — each MASCI worker, days on site, hours, cost @ rate.</li>
+            <li><strong>Subs hrs by company</strong> — every sub, average headcount, total man-hours.</li>
+            <li><strong>Materials</strong> — one row per delivery ticket (date, qty, unit, supplier, ticket #, photo count).</li>
+            <li><strong>4 KPI tiles</strong> at the top: # of reports, MASCI crew hrs, Sub man-hrs, total Labor cost.</li>
+          </ul>
+          <p className="mt-3">
+            Numbers update the second a foreman submits a Daily Report — no manual rollup. Use this to
+            spot overruns mid-job, prep claim packets, or run a Friday cost meeting.
+          </p>
+        </Section>
+
+        {/* MASTER LISTS */}
+        <Section icon={ListChecks} title="Master lists — keeping the dropdowns current" color="slate">
+          <p>
+            Three uploadable lists feed every dropdown across the platform. All three live on{" "}
+            <code>/admin</code> right under the Backup panel:
+          </p>
+          <ul className="ml-5 list-disc space-y-2 mt-2">
+            <li>
+              <strong className="flex items-center gap-1.5"><Truck className="w-4 h-4" /> Equipment Master Fleet</strong>
+              <br />Upload your master <code>Equipment List.xlsx</code> (Louis sheet). Auto-categorizes by
+              prefix (DPT-, EXC-, LDR-, etc.). Feeds Equipment Pre-Op + Daily Report Equipment Log.
+              Today: <strong>589 units</strong>.
+            </li>
+            <li>
+              <strong className="flex items-center gap-1.5"><Users className="w-4 h-4" /> Employee Roster</strong>
+              <br />Upload .xlsx or .csv with at least a <code>Name</code> column (extra columns
+              like Trade, Crew, Email all welcome but optional). Feeds the searchable employee picker
+              in Daily Report Section 04 (Crew on Site), Site Inspection (operator), Incident
+              (witnesses, supervisor), Equipment Pre-Op (operator). Today: <strong>234 names</strong>.
+            </li>
+            <li>
+              <strong className="flex items-center gap-1.5"><Building2 className="w-4 h-4" /> Supplier &amp; Subcontractor List</strong>
+              <br />Upload .xlsx or .csv with company names in the first column. Feeds the searchable
+              supplier picker in Daily Report Section 05 (Subcontractors) + Section 08 (Material
+              Deliveries). Today: <strong>145 entries</strong>.
+            </li>
+          </ul>
+          <p className="mt-3">
+            <strong>Operators can always type free-text</strong> if a name/equipment/supplier isn't
+            in the list yet — nothing blocks them in the field. Then you re-upload the master file
+            when convenient.
+          </p>
+        </Section>
+
+        {/* EQUIPMENT FLEET (legacy section — keep for clarity) */}
         <Section icon={Truck} title="Updating the equipment fleet" color="amber">
           <p>Every equipment dropdown in the Hub (Pre-Op, Daily Reports, etc.)
             is fed by a single master list parsed from your <code>Equipment List.xlsx</code>.</p>
@@ -121,6 +175,59 @@ export default function AdminGuide() {
           <p className="mt-3 text-sm">
             By default the parser reads the <strong>Louis</strong> sheet (the master list).
             Operators can still type custom equipment that isn't in the file as a fallback.
+          </p>
+        </Section>
+
+        {/* PRE-OP OOS WORKFLOW */}
+        <Section icon={AlertOctagon} title="Equipment Pre-Op — Out of Service vs Needs Attention" color="red">
+          <p>
+            When an operator marks any item <strong>FAIL</strong>, the system splits the response in two:
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3 mt-3">
+            <div className="border-2 border-red-700 bg-red-50 rounded-md p-3">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-red-700 font-bold mb-1">
+                Red — OUT OF SERVICE
+              </div>
+              <p className="text-sm m-0">
+                Critical fluids (oil, coolant, hydraulic, transmission, gearbox), brakes, steering, kill
+                switch, ROPS/FOPS, seat belt, horn, backup alarm, tires/tracks, fire extinguisher,
+                strobe/beacon, hydraulic hoses, boom/arm pins, outriggers, visible leaks. <strong>Operator
+                gets a stop-work modal:</strong> "Get with your supervisor — this unit is unsafe. Notify
+                shop. Tag-out the machine."
+              </p>
+            </div>
+            <div className="border-2 border-amber-500 bg-amber-50 rounded-md p-3">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-700 font-bold mb-1">
+                Yellow — NEEDS ATTENTION
+              </div>
+              <p className="text-sm m-0">
+                Everything else (mirrors, lights/electrical, paint/decals, etc.). Logged + photographed
+                so the shop has a record, but the unit can stay in service until reviewed.
+              </p>
+            </div>
+          </div>
+          <p className="mt-3">
+            Both severities require a <strong>10-character description</strong> and at least one photo
+            from the operator before the inspection can be submitted.
+          </p>
+        </Section>
+
+        {/* PRE-OP TRENDS + SIGNOFF */}
+        <Section icon={Wrench} title="Pre-Op trends + shop sign-off" color="slate">
+          <p>
+            On <code>/admin/equipment</code> the dashboard shows three leaderboards (last 90 days):
+          </p>
+          <ul className="ml-5 list-disc space-y-1 mt-2">
+            <li><strong>Most-problematic equipment</strong> — units ranked by OOS fails ➔ Needs Attention fails ➔ inspection count.</li>
+            <li><strong>Operators with most failed inspections</strong> — surfaces training opportunities or repeat trouble.</li>
+            <li><strong>Jobsites trending bad</strong> — same ranking, by project number.</li>
+          </ul>
+          <p className="mt-3">
+            On any inspection detail page, the <strong>Shop Sign-Off</strong> panel lists every FAIL
+            line. The shop person types their name, action taken (Repaired / Tagged out / No action /
+            etc.), optional notes, and signs off. The original FAIL stays in the historical record;
+            the sign-off is logged with timestamp + name. Use <code>/admin/equipment-open-items</code>
+            to see everything still pending across the whole fleet.
           </p>
         </Section>
 
@@ -232,7 +339,7 @@ export default function AdminGuide() {
               Screenshot the error. Note what you were doing when it happened.
             </li>
             <li>
-              Reach out to your developer (Emergent chat). Share the screenshot + steps.
+              Reach out to <strong>Jaymn Judd · 945-210-7050</strong>. Share the screenshot + steps.
               Most bugs are fixed in under an hour.
             </li>
             <li>

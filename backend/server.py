@@ -2070,6 +2070,262 @@ async def get_equipment_inspection(inspection_id: str, _: bool = Depends(require
     return doc
 
 
+# ---------------------------------------------------------------------------
+# Pre-Op Trends — admin analytics for problematic equipment / operators / jobs
+# + a shop-signoff workflow that lets the shop close out OUT-OF-SERVICE and
+# NEEDS-ATTENTION items with a name + timestamp + optional notes.
+# ---------------------------------------------------------------------------
+MAJOR_OOS_ITEMS_BACKEND = [
+    "Steps, grab handles, ladders secure & clean",
+    "Air filter / pre-cleaner condition",
+    "ROPS / FOPS structure - no cracks or damage",
+    "Seat & seat belt - functional, not torn",
+    "Horn operational",
+    "Backup alarm operational",
+    "Service brakes - firm pedal, holds machine",
+    "Parking brake - holds machine on grade",
+    "Steering - responsive, no excessive play",
+    "Emergency / kill switch operational",
+    "Visible fluid leaks (engine, hydraulic, fuel, coolant)",
+    "Belts and hoses - no cracks, fraying, or leaks",
+    "Tires - inflation, cuts, sidewall damage, tread wear",
+    "Tires - inflation, cuts, tread wear",
+    "Tires - inflation, condition, no cuts (front & rear)",
+    "Tires - inflation, cuts, tread",
+    "Tires - inflation, cuts, tread depth (all positions)",
+    "Tires - inflation, cuts, tread (front & rear)",
+    "Tires (rear, if smooth-drum) - inflation, wear",
+    "Tires / tracks - condition & wear",
+    "Tracks or tires - condition & wear",
+    "Tracks / undercarriage - tension, wear, no missing pads",
+    "Tracks / undercarriage - tension, wear",
+    "Tracks / undercarriage - tension & wear",
+    "Tracks / undercarriage - condition & wear",
+    "Tracks - tension, drive sprockets, idlers",
+    "Strobe / beacon light (Required)",
+    "Fire extinguisher present, charged & inspected",
+    "Hydraulic hoses - no chafing or bulges",
+    "Hydraulic cylinders - rod condition, no leaks",
+    "Hydraulic cylinders & hoses",
+    "Hydraulic couplers / auxiliary lines - no leaks",
+    "Hydraulic hoses & cylinders",
+    "Boom, stick, bucket - no cracks at pivot points",
+    "Backhoe boom, dipper, bucket - no cracks at pivots",
+    "Lift arms & linkage - no cracks",
+    "Lift arms - no cracks, pivot pins secure",
+    "Loader arms, pins, retainers secure",
+    "Tow arms / tow points - no cracks",
+    "Boom sections - no cracks, wear pads in place",
+    "Stabilizer pads / outriggers - operate, no leaks",
+    "Stabilizer / outrigger controls",
+    "Stabilizer / outrigger pads (if equipped) operate freely",
+    "Stabilizer / frame-level controls",
+]
+MAJOR_OOS_SET = set(MAJOR_OOS_ITEMS_BACKEND)
+
+
+def _iter_failed_items(insp: Dict[str, Any]):
+    """Yield (section_title, item_name, result_dict, severity) for every FAIL.
+
+    severity is 'oos' if the item is in MAJOR_OOS_SET, else 'attn'.
+    """
+    for sec_title, sec in (insp.get("checklist") or {}).items():
+        if not isinstance(sec, dict):
+            continue
+        for item_name, res in sec.items():
+            if not isinstance(res, dict):
+                continue
+            if res.get("status") == "fail":
+                sev = "oos" if item_name in MAJOR_OOS_SET else "attn"
+                yield sec_title, item_name, res, sev
+
+
+@api_router.get("/admin/equipment-inspections/trends")
+async def equipment_inspection_trends(
+    days: int = 90,
+    _: bool = Depends(require_admin),
+):
+    """Three leaderboards for the admin: most-problematic equipment units,
+    operators with most failed inspections, and jobsites trending bad.
+
+    Counts inspections in the last `days` days. Default 90 days.
+    """
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    cursor = db.equipment_inspections.find(
+        {"created_at": {"$gte": since}}, {"_id": 0}
+    )
+    eq: Dict[str, Dict[str, Any]] = {}
+    op: Dict[str, Dict[str, Any]] = {}
+    site: Dict[str, Dict[str, Any]] = {}
+    total_inspections = 0
+    total_oos = 0
+    total_attn = 0
+
+    async for d in cursor:
+        total_inspections += 1
+        oos_count = 0
+        attn_count = 0
+        for _sec, _it, _res, sev in _iter_failed_items(d):
+            if sev == "oos":
+                oos_count += 1
+            else:
+                attn_count += 1
+        total_oos += oos_count
+        total_attn += attn_count
+
+        eq_key = f"{d.get('equipment_type','?')} · {d.get('equipment_unit','?')}".strip()
+        e = eq.setdefault(eq_key, {
+            "equipment_type": d.get("equipment_type", ""),
+            "equipment_unit": d.get("equipment_unit", ""),
+            "inspections": 0, "oos_fails": 0, "attn_fails": 0,
+            "last_inspection_date": "",
+        })
+        e["inspections"] += 1
+        e["oos_fails"] += oos_count
+        e["attn_fails"] += attn_count
+        if (d.get("inspection_date") or "") > e["last_inspection_date"]:
+            e["last_inspection_date"] = d.get("inspection_date") or ""
+
+        op_key = (d.get("operator_name") or "—").strip() or "—"
+        o = op.setdefault(op_key, {
+            "operator_name": op_key,
+            "inspections": 0, "oos_fails": 0, "attn_fails": 0,
+        })
+        o["inspections"] += 1
+        o["oos_fails"] += oos_count
+        o["attn_fails"] += attn_count
+
+        site_key = (d.get("project_number") or d.get("project_name") or "—").strip() or "—"
+        s = site.setdefault(site_key, {
+            "project_number": d.get("project_number", ""),
+            "project_name": d.get("project_name", ""),
+            "inspections": 0, "oos_fails": 0, "attn_fails": 0,
+        })
+        s["inspections"] += 1
+        s["oos_fails"] += oos_count
+        s["attn_fails"] += attn_count
+
+    def by_severity(rec):
+        return (-rec["oos_fails"], -rec["attn_fails"], -rec["inspections"])
+
+    return {
+        "window_days": days,
+        "totals": {
+            "inspections": total_inspections,
+            "out_of_service_fails": total_oos,
+            "needs_attention_fails": total_attn,
+        },
+        "equipment": sorted(eq.values(), key=by_severity)[:50],
+        "operators": sorted(op.values(), key=by_severity)[:50],
+        "jobsites": sorted(site.values(), key=by_severity)[:50],
+    }
+
+
+@api_router.get("/admin/equipment-inspections/open-items")
+async def open_signoff_items(
+    severity: str = "all",  # oos | attn | all
+    _: bool = Depends(require_admin),
+):
+    """Returns every still-open FAIL item (no shop sign-off yet) across all
+    equipment inspections, sorted by inspection date desc."""
+    cursor = db.equipment_inspections.find({"fail_count": {"$gt": 0}}, {"_id": 0}).sort(
+        "created_at", -1
+    )
+    out: List[Dict[str, Any]] = []
+    async for d in cursor:
+        signoffs = {s.get("key"): s for s in (d.get("shop_signoffs") or [])}
+        for sec_title, item, res, sev in _iter_failed_items(d):
+            if severity != "all" and severity != sev:
+                continue
+            key = f"{sec_title}|{item}"
+            if signoffs.get(key, {}).get("signed_off"):
+                continue
+            out.append({
+                "inspection_id": d.get("id"),
+                "inspection_date": d.get("inspection_date") or "",
+                "equipment_type": d.get("equipment_type") or "",
+                "equipment_unit": d.get("equipment_unit") or "",
+                "operator_name": d.get("operator_name") or "",
+                "project_number": d.get("project_number") or "",
+                "project_name": d.get("project_name") or "",
+                "section": sec_title,
+                "item": item,
+                "severity": sev,
+                "operator_note": res.get("note") or "",
+                "operator_photo": res.get("photo") or "",
+                "key": key,
+            })
+    return {"items": out, "count": len(out)}
+
+
+class ShopSignoffPayload(BaseModel):
+    section: str
+    item: str
+    signed_by: str
+    notes: Optional[str] = ""
+    action_taken: Optional[str] = ""  # "Repaired", "Tagged out", "No action needed", etc.
+
+
+@api_router.post("/admin/equipment-inspections/{inspection_id}/signoff")
+async def signoff_inspection_item(
+    inspection_id: str,
+    payload: ShopSignoffPayload,
+    _: bool = Depends(require_admin),
+):
+    """Record a shop sign-off on a single FAIL line of an equipment inspection.
+
+    The doc gets a `shop_signoffs` array with one entry per item:
+      { key, section, item, signed_by, signed_at, notes, action_taken,
+        signed_off: true }
+    The original `fail_count` / `out_of_service` flags are NOT changed — they
+    remain the historical record. Use `/admin/equipment-inspections/open-items`
+    to see what's still pending after sign-offs.
+    """
+    insp = await db.equipment_inspections.find_one({"id": inspection_id}, {"_id": 0})
+    if not insp:
+        raise HTTPException(status_code=404, detail="Inspection not found")
+    key = f"{payload.section}|{payload.item}"
+    entry = {
+        "key": key,
+        "section": payload.section,
+        "item": payload.item,
+        "signed_by": payload.signed_by.strip(),
+        "signed_at": datetime.now(timezone.utc).isoformat(),
+        "notes": (payload.notes or "").strip(),
+        "action_taken": (payload.action_taken or "").strip(),
+        "signed_off": True,
+    }
+    if not entry["signed_by"]:
+        raise HTTPException(status_code=400, detail="signed_by is required")
+
+    # Replace any prior signoff with the same key, otherwise append
+    existing = list(insp.get("shop_signoffs") or [])
+    existing = [s for s in existing if s.get("key") != key] + [entry]
+    await db.equipment_inspections.update_one(
+        {"id": inspection_id},
+        {"$set": {"shop_signoffs": existing, "shop_last_signoff_at": entry["signed_at"]}},
+    )
+    return {"ok": True, "signoff": entry, "signoff_count": len(existing)}
+
+
+@api_router.delete("/admin/equipment-inspections/{inspection_id}/signoff")
+async def remove_signoff(
+    inspection_id: str,
+    section: str,
+    item: str,
+    _: bool = Depends(require_admin),
+):
+    """Reopen a previously-signed-off item (e.g. shop made a mistake)."""
+    key = f"{section}|{item}"
+    res = await db.equipment_inspections.update_one(
+        {"id": inspection_id},
+        {"$pull": {"shop_signoffs": {"key": key}}},
+    )
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Inspection not found")
+    return {"ok": True}
+
+
 @api_router.delete("/equipment-inspections/{inspection_id}")
 async def delete_equipment_inspection(inspection_id: str, _: bool = Depends(require_admin)):
     result = await db.equipment_inspections.delete_one({"id": inspection_id})

@@ -4,6 +4,7 @@ import { Plus, Wrench, Eye, Trash2, Loader2, ArrowLeft, AlertOctagon } from "luc
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
+import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
@@ -94,12 +95,15 @@ export default function EquipmentDashboard() {
 
         <div className="bg-white border-2 border-slate-300 rounded-md overflow-hidden">
           <div className="px-5 py-4 border-b-2 border-slate-200 flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold">Recent Inspections</h2>
+            <h2 className="font-display text-xl font-bold">Pre-Op Trends &amp; Recent Inspections</h2>
             {!loading && (
               <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
                 {items.length} on file
               </span>
             )}
+          </div>
+          <div className="p-4 sm:p-5 border-b-2 border-slate-100">
+            <EquipmentTrendsPanel />
           </div>
           {loading ? (
             <div className="p-12 flex items-center justify-center text-slate-500">
