@@ -3,6 +3,7 @@ import { ChevronsUpDown, Check, Search, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/lib/i18n";
 
 /**
  * EquipmentCombo
@@ -44,11 +45,13 @@ export const EquipmentCombo = ({
   value = "",
   onChange,
   onPick,
-  placeholder = "Type or pick a unit…",
+  placeholder,
   filterCategories = null,
   testId = "equipment-combo",
   className = "",
 }) => {
+  const { t } = useT();
+  const ph = placeholder || t("Type or pick a unit…");
   const [data, setData] = useState({ categories: [], items: [], grouped: {} });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -122,7 +125,7 @@ export const EquipmentCombo = ({
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           onFocus={() => setOpen(true)}
-          placeholder={placeholder}
+          placeholder={ph}
           className="flex-1 h-11 text-base border-2 border-slate-300 focus:border-red-700"
           data-testid={`${testId}-input`}
         />
@@ -133,7 +136,7 @@ export const EquipmentCombo = ({
           className="h-11 w-11 border-2 border-slate-300 hover:border-red-700 hover:text-red-700 shrink-0"
           onClick={() => setOpen((v) => !v)}
           data-testid={`${testId}-toggle`}
-          title="Browse fleet"
+          title={t("Browse fleet")}
         >
           <ChevronsUpDown className="w-4 h-4" />
         </Button>
@@ -149,7 +152,7 @@ export const EquipmentCombo = ({
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search unit #, make, model, VIN…"
+              placeholder={t("Search unit #, make, model, VIN…")}
               className="flex-1 outline-none text-sm bg-transparent"
               autoFocus
               data-testid={`${testId}-search`}
@@ -168,8 +171,8 @@ export const EquipmentCombo = ({
           {totalShown === 0 ? (
             <div className="p-4 text-sm text-slate-500 text-center">
               {data.count === 0
-                ? "Equipment list not loaded yet."
-                : "No matches — your typed value will be saved as custom."}
+                ? t("Equipment list not loaded yet.")
+                : t("No matches — your typed value will be saved as custom.")}
             </div>
           ) : (
             Object.entries(grouped).map(([cat, list]) => (
@@ -217,7 +220,7 @@ export const EquipmentCombo = ({
             ))
           )}
           <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
-            Tip: type freely for custom equipment not in fleet.
+            {t("Tip: type freely for custom equipment not in fleet.")}
           </div>
         </div>
       )}

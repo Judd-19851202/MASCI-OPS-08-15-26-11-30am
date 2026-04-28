@@ -3,6 +3,7 @@ import { Camera, X, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { compressImage } from "@/lib/utils";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 /**
  * PhotoUpload — gallery-or-camera picker.
@@ -20,6 +21,7 @@ export const PhotoUpload = ({
   testIdBase = "photo-upload",
   forceCamera = false,
 }) => {
+  const { t } = useT();
   const galleryRef = useRef(null);
   const cameraRef = useRef(null);
 
@@ -57,7 +59,7 @@ export const PhotoUpload = ({
         >
           <Camera className="w-8 h-8" />
           <span className="font-bold uppercase tracking-wide text-sm">
-            Take photo
+            {t("Take photo")}
           </span>
         </button>
       ) : (
@@ -70,10 +72,10 @@ export const PhotoUpload = ({
           >
             <ImageIcon className="w-6 h-6" />
             <span className="font-bold uppercase tracking-wide text-xs text-center">
-              From gallery
+              {t("From gallery")}
             </span>
             <span className="text-[10px] text-slate-500">
-              Pick existing photos
+              {t("Pick existing photos")}
             </span>
           </button>
           <button
@@ -84,10 +86,10 @@ export const PhotoUpload = ({
           >
             <Camera className="w-6 h-6" />
             <span className="font-bold uppercase tracking-wide text-xs text-center">
-              Take photo
+              {t("Take photo")}
             </span>
             <span className="text-[10px] text-slate-500">
-              Open camera
+              {t("Open camera")}
             </span>
           </button>
         </div>

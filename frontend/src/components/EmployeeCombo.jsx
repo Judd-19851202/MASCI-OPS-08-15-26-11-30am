@@ -3,6 +3,7 @@ import { ChevronsUpDown, Search, X, User } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/lib/i18n";
 
 /**
  * EmployeeCombo
@@ -52,10 +53,12 @@ export const EmployeeCombo = ({
   value = "",
   onChange,
   onPick,
-  placeholder = "Type or pick an employee…",
+  placeholder,
   testId = "employee-combo",
   className = "",
 }) => {
+  const { t } = useT();
+  const ph = placeholder || t("Type or pick an employee…");
   const [data, setData] = useState({ items: [], count: 0 });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -121,7 +124,7 @@ export const EmployeeCombo = ({
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           onFocus={() => setOpen(true)}
-          placeholder={placeholder}
+          placeholder={ph}
           className="flex-1 h-11 text-base border-2 border-slate-300 focus:border-red-700"
           data-testid={`${testId}-input`}
         />
@@ -132,7 +135,7 @@ export const EmployeeCombo = ({
           className="h-11 w-11 border-2 border-slate-300 hover:border-red-700 hover:text-red-700 shrink-0"
           onClick={() => setOpen((v) => !v)}
           data-testid={`${testId}-toggle`}
-          title="Browse roster"
+          title={t("Browse roster")}
         >
           <ChevronsUpDown className="w-4 h-4" />
         </Button>
@@ -148,7 +151,7 @@ export const EmployeeCombo = ({
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name, ID, trade…"
+              placeholder={t("Search by name, ID, trade…")}
               className="flex-1 outline-none text-sm bg-transparent"
               autoFocus
               data-testid={`${testId}-search`}
@@ -167,8 +170,8 @@ export const EmployeeCombo = ({
           {filtered.length === 0 ? (
             <div className="p-4 text-sm text-slate-500 text-center">
               {total === 0
-                ? "Roster not uploaded yet — type the name freely."
-                : "No matches — your typed value will be saved as custom."}
+                ? t("Roster not uploaded yet — type the name freely.")
+                : t("No matches — your typed value will be saved as custom.")}
             </div>
           ) : (
             filtered.map((it, idx) => {
@@ -203,7 +206,7 @@ export const EmployeeCombo = ({
           )}
           {showFooterTip && (
             <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
-              Tip: type freely for anyone not in the roster.
+              {t("Tip: type freely for anyone not in the roster.")}
             </div>
           )}
         </div>

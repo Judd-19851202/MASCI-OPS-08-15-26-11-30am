@@ -108,6 +108,40 @@ const ES = {
   // Daily Report
   // ============================================================
   "Daily Reports": "Reportes Diarios",
+  // Section 04 — MASCI Crews on Site (rebuilt 2026-04-28)
+  "Crew Member": "Miembro de Cuadrilla",
+  "Add Crew Member": "Agregar Miembro de Cuadrilla",
+  "Employee Name": "Nombre del Empleado",
+  "Trade / Role": "Oficio / Rol",
+  "Hours": "Horas",
+  "Start Time": "Hora de Inicio",
+  "Stop Time": "Hora de Fin",
+  "Lunch": "Almuerzo",
+  "auto": "auto",
+  "Total crew hours today": "Horas Totales de la Cuadrilla Hoy",
+  "Type or pick from roster…": "Escriba o elija de la lista…",
+  // Photo picker (used everywhere)
+  "From gallery": "De la galería",
+  "Take photo": "Tomar foto",
+  "Pick existing photos": "Elija fotos existentes",
+  "Open camera": "Abrir cámara",
+  // Equipment combo
+  "Type or pick a unit…": "Escriba o elija una unidad…",
+  "Browse fleet": "Ver flota",
+  "Tip: type freely for custom equipment not in fleet.":
+    "Consejo: escriba libremente para equipo no listado en la flota.",
+  "No matches — your typed value will be saved as custom.":
+    "Sin coincidencias — el valor escrito se guardará tal cual.",
+  "Equipment list not loaded yet.": "Lista de equipo aún no cargada.",
+  "Search unit #, make, model, VIN…": "Buscar # de unidad, marca, modelo, VIN…",
+  // Employee combo
+  "Type or pick an employee…": "Escriba o elija un empleado…",
+  "Browse roster": "Ver lista de empleados",
+  "Search by name, ID, trade…": "Buscar por nombre, ID, oficio…",
+  "Roster not uploaded yet — type the name freely.":
+    "Lista de empleados aún no cargada — escriba el nombre libremente.",
+  "Tip: type freely for anyone not in the roster.":
+    "Consejo: escriba libremente para alguien fuera de la lista.",
   "Daily Job Report": "Reporte Diario del Trabajo",
   "Today's site activity, captured.": "La actividad del sitio de hoy, registrada.",
   "Crews · subs · visitors · equipment · materials · weather · photos. One record per crew, per day.":
