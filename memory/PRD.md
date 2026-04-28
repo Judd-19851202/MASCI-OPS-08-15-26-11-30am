@@ -1,5 +1,43 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-28 — Pre-Deploy Verification + Zero-Touch Boot Self-Heal Extended
+After user feedback ("only fixes 2 things — verify everything else"), removed the manual UI button and proved the boot self-heal handles BOTH issues automatically on every redeploy.
+
+**Removed:** `/app/frontend/src/components/DataFixesPanel.jsx` + import in `AdminHub.jsx`. The admin UI is back to its previous focused state.
+
+**Extended boot self-heal (`/app/backend/data_fixes.py`):**
+- Self-heal #1: equipment_master make/model split (existing) — fires if any unit has missing `make`
+- Self-heal #2 (NEW): project_members seed — fires if any owner/admin has fewer memberships than there are projects
+- Both run silently on every backend startup; never raise
+
+**Proven via simulation** — wiped all 589 equipment make/model fields + deleted all 155 project_members → restarted backend → boot self-heal repaired both in 0.3 seconds. Logs:
+```
+[boot-self-heal] 589 equipment units missing make — auto-fixing
+[data-fix] equipment_master: total=589 fixed=589 still_missing=0
+[boot-self-heal] privileged user(s) missing project_members — auto-seeding
+[data-fix] project_members: privileged=5 projects=31 created=155 total_after=155
+```
+
+**Pre-deploy verification (all PASS):**
+| Check | Result |
+|---|---|
+| `/api/health`, `/api/healthz` | 200 |
+| Admin login (`Happy123!`) | OK |
+| Shop login (`Nothappy123!`) | OK |
+| Crew login (jaymn/david/safety) | OK, correct roles |
+| Wrong passwords | 401 (admin + crew) |
+| All admin endpoints (inspections/meetings/jhas/incidents/daily-reports/equipment-inspections/projects/backups/persistence) | 200 |
+| Crew Hub endpoints (projects/users/notifications/auth.me) | 200 |
+| Shop endpoints (equipment-inspections/trends/open-items) | 200 |
+| Public POST forms (translate) | 200 |
+| Equipment data | 589/589 with make+model ✅ |
+| Project memberships | 155 rows (5 owners/admins × 31 projects) ✅ |
+| Backup pipeline | 752 MB zip created + slim 0.1 MB email delivered ✅ |
+| Backend boot logs | No errors, self-heal logged correctly ✅ |
+| Lint | DataFixesPanel removal passes; pre-existing server.py warnings unchanged ✅ |
+
+The backend `POST /api/admin/data-fixes/run` endpoint was kept (admin-only, unreachable from UI) as a safety-net diagnostic tool. Boot self-heal makes manual invocation unnecessary.
+
 ## 2026-04-28 — One-Click Data Fixes Button + Boot Self-Heal
 Made the data healers re-runnable from the admin UI with a hard "are you sure?" gate, and added zero-touch boot-time self-healing so equipment data can never be missing make/model after a redeploy.
 

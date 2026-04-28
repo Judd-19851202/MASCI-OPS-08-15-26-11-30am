@@ -129,20 +129,52 @@ async def run_all_fixes(db) -> dict:
 
 
 async def boot_self_heal(db) -> None:
-    """Called once on backend startup. Auto-fixes equipment make/model if any
-    units are missing. Never raises — failure is logged and ignored so a bad
-    fix can't keep the backend from booting.
+    """Called once on backend startup. Auto-fixes:
+      1. equipment_master make/model split (if any unit is missing make)
+      2. project_members seed (if any owner/admin has 0 memberships)
+
+    Never raises — failure is logged and ignored so a bad fix can't keep the
+    backend from booting.
     """
     try:
-        missing = await db.equipment_master.count_documents(
+        missing_eq = await db.equipment_master.count_documents(
             {"$or": [{"make": {"$exists": False}}, {"make": ""}, {"make": None}]}
         )
-        if missing > 0:
+        if missing_eq > 0:
             logger.info(
-                f"[boot-self-heal] {missing} equipment units missing make — auto-fixing"
+                f"[boot-self-heal] {missing_eq} equipment units missing make — auto-fixing"
             )
             await fix_equipment_make_model(db)
         else:
             logger.info("[boot-self-heal] equipment_master clean — no fix needed")
     except Exception as e:  # pragma: no cover
-        logger.warning(f"[boot-self-heal] skipped: {e}")
+        logger.warning(f"[boot-self-heal] equipment skipped: {e}")
+
+    try:
+        # If any owner/admin has zero project_members rows, run the seed.
+        privileged_ids = [
+            u["id"]
+            async for u in db.users.find(
+                {"role": {"$in": ["owner", "admin"]}, "is_active": True},
+                {"_id": 0, "id": 1},
+            )
+        ]
+        non_hq_count = await db.projects.count_documents(
+            {"archived": {"$ne": True}, "is_hq": {"$ne": True}}
+        )
+        needs_seed = False
+        if privileged_ids and non_hq_count > 0:
+            for uid in privileged_ids:
+                cnt = await db.project_members.count_documents({"user_id": uid})
+                if cnt < non_hq_count:
+                    needs_seed = True
+                    break
+        if needs_seed:
+            logger.info(
+                "[boot-self-heal] privileged user(s) missing project_members — auto-seeding"
+            )
+            await fix_project_memberships(db)
+        else:
+            logger.info("[boot-self-heal] project_members clean — no fix needed")
+    except Exception as e:  # pragma: no cover
+        logger.warning(f"[boot-self-heal] memberships skipped: {e}")
