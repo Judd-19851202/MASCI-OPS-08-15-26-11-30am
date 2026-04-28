@@ -67,10 +67,12 @@ export default function ThankYou() {
             </Button>
           </div>
 
-          <div className="mt-10 pt-6 border-t-2 border-slate-100 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex items-center justify-center gap-3">
-            <span>No Shortcuts</span>
+          <div className="mt-10 pt-6 border-t-2 border-slate-100 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex items-center justify-center gap-2 flex-wrap">
+            <span>Accountability</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span>No Exceptions</span>
+            <span>Adapt</span>
+            <span className="w-1 h-1 rounded-full bg-red-700" />
+            <span>Overcome</span>
           </div>
         </div>
       </main>

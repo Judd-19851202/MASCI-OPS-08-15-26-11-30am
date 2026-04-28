@@ -116,10 +116,12 @@ export default function Dashboard() {
             Document compliance, capture findings, and produce print-ready reports
             from any device — phone, tablet, or desktop.
           </p>
-          <div className="mt-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.25em]">
-            <span className="text-red-700 font-bold">No Shortcuts</span>
+          <div className="mt-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.25em] flex-wrap">
+            <span className="text-red-700 font-bold">Accountability</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span className="text-red-700 font-bold">No Exceptions</span>
+            <span className="text-red-700 font-bold">Adapt</span>
+            <span className="w-1 h-1 rounded-full bg-red-700" />
+            <span className="text-red-700 font-bold">Overcome</span>
           </div>
         </div>
 

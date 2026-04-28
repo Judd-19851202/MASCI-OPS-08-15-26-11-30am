@@ -620,7 +620,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
   {body}
   <div class="ftr">
     <span>MASCI · Field Safety Reporting Portal</span>
-    <span>No Shortcuts · No Exceptions</span>
+    <span>Accountability · Adapt · Overcome</span>
   </div>
 </body></html>"""
 

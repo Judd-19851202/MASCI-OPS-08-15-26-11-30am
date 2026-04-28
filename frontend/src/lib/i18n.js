@@ -216,6 +216,14 @@ const ES = {
     "Documente el cumplimiento, dirija charlas de seguridad y analice los peligros antes de cada tarea. Imprima o guarde cualquier registro como PDF — funciona en cualquier dispositivo.",
   "No Shortcuts": "Sin Atajos",
   "No Exceptions": "Sin Excepciones",
+  "Accountability": "Responsabilidad",
+  "Adapt": "Adaptarse",
+  "Overcome": "Superar",
+  "Accountability · Adapt · Overcome": "Responsabilidad · Adaptarse · Superar",
+  "MASCI · Safety · Accountability · Adapt · Overcome":
+    "MASCI · Seguridad · Responsabilidad · Adaptarse · Superar",
+  "MASCI · Field · Accountability · Adapt · Overcome":
+    "MASCI · Campo · Responsabilidad · Adaptarse · Superar",
   "Site Inspections": "Inspecciones de Obra",
   "Safety Meetings": "Reuniones de Seguridad",
   "Job Hazard Analysis": "Análisis de Peligros del Trabajo",

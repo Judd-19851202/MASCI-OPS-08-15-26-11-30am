@@ -105,10 +105,12 @@ export default function Hub() {
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
             {t("Safety forms, field reports, project workspaces, and the office console — all under one roof.")}
           </p>
-          <div className="mt-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.25em]">
-            <span className="text-red-700 font-bold">{t("No Shortcuts")}</span>
+          <div className="mt-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.25em] flex-wrap">
+            <span className="text-red-700 font-bold">{t("Accountability")}</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span className="text-red-700 font-bold">{t("No Exceptions")}</span>
+            <span className="text-red-700 font-bold">{t("Adapt")}</span>
+            <span className="w-1 h-1 rounded-full bg-red-700" />
+            <span className="text-red-700 font-bold">{t("Overcome")}</span>
           </div>
         </div>
 

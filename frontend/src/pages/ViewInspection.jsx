@@ -211,10 +211,12 @@ export default function ViewInspection() {
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1">
               Report ID · {data.id?.slice(0, 8).toUpperCase()}
             </div>
-            <div className="mt-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
-              <span>No Shortcuts</span>
+            <div className="mt-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex-wrap">
+              <span>Accountability</span>
               <span className="w-1 h-1 rounded-full bg-red-700" />
-              <span>No Exceptions</span>
+              <span>Adapt</span>
+              <span className="w-1 h-1 rounded-full bg-red-700" />
+              <span>Overcome</span>
             </div>
           </div>
           {flagged && (

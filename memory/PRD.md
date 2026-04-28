@@ -55,6 +55,13 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
 - **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
 
+## What's Implemented (2026-04-28 · MASCI HUB Logo + Tagline Refresh)
+User-driven brand refresh: new logo art using a user-supplied red M with white swoosh icon, new tagline, dark-header-friendly backplate.
+- **New logo lockup** (`/app/frontend/public/masci-full-lockup.png`): regenerated 2x via Gemini Nano Banana — first pass produced silver gradient backplate that clashed with the navy header; second pass replaced the backplate with solid #0f172a (slate-900) so it sits flush in the dark header. Verified live with full-page screenshot.
+- **3 lockup variants + 3 mark variants** all regenerated. Idempotent generator at `/app/backend/scripts/generate_hub_logos.py` (always edits from `/app/frontend/public/_old_safety_lockups/`). Background-fix script at `/app/backend/scripts/fix_lockup_background.py`.
+- **Tagline change globally:** "No Shortcuts · No Exceptions" → "Accountability · Adapt · Overcome" — updated in `companyInfo.js`, Hub homepage, Section landings (Safety/Field), Dashboard, ThankYou, FormPasswordGate, ViewInspection, ViewMeeting, MasciLogo alt text, ShareFormDialog poster HTML, CheatSheetCard, JhaPlansPosterCard, TrenchBoxPosterCard, AdminGuide, PDF render footer (`pdf_render.py`), and i18n Spanish dictionary.
+- Old "No Shortcuts · No Exceptions" Spanish keys retained in `i18n.js` for backwards-compat with older PDF records.
+
 ## What's Implemented (2026-04-27 · MASCI Hub Rebrand + New Logo)
 App rebranded from "MASCI Safety Hub" to **"MASCI Hub"** — reflects that it's a full operations platform, not just safety. Logo art was also regenerated via Gemini Nano Banana (`gemini-3.1-flash-image-preview`) — 3 lockup variants (dark bg, onblack, onlight) all now say **"MASCI HUB"** instead of "MASCI SAFETY" while preserving the compass icon, red M with checkmark, tagline, core values subtext, and overall composition. Originals archived to `/app/frontend/public/_old_safety_lockups/`. One-off script at `/app/backend/scripts/generate_hub_logos.py` (idempotent — always edits from the archived originals). Verified via MD5 — file on disk and server-served bytes match.
 - **New homepage `/`** (`Hub.jsx`): 4 big section cards instead of 7 mixed tiles:

@@ -81,7 +81,7 @@ export const MasciLogo = ({
     return wrap(
       <img
         src={src}
-        alt="MASCI — No Shortcuts · No Exceptions"
+        alt="MASCI Hub — Accountability · Adapt · Overcome"
         className={cn(w, "h-auto select-none", homeLink && "cursor-pointer", className)}
         data-testid="masci-logo-lockup"
         draggable={false}

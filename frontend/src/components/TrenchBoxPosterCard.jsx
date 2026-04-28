@@ -199,7 +199,7 @@ export default function TrenchBoxPosterCard() {
           {t("Post inside every excavation kit toolbox.")}
         </div>
         <div className="font-display font-black text-red-700 tracking-tight text-sm">
-          {t("No Shortcuts · No Exceptions")}
+          {t("Accountability · Adapt · Overcome")}
         </div>
       </div>
     </div>

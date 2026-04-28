@@ -180,7 +180,7 @@ export default function CheatSheetCard() {
           {t("MASCI · Field Safety Reporting Portal")}
         </div>
         <div className="font-display font-black text-red-700 tracking-tight text-sm">
-          {t("No Shortcuts · No Exceptions")}
+          {t("Accountability · Adapt · Overcome")}
         </div>
       </div>
     </div>

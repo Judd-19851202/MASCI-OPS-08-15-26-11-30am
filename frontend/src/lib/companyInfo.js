@@ -5,7 +5,7 @@ const STORAGE_KEY = "masci.companyInfo.v1";
 
 export const DEFAULT_COMPANY_INFO = {
   company_name: "MASCI General Contractors Inc.",
-  tagline: "No Shortcuts · No Exceptions",
+  tagline: "Accountability · Adapt · Overcome",
   address: "5752 South Ridgewood Avenue",
   city_state_zip: "Port Orange, FL 32127-6442",
   phone: "386-322-4500",
