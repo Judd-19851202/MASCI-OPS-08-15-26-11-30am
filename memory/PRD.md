@@ -1,5 +1,14 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-28 — Bilingual completion: high-traffic admin + Crew Hub screens (iter25, ALL GREEN)
+- Translated to Spanish (with full ES dict entries in `i18n.js`):
+  - **PersistenceHealthBanner** — danger banner the admin sees on every visit until the prod DB switches to Atlas. ⚠ Sus datos se borrarán en el próximo redespliegue / Solución permanente / etc.
+  - **BackupHeroPanel** — the two big BACKUP / RESTORE buttons on `/admin`. COPIA DE TODO / RESTAURAR DESDE ARCHIVO.
+  - **Crew Hub `/app/login`** — Bienvenido de nuevo / Contraseña / Iniciar sesión.
+  - **Crew Hub `/app` AppHome** — ¿En qué está trabajando hoy? / Cargando proyectos.
+- Verified by testing agent (iter25): EN ↔ ES toggle persists via localStorage, html.lang attribute swaps correctly, no Spanish leaks back into EN, no JS errors. /shop login + sign-off + Parts Catalog ES regression still passes.
+- **Deferred (will require its own session)**: AdminGuide doc page (400+ English lines), StoredBackupsPanel + RestoreBackupPanel + AutoEmailRoutingPanel (heavy admin tools, lower visibility), full Crew Hub project workspace pages (messages / todos / schedule / docs).
+
 ## 2026-04-28 — Bilingual sweep + Performance + Cleared-to-Operate (iter24, ALL GREEN)
 - **ES→EN auto-translate wired into the 3 new shop modules**: `ShopSignoffCard.jsx` (sign-off notes), `PartsCatalog.jsx` save (PUT — part name + notes), and `PartsCatalog.jsx` parts-order email (additional_notes + item.name + item.notes). Mechanic types Spanish, DB + outgoing email both end up in English. Pattern matches the iter15-16 wire-up of the original 5 forms (Inspection, Meeting, Incident, Daily, Equipment Pre-Op) — confirmed end-to-end via iter24 pytest.
 - **Spell-check verified**: `i18n.js._syncHtmlLang()` mirrors `lang=es|en` onto `<html lang>` on every toggle + persists via localStorage. Zero inputs override the html-level attribute, so browsers swap dictionaries automatically. Verified via Playwright (en → click ES → es → reload → still es → EN → en).
