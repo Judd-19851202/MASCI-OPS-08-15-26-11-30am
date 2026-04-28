@@ -1507,7 +1507,7 @@ async def upload_suppliers(
         raise HTTPException(status_code=400, detail="Empty or oversized file (max 10 MB)")
 
     SKIP_LOWER = {"subcontractors", "suppliers", "vendors", "not listed add to notes",
-                  "masci", "d-mac", "name", "company", "company name"}
+                  "name", "company", "company name"}
     names: List[str] = []
     try:
         if fname.endswith(".csv"):
