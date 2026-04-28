@@ -10,6 +10,12 @@ import { Button } from "@/components/ui/button";
 /**
  * AdminGuide — plain-English, print-friendly owner's manual for the MASCI
  * Safety Hub. Accessible at /admin/guide. Crews never see this page.
+ *
+ * After the MASCI Hub rebrand the structure is now:
+ *   🦺 Safety  — inspections, meetings, incidents, JHA, trench box
+ *   👷 Field   — daily reports, equipment pre-op
+ *   🏗️ Projects — Crew Hub (sign-in required)
+ *   🗄️ Admin   — this console
  */
 export default function AdminGuide() {
   return (
@@ -40,7 +46,7 @@ export default function AdminGuide() {
         <div className="hidden print:block mb-6 pb-3 border-b-2 border-black">
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-black text-lg">MASCI Safety Hub</div>
+              <div className="font-black text-lg">MASCI Hub</div>
               <div className="text-xs uppercase tracking-[0.2em]">Owner's Manual · Print / Tape to wall</div>
             </div>
             <div className="text-xs">mascidocs.com</div>
@@ -57,9 +63,20 @@ export default function AdminGuide() {
           </h1>
           <p className="text-slate-600 mt-3 max-w-2xl text-base">
             One page, plain English. Print it, tape it to the wall, hand it to whoever covers the office
-            when you're out. You do not need to understand any code to run MASCI Safety Hub.
+            when you're out. You do not need to understand any code to run MASCI Hub.
           </p>
         </div>
+
+        {/* STRUCTURE */}
+        <Section icon={ShieldCheck} title="The 4 sections of MASCI Hub" color="slate">
+          <p>Open <code>mascidocs.com</code> and you'll see 4 big tiles. Here's who uses which:</p>
+          <ul className="ml-5 list-disc space-y-1 mt-2">
+            <li>🦺 <strong>Safety</strong> — Compliance forms. Inspections · Meetings · Incidents · JHA Plans · Trench Box Data.</li>
+            <li>👷 <strong>Field</strong> — Daily operational logs. Daily Reports · Equipment Pre-Op.</li>
+            <li>🏗️ <strong>Projects</strong> — Crew Hub. Per-job messages, to-dos, schedule, docs, hill charts. Sign-in required.</li>
+            <li>🗄️ <strong>Admin</strong> — Office console. Everything in this manual below.</li>
+          </ul>
+        </Section>
 
         {/* EVERY DAY */}
         <Section
@@ -67,13 +84,13 @@ export default function AdminGuide() {
           title="Every day — crews in the field"
           color="red"
         >
-          <p className="mb-2">Crews do <strong>nothing different</strong> than before. They just open <code>mascidocs.com</code> on their phone or tablet and tap the tile for what they need:</p>
+          <p className="mb-2">Crews do <strong>nothing different</strong> than before. They just open <code>mascidocs.com</code> on their phone or tablet and tap the section tile for what they need:</p>
           <ul className="ml-5 list-disc space-y-1">
-            <li><strong>Daily Reports</strong> — end of every shift, per job</li>
-            <li><strong>Site Inspections</strong> — weekly or as needed (passcode <code>1982</code>)</li>
-            <li><strong>Safety Meetings</strong> — toolbox talks with crew signatures</li>
-            <li><strong>Incident Reports</strong> — any near-miss, injury, or property damage</li>
-            <li><strong>Equipment Pre-Op</strong> — before starting any piece of equipment</li>
+            <li>👷 Field → <strong>Daily Reports</strong> — end of every shift, per job</li>
+            <li>👷 Field → <strong>Equipment Pre-Op</strong> — before starting any piece of equipment</li>
+            <li>🦺 Safety → <strong>Site Inspections</strong> — weekly or as needed (passcode <code>1982</code>)</li>
+            <li>🦺 Safety → <strong>Safety Meetings</strong> — toolbox talks with crew signatures</li>
+            <li>🦺 Safety → <strong>Incident Reports</strong> — any near-miss, injury, or property damage</li>
           </ul>
           <p className="mt-3">
             PDFs <strong>auto-email</strong> to the assigned PM + safety@mascigc.com as soon as the form is submitted.

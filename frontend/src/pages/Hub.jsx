@@ -1,15 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ClipboardCheck,
-  Users,
-  AlertTriangle,
-  AlertOctagon,
+  HardHat,
   ClipboardList,
-  Wrench,
-  Box,
-  FileText,
-  Plus,
+  Building2,
+  Shield,
+  ArrowRight,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -17,41 +13,65 @@ import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 
 /**
- * Field-crew Hub.
+ * MASCI Hub — top-level landing page.
  *
- * Crews never see how many forms have been submitted, who submitted them, or
- * any prior records. They only see five big tiles to *file* a new form. The
- * office (Admin) side lives at /admin and is gated by a password.
+ * The app started as a Safety Hub and has grown into the full MASCI
+ * operations platform. Four sections:
+ *
+ *   🦺 Safety   — compliance forms (inspections, meetings, incidents, JHA, trench)
+ *   👷 Field    — daily operational logs (daily reports, equipment pre-op)
+ *   🏗️ Projects — Crew Hub (Basecamp-style project collaboration)
+ *   🗄️ Admin    — office console (dashboards, exports, backups, routing)
+ *
+ * Each section leads to its own landing so the user always feels they're in
+ * the "right neighborhood" for what they're doing.
  */
 
-const FormTile = ({ to, icon: Icon, title, desc, accent = "red", testId }) => {
-  const accentCls =
-    accent === "red"
-      ? "border-red-700 bg-red-700"
-      : accent === "amber"
-      ? "border-amber-600 bg-amber-600"
-      : accent === "redDeep"
-      ? "border-red-900 bg-red-900"
-      : "border-slate-800 bg-slate-800";
+const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, testId, external }) => {
+  // accent classes kept static so Tailwind keeps them in the build
+  const styles = {
+    red:   { bg: "bg-red-700",   bar: "border-red-700",   ring: "hover:border-red-700",   pill: "text-red-700 bg-red-50" },
+    amber: { bg: "bg-amber-600", bar: "border-amber-600", ring: "hover:border-amber-600", pill: "text-amber-700 bg-amber-50" },
+    slate: { bg: "bg-slate-900", bar: "border-slate-900", ring: "hover:border-slate-900", pill: "text-slate-800 bg-slate-100" },
+    emerald:{ bg: "bg-emerald-700", bar: "border-emerald-700", ring: "hover:border-emerald-700", pill: "text-emerald-700 bg-emerald-50" },
+  };
+  const s = styles[accent] || styles.red;
   return (
     <Link
       to={to}
-      className="group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 hover:border-red-700 hover:-translate-y-0.5 transition-all duration-150 flex flex-col"
+      className={`group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 transition-all duration-150 hover:-translate-y-0.5 ${s.ring} flex flex-col`}
       data-testid={testId}
     >
-      <div
-        className={`inline-flex items-center justify-center w-14 h-14 rounded-md ${accentCls} text-white mb-4`}
-      >
-        <Icon className="w-7 h-7" />
+      <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${s.bg}`} />
+      <div className="flex items-start justify-between gap-3">
+        <div className={`inline-flex items-center justify-center w-14 h-14 rounded-md ${s.bg} text-white`}>
+          <Icon className="w-7 h-7" />
+        </div>
+        {eyebrow && (
+          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded ${s.pill} font-mono text-[10px] uppercase tracking-[0.2em] font-bold`}>
+            {eyebrow}
+          </span>
+        )}
       </div>
-      <h3 className="font-display text-2xl font-black tracking-tight text-slate-900">
+      <h3 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-4">
         {title}
       </h3>
-      <p className="text-slate-600 text-sm mt-2 flex-1 leading-relaxed">{desc}</p>
-      <div className="mt-5 pt-4 border-t-2 border-slate-100 flex items-center justify-end">
-        <div className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold group-hover:gap-3 transition-all">
-          <Plus className="w-4 h-4" /> Start Form
-        </div>
+      <p className="text-slate-600 text-sm sm:text-base mt-2 leading-relaxed">{desc}</p>
+      {bullets && (
+        <ul className="mt-4 space-y-1.5 text-xs sm:text-sm text-slate-700">
+          {bullets.map((b) => (
+            <li key={b} className="flex items-start gap-2">
+              <span className={`mt-1.5 w-1 h-1 rounded-full ${s.bg} shrink-0`} />
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="mt-6 pt-5 border-t-2 border-slate-100 flex items-center justify-between">
+        <span className={`font-mono text-xs uppercase tracking-[0.2em] font-bold ${accent === "slate" ? "text-slate-800" : accent === "amber" ? "text-amber-700" : accent === "emerald" ? "text-emerald-700" : "text-red-700"}`}>
+          {external ? "Open →" : "Enter section →"}
+        </span>
+        <ArrowRight className={`w-5 h-5 transition-transform duration-150 group-hover:translate-x-1 ${accent === "slate" ? "text-slate-800" : accent === "amber" ? "text-amber-600" : accent === "emerald" ? "text-emerald-700" : "text-red-700"}`} />
       </div>
     </Link>
   );
@@ -76,14 +96,14 @@ export default function Hub() {
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         <div className="mb-10 sm:mb-14">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            {t("MASCI Safety Hub")}
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
+            {t("MASCI Hub")}
           </span>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">
-            {t("One front door for every safety form.")}
+            {t("One place for every MASCI job.")}
           </h1>
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
-            {t("Every field-safety form. One digital home.")}
+            {t("Safety forms, field reports, project workspaces, and the office console — all under one roof.")}
           </p>
           <div className="mt-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.25em]">
             <span className="text-red-700 font-bold">{t("No Shortcuts")}</span>
@@ -92,69 +112,67 @@ export default function Hub() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
-          <FormTile
-            to="/equipment/submit"
-            icon={Wrench}
-            title={t("Equipment Pre-Op")}
-            desc={t("Daily OSHA walk-around inspections for Heavy Equipment. PASS / FAIL each item — fail tags the unit out of service.")}
-            accent="slate"
-            testId="hub-tile-equipment"
-          />
-          <FormTile
-            to="/daily/submit"
-            icon={ClipboardList}
-            title={t("Daily Reports")}
-            desc={t("End-of-day site log: crews, subs, visitors, equipment, materials, weather, photos. Replaces Fieldwire.")}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 mb-10">
+          <SectionCard
+            to="/safety"
+            icon={Shield}
+            eyebrow="Compliance"
+            title={t("Safety")}
+            desc={t("Every inspection, meeting, incident, JHA, and trench-box record in one place.")}
+            bullets={[
+              t("Site Inspections · Safety Meetings"),
+              t("Incident Reports · JHA Plans · Trench Box Data"),
+            ]}
             accent="red"
-            testId="hub-tile-daily"
+            testId="hub-section-safety"
           />
-          <FormTile
-            to="/meetings/submit"
-            icon={Users}
-            title={t("Safety Meetings")}
-            desc={t("Toolbox talks and daily huddles. 80+ heavy-civil topics with prefilled hazards — every crew member signs in.")}
-            accent="slate"
-            testId="hub-tile-meetings"
-          />
-          <FormTile
-            to="/jha"
-            icon={FileText}
-            title={t("Job Hazard Plans")}
-            desc={t("Read your job's Hazard Plan PDF before crew breaks ground. One plan per active MASCI job — uploaded by the office.")}
+          <SectionCard
+            to="/field"
+            icon={HardHat}
+            eyebrow="Daily Ops"
+            title={t("Field")}
+            desc={t("End-of-shift logs and pre-operational equipment checks for crews on the ground.")}
+            bullets={[
+              t("Daily Reports — crews, subs, visitors, equipment, materials"),
+              t("Equipment Pre-Op — OSHA walk-arounds with pass/fail"),
+            ]}
             accent="amber"
-            testId="hub-tile-jha"
+            testId="hub-section-field"
           />
-          <FormTile
-            to="/trench-boxes"
-            icon={Box}
-            title={t("Trench Box Data")}
-            desc={t("MASCI trench-shield fleet. Size, weight, OSHA max-depth by soil type, and manufacturer tabulated-data PDFs.")}
+          <SectionCard
+            to="/app"
+            icon={Building2}
+            eyebrow="Project Workspaces"
+            title={t("Projects")}
+            desc={t("Project-by-project message boards, to-dos, schedules, docs, and hill charts. Sign in required.")}
+            bullets={[
+              t("Crew Hub — Basecamp-style per-job collaboration"),
+              t("@mentions · My Stuff inbox · Activity feed"),
+            ]}
+            accent="emerald"
+            testId="hub-section-projects"
+            external
+          />
+          <SectionCard
+            to="/admin/login"
+            icon={ClipboardList}
+            eyebrow="Office Console"
+            title={t("Admin")}
+            desc={t("Dashboards, PDF exports, compliance CSVs, PM email routing, full backups & restore.")}
+            bullets={[
+              t("Password-gated · view / print / delete any record"),
+              t("Backup · Restore · Auto-email routing · Posters"),
+            ]}
             accent="slate"
-            testId="hub-tile-trench"
-          />
-          <FormTile
-            to="/incidents/submit"
-            icon={AlertOctagon}
-            title={t("Incident Reports")}
-            desc={t("Document near misses, injuries, and damage. Severity tiers, root cause, witnesses, and follow-up — all in one record.")}
-            accent="redDeep"
-            testId="hub-tile-incidents"
-          />
-          <FormTile
-            to="/inspections/submit"
-            icon={ClipboardCheck}
-            title={t("Site Inspections")}
-            desc={t("Daily and weekly job-site safety inspections. PPE, MOT, fall protection, electrical, and more — graded automatically.")}
-            accent="red"
-            testId="hub-tile-inspections"
+            testId="hub-section-admin"
+            external
           />
         </div>
       </main>
 
       <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t-2 border-slate-200">
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-          {t("MASCI · Field Safety Reporting Portal")}
+          {t("MASCI · Operations Platform")}
         </span>
         <div className="flex items-center gap-3">
           <Link
@@ -163,38 +181,6 @@ export default function Hub() {
             data-testid="hub-cheatsheet-link"
           >
             {t("Cheat Sheet")}
-          </Link>
-          <Link
-            to="/app"
-            className="inline-flex items-center gap-2 h-10 px-3 rounded-md border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-mono text-xs uppercase tracking-[0.2em] font-bold transition-colors"
-            data-testid="hub-crew-hub-link"
-          >
-            {t("Crew Hub")}
-          </Link>
-          <Link
-            to="/admin/login"
-            className="group inline-flex items-center gap-2 h-10 pl-3 pr-4 rounded-md bg-slate-900 hover:bg-red-700 text-white border-b-2 border-red-700 hover:border-red-900 transition-colors duration-150"
-            data-testid="hub-admin-link"
-          >
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-red-700 group-hover:bg-slate-900 transition-colors">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-3.5 h-3.5 text-white"
-                aria-hidden="true"
-              >
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-            </span>
-            <span className="font-mono text-xs uppercase tracking-[0.2em] font-bold">
-              Admin Sign In
-            </span>
           </Link>
         </div>
       </footer>

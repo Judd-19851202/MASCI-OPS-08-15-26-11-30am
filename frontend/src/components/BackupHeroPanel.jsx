@@ -114,7 +114,7 @@ export default function BackupHeroPanel() {
             Backup &amp; Restore Everything
           </h2>
           <p className="text-sm text-slate-600">
-            Two buttons. Your whole MASCI Safety Hub — every form, every photo, every Crew Hub message.
+            Two buttons. Your whole MASCI Hub — every form, every photo, every Crew Hub message.
           </p>
         </div>
       </div>

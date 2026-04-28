@@ -1646,7 +1646,7 @@ async def _build_backup_zip(db) -> tuple[bytes, int, str]:
 
     buf = io.BytesIO()
     log_lines: List[str] = [
-        "MASCI Safety Hub — Full Backup",
+        "MASCI Hub — Full Backup",
         f"Generated: {now.isoformat()}",
         "Source: mascidocs.com (production)",
         "",
@@ -1904,7 +1904,7 @@ async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -
         f'MASCI · NIGHTLY BACKUP</strong>'
         f'</div>'
         f'<p style="color:#0f172a;margin:0 0 8px;font-size:15px;">'
-        f'Your nightly MASCI Safety Hub backup is attached.</p>'
+        f'Your nightly MASCI Hub backup is attached.</p>'
         f'<ul style="color:#334155;font-size:14px;line-height:1.7;padding-left:18px;">'
         f'<li><strong>Generated:</strong> {stamp}</li>'
         f'<li><strong>Records:</strong> {total_records}</li>'
@@ -2649,7 +2649,7 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
 
         pdf_bytes = await asyncio.to_thread(render_record_pdf, kind, record)
 
-        title = KIND_TITLES.get(kind, "MASCI Safety Record")
+        title = KIND_TITLES.get(kind, "MASCI Hub Record")
         project = record.get("project_name") or "MASCI"
         pm_name = dist.get("pm_name")
         pm_tag = f" · PM: {pm_name}" if pm_name else ""
@@ -2817,7 +2817,7 @@ async def email_report(
         resend.api_key = api_key
 
         pdf_bytes = render_record_pdf(body.kind, record)
-        title = KIND_TITLES.get(body.kind, "MASCI Safety Record")
+        title = KIND_TITLES.get(body.kind, "MASCI Hub Record")
         project = record.get("project_name") or record.get("project") or "MASCI"
         date_part = (
             record.get("report_date")

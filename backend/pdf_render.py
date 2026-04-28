@@ -1,4 +1,4 @@
-"""Render saved MASCI Safety Hub records to a printable PDF.
+"""Render saved MASCI Hub records to a printable PDF.
 
 Used by /api/email-report to attach a polished PDF to outgoing emails. The
 template is intentionally compact and self-contained — no external CSS,
@@ -520,7 +520,7 @@ def _render_equipment(d: Dict[str, Any]) -> str:
 
 
 def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
-    title = KIND_TITLES.get(kind, "MASCI Safety Record")
+    title = KIND_TITLES.get(kind, "MASCI Hub Record")
     logo_uri = _data_uri_for(LOGO_PATH)
     watermark_uri = _data_uri_for(WATERMARK_PATH)
 
@@ -606,7 +606,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
 </style></head><body>
   <img class="wm" src="{watermark_uri}" />
   <header class="hdr">
-    <img src="{logo_uri}" alt="MASCI Safety" />
+    <img src="{logo_uri}" alt="MASCI" />
     <div class="hdr-r">
       <div class="hdr-title">{escape(title)}</div>
       <div class="hdr-kicker">Field Safety Reporting Portal</div>
@@ -632,7 +632,7 @@ def render_email_html(
     kind: str, record: Dict[str, Any], note: str = ""
 ) -> str:
     """Compact HTML email body that points at the attached PDF."""
-    title = KIND_TITLES.get(kind, "MASCI Safety Record")
+    title = KIND_TITLES.get(kind, "MASCI Hub Record")
     project = record.get("project_name") or record.get("project") or ""
     date_str = _fmt_date(
         record.get("report_date") or record.get("date") or record.get("incident_date")
@@ -658,7 +658,7 @@ def render_email_html(
         The full safety record is attached as a PDF.
       </p>
       <p style="margin:0 0 18px;font-size:13px;color:#475569;">
-        Filed via the MASCI Safety Hub at mascidocs.com.
+        Filed via the MASCI Hub at mascidocs.com.
       </p>
       <hr style="border:0;border-top:1px solid #e2e8f0;margin:18px 0;" />
       <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#94a3b8;">

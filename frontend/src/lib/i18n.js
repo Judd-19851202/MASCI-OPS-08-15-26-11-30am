@@ -60,7 +60,44 @@ const subscribe = (cb) => {
 // before the Spanish translation lands.
 const ES = {
   // Branding / hub
-  "MASCI Safety Hub": "Centro de Seguridad MASCI",
+  "MASCI Safety Hub": "Centro MASCI",
+  "MASCI Hub": "Centro MASCI",
+  "One place for every MASCI job.": "Un solo lugar para cada trabajo de MASCI.",
+  "Safety forms, field reports, project workspaces, and the office console — all under one roof.":
+    "Formularios de seguridad, reportes de campo, espacios de proyecto y la consola de oficina — todo bajo un techo.",
+  "Safety": "Seguridad",
+  "Field": "Campo",
+  "Projects": "Proyectos",
+  "Admin": "Admin",
+  "Compliance": "Cumplimiento",
+  "Daily Ops": "Operaciones diarias",
+  "Project Workspaces": "Espacios de proyecto",
+  "Office Console": "Consola de oficina",
+  "Safety · Compliance": "Seguridad · Cumplimiento",
+  "Field · Daily Ops": "Campo · Operaciones diarias",
+  "Every form your crews need to stay OSHA-compliant and keep the company defensible.":
+    "Cada formulario que tu cuadrilla necesita para cumplir con OSHA y mantener a la empresa defendible.",
+  "What the crew fills out every day, before and after the shift.":
+    "Lo que la cuadrilla llena cada día, antes y después del turno.",
+  "Site Inspections · Safety Meetings": "Inspecciones · Juntas de Seguridad",
+  "Incident Reports · JHA Plans · Trench Box Data": "Incidentes · Planes JHA · Trinchera",
+  "Daily Reports — crews, subs, visitors, equipment, materials":
+    "Reportes Diarios — cuadrillas, subcontratistas, visitantes, equipo, materiales",
+  "Equipment Pre-Op — OSHA walk-arounds with pass/fail":
+    "Pre-Op de Equipo — recorridos OSHA con aprobado/fallado",
+  "Crew Hub — Basecamp-style per-job collaboration":
+    "Crew Hub — colaboración por trabajo estilo Basecamp",
+  "@mentions · My Stuff inbox · Activity feed":
+    "@menciones · Bandeja Mi Trabajo · Actividad",
+  "Password-gated · view / print / delete any record":
+    "Protegido con contraseña · ver / imprimir / eliminar registros",
+  "Backup · Restore · Auto-email routing · Posters":
+    "Respaldo · Restaurar · Ruteo de correos · Carteles",
+  "MASCI · Operations Platform": "MASCI · Plataforma de Operaciones",
+  "MASCI · Safety · No Shortcuts · No Exceptions":
+    "MASCI · Seguridad · Sin Atajos · Sin Excepciones",
+  "MASCI · Field · No Shortcuts · No Exceptions":
+    "MASCI · Campo · Sin Atajos · Sin Excepciones",
   "One front door for every safety form.": "Una puerta de entrada para cada formulario de seguridad.",
   "Inspections. Meetings. Hazards. Incidents. Handled.":
     "Inspecciones. Reuniones. Peligros. Incidentes. Resueltos.",
@@ -268,8 +305,8 @@ const ES = {
   "Scan to start": "Escanee para comenzar",
   "One front door for every safety form.":
     "Una puerta de entrada para cada formulario de seguridad.",
-  "Open your camera, point it at the QR code, and tap the link. The MASCI Safety Hub opens in your browser. No login. No app to install. Add it to your home screen and you're set.":
-    "Abra la cámara, apúntela al código QR y toque el enlace. El MASCI Safety Hub se abre en su navegador. Sin inicio de sesión. Sin aplicación que instalar. Agréguelo a su pantalla de inicio y listo.",
+  "Open your camera, point it at the QR code, and tap the link. The MASCI Hub opens in your browser. No login. No app to install. Add it to your home screen and you're set.":
+    "Abra la cámara, apúntela al código QR y toque el enlace. El MASCI Hub se abre en su navegador. Sin inicio de sesión. Sin aplicación que instalar. Agréguelo a su pantalla de inicio y listo.",
   "Step 01": "Paso 01",
   "Step 02": "Paso 02",
   "Step 03": "Paso 03",

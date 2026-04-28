@@ -107,7 +107,7 @@ export default function Login() {
           </div>
           <div className="mt-4 text-center">
             <Link to="/" className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 hover:text-red-400" data-testid="back-to-hub">
-              ← Back to Safety Hub
+              ← Back to MASCI Hub
             </Link>
           </div>
         </div>

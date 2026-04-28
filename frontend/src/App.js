@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/authContext";
 import Hub from "@/pages/Hub";
+import SafetySection from "@/pages/SafetySection";
+import FieldSection from "@/pages/FieldSection";
 import Dashboard from "@/pages/Dashboard";
 import NewInspection from "@/pages/NewInspection";
 import ViewInspection from "@/pages/ViewInspection";
@@ -71,8 +73,10 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Safety Hub — unchanged */}
+            {/* MASCI Hub — public */}
             <Route path="/" element={<Hub />} />
+            <Route path="/safety" element={<SafetySection />} />
+            <Route path="/field" element={<FieldSection />} />
 
             <Route path="/inspect/new" element={<GateInspection><NewInspection /></GateInspection>} />
             <Route path="/submit" element={<GateInspection><NewInspection publicMode /></GateInspection>} />
