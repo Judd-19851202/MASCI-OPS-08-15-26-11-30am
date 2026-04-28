@@ -44,10 +44,10 @@ export function buildDailyReportDefaults() {
     // Distribution list — extra emails to CC on the PDF (PM/GC/DOT/insurance)
     distribution_list: [],
 
-    // MASCI crews on site
-    masci_crews: [
-      // [{trade, foreman, count, hours, work_performed}]
-    ],
+    // MASCI crews on site — flat list of crew members (one per row).
+    // Each row: { name, trade, start_time, lunch_minutes, stop_time, hours,
+    // work_performed }. Hours auto-calculate from start/lunch/stop.
+    masci_crews: [],
 
     // Subcontractors on site
     subcontractors: [

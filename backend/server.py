@@ -810,6 +810,21 @@ async def list_daily_reports(_: bool = Depends(require_admin)):
     ]
 
 
+@api_router.get("/daily-reports/next-number")
+async def next_daily_report_number(date: Optional[str] = None):
+    """Return the next available DR-YYYYMMDD-NNN for the given (or today's) date.
+
+    Counts existing daily_reports whose `report_number` starts with the
+    same DR-YYYYMMDD prefix and increments by one. If you delete a record
+    in the middle of the day, the next number still moves forward — that's
+    intentional so report #s never collide.
+    """
+    d = (date or datetime.now(timezone.utc).strftime("%Y-%m-%d")).replace("-", "")
+    prefix = f"DR-{d}-"
+    n = await db.daily_reports.count_documents({"report_number": {"$regex": f"^{prefix}"}})
+    return {"report_number": f"{prefix}{n + 1:03d}", "prefix": prefix}
+
+
 @api_router.get("/daily-reports/{report_id}")
 async def get_daily_report(report_id: str, _: bool = Depends(require_admin)):
     doc = await db.daily_reports.find_one({"id": report_id}, {"_id": 0})
@@ -1304,6 +1319,153 @@ async def list_equipment_master(category: Optional[str] = None):
         "grouped": grouped,
         "count": len(docs),
     }
+
+
+# ---------------------------------------------------------------------------
+# Employees / crew roster — used by Daily Report's "MASCI Crews on Site"
+# section and any other employee dropdown across the platform.
+# ---------------------------------------------------------------------------
+@api_router.get("/employees")
+async def list_employees():
+    """Public — returns the full MASCI crew roster (sorted by name)."""
+    cursor = db.employees.find({"is_active": {"$ne": False}}, {"_id": 0}).sort("name", 1)
+    docs = await cursor.to_list(2000)
+    return {"items": docs, "count": len(docs)}
+
+
+@api_router.get("/admin/employees/status")
+async def employees_status(_: bool = Depends(require_admin)):
+    total = await db.employees.count_documents({})
+    active = await db.employees.count_documents({"is_active": {"$ne": False}})
+    last_doc = await db.employees.find_one({}, {"_id": 0, "updated_at": 1, "created_at": 1}, sort=[("updated_at", -1)])
+    last_updated = (last_doc or {}).get("updated_at") or (last_doc or {}).get("created_at")
+    return {"count": total, "active": active, "last_updated": last_updated}
+
+
+@api_router.post("/admin/employees/upload")
+async def upload_employees(
+    file: UploadFile = File(...),
+    _: bool = Depends(require_admin),
+):
+    """Replace the entire roster from an .xlsx file.
+
+    Expected columns (case-insensitive, common variations supported):
+      Name (required) · Employee ID · Trade · Role · Crew · Email · Phone
+    """
+    fname = (file.filename or "").lower()
+    if not (fname.endswith(".xlsx") or fname.endswith(".xlsm") or fname.endswith(".csv")):
+        raise HTTPException(status_code=400, detail="Only .xlsx or .csv files are accepted")
+    raw = await file.read()
+    if not raw or len(raw) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Empty or oversized file (max 10 MB)")
+
+    rows: List[Dict[str, Any]] = []
+    try:
+        if fname.endswith(".csv"):
+            import csv as _csv
+            text = raw.decode("utf-8", errors="ignore")
+            reader = _csv.DictReader(text.splitlines())
+            for r in reader:
+                rows.append({(k or "").strip().lower(): (v or "").strip() for k, v in r.items()})
+        else:
+            import openpyxl as _ox
+            import io as _io
+            wb = _ox.load_workbook(_io.BytesIO(raw), data_only=True)
+            ws = wb.active
+            headers: List[str] = []
+            for i, row in enumerate(ws.iter_rows(values_only=True)):
+                if i == 0:
+                    headers = [str(c or "").strip().lower() for c in row]
+                    continue
+                if not row or not any(row):
+                    continue
+                d = {}
+                for h, v in zip(headers, row):
+                    if not h:
+                        continue
+                    d[h] = ("" if v is None else str(v).strip())
+                rows.append(d)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not parse file: {e}")
+
+    def pick(d: Dict[str, str], *keys: str) -> str:
+        for k in keys:
+            v = d.get(k)
+            if v:
+                return v
+        return ""
+
+    items: List[Dict[str, Any]] = []
+    seen = set()
+    for d in rows:
+        name = pick(d, "name", "full name", "employee name")
+        if not name:
+            continue
+        key = name.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        items.append({
+            "id": str(uuid.uuid4()),
+            "name": name,
+            "employee_id": pick(d, "employee id", "id", "emp id", "emp #", "emp#"),
+            "trade": pick(d, "trade", "department"),
+            "role": pick(d, "role", "title", "position"),
+            "crew": pick(d, "crew", "team"),
+            "email": pick(d, "email"),
+            "phone": pick(d, "phone", "mobile", "cell"),
+            "is_active": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        })
+
+    if not items:
+        raise HTTPException(status_code=400, detail="No valid rows found (need a 'Name' column).")
+
+    await db.employees.delete_many({})
+    await db.employees.insert_many(items)
+    return {"ok": True, "count": len(items)}
+
+
+@api_router.post("/admin/employees")
+async def create_employee(
+    payload: Dict[str, Any],
+    _: bool = Depends(require_admin),
+):
+    """Manually add a single employee."""
+    name = (payload.get("name") or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Name is required")
+    doc = {
+        "id": str(uuid.uuid4()),
+        "name": name,
+        "employee_id": (payload.get("employee_id") or "").strip(),
+        "trade": (payload.get("trade") or "").strip(),
+        "role": (payload.get("role") or "").strip(),
+        "crew": (payload.get("crew") or "").strip(),
+        "email": (payload.get("email") or "").strip(),
+        "phone": (payload.get("phone") or "").strip(),
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.employees.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.delete("/admin/employees/{employee_id}")
+async def delete_employee(employee_id: str, _: bool = Depends(require_admin)):
+    res = await db.employees.delete_one({"id": employee_id})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Daily Report numbering — see /daily-reports/next-number above (registered
+# before the /{report_id} route so FastAPI matches it correctly).
+# ---------------------------------------------------------------------------
 
 
 async def _write_equipment_master(items: List[Dict[str, Any]]) -> int:

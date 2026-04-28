@@ -4,22 +4,73 @@
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse";
 
+/** Map a GeolocationPositionError to a human-readable message. */
+function gpsErrorMessage(err) {
+  if (!err) return "Unknown GPS error";
+  // GeolocationPositionError has no .message on iOS Safari — only .code
+  switch (err.code) {
+    case 1: // PERMISSION_DENIED
+      return "Location permission denied. Tap the AA in Safari's address bar → Website Settings → Location → Allow, then try again.";
+    case 2: // POSITION_UNAVAILABLE
+      return "GPS signal unavailable. Step outside or near a window and try again.";
+    case 3: // TIMEOUT
+      return "GPS timed out. Try again — sometimes iOS needs a second attempt.";
+    default:
+      return err.message || "Could not get GPS location";
+  }
+}
+
+/**
+ * Try to get a position, falling back from high accuracy → low accuracy →
+ * cached position so iOS Safari doesn't silently fail when the GPS chip
+ * isn't warm yet.
+ */
 export function getCurrentPosition(options = {}) {
   return new Promise((resolve, reject) => {
     if (!("geolocation" in navigator)) {
       reject(new Error("Geolocation is not supported on this device"));
       return;
     }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve(pos),
-      (err) => reject(err),
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
-        ...options,
-      }
-    );
+    if (!window.isSecureContext) {
+      reject(
+        new Error(
+          "GPS requires HTTPS. Open the site at https://mascidocs.com and try again."
+        )
+      );
+      return;
+    }
+    const tryHighAccuracy = () =>
+      new Promise((res, rej) =>
+        navigator.geolocation.getCurrentPosition(res, rej, {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 30000,
+          ...options,
+        })
+      );
+    const tryLowAccuracy = () =>
+      new Promise((res, rej) =>
+        navigator.geolocation.getCurrentPosition(res, rej, {
+          enableHighAccuracy: false,
+          timeout: 12000,
+          maximumAge: 5 * 60 * 1000, // accept up to 5-min cached fix
+          ...options,
+        })
+      );
+
+    tryHighAccuracy()
+      .then(resolve)
+      .catch((err) => {
+        // PERMISSION_DENIED is final — no point retrying
+        if (err && err.code === 1) {
+          reject(new Error(gpsErrorMessage(err)));
+          return;
+        }
+        // Otherwise retry with lower accuracy / cached fix
+        tryLowAccuracy()
+          .then(resolve)
+          .catch((err2) => reject(new Error(gpsErrorMessage(err2))));
+      });
   });
 }
 

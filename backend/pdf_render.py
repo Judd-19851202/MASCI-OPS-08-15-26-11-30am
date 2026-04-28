@@ -164,14 +164,32 @@ def _render_daily(d: Dict[str, Any]) -> str:
         )
     )
 
-    crews = d.get("crews") or []
+    crews = d.get("masci_crews") or d.get("crews") or []
     if crews:
+        total_hours = 0.0
+        body_rows = []
+        for c in crews:
+            try:
+                total_hours += float(c.get("hours") or 0)
+            except (TypeError, ValueError):
+                pass
+            body_rows.append([
+                c.get("name") or "",
+                c.get("trade") or c.get("role") or "",
+                c.get("start_time") or "",
+                c.get("stop_time") or "",
+                str(c.get("lunch_minutes") or "") + (" min" if c.get("lunch_minutes") else ""),
+                c.get("hours") or "",
+                c.get("work_performed") or "",
+            ])
+        # Append a totals row
+        body_rows.append(["", "", "", "", "<b>Total</b>", f"<b>{total_hours:.2f}</b>", ""])
         rows.append(
             _section(
-                "04 · MASCI Crews",
+                "04 · MASCI Crews on Site",
                 _table(
-                    ["Name", "Role", "Count"],
-                    [[c.get("name"), c.get("role"), c.get("count")] for c in crews],
+                    ["Name", "Trade / Role", "Start", "Stop", "Lunch", "Hours", "Work Performed"],
+                    body_rows,
                 ),
             )
         )
@@ -182,9 +200,15 @@ def _render_daily(d: Dict[str, Any]) -> str:
             _section(
                 "05 · Subcontractors",
                 _table(
-                    ["Company", "Work", "Headcount"],
+                    ["Company", "Trade / Work", "Headcount", "Hours", "Notes"],
                     [
-                        [s.get("name"), s.get("work"), s.get("count")]
+                        [
+                            s.get("name") or s.get("company") or "",
+                            s.get("trade") or s.get("work") or "",
+                            s.get("count") or s.get("headcount") or "",
+                            s.get("hours") or "",
+                            s.get("notes") or "",
+                        ]
                         for s in subs
                     ],
                 ),
@@ -197,8 +221,17 @@ def _render_daily(d: Dict[str, Any]) -> str:
             _section(
                 "06 · Visitors",
                 _table(
-                    ["Name", "Purpose"],
-                    [[v.get("name"), v.get("purpose")] for v in visitors],
+                    ["Name", "Company", "Purpose", "Time In", "Time Out"],
+                    [
+                        [
+                            v.get("name") or "",
+                            v.get("company") or "",
+                            v.get("purpose") or "",
+                            v.get("time_in") or "",
+                            v.get("time_out") or "",
+                        ]
+                        for v in visitors
+                    ],
                 ),
             )
         )
@@ -207,23 +240,51 @@ def _render_daily(d: Dict[str, Any]) -> str:
     if equip:
         rows.append(
             _section(
-                "07 · Equipment On Site",
+                "07 · Equipment Log",
                 _table(
-                    ["Name", "Status"],
-                    [[e.get("name"), e.get("status")] for e in equip],
+                    ["Unit / Equipment", "Hours Used", "Time Delivered", "Time Removed", "Notes"],
+                    [
+                        [
+                            e.get("description") or e.get("name") or "",
+                            e.get("hours_used") or "",
+                            e.get("time_delivered") or "",
+                            e.get("time_removed") or "",
+                            e.get("notes") or "",
+                        ]
+                        for e in equip
+                    ],
                 ),
             )
         )
 
     mats = d.get("materials") or []
     if mats:
+        body_rows = []
+        ticket_imgs = []
+        for m in mats:
+            body_rows.append([
+                m.get("description") or m.get("name") or "",
+                m.get("quantity") or m.get("qty") or "",
+                m.get("unit") or "",
+                m.get("supplier") or "",
+                m.get("ticket_number") or "",
+                m.get("notes") or "",
+            ])
+            for ph in (m.get("ticket_photos") or []):
+                ticket_imgs.append(ph)
+        section_html = _table(
+            ["Description", "Qty", "Unit", "Supplier", "Ticket #", "Notes"],
+            body_rows,
+        )
+        if ticket_imgs:
+            section_html += '<div class="photos-grid" style="margin-top:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">'
+            for src in ticket_imgs:
+                section_html += f'<img src="{src}" style="width:100%;border:1px solid #ccc;border-radius:3px;" />'
+            section_html += "</div>"
         rows.append(
             _section(
                 "08 · Materials Delivered",
-                _table(
-                    ["Name", "Qty"],
-                    [[m.get("name"), m.get("qty")] for m in mats],
-                ),
+                section_html,
             )
         )
 

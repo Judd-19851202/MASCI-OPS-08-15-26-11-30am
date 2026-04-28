@@ -1,0 +1,34 @@
+{
+  "iteration": 19,
+  "date": "2026-04-28",
+  "task": "Validate Daily Report field-feedback overhaul: auto-generated DR# numbering, employee CSV roster + admin panel, MASCI Crews on Site (Section 04) auto-calc hours + totals, photo upload split (gallery + camera), Section 08 Material Deliveries ticket_photos uploader.",
+  "summary": "ALL 10 BACKEND PYTEST + ALL 5 FRONTEND CHECKS PASS on the preview URL. Backend endpoints verified: /api/employees (public, empty initially), /api/admin/employees/status (401 without token, 200 with), /api/admin/employees/upload (CSV with 2 rows → ok:true count:2, both visible in /employees), POST /api/admin/employees creates a single employee with id, DELETE /api/admin/employees/{id} removes it, /api/daily-reports/next-number returns DR-YYYYMMDD-001 initially and increments to 002 after a report is created with that number, GET /api/daily-reports/{id} regression intact (route ordering correct), and full daily-report submit with masci_crews + materials.ticket_photos persists correctly. Frontend on /daily/submit: report# auto-fills as DR-20260428-001 on mount; clicking 'Add Crew Member' spawns row with all expected testids (crew-name-0-input, crew-trade-0, crew-start-0, crew-stop-0, crew-lunch-0, crew-hours-0); 07:00→15:30 lunch=30 yields hours=8.00, 06:30→16:00 lunch=60 yields hours=8.50, totals bar reads '16.50 hrs'; photo upload at section level exposes data-testid='photo-upload-gallery' + 'photo-upload-camera'; Material Deliveries 'Add Material' adds a row with ticket_photos uploader (testid material-ticket_photos-0) containing both gallery + camera buttons (with prefixed IDs material-ticket_photos-0-gallery / -camera). On /admin: EmployeeMasterPanel renders below EquipmentMasterPanel with counter '0 employees on roster' and Pick file button (data-testid employee-master-upload-btn); CSV upload of 3 TEST_ rows triggered toast 'Roster updated — 3 employees' and counter live-updated to 3 without page reload. Equipment Master Fleet still reports 589 units / 27 categories. All TEST_ employees deleted at end of run; final roster count = 0.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_employees_and_dr_number_iter19.py",
+    "/app/test_reports/pytest/iter19_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PhotoUpload component testid contract: when used inside RepeatBlock (e.g., Material 1 ticket_photos), buttons are namespaced as `<parent-testid>-gallery` / `<parent-testid>-camera` — top-level uses generic `photo-upload-gallery/-camera`. Document this in the PhotoUpload jsdoc so future tests target the right ID per context.",
+    "/api/daily-reports/next-number relies on count_documents with regex on report_number — works correctly but has a race condition: two concurrent foremen loading the form on the same date will both see the same suggested number until one submits. For low-volume usage (one per project per day) this is acceptable; if it becomes an issue, consider an atomic findAndModify counter doc keyed on date prefix.",
+    "POST /api/admin/employees uses `Dict[str, Any]` instead of a Pydantic model — easy attack surface. Recommend a pydantic EmployeeCreate model to enforce types and reject unknown keys.",
+    "Employee CSV upload silently DROPS rows missing 'Name' (only 'Name' is required). Currently it errors only if the entire file has zero valid rows. Consider returning {ok:true, count, skipped} so the admin sees if some rows were filtered out.",
+    "/api/admin/employees/upload calls db.employees.delete_many({}) before insert — replaces entire roster (not merge). This is per spec, but admin UI should warn 'this REPLACES the roster' before upload (currently just says 'Replace roster')."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_employees_and_dr_number_iter19.py (new — 10 tests)"
+  ],
+  "success_rate": {"backend": "100% (10/10)", "frontend": "100% (5/5)"},
+  "test_credentials": "Admin: Happy123! at /admin/login. No auth needed for /daily/submit. Crew Hub creds (safety@mascigc.com / Welcome2MASCI!) untouched this run.",
+  "seed_data_creation": "Created TEST_John Doe / TEST_Jane Smith via CSV, TEST_Bob Builder via single create endpoint, TEST_Alice/Bob/Carl via admin UI CSV. ALL TEST_ employees deleted at end of run; final /api/employees count=0 verified. Created two daily reports for date=2099-01-15 and 2099-02-20 to test numbering/ticket_photos — both deleted in finally blocks.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All Iteration-19 deliverables verified end-to-end on https://safety-audit-mobile-1.preview.emergentagent.com . Roster is empty for the user. Photo upload testid pattern: top-level uses `photo-upload-gallery/-camera`; nested-in-RepeatBlock uses `<parent>-gallery/-camera`. /api/daily-reports/next-number is registered BEFORE /{report_id} and is publicly reachable (no admin token). Skipped GPS testing per request — geolocation API can't be exercised in headless browser. /app/backend/tests/conftest.py auto-injects X-Admin-Token; setting headers={'X-Admin-Token': ''} explicitly bypasses it for negative-auth tests.",
+  "rca of the issue": "N/A — no bugs found this iteration."
+}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -23,6 +23,7 @@ import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
+import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { useT, getLang } from "@/lib/i18n";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
@@ -65,6 +66,42 @@ export default function NewDailyReport({ publicMode = false }) {
   const [fetchingWeather, setFetchingWeather] = useState(false);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
+
+  // Auto-fetch the next sequential report number on mount (or when the
+  // report_date changes). The user can still edit it manually if desired.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await api.get(
+          `/daily-reports/next-number?date=${encodeURIComponent(data.report_date || "")}`
+        );
+        if (alive && !data.report_number) {
+          setData((p) => ({ ...p, report_number: r.data.report_number }));
+        }
+      } catch {
+        /* if it fails the field stays editable — no big deal */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.report_date]);
+
+  // Auto-calculate per-crew-member hours from start_time / lunch / stop_time
+  // whenever any of those fields change.
+  const computeHours = (start, stop, lunchMin) => {
+    if (!start || !stop) return "";
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = stop.split(":").map(Number);
+    if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return "";
+    let mins = (eh * 60 + em) - (sh * 60 + sm);
+    if (mins < 0) mins += 24 * 60; // overnight shift
+    mins -= Number(lunchMin) || 0;
+    if (mins < 0) mins = 0;
+    return (mins / 60).toFixed(2);
+  };
 
   const applyJob = (job) => {
     setData((p) => ({
@@ -292,6 +329,27 @@ export default function NewDailyReport({ publicMode = false }) {
                     placeholder={f.placeholder || "Type or pick a unit…"}
                     testId={`${testIdBase}-${f.key}-${i}`}
                   />
+                ) : f.type === "employee-combo" ? (
+                  <EmployeeCombo
+                    value={row[f.key] || ""}
+                    onChange={(v) => helpers.update(i, f.key, v)}
+                    placeholder={f.placeholder || "Type or pick an employee…"}
+                    testId={`${testIdBase}-${f.key}-${i}`}
+                  />
+                ) : f.type === "photo" ? (
+                  <PhotoUpload
+                    photos={row[f.key] || []}
+                    onChange={(arr) => helpers.update(i, f.key, arr)}
+                    testIdBase={`${testIdBase}-${f.key}-${i}`}
+                  />
+                ) : f.type === "readonly" ? (
+                  <Input
+                    value={row[f.key] || ""}
+                    readOnly
+                    className={`${inputCls} bg-slate-100 font-mono`}
+                    placeholder={f.placeholder}
+                    data-testid={`${testIdBase}-${f.key}-${i}`}
+                  />
                 ) : (
                   <Input
                     type={f.type || "text"}
@@ -461,13 +519,13 @@ export default function NewDailyReport({ publicMode = false }) {
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                {t("Report #")}
+                {t("Report #")} <span className="text-slate-400">({t("auto")})</span>
               </Label>
               <Input
                 value={data.report_number}
                 onChange={(e) => set("report_number", e.target.value)}
-                className={inputClsTall}
-                placeholder="optional"
+                className={`${inputClsTall} bg-slate-50 font-mono`}
+                placeholder="DR-YYYYMMDD-001"
                 data-testid="input-report-number"
               />
             </div>
@@ -782,31 +840,163 @@ export default function NewDailyReport({ publicMode = false }) {
 
         {/* 04 — MASCI Crews */}
         <Section number="04" title={t("MASCI Crews on Site")}>
-          <RepeatBlock
-            title={t("Crew")}
-            list="masci_crews"
-            helpers={crews}
-            defaults={{
-              trade: "",
-              foreman: "",
-              count: "",
-              hours: "",
-              work_performed: "",
-            }}
-            fields={[
-              { key: "trade", label: "Trade", placeholder: "Earthwork, Concrete, MOT..." },
-              { key: "foreman", label: "Foreman" },
-              { key: "count", label: "# of Workers", type: "number" },
-              { key: "hours", label: "Hours Worked", type: "number" },
-              {
-                key: "work_performed",
-                label: "Work Performed",
-                full: true,
-                type: "textarea",
-              },
-            ]}
-            testIdBase="crew"
-          />
+          <div className="space-y-3">
+            {data.masci_crews.map((row, i) => {
+              const auto = computeHours(row.start_time, row.stop_time, row.lunch_minutes);
+              if (auto && auto !== row.hours) {
+                // Keep `hours` in sync with the calculated value silently
+                setTimeout(() => crews.update(i, "hours", auto), 0);
+              }
+              return (
+                <div
+                  key={i}
+                  className="border-2 border-slate-200 rounded-md p-3 sm:p-4 space-y-2"
+                  data-testid={`crew-row-${i}`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold">
+                      {t("Crew Member")} {i + 1}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => crews.remove(i)}
+                      className="text-slate-500 hover:text-red-600"
+                      data-testid={`crew-remove-${i}`}
+                    >
+                      <X className="w-4 h-4 mr-1" /> {t("Remove")}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="sm:col-span-2">
+                      <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                        {t("Employee Name")}
+                      </Label>
+                      <EmployeeCombo
+                        value={row.name || ""}
+                        onChange={(v) => crews.update(i, "name", v)}
+                        onPick={(emp) => {
+                          // Auto-fill trade & role if the picked employee has them
+                          if (emp.trade && !row.trade) crews.update(i, "trade", emp.trade);
+                        }}
+                        testId={`crew-name-${i}`}
+                      />
+                    </div>
+                    <div>
+                      <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                        {t("Trade / Role")}
+                      </Label>
+                      <Input
+                        value={row.trade || ""}
+                        onChange={(e) => crews.update(i, "trade", e.target.value)}
+                        className={inputCls}
+                        placeholder="Earthwork, Concrete, MOT..."
+                        data-testid={`crew-trade-${i}`}
+                      />
+                    </div>
+                    <div>
+                      <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                        {t("Hours")} <span className="text-slate-400">({t("auto")})</span>
+                      </Label>
+                      <Input
+                        value={row.hours || ""}
+                        readOnly
+                        className={`${inputCls} bg-slate-100 font-mono font-bold`}
+                        placeholder="0.00"
+                        data-testid={`crew-hours-${i}`}
+                      />
+                    </div>
+                    <div>
+                      <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                        {t("Start Time")}
+                      </Label>
+                      <Input
+                        type="time"
+                        value={row.start_time || ""}
+                        onChange={(e) => crews.update(i, "start_time", e.target.value)}
+                        className={inputCls}
+                        data-testid={`crew-start-${i}`}
+                      />
+                    </div>
+                    <div>
+                      <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                        {t("Lunch")} (min)
+                      </Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={row.lunch_minutes ?? ""}
+                        onChange={(e) => crews.update(i, "lunch_minutes", e.target.value)}
+                        className={inputCls}
+                        placeholder="30"
+                        data-testid={`crew-lunch-${i}`}
+                      />
+                    </div>
+                    <div>
+                      <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                        {t("Stop Time")}
+                      </Label>
+                      <Input
+                        type="time"
+                        value={row.stop_time || ""}
+                        onChange={(e) => crews.update(i, "stop_time", e.target.value)}
+                        className={inputCls}
+                        data-testid={`crew-stop-${i}`}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                        {t("Work Performed")}
+                      </Label>
+                      <Textarea
+                        value={row.work_performed || ""}
+                        onChange={(e) => crews.update(i, "work_performed", e.target.value)}
+                        className="min-h-[60px] text-base border-2 border-slate-300"
+                        data-testid={`crew-work-${i}`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                crews.add({
+                  name: "",
+                  trade: "",
+                  start_time: "",
+                  lunch_minutes: 30,
+                  stop_time: "",
+                  hours: "",
+                  work_performed: "",
+                })
+              }
+              className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm"
+              data-testid="crew-add"
+            >
+              <Plus className="w-4 h-4 mr-2" /> {t("Add Crew Member")}
+            </Button>
+
+            {data.masci_crews.length > 0 && (
+              <div
+                className="bg-slate-900 text-white rounded-md px-4 py-3 flex items-center justify-between"
+                data-testid="crew-totals-bar"
+              >
+                <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-400">
+                  {t("Total crew hours today")}
+                </span>
+                <span className="font-display text-2xl font-black">
+                  {data.masci_crews
+                    .reduce((sum, r) => sum + (parseFloat(r.hours) || 0), 0)
+                    .toFixed(2)}{" "}
+                  <span className="text-amber-400 text-sm font-mono">hrs</span>
+                </span>
+              </div>
+            )}
+          </div>
         </Section>
 
         {/* 05 — Subcontractors */}
@@ -901,6 +1091,7 @@ export default function NewDailyReport({ publicMode = false }) {
               supplier: "",
               ticket_number: "",
               notes: "",
+              ticket_photos: [],
             }}
             fields={[
               { key: "description", label: "Description", full: true },
@@ -909,6 +1100,7 @@ export default function NewDailyReport({ publicMode = false }) {
               { key: "supplier", label: "Supplier" },
               { key: "ticket_number", label: "Ticket #" },
               { key: "notes", label: "Notes", full: true, type: "textarea" },
+              { key: "ticket_photos", label: "Ticket Photo(s)", full: true, type: "photo" },
             ]}
             testIdBase="material"
           />

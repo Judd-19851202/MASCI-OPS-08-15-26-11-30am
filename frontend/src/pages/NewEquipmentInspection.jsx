@@ -751,11 +751,10 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                             <input
                               type="file"
                               accept="image/*"
-                              capture="environment"
                               className="hidden"
                               onChange={(e) => onFailPhoto(sec.title, item, e.target.files?.[0])}
                             />
-                            📷 {t("Add photo (required for FAIL)")}
+                            📷 {t("Add photo (camera or gallery, required for FAIL)")}
                           </label>
                         )}
                       </div>

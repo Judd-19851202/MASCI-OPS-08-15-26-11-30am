@@ -21,6 +21,7 @@ import ComplianceExportPanel from "@/components/ComplianceExportPanel";
 import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 import BackupHeroPanel from "@/components/BackupHeroPanel";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
+import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -166,6 +167,9 @@ export default function AdminHub() {
 
         {/* Replace MASCI equipment fleet (.xlsx) — refreshes every dropdown */}
         <EquipmentMasterPanel />
+
+        {/* MASCI employee roster — feeds every employee dropdown */}
+        <EmployeeMasterPanel />
 
         <div className="mb-10">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
