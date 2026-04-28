@@ -1,0 +1,43 @@
+{
+  "iteration": 18,
+  "date": "2026-04-28",
+  "task": "Validate cookie→Bearer JWT auth migration (Cloudflare wildcard CORS workaround). Backend + frontend regression for /admin and /app login, change-password, admin invite, page-reload persistence, equipment-master upload + count.",
+  "summary": "ALL CRITICAL FLOWS PASS. Backend: 11/11 pytest in test_jwt_auth_iter18.py. Frontend (Playwright on preview URL): admin login wrong-pw rejected with toast / correct lands on dashboard with masci.admin.token (64ch) in localStorage and /api/admin/equipment-master/status returns 200 with 589 units; crew-hub login wrong-pw shows 'Invalid email or password' / correct password redirects to /app/change-password and stores JWT in localStorage at masci_jwt_v1 (245ch); change-password from Welcome2MASCI!→NewSafePass1! succeeds with 'Password updated.' toast and redirects to /app; page reload preserves login (JWT survives, stays on /app); CRITICAL: zero requests sent a Cookie header (axios withCredentials=false confirmed end-to-end). Regressions: GET /api/equipment-master still returns 589 units / 27 categories, POST /api/admin/equipment-master/upload with the seed xlsx still works (count=589), GET /api/equipment-units 200. Seed password restored to Welcome2MASCI! with must_change_password=true at end of run.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/app sidebar", "issues": ["Logout button exposes no accessible label (no data-testid, no aria-label, no visible 'Logout' text — only an icon). Tests had to skip the explicit logout click. Recommend adding data-testid='crew-hub-logout-btn' + aria-label='Logout' to the icon button in the user footer."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_jwt_auth_iter18.py",
+    "/app/test_reports/pytest/iter18_jwt_auth.xml"
+  ],
+  "action_items": [
+    "Add data-testid + aria-label to the Crew Hub logout icon-only button so QA + screen readers can target it.",
+    "Optional: also expose access_token expiry / refresh on the frontend (right now the JWT lives in localStorage for 7 days; no proactive refresh is wired up — relies on user re-login when /auth/me 401s). Confirm with product if that's acceptable for production.",
+    "Document in test_credentials.md that Crew Hub auth is now header-based JWT (localStorage key 'masci_jwt_v1'), not httpOnly cookie."
+  ],
+  "critical_code_review_comments": [
+    "auth.py:270 still calls response.set_cookie on /auth/refresh — harmless now (frontend ignores cookies), but consider also returning {access_token} in the JSON body so a future cookieless-only client can refresh too.",
+    "authContext.jsx logout() POSTs /api/auth/logout but doesn't pass the JWT context; on the backend that endpoint clears the cookie. Fine for now since we clear localStorage client-side anyway, but server-side token revocation isn't implemented (JWTs valid until exp=7d). For a security-hardened build add a denylist (jti -> redis with TTL=exp).",
+    "lib/api.js: on 401 the interceptor clears whichever token was used. If a request had BOTH X-Admin-Token AND Authorization (e.g., admin browsing the crew app), a 401 from /api/auth/me will wipe the admin token too. Low risk in practice but worth noting.",
+    "ACCESS_TOKEN_MINUTES=10080 (7d) is generous for a safety app accessed from shared field devices — consider 60min access + sliding refresh."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_jwt_auth_iter18.py (new — 11 tests)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Seed account safety@mascigc.com / Welcome2MASCI! restored at end of run with must_change_password=true. Admin password Happy123! unchanged.",
+  "seed_data_creation": "test_admin_invite_user_and_login creates a TEST_ user (test_invite_<uuid>@mascigc.com) and DELETEs it in cleanup. test_change_password_and_restore changes safety@mascigc.com password to NewSafePass1! mid-test then resets back to Welcome2MASCI! with must_change_password=true.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Header-based JWT auth verified on the preview URL. Auth endpoints: POST /api/auth/login → {user, access_token}; GET /api/auth/me requires Authorization: Bearer; POST /api/auth/change-password (Bearer) {current_password, new_password}; POST /api/users (Bearer admin/owner) for invites; POST /api/users/{id}/reset-password (Bearer admin/owner) {new_password}. Frontend storage keys: masci_jwt_v1 (Crew Hub JWT) and masci.admin.token (legacy admin HMAC). NO cookies are sent on any /api/* call (verified via Playwright request inspector — 0 cookie headers in the test session). conftest.py auto-injects X-Admin-Token via requests monkey-patch — for /api/users tests we explicitly use a Bearer JWT instead. /tmp/assets/Equipment List.xlsx still present for regression upload tests.",
+  "rca of the issue": "User-reported bug: 'Login failed — check connection' on iOS Safari at mascidocs.com. RCA: Cloudflare/Emergent ingress was overwriting the backend Access-Control-Allow-Origin header to '*'. Combined with axios withCredentials:true (needed for the previous httpOnly cookie auth), browsers reject every response per CORS spec because '*' + credentials is illegal. Fix verified: axios withCredentials:false + Authorization Bearer header from localStorage (masci_jwt_v1). No backend changes needed — auth.py already accepted Bearer as a fallback to the cookie. Verified end-to-end on preview URL with 0 cookie headers in the network capture.",
+  "status": "PASS"
+}
