@@ -235,5 +235,15 @@ Customer reported data loss after Emergent redeploy — in-container MongoDB and
 - Wired into:
   - `NewEquipmentInspection.jsx` — Unit # / Label field (auto-fills make/serial on pick).
   - `NewDailyReport.jsx` — Equipment Log → "Unit / Equipment" field (replaces free-text "Description / ID").
-- To refresh fleet later: replace `/app/backend/data/equipment_master.json` and restart backend (`sudo supervisorctl restart backend`); seed is idempotent and replaces collection contents when file count changes.
+
+## 2026-04-28 — Admin Upload Tool for Equipment Fleet
+- New module `/app/backend/equipment_parser.py` — shared `parse_equipment_xlsx(bytes, sheet="Louis")` used by both startup seed and the admin upload endpoint (single source of truth for parsing rules).
+- New endpoints (admin-only):
+  - `GET /api/admin/equipment-master/status` → `{ count, categories{}, last_updated, seed_file }`.
+  - `POST /api/admin/equipment-master/upload` → multipart file upload; rejects non-xlsx (400); backs up prior seed JSON to `equipment_master.<timestamp>.bak.json`; rewrites `data/equipment_master.json`; replaces both `equipment_master` and fans out into `equipment_units`.
+- New frontend component: `/app/frontend/src/components/EquipmentMasterPanel.jsx` — mounted on `/admin` directly under the Backup hero. Shows total units, last-updated stamp, top-6 category chips, "Pick .xlsx" upload button + refresh button.
+- AdminGuide (`/admin/guide`) gained a new "Updating the equipment fleet" section.
+- Added `openpyxl==3.1.5` to `backend/requirements.txt`.
+- Validated by testing agent: 9/9 backend pytest passes, 3/3 frontend smoke flows verified end-to-end (panel renders, Pre-Op combo filters + auto-fills make, Daily Report combo opens, upload replaces collection + JSON + creates backup, auth gates work).
+
 
