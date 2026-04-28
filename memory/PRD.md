@@ -1,5 +1,15 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-28 — Atlas migration guide + server.py refactor proof-of-pattern (P0+P1 partial)
+- **Atlas migration guide** at `/app/ATLAS_MIGRATION.md` — step-by-step 15-min instructions to flip the production app from in-container Mongo (ephemeral, banner-warning state) to MongoDB Atlas free tier so redeploys stop wiping data. Covers signup, M0 cluster, db user, network access (0.0.0.0/0), connection string, `MONGO_URL` + `DB_NAME` env-var update on Emergent, redeploy, restore from .zip, and re-running the basecamp_import scripts.
+- **server.py refactor — first extraction (proof-of-pattern)**:
+  - Created `/app/backend/routes/__init__.py` and `/app/backend/routes/shop_parts.py` (~340 lines).
+  - Moved 8 endpoints out of `server.py` into the new module: `GET /shop/activity`, `GET /equipment-parts` (list + per-unit), `PUT /equipment-parts/{unit_number}`, `DELETE /equipment-parts/{unit_number}`, `GET /admin/equipment-parts/status`, `POST /admin/equipment-parts/upload`, `POST /equipment-parts/order`.
+  - Plus the helpers (`PART_CATEGORIES`, `_empty_parts_doc`, `EquipmentPartsPayload`, `PartsOrderItem`, `PartsOrderRequest`).
+  - Pattern: `register_shop_parts_routes(api_router, db, require_admin, require_shop_or_admin)` — single function call replaces 306 inline lines in server.py. Future agents (or me next session) repeat the same pattern for inspections / meetings / jhas / incidents / daily / equipment / backups / exports / etc.
+  - server.py shrunk from 4400 → 4074 lines. **Net win: 326 lines removed + clean module separation, zero behavior change.**
+- **Verified**: 44/44 backend tests pass (`test_shop_console_iter22.py` + `test_shop_activity_parts_iter23.py` + `test_iter24_bilingual_perf.py`). All 8 extracted endpoints respond identically through the new routes module — admin-token + shop-token + 401-without-auth + 400-on-bad-payload all behave correctly via curl smoke test.
+
 ## 2026-04-28 — Basecamp import for project 24-12 (Oxford Rd) + disk-backed large file storage
 - Imported all **193 files** from 5 Basecamp .zip exports into the Crew Hub Docs library for project 24-12 (CC5744 - OXFORD RD Improvements). Categories auto-mapped from top-level Basecamp folders → MASCI's existing `DOC_CATEGORIES`:
   - **Submittals · 29** files (CC-5744-24 Oxford submittal packages 002-029, RCP, sanitary, signalization, mast arms, illuminated signs, cabinet, conduit, signal cable, luminaire, copper, cameras, loop assembly, pull boxes, drainage, riser wrap, surcharge wick drain, wet well liner, JCM linestop, fountains, etc.)
