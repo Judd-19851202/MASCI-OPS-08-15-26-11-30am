@@ -24,6 +24,7 @@ import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
+import { SupplierCombo } from "@/components/SupplierCombo";
 import { useT, getLang } from "@/lib/i18n";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
@@ -326,14 +327,21 @@ export default function NewDailyReport({ publicMode = false }) {
                   <EquipmentCombo
                     value={row[f.key] || ""}
                     onChange={(v) => helpers.update(i, f.key, v)}
-                    placeholder={f.placeholder || "Type or pick a unit…"}
+                    placeholder={f.placeholder}
                     testId={`${testIdBase}-${f.key}-${i}`}
                   />
                 ) : f.type === "employee-combo" ? (
                   <EmployeeCombo
                     value={row[f.key] || ""}
                     onChange={(v) => helpers.update(i, f.key, v)}
-                    placeholder={f.placeholder || "Type or pick an employee…"}
+                    placeholder={f.placeholder}
+                    testId={`${testIdBase}-${f.key}-${i}`}
+                  />
+                ) : f.type === "supplier-combo" ? (
+                  <SupplierCombo
+                    value={row[f.key] || ""}
+                    onChange={(v) => helpers.update(i, f.key, v)}
+                    placeholder={f.placeholder}
                     testId={`${testIdBase}-${f.key}-${i}`}
                   />
                 ) : f.type === "photo" ? (
@@ -1014,9 +1022,9 @@ export default function NewDailyReport({ publicMode = false }) {
               work_performed: "",
             }}
             fields={[
-              { key: "company", label: "Company" },
+              { key: "company", label: "Company", full: true, type: "supplier-combo" },
               { key: "trade", label: "Trade" },
-              { key: "foreman", label: "Foreman / Lead" },
+              { key: "foreman", label: "Foreman / Lead", type: "employee-combo" },
               { key: "count", label: "# of Workers", type: "number" },
               { key: "hours", label: "Hours Worked", type: "number" },
               {
@@ -1068,7 +1076,7 @@ export default function NewDailyReport({ publicMode = false }) {
               notes: "",
             }}
             fields={[
-              { key: "description", label: "Unit / Equipment", full: true, type: "equipment-combo", placeholder: "Type or pick from MASCI fleet…" },
+              { key: "description", label: "Unit / Equipment", full: true, type: "equipment-combo" },
               { key: "hours_used", label: "Hours Used", type: "number" },
               { key: "time_delivered", label: "Time Delivered", type: "time" },
               { key: "time_removed", label: "Time Removed", type: "time" },
@@ -1097,7 +1105,7 @@ export default function NewDailyReport({ publicMode = false }) {
               { key: "description", label: "Description", full: true },
               { key: "quantity", label: "Quantity" },
               { key: "unit", label: "Unit", placeholder: "ton, cy, ea, lf" },
-              { key: "supplier", label: "Supplier" },
+              { key: "supplier", label: "Supplier", full: true, type: "supplier-combo" },
               { key: "ticket_number", label: "Ticket #" },
               { key: "notes", label: "Notes", full: true, type: "textarea" },
               { key: "ticket_photos", label: "Ticket Photo(s)", full: true, type: "photo" },

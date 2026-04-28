@@ -1,0 +1,34 @@
+{
+  "iteration": 21,
+  "date": "2026-04-28",
+  "task": "Validate Employee + Supplier seeds (234 / 135), new SupplierCombo + EmployeeCombo wiring on Daily Report Sections 05 & 08, admin SupplierMasterPanel CRUD, and ES translation of new combo labels.",
+  "summary": "ALL CRITICAL CHECKS PASS. Backend pytest 6/6 (test_suppliers_employees_iter21.py): /api/employees=234 items, /api/suppliers=135 items (correct shape {id,name,is_active}, includes Cemex + Rinker Materials), /api/admin/suppliers/status returns 401 without token AND with bogus token, returns 200 with valid token. Admin CSV upload of 4-row body returns ok:true count:2 (header 'Suppliers' + dividers 'MASCI' / 'NOT LISTED ADD TO NOTES' correctly skipped) and replaces collection; teardown re-seeded the collection back to exactly 135 entries via the same /upload endpoint with the on-disk seed file. POST /api/admin/suppliers + DELETE /api/admin/suppliers/{id} round-trip works. Frontend (Daily Report /daily/submit, EN): Section 05 'Add Subcontractor' adds row with sub-company-0-input/-toggle (SupplierCombo) and sub-foreman-0-input/-toggle (EmployeeCombo); typing 'Cemex' in supplier search → exactly 1 match → click → company field filled with 'Cemex'; typing 'Alec' in foreman search → exactly 1 match → click → field filled with 'Alec Perkins'. Section 08 'Add Material' adds row with material-supplier-0-input/-toggle. Spanish: section header 'Subcontratistas en Sitio', SUBCONTRATISTA 1, COMPAÑÍA, CAPATAZ all visible (screenshot confirmed); SupplierCombo placeholder 'Escriba o elija un proveedor…' rendered, search-box placeholder 'Buscar por nombre de la compañía…' confirmed via attribute, EmployeeCombo placeholder 'Escriba o elija un empleado…' rendered, button 'AGREGAR SUBCONTRATISTA' rendered (visible in screenshot — substring miss in JS body-text grep was due to CSS uppercase transform: source string is 'Agregar subcontratista' rendered uppercase via tailwind 'uppercase' class). /admin: SupplierMasterPanel mounted (data-testid='supplier-master-panel'), upload button present (data-testid='supplier-master-upload-btn'), '135 suppliers' counter rendered, EmployeeMasterPanel still shows 234, equipment counter still 589 (regression intact).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_suppliers_employees_iter21.py",
+    "/app/test_reports/pytest/iter21_suppliers.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "/app/backend/server.py upload_suppliers does `db.suppliers.delete_many({})` then `insert_many(items)` — this is a destructive replace. If the upload payload is empty or malformed, the existing 135 entries are still wiped before any insert. Recommend wrapping in a transaction or staging the new docs into a temp collection then renaming, so a partial failure doesn't leave the master list empty in production.",
+    "GET /api/employees and /api/suppliers return shape {items:[...], count:N} but the problem statement says each item shape — make sure the frontend SupplierCombo + EmployeeCombo unwrap data.items consistently (it does, verified live). Document this contract in an OpenAPI summary so future consumers don't assume a bare array.",
+    "i18n.js: button text 'Agregar subcontratista' (and similar) relies on CSS `text-transform: uppercase` for ALL CAPS rendering. This is fine visually, but copy/paste from the screen yields lowercase. Acceptable for now; flag for accessibility review (some screen readers announce both forms differently).",
+    "SupplierCombo + EmployeeCombo do free-text fallback per spec. Verified: typing a non-existent name leaves the input value as-typed. Good UX. Backend daily_reports endpoint accepts arbitrary subcontractors[].company strings (no validation against suppliers list) — acceptable given the 'one-off vendors' use-case but means typo'd names won't roll up to a clean supplier-of-record report. Recommend a fuzzy-match warning at PDF generation time.",
+    "conftest.py auto-injects X-Admin-Token via setdefault — unauthenticated tests must explicitly send `X-Admin-Token: ''` to bypass and prove gate. Documented in the new iter21 test file."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_suppliers_employees_iter21.py (new — 6 tests)"
+  ],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% (combo wiring + ES labels + admin panel all verified)"},
+  "test_credentials": "Admin: Happy123! at /admin (used). Crew Hub creds not exercised this run (not relevant to supplier/employee combo work).",
+  "seed_data_creation": "Test created/destroyed temporary supplier 'TEST_SUPPLIER_X' (cleaned). CSV-upload test temporarily replaced the suppliers collection with {Acme Test Co, Foo Bar Inc} then RESTORED the original 135 suppliers via /api/admin/suppliers/upload using /app/backend/data/suppliers_seed.json — verified post-test count=135. Did NOT execute the full 6-photo daily-report e2e regression because the photo-dedup + signature-pad blockers from iter20 still apply (form rejects 6 identical PNGs and pointer-events don't register on SignaturePad). The combo-fill behavior, which is the new functionality this iteration, is fully proven.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Suppliers collection has been restored to exactly 135 entries (verified by post-test GET). Employees seed (234) untouched. New endpoints all live: GET /api/suppliers, GET /api/admin/suppliers/status, POST /api/admin/suppliers, POST /api/admin/suppliers/upload (CSV multipart file=...), DELETE /api/admin/suppliers/{id}. Daily Report data-testids on the new pickers: sub-company-N-input/-toggle/-search/-item-K, sub-foreman-N-input/-toggle/-search/-item-K, material-supplier-N-input/-toggle/-search/-item-K. ES copy keys added in i18n.js: 'Type or pick a supplier…' / 'Search by company name…' / 'Type or pick an employee…' / 'Browse supplier list' / 'Supplier list not uploaded yet — type freely.' all render correctly. Iter20 already validated /api/translate proper-noun preservation (Juan Pérez kept) — by extension 'Cemex' will not be translated since the LLM prompt preserves capitalized proper nouns. To do a full ES→EN submit e2e in a future run: use SignaturePad's exposed window-level instance (or programmatic ctx.fillRect on the underlying canvas + dispatch the 'end' event) and 6 DIFFERENT 1×1 PNGs (vary one pixel) to bypass the content-hash dedup.",
+  "rca of the issue": "N/A — no bugs found. All requested features verified live."
+}

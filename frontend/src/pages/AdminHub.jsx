@@ -22,6 +22,7 @@ import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 import BackupHeroPanel from "@/components/BackupHeroPanel";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
+import SupplierMasterPanel from "@/components/SupplierMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -170,6 +171,9 @@ export default function AdminHub() {
 
         {/* MASCI employee roster — feeds every employee dropdown */}
         <EmployeeMasterPanel />
+
+        {/* MASCI supplier / subcontractor list — feeds Sections 05 & 08 */}
+        <SupplierMasterPanel />
 
         <div className="mb-10">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">

@@ -1463,6 +1463,196 @@ async def delete_employee(employee_id: str, _: bool = Depends(require_admin)):
 
 
 # ---------------------------------------------------------------------------
+# Suppliers / Subcontractors — used by Daily Report Sections 05 & 08.
+# ---------------------------------------------------------------------------
+SUPPLIERS_SEED_FILE = ROOT_DIR / "data" / "suppliers_seed.json"
+EMPLOYEES_SEED_FILE = ROOT_DIR / "data" / "employees_seed.json"
+
+
+@api_router.get("/suppliers")
+async def list_suppliers():
+    """Public — returns the full MASCI supplier / subcontractor list."""
+    cursor = db.suppliers.find({"is_active": {"$ne": False}}, {"_id": 0}).sort("name", 1)
+    docs = await cursor.to_list(2000)
+    return {"items": docs, "count": len(docs)}
+
+
+@api_router.get("/admin/suppliers/status")
+async def suppliers_status(_: bool = Depends(require_admin)):
+    total = await db.suppliers.count_documents({})
+    active = await db.suppliers.count_documents({"is_active": {"$ne": False}})
+    last_doc = await db.suppliers.find_one(
+        {}, {"_id": 0, "updated_at": 1, "created_at": 1}, sort=[("updated_at", -1)]
+    )
+    last_updated = (last_doc or {}).get("updated_at") or (last_doc or {}).get("created_at")
+    return {"count": total, "active": active, "last_updated": last_updated}
+
+
+@api_router.post("/admin/suppliers/upload")
+async def upload_suppliers(
+    file: UploadFile = File(...),
+    _: bool = Depends(require_admin),
+):
+    """Replace the supplier list from an .xlsx or .csv file.
+
+    Reads the FIRST column of the first sheet (any header row is OK).
+    Skips obvious dividers ('SUBCONTRACTORS', 'NOT LISTED ADD TO NOTES',
+    'MASCI', 'D-MAC').
+    """
+    fname = (file.filename or "").lower()
+    if not (fname.endswith(".xlsx") or fname.endswith(".xlsm") or fname.endswith(".csv")):
+        raise HTTPException(status_code=400, detail="Only .xlsx or .csv files are accepted")
+    raw = await file.read()
+    if not raw or len(raw) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Empty or oversized file (max 10 MB)")
+
+    SKIP_LOWER = {"subcontractors", "suppliers", "vendors", "not listed add to notes",
+                  "masci", "d-mac", "name", "company", "company name"}
+    names: List[str] = []
+    try:
+        if fname.endswith(".csv"):
+            import csv as _csv
+            text = raw.decode("utf-8", errors="ignore")
+            for r in _csv.reader(text.splitlines()):
+                if r and r[0]:
+                    names.append(str(r[0]).strip())
+        else:
+            import openpyxl as _ox
+            import io as _io
+            wb = _ox.load_workbook(_io.BytesIO(raw), data_only=True)
+            ws = wb.active
+            for row in ws.iter_rows(values_only=True):
+                if row and row[0]:
+                    names.append(str(row[0]).strip())
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not parse file: {e}")
+
+    seen = set()
+    items: List[Dict[str, Any]] = []
+    for n in names:
+        if not n or n.lower() in SKIP_LOWER:
+            continue
+        k = n.lower()
+        if k in seen:
+            continue
+        seen.add(k)
+        items.append({
+            "id": str(uuid.uuid4()),
+            "name": n,
+            "is_active": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        })
+
+    if not items:
+        raise HTTPException(status_code=400, detail="No supplier names found.")
+
+    await db.suppliers.delete_many({})
+    await db.suppliers.insert_many(items)
+    return {"ok": True, "count": len(items)}
+
+
+@api_router.post("/admin/suppliers")
+async def create_supplier(
+    payload: Dict[str, Any],
+    _: bool = Depends(require_admin),
+):
+    name = (payload.get("name") or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Name is required")
+    doc = {
+        "id": str(uuid.uuid4()),
+        "name": name,
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.suppliers.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.delete("/admin/suppliers/{supplier_id}")
+async def delete_supplier(supplier_id: str, _: bool = Depends(require_admin)):
+    res = await db.suppliers.delete_one({"id": supplier_id})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Idempotent seed for employees + suppliers on startup. If the collection is
+# empty AND a seed JSON file exists, populate it. Re-uploading via the admin
+# panel will replace the contents.
+# ---------------------------------------------------------------------------
+async def _seed_employees_from_json() -> None:
+    log = logging.getLogger(__name__)
+    if not EMPLOYEES_SEED_FILE.exists():
+        return
+    if await db.employees.count_documents({}) > 0:
+        return
+    try:
+        import json as _json_em
+        with open(EMPLOYEES_SEED_FILE, "r", encoding="utf-8") as fh:
+            names = _json_em.load(fh)
+        items = []
+        seen = set()
+        for n in names:
+            if not n or not isinstance(n, str):
+                continue
+            k = n.strip().lower()
+            if not k or k in seen:
+                continue
+            seen.add(k)
+            items.append({
+                "id": str(uuid.uuid4()),
+                "name": n.strip(),
+                "is_active": True,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            })
+        if items:
+            await db.employees.insert_many(items)
+            log.info(f"[employees] seeded {len(items)} from JSON")
+    except Exception as e:
+        log.exception(f"[employees] seed failed: {e}")
+
+
+async def _seed_suppliers_from_json() -> None:
+    log = logging.getLogger(__name__)
+    if not SUPPLIERS_SEED_FILE.exists():
+        return
+    if await db.suppliers.count_documents({}) > 0:
+        return
+    try:
+        import json as _json_sp
+        with open(SUPPLIERS_SEED_FILE, "r", encoding="utf-8") as fh:
+            data = _json_sp.load(fh)
+        items = []
+        seen = set()
+        for entry in data:
+            n = entry.get("name") if isinstance(entry, dict) else (entry if isinstance(entry, str) else "")
+            if not n:
+                continue
+            k = n.strip().lower()
+            if not k or k in seen:
+                continue
+            seen.add(k)
+            items.append({
+                "id": str(uuid.uuid4()),
+                "name": n.strip(),
+                "is_active": True,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            })
+        if items:
+            await db.suppliers.insert_many(items)
+            log.info(f"[suppliers] seeded {len(items)} from JSON")
+    except Exception as e:
+        log.exception(f"[suppliers] seed failed: {e}")
+
+
+# ---------------------------------------------------------------------------
 # Daily Report numbering — see /daily-reports/next-number above (registered
 # before the /{report_id} route so FastAPI matches it correctly).
 # ---------------------------------------------------------------------------
@@ -3262,6 +3452,8 @@ async def _seed_phase1():
         await create_tools_indexes(db)
         await create_phase4_indexes(db)
         await _seed_equipment_master()
+        await _seed_employees_from_json()
+        await _seed_suppliers_from_json()
     except Exception as e:
         logging.getLogger(__name__).exception(f"Phase 1 seed failed: {e}")
 

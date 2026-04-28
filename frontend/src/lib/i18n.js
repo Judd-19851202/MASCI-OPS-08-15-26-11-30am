@@ -134,6 +134,14 @@ const ES = {
     "Sin coincidencias — el valor escrito se guardará tal cual.",
   "Equipment list not loaded yet.": "Lista de equipo aún no cargada.",
   "Search unit #, make, model, VIN…": "Buscar # de unidad, marca, modelo, VIN…",
+  // Supplier combo (Sections 05 & 08)
+  "Type or pick a supplier…": "Escriba o elija un proveedor…",
+  "Browse supplier list": "Ver lista de proveedores",
+  "Search by company name…": "Buscar por nombre de la compañía…",
+  "Supplier list not uploaded yet — type freely.":
+    "Lista de proveedores aún no cargada — escriba libremente.",
+  "Tip: type freely for one-off vendors not in the list.":
+    "Consejo: escriba libremente para proveedores no listados.",
   // Employee combo
   "Type or pick an employee…": "Escriba o elija un empleado…",
   "Browse roster": "Ver lista de empleados",
