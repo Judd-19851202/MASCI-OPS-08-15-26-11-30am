@@ -2480,6 +2480,105 @@ async def admin_run_data_fixes(_: bool = Depends(require_admin)):
     return await run_all_fixes(db)
 
 
+# -------------------- Crew Hub recovery (legacy admin-token gated) --------------------
+# These endpoints exist so the office can recover a Crew Hub login when nobody
+# remembers their password. Authenticated by the LEGACY admin password
+# (X-Admin-Token / Happy123!) — NOT by a Crew Hub JWT — so it works even when
+# every crew owner+admin is locked out.
+
+@api_router.get("/admin/crew-recovery/status")
+async def admin_crew_recovery_status(_: bool = Depends(require_admin)):
+    """Return counts of every key collection so the office can see at a glance
+    what's populated and what isn't (helps diagnose redeploy data-loss)."""
+    counts = {}
+    for coll in [
+        "users",
+        "projects",
+        "project_members",
+        "equipment_master",
+        "equipment_units",
+        "equipment_inspections",
+        "inspections",
+        "meetings",
+        "jhas",
+        "incidents",
+        "daily_reports",
+        "docs",
+        "employees",
+        "suppliers",
+        "notifications",
+        "activity_log",
+    ]:
+        try:
+            counts[coll] = await db[coll].count_documents({})
+        except Exception:
+            counts[coll] = -1
+    crew_users = await db.users.find(
+        {}, {"_id": 0, "id": 1, "email": 1, "name": 1, "role": 1, "is_active": 1, "must_change_password": 1}
+    ).sort("email", 1).to_list(200)
+    return {
+        "ok": True,
+        "counts": counts,
+        "crew_users": crew_users,
+    }
+
+
+@api_router.post("/admin/crew-recovery/reset-password")
+async def admin_crew_recovery_reset(
+    body: dict,
+    _: bool = Depends(require_admin),
+):
+    """Reset a Crew Hub user's password using the LEGACY admin token. The user
+    is forced to change it on next login. Body: {email, new_password}.
+    """
+    from auth import hash_password
+    email = (body.get("email") or "").strip().lower()
+    new_password = (body.get("new_password") or "").strip()
+    if not email or not new_password:
+        raise HTTPException(400, "email + new_password required")
+    if len(new_password) < 8:
+        raise HTTPException(400, "Password must be at least 8 characters")
+    user = await db.users.find_one({"email": email}, {"_id": 0, "id": 1, "email": 1})
+    if not user:
+        raise HTTPException(404, f"No crew user with email {email}")
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {
+            "password_hash": hash_password(new_password),
+            "must_change_password": True,
+            "is_active": True,  # un-lock if accidentally deactivated
+        }},
+    )
+    return {"ok": True, "email": email, "must_change_password": True}
+
+
+@api_router.post("/admin/crew-recovery/force-reseed")
+async def admin_crew_recovery_force_reseed(_: bool = Depends(require_admin)):
+    """Force-rerun the equipment_master / employees / suppliers JSON seeds even
+    if those collections already have rows. Useful when a partial-wipe leaves
+    incomplete data and the boot guard (`count > 0`) skips re-seeding.
+
+    The seed functions normally short-circuit if the collection has any rows;
+    this endpoint deletes the seed-managed collections first so they re-seed
+    from JSON cleanly. Safety/projects/users are NOT touched.
+    """
+    summary = {}
+    for coll in ["equipment_master", "equipment_units", "employees", "suppliers"]:
+        before = await db[coll].count_documents({})
+        await db[coll].delete_many({})
+        summary[coll] = {"before": before, "after_delete": 0}
+    # Re-run the seeds in-process
+    await _seed_equipment_master()
+    await _seed_employees_from_json()
+    await _seed_suppliers_from_json()
+    for coll in ["equipment_master", "equipment_units", "employees", "suppliers"]:
+        summary[coll]["after_seed"] = await db[coll].count_documents({})
+    # Boot self-heal also patches make/model + memberships
+    from data_fixes import boot_self_heal
+    await boot_self_heal(db)
+    return {"ok": True, "summary": summary}
+
+
 @api_router.get("/admin/persistence-check")
 async def admin_persistence_check(_: bool = Depends(require_admin)):
     """Report whether the running instance is at risk of data loss on redeploy.

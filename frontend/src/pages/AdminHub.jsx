@@ -21,6 +21,7 @@ import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
 import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 import BackupHeroPanel from "@/components/BackupHeroPanel";
+import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
 import EquipmentPartsPanel from "@/components/EquipmentPartsPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
@@ -167,6 +168,9 @@ export default function AdminHub() {
 
         {/* ONE-STOP backup + restore hero — 2 giant buttons, nothing else */}
         <BackupHeroPanel />
+
+        {/* EMERGENCY: reset crew passwords + force-reseed if locked out / data missing */}
+        <CrewRecoveryPanel />
 
         {/* Replace MASCI equipment fleet (.xlsx) — refreshes every dropdown */}
         <EquipmentMasterPanel />

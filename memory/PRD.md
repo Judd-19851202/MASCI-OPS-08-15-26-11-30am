@@ -1,5 +1,36 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-28 — Emergency Crew Hub Recovery Panel (locked-out unblock)
+**Problem reported by user**: On production (mascidocs.com), nobody could log into the Crew Hub. Every email/password combo (including `Welcome2MASCI!` for `safety@mascigc.com` and `jaymn.judd@mascigc.com`) returned "Invalid email or password". Equipment / employees / vendors lists also reported empty. The user was completely locked out with no recovery path because:
+- Crew Hub passwords are stored in `db.users.password_hash` (per-user)
+- The only password-reset endpoint (`POST /users/{id}/reset-password`) requires another already-logged-in owner/admin (catch-22)
+- The legacy `/admin` console (Happy123!) had no Crew-Hub user management
+
+**Fix shipped** — added a legacy-admin-token-gated bridge so the office can recover Crew Hub from `/admin` even when every crew owner is forgotten:
+
+### Backend (`/app/backend/server.py`)
+Three new endpoints (all `Depends(require_admin)` — i.e., legacy admin token, NOT crew JWT):
+- `GET /api/admin/crew-recovery/status` — returns counts for every key collection (users, projects, project_members, equipment_master, equipment_units, equipment_inspections, inspections, meetings, jhas, incidents, daily_reports, docs, employees, suppliers, notifications, activity_log) + the full `crew_users` list with id/email/role/is_active/must_change_password. Lets the office see at a glance what's populated and what's empty.
+- `POST /api/admin/crew-recovery/reset-password` — body `{email, new_password}`. Sets the user's password_hash + `must_change_password=true` + `is_active=true`. Validates min 8 chars. 404 on unknown email.
+- `POST /api/admin/crew-recovery/force-reseed` — DELETE-then-reseed for `equipment_master` / `equipment_units` / `employees` / `suppliers` (the 4 collections gated by `count_documents > 0`). Re-runs the JSON seeds in-process and follows up with `boot_self_heal` so make/model + project_members come back too. Safety records, projects, and user accounts are NOT touched.
+
+### Frontend (`/app/frontend/src/components/CrewRecoveryPanel.jsx`)
+New panel mounted into `AdminHub.jsx` right under the Backup hero. Three sections:
+1. **System status** — colored grid of every collection count. Empty `equipment_master` / `employees` / `suppliers` cells flash red with an alert banner.
+2. **Reset Crew Hub password** — autocomplete email field driven by the `crew_users` list, password text field (≥8 chars), one-click Reset button. List of all crew users below shows role / active state / must-change flag. Email is click-to-fill.
+3. **Force re-seed** — orange button, hard "Are you sure?" confirm dialog showing the exact row counts that will be deleted. Cancel = no-op.
+
+### Verified end-to-end
+- 401 without admin token ✅
+- Status endpoint returns counts + 8 crew users ✅
+- Reset to `TempPass2026!` → login OK with new password, `must_change_password=true` ✅
+- Old password (`Welcome2MASCI!`) returns 401 after reset ✅
+- Reset back to default works ✅
+- UI panel renders correctly with all 16 collection counts visible at a glance ✅
+
+### test_credentials.md updated
+Added "LOCKED OUT?" pointer to `/admin/login` → Crew Hub Recovery panel.
+
 ## 2026-04-28 — Pre-Deploy Verification + Zero-Touch Boot Self-Heal Extended
 After user feedback ("only fixes 2 things — verify everything else"), removed the manual UI button and proved the boot self-heal handles BOTH issues automatically on every redeploy.
 
