@@ -15,5 +15,13 @@ To migrate more legacy routes out of server.py:
 """
 
 from .shop_parts import register_shop_parts_routes  # noqa: F401
+from .safety import register_safety_routes  # noqa: F401
+from .daily_reports import register_daily_reports_routes  # noqa: F401
+from .equipment import register_equipment_routes  # noqa: F401
 
-__all__ = ["register_shop_parts_routes"]
+__all__ = [
+    "register_shop_parts_routes",
+    "register_safety_routes",
+    "register_daily_reports_routes",
+    "register_equipment_routes",
+]

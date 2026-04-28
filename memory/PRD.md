@@ -1,14 +1,15 @@
 # MASCI Safety Hub — PRD
 
-## 2026-04-28 — Atlas migration guide + server.py refactor proof-of-pattern (P0+P1 partial)
-- **Atlas migration guide** at `/app/ATLAS_MIGRATION.md` — step-by-step 15-min instructions to flip the production app from in-container Mongo (ephemeral, banner-warning state) to MongoDB Atlas free tier so redeploys stop wiping data. Covers signup, M0 cluster, db user, network access (0.0.0.0/0), connection string, `MONGO_URL` + `DB_NAME` env-var update on Emergent, redeploy, restore from .zip, and re-running the basecamp_import scripts.
-- **server.py refactor — first extraction (proof-of-pattern)**:
-  - Created `/app/backend/routes/__init__.py` and `/app/backend/routes/shop_parts.py` (~340 lines).
-  - Moved 8 endpoints out of `server.py` into the new module: `GET /shop/activity`, `GET /equipment-parts` (list + per-unit), `PUT /equipment-parts/{unit_number}`, `DELETE /equipment-parts/{unit_number}`, `GET /admin/equipment-parts/status`, `POST /admin/equipment-parts/upload`, `POST /equipment-parts/order`.
-  - Plus the helpers (`PART_CATEGORIES`, `_empty_parts_doc`, `EquipmentPartsPayload`, `PartsOrderItem`, `PartsOrderRequest`).
-  - Pattern: `register_shop_parts_routes(api_router, db, require_admin, require_shop_or_admin)` — single function call replaces 306 inline lines in server.py. Future agents (or me next session) repeat the same pattern for inspections / meetings / jhas / incidents / daily / equipment / backups / exports / etc.
-  - server.py shrunk from 4400 → 4074 lines. **Net win: 326 lines removed + clean module separation, zero behavior change.**
-- **Verified**: 44/44 backend tests pass (`test_shop_console_iter22.py` + `test_shop_activity_parts_iter23.py` + `test_iter24_bilingual_perf.py`). All 8 extracted endpoints respond identically through the new routes module — admin-token + shop-token + 401-without-auth + 400-on-bad-payload all behave correctly via curl smoke test.
+## 2026-04-28 — server.py refactor extended (P1, batches 2-4) + Atlas guide
+- **server.py: 4400 → 3029 lines (1371 lines extracted, -31%).**
+- New route modules in `/app/backend/routes/`:
+  - `safety.py` (471 lines) — Inspections + Meetings + JHAs + Incidents (16 endpoints + 12 Pydantic models)
+  - `daily_reports.py` (144 lines) — Daily Reports (5 endpoints + 3 models, including the `/daily-reports/next-number` auto-generator)
+  - `equipment.py` (407 lines) — Equipment Pre-Op + Shop Sign-Off + Trends + Open Items (8 endpoints + 4 models + `MAJOR_OOS_SET` severity helpers)
+  - `shop_parts.py` (335 lines) — Shop Activity Feed + Equipment Parts Catalog (8 endpoints, from iter25 batch 1)
+- Pattern: each module exposes `register_*_routes(api_router, db, require_admin, ...)` that takes shared deps as args. Late-bound `schedule_auto_email` passed as a lambda so the function is resolved at request time (no forward-reference issues).
+- **44/44 backend pytest pass + curl smoke on all 37 extracted endpoints succeeds.** Zero behavior change, zero regressions, zero frontend impact (all paths unchanged).
+- Atlas migration guide at `/app/ATLAS_MIGRATION.md` for the prod database persistence fix.
 
 ## 2026-04-28 — Basecamp import for project 24-12 (Oxford Rd) + disk-backed large file storage
 - Imported all **193 files** from 5 Basecamp .zip exports into the Crew Hub Docs library for project 24-12 (CC5744 - OXFORD RD Improvements). Categories auto-mapped from top-level Basecamp folders → MASCI's existing `DOC_CATEGORIES`:

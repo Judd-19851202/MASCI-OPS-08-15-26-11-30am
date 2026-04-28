@@ -1,0 +1,407 @@
+"""Equipment Pre-Op inspections + shop sign-off + trends.
+
+Extracted from server.py 2026-04-28 (P1 refactor batch 4).
+
+Routes registered:
+    POST    /equipment-inspections                                    public
+    GET     /equipment-inspections                                    shop or admin
+    GET     /equipment-inspections/{id}                               shop or admin
+    DELETE  /equipment-inspections/{id}                               admin only
+    GET     /admin/equipment-inspections/trends?days=                 shop or admin
+    GET     /admin/equipment-inspections/open-items?severity=         shop or admin
+    POST    /admin/equipment-inspections/{id}/signoff                 shop or admin
+    DELETE  /admin/equipment-inspections/{id}/signoff?section=&item=  shop or admin
+"""
+from __future__ import annotations
+
+import uuid
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, ConfigDict, Field
+
+
+# ============================================================
+# Pydantic models
+# ============================================================
+class EquipmentInspectionCreate(BaseModel):
+    """Daily pre-shift OSHA equipment inspection."""
+    model_config = ConfigDict(extra="allow")
+
+    project_name: str
+    project_number: Optional[str] = ""
+    location: str
+    inspection_date: str  # YYYY-MM-DD
+    inspection_time: str  # HH:MM
+
+    operator_name: str
+    equipment_type: str
+    equipment_unit: str
+    equipment_make: Optional[str] = ""
+    equipment_model: Optional[str] = ""
+    equipment_serial: Optional[str] = ""
+
+    hour_meter: Optional[str] = ""
+    odometer: Optional[str] = ""
+
+    checklist: Dict[str, Any] = Field(default_factory=dict)
+    fail_count: int = 0
+    pass_count: int = 0
+    na_count: int = 0
+
+    deficiency_notes: Optional[str] = ""
+    corrective_actions: Optional[str] = ""
+    out_of_service: Optional[str] = "No"
+
+    photos: List[str] = Field(default_factory=list)
+    operator_signature: Optional[str] = ""
+
+
+class EquipmentInspection(EquipmentInspectionCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class EquipmentInspectionSummary(BaseModel):
+    id: str
+    project_name: str
+    project_number: str
+    location: str
+    inspection_date: str
+    operator_name: str
+    equipment_type: str
+    equipment_unit: str
+    fail_count: int
+    out_of_service: str
+    photo_count: int
+    created_at: str
+    signoff_count: int = 0
+    cleared: bool = False
+
+
+class ShopSignoffPayload(BaseModel):
+    section: str
+    item: str
+    signed_by: str
+    notes: Optional[str] = ""
+    action_taken: Optional[str] = ""
+
+
+# ============================================================
+# Major OOS items list — anything in this set escalates a FAIL to
+# "OUT OF SERVICE" instead of "Needs Attention". Keep in sync with
+# /app/frontend/src/lib/equipmentSeverity.js.
+# ============================================================
+MAJOR_OOS_ITEMS_BACKEND = [
+    "Steps, grab handles, ladders secure & clean",
+    "Air filter / pre-cleaner condition",
+    "ROPS / FOPS structure - no cracks or damage",
+    "Seat & seat belt - functional, not torn",
+    "Horn operational",
+    "Backup alarm operational",
+    "Service brakes - firm pedal, holds machine",
+    "Parking brake - holds machine on grade",
+    "Steering - responsive, no excessive play",
+    "Emergency / kill switch operational",
+    "Visible fluid leaks (engine, hydraulic, fuel, coolant)",
+    "Belts and hoses - no cracks, fraying, or leaks",
+    "Tires - inflation, cuts, sidewall damage, tread wear",
+    "Tires - inflation, cuts, tread wear",
+    "Tires - inflation, condition, no cuts (front & rear)",
+    "Tires - inflation, cuts, tread",
+    "Tires - inflation, cuts, tread depth (all positions)",
+    "Tires - inflation, cuts, tread (front & rear)",
+    "Tires (rear, if smooth-drum) - inflation, wear",
+    "Tires / tracks - condition & wear",
+    "Tracks or tires - condition & wear",
+    "Tracks / undercarriage - tension, wear, no missing pads",
+    "Tracks / undercarriage - tension, wear",
+    "Tracks / undercarriage - tension & wear",
+    "Tracks / undercarriage - condition & wear",
+    "Tracks - tension, drive sprockets, idlers",
+    "Strobe / beacon light (Required)",
+    "Fire extinguisher present, charged & inspected",
+    "Hydraulic hoses - no chafing or bulges",
+    "Hydraulic cylinders - rod condition, no leaks",
+    "Hydraulic cylinders & hoses",
+    "Hydraulic couplers / auxiliary lines - no leaks",
+    "Hydraulic hoses & cylinders",
+    "Boom, stick, bucket - no cracks at pivot points",
+    "Backhoe boom, dipper, bucket - no cracks at pivots",
+    "Lift arms & linkage - no cracks",
+    "Lift arms - no cracks, pivot pins secure",
+    "Loader arms, pins, retainers secure",
+    "Tow arms / tow points - no cracks",
+    "Boom sections - no cracks, wear pads in place",
+    "Stabilizer pads / outriggers - operate, no leaks",
+    "Stabilizer / outrigger controls",
+    "Stabilizer / outrigger pads (if equipped) operate freely",
+    "Stabilizer / frame-level controls",
+]
+MAJOR_OOS_SET = set(MAJOR_OOS_ITEMS_BACKEND)
+
+
+def _iter_failed_items(insp: Dict[str, Any]):
+    """Yield (section_title, item_name, result_dict, severity) for every FAIL."""
+    for sec_title, sec in (insp.get("checklist") or {}).items():
+        if not isinstance(sec, dict):
+            continue
+        for item_name, res in sec.items():
+            if not isinstance(res, dict):
+                continue
+            if res.get("status") == "fail":
+                sev = "oos" if item_name in MAJOR_OOS_SET else "attn"
+                yield sec_title, item_name, res, sev
+
+
+# ============================================================
+# Route registration
+# ============================================================
+def register_equipment_routes(
+    api_router: APIRouter, db, require_admin, require_shop_or_admin,
+    rate_limit_public_post, schedule_auto_email, remember_unit,
+):
+    """Attach Equipment Pre-Op + Shop Sign-Off endpoints to the shared router.
+
+    `remember_unit` is a callable that takes (equipment_type, unit_label, make,
+    model, serial) and stores the unit in the equipment-units dropdown
+    catalog. Lives in server.py (legacy `create_equipment_unit` route),
+    injected here so we don't pull that whole module along.
+    """
+
+    @api_router.post(
+        "/equipment-inspections", response_model=EquipmentInspection,
+        dependencies=[Depends(rate_limit_public_post)],
+    )
+    async def create_equipment_inspection(payload: EquipmentInspectionCreate):
+        insp = EquipmentInspection(**payload.model_dump())
+        doc = insp.model_dump()
+        await db.equipment_inspections.insert_one(doc)
+        doc.pop("_id", None)
+        # Also remember this unit so it shows up in the dropdown next time
+        if insp.equipment_unit and insp.equipment_type:
+            try:
+                await remember_unit(
+                    insp.equipment_type, insp.equipment_unit,
+                    insp.equipment_make or "", insp.equipment_model or "",
+                    insp.equipment_serial or "",
+                )
+            except Exception:
+                pass
+        schedule_auto_email("equipment-inspection", doc)
+        return insp
+
+    @api_router.get("/equipment-inspections", response_model=List[EquipmentInspectionSummary])
+    async def list_equipment_inspections(_: bool = Depends(require_shop_or_admin)):
+        # $size aggregation skips pulling the photos[] array — much faster.
+        pipeline = [
+            {"$sort": {"created_at": -1}},
+            {"$limit": 1000},
+            {"$project": {
+                "_id": 0, "id": 1, "project_name": 1, "project_number": 1,
+                "location": 1, "inspection_date": 1, "operator_name": 1,
+                "equipment_type": 1, "equipment_unit": 1, "fail_count": 1,
+                "out_of_service": 1, "created_at": 1,
+                "photo_count":   {"$size": {"$ifNull": ["$photos", []]}},
+                "signoff_count": {"$size": {"$ifNull": ["$shop_signoffs", []]}},
+            }},
+        ]
+        docs = await db.equipment_inspections.aggregate(pipeline).to_list(1000)
+        return [
+            EquipmentInspectionSummary(
+                id=d.get("id", ""),
+                project_name=d.get("project_name", ""),
+                project_number=d.get("project_number", ""),
+                location=d.get("location", ""),
+                inspection_date=d.get("inspection_date", ""),
+                operator_name=d.get("operator_name", ""),
+                equipment_type=d.get("equipment_type", ""),
+                equipment_unit=d.get("equipment_unit", ""),
+                fail_count=d.get("fail_count", 0) or 0,
+                out_of_service=d.get("out_of_service", "No"),
+                photo_count=d.get("photo_count", 0) or 0,
+                created_at=d.get("created_at", ""),
+                signoff_count=d.get("signoff_count", 0) or 0,
+                cleared=(d.get("fail_count", 0) or 0) > 0
+                        and (d.get("signoff_count", 0) or 0) >= (d.get("fail_count", 0) or 0),
+            )
+            for d in docs
+        ]
+
+    @api_router.get("/equipment-inspections/{inspection_id}")
+    async def get_equipment_inspection(inspection_id: str, _: bool = Depends(require_shop_or_admin)):
+        doc = await db.equipment_inspections.find_one({"id": inspection_id}, {"_id": 0})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Equipment inspection not found")
+        return doc
+
+    @api_router.delete("/equipment-inspections/{inspection_id}")
+    async def delete_equipment_inspection(inspection_id: str, _: bool = Depends(require_admin)):
+        result = await db.equipment_inspections.delete_one({"id": inspection_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Equipment inspection not found")
+        return {"deleted": True, "id": inspection_id}
+
+    # ---------- Trends ----------
+    @api_router.get("/admin/equipment-inspections/trends")
+    async def equipment_inspection_trends(
+        days: int = 90,
+        _: bool = Depends(require_shop_or_admin),
+    ):
+        """Three leaderboards: most-problematic equipment units, operators with
+        most failed inspections, and jobsites trending bad. Last `days` days.
+        """
+        since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        cursor = db.equipment_inspections.find({"created_at": {"$gte": since}}, {"_id": 0})
+        eq: Dict[str, Dict[str, Any]] = {}
+        op: Dict[str, Dict[str, Any]] = {}
+        site: Dict[str, Dict[str, Any]] = {}
+        total_inspections = 0
+        total_oos = 0
+        total_attn = 0
+
+        async for d in cursor:
+            total_inspections += 1
+            oos_count = 0
+            attn_count = 0
+            for _sec, _it, _res, sev in _iter_failed_items(d):
+                if sev == "oos":
+                    oos_count += 1
+                else:
+                    attn_count += 1
+            total_oos += oos_count
+            total_attn += attn_count
+
+            eq_key = f"{d.get('equipment_type','?')} · {d.get('equipment_unit','?')}".strip()
+            e = eq.setdefault(eq_key, {
+                "equipment_type": d.get("equipment_type", ""),
+                "equipment_unit": d.get("equipment_unit", ""),
+                "inspections": 0, "oos_fails": 0, "attn_fails": 0,
+                "last_inspection_date": "",
+            })
+            e["inspections"] += 1
+            e["oos_fails"] += oos_count
+            e["attn_fails"] += attn_count
+            if (d.get("inspection_date") or "") > e["last_inspection_date"]:
+                e["last_inspection_date"] = d.get("inspection_date") or ""
+
+            op_key = (d.get("operator_name") or "—").strip() or "—"
+            o = op.setdefault(op_key, {
+                "operator_name": op_key,
+                "inspections": 0, "oos_fails": 0, "attn_fails": 0,
+            })
+            o["inspections"] += 1
+            o["oos_fails"] += oos_count
+            o["attn_fails"] += attn_count
+
+            site_key = (d.get("project_number") or d.get("project_name") or "—").strip() or "—"
+            s = site.setdefault(site_key, {
+                "project_number": d.get("project_number", ""),
+                "project_name": d.get("project_name", ""),
+                "inspections": 0, "oos_fails": 0, "attn_fails": 0,
+            })
+            s["inspections"] += 1
+            s["oos_fails"] += oos_count
+            s["attn_fails"] += attn_count
+
+        def by_severity(rec):
+            return (-rec["oos_fails"], -rec["attn_fails"], -rec["inspections"])
+
+        return {
+            "window_days": days,
+            "totals": {
+                "inspections": total_inspections,
+                "out_of_service_fails": total_oos,
+                "needs_attention_fails": total_attn,
+            },
+            "equipment": sorted(eq.values(), key=by_severity)[:50],
+            "operators": sorted(op.values(), key=by_severity)[:50],
+            "jobsites": sorted(site.values(), key=by_severity)[:50],
+        }
+
+    # ---------- Open shop items ----------
+    @api_router.get("/admin/equipment-inspections/open-items")
+    async def open_signoff_items(
+        severity: str = "all",  # oos | attn | all
+        _: bool = Depends(require_shop_or_admin),
+    ):
+        """Every still-open FAIL item (no shop sign-off yet) across all
+        equipment inspections, sorted by inspection date desc."""
+        cursor = db.equipment_inspections.find(
+            {"fail_count": {"$gt": 0}}, {"_id": 0}
+        ).sort("created_at", -1)
+        out: List[Dict[str, Any]] = []
+        async for d in cursor:
+            signoffs = {s.get("key"): s for s in (d.get("shop_signoffs") or [])}
+            for sec_title, item, res, sev in _iter_failed_items(d):
+                if severity != "all" and severity != sev:
+                    continue
+                key = f"{sec_title}|{item}"
+                if signoffs.get(key, {}).get("signed_off"):
+                    continue
+                out.append({
+                    "inspection_id": d.get("id"),
+                    "inspection_date": d.get("inspection_date") or "",
+                    "equipment_type": d.get("equipment_type") or "",
+                    "equipment_unit": d.get("equipment_unit") or "",
+                    "operator_name": d.get("operator_name") or "",
+                    "project_number": d.get("project_number") or "",
+                    "project_name": d.get("project_name") or "",
+                    "section": sec_title,
+                    "item": item,
+                    "severity": sev,
+                    "operator_note": res.get("note") or "",
+                    "operator_photo": res.get("photo") or "",
+                    "key": key,
+                })
+        return {"items": out, "count": len(out)}
+
+    # ---------- Signoff create / remove ----------
+    @api_router.post("/admin/equipment-inspections/{inspection_id}/signoff")
+    async def signoff_inspection_item(
+        inspection_id: str,
+        payload: ShopSignoffPayload,
+        _: bool = Depends(require_shop_or_admin),
+    ):
+        """Record a shop sign-off on a single FAIL line of an equipment inspection."""
+        insp = await db.equipment_inspections.find_one({"id": inspection_id}, {"_id": 0})
+        if not insp:
+            raise HTTPException(status_code=404, detail="Inspection not found")
+        key = f"{payload.section}|{payload.item}"
+        entry = {
+            "key": key,
+            "section": payload.section,
+            "item": payload.item,
+            "signed_by": payload.signed_by.strip(),
+            "signed_at": datetime.now(timezone.utc).isoformat(),
+            "notes": (payload.notes or "").strip(),
+            "action_taken": (payload.action_taken or "").strip(),
+            "signed_off": True,
+        }
+        if not entry["signed_by"]:
+            raise HTTPException(status_code=400, detail="signed_by is required")
+        existing = list(insp.get("shop_signoffs") or [])
+        existing = [s for s in existing if s.get("key") != key] + [entry]
+        await db.equipment_inspections.update_one(
+            {"id": inspection_id},
+            {"$set": {"shop_signoffs": existing, "shop_last_signoff_at": entry["signed_at"]}},
+        )
+        return {"ok": True, "signoff": entry, "signoff_count": len(existing)}
+
+    @api_router.delete("/admin/equipment-inspections/{inspection_id}/signoff")
+    async def remove_signoff(
+        inspection_id: str,
+        section: str,
+        item: str,
+        _: bool = Depends(require_shop_or_admin),
+    ):
+        """Reopen a previously-signed-off item (e.g. shop made a mistake)."""
+        key = f"{section}|{item}"
+        res = await db.equipment_inspections.update_one(
+            {"id": inspection_id},
+            {"$pull": {"shop_signoffs": {"key": key}}},
+        )
+        if res.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Inspection not found")
+        return {"ok": True}
