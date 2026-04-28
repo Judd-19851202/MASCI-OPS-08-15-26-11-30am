@@ -1053,10 +1053,12 @@ const ES = {
   "QC": "Control de Calidad",
   "Coming Soon": "Próximamente",
   "In development": "En desarrollo",
-  "Quality Control workflows — inspections, punch lists, NCRs, and turnover packages. Coming soon.":
-    "Flujos de Control de Calidad — inspecciones, listas de pendientes, NCRs y paquetes de entrega. Próximamente.",
-  "Daily QC inspections · pass/fail with photos": "Inspecciones diarias de QC · aprobado/falla con fotos",
-  "Punch list tracking · NCRs · turnover packages": "Seguimiento de pendientes · NCRs · paquetes de entrega",
+  "Quality Control workflows for the asphalt & roadway field team — daily roadway reports, testing reports, and other fillable QC documents to turn in. Coming soon.":
+    "Flujos de Control de Calidad para el equipo de campo de asfalto y vialidades — reportes diarios de vialidad, reportes de pruebas y otros documentos QC para llenar y entregar. Próximamente.",
+  "Roadway reports · density logs · core sample logs":
+    "Reportes de vialidad · registros de densidad · registros de núcleos",
+  "Testing reports · fillable QC docs · field-team submittals":
+    "Reportes de pruebas · documentos QC para llenar · entregas del equipo de campo",
 
   // ============================================================
   // Persistence + Backup admin panels (2026-04-28)

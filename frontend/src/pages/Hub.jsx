@@ -232,10 +232,10 @@ export default function Hub() {
           <SectionCard
             icon={ClipboardCheck}
             title={t("QC")}
-            desc={t("Quality Control workflows — inspections, punch lists, NCRs, and turnover packages. Coming soon.")}
+            desc={t("Quality Control workflows for the asphalt & roadway field team — daily roadway reports, testing reports, and other fillable QC documents to turn in. Coming soon.")}
             bullets={[
-              t("Daily QC inspections · pass/fail with photos"),
-              t("Punch list tracking · NCRs · turnover packages"),
+              t("Roadway reports · density logs · core sample logs"),
+              t("Testing reports · fillable QC docs · field-team submittals"),
             ]}
             accent="blue"
             testId="hub-section-qc"
