@@ -1289,15 +1289,6 @@ class EquipmentMasterItem(BaseModel):
 
 @api_router.get("/equipment-master")
 async def list_equipment_master(category: Optional[str] = None):
-    """Returns the full MASCI fleet, optionally filtered to one category.
-
-    Response shape:
-        {
-          "categories": ["Excavators", "Loaders", ...],   # alpha order
-          "items": [ EquipmentMasterItem, ... ],          # all units
-          "grouped": { "Excavators": [item, ...], ... }   # convenience
-        }
-    """
     q = {"category": category} if category else {}
     cursor = db.equipment_master.find(q, {"_id": 0}).sort(
         [("category", 1), ("unit_number", 1), ("make_model", 1)]
@@ -1313,6 +1304,56 @@ async def list_equipment_master(category: Optional[str] = None):
         "grouped": grouped,
         "count": len(docs),
     }
+
+
+async def _write_equipment_master(items: List[Dict[str, Any]]) -> int:
+    """Replace the equipment_master collection with `items` and fan-out to
+    equipment_units for the legacy Pre-Op dropdown. Returns inserted count.
+
+    Items are expected to already be in the parser's normalized shape
+    (see equipment_parser.parse_equipment_xlsx).
+    """
+    log = logging.getLogger(__name__)
+    await db.equipment_master.delete_many({})
+    if not items:
+        return 0
+    for it in items:
+        it.setdefault("id", str(uuid.uuid4()))
+    await db.equipment_master.insert_many(items)
+    # Fan out into equipment_units (used by the existing Pre-Op type→units
+    # dropdown). Only insert what's not already there.
+    try:
+        existing_units = set()
+        async for u in db.equipment_units.find(
+            {}, {"_id": 0, "equipment_type": 1, "unit_label": 1}
+        ):
+            existing_units.add(
+                (u.get("equipment_type", ""), (u.get("unit_label", "") or "").strip().lower())
+            )
+        new_units = []
+        for it in items:
+            etype = it.get("preop_equipment_type") or "Other"
+            label = (it.get("display_label") or it.get("make_model") or "").strip()
+            if not label:
+                continue
+            key = (etype, label.lower())
+            if key in existing_units:
+                continue
+            existing_units.add(key)
+            new_units.append({
+                "id": str(uuid.uuid4()),
+                "equipment_type": etype,
+                "unit_label": label,
+                "make": it.get("make_model", ""),
+                "model": "",
+                "serial": it.get("vin_serial_number", ""),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+        if new_units:
+            await db.equipment_units.insert_many(new_units)
+    except Exception as e:
+        log.exception(f"[equipment-master] equipment_units fan-out failed: {e}")
+    return len(items)
 
 
 async def _seed_equipment_master() -> None:
@@ -1337,44 +1378,102 @@ async def _seed_equipment_master() -> None:
     if existing_count == len(seed_items) and existing_count > 0:
         return  # already seeded and matches file
 
-    # Replace the collection contents in one go (safe: no FK relationships)
-    await db.equipment_master.delete_many({})
-    if seed_items:
-        # Ensure each row has an id for stable references
-        for it in seed_items:
-            it.setdefault("id", str(uuid.uuid4()))
-        await db.equipment_master.insert_many(seed_items)
-        # Also push these into the legacy equipment_units collection so the
-        # Pre-Op dropdown picks them up automatically.
-        try:
-            existing_units = {
-                (u.get("equipment_type", ""), u.get("unit_label", "").strip().lower())
-                async for u in db.equipment_units.find({}, {"_id": 0, "equipment_type": 1, "unit_label": 1})
-            }
-            new_units = []
-            for it in seed_items:
-                etype = it.get("preop_equipment_type") or "Other"
-                label = it.get("display_label") or it.get("make_model") or ""
-                if not label.strip():
-                    continue
-                key = (etype, label.strip().lower())
-                if key in existing_units:
-                    continue
-                existing_units.add(key)
-                new_units.append({
-                    "id": str(uuid.uuid4()),
-                    "equipment_type": etype,
-                    "unit_label": label.strip(),
-                    "make": it.get("make_model", ""),
-                    "model": "",
-                    "serial": it.get("vin_serial_number", ""),
-                    "created_at": datetime.now(timezone.utc).isoformat(),
-                })
-            if new_units:
-                await db.equipment_units.insert_many(new_units)
-        except Exception as e:
-            log.exception(f"[equipment-master] equipment_units fan-out failed: {e}")
-    log.info(f"[equipment-master] seeded {len(seed_items)} units")
+    n = await _write_equipment_master(seed_items)
+    log.info(f"[equipment-master] seeded {n} units from JSON")
+
+
+@api_router.get("/admin/equipment-master/status")
+async def equipment_master_status(_: bool = Depends(require_admin)):
+    """Quick status panel for the Admin Hub: count + per-category breakdown +
+    last-updated timestamp from the seed JSON file (mtime)."""
+    count = await db.equipment_master.count_documents({})
+    cursor = db.equipment_master.find({}, {"_id": 0, "category": 1})
+    cats: Dict[str, int] = {}
+    async for d in cursor:
+        c = d.get("category", "Misc Equipment")
+        cats[c] = cats.get(c, 0) + 1
+    last_updated = None
+    if EQUIPMENT_MASTER_SEED_FILE.exists():
+        last_updated = datetime.fromtimestamp(
+            EQUIPMENT_MASTER_SEED_FILE.stat().st_mtime, tz=timezone.utc
+        ).isoformat()
+    return {
+        "count": count,
+        "categories": dict(sorted(cats.items(), key=lambda x: -x[1])),
+        "last_updated": last_updated,
+        "seed_file": str(EQUIPMENT_MASTER_SEED_FILE),
+    }
+
+
+@api_router.post("/admin/equipment-master/upload")
+async def upload_equipment_master(
+    file: UploadFile = File(...),
+    sheet: str = Form("Louis"),
+    _: bool = Depends(require_admin),
+):
+    """Replace the entire MASCI equipment fleet from an uploaded xlsx file.
+
+    The xlsx is parsed via `equipment_parser.parse_equipment_xlsx`, the JSON
+    seed file at /app/backend/data/equipment_master.json is overwritten so
+    future restarts stay in sync, and the equipment_master + equipment_units
+    collections are refreshed atomically.
+    """
+    log = logging.getLogger(__name__)
+    fname = (file.filename or "").lower()
+    if not (fname.endswith(".xlsx") or fname.endswith(".xlsm")):
+        raise HTTPException(
+            status_code=400,
+            detail="Only .xlsx files are accepted (got '%s')" % (file.filename or ""),
+        )
+    raw = await file.read()
+    if not raw or len(raw) > 25 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Empty or oversized file (max 25 MB)")
+
+    # Back up the previous seed file before replacing
+    try:
+        if EQUIPMENT_MASTER_SEED_FILE.exists():
+            ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+            backup = EQUIPMENT_MASTER_SEED_FILE.with_suffix(f".{ts}.bak.json")
+            EQUIPMENT_MASTER_SEED_FILE.replace(backup)
+    except Exception as e:
+        log.warning(f"[equipment-master] backup of previous seed failed: {e}")
+
+    try:
+        from equipment_parser import parse_equipment_xlsx
+        parsed = parse_equipment_xlsx(raw, sheet_name=sheet or "Louis")
+    except Exception as e:
+        log.exception("[equipment-master] xlsx parse failed")
+        raise HTTPException(status_code=400, detail=f"Could not parse xlsx: {e}")
+
+    items = parsed["items"]
+    if not items:
+        raise HTTPException(
+            status_code=400,
+            detail=f"No equipment rows found in sheet '{parsed['sheet']}'.",
+        )
+
+    # Persist new seed JSON so the next restart stays in sync
+    try:
+        EQUIPMENT_MASTER_SEED_FILE.parent.mkdir(parents=True, exist_ok=True)
+        import json as _json_em
+        with open(EQUIPMENT_MASTER_SEED_FILE, "w", encoding="utf-8") as fh:
+            _json_em.dump(items, fh, indent=2)
+    except Exception as e:
+        log.exception(f"[equipment-master] writing seed JSON failed: {e}")
+        raise HTTPException(status_code=500, detail="Could not write seed file")
+
+    inserted = await _write_equipment_master(items)
+    log.info(
+        f"[equipment-master] uploaded {inserted} units from '{file.filename}' "
+        f"(sheet={parsed['sheet']})"
+    )
+    return {
+        "ok": True,
+        "count": inserted,
+        "sheet": parsed["sheet"],
+        "category_counts": parsed["category_counts"],
+        "filename": file.filename,
+    }
 
 
 @api_router.post("/equipment-inspections", response_model=EquipmentInspection, dependencies=[Depends(rate_limit_public_post)])

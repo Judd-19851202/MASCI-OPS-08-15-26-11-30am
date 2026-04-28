@@ -20,6 +20,7 @@ import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
 import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 import BackupHeroPanel from "@/components/BackupHeroPanel";
+import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -162,6 +163,9 @@ export default function AdminHub() {
 
         {/* ONE-STOP backup + restore hero — 2 giant buttons, nothing else */}
         <BackupHeroPanel />
+
+        {/* Replace MASCI equipment fleet (.xlsx) — refreshes every dropdown */}
+        <EquipmentMasterPanel />
 
         <div className="mb-10">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">

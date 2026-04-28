@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, Printer, ClipboardCheck, Users, AlertOctagon, ClipboardList,
-  Wrench, Mail, ShieldCheck, HardDrive, QrCode, HelpCircle,
+  Wrench, Mail, ShieldCheck, HardDrive, QrCode, HelpCircle, Truck,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { Button } from "@/components/ui/button";
@@ -107,6 +107,21 @@ export default function AdminGuide() {
             <li><strong>Equipment Status Board</strong> — every piece of equipment with pass/fail history.</li>
             <li><strong>Compliance Export</strong> — date-range CSVs per module for OSHA / DOT audits.</li>
           </ul>
+        </Section>
+
+        {/* EQUIPMENT FLEET */}
+        <Section icon={Truck} title="Updating the equipment fleet" color="amber">
+          <p>Every equipment dropdown in the Hub (Pre-Op, Daily Reports, etc.)
+            is fed by a single master list parsed from your <code>Equipment List.xlsx</code>.</p>
+          <ol className="ml-5 list-decimal space-y-1 mt-2">
+            <li>Open <code>/admin</code> and find the <strong>MASCI Equipment Master Fleet</strong> panel near the top.</li>
+            <li>Click <strong>PICK .XLSX</strong> and choose your latest copy.</li>
+            <li>Done — the count + last-updated stamp refresh on screen, and every form picks up the new units instantly.</li>
+          </ol>
+          <p className="mt-3 text-sm">
+            By default the parser reads the <strong>Louis</strong> sheet (the master list).
+            Operators can still type custom equipment that isn't in the file as a fallback.
+          </p>
         </Section>
 
         {/* BACKUP */}
