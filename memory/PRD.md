@@ -55,6 +55,13 @@ Evolved into a multi-module **MASCI Safety Hub**: Site Inspections, Safety Meeti
 - WeasyPrint PDF includes a red "OUT OF SERVICE" banner header on FAILs.
 - **Auto-email subject is automatically prefixed `EQUIPMENT FAIL · `** so PMs see it instantly. Sent to assigned PM + always-CC pipeline (David / Chris / Ramon / Jaymn / safety@).
 
+## What's Implemented (2026-04-27 · Data-Loss Defense-in-Depth)
+Customer reported data loss after Emergent redeploy — in-container MongoDB and `/app/backend/backups/` are BOTH ephemeral per the platform. Built multiple defenses on top of the nightly backup:
+- **Auto-email nightly backup** via Resend — every scheduled backup also attaches the .zip to an email sent to `BACKUP_EMAIL_TO` (default `jaymn.judd@mascigc.com`). Gives the customer a durable off-site copy even without Atlas.
+- **Persistence-health banner** (`PersistenceHealthBanner`) at the top of `/admin`. Reads `GET /api/admin/persistence-check` which inspects `MONGO_URL` — localhost/127.* → RED "⚠ Your data will be deleted on the next redeploy" banner with Atlas migration callout + "Backup + email + download NOW" button. Atlas/external hostname → GREEN "Persistent database connected" banner.
+- **Pre-deploy emergency backup button** — one-click flow that calls `/admin/backups/run-now`, emails the .zip, AND downloads it to the user's browser simultaneously. Prevents deploys-without-backup.
+- Guidance given to user: MongoDB Atlas free-tier migration (6-step instructions delivered via chat).
+
 ## What's Implemented (2026-04-27 · Nightly On-Server Backups)
 - **Daily scheduled backup** — `_backup_scheduler_loop` runs as a FastAPI startup task, ticks every 5 min, and fires the backup once per day at `BACKUP_HOUR_UTC` (default 02:00 UTC).
 - **Stored on disk** at `BACKUPS_DIR` (default `/app/backend/backups`). Each run writes `MASCI_full_backup_YYYY-MM-DD_HHMMSSZ.zip` atomically via a `.zip.tmp` rename so a crashed backup can't produce a corrupt file.

@@ -18,6 +18,7 @@ import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
+import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -148,6 +149,9 @@ export default function AdminHub() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        {/* Data-loss warning banner — red if running on local Mongo, green if Atlas */}
+        <PersistenceHealthBanner />
+
         <div className="mb-10">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             MASCI Admin Console

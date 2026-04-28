@@ -1850,14 +1850,95 @@ async def _run_scheduled_backup(db) -> Optional[dict]:
         if pruned:
             logger.info(f"[scheduled-backup] pruned {pruned} expired backups (> {BACKUP_RETENTION_DAYS} days old)")
 
+        # Email the backup off-site — CRITICAL for redeploy safety
+        emailed_to = None
+        try:
+            emailed_to = await _email_backup_zip(filename, payload, total_records)
+        except Exception as e:
+            logger.warning(f"[scheduled-backup] email step failed (non-fatal): {e}")
+
         return {
             "filename": out.name,
             "size_bytes": len(payload),
             "records": total_records,
             "pruned_old": pruned,
+            "emailed_to": emailed_to,
         }
     except Exception as e:
         logger.exception(f"[scheduled-backup] FAILED: {e}")
+        return None
+
+
+async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -> Optional[str]:
+    """Email the backup .zip as an attachment via Resend. No-op if
+    disabled or credentials missing. Returns the recipient email on success."""
+    to = (os.environ.get("BACKUP_EMAIL_TO") or "").strip()
+    if not to:
+        return None
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        logger.info("[scheduled-backup] email skipped — RESEND_API_KEY missing")
+        return None
+
+    # Resend attachment limit is ~40 MB. Skip email if the zip is too big
+    # but don't fail the whole backup.
+    max_mb = int(os.environ.get("BACKUP_EMAIL_MAX_MB", "35"))
+    size_mb = len(payload) / (1024 * 1024)
+    if size_mb > max_mb:
+        logger.warning(
+            f"[scheduled-backup] email skipped — backup is {size_mb:.1f} MB, "
+            f"over the {max_mb} MB email limit. Admin must download manually."
+        )
+        return None
+
+    import base64 as _bb64
+    b64 = _bb64.b64encode(payload).decode("ascii")
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    sender = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
+    reply_to = os.environ.get("REPLY_TO_EMAIL") or None
+
+    html = (
+        f'<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;">'
+        f'<div style="border-bottom:4px solid #b91c1c;padding-bottom:10px;margin-bottom:18px;">'
+        f'<strong style="color:#b91c1c;letter-spacing:.15em;font-size:11px;text-transform:uppercase">'
+        f'MASCI · NIGHTLY BACKUP</strong>'
+        f'</div>'
+        f'<p style="color:#0f172a;margin:0 0 8px;font-size:15px;">'
+        f'Your nightly MASCI Safety Hub backup is attached.</p>'
+        f'<ul style="color:#334155;font-size:14px;line-height:1.7;padding-left:18px;">'
+        f'<li><strong>Generated:</strong> {stamp}</li>'
+        f'<li><strong>Records:</strong> {total_records}</li>'
+        f'<li><strong>Size:</strong> {size_mb:.1f} MB</li>'
+        f'<li><strong>File:</strong> <code>{filename}</code></li>'
+        f'</ul>'
+        f'<p style="color:#475569;font-size:13px;margin-top:18px;">'
+        f'<strong>Restore instructions:</strong> sign in to <a href="https://mascidocs.com/admin">'
+        f'mascidocs.com/admin</a> → scroll to "Restore from Backup" → Upload this .zip.</p>'
+        f'<p style="color:#b91c1c;font-size:12px;margin-top:18px;font-weight:700;">'
+        f'Keep this email safe — it is your off-site disaster-recovery copy.</p>'
+        f'</div>'
+    )
+
+    try:
+        import resend  # noqa: E402
+        resend.api_key = api_key
+        params: Dict[str, Any] = {
+            "from": sender,
+            "to": [to],
+            "subject": f"MASCI Nightly Backup · {stamp} · {total_records} records",
+            "html": html,
+            "attachments": [
+                {"filename": filename, "content": b64},
+            ],
+        }
+        if reply_to:
+            params["reply_to"] = reply_to
+        result = await asyncio.to_thread(resend.Emails.send, params)
+        rid = (result or {}).get("id", "?")
+        logger.info(f"[scheduled-backup] emailed backup to {to} (resend_id={rid})")
+        return to
+    except Exception as e:
+        logger.warning(f"[scheduled-backup] Resend send failed: {e}")
         return None
 
 
@@ -1955,6 +2036,49 @@ async def admin_run_backup_now(_: bool = Depends(require_admin)):
     if not result:
         raise HTTPException(500, "Backup failed — see server logs")
     return {"ok": True, **result}
+
+
+@api_router.get("/admin/persistence-check")
+async def admin_persistence_check(_: bool = Depends(require_admin)):
+    """Report whether the running instance is at risk of data loss on redeploy.
+
+    Production on Emergent without an external MongoDB URL is ephemeral — a
+    git push/redeploy wipes the container's Mongo volume. This endpoint
+    powers the admin-hub warning banner so the office never redeploys blind.
+    """
+    mongo_url = os.environ.get("MONGO_URL", "")
+    # Local/in-container Mongo hostnames. Atlas URLs start with mongodb+srv://
+    # or include an explicit external host. Anything pointing at localhost,
+    # 127.0.0.1 or no hostname is treated as ephemeral.
+    host_part = mongo_url.split("://", 1)[-1].split("/", 1)[0].lower()
+    is_local = (
+        not mongo_url
+        or "localhost" in host_part
+        or host_part.startswith("127.")
+        or host_part.startswith("0.0.0.0")
+        or host_part == ""
+    )
+    is_atlas = mongo_url.startswith("mongodb+srv://") or "mongodb.net" in host_part
+    backup_email_configured = bool((os.environ.get("BACKUP_EMAIL_TO") or "").strip())
+    resend_configured = bool((os.environ.get("RESEND_API_KEY") or "").strip())
+    last_backup = None
+    try:
+        files = _list_stored_backups()
+        if files:
+            last_backup = files[0]
+    except Exception:
+        pass
+
+    return {
+        "mongo_is_local": is_local,
+        "mongo_is_atlas": is_atlas,
+        "mongo_host": host_part or "(none)",
+        "backup_email_to": (os.environ.get("BACKUP_EMAIL_TO") or "").strip() or None,
+        "backup_email_configured": backup_email_configured,
+        "resend_configured": resend_configured,
+        "last_backup": last_backup,
+        "scheduler_enabled": os.environ.get("DISABLE_BACKUP_SCHEDULER", "").lower() not in ("1", "true", "yes"),
+    }
 
 
 # ----------------------------------------------------------------------
