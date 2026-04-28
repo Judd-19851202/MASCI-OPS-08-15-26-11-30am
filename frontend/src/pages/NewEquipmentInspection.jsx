@@ -72,6 +72,7 @@ const CRITICAL_FLUID_ITEMS = new Set([
  * Strings here MUST exactly match the items emitted by checklists.py.
  */
 const MAJOR_OUT_OF_SERVICE_ITEMS = new Set([
+  // User-specified safety basics
   "Steps, grab handles, ladders secure & clean",
   "Air filter / pre-cleaner condition",
   "ROPS / FOPS structure - no cracks or damage",
@@ -82,6 +83,54 @@ const MAJOR_OUT_OF_SERVICE_ITEMS = new Set([
   "Parking brake - holds machine on grade",
   "Steering - responsive, no excessive play",
   "Emergency / kill switch operational",
+
+  // Active leaks
+  "Visible fluid leaks (engine, hydraulic, fuel, coolant)",
+  "Belts and hoses - no cracks, fraying, or leaks",
+
+  // Tires / tracks (per equipment-type variants from checklists.py)
+  "Tires - inflation, cuts, sidewall damage, tread wear",
+  "Tires - inflation, cuts, tread wear",
+  "Tires - inflation, condition, no cuts (front & rear)",
+  "Tires - inflation, cuts, tread",
+  "Tires - inflation, cuts, tread depth (all positions)",
+  "Tires - inflation, cuts, tread (front & rear)",
+  "Tires (rear, if smooth-drum) - inflation, wear",
+  "Tires / tracks - condition & wear",
+  "Tracks or tires - condition & wear",
+  "Tracks / undercarriage - tension, wear, no missing pads",
+  "Tracks / undercarriage - tension, wear",
+  "Tracks / undercarriage - tension & wear",
+  "Tracks / undercarriage - condition & wear",
+  "Tracks - tension, drive sprockets, idlers",
+
+  // Strobe / beacon (FDOT-required)
+  "Strobe / beacon light (Required)",
+
+  // Fire extinguisher (FDOT-required)
+  "Fire extinguisher present, charged & inspected",
+
+  // Hydraulic hoses / cylinders
+  "Hydraulic hoses - no chafing or bulges",
+  "Hydraulic cylinders - rod condition, no leaks",
+  "Hydraulic cylinders & hoses",
+  "Hydraulic couplers / auxiliary lines - no leaks",
+  "Hydraulic hoses & cylinders",
+
+  // Boom / arm / pivot pins (excavator, backhoe, loader, telehandler)
+  "Boom, stick, bucket - no cracks at pivot points",
+  "Backhoe boom, dipper, bucket - no cracks at pivots",
+  "Lift arms & linkage - no cracks",
+  "Lift arms - no cracks, pivot pins secure",
+  "Loader arms, pins, retainers secure",
+  "Tow arms / tow points - no cracks",
+  "Boom sections - no cracks, wear pads in place",
+
+  // Outriggers / stabilizers
+  "Stabilizer pads / outriggers - operate, no leaks",
+  "Stabilizer / outrigger controls",
+  "Stabilizer / outrigger pads (if equipped) operate freely",
+  "Stabilizer / frame-level controls",
 ]);
 
 /** Combined set: any FAIL of either of these = OUT OF SERVICE (red). */
