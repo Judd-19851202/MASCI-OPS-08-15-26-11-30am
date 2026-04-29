@@ -131,7 +131,7 @@ def test_full_backup_returns_zip_with_required_structure():
     # backup_log.txt must be present
     assert "backup_log.txt" in names
     log = z.read("backup_log.txt").decode()
-    assert "MASCI Safety Hub — Full Backup" in log
+    assert "MASCI Hub — Full Backup" in log
     assert "Per-kind record counts:" in log
     assert "Totals:" in log
 

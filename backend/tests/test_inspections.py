@@ -70,7 +70,8 @@ def sample_payload():
 
 # Health
 def test_root_health(session):
-    r = session.get(f"{API}/")
+    # GET /api/health returns {ok: true, service: "masci-hub", ts: ...}
+    r = session.get(f"{API}/health")
     assert r.status_code == 200
     assert r.json().get("ok") is True
 

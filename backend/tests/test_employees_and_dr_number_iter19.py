@@ -52,27 +52,47 @@ def test_employees_status_with_admin_returns_count():
 
 
 def test_employees_csv_upload_and_list():
-    """Upload tiny CSV → both employees appear in /api/employees."""
+    """Upload tiny CSV → both employees appear in /api/employees.
+
+    Destructive: this REPLACES the entire roster. Must restore from
+    /app/backend/data/employees_seed.json afterwards or the live
+    preview env is left with only the 2 TEST_ rows.
+    """
     csv_bytes = (
         "Name,Trade,Crew\n"
         "TEST_John Doe,Carpenter,Crew A\n"
         "TEST_Jane Smith,Operator,Crew B\n"
     ).encode()
     files = {"file": ("test_employees.csv", io.BytesIO(csv_bytes), "text/csv")}
-    r = requests.post(f"{BASE_URL}/api/admin/employees/upload", files=files)
-    assert r.status_code == 200, r.text
-    body = r.json()
-    assert body.get("ok") is True
-    assert body.get("count") == 2
+    try:
+        r = requests.post(f"{BASE_URL}/api/admin/employees/upload", files=files)
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body.get("ok") is True
+        assert body.get("count") == 2
 
-    # Roster GET should now reflect both
-    r2 = requests.get(f"{BASE_URL}/api/employees")
-    assert r2.status_code == 200
-    body2 = r2.json()
-    names = [e.get("name") for e in body2["items"]]
-    assert "TEST_John Doe" in names
-    assert "TEST_Jane Smith" in names
-    assert body2["count"] == 2
+        # Roster GET should now reflect both
+        r2 = requests.get(f"{BASE_URL}/api/employees")
+        assert r2.status_code == 200
+        body2 = r2.json()
+        names = [e.get("name") for e in body2["items"]]
+        assert "TEST_John Doe" in names
+        assert "TEST_Jane Smith" in names
+        assert body2["count"] == 2
+    finally:
+        # ALWAYS restore the full 234-employee seed roster, regardless of
+        # pass/fail above. Re-uses the same upload endpoint with the seed.
+        import json as _json
+        seed = _json.load(open("/app/backend/data/employees_seed.json"))
+        # employees_seed is a list of name strings
+        restore_csv = ("Name\n" + "\n".join(seed)).encode()
+        rfiles = {
+            "file": ("restore_employees.csv", io.BytesIO(restore_csv), "text/csv")
+        }
+        rr = requests.post(
+            f"{BASE_URL}/api/admin/employees/upload", files=rfiles, timeout=60
+        )
+        assert rr.status_code == 200, f"restore upload failed: {rr.text}"
 
 
 def test_employees_create_single_and_delete():

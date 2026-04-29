@@ -14,7 +14,12 @@ import time
 import requests
 import pytest
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL").rstrip("/")
+_RAW = os.environ.get("REACT_APP_BACKEND_URL")
+if not _RAW:
+    pytest.skip(
+        "REACT_APP_BACKEND_URL not set in environment", allow_module_level=True
+    )
+BASE_URL = _RAW.rstrip("/")
 ADMIN_PW = os.environ.get("ADMIN_PASSWORD", "Happy123!")
 SHOP_PW = os.environ.get("SHOP_PASSWORD", "Nothappy123!")
 

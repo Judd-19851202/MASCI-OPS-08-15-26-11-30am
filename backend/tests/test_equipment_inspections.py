@@ -57,6 +57,11 @@ class TestEquipmentTypes:
 # ---------------------------------------------------------------------------
 # /api/equipment-units (create + de-dup + list filtered)
 # ---------------------------------------------------------------------------
+@pytest.mark.skip(
+    reason="Legacy /api/equipment-units endpoints were removed in iter22 in "
+    "favor of the equipment_master upload pipeline (which fans out into "
+    "the equipment_units collection automatically). Kept as documentation."
+)
 class TestEquipmentUnits:
     UNIT_LABEL = f"TEST_CAT320_{uuid.uuid4().hex[:6]}"
     EQ_TYPE = "Excavator"
@@ -229,6 +234,10 @@ class TestEquipmentInspectionsCRUD:
         )
         assert r.status_code == 404
 
+    @pytest.mark.skip(
+        reason="GET /api/equipment-units removed in iter22 (replaced by "
+        "equipment_master upload pipeline)."
+    )
     def test_create_persists_unit_in_dropdown(self):
         # Inspection saves should auto-create the equipment_unit row.
         rec = _sample_record(fail_count=0, project_number="24-06")

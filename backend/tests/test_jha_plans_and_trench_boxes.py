@@ -271,8 +271,10 @@ class TestTrenchBoxes:
 # ============================================================
 class TestRegressionSmoke:
     def test_root_api(self):
-        r = requests.get(f"{BASE_URL}/api/", timeout=10)
+        # /api/health is the live healthcheck (root /api/ is intentionally 404)
+        r = requests.get(f"{BASE_URL}/api/health", timeout=10)
         assert r.status_code == 200
+        assert r.json().get("ok") is True
 
     @pytest.mark.parametrize(
         "endpoint",

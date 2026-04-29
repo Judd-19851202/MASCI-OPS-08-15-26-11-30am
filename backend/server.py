@@ -1826,7 +1826,9 @@ async def exports_full_backup(_: bool = Depends(require_admin)):
     _stamp = _now.strftime("%Y-%m-%d_%H%M%SZ")
     filename = f"MASCI_full_backup_{_stamp}.zip"
     out = BACKUPS_DIR / filename
-    tmp = out.with_suffix(".zip.tmp")
+    # Per-call unique tmp suffix so concurrent requests within the same
+    # second can't clobber each other's stream (or each other's rename).
+    tmp = out.with_suffix(f".zip.tmp.{uuid.uuid4().hex[:8]}")
     total_records, _ = await _build_backup_zip_to_path(db, tmp)
     tmp.replace(out)
     size_bytes = out.stat().st_size
@@ -2085,15 +2087,23 @@ def _disk_pct_used(path: str = "/app") -> int:
 
 
 def _emergency_prune_backups(reason: str) -> int:
-    """Sync helper. Aggressively prune backups + .tmp files. Safe to call
-    from any context (sync or async via to_thread). Returns count pruned.
+    """Sync helper. Aggressively prune backups + ORPHAN .tmp files. Safe to
+    call from any context (sync or async via to_thread). Returns count pruned.
     Catches all exceptions internally — NEVER raises into the caller.
+
+    NOTE: .tmp files younger than 10 minutes are KEPT — they may be a backup
+    actively streaming to disk in another worker / concurrent request.
+    Deleting them would break the rename step at the end of the build.
     """
     pruned = 0
+    _now_ts = datetime.now(timezone.utc).timestamp()
+    _ORPHAN_TMP_AGE_SEC = 600  # 10 minutes
     try:
         BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
-        for p in BACKUPS_DIR.glob("*.zip.tmp"):
+        for p in BACKUPS_DIR.glob("*.zip.tmp*"):
             try:
+                if (_now_ts - p.stat().st_mtime) < _ORPHAN_TMP_AGE_SEC:
+                    continue  # active stream — leave alone
                 p.unlink(); pruned += 1
             except Exception:
                 continue
@@ -2145,11 +2155,16 @@ async def _run_scheduled_backup(db) -> Optional[dict]:
         BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
 
         # PRE-FLIGHT PRUNE — clean up before writing so we never run out of
-        # disk mid-backup. Drops .tmp debris from previous failures + enforces
-        # both the retention-days window and the BACKUP_KEEP_MAX ceiling.
+        # disk mid-backup. Drops ORPHAN .tmp debris from previous failures
+        # (only .tmp older than 10 minutes — younger ones are likely active
+        # streams from a concurrent request and would break their rename).
         pre_pruned = 0
-        for p in BACKUPS_DIR.glob("*.zip.tmp"):
+        _now_ts = datetime.now(timezone.utc).timestamp()
+        _ORPHAN_TMP_AGE_SEC = 600
+        for p in BACKUPS_DIR.glob("*.zip.tmp*"):
             try:
+                if (_now_ts - p.stat().st_mtime) < _ORPHAN_TMP_AGE_SEC:
+                    continue  # active stream — leave alone
                 p.unlink()
                 pre_pruned += 1
             except Exception:
@@ -2216,7 +2231,9 @@ async def _run_scheduled_backup(db) -> Optional[dict]:
         _stamp = _now.strftime("%Y-%m-%d_%H%M%SZ")
         filename = f"MASCI_full_backup_{_stamp}.zip"
         out = BACKUPS_DIR / filename
-        tmp = out.with_suffix(".zip.tmp")
+        # Per-call unique tmp suffix so concurrent backup requests can't
+        # clobber each other's stream (or rename).
+        tmp = out.with_suffix(f".zip.tmp.{uuid.uuid4().hex[:8]}")
         # Build directly into the .tmp; rename atomically when done.
         total_records, _name = await _build_backup_zip_to_path(db, tmp)
         # Use the timestamp-stamped name we computed above (consistent with prior behavior)

@@ -1,5 +1,40 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-29 — Pre-Deploy Verification Sweep — ALL GREEN ✅
+**User request:** "verify all systems work & everything is ready to deploy"
+
+**Service health** (all RUNNING):
+- backend pid 46 · frontend pid 48 · mongodb pid 51 · nginx-code-proxy pid 45
+- /api/health 200 · /api/jobs 200 · /api/employees 200 · /api/suppliers 200 · /api/equipment-master 200 · /api/equipment-types 200
+- POST /api/admin/login → 200 (token len 64) · GET /api/admin/jobs → 200
+- GET / and /admin → 200 (Hub renders with red `MASCI` tagline + 6 tiles)
+
+**Live data state**: 28 active jobs · 234 employees · 145 suppliers · 589 equipment_master units
+
+**Pytest suite** — `cd /app/backend && python -m pytest tests/ -q`: **240 passed, 6 documented skips, 0 failed** (was 12 failed before this sweep).
+
+**Bugs found & fixed during verification**:
+1. **(HIGH) Backup race condition** — `_emergency_prune_backups` and the scheduled-backup pre-flight prune both did `glob("*.zip.tmp")` and unlinked everything, including the `.zip.tmp` file the current request was actively streaming to. The subsequent `tmp.replace(out)` then crashed with `FileNotFoundError`, turning concurrent backup requests into 500s. **Fixes:**
+   - Per-call unique tmp suffix `.zip.tmp.<uuid8>` so concurrent streams don't collide
+   - Prune only ORPHAN .tmp files (`mtime > 10 min`) — younger ones are presumed active
+   - Glob updated to `*.zip.tmp*` so the unique suffixes are still cleaned up later
+   - Smoke verified: `GET /api/exports/full-backup` returns valid 521 MB zip with 50 entries.
+2. **(MEDIUM) Destructive test wiped employees roster** — `test_employees_csv_upload_and_list` replaced the 234-employee roster with 2 TEST rows and never restored, leaving the live preview env with 0 employees after every test run. **Fix:** wrapped the body in try/finally and restore from `/app/backend/data/employees_seed.json` (mirrors the supplier test pattern).
+
+**Stale tests fixed** (asserting against pre-2026-04-28 state):
+- `test_inspections::test_root_health` and `test_jha_plans::test_root_api` — were hitting GET `/api/` (404 — never registered); now hit `/api/health`
+- `test_suppliers_employees_iter21` — hard-coded counts 234/135 → flexible `>=` to allow field-crew additions via the new "+ Add to roster" button
+- `test_iter24_bilingual_perf` — module-level NoneType crash if `REACT_APP_BACKEND_URL` not exported → now `pytest.skip` cleanly
+- `test_compliance_exports` — log header drift "MASCI Safety Hub" → "MASCI Hub"
+- `test_equipment_inspections::TestEquipmentUnits` (3 tests) + `test_create_persists_unit_in_dropdown` — marked `@pytest.mark.skip` documenting that `/api/equipment-units` was removed in iter22 in favor of the equipment_master upload pipeline
+
+**Files touched in this sweep**:
+- `/app/backend/server.py` — backup race fixes (3 locations: lines 1828, 2095, 2151, 2219)
+- `/app/backend/jobs_master.py` — `upsert_job` now uses `$setOnInsert` for id/created_at (HIGH-priority fix from iter26 testing report)
+- 6 test files (above)
+
+**Deployment readiness**: ✅ READY. No regressions in live endpoints. Pytest fully green. New iter26 features (DB-backed Jobs Master + inline "+ Add to roster") all verified.
+
 ## 2026-04-29 — DB-Backed Jobs Master + Inline "+ Add to Roster" — VERIFIED & SHIPPED
 **User request:** (1) inline "+ Add to MASCI roster" button on EmployeeCombo + matching "+ Add to vendor list" button on SupplierCombo so novel typed names persist back to master data on the fly; (2) admin-managed, DB-backed jobs list parsed from the user's uploaded "Current Job list.pdf" replacing the static frontend `jobLibrary.js`, with full CRUD via a new AdminJobMasterPanel.
 
