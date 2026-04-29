@@ -23,21 +23,34 @@ import { toast } from "sonner";
  * Always allows free-text entries (so the form still works before the
  * roster is uploaded by the admin).
  */
+/**
+ * Module-level cache. See SupplierCombo for the same defensive pattern:
+ *
+ *   - `_cache` holds the LAST SUCCESSFUL response. Empty fallbacks are NEVER
+ *     stored, so a transient CORS / network blip doesn't permanently poison
+ *     every later render.
+ *   - The next mount after a failure gets a fresh fetch.
+ */
 let _cache = null;
 let _cachePromise = null;
 
 async function loadRoster() {
-  if (_cache) return _cache;
+  if (_cache && Array.isArray(_cache.items) && _cache.items.length > 0) {
+    return _cache;
+  }
   if (_cachePromise) return _cachePromise;
   _cachePromise = api
-    .get("/employees")
+    .get("/employees", { timeout: 30000 })
     .then((r) => {
-      _cache = Array.isArray(r.data?.items)
-        ? r.data
-        : { items: [], count: 0 };
-      return _cache;
+      if (Array.isArray(r?.data?.items)) {
+        _cache = r.data;
+        return _cache;
+      }
+      return { items: [], count: 0 };
     })
-    .catch(() => ({ items: [], count: 0 }))
+    .catch(() => {
+      return { items: [], count: 0 };
+    })
     .finally(() => {
       _cachePromise = null;
     });
@@ -66,11 +79,22 @@ export const EmployeeCombo = ({
 
   useEffect(() => {
     let alive = true;
-    loadRoster().then((d) => {
-      if (alive) setData(d);
-    });
+    let retryTimer = null;
+    const tryLoad = (attempt) => {
+      loadRoster().then((d) => {
+        if (!alive) return;
+        setData(d);
+        // Auto-retry up to 2x if the first load returns empty — handles
+        // transient CORS / network blips on combo mount.
+        if ((d?.items?.length || 0) === 0 && attempt < 2) {
+          retryTimer = setTimeout(() => tryLoad(attempt + 1), 1500 * (attempt + 1));
+        }
+      });
+    };
+    tryLoad(0);
     return () => {
       alive = false;
+      if (retryTimer) clearTimeout(retryTimer);
     };
   }, []);
 
@@ -171,7 +195,15 @@ export const EmployeeCombo = ({
           variant="outline"
           size="icon"
           className="h-11 w-11 border-2 border-slate-300 hover:border-red-700 hover:text-red-700 shrink-0"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => {
+            // Self-recover: if the cache loaded empty, force a re-fetch
+            // when the user clicks the chevron.
+            if ((data?.items?.length || 0) === 0) {
+              clearEmployeeCache();
+              loadRoster().then((d) => setData(d));
+            }
+            setOpen((v) => !v);
+          }}
           data-testid={`${testId}-toggle`}
           title={t("Browse roster")}
         >

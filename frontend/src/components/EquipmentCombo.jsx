@@ -22,23 +22,40 @@ import { useT } from "@/lib/i18n";
  * - testId:       optional data-testid prefix
  * - className:    extra classes for the input
  */
+/**
+ * Module-level cache. See SupplierCombo for the defensive pattern:
+ *   - `_cache` only stores SUCCESSFUL non-empty responses.
+ *   - Empty fallbacks are returned for the call but NEVER cached, so
+ *     transient CORS / network blips don't permanently poison every
+ *     downstream Combo render.
+ */
 let _cache = null;
 let _cachePromise = null;
 
 async function loadMaster() {
-  if (_cache) return _cache;
+  if (_cache && Array.isArray(_cache.items) && _cache.items.length > 0) {
+    return _cache;
+  }
   if (_cachePromise) return _cachePromise;
   _cachePromise = api
-    .get("/equipment-master")
+    .get("/equipment-master", { timeout: 30000 })
     .then((r) => {
-      _cache = r.data || { categories: [], items: [], grouped: {} };
-      return _cache;
+      if (r?.data && Array.isArray(r.data.items) && r.data.items.length > 0) {
+        _cache = r.data;
+        return _cache;
+      }
+      return { categories: [], items: [], grouped: {} };
     })
     .catch(() => ({ categories: [], items: [], grouped: {} }))
     .finally(() => {
       _cachePromise = null;
     });
   return _cachePromise;
+}
+
+export function clearEquipmentCache() {
+  _cache = null;
+  _cachePromise = null;
 }
 
 export const EquipmentCombo = ({
@@ -58,11 +75,20 @@ export const EquipmentCombo = ({
 
   useEffect(() => {
     let alive = true;
-    loadMaster().then((d) => {
-      if (alive) setData(d);
-    });
+    let retryTimer = null;
+    const tryLoad = (attempt) => {
+      loadMaster().then((d) => {
+        if (!alive) return;
+        setData(d);
+        if ((d?.items?.length || 0) === 0 && attempt < 2) {
+          retryTimer = setTimeout(() => tryLoad(attempt + 1), 1500 * (attempt + 1));
+        }
+      });
+    };
+    tryLoad(0);
     return () => {
       alive = false;
+      if (retryTimer) clearTimeout(retryTimer);
     };
   }, []);
 
@@ -138,7 +164,14 @@ export const EquipmentCombo = ({
           variant="outline"
           size="icon"
           className="h-11 w-11 border-2 border-slate-300 hover:border-red-700 hover:text-red-700 shrink-0"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => {
+            // Self-recover: if cache loaded empty, force a re-fetch.
+            if ((data?.items?.length || 0) === 0) {
+              clearEquipmentCache();
+              loadMaster().then((d) => setData(d));
+            }
+            setOpen((v) => !v);
+          }}
           data-testid={`${testId}-toggle`}
           title={t("Browse fleet")}
         >

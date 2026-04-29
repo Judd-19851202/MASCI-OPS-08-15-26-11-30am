@@ -242,3 +242,5 @@ credentials.json
 *.pem
 *.key
 .credentials
+backend/backups/MASCI_full_backup_2026-04-29_204330Z.zip
+frontend/node_modules/.cache/default-development/70.pack

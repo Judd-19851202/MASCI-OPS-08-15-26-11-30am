@@ -13,21 +13,41 @@ import { toast } from "sonner";
  * GET /api/suppliers. Same UX as EmployeeCombo / EquipmentCombo.
  * Always allows free-text fallback so forms still work for one-off vendors.
  */
+/**
+ * Module-level cache.
+ *
+ *   - `_cache` holds the LAST SUCCESSFUL response. We only assign to it when
+ *     the GET actually returned a valid items array — never store an empty
+ *     fallback so a transient failure doesn't permanently poison every
+ *     downstream Combo render.
+ *   - `_cachePromise` lets concurrent mounts share an in-flight request.
+ *   - `loadList()` ALWAYS retries on error / non-array body — the next mount
+ *     gets a fresh fetch instead of the empty fallback.
+ */
 let _cache = null;
 let _cachePromise = null;
 
 async function loadList() {
-  if (_cache) return _cache;
+  if (_cache && Array.isArray(_cache.items) && _cache.items.length > 0) {
+    return _cache;
+  }
   if (_cachePromise) return _cachePromise;
   _cachePromise = api
-    .get("/suppliers")
+    .get("/suppliers", { timeout: 30000 })
     .then((r) => {
-      _cache = Array.isArray(r.data?.items)
-        ? r.data
-        : { items: [], count: 0 };
-      return _cache;
+      if (Array.isArray(r?.data?.items)) {
+        _cache = r.data;
+        return _cache;
+      }
+      // Non-array response → don't poison the cache. Return empty for THIS
+      // call but leave _cache null so the next mount tries again.
+      return { items: [], count: 0 };
     })
-    .catch(() => ({ items: [], count: 0 }))
+    .catch(() => {
+      // Network / CORS / timeout error → return empty for this call but
+      // do NOT cache, so the user gets a fresh load on the next interaction.
+      return { items: [], count: 0 };
+    })
     .finally(() => {
       _cachePromise = null;
     });
@@ -55,11 +75,23 @@ export const SupplierCombo = ({
 
   useEffect(() => {
     let alive = true;
-    loadList().then((d) => {
-      if (alive) setData(d);
-    });
+    let retryTimer = null;
+    const tryLoad = (attempt) => {
+      loadList().then((d) => {
+        if (!alive) return;
+        setData(d);
+        // If we got an empty list, retry once with backoff. Field crews
+        // experience CORS / network blips on first mount, and silently
+        // serving them an empty dropdown is the "no employees" bug.
+        if ((d?.items?.length || 0) === 0 && attempt < 2) {
+          retryTimer = setTimeout(() => tryLoad(attempt + 1), 1500 * (attempt + 1));
+        }
+      });
+    };
+    tryLoad(0);
     return () => {
       alive = false;
+      if (retryTimer) clearTimeout(retryTimer);
     };
   }, []);
 
@@ -142,7 +174,15 @@ export const SupplierCombo = ({
           variant="outline"
           size="icon"
           className="h-11 w-11 border-2 border-slate-300 hover:border-red-700 hover:text-red-700 shrink-0"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => {
+            // If cache is empty, force a re-fetch when the user clicks the
+            // chevron (self-recovery from a transient first-load failure).
+            if ((data?.items?.length || 0) === 0) {
+              clearSupplierCache();
+              loadList().then((d) => setData(d));
+            }
+            setOpen((v) => !v);
+          }}
           data-testid={`${testId}-toggle`}
           title={t("Browse supplier list")}
         >

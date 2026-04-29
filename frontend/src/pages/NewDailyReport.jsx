@@ -44,6 +44,134 @@ const inputCls =
 const inputClsTall =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2";
 
+/**
+ * Module-level repeating-row block.
+ *
+ * MUST live at module scope (NOT inside the parent component) — otherwise
+ * every keystroke creates a new component reference, which makes React
+ * unmount + remount every Combo on every keystroke. That's the bug behind
+ * "glitchy typing" and "no employees populating in dropdowns".
+ *
+ * Props:
+ *   - title:       row label ("Crew Member", "Subcontractor", etc.)
+ *   - rows:        the array of row objects (data[list] from the parent)
+ *   - helpers:     useList output { add, remove, update }
+ *   - defaults:    new-row defaults
+ *   - fields:      [{ key, label, type, full, placeholder, style }, ...]
+ *   - testIdBase:  data-testid prefix
+ *   - t:           translation fn from useT()
+ */
+const RepeatBlock = ({
+  title,
+  rows,
+  helpers,
+  defaults,
+  fields,
+  testIdBase,
+  t,
+}) => (
+  <div className="space-y-3">
+    {rows.map((row, i) => (
+      <div
+        key={i}
+        className="border-2 border-slate-200 rounded-md p-3 sm:p-4 space-y-2"
+        data-testid={`${testIdBase}-row-${i}`}
+      >
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold">
+            {title} {i + 1}
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => helpers.remove(i)}
+            className="text-slate-500 hover:text-red-600"
+            data-testid={`${testIdBase}-remove-${i}`}
+          >
+            <X className="w-4 h-4 mr-1" /> {t("Remove")}
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {fields.map((f) => (
+            <div
+              key={f.key}
+              className={f.full ? "sm:col-span-2" : ""}
+              style={f.style}
+            >
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                {t(f.label)}
+              </Label>
+              {f.type === "textarea" ? (
+                <Textarea
+                  value={row[f.key] || ""}
+                  onChange={(e) => helpers.update(i, f.key, e.target.value)}
+                  className="min-h-[60px] text-base border-2 border-slate-300"
+                  placeholder={f.placeholder}
+                  data-testid={`${testIdBase}-${f.key}-${i}`}
+                />
+              ) : f.type === "equipment-combo" ? (
+                <EquipmentCombo
+                  value={row[f.key] || ""}
+                  onChange={(v) => helpers.update(i, f.key, v)}
+                  placeholder={f.placeholder}
+                  testId={`${testIdBase}-${f.key}-${i}`}
+                />
+              ) : f.type === "employee-combo" ? (
+                <EmployeeCombo
+                  value={row[f.key] || ""}
+                  onChange={(v) => helpers.update(i, f.key, v)}
+                  placeholder={f.placeholder}
+                  testId={`${testIdBase}-${f.key}-${i}`}
+                />
+              ) : f.type === "supplier-combo" ? (
+                <SupplierCombo
+                  value={row[f.key] || ""}
+                  onChange={(v) => helpers.update(i, f.key, v)}
+                  placeholder={f.placeholder}
+                  testId={`${testIdBase}-${f.key}-${i}`}
+                />
+              ) : f.type === "photo" ? (
+                <PhotoUpload
+                  photos={row[f.key] || []}
+                  onChange={(arr) => helpers.update(i, f.key, arr)}
+                  testIdBase={`${testIdBase}-${f.key}-${i}`}
+                />
+              ) : f.type === "readonly" ? (
+                <Input
+                  value={row[f.key] || ""}
+                  readOnly
+                  className={`${inputCls} bg-slate-100 font-mono`}
+                  placeholder={f.placeholder}
+                  data-testid={`${testIdBase}-${f.key}-${i}`}
+                />
+              ) : (
+                <Input
+                  type={f.type || "text"}
+                  value={row[f.key] || ""}
+                  onChange={(e) => helpers.update(i, f.key, e.target.value)}
+                  className={inputCls}
+                  placeholder={f.placeholder}
+                  data-testid={`${testIdBase}-${f.key}-${i}`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+    <Button
+      type="button"
+      variant="outline"
+      onClick={() => helpers.add(defaults)}
+      className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm"
+      data-testid={`${testIdBase}-add`}
+    >
+      <Plus className="w-4 h-4 mr-2" /> {t("Add")} {title}
+    </Button>
+  </div>
+);
+
 // Generic add/remove/update helpers for repeating sections
 const useList = (data, set, key) => ({
   add: (defaults = {}) =>
@@ -282,109 +410,10 @@ export default function NewDailyReport({ publicMode = false }) {
     }
   };
 
-  // Reusable repeat-row renderer
-  const RepeatBlock = ({ title, list, helpers, defaults, fields, testIdBase }) => (
-    <div className="space-y-3">
-      {data[list].map((row, i) => (
-        <div
-          key={i}
-          className="border-2 border-slate-200 rounded-md p-3 sm:p-4 space-y-2"
-          data-testid={`${testIdBase}-row-${i}`}
-        >
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold">
-              {title} {i + 1}
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => helpers.remove(i)}
-              className="text-slate-500 hover:text-red-600"
-              data-testid={`${testIdBase}-remove-${i}`}
-            >
-              <X className="w-4 h-4 mr-1" /> {t("Remove")}
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {fields.map((f) => (
-              <div
-                key={f.key}
-                className={f.full ? "sm:col-span-2" : ""}
-                style={f.style}
-              >
-                <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                  {t(f.label)}
-                </Label>
-                {f.type === "textarea" ? (
-                  <Textarea
-                    value={row[f.key] || ""}
-                    onChange={(e) => helpers.update(i, f.key, e.target.value)}
-                    className="min-h-[60px] text-base border-2 border-slate-300"
-                    placeholder={f.placeholder}
-                    data-testid={`${testIdBase}-${f.key}-${i}`}
-                  />
-                ) : f.type === "equipment-combo" ? (
-                  <EquipmentCombo
-                    value={row[f.key] || ""}
-                    onChange={(v) => helpers.update(i, f.key, v)}
-                    placeholder={f.placeholder}
-                    testId={`${testIdBase}-${f.key}-${i}`}
-                  />
-                ) : f.type === "employee-combo" ? (
-                  <EmployeeCombo
-                    value={row[f.key] || ""}
-                    onChange={(v) => helpers.update(i, f.key, v)}
-                    placeholder={f.placeholder}
-                    testId={`${testIdBase}-${f.key}-${i}`}
-                  />
-                ) : f.type === "supplier-combo" ? (
-                  <SupplierCombo
-                    value={row[f.key] || ""}
-                    onChange={(v) => helpers.update(i, f.key, v)}
-                    placeholder={f.placeholder}
-                    testId={`${testIdBase}-${f.key}-${i}`}
-                  />
-                ) : f.type === "photo" ? (
-                  <PhotoUpload
-                    photos={row[f.key] || []}
-                    onChange={(arr) => helpers.update(i, f.key, arr)}
-                    testIdBase={`${testIdBase}-${f.key}-${i}`}
-                  />
-                ) : f.type === "readonly" ? (
-                  <Input
-                    value={row[f.key] || ""}
-                    readOnly
-                    className={`${inputCls} bg-slate-100 font-mono`}
-                    placeholder={f.placeholder}
-                    data-testid={`${testIdBase}-${f.key}-${i}`}
-                  />
-                ) : (
-                  <Input
-                    type={f.type || "text"}
-                    value={row[f.key] || ""}
-                    onChange={(e) => helpers.update(i, f.key, e.target.value)}
-                    className={inputCls}
-                    placeholder={f.placeholder}
-                    data-testid={`${testIdBase}-${f.key}-${i}`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => helpers.add(defaults)}
-        className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm"
-        data-testid={`${testIdBase}-add`}
-      >
-        <Plus className="w-4 h-4 mr-2" /> {t("Add")} {title}
-      </Button>
-    </div>
-  );
+  // RepeatBlock now lives at module scope (see below) so it isn't a fresh
+  // component reference on every NewDailyReport re-render. Inline definitions
+  // here would unmount/remount every Combo on every keystroke, killing focus
+  // and dropdown state ("glitchy typing" / "no employees populating" bug).
 
   const photosCount = (data.photos || []).length;
   const photoMin = data.photo_min || 6;
@@ -1013,7 +1042,9 @@ export default function NewDailyReport({ publicMode = false }) {
           <RepeatBlock
             title={t("Subcontractor")}
             list="subcontractors"
+            rows={data.subcontractors}
             helpers={subs}
+            t={t}
             defaults={{
               company: "",
               trade: "",
@@ -1044,7 +1075,9 @@ export default function NewDailyReport({ publicMode = false }) {
           <RepeatBlock
             title={t("Visitor")}
             list="visitors"
+            rows={data.visitors}
             helpers={vis}
+            t={t}
             defaults={{
               name: "",
               company: "",
@@ -1068,7 +1101,9 @@ export default function NewDailyReport({ publicMode = false }) {
           <RepeatBlock
             title={t("Equipment")}
             list="equipment"
+            rows={data.equipment}
             helpers={eq}
+            t={t}
             defaults={{
               description: "",
               hours_used: "",
@@ -1092,7 +1127,9 @@ export default function NewDailyReport({ publicMode = false }) {
           <RepeatBlock
             title={t("Material")}
             list="materials"
+            rows={data.materials}
             helpers={mat}
+            t={t}
             defaults={{
               description: "",
               quantity: "",
@@ -1120,7 +1157,9 @@ export default function NewDailyReport({ publicMode = false }) {
           <RepeatBlock
             title={t("Activity")}
             list="activities"
+            rows={data.activities}
             helpers={act}
+            t={t}
             defaults={{
               activity: "",
               percent_complete: "",
