@@ -11,10 +11,12 @@ import re
 import time
 import secrets
 import asyncio
+import csv
+import io
 from collections import defaultdict
 from threading import Lock
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -1541,10 +1543,6 @@ from routes.shop_parts import register_shop_parts_routes  # noqa: E402
 register_shop_parts_routes(api_router, db, require_admin, require_shop_or_admin)
 
 
-import csv
-import io
-
-
 # ============================================================
 # Compliance CSV Exports (admin-only)
 # ============================================================
@@ -1819,7 +1817,6 @@ async def exports_full_backup(_: bool = Depends(require_admin)):
     as a FileResponse. Memory use ~5–20 MB regardless of zip size, so the
     backend never OOMs even on 1 GB+ archives.
     """
-    import tempfile as _tf
     BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
     # Build into the canonical backups dir so the file is preserved + reusable.
     _now = datetime.now(timezone.utc)
