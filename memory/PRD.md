@@ -1,5 +1,21 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-29 — Hub Polish: Red MASCI/. Tagline + Combined Projects Tile
+Two small but important UX polishes per user feedback:
+
+1. **Tagline** — "One place for every MASCI job." now renders with **MASCI** and the trailing **.** in `text-red-700` to match the brand. Implemented by splitting the H1 into 4 spans (`"One place for every "` + red `MASCI` + `" job"` + red `.`). Spanish i18n updated accordingly.
+
+2. **Single "Projects" tile** — the two separate Basecamp + OnStation tiles were merged into one **Projects** tile (green accent, Building2 icon, "PROJECT WORKSPACES" eyebrow) with **two side-by-side buttons inside**:
+   - 🏗️ **Basecamp** button (emerald, Building2 icon) → `https://3.basecamp.com/5958093/projects` — subtitle "Messages · To-dos · Schedule · Docs"
+   - 📍 **OnStation** button (blue, MapPin icon) → `https://app.onstation.us/login` — subtitle "Field staking · Station mapping · GPS"
+   - Helper line below buttons: "Both open in a new tab. Sign in with your Basecamp / OnStation credentials."
+
+   New `ProjectsCard` component lives next to `SectionCard` in `Hub.jsx`. The 6-tile grid layout (Safety, Field, Projects, Admin, Shop, QC-coming-soon) is unchanged.
+
+3. **i18n.js** — added 6 new translation pairs: `Project messages, to-dos, schedules…`, `Messages · To-dos · Schedule · Docs`, `Field staking · Station mapping · GPS`, `Both open in a new tab…`, `Project Workspaces`, `One place for every / job` split keys.
+
+**Verified via screenshot**: tagline renders red on MASCI + period, single Projects tile shows both color-coded buttons with correct hrefs and target=_blank, lint clean.
+
 ## 2026-04-29 — OnStation Tile + Full Crew Hub Cleanup
 **User request:** Add an OnStation link to the Hub home (the team uses it for field staking) AND verify the user guide and the rest of the system have been scrubbed of stale Crew Hub references.
 

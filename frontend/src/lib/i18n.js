@@ -102,6 +102,21 @@ const ES = {
     "Abre app.onstation.us en una nueva pestaña",
   "Sign in with your OnStation credentials":
     "Inicia sesión con tus credenciales de OnStation",
+  "Project messages, to-dos, schedules, docs, and field staking all live in our two external apps. Pick one:":
+    "Mensajes, tareas, calendarios, documentos y estacas de obra viven en nuestras dos aplicaciones externas. Elige una:",
+  "Messages · To-dos · Schedule · Docs":
+    "Mensajes · Tareas · Calendario · Documentos",
+  "Field staking · Station mapping · GPS":
+    "Estacas · Mapeo de estaciones · GPS",
+  "Both open in a new tab. Sign in with your Basecamp / OnStation credentials.":
+    "Ambas se abren en una nueva pestaña. Inicia sesión con tus credenciales de Basecamp / OnStation.",
+  "Project Workspaces":
+    "Espacios de Proyecto",
+  "One place for every ":
+    "Un solo lugar para cada trabajo de ",
+  " job":
+    "",
+  "MASCI": "MASCI",
   "Open in new tab ↗":
     "Abrir en nueva pestaña ↗",
   "Basecamp": "Basecamp",

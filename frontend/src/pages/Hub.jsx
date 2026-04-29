@@ -173,6 +173,73 @@ const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, te
   );
 };
 
+/**
+ * ProjectsCard — single Hub tile that links out to the two external project
+ * apps the team actually uses. NOT clickable as a whole; user picks one of
+ * the two stacked buttons (Basecamp or OnStation).
+ */
+const ProjectsCard = ({ t, testId }) => (
+  <div
+    className="group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 flex flex-col"
+    data-testid={testId}
+  >
+    <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t bg-emerald-700" />
+    <div className="flex items-start justify-between gap-3">
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-emerald-700 text-white">
+        <Building2 className="w-7 h-7" />
+      </div>
+      <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-emerald-700 bg-emerald-50 font-mono text-[10px] uppercase tracking-[0.2em] font-bold">
+        {t("Project Workspaces")}
+      </span>
+    </div>
+    <h3 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-4">
+      {t("Projects")}
+    </h3>
+    <p className="text-slate-600 text-sm sm:text-base mt-2 leading-relaxed">
+      {t("Project messages, to-dos, schedules, docs, and field staking all live in our two external apps. Pick one:")}
+    </p>
+
+    <div className="grid sm:grid-cols-2 gap-2.5 mt-5">
+      <a
+        href="https://3.basecamp.com/5958093/projects"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group/btn relative bg-emerald-700 hover:bg-emerald-800 text-white rounded-md p-3 sm:p-4 border-b-4 border-emerald-900 transition-colors flex items-center gap-3"
+        data-testid="hub-projects-basecamp-btn"
+      >
+        <Building2 className="w-6 h-6 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="font-display text-lg sm:text-xl font-black leading-tight">Basecamp</div>
+          <div className="text-[11px] font-mono uppercase tracking-wide opacity-80 truncate">
+            {t("Messages · To-dos · Schedule · Docs")}
+          </div>
+        </div>
+        <ArrowRight className="w-4 h-4 shrink-0 transition-transform group-hover/btn:translate-x-1" />
+      </a>
+      <a
+        href="https://app.onstation.us/login"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group/btn relative bg-blue-700 hover:bg-blue-800 text-white rounded-md p-3 sm:p-4 border-b-4 border-blue-900 transition-colors flex items-center gap-3"
+        data-testid="hub-projects-onstation-btn"
+      >
+        <MapPin className="w-6 h-6 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="font-display text-lg sm:text-xl font-black leading-tight">OnStation</div>
+          <div className="text-[11px] font-mono uppercase tracking-wide opacity-80 truncate">
+            {t("Field staking · Station mapping · GPS")}
+          </div>
+        </div>
+        <ArrowRight className="w-4 h-4 shrink-0 transition-transform group-hover/btn:translate-x-1" />
+      </a>
+    </div>
+
+    <p className="text-[11px] text-slate-500 mt-4 leading-relaxed">
+      {t("Both open in a new tab. Sign in with your Basecamp / OnStation credentials.")}
+    </p>
+  </div>
+);
+
 export default function Hub() {
   const { t } = useT();
 
@@ -196,7 +263,10 @@ export default function Hub() {
             {t("MASCI Hub")}
           </span>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">
-            {t("One place for every MASCI job.")}
+            {t("One place for every ")}
+            <span className="text-red-700">{t("MASCI")}</span>
+            {t(" job")}
+            <span className="text-red-700">.</span>
           </h1>
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
             {t("Safety forms, field reports, project workspaces, and the office console — all under one roof.")}
@@ -237,31 +307,9 @@ export default function Hub() {
             accent="amber"
             testId="hub-section-field"
           />
-          <SectionCard
-            to="https://3.basecamp.com/5958093/projects"
-            icon={Building2}
-            eyebrow="Project Workspaces"
-            title={t("Basecamp")}
-            desc={t("Open the live MASCI Basecamp account in a new tab. All project messages, to-dos, schedules, and docs live there.")}
-            bullets={[
-              t("Opens 3.basecamp.com/5958093 in a new tab"),
-              t("Sign in with your Basecamp credentials"),
-            ]}
-            accent="emerald"
-            testId="hub-section-basecamp"
-          />
-          <SectionCard
-            to="https://app.onstation.us/login"
-            icon={MapPin}
-            eyebrow="Field Layout"
-            title={t("OnStation")}
-            desc={t("Open OnStation for live job staking, station mapping, and field GPS coordination.")}
-            bullets={[
-              t("Opens app.onstation.us in a new tab"),
-              t("Sign in with your OnStation credentials"),
-            ]}
-            accent="blue"
-            testId="hub-section-onstation"
+          <ProjectsCard
+            t={t}
+            testId="hub-section-projects"
           />
           <SectionCard
             to="/admin/login"
