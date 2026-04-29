@@ -2040,7 +2040,35 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
 # ----------------------------------------------------------------------
 BACKUPS_DIR = Path(os.environ.get("BACKUPS_DIR", "/app/backend/backups")).resolve()
 BACKUP_RETENTION_DAYS = int(os.environ.get("BACKUP_RETENTION_DAYS", "14"))
-BACKUP_HOUR_UTC = int(os.environ.get("BACKUP_HOUR_UTC", "2"))   # default 02:00 UTC
+BACKUP_HOUR_UTC = int(os.environ.get("BACKUP_HOUR_UTC", "2"))   # legacy single-window default 02:00 UTC
+
+
+def _parse_backup_hours() -> list[int]:
+    """Parse BACKUP_HOURS_UTC env var (comma-separated UTC hours).
+    Default = "2,18" → nightly + mid-day backups so the field crew always
+    has two off-site recovery points per workday. Falls back to
+    [BACKUP_HOUR_UTC] if the env var is missing/empty. Invalid entries
+    are dropped, duplicates removed, result sorted."""
+    raw = (os.environ.get("BACKUP_HOURS_UTC") or "").strip()
+    if not raw:
+        raw = f"{BACKUP_HOUR_UTC},18"  # default: nightly 02:00 UTC + mid-day 18:00 UTC
+    hours: set[int] = set()
+    for part in raw.split(","):
+        s = part.strip()
+        if not s:
+            continue
+        try:
+            h = int(s)
+            if 0 <= h <= 23:
+                hours.add(h)
+        except ValueError:
+            continue
+    if not hours:
+        hours = {BACKUP_HOUR_UTC}
+    return sorted(hours)
+
+
+BACKUP_HOURS_UTC: list[int] = _parse_backup_hours()
 # DEFENSE LAYER 2 — Hard ceiling on stored backups. The container volume
 # is small (9.8 GB) and a single full backup is ~750 MB. Keeping 3 max
 # means we use ≤ 2.3 GB on backups, leaving plenty of headroom for the
@@ -2541,23 +2569,44 @@ _backup_task: Optional[asyncio.Task] = None
 
 
 async def _backup_scheduler_loop(db) -> None:
-    """Background loop — wakes up every ~60 s, fires the backup once the
-    current UTC hour equals BACKUP_HOUR_UTC and we haven't already run today.
-    Survives missed ticks (e.g., if the container was asleep at 02:00).
+    """Background loop — wakes up every ~5 min and fires the backup once
+    per scheduled UTC hour (BACKUP_HOURS_UTC, default "2,18" — nightly +
+    mid-day). Each (date, hour) slot fires at most once. Survives missed
+    ticks (e.g., container was asleep at 02:00) by re-firing as soon as
+    we cross the hour threshold and notice the slot wasn't filled.
     """
-    last_run_date = None
+    # Per-hour bookkeeping: hour → last date we ran for that slot.
+    last_run_for_hour: dict[int, "datetime.date"] = {}
+    logger.info(
+        f"[scheduled-backup] scheduler armed for UTC hours {BACKUP_HOURS_UTC} "
+        f"(retention={BACKUP_RETENTION_DAYS}d, keep_max={BACKUP_KEEP_MAX})"
+    )
     # Give the app a moment to finish startup before first tick
     await asyncio.sleep(30)
     while True:
         try:
             now = datetime.now(timezone.utc)
             today = now.date()
-            if now.hour >= BACKUP_HOUR_UTC and last_run_date != today:
-                logger.info(f"[scheduled-backup] firing for {today}")
+            # Find the latest scheduled hour we've crossed today that
+            # hasn't fired yet. Earlier missed slots collapse into a
+            # single fire (we don't run two backups back-to-back).
+            due_hour: Optional[int] = None
+            for h in BACKUP_HOURS_UTC:
+                if now.hour >= h and last_run_for_hour.get(h) != today:
+                    due_hour = h  # keep walking — we want the latest crossed slot
+            if due_hour is not None:
+                logger.info(
+                    f"[scheduled-backup] firing for {today} (slot {due_hour:02d}:00 UTC)"
+                )
                 result = await _run_scheduled_backup(db)
                 if result:
-                    last_run_date = today
-                # If it failed, leave last_run_date alone so we retry next tick.
+                    last_run_for_hour[due_hour] = today
+                    # Also mark earlier same-day slots as run so a single
+                    # late fire collapses missed windows into one.
+                    for h in BACKUP_HOURS_UTC:
+                        if h <= due_hour:
+                            last_run_for_hour[h] = today
+                # If it failed, leave the bookkeeping alone so we retry next tick.
         except asyncio.CancelledError:
             raise
         except Exception as e:
@@ -2575,7 +2624,8 @@ async def admin_list_backups(_: bool = Depends(require_admin)):
         "count": len(files),
         "total_bytes": total_bytes,
         "schedule": {
-            "hour_utc": BACKUP_HOUR_UTC,
+            "hour_utc": BACKUP_HOUR_UTC,         # legacy single-window field
+            "hours_utc": BACKUP_HOURS_UTC,       # full list of scheduled UTC hours
             "retention_days": BACKUP_RETENTION_DAYS,
             "storage_dir": str(BACKUPS_DIR),
             "enabled": True,
@@ -3856,8 +3906,9 @@ async def _start_backup_scheduler():
             )
             _emergency_prune_backups(reason=f"boot disk {pct}%")
         _backup_task = asyncio.create_task(_backup_scheduler_loop(db))
+        _hours_str = " · ".join(f"{h:02d}:00" for h in BACKUP_HOURS_UTC) + " UTC"
         logging.getLogger(__name__).info(
-            f"[scheduled-backup] scheduler started — {BACKUP_HOUR_UTC:02d}:00 UTC daily · "
+            f"[scheduled-backup] scheduler started — {_hours_str} · "
             f"keep {BACKUP_RETENTION_DAYS} days · max {BACKUP_KEEP_MAX} files · "
             f"disk-watermark {BACKUP_DISK_HIGH_WATERMARK}% · dir={BACKUPS_DIR}"
         )

@@ -1,5 +1,40 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-29 — Twin-Window Backup Scheduler ✅ (P1 follow-up)
+
+**User request**: "enable a 2nd nightly mid-day backup window to give yourself two off-site recovery points per day with zero risk."
+
+**Shipped**:
+- New `BACKUP_HOURS_UTC` env var (comma-separated UTC hours, default `"2,18"`) replaces the single-window `BACKUP_HOUR_UTC`. Legacy var still honored as fallback for any hour < 24.
+- `_parse_backup_hours()` — drops invalid entries, dedupes, sorts. Empty string falls back to `[BACKUP_HOUR_UTC, 18]`.
+- `_backup_scheduler_loop` rewritten with per-hour bookkeeping: `dict[hour] → last_run_date`. Each (date, hour) slot fires at most once. Earlier same-day slots are auto-marked when a later slot fires so a missed-window catch-up doesn't double-run.
+- `GET /api/admin/backups` schedule struct now exposes `hours_utc: [2, 18]` alongside legacy `hour_utc`.
+- `StoredBackupsPanel.jsx` shows multi-window text (`02:00 · 18:00 UTC`) when array present; falls back to legacy "Daily @ 02:00 UTC" otherwise.
+- Scheduler boot log now reads: `[scheduled-backup] scheduler started — 02:00 · 18:00 UTC · keep 14 days · max 3 files · disk-watermark 75%`.
+- `BACKUP_HOURS_UTC=2,18` added to `/app/backend/.env` for preview parity.
+
+**Tests**: `/app/backend/tests/test_backup_hours_iter27.py` — 6 unit tests covering default, single-window, multi-window, invalid-entries-dropped, empty-fallback, dedupe. All 6 pass.
+
+**Pre-deploy verification (2026-04-29 22:15 UTC, ALL GREEN ✅)**:
+| Check | Result |
+|---|---|
+| `/api/health`, `/api/healthz` | 200 |
+| `/api/equipment-master`, `/employees`, `/suppliers`, `/jobs` | 589 / 234 / 145 / 28 rows |
+| `/api/equipment-types` (Pre-Op data source) | 23 types + checklists ✅ |
+| `/api/inspections`, `/meetings`, `/incidents`, `/daily-reports`, `/equipment-inspections`, `/jhas` | all 200 |
+| Admin login `Happy123!` → 200 (token len 64), wrong pwd → 401 | ✅ |
+| Shop login `Nothappy123!` → 200, shop endpoints 200 | ✅ |
+| Backup schedule `hours_utc: [2, 18]`, retention 14 d, enabled | ✅ |
+| Backend memory after 4 consecutive 529 MB backups | RSS 26 MB / VmPeak 167 MB ✅ |
+| Pytest full suite | **236 passed / 6 skipped / 0 failed** |
+| Lint | backend ruff clean · frontend ESLint clean |
+| Admin Stored Backups UI | screenshot confirms `02:00 · 18:00 UTC` chip rendered |
+| Services | backend RUNNING · frontend RUNNING · mongodb RUNNING |
+
+**READY TO REDEPLOY.** When the deploy lands on `mascidocs.com`, the production env should mirror `BACKUP_HOURS_UTC=2,18` (or be left unset — the new default already adds the mid-day window).
+
+---
+
 ## 2026-04-29 — 🔥 PRODUCTION 520 / OOM — KILLED FOR GOOD ✅
 
 **User pain (verbatim)**: "FIX EVERYTHING" — recurring 520s on mascidocs.com bringing down dropdowns, shop login, daily report saves. 4th recurrence of the OOM crash loop.
