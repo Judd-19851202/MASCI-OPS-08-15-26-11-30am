@@ -13,10 +13,12 @@ import { Button } from "@/components/ui/button";
  * Safety Hub. Accessible at /admin/guide. Crews never see this page.
  *
  * After the MASCI Hub rebrand the structure is now:
- *   🦺 Safety  — inspections, meetings, incidents, JHA, trench box
- *   👷 Field   — daily reports, equipment pre-op
- *   🏗️ Projects — Crew Hub (sign-in required)
- *   🗄️ Admin   — this console
+ *   🦺 Safety   — inspections, meetings, incidents, JHA, trench box
+ *   👷 Field    — daily reports, equipment pre-op
+ *   🏗️ Basecamp  — external link to live MASCI Basecamp (project comms)
+ *   📍 OnStation — external link to OnStation (field staking)
+ *   🗄️ Admin    — this console
+ *   🔧 Shop     — mechanic console
  */
 export default function AdminGuide() {
   return (
@@ -69,14 +71,17 @@ export default function AdminGuide() {
         </div>
 
         {/* STRUCTURE */}
-        <Section icon={ShieldCheck} title="The 4 sections of MASCI Hub" color="slate">
-          <p>Open <code>mascidocs.com</code> and you'll see 4 big tiles. Here's who uses which:</p>
+        <Section icon={ShieldCheck} title="The MASCI Hub at a glance" color="slate">
+          <p>Open <code>mascidocs.com</code> and you'll see the main tiles. Here's who uses which:</p>
           <ul className="ml-5 list-disc space-y-1 mt-2">
             <li>🦺 <strong>Safety</strong> — Compliance forms. Inspections · Meetings · Incidents · JHA Plans · Trench Box Data.</li>
             <li>👷 <strong>Field</strong> — Daily operational logs. Daily Reports · Equipment Pre-Op.</li>
-            <li>🏗️ <strong>Projects</strong> — Crew Hub. Per-job messages, to-dos, schedule, docs, hill charts. Sign-in required.</li>
+            <li>🏗️ <strong>Basecamp</strong> — Opens our live Basecamp account in a new tab. Project messages, to-dos, schedules, docs, and hill charts all live in Basecamp now.</li>
+            <li>📍 <strong>OnStation</strong> — Opens OnStation in a new tab for field staking, station mapping, and GPS coordination.</li>
             <li>🗄️ <strong>Admin</strong> — Office console. Everything in this manual below.</li>
+            <li>🔧 <strong>Shop</strong> — Mechanic console. Equipment list, Pre-Op trends, Sign-off.</li>
           </ul>
+          <p className="mt-3 text-xs text-slate-500"><em>The in-app Crew Hub project workspace was retired on 2026-04-28 — we now use Basecamp for project comms and OnStation for field staking. Both open in a new tab from the Hub home.</em></p>
         </Section>
 
         {/* EVERY DAY */}
@@ -272,11 +277,11 @@ export default function AdminGuide() {
             <li><code>CSV/</code> — one spreadsheet per module (open in Excel)</li>
             <li><code>inspections/pdf/</code>, <code>meetings/pdf/</code>, <code>incidents/pdf/</code>, etc. — every record as a printable PDF</li>
             <li><code>inspections/json/</code>, etc. — every record as a structured data file (includes photos + signatures)</li>
-            <li><code>crew_hub/</code> — all messages, to-dos, schedule, docs, hill charts</li>
             <li><code>safety_aux/</code> — equipment registry, JHA plans, trench-box data</li>
             <li><code>backup_log.txt</code> — human-readable manifest of how many of each thing was saved</li>
             <li><code>backup_manifest.json</code> — machine-readable version used by Restore</li>
           </ul>
+          <p className="mt-3 text-xs text-slate-500"><em>Older backups (pre-2026-04-28) also contain a <code>crew_hub/</code> folder with the in-app Crew Hub messages, to-dos, schedule, docs, and hill charts. New backups skip that folder since the Crew Hub was retired in favor of Basecamp.</em></p>
           <p className="mt-3 font-semibold">
             The .zip is <strong>not encrypted</strong> — anyone with the file can read it. Treat it like a payroll binder:
             keep it somewhere only authorized office staff can access.
@@ -305,9 +310,14 @@ export default function AdminGuide() {
                 <td className="p-2 border border-slate-300 text-xs">Hardcoded gate — prevents randos submitting</td>
               </tr>
               <tr>
-                <td className="p-2 border border-slate-300">Crew Hub <code>/app</code></td>
-                <td className="p-2 border border-slate-300 font-mono">Welcome2MASCI!</td>
-                <td className="p-2 border border-slate-300 text-xs">Each user changes on first login</td>
+                <td className="p-2 border border-slate-300">Shop console <code>/shop</code></td>
+                <td className="p-2 border border-slate-300 font-mono">Nothappy123!</td>
+                <td className="p-2 border border-slate-300 text-xs">Developer updates <code>SHOP_PASSWORD</code> in Emergent env vars</td>
+              </tr>
+              <tr>
+                <td className="p-2 border border-slate-300">Basecamp / OnStation</td>
+                <td className="p-2 border border-slate-300 font-mono text-xs">— external —</td>
+                <td className="p-2 border border-slate-300 text-xs">Sign in on the vendor site (basecamp.com / onstation.us). Not managed here.</td>
               </tr>
             </tbody>
           </table>

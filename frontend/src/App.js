@@ -2,7 +2,7 @@ import React from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
-import { AuthProvider } from "@/lib/authContext";
+// AuthProvider removed 2026-04-28 — Crew Hub scrapped.
 import Hub from "@/pages/Hub";
 import SafetySection from "@/pages/SafetySection";
 import FieldSection from "@/pages/FieldSection";
@@ -61,9 +61,8 @@ function App() {
   return (
     <div className="App">
       <Toaster position="top-center" richColors closeButton />
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
+      <BrowserRouter>
+        <Routes>
             {/* MASCI Hub — public */}
             <Route path="/" element={<Hub />} />
             <Route path="/safety" element={<SafetySection />} />
@@ -158,8 +157,7 @@ function App() {
             <Route path="/daily" element={<Navigate to="/admin/daily" replace />} />
             <Route path="/daily/:id" element={<RedirectWithId base="/admin/daily" />} />
           </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+      </BrowserRouter>
     </div>
   );
 }

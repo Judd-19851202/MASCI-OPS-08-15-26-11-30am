@@ -343,10 +343,9 @@ export default function ComplianceExportPanel() {
         <p className="mt-3 text-xs text-slate-600 leading-relaxed">
           One dated .zip covering <strong>everything</strong> on the system: every safety record
           (CSVs + raw JSON + PDFs + photos + signatures) across all 6 modules,
-          plus the complete <strong>Crew Hub</strong> (projects, users, messages, to-dos, schedule,
-          docs, hill charts, activity log, notifications) and the
-          equipment-unit / JHA-plan / trench-box registries. Drop the .zip on your office NAS
-          or shared drive after download. Restore it anytime from the panel below.
+          plus the equipment-unit / JHA-plan / trench-box registries and employees /
+          suppliers seed data. Drop the .zip on your office NAS or shared drive after
+          download. Restore it anytime from the panel below.
         </p>
       </div>
 

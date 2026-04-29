@@ -1,5 +1,49 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-29 — OnStation Tile + Full Crew Hub Cleanup
+**User request:** Add an OnStation link to the Hub home (the team uses it for field staking) AND verify the user guide and the rest of the system have been scrubbed of stale Crew Hub references.
+
+**Hub home (`Hub.jsx`)** — split the single "Projects (Basecamp)" tile into two side-by-side external tiles:
+- 🏗️ **Basecamp** (green, Building2 icon) → `https://3.basecamp.com/5958093/projects`
+- 📍 **OnStation** (blue, MapPin icon) → `https://app.onstation.us/login`
+
+Both render as `<a target="_blank">` with the "OPEN IN NEW TAB ↗" footer. Updated header comment to drop the "Crew Hub" reference and document both external links.
+
+**AdminGuide (`AdminGuide.jsx`)** — rewrote:
+- "The 4 sections of MASCI Hub" → "The MASCI Hub at a glance" with 6 bullet points (Safety, Field, Basecamp, OnStation, Admin, Shop) + retirement note that the in-app Crew Hub was retired 2026-04-28
+- Backup-zip section: dropped `crew_hub/` from the active-content list and added an italics note that older pre-2026-04-28 backups still contain it
+- Passwords table: removed Crew Hub row, added Shop console row, added external Basecamp/OnStation row pointing users to the vendor sites
+
+**Bilingual i18n (`i18n.js`)** — added Spanish translations for all 9 new tile strings (`Open the live MASCI Basecamp account…`, `Sign in with your Basecamp credentials`, `Open OnStation for live job staking…`, `Sign in with your OnStation credentials`, `Open in new tab ↗`, `Basecamp`, `OnStation`, etc.).
+
+**Code deletions:**
+- `/app/frontend/src/pages/app/` (13 files: AppHome, AppLayout, ChangePassword, DocsPage, HillChartsPage, Login, MessageBoard, MyStuff, ProjectHome, ProjectMembers, SchedulePage, TodosPage, UsersAdmin)
+- `/app/frontend/src/components/ProjectSearch.jsx`
+- `/app/frontend/src/components/NotificationBell.jsx`
+- `/app/frontend/src/components/RequireUser.jsx`
+- `/app/frontend/src/lib/authContext.jsx`
+- `<AuthProvider>` wrapper removed from `App.js`
+- Obsolete tests: `/app/backend/tests/test_jwt_auth_iter18.py`, `/app/backend/tests/test_phase4_crewhub.py`
+- `__pycache__` and `.pytest_cache` cleaned
+
+**CrewRecoveryPanel → SystemRecoveryPanel** — repurposed:
+- Renamed heading to "System Recovery"
+- Removed the password-reset section + form + handler (no more crew users to reset)
+- Removed unused imports (KeyRound, Input)
+- Kept: System status grid (16 collection counts) + Force re-seed equipment/employees/suppliers (with confirm gate)
+- Updated AdminHub.jsx comment
+
+**Hub layout fix in BackupHeroPanel + ComplianceExportPanel** — dropped "Crew Hub message" / "complete Crew Hub (projects, users, messages, to-dos…)" copy from the user-facing backup descriptions, replaced with neutral wording.
+
+**AdminHub header link** — "Crew Hub" → "MASCI Hub" (the home button at top-left of /admin).
+
+**Verified end-to-end:**
+- Lint: ✅ clean across entire `/app/frontend/src/`
+- Boot log: `[boot-self-heal] no non-HQ projects (Crew Hub scrapped) — skipping memberships seed`
+- Hub home screenshot: 2 new tiles (Basecamp + OnStation) render correctly, Admin/Shop tiles intact
+- `/app/login` and `/app/projects/oxford` both 302 to `/`
+- All other endpoints (`/api/health`, admin login, shop login, equipment-master, recovery panel) still return 200
+
 ## 2026-04-28 — Crew Hub SCRAPPED — Replaced by Basecamp Link
 **User decision after repeated lock-outs**: "I'm tired of messing with projects how about this for projects we make a link to basecamp for our existing basecamp system to integrate it & scrap our entire basecamp clone system."
 

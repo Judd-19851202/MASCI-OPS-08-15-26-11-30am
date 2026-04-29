@@ -116,7 +116,7 @@ export default function BackupHeroPanel() {
             {t("Backup & Restore Everything")}
           </h2>
           <p className="text-sm text-slate-600">
-            {t("Two buttons. Your whole MASCI Hub — every form, every photo, every Crew Hub message.")}
+            {t("Two buttons. Your whole MASCI Hub — every safety form, every photo, every PDF.")}
           </p>
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function BackupHeroPanel() {
             </div>
           </div>
           <p className="text-sm text-red-50 leading-relaxed">
-            {t("Downloads a single .zip containing every safety record, photo, signature, PDF, Crew Hub message, to-do, schedule, and doc. Also emails a copy to your inbox.")}
+            {t("Downloads a single .zip containing every safety record, photo, signature, PDF, and supporting document. Also emails a copy to your inbox.")}
           </p>
         </button>
 

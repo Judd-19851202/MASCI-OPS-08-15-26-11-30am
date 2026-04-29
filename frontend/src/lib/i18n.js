@@ -89,6 +89,23 @@ const ES = {
     "Crew Hub — colaboración por trabajo estilo Basecamp",
   "@mentions · My Stuff inbox · Activity feed":
     "@menciones · Bandeja Mi Trabajo · Actividad",
+  // Basecamp + OnStation external links (replaced Crew Hub 2026-04-28)
+  "Open the live MASCI Basecamp account in a new tab. All project messages, to-dos, schedules, and docs live there.":
+    "Abre la cuenta de Basecamp de MASCI en una nueva pestaña. Mensajes, tareas, calendarios y documentos viven ahí.",
+  "Opens 3.basecamp.com/5958093 in a new tab":
+    "Abre 3.basecamp.com/5958093 en una nueva pestaña",
+  "Sign in with your Basecamp credentials":
+    "Inicia sesión con tus credenciales de Basecamp",
+  "Open OnStation for live job staking, station mapping, and field GPS coordination.":
+    "Abre OnStation para estacas de obra, mapeo de estaciones y coordinación GPS en campo.",
+  "Opens app.onstation.us in a new tab":
+    "Abre app.onstation.us en una nueva pestaña",
+  "Sign in with your OnStation credentials":
+    "Inicia sesión con tus credenciales de OnStation",
+  "Open in new tab ↗":
+    "Abrir en nueva pestaña ↗",
+  "Basecamp": "Basecamp",
+  "OnStation": "OnStation",
   "Password-gated · view / print / delete any record":
     "Protegido con contraseña · ver / imprimir / eliminar registros",
   "Backup · Restore · Auto-email routing · Posters":

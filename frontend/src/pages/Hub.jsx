@@ -8,6 +8,7 @@ import {
   Wrench,
   ClipboardCheck,
   ArrowRight,
+  MapPin,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -18,15 +19,17 @@ import { useT } from "@/lib/i18n";
  * MASCI Hub — top-level landing page.
  *
  * The app started as a Safety Hub and has grown into the full MASCI
- * operations platform. Four sections:
+ * operations platform. Sections:
  *
- *   🦺 Safety   — compliance forms (inspections, meetings, incidents, JHA, trench)
- *   👷 Field    — daily operational logs (daily reports, equipment pre-op)
- *   🏗️ Projects — Crew Hub (Basecamp-style project collaboration)
- *   🗄️ Admin    — office console (dashboards, exports, backups, routing)
+ *   🦺 Safety    — compliance forms (inspections, meetings, incidents, JHA, trench)
+ *   👷 Field     — daily operational logs (daily reports, equipment pre-op)
+ *   🏗️ Basecamp  — external link to the live MASCI Basecamp account
+ *   📍 OnStation — external link to the OnStation field-staking app
+ *   🗄️ Admin     — office console (dashboards, exports, backups, routing)
+ *   🔧 Shop      — mechanic / fleet console
  *
- * Each section leads to its own landing so the user always feels they're in
- * the "right neighborhood" for what they're doing.
+ * The "Crew Hub" Basecamp-clone was scrapped 2026-04-28 in favor of linking
+ * out to the real Basecamp + OnStation that the team already pays for.
  */
 
 const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, testId, external, comingSoon }) => {
@@ -238,14 +241,27 @@ export default function Hub() {
             to="https://3.basecamp.com/5958093/projects"
             icon={Building2}
             eyebrow="Project Workspaces"
-            title={t("Projects (Basecamp)")}
+            title={t("Basecamp")}
             desc={t("Open the live MASCI Basecamp account in a new tab. All project messages, to-dos, schedules, and docs live there.")}
             bullets={[
-              t("Opens https://3.basecamp.com/5958093 in a new tab"),
-              t("Sign in with your Basecamp credentials (not MASCI Hub)"),
+              t("Opens 3.basecamp.com/5958093 in a new tab"),
+              t("Sign in with your Basecamp credentials"),
             ]}
             accent="emerald"
-            testId="hub-section-projects"
+            testId="hub-section-basecamp"
+          />
+          <SectionCard
+            to="https://app.onstation.us/login"
+            icon={MapPin}
+            eyebrow="Field Layout"
+            title={t("OnStation")}
+            desc={t("Open OnStation for live job staking, station mapping, and field GPS coordination.")}
+            bullets={[
+              t("Opens app.onstation.us in a new tab"),
+              t("Sign in with your OnStation credentials"),
+            ]}
+            accent="blue"
+            testId="hub-section-onstation"
           />
           <SectionCard
             to="/admin/login"

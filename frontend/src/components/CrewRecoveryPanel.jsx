@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react";
 import {
   ShieldAlert,
   Loader2,
-  KeyRound,
   RefreshCcw,
   CheckCircle2,
   AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -21,22 +19,20 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 /**
- * CrewRecoveryPanel — emergency recovery for the office when nobody can log
- * into the Crew Hub. Authenticated by the LEGACY admin password (X-Admin-Token)
- * — NOT by a Crew Hub JWT — so it works even when every crew owner is locked
- * out.
+ * SystemRecoveryPanel — admin recovery for the office.
+ * Authenticated by the LEGACY admin password (X-Admin-Token).
  *
- * Two operations:
- *   1. Reset any Crew Hub user's password back to a known value.
- *   2. Force-reseed equipment / employees / suppliers from the JSON files
- *      (clears + re-runs the seeds). Use ONLY if those lists are empty.
+ * One remaining operation (the password-reset section was removed when the
+ * Crew Hub was retired in favor of Basecamp on 2026-04-28):
+ *   - Force-reseed equipment / employees / suppliers from the JSON files
+ *     (clears + re-runs the seeds). Use ONLY if those lists are empty.
+ *
+ * Also shows a live system-status grid of every collection count so the
+ * office can see at a glance what's populated and what isn't.
  */
 export default function CrewRecoveryPanel() {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [resetEmail, setResetEmail] = useState("");
-  const [resetPassword, setResetPassword] = useState("");
-  const [resetSubmitting, setResetSubmitting] = useState(false);
   const [reseedConfirmOpen, setReseedConfirmOpen] = useState(false);
   const [reseedRunning, setReseedRunning] = useState(false);
 
@@ -56,33 +52,6 @@ export default function CrewRecoveryPanel() {
     refresh();
   }, []);
 
-  const onReset = async (e) => {
-    e.preventDefault();
-    if (!resetEmail || !resetPassword) {
-      toast.error("Email + new password required");
-      return;
-    }
-    if (resetPassword.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
-    setResetSubmitting(true);
-    try {
-      await api.post("/admin/crew-recovery/reset-password", {
-        email: resetEmail.trim().toLowerCase(),
-        new_password: resetPassword,
-      });
-      toast.success(`Password reset for ${resetEmail}. They must change it on next login.`);
-      setResetEmail("");
-      setResetPassword("");
-      await refresh();
-    } catch (err) {
-      toast.error(err?.response?.data?.detail || "Reset failed");
-    } finally {
-      setResetSubmitting(false);
-    }
-  };
-
   const runReseed = async () => {
     setReseedRunning(true);
     try {
@@ -101,7 +70,6 @@ export default function CrewRecoveryPanel() {
   };
 
   const counts = status?.counts || {};
-  const users = status?.crew_users || [];
 
   // Highlight rows that look "empty" so the office sees at a glance what's missing
   const emptyAlert = ["equipment_master", "employees", "suppliers"].some(
@@ -122,12 +90,13 @@ export default function CrewRecoveryPanel() {
             Emergency Recovery — Use only if locked out
           </div>
           <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 leading-none mt-1">
-            Crew Hub Recovery
+            System Recovery
           </h2>
           <p className="text-sm text-slate-600 mt-2">
-            Reset any Crew Hub user's password from this admin console (works
-            even when nobody can log in), and re-seed equipment / employees /
-            suppliers if those lists are empty after a redeploy.
+            See every database collection at a glance, and re-seed equipment /
+            employees / suppliers if those lists are empty after a redeploy.
+            (The Crew Hub password-reset feature was removed when the in-app
+            Crew Hub was retired in favor of Basecamp.)
           </p>
         </div>
         <Button
@@ -179,91 +148,6 @@ export default function CrewRecoveryPanel() {
             <strong>Equipment / employees / suppliers list is empty.</strong>{" "}
             Use the orange "Force re-seed" button below to repopulate from the
             JSON seed files.
-          </div>
-        )}
-      </div>
-
-      {/* ===== Reset crew user password ===== */}
-      <div className="border-2 border-slate-200 rounded p-3 mb-5">
-        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-700 font-bold mb-2 flex items-center gap-1.5">
-          <KeyRound className="w-3.5 h-3.5" /> Reset Crew Hub password
-        </div>
-        <form onSubmit={onReset} className="grid sm:grid-cols-[1fr_1fr_auto] gap-2">
-          <div>
-            <Input
-              list="crew-emails"
-              placeholder="email@mascigc.com"
-              value={resetEmail}
-              onChange={(e) => setResetEmail(e.target.value)}
-              className="h-10 text-sm"
-              data-testid="crew-recovery-email-input"
-              autoComplete="off"
-            />
-            <datalist id="crew-emails">
-              {users.map((u) => (
-                <option key={u.id} value={u.email}>
-                  {u.email} — {u.role}
-                </option>
-              ))}
-            </datalist>
-          </div>
-          <Input
-            type="text"
-            placeholder="New password (min 8 chars)"
-            value={resetPassword}
-            onChange={(e) => setResetPassword(e.target.value)}
-            className="h-10 text-sm font-mono"
-            data-testid="crew-recovery-password-input"
-            autoComplete="off"
-          />
-          <Button
-            type="submit"
-            disabled={resetSubmitting}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-xs h-10 px-4"
-            data-testid="crew-recovery-reset-btn"
-          >
-            {resetSubmitting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <>
-                <KeyRound className="w-3.5 h-3.5 mr-1" /> Reset
-              </>
-            )}
-          </Button>
-        </form>
-        <p className="text-[11px] text-slate-500 mt-2">
-          The user must change this password on their next login. Type
-          something simple like <code className="bg-slate-100 px-1 rounded">Welcome2MASCI!</code>{" "}
-          and tell them what it is.
-        </p>
-        {users.length > 0 && (
-          <div className="mt-3 text-xs">
-            <div className="font-mono text-[9px] uppercase tracking-wide text-slate-500 mb-1">
-              Crew users on file
-            </div>
-            <ul className="grid sm:grid-cols-2 gap-1">
-              {users.map((u) => (
-                <li
-                  key={u.id}
-                  className="flex items-center justify-between bg-slate-50 border border-slate-200 px-2 py-1 rounded font-mono"
-                >
-                  <span className="truncate">
-                    <button
-                      type="button"
-                      onClick={() => setResetEmail(u.email)}
-                      className="text-red-700 hover:underline"
-                    >
-                      {u.email}
-                    </button>{" "}
-                    <span className="text-[10px] text-slate-500">{u.role}</span>
-                  </span>
-                  <span className="text-[10px] text-slate-400">
-                    {u.is_active ? "active" : "disabled"}
-                    {u.must_change_password ? " · must-change" : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
           </div>
         )}
       </div>

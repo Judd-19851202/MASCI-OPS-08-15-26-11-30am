@@ -136,7 +136,7 @@ export default function AdminHub() {
               className="inline-flex items-center text-white hover:text-red-300 text-xs font-bold uppercase tracking-wide"
               data-testid="admin-hub-public"
             >
-              <Home className="w-4 h-4 mr-1" /> Crew Hub
+              <Home className="w-4 h-4 mr-1" /> MASCI Hub
             </Link>
           </div>
           <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/admin" />
@@ -169,7 +169,7 @@ export default function AdminHub() {
         {/* ONE-STOP backup + restore hero — 2 giant buttons, nothing else */}
         <BackupHeroPanel />
 
-        {/* EMERGENCY: reset crew passwords + force-reseed if locked out / data missing */}
+        {/* EMERGENCY: system status grid + force-reseed if data missing after a redeploy */}
         <CrewRecoveryPanel />
 
         {/* Replace MASCI equipment fleet (.xlsx) — refreshes every dropdown */}
