@@ -217,3 +217,14 @@ backend/backups/MASCI_full_backup_2026-04-29_173233Z.zip
 backend/backups/MASCI_full_backup_2026-04-29_172910Z.zip
 backend/backups/MASCI_full_backup_2026-04-29_173803Z.zip
 backend/backups/MASCI_full_backup_2026-04-29_180252Z.zip
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+backend/backups/MASCI_full_backup_2026-04-29_181556Z.zip
+backend/backups/MASCI_full_backup_2026-04-29_181506Z.zip
