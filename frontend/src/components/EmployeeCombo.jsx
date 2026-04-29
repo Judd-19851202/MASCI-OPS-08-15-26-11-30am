@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { ChevronsUpDown, Search, X, User } from "lucide-react";
+import { ChevronsUpDown, User } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,7 +61,6 @@ export const EmployeeCombo = ({
   const ph = placeholder || t("Type or pick an employee…");
   const [data, setData] = useState({ items: [], count: 0 });
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
   const wrapRef = useRef(null);
 
   useEffect(() => {
@@ -82,10 +81,13 @@ export const EmployeeCombo = ({
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  // Filter the roster using the SAME text the user is typing in the main
+  // input — no separate search box, no focus-stealing autoFocus. This is the
+  // single source of truth for both the form value AND the list filter.
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = (value || "").trim().toLowerCase();
     const items = data.items || [];
-    if (!q) return items.slice(0, 200); // show first 200 to keep DOM light
+    if (!q) return items.slice(0, 200); // show first 200 when empty
     return items
       .filter((it) => {
         const hay = [
@@ -102,31 +104,36 @@ export const EmployeeCombo = ({
         return hay.includes(q);
       })
       .slice(0, 200);
-  }, [data, query]);
+  }, [data, value]);
 
   const pick = (it) => {
     const label = it.name || "";
     onChange?.(label);
     onPick?.(it);
     setOpen(false);
-    setQuery("");
   };
 
   const total = data.count || (data.items || []).length;
-  const showFooterTip =
-    !total ||
-    (filtered.length === 0 && total > 0);
+  // "Custom value" is what the user typed that doesn't exactly match any roster name
+  const exactMatch = filtered.some(
+    (it) => (it.name || "").toLowerCase() === (value || "").trim().toLowerCase()
+  );
+  const showCustomTag = !!(value || "").trim() && !exactMatch && total > 0;
 
   return (
     <div className={`relative ${className}`} ref={wrapRef}>
       <div className="flex gap-1.5">
         <Input
           value={value}
-          onChange={(e) => onChange?.(e.target.value)}
+          onChange={(e) => {
+            onChange?.(e.target.value);
+            if (!open) setOpen(true);
+          }}
           onFocus={() => setOpen(true)}
           placeholder={ph}
           className="flex-1 h-11 text-base border-2 border-slate-300 focus:border-red-700"
           data-testid={`${testId}-input`}
+          autoComplete="off"
         />
         <Button
           type="button"
@@ -146,68 +153,50 @@ export const EmployeeCombo = ({
           className="absolute z-30 mt-1 w-full max-h-72 overflow-auto rounded-md border-2 border-slate-300 bg-white shadow-xl"
           data-testid={`${testId}-panel`}
         >
-          <div className="sticky top-0 bg-white border-b border-slate-200 p-2 flex items-center gap-2">
-            <Search className="w-4 h-4 text-slate-500 shrink-0" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t("Search by name, ID, trade…")}
-              className="flex-1 outline-none text-sm bg-transparent"
-              autoFocus
-              data-testid={`${testId}-search`}
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="text-slate-400 hover:text-slate-700"
-                aria-label="Clear search"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
           {filtered.length === 0 ? (
             <div className="p-4 text-sm text-slate-500 text-center">
               {total === 0
                 ? t("Roster not uploaded yet — type the name freely.")
-                : t("No matches — your typed value will be saved as custom.")}
+                : t("No matches — your typed name will be saved.")}
             </div>
           ) : (
-            filtered.map((it, idx) => {
-              const selected = value && value === it.name;
-              return (
-                <button
-                  key={(it.id || `e-${idx}`) + "-" + idx}
-                  type="button"
-                  onClick={() => pick(it)}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-red-50 border-b border-slate-100 ${
-                    selected ? "bg-red-100" : ""
-                  }`}
-                  data-testid={`${testId}-item-${idx}`}
-                >
-                  <div className="flex items-center gap-2">
-                    <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="font-bold text-slate-900">{it.name}</span>
-                    {it.employee_id && (
-                      <span className="font-mono text-[11px] text-slate-500">
-                        #{it.employee_id}
-                      </span>
-                    )}
-                  </div>
-                  {(it.trade || it.role || it.crew) && (
-                    <div className="text-[11px] text-slate-500 mt-0.5 truncate">
-                      {[it.trade, it.role, it.crew].filter(Boolean).join(" · ")}
+            <>
+              {showCustomTag && (
+                <div className="px-3 py-2 text-xs bg-amber-50 border-b-2 border-amber-300 text-amber-900 font-mono">
+                  {t("Will save as new entry:")} <strong className="font-bold">{value}</strong>
+                </div>
+              )}
+              {filtered.map((it, idx) => {
+                const selected = value && value === it.name;
+                return (
+                  <button
+                    key={(it.id || `e-${idx}`) + "-" + idx}
+                    type="button"
+                    onClick={() => pick(it)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-red-50 border-b border-slate-100 ${
+                      selected ? "bg-red-100" : ""
+                    }`}
+                    data-testid={`${testId}-item-${idx}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="font-bold text-slate-900">{it.name}</span>
+                      {it.employee_id && (
+                        <span className="font-mono text-[11px] text-slate-500">
+                          #{it.employee_id}
+                        </span>
+                      )}
                     </div>
-                  )}
-                </button>
-              );
-            })
-          )}
-          {showFooterTip && (
-            <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
-              {t("Tip: type freely for anyone not in the roster.")}
-            </div>
+                    {(it.trade || it.role || it.crew) && (
+                      <div className="text-[11px] text-slate-500 mt-0.5 truncate">
+                        {[it.trade, it.role, it.crew].filter(Boolean).join(" · ")}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </>
           )}
         </div>
       )}

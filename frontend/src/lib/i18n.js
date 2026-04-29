@@ -114,6 +114,26 @@ const ES = {
     "Ambas se abren en una nueva pestaña. Inicia sesión con tus credenciales de Basecamp / OnStation.",
   "Project Workspaces":
     "Espacios de Proyecto",
+  // Combo dropdowns (employee/supplier/equipment) — added 2026-04-29 in the
+  // big rewrite that fixed the focus-stealing bug. The combos no longer have
+  // a separate search input; the main input filters the list directly.
+  "Type or pick an employee…": "Escribe o elige un empleado…",
+  "Type or pick a supplier…": "Escribe o elige un proveedor…",
+  "Type or pick equipment…": "Escribe o elige equipo…",
+  "Browse roster": "Ver lista",
+  "Browse supplier list": "Ver lista de proveedores",
+  "Browse fleet": "Ver flota",
+  "Roster not uploaded yet — type the name freely.":
+    "Lista no cargada — escribe el nombre libremente.",
+  "Supplier list not uploaded yet — type freely.":
+    "Lista de proveedores no cargada — escribe libremente.",
+  "Equipment list not loaded yet.":
+    "Lista de equipo no cargada todavía.",
+  "No matches — your typed name will be saved.":
+    "Sin coincidencias — el nombre que escribiste se guardará.",
+  "No matches — your typed value will be saved.":
+    "Sin coincidencias — el valor que escribiste se guardará.",
+  "Will save as new entry:": "Se guardará como nueva entrada:",
   "Open in new tab ↗":
     "Abrir en nueva pestaña ↗",
   "Basecamp": "Basecamp",

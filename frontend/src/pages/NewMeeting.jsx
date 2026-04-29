@@ -18,6 +18,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { TopicPicker } from "@/components/TopicPicker";
 import { JobPicker } from "@/components/JobPicker";
+import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { LangToggle } from "@/components/LangToggle";
 import { BilingualConsent } from "@/components/BilingualConsent";
 import { useT, getLang } from "@/lib/i18n";
@@ -520,12 +521,11 @@ export default function NewMeeting({ publicMode = false }) {
                   <X className="w-4 h-4 mr-1" /> {t("Remove")}
                 </Button>
               </div>
-              <Input
+              <EmployeeCombo
                 value={a.name}
-                onChange={(e) => updateAttendee(i, "name", e.target.value)}
-                className={inputCls}
-                placeholder={t("Typed name")}
-                data-testid={`attendee-name-${i}`}
+                onChange={(v) => updateAttendee(i, "name", v)}
+                placeholder={t("Type or pick an employee…")}
+                testId={`attendee-name-${i}`}
               />
               <BilingualConsent variant="meeting" />
               <SignaturePad

@@ -28,6 +28,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
+import { SupplierCombo } from "@/components/SupplierCombo";
 import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
 import { useT, getLang } from "@/lib/i18n";
@@ -510,12 +511,11 @@ export default function NewIncident({ publicMode = false }) {
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   Employer
                 </Label>
-                <Input
+                <SupplierCombo
                   value={data.person_employer}
-                  onChange={(e) => set("person_employer", e.target.value)}
-                  className={inputCls}
+                  onChange={(v) => set("person_employer", v)}
                   placeholder="MASCI / subcontractor name"
-                  data-testid="input-person-employer"
+                  testId="input-person-employer"
                 />
               </div>
               <div>

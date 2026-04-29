@@ -18,6 +18,7 @@ import { YesNo } from "@/components/YesNo";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
+import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT, getLang } from "@/lib/i18n";
 import {
@@ -340,22 +341,22 @@ export default function NewInspection({ publicMode = false }) {
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Inspector Name *
               </Label>
-              <Input
+              <EmployeeCombo
                 value={data.inspector_name}
-                onChange={(e) => set("inspector_name", e.target.value)}
-                className={inputCls}
-                data-testid="input-inspector-name"
+                onChange={(v) => set("inspector_name", v)}
+                placeholder="Type or pick inspector"
+                testId="input-inspector-name"
               />
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Foreman / Supervisor *
               </Label>
-              <Input
+              <EmployeeCombo
                 value={data.foreman_name}
-                onChange={(e) => set("foreman_name", e.target.value)}
-                className={inputCls}
-                data-testid="input-foreman-name"
+                onChange={(v) => set("foreman_name", v)}
+                placeholder="Type or pick foreman / supervisor"
+                testId="input-foreman-name"
               />
             </div>
             <div className="sm:col-span-2">
