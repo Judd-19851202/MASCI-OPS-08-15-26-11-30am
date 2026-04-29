@@ -2651,6 +2651,50 @@ async def admin_scrap_crew_hub(body: dict, _: bool = Depends(require_admin)):
     }
 
 
+# -------------------- Outage alerts (called by SystemHealthBadge) --------------------
+class OutageAlertBody(BaseModel):
+    issue_key: str = Field(..., min_length=1, max_length=200)
+    summary: str = Field(..., min_length=1, max_length=2000)
+    failed_endpoints: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+@api_router.post("/admin/alert-outage")
+async def admin_alert_outage(body: OutageAlertBody, _: bool = Depends(require_admin)):
+    """Sends a one-line outage email via Resend (cooldown-gated).
+
+    Called by the SystemHealthBadge in the admin UI when one of the monitored
+    endpoints starts returning 5xx or fails to respond. Cooldown is
+    OUTAGE_ALERT_COOLDOWN_MINUTES (default 15) per issue_key — duplicate
+    badge fires within that window are suppressed.
+    """
+    from outage_alerts import send_outage_alert
+    rows = body.failed_endpoints or []
+    rows_html = ""
+    if rows:
+        rows_html = "<table style='width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 10px'>"
+        rows_html += "<thead><tr style='background:#f1f5f9;color:#0f172a;text-align:left'>"
+        rows_html += "<th style='padding:6px 8px;border:1px solid #e2e8f0'>Endpoint</th>"
+        rows_html += "<th style='padding:6px 8px;border:1px solid #e2e8f0'>Status</th>"
+        rows_html += "<th style='padding:6px 8px;border:1px solid #e2e8f0'>Latency</th>"
+        rows_html += "</tr></thead><tbody>"
+        for r in rows[:20]:
+            label = str(r.get("label") or r.get("path") or "?")[:40]
+            stat = str(r.get("status") or "—")[:8]
+            ms = str(r.get("ms") or "—")[:8]
+            rows_html += (
+                f"<tr><td style='padding:5px 8px;border:1px solid #e2e8f0;font-family:monospace'>{label}</td>"
+                f"<td style='padding:5px 8px;border:1px solid #e2e8f0;color:#dc2626;font-weight:bold'>{stat}</td>"
+                f"<td style='padding:5px 8px;border:1px solid #e2e8f0;font-family:monospace'>{ms} ms</td></tr>"
+            )
+        rows_html += "</tbody></table>"
+    return await send_outage_alert(
+        issue_key=body.issue_key,
+        subject=f"⚠ MASCI Hub outage — {body.issue_key}",
+        summary=body.summary,
+        details_html=rows_html,
+    )
+
+
 @api_router.get("/admin/persistence-check")
 async def admin_persistence_check(_: bool = Depends(require_admin)):
     """Report whether the running instance is at risk of data loss on redeploy.

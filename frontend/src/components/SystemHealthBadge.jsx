@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CheckCircle2, AlertTriangle, AlertCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 
 /**
@@ -70,7 +71,9 @@ export default function SystemHealthBadge() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [lastChecked, setLastChecked] = useState(null);
+  const [alertSent, setAlertSent] = useState(null); // {ts, key} of last successful alert
   const timerRef = useRef(null);
+  const prevWorstRef = useRef("ok");
 
   const runAll = async () => {
     setLoading(true);
@@ -95,6 +98,49 @@ export default function SystemHealthBadge() {
         return acc;
       }, "ok")
     : "loading";
+
+  // Fire an outage email the moment we transition into "error" (or stay in
+  // error long enough that the server cooldown has elapsed). The server
+  // enforces OUTAGE_ALERT_COOLDOWN_MINUTES so we can call this aggressively
+  // without spamming the inbox.
+  useEffect(() => {
+    if (worst !== "error" || results.length === 0) {
+      prevWorstRef.current = worst;
+      return;
+    }
+    // Only fire on transition into error, or every poll while in error
+    // (server-side cooldown will gate duplicates).
+    const failed = results.filter((r) => r.level === "error");
+    if (failed.length === 0) return;
+    const issueKey = failed.map((r) => r.path).sort().join(",");
+    const summary = `${failed.length} endpoint(s) returning 5xx or unreachable: ${failed.map((r) => `${r.label} (${r.msg})`).join(" · ")}`;
+    api
+      .post("/admin/alert-outage", {
+        issue_key: issueKey,
+        summary,
+        failed_endpoints: failed.map((r) => ({
+          label: r.label,
+          path: r.path,
+          status: r.status,
+          ms: r.ms,
+        })),
+      })
+      .then((res) => {
+        if (res?.data?.sent) {
+          setAlertSent({ ts: new Date(), to: res.data.to, key: issueKey });
+          // light toast only on the first send so we don't nag
+          if (prevWorstRef.current !== "error") {
+            toast.error(`Outage email sent to ${res.data.to}`);
+          }
+        }
+      })
+      .catch(() => {
+        // The /alert-outage call itself may fail if the backend is fully
+        // down — this is the documented limitation. Nothing more we can do
+        // from inside the page; the user already sees the red badge.
+      });
+    prevWorstRef.current = worst;
+  }, [worst, results]);
 
   const badge = {
     ok:      { bg: "bg-emerald-600",  text: "text-emerald-50", label: "ALL OK",   ring: "ring-emerald-300", Icon: CheckCircle2 },
@@ -173,6 +219,16 @@ export default function SystemHealthBadge() {
           {worst === "error" && (
             <div className="mt-2 text-[10px] bg-red-100 border border-red-300 text-red-900 rounded px-2 py-1.5 font-mono">
               ⚠ Backend is returning 5xx or unreachable. Re-deploy or check server logs.
+              {alertSent && (
+                <div className="mt-1 text-[10px] font-mono text-red-800">
+                  📧 Email alert sent to <strong>{alertSent.to}</strong> at {alertSent.ts.toLocaleTimeString()}
+                </div>
+              )}
+            </div>
+          )}
+          {worst !== "error" && alertSent && (
+            <div className="mt-2 text-[10px] bg-emerald-50 border border-emerald-200 text-emerald-900 rounded px-2 py-1.5 font-mono">
+              ✓ Last outage email sent at {alertSent.ts.toLocaleTimeString()} (now recovered)
             </div>
           )}
         </div>
