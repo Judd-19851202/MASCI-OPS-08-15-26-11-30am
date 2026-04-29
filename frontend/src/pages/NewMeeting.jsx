@@ -410,6 +410,9 @@ export default function NewMeeting({ publicMode = false }) {
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-[10px] font-mono text-slate-500 mt-1">
+                {t("Auto-fills when you pick a topic below")}
+              </p>
             </div>
           </div>
         </Section>
@@ -418,9 +421,9 @@ export default function NewMeeting({ publicMode = false }) {
           <div className="bg-red-50 border-2 border-red-200 rounded-md p-4">
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold flex items-center gap-2">
               <span className="inline-flex w-5 h-5 items-center justify-center rounded bg-red-700 text-white text-[10px] font-black">
-                +
+                1
               </span>
-              {t("Topic Library — Pick a topic to prefill")}
+              {t("Pick a topic — Category & all fields below auto-fill")}
             </Label>
             <TopicPicker
               value={templateKey}

@@ -39,6 +39,8 @@ import CheatSheet from "@/pages/CheatSheet";
 import { RequireAdmin } from "@/components/RequireAdmin";
 import { RequireShop } from "@/components/RequireShop";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
+import GlobalKeepalive from "@/components/GlobalKeepalive";
+import BackendStatusBanner from "@/components/BackendStatusBanner";
 
 // Crew Hub (Basecamp-style /app section)
 // Crew Hub pages removed 2026-04-28 — replaced by external Basecamp link.
@@ -61,6 +63,8 @@ function App() {
   return (
     <div className="App">
       <Toaster position="top-center" richColors closeButton />
+      <GlobalKeepalive />
+      <BackendStatusBanner />
       <BrowserRouter>
         <Routes>
             {/* MASCI Hub — public */}
