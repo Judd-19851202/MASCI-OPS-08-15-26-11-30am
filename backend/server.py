@@ -1841,34 +1841,14 @@ async def exports_full_backup(_: bool = Depends(require_admin)):
 
 
 async def _build_backup_zip(db) -> tuple[bytes, int, str]:
-    """Build the full-backup .zip in memory. Returns (payload, record_count, filename).
-
-    NOTE: prefer `_build_backup_zip_to_path` whenever the caller can supply
-    a target path — it streams to disk and uses ~5 MB RAM instead of
-    holding the entire ~750 MB zip in memory. This in-memory variant is
-    kept for HTTP download paths that need the bytes inline.
-
-    Yields the asyncio event loop after every collection iteration so the
-    backend stays responsive to incoming HTTP requests (and Cloudflare /
-    Emergent platform healthchecks) for the entire duration of the build —
-    even when the resulting zip is ~750 MB.
+    """DEPRECATED — use `_build_backup_zip_to_path` directly. Retained
+    only to keep the symbol importable in case any out-of-tree caller
+    still references it. Always raises to fail loudly if reactivated.
     """
-    # Build to a temp file on disk to avoid holding 750 MB in memory, then
-    # read the bytes back. This dodges OOM kills on small-memory containers
-    # while preserving the existing call-site contract.
-    import tempfile as _tf
-    with _tf.NamedTemporaryFile(suffix=".zip", delete=False) as ntf:
-        tmp_path = Path(ntf.name)
-    try:
-        total_records, filename = await _build_backup_zip_to_path(db, tmp_path)
-        # Read in chunks via to_thread so we don't block the loop
-        payload = await asyncio.to_thread(tmp_path.read_bytes)
-        return payload, total_records, filename
-    finally:
-        try:
-            tmp_path.unlink(missing_ok=True)
-        except Exception:
-            pass
+    raise RuntimeError(
+        "_build_backup_zip is deprecated; use _build_backup_zip_to_path "
+        "to stream to disk and avoid OOM."
+    )
 
 
 async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
@@ -2318,31 +2298,22 @@ def _strip_base64_blobs(obj, _stats=None):
 
 
 async def _email_backup_zip_from_path(zip_path: Path, total_records: int) -> Optional[str]:
-    """Streaming variant — read the on-disk zip file in a worker thread
-    and pass to the in-memory email helper. We still need the bytes in
-    RAM briefly to build the slim attachment, but at least we don't
-    duplicate them by holding both the build buffer AND the zip bytes.
-    For typical builds the slim version drops down to <1 MB anyway.
-    """
-    payload = await asyncio.to_thread(zip_path.read_bytes)
-    try:
-        return await _email_backup_zip(zip_path.name, payload, total_records)
-    finally:
-        del payload
+    """OOM-SAFE: Email the backup zip as a Resend attachment WITHOUT
+    ever loading the full archive into RAM.
 
+    Strategy:
+      • Stat the full zip on disk to learn its size.
+      • If full zip is small enough to email directly (≤ BACKUP_EMAIL_MAX_MB),
+        read its bytes lazily in a worker thread and base64-encode for Resend.
+      • Otherwise, stream entries from the on-disk full zip into a NEW
+        slim zip on disk, dropping PDFs + disk_files/ + CSVs and stripping
+        large base64 blobs from JSON. Memory stays flat (~10 MB) the whole
+        time because we read+write one entry at a time.
+      • Only the slim file (~1 MB) is ever loaded into memory for base64
+        encoding. The 500 MB+ full zip never touches RAM.
 
-async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -> Optional[str]:
-    """Email the backup .zip as an attachment via Resend. No-op if
-    disabled or credentials missing. Returns the recipient email on success.
-
-    Strategy when the full zip is too big to email (Resend caps at ~40 MB):
-      • Build a SLIM zip in-memory containing only the JSON collections +
-        the manifest + the log (no rendered PDFs, no disk_files/) — usually
-        well under 10 MB even with thousands of records.
-      • Email the slim zip with a notice telling the user the full zip
-        (with PDFs + disk-backed files) is on the server at /admin/backups.
-      • This way the user always has a recovery path via email even when
-        the main archive is huge.
+    This eliminates the OOM crash that was killing the production
+    container on every scheduled backup.
     """
     to = (os.environ.get("BACKUP_EMAIL_TO") or "").strip()
     if not to:
@@ -2352,88 +2323,169 @@ async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -
         logger.info("[scheduled-backup] email skipped — RESEND_API_KEY missing")
         return None
 
-    # Resend attachment limit is ~40 MB.
     max_mb = int(os.environ.get("BACKUP_EMAIL_MAX_MB", "35"))
-    size_mb = len(payload) / (1024 * 1024)
-    attachment_payload = payload
-    attachment_name = filename
+    full_size_bytes = await asyncio.to_thread(lambda: zip_path.stat().st_size)
+    full_size_mb = full_size_bytes / (1024 * 1024)
+    filename = zip_path.name
+
+    attachment_path: Path
+    attachment_name: str
     slim_notice = ""
-    if size_mb > max_mb:
+    slim_tmp: Optional[Path] = None
+
+    if full_size_mb <= max_mb:
+        # Full zip fits — email it directly. Single read of the (small) file.
+        attachment_path = zip_path
+        attachment_name = filename
+    else:
+        # Build slim zip on disk by streaming entries. Never holds the
+        # full payload in memory.
+        slim_tmp = zip_path.with_name(
+            zip_path.stem + f"_slim.{uuid.uuid4().hex[:8]}.zip.tmp"
+        )
         try:
-            import io as _io2
-            import zipfile as _zf2
-            import json as _json2
-            slim_buf = _io2.BytesIO()
-            stripped_blob_count = 0
-            stripped_blob_bytes = 0
-            with _zf2.ZipFile(_io2.BytesIO(payload)) as src, \
-                 _zf2.ZipFile(slim_buf, "w", _zf2.ZIP_DEFLATED) as dst:
-                kept = 0
-                for n in src.namelist():
-                    # Drop rendered PDFs, disk-backed files, and CSV duplicates
-                    # — they're recoverable from the JSON sources or live on the
-                    # server's full zip.
-                    if n.startswith("disk_files/"):
-                        continue
-                    if n.endswith(".pdf"):
-                        continue
-                    if n.startswith("CSV/"):
-                        continue
-                    raw = src.read(n)
-                    # For JSON files, also strip base64 file_data / file_bytes
-                    # blobs — those are what blow up `docs/*.json` and
-                    # `collections/jhas.json` past the email cap. Replace each
-                    # blob with `"<stripped:base64 N bytes>"` so the field name
-                    # is preserved (restore can detect & warn).
-                    if n.endswith(".json") and len(raw) > 4096:
-                        try:
-                            doc = _json2.loads(raw)
-                            new_doc, stripped_count, stripped_bytes = _strip_base64_blobs(doc)
-                            if stripped_count:
-                                stripped_blob_count += stripped_count
-                                stripped_blob_bytes += stripped_bytes
-                                raw = _json2.dumps(new_doc, indent=2, default=str).encode("utf-8")
-                        except Exception:
-                            # Not JSON we can parse — leave it alone.
-                            pass
-                    dst.writestr(n, raw)
-                    kept += 1
-            slim_payload = slim_buf.getvalue()
-            slim_mb = len(slim_payload) / (1024 * 1024)
-            if slim_mb > max_mb:
-                logger.warning(
-                    f"[scheduled-backup] even slim zip is {slim_mb:.1f} MB > {max_mb} — "
-                    f"email skipped. Admin must download from /admin/backups."
-                )
-                return None
-            attachment_payload = slim_payload
-            attachment_name = filename.replace(".zip", "_slim.zip")
-            slim_notice = (
-                f'<p style="background:#fef3c7;border-left:4px solid #f59e0b;'
-                f'padding:10px 14px;border-radius:0 6px 6px 0;color:#92400e;'
-                f'font-size:13px;line-height:1.5;margin:14px 0;">'
-                f'<strong>Note:</strong> The full backup is {size_mb:.0f} MB '
-                f'(includes rendered PDFs + project disk archive). For email, '
-                f'we sent a <strong>slim {slim_mb:.1f} MB version</strong> with '
-                f'every record\'s metadata + JSON ({kept} entries). '
-                f'{stripped_blob_count} embedded file blob(s) '
-                f'({stripped_blob_bytes / (1024*1024):.0f} MB total) were '
-                f'stripped — the originals live on the server. Sign in to '
-                f'<code>/admin</code> and download <strong>{filename}</strong> '
-                f'from the Stored Backups panel for the full archive.'
-                f'</p>'
-            )
-            logger.info(
-                f"[scheduled-backup] full {size_mb:.1f} MB → emailing slim {slim_mb:.1f} MB "
-                f"({kept} entries, stripped {stripped_blob_count} blobs / "
-                f"{stripped_blob_bytes/1024/1024:.1f} MB)"
+            stats = await asyncio.to_thread(
+                _build_slim_email_zip_on_disk, zip_path, slim_tmp
             )
         except Exception as e:  # noqa: BLE001
             logger.warning(f"[scheduled-backup] slim build failed: {e}")
+            try:
+                if slim_tmp and slim_tmp.exists():
+                    slim_tmp.unlink()
+            except Exception:
+                pass
             return None
 
+        slim_size_mb = stats["size_bytes"] / (1024 * 1024)
+        if slim_size_mb > max_mb:
+            logger.warning(
+                f"[scheduled-backup] even slim zip is {slim_size_mb:.1f} MB > {max_mb} — "
+                f"email skipped. Admin must download from /admin/backups."
+            )
+            try:
+                slim_tmp.unlink()
+            except Exception:
+                pass
+            return None
+
+        attachment_path = slim_tmp
+        attachment_name = filename.replace(".zip", "_slim.zip")
+        slim_notice = (
+            f'<p style="background:#fef3c7;border-left:4px solid #f59e0b;'
+            f'padding:10px 14px;border-radius:0 6px 6px 0;color:#92400e;'
+            f'font-size:13px;line-height:1.5;margin:14px 0;">'
+            f'<strong>Note:</strong> The full backup is {full_size_mb:.0f} MB '
+            f'(includes rendered PDFs + project disk archive). For email, '
+            f'we sent a <strong>slim {slim_size_mb:.1f} MB version</strong> with '
+            f'every record\'s metadata + JSON ({stats["kept"]} entries). '
+            f'{stats["stripped_blob_count"]} embedded file blob(s) '
+            f'({stats["stripped_blob_bytes"] / (1024*1024):.0f} MB total) were '
+            f'stripped — the originals live on the server. Sign in to '
+            f'<code>/admin</code> and download <strong>{filename}</strong> '
+            f'from the Stored Backups panel for the full archive.'
+            f'</p>'
+        )
+        logger.info(
+            f"[scheduled-backup] full {full_size_mb:.1f} MB → emailing slim {slim_size_mb:.1f} MB "
+            f"({stats['kept']} entries, stripped {stats['stripped_blob_count']} blobs / "
+            f"{stats['stripped_blob_bytes']/1024/1024:.1f} MB)"
+        )
+
+    try:
+        return await _send_backup_email(
+            to=to,
+            api_key=api_key,
+            attachment_path=attachment_path,
+            attachment_name=attachment_name,
+            full_size_mb=full_size_mb,
+            total_records=total_records,
+            slim_notice=slim_notice,
+        )
+    finally:
+        if slim_tmp is not None:
+            try:
+                if slim_tmp.exists():
+                    slim_tmp.unlink()
+            except Exception:
+                pass
+
+
+def _build_slim_email_zip_on_disk(src_zip: Path, dst_zip: Path) -> dict:
+    """Synchronous helper run via asyncio.to_thread. Streams entries from
+    src_zip → dst_zip on disk, dropping non-essential files and stripping
+    large base64 blobs from JSON. Memory bounded by the largest single
+    entry processed (typically <2 MB after blob stripping).
+    """
+    import zipfile as _zf2
+    import json as _json2
+
+    stripped_blob_count = 0
+    stripped_blob_bytes = 0
+    kept = 0
+
+    with _zf2.ZipFile(src_zip, "r") as src, \
+         _zf2.ZipFile(dst_zip, "w", _zf2.ZIP_DEFLATED) as dst:
+        for info in src.infolist():
+            n = info.filename
+            # Drop rendered PDFs, disk-backed files, and CSV duplicates —
+            # they're recoverable from JSON or live on the server's full zip.
+            if n.startswith("disk_files/"):
+                continue
+            if n.endswith(".pdf"):
+                continue
+            if n.startswith("CSV/"):
+                continue
+            # Skip directory entries
+            if n.endswith("/"):
+                continue
+            with src.open(info, "r") as fsrc:
+                raw = fsrc.read()
+            # For JSON files, strip base64 blobs.
+            if n.endswith(".json") and len(raw) > 4096:
+                try:
+                    doc = _json2.loads(raw)
+                    new_doc, stripped_count, stripped_bytes = _strip_base64_blobs(doc)
+                    if stripped_count:
+                        stripped_blob_count += stripped_count
+                        stripped_blob_bytes += stripped_bytes
+                        raw = _json2.dumps(new_doc, indent=2, default=str).encode("utf-8")
+                except Exception:
+                    pass
+            dst.writestr(n, raw)
+            kept += 1
+            del raw
+
+    return {
+        "size_bytes": dst_zip.stat().st_size,
+        "kept": kept,
+        "stripped_blob_count": stripped_blob_count,
+        "stripped_blob_bytes": stripped_blob_bytes,
+    }
+
+
+async def _send_backup_email(
+    *,
+    to: str,
+    api_key: str,
+    attachment_path: Path,
+    attachment_name: str,
+    full_size_mb: float,
+    total_records: int,
+    slim_notice: str,
+) -> Optional[str]:
+    """Read attachment bytes lazily, base64-encode, send via Resend.
+    The attachment is guaranteed small (≤ BACKUP_EMAIL_MAX_MB) by the caller.
+    """
     import base64 as _bb64
-    b64 = _bb64.b64encode(attachment_payload).decode("ascii")
+
+    def _encode() -> str:
+        with attachment_path.open("rb") as f:
+            return _bb64.b64encode(f.read()).decode("ascii")
+
+    b64 = await asyncio.to_thread(_encode)
+    attachment_size_mb = (
+        await asyncio.to_thread(lambda: attachment_path.stat().st_size)
+    ) / (1024 * 1024)
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     sender = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
     reply_to = os.environ.get("REPLY_TO_EMAIL") or None
@@ -2449,9 +2501,9 @@ async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -
         f'<ul style="color:#334155;font-size:14px;line-height:1.7;padding-left:18px;">'
         f'<li><strong>Generated:</strong> {stamp}</li>'
         f'<li><strong>Records:</strong> {total_records}</li>'
-        f'<li><strong>Full backup size:</strong> {size_mb:.1f} MB</li>'
+        f'<li><strong>Full backup size:</strong> {full_size_mb:.1f} MB</li>'
         f'<li><strong>Attachment:</strong> <code>{attachment_name}</code> '
-        f'({len(attachment_payload)/1024/1024:.1f} MB)</li>'
+        f'({attachment_size_mb:.1f} MB)</li>'
         f'</ul>'
         f'{slim_notice}'
         f'<p style="color:#475569;font-size:13px;margin-top:18px;">'

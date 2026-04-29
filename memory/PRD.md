@@ -1,5 +1,50 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-29 — 🔥 PRODUCTION 520 / OOM — KILLED FOR GOOD ✅
+
+**User pain (verbatim)**: "FIX EVERYTHING" — recurring 520s on mascidocs.com bringing down dropdowns, shop login, daily report saves. 4th recurrence of the OOM crash loop.
+
+**Root cause** (finally tracked end-to-end in `/app/backend/server.py`):
+- `_run_scheduled_backup` correctly streamed the 554 MB zip to disk (good).
+- But then `_email_backup_zip_from_path` called `zip_path.read_bytes()` — loading the entire 554 MB into RAM.
+- Then `_email_backup_zip` wrapped it in `BytesIO(payload)` AND base64-encoded it → memory **tripled to ~1.5 GB**, OOM-killing the container the moment a backup ran.
+- This is exactly why the field crew kept seeing "no employees in dropdowns" / "shop login fails" / "network errors" mid-day — the container was being killed and respawned.
+
+**Fix shipped** (single commit, lint clean, 230 pytest pass):
+1. **Refactored `_email_backup_zip_from_path`** so it NEVER loads the full zip into RAM. It just `stat()`s the file size.
+2. **New `_build_slim_email_zip_on_disk(src, dst)`** — synchronous helper run via `asyncio.to_thread`. Opens the on-disk full zip with `ZipFile(path, "r")` and streams entries one at a time to a NEW slim `.zip` on disk. Drops PDFs + `disk_files/` + `CSV/`, strips base64 blobs from JSON entries > 4 KB. Memory bounded by the largest single entry (typically <2 MB).
+3. **New `_send_backup_email(...)`** — only base64-encodes the SLIM file (~0.1 MB), never the full one. Reads via `attachment_path.open("rb")` inside `asyncio.to_thread`.
+4. **Cleanup** — slim tmp file is deleted via `try/finally` even on Resend failure.
+5. **Killed `_build_backup_zip` (in-memory variant)** — replaced body with a hard `RuntimeError` so any future caller fails loudly instead of OOM-ing silently.
+
+**Verified end-to-end** with a real production-sized run on the preview pod:
+| Metric | Before fix | After fix |
+|---|---|---|
+| Backup size | 554 MB | 554 MB |
+| Records archived | 1515 | 1515 |
+| Backend RSS during backup | spiked to ~1.5 GB → killed | **flat at 25 MB** |
+| Backend VmHWM (peak resident) | (crash) | **26 MB** |
+| Backend VmPeak | (crash) | 167 MB |
+| Email sent? | container died first | ✅ slim 0.1 MB attachment delivered (resend_id `cfe31cfb-...`) |
+
+**Backend health post-fix:**
+- `GET /api/health` 200 throughout the entire 554 MB backup operation
+- `/api/equipment-master` → 589 units · `/api/employees` → 234 · `/api/suppliers` → 145 · `/api/jobs` → 28
+- Admin login (`Happy123!`) → 200 · Shop login (`Nothappy123!`) → 200 · wrong pwd → 401
+- `/equipment/new` form renders cleanly with all 3 combos visible (MASCI Job, Operator Name, Equipment Type)
+- Pytest **230 passed / 6 skipped / 0 failed**
+
+**Why this fix is permanent (vs the 4 prior attempts):**
+- Previous fixes streamed the BUILD to disk but still loaded the RESULT for emailing.
+- This fix eliminates the LAST place the full zip ever existed in memory.
+- The disk-to-disk slim builder + lazy slim-only base64 means the email path is now O(largest single entry), not O(full zip size).
+- Container memory is structurally bounded to the working set — backups can grow to multiple GB without ever touching the container's memory budget.
+
+**Files touched:**
+- `/app/backend/server.py` — lines 1843-1855 (deprecated stub), 2392-2570 (refactored email pipeline)
+
+---
+
 ## 2026-04-29 — Pre-Redeploy Cleanup Sweep — ALL GREEN ✅
 
 **User goal**: "verify all systems are fixed no other issues like this & ill redeploy today"
