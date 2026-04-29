@@ -1,0 +1,415 @@
+import React, { useEffect, useState } from "react";
+import {
+  Briefcase,
+  Loader2,
+  Plus,
+  Trash2,
+  Upload,
+  RefreshCcw,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+
+/**
+ * AdminJobMasterPanel — manage MASCI active jobs.
+ *
+ * Mirrors EquipmentMasterPanel's UX:
+ *   • Inline "Add Job" form (single)
+ *   • Table of all jobs with edit/delete/toggle-active
+ *   • "Replace from JSON" bulk uploader (drag a .json file with the array)
+ *
+ * Backend:
+ *   GET    /api/admin/jobs
+ *   POST   /api/admin/jobs                  (upsert by project_number)
+ *   PATCH  /api/admin/jobs/{id}/active
+ *   DELETE /api/admin/jobs/{id}
+ *   POST   /api/admin/jobs/bulk-replace     ({rows: [...]})
+ */
+export default function AdminJobMasterPanel() {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [form, setForm] = useState({
+    project_number: "",
+    project_name: "",
+    location: "",
+    client: "",
+    project_manager: "",
+  });
+
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      const r = await api.get("/admin/jobs");
+      setJobs(r.data?.items || []);
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Failed to load jobs");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  const addJob = async (e) => {
+    e?.preventDefault?.();
+    if (!form.project_number.trim() || !form.project_name.trim()) {
+      toast.error("Project number + name are required");
+      return;
+    }
+    setAdding(true);
+    try {
+      await api.post("/admin/jobs", { ...form, active: true });
+      toast.success(`Saved job ${form.project_number}`);
+      setForm({
+        project_number: "",
+        project_name: "",
+        location: "",
+        client: "",
+        project_manager: "",
+      });
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Save failed");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const toggleActive = async (job) => {
+    try {
+      await api.patch(`/admin/jobs/${job.id}/active`, { active: !job.active });
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Toggle failed");
+    }
+  };
+
+  const removeJob = async (job) => {
+    if (
+      !window.confirm(
+        `Delete job #${job.project_number} — ${job.project_name}?\n\nThis cannot be undone.`
+      )
+    )
+      return;
+    try {
+      await api.delete(`/admin/jobs/${job.id}`);
+      toast.success(`Deleted ${job.project_number}`);
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Delete failed");
+    }
+  };
+
+  const runBulk = async () => {
+    let rows;
+    try {
+      rows = JSON.parse(bulkText);
+    } catch (e) {
+      toast.error("That's not valid JSON");
+      return;
+    }
+    if (!Array.isArray(rows)) {
+      toast.error("JSON must be a top-level ARRAY of jobs");
+      return;
+    }
+    setBulkRunning(true);
+    try {
+      const r = await api.post("/admin/jobs/bulk-replace", { rows });
+      toast.success(`Replaced jobs list — ${r.data?.replaced ?? 0} jobs`);
+      setBulkOpen(false);
+      setBulkText("");
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Bulk replace failed");
+    } finally {
+      setBulkRunning(false);
+    }
+  };
+
+  const total = jobs.length;
+  const activeCount = jobs.filter((j) => j.active).length;
+
+  return (
+    <section
+      className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 mb-8 shadow-sm"
+      data-testid="admin-job-master-panel"
+    >
+      <div className="flex items-start gap-3 mb-4">
+        <div className="inline-flex items-center justify-center w-11 h-11 rounded-md bg-red-700 text-white shrink-0">
+          <Briefcase className="w-5 h-5" />
+        </div>
+        <div className="flex-1">
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
+            MASCI Current Jobs
+          </div>
+          <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 leading-none mt-1">
+            Active Jobs Master
+          </h2>
+          <p className="text-sm text-slate-600 mt-2">
+            Add, edit, deactivate, or bulk-replace the MASCI job list. Active jobs
+            show up in the JobPicker on every form. Inactive jobs are hidden from
+            the field but kept on file. Total: <strong>{total}</strong> ({activeCount}{" "}
+            active).
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={refresh}
+            disabled={loading}
+            className="h-9 text-xs font-mono uppercase tracking-wide"
+            data-testid="job-master-refresh"
+          >
+            {loading ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+            ) : (
+              <RefreshCcw className="w-3.5 h-3.5 mr-1" />
+            )}
+            Refresh
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setBulkOpen(true)}
+            className="h-9 text-xs font-mono uppercase tracking-wide"
+            data-testid="job-master-bulk"
+          >
+            <Upload className="w-3.5 h-3.5 mr-1" /> Bulk Replace
+          </Button>
+        </div>
+      </div>
+
+      {/* Add new job form */}
+      <form
+        onSubmit={addJob}
+        className="grid sm:grid-cols-[1fr_2fr_1fr_1fr_1fr_auto] gap-2 mb-4 p-3 border-2 border-slate-200 rounded bg-slate-50"
+      >
+        <div>
+          <Label className="font-mono text-[9px] uppercase tracking-wide text-slate-700">
+            Project #
+          </Label>
+          <Input
+            value={form.project_number}
+            onChange={(e) => setForm({ ...form, project_number: e.target.value })}
+            placeholder="25-21"
+            className="h-9 text-sm mt-1"
+            data-testid="job-master-input-project-number"
+          />
+        </div>
+        <div>
+          <Label className="font-mono text-[9px] uppercase tracking-wide text-slate-700">
+            Project Name
+          </Label>
+          <Input
+            value={form.project_name}
+            onChange={(e) => setForm({ ...form, project_name: e.target.value })}
+            placeholder="SJR2C - Loop Trail - Spruce Creek"
+            className="h-9 text-sm mt-1"
+            data-testid="job-master-input-project-name"
+          />
+        </div>
+        <div>
+          <Label className="font-mono text-[9px] uppercase tracking-wide text-slate-700">
+            Location
+          </Label>
+          <Input
+            value={form.location}
+            onChange={(e) => setForm({ ...form, location: e.target.value })}
+            placeholder="Spruce Creek"
+            className="h-9 text-sm mt-1"
+            data-testid="job-master-input-location"
+          />
+        </div>
+        <div>
+          <Label className="font-mono text-[9px] uppercase tracking-wide text-slate-700">
+            Client
+          </Label>
+          <Input
+            value={form.client}
+            onChange={(e) => setForm({ ...form, client: e.target.value })}
+            placeholder="FDOT"
+            className="h-9 text-sm mt-1"
+            data-testid="job-master-input-client"
+          />
+        </div>
+        <div>
+          <Label className="font-mono text-[9px] uppercase tracking-wide text-slate-700">
+            PM
+          </Label>
+          <Input
+            value={form.project_manager}
+            onChange={(e) =>
+              setForm({ ...form, project_manager: e.target.value })
+            }
+            placeholder="David Jewett"
+            className="h-9 text-sm mt-1"
+            data-testid="job-master-input-pm"
+          />
+        </div>
+        <div className="flex items-end">
+          <Button
+            type="submit"
+            disabled={adding}
+            className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs h-9 px-3 border-b-2 border-red-900"
+            data-testid="job-master-add-btn"
+          >
+            {adding ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <>
+                <Plus className="w-3.5 h-3.5 mr-1" /> Add / Update
+              </>
+            )}
+          </Button>
+        </div>
+      </form>
+
+      {/* Jobs table */}
+      <div className="overflow-x-auto rounded border border-slate-200">
+        <table className="w-full text-sm" data-testid="job-master-table">
+          <thead className="bg-slate-100">
+            <tr className="text-left font-mono text-[10px] uppercase tracking-wide text-slate-700">
+              <th className="px-3 py-2">#</th>
+              <th className="px-3 py-2">Project Name</th>
+              <th className="px-3 py-2">Location</th>
+              <th className="px-3 py-2">Client</th>
+              <th className="px-3 py-2">PM</th>
+              <th className="px-3 py-2 text-center">Active</th>
+              <th className="px-3 py-2 w-12"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={7} className="px-3 py-6 text-center text-slate-500">
+                  <Loader2 className="w-5 h-5 animate-spin inline-block" /> Loading…
+                </td>
+              </tr>
+            ) : jobs.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-3 py-6 text-center text-slate-500">
+                  No jobs yet. Add one above or bulk-replace from JSON.
+                </td>
+              </tr>
+            ) : (
+              jobs.map((j) => (
+                <tr
+                  key={j.id}
+                  className={`border-t border-slate-100 ${j.active ? "" : "bg-slate-50 text-slate-500"}`}
+                  data-testid={`job-row-${j.project_number}`}
+                >
+                  <td className="px-3 py-2 font-mono text-xs whitespace-nowrap">
+                    <span className="inline-block px-1.5 py-0.5 bg-red-700 text-white rounded font-bold">
+                      {j.project_number}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 font-medium">{j.project_name}</td>
+                  <td className="px-3 py-2 text-xs text-slate-600">{j.location || "—"}</td>
+                  <td className="px-3 py-2 text-xs text-slate-600">{j.client || "—"}</td>
+                  <td className="px-3 py-2 text-xs text-slate-600">{j.project_manager || "—"}</td>
+                  <td className="px-3 py-2 text-center">
+                    <button
+                      type="button"
+                      onClick={() => toggleActive(j)}
+                      className={`inline-flex items-center justify-center w-7 h-7 rounded ${j.active ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-slate-200 text-slate-500 hover:bg-slate-300"}`}
+                      title={j.active ? "Click to deactivate" : "Click to activate"}
+                      data-testid={`job-toggle-${j.project_number}`}
+                    >
+                      {j.active ? (
+                        <CheckCircle2 className="w-4 h-4" />
+                      ) : (
+                        <XCircle className="w-4 h-4" />
+                      )}
+                    </button>
+                  </td>
+                  <td className="px-3 py-2">
+                    <button
+                      type="button"
+                      onClick={() => removeJob(j)}
+                      className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-red-600 hover:bg-red-50"
+                      title="Delete"
+                      data-testid={`job-delete-${j.project_number}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Bulk replace dialog */}
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent className="max-w-2xl" data-testid="job-master-bulk-dialog">
+          <DialogHeader>
+            <DialogTitle className="font-display font-black">
+              Bulk replace MASCI jobs
+            </DialogTitle>
+            <DialogDescription>
+              Paste a JSON <strong>array</strong> of jobs. Every existing job is
+              wiped and replaced. Each item needs at minimum{" "}
+              <code>project_number</code> and <code>project_name</code>; optional{" "}
+              <code>location</code>, <code>client</code>,{" "}
+              <code>project_manager</code>, <code>active</code>.
+            </DialogDescription>
+          </DialogHeader>
+          <textarea
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            rows={14}
+            className="w-full font-mono text-xs border-2 border-slate-300 rounded p-2"
+            placeholder={`[
+  {"project_number": "25-21", "project_name": "SJR2C - Loop Trail - Spruce Creek", "client": "City of Port Orange", "project_manager": "Ramon Rodriguez", "active": true}
+]`}
+            data-testid="job-master-bulk-textarea"
+          />
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setBulkOpen(false)}
+              disabled={bulkRunning}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={runBulk}
+              disabled={bulkRunning || !bulkText.trim()}
+              className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
+              data-testid="job-master-bulk-confirm"
+            >
+              {bulkRunning ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Replacing…
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" /> Replace all jobs
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </section>
+  );
+}

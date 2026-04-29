@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { ChevronsUpDown, User } from "lucide-react";
+import { ChevronsUpDown, User, Plus, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
+import { toast } from "sonner";
 
 /**
  * EmployeeCombo
@@ -113,6 +114,36 @@ export const EmployeeCombo = ({
     setOpen(false);
   };
 
+  const [addingNew, setAddingNew] = useState(false);
+  const addToRoster = async (rawName) => {
+    const name = (rawName || "").trim();
+    if (name.length < 2) return;
+    setAddingNew(true);
+    try {
+      const r = await api.post("/employees/add", { name });
+      const created = r?.data?.created;
+      const emp = r?.data?.employee;
+      // Bust the module-level cache so subsequent combos see this person.
+      clearEmployeeCache();
+      // Refresh local roster
+      const fresh = await loadRoster();
+      setData(fresh);
+      toast.success(
+        created ? `Added "${name}" to MASCI roster` : `"${name}" already on roster`
+      );
+      if (emp) {
+        onChange?.(emp.name || name);
+        onPick?.(emp);
+      }
+      setOpen(false);
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || "Failed to add";
+      toast.error(msg);
+    } finally {
+      setAddingNew(false);
+    }
+  };
+
   const total = data.count || (data.items || []).length;
   // "Custom value" is what the user typed that doesn't exactly match any roster name
   const exactMatch = filtered.some(
@@ -154,16 +185,53 @@ export const EmployeeCombo = ({
           data-testid={`${testId}-panel`}
         >
           {filtered.length === 0 ? (
-            <div className="p-4 text-sm text-slate-500 text-center">
-              {total === 0
-                ? t("Roster not uploaded yet — type the name freely.")
-                : t("No matches — your typed name will be saved.")}
+            <div className="p-3 text-sm text-slate-700">
+              <div className="text-center text-slate-500 mb-3">
+                {total === 0
+                  ? t("Roster not uploaded yet — type the name freely.")
+                  : t("No matches.")}
+              </div>
+              {!!(value || "").trim() && (value || "").trim().length >= 2 && (
+                <button
+                  type="button"
+                  onClick={() => addToRoster(value)}
+                  disabled={addingNew}
+                  onMouseDown={(e) => e.preventDefault()}
+                  className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wide text-xs h-10 rounded border-b-2 border-emerald-800"
+                  data-testid={`${testId}-add-btn`}
+                >
+                  {addingNew ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )}
+                  {t("Add")} "{value}" {t("to MASCI roster")}
+                </button>
+              )}
             </div>
           ) : (
             <>
               {showCustomTag && (
-                <div className="px-3 py-2 text-xs bg-amber-50 border-b-2 border-amber-300 text-amber-900 font-mono">
-                  {t("Will save as new entry:")} <strong className="font-bold">{value}</strong>
+                <div className="px-3 py-2 bg-amber-50 border-b-2 border-amber-300 flex items-center gap-2">
+                  <div className="flex-1 text-xs text-amber-900 font-mono truncate">
+                    {t("Will save as new entry:")}{" "}
+                    <strong className="font-bold">{value}</strong>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addToRoster(value)}
+                    disabled={addingNew}
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wider text-[10px] h-7 px-2 rounded border-b-2 border-emerald-800 shrink-0"
+                    data-testid={`${testId}-add-btn`}
+                  >
+                    {addingNew ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Plus className="w-3 h-3" />
+                    )}
+                    {t("Add to roster")}
+                  </button>
                 </div>
               )}
               {filtered.map((it, idx) => {

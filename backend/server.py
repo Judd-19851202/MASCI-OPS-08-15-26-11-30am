@@ -707,6 +707,143 @@ async def list_equipment_types():
     }
 
 
+# -------------------- Jobs Master (replaces static jobLibrary.js) --------------------
+class JobIn(BaseModel):
+    project_number: str = Field(..., min_length=1, max_length=80)
+    project_name: str = Field(..., min_length=1, max_length=300)
+    location: str = ""
+    client: str = ""
+    project_manager: str = ""
+    active: bool = True
+
+
+@api_router.get("/jobs")
+async def list_jobs_public():
+    """Public — drives the JobPicker on every form. Active jobs only."""
+    from jobs_master import list_jobs
+    return {"items": await list_jobs(db, only_active=True)}
+
+
+@api_router.get("/admin/jobs")
+async def admin_list_jobs(_: bool = Depends(require_admin)):
+    from jobs_master import list_jobs
+    return {"items": await list_jobs(db, only_active=False)}
+
+
+@api_router.post("/admin/jobs")
+async def admin_upsert_job(body: JobIn, _: bool = Depends(require_admin)):
+    from jobs_master import upsert_job
+    try:
+        return await upsert_job(db, body.model_dump())
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@api_router.patch("/admin/jobs/{job_id}/active")
+async def admin_set_job_active(
+    job_id: str, body: dict, _: bool = Depends(require_admin)
+):
+    from jobs_master import set_active
+    saved = await set_active(db, job_id, bool(body.get("active", True)))
+    if not saved:
+        raise HTTPException(404, "Job not found")
+    return saved
+
+
+@api_router.delete("/admin/jobs/{job_id}")
+async def admin_delete_job(job_id: str, _: bool = Depends(require_admin)):
+    from jobs_master import delete_job
+    ok = await delete_job(db, job_id)
+    if not ok:
+        raise HTTPException(404, "Job not found")
+    return {"ok": True}
+
+
+@api_router.post("/admin/jobs/bulk-replace")
+async def admin_bulk_replace_jobs(body: dict, _: bool = Depends(require_admin)):
+    """Replace the entire jobs_master collection (used by the bulk uploader).
+    Body: {"rows": [{project_number, project_name, ...}, ...]}.
+    """
+    from jobs_master import bulk_replace
+    rows = body.get("rows") or []
+    if not isinstance(rows, list):
+        raise HTTPException(400, "rows must be a list")
+    try:
+        return await bulk_replace(db, rows)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+# -------------------- Inline "Add to roster" (no admin token) --------------------
+class RosterAddBody(BaseModel):
+    name: str = Field(..., min_length=2, max_length=120)
+
+
+@api_router.post(
+    "/employees/add",
+    dependencies=[Depends(rate_limit_public_post)],
+)
+async def add_employee_from_form(body: RosterAddBody):
+    """Add a new employee to the master roster directly from a form's amber
+    'Will save as new entry' button. Public + rate-limited.
+
+    Idempotent: if an employee with this exact name (case-insensitive) already
+    exists, returns the existing one.
+    """
+    name = body.name.strip()
+    existing = await db.employees.find_one(
+        {"name": {"$regex": f"^{name}$", "$options": "i"}}, {"_id": 0}
+    )
+    if existing:
+        return {"ok": True, "created": False, "employee": existing}
+    doc = {
+        "id": str(uuid.uuid4()),
+        "name": name,
+        "trade": "",
+        "role": "",
+        "crew": "",
+        "employee_id": "",
+        "email": "",
+        "phone": "",
+        "added_via": "field-form",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.employees.insert_one(doc)
+    saved = {k: v for k, v in doc.items() if k != "_id"}
+    return {"ok": True, "created": True, "employee": saved}
+
+
+@api_router.post(
+    "/suppliers/add",
+    dependencies=[Depends(rate_limit_public_post)],
+)
+async def add_supplier_from_form(body: RosterAddBody):
+    """Add a new supplier / vendor / subcontractor to the master list from
+    a form's amber 'Will save as new entry' button. Public + rate-limited.
+
+    Idempotent on case-insensitive name match.
+    """
+    name = body.name.strip()
+    existing = await db.suppliers.find_one(
+        {"name": {"$regex": f"^{name}$", "$options": "i"}}, {"_id": 0}
+    )
+    if existing:
+        return {"ok": True, "created": False, "supplier": existing}
+    doc = {
+        "id": str(uuid.uuid4()),
+        "name": name,
+        "vendor_type": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "added_via": "field-form",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.suppliers.insert_one(doc)
+    saved = {k: v for k, v in doc.items() if k != "_id"}
+    return {"ok": True, "created": True, "supplier": saved}
+
+
 # ---------------------------------------------------------------------------
 # Employees / crew roster — used by Daily Report's "MASCI Crews on Site"
 # section and any other employee dropdown across the platform.
@@ -3583,6 +3720,9 @@ async def _seed_phase1():
         await _seed_employees_from_json()
         await _seed_suppliers_from_json()
         await _create_safety_indexes()
+        # Seed jobs_master from /app/backend/data/jobs_master.json (idempotent)
+        from jobs_master import seed_jobs_master
+        await seed_jobs_master(db)
         # Zero-touch self-heal: auto-split equipment make/model on boot if any
         # units are missing it. Survives redeploys that wipe the DB.
         from data_fixes import boot_self_heal

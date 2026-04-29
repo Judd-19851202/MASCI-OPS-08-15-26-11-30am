@@ -203,3 +203,5 @@ credentials.json
 *.key
 .credentials
 backend/backups/MASCI_full_backup_2026-04-29_143937Z.zip
+backend/backups/MASCI_full_backup_2026-04-29_150708Z.zip
+backend/backups/MASCI_full_backup_2026-04-29_151437Z.zip

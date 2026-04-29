@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Check, ChevronDown, Search, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,23 +15,31 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { JOB_LIBRARY, CUSTOM_JOB_KEY } from "@/lib/jobLibrary";
+import { JOB_LIBRARY as STATIC_LIBRARY, CUSTOM_JOB_KEY } from "@/lib/jobLibrary";
+import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 
-/**
- * MASCI Current Jobs picker.
- *
- * Props:
- *   projectName            - current project name string
- *   projectNumber          - current project number string
- *   onSelect(job|null)     - called with chosen job ({project_name, project_number, location}) or null on Custom
- *   className              - optional wrapper class
- *
- * Behavior:
- *   - Shows the matching job by project_number (if any), otherwise the typed projectName.
- *   - "Custom Job" option clears the lock — user may type anything.
- *   - Caller is responsible for setting project_name / project_number from onSelect.
- */
+// Module-level cache so every <JobPicker> on the page hits the API once.
+let _jobsCache = null;
+let _jobsPromise = null;
+async function loadJobs() {
+  if (_jobsCache) return _jobsCache;
+  if (_jobsPromise) return _jobsPromise;
+  _jobsPromise = api
+    .get("/jobs")
+    .then((r) => {
+      const items = Array.isArray(r.data?.items) ? r.data.items : [];
+      _jobsCache = items.length ? items : STATIC_LIBRARY;
+      return _jobsCache;
+    })
+    .catch(() => {
+      // Network error — fall back to the static seed so the picker still works.
+      _jobsCache = STATIC_LIBRARY;
+      return _jobsCache;
+    });
+  return _jobsPromise;
+}
+
 export function JobPicker({
   projectName = "",
   projectNumber = "",
@@ -39,19 +47,30 @@ export function JobPicker({
   className = "",
 }) {
   const [open, setOpen] = useState(false);
+  const [library, setLibrary] = useState(STATIC_LIBRARY);
   const { t } = useT();
+
+  useEffect(() => {
+    let alive = true;
+    loadJobs().then((jobs) => {
+      if (alive) setLibrary(jobs);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Match by project_number first (canonical key), then by exact name.
   const matched = useMemo(() => {
     if (projectNumber) {
-      const byNum = JOB_LIBRARY.find((j) => j.project_number === projectNumber);
+      const byNum = library.find((j) => j.project_number === projectNumber);
       if (byNum) return byNum;
     }
     if (projectName) {
-      return JOB_LIBRARY.find((j) => j.project_name === projectName) || null;
+      return library.find((j) => j.project_name === projectName) || null;
     }
     return null;
-  }, [projectName, projectNumber]);
+  }, [projectName, projectNumber, library]);
 
   const triggerLabel = matched
     ? `${matched.project_name}  ·  #${matched.project_number}`
@@ -129,11 +148,11 @@ export function JobPicker({
               </CommandItem>
             </CommandGroup>
 
-            <CommandGroup heading={`MASCI Current Jobs · ${JOB_LIBRARY.length}`}>
-              {JOB_LIBRARY.map((j) => (
+            <CommandGroup heading={`MASCI Current Jobs · ${library.length}`}>
+              {library.map((j) => (
                 <CommandItem
                   key={j.project_number}
-                  value={`${j.project_number} ${j.project_name} ${j.location}`}
+                  value={`${j.project_number} ${j.project_name} ${j.location || ""} ${j.project_manager || ""} ${j.client || ""}`}
                   onSelect={() => {
                     onSelect(j);
                     setOpen(false);
@@ -149,9 +168,11 @@ export function JobPicker({
                       <div className="font-medium text-slate-900 leading-snug">
                         {j.project_name}
                       </div>
-                      {j.location && (
+                      {(j.location || j.client || j.project_manager) && (
                         <div className="text-xs text-slate-500 mt-0.5">
-                          {j.location}
+                          {[j.location, j.client && `Client: ${j.client}`, j.project_manager && `PM: ${j.project_manager}`]
+                            .filter(Boolean)
+                            .join("  ·  ")}
                         </div>
                       )}
                     </div>
