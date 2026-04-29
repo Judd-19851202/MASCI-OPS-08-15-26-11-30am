@@ -22,6 +22,7 @@ import ComplianceExportPanel from "@/components/ComplianceExportPanel";
 import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 import BackupHeroPanel from "@/components/BackupHeroPanel";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
+import SystemHealthBadge from "@/components/SystemHealthBadge";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
 import EquipmentPartsPanel from "@/components/EquipmentPartsPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
@@ -142,6 +143,7 @@ export default function AdminHub() {
           <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/admin" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/admin" />
           <div className="flex items-center gap-2">
+            <SystemHealthBadge />
             <Link
               to="/admin/guide"
               className="inline-flex items-center h-9 px-3 rounded-md bg-slate-800 text-white border-2 border-slate-600 hover:border-amber-500 hover:text-amber-300 text-xs font-bold uppercase tracking-wide"
