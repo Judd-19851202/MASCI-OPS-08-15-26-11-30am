@@ -1,5 +1,23 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-29 — Save-All-Photos-As-Zip on Every Report
+**User request:** "Yes for every photo uploaded" — wanted the one-click zip download button on every photo section.
+
+**New `/app/frontend/src/components/PhotoZipDownload.jsx`** — bundles every photo on a report into a single .zip via `JSZip` (added via `yarn add jszip@3.10.1`). Works on both http URLs and `data:image/...` base64 URIs (the app's primary storage). Auto-pads filenames as `01.jpg`, `02.jpg`, … (zero-padded so they sort correctly in Finder/Explorer) inside a folder named after the report. Skips individual fetch failures so one bad photo can't kill the whole zip. Shows toast feedback + spinner. `print:hidden` so it never leaks into print preview.
+
+**Wired into all 5 photo sections**:
+- `ViewInspection.jsx` → `MASCI_Inspection_<id8>_findings.zip`
+- `ViewIncident.jsx` → `MASCI_Incident_<id8>_photos.zip`
+- `ViewMeeting.jsx` → `MASCI_Meeting_<id8>_photos.zip`
+- `ViewDailyReport.jsx` → `MASCI_DR_<id8>_photos.zip`
+- `ViewEquipmentInspection.jsx` → `MASCI_Equipment_<id8>_photos.zip`
+
+Button label `Save all (N) as zip` auto-shows the count. Test IDs: `inspection-photos-zip`, `incident-photos-zip`, `meeting-photos-zip`, `dr-photos-zip`, `equipment-photos-zip`.
+
+**Verified via Playwright**: Zip download triggered for the 2-photo test inspection, file `MASCI_Inspection_fc802988_findings.zip` saved with success toast. Lint clean across all 6 touched files.
+
+**Field-crew use case unlocked**: 1-tap export of every photo from a record for insurance / legal / claims requests, instead of 12 individual taps.
+
 ## 2026-04-29 — Watermark Removal + Click-to-Enlarge Photo Lightbox
 **User request:** "remove watermarks from all picture uploads everywhere also in print or email screens — when you click on a picture make it come open bigger & be able to save by itself if you want, on every doc, form, everything"
 

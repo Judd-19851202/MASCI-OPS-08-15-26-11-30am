@@ -13,6 +13,7 @@ import { MapThumbnail } from "@/components/MapThumbnail";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
+import { PhotoZipDownload } from "@/components/PhotoZipDownload";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import {
   PPE_ITEMS,
@@ -356,8 +357,15 @@ export default function ViewInspection() {
           </div>
           {data.photos?.length > 0 && (
             <div className="mt-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">
-                Photo Documentation ({data.photos.length})
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                  Photo Documentation ({data.photos.length})
+                </div>
+                <PhotoZipDownload
+                  photos={data.photos}
+                  prefix={`MASCI_Inspection_${(data.id || "").slice(0, 8)}_findings`}
+                  testId="inspection-photos-zip"
+                />
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {data.photos.map((p, i) => (

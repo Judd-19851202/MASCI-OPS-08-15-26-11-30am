@@ -9,6 +9,7 @@ import { formatDateLong } from "@/lib/utils";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
+import { PhotoZipDownload } from "@/components/PhotoZipDownload";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import ShopSignoffCard from "@/components/ShopSignoffCard";
 import { itemSeverity } from "@/lib/equipmentSeverity";
@@ -289,10 +290,26 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
 
         {data.photos && data.photos.length > 0 && (
           <div className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
-            <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Photos ({data.photos.length})</h2>
+            <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-slate-200">
+              <h2 className="font-display text-xl font-black text-slate-900">Photos ({data.photos.length})</h2>
+              <PhotoZipDownload
+                photos={data.photos}
+                prefix={`MASCI_Equipment_${(data.id || id || "").slice(0, 8)}_photos`}
+                testId="equipment-photos-zip"
+              />
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {data.photos.map((p, i) => (
-                <img key={i} src={p} alt={`Photo ${i + 1}`} className="w-full aspect-[4/3] object-cover rounded border border-slate-200" />
+                <PhotoLightbox
+                  key={i}
+                  src={p}
+                  alt={`Equipment Photo ${i + 1}`}
+                  filename={`MASCI_Equipment_${(data.id || id || "").slice(0, 8)}_photo${i + 1}.jpg`}
+                  className="block w-full"
+                  testId={`equip-photo-${i}`}
+                >
+                  <img src={p} alt={`Photo ${i + 1}`} className="w-full aspect-[4/3] object-cover rounded border border-slate-200" />
+                </PhotoLightbox>
               ))}
             </div>
           </div>

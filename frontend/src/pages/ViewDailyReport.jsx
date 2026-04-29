@@ -20,6 +20,7 @@ import { MapThumbnail } from "@/components/MapThumbnail";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
+import { PhotoZipDownload } from "@/components/PhotoZipDownload";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 
 const ReportSection = ({ number, title, children }) => (
@@ -400,6 +401,13 @@ export default function ViewDailyReport() {
 
         {data.photos?.length > 0 && (
           <ReportSection number="10" title={`Photos (${data.photos.length})`}>
+            <div className="flex justify-end mb-2 print:hidden">
+              <PhotoZipDownload
+                photos={data.photos}
+                prefix={`MASCI_DR_${(data.id || "").slice(0, 8)}_photos`}
+                testId="dr-photos-zip"
+              />
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {data.photos.map((p, i) => (
                 <PhotoLightbox
