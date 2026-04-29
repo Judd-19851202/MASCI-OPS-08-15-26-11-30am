@@ -151,7 +151,18 @@ async def boot_self_heal(db) -> None:
         logger.warning(f"[boot-self-heal] equipment skipped: {e}")
 
     try:
-        # If any owner/admin has zero project_members rows, run the seed.
+        # Crew Hub was scrapped 2026-04-28 in favor of Basecamp.
+        # Only re-seed memberships if there are actually projects in the DB —
+        # otherwise the boot self-heal would resurrect the wiped collections
+        # every restart.
+        non_hq_count = await db.projects.count_documents(
+            {"archived": {"$ne": True}, "is_hq": {"$ne": True}}
+        )
+        if non_hq_count == 0:
+            logger.info(
+                "[boot-self-heal] no non-HQ projects (Crew Hub scrapped) — skipping memberships seed"
+            )
+            return
         privileged_ids = [
             u["id"]
             async for u in db.users.find(
@@ -159,9 +170,6 @@ async def boot_self_heal(db) -> None:
                 {"_id": 0, "id": 1},
             )
         ]
-        non_hq_count = await db.projects.count_documents(
-            {"archived": {"$ne": True}, "is_hq": {"$ne": True}}
-        )
         needs_seed = False
         if privileged_ids and non_hq_count > 0:
             for uid in privileged_ids:

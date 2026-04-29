@@ -82,6 +82,53 @@ const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, te
     );
   }
 
+  // External tiles (e.g., Basecamp) open in a new tab via <a target="_blank">
+  // instead of react-router's <Link> (which only works for in-app routes).
+  const isExternalUrl = typeof to === "string" && /^https?:\/\//i.test(to);
+  if (isExternalUrl) {
+    return (
+      <a
+        href={to}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 transition-all duration-150 hover:-translate-y-0.5 ${s.ring} flex flex-col`}
+        data-testid={testId}
+      >
+        <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${s.bg}`} />
+        <div className="flex items-start justify-between gap-3">
+          <div className={`inline-flex items-center justify-center w-14 h-14 rounded-md ${s.bg} text-white`}>
+            <Icon className="w-7 h-7" />
+          </div>
+          {eyebrow && (
+            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded ${s.pill} font-mono text-[10px] uppercase tracking-[0.2em] font-bold`}>
+              {eyebrow}
+            </span>
+          )}
+        </div>
+        <h3 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-4">
+          {title}
+        </h3>
+        <p className="text-slate-600 text-sm sm:text-base mt-2 leading-relaxed">{desc}</p>
+        {bullets && (
+          <ul className="mt-4 space-y-1.5 text-xs sm:text-sm text-slate-700">
+            {bullets.map((b) => (
+              <li key={b} className="flex items-start gap-2">
+                <span className={`mt-1.5 w-1 h-1 rounded-full ${s.bg} shrink-0`} />
+                <span>{b}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-6 pt-5 border-t-2 border-slate-100 flex items-center justify-between">
+          <span className={`font-mono text-xs uppercase tracking-[0.2em] font-bold ${accent === "slate" ? "text-slate-800" : accent === "amber" ? "text-amber-700" : accent === "emerald" ? "text-emerald-700" : "text-red-700"}`}>
+            {t("Open in new tab ↗")}
+          </span>
+          <ArrowRight className={`w-5 h-5 transition-transform duration-150 group-hover:translate-x-1 ${accent === "slate" ? "text-slate-800" : accent === "amber" ? "text-amber-600" : accent === "emerald" ? "text-emerald-700" : "text-red-700"}`} />
+        </div>
+      </a>
+    );
+  }
+
   return (
     <Link
       to={to}
@@ -188,18 +235,17 @@ export default function Hub() {
             testId="hub-section-field"
           />
           <SectionCard
-            to="/app"
+            to="https://3.basecamp.com/5958093/projects"
             icon={Building2}
             eyebrow="Project Workspaces"
-            title={t("Projects")}
-            desc={t("Project-by-project message boards, to-dos, schedules, docs, and hill charts. Sign in required.")}
+            title={t("Projects (Basecamp)")}
+            desc={t("Open the live MASCI Basecamp account in a new tab. All project messages, to-dos, schedules, and docs live there.")}
             bullets={[
-              t("Crew Hub — Basecamp-style per-job collaboration"),
-              t("@mentions · My Stuff inbox · Activity feed"),
+              t("Opens https://3.basecamp.com/5958093 in a new tab"),
+              t("Sign in with your Basecamp credentials (not MASCI Hub)"),
             ]}
             accent="emerald"
             testId="hub-section-projects"
-            external
           />
           <SectionCard
             to="/admin/login"

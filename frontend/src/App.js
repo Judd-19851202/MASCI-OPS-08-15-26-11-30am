@@ -41,20 +41,7 @@ import { RequireShop } from "@/components/RequireShop";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 
 // Crew Hub (Basecamp-style /app section)
-import { RequireUser } from "@/components/RequireUser";
-import Login from "@/pages/app/Login";
-import ChangePassword from "@/pages/app/ChangePassword";
-import AppLayout from "@/pages/app/AppLayout";
-import AppHome from "@/pages/app/AppHome";
-import ProjectHome from "@/pages/app/ProjectHome";
-import ProjectMembers from "@/pages/app/ProjectMembers";
-import UsersAdmin from "@/pages/app/UsersAdmin";
-import MessageBoard from "@/pages/app/MessageBoard";
-import TodosPage from "@/pages/app/TodosPage";
-import SchedulePage from "@/pages/app/SchedulePage";
-import DocsPage from "@/pages/app/DocsPage";
-import HillChartsPage from "@/pages/app/HillChartsPage";
-import MyStuff from "@/pages/app/MyStuff";
+// Crew Hub pages removed 2026-04-28 — replaced by external Basecamp link.
 
 const SITE_INSPECTION_CODE = "1982";
 const GateInspection = ({ children }) => (
@@ -69,7 +56,6 @@ const GateInspection = ({ children }) => (
 
 const A = (el) => <RequireAdmin>{el}</RequireAdmin>;
 const S = (el) => <RequireShop>{el}</RequireShop>;
-const U = (el, roles) => <RequireUser requireRole={roles}>{el}</RequireUser>;
 
 function App() {
   return (
@@ -112,23 +98,13 @@ function App() {
             <Route path="/cheat-sheet" element={<Navigate to="/cheatsheet" replace />} />
 
             {/* ============================================================
-                Crew Hub — Phase 1 Basecamp-style per-user workspaces
+                Crew Hub — REMOVED 2026-04-28 (replaced by Basecamp link).
+                All /app/* routes now redirect to the Hub home so any old
+                bookmark or stale token can't land users on the broken
+                Basecamp-clone UI. The /api/auth/* and /api/projects backend
+                routes are kept (used by the admin recovery panel).
                 ============================================================ */}
-            <Route path="/app/login" element={<Login />} />
-            <Route path="/app/change-password" element={U(<ChangePassword />)} />
-
-            <Route path="/app" element={U(<AppLayout />)}>
-              <Route index element={<AppHome />} />
-              <Route path="me" element={<MyStuff />} />
-              <Route path="users" element={U(<UsersAdmin />, ["owner", "admin"])} />
-              <Route path="projects/:projectId" element={<ProjectHome />} />
-              <Route path="projects/:projectId/members" element={<ProjectMembers />} />
-              <Route path="projects/:projectId/messages" element={<MessageBoard />} />
-              <Route path="projects/:projectId/todos" element={<TodosPage />} />
-              <Route path="projects/:projectId/schedule" element={<SchedulePage />} />
-              <Route path="projects/:projectId/docs" element={<DocsPage />} />
-              <Route path="projects/:projectId/hills" element={<HillChartsPage />} />
-            </Route>
+            <Route path="/app/*" element={<Navigate to="/" replace />} />
 
             {/* ============================================================
                 Safety Admin — unchanged

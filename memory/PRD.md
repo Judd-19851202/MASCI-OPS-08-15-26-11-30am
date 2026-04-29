@@ -1,5 +1,31 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-28 — Crew Hub SCRAPPED — Replaced by Basecamp Link
+**User decision after repeated lock-outs**: "I'm tired of messing with projects how about this for projects we make a link to basecamp for our existing basecamp system to integrate it & scrap our entire basecamp clone system."
+
+**What changed:**
+- **Hub page** (`/app/frontend/src/pages/Hub.jsx`): Crew Hub tile replaced with a "Projects (Basecamp)" tile that opens `https://3.basecamp.com/5958093/projects` in a new tab. SectionCard component now supports external `https?://` URLs (renders `<a target="_blank">` instead of `<Link>`).
+- **React Router** (`/app/frontend/src/App.js`): All `/app/*` routes (Login, ChangePassword, AppLayout, AppHome, ProjectHome, ProjectMembers, MessageBoard, TodosPage, SchedulePage, DocsPage, HillChartsPage, MyStuff, UsersAdmin) replaced by a single `<Route path="/app/*" element={<Navigate to="/" replace />} />`. Unused imports + helper `U(el)` removed.
+- **Backend boot seed** (`/app/backend/projects.py`): `seed_initial_projects` is now gated on `CREW_HUB_ENABLED=true`. Without that env var (the new default), boot logs "Projects seed skipped — Crew Hub disabled" and the 32 projects + memberships do not auto-resurrect after a wipe.
+- **Boot self-heal** (`/app/backend/data_fixes.py`): updated to short-circuit the membership seed if there are no non-HQ projects, so wiping the Crew Hub stays wiped across restarts.
+- **One-shot wipe endpoint** (`/app/backend/server.py`): `POST /api/admin/crew-recovery/scrap-crew-hub` (admin-token gated, body `{"confirm":"SCRAP_CREW_HUB"}` required). Wipes 10 collections: projects, project_members, docs, todos, todo_lists, hill_dots, events, messages, notifications, activity_log. KEEPS: users, all safety records (inspections, meetings, JHAs, incidents, daily_reports), equipment, employees, suppliers, backups.
+- **Recovery panel** (`/app/frontend/src/components/CrewRecoveryPanel.jsx`): kept in place — the password-reset section will show an empty user list if users get wiped, but the Force-reseed equipment button remains useful.
+
+**Verified locally:**
+- Wipe endpoint deleted 32 projects + 155 memberships + 194 docs + 5 todos + 1 todo_list + 2 events + 2 messages + 10 notifications + 2 activity_log = 403 rows.
+- Restart confirmed — wipe persists, no auto-resurrect.
+- Frontend `/app/login` and `/app/projects/oxford` both 302 to `/`.
+- New "Projects (Basecamp)" tile renders correctly with green accent and opens `https://3.basecamp.com/5958093/projects` in a new tab.
+
+**To apply on production after redeploy:**
+```
+curl -X POST https://mascidocs.com/api/admin/crew-recovery/scrap-crew-hub \
+  -H "X-Admin-Token: <admin-token-from-login>" \
+  -H "Content-Type: application/json" \
+  -d '{"confirm":"SCRAP_CREW_HUB"}'
+```
+(I'll run this for you from this server once the deploy finishes.)
+
 ## 2026-04-28 — Emergency Crew Hub Recovery Panel (locked-out unblock)
 **Problem reported by user**: On production (mascidocs.com), nobody could log into the Crew Hub. Every email/password combo (including `Welcome2MASCI!` for `safety@mascigc.com` and `jaymn.judd@mascigc.com`) returned "Invalid email or password". Equipment / employees / vendors lists also reported empty. The user was completely locked out with no recovery path because:
 - Crew Hub passwords are stored in `db.users.password_hash` (per-user)

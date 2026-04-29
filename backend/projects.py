@@ -228,7 +228,13 @@ def build_projects_router(db, get_current_user, require_admin_or_owner):
 
 
 async def seed_initial_projects(db) -> None:
-    """Create HQ + one project per MASCI job (idempotent on project id)."""
+    """Create HQ + one project per MASCI job (idempotent on project id).
+    SCRAPPED 2026-04-28: the in-app Crew Hub was replaced by a Basecamp link.
+    Set CREW_HUB_ENABLED=true in backend/.env to re-enable the auto-seed.
+    """
+    if os.environ.get("CREW_HUB_ENABLED", "").lower() not in {"1", "true", "yes"}:
+        logger.info("Projects seed skipped — Crew Hub disabled (CREW_HUB_ENABLED unset)")
+        return
     try:
         await db.projects.create_index("id", unique=True)
         await db.project_members.create_index(

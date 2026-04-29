@@ -2579,6 +2579,68 @@ async def admin_crew_recovery_force_reseed(_: bool = Depends(require_admin)):
     return {"ok": True, "summary": summary}
 
 
+@api_router.post("/admin/crew-recovery/scrap-crew-hub")
+async def admin_scrap_crew_hub(body: dict, _: bool = Depends(require_admin)):
+    """One-shot: WIPE every Crew Hub / projects table from the DB.
+    The MASCI Hub has decided to use Basecamp instead of the in-app Crew Hub.
+
+    Body must include {"confirm": "SCRAP_CREW_HUB"} or 400. Idempotent — safe
+    to re-run (running on an empty DB just returns zeros).
+
+    DELETES (counts returned in the response):
+      - projects, project_members, docs, todos, todo_lists, hill_dots,
+        events, messages, notifications, activity_log
+    KEEPS:
+      - users (so admin can still see who they were if curious; tiny table)
+      - All safety records (inspections, meetings, jhas, incidents, daily_reports)
+      - Equipment master + units + inspections, employees, suppliers
+      - Backups
+    """
+    if (body or {}).get("confirm") != "SCRAP_CREW_HUB":
+        raise HTTPException(
+            400,
+            'Pass {"confirm": "SCRAP_CREW_HUB"} to confirm this destructive action',
+        )
+    wipe_collections = [
+        "projects",
+        "project_members",
+        "docs",
+        "todos",
+        "todo_lists",
+        "hill_dots",
+        "events",
+        "messages",
+        "notifications",
+        "activity_log",
+    ]
+    summary = {}
+    for coll in wipe_collections:
+        try:
+            before = await db[coll].count_documents({})
+            res = await db[coll].delete_many({})
+            summary[coll] = {"before": before, "deleted": res.deleted_count}
+        except Exception as e:
+            summary[coll] = {"error": str(e)}
+    return {
+        "ok": True,
+        "ran_at": datetime.now(timezone.utc).isoformat(),
+        "summary": summary,
+        "kept": [
+            "users",
+            "inspections",
+            "meetings",
+            "jhas",
+            "incidents",
+            "daily_reports",
+            "equipment_master",
+            "equipment_units",
+            "equipment_inspections",
+            "employees",
+            "suppliers",
+        ],
+    }
+
+
 @api_router.get("/admin/persistence-check")
 async def admin_persistence_check(_: bool = Depends(require_admin)):
     """Report whether the running instance is at risk of data loss on redeploy.
