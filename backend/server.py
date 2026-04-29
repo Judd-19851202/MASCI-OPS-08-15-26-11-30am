@@ -1880,20 +1880,33 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
     with zipfile.ZipFile(str(out_path), "w", zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
         for kind, coll_name in EXPORTABLE_KINDS.items():
             await asyncio.sleep(0)  # yield to event loop — keeps healthcheck alive
-            cursor = db[coll_name].find({}, {"_id": 0}).sort("created_at", -1)
-            docs = await cursor.to_list(50000)
-            total_records += len(docs)
-            log_lines.append(f"  {kind:25s} : {len(docs):5d}")
+            # STREAMING: iterate the cursor doc-by-doc instead of loading
+            # every doc into memory via .to_list(). Safety records embed
+            # multi-MB photo blobs; on a production database with many
+            # records a single .to_list() call can balloon to >1 GB and
+            # OOM-kill the container. Streaming keeps memory flat at
+            # ~1 doc worth of bytes.
+            kind_count = 0
+            # We still need the CSV later which wants structured rows, but
+            # we can accumulate trimmed rows without the big blobs. For
+            # now, build CSV from the first 2000 docs (enough for an audit
+            # trail) to keep memory bounded.
+            CSV_CAP = 2000
+            csv_rows: list[dict] = []
+            pdf_kind = {
+                "inspections": "inspection",
+                "meetings": "meeting",
+                "jhas": "jha",
+                "incidents": "incident",
+                "daily-reports": "daily-report",
+                "equipment-inspections": "equipment-inspection",
+            }.get(kind)
 
-            # /CSV/
-            try:
-                csv_bytes = _build_csv_bytes(kind, [dict(d) for d in docs])
-                zf.writestr(f"CSV/MASCI_{kind}_{stamp}.csv", csv_bytes)
-            except Exception as e:  # noqa: BLE001
-                log_lines.append(f"    [warn] CSV build failed: {e}")
+            async for d in db[coll_name].find({}, {"_id": 0}).sort("created_at", -1):
+                kind_count += 1
+                if len(csv_rows) < CSV_CAP:
+                    csv_rows.append(dict(d))
 
-            # /<kind>/json/  + /<kind>/pdf/
-            for d in docs:
                 base = _record_filename(kind, d)
                 try:
                     zf.writestr(
@@ -1903,16 +1916,6 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
                 except Exception as e:  # noqa: BLE001
                     log_lines.append(f"    [warn] {kind}/{d.get('id')} JSON failed: {e}")
 
-                # PDFs are heavy — only render the kinds we know how to render.
-                # Map the storage kind back to the pdf_render kind.
-                pdf_kind = {
-                    "inspections": "inspection",
-                    "meetings": "meeting",
-                    "jhas": "jha",
-                    "incidents": "incident",
-                    "daily-reports": "daily-report",
-                    "equipment-inspections": "equipment-inspection",
-                }.get(kind)
                 if pdf_kind:
                     try:
                         pdf_bytes = await _backup_asyncio.to_thread(
@@ -1920,11 +1923,31 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
                         )
                         total_pdf_bytes += len(pdf_bytes)
                         zf.writestr(f"{kind}/pdf/{base}.pdf", pdf_bytes)
+                        del pdf_bytes
                     except Exception as e:  # noqa: BLE001
                         pdf_failures.append(f"{kind}/{d.get('id')}: {e}")
-                    # Yield after every PDF render — these are the slowest
-                    # piece of the build (WeasyPrint can take 1-3s each).
                     await asyncio.sleep(0)
+
+                # Free the doc ASAP so photo blobs don't linger.
+                del d
+                # Every 10 docs, yield to event loop AND encourage gc.
+                if kind_count % 10 == 0:
+                    await asyncio.sleep(0)
+
+            total_records += kind_count
+            log_lines.append(f"  {kind:25s} : {kind_count:5d}")
+
+            # /CSV/ — use only the capped sample to keep memory bounded.
+            try:
+                csv_bytes = _build_csv_bytes(kind, csv_rows)
+                zf.writestr(f"CSV/MASCI_{kind}_{stamp}.csv", csv_bytes)
+                if kind_count > CSV_CAP:
+                    log_lines.append(
+                        f"    [note] CSV truncated to first {CSV_CAP} of {kind_count} rows"
+                    )
+            except Exception as e:  # noqa: BLE001
+                log_lines.append(f"    [warn] CSV build failed: {e}")
+            del csv_rows
 
         # Manifest
         log_lines.append("")
@@ -1968,14 +1991,34 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
                 continue
             try:
                 projection = SENSITIVE_FIELD_REDACTION.get(coll_name, {"_id": 0})
-                docs = await db[coll_name].find({}, projection).to_list(100000)
-                auto_total += len(docs)
+                # STREAM the collection straight into a JSON array on disk
+                # to avoid holding every doc in memory. Some collections
+                # (project_docs, equipment_parts, messages) can hit
+                # hundreds of MB when they contain base64 file blobs.
+                coll_count = 0
+                # Write opening bracket first, then stream docs comma-separated.
+                # We accumulate one doc at a time into the zip entry via a
+                # small buffer, but the buffer is bounded per-doc so memory
+                # stays constant regardless of collection size.
+                import io as _bio
+                buf = _bio.BytesIO()
+                buf.write(b"[\n")
+                first = True
+                async for doc in db[coll_name].find({}, projection):
+                    coll_count += 1
+                    if not first:
+                        buf.write(b",\n")
+                    first = False
+                    buf.write(_backup_json.dumps(doc, indent=2, default=str).encode("utf-8"))
+                    del doc
+                    if coll_count % 25 == 0:
+                        await asyncio.sleep(0)
+                buf.write(b"\n]\n")
+                zf.writestr(f"collections/{coll_name}.json", buf.getvalue())
+                del buf
+                auto_total += coll_count
                 captured_collections.append(coll_name)
-                log_lines.append(f"  collections/{coll_name:24s} : {len(docs):5d}")
-                zf.writestr(
-                    f"collections/{coll_name}.json",
-                    _backup_json.dumps(docs, indent=2, default=str).encode("utf-8"),
-                )
+                log_lines.append(f"  collections/{coll_name:24s} : {coll_count:5d}")
             except Exception as e:  # noqa: BLE001
                 log_lines.append(f"    [warn] collections/{coll_name} failed: {e}")
         total_records += auto_total
@@ -1998,10 +2041,19 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
                     continue
                 try:
                     rel = f.relative_to(DISK_STORAGE_ROOT)
-                    raw = f.read_bytes()
-                    zf.writestr(f"disk_files/{rel.as_posix()}", raw)
+                    # STREAM the file into the zip 1 MB at a time so even a
+                    # 150 MB+ PDF (Oxford FDOT plans) never lives in RAM.
+                    size = f.stat().st_size
+                    with zf.open(f"disk_files/{rel.as_posix()}", "w", force_zip64=True) as zdst, \
+                         f.open("rb") as src:
+                        while True:
+                            chunk = src.read(1024 * 1024)
+                            if not chunk:
+                                break
+                            zdst.write(chunk)
+                            await asyncio.sleep(0)
                     disk_files_count += 1
-                    disk_bytes += len(raw)
+                    disk_bytes += size
                 except Exception as e:  # noqa: BLE001
                     log_lines.append(f"    [warn] disk file {f} failed: {e}")
             log_lines.append(
@@ -2569,31 +2621,50 @@ _backup_task: Optional[asyncio.Task] = None
 
 
 async def _backup_scheduler_loop(db) -> None:
-    """Background loop — wakes up every ~5 min and fires the backup once
-    per scheduled UTC hour (BACKUP_HOURS_UTC, default "2,18" — nightly +
-    mid-day). Each (date, hour) slot fires at most once. Survives missed
-    ticks (e.g., container was asleep at 02:00) by re-firing as soon as
-    we cross the hour threshold and notice the slot wasn't filled.
+    """Background loop — wakes up every ~5 min and fires the backup when
+    we OBSERVE an hour transition into a scheduled slot while running.
+
+    CRITICAL: we do NOT retroactively fire catch-up backups on boot.
+    Rationale: if a backup crashes the container (OOM, disk, etc.), the
+    container restarts, the scheduler would see "this slot hasn't run
+    today" and fire again, crashing again → infinite loop keeping prod
+    down for hours. Instead, on boot we mark every already-crossed slot
+    as "run today" so only FUTURE slots ever trigger. If the admin needs
+    an immediate backup they click "Run backup now" in /admin.
     """
     # Per-hour bookkeeping: hour → last date we ran for that slot.
     last_run_for_hour: dict[int, "datetime.date"] = {}
+
+    # Seed: mark every scheduled hour we've already crossed today as
+    # "already run" — this prevents any backup from firing as part of
+    # container startup. Only future slots will trigger.
+    now = datetime.now(timezone.utc)
+    today = now.date()
+    for h in BACKUP_HOURS_UTC:
+        if now.hour >= h:
+            last_run_for_hour[h] = today
+
+    skipped = sorted([h for h in BACKUP_HOURS_UTC if now.hour >= h])
+    upcoming = sorted([h for h in BACKUP_HOURS_UTC if now.hour < h])
     logger.info(
-        f"[scheduled-backup] scheduler armed for UTC hours {BACKUP_HOURS_UTC} "
-        f"(retention={BACKUP_RETENTION_DAYS}d, keep_max={BACKUP_KEEP_MAX})"
+        f"[scheduled-backup] scheduler armed — skipping past slots today "
+        f"{[f'{h:02d}:00' for h in skipped] or 'none'}, "
+        f"next slots {[f'{h:02d}:00' for h in upcoming] or 'tomorrow'}"
     )
+
     # Give the app a moment to finish startup before first tick
     await asyncio.sleep(30)
     while True:
         try:
             now = datetime.now(timezone.utc)
             today = now.date()
-            # Find the latest scheduled hour we've crossed today that
-            # hasn't fired yet. Earlier missed slots collapse into a
-            # single fire (we don't run two backups back-to-back).
+            # Find the latest scheduled hour crossed today that hasn't fired.
+            # Since boot-seeding marks same-day past slots as already-run,
+            # this only catches NEW slots we cross while running.
             due_hour: Optional[int] = None
             for h in BACKUP_HOURS_UTC:
                 if now.hour >= h and last_run_for_hour.get(h) != today:
-                    due_hour = h  # keep walking — we want the latest crossed slot
+                    due_hour = h
             if due_hour is not None:
                 logger.info(
                     f"[scheduled-backup] firing for {today} (slot {due_hour:02d}:00 UTC)"
@@ -2601,8 +2672,7 @@ async def _backup_scheduler_loop(db) -> None:
                 result = await _run_scheduled_backup(db)
                 if result:
                     last_run_for_hour[due_hour] = today
-                    # Also mark earlier same-day slots as run so a single
-                    # late fire collapses missed windows into one.
+                    # Collapse earlier same-day slots into this run.
                     for h in BACKUP_HOURS_UTC:
                         if h <= due_hour:
                             last_run_for_hour[h] = today

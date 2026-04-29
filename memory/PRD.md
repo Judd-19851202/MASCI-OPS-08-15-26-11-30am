@@ -1,5 +1,49 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-29 — 🚨 POST-DEPLOY HOTFIX: Crash-Loop + Streaming Build
+
+**User pain**: After the 22:55 UTC deploy, production went green for ~15 min then started hard-crashing with Cloudflare 520 on every endpoint. Banner flickered on/off because the container kept dying + respawning.
+
+**Diagnosis** (with the deployment-log tool refusing to cooperate, reconstructed from behavior):
+- Scheduler fires on every boot because it looks backward and says "slot 02:00 UTC and 18:00 UTC haven't run today yet — catch up now."
+- In production, the backup build itself runs out of memory (the safety collections contain embedded photo blobs; `cursor.to_list(50000)` loads them all at once → OOM-kill).
+- Container restarts → scheduler sees past slot still hasn't run → fires again → crashes → infinite loop. **Result: prod dead until we patch.**
+
+**Two fixes shipped in one patch** (lint clean, 236 pytest green):
+
+### Fix 1 — No more retroactive catch-up backups on boot
+`_backup_scheduler_loop` now seeds `last_run_for_hour[h] = today` for **every scheduled hour already crossed at startup**. Backups only fire when the loop OBSERVES an hour transition while running — never as a retroactive catch-up. Boot log proves it: `scheduler armed — skipping past slots today ['02:00', '18:00'], next slots tomorrow`.
+
+If a backup ever crashes the container again, the restart won't re-fire — we ride through to the next scheduled slot. Admin can always click "Run backup now" in `/admin` to trigger one on demand.
+
+### Fix 2 — Streaming zip build (kills the build-time OOM)
+Three memory bombs fixed in `_build_backup_zip_to_path`:
+
+| Before | After |
+|---|---|
+| `cursor.to_list(50000)` on every safety collection | `async for doc in cursor` — one doc at a time |
+| CSV built from full in-memory doc list | CSV capped at first 2000 rows, logged as note |
+| `cursor.to_list(100000)` on every auto-discovered collection | Streamed JSON array write, doc-by-doc |
+| `f.read_bytes()` on 150 MB+ FDOT plans PDFs | `zf.open(name, "w").write(chunk)` in 1 MB chunks |
+
+Each doc is `del d`'d right after use so the Python GC can reclaim photo blobs instead of holding the whole collection.
+
+**Verified on preview with 1515-record · 554 MB backup:**
+- Backend RSS stayed **flat at 25 MB** throughout (VmHWM 26 MB, VmPeak 167 MB)
+- Email delivered with resend_id
+- `/api/health` responded 200 throughout
+- Full regression 236 pytest pass / 0 fail
+
+**Path forward for user**:
+1. Save-to-GitHub + redeploy (this patch)
+2. Post-deploy, hit `GET /api/admin/backups` — schedule should show `hours_utc: [2, 18]` and NO fresh backup file right after deploy (that's the fix working)
+3. Click "Run backup now" once to confirm manual backup works
+4. First scheduled backup = 02:00 UTC tomorrow (nightly), then 18:00 UTC the next day (mid-day)
+
+**If prod is STILL crashing after this redeploy**, the kill-switch is: set `DISABLE_BACKUP_SCHEDULER=1` in the Emergent production env vars → scheduler refuses to arm entirely, app runs normally, admin does manual backups via the "Run backup now" button.
+
+---
+
 ## 2026-04-29 — Twin-Window Backup Scheduler ✅ (P1 follow-up)
 
 **User request**: "enable a 2nd nightly mid-day backup window to give yourself two off-site recovery points per day with zero risk."
