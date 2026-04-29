@@ -697,6 +697,16 @@ async def list_equipment_master(category: Optional[str] = None):
     }
 
 
+@api_router.get("/equipment-types")
+async def list_equipment_types():
+    """Public — list of equipment types + checklist templates used by the
+    Equipment Pre-Op form to render the right walk-around questions."""
+    return {
+        "types": EQUIPMENT_TYPES,
+        "checklists": CHECKLISTS,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Employees / crew roster — used by Daily Report's "MASCI Crews on Site"
 # section and any other employee dropdown across the platform.

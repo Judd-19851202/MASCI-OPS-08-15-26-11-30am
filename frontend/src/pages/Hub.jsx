@@ -241,7 +241,7 @@ const ProjectsCard = ({ t, testId }) => (
 );
 
 export default function Hub() {
-  const { t } = useT();
+  const { t, lang } = useT();
 
   return (
     <div className="min-h-screen blueprint-bg">
@@ -263,10 +263,20 @@ export default function Hub() {
             {t("MASCI Hub")}
           </span>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">
-            {t("One place for every ")}
-            <span className="text-red-700">{t("MASCI")}</span>
-            {t(" job")}
-            <span className="text-red-700">.</span>
+            {lang === "es" ? (
+              <>
+                {"Un solo lugar para cada trabajo de "}
+                <span className="text-red-700">MASCI</span>
+                <span className="text-red-700">.</span>
+              </>
+            ) : (
+              <>
+                {"One place for every "}
+                <span className="text-red-700">MASCI</span>
+                {" job"}
+                <span className="text-red-700">.</span>
+              </>
+            )}
           </h1>
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
             {t("Safety forms, field reports, project workspaces, and the office console — all under one roof.")}

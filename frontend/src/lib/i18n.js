@@ -62,7 +62,9 @@ const ES = {
   // Branding / hub
   "MASCI Safety Hub": "Centro MASCI",
   "MASCI Hub": "Centro MASCI",
-  "One place for every MASCI job.": "Un solo lugar para cada trabajo de MASCI.",
+  // "One place for every MASCI job." is now rendered directly in Hub.jsx
+  // with a per-language branch (since the trailing " job" doesn't appear in
+  // the Spanish version) — no t() call to translate.
   "Safety forms, field reports, project workspaces, and the office console — all under one roof.":
     "Formularios de seguridad, reportes de campo, espacios de proyecto y la consola de oficina — todo bajo un techo.",
   "Safety": "Seguridad",
@@ -112,11 +114,6 @@ const ES = {
     "Ambas se abren en una nueva pestaña. Inicia sesión con tus credenciales de Basecamp / OnStation.",
   "Project Workspaces":
     "Espacios de Proyecto",
-  "One place for every ":
-    "Un solo lugar para cada trabajo de ",
-  " job":
-    "",
-  "MASCI": "MASCI",
   "Open in new tab ↗":
     "Abrir en nueva pestaña ↗",
   "Basecamp": "Basecamp",
