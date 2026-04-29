@@ -164,19 +164,13 @@ class TestAdminJobs:
         )
         assert upd.status_code == 200, upd.text
         assert upd.json()["project_name"] == "TEST_Job Alpha Updated"
-        # BUG CHECK: upsert regenerates `id` on every call because the frontend
-        # form does not pass `id` back and _normalize() falls through to
-        # str(uuid.uuid4()) + $set. This silently orphans the original id,
-        # breaking any subsequent PATCH/DELETE by id. Re-fetch the latest id
-        # for the rest of the test so toggle/delete paths can be verified.
+        # FIXED: upsert now uses $setOnInsert for id/created_at, so the id
+        # remains stable across updates by project_number.
         new_id = upd.json()["id"]
-        if new_id != job_id:
-            # Record the regression but keep testing downstream behaviour.
-            pytest.skip(
-                "KNOWN BUG: POST /api/admin/jobs upsert regenerates `id` "
-                f"on update ({job_id} -> {new_id}). See test report."
-            )
-        job_id = new_id
+        assert new_id == job_id, (
+            f"Upsert MUST preserve id across updates "
+            f"(was {job_id}, got {new_id})"
+        )
 
         # TOGGLE active off
         patch = requests.patch(

@@ -89,16 +89,34 @@ async def list_jobs(db, only_active: bool = True) -> List[Dict[str, Any]]:
 
 
 async def upsert_job(db, body: Dict[str, Any]) -> Dict[str, Any]:
-    """Upsert by project_number. Returns the saved doc."""
+    """Upsert by project_number. Returns the saved doc.
+
+    `id` and `created_at` are insert-only: on update we never overwrite the
+    existing primary key, otherwise PATCH/DELETE by id would 404 right after
+    an Add/Update click.
+    """
     doc = _normalize(body)
     if not doc["project_number"]:
         raise ValueError("project_number is required")
     if not doc["project_name"]:
         raise ValueError("project_name is required")
-    doc["updated_at"] = _now()
+    now = _now()
+    insert_only = {
+        "id": doc["id"],
+        "created_at": doc.get("created_at") or now,
+    }
+    update_fields = {
+        "project_number": doc["project_number"],
+        "project_name": doc["project_name"],
+        "location": doc["location"],
+        "client": doc["client"],
+        "project_manager": doc["project_manager"],
+        "active": doc["active"],
+        "updated_at": now,
+    }
     await db.jobs_master.update_one(
         {"project_number": doc["project_number"]},
-        {"$set": doc},
+        {"$set": update_fields, "$setOnInsert": insert_only},
         upsert=True,
     )
     saved = await db.jobs_master.find_one(

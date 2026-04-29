@@ -1,5 +1,25 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-29 — DB-Backed Jobs Master + Inline "+ Add to Roster" — VERIFIED & SHIPPED
+**User request:** (1) inline "+ Add to MASCI roster" button on EmployeeCombo + matching "+ Add to vendor list" button on SupplierCombo so novel typed names persist back to master data on the fly; (2) admin-managed, DB-backed jobs list parsed from the user's uploaded "Current Job list.pdf" replacing the static frontend `jobLibrary.js`, with full CRUD via a new AdminJobMasterPanel.
+
+**Backend** — new `/app/backend/jobs_master.py` module:
+- Schema: `jobs_master` (project_number unique, project_name, location, client, project_manager, active, id, created_at, updated_at)
+- Idempotent seed from `/app/backend/data/jobs_master.json` (28 active MASCI jobs at boot)
+- Routes: `GET /api/jobs` (public, active only), `GET /api/admin/jobs`, `POST /api/admin/jobs` (upsert by project_number), `PATCH /api/admin/jobs/{id}/active`, `DELETE /api/admin/jobs/{id}`, `POST /api/admin/jobs/bulk-replace`
+- New inline-roster routes: `POST /api/employees/add` and `POST /api/suppliers/add` — case-insensitive idempotent ({ok, created: bool, employee/supplier})
+- **HIGH-priority bug fix (testing-agent flagged + main agent fixed)**: `upsert_job` was regenerating the job `id` UUID on every update because the body never carries `id` and `_normalize` minted a new one. Switched to `$setOnInsert` for `id`/`created_at` + `$set` for mutable fields. Verified: PATCH/DELETE by id no longer 404 after re-upsert.
+
+**Frontend** —
+- New `/app/frontend/src/components/AdminJobMasterPanel.jsx` (mirrors EquipmentMasterPanel UX): inline Add/Update form, table of all jobs with toggle-active + delete buttons, Bulk Replace dialog (paste JSON array). Mounted in `AdminHub.jsx` L182.
+- Updated `EmployeeCombo.jsx`: `addToRoster()` POSTs `/employees/add`, busts module cache, refreshes list, toast feedback. Inline "+ Add to MASCI roster" button shows in two places — when filtered list is empty AND when typed value is a custom novel string (amber banner).
+- Updated `SupplierCombo.jsx`: parallel `addToList()` flow.
+- `JobPicker.jsx` already migrated to fetch from `/api/jobs` instead of static `jobLibrary.js`.
+
+**Tests** — `/app/backend/tests/test_jobs_master_and_roster_iter26.py` — 14 pytest cases covering admin login, public/admin job listing, full CRUD lifecycle (create→update→toggle→delete), bulk-replace round-trip, and inline roster idempotency/validation. **All 14 pass** post-fix.
+
+**User verification:** Awaiting field smoke-test by Jaymn before next deploy.
+
 ## 2026-04-29 — Hub Polish: Red MASCI/. Tagline + Combined Projects Tile
 Two small but important UX polishes per user feedback:
 
