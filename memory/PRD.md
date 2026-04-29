@@ -1,5 +1,31 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-29 — Watermark Removal + Click-to-Enlarge Photo Lightbox
+**User request:** "remove watermarks from all picture uploads everywhere also in print or email screens — when you click on a picture make it come open bigger & be able to save by itself if you want, on every doc, form, everything"
+
+**Watermark removals (every render path)**:
+- `/app/backend/pdf_render.py` — dropped `<img class="wm">` + `.wm` CSS rule + `_data_uri_for(WATERMARK_PATH)` call. Backend-rendered PDFs (email + print export) now ship with zero MASCI mark overlay. Smoke-verified: `render_record_pdf('inspection', sample)` produces 378 KB PDF with no `class="wm"` element.
+- `/app/frontend/src/components/PrintWatermark.jsx` — repurposed as a no-op (`return null`) so all 8 existing imports keep compiling without ripping every page open. The bottom-right print mark is gone from JhaPlansPoster, ViewEquipmentInspection, CheatSheet, ViewIncident, TrenchBoxPoster, ViewInspection, ViewMeeting, ViewDailyReport.
+- `/app/frontend/src/pages/ViewInspection.jsx`, `ViewIncident.jsx`, `ViewMeeting.jsx`, `ViewDailyReport.jsx` — removed the per-photo diagonal "MASCI" rotate(-30deg) overlay AND the bottom black traceability strip. Photos are now clean.
+
+**New `/app/frontend/src/components/PhotoLightbox.jsx`** — wraps any thumbnail. Click → Shadcn Dialog modal with:
+- Full-size image (max 78vh on dark backdrop)
+- `×` close button top-right
+- Caption + red "Save" button bottom that does `fetch(src) → blob → <a download>` so the photo saves to the user's device standalone. Works for both http URLs AND `data:image/...` base64 URIs (the app's primary photo storage). Falls back to "open in new tab" on cross-origin failure with a toast hint.
+- `print:hidden` so the modal never appears in print preview.
+
+**Lightbox wired in**:
+- `ViewInspection.jsx` — finding photos
+- `ViewIncident.jsx` — incident photos
+- `ViewMeeting.jsx` — meeting photos
+- `ViewDailyReport.jsx` — daily report photos
+- `ViewEquipmentInspection.jsx` — both the inline per-checklist-item failure photo AND the main photo grid
+- `PhotoUpload.jsx` — live upload thumbnails (so crews can also click-preview + save what they just took before submitting). The X-delete button keeps `z-10` so it's still clickable on top of the lightbox trigger.
+
+Each thumbnail emits `data-testid` patterns: `view-photo-{i}-trigger`, `view-photo-{i}-modal`, `view-photo-{i}-download`, `view-photo-{i}-close`. Filenames are auto-generated like `MASCI_Inspection_abc12345_finding1.jpg`, `MASCI_DR_def67890_photo2.jpg`, `MASCI_Equipment_xyz_photo1.jpg` — so saved photos arrive properly named.
+
+**Verified via screenshot**: photo grid renders clean (no overlays); clicking a photo opens the lightbox with Save button; close + open work; lint clean across all 7 touched files; backend PDF smoke test passed.
+
 ## 2026-04-29 — Pre-Deploy Verification Sweep — ALL GREEN ✅
 **User request:** "verify all systems work & everything is ready to deploy"
 

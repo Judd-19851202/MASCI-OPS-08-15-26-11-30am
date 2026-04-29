@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { compressImage } from "@/lib/utils";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { PhotoLightbox } from "@/components/PhotoLightbox";
 
 /**
  * PhotoUpload — gallery-or-camera picker.
@@ -130,17 +131,25 @@ export const PhotoUpload = ({
               className="relative group aspect-square rounded-md overflow-hidden border-2 border-slate-200"
               data-testid={`${testIdBase}-thumb-${i}`}
             >
-              <img
+              <PhotoLightbox
                 src={p}
                 alt={`Photo ${i + 1}`}
-                className="w-full h-full object-cover"
-              />
+                filename={`MASCI_upload_${Date.now()}_${i + 1}.jpg`}
+                className="absolute inset-0 w-full h-full"
+                testId={`${testIdBase}-lightbox-${i}`}
+              >
+                <img
+                  src={p}
+                  alt={`Photo ${i + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </PhotoLightbox>
               <Button
                 type="button"
                 onClick={() => removeAt(i)}
                 size="icon"
                 variant="destructive"
-                className="absolute top-1 right-1 h-7 w-7"
+                className="absolute top-1 right-1 h-7 w-7 z-10"
                 data-testid={`${testIdBase}-remove-${i}`}
               >
                 <X className="w-4 h-4" />

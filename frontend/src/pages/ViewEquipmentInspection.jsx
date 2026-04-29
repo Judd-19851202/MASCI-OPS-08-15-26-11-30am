@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
+import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import ShopSignoffCard from "@/components/ShopSignoffCard";
 import { itemSeverity } from "@/lib/equipmentSeverity";
@@ -242,11 +243,19 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
                           <div className="text-xs text-slate-500 italic mt-0.5">↳ {res.note}</div>
                         )}
                         {res?.photo && (
-                          <img
+                          <PhotoLightbox
                             src={res.photo}
-                            alt="Failure evidence"
-                            className="mt-2 w-32 h-24 object-cover rounded border-2 border-red-300"
-                          />
+                            alt={`Failure evidence — ${item}`}
+                            filename={`MASCI_EquipFail_${(data.id || id || "").slice(0, 8)}_${item.replace(/[^A-Za-z0-9]+/g, "_").slice(0, 30)}.jpg`}
+                            className="mt-2 inline-block"
+                            testId={`equip-failphoto-${item}`}
+                          >
+                            <img
+                              src={res.photo}
+                              alt="Failure evidence"
+                              className="w-32 h-24 object-cover rounded border-2 border-red-300"
+                            />
+                          </PhotoLightbox>
                         )}
                       </div>
                       <StatusPill status={res?.status} />

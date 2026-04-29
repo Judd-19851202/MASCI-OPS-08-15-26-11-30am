@@ -583,7 +583,7 @@ def _render_equipment(d: Dict[str, Any]) -> str:
 def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     title = KIND_TITLES.get(kind, "MASCI Hub Record")
     logo_uri = _data_uri_for(LOGO_PATH)
-    watermark_uri = _data_uri_for(WATERMARK_PATH)
+    # NOTE: watermark removed 2026-04-29 per user request — clean PDFs.
 
     if kind == "daily-report":
         body = _render_daily(record)
@@ -662,10 +662,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
           color: #64748b; display: flex; justify-content: space-between;
           letter-spacing: 0.15em; text-transform: uppercase;
           border-top: 1px solid #cbd5e1; padding-top: 4px; }}
-  .wm {{ position: fixed; right: 0.4in; bottom: 0.55in; width: 0.55in;
-         opacity: 0.10; z-index: 9999; }}
 </style></head><body>
-  <img class="wm" src="{watermark_uri}" />
   <header class="hdr">
     <img src="{logo_uri}" alt="MASCI" />
     <div class="hdr-r">

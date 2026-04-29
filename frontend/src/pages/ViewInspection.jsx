@@ -12,6 +12,7 @@ import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
+import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import {
   PPE_ITEMS,
@@ -359,43 +360,22 @@ export default function ViewInspection() {
                 Photo Documentation ({data.photos.length})
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {data.photos.map((p, i) => {
-                  const stamp = `${(company.company_name || "MASCI").toUpperCase()} · ${
-                    (data.id || "").slice(0, 8).toUpperCase()
-                  } · ${formatDateLong(data.inspection_date)}`;
-                  return (
-                    <div
-                      key={i}
-                      className="relative w-full aspect-square rounded-md overflow-hidden border-2 border-slate-200 bg-white"
-                      data-testid={`view-photo-${i}`}
-                    >
-                      <img
-                        src={p}
-                        alt={`Finding ${i + 1}`}
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                      {/* Diagonal MASCI watermark — visible on screen and print */}
-                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <span
-                          className="font-display font-black text-white/30 select-none"
-                          style={{
-                            transform: "rotate(-30deg)",
-                            fontSize: "clamp(14px, 6vw, 28px)",
-                            letterSpacing: "0.2em",
-                            textShadow: "0 1px 2px rgba(0,0,0,0.4)",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {(company.company_name || "MASCI").toUpperCase()}
-                        </span>
-                      </div>
-                      {/* Bottom traceability strip */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/65 text-white px-1.5 py-1 font-mono text-[8px] uppercase tracking-wider truncate">
-                        {stamp}
-                      </div>
-                    </div>
-                  );
-                })}
+                {data.photos.map((p, i) => (
+                  <PhotoLightbox
+                    key={i}
+                    src={p}
+                    alt={`Inspection Finding ${i + 1}`}
+                    filename={`MASCI_Inspection_${(data.id || "").slice(0, 8)}_finding${i + 1}.jpg`}
+                    className="relative w-full aspect-square rounded-md overflow-hidden border-2 border-slate-200 bg-white"
+                    testId={`view-photo-${i}`}
+                  >
+                    <img
+                      src={p}
+                      alt={`Finding ${i + 1}`}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </PhotoLightbox>
+                ))}
               </div>
             </div>
           )}
