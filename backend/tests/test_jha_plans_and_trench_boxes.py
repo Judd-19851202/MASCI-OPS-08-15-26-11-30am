@@ -98,7 +98,9 @@ class TestJobHazardPlans:
         assert d1["filename"] == "first.pdf"
         assert d1["file_size"] > 0
         assert "file_data" not in d1  # blob shouldn't echo back
-        first_id = d1["id"]
+        # `first_id` not asserted further (replace flow validated below) but
+        # available for debugging if the replace test ever drifts.
+        _ = d1["id"]
 
         # Second POST with same project_number REPLACES, not duplicates
         payload2 = {**payload, "filename": "second.pdf", "notes": "replaced"}

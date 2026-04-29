@@ -21,6 +21,7 @@ import { JobPicker } from "@/components/JobPicker";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT, getLang } from "@/lib/i18n";
+import { formatApiError } from "@/lib/apiErrors";
 import {
   PPE_ITEMS,
   SITE_HAZARD_ITEMS,
@@ -166,7 +167,7 @@ export default function NewInspection({ publicMode = false }) {
       }
     } catch (e) {
       console.error(e);
-      toast.error("Could not save inspection");
+      toast.error(formatApiError(e, "Could not save inspection"), { duration: 7000 });
     } finally {
       setSaving(false);
     }

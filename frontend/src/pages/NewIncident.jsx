@@ -32,6 +32,7 @@ import { SupplierCombo } from "@/components/SupplierCombo";
 import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
 import { useT, getLang } from "@/lib/i18n";
+import { formatApiError } from "@/lib/apiErrors";
 import {
   INCIDENT_TYPES,
   SEVERITY_LEVELS,
@@ -172,7 +173,7 @@ export default function NewIncident({ publicMode = false }) {
       }
     } catch (e) {
       console.error(e);
-      toast.error("Could not save incident report");
+      toast.error(formatApiError(e, "Could not save incident report"), { duration: 7000 });
     } finally {
       setSaving(false);
     }

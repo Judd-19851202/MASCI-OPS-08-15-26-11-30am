@@ -26,6 +26,7 @@ import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { SupplierCombo } from "@/components/SupplierCombo";
 import { useT, getLang } from "@/lib/i18n";
+import { formatApiError } from "@/lib/apiErrors";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
 import { api } from "@/lib/api";
@@ -275,7 +276,7 @@ export default function NewDailyReport({ publicMode = false }) {
       }
     } catch (e) {
       console.error(e);
-      toast.error("Could not save daily report");
+      toast.error(formatApiError(e, "Could not save daily report"), { duration: 7000 });
     } finally {
       setSaving(false);
     }

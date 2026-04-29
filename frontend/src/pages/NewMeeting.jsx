@@ -22,6 +22,7 @@ import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { LangToggle } from "@/components/LangToggle";
 import { BilingualConsent } from "@/components/BilingualConsent";
 import { useT, getLang } from "@/lib/i18n";
+import { formatApiError } from "@/lib/apiErrors";
 import { TOPIC_CATEGORIES, buildMeetingDefaults } from "@/lib/meetingSchema";
 import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/meetingTopicLibrary";
 import { TOPIC_LIBRARY_ES } from "@/lib/meetingTopicLibrary.es";
@@ -231,7 +232,7 @@ export default function NewMeeting({ publicMode = false }) {
       }
     } catch (e) {
       console.error(e);
-      toast.error("Could not save meeting");
+      toast.error(formatApiError(e, "Could not save meeting"), { duration: 7000 });
     } finally {
       setSaving(false);
     }

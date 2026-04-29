@@ -117,15 +117,46 @@ import zipfile
 
 
 def test_full_backup_returns_zip_with_required_structure():
-    r = requests.get(f"{URL}/api/exports/full-backup", headers=_hdr(), timeout=120)
-    assert r.status_code == 200, r.text[:300]
-    assert "application/zip" in r.headers.get("content-type", "")
-    cd = r.headers.get("content-disposition", "")
+    """End-to-end smoke for /api/exports/full-backup.
+
+    The zip can be 500+ MB on a populated DB so we stream + retry on the
+    flaky ChunkedEncodingError that can hit a long stream over an external
+    proxy. Two retries, then bail.
+    """
+    last_err = None
+    body = None
+    headers = None
+    for attempt in range(3):
+        try:
+            r = requests.get(
+                f"{URL}/api/exports/full-backup",
+                headers=_hdr(),
+                timeout=180,
+                stream=True,
+            )
+            assert r.status_code == 200, r.text[:300]
+            # Drain via iter_content so we recover from intermittent reads
+            chunks = []
+            for chunk in r.iter_content(chunk_size=1024 * 256):
+                if chunk:
+                    chunks.append(chunk)
+            body = b"".join(chunks)
+            headers = r.headers
+            break
+        except (
+            requests.exceptions.ChunkedEncodingError,
+            requests.exceptions.ConnectionError,
+        ) as e:
+            last_err = e
+            continue
+    assert body is not None, f"all 3 attempts failed: {last_err}"
+    assert "application/zip" in headers.get("content-type", "")
+    cd = headers.get("content-disposition", "")
     assert "MASCI_full_backup_" in cd
     assert ".zip" in cd
-    assert "x-record-count" in {k.lower() for k in r.headers.keys()}
+    assert "x-record-count" in {k.lower() for k in headers.keys()}
 
-    z = zipfile.ZipFile(io.BytesIO(r.content))
+    z = zipfile.ZipFile(io.BytesIO(body))
     names = z.namelist()
 
     # backup_log.txt must be present

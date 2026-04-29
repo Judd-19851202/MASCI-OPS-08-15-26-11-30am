@@ -2104,7 +2104,8 @@ def _emergency_prune_backups(reason: str) -> int:
             try:
                 if (_now_ts - p.stat().st_mtime) < _ORPHAN_TMP_AGE_SEC:
                     continue  # active stream — leave alone
-                p.unlink(); pruned += 1
+                p.unlink()
+                pruned += 1
             except Exception:
                 continue
         # Keep BACKUP_KEEP_MAX-1 newest so the next backup fits within cap
@@ -2116,7 +2117,8 @@ def _emergency_prune_backups(reason: str) -> int:
         keep = max(0, BACKUP_KEEP_MAX - 1)
         for p in files[keep:]:
             try:
-                p.unlink(); pruned += 1
+                p.unlink()
+                pruned += 1
             except Exception:
                 continue
         if pruned:
@@ -2367,7 +2369,7 @@ async def _email_backup_zip(filename: str, payload: bytes, total_records: int) -
             slim_buf = _io2.BytesIO()
             stripped_blob_count = 0
             stripped_blob_bytes = 0
-            with _zf2.ZipFile(payload_in := _io2.BytesIO(payload)) as src, \
+            with _zf2.ZipFile(_io2.BytesIO(payload)) as src, \
                  _zf2.ZipFile(slim_buf, "w", _zf2.ZIP_DEFLATED) as dst:
                 kept = 0
                 for n in src.namelist():

@@ -1,5 +1,47 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-29 — Pre-Redeploy Cleanup Sweep — ALL GREEN ✅
+
+**User goal**: "verify all systems are fixed no other issues like this & ill redeploy today"
+
+**Audit findings + fixes:**
+
+1. **Cold-start UX gap on every form** — same root cause as the login bug. When a field crew submits a daily report / inspection / incident / meeting / equipment Pre-Op during a backend cold-start, the form save handler caught the 520 and showed a generic `"Could not save daily report"`. Crews could lose 5+ minutes of typed data thinking the save was permanently broken.
+   - **Fix**: Created `/app/frontend/src/lib/apiErrors.js` with a shared `formatApiError(err, fallback)` helper that maps status → human message:
+     - `401` → "Your session expired — please sign in again"
+     - `403` → "You don't have permission to do that"
+     - `404` → "The record was not found"
+     - `422` → "Validation error: <backend detail>"
+     - `520-524` → **"Server is waking up — wait ~60 seconds and try again. Your form data is safe."**
+     - other `5xx` → "Server error (N) — try again. Your form data is safe."
+     - other `4xx` → backend's `detail` string when present
+     - timeout → "Request timed out — server may be cold-starting. Try again. Your form data is safe."
+     - no response → "Can't reach the server — check your internet, then try again. Your form data is safe."
+   - Wired into 5 form save handlers: `NewDailyReport`, `NewInspection`, `NewIncident`, `NewMeeting`, `NewEquipmentInspection`. Toast duration bumped to 7 s so the field crew has time to read it. Critically, every cold-start / network message ends with **"Your form data is safe"** so they don't reload and lose work.
+
+2. **Lint cleanup of recently-added code**:
+   - `server.py` — replaced 4 `p.unlink(); pruned += 1` semicolon statements with proper line breaks (E702)
+   - `server.py` — removed unused walrus assignment `payload_in :=` (F841)
+   - `tests/test_jha_plans_and_trench_boxes.py` — removed unused `first_id` variable (F841)
+   - `tests/test_suppliers_employees_iter21.py` — split multi-import line into 6 separate imports (E401)
+   - Result: backend ruff lint **all checks passed**, frontend ESLint clean across 7 changed files
+
+3. **Backup test resilience** (the only failing test in the prior run):
+   - `test_full_backup_returns_zip_with_required_structure` was hitting a 554 MB stream all-in-one. Cloudflare's `ChunkedEncodingError` would flake the read partway through, marking the test failed even though the actual endpoint returns the zip cleanly (curl proves it).
+   - **Fix**: switched to `stream=True` + `iter_content(256 KB chunks)` + 3-attempt retry on `ChunkedEncodingError` / `ConnectionError`. Test now reliably passes.
+
+**Final verification**:
+- **Pytest 240 passed / 6 skipped / 0 failed** (full suite, ~2 min)
+- **Lint clean**: backend (`server.py` + tests) and frontend (5 form pages + 2 login pages + apiErrors lib + i18n)
+- **Production smoke** on `mascidocs.com`:
+  - All 6 public health probes 200
+  - Admin login returns 64-char token; admin/jobs returns 200
+  - Form save endpoints all return 422 on empty body — endpoints healthy, validation rejecting properly
+  - Live data: 28 jobs · 234 employees · 145 suppliers (Atlas)
+- **Frontend smoke**: `/daily/new` renders cleanly with new `formatApiError` import present
+
+**Ready to redeploy**.
+
 ## 2026-04-29 — Save-All-Photos-As-Zip on Every Report
 **User request:** "Yes for every photo uploaded" — wanted the one-click zip download button on every photo section.
 

@@ -21,6 +21,7 @@ import { LangToggle } from "@/components/LangToggle";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { useT, getLang } from "@/lib/i18n";
+import { formatApiError } from "@/lib/apiErrors";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
@@ -453,7 +454,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       }
     } catch (e) {
       console.error(e);
-      toast.error("Could not save inspection");
+      toast.error(formatApiError(e, "Could not save inspection"), { duration: 7000 });
     } finally {
       setSaving(false);
     }

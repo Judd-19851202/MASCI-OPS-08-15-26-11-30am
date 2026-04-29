@@ -1,5 +1,9 @@
 """Iter 21 - Employee + Supplier seeds + admin Supplier CRUD/upload."""
-import os, io, json, pytest, requests
+import os
+import io
+import json
+import pytest
+import requests
 
 BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://safety-audit-mobile-1.preview.emergentagent.com").rstrip("/")
 ADMIN_PWD = "Happy123!"
