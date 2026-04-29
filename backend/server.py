@@ -3828,6 +3828,7 @@ _DEFAULT_CORS_REGEX = (
     r"(www\.)?mascidocs\.com"
     r"|.*\.emergentagent\.com"
     r"|.*\.preview\.emergentagent\.com"
+    r"|.*\.emergent\.host"
     r")$"
 )
 
