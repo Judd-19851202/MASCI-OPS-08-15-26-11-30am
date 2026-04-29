@@ -34,21 +34,35 @@ export default function AdminLogin() {
     // request interceptor doesn't attach a stale X-Admin-Token header.
     clearAdminToken();
     try {
-      const res = await api.post("/admin/login", { password });
+      const res = await api.post("/admin/login", { password, _t: Date.now() }, {
+        timeout: 90000, // backend cold-start on Atlas can take up to 60s
+      });
       if (res?.data?.ok && res?.data?.token) {
         setAdminToken(res.data.token);
         toast.success("Welcome back, admin");
         const from = location.state?.from || "/admin";
         navigate(from, { replace: true });
       } else {
-        toast.error("Login failed");
+        toast.error("Login failed — server didn't return a token");
       }
     } catch (err) {
-      const msg =
-        err?.response?.status === 401
-          ? "Wrong password"
-          : "Login failed — check connection";
-      toast.error(msg);
+      const status = err?.response?.status;
+      let msg;
+      if (status === 401) {
+        msg = "Wrong password";
+      } else if (status === 520 || status === 521 || status === 522 || status === 523 || status === 524) {
+        // Cloudflare-edge errors → backend cold-booting on Atlas.
+        msg = "Server is waking up — give it ~60 seconds and try again";
+      } else if (status >= 500 && status < 600) {
+        msg = `Server error (${status}) — try again in a moment`;
+      } else if (err?.code === "ECONNABORTED" || /timeout/i.test(err?.message || "")) {
+        msg = "Request timed out — server is cold-starting, try again";
+      } else if (!err?.response) {
+        msg = "Can't reach server — check your internet";
+      } else {
+        msg = `Login failed (${status || "unknown"})`;
+      }
+      toast.error(msg, { duration: 6000 });
     } finally {
       setSubmitting(false);
     }

@@ -1035,6 +1035,16 @@ const ES = {
   "Wrong password": "Contraseña incorrecta",
   "Login failed — check connection":
     "Inicio de sesión fallido — verifique la conexión",
+  "Login failed — server didn't return a token":
+    "Inicio de sesión fallido — el servidor no devolvió un token",
+  "Server is waking up — give it ~60 seconds and try again":
+    "El servidor está despertando — espere ~60 segundos e intente de nuevo",
+  "Server error": "Error del servidor",
+  "try again in a moment": "intente de nuevo en un momento",
+  "Request timed out — server is cold-starting, try again":
+    "Tiempo de espera agotado — el servidor está iniciando, intente de nuevo",
+  "Can't reach server — check your internet":
+    "No se puede conectar al servidor — verifique su internet",
   "Verifying…": "Verificando…",
   "Sign In": "Iniciar Sesión",
 
