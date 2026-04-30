@@ -1,38 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Box } from "lucide-react";
+import { Box, BookOpen, ScanLine } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { useT } from "@/lib/i18n";
-import { api } from "@/lib/api";
 
 /**
- * Pure printable card for the Trench Box QR poster. Same shape as
- * JhaPlansPosterCard — no toolbar, no print style block. The page
- * wrapper handles those.
+ * Trench Box QR Poster — Tabulated Data Library edition.
+ *
+ * The poster has been pivoted from the old fleet-table format to the new
+ * crew-education direction. It still keeps the OSHA soil-type quick
+ * reference (the most useful thing for a foreman in the field) but the
+ * call to action is now: scan → bilingual "What is Tabulated Data?"
+ * primer + manufacturer PDFs for every shield.
  */
 export default function TrenchBoxPosterCard() {
   const { t } = useT();
-  const [boxes, setBoxes] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const trenchUrl = "https://mascidocs.com/trench-boxes";
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const r = await api.get("/trench-boxes");
-        if (alive) setBoxes(r.data || []);
-      } catch {
-        if (alive) setBoxes([]);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   const soilRows = [
     {
@@ -60,7 +44,10 @@ export default function TrenchBoxPosterCard() {
       : "border-red-700 bg-red-50 text-red-900";
 
   return (
-    <div className="bg-white border-2 border-slate-300 print:border-0 rounded-md p-8 sm:p-10 print:p-6 shadow-xl print:shadow-none">
+    <div
+      className="bg-white border-2 border-slate-300 print:border-0 rounded-md p-8 sm:p-10 print:p-6 shadow-xl print:shadow-none"
+      data-testid="trench-poster-card"
+    >
       {/* Top banner */}
       <div className="flex items-start justify-between gap-6 pb-5 border-b-4 border-red-700">
         <div className="flex-1">
@@ -97,19 +84,42 @@ export default function TrenchBoxPosterCard() {
         </div>
         <div>
           <div className="font-mono text-[11px] uppercase tracking-[0.3em] text-red-700 font-bold inline-flex items-center gap-2">
-            <Box className="w-4 h-4" /> {t("Scan before you dig.")}
+            <ScanLine className="w-4 h-4" /> {t("Know before you dig.")}
           </div>
           <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 leading-[0.95] mt-2">
-            {t(
-              "Every MASCI trench shield. OSHA max-depth by soil type. One scan, one tap, one answer."
-            )}
+            {t("Tabulated Data Library")}
           </h1>
-          <p className="text-slate-700 text-base mt-3 leading-relaxed">
+          <h2 className="font-display text-lg sm:text-xl font-bold text-slate-700 mt-2 leading-snug">
             {t(
-              "Open your phone camera. Point it at the QR. Tap the link. Find your shield. Read its Type-C max depth before the bucket touches dirt."
+              "One scan. Every MASCI trench shield. Manufacturer-stamped depth, width, and soil-type ratings."
             )}
-          </p>
-          <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-slate-500 mt-3 break-all">
+          </h2>
+
+          {/* Bilingual primer tagline */}
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="border-l-4 border-red-700 pl-3 py-1">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
+                EN · What is tabulated data?
+              </div>
+              <p className="text-slate-800 text-sm mt-1 leading-snug">
+                {t(
+                  "The manufacturer's engineered chart that tells you the deepest hole this exact shield is rated for in your soil type. No chart on site = no protective system."
+                )}
+              </p>
+            </div>
+            <div className="border-l-4 border-red-700 pl-3 py-1">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
+                ES · ¿Qué son los datos tabulados?
+              </div>
+              <p className="text-slate-800 text-sm mt-1 leading-snug">
+                La tabla de ingeniería del fabricante que indica la profundidad
+                máxima permitida para esta caja en tu tipo de suelo. Sin tabla
+                en el sitio = sin sistema de protección.
+              </p>
+            </div>
+          </div>
+
+          <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-slate-500 mt-4 break-all">
             {trenchUrl.replace(/^https?:\/\//, "")}
           </div>
         </div>
@@ -136,61 +146,45 @@ export default function TrenchBoxPosterCard() {
         </p>
       </div>
 
-      {/* Fleet table */}
-      <div className="mt-8">
-        <div className="flex items-baseline justify-between mb-3">
-          <div className="font-mono text-[11px] uppercase tracking-[0.3em] text-red-700 font-black">
-            {t("MASCI Trench Box Fleet at a Glance")}
+      {/* How to use the library */}
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="border-2 border-slate-300 rounded-md p-4 bg-slate-50">
+          <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-red-700 text-white mb-2">
+            <ScanLine className="w-5 h-5" />
           </div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-            {loading ? t("Loading…") : `${boxes.length} ${t("Fleet on file")}`}
+          <div className="font-display font-black text-slate-900 text-sm leading-tight">
+            1. {t("Scan the QR")}
           </div>
+          <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+            {t("Open your phone camera. Point at the code. Tap the link.")}
+          </p>
         </div>
-        <div className="border-2 border-slate-300 rounded-md overflow-hidden">
-          <table className="w-full text-sm" data-testid="poster-fleet-table">
-            <thead>
-              <tr className="bg-slate-900 text-white font-mono text-[10px] uppercase tracking-[0.2em]">
-                <th className="text-left px-3 py-2">{t("Manufacturer · Model")}</th>
-                <th className="text-left px-3 py-2">{t("Type")}</th>
-                <th className="text-right px-3 py-2">{t("Length")}</th>
-                <th className="text-right px-3 py-2">{t("Weight (lbs)")}</th>
-                <th className="text-right px-3 py-2">{t("Type C-60 Max")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {boxes.length === 0 && !loading && (
-                <tr>
-                  <td colSpan={5} className="px-3 py-6 text-center text-slate-500 italic">
-                    {t("No trench boxes have been added yet")}
-                  </td>
-                </tr>
-              )}
-              {boxes.map((b, idx) => (
-                <tr
-                  key={b.id}
-                  className={idx % 2 === 0 ? "bg-white" : "bg-slate-50 print:bg-white"}
-                >
-                  <td className="px-3 py-2 font-display font-bold text-slate-900">
-                    {b.manufacturer} · {b.model}
-                  </td>
-                  <td className="px-3 py-2 text-slate-700">{b.box_type || "—"}</td>
-                  <td className="px-3 py-2 text-right text-slate-700">
-                    {b.length_ft ? `${b.length_ft} ft` : "—"}
-                  </td>
-                  <td className="px-3 py-2 text-right text-slate-700">{b.weight_lbs || "—"}</td>
-                  <td className="px-3 py-2 text-right font-display font-black text-red-700">
-                    {b.max_depth_type_c_60_ft ? `${b.max_depth_type_c_60_ft} ft` : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="border-2 border-slate-300 rounded-md p-4 bg-slate-50">
+          <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-red-700 text-white mb-2">
+            <Box className="w-5 h-5" />
+          </div>
+          <div className="font-display font-black text-slate-900 text-sm leading-tight">
+            2. {t("Pick your shield")}
+          </div>
+          <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+            {t(
+              "Find the manufacturer + model stamped on the box. Tap it in the library."
+            )}
+          </p>
         </div>
-        <p className="text-xs text-slate-500 italic mt-2">
-          {t(
-            "All depths per OSHA 1926.652. Verify against the manufacturer's tabulated data on every job."
-          )}
-        </p>
+        <div className="border-2 border-slate-300 rounded-md p-4 bg-slate-50">
+          <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-red-700 text-white mb-2">
+            <BookOpen className="w-5 h-5" />
+          </div>
+          <div className="font-display font-black text-slate-900 text-sm leading-tight">
+            3. {t("Read the chart")}
+          </div>
+          <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+            {t(
+              "Match your soil type to the max depth before the bucket touches dirt."
+            )}
+          </p>
+        </div>
       </div>
 
       {/* Footer */}
@@ -201,6 +195,11 @@ export default function TrenchBoxPosterCard() {
         <div className="font-display font-black text-red-700 tracking-tight text-sm">
           {t("Accountability · Adapt · Overcome")}
         </div>
+      </div>
+
+      {/* Judd Group attribution */}
+      <div className="mt-3 text-center font-mono text-[9px] uppercase tracking-[0.3em] text-slate-400">
+        {t("Platform")} · The Judd Group LLC · © {new Date().getFullYear()}
       </div>
     </div>
   );

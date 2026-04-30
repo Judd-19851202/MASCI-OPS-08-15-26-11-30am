@@ -1,5 +1,38 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-30 — Trench Box Pivot Closeout: QR Poster + Admin Upload Anchor
+
+**User ask**: "we never made upload section in admin to add in or delete files in trench box section & never updated trench box QR poster to align with new direction we went with trench box section"
+
+**Two fixes shipped**:
+
+### Fix 1 — Trench Box QR Poster repivoted to the Tabulated Data Library direction
+`/app/frontend/src/components/TrenchBoxPosterCard.jsx` rewritten:
+- Dropped the old per-box fleet table (which duplicated what's in the digital library and aged badly every time a box was added/removed).
+- Hero is now **"Tabulated Data Library"** with QR → mascidocs.com/trench-boxes.
+- Added bilingual EN/ES "What is tabulated data? / ¿Qué son los datos tabulados?" primer next to the QR — same crew-education direction as the digital page.
+- Kept the OSHA Soil Type Quick Reference (A/B/C, color-coded) — still the single most useful thing for a foreman in the field.
+- Added a 3-step "Scan → Pick your shield → Read the chart" instruction strip.
+- Footer adds Judd Group LLC platform attribution stamp.
+- Pure printable card — toolbar/print CSS still owned by `TrenchBoxPoster.jsx` page wrapper, so `AllPostersPrint.jsx` continues to embed it cleanly.
+
+### Fix 2 — Admin Trench Box upload section made impossible to miss
+The user reported the admin upload feature was "missing." It was already wired (`<TrenchBoxTabulatedLibrary adminMode={true} />`) but had no visual anchor.
+`/app/frontend/src/pages/TrenchBoxesAdmin.jsx`:
+- Added a bold amber banner above the library: **"Step 1 · Upload & Manage Files — Tabulated Data Files — Upload / Delete"** with `FolderOpen` icon and instructions (drag-drop manufacturer PDFs/Excel/ZIPs/images, crews see them on /trench-boxes, use General/Educational for shared explainers).
+- Renamed the master-list section header to **"Step 2 · Master List"** to make the workflow sequence obvious.
+- Verified by screenshot: 6 files are already uploaded in the General/Educational folder, confirming the upload flow has been working end-to-end the whole time.
+
+**Verified visually on prod preview**:
+- `/admin/trench-boxes/poster` — new poster renders, bilingual primer reads correctly EN + ES, QR encodes the right URL.
+- `/admin/trench-boxes` — Step 1 banner + library + Step 2 banner + fleet list, in clear sequence.
+
+**Lint**: clean on both files.
+
+**Status**: Complete. Trench Box pivot is closed out.
+
+
+
 ## 2026-04-29 — 🚨 POST-DEPLOY HOTFIX: Crash-Loop + Streaming Build
 
 **User pain**: After the 22:55 UTC deploy, production went green for ~15 min then started hard-crashing with Cloudflare 520 on every endpoint. Banner flickered on/off because the container kept dying + respawning.

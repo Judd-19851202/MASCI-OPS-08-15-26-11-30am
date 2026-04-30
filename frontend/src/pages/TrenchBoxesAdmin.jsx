@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Loader2, Trash2, Pencil, Box, Printer } from "lucide-react";
+import { ArrowLeft, Plus, Loader2, Trash2, Pencil, Box, Printer, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -153,14 +153,45 @@ export default function TrenchBoxesAdmin() {
           </p>
         </div>
 
+        {/* Section banner so this is impossible to miss */}
+        <div
+          className="bg-amber-50 border-2 border-amber-400 rounded-md p-4 sm:p-5 mb-4 flex items-start gap-3"
+          data-testid="admin-tabulated-banner"
+        >
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-500 text-white shrink-0">
+            <FolderOpen className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-800 font-black">
+              Step 1 · Upload &amp; Manage Files
+            </div>
+            <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 leading-tight mt-0.5">
+              Tabulated Data Files — Upload / Delete
+            </h2>
+            <p className="text-slate-700 text-sm mt-1.5">
+              Drag-and-drop manufacturer PDFs, Excel sheets, ZIPs, or images
+              into any folder below. Crews see these on{" "}
+              <code className="px-1 bg-white rounded border border-amber-300 text-xs">
+                /trench-boxes
+              </code>
+              . Use the <strong>General / Educational</strong> folder for
+              shared explainers (e.g. United Rentals primer).
+            </p>
+          </div>
+        </div>
+
         <TrenchBoxTabulatedLibrary adminMode={true} />
 
-        <div className="mb-4 mt-2">
-          <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900">
+        <div className="mb-4 mt-8 pt-6 border-t-2 border-slate-200">
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-800 font-black">
+            Step 2 · Master List
+          </div>
+          <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mt-0.5">
             Fleet — Trench Box Master List
           </h2>
           <p className="text-slate-600 text-sm mt-1">
-            Add, edit, or remove individual trench shields.
+            Add, edit, or remove individual trench shields. Each shield here
+            becomes a folder above for its tabulated data.
           </p>
         </div>
 
