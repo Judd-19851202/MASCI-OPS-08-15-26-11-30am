@@ -79,11 +79,8 @@ export default function TabulatedDataPrimer() {
       </div>
 
       <footer className="mt-5 p-4 bg-slate-900 text-white rounded">
-        <p className="text-sm leading-relaxed mb-2 font-medium">
+        <p className="text-sm leading-relaxed font-medium">
           {TABULATED_DATA_PRIMER.footer[lang].cta}
-        </p>
-        <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
-          {TABULATED_DATA_PRIMER.footer[lang].attribution}
         </p>
       </footer>
     </section>

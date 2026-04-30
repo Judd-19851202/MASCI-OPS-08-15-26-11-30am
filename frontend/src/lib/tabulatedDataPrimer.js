@@ -342,14 +342,10 @@ export const TABULATED_DATA_PRIMER = {
 
   footer: {
     en: {
-      cta: "Questions? Ask your competent person on site, call the office, or contact United Rentals directly — they're a phone call away.",
-      attribution:
-        "Adapted from the United Rentals Tabulated Data training presentation, © 2020 United Rentals, Inc. Original PDF available in the Tabulated Data Library below.",
+      cta: "Questions? Ask your competent person on site, call the supervisor, or contact safety directly — they're a phone call away.",
     },
     es: {
-      cta: "¿Preguntas? Pregunte a su persona competente en el sitio, llame a la oficina o contacte directamente a United Rentals — están a una llamada telefónica de distancia.",
-      attribution:
-        "Adaptado de la presentación de capacitación sobre Datos Tabulados de United Rentals, © 2020 United Rentals, Inc. El PDF original está disponible en la Biblioteca de Datos Tabulados a continuación.",
+      cta: "¿Preguntas? Pregunte a su persona competente en el sitio, llame al supervisor o contacte directamente a seguridad — están a una llamada telefónica de distancia.",
     },
   },
 };
