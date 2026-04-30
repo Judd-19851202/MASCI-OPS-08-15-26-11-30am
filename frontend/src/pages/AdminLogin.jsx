@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
+import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
 import { api } from "@/lib/api";
 import { setAdminToken, clearAdminToken } from "@/lib/adminAuth";
 import { toast } from "sonner";
@@ -145,8 +146,11 @@ export default function AdminLogin() {
         </div>
       </main>
 
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
-        MASCI · Office Use Only
+      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
+          MASCI · Office Use Only
+        </div>
+        <JuddGroupAttribution variant="login" />
       </footer>
     </div>
   );

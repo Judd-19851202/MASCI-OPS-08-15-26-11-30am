@@ -15,6 +15,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
+import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
@@ -292,8 +293,11 @@ export default function AdminHub() {
         <ComplianceExportPanel />
       </main>
 
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 text-center font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-        MASCI · Office Console
+      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 flex flex-col items-center gap-5 border-t border-slate-200">
+        <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
+          MASCI · Office Console
+        </div>
+        <JuddGroupAttribution variant="admin" />
       </footer>
     </div>
   );

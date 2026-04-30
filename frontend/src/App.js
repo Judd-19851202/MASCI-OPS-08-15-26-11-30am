@@ -36,6 +36,9 @@ import ProjectPnlPage from "@/pages/ProjectPnlPage";
 import ShopLogin from "@/pages/ShopLogin";
 import ShopHub from "@/pages/ShopHub";
 import CheatSheet from "@/pages/CheatSheet";
+import TermsOfService from "@/pages/legal/TermsOfService";
+import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
+import GlobalFooter from "@/components/GlobalFooter";
 import { RequireAdmin } from "@/components/RequireAdmin";
 import { RequireShop } from "@/components/RequireShop";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
@@ -61,12 +64,13 @@ const S = (el) => <RequireShop>{el}</RequireShop>;
 
 function App() {
   return (
-    <div className="App">
+    <div className="App min-h-screen flex flex-col">
       <Toaster position="top-center" richColors closeButton />
       <GlobalKeepalive />
       <BackendStatusBanner />
       <BrowserRouter>
-        <Routes>
+        <div className="flex-1 flex flex-col">
+          <Routes>
             {/* MASCI Hub — public */}
             <Route path="/" element={<Hub />} />
             <Route path="/safety" element={<SafetySection />} />
@@ -160,7 +164,13 @@ function App() {
             <Route path="/incidents/:id" element={<RedirectWithId base="/admin/incidents" />} />
             <Route path="/daily" element={<Navigate to="/admin/daily" replace />} />
             <Route path="/daily/:id" element={<RedirectWithId base="/admin/daily" />} />
+
+            {/* Legal */}
+            <Route path="/legal/terms" element={<TermsOfService />} />
+            <Route path="/legal/privacy" element={<PrivacyPolicy />} />
           </Routes>
+          <GlobalFooter />
+        </div>
       </BrowserRouter>
     </div>
   );
