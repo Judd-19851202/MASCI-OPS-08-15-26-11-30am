@@ -286,3 +286,7 @@ credentials.json
 *.pem
 *.key
 .credentials
+backend/backups/MASCI_full_backup_2026-04-30_111024Z.zip
+backend/backups/MASCI_full_backup_2026-04-30_112114Z.zip
+backend/backups/MASCI_full_backup_2026-04-30_111339Z.zip
+frontend/node_modules/.cache/default-development/4.pack

@@ -24,6 +24,7 @@ import BackupHeroPanel from "@/components/BackupHeroPanel";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import AdminJobMasterPanel from "@/components/AdminJobMasterPanel";
+import AdminPMPanel from "@/components/AdminPMPanel";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
 import EquipmentPartsPanel from "@/components/EquipmentPartsPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
@@ -179,6 +180,7 @@ export default function AdminHub() {
         <EquipmentMasterPanel />
 
         {/* Manage MASCI active jobs — drives JobPicker on every form */}
+        <AdminPMPanel />
         <AdminJobMasterPanel />
 
         {/* Bulk-upload the per-unit parts catalog (filters, cutting edges, etc.) */}

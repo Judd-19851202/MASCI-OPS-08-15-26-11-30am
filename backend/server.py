@@ -450,6 +450,90 @@ async def delete_job_hazard_plan(
 
 
 # ============================================================
+# Job Hazard FILES — multi-file library per project (replaces the single-PDF
+# model above). Accepts any common file type up to 250 MB. Files >8 MB stream
+# straight to disk; smaller ones are inlined for fast list/download.
+# ============================================================
+@api_router.get("/job-hazard-files")
+async def list_all_jha_files(_: bool = Depends(require_admin)):
+    """Admin — every project + its files, grouped. Drives /admin/jha."""
+    from job_hazard_files import list_all_files_grouped
+    return {"projects": await list_all_files_grouped(db)}
+
+
+@api_router.get("/job-hazard-files/by-project/{project_number}")
+async def list_jha_files_for_project(project_number: str):
+    """Public — files for one project. Crews use this to pull JHAs offline."""
+    from job_hazard_files import list_files_for_project
+    return {"items": await list_files_for_project(db, project_number)}
+
+
+@api_router.post("/job-hazard-files")
+async def upload_jha_file(
+    project_number: str = Form(...),
+    file: UploadFile = File(...),
+    notes: str = Form(""),
+    uploaded_by: str = Form(""),
+    _: bool = Depends(require_admin),
+):
+    """Admin — upload one file for a project. Multipart form."""
+    from job_hazard_files import upload_file
+    return await upload_file(
+        db,
+        project_number=project_number,
+        file=file,
+        notes=notes,
+        uploaded_by=uploaded_by,
+    )
+
+
+@api_router.get("/job-hazard-files/{file_id}/download")
+async def download_jha_file(file_id: str):
+    """Public — stream a file by id. Inline for browser preview where the
+    type supports it (PDF, image), otherwise download.
+
+    Streams disk-backed files with FileResponse so memory stays bounded
+    even for the 250 MB plan-set zips.
+    """
+    from job_hazard_files import get_file_for_download
+    doc, raw, disk_path = await get_file_for_download(db, file_id)
+
+    fname = doc.get("filename") or f"file-{file_id}.bin"
+    content_type = doc.get("content_type") or "application/octet-stream"
+    safe_name = "".join(
+        c if c.isalnum() or c in ("-", "_", ".", " ") else "_" for c in fname
+    )
+
+    # Browser will preview PDFs & images inline; everything else downloads.
+    inline_kinds = {"application/pdf"}
+    disposition = "inline" if (
+        content_type in inline_kinds or content_type.startswith("image/")
+    ) else "attachment"
+    headers = {
+        "Content-Disposition": f'{disposition}; filename="{safe_name}"',
+        "X-Content-Type-Options": "nosniff",
+    }
+
+    if disk_path is not None:
+        return FileResponse(
+            path=str(disk_path),
+            media_type=content_type,
+            filename=safe_name,
+            headers=headers,
+        )
+    return Response(content=raw, media_type=content_type, headers=headers)
+
+
+@api_router.delete("/job-hazard-files/{file_id}")
+async def delete_jha_file(file_id: str, _: bool = Depends(require_admin)):
+    from job_hazard_files import delete_file
+    ok = await delete_file(db, file_id)
+    if not ok:
+        raise HTTPException(404, "File not found")
+    return {"ok": True, "id": file_id}
+
+
+# ============================================================
 # Trench Box Tabulated Data (OSHA 1926 Subpart P)
 # ============================================================
 class TrenchBoxCreate(BaseModel):
@@ -715,8 +799,125 @@ class JobIn(BaseModel):
     project_name: str = Field(..., min_length=1, max_length=300)
     location: str = ""
     client: str = ""
-    project_manager: str = ""
+    project_manager: str = ""   # display name (kept for backwards-compat)
+    pm_email: str = ""           # canonical key — drives auto-email routing
     active: bool = True
+
+
+# -------------------- Project Managers (admin-managed roster) --------------------
+class PMIn(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    email: str = Field(..., min_length=3, max_length=300)
+    phone: str = ""
+    is_active: bool = True
+
+
+class PMUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
+@api_router.get("/admin/project-managers")
+async def admin_list_pms(_: bool = Depends(require_admin)):
+    from project_managers import list_pms
+    return {"items": await list_pms(db, only_active=False)}
+
+
+@api_router.get("/project-managers")
+async def public_list_active_pms():
+    """Public — drives the PM dropdown on the AdminJobMasterPanel and any
+    other UI that needs the list of active PMs. Returns no phone/email
+    metadata is sensitive (only name + id + email needed for assignment)."""
+    from project_managers import list_pms
+    pms = await list_pms(db, only_active=True)
+    return {
+        "items": [
+            {"id": p["id"], "name": p["name"], "email": p["email"]}
+            for p in pms
+        ]
+    }
+
+
+@api_router.post("/admin/project-managers")
+async def admin_add_pm(body: PMIn, _: bool = Depends(require_admin)):
+    from project_managers import add_pm
+    try:
+        return await add_pm(db, body.model_dump())
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@api_router.patch("/admin/project-managers/{pm_id}")
+async def admin_update_pm(
+    pm_id: str, body: PMUpdate, _: bool = Depends(require_admin)
+):
+    from project_managers import update_pm
+    fields = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not fields:
+        raise HTTPException(400, "No fields to update")
+    try:
+        # Capture old email so we can cascade the email change to jobs_master.
+        from project_managers import find_pm_by_email
+        old = await db.project_managers.find_one({"id": pm_id}, {"_id": 0})
+        old_email = (old or {}).get("email", "").lower()
+
+        saved = await update_pm(db, pm_id, fields)
+        if not saved:
+            raise HTTPException(404, "PM not found")
+
+        # Cascade email change to every job that referenced the old email.
+        new_email = (saved.get("email") or "").lower()
+        if old_email and new_email and old_email != new_email:
+            await db.jobs_master.update_many(
+                {"pm_email": old_email},
+                {"$set": {
+                    "pm_email": new_email,
+                    "project_manager": saved.get("name") or "",
+                    "updated_at": _now_iso(),
+                }},
+            )
+
+        # Cascade name change to every job referencing this PM by email.
+        if "name" in fields and new_email:
+            await db.jobs_master.update_many(
+                {"pm_email": new_email},
+                {"$set": {
+                    "project_manager": saved.get("name") or "",
+                    "updated_at": _now_iso(),
+                }},
+            )
+
+        return saved
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@api_router.delete("/admin/project-managers/{pm_id}")
+async def admin_delete_pm(pm_id: str, _: bool = Depends(require_admin)):
+    from project_managers import delete_pm
+    # Find any jobs that still reference this PM — surface a warning so the
+    # admin can reassign first instead of silently orphaning jobs.
+    pm = await db.project_managers.find_one({"id": pm_id}, {"_id": 0})
+    if not pm:
+        raise HTTPException(404, "PM not found")
+    pm_email = (pm.get("email") or "").lower()
+    job_count = await db.jobs_master.count_documents({"pm_email": pm_email})
+    if job_count > 0:
+        raise HTTPException(
+            409,
+            f"{pm.get('name')} is still assigned to {job_count} job(s). "
+            f"Reassign those jobs first, or deactivate the PM instead.",
+        )
+    ok = await delete_pm(db, pm_id)
+    if not ok:
+        raise HTTPException(404, "PM not found")
+    return {"ok": True}
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 @api_router.get("/jobs")
@@ -3576,12 +3777,12 @@ from pdf_render import (  # noqa: E402
     KIND_TITLES,
 )
 from pm_routing import (  # noqa: E402
-    PM_TABLE,
     ALWAYS_CC,
     COMPLIANCE_KINDS,
     PM_ONLY_KINDS,
     auto_email_enabled,
     recipients_for_record,
+    recipients_for_record_async,
 )
 
 
@@ -3642,7 +3843,7 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             )
             return
 
-        dist = recipients_for_record(record, kind)
+        dist = await recipients_for_record_async(db, record, kind)
         recipients: List[str] = list(dist["all"])  # type: ignore[arg-type]
 
         # Severity fan-out for incidents (Major/Severe currently mirrors the
@@ -3769,7 +3970,7 @@ async def auto_email_preview(
         "severity": severity,
         "osha_recordable": osha_recordable,
     }
-    dist = recipients_for_record(fake, kind or None)
+    dist = await recipients_for_record_async(db, fake, kind or None)
     return {
         "input": fake,
         "kind": kind or None,
@@ -3785,23 +3986,58 @@ async def auto_email_preview(
 
 @_email_router.get("/auto-email/routing-table")
 async def auto_email_routing_table(_: bool = Depends(require_admin)):
-    """Returns the full PM → Jobs lookup table (admin-only)."""
+    """Returns the live PM → Jobs lookup table from the DB (admin-only).
+    Replaces the legacy hardcoded PM_TABLE — now reads project_managers
+    + jobs_master so the UI mirrors what the email router actually uses."""
+    pms_cursor = db.project_managers.find({}, {"_id": 0}).sort("name", 1)
+    pms = await pms_cursor.to_list(500)
+    jobs_cursor = db.jobs_master.find({}, {"_id": 0}).sort("project_number", 1)
+    jobs = await jobs_cursor.to_list(2000)
+
+    by_email: Dict[str, List[Dict[str, str]]] = {}
+    unassigned: List[Dict[str, str]] = []
+    for j in jobs:
+        pm_email = (j.get("pm_email") or "").strip().lower()
+        # Fallback: if pm_email not set but name matches a PM, infer it.
+        if not pm_email:
+            nm = (j.get("project_manager") or "").strip()
+            if nm:
+                match = next(
+                    (p for p in pms if (p.get("name") or "").strip() == nm),
+                    None,
+                )
+                if match:
+                    pm_email = (match.get("email") or "").strip().lower()
+        if pm_email:
+            by_email.setdefault(pm_email, []).append({
+                "project_number": j.get("project_number") or "",
+                "project_name": j.get("project_name") or "",
+            })
+        else:
+            unassigned.append({
+                "project_number": j.get("project_number") or "",
+                "project_name": j.get("project_name") or "",
+            })
+
+    project_managers = []
+    for p in pms:
+        em = (p.get("email") or "").strip().lower()
+        project_managers.append({
+            "pm_id": p.get("id"),
+            "pm_name": p.get("name"),
+            "pm_email": p.get("email"),
+            "phone": p.get("phone") or "",
+            "is_active": bool(p.get("is_active", True)),
+            "jobs": by_email.get(em, []),
+        })
+
     return {
         "always_cc": ALWAYS_CC,
         "compliance_kinds": sorted(COMPLIANCE_KINDS),
         "pm_only_kinds": sorted(PM_ONLY_KINDS),
         "auto_email_enabled": auto_email_enabled(),
-        "project_managers": [
-            {
-                "pm_name": pm,
-                "pm_email": data["email"],
-                "jobs": [
-                    {"project_number": jn, "project_name": jname}
-                    for (jn, jname) in data["jobs"]  # type: ignore[union-attr]
-                ],
-            }
-            for pm, data in PM_TABLE.items()
-        ],
+        "project_managers": project_managers,
+        "unassigned_jobs": unassigned,
     }
 
 
@@ -3908,9 +4144,16 @@ async def _seed_phase1():
         await _seed_employees_from_json()
         await _seed_suppliers_from_json()
         await _create_safety_indexes()
-        # Seed jobs_master from /app/backend/data/jobs_master.json (idempotent)
+        # Seed project_managers FIRST so jobs_master backfill can link by name.
+        from project_managers import seed_project_managers
+        await seed_project_managers(db)
+        # Seed jobs_master from /app/backend/data/jobs_master.json (idempotent).
+        # Also runs the pm_email backfill against project_managers.
         from jobs_master import seed_jobs_master
         await seed_jobs_master(db)
+        # Index for the new multi-file JHA collection.
+        from job_hazard_files import ensure_indexes as _jha_files_indexes
+        await _jha_files_indexes(db)
         # Zero-touch self-heal: auto-split equipment make/model on boot if any
         # units are missing it. Survives redeploys that wipe the DB.
         from data_fixes import boot_self_heal

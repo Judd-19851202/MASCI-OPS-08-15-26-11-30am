@@ -28,7 +28,7 @@ import { toast } from "sonner";
  *
  * Mirrors EquipmentMasterPanel's UX:
  *   • Inline "Add Job" form (single)
- *   • Table of all jobs with edit/delete/toggle-active
+ *   • Table of all jobs with edit/delete/toggle-active + PM dropdown
  *   • "Replace from JSON" bulk uploader (drag a .json file with the array)
  *
  * Backend:
@@ -37,29 +37,37 @@ import { toast } from "sonner";
  *   PATCH  /api/admin/jobs/{id}/active
  *   DELETE /api/admin/jobs/{id}
  *   POST   /api/admin/jobs/bulk-replace     ({rows: [...]})
+ *
+ *   GET    /api/project-managers            (active list, for the PM dropdown)
  */
 export default function AdminJobMasterPanel() {
   const [jobs, setJobs] = useState([]);
+  const [pms, setPms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkText, setBulkText] = useState("");
   const [bulkRunning, setBulkRunning] = useState(false);
+  const [savingRow, setSavingRow] = useState(null);
   const [form, setForm] = useState({
     project_number: "",
     project_name: "",
     location: "",
     client: "",
-    project_manager: "",
+    pm_email: "",
   });
 
   const refresh = async () => {
     setLoading(true);
     try {
-      const r = await api.get("/admin/jobs");
-      setJobs(r.data?.items || []);
+      const [jr, pr] = await Promise.all([
+        api.get("/admin/jobs"),
+        api.get("/project-managers"),
+      ]);
+      setJobs(jr.data?.items || []);
+      setPms(pr.data?.items || []);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Failed to load jobs");
+      toast.error(e?.response?.data?.detail || "Failed to load jobs / PMs");
     } finally {
       setLoading(false);
     }
@@ -69,6 +77,13 @@ export default function AdminJobMasterPanel() {
     refresh();
   }, []);
 
+  const pmNameByEmail = (email) => {
+    const p = pms.find(
+      (x) => (x.email || "").toLowerCase() === (email || "").toLowerCase()
+    );
+    return p ? p.name : "";
+  };
+
   const addJob = async (e) => {
     e?.preventDefault?.();
     if (!form.project_number.trim() || !form.project_name.trim()) {
@@ -77,20 +92,47 @@ export default function AdminJobMasterPanel() {
     }
     setAdding(true);
     try {
-      await api.post("/admin/jobs", { ...form, active: true });
+      await api.post("/admin/jobs", {
+        ...form,
+        project_manager: pmNameByEmail(form.pm_email),
+        active: true,
+      });
       toast.success(`Saved job ${form.project_number}`);
       setForm({
         project_number: "",
         project_name: "",
         location: "",
         client: "",
-        project_manager: "",
+        pm_email: "",
       });
       await refresh();
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Save failed");
     } finally {
       setAdding(false);
+    }
+  };
+
+  const reassignPm = async (job, newPmEmail) => {
+    setSavingRow(job.id);
+    try {
+      await api.post("/admin/jobs", {
+        project_number: job.project_number,
+        project_name: job.project_name,
+        location: job.location || "",
+        client: job.client || "",
+        project_manager: pmNameByEmail(newPmEmail) || "",
+        pm_email: newPmEmail || "",
+        active: !!job.active,
+      });
+      toast.success(
+        `${job.project_number} → ${pmNameByEmail(newPmEmail) || "Unassigned"}`
+      );
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Reassign failed");
+    } finally {
+      setSavingRow(null);
     }
   };
 
@@ -254,15 +296,19 @@ export default function AdminJobMasterPanel() {
           <Label className="font-mono text-[9px] uppercase tracking-wide text-slate-700">
             PM
           </Label>
-          <Input
-            value={form.project_manager}
-            onChange={(e) =>
-              setForm({ ...form, project_manager: e.target.value })
-            }
-            placeholder="David Jewett"
-            className="h-9 text-sm mt-1"
+          <select
+            value={form.pm_email}
+            onChange={(e) => setForm({ ...form, pm_email: e.target.value })}
+            className="h-9 text-sm mt-1 w-full border border-slate-300 rounded px-2 bg-white"
             data-testid="job-master-input-pm"
-          />
+          >
+            <option value="">— Unassigned —</option>
+            {pms.map((p) => (
+              <option key={p.id} value={p.email}>
+                {p.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex items-end">
           <Button
@@ -324,7 +370,30 @@ export default function AdminJobMasterPanel() {
                   <td className="px-3 py-2 font-medium">{j.project_name}</td>
                   <td className="px-3 py-2 text-xs text-slate-600">{j.location || "—"}</td>
                   <td className="px-3 py-2 text-xs text-slate-600">{j.client || "—"}</td>
-                  <td className="px-3 py-2 text-xs text-slate-600">{j.project_manager || "—"}</td>
+                  <td className="px-3 py-2 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <select
+                        value={j.pm_email || ""}
+                        onChange={(e) => reassignPm(j, e.target.value)}
+                        disabled={savingRow === j.id}
+                        className={`h-7 text-xs border border-slate-300 rounded px-1.5 max-w-[150px] ${
+                          j.pm_email ? "bg-white text-slate-800" : "bg-amber-50 text-amber-700 border-amber-300"
+                        }`}
+                        data-testid={`job-pm-select-${j.project_number}`}
+                        title="Reassign PM"
+                      >
+                        <option value="">— Unassigned —</option>
+                        {pms.map((p) => (
+                          <option key={p.id} value={p.email}>
+                            {p.name}
+                          </option>
+                        ))}
+                      </select>
+                      {savingRow === j.id && (
+                        <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
+                      )}
+                    </div>
+                  </td>
                   <td className="px-3 py-2 text-center">
                     <button
                       type="button"

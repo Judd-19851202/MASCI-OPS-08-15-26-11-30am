@@ -254,6 +254,7 @@ class TestBulkReplace:
                 "location": j.get("location", ""),
                 "client": j.get("client", ""),
                 "project_manager": j.get("project_manager", ""),
+                "pm_email": j.get("pm_email", ""),
                 "active": j.get("active", True),
             }
             for j in current

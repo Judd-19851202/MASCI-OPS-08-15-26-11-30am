@@ -45,6 +45,7 @@ def _normalize(doc: Dict[str, Any]) -> Dict[str, Any]:
         "location": (doc.get("location") or "").strip(),
         "client": (doc.get("client") or "").strip(),
         "project_manager": (doc.get("project_manager") or "").strip(),
+        "pm_email": (doc.get("pm_email") or "").strip().lower(),
         "active": bool(doc.get("active", True)),
         "created_at": doc.get("created_at") or _now(),
         "updated_at": doc.get("updated_at") or _now(),
@@ -53,32 +54,62 @@ def _normalize(doc: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def seed_jobs_master(db) -> None:
-    """Idempotent: if collection is empty, load from JSON seed."""
+    """Idempotent: if collection is empty, load from JSON seed.
+    Always runs the pm_email backfill — rolls existing jobs that have only
+    a project_manager name forward to also have pm_email set, so the new
+    DB-backed routing knows where to send each job's emails. Safe to run
+    on every boot (only updates docs whose pm_email is still empty)."""
     try:
         await db.jobs_master.create_index("project_number", unique=True)
     except Exception as e:  # noqa: BLE001
         logger.warning(f"jobs_master index: {e}")
 
-    if await db.jobs_master.count_documents({}) > 0:
+    if await db.jobs_master.count_documents({}) == 0:
+        if DATA_FILE.exists():
+            try:
+                rows = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+                if isinstance(rows, list) and rows:
+                    docs = [_normalize(r) for r in rows]
+                    await db.jobs_master.insert_many(docs)
+                    logger.info(f"jobs_master seeded {len(docs)} jobs")
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"jobs_master.json parse error: {e}")
+        else:
+            logger.info("jobs_master.json not found — skipping seed")
+    else:
         logger.info("jobs_master already populated — skipping seed")
-        return
 
-    if not DATA_FILE.exists():
-        logger.info("jobs_master.json not found — skipping seed")
-        return
-
-    try:
-        rows = json.loads(DATA_FILE.read_text(encoding="utf-8"))
-    except Exception as e:  # noqa: BLE001
-        logger.warning(f"jobs_master.json parse error: {e}")
-        return
-
-    if not isinstance(rows, list) or not rows:
-        return
-
-    docs = [_normalize(r) for r in rows]
-    await db.jobs_master.insert_many(docs)
-    logger.info(f"jobs_master seeded {len(docs)} jobs")
+    # ----- pm_email backfill -----
+    # Any job that has a project_manager name but no pm_email gets linked
+    # to the matching PM in project_managers. Idempotent.
+    backfilled = 0
+    cursor = db.jobs_master.find(
+        {
+            "$or": [
+                {"pm_email": {"$exists": False}},
+                {"pm_email": ""},
+                {"pm_email": None},
+            ],
+            "project_manager": {"$nin": ["", None]},
+        },
+        {"_id": 0},
+    )
+    async for j in cursor:
+        nm = (j.get("project_manager") or "").strip()
+        if not nm:
+            continue
+        pm = await db.project_managers.find_one({"name": nm}, {"_id": 0})
+        if pm and pm.get("email"):
+            await db.jobs_master.update_one(
+                {"id": j["id"]},
+                {"$set": {
+                    "pm_email": pm["email"].lower(),
+                    "updated_at": _now(),
+                }},
+            )
+            backfilled += 1
+    if backfilled:
+        logger.info(f"jobs_master backfill linked pm_email on {backfilled} jobs")
 
 
 async def list_jobs(db, only_active: bool = True) -> List[Dict[str, Any]]:
@@ -110,6 +141,7 @@ async def upsert_job(db, body: Dict[str, Any]) -> Dict[str, Any]:
         "location": doc["location"],
         "client": doc["client"],
         "project_manager": doc["project_manager"],
+        "pm_email": doc["pm_email"],
         "active": doc["active"],
         "updated_at": now,
     }

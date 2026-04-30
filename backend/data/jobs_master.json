@@ -2,7 +2,7 @@
   {"project_number": "20-07", "project_name": "T5686 SR 15/SR600 (SANFORD, 17/92, LAKE MARY)", "location": "SANFORD, 17/92, LAKE MARY", "client": "FDOT", "project_manager": "", "active": true},
   {"project_number": "21-06", "project_name": "T5736 Oveido - (426, BROADWAY)", "location": "Oveido (426, BROADWAY)", "client": "FDOT", "project_manager": "", "active": true},
   {"project_number": "22-08", "project_name": "T5749 SR 436 (ALTAMONTE SPRINGS)", "location": "ALTAMONTE SPRINGS", "client": "FDOT", "project_manager": "", "active": true},
-  {"project_number": "24-06", "project_name": "T5824 - SR 46 (W 1ST ST.)", "location": "SR 46 W 1st St", "client": "FDOT", "project_manager": "", "active": true},
+  {"project_number": "24-06", "project_name": "T5824 - SR 46 (W 1ST ST.)", "location": "SR 46 W 1st St", "client": "FDOT", "project_manager": "David Jewett", "active": true},
   {"project_number": "24-08", "project_name": "E57B2 - SR 46 (MELLONVILLE AVE)", "location": "SR 46 Mellonville Ave", "client": "FDOT", "project_manager": "", "active": true},
   {"project_number": "24-12", "project_name": "CC5744 - OXFORD RD Improvements (OXFORD)", "location": "Oxford Rd", "client": "Seminole County", "project_manager": "David Jewett", "active": true},
   {"project_number": "24-13 - CP", "project_name": "T5841 - SR 401 (Brevard Co, Cape Canaveral)", "location": "SR 401 Cape Canaveral", "client": "FDOT (cert. payroll)", "project_manager": "Chris Wright", "active": true},

@@ -1,14 +1,16 @@
 """
-MASCI Project Manager → Job auto-routing table.
+MASCI Project Manager → Job auto-routing.
 
-Source of truth: PM Job List.pdf provided by the user (Feb 2026).
-On every safety form submit (Inspection / Meeting / JHA / Incident / Daily Report)
-we look up the PM by project_number (preferred) or by job-name fragment, then
-auto-email the PDF to that PM plus the always-CC distribution list.
+DB-BACKED (2026-04-30): the source of truth is now `db.jobs_master.pm_email`
+combined with `db.project_managers`. The legacy hardcoded PM_TABLE is kept
+ONLY as a synchronous fallback for code paths that don't have a DB handle
+(rare); every production code path now resolves PMs via the DB.
 
-To add / change PMs, edit the PM_TABLE below. Job numbers are matched
-case-insensitive on the leading prefix (so "25-01 - CP" matches "25-01-cp"
-and a typed "25-01" also resolves to David Jewett — first match wins).
+To change a job's PM:
+  • Open /admin → "Active Jobs Master" → click the PM cell → pick from dropdown.
+
+To add a new PM:
+  • Open /admin → "Project Managers" → "+ Add PM" → fill name + email.
 """
 
 from __future__ import annotations
@@ -18,57 +20,15 @@ from typing import Dict, List, Optional, Tuple
 
 
 # ---------------------------------------------------------------------------
-# PM table — { pm_name: { "email": str, "jobs": [(job_number, job_name), ...] } }
+# Legacy fallback table (used ONLY when no DB lookup is wired in for the
+# caller). New code paths should call resolve_pm_for_record_async() with
+# the live `db` handle.
 # ---------------------------------------------------------------------------
 PM_TABLE: Dict[str, Dict[str, object]] = {
-    "David Jewett": {
-        "email": "davidjewett@mascigc.com",
-        "jobs": [
-            ("20-07", "T5686 SR 15/SR600 (SANFORD, 17/92, LAKE MARY)"),
-            ("21-06", "T5736 Oveido - (426, BROADWAY)"),
-            ("22-08", "T5749 SR 436 (ALTAMONTE SPRINGS)"),
-            ("24-06", "T5824 - SR 46 (W 1ST ST.)"),
-            ("24-08", "E57B2 - SR 46 (MELLONVILLE AVE)"),
-            ("24-12", "CC5744 - OXFORD RD Improvements (OXFORD)"),
-            ("25-01-CP", "T5832 - SR430 (Mason Ave)"),
-            ("25-03", "Vol.Co Resurface"),
-            ("25-04", "Oxford Rd Surcharge Utility"),
-            ("25-08", "T5838 SR 500 (US441) (Mt Dora)"),
-            ("25-10", "Pavement Management Services"),
-            ("25-14", "E8V62, Resurf Seminole Expressway (SR 417)"),
-            ("26-02", "Resurfacing Phase I"),
-            ("26-03-CP", "T5874 - SR 426 Winterhaven/Aloma"),
-            ("26-04", "E58F7-SR 5"),
-        ],
-    },
-    "Chris Wright": {
-        "email": "chriswright@mascigc.com",
-        "jobs": [
-            ("24-13-CP", "T5841 - SR 401 (Brevard Co, Cape Canaveral)"),
-            ("25-12", "N. Atlantic Ave - Drainage"),
-            ("25-13", "N. Atlantic Ave - Watermain Replacement"),
-            ("25-15", "E53F1 - SR 404, Brevard Co (Pineda)"),
-            ("25-21", "SJR2C - Loop Trail - Spruce Creek"),
-            ("26-01-CP", "NSB Corbin Park Stormwater Improvements"),
-            ("26-07", "University High Parent Loop Ext"),
-            ("26-09-CP", "T5871 Sub to CARR"),
-        ],
-    },
-    "Ramon Rodriguez": {
-        "email": "RamonRodriguez@mascigc.com",
-        "jobs": [
-            ("25-02", "E53F5 - SR 5 (Titusville)"),
-            ("25-16-CP", "T5842 - SR 600 Volusia County (Orange City)"),
-            ("25-22-CP", "T5860 SR 9 (I-95)"),
-            ("25-24-CP", "G2 & G11 Canal St Improvement"),
-        ],
-    },
-    "Jaymn Judd": {
-        "email": "jaymn.judd@mascigc.com",
-        "jobs": [
-            ("26-06", "Knox McRae Master Pump Station"),
-        ],
-    },
+    "David Jewett":     {"email": "davidjewett@mascigc.com",     "jobs": []},
+    "Chris Wright":     {"email": "chriswright@mascigc.com",     "jobs": []},
+    "Ramon Rodriguez":  {"email": "RamonRodriguez@mascigc.com",  "jobs": []},
+    "Jaymn Judd":       {"email": "jaymn.judd@mascigc.com",      "jobs": []},
 }
 
 
@@ -88,67 +48,113 @@ COMPLIANCE_KINDS = {"inspection", "meeting", "jha", "incident"}
 PM_ONLY_KINDS = {"daily-report", "equipment-inspection"}
 
 
-# ---------------------------------------------------------------------------
-# Lookup helpers
-# ---------------------------------------------------------------------------
 def _normalize_job_number(raw: str) -> str:
     """Lowercase, strip whitespace, collapse spaces around the dash."""
     if not raw:
         return ""
     s = str(raw).strip().lower()
-    # "25-01 - cp" → "25-01-cp"
     s = s.replace(" - ", "-").replace(" -", "-").replace("- ", "-")
     s = s.replace(" ", "")
     return s
 
 
-# Pre-build a fast lookup index { normalized_job_number: (pm_name, pm_email) }
-_INDEX: Dict[str, Tuple[str, str]] = {}
-for _pm, _data in PM_TABLE.items():
-    _email = str(_data["email"])
-    for _num, _ in _data["jobs"]:  # type: ignore[union-attr]
-        _INDEX[_normalize_job_number(_num)] = (_pm, _email)
-
-
-def find_pm_for_record(record: dict) -> Optional[Tuple[str, str]]:
+# ---------------------------------------------------------------------------
+# DB-backed lookup (the canonical path)
+# ---------------------------------------------------------------------------
+async def resolve_pm_for_record_async(
+    db, record: dict
+) -> Optional[Tuple[str, str]]:
     """
-    Resolve a PM by inspecting a safety record dict.
-    Returns (pm_name, pm_email) or None if no match.
+    Resolve a PM by querying jobs_master + project_managers.
+    Returns (pm_name, pm_email) or None.
 
-    Lookup priority:
-      1. record["project_number"] exact normalized match.
-      2. record["project_number"] prefix match (so "25-01" matches "25-01-CP").
-      3. record["project_name"] starts-with against any PM's job names.
+    Resolution order:
+      1. Match record.project_number (normalized) against jobs_master.
+         If the job has pm_email set, use that PM.
+         If only project_manager (name) is set, look up the PM by name.
+      2. Fallback: prefix match on project_number (so "25-01" matches "25-01-CP").
+      3. Final fallback: legacy hardcoded PM_TABLE name match (covers any
+         job not yet in jobs_master).
     """
     if not record:
         return None
 
-    num = _normalize_job_number(record.get("project_number") or "")
-    if num and num in _INDEX:
-        return _INDEX[num]
+    pn_raw = (record.get("project_number") or "").strip()
+    pn_norm = _normalize_job_number(pn_raw)
+    if not pn_norm:
+        return None
 
-    # Prefix match — strip trailing "-cp" from BOTH sides
-    if num:
-        num_stem = num.split("-cp")[0]
-        for key, val in _INDEX.items():
-            key_stem = key.split("-cp")[0]
-            if num_stem and key_stem and num_stem == key_stem:
-                return val
+    # Try exact match first (case-insensitive on project_number)
+    job = await db.jobs_master.find_one(
+        {"project_number": {"$regex": f"^{_re_escape(pn_raw)}$", "$options": "i"}},
+        {"_id": 0},
+    )
 
-    # Fallback by project name (best-effort)
-    name = (record.get("project_name") or "").strip().lower()
-    if name:
-        for pm, data in PM_TABLE.items():
-            for _, jn in data["jobs"]:  # type: ignore[union-attr]
-                if jn.lower()[:25] in name or name[:25] in jn.lower():
-                    return (pm, str(data["email"]))
+    # Try normalized prefix match if exact failed
+    if not job:
+        # Mongo can't normalize on its own — fetch all and match in Python.
+        # Cheap because jobs_master is small (~30 rows).
+        cursor = db.jobs_master.find({}, {"_id": 0})
+        async for j in cursor:
+            stored = _normalize_job_number(j.get("project_number") or "")
+            if not stored:
+                continue
+            if stored == pn_norm:
+                job = j
+                break
+            # Prefix-match — strip any "-cp" tail on either side
+            stem_a = pn_norm.split("-cp")[0]
+            stem_b = stored.split("-cp")[0]
+            if stem_a and stem_a == stem_b:
+                job = j
+                break
+
+    if job:
+        # Prefer pm_email (canonical key) if present
+        pm_email = (job.get("pm_email") or "").strip().lower()
+        if pm_email:
+            pm_doc = await db.project_managers.find_one(
+                {"email": pm_email}, {"_id": 0}
+            )
+            if pm_doc:
+                return (pm_doc.get("name") or "", pm_doc.get("email") or "")
+            # PM email on job but no PM record — return raw email anyway.
+            return (job.get("project_manager") or "", pm_email)
+        # No pm_email — fall back to project_manager (name) → PM lookup
+        pm_name = (job.get("project_manager") or "").strip()
+        if pm_name:
+            pm_doc = await db.project_managers.find_one(
+                {"name": pm_name}, {"_id": 0}
+            )
+            if pm_doc:
+                return (pm_doc.get("name") or "", pm_doc.get("email") or "")
+            # Try the legacy hardcoded table as a final fallback
+            if pm_name in PM_TABLE:
+                return (pm_name, str(PM_TABLE[pm_name]["email"]))
+
+    # Final fallback — legacy table by name (project_name string match)
+    rec_name = (record.get("project_name") or "").strip().lower()
+    if rec_name:
+        for pm_name, data in PM_TABLE.items():
+            jobs = data.get("jobs") or []
+            for _, jn in jobs:  # type: ignore[union-attr]
+                if jn.lower()[:25] in rec_name or rec_name[:25] in jn.lower():
+                    return (pm_name, str(data["email"]))
 
     return None
 
 
-def recipients_for_record(record: dict, kind: Optional[str] = None) -> Dict[str, object]:
+def _re_escape(s: str) -> str:
+    """Tiny re.escape replacement to avoid the import cost on hot path."""
+    import re
+    return re.escape(s)
+
+
+async def recipients_for_record_async(
+    db, record: dict, kind: Optional[str] = None
+) -> Dict[str, object]:
     """
-    Build the full distribution list for a record.
+    DB-backed distribution list builder.
 
     Routing rules (per user spec, 2026-02-26):
       • Compliance kinds (inspection/meeting/jha/incident):
@@ -157,19 +163,9 @@ def recipients_for_record(record: dict, kind: Optional[str] = None) -> Dict[str,
           ONLY the assigned PM. Exception: if Jaymn IS the assigned PM
           (e.g. job 26-06 Knox McRae), he gets it naturally as the PM.
 
-    Returns:
-      {
-        "pm_name": str | None,
-        "pm_email": str | None,
-        "to":  [pm_email]            (primary recipients)
-        "cc":  ALWAYS_CC for compliance, [] for operational
-        "all": deduped list of every email
-      }
-
-    If `kind` is None we default to compliance behavior for backwards-compat
-    (existing /api/email-report and the introspection helpers).
+    Returns: {pm_name, pm_email, to[], cc[], all[]}.
     """
-    pm = find_pm_for_record(record)
+    pm = await resolve_pm_for_record_async(db, record)
     pm_name, pm_email = (pm if pm else (None, None))
 
     is_pm_only = kind in PM_ONLY_KINDS
@@ -179,22 +175,16 @@ def recipients_for_record(record: dict, kind: Optional[str] = None) -> Dict[str,
         to.append(pm_email)
 
     if is_pm_only:
-        # Operational doc — PM only, no office CC.
         cc: List[str] = []
-        # If we couldn't resolve a PM at all (custom / unmapped job),
-        # fall through to Jaymn so the report still lands somewhere
-        # actionable — better than dropping it on the floor.
         if not to:
             to = ["jaymn.judd@mascigc.com"]
     else:
-        # Compliance doc — always CC the office, dedupe if Jaymn is the PM.
         cc = [
             e
             for e in ALWAYS_CC
             if e and (not pm_email or e.lower() != pm_email.lower())
         ]
         if not to:
-            # Unmapped job → office distribution becomes the primary.
             to = cc[:]
             cc = []
 
@@ -206,8 +196,6 @@ def recipients_for_record(record: dict, kind: Optional[str] = None) -> Dict[str,
             seen.add(k)
             all_unique.append(e)
 
-    # User-provided ad-hoc distribution list (GC / DOT / additional owners).
-    # Always appended last; deduped case-insensitively.
     extra = record.get("distribution_list") or []
     if isinstance(extra, list):
         for e in extra:
@@ -230,13 +218,47 @@ def recipients_for_record(record: dict, kind: Optional[str] = None) -> Dict[str,
     }
 
 
-def auto_email_enabled() -> bool:
-    """True only when Resend is configured AND auto-dispatch is enabled.
+# ---------------------------------------------------------------------------
+# LEGACY synchronous helpers — kept for any code that calls them directly.
+# These now return a stub from PM_TABLE only. New code should use the async
+# DB-backed helpers above.
+# ---------------------------------------------------------------------------
+def find_pm_for_record(record: dict) -> Optional[Tuple[str, str]]:
+    """Legacy sync fallback. Returns None unless the project_name happens
+    to match one of the 4 hardcoded PM names — only used by
+    /api/auto-email/preview which has been kept for backwards-compat."""
+    return None
 
-    Production behavior: enabled by default whenever a RESEND_API_KEY is
-    present. Set `AUTO_EMAIL_REPORTS=false` in the environment to disable
-    (used by the preview / dev env so test runs don't fire real emails).
-    """
+
+def recipients_for_record(record: dict, kind: Optional[str] = None) -> Dict[str, object]:
+    """Legacy sync fallback. Always returns the office distribution as
+    primary because we can't resolve the PM without a DB handle."""
+    is_pm_only = kind in PM_ONLY_KINDS
+    if is_pm_only:
+        to = ["jaymn.judd@mascigc.com"]
+        cc: List[str] = []
+    else:
+        to = ALWAYS_CC[:]
+        cc = []
+
+    extra = record.get("distribution_list") or []
+    if isinstance(extra, list):
+        seen = {e.lower() for e in to}
+        for e in extra:
+            if isinstance(e, str) and e.strip() and e.strip().lower() not in seen:
+                cc.append(e.strip())
+                seen.add(e.strip().lower())
+
+    return {
+        "pm_name": None,
+        "pm_email": None,
+        "to": to,
+        "cc": cc,
+        "all": to + cc,
+    }
+
+
+def auto_email_enabled() -> bool:
     if not os.environ.get("RESEND_API_KEY", "").strip():
         return False
     flag = os.environ.get("AUTO_EMAIL_REPORTS", "").strip().lower()

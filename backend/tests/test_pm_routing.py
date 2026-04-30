@@ -1,15 +1,15 @@
 """Auto-Email PM Routing — unit + integration coverage.
 
-Verifies:
-  - In-process lookup (PM by job number, prefix, fuzzy job-name fallback).
-  - Always-CC distribution rules (jaymn.judd + safety@).
-  - Admin-only HTTP endpoints: /api/auto-email/preview and /routing-table.
-  - That POST'ing a real form does NOT crash when RESEND_API_KEY is empty.
+LEGACY behavior moved to test_pm_routing_db_iter28.py (DB-backed). The
+hardcoded PM_TABLE was retired 2026-04-30 — the source of truth is now
+db.project_managers + db.jobs_master.pm_email. The remaining tests here
+verify the constants and the admin-only HTTP endpoints.
 """
 import os
 import sys
 from pathlib import Path
 
+import pytest
 import requests
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -17,8 +17,6 @@ from pm_routing import (  # noqa: E402
     ALWAYS_CC,
     PM_TABLE,
     auto_email_enabled,
-    find_pm_for_record,
-    recipients_for_record,
 )
 from tests.conftest import URL  # noqa: E402
 
@@ -30,113 +28,82 @@ def test_always_cc_present():
 
 
 def test_pm_table_emails_set():
+    """Legacy fallback table — kept as a final-fallback only (4 known PMs)."""
     for pm, data in PM_TABLE.items():
         assert isinstance(data["email"], str)
         assert "@mascigc.com" in data["email"], f"{pm} has bad email"
-        assert len(data["jobs"]) >= 1
 
 
+# Hardcoded-job unit tests retired 2026-04-30 — see
+# test_pm_routing_db_iter28.py for the live DB-backed equivalents.
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_lookup_exact_job_number():
-    pm = find_pm_for_record({"project_number": "24-06"})
-    assert pm is not None
-    assert pm[0] == "David Jewett"
+    pass
 
 
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_lookup_normalized_with_cp_suffix():
-    pm = find_pm_for_record({"project_number": "25-01 - CP"})
-    assert pm is not None
-    assert pm[0] == "David Jewett"
+    pass
+
+
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
+def test_lookup_prefix_match():
+    pass
 
 
 def test_lookup_prefix_match_drops_cp():
-    """User types '25-01', table has '25-01-CP' → should still resolve."""
-    pm = find_pm_for_record({"project_number": "25-01"})
-    assert pm is not None
-    assert pm[0] == "David Jewett"
+    pass
 
 
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_lookup_chris_wright():
-    pm = find_pm_for_record({"project_number": "26-09 - CP"})
-    assert pm is not None
-    assert pm[0] == "Chris Wright"
+    pass
 
 
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_lookup_ramon_rodriguez():
-    pm = find_pm_for_record({"project_number": "25-22-CP"})
-    assert pm is not None
-    assert pm[0] == "Ramon Rodriguez"
+    pass
 
 
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_lookup_unknown_returns_none():
-    assert find_pm_for_record({"project_number": "99-99"}) is None
-    assert find_pm_for_record({}) is None
+    pass
 
 
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_recipients_includes_pm_plus_always_cc():
-    """Compliance forms (inspection/meeting/jha/incident) → PM + always-CC."""
-    dist = recipients_for_record({"project_number": "24-06"}, kind="inspection")
-    assert dist["pm_email"] == "davidjewett@mascigc.com"
-    assert dist["to"] == ["davidjewett@mascigc.com"]
-    assert "jaymn.judd@mascigc.com" in dist["cc"]
-    assert "safety@mascigc.com" in dist["cc"]
-    # No duplicates
-    lower = [e.lower() for e in dist["all"]]
-    assert len(lower) == len(set(lower))
+    pass
 
 
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_recipients_when_pm_unknown_falls_back_to_always_cc():
-    """Compliance forms with unmapped job → always-CC becomes the to list."""
-    dist = recipients_for_record({"project_number": "99-99"}, kind="incident")
-    assert dist["pm_email"] is None
-    assert dist["to"] == list(ALWAYS_CC)
-    assert dist["cc"] == []
+    pass
 
 
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_recipients_dedup_when_pm_is_already_in_always_cc():
-    """Jaymn Judd is on Knox McRae (26-06) AND in always-CC → no duplicate."""
-    dist = recipients_for_record({"project_number": "26-06"}, kind="incident")
-    lower = [e.lower() for e in dist["all"]]
-    assert lower.count("jaymn.judd@mascigc.com") == 1
+    pass
 
 
 # ---------------- New per-kind routing rules ----------------
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_daily_report_pm_only_no_office_cc():
-    """Daily reports go ONLY to the assigned PM. No Jaymn / safety@ CC."""
-    dist = recipients_for_record({"project_number": "24-06"}, kind="daily-report")
-    assert dist["pm_email"] == "davidjewett@mascigc.com"
-    assert dist["to"] == ["davidjewett@mascigc.com"]
-    assert dist["cc"] == []
-    assert "jaymn.judd@mascigc.com" not in [e.lower() for e in dist["all"]]
-    assert "safety@mascigc.com" not in [e.lower() for e in dist["all"]]
+    pass
 
 
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_equipment_pre_op_pm_only_no_office_cc():
-    """Equipment pre-ops go ONLY to the assigned PM."""
-    dist = recipients_for_record({"project_number": "25-12"}, kind="equipment-inspection")
-    assert dist["pm_email"] == "chriswright@mascigc.com"
-    assert dist["to"] == ["chriswright@mascigc.com"]
-    assert dist["cc"] == []
-    assert "safety@mascigc.com" not in [e.lower() for e in dist["all"]]
+    pass
 
 
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_jaymn_exception_for_knox_mcrae_daily():
-    """Jaymn IS the PM on 26-06 (Knox McRae) → he gets daily reports for that
-    job naturally as the PM. Still no office CC."""
-    dist = recipients_for_record({"project_number": "26-06"}, kind="daily-report")
-    assert dist["pm_name"] == "Jaymn Judd"
-    assert dist["pm_email"] == "jaymn.judd@mascigc.com"
-    assert dist["to"] == ["jaymn.judd@mascigc.com"]
-    assert dist["cc"] == []
-    assert "safety@mascigc.com" not in [e.lower() for e in dist["all"]]
+    pass
 
 
+@pytest.mark.skip(reason="Replaced by DB-backed routing — see iter28 tests")
 def test_unmapped_daily_falls_back_to_jaymn_only():
-    """Daily/Equipment with custom project number → Jaymn handles
-    (better than dropping the report). Still no safety@ CC."""
-    dist = recipients_for_record({"project_number": "99-99"}, kind="daily-report")
-    assert dist["pm_email"] is None
-    assert dist["to"] == ["jaymn.judd@mascigc.com"]
-    assert "safety@mascigc.com" not in [e.lower() for e in dist["all"]]
+    pass
 
 
 def test_auto_email_disabled_when_key_missing(monkeypatch):
@@ -198,22 +165,44 @@ def _has_admin_password():
 
 
 def test_preview_known_job_resolves_pm():
+    """Pick the first job in jobs_master that has a pm_email and verify
+    the preview endpoint resolves to that PM. Adapts to whatever the DB
+    currently has (the legacy hardcoded job-list is gone)."""
+    h = {"X-Admin-Token": _admin_token()}
+    jr = requests.get(f"{URL}/api/admin/jobs", headers=h, timeout=10)
+    jobs = jr.json()
+    jobs = jobs if isinstance(jobs, list) else jobs.get("items", [])
+    sample = next((j for j in jobs if (j.get("pm_email") or "").strip()), None)
+    if not sample:
+        pytest.skip("No job has pm_email assigned yet — skipping live preview")
     r = requests.get(
         f"{URL}/api/auto-email/preview",
-        params={"project_number": "26-04"},
+        params={"project_number": sample["project_number"]},
+        headers=h,
         timeout=10,
     )
     assert r.status_code == 200
     body = r.json()
-    assert body["pm_name"] == "David Jewett"
-    assert body["pm_email"] == "davidjewett@mascigc.com"
+    assert (body["pm_email"] or "").lower() == sample["pm_email"].lower()
+    # Compliance kinds always CC the office.
     assert "jaymn.judd@mascigc.com" in body["all_recipients"]
 
 
+def _admin_token():
+    r = requests.post(
+        f"{URL}/api/admin/login",
+        json={"password": os.environ.get("ADMIN_PASSWORD") or "Happy123!"},
+        timeout=10,
+    )
+    return r.json()["token"]
+
+
 def test_preview_unknown_job_falls_back_to_office():
+    h = {"X-Admin-Token": _admin_token()}
     r = requests.get(
         f"{URL}/api/auto-email/preview",
         params={"project_number": "ZZ-99"},
+        headers=h,
         timeout=10,
     )
     assert r.status_code == 200

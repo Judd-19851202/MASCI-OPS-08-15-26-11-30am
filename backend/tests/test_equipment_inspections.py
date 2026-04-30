@@ -176,16 +176,11 @@ class TestEquipmentInspectionsCRUD:
         assert body["out_of_service"] == "Yes"
         TestEquipmentInspectionsCRUD.created_ids.append(body["id"])
 
-        # PM resolution by project_number 24-06 → David Jewett
-        pm = find_pm_for_record(rec)
-        assert pm is not None, "PM should resolve for 24-06"
-        pm_name, pm_email = pm
-        assert pm_name == "David Jewett"
-        assert pm_email == "davidjewett@mascigc.com"
-
-        dist = recipients_for_record(rec)
-        assert dist["pm_name"] == "David Jewett"
-        assert "davidjewett@mascigc.com" in dist["all"]
+        # PM resolution moved to DB-backed routing (iter28); this in-process
+        # call now returns None. Live email routing is verified end-to-end
+        # by the new test_pm_routing_db_iter28.py via /api/auto-email/preview.
+        _ = find_pm_for_record(rec)  # legacy stub — always None now
+        _ = recipients_for_record(rec)
 
     def test_admin_list_requires_token(self):
         r = requests.get(
@@ -334,6 +329,6 @@ class TestAutoEmailSubject:
         assert s_fail.startswith("[MASCI] EQUIPMENT FAIL · Equipment Pre-Op Inspection")
 
     def test_pm_routing_table_unchanged(self):
-        # Project 24-06 still lives under David Jewett
-        pm = find_pm_for_record({"project_number": "24-06"})
-        assert pm == ("David Jewett", "davidjewett@mascigc.com")
+        # Legacy hardcoded table dropped 2026-04-30; live routing is now
+        # DB-backed. See test_pm_routing_db_iter28.py for the live check.
+        assert find_pm_for_record({"project_number": "24-06"}) is None
