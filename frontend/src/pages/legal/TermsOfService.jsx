@@ -40,7 +40,7 @@ export default function TermsOfService() {
         data-testid="terms-of-service-page"
       >
         <p className="text-xs font-mono uppercase tracking-wide text-slate-500 mb-4">
-          Effective Date: April 30, 2026 · Last Updated: April 30, 2026
+          Effective Date: January 01, 2026 · Last Updated: January 01, 2026
         </p>
 
         <section className="mb-6">
@@ -70,11 +70,11 @@ export default function TermsOfService() {
         <h2>2. Limited License to Use</h2>
         <p>
           The Owner grants the licensed organization (e.g., MASCI General
-          Contractors and other authorized customers) a limited, revocable,
-          non-exclusive, non-transferable, non-sublicensable right to access
-          and use the Platform solely for its internal field operations,
-          safety reporting, and recordkeeping purposes during the term of
-          its services agreement with the Owner.
+          Contractors Inc. &amp; MASCI Corporation, and other authorized
+          customers) a limited, revocable, non-exclusive, non-transferable,
+          non-sublicensable right to access and use the Platform solely for
+          its internal field operations, safety reporting, and recordkeeping
+          purposes during the term of its services agreement with the Owner.
         </p>
         <p>
           This license does <strong>not</strong> grant any right to: (i) copy,
@@ -168,7 +168,7 @@ export default function TermsOfService() {
           These Terms are governed by the laws of the State of Florida
           without regard to its conflicts-of-laws rules. Any dispute will be
           resolved exclusively in the state or federal courts sitting in
-          Volusia County, Florida.
+          Flagler County, Florida.
         </p>
 
         <h2>12. Contact</h2>

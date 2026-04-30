@@ -359,7 +359,7 @@ export default function AdminGuide() {
               Screenshot the error. Note what you were doing when it happened.
             </li>
             <li>
-              Reach out to <strong>Jaymn Judd · 945-210-7050</strong>. Share the screenshot + steps.
+              Reach out to <strong>The Judd Group</strong>. Share the screenshot + steps.
               Most bugs are fixed in under an hour.
             </li>
             <li>

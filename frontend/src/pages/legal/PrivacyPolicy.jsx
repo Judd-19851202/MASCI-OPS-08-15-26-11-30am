@@ -35,7 +35,7 @@ export default function PrivacyPolicy() {
         data-testid="privacy-policy-page"
       >
         <p className="text-xs font-mono uppercase tracking-wide text-slate-500 mb-4">
-          Effective Date: April 30, 2026 · Last Updated: April 30, 2026
+          Effective Date: January 01, 2026 · Last Updated: January 01, 2026
         </p>
 
         <section className="mb-6">
@@ -45,7 +45,8 @@ export default function PrivacyPolicy() {
             &rdquo;, &ldquo;us&rdquo;) collects, uses, and protects
             information when you use the field operations and safety
             documentation Platform we operate on behalf of your employer or
-            licensed organization (e.g., MASCI General Contractors).
+            licensed organization (e.g., MASCI General Contractors Inc.
+            &amp; MASCI Corporation).
           </p>
         </section>
 
