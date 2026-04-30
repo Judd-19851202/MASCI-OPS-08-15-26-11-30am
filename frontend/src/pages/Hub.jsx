@@ -336,6 +336,20 @@ export default function Hub() {
             external
           />
           <SectionCard
+            to="/pm/login"
+            icon={ClipboardList}
+            eyebrow="Project Management"
+            title={t("PM Portal")}
+            desc={t("Same day-to-day workspace as Admin — every record, every form, every master list — without the backup / restore controls.")}
+            bullets={[
+              t("Password-gated · jobs, equipment, employees, suppliers, posters"),
+              t("No backups, no restore, no force-reseed — admin only"),
+            ]}
+            accent="amber"
+            testId="hub-section-pm"
+            external
+          />
+          <SectionCard
             to="/shop/login"
             icon={Wrench}
             eyebrow="Mechanics & Shop"

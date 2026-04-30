@@ -145,16 +145,60 @@ def _admin_token_for(password: str) -> str:
     return hmac.new(_admin_hmac_secret(), password.encode(), hashlib.sha256).hexdigest()
 
 
-def require_admin(x_admin_token: Optional[str] = Header(default=None)):
-    """FastAPI dependency. Reject unless the request carries a valid token."""
+def _pm_token_for(password: str) -> str:
+    """PM portal token. Distinct namespace from admin so a stolen PM token
+    cannot be replayed against admin-strict (backup/recovery) routes."""
+    return hmac.new(_admin_hmac_secret(), b"pm:" + password.encode(), hashlib.sha256).hexdigest()
+
+
+def _is_valid_admin_token(tok: Optional[str]) -> bool:
+    pw = os.environ.get("ADMIN_PASSWORD", "")
+    if not tok or not pw:
+        return False
+    return hmac.compare_digest(tok, _admin_token_for(pw))
+
+
+def _is_valid_pm_token(tok: Optional[str]) -> bool:
+    pw = os.environ.get("PM_PASSWORD", "")
+    if not tok or not pw:
+        return False
+    return hmac.compare_digest(tok, _pm_token_for(pw))
+
+
+def require_admin(
+    x_admin_token: Optional[str] = Header(default=None),
+    x_pm_token: Optional[str] = Header(default=None),
+):
+    """FastAPI dependency. Accepts an Admin OR a Project-Manager token.
+
+    PMs need access to the same day-to-day office surface (jobs, equipment,
+    employees, safety records, posters, compliance exports). Backup &
+    recovery routes use ``require_admin_strict`` instead so a fired PM
+    cannot exfiltrate or wipe the system on the way out.
+    """
+    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
+    pm_pw = os.environ.get("PM_PASSWORD", "")
+    if not expected_pw and not pm_pw:
+        # No passwords configured → gate disabled (open mode)
+        return True
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return True
+    if x_pm_token and _is_valid_pm_token(x_pm_token):
+        return True
+    if not x_admin_token and not x_pm_token:
+        raise HTTPException(status_code=401, detail="Admin or PM login required")
+    raise HTTPException(status_code=401, detail="Invalid admin/PM token")
+
+
+def require_admin_strict(x_admin_token: Optional[str] = Header(default=None)):
+    """Admin-only gate — used on backup & recovery endpoints. PM tokens are
+    rejected here so a project manager cannot download or restore backups."""
     expected_pw = os.environ.get("ADMIN_PASSWORD", "")
     if not expected_pw:
-        # No password configured → admin gate disabled (open mode)
         return True
     if not x_admin_token:
         raise HTTPException(status_code=401, detail="Admin login required")
-    expected = _admin_token_for(expected_pw)
-    if not hmac.compare_digest(x_admin_token, expected):
+    if not _is_valid_admin_token(x_admin_token):
         raise HTTPException(status_code=401, detail="Invalid admin token")
     return True
 
@@ -252,6 +296,29 @@ async def shop_login(body: AdminLoginRequest, request: Request):
 
 @api_router.get("/shop/check")
 async def shop_check(_: bool = Depends(require_shop_or_admin)):
+    return {"ok": True}
+
+
+@api_router.post("/pm/login")
+async def pm_login(body: AdminLoginRequest, request: Request):
+    """Project-Manager portal login. Issues a token accepted by every
+    ``require_admin`` route except the backup/recovery routes (which use
+    ``require_admin_strict``)."""
+    ip = _client_ip(request)
+    _check_login_lockout(ip)
+    expected_pw = os.environ.get("PM_PASSWORD", "")
+    if not expected_pw:
+        return {"ok": True, "token": "open-mode"}
+    if not hmac.compare_digest(body.password, expected_pw):
+        _record_login_fail(ip)
+        raise HTTPException(status_code=401, detail="Wrong password")
+    _reset_login_fails(ip)
+    return {"ok": True, "token": _pm_token_for(expected_pw)}
+
+
+@api_router.get("/pm/check")
+async def pm_check(_: bool = Depends(require_admin)):
+    """Verify a stored PM (or Admin) token is still valid."""
     return {"ok": True}
 
 
@@ -2057,7 +2124,7 @@ def _record_filename(kind: str, record: dict) -> str:
 
 
 @api_router.get("/exports/full-backup")
-async def exports_full_backup(_: bool = Depends(require_admin)):
+async def exports_full_backup(_: bool = Depends(require_admin_strict)):
     """One-click off-site backup. Streams a single .zip back containing:
 
     /CSV/                — one CSV per kind (no photos/signatures inline)
@@ -2940,7 +3007,7 @@ async def _backup_scheduler_loop(db) -> None:
 
 
 @api_router.get("/admin/backups")
-async def admin_list_backups(_: bool = Depends(require_admin)):
+async def admin_list_backups(_: bool = Depends(require_admin_strict)):
     """List every stored backup on disk + current schedule settings."""
     files = _list_stored_backups()
     total_bytes = sum(f["size_bytes"] for f in files)
@@ -2959,7 +3026,7 @@ async def admin_list_backups(_: bool = Depends(require_admin)):
 
 
 @api_router.get("/admin/backups/integrity-check")
-async def admin_backup_integrity_check(_: bool = Depends(require_admin)):
+async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
     """Audit: every Mongo collection currently in the live DB vs the most
     recent backup's manifest. Surfaces any collection that exists right now
     but wasn't captured in the last backup — proves nothing is slipping
@@ -3010,7 +3077,7 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin)):
 
 @api_router.get("/admin/backups/{filename}")
 async def admin_download_stored_backup(
-    filename: str, _: bool = Depends(require_admin)
+    filename: str, _: bool = Depends(require_admin_strict)
 ):
     """Download a specific stored backup by filename."""
     # Strict filename validation — only our own backup files.
@@ -3035,7 +3102,7 @@ async def admin_download_stored_backup(
 
 @api_router.delete("/admin/backups/{filename}")
 async def admin_delete_stored_backup(
-    filename: str, _: bool = Depends(require_admin)
+    filename: str, _: bool = Depends(require_admin_strict)
 ):
     if not re.fullmatch(r"MASCI_full_backup_[0-9A-Za-z_\-]+\.zip", filename):
         raise HTTPException(400, "Invalid backup filename")
@@ -3050,7 +3117,7 @@ async def admin_delete_stored_backup(
 
 
 @api_router.post("/admin/backups/run-now")
-async def admin_run_backup_now(_: bool = Depends(require_admin)):
+async def admin_run_backup_now(_: bool = Depends(require_admin_strict)):
     """Trigger an immediate scheduled backup (same path as nightly, just now)."""
     result = await _run_scheduled_backup(db)
     if not result:
@@ -3077,7 +3144,7 @@ async def admin_run_data_fixes(_: bool = Depends(require_admin)):
 # every crew owner+admin is locked out.
 
 @api_router.get("/admin/crew-recovery/status")
-async def admin_crew_recovery_status(_: bool = Depends(require_admin)):
+async def admin_crew_recovery_status(_: bool = Depends(require_admin_strict)):
     """Return counts of every key collection so the office can see at a glance
     what's populated and what isn't (helps diagnose redeploy data-loss)."""
     counts = {}
@@ -3116,7 +3183,7 @@ async def admin_crew_recovery_status(_: bool = Depends(require_admin)):
 @api_router.post("/admin/crew-recovery/reset-password")
 async def admin_crew_recovery_reset(
     body: dict,
-    _: bool = Depends(require_admin),
+    _: bool = Depends(require_admin_strict),
 ):
     """Reset a Crew Hub user's password using the LEGACY admin token. The user
     is forced to change it on next login. Body: {email, new_password}.
@@ -3143,7 +3210,7 @@ async def admin_crew_recovery_reset(
 
 
 @api_router.post("/admin/crew-recovery/force-reseed")
-async def admin_crew_recovery_force_reseed(_: bool = Depends(require_admin)):
+async def admin_crew_recovery_force_reseed(_: bool = Depends(require_admin_strict)):
     """Force-rerun the equipment_master / employees / suppliers JSON seeds even
     if those collections already have rows. Useful when a partial-wipe leaves
     incomplete data and the boot guard (`count > 0`) skips re-seeding.
@@ -3170,7 +3237,7 @@ async def admin_crew_recovery_force_reseed(_: bool = Depends(require_admin)):
 
 
 @api_router.post("/admin/crew-recovery/scrap-crew-hub")
-async def admin_scrap_crew_hub(body: dict, _: bool = Depends(require_admin)):
+async def admin_scrap_crew_hub(body: dict, _: bool = Depends(require_admin_strict)):
     """One-shot: WIPE every Crew Hub / projects table from the DB.
     The MASCI Hub has decided to use Basecamp instead of the in-app Crew Hub.
 
@@ -3344,7 +3411,7 @@ _RESTORE_SAFETY_AUX = {"equipment_units", "job_hazard_plans", "trench_boxes"}
 async def exports_restore(
     file: UploadFile = File(...),
     merge: bool = Form(True),
-    _: bool = Depends(require_admin),
+    _: bool = Depends(require_admin_strict),
 ):
     """Restore a `/api/exports/full-backup` .zip back into MongoDB.
 

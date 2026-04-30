@@ -3,13 +3,10 @@ import { Navigate, useLocation } from "react-router-dom";
 import { isAdmin } from "@/lib/adminAuth";
 
 /**
- * Wrap any admin-only route. If no admin token is set, the user is
- * redirected to /admin/login with the original path captured so we can
- * bounce them back after a successful login.
- *
- *   <Route path="/admin/inspections" element={
- *     <RequireAdmin><InspectionsDashboard /></RequireAdmin>
- *   } />
+ * Admin-strict guard. Used on /admin (the hub page itself) and any other
+ * route that exposes backup/restore controls. PMs are NOT admitted here —
+ * they have their own /pm hub and use ``RequireAdminOrPm`` on shared
+ * sub-routes (inspections, equipment, etc.).
  */
 export function RequireAdmin({ children }) {
   const location = useLocation();

@@ -20,7 +20,7 @@ if not _RAW:
         "REACT_APP_BACKEND_URL not set in environment", allow_module_level=True
     )
 BASE_URL = _RAW.rstrip("/")
-ADMIN_PW = os.environ.get("ADMIN_PASSWORD", "Happy123!")
+ADMIN_PW = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
 SHOP_PW = os.environ.get("SHOP_PASSWORD", "Nothappy123!")
 
 

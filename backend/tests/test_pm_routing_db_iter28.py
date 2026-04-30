@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from tests.conftest import URL  # noqa: E402
 
 BASE = URL
-ADMIN_PWD = os.environ.get("ADMIN_PASSWORD") or "Happy123!"
+ADMIN_PWD = os.environ.get("ADMIN_PASSWORD") or "MASCI1982!"
 
 
 def _admin_token():

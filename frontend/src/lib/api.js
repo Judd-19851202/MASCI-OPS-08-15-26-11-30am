@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getAdminToken, clearAdminToken } from "@/lib/adminAuth";
 import { getShopToken, clearShopToken } from "@/lib/shopAuth";
+import { getPmToken, clearPmToken } from "@/lib/pmAuth";
 import { getJwt, clearJwt } from "@/lib/jwtAuth";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -28,6 +29,10 @@ api.interceptors.request.use((config) => {
   if (shopTok) {
     config.headers["X-Shop-Token"] = shopTok;
   }
+  const pmTok = getPmToken();
+  if (pmTok) {
+    config.headers["X-PM-Token"] = pmTok;
+  }
   const jwt = getJwt();
   if (jwt && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${jwt}`;
@@ -48,6 +53,7 @@ api.interceptors.response.use(
       // independent.
       if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
       if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
+      if (cfg.headers?.["X-PM-Token"]) clearPmToken();
       if (cfg.headers?.Authorization) clearJwt();
     }
     return Promise.reject(err);

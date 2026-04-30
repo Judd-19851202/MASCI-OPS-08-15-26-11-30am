@@ -33,6 +33,8 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
 import AdminGuide from "@/pages/AdminGuide";
 import ProjectPnlPage from "@/pages/ProjectPnlPage";
+import PmLogin from "@/pages/PmLogin";
+import PmHub from "@/pages/PmHub";
 import ShopLogin from "@/pages/ShopLogin";
 import ShopHub from "@/pages/ShopHub";
 import CheatSheet from "@/pages/CheatSheet";
@@ -40,6 +42,8 @@ import TermsOfService from "@/pages/legal/TermsOfService";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import GlobalFooter from "@/components/GlobalFooter";
 import { RequireAdmin } from "@/components/RequireAdmin";
+import { RequireAdminOrPm } from "@/components/RequireAdminOrPm";
+import { RequirePm } from "@/components/RequirePm";
 import { RequireShop } from "@/components/RequireShop";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 import GlobalKeepalive from "@/components/GlobalKeepalive";
@@ -60,6 +64,8 @@ const GateInspection = ({ children }) => (
 );
 
 const A = (el) => <RequireAdmin>{el}</RequireAdmin>;
+const AP = (el) => <RequireAdminOrPm>{el}</RequireAdminOrPm>;
+const P = (el) => <RequirePm>{el}</RequirePm>;
 const S = (el) => <RequireShop>{el}</RequireShop>;
 
 function App() {
@@ -119,33 +125,41 @@ function App() {
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={A(<AdminHub />)} />
             <Route path="/admin/guide" element={A(<AdminGuide />)} />
-            <Route path="/admin/pnl" element={A(<ProjectPnlPage />)} />
+            <Route path="/admin/pnl" element={AP(<ProjectPnlPage />)} />
 
-            <Route path="/admin/inspections" element={A(<Dashboard />)} />
-            <Route path="/admin/inspections/:id" element={A(<ViewInspection />)} />
+            <Route path="/admin/inspections" element={AP(<Dashboard />)} />
+            <Route path="/admin/inspections/:id" element={AP(<ViewInspection />)} />
 
-            <Route path="/admin/meetings" element={A(<MeetingsDashboard />)} />
-            <Route path="/admin/meetings/:id" element={A(<ViewMeeting />)} />
+            <Route path="/admin/meetings" element={AP(<MeetingsDashboard />)} />
+            <Route path="/admin/meetings/:id" element={AP(<ViewMeeting />)} />
 
-            <Route path="/admin/jha-plans" element={A(<JhaPlansAdmin />)} />
+            <Route path="/admin/jha-plans" element={AP(<JhaPlansAdmin />)} />
             <Route path="/admin/jha" element={<Navigate to="/admin/jha-plans" replace />} />
             <Route path="/admin/jha/:id" element={<Navigate to="/admin/jha-plans" replace />} />
 
-            <Route path="/admin/trench-boxes" element={A(<TrenchBoxesAdmin />)} />
-            <Route path="/admin/trench-boxes/poster" element={A(<TrenchBoxPoster />)} />
+            <Route path="/admin/trench-boxes" element={AP(<TrenchBoxesAdmin />)} />
+            <Route path="/admin/trench-boxes/poster" element={AP(<TrenchBoxPoster />)} />
 
-            <Route path="/admin/jha-plans/poster" element={A(<JhaPlansPoster />)} />
+            <Route path="/admin/jha-plans/poster" element={AP(<JhaPlansPoster />)} />
 
-            <Route path="/admin/posters/print-all" element={A(<AllPostersPrint />)} />
+            <Route path="/admin/posters/print-all" element={AP(<AllPostersPrint />)} />
 
-            <Route path="/admin/incidents" element={A(<IncidentsDashboard />)} />
-            <Route path="/admin/incidents/:id" element={A(<ViewIncident />)} />
+            <Route path="/admin/incidents" element={AP(<IncidentsDashboard />)} />
+            <Route path="/admin/incidents/:id" element={AP(<ViewIncident />)} />
 
-            <Route path="/admin/daily" element={A(<DailyReportsDashboard />)} />
-            <Route path="/admin/daily/:id" element={A(<ViewDailyReport />)} />
+            <Route path="/admin/daily" element={AP(<DailyReportsDashboard />)} />
+            <Route path="/admin/daily/:id" element={AP(<ViewDailyReport />)} />
 
-            <Route path="/admin/equipment" element={A(<EquipmentDashboard />)} />
-            <Route path="/admin/equipment/:id" element={A(<ViewEquipmentInspection context="admin" />)} />
+            <Route path="/admin/equipment" element={AP(<EquipmentDashboard />)} />
+            <Route path="/admin/equipment/:id" element={AP(<ViewEquipmentInspection context="admin" />)} />
+
+            {/* ============================================================
+                Project Management Portal — same surface as admin minus
+                backup/recovery. Backed by PM_PASSWORD; admin tokens are
+                also accepted by the PM hub guard (RequirePm).
+                ============================================================ */}
+            <Route path="/pm/login" element={<PmLogin />} />
+            <Route path="/pm" element={P(<PmHub />)} />
 
             {/* ============================================================
                 Shop Console — mechanics-only view, separate password

@@ -14,7 +14,7 @@ from tests.conftest import URL  # noqa: E402
 def _hdr():
     r = requests.post(
         f"{URL}/api/admin/login",
-        json={"password": os.environ.get("ADMIN_PASSWORD", "Happy123!")},
+        json={"password": os.environ.get("ADMIN_PASSWORD", "MASCI1982!")},
         timeout=10,
     )
     return {"X-Admin-Token": r.json()["token"]}

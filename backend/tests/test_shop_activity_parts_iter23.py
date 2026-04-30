@@ -71,7 +71,7 @@ def _kv(p, k):
 BASE_URL = (_kv("/app/frontend/.env", "REACT_APP_BACKEND_URL")
             or os.environ.get("REACT_APP_BACKEND_URL", "")).rstrip("/")
 SHOP_PW = _kv("/app/backend/.env", "SHOP_PASSWORD") or "Nothappy123!"
-ADMIN_PW = _kv("/app/backend/.env", "ADMIN_PASSWORD") or "Happy123!"
+ADMIN_PW = _kv("/app/backend/.env", "ADMIN_PASSWORD") or "MASCI1982!"
 RESEND_KEY = _kv("/app/backend/.env", "RESEND_API_KEY")
 
 

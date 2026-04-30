@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
+import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
 import RestoreBackupPanel from "@/components/RestoreBackupPanel";
 import StoredBackupsPanel from "@/components/StoredBackupsPanel";
@@ -307,53 +308,57 @@ export default function ComplianceExportPanel() {
         Google Sheets, or hand to your OSHA / DOT auditor.
       </p>
 
-      {/* ---------- Full off-site backup (zero-IT manual download) ---------- */}
-      <div className="mt-6 pt-5 border-t-2 border-slate-200">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-red-700 text-white">
-              <Archive className="w-5 h-5" />
+      {/* ---------- Full off-site backup (admin-only) ---------- */}
+      {isAdmin() && (
+        <div className="mt-6 pt-5 border-t-2 border-slate-200">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-red-700 text-white">
+                <Archive className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-display text-base sm:text-lg font-black tracking-tight text-slate-900">
+                  Full Off-Site Backup
+                </h3>
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-0.5">
+                  Single .zip · CSVs + JSON + PDFs + photos
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-display text-base sm:text-lg font-black tracking-tight text-slate-900">
-                Full Off-Site Backup
-              </h3>
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-0.5">
-                Single .zip · CSVs + JSON + PDFs + photos
-              </p>
-            </div>
+            <Button
+              onClick={downloadFullBackup}
+              disabled={fullBackup}
+              className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs disabled:bg-slate-400"
+              data-testid="full-backup-btn"
+            >
+              {fullBackup ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" /> Building…
+                </>
+              ) : (
+                <>
+                  <Archive className="w-4 h-4 mr-1" /> Download Full Backup
+                </>
+              )}
+            </Button>
           </div>
-          <Button
-            onClick={downloadFullBackup}
-            disabled={fullBackup}
-            className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs disabled:bg-slate-400"
-            data-testid="full-backup-btn"
-          >
-            {fullBackup ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-1" /> Building…
-              </>
-            ) : (
-              <>
-                <Archive className="w-4 h-4 mr-1" /> Download Full Backup
-              </>
-            )}
-          </Button>
+          <p className="mt-3 text-xs text-slate-600 leading-relaxed">
+            One dated .zip covering <strong>everything</strong> on the system: every safety record
+            (CSVs + raw JSON + PDFs + photos + signatures) across all 6 modules,
+            plus the equipment-unit / JHA-plan / trench-box registries and employees /
+            suppliers seed data. Drop the .zip on your office NAS or shared drive after
+            download. Restore it anytime from the panel below.
+          </p>
         </div>
-        <p className="mt-3 text-xs text-slate-600 leading-relaxed">
-          One dated .zip covering <strong>everything</strong> on the system: every safety record
-          (CSVs + raw JSON + PDFs + photos + signatures) across all 6 modules,
-          plus the equipment-unit / JHA-plan / trench-box registries and employees /
-          suppliers seed data. Drop the .zip on your office NAS or shared drive after
-          download. Restore it anytime from the panel below.
-        </p>
-      </div>
+      )}
 
-      {/* ---------- Stored Backups on Server ---------- */}
-      <StoredBackupsPanel />
-
-      {/* ---------- Restore from Backup ---------- */}
-      <RestoreBackupPanel />
+      {/* ---------- Stored Backups + Restore (admin-only) ---------- */}
+      {isAdmin() && (
+        <>
+          <StoredBackupsPanel />
+          <RestoreBackupPanel />
+        </>
+      )}
     </section>
   );
 }

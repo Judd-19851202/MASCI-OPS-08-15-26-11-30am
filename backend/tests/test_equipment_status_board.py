@@ -13,7 +13,7 @@ from tests.conftest import URL  # noqa: E402
 def _admin_token():
     r = requests.post(
         f"{URL}/api/admin/login",
-        json={"password": os.environ.get("ADMIN_PASSWORD", "Happy123!")},
+        json={"password": os.environ.get("ADMIN_PASSWORD", "MASCI1982!")},
         timeout=10,
     )
     assert r.status_code == 200, r.text

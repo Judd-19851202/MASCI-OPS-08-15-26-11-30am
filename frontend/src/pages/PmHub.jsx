@@ -13,6 +13,8 @@ import {
   LogOut,
   Home,
   TrendingUp,
+  Briefcase,
+  ShieldCheck,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
@@ -20,9 +22,6 @@ import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
-import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
-import BackupHeroPanel from "@/components/BackupHeroPanel";
-import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import AdminJobMasterPanel from "@/components/AdminJobMasterPanel";
 import AdminPMPanel from "@/components/AdminPMPanel";
@@ -33,10 +32,11 @@ import SupplierMasterPanel from "@/components/SupplierMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { clearAdminToken } from "@/lib/adminAuth";
+import { isAdmin } from "@/lib/adminAuth";
+import { clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
 
-const AdminTile = ({ to, icon: Icon, title, count, sub, accent = "red", testId }) => {
+const PmTile = ({ to, icon: Icon, title, count, sub, accent = "amber", testId }) => {
   const accentCls =
     accent === "red"
       ? "border-red-700 bg-red-700"
@@ -48,7 +48,7 @@ const AdminTile = ({ to, icon: Icon, title, count, sub, accent = "red", testId }
   return (
     <Link
       to={to}
-      className="group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-7 hover:border-red-700 hover:-translate-y-0.5 transition-all duration-150 flex flex-col"
+      className="group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-7 hover:border-amber-600 hover:-translate-y-0.5 transition-all duration-150 flex flex-col"
       data-testid={testId}
     >
       <div
@@ -68,7 +68,7 @@ const AdminTile = ({ to, icon: Icon, title, count, sub, accent = "red", testId }
             {sub}
           </div>
         </div>
-        <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
+        <div className="font-mono text-xs uppercase tracking-[0.2em] text-amber-700 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
           Open <ArrowRight className="w-3.5 h-3.5" />
         </div>
       </div>
@@ -76,7 +76,7 @@ const AdminTile = ({ to, icon: Icon, title, count, sub, accent = "red", testId }
   );
 };
 
-export default function AdminHub() {
+export default function PmHub() {
   const navigate = useNavigate();
   const [counts, setCounts] = useState({
     inspections: null,
@@ -88,6 +88,7 @@ export default function AdminHub() {
     equipment: null,
   });
   const [loading, setLoading] = useState(true);
+  const adminViewing = isAdmin(); // an admin can land here too
 
   useEffect(() => {
     let alive = true;
@@ -124,7 +125,7 @@ export default function AdminHub() {
   }, []);
 
   const signOut = () => {
-    clearAdminToken();
+    clearPmToken();
     toast.success("Signed out");
     navigate("/", { replace: true });
   };
@@ -132,42 +133,36 @@ export default function AdminHub() {
   return (
     <div className="min-h-screen blueprint-bg">
       <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
+      <header className="bg-slate-900 border-b-4 border-amber-500">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className="inline-flex items-center text-white hover:text-red-300 text-xs font-bold uppercase tracking-wide"
-              data-testid="admin-hub-public"
+              className="inline-flex items-center text-white hover:text-amber-300 text-xs font-bold uppercase tracking-wide"
+              data-testid="pm-hub-public"
             >
               <Home className="w-4 h-4 mr-1" /> MASCI Hub
             </Link>
           </div>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/admin" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/admin" />
+          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/pm" />
+          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/pm" />
           <div className="flex items-center gap-2">
             <SystemHealthBadge />
-            <Link
-              to="/pm"
-              className="hidden sm:inline-flex items-center h-9 px-3 rounded-md bg-amber-500 text-slate-900 border-2 border-amber-700 hover:bg-amber-400 text-xs font-bold uppercase tracking-wide"
-              data-testid="admin-hub-pm-link"
-              title="Open the PM portal as the admin"
-            >
-              PM Portal
-            </Link>
-            <Link
-              to="/admin/guide"
-              className="inline-flex items-center h-9 px-3 rounded-md bg-slate-800 text-white border-2 border-slate-600 hover:border-amber-500 hover:text-amber-300 text-xs font-bold uppercase tracking-wide"
-              data-testid="admin-guide-link"
-            >
-              📖 Guide
-            </Link>
+            {adminViewing && (
+              <Link
+                to="/admin"
+                className="inline-flex items-center h-9 px-3 rounded-md bg-red-700 text-white border-2 border-red-900 hover:bg-red-800 text-xs font-bold uppercase tracking-wide"
+                data-testid="pm-hub-admin-link"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 mr-1" /> Admin Console
+              </Link>
+            )}
             <CompanyInfoDialog />
             <Button
               onClick={signOut}
               variant="outline"
-              className="h-9 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400 text-xs font-bold uppercase tracking-wide"
-              data-testid="admin-signout-btn"
+              className="h-9 border-2 border-slate-600 bg-slate-800 text-white hover:border-amber-500 hover:text-amber-300 text-xs font-bold uppercase tracking-wide"
+              data-testid="pm-signout-btn"
             >
               <LogOut className="w-3.5 h-3.5 mr-1" /> Sign out
             </Button>
@@ -176,39 +171,47 @@ export default function AdminHub() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
-        {/* ============================================================
-            DAY-TO-DAY WORKSPACE — same surface a PM gets in /pm.
-            Backup / restore / recovery panels are at the BOTTOM of the
-            page so admins finish their normal work first and only see
-            the destructive controls when they actually need them.
-            ============================================================ */}
+        {/* Banner — make it visually obvious this is the PM portal */}
+        <div
+          className="bg-amber-50 border-2 border-amber-400 rounded-md p-4 sm:p-5 mb-8 flex items-start gap-3"
+          data-testid="pm-portal-banner"
+        >
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-500 text-white shrink-0">
+            <Briefcase className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-800 font-black">
+              Project Management Portal
+            </div>
+            <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 leading-tight mt-0.5">
+              Every record, every form, every master list.
+            </h1>
+            <p className="text-slate-700 text-sm mt-1.5">
+              Same controls as Admin for the day-to-day office work. Backup,
+              restore, force-reseed, and other system-recovery tools live in
+              the Admin Console only.
+            </p>
+          </div>
+        </div>
 
-        {/* Replace MASCI equipment fleet (.xlsx) — refreshes every dropdown */}
+        {/* Master lists — exact same panels as admin */}
         <EquipmentMasterPanel />
-
-        {/* Manage MASCI active jobs — drives JobPicker on every form */}
         <AdminPMPanel />
         <AdminJobMasterPanel />
-
-        {/* Bulk-upload the per-unit parts catalog (filters, cutting edges, etc.) */}
         <EquipmentPartsPanel />
-
-        {/* MASCI employee roster — feeds every employee dropdown */}
         <EmployeeMasterPanel />
-
-        {/* MASCI supplier / subcontractor list — feeds Sections 05 & 08 */}
         <SupplierMasterPanel />
 
         <div className="mb-10">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            MASCI Admin Console
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-amber-700">
+            Records &amp; Forms
           </span>
-          <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2">
-            Every record, every form.
-          </h1>
+          <h2 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2">
+            Every safety record on file.
+          </h2>
           <p className="text-slate-600 text-base mt-3 max-w-2xl">
-            View, print, and manage every safety record submitted by the field.
-            Crews never see this page.
+            View, print, and manage every safety record submitted by the
+            field — same view the Admin Console gives.
           </p>
         </div>
 
@@ -218,77 +221,77 @@ export default function AdminHub() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
-            <AdminTile
+            <PmTile
               to="/admin/pnl"
               icon={TrendingUp}
               title="Project P&L Snapshot"
               count={counts.daily}
               sub="Live job-cost dashboard"
               accent="amber"
-              testId="admin-tile-pnl"
+              testId="pm-tile-pnl"
             />
-            <AdminTile
+            <PmTile
               to="/admin/daily"
               icon={ClipboardList}
               title="Daily Reports"
               count={counts.daily}
               sub={counts.daily === 1 ? "report on file" : "reports on file"}
               accent="red"
-              testId="admin-tile-daily"
+              testId="pm-tile-daily"
             />
-            <AdminTile
+            <PmTile
               to="/admin/inspections"
               icon={ClipboardCheck}
               title="Site Inspections"
               count={counts.inspections}
               sub={counts.inspections === 1 ? "report on file" : "reports on file"}
               accent="red"
-              testId="admin-tile-inspections"
+              testId="pm-tile-inspections"
             />
-            <AdminTile
+            <PmTile
               to="/admin/meetings"
               icon={Users}
               title="Safety Meetings"
               count={counts.meetings}
               sub={counts.meetings === 1 ? "meeting logged" : "meetings logged"}
               accent="slate"
-              testId="admin-tile-meetings"
+              testId="pm-tile-meetings"
             />
-            <AdminTile
+            <PmTile
               to="/admin/jha-plans"
               icon={FileText}
               title="Job Hazard Plans"
               count={counts.jhaPlans}
               sub={counts.jhaPlans === 1 ? "plan uploaded" : "plans uploaded"}
               accent="amber"
-              testId="admin-tile-jha-plans"
+              testId="pm-tile-jha-plans"
             />
-            <AdminTile
+            <PmTile
               to="/admin/trench-boxes"
               icon={Box}
               title="Trench Box Data"
               count={counts.trenchBoxes}
               sub={counts.trenchBoxes === 1 ? "box on file" : "boxes on file"}
               accent="slate"
-              testId="admin-tile-trench-boxes"
+              testId="pm-tile-trench-boxes"
             />
-            <AdminTile
+            <PmTile
               to="/admin/incidents"
               icon={AlertOctagon}
               title="Incident Reports"
               count={counts.incidents}
               sub={counts.incidents === 1 ? "report on file" : "reports on file"}
               accent="redDeep"
-              testId="admin-tile-incidents"
+              testId="pm-tile-incidents"
             />
-            <AdminTile
+            <PmTile
               to="/admin/equipment"
               icon={Wrench}
               title="Equipment Pre-Op"
               count={counts.equipment}
               sub={counts.equipment === 1 ? "inspection on file" : "inspections on file"}
               accent="slate"
-              testId="admin-tile-equipment"
+              testId="pm-tile-equipment"
             />
           </div>
         )}
@@ -297,42 +300,11 @@ export default function AdminHub() {
         <SitePostersPanel />
         <EquipmentStatusBoard />
         <ComplianceExportPanel />
-
-        {/* ============================================================
-            SYSTEM RECOVERY — admin-only destructive controls.
-            Parked at the bottom of the page on purpose so the PM
-            workspace items above stay one-to-one with /pm and admins
-            don't trip over backup buttons during normal work.
-            ============================================================ */}
-        <div className="mt-12 pt-10 border-t-4 border-slate-900">
-          <div className="mb-6">
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-900">
-              Admin Only · System Recovery
-            </span>
-            <h2 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-1">
-              Backups, restore, and crew recovery
-            </h2>
-            <p className="text-slate-600 text-sm mt-2 max-w-2xl">
-              These controls touch the database directly. They are gated to
-              the admin password only and are not available in the Project
-              Management portal.
-            </p>
-          </div>
-
-          {/* Data-loss warning banner — red if running on local Mongo, green if Atlas */}
-          <PersistenceHealthBanner />
-
-          {/* ONE-STOP backup + restore hero — 2 giant buttons, nothing else */}
-          <BackupHeroPanel />
-
-          {/* EMERGENCY: system status grid + force-reseed if data missing after a redeploy */}
-          <CrewRecoveryPanel />
-        </div>
       </main>
 
       <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 flex flex-col items-center gap-5 border-t border-slate-200">
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-          MASCI · Office Console
+          MASCI · Project Management Portal
         </div>
         <JuddGroupAttribution variant="admin" />
       </footer>

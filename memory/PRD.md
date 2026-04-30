@@ -1,5 +1,47 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-30 — PM (Project Management) Portal · Admin Lockdown · Password Rotation
+
+**User ask**: "make a portal for project management to allow them access to everything they need for project management but not have access to all backup systems (basically so if we fire a PM he cant nuke the system out of rage or steal data) make password for project management Happy123! ... new admin password MASCI1982! ... in admin console move all backup systems to lower part of the pages."
+
+### Backend authorization model
+`/app/backend/server.py`:
+- Added `_pm_token_for(password)` — separate HMAC namespace (`b"pm:" + pw`) so a stolen PM token cannot be replayed against admin-strict routes.
+- **Relaxed `require_admin`** to accept EITHER a valid `X-Admin-Token` OR a valid `X-PM-Token`. Every existing day-to-day endpoint (jobs, equipment master, parts, employees, suppliers, JHA files, trench boxes, inspections, meetings, JHAs, incidents, daily reports, posters, compliance CSVs, email routing) inherits this automatically.
+- **NEW `require_admin_strict`** — admin token only. Applied to 11 destructive endpoints:
+  - `GET /exports/full-backup`
+  - `POST /exports/restore`
+  - `GET /admin/backups`, `GET /admin/backups/integrity-check`, `GET /admin/backups/{filename}`, `DELETE /admin/backups/{filename}`, `POST /admin/backups/run-now`
+  - `GET /admin/crew-recovery/status`, `POST /admin/crew-recovery/reset-password`, `POST /admin/crew-recovery/force-reseed`, `POST /admin/crew-recovery/scrap-crew-hub`
+- **NEW endpoints**: `POST /api/pm/login`, `GET /api/pm/check`.
+- **Password rotation**: `ADMIN_PASSWORD=MASCI1982!` (was `Happy123!`), `PM_PASSWORD=Happy123!` added to `/app/backend/.env`.
+
+### Frontend portal
+- New `/app/frontend/src/lib/pmAuth.js` — localStorage key `masci.pm.token`, sent via `X-PM-Token` on every API call (added to `api.js` interceptor; 401 cleanup also clears it).
+- New `/app/frontend/src/components/RequirePm.jsx` (PM-or-admin) and `/app/frontend/src/components/RequireAdminOrPm.jsx` (shared sub-route guard).
+- New `/app/frontend/src/pages/PmLogin.jsx` (amber-accented mirror of `AdminLogin`) at `/pm/login`.
+- New `/app/frontend/src/pages/PmHub.jsx` at `/pm` — mirrors `AdminHub` exactly minus `BackupHeroPanel`, `CrewRecoveryPanel`, and `PersistenceHealthBanner`. All master-list panels (`EquipmentMasterPanel`, `AdminPMPanel`, `AdminJobMasterPanel`, `EquipmentPartsPanel`, `EmployeeMasterPanel`, `SupplierMasterPanel`, `AutoEmailRoutingPanel`, `SitePostersPanel`, `EquipmentStatusBoard`, `ComplianceExportPanel`) are present. Tiles point to the shared `/admin/...` sub-routes which now use `RequireAdminOrPm`.
+- `/app/frontend/src/components/ComplianceExportPanel.jsx` — Full-Backup button, `StoredBackupsPanel`, and `RestoreBackupPanel` are now wrapped in `isAdmin()` checks so PM views the same panel without backup tooling.
+- `/app/frontend/src/pages/Hub.jsx` — added a fourth public section card "PM Portal" linking to `/pm/login`.
+- `/app/frontend/src/pages/AdminHub.jsx` — backup/recovery panels MOVED from the top of the page to a new "Admin Only · System Recovery" section at the bottom, separated by a 4-px black divider. Header now also shows a yellow "PM Portal" link button so admins can hop into the PM view.
+- `App.js` — every shared admin sub-route (inspections, meetings, jha-plans, trench-boxes, posters, incidents, daily, equipment, p&l) now uses the `AP` (RequireAdminOrPm) guard. `/admin` and `/admin/guide` stay strict-admin via `A`.
+
+### Tests
+- New `/app/backend/tests/test_pm_portal_iter31.py` — 22 cases covering: login flows, old admin password rejected, PM token allowed on 11 day-to-day routes, PM token blocked on 6 backup/recovery routes, admin token still works on backups. **All 22 pass.**
+- Updated 8 existing test files that hardcoded `Happy123!` to use `MASCI1982!` fallback.
+- Full backend regression: **259 passed, 0 failed.**
+
+### Verified visually
+- `/` Hub now shows 4 cards: Projects, Admin, **PM Portal** (new), Shop.
+- `/admin` (with `MASCI1982!`) — Equipment Master at the TOP, backups at the very BOTTOM under "System Recovery" divider.
+- `/pm/login` → `/pm` (with `Happy123!`) — every panel renders, no backup toast, no force-reseed, no restore button. Footer shows "Project Management Portal" + Judd Group attribution.
+
+### Updated `/app/memory/test_credentials.md`
+- New admin password noted (with rotation date).
+- Full PM-portal section added documenting endpoints, headers, and gating contract.
+
+
+
 ## 2026-04-30 — Trench Box Pivot Closeout: QR Poster + Admin Upload Anchor
 
 **User ask**: "we never made upload section in admin to add in or delete files in trench box section & never updated trench box QR poster to align with new direction we went with trench box section"

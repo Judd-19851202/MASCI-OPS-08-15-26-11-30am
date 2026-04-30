@@ -24,7 +24,7 @@ BASE = URL
 def _admin_token():
     r = requests.post(
         f"{BASE}/api/admin/login",
-        json={"password": os.environ.get("ADMIN_PASSWORD") or "Happy123!"},
+        json={"password": os.environ.get("ADMIN_PASSWORD") or "MASCI1982!"},
         timeout=10,
     )
     return r.json()["token"]
