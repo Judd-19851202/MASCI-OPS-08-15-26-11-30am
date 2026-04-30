@@ -42,7 +42,7 @@ const StatusBadge = ({ status, daysAgo }) => {
 export default function EquipmentStatusBoard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("all"); // all | fail | overdue
 
   useEffect(() => {
