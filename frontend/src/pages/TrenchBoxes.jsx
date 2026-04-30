@@ -6,6 +6,8 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
+import TabulatedDataPrimer from "@/components/TabulatedDataPrimer";
+import TrenchBoxTabulatedLibrary from "@/components/TrenchBoxTabulatedLibrary";
 
 const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -70,6 +72,19 @@ export default function TrenchBoxes() {
           </h1>
           <p className="text-slate-600 text-sm mt-2">
             {t("Tap any box to see its size, weight, and maximum allowable depth by soil type (OSHA 1926 Subpart P).")}
+          </p>
+        </div>
+
+        <TabulatedDataPrimer />
+
+        <TrenchBoxTabulatedLibrary adminMode={false} />
+
+        <div className="mb-4 mt-8">
+          <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900">
+            {t("Fleet — Trench Box Details")}
+          </h2>
+          <p className="text-slate-600 text-sm mt-1">
+            {t("Every active trench shield with manufacturer data and OSHA soil ratings.")}
           </p>
         </div>
 

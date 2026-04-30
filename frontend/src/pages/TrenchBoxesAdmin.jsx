@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MasciLogo } from "@/components/MasciLogo";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import TrenchBoxTabulatedLibrary from "@/components/TrenchBoxTabulatedLibrary";
 
 const EMPTY = {
   manufacturer: "", model: "", serial_number: "", box_type: "Steel",
@@ -149,6 +150,17 @@ export default function TrenchBoxesAdmin() {
           </h1>
           <p className="text-slate-600 text-sm mt-2">
             Add every trench shield from the MASCI fleet here so foremen can verify OSHA compliance on the fly. Each entry should mirror the manufacturer's data plate.
+          </p>
+        </div>
+
+        <TrenchBoxTabulatedLibrary adminMode={true} />
+
+        <div className="mb-4 mt-2">
+          <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900">
+            Fleet — Trench Box Master List
+          </h2>
+          <p className="text-slate-600 text-sm mt-1">
+            Add, edit, or remove individual trench shields.
           </p>
         </div>
 

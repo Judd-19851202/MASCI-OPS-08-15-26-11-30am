@@ -1,30 +1,25 @@
 """
-job_hazard_files.py — multi-file Job Hazard library per project.
+job_hazard_files.py — multi-file library, used for:
+  • scope="jha"  — Job Hazard plans keyed by project_number
+  • scope="trench_box"  — manufacturer tabulated-data PDFs + educational
+                          resources keyed by box_id (or "general")
 
-Replaces the legacy single-PDF-per-project model in `job_hazard_plans`.
-Crews can now attach as many files as they need to a single job:
-  • PDF JHA documents (the original use case)
-  • Excel risk matrices (.xlsx, .xls)
-  • Word SOPs / RFI responses (.docx, .doc)
-  • ZIP bundles (e.g. multiple PDFs, plan sets)
-  • Photos (PNG, JPG, JPEG, HEIC)
-  • Plain text / CSV
-
-Files larger than DISK_THRESHOLD are streamed straight to disk under
-/app/backend/storage/jha_plans/<project_number>/<file_id>.<ext> and the
-DB just stores the path. Smaller files are kept inline (base64) for fast
-list/download. This mirrors the proven Basecamp-import + project-docs
-storage pattern.
+Same storage engine for both (disk for >8 MB, inline base64 below). This
+module is generic; callers decide the scope + key at upload time. Legacy
+JHA callers that omit scope are treated as scope="jha" for backwards
+compatibility.
 
 Schema (db.job_hazard_files):
   id              str (uuid)
-  project_number  str (canonical key)
-  filename        str (original upload filename, sanitized)
-  content_type    str (MIME)
-  file_size       int (bytes)
+  scope           "jha" | "trench_box"   (defaults to "jha")
+  project_number  str (scope=jha)  OR trench_box_id (scope=trench_box)
+                   OR "general" for shared educational docs
+  filename        str
+  content_type    str
+  file_size       int
   storage         "inline" | "disk"
-  file_data       base64 data URL (only when storage="inline")
-  file_path       str (only when storage="disk", relative to STORAGE_ROOT)
+  file_data       base64 data URL (inline only)
+  file_path       str (disk only, rel to STORAGE_ROOT)
   notes           str
   uploaded_by     str
   uploaded_at     iso-utc
@@ -113,6 +108,7 @@ def _doc_to_summary(d: Dict[str, Any]) -> Dict[str, Any]:
     """Strip heavy fields for list responses — never return file_data."""
     return {
         "id": d.get("id"),
+        "scope": d.get("scope", "jha"),
         "project_number": d.get("project_number"),
         "filename": d.get("filename"),
         "content_type": d.get("content_type"),
@@ -128,11 +124,11 @@ def _doc_to_summary(d: Dict[str, Any]) -> Dict[str, Any]:
 # CRUD
 # ---------------------------------------------------------------------------
 async def list_files_for_project(
-    db, project_number: str
+    db, project_number: str, scope: str = "jha"
 ) -> List[Dict[str, Any]]:
     cursor = (
         db.job_hazard_files.find(
-            {"project_number": project_number},
+            {"project_number": project_number, **_scope_filter(scope)},
             {"_id": 0, "file_data": 0},  # never ship the blob in lists
         ).sort("uploaded_at", 1)
     )
@@ -140,12 +136,21 @@ async def list_files_for_project(
     return [_doc_to_summary(d) for d in docs]
 
 
-async def list_all_files_grouped(db) -> List[Dict[str, Any]]:
-    """List every file across every project, grouped by project_number.
-    Used by the /admin/jha workspace to render the per-job folder view."""
+def _scope_filter(scope: str) -> Dict[str, Any]:
+    """Include legacy docs that don't have a scope field (default = jha)."""
+    if scope == "jha":
+        return {"$or": [{"scope": "jha"}, {"scope": {"$exists": False}}]}
+    return {"scope": scope}
+
+
+async def list_all_files_grouped(
+    db, scope: str = "jha"
+) -> List[Dict[str, Any]]:
+    """List every file in the given scope, grouped by project_number."""
     cursor = (
-        db.job_hazard_files.find({}, {"_id": 0, "file_data": 0})
-        .sort([("project_number", 1), ("uploaded_at", 1)])
+        db.job_hazard_files.find(
+            _scope_filter(scope), {"_id": 0, "file_data": 0}
+        ).sort([("project_number", 1), ("uploaded_at", 1)])
     )
     docs = await cursor.to_list(5000)
     grouped: Dict[str, List[Dict[str, Any]]] = {}
@@ -164,12 +169,14 @@ async def upload_file(
     file: UploadFile,
     notes: str = "",
     uploaded_by: str = "",
+    scope: str = "jha",
 ) -> Dict[str, Any]:
     """Stream the upload to disk (or keep inline for small files), then
     insert a metadata doc into job_hazard_files."""
     pn = (project_number or "").strip()
     if not pn:
         raise HTTPException(400, "project_number is required")
+    scope = (scope or "jha").strip().lower()
 
     fname = _safe_filename(file.filename or "")
     ext = _ext_of(fname)
@@ -222,6 +229,7 @@ async def upload_file(
 
     doc: Dict[str, Any] = {
         "id": file_id,
+        "scope": scope,
         "project_number": pn,
         "filename": fname,
         "content_type": content_type,

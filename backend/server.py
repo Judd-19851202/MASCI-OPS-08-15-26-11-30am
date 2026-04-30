@@ -534,6 +534,60 @@ async def delete_jha_file(file_id: str, _: bool = Depends(require_admin)):
 
 
 # ============================================================
+# Trench-Box Tabulated Data library — piggybacks on job_hazard_files with
+# scope="trench_box". Key is the box's id (or "general" for shared
+# educational docs like the United Rentals "What is Tabulated Data?" PDF).
+# ============================================================
+@api_router.get("/trench-box-files")
+async def list_trench_box_files_grouped():
+    """Public — every trench box's files, grouped. Used by the crew
+    Tabulated Data Library page + the admin workspace."""
+    from job_hazard_files import list_all_files_grouped
+    groups = await list_all_files_grouped(db, scope="trench_box")
+    return {"projects": groups}
+
+
+@api_router.get("/trench-box-files/by-box/{box_id}")
+async def list_trench_box_files_for_box(box_id: str):
+    """Public — files attached to a specific trench box (or 'general')."""
+    from job_hazard_files import list_files_for_project
+    return {"items": await list_files_for_project(db, box_id, scope="trench_box")}
+
+
+@api_router.post("/trench-box-files")
+async def upload_trench_box_file(
+    box_id: str = Form(...),
+    file: UploadFile = File(...),
+    notes: str = Form(""),
+    uploaded_by: str = Form(""),
+    _: bool = Depends(require_admin),
+):
+    """Admin — upload a tabulated-data PDF (or any doc) for a trench box.
+    Use box_id="general" for shared educational docs that apply to the
+    whole fleet (e.g. the United Rentals explainer)."""
+    from job_hazard_files import upload_file
+    return await upload_file(
+        db,
+        project_number=box_id,
+        file=file,
+        notes=notes,
+        uploaded_by=uploaded_by,
+        scope="trench_box",
+    )
+
+
+@api_router.delete("/trench-box-files/{file_id}")
+async def delete_trench_box_file(
+    file_id: str, _: bool = Depends(require_admin)
+):
+    from job_hazard_files import delete_file
+    ok = await delete_file(db, file_id)
+    if not ok:
+        raise HTTPException(404, "File not found")
+    return {"ok": True, "id": file_id}
+
+
+# ============================================================
 # Trench Box Tabulated Data (OSHA 1926 Subpart P)
 # ============================================================
 class TrenchBoxCreate(BaseModel):
