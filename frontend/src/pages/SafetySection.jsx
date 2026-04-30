@@ -119,8 +119,8 @@ export default function SafetySection() {
           <FormTile
             to="/trench-boxes"
             icon={Box}
-            title={t("Trench Box Data")}
-            desc={t("MASCI trench-shield fleet. Size, weight, OSHA max-depth by soil type, and manufacturer tabulated-data PDFs.")}
+            title={t("Trench Box Tabulated Data")}
+            desc={t("Learn what tabulated data is, why it keeps you alive, and pull the exact manufacturer data sheet for every shield in the MASCI fleet — bilingual.")}
             accent="slate"
             testId="safety-tile-trench"
           />

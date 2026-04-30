@@ -25,12 +25,15 @@ export default function TrenchBoxes() {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <div className="mb-6">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">{t("Trench Box Tabulated Data")}</span>
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">{t("Know Before You Dig")}</span>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            {t("OSHA-compliant trench shields in MASCI fleet")}
+            {t("Trench Box Tabulated Data")}
           </h1>
           <p className="text-slate-600 text-sm mt-2">
-            {t("Tap any box to see its size, weight, and maximum allowable depth by soil type (OSHA 1926 Subpart P).")}
+            {t("This is where your trench shield's life-safety data lives. Every box in the MASCI fleet has a manufacturer-engineered data sheet that tells you exactly how deep you can dig, in what soil, with what spreaders, and under what conditions. Read it. Understand it. It's the difference between a safe shift and a collapse.")}
+          </p>
+          <p className="text-slate-600 text-sm mt-2">
+            <strong>{t("Start with the primer below")}</strong> {t("— a plain-English / Spanish walkthrough of what tabulated data is, why OSHA requires it, and how to read it in the field. Then open the")} <strong>{t("Tabulated Data Library")}</strong> {t("to grab the exact PDF for the shield you're using.")}
           </p>
         </div>
 

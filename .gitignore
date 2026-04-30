@@ -301,3 +301,4 @@ credentials.json
 .credentials
 backend/backups/MASCI_full_backup_2026-04-30_180309Z.zip
 backend/backups/MASCI_full_backup_2026-04-30_202612Z.zip
+frontend/node_modules/.cache/default-development/9.pack
