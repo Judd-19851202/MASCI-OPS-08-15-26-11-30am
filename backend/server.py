@@ -4445,14 +4445,22 @@ async def training_packet_pdf(
 
     from fastapi.responses import Response
     filename = f"MASCI_training_{track}_{lang_norm}.pdf"
+    # Critical: public CDN cache on a token-gated PDF would let one
+    # admin's 200 response be served back to a PM or shop user. For the
+    # public Field track we still allow shared caching, but anything
+    # behind a login must be private and revalidate every time.
+    if t_lower == "field":
+        cache_ctrl = "public, max-age=60"
+    else:
+        cache_ctrl = "private, no-store"
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
         headers={
             "Content-Disposition": f'inline; filename="{filename}"',
-            # Short cache so repeat scans still log most of the time but we
-            # don't DDoS ourselves if a crew member refreshes the PDF.
-            "Cache-Control": "public, max-age=60",
+            "Cache-Control": cache_ctrl,
+            # Tell shared caches the response varies by token header.
+            "Vary": "X-Admin-Token, X-PM-Token, X-Shop-Token",
         },
     )
 
