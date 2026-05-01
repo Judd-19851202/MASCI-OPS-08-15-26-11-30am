@@ -1,5 +1,41 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-01 — Live Site Systems Check PASSED
+
+Full end-to-end verification on `https://mascidocs.com` after the 2026-04-30 deploy:
+
+| Check | Result |
+|---|---|
+| `/api/health` | ✅ 200 (158 ms) |
+| Public Hub `/` | ✅ 200 (renders One-place-for-every-MASCI-job) |
+| Admin login `MASCI1982!` | ✅ 200 (64-char token) |
+| PM login `Happy123!` | ✅ 200 (64-char token) |
+| Shop login `Nothappy123!` | ✅ 200 (64-char token) |
+| PM → `/admin/jobs` (29 projects) | ✅ 200 |
+| PM → `/employees` (137+ rows) | ✅ 200 |
+| PM → `/suppliers` | ✅ 200 |
+| PM → `/equipment-master` | ✅ 200 |
+| PM → `/admin/*/archive` (all 4 lists) | ✅ 200 |
+| **STRICT GATE: PM → `/admin/backups`** | 🔒 **401 (REJECTED)** |
+| **STRICT GATE: PM → `/admin/backups/run-now`** | 🔒 **401 (REJECTED)** |
+| **STRICT GATE: PM → `/admin/crew-recovery/force-reseed`** | 🔒 **401 (REJECTED)** |
+| **STRICT GATE: PM → `/admin/backups/integrity-check`** | 🔒 **401 (REJECTED)** |
+| **STRICT GATE: PM → `/exports/restore`** | 🔒 **401 (REJECTED)** |
+| **STRICT GATE: Shop → `/admin/backups/run-now`** | 🔒 **401 (REJECTED)** |
+| Admin → `/admin/backups` | ✅ 200 (2 backup files on disk) |
+| Admin → `/admin/backups/integrity-check` | ✅ 200 (last backup 2026-05-01 01:26 UTC, all 23 collections) |
+| XLSX Export — Jobs `/admin/jobs/export` | ✅ 200 · 6.7 KB · valid `PK` header |
+| XLSX Export — Employees | ✅ 200 · 12.4 KB · valid `PK` header |
+| XLSX Export — Suppliers | ✅ 200 · 8.1 KB · valid `PK` header |
+| XLSX Export — Equipment Master | ✅ 200 · 37.3 KB · valid `PK` header |
+| Frontend render: Public Hub | ✅ (Field / Safety / Projects / QA·QC / PM / Shop / Admin tiles) |
+| Frontend render: PM Hub `/pm` | ✅ (Records & Forms, Project P&L, ALL-OK badge) |
+| Frontend render: Admin Hub `/admin` | ✅ (System Recovery divider, Backup×17, Restore×6, Export×8, all 4 master-lists visible) |
+
+**Result: 🟢 ALL GREEN — zero regressions from the 48-hour redeploy.**
+
+
+
 ## 2026-04-30 — One-click Export buttons on every master list
 
 **User ask**: "we have import buttons on jobs, employees, equipment, parts & subcontractors/vendors can we add a export list button as crews/pm's shop adds things to the list our list may become more reliable than others"
