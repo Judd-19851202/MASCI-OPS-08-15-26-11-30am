@@ -65,7 +65,7 @@ async function downloadCsv(kind, start, end, label) {
   }
 }
 
-export default function ComplianceExportPanel() {
+export default function ComplianceExportPanel({ hideBackupTools = false } = {}) {
   const [start, setStart] = useState(firstOfMonthIso());
   const [end, setEnd] = useState(todayIso());
   const [counts, setCounts] = useState(null);
@@ -309,7 +309,7 @@ export default function ComplianceExportPanel() {
       </p>
 
       {/* ---------- Full off-site backup (admin-only) ---------- */}
-      {isAdmin() && (
+      {!hideBackupTools && isAdmin() && (
         <div className="mt-6 pt-5 border-t-2 border-slate-200">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
@@ -353,7 +353,7 @@ export default function ComplianceExportPanel() {
       )}
 
       {/* ---------- Stored Backups + Restore (admin-only) ---------- */}
-      {isAdmin() && (
+      {!hideBackupTools && isAdmin() && (
         <>
           <StoredBackupsPanel />
           <RestoreBackupPanel />

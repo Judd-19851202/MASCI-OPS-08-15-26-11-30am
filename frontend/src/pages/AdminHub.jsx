@@ -89,6 +89,11 @@ export default function AdminHub() {
   });
   const [loading, setLoading] = useState(true);
 
+  // Always start at the top of the page after login.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     let alive = true;
     (async () => {

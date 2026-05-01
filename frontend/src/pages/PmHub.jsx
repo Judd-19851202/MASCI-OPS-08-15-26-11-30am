@@ -90,6 +90,12 @@ export default function PmHub() {
   const [loading, setLoading] = useState(true);
   const adminViewing = isAdmin(); // an admin can land here too
 
+  // Always start at the top of the page after login, regardless of any
+  // scroll position React Router may have preserved from the login screen.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -275,8 +281,9 @@ export default function PmHub() {
           </div>
         )}
 
-        {/* 2 · Compliance Export */}
-        <ComplianceExportPanel />
+        {/* 2 · Compliance Export — PM portal NEVER sees backup tools, even
+            if an admin token is also present in localStorage. */}
+        <ComplianceExportPanel hideBackupTools />
 
         {/* 3 · Active Jobs */}
         <AdminJobMasterPanel />
