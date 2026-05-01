@@ -1,5 +1,50 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-01 — Training Scans Analytics (PM Hub + Admin Hub Stripe)
+
+Shipped an analytics layer on top of the training rollout. Every time someone scans a trailer poster QR and lands on a PDF packet, the backend logs a lightweight hit (no PII — just track, lang, coarse device family, and referer source). PMs and Admins see a stats stripe at the top of their hub that summarizes engagement.
+
+### Backend
+- **Logging**: `training_packet_pdf` endpoint now fire-and-forget inserts into `training_hits` collection on every request. Failure swallowed — telemetry never blocks the PDF.
+- **What's logged**: `{track, lang, device (ios/android/mobile-other/desktop/other), source (poster/hub/internal/external/direct), ts}`. No IPs, no user IDs, no request bodies.
+- **Cache-Control shortened** from 5-min to 60s so repeat scans still log most of the time.
+- **New endpoint** `GET /api/admin/training/stats` — requires Admin OR PM token (Shop rejected). Returns:
+  ```json
+  {
+    "total": 15,
+    "this_week": 15,
+    "last_week": 0,
+    "by_track": {"field": 6, "shop": 3, "pm": 3, "admin": 3},
+    "by_lang": {"en": 5, "es": 5, "bi": 5},
+    "trend": [{"date": "2026-05-01", "n": 15}, …],
+    "generated_at": "2026-05-01T…"
+  }
+  ```
+
+### Frontend
+- **New component** `TrainingStatsStripe.jsx` — silent-fail (hidden if backend call errors, so it never breaks the hub). Three sections:
+  - Headline: this-week count + week-over-week delta (+/- + %) with trend arrow
+  - **By track** horizontal bars (Field, Shop, PM, Admin) — each track's accent color
+  - **By language** colored chips (EN slate, ES amber, EN+ES red) with the all-time total underneath
+  - **14-day trend** sparkline bars with today on the right, hover tooltips show exact counts
+- **Mounted on**:
+  - `PmHub.jsx` — top of Records & Forms grid
+  - `AdminHub.jsx` — top of Records & Forms grid
+- All Spanish strings added.
+
+### Verified
+| Check | Result |
+|---|---|
+| 15 manual PDF fetches across tracks & langs logged correctly | ✅ |
+| `GET /admin/training/stats` with PM token | ✅ 200 |
+| `GET /admin/training/stats` with Admin token | ✅ 200 |
+| `GET /admin/training/stats` with Shop token | 🔒 401 |
+| `GET /admin/training/stats` unauthenticated | 🔒 401 |
+| PM Hub stripe: 15 this-week · +15 delta · 4 track bars · 3 lang chips · 14-day trend bars all rendered | ✅ (screenshot) |
+| No lint errors, no Python errors, no UI regressions | ✅ |
+
+
+
 ## 2026-05-01 — Training Scan-&-Go Posters + New Hire Onboarding (Coming Soon)
 
 Shipped two final pieces of the Training Hub rollout:

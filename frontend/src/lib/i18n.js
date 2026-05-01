@@ -1362,6 +1362,15 @@ const ES = {
   "Keep in the admin / owner's office binder.":
     "Guarde en la carpeta de la oficina del Admin / Dueño.",
 
+  // TrainingStatsStripe (2026-05-01)
+  "Training scans · last 7 days": "Escaneos de capacitación · últimos 7 días",
+  "vs prior week": "vs semana anterior",
+  "By track": "Por track",
+  "By language": "Por idioma",
+  "All-time total": "Total histórico",
+  "14-day trend": "Tendencia 14 días",
+  "today": "hoy",
+
 };
 
 const DICTS = { es: ES, en: {} };

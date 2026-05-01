@@ -4338,29 +4338,131 @@ async def training_videos_get():
 
 
 @api_router.get("/training/packet.pdf")
-async def training_packet_pdf(track: str, lang: str = "en"):
+async def training_packet_pdf(track: str, lang: str = "en", request: Request = None):
     """Public download of the full training packet for `track` in `lang`.
     `lang` supports 'en', 'es', and 'bi' (or 'bilingual' / 'es-en') — the
     bilingual variant lays English on the left and Spanish on the right so
     crews can map technical terms across languages.
     Anyone with the URL can download — no auth, intended to be emailed to
-    insurance, auditors, or new-hire packets."""
+    insurance, auditors, or new-hire packets.
+
+    Side effect: fire-and-forget insert into `training_hits` so the PM/Admin
+    hub dashboards can show scan stats. No PII — just track/lang/date and
+    a truncated UA + referer so we can tell which trailer poster got the
+    scan (web vs phone browser, mascidocs.com vs direct)."""
     from training_pdf import render_packet, _normalize_lang  # local import
     try:
         pdf_bytes = render_packet(track, lang)
     except ValueError as e:
         raise HTTPException(404, str(e))
-    from fastapi.responses import Response
     lang_norm = _normalize_lang(lang)
+
+    # Log the scan hit — swallow any error; telemetry must never block the PDF.
+    try:
+        ua = (request.headers.get("user-agent") if request else "") or ""
+        ref = (request.headers.get("referer") if request else "") or ""
+        # Coarse device family classification — enough for the stripe.
+        ua_l = ua.lower()
+        if "iphone" in ua_l or "ipad" in ua_l or "ios" in ua_l:
+            device = "ios"
+        elif "android" in ua_l:
+            device = "android"
+        elif any(k in ua_l for k in ("mobile", "phone")):
+            device = "mobile-other"
+        elif any(k in ua_l for k in ("windows", "mac os", "linux", "x11")):
+            device = "desktop"
+        else:
+            device = "other"
+        # Referer source — did they come from the poster or a direct link?
+        if "/training/" in ref and "/poster" in ref:
+            source = "poster"
+        elif "/training" in ref:
+            source = "hub"
+        elif "mascidocs.com" in ref:
+            source = "internal"
+        elif ref:
+            source = "external"
+        else:
+            source = "direct"  # QR scan usually has no referer on phones
+        await db["training_hits"].insert_one({
+            "track": track,
+            "lang": lang_norm,
+            "device": device,
+            "source": source,
+            "ts": datetime.now(timezone.utc),
+        })
+    except Exception:
+        pass  # never block the PDF on telemetry
+
+    from fastapi.responses import Response
     filename = f"MASCI_training_{track}_{lang_norm}.pdf"
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
         headers={
             "Content-Disposition": f'inline; filename="{filename}"',
-            "Cache-Control": "public, max-age=300",
+            # Short cache so repeat scans still log most of the time but we
+            # don't DDoS ourselves if a crew member refreshes the PDF.
+            "Cache-Control": "public, max-age=60",
         },
     )
+
+
+@api_router.get("/admin/training/stats")
+async def training_stats(_: bool = Depends(require_admin)):
+    """Aggregated scan stats for the PM/Admin hub stripe. `require_admin`
+    accepts both Admin and PM tokens (Shop is not relevant here). Returns
+    this-week / last-week counts, per-track breakdown, per-language split,
+    and a 14-day daily trend for sparklines."""
+    now = datetime.now(timezone.utc)
+    this_week_start = now - timedelta(days=7)
+    last_week_start = now - timedelta(days=14)
+    trend_start = now - timedelta(days=14)
+
+    col = db["training_hits"]
+    this_week = await col.count_documents({"ts": {"$gte": this_week_start}})
+    last_week = await col.count_documents({
+        "ts": {"$gte": last_week_start, "$lt": this_week_start}
+    })
+    total = await col.count_documents({})
+
+    # Per-track this-week
+    by_track = {}
+    async for row in col.aggregate([
+        {"$match": {"ts": {"$gte": this_week_start}}},
+        {"$group": {"_id": "$track", "n": {"$sum": 1}}},
+    ]):
+        by_track[row["_id"]] = row["n"]
+
+    # Per-language this-week
+    by_lang = {}
+    async for row in col.aggregate([
+        {"$match": {"ts": {"$gte": this_week_start}}},
+        {"$group": {"_id": "$lang", "n": {"$sum": 1}}},
+    ]):
+        by_lang[row["_id"]] = row["n"]
+
+    # 14-day trend, one bucket per day (UTC)
+    trend = []
+    async for row in col.aggregate([
+        {"$match": {"ts": {"$gte": trend_start}}},
+        {"$group": {
+            "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$ts"}},
+            "n": {"$sum": 1},
+        }},
+        {"$sort": {"_id": 1}},
+    ]):
+        trend.append({"date": row["_id"], "n": row["n"]})
+
+    return {
+        "total": total,
+        "this_week": this_week,
+        "last_week": last_week,
+        "by_track": by_track,
+        "by_lang": by_lang,
+        "trend": trend,
+        "generated_at": now.isoformat(),
+    }
 
 
 @api_router.get("/qr.svg")

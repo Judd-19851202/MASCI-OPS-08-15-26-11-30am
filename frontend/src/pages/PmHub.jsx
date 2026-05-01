@@ -28,6 +28,7 @@ import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
 import EquipmentPartsPanel from "@/components/EquipmentPartsPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 import SupplierMasterPanel from "@/components/SupplierMasterPanel";
+import TrainingStatsStripe from "@/components/TrainingStatsStripe";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -193,7 +194,9 @@ export default function PmHub() {
             <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
+          <>
+            <TrainingStatsStripe />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
             <PmTile
               to="/admin/pnl"
               icon={TrendingUp}
@@ -266,7 +269,8 @@ export default function PmHub() {
               accent="slate"
               testId="pm-tile-equipment"
             />
-          </div>
+            </div>
+          </>
         )}
 
         {/* 2 · Compliance Export — PM portal NEVER sees backup tools, even

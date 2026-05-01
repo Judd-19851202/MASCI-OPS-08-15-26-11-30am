@@ -24,6 +24,7 @@ import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 import BackupHeroPanel from "@/components/BackupHeroPanel";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
+import TrainingStatsStripe from "@/components/TrainingStatsStripe";
 import AdminJobMasterPanel from "@/components/AdminJobMasterPanel";
 import AdminPMPanel from "@/components/AdminPMPanel";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
@@ -213,7 +214,9 @@ export default function AdminHub() {
             <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
+          <>
+            <TrainingStatsStripe />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
             <AdminTile
               to="/admin/pnl"
               icon={TrendingUp}
@@ -286,7 +289,8 @@ export default function AdminHub() {
               accent="slate"
               testId="admin-tile-equipment"
             />
-          </div>
+            </div>
+          </>
         )}
 
         {/* 2 · Compliance Export */}
