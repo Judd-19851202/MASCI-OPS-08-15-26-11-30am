@@ -837,6 +837,17 @@ def _pick(obj: dict, key: str, lang: str):
     return obj.get(key)
 
 
+def _normalize_lang(raw: str) -> str:
+    """Return one of 'en', 'es', 'bi'."""
+    s = str(raw or "").strip().lower()
+    # "bilingual", "es-en", "en-es", "both"
+    if s in {"bi", "bilingual", "both", "es-en", "en-es", "dual", "en+es"}:
+        return "bi"
+    if s.startswith("es"):
+        return "es"
+    return "en"
+
+
 _CSS = """
 @page {
   size: Letter;
@@ -906,18 +917,201 @@ body { font-size: 10.5pt; line-height: 1.45; }
 
 .endnote { page-break-before: always; padding-top: 40pt; font-size: 9pt; color: #64748B; text-align: center; }
 .endnote .big { font-size: 14pt; color: #0F172A; font-weight: 700; margin-bottom: 8pt; }
+
+/* -------- Bilingual (side-by-side) layout -------- */
+/* Uses CSS tables instead of flexbox/grid so WeasyPrint paginates the
+   rows correctly when a lesson spans multiple pages. */
+.bi-row { display: table; width: 100%; border-collapse: collapse; margin: 0; }
+.bi-row > .bi-cell { display: table-cell; width: 50%; vertical-align: top; padding: 0; }
+.bi-row > .bi-cell.en { padding-right: 10pt; border-right: 1pt solid #E2E8F0; }
+.bi-row > .bi-cell.es { padding-left: 10pt; }
+.bi-row .bi-cell-inner { padding: 0; }
+
+.bi-langhdr { display: table; width: 100%; margin: 0 0 6pt 0; }
+.bi-langhdr > div { display: table-cell; width: 50%; padding: 4pt 8pt; font-family: 'Courier New', monospace; font-size: 8pt; letter-spacing: 2pt; text-transform: uppercase; font-weight: 800; color: #FFF; }
+.bi-langhdr .h-en { background: #0F172A; border-right: 2pt solid #FFF; }
+.bi-langhdr .h-es { background: var(--accent); }
+
+.bi-step { display: table; width: 100%; margin: 5pt 0; border-bottom: 1px dotted #E2E8F0; padding-bottom: 5pt; }
+.bi-step > .num { display: table-cell; width: 22pt; vertical-align: top; padding-top: 1pt; }
+.bi-step > .num span { display: inline-block; width: 16pt; height: 16pt; border-radius: 16pt; background: #0F172A; color: #FFF; font-weight: 800; font-size: 8.5pt; text-align: center; line-height: 16pt; font-family: 'Courier New', monospace; }
+.bi-step > .en, .bi-step > .es { display: table-cell; vertical-align: top; font-size: 9.5pt; line-height: 1.4; }
+.bi-step > .en { padding-right: 10pt; border-right: 1pt solid #E2E8F0; padding-left: 0; }
+.bi-step > .es { padding-left: 10pt; color: #334155; }
+
+.bi-tipline, .bi-cheatline { display: table; width: 100%; margin: 3pt 0; }
+.bi-tipline > div, .bi-cheatline > div { display: table-cell; width: 50%; vertical-align: top; padding: 2pt 10pt; font-size: 9.5pt; line-height: 1.4; }
+.bi-tipline > .en { padding-left: 14pt; position: relative; border-right: 1pt solid #E2E8F0; }
+.bi-tipline > .en::before, .bi-tipline > .es::before { content: "\\2713"; color: #047857; font-weight: 800; position: absolute; left: 0; margin-left: 0; }
+.bi-tipline > .es { padding-left: 24pt; position: relative; color: #334155; }
+.bi-tipline > .es::before { left: 10pt; }
+
+.bi-cheatbox { background: #0F172A; color: #F8FAFC; padding: 10pt 0; border-radius: 3pt; margin-top: 12pt; }
+.bi-cheatbox .l { display: table; width: 100%; margin-bottom: 4pt; }
+.bi-cheatbox .l div { display: table-cell; width: 50%; padding: 0 14pt; font-family: 'Courier New', monospace; font-size: 7.5pt; letter-spacing: 2.5pt; font-weight: 800; text-transform: uppercase; color: #FBBF24; }
+.bi-cheatbox .bi-cheatline > div { color: #F8FAFC; padding: 2pt 14pt; font-size: 9.5pt; }
+.bi-cheatbox .bi-cheatline > div::before { content: "\\2714 "; color: #FBBF24; font-weight: 900; margin-right: 5pt; }
+.bi-cheatbox .bi-cheatline > .en { border-right: 1pt solid #334155; }
 """
 
 
+# ----------------------------------------------------------------------------
+# Bilingual renderer
+# ----------------------------------------------------------------------------
+
+
+def _render_bilingual(track: str, meta: dict, lessons: list) -> bytes:
+    """Side-by-side EN / ES packet — English on the left, Spanish on the right.
+    Shares the base CSS and cover/TOC/endnote styling with the single-language
+    renderer but replaces each lesson body with a 2-column layout so readers
+    can map English technical terms to their Spanish equivalents at a glance."""
+    accent = meta["accent"]
+    logo = _logo_uri()
+    now_en = datetime.now(timezone.utc).strftime("%b %d, %Y")
+    now_es = datetime.now(timezone.utc).strftime("%d de %b, %Y")
+
+    parts = []
+    parts.append(f"<style>{_CSS}</style>")
+    parts.append(f"<div style='--accent: {accent};'>")
+
+    # Cover
+    parts.append("<section class='cover'>")
+    parts.append("<div class='stripe'></div>")
+    if logo:
+        parts.append(f"<img src='{logo}' style='height:40pt; margin-bottom:22pt;' alt='MASCI'/>")
+    parts.append("<div class='eyebrow'>MASCI Hub Training \u00b7 Bilingual Packet / Paquete Bilingüe</div>")
+    parts.append(f"<h1>{escape(meta['title'])}<br/><span style='color:{accent};font-size:28pt'>{escape(meta['title_es'])}</span></h1>")
+    parts.append("<div class='blurb'>")
+    parts.append(f"<strong>EN:</strong> {escape(meta['blurb'])}<br/>")
+    parts.append(f"<strong>ES:</strong> {escape(meta['blurb_es'])}")
+    parts.append("</div>")
+    parts.append("<div class='grid'>")
+    parts.append(f"<div class='stat'><div class='n'>{len(lessons)}</div><div class='l'>Lessons / Lecciones</div></div>")
+    parts.append("<div class='stat'><div class='n'>EN+ES</div><div class='l'>Side-by-side / Lado a lado</div></div>")
+    parts.append("</div>")
+    parts.append(f"<div class='meta'>Prepared for MASCI Safety &amp; Operations \u00b7 Preparado para MASCI \u00b7 Generated / Generado: {now_en} ({now_es})</div>")
+    parts.append("</section>")
+
+    # TOC — bilingual side-by-side
+    parts.append("<section class='toc'>")
+    parts.append("<h2>Contents / Contenido</h2>")
+    parts.append("<ol>")
+    for lesson in lessons:
+        parts.append(
+            "<li><div style='display:table;width:100%'>"
+            f"<div style='display:table-cell;width:50%;padding-right:10pt'>{escape(lesson['title'])}</div>"
+            f"<div style='display:table-cell;width:50%;padding-left:10pt;color:{accent}'>{escape(lesson['title_es'])}</div>"
+            "</div></li>"
+        )
+    parts.append("</ol>")
+    parts.append("</section>")
+
+    # Lessons
+    for lesson in lessons:
+        parts.append("<section class='lesson'>")
+        parts.append(
+            f"<div class='eyebrow'>{escape(meta['title'])} \u00b7 Lesson {lesson['order']} / Lección {lesson['order']}</div>"
+        )
+        parts.append(
+            f"<h2>{escape(lesson['title'])}<br/>"
+            f"<span style='font-size:14pt;color:{accent};font-weight:700'>{escape(lesson['title_es'])}</span></h2>"
+        )
+
+        # Language headers
+        parts.append(
+            "<div class='bi-langhdr'>"
+            "<div class='h-en'>English</div>"
+            "<div class='h-es'>Español</div>"
+            "</div>"
+        )
+
+        # Why — two boxes side-by-side
+        parts.append("<h3>Why this matters / Por qué importa</h3>")
+        parts.append(
+            "<div class='bi-row'>"
+            f"<div class='bi-cell en'><div style='border-left:3pt solid #B91C1C;background:#FEF2F2;padding:8pt 10pt;font-size:10pt'>{escape(lesson['why'])}</div></div>"
+            f"<div class='bi-cell es'><div style='border-left:3pt solid {accent};background:#F8FAFC;padding:8pt 10pt;font-size:10pt'>{escape(lesson['why_es'])}</div></div>"
+            "</div>"
+        )
+
+        # Steps — pair EN[i] with ES[i]
+        steps_en = lesson.get("steps") or []
+        steps_es = lesson.get("steps_es") or []
+        max_steps = max(len(steps_en), len(steps_es))
+        if max_steps:
+            parts.append("<h3>Step-by-step / Paso a paso</h3>")
+            for i in range(max_steps):
+                en_txt = steps_en[i] if i < len(steps_en) else ""
+                es_txt = steps_es[i] if i < len(steps_es) else ""
+                parts.append(
+                    f"<div class='bi-step'>"
+                    f"<div class='num'><span>{i + 1}</span></div>"
+                    f"<div class='en'>{escape(en_txt)}</div>"
+                    f"<div class='es'>{escape(es_txt)}</div>"
+                    f"</div>"
+                )
+
+        # Tips — pair EN[i] with ES[i]
+        tips_en = lesson.get("tips") or []
+        tips_es = lesson.get("tips_es") or []
+        max_tips = max(len(tips_en), len(tips_es))
+        if max_tips:
+            parts.append("<h3>Tips / Consejos</h3>")
+            for i in range(max_tips):
+                en_txt = tips_en[i] if i < len(tips_en) else ""
+                es_txt = tips_es[i] if i < len(tips_es) else ""
+                parts.append(
+                    f"<div class='bi-tipline'>"
+                    f"<div class='en'>{escape(en_txt)}</div>"
+                    f"<div class='es'>{escape(es_txt)}</div>"
+                    f"</div>"
+                )
+
+        # Cheat sheet — dark box, two columns
+        cheat_en = lesson.get("cheatSheet") or []
+        cheat_es = lesson.get("cheatSheet_es") or []
+        max_cheat = max(len(cheat_en), len(cheat_es))
+        if max_cheat:
+            parts.append("<div class='bi-cheatbox'>")
+            parts.append("<div class='l'><div>Cheat Sheet</div><div>Hoja de Referencia</div></div>")
+            for i in range(max_cheat):
+                en_txt = cheat_en[i] if i < len(cheat_en) else ""
+                es_txt = cheat_es[i] if i < len(cheat_es) else ""
+                parts.append(
+                    f"<div class='bi-cheatline'>"
+                    f"<div class='en'>{escape(en_txt)}</div>"
+                    f"<div class='es'>{escape(es_txt)}</div>"
+                    f"</div>"
+                )
+            parts.append("</div>")
+
+        parts.append("</section>")
+
+    # End note
+    parts.append("<section class='endnote'>")
+    parts.append("<div class='big'>mascidocs.com</div>")
+    parts.append("<div>\u00a9 MASCI \u00b7 A subsidiary of The Judd Group LLC \u00b7 Una subsidiaria de The Judd Group LLC</div>")
+    parts.append("</section>")
+
+    parts.append("</div>")
+    html = "<!DOCTYPE html><html><head><meta charset='utf-8'/></head><body>" + "".join(parts) + "</body></html>"
+    return HTML(string=html).write_pdf()
+
+
 def render_packet(track: str, lang: str = "en") -> bytes:
-    """Render the training packet for `track` in `lang` ('en' or 'es')."""
+    """Render the training packet for `track` in `lang` ('en', 'es', or
+    'bi' / 'bilingual' / 'es-en')."""
     track = track.lower()
-    lang = "es" if str(lang).lower().startswith("es") else "en"
-    t = _STRINGS[lang]
+    lang = _normalize_lang(lang)
     meta = TRACKS.get(track)
     if not meta:
         raise ValueError(f"Unknown track: {track}")
     lessons = _lessons_for(track)
+
+    if lang == "bi":
+        return _render_bilingual(track, meta, lessons)
+
+    t = _STRINGS[lang]
     accent = meta["accent"]
     title = _pick(meta, "title", lang)
     blurb = _pick(meta, "blurb", lang)

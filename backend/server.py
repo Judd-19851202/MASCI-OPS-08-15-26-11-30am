@@ -4340,17 +4340,18 @@ async def training_videos_get():
 @api_router.get("/training/packet.pdf")
 async def training_packet_pdf(track: str, lang: str = "en"):
     """Public download of the full training packet for `track` in `lang`.
+    `lang` supports 'en', 'es', and 'bi' (or 'bilingual' / 'es-en') — the
+    bilingual variant lays English on the left and Spanish on the right so
+    crews can map technical terms across languages.
     Anyone with the URL can download — no auth, intended to be emailed to
-    insurance, auditors, or new-hire packets. Generated on the fly from
-    `training_pdf.render_packet` so updates to lesson copy flow through
-    without a deploy."""
-    from training_pdf import render_packet  # local import to avoid startup cost
+    insurance, auditors, or new-hire packets."""
+    from training_pdf import render_packet, _normalize_lang  # local import
     try:
         pdf_bytes = render_packet(track, lang)
     except ValueError as e:
         raise HTTPException(404, str(e))
     from fastapi.responses import Response
-    lang_norm = "es" if str(lang).lower().startswith("es") else "en"
+    lang_norm = _normalize_lang(lang)
     filename = f"MASCI_training_{track}_{lang_norm}.pdf"
     return Response(
         content=pdf_bytes,

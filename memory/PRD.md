@@ -1,5 +1,35 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-01 — Training Packet PDFs: Bilingual Side-by-Side Variant
+
+Extended the training packet endpoint with a third `lang=bi` (alias: `bilingual`, `es-en`, `both`, `dual`, `en+es`) that renders English on the LEFT and Spanish on the RIGHT of every section. Perfect for training-room packets, new-hire onboarding where both languages are in the room, and crews that want to map English technical terms to their Spanish equivalents.
+
+### Backend
+- `training_pdf.py` new helper `_normalize_lang()` → returns `"en" | "es" | "bi"` from a wide set of input aliases.
+- New `_render_bilingual()` renderer (~100 lines). Shares the base CSS + cover/TOC/endnote structure; replaces each lesson body with a CSS-table layout so WeasyPrint paginates cleanly. Each step number spans both columns; language headers bar at the top of each lesson marks which side is which.
+- `render_packet()` now branches: `lang == "bi"` → `_render_bilingual()`; otherwise the original single-language renderer.
+- `/api/training/packet.pdf` endpoint updated: no change to signature, just accepts the extra aliases.
+
+### Frontend
+- Track detail page (`/training/:track`): added third button **"PDF · EN + ES"** (solid red, highlighted) alongside the existing EN / ES buttons.
+- Landing page (`/training`): added third badge **"EN+ES"** (red) per track in the Downloadable Packets panel.
+
+### Verified
+| Check | Result |
+|---|---|
+| `GET /training/packet.pdf?track=field&lang=bi` | ✅ 200 · 1.48 MB |
+| `GET /training/packet.pdf?track=field&lang=es-en` (alias) | ✅ 200 · identical bytes |
+| `GET /training/packet.pdf?track=shop&lang=bilingual` (alias) | ✅ 200 · 696 KB |
+| `GET /training/packet.pdf?track=admin&lang=bi` | ✅ 200 · 1.33 MB |
+| Content audit (gemini) on Field bilingual PDF | ✅ 14 pages, EN-left / ES-right confirmed, verbatim Step-1 side-by-side, Why-this-matters side-by-side, Cheat Sheet with both languages |
+| Landing page renders 4× `EN+ES` red buttons | ✅ |
+| Track page renders `PDF · EN + ES` button | ✅ |
+
+### Shareable URLs (12 total — after redeploy)
+Format: `https://mascidocs.com/api/training/packet.pdf?track={field|shop|pm|admin}&lang={en|es|bi}`
+
+
+
 ## 2026-05-01 — Training Packet PDFs (public, no login)
 
 Shipped the one-click PDF packet system on top of the Training Hub. Anyone with the URL can pull a complete training packet for any track in either language — cover page, TOC, every lesson with numbered steps, tips, cheat sheets. Perfect for emailing to insurance, auditors, or new-hire onboarding.

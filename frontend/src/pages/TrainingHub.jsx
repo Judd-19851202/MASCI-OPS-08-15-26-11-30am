@@ -167,6 +167,16 @@ export default function TrainingHub() {
                   >
                     ES
                   </a>
+                  <a
+                    href={`${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${tr.slug}&lang=bi`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-700 hover:bg-red-600 font-mono font-bold uppercase tracking-wide transition-colors"
+                    data-testid={`training-landing-pdf-${tr.slug}-bi`}
+                    title="Bilingual · side-by-side"
+                  >
+                    EN+ES
+                  </a>
                 </div>
               </div>
             ))}

@@ -139,6 +139,15 @@ export default function TrainingTrack() {
             >
               <FileDown className="w-3.5 h-3.5" /> PDF · ES
             </a>
+            <a
+              href={`${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${track.slug}&lang=bi`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border-2 border-red-700 bg-red-700 text-white hover:bg-red-800 hover:border-red-800 font-bold transition-colors"
+              data-testid={`training-pdf-${track.slug}-bi`}
+            >
+              <FileDown className="w-3.5 h-3.5" /> PDF · EN + ES
+            </a>
           </div>
         </div>
 
