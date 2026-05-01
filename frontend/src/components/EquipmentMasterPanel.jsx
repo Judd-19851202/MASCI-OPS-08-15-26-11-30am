@@ -1,31 +1,206 @@
-import { useEffect, useRef, useState } from "react";
-import { Truck, UploadCloud, Loader2, RefreshCw, CheckCircle2 } from "lucide-react";
-import { api } from "@/lib/api";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Truck,
+  Plus,
+  Trash2,
+  Pencil,
+  Loader2,
+  UploadCloud,
+  RefreshCw,
+  Search,
+  CheckCircle2,
+  X,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 /**
- * Admin-only panel for replacing the MASCI Equipment List.xlsx.
- * One click → upload → reseeds equipment_master + equipment_units → all the
- * dropdowns across the app refresh with the new fleet.
+ * EquipmentMasterPanel — manage the MASCI equipment fleet.
+ *
+ *  Header bar  : Refresh · Bulk Replace XLSX
+ *  Stats line  : count + last upload + category chips
+ *  + Add Unit  : opens a modal (~9 fields; too many for an inline row)
+ *  Search/Cat  : filter the table
+ *  Table       : Unit # · Year · Make · Model · Category · Type · Edit · Delete
+ *
+ *  Backend (require_shop_or_admin — admin / PM / shop can all edit):
+ *    GET    /equipment-master                       (public list)
+ *    GET    /admin/equipment-master/status          (count + categories)
+ *    POST   /admin/equipment-master                 (single add)
+ *    PUT    /admin/equipment-master/{id_or_unit}    (single edit)
+ *    DELETE /admin/equipment-master/{id_or_unit}    (single delete)
+ *    POST   /admin/equipment-master/upload          (bulk replace XLSX)
  */
-const EquipmentMasterPanel = () => {
-  const [status, setStatus] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const inputRef = useRef(null);
+const PREOP_TYPES = [
+  "Excavator",
+  "Loader",
+  "Dozer",
+  "Skid Steer",
+  "Roller / Compactor",
+  "Paver",
+  "Milling Machine",
+  "Dump Truck",
+  "Pickup / Service Truck",
+  "Trailer",
+  "Generator / Compressor",
+  "Light Plant",
+  "Crane",
+  "Forklift / Telehandler",
+  "Other",
+];
 
-  const loadStatus = async () => {
+const blankUnit = {
+  unit_number: "",
+  year: "",
+  make: "",
+  model: "",
+  vin_serial_number: "",
+  category: "",
+  preop_equipment_type: "Other",
+  company: "MASCI",
+  comments: "",
+};
+
+export default function EquipmentMasterPanel() {
+  const [items, setItems] = useState([]);
+  const [grouped, setGrouped] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState(null);
+  const [filter, setFilter] = useState("");
+  const [cat, setCat] = useState("all");
+
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(null); // unit object or null for "new"
+  const [form, setForm] = useState(blankUnit);
+  const [saving, setSaving] = useState(false);
+  const [busyRow, setBusyRow] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef(null);
+
+  const refresh = async () => {
+    setLoading(true);
     try {
-      const r = await api.get("/admin/equipment-master/status");
-      setStatus(r.data);
+      const [listR, statusR] = await Promise.all([
+        api.get("/equipment-master"),
+        api.get("/admin/equipment-master/status").catch(() => ({ data: null })),
+      ]);
+      setItems(listR.data?.items || []);
+      setGrouped(listR.data?.grouped || {});
+      setStatus(statusR.data);
     } catch (e) {
-      console.error("equipment-master status failed", e);
+      toast.error(e?.response?.data?.detail || "Failed to load fleet");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  const cats = useMemo(() => Object.keys(grouped).sort(), [grouped]);
+  const filtered = useMemo(() => {
+    return items.filter((u) => {
+      if (cat !== "all" && u.category !== cat) return false;
+      if (!filter.trim()) return true;
+      const q = filter.toLowerCase();
+      return (
+        (u.unit_number || "").toLowerCase().includes(q) ||
+        (u.make || "").toLowerCase().includes(q) ||
+        (u.model || "").toLowerCase().includes(q) ||
+        (u.make_model || "").toLowerCase().includes(q) ||
+        (u.vin_serial_number || "").toLowerCase().includes(q) ||
+        (u.category || "").toLowerCase().includes(q)
+      );
+    });
+  }, [items, filter, cat]);
+
+  const openNew = () => {
+    setEditing(null);
+    setForm(blankUnit);
+    setOpen(true);
+  };
+  const openEdit = (u) => {
+    setEditing(u);
+    setForm({
+      unit_number: u.unit_number || "",
+      year: u.year || "",
+      make: u.make || "",
+      model: u.model || "",
+      vin_serial_number: u.vin_serial_number || "",
+      category: u.category || "",
+      preop_equipment_type: u.preop_equipment_type || "Other",
+      company: u.company || "MASCI",
+      comments: u.comments || "",
+    });
+    setOpen(true);
+  };
+
+  const submit = async (e) => {
+    e?.preventDefault?.();
+    if (!form.unit_number.trim()) {
+      toast.error("Unit number is required");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        ...form,
+        make_model:
+          [form.make, form.model].filter(Boolean).join(" ").trim() || form.unit_number,
+        display_label:
+          [form.year, form.make, form.model].filter(Boolean).join(" ").trim() ||
+          form.unit_number,
+      };
+      if (editing) {
+        await api.put(
+          `/admin/equipment-master/${encodeURIComponent(editing.id || editing.unit_number)}`,
+          payload
+        );
+        toast.success(`Updated ${form.unit_number}`);
+      } else {
+        await api.post("/admin/equipment-master", payload);
+        toast.success(`Added ${form.unit_number}`);
+      }
+      setOpen(false);
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Save failed");
+    } finally {
+      setSaving(false);
     }
   };
 
-  useEffect(() => {
-    loadStatus();
-  }, []);
+  const deleteUnit = async (u) => {
+    if (!window.confirm(`Delete unit ${u.unit_number}? This cannot be undone.`)) return;
+    setBusyRow(u.id || u.unit_number);
+    try {
+      await api.delete(`/admin/equipment-master/${encodeURIComponent(u.id || u.unit_number)}`);
+      toast.success("Deleted");
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Delete failed");
+    } finally {
+      setBusyRow(null);
+    }
+  };
 
   const onFile = async (e) => {
     const file = e.target.files?.[0];
@@ -46,25 +221,17 @@ const EquipmentMasterPanel = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const cats = Object.keys(r.data?.category_counts || {}).length;
-      toast.success(
-        `Fleet updated — ${r.data.count} units across ${cats} categories.`
-      );
-      await loadStatus();
+      toast.success(`Fleet replaced — ${r.data.count} units across ${cats} categories.`);
+      await refresh();
     } catch (err) {
-      const detail =
-        err?.response?.data?.detail ||
-        err?.message ||
-        "Upload failed";
-      toast.error(typeof detail === "string" ? detail : JSON.stringify(detail));
+      toast.error(err?.response?.data?.detail || "Upload failed");
     } finally {
       setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
+      if (fileRef.current) fileRef.current.value = "";
     }
   };
 
-  const cats = status?.categories || {};
-  const total = status?.count || 0;
-  const top = Object.entries(cats).slice(0, 6);
+  const total = status?.count ?? items.length;
   const lastUpdated = status?.last_updated
     ? new Date(status.last_updated)
     : null;
@@ -74,110 +241,306 @@ const EquipmentMasterPanel = () => {
       className="mb-8 bg-white border-2 border-slate-200 rounded-md overflow-hidden shadow-sm"
       data-testid="equipment-master-panel"
     >
-      <div className="bg-slate-900 text-white px-5 py-3 flex items-center gap-3">
+      {/* Header */}
+      <div className="bg-slate-900 text-white px-5 py-3 flex items-center gap-3 flex-wrap">
         <Truck className="w-5 h-5 text-amber-400" />
-        <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-400 font-bold">
+        <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-400 font-bold flex-1">
           MASCI Equipment Master Fleet
         </span>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={refresh}
+          disabled={loading || saving || uploading}
+          className="h-8 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:bg-slate-700 font-mono uppercase tracking-wide text-[11px]"
+          data-testid="equipment-master-refresh"
+        >
+          <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
+        </Button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".xlsx,.xlsm"
+          onChange={onFile}
+          className="hidden"
+          data-testid="equipment-master-bulk-input"
+        />
+        <Button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="h-8 px-3 bg-amber-600 hover:bg-amber-700 text-white font-mono uppercase tracking-wide text-[11px]"
+          data-testid="equipment-master-bulk-btn"
+          title="Reads the 'Louis' sheet by default · max 25 MB"
+        >
+          {uploading ? (
+            <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+          ) : (
+            <UploadCloud className="w-3.5 h-3.5 mr-1" />
+          )}
+          Bulk Replace
+        </Button>
       </div>
 
-      <div className="p-5 grid md:grid-cols-[1.2fr_1fr] gap-5 items-start">
-        {/* Left — stats */}
-        <div>
-          <div className="flex items-baseline gap-3">
-            <span
-              className="font-display text-5xl font-black text-slate-900"
-              data-testid="equipment-master-total"
-            >
-              {total}
-            </span>
-            <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-              units in fleet
-            </span>
-          </div>
-          {lastUpdated && (
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
-              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-              Last updated {lastUpdated.toLocaleString()}
-            </div>
-          )}
-          {top.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {top.map(([c, n]) => (
-                <span
-                  key={c}
-                  className="text-[11px] font-mono bg-slate-100 border border-slate-200 px-2 py-0.5 rounded"
-                >
-                  {c}{" "}
-                  <span className="text-red-700 font-bold">{n}</span>
-                </span>
-              ))}
-              {Object.keys(cats).length > top.length && (
-                <span className="text-[11px] font-mono text-slate-500 px-2 py-0.5">
-                  +{Object.keys(cats).length - top.length} more
-                </span>
-              )}
-            </div>
-          )}
-          <p className="text-sm text-slate-600 mt-4 max-w-md">
-            Drop in an updated <code>Equipment List.xlsx</code> to refresh every
-            equipment dropdown across the Hub — Pre-Op, Daily Reports, etc.
-            Operators can still type custom values not in the fleet.
-          </p>
-        </div>
+      {/* Stats + Add */}
+      <div className="p-5 border-b-2 border-slate-100 flex items-center gap-3 flex-wrap">
+        <span
+          className="font-display text-4xl font-black text-slate-900"
+          data-testid="equipment-master-total"
+        >
+          {total}
+        </span>
+        <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
+          units in fleet
+        </span>
+        {lastUpdated && (
+          <span className="text-xs text-slate-500 flex items-center gap-1.5">
+            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+            {lastUpdated.toLocaleString()}
+          </span>
+        )}
+        <Button
+          onClick={openNew}
+          className="h-9 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs ml-auto"
+          data-testid="equipment-master-add-btn"
+        >
+          <Plus className="w-4 h-4 mr-1" /> Add Unit
+        </Button>
+      </div>
 
-        {/* Right — upload */}
-        <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-md p-5 text-center">
-          <UploadCloud className="w-8 h-8 text-red-700 mx-auto mb-2" />
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold mb-1">
-            Replace fleet from XLSX
-          </div>
-          <p className="text-[11px] text-slate-500 mb-3">
-            Reads the <strong>Louis</strong> sheet by default · max 25&nbsp;MB.
-          </p>
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            onChange={onFile}
-            className="hidden"
-            data-testid="equipment-master-file-input"
+      {/* Search + filter */}
+      <div className="p-5">
+        <div className="flex items-center gap-2 flex-wrap mb-3">
+          <Search className="w-4 h-4 text-slate-400" />
+          <Input
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Search unit, make, model, VIN…"
+            className="h-9 border-2 max-w-md"
+            data-testid="equipment-master-search"
           />
-          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-            <Button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              disabled={uploading}
-              className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs h-10 px-5"
-              data-testid="equipment-master-upload-btn"
-            >
-              {uploading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-                  Uploading…
-                </>
-              ) : (
-                <>
-                  <UploadCloud className="w-4 h-4 mr-1.5" /> Pick .xlsx
-                </>
-              )}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={loadStatus}
-              disabled={uploading}
-              className="h-10 px-3 border-2 border-slate-300 hover:border-red-700 hover:text-red-700 font-mono uppercase tracking-wide text-[11px]"
-              data-testid="equipment-master-refresh-btn"
-              title="Refresh status"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-            </Button>
-          </div>
+          <Select value={cat} onValueChange={setCat}>
+            <SelectTrigger className="w-56 h-9 border-2" data-testid="equipment-master-cat">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {cats.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c} ({grouped[c]?.length || 0})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-xs text-slate-500 font-mono">
+            {filtered.length} / {items.length}
+          </span>
         </div>
+
+        {loading ? (
+          <div className="py-10 text-center text-slate-500">
+            <Loader2 className="w-5 h-5 inline-block animate-spin mr-2" /> Loading…
+          </div>
+        ) : items.length === 0 ? (
+          <p className="text-sm text-slate-500 py-8 text-center italic">
+            Fleet is empty — click <strong>Add Unit</strong> or <strong>Bulk Replace</strong>.
+          </p>
+        ) : (
+          <div className="overflow-x-auto border-2 border-slate-200 rounded max-h-[480px]">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-slate-50 z-[1]">
+                <tr>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Unit #</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Year</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Make</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Model</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Category</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Pre-Op Type</th>
+                  <th className="text-right px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold w-24">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((u) => {
+                  const id = u.id || u.unit_number;
+                  return (
+                    <tr key={id} className="border-t border-slate-100 hover:bg-slate-50" data-testid={`equipment-row-${id}`}>
+                      <td className="px-3 py-2 font-bold font-mono text-slate-900">{u.unit_number || "—"}</td>
+                      <td className="px-3 py-2 text-slate-700">{u.year || "—"}</td>
+                      <td className="px-3 py-2 text-slate-800">{u.make || "—"}</td>
+                      <td className="px-3 py-2 text-slate-700">{u.model || "—"}</td>
+                      <td className="px-3 py-2 text-slate-500 text-xs">{u.category || "—"}</td>
+                      <td className="px-3 py-2 text-slate-500 text-xs">{u.preop_equipment_type || "—"}</td>
+                      <td className="px-3 py-2 text-right whitespace-nowrap">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => openEdit(u)}
+                          className="h-8 w-8 mr-1 border-2 border-slate-300 hover:border-amber-600 hover:text-amber-700"
+                          data-testid={`equipment-edit-${id}`}
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => deleteUnit(u)}
+                          disabled={busyRow === id}
+                          className="h-8 w-8 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
+                          data-testid={`equipment-delete-${id}`}
+                        >
+                          {busyRow === id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
+
+      {/* Add / Edit modal */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-display font-black text-xl">
+              {editing ? `Edit Unit · ${editing.unit_number}` : "Add a Unit to the Fleet"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">Unit Number *</Label>
+              <Input
+                value={form.unit_number}
+                onChange={(e) => setForm({ ...form, unit_number: e.target.value })}
+                className="h-10 mt-1 border-2"
+                placeholder="EX-101"
+                data-testid="eq-form-unit"
+                required
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">Year</Label>
+              <Input
+                value={form.year}
+                onChange={(e) => setForm({ ...form, year: e.target.value })}
+                className="h-10 mt-1 border-2"
+                placeholder="2022"
+                data-testid="eq-form-year"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">Make</Label>
+              <Input
+                value={form.make}
+                onChange={(e) => setForm({ ...form, make: e.target.value })}
+                className="h-10 mt-1 border-2"
+                placeholder="CAT"
+                data-testid="eq-form-make"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">Model</Label>
+              <Input
+                value={form.model}
+                onChange={(e) => setForm({ ...form, model: e.target.value })}
+                className="h-10 mt-1 border-2"
+                placeholder="320GC"
+                data-testid="eq-form-model"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">Category</Label>
+              <Input
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                list="eq-cat-list"
+                className="h-10 mt-1 border-2"
+                placeholder="Excavators"
+                data-testid="eq-form-cat"
+              />
+              <datalist id="eq-cat-list">
+                {cats.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">Pre-Op Type</Label>
+              <Select
+                value={form.preop_equipment_type}
+                onValueChange={(v) => setForm({ ...form, preop_equipment_type: v })}
+              >
+                <SelectTrigger className="h-10 mt-1 border-2" data-testid="eq-form-preop">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PREOP_TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="sm:col-span-2">
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">VIN / Serial #</Label>
+              <Input
+                value={form.vin_serial_number}
+                onChange={(e) => setForm({ ...form, vin_serial_number: e.target.value })}
+                className="h-10 mt-1 border-2"
+                placeholder=""
+                data-testid="eq-form-vin"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">Company</Label>
+              <Input
+                value={form.company}
+                onChange={(e) => setForm({ ...form, company: e.target.value })}
+                className="h-10 mt-1 border-2"
+                data-testid="eq-form-company"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">Comments / Notes</Label>
+              <Textarea
+                value={form.comments}
+                onChange={(e) => setForm({ ...form, comments: e.target.value })}
+                className="mt-1 border-2"
+                rows={2}
+                data-testid="eq-form-comments"
+              />
+            </div>
+            <DialogFooter className="sm:col-span-2 mt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                className="h-10 border-2"
+              >
+                <X className="w-4 h-4 mr-1" /> Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={saving}
+                className="h-10 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
+                data-testid="eq-form-save"
+              >
+                {saving ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4 mr-1" />
+                )}
+                {editing ? "Save Changes" : "Add Unit"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-};
-
-export default EquipmentMasterPanel;
+}

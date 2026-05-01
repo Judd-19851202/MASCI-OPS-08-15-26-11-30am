@@ -210,25 +210,28 @@ def _shop_token_for(password: str) -> str:
 def require_shop_or_admin(
     x_admin_token: Optional[str] = Header(default=None),
     x_shop_token: Optional[str] = Header(default=None),
+    x_pm_token: Optional[str] = Header(default=None),
 ):
-    """Accepts either an admin token OR a shop token.
+    """Accepts an Admin, PM, or Shop token.
 
-    Used on equipment-inspection read + sign-off routes so the shop can do
-    their job without seeing the rest of the office console.
+    Used on equipment master / equipment-parts / inspection-signoff routes
+    that any of the three personas can legitimately touch. Backup &
+    recovery routes still use ``require_admin_strict``.
     """
     admin_pw = os.environ.get("ADMIN_PASSWORD", "")
     shop_pw = os.environ.get("SHOP_PASSWORD", "")
-    if not admin_pw and not shop_pw:
-        return True  # Both gates disabled
-    if x_admin_token and admin_pw:
-        expected = _admin_token_for(admin_pw)
-        if hmac.compare_digest(x_admin_token, expected):
-            return True
+    pm_pw = os.environ.get("PM_PASSWORD", "")
+    if not admin_pw and not shop_pw and not pm_pw:
+        return True  # all gates disabled
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return True
+    if x_pm_token and _is_valid_pm_token(x_pm_token):
+        return True
     if x_shop_token and shop_pw:
         expected = _shop_token_for(shop_pw)
         if hmac.compare_digest(x_shop_token, expected):
             return True
-    raise HTTPException(status_code=401, detail="Shop or admin login required")
+    raise HTTPException(status_code=401, detail="Shop, PM, or admin login required")
 
 
 class AdminLoginRequest(BaseModel):
@@ -1301,6 +1304,25 @@ async def create_employee(
     return doc
 
 
+@api_router.put("/admin/employees/{employee_id}")
+async def update_employee(
+    employee_id: str,
+    payload: Dict[str, Any],
+    _: bool = Depends(require_admin),
+):
+    """Inline edit a single employee. Only the supplied fields are updated."""
+    allowed = {"name", "employee_id", "trade", "role", "crew", "email", "phone", "is_active"}
+    update = {k: payload[k] for k in allowed if k in payload}
+    if "name" in update and not (update["name"] or "").strip():
+        raise HTTPException(status_code=400, detail="Name cannot be blank")
+    update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    res = await db.employees.update_one({"id": employee_id}, {"$set": update})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    doc = await db.employees.find_one({"id": employee_id}, {"_id": 0})
+    return doc or {"ok": True}
+
+
 @api_router.delete("/admin/employees/{employee_id}")
 async def delete_employee(employee_id: str, _: bool = Depends(require_admin)):
     res = await db.employees.delete_one({"id": employee_id})
@@ -1417,6 +1439,25 @@ async def create_supplier(
     await db.suppliers.insert_one(doc)
     doc.pop("_id", None)
     return doc
+
+
+@api_router.put("/admin/suppliers/{supplier_id}")
+async def update_supplier(
+    supplier_id: str,
+    payload: Dict[str, Any],
+    _: bool = Depends(require_admin),
+):
+    """Inline edit a supplier — name + optional active toggle."""
+    allowed = {"name", "is_active"}
+    update = {k: payload[k] for k in allowed if k in payload}
+    if "name" in update and not (update["name"] or "").strip():
+        raise HTTPException(status_code=400, detail="Name cannot be blank")
+    update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    res = await db.suppliers.update_one({"id": supplier_id}, {"$set": update})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    doc = await db.suppliers.find_one({"id": supplier_id}, {"_id": 0})
+    return doc or {"ok": True}
 
 
 @api_router.delete("/admin/suppliers/{supplier_id}")
@@ -1772,6 +1813,79 @@ async def equipment_master_status(_: bool = Depends(require_admin)):
         "last_updated": last_updated,
         "seed_file": str(EQUIPMENT_MASTER_SEED_FILE),
     }
+
+
+@api_router.post("/admin/equipment-master")
+async def create_equipment_master_unit(
+    payload: Dict[str, Any],
+    _: bool = Depends(require_shop_or_admin),
+):
+    """Add a single unit to the MASCI fleet. Mechanics + admins + PMs can
+    use this to register new equipment without uploading a full xlsx."""
+    unit_number = (payload.get("unit_number") or "").strip()
+    if not unit_number:
+        raise HTTPException(status_code=400, detail="Unit number is required")
+    existing = await db.equipment_master.find_one({"unit_number": unit_number}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=409, detail=f"Unit {unit_number} already exists")
+    doc = {
+        "id": str(uuid.uuid4()),
+        "unit_number": unit_number,
+        "make": (payload.get("make") or "").strip(),
+        "model": (payload.get("model") or "").strip(),
+        "make_model": (payload.get("make_model") or f"{payload.get('make','')} {payload.get('model','')}").strip(),
+        "year": str(payload.get("year") or "").strip(),
+        "vin_serial_number": (payload.get("vin_serial_number") or "").strip(),
+        "comments": (payload.get("comments") or "").strip(),
+        "company": (payload.get("company") or "MASCI").strip(),
+        "category": (payload.get("category") or "Misc Equipment").strip(),
+        "preop_equipment_type": (payload.get("preop_equipment_type") or "Other").strip(),
+        "display_label": (payload.get("display_label") or "").strip(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.equipment_master.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.put("/admin/equipment-master/{unit_id}")
+async def update_equipment_master_unit(
+    unit_id: str,
+    payload: Dict[str, Any],
+    _: bool = Depends(require_shop_or_admin),
+):
+    """Edit a single fleet unit (matched by id OR unit_number)."""
+    allowed = {"unit_number", "make", "model", "make_model", "year", "vin_serial_number",
+               "comments", "company", "category", "preop_equipment_type", "display_label"}
+    update = {k: payload[k] for k in allowed if k in payload}
+    if "unit_number" in update and not (update["unit_number"] or "").strip():
+        raise HTTPException(status_code=400, detail="Unit number cannot be blank")
+    update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    res = await db.equipment_master.update_one(
+        {"$or": [{"id": unit_id}, {"unit_number": unit_id}]},
+        {"$set": update},
+    )
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    doc = await db.equipment_master.find_one(
+        {"$or": [{"id": unit_id}, {"unit_number": unit_id}]}, {"_id": 0}
+    )
+    return doc or {"ok": True}
+
+
+@api_router.delete("/admin/equipment-master/{unit_id}")
+async def delete_equipment_master_unit(
+    unit_id: str,
+    _: bool = Depends(require_shop_or_admin),
+):
+    """Remove a single fleet unit (matched by id OR unit_number)."""
+    res = await db.equipment_master.delete_one(
+        {"$or": [{"id": unit_id}, {"unit_number": unit_id}]}
+    )
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    return {"ok": True}
 
 
 @api_router.post("/admin/equipment-master/upload")

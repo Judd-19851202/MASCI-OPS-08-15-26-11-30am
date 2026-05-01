@@ -1,5 +1,47 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-30 — Master-List CRUD parity (Employees · Suppliers · Equipment · Parts)
+
+**User ask**: "I love how we built Active job master able to enter jobs one by one or bulk import/replace lets do the same thing for Employees, Equipment, Parts List & Subcontractors/Vendors same in both admin & PM portals... don't forget about equipment list & parts list in shop tile make them the same too."
+
+### Backend
+- New `MasterListPanel.jsx` reusable scaffolding — single-add form, searchable scrollable table, inline edit (✎) and delete (🗑️), bulk-replace XLSX/CSV, status header. Used by Suppliers + Employees panels.
+- `EquipmentMasterPanel.jsx` rewritten with a modal (~9 fields too many for inline) — Refresh / Bulk Replace / Add Unit / search + category filter / table with inline ✎ ✏️ on every row. Backed by:
+  - `POST /api/admin/equipment-master` (single add)
+  - `PUT /api/admin/equipment-master/{id_or_unit_number}` (single edit)
+  - `DELETE /api/admin/equipment-master/{id_or_unit_number}` (single delete)
+  - All three use `require_shop_or_admin` so admins, PMs, and mechanics can all manage units.
+- `EquipmentPartsPanel.jsx` collapsed to wrap the existing `PartsCatalog` component (already had per-unit add/edit/delete/order). Now PM and Admin see the exact same rich parts UI the shop sees.
+- `EmployeeMasterPanel.jsx` and `SupplierMasterPanel.jsx` reduced to ~30 lines each — pure config feeding `MasterListPanel`. Backed by:
+  - `PUT /api/admin/employees/{id}` (new)
+  - `PUT /api/admin/suppliers/{id}` (new — also handles `is_active` toggle)
+- `require_shop_or_admin` extended to also accept PM tokens (so the same Equipment Master panel works identically in all three portals).
+
+### Frontend integration
+- `AdminHub.jsx` and `PmHub.jsx` already render the same panels — no change needed; the refactored components flow through automatically.
+- `ShopHub.jsx` Equipment List tab swapped from the read-only `EquipmentListPanel` to the full `EquipmentMasterPanel`. Mechanics can now add/edit/delete fleet units inline.
+
+### Tests
+- New `/app/backend/tests/test_master_lists_crud_iter32.py` — 5 new test cases:
+  - Employee full CRUD + required-name guard + 404-after-delete
+  - PM token can edit employees (cross-persona)
+  - Supplier edit + is_active toggle + name-blank guard
+  - Equipment master full CRUD + duplicate-unit guard
+  - Shop token can do equipment-master CRUD (cross-persona)
+- All 5 pass + previously-passing 30 in adjacent files. Full regression: **264 passed, 0 failed.**
+
+### Visual verification (screenshots taken on prod preview)
+- `/admin` Equipment Master Fleet — 589 units, Refresh + Bulk Replace + Add Unit, search + 23-category filter, edit/delete per row.
+- `/admin` Employee Roster — 234 employees, 7-column inline add (Name, Employee ID, Trade, Role, Crew, Email, Phone), search, edit/delete per row.
+- `/admin` Supplier & Subcontractor List — 144 entries, single-field add, search, edit/delete per row.
+- `/shop` Equipment List tab — same Equipment Master Fleet panel as admin/PM (Add Unit + edit/delete per row visible to mechanics).
+- All three portals (Admin, PM, Shop) now expose the same Active-Jobs-Master CRUD pattern across all five master lists (Jobs · Employees · Suppliers · Equipment · Parts).
+
+### Known cleanup deferred
+- Two stale pytest leftover rows existed in production data prior to this iter (`TEST_82d338` job, one `787d3bfc...` supplier) — supplier deleted as part of a smoke-test cleanup; the test job is benign and can be removed by the user with one click in the new UI.
+
+
+
 ## 2026-04-30 — PM (Project Management) Portal · Admin Lockdown · Password Rotation
 
 **User ask**: "make a portal for project management to allow them access to everything they need for project management but not have access to all backup systems (basically so if we fire a PM he cant nuke the system out of rage or steal data) make password for project management Happy123! ... new admin password MASCI1982! ... in admin console move all backup systems to lower part of the pages."

@@ -7,6 +7,7 @@ import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
 import OpenItemsPanel from "@/components/OpenItemsPanel";
 import ShopActivityFeed from "@/components/ShopActivityFeed";
 import PartsCatalog from "@/components/PartsCatalog";
+import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
 import { LangToggle } from "@/components/LangToggle";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
@@ -202,7 +203,7 @@ export default function ShopHub() {
             )}
           </div>
         )}
-        {tab === "equipment" && <EquipmentListPanel master={equipmentMaster} loading={loading} />}
+        {tab === "equipment" && <EquipmentMasterPanel />}
         {tab === "parts" && <PartsCatalog />}
       </main>
     </div>
