@@ -184,43 +184,22 @@ export default function PmHub() {
               Project Management Portal
             </div>
             <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 leading-tight mt-0.5">
-              Every record, every form, every master list.
+              Records &amp; Forms — every job in one place.
             </h1>
             <p className="text-slate-700 text-sm mt-1.5">
-              Same controls as Admin for the day-to-day office work. Backup,
-              restore, force-reseed, and other system-recovery tools live in
-              the Admin Console only.
+              Same workspace as Admin for the day-to-day office work.
+              System-recovery tools live in the Admin Console only.
             </p>
           </div>
         </div>
 
-        {/* Master lists — exact same panels as admin */}
-        <EquipmentMasterPanel />
-        <AdminPMPanel />
-        <AdminJobMasterPanel />
-        <EquipmentPartsPanel />
-        <EmployeeMasterPanel />
-        <SupplierMasterPanel />
-
-        <div className="mb-10">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-amber-700">
-            Records &amp; Forms
-          </span>
-          <h2 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2">
-            Every safety record on file.
-          </h2>
-          <p className="text-slate-600 text-base mt-3 max-w-2xl">
-            View, print, and manage every safety record submitted by the
-            field — same view the Admin Console gives.
-          </p>
-        </div>
-
+        {/* 1 · Records & Forms — start screen */}
         {loading ? (
           <div className="py-16 flex items-center justify-center text-slate-500">
             <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
             <PmTile
               to="/admin/pnl"
               icon={TrendingUp}
@@ -296,10 +275,27 @@ export default function PmHub() {
           </div>
         )}
 
-        <AutoEmailRoutingPanel />
-        <SitePostersPanel />
-        <EquipmentStatusBoard />
+        {/* 2 · Compliance Export */}
         <ComplianceExportPanel />
+
+        {/* 3 · Active Jobs */}
+        <AdminJobMasterPanel />
+
+        {/* 4 · Email Routing (PM roster + auto-routing rules) */}
+        <AdminPMPanel />
+        <AutoEmailRoutingPanel />
+
+        {/* 5 · Site Posters */}
+        <SitePostersPanel />
+
+        {/* 6 · Equipment Status Board */}
+        <EquipmentStatusBoard />
+
+        {/* 7 · Master Lists — equipment fleet, parts, employees, suppliers */}
+        <EquipmentMasterPanel />
+        <EquipmentPartsPanel />
+        <EmployeeMasterPanel />
+        <SupplierMasterPanel />
       </main>
 
       <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 flex flex-col items-center gap-5 border-t border-slate-200">

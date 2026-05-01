@@ -178,37 +178,28 @@ export default function AdminHub() {
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         {/* ============================================================
             DAY-TO-DAY WORKSPACE — same surface a PM gets in /pm.
-            Backup / restore / recovery panels are at the BOTTOM of the
-            page so admins finish their normal work first and only see
-            the destructive controls when they actually need them.
+            Layout (top → bottom):
+              1. Records & Forms tile grid  (the "start screen")
+              2. Compliance Export
+              3. Active Jobs
+              4. Email Routing (PM roster + auto-routing rules)
+              5. Site Posters
+              6. Equipment Status Board
+              7. Equipment Master · Parts · Employees · Suppliers
+              8. (admin only) System Recovery — bottom
             ============================================================ */}
 
-        {/* Replace MASCI equipment fleet (.xlsx) — refreshes every dropdown */}
-        <EquipmentMasterPanel />
-
-        {/* Manage MASCI active jobs — drives JobPicker on every form */}
-        <AdminPMPanel />
-        <AdminJobMasterPanel />
-
-        {/* Bulk-upload the per-unit parts catalog (filters, cutting edges, etc.) */}
-        <EquipmentPartsPanel />
-
-        {/* MASCI employee roster — feeds every employee dropdown */}
-        <EmployeeMasterPanel />
-
-        {/* MASCI supplier / subcontractor list — feeds Sections 05 & 08 */}
-        <SupplierMasterPanel />
-
-        <div className="mb-10">
+        {/* 1 · Records & Forms — start screen */}
+        <div className="mb-8">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             MASCI Admin Console
           </span>
           <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2">
-            Every record, every form.
+            Records &amp; Forms
           </h1>
           <p className="text-slate-600 text-base mt-3 max-w-2xl">
-            View, print, and manage every safety record submitted by the field.
-            Crews never see this page.
+            Every safety record submitted by the field — view, print, or
+            delete. Crews never see this page.
           </p>
         </div>
 
@@ -217,7 +208,7 @@ export default function AdminHub() {
             <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
             <AdminTile
               to="/admin/pnl"
               icon={TrendingUp}
@@ -293,10 +284,27 @@ export default function AdminHub() {
           </div>
         )}
 
-        <AutoEmailRoutingPanel />
-        <SitePostersPanel />
-        <EquipmentStatusBoard />
+        {/* 2 · Compliance Export */}
         <ComplianceExportPanel />
+
+        {/* 3 · Active Jobs */}
+        <AdminJobMasterPanel />
+
+        {/* 4 · Email Routing (PM roster + auto-routing rules) */}
+        <AdminPMPanel />
+        <AutoEmailRoutingPanel />
+
+        {/* 5 · Site Posters */}
+        <SitePostersPanel />
+
+        {/* 6 · Equipment Status Board */}
+        <EquipmentStatusBoard />
+
+        {/* 7 · Master Lists — equipment fleet, parts, employees, suppliers */}
+        <EquipmentMasterPanel />
+        <EquipmentPartsPanel />
+        <EmployeeMasterPanel />
+        <SupplierMasterPanel />
 
         {/* ============================================================
             SYSTEM RECOVERY — admin-only destructive controls.

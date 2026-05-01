@@ -292,58 +292,57 @@ export default function Hub() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 mb-10">
           <SectionCard
-            to="/safety"
-            icon={Shield}
-            eyebrow="Compliance"
-            title={t("Safety")}
-            desc={t("Every inspection, meeting, incident, JHA, and trench-box record in one place.")}
-            bullets={[
-              t("Site Inspections · Safety Meetings"),
-              t("Incident Reports · JHA Plans · Trench Box Data"),
-            ]}
-            accent="red"
-            testId="hub-section-safety"
-          />
-          <SectionCard
             to="/field"
             icon={HardHat}
-            eyebrow="Daily Ops"
+            eyebrow={t("Daily Ops")}
             title={t("Field")}
-            desc={t("End-of-shift logs and pre-operational equipment checks for crews on the ground.")}
+            desc={t("End-of-day reports and equipment walk-arounds for the crew on the ground.")}
             bullets={[
-              t("Daily Reports — crews, subs, visitors, equipment, materials"),
-              t("Equipment Pre-Op — OSHA walk-arounds with pass/fail"),
+              t("Daily Reports — what the crew did today"),
+              t("Equipment Pre-Op — OSHA walk-around with pass / fail"),
             ]}
             accent="amber"
             testId="hub-section-field"
+          />
+          <SectionCard
+            to="/safety"
+            icon={Shield}
+            eyebrow={t("Compliance")}
+            title={t("Safety")}
+            desc={t("Inspections, toolbox talks, incident reports, JHAs, and trench-box guidance — if safety is on your mind, it lives here.")}
+            bullets={[
+              t("Site Inspections · Safety Meetings · Incidents"),
+              t("Job Hazard Plans · Trench Box Reference"),
+            ]}
+            accent="red"
+            testId="hub-section-safety"
           />
           <ProjectsCard
             t={t}
             testId="hub-section-projects"
           />
           <SectionCard
-            to="/admin/login"
-            icon={ClipboardList}
-            eyebrow="Office Console"
-            title={t("Admin")}
-            desc={t("Dashboards, PDF exports, compliance CSVs, PM email routing, full backups & restore.")}
+            icon={ClipboardCheck}
+            title={t("QA / QC")}
+            desc={t("Quality Assurance and Quality Control workflows for the field team — pour cards, density logs, and inspection forms ready to fill out and turn in. More forms rolling out soon.")}
             bullets={[
-              t("Password-gated · view / print / delete any record"),
-              t("Backup · Restore · Auto-email routing · Posters"),
+              t("Asphalt density · core samples · roadway reports"),
+              t("Rebar inspections · concrete form inspections"),
+              t("Daily QA / QC submittals · field-team turn-ins"),
             ]}
-            accent="slate"
-            testId="hub-section-admin"
-            external
+            accent="blue"
+            testId="hub-section-qc"
+            comingSoon
           />
           <SectionCard
             to="/pm/login"
             icon={ClipboardList}
-            eyebrow="Project Management"
+            eyebrow={t("Project Management")}
             title={t("PM Portal")}
-            desc={t("Same day-to-day workspace as Admin — every record, every form, every master list — without the backup / restore controls.")}
+            desc={t("The day-to-day project-management workspace — every job, every record, every master list, in one place.")}
             bullets={[
-              t("Password-gated · jobs, equipment, employees, suppliers, posters"),
-              t("No backups, no restore, no force-reseed — admin only"),
+              t("Active jobs · email routing · site posters"),
+              t("Equipment fleet · employees · suppliers"),
             ]}
             accent="amber"
             testId="hub-section-pm"
@@ -352,28 +351,30 @@ export default function Hub() {
           <SectionCard
             to="/shop/login"
             icon={Wrench}
-            eyebrow="Mechanics & Shop"
+            eyebrow={t("Mechanics & Shop")}
             title={t("Shop")}
-            desc={t("Pre-Op trends, open Out-of-Service / Needs-Attention items, and the full equipment list. Sign-off in one tap.")}
+            desc={t("The mechanic's console for the MASCI equipment fleet. Sign off failed Pre-Ops, clear units back to service, and stay on top of open items.")}
             bullets={[
-              t("Password-gated · sign off on FAILs · clear units back to operate"),
-              t("Trends · Open Items · Equipment List · Recent Inspections"),
+              t("Open Out-of-Service · Needs-Attention queue"),
+              t("Recent inspections · full equipment list"),
             ]}
             accent="amber"
             testId="hub-section-shop"
             external
           />
           <SectionCard
-            icon={ClipboardCheck}
-            title={t("QC")}
-            desc={t("Quality Control workflows for the asphalt & roadway field team — daily roadway reports, testing reports, and other fillable QC documents to turn in. Coming soon.")}
+            to="/admin/login"
+            icon={ClipboardList}
+            eyebrow={t("Office Console")}
+            title={t("Admin")}
+            desc={t("The full office console. Dashboards, master records, and the back-office tools for the whole platform.")}
             bullets={[
-              t("Roadway reports · density logs · core sample logs"),
-              t("Testing reports · fillable QC docs · field-team submittals"),
+              t("Records · master lists · compliance exports"),
+              t("Office staff only"),
             ]}
-            accent="blue"
-            testId="hub-section-qc"
-            comingSoon
+            accent="slate"
+            testId="hub-section-admin"
+            external
           />
         </div>
       </main>
