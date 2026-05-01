@@ -12,11 +12,15 @@ import {
   UserPlus,
   Printer,
   QrCode,
+  Lock,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { TRACKS, lessonsForTrack } from "@/data/training";
+import { isAdmin } from "@/lib/adminAuth";
+import { isPm } from "@/lib/pmAuth";
+import { isShop } from "@/lib/shopAuth";
 
 const ICONS = { HardHat, Wrench, Briefcase, ShieldCheck };
 
@@ -26,6 +30,34 @@ const ACCENTS = {
   slate: "border-slate-900 hover:border-slate-950 bg-slate-900",
   emerald: "border-emerald-700 hover:border-emerald-800 bg-emerald-700",
 };
+
+// Tracks are gated by the same passwords as the rest of the app. Labor
+// crews have no business reading the PM/Admin workflows — this function
+// returns whether the current user is allowed to see the preview of a
+// given track's lessons. `track.audience === "public"` (the Field track)
+// is always visible. Shop requires Shop/PM/Admin. PM requires PM/Admin.
+// Admin requires Admin.
+function trackUnlocked(track) {
+  if (!track) return false;
+  if (track.audience === "public") return true;
+  if (isAdmin()) return true;
+  if (track.audience === "pm") return isPm();
+  if (track.audience === "shop") return isShop() || isPm();
+  return false;
+}
+
+function loginPathFor(audience) {
+  if (audience === "admin") return "/admin/login";
+  if (audience === "pm") return "/pm/login";
+  if (audience === "shop") return "/shop/login";
+  return "/";
+}
+
+function loginLabelFor(audience, lang) {
+  const en = { admin: "Admin", pm: "Project Manager", shop: "Shop" };
+  const es = { admin: "Administrador", pm: "Gerente de Proyecto", shop: "Taller" };
+  return (lang === "es" ? es : en)[audience] || audience;
+}
 
 export default function TrainingHub() {
   const { t, lang } = useT();
@@ -78,10 +110,15 @@ export default function TrainingHub() {
             const Icon = ICONS[track.icon] || GraduationCap;
             const lessons = lessonsForTrack(track.slug);
             const accent = ACCENTS[track.accent] || ACCENTS.red;
+            const unlocked = trackUnlocked(track);
+            const destination = unlocked
+              ? `/training/${track.slug}`
+              : loginPathFor(track.audience);
             return (
               <Link
                 key={track.slug}
-                to={`/training/${track.slug}`}
+                to={destination}
+                state={unlocked ? undefined : { from: `/training/${track.slug}` }}
                 className={`group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 transition-all duration-150 hover:-translate-y-0.5 ${accent.split(" ")[1]} flex flex-col`}
                 data-testid={`training-track-${track.slug}`}
               >
@@ -90,34 +127,57 @@ export default function TrainingHub() {
                   <div className={`inline-flex items-center justify-center w-14 h-14 rounded-md ${accent.split(" ")[2]} text-white`}>
                     <Icon className="w-7 h-7" />
                   </div>
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-100 text-slate-700 font-mono text-[10px] uppercase tracking-[0.2em] font-bold">
-                    {lessons.length} {t("lessons")}
-                  </span>
+                  {unlocked ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-100 text-slate-700 font-mono text-[10px] uppercase tracking-[0.2em] font-bold">
+                      {lessons.length} {t("lessons")}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-100 text-amber-800 font-mono text-[10px] uppercase tracking-[0.2em] font-bold">
+                      <Lock className="w-3 h-3" /> {t("Password required")}
+                    </span>
+                  )}
                 </div>
                 <h3 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-4">
                   {lang === "es" && track.title_es ? track.title_es : track.title}
                 </h3>
-                <p className="text-slate-600 text-sm sm:text-base mt-2 leading-relaxed">
-                  {lang === "es" && track.blurb_es ? track.blurb_es : track.blurb}
-                </p>
-                <ul className="mt-4 space-y-1 text-xs sm:text-sm text-slate-700">
-                  {lessons.slice(0, 3).map((l) => (
-                    <li key={l.slug} className="flex items-start gap-2">
-                      <span className={`mt-1.5 w-1 h-1 rounded-full ${accent.split(" ")[2]} shrink-0`} />
-                      <span>{l.title.replace(/^Lesson \d+ — /, "")}</span>
-                    </li>
-                  ))}
-                  {lessons.length > 3 && (
-                    <li className="text-slate-400 text-xs pl-3 italic">
-                      + {lessons.length - 3} {t("more…")}
-                    </li>
-                  )}
-                </ul>
+
+                {unlocked ? (
+                  <>
+                    <p className="text-slate-600 text-sm sm:text-base mt-2 leading-relaxed">
+                      {lang === "es" && track.blurb_es ? track.blurb_es : track.blurb}
+                    </p>
+                    <ul className="mt-4 space-y-1 text-xs sm:text-sm text-slate-700">
+                      {lessons.slice(0, 3).map((l) => (
+                        <li key={l.slug} className="flex items-start gap-2">
+                          <span className={`mt-1.5 w-1 h-1 rounded-full ${accent.split(" ")[2]} shrink-0`} />
+                          <span>{l.title.replace(/^Lesson \d+ — /, "")}</span>
+                        </li>
+                      ))}
+                      {lessons.length > 3 && (
+                        <li className="text-slate-400 text-xs pl-3 italic">
+                          + {lessons.length - 3} {t("more…")}
+                        </li>
+                      )}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="text-slate-500 text-sm mt-3 leading-relaxed italic">
+                    {t("Internal track — covers back-office workflows. Sign in as")}{" "}
+                    <strong className="not-italic text-slate-700">
+                      {loginLabelFor(track.audience, lang)}
+                    </strong>{" "}
+                    {t("to see the lessons and packets.")}
+                  </p>
+                )}
                 <div className="mt-6 pt-5 border-t-2 border-slate-100 flex items-center justify-between">
                   <span className="font-mono text-xs uppercase tracking-[0.2em] font-bold text-slate-700">
-                    {t("Open track →")}
+                    {unlocked ? t("Open track →") : t("Sign in →")}
                   </span>
-                  <ArrowRight className="w-5 h-5 text-slate-700 transition-transform duration-150 group-hover:translate-x-1" />
+                  {unlocked ? (
+                    <ArrowRight className="w-5 h-5 text-slate-700 transition-transform duration-150 group-hover:translate-x-1" />
+                  ) : (
+                    <Lock className="w-5 h-5 text-amber-700" />
+                  )}
                 </div>
               </Link>
             );
@@ -148,41 +208,56 @@ export default function TrainingHub() {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
-            {Object.values(TRACKS).map((tr) => (
-              <div key={tr.slug} className="bg-slate-800 rounded p-3 flex items-center justify-between gap-2 text-xs">
-                <span className="font-bold truncate">{lang === "es" && tr.title_es ? tr.title_es : tr.title}</span>
-                <div className="flex gap-1 shrink-0">
-                  <a
-                    href={`${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${tr.slug}&lang=en`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-700 hover:bg-amber-500 hover:text-slate-900 font-mono font-bold uppercase tracking-wide transition-colors"
-                    data-testid={`training-landing-pdf-${tr.slug}-en`}
-                  >
-                    EN
-                  </a>
-                  <a
-                    href={`${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${tr.slug}&lang=es`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-700 hover:bg-amber-500 hover:text-slate-900 font-mono font-bold uppercase tracking-wide transition-colors"
-                    data-testid={`training-landing-pdf-${tr.slug}-es`}
-                  >
-                    ES
-                  </a>
-                  <a
-                    href={`${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${tr.slug}&lang=bi`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-700 hover:bg-red-600 font-mono font-bold uppercase tracking-wide transition-colors"
-                    data-testid={`training-landing-pdf-${tr.slug}-bi`}
-                    title="Bilingual · side-by-side"
-                  >
-                    EN+ES
-                  </a>
+            {Object.values(TRACKS).map((tr) => {
+              const unlocked = trackUnlocked(tr);
+              // For unlocked tracks the buttons hit the /api/.../packet.pdf
+              // URL directly so PMs/Admins can still right-click → save-as.
+              // For locked tracks they go to the auth-aware route which
+              // forces a login first.
+              const link = (lng) =>
+                unlocked && tr.audience === "public"
+                  ? `${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${tr.slug}&lang=${lng}`
+                  : `/training/${tr.slug}/packet?lang=${lng}`;
+              const target = unlocked && tr.audience === "public" ? "_blank" : undefined;
+              return (
+                <div key={tr.slug} className="bg-slate-800 rounded p-3 flex items-center justify-between gap-2 text-xs">
+                  <span className="font-bold truncate flex items-center gap-1.5">
+                    {!unlocked && <Lock className="w-3 h-3 text-amber-400 shrink-0" />}
+                    {lang === "es" && tr.title_es ? tr.title_es : tr.title}
+                  </span>
+                  <div className="flex gap-1 shrink-0">
+                    <a
+                      href={link("en")}
+                      target={target}
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-700 hover:bg-amber-500 hover:text-slate-900 font-mono font-bold uppercase tracking-wide transition-colors"
+                      data-testid={`training-landing-pdf-${tr.slug}-en`}
+                    >
+                      EN
+                    </a>
+                    <a
+                      href={link("es")}
+                      target={target}
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-700 hover:bg-amber-500 hover:text-slate-900 font-mono font-bold uppercase tracking-wide transition-colors"
+                      data-testid={`training-landing-pdf-${tr.slug}-es`}
+                    >
+                      ES
+                    </a>
+                    <a
+                      href={link("bi")}
+                      target={target}
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-700 hover:bg-red-600 font-mono font-bold uppercase tracking-wide transition-colors"
+                      data-testid={`training-landing-pdf-${tr.slug}-bi`}
+                      title="Bilingual · side-by-side"
+                    >
+                      EN+ES
+                    </a>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -207,30 +282,46 @@ export default function TrainingHub() {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
-            {Object.values(TRACKS).map((tr) => (
-              <div key={tr.slug} className="bg-white border-2 border-amber-600 rounded p-3 flex items-center justify-between gap-2 text-xs">
-                <span className="font-bold truncate text-slate-900">
-                  {lang === "es" && tr.title_es ? tr.title_es : tr.title}
-                </span>
-                <div className="flex gap-1 shrink-0">
-                  <Link
-                    to={`/training/${tr.slug}/poster`}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-white font-mono font-bold uppercase tracking-wide transition-colors"
-                    data-testid={`training-qr-poster-${tr.slug}`}
-                  >
-                    {t("View")}
-                  </Link>
-                  <Link
-                    to={`/training/${tr.slug}/poster?autoprint=1`}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-mono font-bold uppercase tracking-wide transition-colors"
-                    data-testid={`training-qr-poster-print-${tr.slug}`}
-                  >
-                    <Printer className="w-3 h-3" />
-                    {t("Print")}
-                  </Link>
+            {Object.values(TRACKS).map((tr) => {
+              const unlocked = trackUnlocked(tr);
+              const viewPath = unlocked
+                ? `/training/${tr.slug}/poster`
+                : loginPathFor(tr.audience);
+              const printPath = unlocked
+                ? `/training/${tr.slug}/poster?autoprint=1`
+                : loginPathFor(tr.audience);
+              const linkState = unlocked
+                ? undefined
+                : { from: `/training/${tr.slug}/poster` };
+              return (
+                <div key={tr.slug} className="bg-white border-2 border-amber-600 rounded p-3 flex items-center justify-between gap-2 text-xs">
+                  <span className="font-bold truncate text-slate-900 flex items-center gap-1.5">
+                    {!unlocked && <Lock className="w-3 h-3 text-amber-700 shrink-0" />}
+                    {lang === "es" && tr.title_es ? tr.title_es : tr.title}
+                  </span>
+                  <div className="flex gap-1 shrink-0">
+                    <Link
+                      to={viewPath}
+                      state={linkState}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-white font-mono font-bold uppercase tracking-wide transition-colors"
+                      data-testid={`training-qr-poster-${tr.slug}`}
+                    >
+                      {unlocked ? t("View") : t("Sign In")}
+                    </Link>
+                    {unlocked && (
+                      <Link
+                        to={printPath}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-mono font-bold uppercase tracking-wide transition-colors"
+                        data-testid={`training-qr-poster-print-${tr.slug}`}
+                      >
+                        <Printer className="w-3 h-3" />
+                        {t("Print")}
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

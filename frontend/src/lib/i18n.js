@@ -1371,6 +1371,23 @@ const ES = {
   "14-day trend": "Tendencia 14 días",
   "today": "hoy",
 
+  // Track gating (2026-05-01)
+  "Password required": "Contraseña requerida",
+  "Internal track — covers back-office workflows. Sign in as":
+    "Track interno — cubre flujos de oficina. Inicie sesión como",
+  "to see the lessons and packets.": "para ver las lecciones y paquetes.",
+  "Sign in →": "Iniciar sesión →",
+  "Internal training · password required":
+    "Capacitación interna · contraseña requerida",
+  "This packet covers internal MASCI workflows and is only shared with office staff.":
+    "Este paquete cubre flujos internos de MASCI y solo se comparte con personal de oficina.",
+  "Opening packet…": "Abriendo paquete…",
+  "Your packet is ready": "Su paquete está listo",
+  "If it didn't open in a new tab, your browser may have blocked the pop-up — check your downloads folder.":
+    "Si no abrió en una nueva pestaña, el navegador puede haber bloqueado el pop-up — revise la carpeta de descargas.",
+  "Back to track": "Volver al track",
+  "Couldn't open the packet": "No se pudo abrir el paquete",
+
 };
 
 const DICTS = { es: ES, en: {} };

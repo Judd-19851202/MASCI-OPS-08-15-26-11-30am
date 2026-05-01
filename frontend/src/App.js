@@ -40,6 +40,7 @@ import ShopHub from "@/pages/ShopHub";
 import TrainingHub from "@/pages/TrainingHub";
 import TrainingTrack from "@/pages/TrainingTrack";
 import TrainingQrPoster from "@/pages/TrainingQrPoster";
+import TrainingPacketDownload from "@/pages/TrainingPacketDownload";
 import AdminTrainingVideos from "@/pages/AdminTrainingVideos";
 import CheatSheet from "@/pages/CheatSheet";
 import TermsOfService from "@/pages/legal/TermsOfService";
@@ -180,6 +181,7 @@ function App() {
             <Route path="/training" element={<TrainingHub />} />
             <Route path="/training/:track" element={<TrainingTrack />} />
             <Route path="/training/:track/poster" element={<TrainingQrPoster />} />
+            <Route path="/training/:track/packet" element={<TrainingPacketDownload />} />
             <Route path="/admin/training-videos" element={A(<AdminTrainingVideos />)} />
 
             {/* Legacy redirects */}

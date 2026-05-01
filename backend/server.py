@@ -4338,19 +4338,68 @@ async def training_videos_get():
 
 
 @api_router.get("/training/packet.pdf")
-async def training_packet_pdf(track: str, lang: str = "en", request: Request = None):
-    """Public download of the full training packet for `track` in `lang`.
-    `lang` supports 'en', 'es', and 'bi' (or 'bilingual' / 'es-en') — the
-    bilingual variant lays English on the left and Spanish on the right so
-    crews can map technical terms across languages.
-    Anyone with the URL can download — no auth, intended to be emailed to
-    insurance, auditors, or new-hire packets.
+async def training_packet_pdf(
+    track: str,
+    lang: str = "en",
+    request: Request = None,
+    x_admin_token: Optional[str] = Header(default=None),
+    x_pm_token: Optional[str] = Header(default=None),
+    x_shop_token: Optional[str] = Header(default=None),
+):
+    """Training packet PDF. The Field Crew track is public so labor can scan
+    trailer posters without a login. Shop / PM / Admin tracks are gated —
+    the back-office workflows are sensitive (backup procedures, password
+    rotation, master-list internals) and shouldn't be readable by a new
+    hire or walk-through visitor.
+
+    Access rules:
+      • `field`  → public, no auth
+      • `shop`   → shop / pm / admin token accepted
+      • `pm`     → pm / admin token accepted
+      • `admin`  → admin token only
 
     Side effect: fire-and-forget insert into `training_hits` so the PM/Admin
     hub dashboards can show scan stats. No PII — just track/lang/date and
     a truncated UA + referer so we can tell which trailer poster got the
     scan (web vs phone browser, mascidocs.com vs direct)."""
     from training_pdf import render_packet, _normalize_lang  # local import
+
+    t_lower = (track or "").lower()
+
+    # Authorize based on track. We do this BEFORE rendering the PDF so a
+    # failed auth never pays the render cost.
+    if t_lower == "admin":
+        if not (x_admin_token and _is_valid_admin_token(x_admin_token)):
+            raise HTTPException(
+                status_code=401,
+                detail="Admin login required for the Admin training packet.",
+            )
+    elif t_lower == "pm":
+        if not (
+            (x_admin_token and _is_valid_admin_token(x_admin_token))
+            or (x_pm_token and _is_valid_pm_token(x_pm_token))
+        ):
+            raise HTTPException(
+                status_code=401,
+                detail="PM or Admin login required for the PM training packet.",
+            )
+    elif t_lower == "shop":
+        # inline the shop-token check to avoid wiring a dedicated helper
+        shop_ok = False
+        shop_pw = os.environ.get("SHOP_PASSWORD", "")
+        if x_shop_token and shop_pw:
+            shop_ok = hmac.compare_digest(x_shop_token, _shop_token_for(shop_pw))
+        if not (
+            (x_admin_token and _is_valid_admin_token(x_admin_token))
+            or (x_pm_token and _is_valid_pm_token(x_pm_token))
+            or shop_ok
+        ):
+            raise HTTPException(
+                status_code=401,
+                detail="Shop, PM, or Admin login required for the Shop training packet.",
+            )
+    # else: field track → public
+
     try:
         pdf_bytes = render_packet(track, lang)
     except ValueError as e:

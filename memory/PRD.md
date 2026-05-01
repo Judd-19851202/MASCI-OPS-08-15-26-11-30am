@@ -1,5 +1,48 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-01 — Training Hub Auth Gating (Field public · Shop/PM/Admin gated)
+
+Closed the security gap. The back-office workflows (master-list internals, password rotation, backup procedures) are no longer visible to anyone who walks up to the URL. The Field Crew track stays fully public for new hires and labor-only crew.
+
+### Access matrix
+
+| Surface | Field | Shop | PM | Admin |
+|---|---|---|---|---|
+| `/training` landing card preview (lessons, blurb) | ✅ public | 🔒 password chip + "Sign in as Shop" | 🔒 password chip + "Sign in as Project Manager" | 🔒 password chip + "Sign in as Admin" |
+| `/training/:track` lesson page | ✅ public | 🔒 Shop/PM/Admin | 🔒 PM/Admin | 🔒 Admin only |
+| `GET /api/training/packet.pdf?track=…` | ✅ public | 🔒 Shop/PM/Admin token | 🔒 PM/Admin token | 🔒 Admin token |
+| `/training/:track/poster` (QR poster) | ✅ public | 🔒 Shop/PM/Admin | 🔒 PM/Admin | 🔒 Admin |
+| QR code embedded **inside** the poster | links straight to public PDF | links to `/training/shop/packet?lang=…` (auth-gated frontend route) | same pattern | same pattern |
+| Stats stripe `/admin/training/stats` | n/a | n/a | ✅ PM/Admin | ✅ PM/Admin |
+
+### Backend
+- `training_packet_pdf` now inspects the track and rejects the request with **401** if the appropriate token isn't supplied. Field skips the gate. Shop accepts Shop/PM/Admin. PM accepts PM/Admin. Admin requires Admin.
+- Verified via curl: 15-cell auth matrix all pass (3 langs × 4 tracks plus token combinations).
+
+### Frontend
+- **New page** `TrainingPacketDownload.jsx` (`/training/:track/packet?lang=…`):
+  - Field → instantly redirects to the public PDF URL.
+  - Locked tracks → if authed, performs `api.get(..., {responseType: "blob"})` so the `X-*-Token` header is included, then opens the PDF as a Blob URL in a new tab (with download-fallback when popups blocked).
+  - Locked tracks + unauthed → renders a friendly lock card with a Sign-In CTA scoped to the right tier (Admin/PM/Shop).
+- **TrainingHub landing**:
+  - Track cards check `trackUnlocked()` → locked tracks hide the blurb + lesson preview; show "🔒 Password Required" chip + "Sign in as <tier>" copy + Lock icon CTA. Click → routes to the right login page with `from` state for return-redirect.
+  - PDF panel buttons + Scan-&-Go panel buttons → unlocked variants link directly to the PDF or poster; locked variants route to the auth-aware download page (or login).
+- **TrainingTrack** PDF buttons → same auth-aware routing for non-public tracks.
+- **TrainingQrPoster**: gates non-public tracks the same way (lock card → login). QR codes inside the poster point at the auth-aware `/packet` route for gated tracks so a photographed poster from a stranger's phone hits a login wall, not the PDF.
+
+### Verified on preview
+| Scenario | Result |
+|---|---|
+| Logged-out visitor at `/training` → sees Field preview but **0 leaks** of Shop/PM/Admin blurbs or lesson titles | ✅ |
+| Logged-out → click Shop tile → routed to `/shop/login` with return-state | ✅ |
+| Shop user → access `/training/admin/packet?lang=en` → lock card | ✅ |
+| Admin user → access `/training/admin/packet?lang=en` → "Your packet is ready" success card, PDF blob opens | ✅ |
+| Backend auth matrix (15 cells) | ✅ all pass |
+| Field still fully public (3 langs) | ✅ 200 each |
+| No lint errors, no Python errors | ✅ |
+
+
+
 ## 2026-05-01 — Training Scans Analytics (PM Hub + Admin Hub Stripe)
 
 Shipped an analytics layer on top of the training rollout. Every time someone scans a trailer poster QR and lands on a PDF packet, the backend logs a lightweight hit (no PII — just track, lang, coarse device family, and referer source). PMs and Admins see a stats stripe at the top of their hub that summarizes engagement.

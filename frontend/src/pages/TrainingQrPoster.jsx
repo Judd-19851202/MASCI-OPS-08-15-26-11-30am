@@ -1,8 +1,11 @@
 import React, { useEffect } from "react";
 import { useParams, useLocation, useSearchParams, Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Printer, ClipboardCheck } from "lucide-react";
+import { ArrowLeft, Printer, ClipboardCheck, Lock } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { TRACKS, lessonsForTrack } from "@/data/training";
+import { isAdmin } from "@/lib/adminAuth";
+import { isPm } from "@/lib/pmAuth";
+import { isShop } from "@/lib/shopAuth";
 
 // NOTE: no useT() on this page — the poster itself is intentionally bilingual
 // so a single print works for any trailer regardless of which crew shows up.
@@ -36,15 +39,72 @@ export default function TrainingQrPoster() {
 
   if (!track) return <Navigate to="/training" replace />;
 
+  // Gate non-public tracks the same way TrainingTrack does. We do NOT
+  // redirect; a friendly card is shown so office staff who are logged
+  // out know why they can't see the poster.
+  const audience = track.audience;
+  const allowed =
+    audience === "public" ||
+    isAdmin() ||
+    (audience === "pm" && isPm()) ||
+    (audience === "shop" && (isShop() || isPm()));
+  if (!allowed) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col">
+        <div className="caution-stripe" />
+        <header className="bg-slate-900 border-b-4 border-red-700">
+          <div className="max-w-4xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+            <Link to="/training" className="inline-flex items-center text-white hover:text-red-400 text-sm font-bold uppercase tracking-wide">
+              <ArrowLeft className="w-4 h-4 mr-1" /> Training
+            </Link>
+            <MasciLogo variant="mark" size="md" homeLink="/" />
+            <span />
+          </div>
+        </header>
+        <main className="flex-1 flex items-center justify-center px-5 py-14">
+          <div className="bg-white border-2 border-slate-300 rounded-md p-8 max-w-md w-full text-center">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 text-amber-700 mb-3">
+              <Lock className="w-7 h-7" />
+            </div>
+            <h2 className="font-display text-2xl font-black text-slate-900">Internal poster · password required</h2>
+            <p className="text-slate-600 text-sm mt-3">
+              This trailer poster is for {audience === "admin" ? "Admin" : audience === "pm" ? "PM" : "Shop"} staff only. Sign in to preview and print.
+            </p>
+            <div className="mt-5 flex flex-col gap-2">
+              <Link
+                to={audience === "admin" ? "/admin/login" : audience === "pm" ? "/pm/login" : "/shop/login"}
+                state={{ from: location.pathname + location.search }}
+                className="inline-flex items-center justify-center h-11 rounded bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/training"
+                className="inline-flex items-center justify-center h-11 rounded border-2 border-slate-300 text-slate-700 hover:border-slate-500 font-bold uppercase tracking-wide text-sm"
+              >
+                Back to Training Hub
+              </Link>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   const api = process.env.REACT_APP_BACKEND_URL;
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const lessons = lessonsForTrack(trackSlug);
   const accent = ACCENTS[track.accent] || ACCENTS.red;
 
-  // The URL encoded inside each QR — points at the public PDF endpoint on
-  // mascidocs.com (served from the same `api` origin in prod; relative in dev).
+  // The URL encoded inside each QR. For the PUBLIC `field` track the QR
+  // points straight at the PDF endpoint (no auth needed). For gated
+  // tracks it points at the frontend packet-download route, which forces
+  // a login and then streams the PDF — so a photographed poster can't be
+  // used by an outsider to pull internal documents.
   const mkUrl = (lang) =>
-    `${api}/api/training/packet.pdf?track=${trackSlug}&lang=${lang}`;
+    audience === "public"
+      ? `${api}/api/training/packet.pdf?track=${trackSlug}&lang=${lang}`
+      : `${origin}/training/${trackSlug}/packet?lang=${lang}`;
   const qr = (lang) =>
     `${api}/api/qr.svg?scale=9&data=${encodeURIComponent(mkUrl(lang))}`;
 
