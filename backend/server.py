@@ -4319,6 +4319,58 @@ async def translate_strings(payload: TranslateRequest):
         return TranslateResponse(strings=payload.strings)
 
 
+# ============================================================
+# Training Hub — video URL registry
+# ============================================================
+# Each lesson has a `slug` defined in the frontend training catalog.
+# Admins paste a YouTube / Loom / Vimeo / Wistia URL per slug and the
+# Training Hub renders it above the written walk-through. Storage is a
+# single Mongo document with id="config" in the `training_videos` collection:
+#   { "_id": "config", "videos": {"field-01-hub-navigation": "https://…", ...} }
+
+
+@api_router.get("/training/videos")
+async def training_videos_get():
+    """Public read. Field crews need this to render embedded videos without
+    a login. Returns `{videos: {slug: url}}` — empty dict if nothing saved."""
+    doc = await db["training_videos"].find_one({"_id": "config"}, {"_id": 0})
+    return {"videos": (doc or {}).get("videos", {})}
+
+
+@api_router.put("/admin/training/videos")
+async def training_videos_put(
+    body: dict,
+    _: bool = Depends(require_admin_strict),
+):
+    """Admin-strict write. Body = `{videos: {slug: url}}`. Merge-updates the
+    stored map so partial saves are safe — only supplied slugs are changed.
+    Empty string for a slug clears that slug's video."""
+    incoming = (body or {}).get("videos")
+    if not isinstance(incoming, dict):
+        raise HTTPException(400, "Body must be `{videos: {slug: url}}`")
+    # sanitize: trim whitespace, drop any non-string values
+    clean = {}
+    for slug, url in incoming.items():
+        if not isinstance(slug, str) or not slug.strip():
+            continue
+        if url is None:
+            clean[slug.strip()] = ""
+        elif isinstance(url, str):
+            clean[slug.strip()] = url.strip()
+    existing = await db["training_videos"].find_one({"_id": "config"}) or {}
+    merged = {**(existing.get("videos") or {}), **clean}
+    # drop empty strings so the map stays compact
+    merged = {k: v for k, v in merged.items() if v}
+    await db["training_videos"].update_one(
+        {"_id": "config"},
+        {"$set": {"videos": merged, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return {"ok": True, "count": len(merged), "videos": merged}
+
+
+
+
 app.include_router(api_router)
 
 

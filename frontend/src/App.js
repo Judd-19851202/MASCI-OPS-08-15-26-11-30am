@@ -37,6 +37,9 @@ import PmLogin from "@/pages/PmLogin";
 import PmHub from "@/pages/PmHub";
 import ShopLogin from "@/pages/ShopLogin";
 import ShopHub from "@/pages/ShopHub";
+import TrainingHub from "@/pages/TrainingHub";
+import TrainingTrack from "@/pages/TrainingTrack";
+import AdminTrainingVideos from "@/pages/AdminTrainingVideos";
 import CheatSheet from "@/pages/CheatSheet";
 import TermsOfService from "@/pages/legal/TermsOfService";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
@@ -167,6 +170,15 @@ function App() {
             <Route path="/shop/login" element={<ShopLogin />} />
             <Route path="/shop" element={S(<ShopHub />)} />
             <Route path="/shop/equipment/:id" element={S(<ViewEquipmentInspection context="shop" />)} />
+
+            {/* ============================================================
+                Training Hub — landing is public, tracks gate per audience
+                (Field public, Shop/PM/Admin each require their own token).
+                Admin video URL manager lives behind /admin/training-videos.
+                ============================================================ */}
+            <Route path="/training" element={<TrainingHub />} />
+            <Route path="/training/:track" element={<TrainingTrack />} />
+            <Route path="/admin/training-videos" element={A(<AdminTrainingVideos />)} />
 
             {/* Legacy redirects */}
             <Route path="/inspections" element={<Navigate to="/admin/inspections" replace />} />

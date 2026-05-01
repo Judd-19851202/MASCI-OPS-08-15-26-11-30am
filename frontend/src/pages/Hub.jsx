@@ -7,6 +7,7 @@ import {
   Shield,
   Wrench,
   ClipboardCheck,
+  GraduationCap,
   ArrowRight,
   MapPin,
 } from "lucide-react";
@@ -361,6 +362,19 @@ export default function Hub() {
             accent="amber"
             testId="hub-section-shop"
             external
+          />
+          <SectionCard
+            to="/training"
+            icon={GraduationCap}
+            eyebrow={t("Training")}
+            title={t("Training Hub")}
+            desc={t("Short lessons, printable cheat sheets, and video walk-throughs for Field, Shop, PMs, and Admins. New hires up to speed in an afternoon.")}
+            bullets={[
+              t("Field Crew · Shop · PM · Admin tracks"),
+              t("Written guides + video slots + print-friendly"),
+            ]}
+            accent="blue"
+            testId="hub-section-training"
           />
           <SectionCard
             to="/admin/login"

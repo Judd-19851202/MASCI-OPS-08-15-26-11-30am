@@ -1,5 +1,53 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-01 — Training Hub (4 tracks · 23 lessons · admin video manager)
+
+New end-to-end training system inside the app. Four tracks × 23 lessons of written walk-throughs with "Why this matters" callouts, step-by-step numbered lists, tips, and printable cheat sheets. Every lesson has a video-embed slot that admins fill via the new video URL manager — YouTube / Loom / Vimeo all auto-parsed to embed URLs.
+
+### Backend (2 new endpoints)
+- `GET /api/training/videos` — **public**, returns `{videos: {slug: url}}`. Field crews need no login to see embedded videos.
+- `PUT /api/admin/training/videos` — **admin-strict** (PM tokens return 401). Merge-update the slug→URL map; empty strings clear.
+- Storage: `training_videos` collection, single doc `{_id: "config", videos: {}, updated_at: ISO}`.
+
+### Frontend
+- `src/data/training.js` — entire lesson catalog (7 Field + 3 Shop + 6 PM + 7 Admin = **23 lessons**) with bilingual track titles/blurbs.
+- `src/pages/TrainingHub.jsx` — `/training` public landing. Four track cards with lesson counts, first-3 lesson titles, and "Open track →" CTA.
+- `src/pages/TrainingTrack.jsx` — `/training/:track` stacked lesson view. Gates non-public tracks (Shop/PM/Admin) via `isShop()/isPm()/isAdmin()` with a friendly AccessDenied card linking to the right login.
+- `src/pages/AdminTrainingVideos.jsx` — `/admin/training-videos` (admin-strict). Lists every lesson grouped by track with a URL input per slug, save all at once, "open" link preview.
+- `src/pages/Hub.jsx` — new 8th tile (blue accent, GraduationCap icon) linking to `/training`.
+- `src/App.js` — 3 new routes: `/training`, `/training/:track`, `/admin/training-videos`.
+- `src/lib/i18n.js` — ~35 new bilingual entries for Training UI chrome.
+
+### Lesson coverage
+| Track | Lessons |
+|---|---|
+| **Field Crew** (public) | Hub Navigation · Daily Reports · Equipment Pre-Op · Site Inspection · Safety Meeting · JHA · Incident Report |
+| **Shop** (shop-gated) | Portal Overview · Signing Off a Failed Pre-Op · Parts Catalog + Order List |
+| **PM** (pm-gated) | Portal Overview · Master Lists · Import/Export · Archive (14-day undo) · Email Routing · Site Posters + JHA |
+| **Admin** (admin-gated) | Platform Overview · **How Backups Work** · **How to Restore** · **Integrity Check** · Crew Recovery (force-reseed) · Safe Deploy Workflow · Passwords & Security |
+
+### Video embed
+`toEmbedUrl()` parses YouTube `watch?v=`, `youtu.be/`, `/embed/`, Loom `/share/`, `/embed/`, Vimeo `vimeo.com/123`. Falls back to the raw URL (still clickable via "Open video").
+
+### Verified on preview
+| Check | Result |
+|---|---|
+| `GET /api/training/videos` (public) | ✅ 200 — `{videos: {}}` initial |
+| `PUT /api/admin/training/videos` with admin token | ✅ 200 — seeded/cleared successfully |
+| `PUT /api/admin/training/videos` with PM token | 🔒 **401 REJECTED** |
+| `/training` landing — all 4 track cards render | ✅ |
+| `/training/field` (public) — all 7 lessons render + 7 Why/Cheat/Video slots | ✅ |
+| `/training/admin` (no auth) — AccessDenied + Sign In button | ✅ |
+| `/training/admin` (admin token) — all 7 Admin lessons incl. backup schedule + retention | ✅ |
+| `/admin/training-videos` — **23 URL inputs** rendered (one per lesson) | ✅ |
+
+### How to use
+1. **For crews**: share `mascidocs.com/training` — the Field track is open. They bookmark / add-to-home-screen.
+2. **For admins to add videos**: `/admin → Training Videos` (or direct `/admin/training-videos`). Paste a YouTube/Loom/Vimeo URL per lesson. Save. Videos appear on the training pages immediately — no deploy needed.
+3. **For print**: on any track page, "Print all cheat sheets" button strips chrome and prints every lesson's content as paper handouts for the job trailer.
+
+
+
 ## 2026-05-01 — Bilingual Sweep: Hub tiles + PM Login + ThankYou
 
 The April-30 Hub rewrite added a lot of new English strings (PM Portal tile, QA/QC tile, rewritten Field/Safety/Shop/Admin tile copy). Those were rendered via `t()` but had no Spanish keys, so they silently fell back to English. This pass closed the gap.

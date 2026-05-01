@@ -1285,6 +1285,38 @@ const ES = {
   "PM Password": "Contraseña PM",
   "MASCI · Project Management Portal": "MASCI · Portal de Gestión de Proyectos",
 
+  // ============================================================
+  // Training Hub (2026-05-01)
+  // ============================================================
+  "Training": "Capacitación",
+  "Training Hub": "Centro de Capacitación",
+  "MASCI Training": "Capacitación MASCI",
+  "Short lessons, printable cheat sheets, and video walk-throughs for Field, Shop, PMs, and Admins. New hires up to speed in an afternoon.":
+    "Lecciones cortas, hojas imprimibles y videos tutoriales para Campo, Taller, Gerentes y Admins. Nuevos empleados al día en una tarde.",
+  "Field Crew · Shop · PM · Admin tracks":
+    "Tracks de Campo · Taller · Gerente · Admin",
+  "Written guides + video slots + print-friendly":
+    "Guías escritas + videos + listo para imprimir",
+  "Short, focused lessons for every role — Field Crews, Shop, Project Managers, and Admins. Written walk-throughs, printable cheat sheets, and video tutorials. Pick your track.":
+    "Lecciones cortas y enfocadas para cada rol — Cuadrillas de Campo, Taller, Gerentes y Admins. Guías escritas, hojas imprimibles y videos tutoriales. Elija su track.",
+  "lessons": "lecciones",
+  "more…": "más…",
+  "Open track →": "Abrir track →",
+  "Admin note": "Nota para admins",
+  "Shop / PM / Admin tracks require their respective passwords. The Field Crew track is public — no login needed. Each lesson has a video slot; admins can paste YouTube / Loom / Vimeo URLs via the Admin console → Training Videos panel.":
+    "Los tracks de Taller / Gerente / Admin requieren sus contraseñas. El track de Campo es público — sin inicio de sesión. Cada lección tiene un espacio para video; los admins pueden pegar URLs de YouTube / Loom / Vimeo desde la consola de Admin → panel de Videos de Capacitación.",
+  "All Tracks": "Todos los Tracks",
+  "Training Track": "Track de Capacitación",
+  "Print all cheat sheets": "Imprimir todas las hojas",
+  "Why this matters": "Por qué importa",
+  "Step-by-step": "Paso a paso",
+  "Tips": "Consejos",
+  "Cheat Sheet": "Hoja de Referencia",
+  "Video tutorial coming soon": "Video tutorial próximamente",
+  "Open video": "Abrir video",
+  "This track is password-protected": "Este track requiere contraseña",
+  "Back to Training Hub": "Volver al Centro de Capacitación",
+
 };
 
 const DICTS = { es: ES, en: {} };
