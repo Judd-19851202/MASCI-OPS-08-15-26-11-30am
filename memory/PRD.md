@@ -1,5 +1,49 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-01 — Bilingual Sweep: Hub tiles + PM Login + ThankYou
+
+The April-30 Hub rewrite added a lot of new English strings (PM Portal tile, QA/QC tile, rewritten Field/Safety/Shop/Admin tile copy). Those were rendered via `t()` but had no Spanish keys, so they silently fell back to English. This pass closed the gap.
+
+### Files touched
+- `src/lib/i18n.js` — added **~40 new Spanish dictionary entries** covering:
+  - All 7 Hub tiles' titles, descriptions, and bullets (PM Portal, QA/QC, Field, Safety, Shop, Admin, Projects)
+  - `"Enter section →"` / `"Open →"` CTA text
+  - PM Login page (header, subtitle, PM Password label, footer, error toasts)
+  - ThankYou page (Gracias., Enviar Otro, Cerrar Ventana, "El equipo de seguridad de MASCI fue notificado…", form-type variants Inspection/Meeting/JHA/Incident/Daily Report/Equipment Inspection)
+- `src/pages/Hub.jsx` — wrapped the one hardcoded `"Enter section →"` / `"Open →"` string in `t()`.
+- `src/pages/PmLogin.jsx` — full `useT()` rewrite; all labels, button text, error toasts, and footer copy now bilingual. Added `<LangToggle />` in the header.
+- `src/pages/ThankYou.jsx` — full `useT()` rewrite; form-type label, thank-you headline, body copy, and buttons now bilingual. Added `<LangToggle />`.
+
+### Verified on preview (ES mode)
+| Surface | Check | Result |
+|---|---|---|
+| Hub `/` | Title "Un solo lugar para cada trabajo de MASCI." | ✅ |
+| Hub `/` | Field tile: "Reportes de fin de día y recorridos de equipo…" | ✅ |
+| Hub `/` | Safety tile: "Inspecciones, charlas de seguridad…" | ✅ |
+| Hub `/` | Projects tile: "Gestión de Proyectos" | ✅ |
+| Hub `/` | QA/QC tile: "QA / QC" + "Próximamente" | ✅ |
+| Hub `/` | PM Portal tile: "Portal de Gestión" | ✅ |
+| Hub `/` | Shop tile: "La consola del mecánico…" | ✅ |
+| Hub `/` | Admin tile: "Solo personal de oficina" | ✅ |
+| Hub `/` | CTA: "Entrar a la sección →" (×2) | ✅ |
+| `/pm/login` | Header: "Portal de Gestión — Iniciar Sesión" | ✅ |
+| `/pm/login` | Label: "Contraseña PM" | ✅ |
+| `/pm/login` | Button: "Iniciar Sesión" | ✅ |
+| `/pm/login` | Footer: "MASCI · Portal de Gestión de Proyectos" | ✅ |
+| `/thank-you` | Headline: "Gracias." | ✅ |
+| `/thank-you` | Body: "El equipo de seguridad de MASCI fue notificado. Cuídese allá afuera." | ✅ |
+| `/thank-you` | Buttons: "Enviar Otro" / "Cerrar Ventana" | ✅ |
+
+### Still English (deferred — admin-only surfaces)
+These pages are used exclusively by Admin or PM staff reviewing historical records, so bilingual value is low. Can be picked up later if Spanish-speaking PMs join the team:
+- `PmHub.jsx`, `AdminHub.jsx`, `AdminLogin.jsx`, `AdminGuide.jsx`
+- `Dashboard.jsx`, `EquipmentDashboard.jsx`, `IncidentsDashboard.jsx`, `MeetingsDashboard.jsx`, `DailyReportsDashboard.jsx`, `ProjectPnlPage.jsx`
+- `ViewInspection.jsx`, `ViewMeeting.jsx`, `ViewIncident.jsx`, `ViewDailyReport.jsx`
+- `TrenchBoxesAdmin.jsx`, `JhaPlansAdmin.jsx`
+- `legal/TermsOfService.jsx`, `legal/PrivacyPolicy.jsx`
+
+
+
 ## 2026-05-01 — Live Site Systems Check PASSED
 
 Full end-to-end verification on `https://mascidocs.com` after the 2026-04-30 deploy:

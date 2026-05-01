@@ -6,11 +6,14 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
+import { LangToggle } from "@/components/LangToggle";
+import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setPmToken, clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
 
 export default function PmLogin() {
+  const { t } = useT();
   const navigate = useNavigate();
   const location = useLocation();
   const [password, setPassword] = useState("");
@@ -23,7 +26,7 @@ export default function PmLogin() {
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!password) {
-      toast.error("Enter the PM password");
+      toast.error(t("Enter the PM password"));
       return;
     }
     setSubmitting(true);
@@ -36,24 +39,24 @@ export default function PmLogin() {
       );
       if (res?.data?.ok && res?.data?.token) {
         setPmToken(res.data.token);
-        toast.success("Welcome, PM");
+        toast.success(t("Welcome, PM"));
         const from = location.state?.from || "/pm";
         navigate(from, { replace: true });
       } else {
-        toast.error("Login failed — server didn't return a token");
+        toast.error(t("Login failed — server didn't return a token"));
       }
     } catch (err) {
       const status = err?.response?.status;
       let msg;
-      if (status === 401) msg = "Wrong password";
+      if (status === 401) msg = t("Wrong password");
       else if ([520, 521, 522, 523, 524].includes(status))
-        msg = "Server is waking up — give it ~60 seconds and try again";
+        msg = t("Server is waking up — give it ~60 seconds and try again");
       else if (status >= 500 && status < 600)
-        msg = `Server error (${status}) — try again in a moment`;
+        msg = `${t("Server error")} (${status}) — ${t("try again in a moment")}`;
       else if (err?.code === "ECONNABORTED" || /timeout/i.test(err?.message || ""))
-        msg = "Request timed out — server is cold-starting, try again";
-      else if (!err?.response) msg = "Can't reach server — check your internet";
-      else msg = `Login failed (${status || "unknown"})`;
+        msg = t("Request timed out — server is cold-starting, try again");
+      else if (!err?.response) msg = t("Can't reach server — check your internet");
+      else msg = `${t("Login failed")} (${status || "unknown"})`;
       toast.error(msg, { duration: 6000 });
     } finally {
       setSubmitting(false);
@@ -70,11 +73,11 @@ export default function PmLogin() {
             className="inline-flex items-center text-white hover:text-amber-300 text-sm font-bold uppercase tracking-wide"
             data-testid="pm-login-back"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Hub
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Hub")}
           </Link>
           <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <span className="hidden sm:inline-block w-20" />
+          <LangToggle />
         </div>
       </header>
 
@@ -86,16 +89,15 @@ export default function PmLogin() {
             </div>
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-700">
-                Project Management
+                {t("Project Management")}
               </div>
               <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
-                PM Portal Sign In
+                {t("PM Portal Sign In")}
               </h1>
             </div>
           </div>
           <p className="text-slate-600 text-sm mt-3 mb-6">
-            Project-manager workspace — every record, every form, every master
-            list. Backup / restore controls live in the Admin Console only.
+            {t("Project-manager workspace — every record, every form, every master list. Backup / restore controls live in the Admin Console only.")}
           </p>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="pm-login-form">
@@ -104,7 +106,7 @@ export default function PmLogin() {
                 htmlFor="pm-password"
                 className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700"
               >
-                PM Password
+                {t("PM Password")}
               </Label>
               <PasswordInput
                 id="pm-password"
@@ -125,10 +127,10 @@ export default function PmLogin() {
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying…
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Verifying…")}
                 </>
               ) : (
-                <>Sign In</>
+                <>{t("Sign In")}</>
               )}
             </Button>
           </form>
@@ -137,7 +139,7 @@ export default function PmLogin() {
 
       <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
-          MASCI · Project Management Portal
+          {t("MASCI · Project Management Portal")}
         </div>
         <JuddGroupAttribution variant="login" />
       </footer>

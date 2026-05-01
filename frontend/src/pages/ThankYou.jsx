@@ -3,20 +3,32 @@ import { Link, useLocation } from "react-router-dom";
 import { CheckCircle2, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import { LangToggle } from "@/components/LangToggle";
+import { useT } from "@/lib/i18n";
 
 export default function ThankYou() {
+  const { t, lang } = useT();
   const { state } = useLocation();
   const projectName = state?.projectName || "";
   const formType = state?.formType || "Inspection";
   const returnTo = state?.returnTo || "/submit";
 
+  // Localized form-type label. The English word comes from the calling form
+  // (NewInspection, NewMeeting, …) and is also stored on the backend. We
+  // show the Spanish translation on this confirmation screen only.
+  const formTypeLocalized = t(formType);
+  const formTypeLower = lang === "es"
+    ? formTypeLocalized.toLowerCase()
+    : formType.toLowerCase();
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-center">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
           <MasciLogo variant="lockup" size="xl" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
+          <LangToggle />
         </div>
       </header>
 
@@ -29,19 +41,32 @@ export default function ThankYou() {
             <CheckCircle2 className="w-12 h-12 text-white" />
           </div>
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
-            {formType} Submitted
+            {formTypeLocalized} {t("Submitted")}
           </span>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2">
-            Thank you.
+            {t("Thank you.")}
           </h1>
           {projectName && (
             <p className="text-slate-700 text-base mt-3">
-              Your {formType.toLowerCase()} for{" "}
-              <span className="font-bold">{projectName}</span> has been recorded.
+              {lang === "es" ? (
+                <>
+                  {"Su "}
+                  <span className="font-bold">{formTypeLower}</span>
+                  {" para "}
+                  <span className="font-bold">{projectName}</span>
+                  {" ha sido registrado."}
+                </>
+              ) : (
+                <>
+                  {"Your "}{formTypeLower}{" for "}
+                  <span className="font-bold">{projectName}</span>
+                  {" has been recorded."}
+                </>
+              )}
             </p>
           )}
           <p className="text-slate-600 text-sm mt-4 leading-relaxed">
-            The MASCI safety team has been notified. Stay safe out there.
+            {t("The MASCI safety team has been notified. Stay safe out there.")}
           </p>
 
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -52,7 +77,7 @@ export default function ThankYou() {
             >
               <Link to={returnTo}>
                 <ClipboardCheck className="w-4 h-4 mr-2" />
-                Submit Another
+                {t("Submit Another")}
               </Link>
             </Button>
             <Button
@@ -62,17 +87,17 @@ export default function ThankYou() {
               data-testid="close-btn"
             >
               <a href="#" onClick={(e) => { e.preventDefault(); window.close(); }}>
-                Close Window
+                {t("Close Window")}
               </a>
             </Button>
           </div>
 
           <div className="mt-10 pt-6 border-t-2 border-slate-100 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex items-center justify-center gap-2 flex-wrap">
-            <span>Accountability</span>
+            <span>{t("Accountability")}</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span>Adapt</span>
+            <span>{t("Adapt")}</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span>Overcome</span>
+            <span>{t("Overcome")}</span>
           </div>
         </div>
       </main>

@@ -165,7 +165,7 @@ const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, te
       )}
       <div className="mt-6 pt-5 border-t-2 border-slate-100 flex items-center justify-between">
         <span className={`font-mono text-xs uppercase tracking-[0.2em] font-bold ${accent === "slate" ? "text-slate-800" : accent === "amber" ? "text-amber-700" : accent === "emerald" ? "text-emerald-700" : "text-red-700"}`}>
-          {external ? "Open →" : "Enter section →"}
+          {external ? t("Open →") : t("Enter section →")}
         </span>
         <ArrowRight className={`w-5 h-5 transition-transform duration-150 group-hover:translate-x-1 ${accent === "slate" ? "text-slate-800" : accent === "amber" ? "text-amber-600" : accent === "emerald" ? "text-emerald-700" : "text-red-700"}`} />
       </div>

@@ -1215,6 +1215,76 @@ const ES = {
     "¿Busca la consola de Admin de Seguridad (inspecciones, equipo, planes JHA)? Use",
   "that's a different system.": "ese es un sistema diferente.",
   "Back to MASCI Hub": "Volver al Hub MASCI",
+
+  // ============================================================
+  // Hub tile rewrite (2026-04-30) + ThankYou page (2026-05-01)
+  // ============================================================
+  "Enter section →": "Entrar a la sección →",
+  "Open →": "Abrir →",
+  "End-of-day reports and equipment walk-arounds for the crew on the ground.":
+    "Reportes de fin de día y recorridos de equipo para la cuadrilla en campo.",
+  "Daily Reports — what the crew did today":
+    "Reportes Diarios — lo que la cuadrilla hizo hoy",
+  "Equipment Pre-Op — OSHA walk-around with pass / fail":
+    "Pre-Op de Equipo — recorrido OSHA con aprobado / fallado",
+  "Inspections, toolbox talks, incident reports, JHAs, and trench-box guidance — if safety is on your mind, it lives here.":
+    "Inspecciones, charlas de seguridad, reportes de incidentes, JHAs y guía de cajas de zanja — si la seguridad está en mente, aquí vive.",
+  "Site Inspections · Safety Meetings · Incidents":
+    "Inspecciones · Juntas de Seguridad · Incidentes",
+  "Job Hazard Plans · Trench Box Reference":
+    "Planes de Peligros · Referencia de Cajas de Zanja",
+  "QA / QC": "QA / QC",
+  "Quality Assurance and Quality Control workflows for the field team — pour cards, density logs, and inspection forms ready to fill out and turn in. More forms rolling out soon.":
+    "Flujos de Aseguramiento y Control de Calidad para el equipo de campo — tarjetas de vaciado, registros de densidad y formularios de inspección listos para llenar y entregar. Más formularios próximamente.",
+  "Asphalt density · core samples · roadway reports":
+    "Densidad de asfalto · núcleos · reportes de vialidad",
+  "Rebar inspections · concrete form inspections":
+    "Inspecciones de varilla · inspecciones de formaletas de concreto",
+  "Daily QA / QC submittals · field-team turn-ins":
+    "Entregas QA/QC diarias · entregas del equipo de campo",
+  "Project Management": "Gestión de Proyectos",
+  "PM Portal": "Portal de Gestión",
+  "The day-to-day project-management workspace — every job, every record, every master list, in one place.":
+    "El espacio diario de gestión de proyectos — cada trabajo, cada registro, cada lista maestra, en un solo lugar.",
+  "Active jobs · email routing · site posters":
+    "Trabajos activos · ruteo de correos · carteles del sitio",
+  "Equipment fleet · employees · suppliers":
+    "Flota de equipo · empleados · proveedores",
+  "The mechanic's console for the MASCI equipment fleet. Sign off failed Pre-Ops, clear units back to service, and stay on top of open items.":
+    "La consola del mecánico para la flota de equipo MASCI. Firme Pre-Ops fallidos, libere unidades para volver al servicio y esté al día con los pendientes.",
+  "Open Out-of-Service · Needs-Attention queue":
+    "Cola Fuera de Servicio · Requiere Atención",
+  "Recent inspections · full equipment list":
+    "Inspecciones recientes · lista completa de equipo",
+  "The full office console. Dashboards, master records, and the back-office tools for the whole platform.":
+    "La consola de oficina completa. Tableros, registros maestros y herramientas de respaldo para toda la plataforma.",
+  "Records · master lists · compliance exports":
+    "Registros · listas maestras · exportes de cumplimiento",
+  "Office staff only": "Solo personal de oficina",
+
+  // ThankYou
+  "Submitted": "Enviado",
+  "Thank you.": "Gracias.",
+  "The MASCI safety team has been notified. Stay safe out there.":
+    "El equipo de seguridad de MASCI fue notificado. Cuídese allá afuera.",
+  "Submit Another": "Enviar Otro",
+  "Close Window": "Cerrar Ventana",
+  "Inspection": "Inspección",
+  "Meeting": "Reunión",
+  "JHA": "JHA",
+  "Incident": "Incidente",
+  "Daily Report": "Reporte Diario",
+  "Equipment Inspection": "Inspección de Equipo",
+
+  // PmLogin (2026-05-01)
+  "Enter the PM password": "Ingrese la contraseña PM",
+  "Welcome, PM": "Bienvenido, PM",
+  "PM Portal Sign In": "Portal de Gestión — Iniciar Sesión",
+  "Project-manager workspace — every record, every form, every master list. Backup / restore controls live in the Admin Console only.":
+    "Espacio del gerente de proyectos — cada registro, cada formulario, cada lista maestra. Los controles de respaldo / restauración viven solo en la Consola de Admin.",
+  "PM Password": "Contraseña PM",
+  "MASCI · Project Management Portal": "MASCI · Portal de Gestión de Proyectos",
+
 };
 
 const DICTS = { es: ES, en: {} };
