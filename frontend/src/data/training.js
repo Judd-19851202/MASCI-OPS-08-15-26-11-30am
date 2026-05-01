@@ -10,6 +10,13 @@
 // unique `slug`, pick icons from lucide-react, and keep the tone plain
 // and direct — these are construction crews reading on a phone, not
 // software engineers reading a doc.
+//
+// Spanish translations for every lesson body live in training_es.js and are
+// merged at the bottom of this module via mergeTranslations(). Lessons
+// expose `title_es`, `why_es`, `steps_es`, `tips_es`, `cheatSheet_es` fields
+// which TrainingTrack.jsx picks up automatically when the ES toggle is on.
+
+import { LESSON_TRANSLATIONS_ES } from "./training_es";
 
 export const TRACKS = {
   field: {
@@ -659,7 +666,10 @@ export const LESSONS = [
   ...SHOP_LESSONS,
   ...PM_LESSONS,
   ...ADMIN_LESSONS,
-];
+].map((l) => {
+  const es = LESSON_TRANSLATIONS_ES[l.slug];
+  return es ? { ...l, ...es } : l;
+});
 
 export const lessonsForTrack = (trackSlug) =>
   LESSONS.filter((l) => l.track === trackSlug).sort((a, b) => a.order - b.order);

@@ -1,5 +1,30 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-01 — Training Hub: Full Spanish Lesson Bodies
+
+Closed the gap from the earlier training build. Every one of the **23 lesson bodies** (title + "Why this matters" + all numbered steps + all tips + cheat sheet) now ships with a Spanish translation that renders automatically when the EN/ES toggle is flipped.
+
+### How it works
+- New file `src/data/training_es.js` — `LESSON_TRANSLATIONS_ES` map, keyed by lesson slug, with `title_es`, `why_es`, `steps_es[]`, `tips_es[]`, `cheatSheet_es[]` for every lesson.
+- `training.js` now imports that map and merges `_es` fields onto each lesson during module load.
+- `TrainingTrack.jsx` gained a `pick(lesson, key)` helper — returns the `*_es` variant when `lang === "es"` and falls back to English. `LessonCard` uses `pick()` for title, why, steps, tips, and cheatSheet so no per-field conditional logic clutters the render.
+
+### Verified on preview (ES mode)
+| Track | Marker | Count |
+|---|---|---|
+| Field | Spanish track title "Capacitación de Cuadrilla de Campo" | ✅ |
+| Field | 7 lesson titles in ES (Lección 1–7) | ✅ |
+| Field | "Por qué importa" / "Paso a paso" / "Hoja de Referencia" / "Consejos" | ✅ ×7 each |
+| Field | Body sentences: "Apunte la cámara…" / "ASEGURE LA ESCENA PRIMERO" / "OSHA 1926 requiere…" | ✅ |
+| Admin | Spanish track title "Capacitación del Administrador / Dueño" | ✅ |
+| Admin | All 7 lesson titles in ES | ✅ |
+| Admin | Backup body: "DOS ventanas programadas diarias" / "14 días de retención" ×3 / "Respaldo manual:" | ✅ |
+| Admin | Tip: "Antes de cualquier redespliegue" | ✅ |
+
+**No lint errors. Full bilingual coverage shipped on preview.**
+
+
+
 ## 2026-05-01 — Training Hub (4 tracks · 23 lessons · admin video manager)
 
 New end-to-end training system inside the app. Four tracks × 23 lessons of written walk-throughs with "Why this matters" callouts, step-by-step numbered lists, tips, and printable cheat sheets. Every lesson has a video-embed slot that admins fill via the new video URL manager — YouTube / Loom / Vimeo all auto-parsed to embed URLs.

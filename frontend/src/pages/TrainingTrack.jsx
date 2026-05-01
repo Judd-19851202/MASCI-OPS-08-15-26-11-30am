@@ -71,6 +71,13 @@ export default function TrainingTrack() {
     return <AccessDenied trackSlug={trackSlug} track={track} t={t} lang={lang} />;
   }
 
+  // Per-lesson field picker — prefer *_es when the UI is Spanish and the
+  // translation exists. Falls back to English seamlessly.
+  const pick = (l, key) => {
+    if (lang === "es" && l[`${key}_es`] != null) return l[`${key}_es`];
+    return l[key];
+  };
+
   const lessons = lessonsForTrack(trackSlug);
   const title = lang === "es" && track.title_es ? track.title_es : track.title;
   const blurb = lang === "es" && track.blurb_es ? track.blurb_es : track.blurb;
@@ -125,6 +132,7 @@ export default function TrainingTrack() {
               videoUrl={videoMap[l.slug]}
               loadingVideo={loadingVideos}
               t={t}
+              pick={pick}
             />
           ))}
         </div>
@@ -176,8 +184,13 @@ function AccessDenied({ track, t, lang }) {
   );
 }
 
-function LessonCard({ lesson, videoUrl, loadingVideo, t }) {
+function LessonCard({ lesson, videoUrl, loadingVideo, t, pick }) {
   const embedSrc = toEmbedUrl(videoUrl);
+  const title = pick(lesson, "title");
+  const why = pick(lesson, "why");
+  const steps = pick(lesson, "steps") || [];
+  const tips = pick(lesson, "tips") || [];
+  const cheatSheet = pick(lesson, "cheatSheet") || [];
   return (
     <article
       className="bg-white border-2 border-slate-300 rounded-md overflow-hidden print:break-inside-avoid print:border-slate-400"
@@ -186,7 +199,7 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t }) {
       <div className="px-5 sm:px-7 pt-5 sm:pt-7 pb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 flex-1">
-            {lesson.title}
+            {title}
           </h2>
           {lesson.duration && (
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold shrink-0">
@@ -202,7 +215,7 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t }) {
           <div className="relative w-full rounded-md overflow-hidden border-2 border-slate-200 bg-black" style={{ paddingBottom: "56.25%" }}>
             <iframe
               src={embedSrc}
-              title={lesson.title}
+              title={title}
               className="absolute inset-0 w-full h-full"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -221,7 +234,7 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t }) {
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold mb-1">
             {t("Why this matters")}
           </div>
-          <p className="text-slate-800 text-sm leading-relaxed">{lesson.why}</p>
+          <p className="text-slate-800 text-sm leading-relaxed">{why}</p>
         </div>
 
         <div>
@@ -229,7 +242,7 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t }) {
             {t("Step-by-step")}
           </div>
           <ol className="space-y-2.5">
-            {lesson.steps.map((step, i) => (
+            {steps.map((step, i) => (
               <li key={i} className="flex gap-3">
                 <span className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-900 text-white text-xs font-bold font-mono">
                   {i + 1}
@@ -242,13 +255,13 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t }) {
           </ol>
         </div>
 
-        {lesson.tips && lesson.tips.length > 0 && (
+        {tips.length > 0 && (
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold mb-2">
               {t("Tips")}
             </div>
             <ul className="space-y-1.5">
-              {lesson.tips.map((tip, i) => (
+              {tips.map((tip, i) => (
                 <li key={i} className="flex gap-2 text-sm text-slate-700">
                   <span className="shrink-0 text-emerald-700 mt-0.5">✓</span>
                   <span>{tip}</span>
@@ -258,13 +271,13 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t }) {
           </div>
         )}
 
-        {lesson.cheatSheet && lesson.cheatSheet.length > 0 && (
+        {cheatSheet.length > 0 && (
           <div className="rounded-md bg-slate-900 text-white px-4 py-3">
             <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-400 font-bold mb-2">
               {t("Cheat Sheet")}
             </div>
             <ul className="space-y-1">
-              {lesson.cheatSheet.map((b, i) => (
+              {cheatSheet.map((b, i) => (
                 <li key={i} className="flex gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                   <span>{b}</span>
