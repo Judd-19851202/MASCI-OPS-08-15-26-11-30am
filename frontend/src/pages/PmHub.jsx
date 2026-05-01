@@ -14,7 +14,6 @@ import {
   Home,
   TrendingUp,
   Briefcase,
-  ShieldCheck,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
@@ -32,7 +31,6 @@ import SupplierMasterPanel from "@/components/SupplierMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { isAdmin } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
 
@@ -88,7 +86,6 @@ export default function PmHub() {
     equipment: null,
   });
   const [loading, setLoading] = useState(true);
-  const adminViewing = isAdmin(); // an admin can land here too
 
   // Always start at the top of the page after login, regardless of any
   // scroll position React Router may have preserved from the login screen.
@@ -154,15 +151,6 @@ export default function PmHub() {
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/pm" />
           <div className="flex items-center gap-2">
             <SystemHealthBadge />
-            {adminViewing && (
-              <Link
-                to="/admin"
-                className="inline-flex items-center h-9 px-3 rounded-md bg-red-700 text-white border-2 border-red-900 hover:bg-red-800 text-xs font-bold uppercase tracking-wide"
-                data-testid="pm-hub-admin-link"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 mr-1" /> Admin Console
-              </Link>
-            )}
             <CompanyInfoDialog />
             <Button
               onClick={signOut}

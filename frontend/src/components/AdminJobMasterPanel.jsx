@@ -42,6 +42,10 @@ import { toast } from "sonner";
  */
 export default function AdminJobMasterPanel() {
   const [jobs, setJobs] = useState([]);
+  const [archive, setArchive] = useState([]);
+  const [retainDays, setRetainDays] = useState(14);
+  const [showArchive, setShowArchive] = useState(false);
+  const [restoringId, setRestoringId] = useState(null);
   const [pms, setPms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -60,12 +64,15 @@ export default function AdminJobMasterPanel() {
   const refresh = async () => {
     setLoading(true);
     try {
-      const [jr, pr] = await Promise.all([
+      const [jr, pr, ar] = await Promise.all([
         api.get("/admin/jobs"),
         api.get("/project-managers"),
+        api.get("/admin/jobs/archive").catch(() => ({ data: { items: [], retain_days: 14 } })),
       ]);
       setJobs(jr.data?.items || []);
       setPms(pr.data?.items || []);
+      setArchive(ar.data?.items || []);
+      setRetainDays(ar.data?.retain_days || 14);
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Failed to load jobs / PMs");
     } finally {
@@ -148,16 +155,29 @@ export default function AdminJobMasterPanel() {
   const removeJob = async (job) => {
     if (
       !window.confirm(
-        `Delete job #${job.project_number} — ${job.project_name}?\n\nThis cannot be undone.`
+        `Move job #${job.project_number} — ${job.project_name} to the archive?\n\nYou'll have ${retainDays} days to restore it from the Archive tab before it's purged.`
       )
     )
       return;
     try {
       await api.delete(`/admin/jobs/${job.id}`);
-      toast.success(`Deleted ${job.project_number}`);
+      toast.success(`${job.project_number} moved to archive`);
       await refresh();
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Delete failed");
+    }
+  };
+
+  const restoreJob = async (job) => {
+    setRestoringId(job.id);
+    try {
+      await api.post(`/admin/jobs/${job.id}/restore`);
+      toast.success(`Restored ${job.project_number}`);
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Restore failed");
+    } finally {
+      setRestoringId(null);
     }
   };
 
@@ -328,7 +348,100 @@ export default function AdminJobMasterPanel() {
         </div>
       </form>
 
+      {/* Active / Archive tabs */}
+      <div className="px-1 mb-3 flex items-center gap-2 flex-wrap" data-testid="job-master-tabs">
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => setShowArchive(false)}
+          className={`h-8 px-3 text-[11px] font-mono uppercase tracking-wide font-bold ${
+            !showArchive
+              ? "bg-slate-900 text-white"
+              : "bg-white border-2 border-slate-300 text-slate-700 hover:border-amber-600"
+          }`}
+          data-testid="job-master-tab-active"
+        >
+          Active ({jobs.length})
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => setShowArchive(true)}
+          className={`h-8 px-3 text-[11px] font-mono uppercase tracking-wide font-bold ${
+            showArchive
+              ? "bg-slate-700 text-white"
+              : "bg-white border-2 border-slate-300 text-slate-700 hover:border-amber-600"
+          }`}
+          data-testid="job-master-tab-archive"
+        >
+          Archive ({archive.length})
+        </Button>
+        {showArchive && (
+          <span className="text-xs text-slate-500 ml-2">
+            Soft-deleted jobs · auto-purged after {retainDays} days. Click ⟲ to restore.
+          </span>
+        )}
+      </div>
+
       {/* Jobs table */}
+      {showArchive ? (
+        <div className="overflow-x-auto rounded border border-slate-200">
+          {archive.length === 0 ? (
+            <p className="text-sm text-slate-500 py-8 text-center italic">
+              Archive is empty — nothing to restore.
+            </p>
+          ) : (
+            <table className="w-full text-sm" data-testid="job-master-archive-table">
+              <thead className="bg-slate-100">
+                <tr className="text-left font-mono text-[10px] uppercase tracking-wide text-slate-700">
+                  <th className="px-3 py-2">#</th>
+                  <th className="px-3 py-2">Project Name</th>
+                  <th className="px-3 py-2">Location</th>
+                  <th className="px-3 py-2">Client</th>
+                  <th className="px-3 py-2">Deleted</th>
+                  <th className="px-3 py-2 w-12"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {archive.map((j) => (
+                  <tr
+                    key={j.id}
+                    className="border-t border-slate-100 bg-slate-50/40"
+                    data-testid={`job-archive-row-${j.id}`}
+                  >
+                    <td className="px-3 py-2 font-mono text-xs font-bold text-slate-900">
+                      {j.project_number}
+                    </td>
+                    <td className="px-3 py-2 text-slate-800">{j.project_name}</td>
+                    <td className="px-3 py-2 text-slate-600">{j.location || "—"}</td>
+                    <td className="px-3 py-2 text-slate-600">{j.client || "—"}</td>
+                    <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">
+                      {j.deleted_at ? new Date(j.deleted_at).toLocaleString() : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() => restoreJob(j)}
+                        disabled={restoringId === j.id}
+                        className="h-8 w-8 border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50"
+                        data-testid={`job-restore-${j.id}`}
+                        title="Restore to active list"
+                      >
+                        {restoringId === j.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          "⟲"
+                        )}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      ) : (
       <div className="overflow-x-auto rounded border border-slate-200">
         <table className="w-full text-sm" data-testid="job-master-table">
           <thead className="bg-slate-100">
@@ -426,6 +539,7 @@ export default function AdminJobMasterPanel() {
           </tbody>
         </table>
       </div>
+      )}
 
       {/* Bulk replace dialog */}
       <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>

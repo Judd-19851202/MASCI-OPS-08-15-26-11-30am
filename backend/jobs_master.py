@@ -113,9 +113,23 @@ async def seed_jobs_master(db) -> None:
 
 
 async def list_jobs(db, only_active: bool = True) -> List[Dict[str, Any]]:
-    q: Dict[str, Any] = {"active": True} if only_active else {}
+    q: Dict[str, Any] = {"deleted_at": {"$in": [None, ""]}}
+    if only_active:
+        q["active"] = True
     cursor = db.jobs_master.find(q, {"_id": 0}).sort("project_number", 1)
     return await cursor.to_list(2000)
+
+
+async def list_archived_jobs(db) -> List[Dict[str, Any]]:
+    """Soft-deleted jobs, newest deletion first."""
+    cursor = db.jobs_master.find(
+        {"deleted_at": {"$ne": None, "$exists": True}}, {"_id": 0}
+    ).sort("deleted_at", -1)
+    out: List[Dict[str, Any]] = []
+    async for d in cursor:
+        if d.get("deleted_at"):
+            out.append(d)
+    return out
 
 
 async def upsert_job(db, body: Dict[str, Any]) -> Dict[str, Any]:
@@ -157,8 +171,21 @@ async def upsert_job(db, body: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def delete_job(db, job_id: str) -> bool:
-    res = await db.jobs_master.delete_one({"id": job_id})
-    return res.deleted_count > 0
+    """Soft-delete: mark deleted_at instead of removing the row, so a
+    mis-click is recoverable from the Archive tab for 14 days."""
+    res = await db.jobs_master.update_one(
+        {"$and": [{"id": job_id}, {"deleted_at": {"$in": [None, ""]}}]},
+        {"$set": {"deleted_at": _now()}},
+    )
+    return res.matched_count > 0
+
+
+async def restore_job(db, job_id: str) -> bool:
+    res = await db.jobs_master.update_one(
+        {"$and": [{"id": job_id}, {"deleted_at": {"$ne": None}}]},
+        {"$unset": {"deleted_at": ""}, "$set": {"updated_at": _now()}},
+    )
+    return res.matched_count > 0
 
 
 async def set_active(db, job_id: str, active: bool) -> Optional[Dict[str, Any]]:

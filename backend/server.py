@@ -259,6 +259,65 @@ def api_healthz():
     return {"ok": True}
 
 
+# ---------------------------------------------------------------------------
+# Soft-delete framework — give every master-list 🗑️ button a 14-day undo
+# instead of an immediate hard-delete, so a mis-click on a 234-row table
+# is fully recoverable from the UI without restoring a backup.
+#
+# Convention: every soft-deleted row gets ``deleted_at`` (ISO timestamp).
+# Every list endpoint that should hide deletes filters with the
+# ``ACTIVE_FILTER`` below. Restore = unset ``deleted_at``. Anything older
+# than 14 days is hard-purged on the next list call (best effort).
+# ---------------------------------------------------------------------------
+SOFT_DELETE_RETAIN_DAYS = 14
+ACTIVE_FILTER: Dict[str, Any] = {"deleted_at": {"$in": [None, ""]}}
+
+
+def _utc_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+async def _purge_expired(coll_name: str) -> int:
+    """Hard-delete anything whose ``deleted_at`` is older than the retention
+    window. Called best-effort from list endpoints."""
+    cutoff = (
+        datetime.now(timezone.utc) - timedelta(days=SOFT_DELETE_RETAIN_DAYS)
+    ).isoformat()
+    res = await db[coll_name].delete_many(
+        {"deleted_at": {"$ne": None, "$lt": cutoff}}
+    )
+    return res.deleted_count or 0
+
+
+async def _soft_delete(coll_name: str, query: Dict[str, Any]) -> bool:
+    """Mark a row deleted. Returns True iff a row was matched."""
+    res = await db[coll_name].update_one(
+        {"$and": [query, {"deleted_at": {"$in": [None, ""]}}]},
+        {"$set": {"deleted_at": _utc_iso()}},
+    )
+    return res.matched_count > 0
+
+
+async def _restore_row(coll_name: str, query: Dict[str, Any]) -> bool:
+    """Clear ``deleted_at`` so a row reappears in the active list."""
+    res = await db[coll_name].update_one(
+        {"$and": [query, {"deleted_at": {"$ne": None}}]},
+        {"$unset": {"deleted_at": ""}},
+    )
+    return res.matched_count > 0
+
+
+async def _list_archive(coll_name: str, sort_field: str = "deleted_at") -> List[Dict[str, Any]]:
+    """List soft-deleted rows for the archive UI."""
+    out: List[Dict[str, Any]] = []
+    cursor = db[coll_name].find(
+        {"deleted_at": {"$ne": None, "$exists": True}}, {"_id": 0}
+    ).sort(sort_field, -1)
+    async for d in cursor:
+        # Make sure it's a non-empty string (skip rows where deleted_at == "")
+        if d.get("deleted_at"):
+            out.append(d)
+    return out
 
 
 @api_router.post("/admin/login")
@@ -890,7 +949,10 @@ class EquipmentMasterItem(BaseModel):
 
 @api_router.get("/equipment-master")
 async def list_equipment_master(category: Optional[str] = None):
-    q = {"category": category} if category else {}
+    await _purge_expired("equipment_master")
+    q: Dict[str, Any] = dict(ACTIVE_FILTER)
+    if category:
+        q["category"] = category
     cursor = db.equipment_master.find(q, {"_id": 0}).sort(
         [("category", 1), ("unit_number", 1), ("make_model", 1)]
     )
@@ -905,6 +967,29 @@ async def list_equipment_master(category: Optional[str] = None):
         "grouped": grouped,
         "count": len(docs),
     }
+
+
+@api_router.get("/admin/equipment-master/archive")
+async def equipment_master_archive(_: bool = Depends(require_shop_or_admin)):
+    return {
+        "items": await _list_archive("equipment_master"),
+        "retain_days": SOFT_DELETE_RETAIN_DAYS,
+    }
+
+
+@api_router.post("/admin/equipment-master/{unit_id}/restore")
+async def restore_equipment_master(
+    unit_id: str, _: bool = Depends(require_shop_or_admin)
+):
+    if not await _restore_row(
+        "equipment_master",
+        {"$or": [{"id": unit_id}, {"unit_number": unit_id}]},
+    ):
+        raise HTTPException(status_code=404, detail="Unit not in archive")
+    doc = await db.equipment_master.find_one(
+        {"$or": [{"id": unit_id}, {"unit_number": unit_id}]}, {"_id": 0}
+    )
+    return doc or {"ok": True}
 
 
 @api_router.get("/equipment-types")
@@ -1083,7 +1168,22 @@ async def admin_delete_job(job_id: str, _: bool = Depends(require_admin)):
     ok = await delete_job(db, job_id)
     if not ok:
         raise HTTPException(404, "Job not found")
-    return {"ok": True}
+    return {"ok": True, "soft_deleted": True, "retain_days": SOFT_DELETE_RETAIN_DAYS}
+
+
+@api_router.get("/admin/jobs/archive")
+async def admin_jobs_archive(_: bool = Depends(require_admin)):
+    from jobs_master import list_archived_jobs
+    return {"items": await list_archived_jobs(db), "retain_days": SOFT_DELETE_RETAIN_DAYS}
+
+
+@api_router.post("/admin/jobs/{job_id}/restore")
+async def admin_restore_job(job_id: str, _: bool = Depends(require_admin)):
+    from jobs_master import restore_job
+    if not await restore_job(db, job_id):
+        raise HTTPException(404, "Job not in archive")
+    doc = await db.jobs_master.find_one({"id": job_id}, {"_id": 0})
+    return doc or {"ok": True}
 
 
 @api_router.post("/admin/jobs/bulk-replace")
@@ -1178,18 +1278,40 @@ async def add_supplier_from_form(body: RosterAddBody):
 @api_router.get("/employees")
 async def list_employees():
     """Public — returns the full MASCI crew roster (sorted by name)."""
-    cursor = db.employees.find({"is_active": {"$ne": False}}, {"_id": 0}).sort("name", 1)
+    await _purge_expired("employees")
+    cursor = db.employees.find(
+        {"$and": [ACTIVE_FILTER, {"is_active": {"$ne": False}}]},
+        {"_id": 0},
+    ).sort("name", 1)
     docs = await cursor.to_list(2000)
     return {"items": docs, "count": len(docs)}
 
 
 @api_router.get("/admin/employees/status")
 async def employees_status(_: bool = Depends(require_admin)):
-    total = await db.employees.count_documents({})
-    active = await db.employees.count_documents({"is_active": {"$ne": False}})
-    last_doc = await db.employees.find_one({}, {"_id": 0, "updated_at": 1, "created_at": 1}, sort=[("updated_at", -1)])
+    total = await db.employees.count_documents(ACTIVE_FILTER)
+    active = await db.employees.count_documents(
+        {"$and": [ACTIVE_FILTER, {"is_active": {"$ne": False}}]}
+    )
+    archived = await db.employees.count_documents({"deleted_at": {"$ne": None}})
+    last_doc = await db.employees.find_one(
+        ACTIVE_FILTER, {"_id": 0, "updated_at": 1, "created_at": 1}, sort=[("updated_at", -1)]
+    )
     last_updated = (last_doc or {}).get("updated_at") or (last_doc or {}).get("created_at")
-    return {"count": total, "active": active, "last_updated": last_updated}
+    return {"count": total, "active": active, "archived": archived, "last_updated": last_updated}
+
+
+@api_router.get("/admin/employees/archive")
+async def employees_archive(_: bool = Depends(require_admin)):
+    return {"items": await _list_archive("employees"), "retain_days": SOFT_DELETE_RETAIN_DAYS}
+
+
+@api_router.post("/admin/employees/{employee_id}/restore")
+async def restore_employee(employee_id: str, _: bool = Depends(require_admin)):
+    if not await _restore_row("employees", {"id": employee_id}):
+        raise HTTPException(status_code=404, detail="Employee not in archive")
+    doc = await db.employees.find_one({"id": employee_id}, {"_id": 0})
+    return doc or {"ok": True}
 
 
 @api_router.post("/admin/employees/upload")
@@ -1310,13 +1432,17 @@ async def update_employee(
     payload: Dict[str, Any],
     _: bool = Depends(require_admin),
 ):
-    """Inline edit a single employee. Only the supplied fields are updated."""
+    """Inline edit a single employee. Only the supplied fields are updated.
+    Soft-deleted rows are not editable — restore them first."""
     allowed = {"name", "employee_id", "trade", "role", "crew", "email", "phone", "is_active"}
     update = {k: payload[k] for k in allowed if k in payload}
     if "name" in update and not (update["name"] or "").strip():
         raise HTTPException(status_code=400, detail="Name cannot be blank")
     update["updated_at"] = datetime.now(timezone.utc).isoformat()
-    res = await db.employees.update_one({"id": employee_id}, {"$set": update})
+    res = await db.employees.update_one(
+        {"$and": [{"id": employee_id}, ACTIVE_FILTER]},
+        {"$set": update},
+    )
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Employee not found")
     doc = await db.employees.find_one({"id": employee_id}, {"_id": 0})
@@ -1325,10 +1451,9 @@ async def update_employee(
 
 @api_router.delete("/admin/employees/{employee_id}")
 async def delete_employee(employee_id: str, _: bool = Depends(require_admin)):
-    res = await db.employees.delete_one({"id": employee_id})
-    if res.deleted_count == 0:
+    if not await _soft_delete("employees", {"id": employee_id}):
         raise HTTPException(status_code=404, detail="Employee not found")
-    return {"ok": True}
+    return {"ok": True, "soft_deleted": True, "retain_days": SOFT_DELETE_RETAIN_DAYS}
 
 
 # ---------------------------------------------------------------------------
@@ -1341,20 +1466,40 @@ EMPLOYEES_SEED_FILE = ROOT_DIR / "data" / "employees_seed.json"
 @api_router.get("/suppliers")
 async def list_suppliers():
     """Public — returns the full MASCI supplier / subcontractor list."""
-    cursor = db.suppliers.find({"is_active": {"$ne": False}}, {"_id": 0}).sort("name", 1)
+    await _purge_expired("suppliers")
+    cursor = db.suppliers.find(
+        {"$and": [ACTIVE_FILTER, {"is_active": {"$ne": False}}]},
+        {"_id": 0},
+    ).sort("name", 1)
     docs = await cursor.to_list(2000)
     return {"items": docs, "count": len(docs)}
 
 
 @api_router.get("/admin/suppliers/status")
 async def suppliers_status(_: bool = Depends(require_admin)):
-    total = await db.suppliers.count_documents({})
-    active = await db.suppliers.count_documents({"is_active": {"$ne": False}})
+    total = await db.suppliers.count_documents(ACTIVE_FILTER)
+    active = await db.suppliers.count_documents(
+        {"$and": [ACTIVE_FILTER, {"is_active": {"$ne": False}}]}
+    )
+    archived = await db.suppliers.count_documents({"deleted_at": {"$ne": None}})
     last_doc = await db.suppliers.find_one(
-        {}, {"_id": 0, "updated_at": 1, "created_at": 1}, sort=[("updated_at", -1)]
+        ACTIVE_FILTER, {"_id": 0, "updated_at": 1, "created_at": 1}, sort=[("updated_at", -1)]
     )
     last_updated = (last_doc or {}).get("updated_at") or (last_doc or {}).get("created_at")
-    return {"count": total, "active": active, "last_updated": last_updated}
+    return {"count": total, "active": active, "archived": archived, "last_updated": last_updated}
+
+
+@api_router.get("/admin/suppliers/archive")
+async def suppliers_archive(_: bool = Depends(require_admin)):
+    return {"items": await _list_archive("suppliers"), "retain_days": SOFT_DELETE_RETAIN_DAYS}
+
+
+@api_router.post("/admin/suppliers/{supplier_id}/restore")
+async def restore_supplier(supplier_id: str, _: bool = Depends(require_admin)):
+    if not await _restore_row("suppliers", {"id": supplier_id}):
+        raise HTTPException(status_code=404, detail="Supplier not in archive")
+    doc = await db.suppliers.find_one({"id": supplier_id}, {"_id": 0})
+    return doc or {"ok": True}
 
 
 @api_router.post("/admin/suppliers/upload")
@@ -1447,13 +1592,17 @@ async def update_supplier(
     payload: Dict[str, Any],
     _: bool = Depends(require_admin),
 ):
-    """Inline edit a supplier — name + optional active toggle."""
+    """Inline edit a supplier — name + optional active toggle.
+    Soft-deleted rows are not editable — restore them first."""
     allowed = {"name", "is_active"}
     update = {k: payload[k] for k in allowed if k in payload}
     if "name" in update and not (update["name"] or "").strip():
         raise HTTPException(status_code=400, detail="Name cannot be blank")
     update["updated_at"] = datetime.now(timezone.utc).isoformat()
-    res = await db.suppliers.update_one({"id": supplier_id}, {"$set": update})
+    res = await db.suppliers.update_one(
+        {"$and": [{"id": supplier_id}, ACTIVE_FILTER]},
+        {"$set": update},
+    )
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Supplier not found")
     doc = await db.suppliers.find_one({"id": supplier_id}, {"_id": 0})
@@ -1462,10 +1611,9 @@ async def update_supplier(
 
 @api_router.delete("/admin/suppliers/{supplier_id}")
 async def delete_supplier(supplier_id: str, _: bool = Depends(require_admin)):
-    res = await db.suppliers.delete_one({"id": supplier_id})
-    if res.deleted_count == 0:
+    if not await _soft_delete("suppliers", {"id": supplier_id}):
         raise HTTPException(status_code=404, detail="Supplier not found")
-    return {"ok": True}
+    return {"ok": True, "soft_deleted": True, "retain_days": SOFT_DELETE_RETAIN_DAYS}
 
 
 # ---------------------------------------------------------------------------
@@ -1796,8 +1944,9 @@ async def _seed_equipment_master() -> None:
 async def equipment_master_status(_: bool = Depends(require_admin)):
     """Quick status panel for the Admin Hub: count + per-category breakdown +
     last-updated timestamp from the seed JSON file (mtime)."""
-    count = await db.equipment_master.count_documents({})
-    cursor = db.equipment_master.find({}, {"_id": 0, "category": 1})
+    count = await db.equipment_master.count_documents(ACTIVE_FILTER)
+    archived = await db.equipment_master.count_documents({"deleted_at": {"$ne": None}})
+    cursor = db.equipment_master.find(ACTIVE_FILTER, {"_id": 0, "category": 1})
     cats: Dict[str, int] = {}
     async for d in cursor:
         c = d.get("category", "Misc Equipment")
@@ -1809,6 +1958,7 @@ async def equipment_master_status(_: bool = Depends(require_admin)):
         ).isoformat()
     return {
         "count": count,
+        "archived": archived,
         "categories": dict(sorted(cats.items(), key=lambda x: -x[1])),
         "last_updated": last_updated,
         "seed_file": str(EQUIPMENT_MASTER_SEED_FILE),
@@ -1821,12 +1971,20 @@ async def create_equipment_master_unit(
     _: bool = Depends(require_shop_or_admin),
 ):
     """Add a single unit to the MASCI fleet. Mechanics + admins + PMs can
-    use this to register new equipment without uploading a full xlsx."""
+    use this to register new equipment without uploading a full xlsx.
+
+    If a soft-deleted unit with the same unit_number already exists, the
+    insert auto-restores it instead of creating a duplicate row.
+    """
     unit_number = (payload.get("unit_number") or "").strip()
     if not unit_number:
         raise HTTPException(status_code=400, detail="Unit number is required")
     existing = await db.equipment_master.find_one({"unit_number": unit_number}, {"_id": 0})
     if existing:
+        if existing.get("deleted_at"):
+            await _restore_row("equipment_master", {"unit_number": unit_number})
+            doc = await db.equipment_master.find_one({"unit_number": unit_number}, {"_id": 0})
+            return doc or {"ok": True, "restored": True}
         raise HTTPException(status_code=409, detail=f"Unit {unit_number} already exists")
     doc = {
         "id": str(uuid.uuid4()),
@@ -1863,7 +2021,10 @@ async def update_equipment_master_unit(
         raise HTTPException(status_code=400, detail="Unit number cannot be blank")
     update["updated_at"] = datetime.now(timezone.utc).isoformat()
     res = await db.equipment_master.update_one(
-        {"$or": [{"id": unit_id}, {"unit_number": unit_id}]},
+        {"$and": [
+            {"$or": [{"id": unit_id}, {"unit_number": unit_id}]},
+            ACTIVE_FILTER,
+        ]},
         {"$set": update},
     )
     if res.matched_count == 0:
@@ -1879,13 +2040,16 @@ async def delete_equipment_master_unit(
     unit_id: str,
     _: bool = Depends(require_shop_or_admin),
 ):
-    """Remove a single fleet unit (matched by id OR unit_number)."""
-    res = await db.equipment_master.delete_one(
-        {"$or": [{"id": unit_id}, {"unit_number": unit_id}]}
-    )
-    if res.deleted_count == 0:
+    """Soft-remove a single fleet unit (matched by id OR unit_number).
+    The row is hidden from the active fleet immediately and hard-purged
+    after ``SOFT_DELETE_RETAIN_DAYS`` days. Use the Archive tab + Restore
+    button to undo within the window."""
+    if not await _soft_delete(
+        "equipment_master",
+        {"$or": [{"id": unit_id}, {"unit_number": unit_id}]},
+    ):
         raise HTTPException(status_code=404, detail="Unit not found")
-    return {"ok": True}
+    return {"ok": True, "soft_deleted": True, "retain_days": SOFT_DELETE_RETAIN_DAYS}
 
 
 @api_router.post("/admin/equipment-master/upload")

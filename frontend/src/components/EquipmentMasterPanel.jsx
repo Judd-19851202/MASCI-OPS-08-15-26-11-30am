@@ -10,6 +10,8 @@ import {
   Search,
   CheckCircle2,
   X,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import {
   Dialog,
@@ -81,6 +83,10 @@ const blankUnit = {
 
 export default function EquipmentMasterPanel() {
   const [items, setItems] = useState([]);
+  const [archive, setArchive] = useState([]);
+  const [retainDays, setRetainDays] = useState(14);
+  const [showArchive, setShowArchive] = useState(false);
+  const [restoringId, setRestoringId] = useState(null);
   const [grouped, setGrouped] = useState({});
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState(null);
@@ -98,13 +104,16 @@ export default function EquipmentMasterPanel() {
   const refresh = async () => {
     setLoading(true);
     try {
-      const [listR, statusR] = await Promise.all([
+      const [listR, statusR, archR] = await Promise.all([
         api.get("/equipment-master"),
         api.get("/admin/equipment-master/status").catch(() => ({ data: null })),
+        api.get("/admin/equipment-master/archive").catch(() => ({ data: { items: [], retain_days: 14 } })),
       ]);
       setItems(listR.data?.items || []);
       setGrouped(listR.data?.grouped || {});
       setStatus(statusR.data);
+      setArchive(archR.data?.items || []);
+      setRetainDays(archR.data?.retain_days || 14);
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Failed to load fleet");
     } finally {
@@ -189,16 +198,34 @@ export default function EquipmentMasterPanel() {
   };
 
   const deleteUnit = async (u) => {
-    if (!window.confirm(`Delete unit ${u.unit_number}? This cannot be undone.`)) return;
+    if (
+      !window.confirm(
+        `Move unit ${u.unit_number} to the archive? You'll have ${retainDays} days to restore from the Archive tab before it's purged.`
+      )
+    )
+      return;
     setBusyRow(u.id || u.unit_number);
     try {
       await api.delete(`/admin/equipment-master/${encodeURIComponent(u.id || u.unit_number)}`);
-      toast.success("Deleted");
+      toast.success("Moved to archive — click Archive to restore.");
       await refresh();
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Delete failed");
     } finally {
       setBusyRow(null);
+    }
+  };
+
+  const restoreUnit = async (u) => {
+    setRestoringId(u.id || u.unit_number);
+    try {
+      await api.post(`/admin/equipment-master/${encodeURIComponent(u.id || u.unit_number)}/restore`);
+      toast.success(`Restored ${u.unit_number}`);
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Restore failed");
+    } finally {
+      setRestoringId(null);
     }
   };
 
@@ -310,7 +337,43 @@ export default function EquipmentMasterPanel() {
 
       {/* Search + filter */}
       <div className="p-5">
-        <div className="flex items-center gap-2 flex-wrap mb-3">
+        {/* Active / Archive tabs */}
+        <div className="mb-3 flex items-center gap-2 flex-wrap" data-testid="equipment-tabs">
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setShowArchive(false)}
+            className={`h-8 px-3 text-[11px] font-mono uppercase tracking-wide font-bold ${
+              !showArchive
+                ? "bg-slate-900 text-white"
+                : "bg-white border-2 border-slate-300 text-slate-700 hover:border-amber-600"
+            }`}
+            data-testid="equipment-tab-active"
+          >
+            Active ({items.length})
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setShowArchive(true)}
+            className={`h-8 px-3 text-[11px] font-mono uppercase tracking-wide font-bold ${
+              showArchive
+                ? "bg-slate-700 text-white"
+                : "bg-white border-2 border-slate-300 text-slate-700 hover:border-amber-600"
+            }`}
+            data-testid="equipment-tab-archive"
+          >
+            <Archive className="w-3.5 h-3.5 mr-1" /> Archive ({archive.length})
+          </Button>
+          {showArchive && (
+            <span className="text-xs text-slate-500 ml-2">
+              Soft-deleted units · auto-purged after {retainDays} days. Click <RotateCcw className="w-3 h-3 inline" /> to restore.
+            </span>
+          )}
+        </div>
+
+        {!showArchive && (
+          <div className="flex items-center gap-2 flex-wrap mb-3">
           <Search className="w-4 h-4 text-slate-400" />
           <Input
             value={filter}
@@ -335,12 +398,67 @@ export default function EquipmentMasterPanel() {
           <span className="text-xs text-slate-500 font-mono">
             {filtered.length} / {items.length}
           </span>
-        </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="py-10 text-center text-slate-500">
             <Loader2 className="w-5 h-5 inline-block animate-spin mr-2" /> Loading…
           </div>
+        ) : showArchive ? (
+          archive.length === 0 ? (
+            <p className="text-sm text-slate-500 py-8 text-center italic">
+              Archive is empty — nothing to restore.
+            </p>
+          ) : (
+            <div className="overflow-x-auto border-2 border-slate-200 rounded max-h-[480px]">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-slate-50 z-[1]">
+                  <tr>
+                    <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Unit #</th>
+                    <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Year</th>
+                    <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Make / Model</th>
+                    <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Category</th>
+                    <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Deleted</th>
+                    <th className="text-right px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold w-24">Restore</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {archive.map((u) => {
+                    const id = u.id || u.unit_number;
+                    return (
+                      <tr key={id} className="border-t border-slate-100 bg-slate-50/40" data-testid={`equipment-archive-row-${id}`}>
+                        <td className="px-3 py-2 font-bold font-mono text-slate-900">{u.unit_number || "—"}</td>
+                        <td className="px-3 py-2 text-slate-700">{u.year || "—"}</td>
+                        <td className="px-3 py-2 text-slate-800">{[u.make, u.model].filter(Boolean).join(" ") || u.make_model || "—"}</td>
+                        <td className="px-3 py-2 text-slate-500 text-xs">{u.category || "—"}</td>
+                        <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">
+                          {u.deleted_at ? new Date(u.deleted_at).toLocaleString() : "—"}
+                        </td>
+                        <td className="px-3 py-2 text-right whitespace-nowrap">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => restoreUnit(u)}
+                            disabled={restoringId === id}
+                            className="h-8 w-8 border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50"
+                            data-testid={`equipment-restore-${id}`}
+                            title="Restore to active fleet"
+                          >
+                            {restoringId === id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            )}
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )
         ) : items.length === 0 ? (
           <p className="text-sm text-slate-500 py-8 text-center italic">
             Fleet is empty — click <strong>Add Unit</strong> or <strong>Bulk Replace</strong>.

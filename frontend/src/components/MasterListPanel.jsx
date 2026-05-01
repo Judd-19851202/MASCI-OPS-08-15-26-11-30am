@@ -10,6 +10,8 @@ import {
   UploadCloud,
   RefreshCw,
   CheckCircle2,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +52,8 @@ export default function MasterListPanel({
   updateEndpoint,
   deleteEndpoint,
   uploadEndpoint,
+  archiveEndpoint,        // optional GET — soft-deleted rows
+  restoreEndpoint,        // optional POST — restore (uses {id} placeholder)
   uploadAccept = ".xlsx,.csv",
   uploadHint = "XLSX or CSV · max 25 MB",
   fields,
@@ -61,6 +65,10 @@ export default function MasterListPanel({
   search = true,
 }) {
   const [items, setItems] = useState([]);
+  const [archive, setArchive] = useState([]);
+  const [retainDays, setRetainDays] = useState(14);
+  const [showArchive, setShowArchive] = useState(false);
+  const [restoringId, setRestoringId] = useState(null);
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -87,13 +95,16 @@ export default function MasterListPanel({
   const refresh = async () => {
     setLoading(true);
     try {
-      const [listR, statusR] = await Promise.all([
+      const [listR, statusR, archiveR] = await Promise.all([
         api.get(listEndpoint),
         statusEndpoint ? api.get(statusEndpoint) : Promise.resolve({ data: null }),
+        archiveEndpoint ? api.get(archiveEndpoint) : Promise.resolve({ data: { items: [], retain_days: 14 } }),
       ]);
       const arr = listR.data?.items || listR.data || [];
       setItems(Array.isArray(arr) ? arr : []);
       setStatus(statusR.data);
+      setArchive(archiveR.data?.items || []);
+      setRetainDays(archiveR.data?.retain_days || 14);
     } catch (e) {
       toast.error(e?.response?.data?.detail || `Failed to load ${entitySingular} list`);
     } finally {
@@ -324,7 +335,44 @@ export default function MasterListPanel({
 
       {/* Search + table */}
       <div className="p-5">
-        {search && (
+        {/* Active / Archive toggle */}
+        {archiveEndpoint && (
+          <div className="mb-3 flex items-center gap-2 flex-wrap" data-testid={`${testIdPrefix}-tabs`}>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setShowArchive(false)}
+              className={`h-8 px-3 text-[11px] font-mono uppercase tracking-wide font-bold ${
+                !showArchive
+                  ? "bg-slate-900 text-white"
+                  : "bg-white border-2 border-slate-300 text-slate-700 hover:border-amber-600"
+              }`}
+              data-testid={`${testIdPrefix}-tab-active`}
+            >
+              Active ({items.length})
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setShowArchive(true)}
+              className={`h-8 px-3 text-[11px] font-mono uppercase tracking-wide font-bold ${
+                showArchive
+                  ? "bg-slate-700 text-white"
+                  : "bg-white border-2 border-slate-300 text-slate-700 hover:border-amber-600"
+              }`}
+              data-testid={`${testIdPrefix}-tab-archive`}
+            >
+              <Archive className="w-3.5 h-3.5 mr-1" /> Archive ({archive.length})
+            </Button>
+            {showArchive && (
+              <span className="text-xs text-slate-500 ml-2">
+                Soft-deleted rows · auto-purged after {retainDays} days. Click <RotateCcw className="w-3 h-3 inline" /> to restore.
+              </span>
+            )}
+          </div>
+        )}
+
+        {!showArchive && search && (
           <div className="flex items-center gap-2 mb-3">
             <Search className="w-4 h-4 text-slate-400" />
             <Input
@@ -344,6 +392,66 @@ export default function MasterListPanel({
           <div className="py-10 text-center text-slate-500">
             <Loader2 className="w-5 h-5 inline-block animate-spin mr-2" /> Loading…
           </div>
+        ) : showArchive ? (
+          archive.length === 0 ? (
+            <p className="text-sm text-slate-500 py-8 text-center italic">
+              Archive is empty — nothing to restore.
+            </p>
+          ) : (
+            <div className="overflow-x-auto border-2 border-slate-200 rounded max-h-[460px]">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-slate-50 z-[1]">
+                  <tr>
+                    {fields.map((f) => (
+                      <th
+                        key={f.key}
+                        className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap"
+                      >
+                        {f.label}
+                      </th>
+                    ))}
+                    <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">
+                      Deleted
+                    </th>
+                    <th className="text-right px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold w-24">
+                      Restore
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {archive.map((row) => (
+                    <tr key={row[itemKey]} className="border-t border-slate-100 bg-slate-50/40" data-testid={`${testIdPrefix}-archive-row-${row[itemKey]}`}>
+                      {fields.map((f) => (
+                        <td key={f.key} className="px-3 py-2 align-top text-slate-700">
+                          {row[f.key] || <span className="text-slate-400">—</span>}
+                        </td>
+                      ))}
+                      <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">
+                        {row.deleted_at ? new Date(row.deleted_at).toLocaleString() : "—"}
+                      </td>
+                      <td className="px-3 py-2 text-right whitespace-nowrap">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => restoreRow(row)}
+                          disabled={restoringId === row[itemKey]}
+                          className="h-8 w-8 border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50"
+                          data-testid={`${testIdPrefix}-restore-${row[itemKey]}`}
+                          title="Restore to active list"
+                        >
+                          {restoringId === row[itemKey] ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          )}
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
         ) : items.length === 0 ? (
           <p className="text-sm text-slate-500 py-8 text-center italic">
             {emptyState}

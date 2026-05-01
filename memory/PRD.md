@@ -1,5 +1,53 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-30 — Soft-delete safety net + PM-portal admin lockdown
+
+**User asks**:
+1. "Soft-delete + 14-day undo behind every 🗑️ button — yes do this."
+2. "PM portal needs admin portal button removed inside pm portal, PMs will have zero admin access, only ownership will have admin access."
+
+### PM lockdown (1)
+- Removed the red "Admin Console" header link from `/app/frontend/src/pages/PmHub.jsx` plus the `isAdmin()` import, `adminViewing` flag, and `ShieldCheck` icon. PMs landing on `/pm` now see no admin shortcut anywhere.
+- The Admin Hub keeps its yellow "PM Portal" link so ownership can still hop into the PM view (one-way bridge).
+- Backend gating already enforced the contract (PM token rejected by `require_admin_strict`); this turn just cleaned the visible affordance.
+
+### Soft-delete framework (2)
+- New helpers in `server.py`: `_soft_delete`, `_restore_row`, `_list_archive`, `_purge_expired`. Every list call best-effort hard-purges anything with a `deleted_at` older than 14 days (`SOFT_DELETE_RETAIN_DAYS`). Active list filter `ACTIVE_FILTER = {"deleted_at": {"$in": [None, ""]}}` applied wherever we read the master collections.
+- 4 single-row delete handlers converted from hard-delete → soft:
+  - `DELETE /admin/employees/{id}`, `DELETE /admin/suppliers/{id}`,
+    `DELETE /admin/equipment-master/{id|unit}`, `DELETE /admin/jobs/{id}`.
+  - All four return `{"ok": true, "soft_deleted": true, "retain_days": 14}`.
+- 4 new archive endpoints + 4 new restore endpoints:
+  - `GET /admin/employees/archive` · `POST /admin/employees/{id}/restore`
+  - `GET /admin/suppliers/archive`  · `POST /admin/suppliers/{id}/restore`
+  - `GET /admin/equipment-master/archive` · `POST /admin/equipment-master/{id|unit}/restore`
+  - `GET /admin/jobs/archive` · `POST /admin/jobs/{id}/restore`
+- PUT update handlers (employees + suppliers + equipment-master) now also exclude soft-deleted rows — must restore before edit.
+- `POST /admin/equipment-master` auto-restores a previously soft-deleted unit instead of raising 409 — quality-of-life win when a mechanic re-adds a unit they accidentally deleted.
+- `jobs_master.py`: `list_jobs` filters `deleted_at`, plus new `list_archived_jobs` and `restore_job`.
+
+### Frontend
+- `MasterListPanel.jsx` — added Active / Archive tabs, restore action with `RotateCcw` icon, banner "Soft-deleted rows · auto-purged after N days." Plumbed through with `archiveEndpoint` + `restoreEndpoint` props.
+- `EmployeeMasterPanel.jsx` and `SupplierMasterPanel.jsx` config: added the two new endpoints.
+- `EquipmentMasterPanel.jsx` — full Active / Archive tab UI with archive table (Unit #, Year, Make/Model, Category, Deleted timestamp, Restore button).
+- `AdminJobMasterPanel.jsx` — same Active / Archive tab UX next to the Refresh / Bulk Replace header.
+- All confirmation prompts updated from "this cannot be undone" → "you'll have N days to restore from the Archive tab".
+
+### Tests
+- New `/app/backend/tests/test_soft_delete_iter33.py` — 5 cases covering full round-trip on all 4 collections + 404 guard + auto-restore on duplicate POST. **All 5 pass.**
+- 2 regressions caught and fixed in the same iter:
+  - `test_employee_full_crud` (iter32) — adjusted PUT handlers so soft-deleted rows return 404 (must restore first).
+  - `test_admin_pm_lifecycle` (iter28) — cleaned stale `iter28-test-pm@mascigc.com` row from prod DB.
+- Full backend regression: **269 passed, 0 failed.**
+
+### Visual verification
+- Screenshots of `/admin` Employee Roster Archive (4 archived rows with restore buttons + deletion timestamps) and Equipment Master Archive (3 archived rows, same layout). Active / Archive toggle is the first thing visible above each table.
+
+### Why this matters
+A mis-click on the 234-employee table previously meant a backup restore. Now it's a one-click ⟲ from the Archive tab. The 14-day window covers normal "wait, where did Bob go?" Monday-morning recovery scenarios without ever growing the DB unbounded — anything older auto-purges on the next list call.
+
+
+
 ## 2026-04-30 — Master-List CRUD parity (Employees · Suppliers · Equipment · Parts)
 
 **User ask**: "I love how we built Active job master able to enter jobs one by one or bulk import/replace lets do the same thing for Employees, Equipment, Parts List & Subcontractors/Vendors same in both admin & PM portals... don't forget about equipment list & parts list in shop tile make them the same too."

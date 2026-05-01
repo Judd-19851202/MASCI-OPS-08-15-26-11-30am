@@ -19,6 +19,8 @@ const EmployeeMasterPanel = () => (
     updateEndpoint="/admin/employees/{id}"
     deleteEndpoint="/admin/employees/{id}"
     uploadEndpoint="/admin/employees/upload"
+    archiveEndpoint="/admin/employees/archive"
+    restoreEndpoint="/admin/employees/{id}/restore"
     uploadAccept=".xlsx,.xlsm,.csv"
     uploadHint="XLSX or CSV (Name, Employee ID, Trade, Role, Crew, Email, Phone) · max 25 MB"
     fields={[
