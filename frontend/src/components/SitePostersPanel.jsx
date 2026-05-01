@@ -7,6 +7,7 @@ import {
   Box,
   FileText,
   PrinterCheck,
+  GraduationCap,
 } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
@@ -53,6 +54,52 @@ const POSTERS = (t) => [
     open: "/admin/jha-plans/poster",
     print: "/admin/jha-plans/poster?autoprint=1",
     testId: "poster-row-jha",
+  },
+  // Training Scan-&-Go — 4 rows, one per track. Same row shape so the
+  // UI doesn't need a second list.
+  {
+    id: "training-field",
+    title: t("Training Scan-&-Go · Field Crew"),
+    desc: t("3 QR codes (EN / ES / EN+ES) → the full Field Crew training packet. Bilingual poster."),
+    where: t("Post inside every site trailer."),
+    accent: "border-red-700 bg-red-700",
+    Icon: GraduationCap,
+    open: "/training/field/poster",
+    print: "/training/field/poster?autoprint=1",
+    testId: "poster-row-training-field",
+  },
+  {
+    id: "training-shop",
+    title: t("Training Scan-&-Go · Shop"),
+    desc: t("3 QR codes (EN / ES / EN+ES) → the Shop / Mechanic training packet."),
+    where: t("Post inside the shop office and parts room."),
+    accent: "border-slate-800 bg-slate-800",
+    Icon: GraduationCap,
+    open: "/training/shop/poster",
+    print: "/training/shop/poster?autoprint=1",
+    testId: "poster-row-training-shop",
+  },
+  {
+    id: "training-pm",
+    title: t("Training Scan-&-Go · PM"),
+    desc: t("3 QR codes (EN / ES / EN+ES) → the PM / Project Management training packet."),
+    where: t("Post on the wall behind the PM's desk."),
+    accent: "border-amber-600 bg-amber-600",
+    Icon: GraduationCap,
+    open: "/training/pm/poster",
+    print: "/training/pm/poster?autoprint=1",
+    testId: "poster-row-training-pm",
+  },
+  {
+    id: "training-admin",
+    title: t("Training Scan-&-Go · Admin"),
+    desc: t("3 QR codes → the Admin / Owner training packet incl. backup, restore, and security."),
+    where: t("Keep in the admin / owner's office binder."),
+    accent: "border-red-700 bg-red-700",
+    Icon: GraduationCap,
+    open: "/training/admin/poster",
+    print: "/training/admin/poster?autoprint=1",
+    testId: "poster-row-training-admin",
   },
 ];
 

@@ -1321,6 +1321,47 @@ const ES = {
   "Share these links with insurance, auditors, or new-hire onboarding. Cover, table of contents, and every lesson in one file — in English or Spanish.":
     "Comparta estos enlaces con seguros, auditores o nuevos empleados. Portada, contenido y cada lección en un archivo — en inglés o español.",
 
+  // Training Scan-&-Go + New Hire Onboarding (2026-05-01)
+  "Scan-&-Go Posters": "Carteles Escanee y Vaya",
+  "1-page QR poster per track · tape in every trailer":
+    "Cartel QR de 1 página por track · pegue en cada tráiler",
+  "Three QR codes per poster — EN, ES, and EN+ES side-by-side. Print, tape, done. No typing URLs on phones.":
+    "Tres códigos QR por cartel — EN, ES y EN+ES lado a lado. Imprima, pegue, listo. Sin escribir URLs en teléfonos.",
+  "View": "Ver",
+  "Print": "Imprimir",
+  "Coming soon": "Próximamente",
+  "New Hire Onboarding": "Orientación de Nuevos Empleados",
+  "A guided first-day checklist for every new MASCI hire: watch the core Field lessons, take a short quiz, sign an acknowledgement, and you're cleared for the site. HR gets a paper trail, the new hire gets confidence, insurance gets peace of mind.":
+    "Una lista guiada del primer día para cada nuevo empleado MASCI: vea las lecciones de Campo, responda un breve examen, firme un acuerdo, y queda listo para el sitio. RH obtiene registro, el empleado obtiene confianza, seguros obtienen tranquilidad.",
+  "Required lesson tracking per employee":
+    "Seguimiento de lecciones requeridas por empleado",
+  "5-question quiz + pass/fail threshold":
+    "Examen de 5 preguntas + umbral aprobado/reprobado",
+  "Digital signed acknowledgement stored on the employee record":
+    "Acuse digital firmado guardado en el registro del empleado",
+  "Admin dashboard: who's onboarded, who's outstanding, who's expired":
+    "Tablero de admin: quién está orientado, pendiente, vencido",
+
+  // SitePostersPanel — training rows
+  "Training Scan-&-Go · Field Crew": "Escanee y Vaya · Cuadrilla de Campo",
+  "Training Scan-&-Go · Shop": "Escanee y Vaya · Taller",
+  "Training Scan-&-Go · PM": "Escanee y Vaya · Gerente",
+  "Training Scan-&-Go · Admin": "Escanee y Vaya · Admin",
+  "3 QR codes (EN / ES / EN+ES) → the full Field Crew training packet. Bilingual poster.":
+    "3 códigos QR (EN / ES / EN+ES) → paquete completo de Cuadrilla de Campo. Cartel bilingüe.",
+  "3 QR codes (EN / ES / EN+ES) → the Shop / Mechanic training packet.":
+    "3 códigos QR (EN / ES / EN+ES) → paquete del Taller / Mecánico.",
+  "3 QR codes (EN / ES / EN+ES) → the PM / Project Management training packet.":
+    "3 códigos QR (EN / ES / EN+ES) → paquete del Gerente de Proyecto.",
+  "3 QR codes → the Admin / Owner training packet incl. backup, restore, and security.":
+    "3 códigos QR → paquete del Admin / Dueño incl. respaldo, restauración y seguridad.",
+  "Post inside the shop office and parts room.":
+    "Pegue dentro de la oficina del taller y cuarto de partes.",
+  "Post on the wall behind the PM's desk.":
+    "Pegue en la pared detrás del escritorio del Gerente.",
+  "Keep in the admin / owner's office binder.":
+    "Guarde en la carpeta de la oficina del Admin / Dueño.",
+
 };
 
 const DICTS = { es: ES, en: {} };

@@ -1,5 +1,44 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-01 — Training Scan-&-Go Posters + New Hire Onboarding (Coming Soon)
+
+Shipped two final pieces of the Training Hub rollout:
+
+### 1. Scan-&-Go QR Posters (per track)
+
+One 1-page print-ready poster per track (Field / Shop / PM / Admin). Each poster has **3 QR codes** (EN, ES, EN+ES) so crews can scan straight into the PDF packet in the language they need — no typing URLs on phones.
+
+**Backend**
+- New dependency: `segno==1.6.6` (pure-Python, no Pillow needed).
+- New endpoint `GET /api/qr.svg?data={url}&scale={2..20}` — **public**, returns a compact inline SVG QR code. 24h cache (inputs are stable public URLs).
+
+**Frontend**
+- New page `/training/:track/poster` (public, also accepts `?autoprint=1` for one-click printing). Layout: top accent bar, bilingual header, 3 tiles in a letter-size grid, fallback direct URL, bilingual footer, MASCI legal line.
+- Print CSS: `@page size letter, margin 0` with chrome hidden via `.print:hidden`.
+- Landing page (`/training`): new amber "Scan-&-Go Posters" panel with **8 buttons** (View + Print per track).
+- `SitePostersPanel.jsx`: added 4 new poster rows (one per track) alongside the existing Crew Cheat Sheet / Trench Box / JHA. They plug straight into the admin's "Print All Posters" batch printer.
+
+### 2. New Hire Onboarding — Coming Soon card
+
+Added a dashed-border placeholder on the Training Hub landing that advertises the upcoming feature. Sets the team's expectations and pressure-tests the concept with the office before build:
+- Required lesson tracking per employee
+- 5-question quiz + pass/fail threshold
+- Digital signed acknowledgement stored on the employee record
+- Admin dashboard: who's onboarded, who's outstanding, who's expired
+
+### Verified on preview
+| Check | Result |
+|---|---|
+| `GET /api/qr.svg?data=https://mascidocs.com/training/field` | ✅ 200 · image/svg+xml · 1565 B |
+| `/training/field/poster` renders 3 QR images, 3 language tiles, print button, bilingual footer | ✅ |
+| Landing page: "Scan-&-Go Posters" header, 4 View buttons, 4 Print buttons — all present | ✅ |
+| Landing page: "New Hire Onboarding" coming-soon card with all 4 bullets | ✅ |
+| Admin Hub SitePostersPanel: 4 new training poster rows with correct test IDs | ✅ |
+| All ES translations wired for new UI strings | ✅ |
+| No lint errors | ✅ |
+
+
+
 ## 2026-05-01 — Training Packet PDFs: Bilingual Side-by-Side Variant
 
 Extended the training packet endpoint with a third `lang=bi` (alias: `bilingual`, `es-en`, `both`, `dual`, `en+es`) that renders English on the LEFT and Spanish on the RIGHT of every section. Perfect for training-room packets, new-hire onboarding where both languages are in the room, and crews that want to map English technical terms to their Spanish equivalents.

@@ -9,6 +9,9 @@ import {
   Briefcase,
   ShieldCheck,
   FileDown,
+  UserPlus,
+  Printer,
+  QrCode,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
@@ -180,6 +183,93 @@ export default function TrainingHub() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Scan-&-Go QR Posters — one per track, prints a 1-page letter
+            poster with 3 QR codes (EN / ES / EN+ES) so crews can scan
+            straight into the packet from the job trailer. */}
+        <div className="mt-6 rounded-md border-2 border-amber-600 bg-amber-50 p-5 sm:p-6">
+          <div className="flex items-start gap-4 flex-wrap">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">
+              <QrCode className="w-6 h-6" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-800 font-bold flex items-center gap-2">
+                {t("Scan-&-Go Posters")}
+              </div>
+              <h3 className="font-display text-lg font-black text-slate-900 mt-1">
+                {t("1-page QR poster per track · tape in every trailer")}
+              </h3>
+              <p className="text-slate-700 text-sm mt-1 leading-relaxed">
+                {t("Three QR codes per poster — EN, ES, and EN+ES side-by-side. Print, tape, done. No typing URLs on phones.")}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
+            {Object.values(TRACKS).map((tr) => (
+              <div key={tr.slug} className="bg-white border-2 border-amber-600 rounded p-3 flex items-center justify-between gap-2 text-xs">
+                <span className="font-bold truncate text-slate-900">
+                  {lang === "es" && tr.title_es ? tr.title_es : tr.title}
+                </span>
+                <div className="flex gap-1 shrink-0">
+                  <Link
+                    to={`/training/${tr.slug}/poster`}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-white font-mono font-bold uppercase tracking-wide transition-colors"
+                    data-testid={`training-qr-poster-${tr.slug}`}
+                  >
+                    {t("View")}
+                  </Link>
+                  <Link
+                    to={`/training/${tr.slug}/poster?autoprint=1`}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-mono font-bold uppercase tracking-wide transition-colors"
+                    data-testid={`training-qr-poster-print-${tr.slug}`}
+                  >
+                    <Printer className="w-3 h-3" />
+                    {t("Print")}
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* New Hire Onboarding — coming-soon placeholder so the team knows
+            it's on the roadmap and can pressure-test the concept. */}
+        <div className="mt-6 rounded-md border-2 border-dashed border-slate-400 bg-slate-50 p-5 sm:p-6">
+          <div className="flex items-start gap-4 flex-wrap">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-300 text-slate-700 shrink-0">
+              <UserPlus className="w-6 h-6" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 font-bold flex items-center gap-2">
+                {t("Coming soon")}
+              </div>
+              <h3 className="font-display text-lg font-black text-slate-700 mt-1">
+                {t("New Hire Onboarding")}
+              </h3>
+              <p className="text-slate-600 text-sm mt-1 leading-relaxed max-w-2xl">
+                {t("A guided first-day checklist for every new MASCI hire: watch the core Field lessons, take a short quiz, sign an acknowledgement, and you're cleared for the site. HR gets a paper trail, the new hire gets confidence, insurance gets peace of mind.")}
+              </p>
+              <ul className="mt-3 space-y-1 text-xs text-slate-600">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1.5 w-1 h-1 rounded-full bg-slate-400 shrink-0" />
+                  {t("Required lesson tracking per employee")}
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1.5 w-1 h-1 rounded-full bg-slate-400 shrink-0" />
+                  {t("5-question quiz + pass/fail threshold")}
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1.5 w-1 h-1 rounded-full bg-slate-400 shrink-0" />
+                  {t("Digital signed acknowledgement stored on the employee record")}
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1.5 w-1 h-1 rounded-full bg-slate-400 shrink-0" />
+                  {t("Admin dashboard: who's onboarded, who's outstanding, who's expired")}
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </main>

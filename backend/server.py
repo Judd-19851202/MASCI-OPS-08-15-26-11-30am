@@ -4363,6 +4363,28 @@ async def training_packet_pdf(track: str, lang: str = "en"):
     )
 
 
+@api_router.get("/qr.svg")
+async def qr_svg(data: str, scale: int = 6):
+    """Public QR-code generator. Returns an SVG-encoded QR for `data`.
+    Used by the Training Scan-&-Go posters (and anywhere else the UI wants
+    to inline a QR without shipping a JS library). Cached for 24h — the
+    input is always a stable public URL so it's safe to cache hard."""
+    import io
+    import segno  # type: ignore
+    if not data or len(data) > 2048:
+        raise HTTPException(400, "data query param required (1-2048 chars)")
+    scale = max(2, min(int(scale or 6), 20))
+    qr = segno.make(data, error="m")
+    buf = io.BytesIO()
+    qr.save(buf, kind="svg", scale=scale, dark="#0F172A", light=None, border=2, xmldecl=False)
+    from fastapi.responses import Response
+    return Response(
+        content=buf.getvalue(),
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
 @api_router.put("/admin/training/videos")
 async def training_videos_put(
     body: dict,
