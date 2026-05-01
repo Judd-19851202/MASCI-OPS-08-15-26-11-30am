@@ -4337,6 +4337,31 @@ async def training_videos_get():
     return {"videos": (doc or {}).get("videos", {})}
 
 
+@api_router.get("/training/packet.pdf")
+async def training_packet_pdf(track: str, lang: str = "en"):
+    """Public download of the full training packet for `track` in `lang`.
+    Anyone with the URL can download — no auth, intended to be emailed to
+    insurance, auditors, or new-hire packets. Generated on the fly from
+    `training_pdf.render_packet` so updates to lesson copy flow through
+    without a deploy."""
+    from training_pdf import render_packet  # local import to avoid startup cost
+    try:
+        pdf_bytes = render_packet(track, lang)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+    from fastapi.responses import Response
+    lang_norm = "es" if str(lang).lower().startswith("es") else "en"
+    filename = f"MASCI_training_{track}_{lang_norm}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'inline; filename="{filename}"',
+            "Cache-Control": "public, max-age=300",
+        },
+    )
+
+
 @api_router.put("/admin/training/videos")
 async def training_videos_put(
     body: dict,

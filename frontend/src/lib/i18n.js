@@ -1316,6 +1316,10 @@ const ES = {
   "Open video": "Abrir video",
   "This track is password-protected": "Este track requiere contraseña",
   "Back to Training Hub": "Volver al Centro de Capacitación",
+  "Downloadable packets": "Paquetes descargables",
+  "PDF training packets · no login required": "Paquetes PDF de capacitación · sin inicio de sesión",
+  "Share these links with insurance, auditors, or new-hire onboarding. Cover, table of contents, and every lesson in one file — in English or Spanish.":
+    "Comparta estos enlaces con seguros, auditores o nuevos empleados. Portada, contenido y cada lección en un archivo — en inglés o español.",
 
 };
 

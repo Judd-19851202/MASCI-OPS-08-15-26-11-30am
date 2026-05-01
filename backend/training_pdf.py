@@ -1,0 +1,997 @@
+"""Render the Training Hub as downloadable PDF packets.
+
+Used by `GET /api/training/packet.pdf?track={track}&lang={en|es}` (public,
+no auth). Returns a single-file PDF that contains every lesson for the
+requested track with cover page, table of contents, and per-lesson pages
+(title + "Why this matters" + numbered steps + tips + cheat sheet).
+
+Lesson content lives in this module as a Python mirror of
+`frontend/src/data/training.js` + `training_es.js`. Kept in sync by hand —
+the frontend is the source of truth, this file is a serialized snapshot
+rendered into PDFs for offline/email distribution.
+"""
+from __future__ import annotations
+
+import base64
+from datetime import datetime, timezone
+from html import escape
+from pathlib import Path
+
+from weasyprint import HTML
+
+ROOT = Path(__file__).parent
+LOGO_PATH = ROOT.parent / "frontend" / "public" / "masci-full-lockup-onlight.png"
+
+
+def _logo_uri() -> str:
+    try:
+        b = LOGO_PATH.read_bytes()
+        return f"data:image/png;base64,{base64.b64encode(b).decode()}"
+    except Exception:
+        return ""
+
+
+# ----------------------------------------------------------------------------
+# Lesson catalog (mirror of frontend/src/data/training.js)
+# ----------------------------------------------------------------------------
+
+TRACKS = {
+    "field": {
+        "title": "Field Crew Training",
+        "title_es": "Capacitación de Cuadrilla de Campo",
+        "blurb": "Everything the crew on the ground needs — from scanning the QR at the trailer to submitting a Daily Report after the shift.",
+        "blurb_es": "Todo lo que la cuadrilla en campo necesita — desde escanear el QR en el tráiler hasta enviar el Reporte Diario después del turno.",
+        "accent": "#B91C1C",
+    },
+    "shop": {
+        "title": "Shop / Mechanic Training",
+        "title_es": "Capacitación del Taller / Mecánico",
+        "blurb": "How the shop clears failed Pre-Ops, tracks parts, and keeps the fleet running.",
+        "blurb_es": "Cómo el taller libera Pre-Ops fallados, rastrea partes y mantiene la flota funcionando.",
+        "accent": "#0F172A",
+    },
+    "pm": {
+        "title": "PM / Project Management Training",
+        "title_es": "Capacitación del Gerente de Proyectos",
+        "blurb": "Day-to-day management: master lists, email routing, import/export, archive recovery.",
+        "blurb_es": "Gestión diaria: listas maestras, ruteo de correos, importar/exportar, archivo.",
+        "accent": "#D97706",
+    },
+    "admin": {
+        "title": "Admin / Owner Training",
+        "title_es": "Capacitación del Administrador / Dueño",
+        "blurb": "Full platform overview, system-recovery tools, and the exact backup workflow that protects every record.",
+        "blurb_es": "Panorama completo de la plataforma, herramientas de recuperación y el flujo exacto de respaldo.",
+        "accent": "#B91C1C",
+    },
+}
+
+
+# --- Field (7) ---
+FIELD_LESSONS = [
+    {
+        "slug": "field-01-hub-navigation",
+        "order": 1,
+        "title": "Lesson 1 — Navigating the MASCI Hub",
+        "title_es": "Lección 1 — Navegando el Hub MASCI",
+        "why": "Everything starts here. If you can find the Hub on your phone, you can file any form the company needs in under 2 minutes.",
+        "why_es": "Todo empieza aquí. Si encuentra el Hub en su teléfono, puede llenar cualquier formulario que la compañía necesite en menos de 2 minutos.",
+        "steps": [
+            "Point your phone camera at the QR code posted inside the site trailer — the MASCI Hub opens in your browser automatically. No app to install, no login for Field forms.",
+            "On the Hub home page you'll see 7 tiles: Field, Safety, Projects, QA/QC (coming soon), PM Portal, Shop, and Admin. Field and Safety are the two you'll use every day.",
+            "Tap the language toggle in the top-right to switch between EN and ES — your choice is remembered on this phone.",
+            "Tap 'Company Info' in the top-right to see MASCI's office address and phone numbers if you need to call HQ from the field.",
+            "Tap 'Add to Home Screen' in your browser menu once — after that the Hub opens like a real app with one tap.",
+        ],
+        "steps_es": [
+            "Apunte la cámara de su teléfono al código QR dentro del tráiler — el Hub MASCI se abre en su navegador automáticamente. Sin aplicación que instalar, sin inicio de sesión para los formularios de Campo.",
+            "En la página principal verá 7 tarjetas: Campo, Seguridad, Proyectos, QA/QC (próximamente), Portal de Gestión, Taller y Admin. Campo y Seguridad son las que usará todos los días.",
+            "Toque el botón EN/ES en la esquina superior derecha para cambiar el idioma — su elección se recuerda en este teléfono.",
+            "Toque 'Company Info' en la esquina superior derecha para ver la dirección y teléfonos de MASCI si necesita llamar a la oficina desde el campo.",
+            "Toque 'Agregar a pantalla de inicio' en el menú del navegador una vez — después el Hub se abre como una aplicación real con un toque.",
+        ],
+        "tips": [
+            "If GPS doesn't grab on the first try, type the address in the Location field instead — same result.",
+            "The Hub works offline for reading, but submitting a form needs a signal — save and retry when you get bars.",
+        ],
+        "tips_es": [
+            "Si el GPS no funciona al primer intento, escriba la dirección en el campo Ubicación — mismo resultado.",
+            "El Hub funciona sin conexión para leer, pero enviar un formulario necesita señal — guarde y reintente cuando tenga barras.",
+        ],
+        "cheatSheet": [
+            "Scan the QR → Hub opens → Pick Field or Safety → Fill → Sign → Submit.",
+            "Language toggle is top-right. Company Info is next to it.",
+        ],
+        "cheatSheet_es": [
+            "Escanee QR → Hub abre → Elija Campo o Seguridad → Llene → Firme → Envíe.",
+            "Idioma arriba a la derecha. Company Info al lado.",
+        ],
+    },
+    {
+        "slug": "field-02-daily-report",
+        "order": 2,
+        "title": "Lesson 2 — Daily Reports",
+        "title_es": "Lección 2 — Reportes Diarios",
+        "why": "The Daily Report is the company's memory for what happened today. No Daily Report = no proof of crew time, material deliveries, subs on site, equipment used, or progress made.",
+        "why_es": "El Reporte Diario es la memoria de la compañía sobre lo que pasó hoy. Sin Reporte Diario no hay prueba de horas de cuadrilla, entregas de material, subs en sitio, equipo usado, ni progreso.",
+        "steps": [
+            "From the Hub, tap Field → Daily Reports → 'File First Report' (or 'New Report').",
+            "Pick your MASCI Job from the picker — project number, name, location, and client auto-fill.",
+            "Tap 'Use GPS' to auto-fill Location. Weather auto-loads from today's forecast.",
+            "General Info: Yes/No on Schedule Delays, Weather, Accidents, Injuries. Any Yes → red Safety Escalation box appears.",
+            "MASCI Crews: tap 'Add Crew Member', pick name, Start/Stop times. Lunch auto-deducts 30 min.",
+            "Subcontractors on Site: same pattern — who, how many, how many hours, what they did.",
+            "Site Visitors, Equipment Log, Material Deliveries, Activity Log: fill what applies.",
+            "Photos: minimum 6 required. Start / progress / issues / end.",
+            "Prepared By + Superintendent sign at the bottom. Submit.",
+        ],
+        "steps_es": [
+            "Desde el Hub, toque Campo → Reportes Diarios → 'Archivar Primer Reporte' (o 'Nuevo Reporte').",
+            "Elija su Trabajo MASCI del selector — el número de proyecto, nombre, ubicación y cliente se autocompletan.",
+            "Toque 'Usar GPS' para autocompletar Ubicación. El clima se carga automáticamente del pronóstico de hoy.",
+            "Información General: responda Sí/No sobre Retrasos, Clima, Accidentes, Lesiones. Cualquier Sí → aparece caja roja de Escalación de Seguridad.",
+            "Cuadrillas MASCI: toque 'Agregar Miembro', elija nombre, horas Inicio/Fin. El almuerzo resta 30 min automáticamente.",
+            "Subcontratistas en Sitio: mismo patrón — quién, cuántos, cuántas horas, qué hicieron.",
+            "Visitantes, Registro de Equipo, Entregas de Materiales, Registro de Actividad: llene lo que aplique.",
+            "Fotos: mínimo 6 requeridas. Inicio / progreso / problemas / final.",
+            "Preparado Por + Superintendente firman abajo. Envíe.",
+        ],
+        "tips": [
+            "If an accident or injury was reported, the app BLOCKS submission until an Incident Report is filed first.",
+            "Hit 'Save Draft' any time — progress persists on this phone.",
+        ],
+        "tips_es": [
+            "Si se reportó un accidente o lesión, la app BLOQUEA el envío hasta que se presente un Reporte de Incidente primero.",
+            "Toque 'Guardar Borrador' en cualquier momento — el progreso persiste en este teléfono.",
+        ],
+        "cheatSheet": [
+            "6 photos minimum. GPS + weather are automatic.",
+            "If Yes on Accident/Injury → Incident Report FIRST.",
+            "Prepared By + Superintendent both sign.",
+        ],
+        "cheatSheet_es": [
+            "Mínimo 6 fotos. GPS + clima automáticos.",
+            "Si Sí en Accidente/Lesión → Reporte de Incidente PRIMERO.",
+            "Preparado Por + Superintendente firman ambos.",
+        ],
+    },
+    {
+        "slug": "field-03-equipment-preop",
+        "order": 3,
+        "title": "Lesson 3 — Equipment Pre-Op Inspection",
+        "title_es": "Lección 3 — Inspección Pre-Operación de Equipo",
+        "why": "OSHA 1926 requires a daily walk-around before you operate heavy equipment. A FAIL here tags the unit OUT OF SERVICE until the shop clears it.",
+        "why_es": "OSHA 1926 requiere un recorrido diario antes de operar equipo pesado. Un FALLO aquí marca la unidad FUERA DE SERVICIO hasta que el taller la libere.",
+        "steps": [
+            "Hub → Field → Equipment Pre-Op.",
+            "Pick Job and Equipment Type. Search the saved units list — make/model/serial auto-fill.",
+            "Enter Hour Meter OR Odometer. Enter your full name.",
+            "Walk the unit. For each item, tap Pass / Fail / N/A. FAIL requires 10-char description AND photo.",
+            "Major-safety failures (brakes, steering, seat belt, ROPS, horn) → STOP modal. Unit marked OUT OF SERVICE.",
+            "Critical-fluid failures block submission until refilled and flipped back to Pass.",
+            "Add deficiency notes, corrective actions, and equipment photos.",
+            "Operator Sign-Off: sign, tap Submit.",
+        ],
+        "steps_es": [
+            "Hub → Campo → Pre-Op de Equipo.",
+            "Elija Trabajo y Tipo de Equipo. Busque en las unidades guardadas — marca/modelo/serie se autocompletan.",
+            "Ingrese Horómetro U Odómetro. Ingrese su nombre completo.",
+            "Recorra la unidad. Para cada punto, toque Aprobado / Falla / N/A. FALLO requiere descripción de 10 caracteres Y foto.",
+            "Fallas de seguridad mayor (frenos, dirección, cinturón, ROPS, bocina) → modal ALTO. Unidad FUERA DE SERVICIO.",
+            "Fallas críticas de fluido bloquean el envío hasta rellenar y cambiar a Aprobado.",
+            "Agregue notas de deficiencias, acciones correctivas y fotos del equipo.",
+            "Firma del Operador: firme, toque Enviar.",
+        ],
+        "tips": [
+            "Engine off first (visual), then on (gauges/brakes/hydraulics).",
+            "Don't lie on a Pass. The shop sees every FAIL and will notice a pattern.",
+        ],
+        "tips_es": [
+            "Motor apagado primero (visual), luego encendido (medidores/frenos/hidráulicos).",
+            "No mienta en un Aprobado. El taller ve cada FALLO y notará un patrón.",
+        ],
+        "cheatSheet": [
+            "Engine off → walk around → engine on → check fluids & gauges.",
+            "FAIL = unit out of service + photo required.",
+            "Major safety items = STOP, do not operate.",
+        ],
+        "cheatSheet_es": [
+            "Motor apagado → recorrido → motor encendido → revise fluidos y medidores.",
+            "FALLO = unidad fuera de servicio + foto requerida.",
+            "Puntos de seguridad mayor = ALTO, no opere.",
+        ],
+    },
+    {
+        "slug": "field-04-site-inspection",
+        "order": 4,
+        "title": "Lesson 4 — Site Safety Inspection",
+        "title_es": "Lección 4 — Inspección de Seguridad del Sitio",
+        "why": "Daily and weekly walk-throughs to catch hazards before they hurt someone. Graded automatically so you can see if your site is passing OSHA.",
+        "why_es": "Recorridos diarios y semanales para atrapar peligros antes de que lastimen a alguien. Calificado automáticamente para ver si su sitio pasa OSHA.",
+        "steps": [
+            "Hub → Safety → Site Inspections → New Inspection.",
+            "Fill project, Day or Night, Inspector + Foreman names.",
+            "List crew and subs onsite. Weather + activity.",
+            "Grade PPE, Hazards, MOT, Fall Protection, Electrical, Housekeeping, Fire, Heat/Cold: Pass/Fail/N/A. Live Grade % updates.",
+            "Photo any Fail. Note Stop Work, Corrected on Site, Responsible Party.",
+            "Inspector + Foreman sign. Submit.",
+        ],
+        "steps_es": [
+            "Hub → Seguridad → Inspecciones → Nueva Inspección.",
+            "Llene proyecto, Día o Noche, nombres de Inspector + Capataz.",
+            "Liste cuadrilla y subs en sitio. Clima + actividad.",
+            "Califique EPP, Peligros, MOT, Caídas, Eléctrico, Orden, Fuego, Calor/Frío: Aprobado/Falla/N/A. % en vivo se actualiza.",
+            "Foto a cada Falla. Anote Suspensión, Corregido en Sitio, Responsable.",
+            "Inspector + Capataz firman. Envíe.",
+        ],
+        "tips": ["Weekly inspections are more thorough than daily.", "Live Grade below 80% should trigger a stand-down."],
+        "tips_es": ["Las inspecciones semanales son más completas que las diarias.", "Calificación en Vivo bajo 80% debe activar una parada."],
+        "cheatSheet": ["Pass/Fail each category. Photo every Fail.", "Live Grade shows where you stand. <80% = stand-down."],
+        "cheatSheet_es": ["Aprobado/Falla por cada categoría. Foto a cada Falla.", "Calificación en Vivo muestra dónde está. <80% = parada."],
+    },
+    {
+        "slug": "field-05-safety-meeting",
+        "order": 5,
+        "title": "Lesson 5 — Safety Meetings (Toolbox Talks)",
+        "title_es": "Lección 5 — Reuniones de Seguridad (Charlas de Caja)",
+        "why": "Required daily huddle before work starts. Documents that the crew was briefed on today's hazards.",
+        "why_es": "Junta diaria requerida antes de comenzar el trabajo. Documenta que la cuadrilla fue informada sobre los peligros de hoy.",
+        "steps": [
+            "Hub → Safety → Safety Meetings → New Meeting.",
+            "Project, date/time, Conducted By, Topic Category.",
+            "Tap 'Topic Library', search (trench, silica, heat). 80+ prefilled topics. Or Custom Topic.",
+            "Review / edit Hazards, Notes, References, Actions.",
+            "Add every attendee — each signs.",
+            "Conductor signs. Submit.",
+        ],
+        "steps_es": [
+            "Hub → Seguridad → Reuniones de Seguridad → Nueva Reunión.",
+            "Proyecto, fecha/hora, Conducida Por, Categoría del Tema.",
+            "Toque 'Biblioteca de Temas', busque (zanja, sílice, calor). Más de 80 temas prellenados. O Tema Personalizado.",
+            "Revise / edite Peligros, Notas, Referencias, Acciones.",
+            "Agregue cada asistente — cada uno firma.",
+            "Conductor firma. Envíe.",
+        ],
+        "tips": ["Do this BEFORE the crew picks up a shovel.", "Rotate who conducts each week — builds ownership."],
+        "tips_es": ["Haga esto ANTES de que la cuadrilla levante una pala.", "Rote quién dirige cada semana — construye pertenencia."],
+        "cheatSheet": ["80+ prefilled topics. Pick, edit, get signatures.", "Every attendee signs. Conductor signs. Submit."],
+        "cheatSheet_es": ["Más de 80 temas prellenados. Elija, edite, obtenga firmas.", "Cada asistente firma. Conductor firma. Envíe."],
+    },
+    {
+        "slug": "field-06-jha",
+        "order": 6,
+        "title": "Lesson 6 — Job Hazard Analysis (JHA / JSA)",
+        "title_es": "Lección 6 — Análisis de Peligros del Trabajo (JHA / JSA)",
+        "why": "Done BEFORE a specific task starts, not at the start of the day. Walks every step, lists every hazard, documents every control.",
+        "why_es": "Se hace ANTES de que comience una tarea específica, no al inicio del día. Recorre cada paso, lista cada peligro, documenta cada control.",
+        "steps": [
+            "Hub → Safety → Job Hazard Analysis → New JHA.",
+            "Project, crew lead, task title, description, crew members.",
+            "Check every Required PPE and Required Permit.",
+            "List Tools & Equipment.",
+            "For each Step: what are they doing → Hazards → Controls.",
+            "Emergency: Stop Work Authority Acknowledged, Hospital, Emergency Contact.",
+            "Every crew member signs. Foreman approves. Submit.",
+        ],
+        "steps_es": [
+            "Hub → Seguridad → Análisis de Peligros → Nuevo JHA.",
+            "Proyecto, líder de cuadrilla, título, descripción, miembros.",
+            "Marque cada EPP Requerido y Permiso Requerido.",
+            "Liste Herramientas y Equipo.",
+            "Por cada Paso: qué hacen → Peligros → Controles.",
+            "Emergencia: Autoridad para Suspender reconocida, Hospital, Contacto de Emergencia.",
+            "Cada miembro firma. El capataz aprueba. Envíe.",
+        ],
+        "tips": ["This is NOT a desk checklist. Walk the task first.", "Stop Work Authority: everyone has it, no questions."],
+        "tips_es": ["Esto NO es una lista de escritorio. Recorra la tarea primero.", "Autoridad para Suspender: todos la tienen, sin preguntas."],
+        "cheatSheet": ["Task-specific, before work starts.", "Step → Hazards → Controls per step.", "Every crew member signs. Foreman approves."],
+        "cheatSheet_es": ["Específico de tarea, antes de comenzar.", "Paso → Peligros → Controles por paso.", "Cada miembro firma. Capataz aprueba."],
+    },
+    {
+        "slug": "field-07-incident",
+        "order": 7,
+        "title": "Lesson 7 — Accident / Incident Reports",
+        "title_es": "Lección 7 — Reportes de Accidente / Incidente",
+        "why": "The moment something goes wrong, this is the form. Near miss → fatality — every level gets documented.",
+        "why_es": "El momento que algo sale mal, este es el formulario. Cuasi-accidente → fatalidad — cada nivel se documenta.",
+        "steps": [
+            "SECURE THE SCENE FIRST. Medical for injured. 911 if serious. THEN open the app.",
+            "Hub → Safety → Incident Reports → New Report.",
+            "Date, time, location, Reported By, Supervisor.",
+            "Incident Type + Severity Tier (drives OSHA reporting).",
+            "Person Involved: name, role, employer, body part, nature, treatment, sent home.",
+            "Description: sequence of events. Factual, specific.",
+            "Root Cause: PPE, training, procedure, supervision, equipment, comms, fatigue, housekeeping, weather.",
+            "Witnesses with short statements while fresh.",
+            "Immediate + Long-Term Corrective Actions, owner, deadline.",
+            "Notifications: Safety Manager, PM, GC, Owner, OSHA if catastrophic.",
+            "Photos of scene, equipment, environment.",
+            "Reporter + Supervisor sign. Submit.",
+        ],
+        "steps_es": [
+            "ASEGURE LA ESCENA PRIMERO. Médica para lesionados. 911 si es grave. LUEGO abra la app.",
+            "Hub → Seguridad → Reportes de Incidentes → Nuevo Reporte.",
+            "Fecha, hora, ubicación, Reportado Por, Supervisor.",
+            "Tipo + Nivel de Severidad (determina reporte OSHA).",
+            "Persona Involucrada: nombre, rol, empleador, parte del cuerpo, naturaleza, tratamiento, enviado a casa.",
+            "Descripción: secuencia de eventos. Factual, específico.",
+            "Causa Raíz: EPP, capacitación, procedimiento, supervisión, equipo, comunicación, fatiga, orden, clima.",
+            "Testigos con declaraciones cortas mientras está fresco.",
+            "Acciones Inmediatas + Largo Plazo, responsable, fecha límite.",
+            "Notificaciones: Gerente de Seguridad, Gerente de Proyecto, Contratista General, Dueño, OSHA si catastrófico.",
+            "Fotos de la escena, equipo, ambiente.",
+            "Reportero + Supervisor firman. Envíe.",
+        ],
+        "tips": ["Near Miss with severe potential stays 'Near Miss' — describe the potential.", "Safety is emailed automatically within seconds of submit."],
+        "tips_es": ["Cuasi-Accidente con potencial severo queda 'Cuasi-Accidente' — describa el potencial.", "Seguridad recibe correo automático en segundos del envío."],
+        "cheatSheet": ["Scene safe → medical first → app second.", "Type + Severity → Person → Story → Root Cause → Witnesses → Fixes → Photos.", "Reporter + Supervisor sign."],
+        "cheatSheet_es": ["Escena segura → médica primero → app después.", "Tipo + Severidad → Persona → Historia → Causa Raíz → Testigos → Correcciones → Fotos.", "Reportero + Supervisor firman."],
+    },
+]
+
+
+# --- Shop (3) ---
+SHOP_LESSONS = [
+    {
+        "slug": "shop-01-portal-intro",
+        "order": 1,
+        "title": "Lesson 1 — Shop Portal Overview",
+        "title_es": "Lección 1 — Panorama del Portal del Taller",
+        "why": "The shop console is where mechanics see every Pre-Op submitted, what's flagged, and what needs attention.",
+        "why_es": "La consola del taller es donde los mecánicos ven cada Pre-Op enviado, qué está marcado y qué requiere atención.",
+        "steps": [
+            "/shop/login → enter the shop password → Shop Console.",
+            "4 stats: Inspections on file, Units flagged FAIL, Shop sign-offs, Equipment in fleet.",
+            "Left: Open Items queue (every unsigned FAIL). Right: Trends.",
+            "Below: Recent Pre-Op Inspections, Equipment List, Parts Catalog.",
+            "Sign out in the top-right on shared computers.",
+        ],
+        "steps_es": [
+            "/shop/login → ingrese contraseña → Consola del Taller.",
+            "4 estadísticas: Inspecciones, Unidades FALLA, Firmas del taller, Equipo en flota.",
+            "Izquierda: cola de Artículos Abiertos (cada FALLA sin firmar). Derecha: Tendencias.",
+            "Abajo: Inspecciones Recientes, Lista de Equipo, Catálogo de Partes.",
+            "Cierre sesión arriba a la derecha en computadoras compartidas.",
+        ],
+        "tips": ["Admin also sees everything. PMs see trends but can't sign off.", "'All clear.' on Open Items is the goal."],
+        "tips_es": ["Admin también ve todo. Gerentes ven tendencias pero no firman.", "'Todo en orden.' en Artículos Abiertos es la meta."],
+        "cheatSheet": ["4 stats at the top. Open Items queue is the priority.", "Every FAIL must be signed off or unit stays OOS."],
+        "cheatSheet_es": ["4 estadísticas arriba. Cola de Artículos Abiertos es la prioridad.", "Cada FALLA debe firmarse o la unidad sigue FDS."],
+    },
+    {
+        "slug": "shop-02-signing-off",
+        "order": 2,
+        "title": "Lesson 2 — Signing Off a Failed Pre-Op",
+        "title_es": "Lección 2 — Firmando un Pre-Op Fallido",
+        "why": "A FAIL keeps the unit OUT OF SERVICE until the shop clears it. Your sign-off is the audit trail.",
+        "why_es": "Un FALLO mantiene la unidad FUERA DE SERVICIO hasta que el taller la libere. Su firma es la bitácora.",
+        "steps": [
+            "Open Items → pick severity filter → 'Sign Off' on the row.",
+            "Name + optional notes (parts replaced, follow-up).",
+            "Outcome: Repaired / Tagged OOS / Parts ordered / No action.",
+            "Sign Off → unit CLEARED (or stays OOS).",
+            "Reopen undoes the stamp.",
+        ],
+        "steps_es": [
+            "Artículos Abiertos → elija filtro → 'Firmar' en la fila.",
+            "Nombre + notas opcionales (partes, seguimiento).",
+            "Resultado: Reparado / Fuera de Servicio / Partes ordenadas / Sin acción.",
+            "Firmar → unidad LIBERADA (o sigue FDS).",
+            "Reabrir deshace el sello.",
+        ],
+        "tips": ["'Parts ordered' keeps unit OOS but shows progress.", "'Repaired' is the only outcome that returns unit to service."],
+        "tips_es": ["'Partes ordenadas' mantiene FDS pero muestra progreso.", "'Reparado' es el único resultado que regresa la unidad al servicio."],
+        "cheatSheet": ["Name → notes → outcome → Sign Off.", "Repaired = cleared. Parts ordered = still OOS but tracked.", "Reopen if you signed off too early."],
+        "cheatSheet_es": ["Nombre → notas → resultado → Firmar.", "Reparado = liberada. Partes ordenadas = sigue FDS pero registrada.", "Reabra si firmó muy temprano."],
+    },
+    {
+        "slug": "shop-03-parts-catalog",
+        "order": 3,
+        "title": "Lesson 3 — Parts Catalog + Order List",
+        "title_es": "Lección 3 — Catálogo de Partes + Lista de Pedido",
+        "why": "Every unit has its own parts list. Build the order in one tap per part, email the parts office in one tap at the end.",
+        "why_es": "Cada unidad tiene su propia lista de partes. Arme el pedido con un toque por parte, envíelo a la oficina con un toque al final.",
+        "steps": [
+            "Shop Console → Parts Catalog → Pick Unit.",
+            "5 categories. 'Add Part' → name, part #, qty, notes.",
+            "'Save Catalog' to persist.",
+            "Cart icon adds part to Order List panel.",
+            "Order List: your name, parts-office email(s), CC, notes.",
+            "'Email Order to Parts Office'. Done.",
+        ],
+        "steps_es": [
+            "Consola del Taller → Catálogo → Elija Unidad.",
+            "5 categorías. 'Agregar Parte' → nombre, #, cantidad, notas.",
+            "'Guardar Catálogo' para persistir.",
+            "Ícono de carrito agrega parte a la Lista de Pedido.",
+            "Lista de Pedido: su nombre, correo(s), CC, notas.",
+            "'Enviar Pedido a Oficina'. Listo.",
+        ],
+        "tips": ["Catalog persists — every mechanic benefits from building it once per unit.", "Common parts: add per-unit so quantities stack."],
+        "tips_es": ["El catálogo persiste — cada mecánico se beneficia de armarlo una vez por unidad.", "Partes comunes: agregue por unidad para que se sumen cantidades."],
+        "cheatSheet": ["Pick unit → Add Part → Save.", "Cart icon → Order List. Email at the end."],
+        "cheatSheet_es": ["Elija unidad → Agregar Parte → Guardar.", "Carrito → Lista de Pedido. Correo al final."],
+    },
+]
+
+
+# --- PM (6) ---
+PM_LESSONS = [
+    {
+        "slug": "pm-01-portal-intro",
+        "order": 1,
+        "title": "Lesson 1 — PM Portal Overview",
+        "title_es": "Lección 1 — Panorama del Portal de Gestión",
+        "why": "Same surface as Admin for day-to-day work. Backup / restore / force-reseed are hidden from PMs — that's the Admin's job.",
+        "why_es": "La misma superficie que Admin para el trabajo diario. Respaldo / restauración / force-reseed están ocultos de Gerentes — ese es trabajo del Admin.",
+        "steps": [
+            "/pm/login → Happy123! → Records & Forms.",
+            "Tiles: P&L, Daily Reports, Inspections, Safety Meetings, JHA, Trench Box, Incidents, Pre-Op.",
+            "Scroll to master lists: Jobs, Employees, Suppliers, Equipment, Parts.",
+            "Top bar: ALL OK badge, Guide, Company Info, Sign Out.",
+            "Backup / restore controls DO NOT appear in PM Portal.",
+        ],
+        "steps_es": [
+            "/pm/login → Happy123! → Registros y Formularios.",
+            "Tarjetas: P&L, Reportes Diarios, Inspecciones, Reuniones, JHA, Caja de Zanja, Incidentes, Pre-Op.",
+            "Baje a listas maestras: Trabajos, Empleados, Proveedores, Equipo, Partes.",
+            "Barra superior: bandera ALL OK, Guía, Company Info, Cerrar Sesión.",
+            "Controles de respaldo / restauración NO aparecen en Portal de Gestión.",
+        ],
+        "tips": ["PM token lasts until you sign out.", "Admin sees everything you see (and more). PMs cannot see what Admin sees."],
+        "tips_es": ["Token PM dura hasta que cierre sesión.", "Admin ve todo lo que ve usted (y más). Gerentes no ven lo que ve Admin."],
+        "cheatSheet": ["Records & Forms on top → master lists below.", "No backup/restore in PM. That's Admin only."],
+        "cheatSheet_es": ["Registros arriba → listas maestras abajo.", "Sin respaldo/restauración en PM. Solo Admin."],
+    },
+    {
+        "slug": "pm-02-master-lists",
+        "order": 2,
+        "title": "Lesson 2 — Master Lists (Jobs / Employees / Suppliers / Equipment / Parts)",
+        "title_es": "Lección 2 — Listas Maestras",
+        "why": "These 5 lists power every dropdown in the field app. Keeping them clean = the whole app stays clean.",
+        "why_es": "Estas 5 listas alimentan cada menú del app. Mantenerlas limpias = toda la app se mantiene limpia.",
+        "steps": [
+            "'Add New' for inline type. Click cell to edit. Changes save on blur.",
+            "Bulk Replace: paste spreadsheet → list wiped and rebuilt. Old data soft-deleted (14-day undo).",
+            "Red 🗑️ → row moves to Archive tab (NOT permanently deleted).",
+            "Archive tab: see deleted rows, 'Restore' pulls them back. After 14 days → permanent.",
+            "Export: downloads XLSX. Round-trips cleanly into Bulk Replace.",
+        ],
+        "steps_es": [
+            "'Agregar Nuevo' para escribir en línea. Clic en celda para editar. Guarda al salir.",
+            "Reemplazo Masivo: pegue hoja → lista borrada y reconstruida. Datos viejos con borrado suave (undo 14 días).",
+            "🗑️ rojo → fila al Archivo (NO borrada permanentemente).",
+            "Pestaña Archivo: vea filas borradas, 'Restaurar' las regresa. Después de 14 días → permanente.",
+            "Exportar: descarga XLSX. Round-trip limpio a Reemplazo Masivo.",
+        ],
+        "tips": ["14-day soft-delete is your safety net.", "Bulk-replaced by mistake? Every old row is in Archive."],
+        "tips_es": ["Borrado suave de 14 días es su red de seguridad.", "¿Reemplazo masivo por error? Cada fila vieja está en Archivo."],
+        "cheatSheet": ["Add New → inline. Click cell → edit.", "🗑️ = soft delete. Archive tab = 14-day undo.", "Bulk Replace = wipe + seed. Export = XLSX."],
+        "cheatSheet_es": ["Agregar Nuevo → en línea. Clic en celda → editar.", "🗑️ = borrado suave. Archivo = undo 14 días.", "Reemplazo Masivo = borrar + sembrar. Exportar = XLSX."],
+    },
+    {
+        "slug": "pm-03-import-export",
+        "order": 3,
+        "title": "Lesson 3 — Import / Export Round-Trips",
+        "title_es": "Lección 3 — Round-Trips de Importar / Exportar",
+        "why": "Your master lists may be the cleanest copy of this data the company has. Export regularly so finance, insurance, and auditors can pull fresh data.",
+        "why_es": "Sus listas maestras pueden ser la copia más limpia de estos datos. Exporte regularmente para finanzas, seguros y auditores.",
+        "steps": [
+            "'Export' (green) → timestamped XLSX downloads.",
+            "Edit offline in Excel/Sheets.",
+            "'Bulk Replace' → drop the workbook. List rebuilt.",
+            "Verify: re-export and diff. Should match byte-for-byte.",
+        ],
+        "steps_es": [
+            "'Exportar' (verde) → descarga XLSX con marca de tiempo.",
+            "Edite fuera de línea en Excel/Sheets.",
+            "'Reemplazo Masivo' → suelte el libro. Lista reconstruida.",
+            "Verifique: re-exporte y compare. Debe coincidir byte por byte.",
+        ],
+        "tips": ["Stage big imports against a 5-row copy first.", "Archive tab holds the replaced rows for 14 days."],
+        "tips_es": ["Pruebe importaciones grandes con copia de 5 filas primero.", "Pestaña Archivo guarda las filas reemplazadas por 14 días."],
+        "cheatSheet": ["Export → edit offline → Bulk Replace back in.", "Round-trip matches byte-for-byte."],
+        "cheatSheet_es": ["Exportar → editar fuera de línea → Reemplazo Masivo.", "Round-trip coincide byte por byte."],
+    },
+    {
+        "slug": "pm-04-archive",
+        "order": 4,
+        "title": "Lesson 4 — Archive & 14-Day Undo",
+        "title_es": "Lección 4 — Archivo y Undo de 14 Días",
+        "why": "Every delete is soft. Rows aren't gone — they sit in Archive for 14 days, then get purged. Safety net for a bad Friday click.",
+        "why_es": "Cada borrado es suave. Las filas no se van — están en Archivo por 14 días, luego se purgan. Red para un mal clic de viernes.",
+        "steps": [
+            "Any master list → 'Archive' tab at top.",
+            "See each deleted row: what, who, when, days until purge.",
+            "'Restore' pulls it back into live list instantly.",
+            "Rows >14 days old auto-purged by background job.",
+            "Admin only: 'Purge Now' button for compliance sweeps.",
+        ],
+        "steps_es": [
+            "Cualquier lista maestra → pestaña 'Archivo' arriba.",
+            "Vea cada fila borrada: qué, quién, cuándo, días hasta purga.",
+            "'Restaurar' la regresa a lista en vivo al instante.",
+            "Filas >14 días auto-purgadas por trabajo en segundo plano.",
+            "Solo Admin: botón 'Purgar Ahora' para barridas de cumplimiento.",
+        ],
+        "tips": ["Unfamiliar row in Archive? Check with Admin before restoring.", "14-day window is a HARD cap."],
+        "tips_es": ["¿Fila desconocida en Archivo? Consulte con Admin antes de restaurar.", "Ventana de 14 días es un límite DURO."],
+        "cheatSheet": ["Archive tab = soft-deleted rows.", "Restore → back in live list.", "Purged after 14 days. Then only a backup saves it."],
+        "cheatSheet_es": ["Pestaña Archivo = filas con borrado suave.", "Restaurar → de vuelta en la lista.", "Purgado después de 14 días. Luego solo un respaldo salva."],
+    },
+    {
+        "slug": "pm-05-email-routing",
+        "order": 5,
+        "title": "Lesson 5 — Email Routing (PM & Safety)",
+        "title_es": "Lección 5 — Ruteo de Correos",
+        "why": "Every form submitted from the field is auto-emailed to the relevant PM (based on job picked) and CC'd to Safety Manager.",
+        "why_es": "Cada formulario del campo se envía automáticamente al Gerente relevante (basado en el trabajo) con copia a Seguridad.",
+        "steps": [
+            "PM Portal → Email Routing panel.",
+            "Each PM row: name, email, phone, active.",
+            "Jobs master → each job has PM + PM Email fields. Daily Report auto-CCs that PM.",
+            "Change PM: edit job → pick from dropdown → email auto-updates → save.",
+            "Test: submit test form, check PM's inbox within 60 seconds.",
+        ],
+        "steps_es": [
+            "Portal de Gestión → panel Ruteo de Correos.",
+            "Cada fila: nombre, correo, teléfono, activo.",
+            "Maestro de Trabajos → cada trabajo tiene Gerente + Correo. Reporte Diario copia automático.",
+            "Cambiar Gerente: edite trabajo → elija del menú → correo actualiza → guarde.",
+            "Pruebe: envíe formulario, revise bandeja del Gerente en 60 seg.",
+        ],
+        "tips": ["AUTO_EMAIL_REPORTS env flag: ON in prod, OFF in preview.", "Not receiving: check active toggle, job assignment, spam, env var."],
+        "tips_es": ["Bandera AUTO_EMAIL_REPORTS: ON en prod, OFF en preview.", "No recibe: revise activo, asignación, spam, variable env."],
+        "cheatSheet": ["Job → PM → PM Email → auto-CC.", "Change PM on a job = all future emails re-route."],
+        "cheatSheet_es": ["Trabajo → Gerente → Correo → copia automática.", "Cambiar Gerente = correos futuros re-ruteados."],
+    },
+    {
+        "slug": "pm-06-posters-jha",
+        "order": 6,
+        "title": "Lesson 6 — Site Posters + JHA Plans",
+        "title_es": "Lección 6 — Carteles + Planes JHA",
+        "why": "Site Posters are printable handouts you tape inside trailers. JHA Plans are per-job PDFs for foremen to read before breaking ground.",
+        "why_es": "Carteles del Sitio son folletos que pega en tráileres. Planes JHA son PDFs por trabajo para capataces antes de comenzar.",
+        "steps": [
+            "PM Portal → Site Posters. Three posters (Cheat Sheet, Trench Box, JHA Plans).",
+            "Preview → Print → Tape in every active trailer.",
+            "JHA Plans Admin: upload PDF per active job. Max 10 MB.",
+            "Crews: Safety → JHA Plans → pick job → read PDF. No login.",
+            "Offline: tap PDF → share menu → save to Files.",
+        ],
+        "steps_es": [
+            "Portal de Gestión → Carteles. Tres carteles (Referencia, Caja de Zanja, JHA).",
+            "Vista previa → Imprimir → Pegar en tráileres activos.",
+            "Admin JHA: suba PDF por trabajo activo. Máximo 10 MB.",
+            "Cuadrillas: Seguridad → Planes JHA → elija trabajo → lea PDF. Sin login.",
+            "Sin conexión: toque PDF → compartir → guardar en Archivos.",
+        ],
+        "tips": ["Reprint quarterly — QRs don't change, paper fades.", "Upload JHA before Day 1 of every new job."],
+        "tips_es": ["Reimprima trimestralmente — QRs no cambian, papel se desgasta.", "Suba JHA antes del Día 1 de cada trabajo."],
+        "cheatSheet": ["Posters → print → tape in trailer.", "JHA PDF per job → readable offline on phones."],
+        "cheatSheet_es": ["Carteles → imprimir → pegar en tráiler.", "PDF JHA por trabajo → legible sin conexión."],
+    },
+]
+
+
+# --- Admin (7) ---
+ADMIN_LESSONS = [
+    {
+        "slug": "admin-01-platform-overview",
+        "order": 1,
+        "title": "Lesson 1 — Platform Overview",
+        "title_es": "Lección 1 — Panorama de la Plataforma",
+        "why": "You hold the admin password. Everything a PM can do, plus controls that keep the platform safe — backups, restores, force-reseed, audits.",
+        "why_es": "Usted tiene la contraseña admin. Todo lo de Gerente, más controles para mantener la plataforma segura — respaldos, restauraciones, force-reseed, auditorías.",
+        "steps": [
+            "React (frontend) + FastAPI (backend) + MongoDB. Deployed at mascidocs.com.",
+            "3 passwords: Admin (MASCI1982!), PM (Happy123!), Shop (Nothappy123!).",
+            "/admin/login. Lands on Records & Forms + System Recovery at bottom.",
+            "Top panels: Dashboards, Master Lists, Forms, Email Routing, Posters, JHA, Trench Boxes, PMs, System Recovery.",
+            "System Recovery (admin-strict): Backup, Integrity Check, On-Server Backups, Crew Recovery, Force-Reseed.",
+            "Scheduled backups: 02:00 + 18:00 UTC daily. 14-day retention. Auto-pruned.",
+        ],
+        "steps_es": [
+            "React + FastAPI + MongoDB. Desplegado en mascidocs.com.",
+            "3 contraseñas: Admin (MASCI1982!), Gerente (Happy123!), Taller (Nothappy123!).",
+            "/admin/login. Aterriza en Registros + Recuperación del Sistema abajo.",
+            "Paneles: Tableros, Listas Maestras, Formularios, Ruteo, Carteles, JHA, Cajas de Zanja, Gerentes, Recuperación.",
+            "Recuperación (admin-estricto): Respaldo, Verificación de Integridad, Respaldos, Recuperación de Cuadrilla, Force-Reseed.",
+            "Respaldos programados: 02:00 + 18:00 UTC diarios. 14 días de retención. Auto-podados.",
+        ],
+        "tips": ["Never share admin password. Rotate via ADMIN_PASSWORD env var.", "No reason to 'be a PM' as admin."],
+        "tips_es": ["Nunca comparta contraseña admin. Rote vía variable env ADMIN_PASSWORD.", "Sin razón para 'ser Gerente' siendo admin."],
+        "cheatSheet": ["Admin = PM + System Recovery.", "3 password tiers: Admin > PM > Shop.", "Backups run 02:00 + 18:00 UTC. 14-day retention. Automatic."],
+        "cheatSheet_es": ["Admin = Gerente + Recuperación del Sistema.", "3 niveles: Admin > Gerente > Taller.", "Respaldos 02:00 + 18:00 UTC. 14 días retención. Automático."],
+    },
+    {
+        "slug": "admin-02-backups-how",
+        "order": 2,
+        "title": "Lesson 2 — How Backups Work (Automatic + Manual)",
+        "title_es": "Lección 2 — Cómo Funcionan los Respaldos",
+        "why": "If mascidocs.com's DB disappeared right now, backups are the only thing that bring MASCI's records back. Know EXACTLY how they run.",
+        "why_es": "Si la DB de mascidocs.com desapareciera ahora, los respaldos son lo único que trae los registros de vuelta. Sepa EXACTAMENTE cómo corren.",
+        "steps": [
+            "Scheduled: 02:00 UTC (~10pm Eastern) and 18:00 UTC (~2pm Eastern). BACKUP_HOURS_UTC env var.",
+            "Content: ONE zip per run — MASCI_full_backup_YYYY-MM-DD_HHMMSSZ.zip. Every collection as JSON + all uploaded files.",
+            "Storage: /app/backend/backups/. Listed via Admin → On-Server Backups.",
+            "Retention: 14 days. Auto-pruned on every run (pre-flight).",
+            "Manual: Admin → System Recovery → 'Backup + email + download NOW'. ~30 sec. Download + email to BACKUP_EMAIL_TO.",
+            "Inside the .zip: normal file. Unzip in Explorer/Finder. JSON per collection. PDFs. Base64 photos. Not encrypted — store safely.",
+            "Integrity Check: compares live DB vs last backup manifest. Run before every deploy.",
+            "Scheduled backup failed? Check /app/backend logs (grep 'scheduled-backup'). Usually disk space.",
+        ],
+        "steps_es": [
+            "Programados: 02:00 UTC (~10pm Este) y 18:00 UTC (~2pm Este). Variable BACKUP_HOURS_UTC.",
+            "Contenido: UN zip por corrida — MASCI_full_backup_YYYY-MM-DD_HHMMSSZ.zip. Cada colección en JSON + archivos subidos.",
+            "Almacenamiento: /app/backend/backups/. Listado vía Admin → Respaldos en Servidor.",
+            "Retención: 14 días. Auto-podados en cada corrida (pre-flight).",
+            "Manual: Admin → Recuperación → 'Respaldo + correo + descargar AHORA'. ~30 seg. Descarga + correo a BACKUP_EMAIL_TO.",
+            "Dentro del .zip: archivo normal. Descomprima en Explorador/Finder. JSON por colección. PDFs. Fotos base64. No encriptado — guarde seguro.",
+            "Verificación de Integridad: compara DB en vivo vs último manifiesto. Corra antes de cada despliegue.",
+            "¿Respaldo programado falló? Revise logs /app/backend (grep 'scheduled-backup'). Usualmente espacio en disco.",
+        ],
+        "tips": ["Manual backup before any redeploy. 30 sec. Saves you from hidden env var flips.", "BACKUP_EMAIL_TO must be right in prod env.", "DON'T delete .zips unless you have another copy."],
+        "tips_es": ["Respaldo manual antes de cualquier redespliegue. 30 seg. Lo salva de cambios env ocultos.", "BACKUP_EMAIL_TO debe estar correcto en env de prod.", "NO borre .zips a menos que tenga otra copia."],
+        "cheatSheet": ["Auto: 02:00 + 18:00 UTC. 14-day retention.", "Manual: Admin → Backup + email + download NOW.", "Integrity Check before every deploy.", "BACKUP_EMAIL_TO must be set in prod env."],
+        "cheatSheet_es": ["Auto: 02:00 + 18:00 UTC. 14 días retención.", "Manual: Admin → Respaldo + correo + descargar.", "Verificación de Integridad antes de cada despliegue.", "BACKUP_EMAIL_TO configurado en env de prod."],
+    },
+    {
+        "slug": "admin-03-restore",
+        "order": 3,
+        "title": "Lesson 3 — How to Restore from a Backup",
+        "title_es": "Lección 3 — Cómo Restaurar desde un Respaldo",
+        "why": "You have a .zip. Something went wrong. You need data back. This is the exact flow.",
+        "why_es": "Tiene un .zip. Algo salió mal. Necesita datos de vuelta. Este es el flujo exacto.",
+        "steps": [
+            "Single soft-deleted row? Use Archive tab — faster and safer than full restore.",
+            "Grab a .zip from Admin → On-Server Backups, or your email inbox.",
+            "Admin → System Recovery → 'Restore From File' → pick .zip. Max 500 MB.",
+            "Restore MERGES: existing rows overwritten with backup copy. New rows added. Rows not in backup LEFT ALONE.",
+            "Confirmation modal → 'Yes, restore it'.",
+            "Watch progress. 'Restored X records across Y collections.'",
+            "Sanity-check dashboards.",
+        ],
+        "steps_es": [
+            "¿Una sola fila borrada suave? Use pestaña Archivo — más rápido y seguro que restauración completa.",
+            "Obtenga .zip de Admin → Respaldos en Servidor, o su correo.",
+            "Admin → Recuperación → 'Restaurar Desde Archivo' → elija .zip. Máximo 500 MB.",
+            "Restaurar FUSIONA: filas existentes sobrescritas con copia del respaldo. Filas nuevas agregadas. Filas no en respaldo DEJADAS INTACTAS.",
+            "Modal → 'Sí, restaurar'.",
+            "Vea progreso. 'Restaurados X registros en Y colecciones.'",
+            "Revise tableros.",
+        ],
+        "tips": ["Restores NEVER wipe. To rollback bad change: restore + manually delete new bad rows.", "Older .zip than live data = you'll overwrite fresh with stale. Think first."],
+        "tips_es": ["Restauraciones NUNCA borran. Para revertir: restaurar + borrar manualmente filas nuevas malas.", ".zip más viejo que datos en vivo = sobrescribirá fresco con viejo. Piense primero."],
+        "cheatSheet": ["Restore = merge. Never wipes. Old rows restored + new rows ADDED.", "True rollback: restore + manually delete new bad rows.", "Soft-delete tab is faster for single-row mistakes."],
+        "cheatSheet_es": ["Restaurar = fusionar. Nunca borra. Filas viejas restauradas + nuevas AGREGADAS.", "Rollback real: restaurar + borrar manualmente filas nuevas.", "Pestaña de borrado suave es más rápida para errores de una fila."],
+    },
+    {
+        "slug": "admin-04-integrity-check",
+        "order": 4,
+        "title": "Lesson 4 — Integrity Check & Audit Trail",
+        "title_es": "Lección 4 — Verificación de Integridad y Auditoría",
+        "why": "Trust but verify. Integrity Check proves every live collection is captured in the most recent backup.",
+        "why_es": "Confíe pero verifique. Verificación de Integridad prueba que cada colección en vivo está capturada en el respaldo más reciente.",
+        "steps": [
+            "Admin → System Recovery → Integrity Check.",
+            "Output: last_backup_filename, last_backup_at, live_collections, captured_collections, missing_from_backup, ok.",
+            "ok=false? Run manual backup immediately. If still missing next scheduled, backup code needs patch.",
+            "Run: after feature releases adding collections, before prod deploys, monthly sweeps.",
+        ],
+        "steps_es": [
+            "Admin → Recuperación → Verificación de Integridad.",
+            "Salida: last_backup_filename, last_backup_at, live_collections, captured_collections, missing_from_backup, ok.",
+            "¿ok=false? Corra respaldo manual. Si sigue faltando, código de respaldo necesita parche.",
+            "Corra: después de features con colecciones nuevas, antes de despliegues, barridas mensuales.",
+        ],
+        "tips": ["Current audit: all 23 collections captured.", "Integrity check is cheap (<1 sec). Run it often."],
+        "tips_es": ["Auditoría actual: las 23 colecciones capturadas.", "Verificación es barata (<1 seg). Córrala frecuentemente."],
+        "cheatSheet": ["Integrity Check = do live collections match last backup's manifest?", "ok=true → all good. ok=false → run manual backup now."],
+        "cheatSheet_es": ["Verificación = ¿coinciden colecciones en vivo con manifiesto?", "ok=true → bien. ok=false → respaldo manual ahora."],
+    },
+    {
+        "slug": "admin-05-crew-recovery",
+        "order": 5,
+        "title": "Lesson 5 — Crew Recovery Tools (Force-Reseed, Password Reset)",
+        "title_es": "Lección 5 — Herramientas de Recuperación",
+        "why": "Rare-use tools for when seed data drifts or a redeploy loses seed. Admin-only. Most admins never touch these.",
+        "why_es": "Herramientas de uso raro cuando datos sembrados se corrompen o redespliegue pierde semilla. Solo Admin. La mayoría nunca las toca.",
+        "steps": [
+            "Status: /api/admin/crew-recovery/status. Shows live DB vs seed counts.",
+            "Reset Password: /api/admin/crew-recovery/reset-password. Rare.",
+            "Force-Reseed: WIPES + rebuilds jobs_master, employees, suppliers from hard-coded JOB_LIBRARY. All edits LOST.",
+            "Before force-reseed: manual backup. Confirm you want to lose edits. Then click.",
+            "Scrap-Crew-Hub: already run historically. Don't re-run.",
+        ],
+        "steps_es": [
+            "Estado: /api/admin/crew-recovery/status. Muestra DB en vivo vs semilla.",
+            "Reiniciar Contraseña: /api/admin/crew-recovery/reset-password. Raro.",
+            "Force-Reseed: BORRA + reconstruye jobs_master, employees, suppliers desde JOB_LIBRARY. Todas las ediciones PERDIDAS.",
+            "Antes: respaldo manual. Confirme que quiere perder ediciones. Luego clic.",
+            "Scrap-Crew-Hub: ya corrido. No re-correr.",
+        ],
+        "tips": ["PM replaced all employees with 2 test rows? DON'T force-reseed — restore from Archive.", "All recovery routes require_admin_strict. PM/Shop tokens return 401."],
+        "tips_es": ["¿Gerente reemplazó todos los empleados con 2 filas? NO force-reseed — restaure desde Archivo.", "Todas las rutas require_admin_strict. Tokens PM/Taller regresan 401."],
+        "cheatSheet": ["Force-reseed = wipe + seed from JOB_LIBRARY. Last resort.", "Always manual-backup FIRST.", "Prefer Archive restore for single-row mistakes."],
+        "cheatSheet_es": ["Force-reseed = borrar + sembrar desde JOB_LIBRARY. Último recurso.", "Siempre respaldo manual PRIMERO.", "Prefiera Archivo para errores de una fila."],
+    },
+    {
+        "slug": "admin-06-deploy-redeploy",
+        "order": 6,
+        "title": "Lesson 6 — Safe Deploy / Redeploy Workflow",
+        "title_es": "Lección 6 — Flujo de Despliegue Seguro",
+        "why": "Every redeploy is a chance for something to break. The routine below has shipped 20+ deploys without data loss.",
+        "why_es": "Cada redespliegue es oportunidad de romper algo. La rutina abajo ha enviado más de 20 despliegues sin pérdida.",
+        "steps": [
+            "1 — BACKUP. Admin → 'Backup + email + download NOW'. Green check.",
+            "2 — Integrity Check. Confirm ok: true.",
+            "3 — Save-to-GitHub in Emergent chat input.",
+            "4 — Verify Emergent env vars: ADMIN/PM/SHOP_PASSWORD, HMAC_SECRET, CORS, MONGO, BACKUP_EMAIL_TO, RESEND_API_KEY, AUTO_EMAIL_REPORTS, RATE_LIMITING.",
+            "5 — Deploy. Wait for build.",
+            "6 — Smoke: curl /api/health, login all 3 tiers, spot-check dashboards, Backup panel.",
+            "7 — Post-deploy Integrity Check.",
+            "Issues? Rollback in Emergent dashboard. Data drift? Restore Step-1 backup.",
+        ],
+        "steps_es": [
+            "1 — RESPALDO. Admin → 'Respaldo + correo + descargar AHORA'. Palomita verde.",
+            "2 — Verificación de Integridad. Confirme ok: true.",
+            "3 — Save-to-GitHub en input de Emergent.",
+            "4 — Verifique env: ADMIN/PM/SHOP_PASSWORD, HMAC_SECRET, CORS, MONGO, BACKUP_EMAIL_TO, RESEND_API_KEY, AUTO_EMAIL_REPORTS, RATE_LIMITING.",
+            "5 — Desplegar. Espere compilación.",
+            "6 — Prueba: curl /api/health, login en 3 niveles, tableros, panel Respaldo.",
+            "7 — Verificación de Integridad post-despliegue.",
+            "¿Problemas? Rollback en tablero Emergent. ¿Datos cambiaron? Restaure del Paso 1.",
+        ],
+        "tips": ["Rollback is free and fast. Don't hesitate.", "Keep pre-deploy backup for a week after deploy."],
+        "tips_es": ["Rollback es gratis y rápido. No dude.", "Guarde respaldo pre-despliegue por una semana."],
+        "cheatSheet": ["Backup → Integrity Check → GitHub → Deploy → Smoke → Integrity Check.", "Rollback if anything's off. Debug later."],
+        "cheatSheet_es": ["Respaldo → Integridad → GitHub → Desplegar → Prueba → Integridad.", "Rollback si algo no está bien. Debugee después."],
+    },
+    {
+        "slug": "admin-07-security-passwords",
+        "order": 7,
+        "title": "Lesson 7 — Passwords, Access, and Security",
+        "title_es": "Lección 7 — Contraseñas, Acceso y Seguridad",
+        "why": "Weakest link is the password. Here's the token model and what to do when a password leaks or someone leaves.",
+        "why_es": "Eslabón más débil es la contraseña. Aquí está el modelo de token y qué hacer cuando se filtra o alguien se va.",
+        "steps": [
+            "Passwords in env vars: ADMIN_PASSWORD, PM_PASSWORD, SHOP_PASSWORD.",
+            "POST /api/{admin|pm|shop}/login → 64-char HMAC token → localStorage → X-{Admin|PM|Shop}-Token header.",
+            "No token expiry. Rotating password invalidates every session instantly.",
+            "Rotate: change env var → redeploy → all old tokens die.",
+            "Rate limit: LOGIN_MAX_FAILS=10, LOGIN_LOCKOUT_SECONDS=900 (15 min IP block).",
+            "CORS: only mascidocs.com + www origin. Preview via CORS_ORIGIN_REGEX.",
+            "Someone leaves → rotate their tier's password. Inform out-of-band (Signal/phone). NOT email.",
+        ],
+        "steps_es": [
+            "Contraseñas en env: ADMIN_PASSWORD, PM_PASSWORD, SHOP_PASSWORD.",
+            "POST /api/{admin|pm|shop}/login → token HMAC 64 chars → localStorage → header X-{Admin|PM|Shop}-Token.",
+            "Token sin expiración. Rotar contraseña invalida cada sesión al instante.",
+            "Rotar: cambie variable env → redespliegue → todos los tokens viejos mueren.",
+            "Límite: LOGIN_MAX_FAILS=10, LOGIN_LOCKOUT_SECONDS=900 (bloqueo IP 15 min).",
+            "CORS: solo mascidocs.com + origen www. Preview vía CORS_ORIGIN_REGEX.",
+            "Alguien se va → rote contraseña de su nivel. Informe fuera de banda (Signal/teléfono). NO correo.",
+        ],
+        "tips": ["Admin leaked? Rotate immediately. Audit activity_log last 72hrs.", "ADMIN_HMAC_SECRET leak = rotate that too → every admin session dies system-wide."],
+        "tips_es": ["¿Admin filtrado? Rote inmediatamente. Audite activity_log últimas 72hrs.", "¿ADMIN_HMAC_SECRET filtrado? Rótelo → cada sesión admin muere en todo el sistema."],
+        "cheatSheet": ["Passwords = env vars. Rotate = redeploy = all old tokens invalidated.", "Rate limit: 10 fails → 15-min IP lockout.", "When someone leaves → rotate their tier's password."],
+        "cheatSheet_es": ["Contraseñas = variables env. Rotar = redesplegar = todos los tokens invalidados.", "Límite: 10 fallos → bloqueo IP 15 min.", "Alguien se va → rote contraseña de su nivel."],
+    },
+]
+
+
+LESSONS = FIELD_LESSONS + SHOP_LESSONS + PM_LESSONS + ADMIN_LESSONS
+
+
+def _lessons_for(track: str) -> list:
+    prefix = track + "-"
+    return [l for l in LESSONS if l["slug"].startswith(prefix)]
+
+
+# ----------------------------------------------------------------------------
+# Renderer
+# ----------------------------------------------------------------------------
+
+_STRINGS = {
+    "en": {
+        "header_brand": "MASCI Hub Training",
+        "packet": "Training Packet",
+        "cover_subtitle": "Step-by-step walk-throughs, printable cheat sheets, and\u00a0reference\u00a0guides for every role.",
+        "toc": "Contents",
+        "lesson": "Lesson",
+        "why": "Why this matters",
+        "steps": "Step-by-step",
+        "tips": "Tips",
+        "cheat": "Cheat sheet",
+        "prepared": "Prepared for MASCI Safety &\u00a0Operations",
+        "generated": "Generated",
+        "page": "Page",
+        "of": "of",
+        "footer_legal": "\u00a9 MASCI \u00b7 A subsidiary of The Judd Group LLC",
+    },
+    "es": {
+        "header_brand": "Capacitación Hub MASCI",
+        "packet": "Paquete de Capacitación",
+        "cover_subtitle": "Guías paso a paso, hojas imprimibles y referencias para cada rol.",
+        "toc": "Contenido",
+        "lesson": "Lección",
+        "why": "Por qué importa",
+        "steps": "Paso a paso",
+        "tips": "Consejos",
+        "cheat": "Hoja de referencia",
+        "prepared": "Preparado para MASCI Seguridad &\u00a0Operaciones",
+        "generated": "Generado",
+        "page": "Página",
+        "of": "de",
+        "footer_legal": "\u00a9 MASCI \u00b7 Una subsidiaria de The Judd Group LLC",
+    },
+}
+
+
+def _pick(obj: dict, key: str, lang: str):
+    if lang == "es":
+        v = obj.get(f"{key}_es")
+        if v is not None:
+            return v
+    return obj.get(key)
+
+
+_CSS = """
+@page {
+  size: Letter;
+  margin: 0.55in 0.55in 0.65in 0.55in;
+  @bottom-left {
+    content: "MASCI \\00B7  mascidocs.com";
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 8pt;
+    color: #64748B;
+  }
+  @bottom-right {
+    content: counter(page) "  /  " counter(pages);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 8pt;
+    color: #64748B;
+  }
+}
+@page :first {
+  margin: 0.9in 0.6in 0.9in 0.6in;
+  @bottom-left  { content: ""; }
+  @bottom-right { content: ""; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; color: #0F172A; }
+body { font-size: 10.5pt; line-height: 1.45; }
+
+.stripe { height: 10px; background: repeating-linear-gradient(45deg, #B91C1C 0 14px, #FACC15 14px 28px); margin-bottom: 16pt; }
+
+.cover { page-break-after: always; }
+.cover .eyebrow { font-family: 'Courier New', monospace; font-size: 8.5pt; letter-spacing: 3pt; color: #B91C1C; text-transform: uppercase; font-weight: 800; }
+.cover h1 { font-size: 42pt; font-weight: 900; letter-spacing: -0.5pt; line-height: 1.02; margin: 10pt 0 6pt 0; color: #0F172A; }
+.cover h1 .accent { color: var(--accent); }
+.cover .blurb { font-size: 13pt; color: #334155; max-width: 520pt; margin-top: 6pt; }
+.cover .grid { display: flex; gap: 18pt; margin-top: 28pt; }
+.cover .stat { background: #F1F5F9; border-left: 3pt solid var(--accent); padding: 12pt 14pt; min-width: 120pt; }
+.cover .stat .n { font-size: 22pt; font-weight: 900; color: #0F172A; }
+.cover .stat .l { font-size: 8pt; letter-spacing: 2pt; color: #64748B; text-transform: uppercase; }
+.cover .meta { margin-top: 60pt; font-size: 9pt; color: #64748B; letter-spacing: 1pt; }
+
+.toc { page-break-after: always; }
+.toc h2 { font-size: 20pt; font-weight: 900; border-bottom: 2pt solid var(--accent); padding-bottom: 6pt; margin: 0 0 14pt 0; }
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: lessonNum; }
+.toc li { counter-increment: lessonNum; display: flex; gap: 10pt; padding: 7pt 0; border-bottom: 1px dotted #E2E8F0; font-size: 11pt; }
+.toc li::before { content: counter(lessonNum, decimal-leading-zero); color: var(--accent); font-weight: 800; min-width: 28pt; }
+
+.lesson { page-break-before: always; }
+.lesson .eyebrow { font-family: 'Courier New', monospace; font-size: 8pt; letter-spacing: 2.5pt; color: var(--accent); text-transform: uppercase; font-weight: 800; }
+.lesson h2 { font-size: 22pt; font-weight: 900; margin: 4pt 0 14pt 0; line-height: 1.12; }
+.lesson .why { border-left: 3pt solid #B91C1C; background: #FEF2F2; padding: 10pt 12pt; margin: 0 0 14pt 0; }
+.lesson .why .l { font-family: 'Courier New', monospace; font-size: 7.5pt; letter-spacing: 2pt; color: #B91C1C; font-weight: 800; text-transform: uppercase; margin-bottom: 3pt; }
+.lesson .why .b { font-size: 10.5pt; color: #0F172A; }
+
+.lesson h3 { font-family: 'Courier New', monospace; font-size: 8pt; letter-spacing: 2.5pt; color: #64748B; font-weight: 800; text-transform: uppercase; margin: 14pt 0 6pt 0; }
+
+.lesson ol.steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+.lesson ol.steps > li { counter-increment: s; display: flex; gap: 9pt; padding: 4pt 0; }
+.lesson ol.steps > li::before { content: counter(s); display: inline-block; min-width: 17pt; height: 17pt; border-radius: 17pt; background: #0F172A; color: #FFF; font-weight: 800; font-size: 9pt; text-align: center; line-height: 17pt; font-family: 'Courier New', monospace; flex-shrink: 0; }
+.lesson ul.tips { list-style: none; padding: 0; margin: 0; }
+.lesson ul.tips > li { padding: 3pt 0 3pt 14pt; position: relative; font-size: 10pt; color: #334155; }
+.lesson ul.tips > li::before { content: "\\2713"; position: absolute; left: 0; color: #047857; font-weight: 800; }
+
+.lesson .cheat { margin-top: 14pt; background: #0F172A; color: #F8FAFC; padding: 12pt 14pt; border-radius: 3pt; }
+.lesson .cheat .l { font-family: 'Courier New', monospace; font-size: 7.5pt; letter-spacing: 2.5pt; color: #FBBF24; font-weight: 800; text-transform: uppercase; margin-bottom: 5pt; }
+.lesson .cheat ul { list-style: none; padding: 0; margin: 0; }
+.lesson .cheat li { padding: 2.5pt 0; font-size: 10pt; }
+.lesson .cheat li::before { content: "\\2714 "; color: #FBBF24; font-weight: 900; margin-right: 5pt; }
+
+.endnote { page-break-before: always; padding-top: 40pt; font-size: 9pt; color: #64748B; text-align: center; }
+.endnote .big { font-size: 14pt; color: #0F172A; font-weight: 700; margin-bottom: 8pt; }
+"""
+
+
+def render_packet(track: str, lang: str = "en") -> bytes:
+    """Render the training packet for `track` in `lang` ('en' or 'es')."""
+    track = track.lower()
+    lang = "es" if str(lang).lower().startswith("es") else "en"
+    t = _STRINGS[lang]
+    meta = TRACKS.get(track)
+    if not meta:
+        raise ValueError(f"Unknown track: {track}")
+    lessons = _lessons_for(track)
+    accent = meta["accent"]
+    title = _pick(meta, "title", lang)
+    blurb = _pick(meta, "blurb", lang)
+    logo = _logo_uri()
+    now = datetime.now(timezone.utc).strftime("%b %d, %Y") if lang == "en" else datetime.now(timezone.utc).strftime("%d de %b, %Y")
+
+    parts = []
+    parts.append(f"<style>{_CSS}</style>")
+    parts.append(f"<div style='--accent: {accent};'>")
+
+    # Cover
+    parts.append("<section class='cover'>")
+    parts.append("<div class='stripe'></div>")
+    if logo:
+        parts.append(f"<img src='{logo}' style='height:40pt; margin-bottom:22pt;' alt='MASCI'/>")
+    parts.append(f"<div class='eyebrow'>{escape(t['header_brand'])} \u00b7 {escape(t['packet'])}</div>")
+    parts.append(f"<h1>{escape(title)}</h1>")
+    parts.append(f"<div class='blurb'>{escape(blurb)}</div>")
+    parts.append("<div class='grid'>")
+    parts.append(f"<div class='stat'><div class='n'>{len(lessons)}</div><div class='l'>{escape(t['lesson'])}S</div></div>")
+    parts.append(f"<div class='stat'><div class='n'>{lang.upper()}</div><div class='l'>Idioma / Language</div></div>")
+    parts.append("</div>")
+    parts.append(f"<div class='meta'>{escape(t['prepared'])} \u00b7 {escape(t['generated'])}: {now}</div>")
+    parts.append("</section>")
+
+    # TOC
+    parts.append("<section class='toc'>")
+    parts.append(f"<h2>{escape(t['toc'])}</h2>")
+    parts.append("<ol>")
+    for l in lessons:
+        parts.append(f"<li>{escape(_pick(l, 'title', lang))}</li>")
+    parts.append("</ol>")
+    parts.append("</section>")
+
+    # Lessons
+    for l in lessons:
+        parts.append("<section class='lesson'>")
+        parts.append(f"<div class='eyebrow'>{escape(title)} \u00b7 {escape(t['lesson'])} {l['order']}</div>")
+        parts.append(f"<h2>{escape(_pick(l, 'title', lang))}</h2>")
+        parts.append("<div class='why'>")
+        parts.append(f"<div class='l'>{escape(t['why'])}</div>")
+        parts.append(f"<div class='b'>{escape(_pick(l, 'why', lang))}</div>")
+        parts.append("</div>")
+        steps = _pick(l, "steps", lang) or []
+        if steps:
+            parts.append(f"<h3>{escape(t['steps'])}</h3>")
+            parts.append("<ol class='steps'>")
+            for s in steps:
+                parts.append(f"<li><span>{escape(s)}</span></li>")
+            parts.append("</ol>")
+        tips = _pick(l, "tips", lang) or []
+        if tips:
+            parts.append(f"<h3>{escape(t['tips'])}</h3>")
+            parts.append("<ul class='tips'>")
+            for tip in tips:
+                parts.append(f"<li>{escape(tip)}</li>")
+            parts.append("</ul>")
+        cheat = _pick(l, "cheatSheet", lang) or []
+        if cheat:
+            parts.append("<div class='cheat'>")
+            parts.append(f"<div class='l'>{escape(t['cheat'])}</div>")
+            parts.append("<ul>")
+            for c in cheat:
+                parts.append(f"<li>{escape(c)}</li>")
+            parts.append("</ul>")
+            parts.append("</div>")
+        parts.append("</section>")
+
+    # End note
+    parts.append("<section class='endnote'>")
+    parts.append(f"<div class='big'>mascidocs.com</div>")
+    parts.append(f"<div>{escape(t['footer_legal'])}</div>")
+    parts.append("</section>")
+
+    parts.append("</div>")
+    html = "<!DOCTYPE html><html><head><meta charset='utf-8'/></head><body>" + "".join(parts) + "</body></html>"
+    return HTML(string=html).write_pdf()

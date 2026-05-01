@@ -1,5 +1,45 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-01 — Training Packet PDFs (public, no login)
+
+Shipped the one-click PDF packet system on top of the Training Hub. Anyone with the URL can pull a complete training packet for any track in either language — cover page, TOC, every lesson with numbered steps, tips, cheat sheets. Perfect for emailing to insurance, auditors, or new-hire onboarding.
+
+### Backend
+- **New module** `backend/training_pdf.py` (~650 lines): Python mirror of the frontend lesson catalog + WeasyPrint renderer with a hand-tuned print CSS (Letter paper, page counters, accent-colored covers, dark cheat-sheet boxes, monospaced mono eyebrows).
+- **New endpoint** `GET /api/training/packet.pdf?track={field|shop|pm|admin}&lang={en|es}` — **public, no auth**. Generated on-the-fly, 30-second CDN cache. Returns 404 on unknown track.
+- Uses existing `weasyprint==68.1` dependency (same lib that powers safety-form PDFs). Zero new Python packages.
+
+### Frontend
+- **Training Hub landing** (`/training`): new dark "Downloadable packets" panel below the admin note. 4 track cards × EN/ES badges = 8 total one-click downloads.
+- **Per-track pages** (`/training/:track`): added "PDF · EN" and "PDF · ES" buttons next to the existing "Print all cheat sheets" button.
+- All links open in a new tab, render inline in the browser's PDF viewer, save-as works.
+
+### Verified
+| Check | Result |
+|---|---|
+| `GET /training/packet.pdf?track=field&lang=en` | ✅ 200 · 482 KB · `application/pdf` · `%PDF-` header |
+| `GET /training/packet.pdf?track=field&lang=es` | ✅ 200 · 483 KB |
+| `GET /training/packet.pdf?track=shop&lang=en/es` | ✅ 200 · 393 KB each |
+| `GET /training/packet.pdf?track=pm&lang=en/es` | ✅ 200 · 467 KB each |
+| `GET /training/packet.pdf?track=admin&lang=en/es` | ✅ 200 · 482 KB each |
+| `GET /training/packet.pdf?track=foo` | ✅ 404 |
+| Field ES content audit (gemini analysis): cover "Capacitación de Cuadrilla de Campo", TOC lists all 7 lessons in Spanish, lesson bodies Spanish, headers "POR QUÉ IMPORTA / PASO A PASO / CONSEJOS / HOJA DE REFERENCIA" | ✅ 10 pages |
+| Landing page download panel: 8 buttons (4 tracks × EN/ES) rendered with correct test IDs | ✅ |
+
+### Public shareable URLs (copy-paste to share)
+- `https://mascidocs.com/api/training/packet.pdf?track=field&lang=en`
+- `https://mascidocs.com/api/training/packet.pdf?track=field&lang=es`
+- `https://mascidocs.com/api/training/packet.pdf?track=shop&lang=en`
+- `https://mascidocs.com/api/training/packet.pdf?track=shop&lang=es`
+- `https://mascidocs.com/api/training/packet.pdf?track=pm&lang=en`
+- `https://mascidocs.com/api/training/packet.pdf?track=pm&lang=es`
+- `https://mascidocs.com/api/training/packet.pdf?track=admin&lang=en`
+- `https://mascidocs.com/api/training/packet.pdf?track=admin&lang=es`
+
+(Links only work after redeploy — currently live on preview only.)
+
+
+
 ## 2026-05-01 — Training Hub: Full Spanish Lesson Bodies
 
 Closed the gap from the earlier training build. Every one of the **23 lesson bodies** (title + "Why this matters" + all numbered steps + all tips + cheat sheet) now ships with a Spanish translation that renders automatically when the EN/ES toggle is flipped.

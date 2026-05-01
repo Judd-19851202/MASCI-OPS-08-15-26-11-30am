@@ -8,6 +8,7 @@ import {
   Wrench,
   Briefcase,
   ShieldCheck,
+  FileDown,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
@@ -127,6 +128,49 @@ export default function TrainingHub() {
           <p>
             {t("Shop / PM / Admin tracks require their respective passwords. The Field Crew track is public — no login needed. Each lesson has a video slot; admins can paste YouTube / Loom / Vimeo URLs via the Admin console → Training Videos panel.")}
           </p>
+        </div>
+
+        <div className="mt-6 rounded-md border-2 border-slate-900 bg-slate-900 text-white p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-400 font-bold mb-1 flex items-center gap-2">
+                <FileDown className="w-3.5 h-3.5" /> {t("Downloadable packets")}
+              </div>
+              <h3 className="font-display text-lg font-black text-white">
+                {t("PDF training packets · no login required")}
+              </h3>
+              <p className="text-slate-300 text-sm mt-1 leading-relaxed max-w-2xl">
+                {t("Share these links with insurance, auditors, or new-hire onboarding. Cover, table of contents, and every lesson in one file — in English or Spanish.")}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
+            {Object.values(TRACKS).map((tr) => (
+              <div key={tr.slug} className="bg-slate-800 rounded p-3 flex items-center justify-between gap-2 text-xs">
+                <span className="font-bold truncate">{lang === "es" && tr.title_es ? tr.title_es : tr.title}</span>
+                <div className="flex gap-1 shrink-0">
+                  <a
+                    href={`${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${tr.slug}&lang=en`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-700 hover:bg-amber-500 hover:text-slate-900 font-mono font-bold uppercase tracking-wide transition-colors"
+                    data-testid={`training-landing-pdf-${tr.slug}-en`}
+                  >
+                    EN
+                  </a>
+                  <a
+                    href={`${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${tr.slug}&lang=es`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-700 hover:bg-amber-500 hover:text-slate-900 font-mono font-bold uppercase tracking-wide transition-colors"
+                    data-testid={`training-landing-pdf-${tr.slug}-es`}
+                  >
+                    ES
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </div>

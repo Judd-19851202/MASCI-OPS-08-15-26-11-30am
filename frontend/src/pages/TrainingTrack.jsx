@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Printer, ExternalLink, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Printer, ExternalLink, CheckCircle2, AlertCircle, FileDown } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
@@ -111,7 +111,7 @@ export default function TrainingTrack() {
           <p className="text-slate-600 text-base sm:text-lg mt-3 leading-relaxed max-w-2xl">
             {blurb}
           </p>
-          <div className="mt-4 flex items-center gap-3 text-xs text-slate-500 font-mono uppercase tracking-[0.2em] print:hidden">
+          <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 font-mono uppercase tracking-[0.2em] print:hidden flex-wrap">
             <span>{lessons.length} {t("lessons")}</span>
             <button
               type="button"
@@ -121,6 +121,24 @@ export default function TrainingTrack() {
             >
               <Printer className="w-3.5 h-3.5" /> {t("Print all cheat sheets")}
             </button>
+            <a
+              href={`${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${track.slug}&lang=en`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-bold transition-colors"
+              data-testid={`training-pdf-${track.slug}-en`}
+            >
+              <FileDown className="w-3.5 h-3.5" /> PDF · EN
+            </a>
+            <a
+              href={`${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${track.slug}&lang=es`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-bold transition-colors"
+              data-testid={`training-pdf-${track.slug}-es`}
+            >
+              <FileDown className="w-3.5 h-3.5" /> PDF · ES
+            </a>
           </div>
         </div>
 
