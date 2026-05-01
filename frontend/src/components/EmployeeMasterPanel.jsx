@@ -19,6 +19,7 @@ const EmployeeMasterPanel = () => (
     updateEndpoint="/admin/employees/{id}"
     deleteEndpoint="/admin/employees/{id}"
     uploadEndpoint="/admin/employees/upload"
+    exportEndpoint="/admin/employees/export"
     archiveEndpoint="/admin/employees/archive"
     restoreEndpoint="/admin/employees/{id}/restore"
     uploadAccept=".xlsx,.xlsm,.csv"

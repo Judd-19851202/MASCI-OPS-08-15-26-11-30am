@@ -320,6 +320,170 @@ async def _list_archive(coll_name: str, sort_field: str = "deleted_at") -> List[
     return out
 
 
+# ---------------------------------------------------------------------------
+# Master-list exports — one-click download of every active row as a sorted
+# .xlsx file using the EXACT same column shape the bulk-import accepts.
+# Round-trip safe: the file you export today can be re-uploaded tomorrow.
+# ---------------------------------------------------------------------------
+def _xlsx_response(rows: List[List[Any]], header: List[str], filename: str, sheet: str = "Sheet1") -> Response:
+    """Build an XLSX from a header row + 2-D row data and return as download."""
+    import openpyxl as _ox
+    wb = _ox.Workbook()
+    ws = wb.active
+    ws.title = sheet[:31] or "Sheet1"
+    ws.append(header)
+    for r in rows:
+        ws.append(r)
+    # Auto-widen columns based on the longest cell in each column
+    for idx, col_header in enumerate(header, start=1):
+        longest = len(str(col_header))
+        for r in rows:
+            if idx - 1 < len(r):
+                longest = max(longest, len(str(r[idx - 1] or "")))
+        ws.column_dimensions[_ox.utils.get_column_letter(idx)].width = min(longest + 2, 60)
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return Response(
+        content=buf.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+def _today_stamp() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+
+@api_router.get("/admin/employees/export")
+async def export_employees(_: bool = Depends(require_admin)):
+    cursor = db.employees.find(ACTIVE_FILTER, {"_id": 0}).sort("name", 1)
+    docs = await cursor.to_list(5000)
+    header = ["Name", "Employee ID", "Trade", "Role", "Crew", "Email", "Phone"]
+    rows = [
+        [
+            d.get("name", ""),
+            d.get("employee_id", ""),
+            d.get("trade", ""),
+            d.get("role", ""),
+            d.get("crew", ""),
+            d.get("email", ""),
+            d.get("phone", ""),
+        ]
+        for d in docs
+    ]
+    return _xlsx_response(rows, header, f"MASCI_employees_{_today_stamp()}.xlsx", "Employees")
+
+
+@api_router.get("/admin/suppliers/export")
+async def export_suppliers(_: bool = Depends(require_admin)):
+    cursor = db.suppliers.find(ACTIVE_FILTER, {"_id": 0}).sort("name", 1)
+    docs = await cursor.to_list(5000)
+    header = ["Name", "Active"]
+    rows = [
+        [d.get("name", ""), "Yes" if d.get("is_active", True) else "No"]
+        for d in docs
+    ]
+    return _xlsx_response(rows, header, f"MASCI_suppliers_{_today_stamp()}.xlsx", "Suppliers")
+
+
+@api_router.get("/admin/equipment-master/export")
+async def export_equipment_master(_: bool = Depends(require_admin)):
+    cursor = db.equipment_master.find(ACTIVE_FILTER, {"_id": 0}).sort(
+        [("category", 1), ("unit_number", 1)]
+    )
+    docs = await cursor.to_list(5000)
+    header = [
+        "Unit Number", "Year", "Make", "Model", "VIN/Serial",
+        "Category", "Pre-Op Type", "Company", "Comments",
+    ]
+    rows = [
+        [
+            d.get("unit_number", ""),
+            d.get("year", ""),
+            d.get("make", ""),
+            d.get("model", ""),
+            d.get("vin_serial_number", ""),
+            d.get("category", ""),
+            d.get("preop_equipment_type", ""),
+            d.get("company", ""),
+            d.get("comments", ""),
+        ]
+        for d in docs
+    ]
+    return _xlsx_response(rows, header, f"MASCI_equipment_{_today_stamp()}.xlsx", "Louis")
+
+
+@api_router.get("/admin/equipment-parts/export")
+async def export_equipment_parts(_: bool = Depends(require_admin)):
+    """Flatten the per-unit parts catalog into one wide sheet — same column
+    shape the bulk-importer accepts for round-trip."""
+    cursor = db.equipment_units.find({}, {"_id": 0})
+    header = [
+        "Unit Number", "Category", "Name", "Part Number", "Qty",
+        "Size", "Position", "Ply", "Brand", "Notes",
+    ]
+    rows: List[List[Any]] = []
+    async for u in cursor:
+        unit = u.get("unit_number") or u.get("id") or ""
+        for cat_key in ("filters", "cutting_edges", "wiper_blades", "tires", "other_wear_items"):
+            for p in u.get(cat_key, []) or []:
+                rows.append([
+                    unit,
+                    cat_key.replace("_", " ").title(),
+                    p.get("name", ""),
+                    p.get("part_number", ""),
+                    p.get("qty", ""),
+                    p.get("size", ""),
+                    p.get("position", ""),
+                    p.get("ply", ""),
+                    p.get("brand", ""),
+                    p.get("notes", ""),
+                ])
+    rows.sort(key=lambda r: (str(r[0]), str(r[1]), str(r[2])))
+    return _xlsx_response(rows, header, f"MASCI_parts_{_today_stamp()}.xlsx", "Parts")
+
+
+@api_router.get("/admin/jobs/export")
+async def export_jobs(_: bool = Depends(require_admin)):
+    from jobs_master import list_jobs
+    docs = await list_jobs(db, only_active=False)
+    header = [
+        "Project Number", "Project Name", "Location", "Client",
+        "PM Name", "PM Email", "Active",
+    ]
+    rows = [
+        [
+            d.get("project_number", ""),
+            d.get("project_name", ""),
+            d.get("location", ""),
+            d.get("client", ""),
+            d.get("pm_name", ""),
+            d.get("pm_email", ""),
+            "Yes" if d.get("active", True) else "No",
+        ]
+        for d in docs
+    ]
+    return _xlsx_response(rows, header, f"MASCI_jobs_{_today_stamp()}.xlsx", "Jobs")
+
+
+@api_router.get("/admin/project-managers/export")
+async def export_project_managers(_: bool = Depends(require_admin)):
+    cursor = db.project_managers.find(ACTIVE_FILTER, {"_id": 0}).sort("name", 1)
+    docs = await cursor.to_list(2000)
+    header = ["Name", "Email", "Phone", "Active"]
+    rows = [
+        [
+            d.get("name", ""),
+            d.get("email", ""),
+            d.get("phone", ""),
+            "Yes" if d.get("active", True) else "No",
+        ]
+        for d in docs
+    ]
+    return _xlsx_response(rows, header, f"MASCI_pms_{_today_stamp()}.xlsx", "PMs")
+
+
 @api_router.post("/admin/login")
 async def admin_login(body: AdminLoginRequest, request: Request):
     ip = _client_ip(request)

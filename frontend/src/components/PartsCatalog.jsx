@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Wrench, Plus, Trash2, Loader2, Save, ShoppingCart, Mail, Search, Truck } from "lucide-react";
+import { Wrench, Plus, Trash2, Loader2, Save, ShoppingCart, Mail, Search, Truck, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,6 +50,30 @@ export default function PartsCatalog() {
   const [updatedBy, setUpdatedBy] = useState("");
   const [cart, setCart] = useState([]); // [{key, name, part_number, qty, category, notes}]
   const [orderOpen, setOrderOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const onExport = async () => {
+    setExporting(true);
+    try {
+      const r = await api.get("/admin/equipment-parts/export", { responseType: "blob" });
+      const cd = r.headers["content-disposition"] || r.headers["Content-Disposition"] || "";
+      const m = /filename="?([^";]+)"?/i.exec(cd);
+      const fname = m ? m[1] : "MASCI_parts.xlsx";
+      const url = window.URL.createObjectURL(new Blob([r.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`Downloaded ${fname}`);
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Load 589-unit fleet for the picker
   useEffect(() => {
@@ -189,6 +213,22 @@ export default function PartsCatalog() {
               data-testid="parts-fleet-search"
             />
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onExport}
+            disabled={exporting}
+            className="h-8 px-3 border-2 border-emerald-400 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-mono uppercase tracking-wide text-[11px]"
+            data-testid="parts-export-btn"
+            title="Download every parts entry across the fleet as XLSX"
+          >
+            {exporting ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+            ) : (
+              <Download className="w-3.5 h-3.5 mr-1" />
+            )}
+            Export
+          </Button>
         </div>
         <div className="max-h-56 overflow-y-auto" data-testid="parts-fleet-list">
           {filteredFleet.map((u, i) => (

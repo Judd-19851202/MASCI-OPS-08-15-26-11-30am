@@ -5,6 +5,7 @@ import {
   Plus,
   Trash2,
   Upload,
+  Download,
   RefreshCcw,
   CheckCircle2,
   XCircle,
@@ -46,6 +47,7 @@ export default function AdminJobMasterPanel() {
   const [retainDays, setRetainDays] = useState(14);
   const [showArchive, setShowArchive] = useState(false);
   const [restoringId, setRestoringId] = useState(null);
+  const [exporting, setExporting] = useState(false);
   const [pms, setPms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -181,6 +183,29 @@ export default function AdminJobMasterPanel() {
     }
   };
 
+  const onExport = async () => {
+    setExporting(true);
+    try {
+      const r = await api.get("/admin/jobs/export", { responseType: "blob" });
+      const cd = r.headers["content-disposition"] || r.headers["Content-Disposition"] || "";
+      const m = /filename="?([^";]+)"?/i.exec(cd);
+      const fname = m ? m[1] : "MASCI_jobs.xlsx";
+      const url = window.URL.createObjectURL(new Blob([r.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`Downloaded ${fname}`);
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const runBulk = async () => {
     let rows;
     try {
@@ -247,6 +272,21 @@ export default function AdminJobMasterPanel() {
               <RefreshCcw className="w-3.5 h-3.5 mr-1" />
             )}
             Refresh
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onExport}
+            disabled={exporting || loading}
+            className="h-9 text-xs font-mono uppercase tracking-wide border-2 border-emerald-400 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+            data-testid="job-master-export-btn"
+            title="Download the active jobs list as XLSX"
+          >
+            {exporting ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+            ) : (
+              <Download className="w-3.5 h-3.5 mr-1" />
+            )}
+            Export
           </Button>
           <Button
             variant="outline"

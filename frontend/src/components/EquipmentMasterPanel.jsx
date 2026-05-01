@@ -12,6 +12,7 @@ import {
   X,
   Archive,
   RotateCcw,
+  Download,
 } from "lucide-react";
 import {
   Dialog,
@@ -99,6 +100,7 @@ export default function EquipmentMasterPanel() {
   const [saving, setSaving] = useState(false);
   const [busyRow, setBusyRow] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const fileRef = useRef(null);
 
   const refresh = async () => {
@@ -229,6 +231,30 @@ export default function EquipmentMasterPanel() {
     }
   };
 
+  const onExport = async () => {
+    setExporting(true);
+    try {
+      const r = await api.get("/admin/equipment-master/export", { responseType: "blob" });
+      const cd = r.headers["content-disposition"] || r.headers["Content-Disposition"] || "";
+      const m = /filename="?([^";]+)"?/i.exec(cd);
+      const fname = m ? m[1] : "MASCI_equipment.xlsx";
+      const url = window.URL.createObjectURL(new Blob([r.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`Downloaded ${fname}`);
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+
   const onFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -278,11 +304,27 @@ export default function EquipmentMasterPanel() {
           type="button"
           variant="outline"
           onClick={refresh}
-          disabled={loading || saving || uploading}
+          disabled={loading || saving || uploading || exporting}
           className="h-8 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:bg-slate-700 font-mono uppercase tracking-wide text-[11px]"
           data-testid="equipment-master-refresh"
         >
           <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onExport}
+          disabled={exporting || loading}
+          className="h-8 px-3 border-2 border-emerald-400 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-mono uppercase tracking-wide text-[11px]"
+          data-testid="equipment-master-export-btn"
+          title="Download the current fleet as XLSX"
+        >
+          {exporting ? (
+            <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+          ) : (
+            <Download className="w-3.5 h-3.5 mr-1" />
+          )}
+          Export
         </Button>
         <input
           ref={fileRef}

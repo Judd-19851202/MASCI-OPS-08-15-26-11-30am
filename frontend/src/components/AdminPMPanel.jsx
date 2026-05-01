@@ -10,6 +10,7 @@ import {
   Pencil,
   Save,
   X,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ export default function AdminPMPanel() {
   const [editingId, setEditingId] = useState(null);
   const [editDraft, setEditDraft] = useState({});
   const [savingId, setSavingId] = useState(null);
+  const [exporting, setExporting] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
 
   const refresh = async () => {
@@ -55,6 +57,29 @@ export default function AdminPMPanel() {
   useEffect(() => {
     refresh();
   }, []);
+
+  const onExport = async () => {
+    setExporting(true);
+    try {
+      const r = await api.get("/admin/project-managers/export", { responseType: "blob" });
+      const cd = r.headers["content-disposition"] || r.headers["Content-Disposition"] || "";
+      const m = /filename="?([^";]+)"?/i.exec(cd);
+      const fname = m ? m[1] : "MASCI_pms.xlsx";
+      const url = window.URL.createObjectURL(new Blob([r.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`Downloaded ${fname}`);
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const addPm = async (e) => {
     e?.preventDefault?.();

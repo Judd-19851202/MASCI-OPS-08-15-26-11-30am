@@ -1,5 +1,41 @@
 # MASCI Safety Hub — PRD
 
+## 2026-04-30 — One-click Export buttons on every master list
+
+**User ask**: "we have import buttons on jobs, employees, equipment, parts & subcontractors/vendors can we add a export list button as crews/pm's shop adds things to the list our list may become more reliable than others"
+
+### Backend — 6 new XLSX export endpoints
+Centralized helper `_xlsx_response(rows, header, filename, sheet)` in `server.py` builds an in-memory openpyxl workbook with auto-sized columns and streams it as a download (Content-Disposition with timestamped filename `MASCI_<entity>_YYYY-MM-DD.xlsx`).
+
+- `GET /admin/employees/export` → 7-column sheet matching the bulk-import shape
+- `GET /admin/suppliers/export` → 2-column (Name, Active)
+- `GET /admin/equipment-master/export` → 9-column sheet, headed "Louis" so the existing bulk-import re-imports it cleanly
+- `GET /admin/equipment-parts/export` → flattened wide sheet (Unit Number / Category / Name / Part Number / Qty / Size / Position / Ply / Brand / Notes) across every unit
+- `GET /admin/jobs/export` → 7-column (Project Number, Project Name, Location, Client, PM Name, PM Email, Active)
+- `GET /admin/project-managers/export` → 4-column PM roster
+
+All six gate on `require_admin`, so admin AND PM tokens both pass; backup-recovery routes still gate on `require_admin_strict`.
+
+### Frontend — green Export button next to Bulk Replace on every panel
+- `MasterListPanel.jsx` — added `exportEndpoint` prop, `onExport` blob-download helper, green-emerald **Export** button in the header bar.
+- `EmployeeMasterPanel.jsx` and `SupplierMasterPanel.jsx` — config flag wired.
+- `EquipmentMasterPanel.jsx` — local `onExport` + green Export button between Refresh and Bulk Replace.
+- `AdminJobMasterPanel.jsx` — same.
+- `AdminPMPanel.jsx` — same (PM roster).
+- `PartsCatalog.jsx` — Export button in the "Pick a Unit" header (downloads the entire fleet's parts in one wide sheet).
+
+### Tests
+- New `/app/backend/tests/test_master_lists_export_iter34.py` — 8 cases covering all 6 endpoints (200 + valid XLSX + correct filename), PM-token export, and 401-without-token. **All 8 pass.**
+- Full backend regression: **277 passed, 0 failed.**
+
+### Why this matters
+The user's concern: "as crews/PMs/shop adds things to the list our list may become more reliable than others". The Export button gives ownership a one-click way to:
+1. Hand off the most-current employee roster / fleet / parts catalog to insurance, finance, or auditors.
+2. Round-trip the data — every export uses the exact column shape the Bulk Replace import accepts.
+3. Build offline reference copies on a NAS / shared drive (in addition to the scheduled twin-window full backups).
+
+
+
 ## 2026-04-30 — Soft-delete safety net + PM-portal admin lockdown
 
 **User asks**:

@@ -20,6 +20,7 @@ const SupplierMasterPanel = () => (
     updateEndpoint="/admin/suppliers/{id}"
     deleteEndpoint="/admin/suppliers/{id}"
     uploadEndpoint="/admin/suppliers/upload"
+    exportEndpoint="/admin/suppliers/export"
     archiveEndpoint="/admin/suppliers/archive"
     restoreEndpoint="/admin/suppliers/{id}/restore"
     uploadAccept=".xlsx,.xlsm,.csv"

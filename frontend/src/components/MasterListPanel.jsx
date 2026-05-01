@@ -8,6 +8,7 @@ import {
   X,
   Search,
   UploadCloud,
+  Download,
   RefreshCw,
   CheckCircle2,
   Archive,
@@ -52,6 +53,7 @@ export default function MasterListPanel({
   updateEndpoint,
   deleteEndpoint,
   uploadEndpoint,
+  exportEndpoint,         // optional GET — XLSX download
   archiveEndpoint,        // optional GET — soft-deleted rows
   restoreEndpoint,        // optional POST — restore (uses {id} placeholder)
   uploadAccept = ".xlsx,.csv",
@@ -73,6 +75,7 @@ export default function MasterListPanel({
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [savingRow, setSavingRow] = useState(null);
@@ -213,6 +216,31 @@ export default function MasterListPanel({
     }
   };
 
+  const onExport = async () => {
+    if (!exportEndpoint) return;
+    setExporting(true);
+    try {
+      const r = await api.get(exportEndpoint, { responseType: "blob" });
+      // Pull filename out of Content-Disposition
+      const cd = r.headers["content-disposition"] || r.headers["Content-Disposition"] || "";
+      const m = /filename="?([^";]+)"?/i.exec(cd);
+      const fname = m ? m[1] : `MASCI_${entitySingular}s.xlsx`;
+      const url = window.URL.createObjectURL(new Blob([r.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`Downloaded ${fname}`);
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const filtered = useMemo(() => {
     if (!filter.trim()) return items;
     const q = filter.toLowerCase();
@@ -241,12 +269,30 @@ export default function MasterListPanel({
           type="button"
           variant="outline"
           onClick={refresh}
-          disabled={loading || adding || uploading}
+          disabled={loading || adding || uploading || exporting}
           className="h-8 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:bg-slate-700 font-mono uppercase tracking-wide text-[11px]"
           data-testid={`${testIdPrefix}-refresh`}
         >
           <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
         </Button>
+        {exportEndpoint && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onExport}
+            disabled={exporting || loading}
+            className="h-8 px-3 border-2 border-emerald-400 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-mono uppercase tracking-wide text-[11px]"
+            data-testid={`${testIdPrefix}-export-btn`}
+            title="Download the current active list as XLSX"
+          >
+            {exporting ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+            ) : (
+              <Download className="w-3.5 h-3.5 mr-1" />
+            )}
+            Export
+          </Button>
+        )}
         <input
           ref={fileRef}
           type="file"
