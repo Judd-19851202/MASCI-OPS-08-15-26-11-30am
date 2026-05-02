@@ -203,6 +203,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
   const [saving, setSaving] = useState(false);
   const [unitSearch, setUnitSearch] = useState("");
   const [criticalFluidAlert, setCriticalFluidAlert] = useState(null); // {section, item} when blocking
+  const [tallyCollapsed, setTallyCollapsed] = useState(false);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
 
@@ -906,18 +907,51 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           </Section>
         ))}
 
-        {/* Tally bar */}
-        {data.equipment_type && (
-          <div className="bg-white border-2 border-slate-300 rounded-md p-4 flex items-center justify-between gap-3 sticky bottom-4 shadow-md">
-            <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
+        {/* Tally bar — sticky at bottom while the user fills out the
+            inspection so they can see running counts. Dismissible:
+              • Tap the × to collapse to a small floating chip that
+                stays out of the way of the Emergent badge.
+              • Tap the chip to re-expand.
+            On mobile we add extra right-side padding so the counts
+            never collide with the "Made with Emergent" floating badge
+            that Emergent injects on preview / deployed URLs. */}
+        {data.equipment_type && !tallyCollapsed && (
+          <div
+            className="bg-white border-2 border-slate-300 rounded-md px-3 py-2 sm:p-4 flex items-center justify-between gap-2 sm:gap-3 sticky bottom-4 shadow-md z-20"
+            style={{ paddingRight: "max(0.75rem, env(safe-area-inset-right))" }}
+            data-testid="equip-tally-bar"
+          >
+            <button
+              type="button"
+              onClick={() => setTallyCollapsed(true)}
+              aria-label={t("Hide tally")}
+              className="shrink-0 w-7 h-7 rounded-full border border-slate-300 text-slate-500 hover:text-slate-900 hover:border-slate-500 flex items-center justify-center text-lg leading-none"
+              data-testid="equip-tally-dismiss"
+            >
+              ×
+            </button>
+            <div className="hidden sm:block font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
               {t("Tally")}
             </div>
-            <div className="flex items-center gap-3 text-sm font-bold">
+            <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-bold ml-auto">
               <span className="text-emerald-700" data-testid="tally-pass">{data.pass_count} PASS</span>
               <span className="text-red-700" data-testid="tally-fail">{data.fail_count} FAIL</span>
               <span className="text-slate-600" data-testid="tally-na">{data.na_count} N/A</span>
             </div>
           </div>
+        )}
+        {data.equipment_type && tallyCollapsed && (
+          <button
+            type="button"
+            onClick={() => setTallyCollapsed(false)}
+            className="sticky bottom-4 ml-auto flex items-center gap-2 bg-slate-900 text-white rounded-full px-3 py-1.5 shadow-md text-xs font-mono uppercase tracking-[0.15em] z-20 hover:bg-slate-800"
+            data-testid="equip-tally-restore"
+          >
+            <span>{t("Tally")}</span>
+            <span className="text-emerald-400">{data.pass_count}</span>
+            <span className="text-red-400">{data.fail_count}</span>
+            <span className="text-slate-300">{data.na_count}</span>
+          </button>
         )}
 
         <Section number="98" title={t("Notes & Photos")}>

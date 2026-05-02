@@ -391,6 +391,7 @@ const ES = {
   "Replace photo": "Reemplazar foto",
   "Add photo (required for FAIL)": "Agregar foto (requerida para FALLA)",
   "Tally": "Resumen",
+  "Hide tally": "Ocultar resumen",
   "Notes & Photos": "Notas y Fotos",
   "Deficiency notes": "Notas de deficiencias",
   "What's wrong — be specific": "Qué está mal — sea específico",
