@@ -138,7 +138,13 @@ const MAJOR_OUT_OF_SERVICE_ITEMS = new Set([
 const isOutOfServiceItem = (item) =>
   CRITICAL_FLUID_ITEMS.has(item) || MAJOR_OUT_OF_SERVICE_ITEMS.has(item);
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => {
+  // Local date — NOT UTC. A foreman in Eastern time after ~7 PM gets
+  // "tomorrow" from toISOString(), which is wrong. Use local components.
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
 const nowHm = () => {
   const d = new Date();
   return `${String(d.getHours()).padStart(2, "0")}:${String(

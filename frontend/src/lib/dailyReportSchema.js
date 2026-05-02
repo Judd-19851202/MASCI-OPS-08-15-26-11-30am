@@ -4,14 +4,15 @@
 // visitors, equipment, materials, activities, weather, photos, signatures.
 // Designed to replace the Fieldwire Daily Report.
 
+import { todayLocalIso } from "@/lib/dateUtils";
+
 export function buildDailyReportDefaults() {
-  const now = new Date();
   return {
     // Report header
     project_name: "",
     project_number: "",
     location: "",
-    report_date: now.toISOString().slice(0, 10),
+    report_date: todayLocalIso(),
     report_number: "", // optional, auto-incremented externally
     prepared_by: "",
     superintendent: "",

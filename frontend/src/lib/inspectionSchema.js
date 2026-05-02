@@ -1,5 +1,6 @@
 // Section + item definitions for the MASCI Job Site Safety Inspection form.
 // Each YES/NO item maps to a field stored under the section key.
+import { todayLocalIso } from "@/lib/dateUtils";
 
 export const PPE_ITEMS = [
   { key: "all_personnel_ppe", label: "All personnel in required PPE for the task being performed" },
@@ -132,7 +133,7 @@ export function buildDefaults() {
     project_name: "",
     project_number: "",
     location: "",
-    inspection_date: new Date().toISOString().slice(0, 10),
+    inspection_date: todayLocalIso(),
     inspection_time: new Date().toTimeString().slice(0, 5),
     operation: "Day",
     inspector_name: "",

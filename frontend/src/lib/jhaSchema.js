@@ -1,4 +1,5 @@
 // Field definitions for the MASCI Job Hazard Analysis (JHA) form.
+import { todayLocalIso } from "@/lib/dateUtils";
 
 export const PPE_OPTIONS = [
   { key: "hard_hat", label: "Hard hat" },
@@ -29,7 +30,7 @@ export function buildJhaDefaults() {
     project_name: "",
     project_number: "",
     location: "",
-    jha_date: new Date().toISOString().slice(0, 10),
+    jha_date: todayLocalIso(),
     job_title: "",
     job_description: "",
     crew_lead: "",

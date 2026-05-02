@@ -315,14 +315,33 @@ export default function ViewDailyReport() {
 
         <ReportSection number="04" title={`MASCI Crews (${data.masci_crews?.length || 0})`}>
           <Table
-            headers={["Trade", "Foreman", "#", "Hrs", "Work Performed"]}
-            rows={(data.masci_crews || []).map((r) => [
-              r.trade,
-              r.foreman,
-              r.count,
-              r.hours,
-              r.work_performed,
-            ])}
+            headers={["Name", "Trade / Role", "Start", "Stop", "Lunch", "Hrs", "Work Performed"]}
+            rows={[
+              ...(data.masci_crews || []).map((r) => [
+                r.name,
+                r.trade,
+                r.start_time,
+                r.stop_time,
+                r.lunch_minutes !== undefined && r.lunch_minutes !== "" ? `${r.lunch_minutes} min` : "",
+                r.hours,
+                r.work_performed,
+              ]),
+              ...((data.masci_crews || []).length > 0
+                ? [[
+                    "",
+                    "",
+                    "",
+                    "",
+                    <strong key="tl">Total</strong>,
+                    <strong key="th">
+                      {(data.masci_crews || [])
+                        .reduce((s, r) => s + (parseFloat(r.hours) || 0), 0)
+                        .toFixed(2)}
+                    </strong>,
+                    "",
+                  ]]
+                : []),
+            ]}
             emptyText="No MASCI crews on site."
           />
         </ReportSection>

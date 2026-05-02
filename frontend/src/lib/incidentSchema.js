@@ -113,6 +113,8 @@ export const ROOT_CAUSE_CATEGORIES = [
   { key: "other", label: "Other" },
 ];
 
+import { todayLocalIso } from "@/lib/dateUtils";
+
 export function buildIncidentDefaults() {
   const now = new Date();
   return {
@@ -120,9 +122,9 @@ export function buildIncidentDefaults() {
     project_name: "",
     project_number: "",
     location: "",
-    incident_date: now.toISOString().slice(0, 10),
+    incident_date: todayLocalIso(now),
     incident_time: now.toTimeString().slice(0, 5),
-    reported_date: now.toISOString().slice(0, 10),
+    reported_date: todayLocalIso(now),
     reported_by: "",
     supervisor_name: "",
 

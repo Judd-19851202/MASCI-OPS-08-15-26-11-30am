@@ -1,4 +1,5 @@
 // Field definitions for the MASCI Site Safety Meeting (Toolbox Talk) form.
+import { todayLocalIso } from "@/lib/dateUtils";
 
 export const TOPIC_CATEGORIES = [
   "Hazard-Specific",
@@ -14,7 +15,7 @@ export function buildMeetingDefaults() {
     project_name: "",
     project_number: "",
     location: "",
-    meeting_date: new Date().toISOString().slice(0, 10),
+    meeting_date: todayLocalIso(),
     meeting_time: new Date().toTimeString().slice(0, 5),
     conducted_by: "",
     topic: "",
