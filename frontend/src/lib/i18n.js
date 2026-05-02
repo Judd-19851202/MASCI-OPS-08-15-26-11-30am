@@ -1315,6 +1315,10 @@ const ES = {
   "Cheat Sheet": "Hoja de Referencia",
   "Video tutorial coming soon": "Video tutorial próximamente",
   "Open video": "Abrir video",
+  "Video unavailable": "Video no disponible",
+  "Training video unavailable. Please contact your MASCI administrator.":
+    "Video de capacitación no disponible. Comuníquese con su administrador de MASCI.",
+  "Open video in new tab": "Abrir video en nueva pestaña",
   "This track is password-protected": "Este track requiere contraseña",
   "Back to Training Hub": "Volver al Centro de Capacitación",
   "Downloadable packets": "Paquetes descargables",

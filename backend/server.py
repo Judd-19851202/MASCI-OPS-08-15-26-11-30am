@@ -4715,8 +4715,35 @@ async def translate_strings(payload: TranslateRequest):
 @api_router.get("/training/videos")
 async def training_videos_get():
     """Public read. Field crews need this to render embedded videos without
-    a login. Returns `{videos: {slug: url}}` — empty dict if nothing saved."""
+    a login. Returns `{videos: {slug: url}}` — empty dict if nothing saved.
+
+    Self-heal: if the config doc is missing entirely (e.g. fresh
+    production Atlas after a new deployment), seed the known-good Field
+    Lesson 1 video so the Training Hub isn't blank on day 1.
+    """
     doc = await db["training_videos"].find_one({"_id": "config"}, {"_id": 0})
+    if not doc:
+        # First-boot seed — only writes when the collection is empty.
+        # Admins override via /admin/training-videos; this is just a
+        # floor so /training/field isn't empty on a fresh deploy.
+        default = {
+            "field-01-hub-navigation": (
+                "https://customer-assets.emergentagent.com/"
+                "job_safety-audit-mobile-1/artifacts/"
+                "mnrpeff0_MASCI_Hub_Navigating_FINAL_"
+                "d0027eecc49143e4821881da34e363f3.mp4"
+            ),
+        }
+        await db["training_videos"].update_one(
+            {"_id": "config"},
+            {"$setOnInsert": {
+                "videos": default,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "seeded": True,
+            }},
+            upsert=True,
+        )
+        doc = {"videos": default}
     return {"videos": (doc or {}).get("videos", {})}
 
 

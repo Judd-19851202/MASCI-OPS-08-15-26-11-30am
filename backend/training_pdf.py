@@ -1105,13 +1105,14 @@ def _render_bilingual(track: str, meta: dict, lessons: list) -> bytes:
 
         parts.append("</section>")
 
-    # End note — final page ownership clarification + platform attribution
+    # End note — final page ownership clarification + platform attribution.
+    # NOTE: The footer text is ALREADY on every page via the @page
+    # @bottom-left margin box — do NOT repeat it in the endnote body.
     parts.append("<section class='endnote'>")
     parts.append("<div class='big'>mascidocs.com</div>")
-    parts.append("<div>\u00a9 MASCI \u00b7 Proprietary platform developed and maintained by The Judd Group LLC</div>")
     parts.append(
         "<div style='margin-top:10pt;font-size:9pt;color:#64748B;'>"
-        "mascidocs.com is a customer-branded deployment of a platform owned by "
+        "mascidocs.com is a customer-branded deployment of a platform developed by "
         "The Judd Group LLC."
         "</div>"
         "<div style='margin-top:10pt;font-size:8.5pt;color:#94A3B8;font-style:italic;max-width:5in;margin-left:auto;margin-right:auto;'>"
@@ -1209,10 +1210,12 @@ def render_packet(track: str, lang: str = "en") -> bytes:
             parts.append("</div>")
         parts.append("</section>")
 
-    # End note — final page ownership clarification + safety disclaimer
+    # End note — final page ownership clarification + safety disclaimer.
+    # NOTE: The footer text `t['footer_legal']` is ALREADY rendered on
+    # every page (including this one) by the @page @bottom-left margin
+    # box — do NOT repeat it here or it prints twice on the last page.
     parts.append("<section class='endnote'>")
     parts.append(f"<div class='big'>mascidocs.com</div>")
-    parts.append(f"<div>{escape(t['footer_legal'])}</div>")
     parts.append(
         f"<div style='margin-top:10pt;font-size:9pt;color:#64748B;'>"
         f"{escape(t['ownership_note'])}"

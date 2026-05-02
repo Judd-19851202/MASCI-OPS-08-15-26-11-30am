@@ -224,6 +224,7 @@ function AccessDenied({ track, t, lang }) {
 
 function LessonCard({ lesson, videoUrl, loadingVideo, t, pick }) {
   const embedSrc = toEmbedUrl(videoUrl);
+  const [videoError, setVideoError] = useState(false);
   const title = pick(lesson, "title");
   const why = pick(lesson, "why");
   const steps = pick(lesson, "steps") || [];
@@ -251,7 +252,7 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t, pick }) {
           MP4 URLs use native <video> so field crews get proper mobile
           playback controls; YouTube / Loom / Vimeo URLs use an iframe. */}
       <div className="px-5 sm:px-7 print:hidden">
-        {loadingVideo ? null : embedSrc ? (
+        {loadingVideo ? null : embedSrc && !videoError ? (
           <div className="relative w-full rounded-md overflow-hidden border-2 border-slate-200 bg-black" style={{ paddingBottom: "56.25%" }}>
             {embedSrc.kind === "file" ? (
               <video
@@ -260,6 +261,7 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t, pick }) {
                 controls
                 playsInline
                 preload="metadata"
+                onError={() => setVideoError(true)}
                 data-testid="lesson-video-file"
               />
             ) : (
@@ -270,9 +272,30 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t, pick }) {
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
+                onError={() => setVideoError(true)}
                 data-testid="lesson-video-iframe"
               />
             )}
+          </div>
+        ) : embedSrc && videoError ? (
+          <div
+            className="rounded-md border-2 border-amber-400 bg-amber-50 p-4 text-center"
+            data-testid="lesson-video-error"
+          >
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-700 font-bold mb-1">
+              {t("Video unavailable")}
+            </div>
+            <div className="text-sm text-amber-900">
+              {t("Training video unavailable. Please contact your MASCI administrator.")}
+            </div>
+            <a
+              href={embedSrc.src}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-2 font-mono text-[11px] uppercase tracking-[0.15em] text-amber-700 underline hover:text-amber-900"
+            >
+              {t("Open video in new tab")}
+            </a>
           </div>
         ) : (
           <div className="rounded-md border-2 border-dashed border-slate-300 bg-slate-50 p-4 text-center text-xs text-slate-500 font-mono uppercase tracking-[0.15em]">

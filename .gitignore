@@ -408,3 +408,6 @@ credentials.json
 *.pem
 *.key
 .credentials
+backend/backups/MASCI_full_backup_2026-05-02_202628Z.zip
+backend/backups/MASCI_full_backup_2026-05-02_202812Z.zip
+backend/backups/MASCI_full_backup_2026-05-02_202638Z.zip
