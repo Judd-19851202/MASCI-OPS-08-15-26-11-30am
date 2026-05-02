@@ -41,6 +41,8 @@ const LOCKUP_WIDTH_MAP = {
   xl: "w-80",
   "2xl": "w-96",
   "3xl": "w-[28rem]",
+  "4xl": "w-[34rem]",
+  "5xl": "w-[40rem]",
 };
 
 const SRC = {
