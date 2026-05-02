@@ -1,5 +1,22 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-02 — MASCI HUB Logo Tagline Color Fix (silver/grey)
+
+The bottom tagline "EXCELLENCE • ADAPT • OVERCOME" in `masci-full-lockup.png` was rendered in near-black on a transparent background — invisible on the dark navy site header and hard to read on light surfaces. Per owner feedback ("change it to same silver/grey color as the HUB"), the tagline pixels were recoloured to silver `#C8C8C8`, matching the visual weight of the HUB wordmark.
+
+### What changed
+- New script: `/app/backend/scripts/recolor_lockup_tagline.py`
+  - Opens canonical `masci-full-lockup.png`, scans rows y=478..506 (the band containing the bottom tagline), recolours dark anti-aliased glyph pixels to silver while preserving per-pixel alpha for clean edges. Red dash separators are left intact.
+  - Writes three variants:
+    - `masci-full-lockup.png` (transparent — overwrites canonical)
+    - `masci-full-lockup-onlight.png` (silver tagline composited over white)
+    - `masci-full-lockup-onblack.png` (composited over black for print/PDF)
+- Verified visually on the home screen (`/`) — tagline now reads cleanly in silver against the dark navy header.
+
+### Notes for future logo edits
+- The lockup is a 1600×720 RGBA raster. Use `recolor_lockup_tagline.py` as a template for any per-band recolouring. Avoid regenerating from scratch via Gemini Nano Banana (`generate_hub_logos.py`) unless a layout change is required — model variance produces inconsistent ring/typography between runs.
+
+
 ## 2026-05-01 — Training Hub Auth Gating (Field public · Shop/PM/Admin gated)
 
 Closed the security gap. The back-office workflows (master-list internals, password rotation, backup procedures) are no longer visible to anyone who walks up to the URL. The Field Crew track stays fully public for new hires and labor-only crew.
