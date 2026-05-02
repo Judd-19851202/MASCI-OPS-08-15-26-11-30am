@@ -55,6 +55,11 @@ architecture, V2 recommendations) stay with the vendor.
 - `DEV_PASSWORD=Maddix8530!` in `/app/backend/.env`.
 
 
+## Future / Backlog (added 2026-05-02)
+
+- **One-Click Due-Diligence Package** (Dev Portal) — single button that bundles the latest pinned Ops Manual PDF + DOCX + the live source zip into one dated download. Saves counsel-deadline scramble. *(Deferred — not building now.)*
+
+
 ## 2026-05-02 — Dev Portal: Full Source Bundle Download
 
 Due-diligence companion to the Ops Manual archive. Lets the vendor hand
