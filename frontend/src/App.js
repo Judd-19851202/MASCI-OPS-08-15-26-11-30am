@@ -49,6 +49,7 @@ import CheatSheet from "@/pages/CheatSheet";
 import TermsOfService from "@/pages/legal/TermsOfService";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import GlobalFooter from "@/components/GlobalFooter";
+import ScrollToTop from "@/components/ScrollToTop";
 import { RequireAdmin } from "@/components/RequireAdmin";
 import { RequireAdminOrPm } from "@/components/RequireAdminOrPm";
 import { RequirePm } from "@/components/RequirePm";
@@ -85,6 +86,7 @@ function App() {
       <GlobalKeepalive />
       <BackendStatusBanner />
       <BrowserRouter>
+        <ScrollToTop />
         <div className="flex-1 flex flex-col">
           <Routes>
             {/* MASCI Hub — public */}
