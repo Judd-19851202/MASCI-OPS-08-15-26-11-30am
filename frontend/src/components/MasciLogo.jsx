@@ -6,18 +6,20 @@ import { cn } from "@/lib/utils";
  * Official MASCI logos. Three variants — these are the ONLY brand assets
  * used anywhere in the app:
  *
- *   - "mark"     → /masci-mark.png         (red M with white swoosh)
+ *   - "mark"     → /masci-mark.png         (bold red M — the new 2026 mark)
  *   - "wordmark" → /masci-wordmark.png     (red MASCI text)
- *   - "lockup"   → /masci-full-lockup.png  (full MASCI SAFETY badge)
+ *   - "lockup"   → /masci-full-lockup.png  (new M badge + MASCI HUB text
+ *                                           + Accountability · Adapt · Overcome)
  *
  * Each logo ships in TWO derived forms:
- *   1. Default     — black canvas keyed to transparent. Floats cleanly on
- *                    the slate-900 dark headers used across the app.
- *   2. -onlight    — black canvas keyed to transparent AND every near-white
- *                    element (SAFETY text, swoosh, slogan stripe) recolored
- *                    to pure black. Drops onto white pages (Cheat Sheet,
- *                    View page print body) without an ugly black plate.
- *                    Red and gray brand elements are preserved untouched.
+ *   1. Default     — transparent canvas. Floats cleanly on the slate-900
+ *                    dark headers used across the app.
+ *   2. -onlight    — transparent canvas AND every near-white element
+ *                    (MASCI tagline text, etc.) recolored to pure black.
+ *                    Drops onto white pages (Cheat Sheet, View page print
+ *                    body) without an ugly black plate. Red brand
+ *                    elements are preserved untouched. Pass `onLight`
+ *                    to opt in.
  *                    Pass `onLight` to opt in.
  *
  * Mark + wordmark are sized by HEIGHT; the lockup is sized by WIDTH because
