@@ -1,0 +1,32 @@
+{
+  "summary": "Pre-deployment QA audit for MASCI HUB on preview (https://safety-audit-mobile-1.preview.emergentagent.com). Verified: TALLY bar regression FIXED on mobile (390x844) — bar at y=700-748, Emergent badge at y=788-828, ZERO vertical overlap; restore chip clicks normally without force. Branding/footer wording correct on every surface checked: '/' shows 'PLATFORM DEVELOPED BY THE JUDD GROUP LLC · TERMS · PRIVACY'; /admin/login, /pm/login, /shop/login all show 'PLATFORM DEVELOPED BY THE JUDD GROUP LLC'; admin hub (post-login) shows 'SYSTEM DEVELOPED & MAINTAINED BY THE JUDD GROUP LLC'. Forbidden phrases ('Powered by The Judd', 'A subsidiary of', 'Proprietary platform developed and maintained', 'ALL RIGHTS RESERVED', 'Built with Emergent') = ZERO occurrences in user-visible content or JS bundle. Terms = 14 numbered sections (1..14), Flagler County wording present, 'EFFECTIVE DATE: JANUARY 01, 2026' rendered (CSS-uppercased). Privacy = 11 sections, 'MongoDB Atlas' + 'Resend' subprocessors named. Training PDFs (EN+ES, /api/training/packet.pdf?track=field) both 480-490 KB, 10 pages, footer '© MASCI · Platform developed by The Judd Group LLC' on every page, disclaimer appears once on last page only, last page has mascidocs.com + customer-branded-deployment attribution, ZERO 'Emergent' or 'Powered by' in extracted text. Route aliases /reports/daily/new, /safety/jha, /safety/trench-boxes all 200. Security: /api/admin/* and /api/daily-reports return 401 without token; public POST endpoints (/api/inspections, /api/equipment-inspections) reject malformed bodies with 422 Pydantic validation. Secrets scan of bundle.js: real values for sk-emergent-..., re_CfHQ..., ADMIN_HMAC_SECRET value, JWT_SECRET value = ZERO hits (env var NAMES appear only inside admin docs strings, not values).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Preview (all pages)", "issues": ["'Made with Emergent' badge present on every preview page. This is the platform-injected Emergent badge anchored to bottom-right; it is EXPECTED on preview/*.emergentagent.com URLs and will NOT appear on production mascidocs.com. NOT a code bug — flagged only for awareness; spec acknowledges this in problem statement."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_28.json"
+  ],
+  "action_items": [
+    "None blocking deployment. Optional: confirm mascidocs.com production deploy env has AUTO_EMAIL_REPORTS=true, RATE_LIMITING=on, CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com (per /app/memory/test_credentials.md hardening notes)."
+  ],
+  "critical_code_review_comments": [
+    "TALLY bar fix (NewEquipmentInspection.jsx) is correctly applied — sticky bar lifted above Emergent badge zone on mobile. Restore chip is now reachable with a normal click.",
+    "All required attribution strings render with `text-transform: uppercase` CSS, but the underlying source-text is sentence-cased ('Platform developed by The Judd Group LLC'). Programmatic substring checks against innerText must use uppercase form. Document this for future agents.",
+    "/api/training/packet (no .pdf suffix) returns 404 — the actual route is /api/training/packet.pdf. The original problem statement curl lacked .pdf; agents should use the .pdf suffix.",
+    "bundle.js is the unminified CRA dev bundle (~7.5 MB). For prod deploy at mascidocs.com, ensure CI runs `yarn build` (not dev server) so main.*.js minified bundle is shipped — current preview ships dev bundle which is >2 MB."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% on sampled endpoints (security gates + public POST validation + training PDF + alias redirects)", "frontend": "100% on sampled surfaces (TALLY regression resolved, branding/footer/legal/login flows all pass)"},
+  "test_credentials": "Admin: MASCI1982! · PM: Happy123! · Shop: Nothappy123! · Site-Inspection gate: 1982 — all verified",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Preview URL: https://safety-audit-mobile-1.preview.emergentagent.com. TALLY bar regression from iteration_27 is FIXED — mobile bbox y=700-748 vs Emergent badge y=788-828, no overlap, normal click works. Branding sweep, legal pages (14+11 sections, 'JANUARY 01, 2026' uppercased), training PDFs (EN+ES, 10 pages each, footer/disclaimer/attribution all correct, no 'Emergent' string), route aliases (/reports/daily/new, /safety/jha, /safety/trench-boxes all 200), and security gates (/api/admin/* and /api/daily-reports = 401 without token) all pass. Real secret VALUES are NOT in JS bundle; only env-var NAMES appear in admin documentation strings. Endpoint for training packet is /api/training/packet.pdf (NOT /api/training/packet — that returns 404). Daily Report date auto-populate verified earlier in iteration_27 — still fine. Items NOT exercised end-to-end this iteration due to scope: full daily-report submission with crew rows, JHA/Meeting/Incident form submissions, photo+signature upload roundtrip, shop sign-off after FAIL submission, PM hub scoping, EN/ES Spanish-character roundtrip, performance.timing measurements. These were largely covered in earlier iterations (iter 19,21,22,23,26,27) and backend tests in /app/backend/tests/. If main agent wants pre-deploy belt-and-suspenders, run pytest /app/backend/tests/ -v --tb=short.",
+  "rca of the issue": "No new bugs found. Iteration 27's TALLY/Emergent-badge collision was resolved by the main agent's fix (sticky bar moved up to clear the badge zone). 'Made with Emergent' badge presence on preview is an Emergent platform injection, not a MASCI code issue, and will not exist on the mascidocs.com custom-domain production deploy.",
+  "deploy_readiness_verdict": "GO — preview build passes branding, legal, training-PDF, security, and TALLY-regression checks. Production deploy to mascidocs.com is safe pending standard env-var review (AUTO_EMAIL_REPORTS=true, RATE_LIMITING=on, CORS_ORIGINS pinned to mascidocs.com)."
+}

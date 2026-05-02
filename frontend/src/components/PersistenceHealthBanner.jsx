@@ -7,7 +7,7 @@ import { useT } from "@/lib/i18n";
 
 /**
  * PersistenceHealthBanner — prominent warning when the app is running with
- * an in-container MongoDB (ephemeral — wiped on every Emergent redeploy).
+ * an in-container MongoDB (ephemeral — wiped on every platform redeploy).
  *
  * Renders NOTHING when Mongo is Atlas or another external service.
  */
