@@ -1,20 +1,28 @@
 # MASCI Safety Hub — PRD
 
-## 2026-05-02 — MASCI HUB Logo Tagline Color Fix (silver/grey)
+## 2026-05-02 — Context-Aware Lockup Tagline Colours
 
-The bottom tagline "EXCELLENCE • ADAPT • OVERCOME" in `masci-full-lockup.png` was rendered in near-black on a transparent background — invisible on the dark navy site header and hard to read on light surfaces. Per owner feedback ("change it to same silver/grey color as the HUB"), the tagline pixels were recoloured to silver `#C8C8C8`, matching the visual weight of the HUB wordmark.
+The bottom tagline "EXCELLENCE • ADAPT • OVERCOME" needs *different* colours on different surfaces (silver on dark, dark navy on white) so it stays legible everywhere. Initial pass made the tagline silver in all three variants — that broke the cheat-sheet (silver-on-white). Final pass tunes each variant to its target background.
 
-### What changed
-- New script: `/app/backend/scripts/recolor_lockup_tagline.py`
-  - Opens canonical `masci-full-lockup.png`, scans rows y=478..506 (the band containing the bottom tagline), recolours dark anti-aliased glyph pixels to silver while preserving per-pixel alpha for clean edges. Red dash separators are left intact.
-  - Writes three variants:
-    - `masci-full-lockup.png` (transparent — overwrites canonical)
-    - `masci-full-lockup-onlight.png` (silver tagline composited over white)
-    - `masci-full-lockup-onblack.png` (composited over black for print/PDF)
-- Verified visually on the home screen (`/`) — tagline now reads cleanly in silver against the dark navy header.
+### Final colour matrix
+| File | Surface | Tagline colour |
+|---|---|---|
+| `masci-full-lockup.png` (transparent) | dark navy header | silver `#C8C8C8` |
+| `masci-full-lockup-onblack.png` | solid black PDFs | silver `#C8C8C8` |
+| `masci-full-lockup-onlight.png` | white cheat sheets / posters / print | dark navy `#0F172A` |
+
+### Implementation
+- **Source-of-truth raster**: `/app/frontend/public/_src/masci-full-lockup.SOURCE.png` — the original AI-generated lockup with the dark tagline still intact. This file is only read, never written, so every script run is idempotent.
+- **Generator**: `/app/backend/scripts/recolor_lockup_tagline.py`
+  - Re-reads the SOURCE every run.
+  - Recolours only `is_dark_text` pixels in y-band `478..506` (the row range containing the bottom tagline). Red dash separators and plate/border pixels are left alone.
+  - Per-pixel alpha + darkness ramp preserved → anti-aliased glyph edges stay smooth.
+  - Writes three variants: transparent (silver), on-light (dark-navy + flatten over white), on-black (silver + flatten over black).
+- Audit verified all logo variants for proper background contrast: `mark` and `wordmark` (red glyphs only) read fine on every background, no changes needed.
 
 ### Notes for future logo edits
-- The lockup is a 1600×720 RGBA raster. Use `recolor_lockup_tagline.py` as a template for any per-band recolouring. Avoid regenerating from scratch via Gemini Nano Banana (`generate_hub_logos.py`) unless a layout change is required — model variance produces inconsistent ring/typography between runs.
+- Always read from `_src/masci-full-lockup.SOURCE.png`, never from the writable `masci-full-lockup.png` (otherwise multiple runs compound colour shifts).
+- Avoid regenerating from scratch via Gemini Nano Banana (`generate_hub_logos.py`) unless a layout change is required — model variance produces inconsistent ring/typography between runs.
 
 
 ## 2026-05-01 — Training Hub Auth Gating (Field public · Shop/PM/Admin gated)
