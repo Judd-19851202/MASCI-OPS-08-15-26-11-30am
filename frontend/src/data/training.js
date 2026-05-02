@@ -496,7 +496,7 @@ const ADMIN_LESSONS = [
       "Scheduled backups run twice a day: 02:00 UTC and 18:00 UTC. 14-day retention. Pruned automatically. Admin has zero-touch.",
     ],
     tips: [
-      "Never share the Admin password. If you suspect it's leaked, rotate it via ADMIN_PASSWORD in the Emergent deploy env vars.",
+      "Never share the Admin password. If you suspect it's leaked, rotate it via ADMIN_PASSWORD in the production deploy env vars.",
       "Everything a PM can do is also in Admin — there's no reason to 'be a PM' as admin. Log in as admin and go.",
     ],
     cheatSheet: [
@@ -553,7 +553,7 @@ const ADMIN_LESSONS = [
     tips: [
       "Restores NEVER wipe. If you're trying to roll back a bad change, you need to ALSO delete the new bad rows after restoring — the old backup doesn't know about them.",
       "If the .zip is older than your current live data, you'll OVERWRITE live data with stale data. Think before you click Yes.",
-      "Full system recovery (nuke everything, restore from backup): ask Emergent support — not a UI button on purpose.",
+      "Full system recovery (nuke everything, restore from backup): contact your developer / vendor support — not a UI button on purpose.",
     ],
     cheatSheet: [
       "Restore = merge. Never wipes. Old rows restored + new rows ADDED.",
@@ -617,12 +617,12 @@ const ADMIN_LESSONS = [
     steps: [
       "Step 1 — BACKUP. Admin → System Recovery → 'Backup + email + download NOW'. Wait for the green check.",
       "Step 2 — Integrity Check. Admin → 'Integrity Check'. Confirm ok: true.",
-      "Step 3 — Save-to-GitHub (in the Emergent chat input). Captures the current frontend+backend as a commit — rollback checkpoint.",
-      "Step 4 — Verify Emergent deploy env vars: ADMIN_PASSWORD, PM_PASSWORD, SHOP_PASSWORD, ADMIN_HMAC_SECRET, CORS_ORIGINS, MONGO_URL, DB_NAME, BACKUP_EMAIL_TO, RESEND_API_KEY, AUTO_EMAIL_REPORTS=true, RATE_LIMITING=on.",
-      "Step 5 — Click Deploy in the Emergent dashboard. Wait for the build.",
+      "Step 3 — Save-to-GitHub (in the deploy chat input). Captures the current frontend+backend as a commit — rollback checkpoint.",
+      "Step 4 — Verify production deploy env vars: ADMIN_PASSWORD, PM_PASSWORD, SHOP_PASSWORD, ADMIN_HMAC_SECRET, CORS_ORIGINS, MONGO_URL, DB_NAME, BACKUP_EMAIL_TO, RESEND_API_KEY, AUTO_EMAIL_REPORTS=true, RATE_LIMITING=on.",
+      "Step 5 — Click Deploy in the deployment dashboard. Wait for the build.",
       "Step 6 — Post-deploy smoke: curl /api/health → 200. Log in as Admin, PM, Shop. Spot-check a dashboard. Spot-check Backup panel loads.",
       "Step 7 — Run Integrity Check again on the live site. Confirm the post-deploy backup captures all collections.",
-      "If anything looks wrong: use the Rollback option in the Emergent dashboard to return to the pre-deploy checkpoint. If data changed between deploy and rollback, restore from the Step-1 backup.",
+      "If anything looks wrong: use the Rollback option in the deployment dashboard to return to the pre-deploy checkpoint. If data changed between deploy and rollback, restore from the Step-1 backup.",
     ],
     tips: [
       "Rollback is free and fast. Don't hesitate if something looks off — rollback first, debug after.",
@@ -641,10 +641,10 @@ const ADMIN_LESSONS = [
     why: "The weakest link in any system is the password. Here's how MASCI's token model works and what to do when a password is leaked or a PM/Shop person leaves.",
     duration: "~5 min",
     steps: [
-      "Passwords live in env vars: ADMIN_PASSWORD, PM_PASSWORD, SHOP_PASSWORD. All set in the Emergent deploy env.",
+      "Passwords live in env vars: ADMIN_PASSWORD, PM_PASSWORD, SHOP_PASSWORD. All set in the production deploy env.",
       "Frontend flow: login POST /api/{admin|pm|shop}/login with the password → backend returns a 64-char HMAC token → frontend stores it in localStorage and sends it as an X-{Admin|PM|Shop}-Token header on every request.",
       "Token has no expiry — it's invalidated by rotating the password (all old tokens stop working immediately).",
-      "Rotate Admin: set ADMIN_PASSWORD to a new value in Emergent deploy env → redeploy. Every admin session is kicked. Same for PM_PASSWORD / SHOP_PASSWORD.",
+      "Rotate Admin: set ADMIN_PASSWORD to a new value in the production deploy env → redeploy. Every admin session is kicked. Same for PM_PASSWORD / SHOP_PASSWORD.",
       "Rate limiting: LOGIN_MAX_FAILS=10 (default) and LOGIN_LOCKOUT_SECONDS=900 (15 min) — blocks password-spray attacks by IP.",
       "CORS: only mascidocs.com and its www origin can hit the prod API. Preview URLs are allowed via CORS_ORIGIN_REGEX.",
       "When a PM leaves: rotate PM_PASSWORD. Inform the remaining PMs of the new password out-of-band (Signal, phone, in person — NOT email).",

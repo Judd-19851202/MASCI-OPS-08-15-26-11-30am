@@ -117,6 +117,14 @@ function App() {
             <Route path="/cheatsheet" element={<CheatSheet />} />
             <Route path="/cheat-sheet" element={<Navigate to="/cheatsheet" replace />} />
 
+            {/* ------- Route aliases for old / printed QR codes ---------
+                If a poster already out in the field points at an older
+                URL pattern, redirect to the canonical route instead of
+                404-ing. Matches the /cheat-sheet redirect pattern. */}
+            <Route path="/reports/daily/new" element={<Navigate to="/daily/new" replace />} />
+            <Route path="/safety/jha" element={<Navigate to="/jha" replace />} />
+            <Route path="/safety/trench-boxes" element={<Navigate to="/trench-boxes" replace />} />
+
             {/* ============================================================
                 Crew Hub — REMOVED 2026-04-28 (replaced by Basecamp link).
                 All /app/* routes now redirect to the Hub home so any old

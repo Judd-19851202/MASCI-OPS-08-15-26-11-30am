@@ -364,7 +364,7 @@ export const LESSON_TRANSLATIONS_ES = {
       "Los respaldos programados corren dos veces al día: 02:00 UTC y 18:00 UTC. 14 días de retención. Podados automáticamente. Admin no hace nada.",
     ],
     tips_es: [
-      "Nunca comparta la contraseña de Admin. Si sospecha que se filtró, rótela vía ADMIN_PASSWORD en las variables env de despliegue de Emergent.",
+      "Nunca comparta la contraseña de Admin. Si sospecha que se filtró, rótela vía ADMIN_PASSWORD en las variables env del despliegue de producción.",
       "Todo lo que puede hacer un Gerente también está en Admin — no hay razón para 'ser un Gerente' siendo admin. Inicie sesión como admin y vaya.",
     ],
     cheatSheet_es: [
@@ -413,7 +413,7 @@ export const LESSON_TRANSLATIONS_ES = {
     tips_es: [
       "Las restauraciones NUNCA borran. Si está intentando revertir un cambio malo, TAMBIÉN necesita borrar las filas nuevas malas después de restaurar — el respaldo viejo no sabe de ellas.",
       "Si el .zip es más viejo que sus datos en vivo actuales, SOBRESCRIBIRÁ datos en vivo con datos desactualizados. Piense antes de clic en Sí.",
-      "Recuperación completa del sistema (borrar todo, restaurar desde respaldo): pregunte a soporte de Emergent — no es un botón de UI a propósito.",
+      "Recuperación completa del sistema (borrar todo, restaurar desde respaldo): contacte a su desarrollador / soporte del proveedor — no es un botón de UI a propósito.",
     ],
     cheatSheet_es: [
       "Restaurar = fusionar. Nunca borra. Filas viejas restauradas + filas nuevas AGREGADAS.",
@@ -465,12 +465,12 @@ export const LESSON_TRANSLATIONS_ES = {
     steps_es: [
       "Paso 1 — RESPALDO. Admin → Recuperación del Sistema → 'Respaldo + correo + descargar AHORA'. Espere la palomita verde.",
       "Paso 2 — Verificación de Integridad. Admin → 'Verificación de Integridad'. Confirme ok: true.",
-      "Paso 3 — Save-to-GitHub (en el input de chat de Emergent). Captura el frontend+backend actual como un commit — punto de rollback.",
-      "Paso 4 — Verifique las variables env de despliegue de Emergent: ADMIN_PASSWORD, PM_PASSWORD, SHOP_PASSWORD, ADMIN_HMAC_SECRET, CORS_ORIGINS, MONGO_URL, DB_NAME, BACKUP_EMAIL_TO, RESEND_API_KEY, AUTO_EMAIL_REPORTS=true, RATE_LIMITING=on.",
-      "Paso 5 — Clic en Desplegar en el tablero de Emergent. Espere la compilación.",
+      "Paso 3 — Save-to-GitHub (en el input de chat del despliegue). Captura el frontend+backend actual como un commit — punto de rollback.",
+      "Paso 4 — Verifique las variables env del despliegue de producción: ADMIN_PASSWORD, PM_PASSWORD, SHOP_PASSWORD, ADMIN_HMAC_SECRET, CORS_ORIGINS, MONGO_URL, DB_NAME, BACKUP_EMAIL_TO, RESEND_API_KEY, AUTO_EMAIL_REPORTS=true, RATE_LIMITING=on.",
+      "Paso 5 — Clic en Desplegar en el tablero de despliegue. Espere la compilación.",
       "Paso 6 — Prueba post-despliegue: curl /api/health → 200. Inicie sesión como Admin, Gerente, Taller. Revise un tablero. Revise que el panel de Respaldo carga.",
       "Paso 7 — Corra Verificación de Integridad de nuevo en el sitio en vivo. Confirme que el respaldo post-despliegue captura todas las colecciones.",
-      "Si algo se ve mal: use la opción Rollback en el tablero de Emergent para regresar al punto antes del despliegue. Si los datos cambiaron entre el despliegue y el rollback, restaure desde el respaldo del Paso 1.",
+      "Si algo se ve mal: use la opción Rollback en el tablero de despliegue para regresar al punto antes del despliegue. Si los datos cambiaron entre el despliegue y el rollback, restaure desde el respaldo del Paso 1.",
     ],
     tips_es: [
       "Rollback es gratis y rápido. No dude si algo se ve mal — rollback primero, debugee después.",
@@ -485,10 +485,10 @@ export const LESSON_TRANSLATIONS_ES = {
     title_es: "Lección 7 — Contraseñas, Acceso y Seguridad",
     why_es: "El eslabón más débil de cualquier sistema es la contraseña. Aquí está cómo funciona el modelo de token de MASCI y qué hacer cuando una contraseña se filtra o un Gerente/Taller se va.",
     steps_es: [
-      "Las contraseñas viven en variables env: ADMIN_PASSWORD, PM_PASSWORD, SHOP_PASSWORD. Todas configuradas en el env de despliegue de Emergent.",
+      "Las contraseñas viven en variables env: ADMIN_PASSWORD, PM_PASSWORD, SHOP_PASSWORD. Todas configuradas en el env de despliegue de producción.",
       "Flujo frontend: POST /api/{admin|pm|shop}/login con la contraseña → backend regresa un token HMAC de 64 caracteres → frontend lo guarda en localStorage y lo envía como header X-{Admin|PM|Shop}-Token en cada solicitud.",
       "El token no tiene expiración — se invalida rotando la contraseña (todos los tokens viejos dejan de funcionar inmediatamente).",
-      "Rotar Admin: configure ADMIN_PASSWORD a un nuevo valor en env de despliegue Emergent → redespliegue. Cada sesión admin es expulsada. Igual para PM_PASSWORD / SHOP_PASSWORD.",
+      "Rotar Admin: configure ADMIN_PASSWORD a un nuevo valor en env de despliegue de producción → redespliegue. Cada sesión admin es expulsada. Igual para PM_PASSWORD / SHOP_PASSWORD.",
       "Limitación de tasa: LOGIN_MAX_FAILS=10 (por defecto) y LOGIN_LOCKOUT_SECONDS=900 (15 min) — bloquea ataques de pulverización de contraseña por IP.",
       "CORS: solo mascidocs.com y su origen www pueden pegar la API de prod. URLs de preview se permiten vía CORS_ORIGIN_REGEX.",
       "Cuando un Gerente se va: rote PM_PASSWORD. Informe a los Gerentes restantes de la nueva contraseña fuera de banda (Signal, teléfono, en persona — NO correo).",

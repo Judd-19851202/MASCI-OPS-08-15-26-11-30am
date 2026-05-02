@@ -100,7 +100,7 @@ export default function PersistenceHealthBanner() {
             {" "}{t("which means every new deploy destroys your database.")} <strong>{t("Before you redeploy next time, always click the button below to grab + email a full backup")}</strong>{t(", or you will lose everything created since the last nightly backup.")}
           </p>
           <p className="text-sm text-red-900 mt-2 leading-relaxed">
-            <strong>{t("Permanent fix:")}</strong> {t("switch the production app to")} <strong>MongoDB Atlas</strong> {t("(free tier, 15-min setup) — see the instructions your developer sent. Once the Atlas connection string is in your Emergent production env vars, this banner will turn green and redeploys become safe forever.")}
+            <strong>{t("Permanent fix:")}</strong> {t("switch the production app to")} <strong>MongoDB Atlas</strong> {t("(free tier, 15-min setup) — see the instructions your developer sent. Once the Atlas connection string is in your production env vars, this banner will turn green and redeploys become safe forever.")}
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2 items-center">

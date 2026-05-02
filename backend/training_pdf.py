@@ -726,22 +726,22 @@ ADMIN_LESSONS = [
         "steps": [
             "1 — BACKUP. Admin → 'Backup + email + download NOW'. Green check.",
             "2 — Integrity Check. Confirm ok: true.",
-            "3 — Save-to-GitHub in Emergent chat input.",
-            "4 — Verify Emergent env vars: ADMIN/PM/SHOP_PASSWORD, HMAC_SECRET, CORS, MONGO, BACKUP_EMAIL_TO, RESEND_API_KEY, AUTO_EMAIL_REPORTS, RATE_LIMITING.",
+            "3 — Save-to-GitHub in deploy chat input.",
+            "4 — Verify production env vars: ADMIN/PM/SHOP_PASSWORD, HMAC_SECRET, CORS, MONGO, BACKUP_EMAIL_TO, RESEND_API_KEY, AUTO_EMAIL_REPORTS, RATE_LIMITING.",
             "5 — Deploy. Wait for build.",
             "6 — Smoke: curl /api/health, login all 3 tiers, spot-check dashboards, Backup panel.",
             "7 — Post-deploy Integrity Check.",
-            "Issues? Rollback in Emergent dashboard. Data drift? Restore Step-1 backup.",
+            "Issues? Rollback in deployment dashboard. Data drift? Restore Step-1 backup.",
         ],
         "steps_es": [
             "1 — RESPALDO. Admin → 'Respaldo + correo + descargar AHORA'. Palomita verde.",
             "2 — Verificación de Integridad. Confirme ok: true.",
-            "3 — Save-to-GitHub en input de Emergent.",
+            "3 — Save-to-GitHub en input de chat del despliegue.",
             "4 — Verifique env: ADMIN/PM/SHOP_PASSWORD, HMAC_SECRET, CORS, MONGO, BACKUP_EMAIL_TO, RESEND_API_KEY, AUTO_EMAIL_REPORTS, RATE_LIMITING.",
             "5 — Desplegar. Espere compilación.",
             "6 — Prueba: curl /api/health, login en 3 niveles, tableros, panel Respaldo.",
             "7 — Verificación de Integridad post-despliegue.",
-            "¿Problemas? Rollback en tablero Emergent. ¿Datos cambiaron? Restaure del Paso 1.",
+            "¿Problemas? Rollback en tablero de despliegue. ¿Datos cambiaron? Restaure del Paso 1.",
         ],
         "tips": ["Rollback is free and fast. Don't hesitate.", "Keep pre-deploy backup for a week after deploy."],
         "tips_es": ["Rollback es gratis y rápido. No dude.", "Guarde respaldo pre-despliegue por una semana."],
@@ -808,7 +808,9 @@ _STRINGS = {
         "generated": "Generated",
         "page": "Page",
         "of": "of",
-        "footer_legal": "\u00a9 MASCI \u00b7 Powered by The Judd Group LLC",
+        "footer_legal": "\u00a9 MASCI \u00b7 Platform developed by The Judd Group LLC",
+        "ownership_note": "mascidocs.com is a customer-branded deployment of a platform developed by The Judd Group LLC.",
+        "disclaimer": "This platform and training material are provided as a documentation and support tool only and do not replace required safety supervision, inspections, or regulatory compliance responsibilities.",
     },
     "es": {
         "header_brand": "Capacitación Hub MASCI",
@@ -824,7 +826,9 @@ _STRINGS = {
         "generated": "Generado",
         "page": "Página",
         "of": "de",
-        "footer_legal": "\u00a9 MASCI \u00b7 Con tecnolog\u00eda de The Judd Group LLC",
+        "footer_legal": "\u00a9 MASCI \u00b7 Plataforma desarrollada por The Judd Group LLC",
+        "ownership_note": "mascidocs.com es una implementaci\u00f3n con marca del cliente de una plataforma desarrollada por The Judd Group LLC.",
+        "disclaimer": "Esta plataforma y el material de capacitaci\u00f3n se proporcionan \u00fanicamente como herramienta de documentaci\u00f3n y apoyo, y no reemplazan la supervisi\u00f3n de seguridad, inspecciones o responsabilidades de cumplimiento regulatorio requeridas.",
     },
 }
 
@@ -851,9 +855,9 @@ def _normalize_lang(raw: str) -> str:
 _CSS = """
 @page {
   size: Letter;
-  margin: 0.55in 0.55in 0.65in 0.55in;
+  margin: 0.55in 0.55in 0.7in 0.55in;
   @bottom-left {
-    content: "\\00A9  MASCI \\00B7  Powered by The Judd Group LLC";
+    content: "\\00A9  MASCI \\00B7  Platform developed by The Judd Group LLC";
     font-family: 'Helvetica Neue', Arial, sans-serif;
     font-size: 8pt;
     color: #64748B;
@@ -867,8 +871,8 @@ _CSS = """
 }
 @page :first {
   margin: 0.9in 0.6in 0.9in 0.6in;
-  @bottom-left  { content: ""; }
-  @bottom-right { content: ""; }
+  @bottom-left   { content: ""; }
+  @bottom-right  { content: ""; }
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; color: #0F172A; }
@@ -1087,10 +1091,21 @@ def _render_bilingual(track: str, meta: dict, lessons: list) -> bytes:
 
         parts.append("</section>")
 
-    # End note
+    # End note — final page ownership clarification + platform attribution
     parts.append("<section class='endnote'>")
     parts.append("<div class='big'>mascidocs.com</div>")
-    parts.append("<div>\u00a9 MASCI \u00b7 Powered by The Judd Group LLC</div>")
+    parts.append("<div>\u00a9 MASCI \u00b7 Proprietary platform developed and maintained by The Judd Group LLC</div>")
+    parts.append(
+        "<div style='margin-top:10pt;font-size:9pt;color:#64748B;'>"
+        "mascidocs.com is a customer-branded deployment of a platform owned by "
+        "The Judd Group LLC."
+        "</div>"
+        "<div style='margin-top:10pt;font-size:8.5pt;color:#94A3B8;font-style:italic;max-width:5in;margin-left:auto;margin-right:auto;'>"
+        "This platform and training material are provided as a documentation and "
+        "support tool only and do not replace required safety supervision, "
+        "inspections, or regulatory compliance responsibilities."
+        "</div>"
+    )
     parts.append("</section>")
 
     parts.append("</div>")
@@ -1180,10 +1195,18 @@ def render_packet(track: str, lang: str = "en") -> bytes:
             parts.append("</div>")
         parts.append("</section>")
 
-    # End note
+    # End note — final page ownership clarification + safety disclaimer
     parts.append("<section class='endnote'>")
     parts.append(f"<div class='big'>mascidocs.com</div>")
     parts.append(f"<div>{escape(t['footer_legal'])}</div>")
+    parts.append(
+        f"<div style='margin-top:10pt;font-size:9pt;color:#64748B;'>"
+        f"{escape(t['ownership_note'])}"
+        f"</div>"
+        f"<div style='margin-top:10pt;font-size:8.5pt;color:#94A3B8;font-style:italic;max-width:5in;margin-left:auto;margin-right:auto;'>"
+        f"{escape(t['disclaimer'])}"
+        f"</div>"
+    )
     parts.append("</section>")
 
     parts.append("</div>")

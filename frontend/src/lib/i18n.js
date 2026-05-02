@@ -1138,8 +1138,8 @@ const ES = {
     ", o perderá todo lo creado desde la última copia de seguridad nocturna.",
   "Permanent fix:": "Solución permanente:",
   "switch the production app to": "cambie la aplicación de producción a",
-  "(free tier, 15-min setup) — see the instructions your developer sent. Once the Atlas connection string is in your Emergent production env vars, this banner will turn green and redeploys become safe forever.":
-    "(plan gratuito, configuración en 15 minutos) — vea las instrucciones que su desarrollador envió. Una vez que la cadena de conexión Atlas esté en sus variables de entorno de producción Emergent, este aviso se pondrá verde y los redespliegues serán seguros para siempre.",
+  "(free tier, 15-min setup) — see the instructions your developer sent. Once the Atlas connection string is in your production env vars, this banner will turn green and redeploys become safe forever.":
+    "(plan gratuito, configuración en 15 minutos) — vea las instrucciones que su desarrollador envió. Una vez que la cadena de conexión Atlas esté en sus variables de entorno de producción, este aviso se pondrá verde y los redespliegues serán seguros para siempre.",
   "Building backup + emailing to {dest}…": "Creando copia + enviando por correo a {dest}…",
   "you": "usted",
   "Backup saved + emailed to {dest} + downloaded.":

@@ -1,6 +1,44 @@
 # MASCI Safety Hub — PRD
 
-## 2026-05-02 — System-Wide Bug Sweep & Mobile TALLY Hardening
+## 2026-05-02 — Final Vendor/Customer Attribution Reframe (Round 3)
+
+Owner refined the wording one more time after the prior "Proprietary platform developed and maintained by" pass — the final brief shortens the footer, moves the safety disclaimer from every-page to last-page-only (less visually noisy), and adds admin-dashboard-specific wording.
+
+### Final string matrix
+| Surface | Variant | Final wording |
+|---|---|---|
+| Global UI footer (every page) | `judd-attr-global` | `Platform developed by The Judd Group LLC · Terms · Privacy` |
+| Login page (admin/PM/shop) | `judd-attr-login` | `Platform developed by The Judd Group LLC` |
+| Admin + PM dashboards (internal) | `judd-attr-admin` | `System developed & maintained by The Judd Group LLC` |
+| Backend record PDF (`pdf_render.py`) @bottom-left | — | `© MASCI · Platform developed by The Judd Group LLC` |
+| Backend training PDF (`training_pdf.py`) @bottom-left | — | `© MASCI · Platform developed by The Judd Group LLC` (EN) / `© MASCI · Plataforma desarrollada por The Judd Group LLC` (ES) |
+| Training packet endnote (last page) | — | `mascidocs.com` + attribution + ownership clarification + safety disclaimer |
+| Record PDF last page | — | safety disclaimer + ownership clarification block (only renders on final page) |
+| Trench-box poster card + QR poster | — | `© YYYY MASCI · Platform developed by The Judd Group LLC` |
+| Baked lockup credit (on-light/on-black PNGs) | — | `PLATFORM DEVELOPED BY THE JUDD GROUP LLC` |
+
+### Key architectural moves
+- **Safety disclaimer no longer renders per-page.** Previously lived in `@bottom-center` WeasyPrint margin box on every page → moved to a single last-page-only `<div>` inside the body flow. Net effect: less visual noise on interior pages; liability language still prominently visible at the end of every document.
+- **Ownership clarification ("mascidocs.com is a customer-branded deployment…") also lives on last page only**, below the safety disclaimer.
+- Admin variant adds subtle Judd Group logo + "System developed & maintained by..." line — only rendered on `AdminHub.jsx` and `PmHub.jsx` (never on field/shop/safety surfaces).
+
+### Third-party "Emergent" references purged from user-visible content
+- `training.js` / `training_es.js` (Admin track lessons 2, 3, 6, 7) — replaced Emergent-specific language ("Emergent dashboard", "Emergent env vars", "Emergent support") with generic "production deploy env", "deployment dashboard", "developer / vendor support".
+- `AdminGuide.jsx` — 3 places updated.
+- `PersistenceHealthBanner.jsx` + matching `i18n.js` ES translation — reframed.
+- `training_pdf.py` admin cheat-sheet steps — EN + ES both reframed.
+- **Remaining Emergent references** are internal code comments only (`api.js`, `jwtAuth.js`, `printReport.js`, `GlobalKeepalive.jsx`, `server.py`, and my own comment in `NewEquipmentInspection.jsx` explaining the Tally-bar badge collision workaround). These never render to users or PDFs — kept as maintainer documentation.
+
+### Route aliases added (fix old printed QRs)
+Three permanent redirects land any old QR codes still in the field on the correct canonical routes:
+- `/reports/daily/new` → `/daily/new`
+- `/safety/jha` → `/jha`
+- `/safety/trench-boxes` → `/trench-boxes`
+
+### Emergent badge removal answer (from Support)
+Free tier: badge cannot be removed. Paid plans ($20/mo Standard, Pro, or Team): toggle off via deployment settings on the Home tab. **Critical**: badge only appears on preview + `*.emergentagent.com` URLs — NOT on mascidocs.com — so production users / field crews never see it.
+
+
 
 After the owner-authored Legal + Vendor Attribution redeploy shipped to mascidocs.com, a system-wide sweep was requested for any mobile/desktop bugs and any other sticky UI that might collide with the Emergent floating badge on preview/deployed Emergent URLs.
 

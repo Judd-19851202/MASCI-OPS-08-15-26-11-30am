@@ -605,10 +605,10 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
 <html><head><meta charset="utf-8"><title>{escape(title)} · MASCI</title>
 <style>
   @page {{ size: Letter; margin: 0.5in 0.5in 0.85in 0.5in;
-           @bottom-center {{
-             content: "\u00A9 MASCI \u00B7 Powered by The Judd Group LLC";
+           @bottom-left {{
+             content: "\u00A9 MASCI \u00B7 Platform developed by The Judd Group LLC";
              font-family: 'Courier New', monospace; font-size: 7pt;
-             letter-spacing: 0.18em; text-transform: uppercase;
+             letter-spacing: 0.16em; text-transform: uppercase;
              color: #94a3b8;
            }}
            @bottom-right {{
@@ -690,6 +690,21 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
   <div class="ftr">
     <span>MASCI · Field Safety Reporting Portal</span>
     <span>Accountability · Adapt · Overcome</span>
+  </div>
+  <!-- Last-page only: safety disclaimer + ownership clarification.
+       Renders after all body content, so it naturally lands on the
+       final page of the record PDF (records are typically 1-2 pages). -->
+  <div class="last-page-legal" style="margin-top:0.4in;padding-top:8pt;
+       border-top:1px solid #e2e8f0;font-family:'Helvetica','Arial',sans-serif;
+       font-size:8pt;color:#94a3b8;line-height:1.45;font-style:italic;">
+    This platform and training material are provided as a documentation and
+    support tool only and do not replace required safety supervision,
+    inspections, or regulatory compliance responsibilities.
+  </div>
+  <div style="margin-top:6pt;font-family:'Helvetica','Arial',sans-serif;
+       font-size:7pt;color:#94a3b8;">
+    mascidocs.com is a customer-branded deployment of a platform developed
+    by The Judd Group LLC.
   </div>
 </body></html>"""
 

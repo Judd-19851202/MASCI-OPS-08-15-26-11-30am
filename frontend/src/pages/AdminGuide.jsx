@@ -252,7 +252,7 @@ export default function AdminGuide() {
           <p>Each night at 2 AM UTC (10 PM ET), the system builds a complete <code>.zip</code> of everything and emails it to <strong>jaymn.judd@mascigc.com</strong>. Keep those emails. That's your off-site archive.</p>
 
           <div className="mt-4 bg-red-50 border-l-4 border-red-700 p-3 rounded-r">
-            <div className="font-bold text-red-900 uppercase text-sm tracking-wide">⚠ Before any Emergent redeploy</div>
+            <div className="font-bold text-red-900 uppercase text-sm tracking-wide">⚠ Before any production redeploy</div>
             <p className="text-red-900 text-sm mt-1">
               Open <code>/admin</code>, scroll to the <strong>Backup &amp; Restore</strong> box at the top,
               click the big <strong>BACKUP EVERYTHING</strong> button. Wait 30 seconds. The .zip will email you AND
@@ -302,7 +302,7 @@ export default function AdminGuide() {
               <tr>
                 <td className="p-2 border border-slate-300">Admin console <code>/admin</code></td>
                 <td className="p-2 border border-slate-300 font-mono">Happy123!</td>
-                <td className="p-2 border border-slate-300 text-xs">Your developer updates <code>ADMIN_PASSWORD</code> in Emergent env vars</td>
+                <td className="p-2 border border-slate-300 text-xs">Your developer updates <code>ADMIN_PASSWORD</code> in the production deploy env vars</td>
               </tr>
               <tr>
                 <td className="p-2 border border-slate-300">Site Inspection form</td>
@@ -312,7 +312,7 @@ export default function AdminGuide() {
               <tr>
                 <td className="p-2 border border-slate-300">Shop console <code>/shop</code></td>
                 <td className="p-2 border border-slate-300 font-mono">Nothappy123!</td>
-                <td className="p-2 border border-slate-300 text-xs">Developer updates <code>SHOP_PASSWORD</code> in Emergent env vars</td>
+                <td className="p-2 border border-slate-300 text-xs">Developer updates <code>SHOP_PASSWORD</code> in the production deploy env vars</td>
               </tr>
               <tr>
                 <td className="p-2 border border-slate-300">Basecamp / OnStation</td>
