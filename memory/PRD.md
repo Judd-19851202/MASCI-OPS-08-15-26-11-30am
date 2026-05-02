@@ -1,5 +1,45 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-02 — Pre-Redeploy QA Fix Pass
+
+Final sweep before the mascidocs.com redeploy. Two targeted bug fixes and one minor UI regression caught + cleaned.
+
+### Bug 1 — Duplicate footer on training PDF final page (FIXED)
+- **Root cause**: `training_pdf.py` endnote section repeated `{t['footer_legal']}` as an in-body `<div>` on the final page, on top of the `@page @bottom-left` margin footer which already renders on every page including the endnote page. Result: final page had "© MASCI · Platform developed by The Judd Group LLC" twice.
+- **Fix**: Removed the in-body `footer_legal` div from the endnote block in both renderers (single-language `render_packet` and `_render_bilingual`). Endnote now carries only the `mascidocs.com` heading, ownership clarification, and safety disclaimer — the page footer comes exclusively from the `@page @bottom-left` margin box.
+- **Verified**: All 12 permutations (`field/shop/pm/admin` × `en/es/bi`) via `pypdf` text extraction show exactly 1 footer per non-cover page, 0 on cover (cover is intentionally silenced via `@page :first`). Zero duplicates.
+
+### Bug 2 — Field Training Lesson 1 video not showing on production (FIXED)
+- **Root cause**: The `training_videos` Mongo doc was only saved on the preview env DB. Production Atlas had an empty `training_videos` collection after the Atlas migration, so `/api/training/videos` returned `{videos: {}}` and the lesson rendered the "Video tutorial coming soon" placeholder for every user on mascidocs.com.
+- **Fix A** (self-heal): `/api/training/videos` now auto-seeds `field-01-hub-navigation` with the known-good CloudFront MP4 URL on first call if the config doc is missing. Admins override via `/admin/training-videos` normally — this is just a floor.
+- **Fix B** (spec compliance): Added `onError` handler to `<video>` and `<iframe>` in `TrainingTrack.jsx`. When the element fails to load, a `data-testid=lesson-video-error` fallback renders the exact spec string: *"Training video unavailable. Please contact your MASCI administrator."* — plus an "Open video in new tab" link fallback. ES translations added for all 3 new strings.
+
+### UI Fix — Hub home mobile overflow (FIXED)
+- 390px viewport showed 13px horizontal overflow. Traced to the Projects tile's Basecamp + OnStation buttons — grid items without `min-w-0` expanding past their grid cell. Added `min-w-0` to both `<a>` elements. Mobile scrollWidth = clientWidth = 390 now.
+
+### Regression matrix (testing agent + curl)
+| Check | Result |
+|---|---|
+| Training PDFs — 12 permutations, footer count per page | ✅ All pass (0/1 correct across cover/body) |
+| `/api/training/videos` auto-seed | ✅ Returns `field-01-hub-navigation` after wipe |
+| Packet auth matrix — field public, shop/pm/admin require token, tier isolation | ✅ 15/15 pass |
+| `/api/dev/*` rejects admin + PM tokens, accepts dev token | ✅ |
+| Admin/PM/Shop/Dev logins + wrong-password 401 | ✅ 8/8 |
+| Mobile horizontal scroll — `/`, `/training`, `/training/field`, `/cheatsheet`, legal pages | ✅ 0 overflow |
+| Console errors on training pages (desktop + mobile) | ✅ None |
+| PDF signals — no "Powered by", no "Made with Emergent" in rendered DOM or PDFs | ✅ |
+
+### Deploy readiness
+🟢 **GO** — testing agent verdict. 25 pytest pass / 0 fail / 7 skipped-by-design. Two non-blockers pre-fixed in this pass (mobile overflow; testid naming can be patched post-deploy if desired).
+
+### Production env var checklist (before redeploy)
+- `DEV_PASSWORD=Maddix8530!` (NEW — gates the new /dev portal)
+- `AUTO_EMAIL_REPORTS=true` (production-only)
+- `RATE_LIMITING=on` (production-only)
+- `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com`
+- All other env vars unchanged.
+
+
 ## 2026-05-02 — Developer Portal + Ops Manual Archive (Vendor-Only)
 
 Moved the System Owner & Operations Manual off the Admin Hub and behind a

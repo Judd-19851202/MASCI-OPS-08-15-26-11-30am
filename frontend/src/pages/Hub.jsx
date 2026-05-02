@@ -205,7 +205,7 @@ const ProjectsCard = ({ t, testId }) => (
         href="https://3.basecamp.com/5958093/projects"
         target="_blank"
         rel="noopener noreferrer"
-        className="group/btn relative bg-emerald-700 hover:bg-emerald-800 text-white rounded-md p-3 sm:p-4 border-b-4 border-emerald-900 transition-colors flex items-center gap-3"
+        className="group/btn relative bg-emerald-700 hover:bg-emerald-800 text-white rounded-md p-3 sm:p-4 border-b-4 border-emerald-900 transition-colors flex items-center gap-3 min-w-0"
         data-testid="hub-projects-basecamp-btn"
       >
         <Building2 className="w-6 h-6 shrink-0" />
@@ -221,7 +221,7 @@ const ProjectsCard = ({ t, testId }) => (
         href="https://app.onstation.us/login"
         target="_blank"
         rel="noopener noreferrer"
-        className="group/btn relative bg-blue-700 hover:bg-blue-800 text-white rounded-md p-3 sm:p-4 border-b-4 border-blue-900 transition-colors flex items-center gap-3"
+        className="group/btn relative bg-blue-700 hover:bg-blue-800 text-white rounded-md p-3 sm:p-4 border-b-4 border-blue-900 transition-colors flex items-center gap-3 min-w-0"
         data-testid="hub-projects-onstation-btn"
       >
         <MapPin className="w-6 h-6 shrink-0" />
