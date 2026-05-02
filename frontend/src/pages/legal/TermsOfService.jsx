@@ -6,16 +6,15 @@ import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
 /**
  * /legal/terms — Terms of Service.
  *
- * IMPORTANT: MASCI is the owner and operator of MASCI HUB. The Judd Group
- * LLC is the development contractor only — they built the platform on a
- * work-for-hire basis for MASCI. They are NOT a parent, subsidiary,
- * partner, or co-owner of MASCI in any form.
- *
- * Plain-English coverage:
- *   • MASCI is the operator and owner of the Platform.
- *   • Authorized users (MASCI employees, contractors, clients) have a
- *     limited license to use the Platform per MASCI's policies.
- *   • Confidentiality, no warranty, limitation of liability protections.
+ * RELATIONSHIP CLARIFIED (2026-05-02):
+ *   • The Judd Group LLC owns and operates the underlying Platform —
+ *     the source code, software, infrastructure, and the
+ *     mascidocs.com domain. Same way Microsoft owns Word and Excel.
+ *   • MASCI is a customer of the Platform. "MASCI HUB" is MASCI's
+ *     branded customer deployment. MASCI owns all data they submit
+ *     through it. Same way a company that uses Word owns its documents.
+ *   • The two companies are independent. Neither owns, controls, or
+ *     is a subsidiary of the other.
  */
 export default function TermsOfService() {
   return (
@@ -48,67 +47,72 @@ export default function TermsOfService() {
         <section className="mb-6">
           <p>
             These Terms of Service (&ldquo;<strong>Terms</strong>&rdquo;)
-            govern your access to and use of the MASCI HUB field operations
-            and safety documentation platform (the &ldquo;
-            <strong>Platform</strong>&rdquo;) operated by{" "}
+            govern your access to and use of the field-operations and
+            safety-documentation software platform (the &ldquo;
+            <strong>Platform</strong>&rdquo;) provided by{" "}
+            <strong>The Judd Group LLC</strong> (&ldquo;
+            <strong>Provider</strong>&rdquo;, &ldquo;we&rdquo;,
+            &ldquo;us&rdquo;). The Platform is licensed to{" "}
             <strong>MASCI General Contractors Inc.</strong> and{" "}
             <strong>MASCI Corporation</strong> (collectively, &ldquo;
-            <strong>MASCI</strong>&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;,
-            or &ldquo;our&rdquo;). By accessing or using the Platform you
-            (&ldquo;<strong>User</strong>&rdquo;) agree to be bound by these
-            Terms.
+            <strong>MASCI</strong>&rdquo;) and is delivered to MASCI&rsquo;s
+            users at the customer-branded URL <em>mascidocs.com</em> as
+            &ldquo;<strong>MASCI HUB</strong>&rdquo;. By accessing or using
+            the Platform, you (&ldquo;<strong>User</strong>&rdquo;) agree to
+            these Terms.
           </p>
         </section>
 
-        <h2>1. Ownership</h2>
+        <h2>1. Relationship of the Parties</h2>
         <p>
-          The Platform — including all source code, designs, branding,
-          databases, copy, configurations, integrations, and related
-          intellectual property (collectively, the &ldquo;
-          <strong>Platform IP</strong>&rdquo;) — is owned by MASCI. The
-          Platform was developed for MASCI on a work-for-hire basis by{" "}
-          <strong>The Judd Group LLC</strong>, who serves solely as MASCI&rsquo;s
-          technology development partner. The Judd Group LLC is not a parent,
-          subsidiary, affiliate, or co-owner of MASCI.
+          The Judd Group LLC and MASCI are independent companies. Neither is
+          a parent, subsidiary, affiliate, partner, agent, or co-owner of
+          the other. The Judd Group LLC is the software vendor; MASCI is the
+          customer.
         </p>
 
-        <h2>2. Limited License to Use</h2>
+        <h2>2. Ownership of the Platform</h2>
         <p>
-          MASCI grants its authorized employees, contractors, project
-          managers, foremen, shop personnel, and approved clients a limited,
-          revocable, non-exclusive, non-transferable, non-sublicensable right
-          to access and use the Platform solely for legitimate MASCI business
-          purposes — including field operations, safety reporting, training,
-          and recordkeeping.
-        </p>
-        <p>
-          This license does <strong>not</strong> grant any right to: (i) copy,
-          modify, decompile, reverse-engineer, or create derivative works of
-          the Platform; (ii) resell, sublicense, or otherwise commercially
-          exploit the Platform; (iii) remove, alter, or obscure any
-          attribution, copyright, or ownership notice; or (iv) use the
-          Platform for any unlawful purpose or outside the scope of your
-          MASCI duties.
+          The Judd Group LLC owns and retains all right, title, and interest
+          in the Platform, including all source code, designs, databases,
+          software, documentation, configurations, infrastructure, and the
+          <em> mascidocs.com</em> domain (collectively, the &ldquo;
+          <strong>Platform IP</strong>&rdquo;). Nothing in these Terms
+          transfers any ownership of the Platform IP to MASCI or to any
+          User. MASCI&rsquo;s use of the Platform is limited to the rights
+          expressly granted in MASCI&rsquo;s separate written services
+          agreement with The Judd Group LLC.
         </p>
 
-        <h2>3. User Data &amp; Records</h2>
+        <h2>3. Ownership of Customer Data</h2>
         <p>
-          MASCI owns all records, files, photos, signatures, and documents
-          submitted through the Platform (&ldquo;<strong>User Data</strong>
-          &rdquo;) as part of its normal business records. Authorized users
-          who upload User Data do so as part of their work for MASCI. Upon
-          separation from MASCI, an individual user&rsquo;s access ends, but
-          the User Data they created during their tenure remains MASCI
-          property.
+          All records, files, photos, signatures, documents, and other
+          information that MASCI or its users submit through the Platform
+          (&ldquo;<strong>Customer Data</strong>&rdquo;) belong to MASCI.
+          The Judd Group LLC stores and processes Customer Data solely to
+          provide the Platform to MASCI. The Judd Group LLC does not claim
+          ownership of Customer Data, will not use it for advertising, and
+          will not sell or share it with third parties except as required
+          to deliver the Platform (see Privacy Policy).
         </p>
 
-        <h2>4. Confidentiality</h2>
+        <h2>4. License to Use</h2>
         <p>
-          The Platform contains internal MASCI business information, safety
-          procedures, financial records, employee data, and proprietary
-          workflows. Users agree to keep all non-public information accessed
-          through the Platform confidential and to use it only for legitimate
-          MASCI business purposes.
+          Subject to these Terms, The Judd Group LLC grants MASCI&rsquo;s
+          authorized employees, contractors, project managers, foremen,
+          shop personnel, and approved clients a limited, revocable,
+          non-exclusive, non-transferable, non-sublicensable right to access
+          the Platform solely for legitimate MASCI business purposes —
+          including field operations, safety reporting, training, and
+          recordkeeping.
+        </p>
+        <p>
+          This license does <strong>not</strong> grant any right to: (i)
+          copy, modify, decompile, reverse-engineer, or create derivative
+          works of the Platform; (ii) resell, sublicense, or otherwise
+          commercially exploit the Platform; (iii) remove, alter, or obscure
+          any attribution, copyright, or vendor notice; or (iv) use the
+          Platform unlawfully or outside the scope of your MASCI duties.
         </p>
 
         <h2>5. Acceptable Use</h2>
@@ -116,49 +120,58 @@ export default function TermsOfService() {
           You agree not to use the Platform to (i) violate any law or
           regulation; (ii) infringe any third party&rsquo;s rights; (iii)
           upload malicious code; (iv) interfere with the Platform&rsquo;s
-          operation or security; (v) attempt to gain unauthorized access to
-          any account, system, or data; or (vi) share login credentials or
-          access tokens with anyone outside their authorized scope.
+          operation or security; (v) attempt unauthorized access to any
+          account, system, or data; or (vi) share login credentials with
+          anyone outside their authorized scope.
         </p>
 
-        <h2>6. No Warranty</h2>
+        <h2>6. Confidentiality</h2>
+        <p>
+          The Platform contains MASCI&rsquo;s internal business information,
+          safety procedures, financial records, employee data, and
+          proprietary workflows. Users agree to keep all non-public
+          information accessed through the Platform confidential and to use
+          it only for legitimate MASCI business purposes.
+        </p>
+
+        <h2>7. No Warranty</h2>
         <p>
           THE PLATFORM IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS
-          AVAILABLE&rdquo; WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR
+          AVAILABLE&rdquo; WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR
           IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
           PARTICULAR PURPOSE, NON-INFRINGEMENT, OR UNINTERRUPTED OPERATION.
           The Platform is a tool to support — not replace — MASCI&rsquo;s
-          safety program, supervisors, and competent personnel. Users remain
-          responsible for following all applicable safety regulations,
-          OSHA standards, and MASCI policies in the field.
+          safety program, supervisors, and competent personnel. Users
+          remain responsible for following all applicable safety
+          regulations, OSHA standards, and MASCI policies in the field.
         </p>
 
-        <h2>7. Limitation of Liability</h2>
+        <h2>8. Limitation of Liability</h2>
         <p>
-          TO THE FULLEST EXTENT PERMITTED BY LAW, IN NO EVENT WILL MASCI BE
-          LIABLE TO ANY INDIVIDUAL USER FOR ANY INDIRECT, INCIDENTAL,
-          SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING OUT OF OR
-          RELATED TO THESE TERMS OR THE PLATFORM, EVEN IF ADVISED OF THE
-          POSSIBILITY.
+          TO THE FULLEST EXTENT PERMITTED BY LAW, IN NO EVENT WILL THE JUDD
+          GROUP LLC OR MASCI BE LIABLE TO ANY INDIVIDUAL USER FOR ANY
+          INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES
+          ARISING OUT OF OR RELATED TO THESE TERMS OR THE PLATFORM, EVEN IF
+          ADVISED OF THE POSSIBILITY.
         </p>
 
-        <h2>8. Termination</h2>
+        <h2>9. Termination</h2>
         <p>
-          MASCI may suspend or terminate any individual user&rsquo;s access
-          to the Platform at any time, with or without cause. On termination,
-          the user&rsquo;s license to use the Platform ends immediately;
-          ownership, confidentiality, and acceptable-use obligations survive.
+          MASCI or The Judd Group LLC may suspend or terminate any
+          individual user&rsquo;s access to the Platform at any time, with
+          or without cause. On termination, the user&rsquo;s license ends
+          immediately. Sections 1–3, 6, 8, 10, and 11 survive termination.
         </p>
 
-        <h2>9. Changes to These Terms</h2>
+        <h2>10. Changes to These Terms</h2>
         <p>
-          MASCI may update these Terms from time to time. Material changes
-          will be communicated to authorized users. Continued use of the
-          Platform after the effective date of a change constitutes
-          acceptance.
+          The Judd Group LLC may update these Terms from time to time.
+          Material changes will be communicated to MASCI and to authorized
+          users. Continued use of the Platform after the effective date of a
+          change constitutes acceptance.
         </p>
 
-        <h2>10. Governing Law</h2>
+        <h2>11. Governing Law</h2>
         <p>
           These Terms are governed by the laws of the State of Florida
           without regard to its conflicts-of-laws rules. Any dispute will be
@@ -166,10 +179,10 @@ export default function TermsOfService() {
           Flagler County, Florida.
         </p>
 
-        <h2>11. Contact</h2>
+        <h2>12. Contact</h2>
         <p>
-          Questions about these Terms? Contact MASCI through your supervisor
-          or the MASCI HUB administrator.
+          Questions about these Terms? Contact your MASCI administrator, or
+          The Judd Group LLC for questions about the Platform itself.
         </p>
 
         <hr className="my-8 border-slate-200" />

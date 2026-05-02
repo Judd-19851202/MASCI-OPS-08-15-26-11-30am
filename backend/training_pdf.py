@@ -808,7 +808,7 @@ _STRINGS = {
         "generated": "Generated",
         "page": "Page",
         "of": "of",
-        "footer_legal": "\u00a9 MASCI \u00b7 Platform developed by The Judd Group LLC",
+        "footer_legal": "\u00a9 The Judd Group LLC \u00b7 MASCI HUB\u2122",
     },
     "es": {
         "header_brand": "Capacitación Hub MASCI",
@@ -824,7 +824,7 @@ _STRINGS = {
         "generated": "Generado",
         "page": "Página",
         "of": "de",
-        "footer_legal": "\u00a9 MASCI \u00b7 Plataforma desarrollada por The Judd Group LLC",
+        "footer_legal": "\u00a9 The Judd Group LLC \u00b7 MASCI HUB\u2122",
     },
 }
 
@@ -1090,7 +1090,7 @@ def _render_bilingual(track: str, meta: dict, lessons: list) -> bytes:
     # End note
     parts.append("<section class='endnote'>")
     parts.append("<div class='big'>mascidocs.com</div>")
-    parts.append("<div>\u00a9 MASCI \u00b7 Platform developed by The Judd Group LLC \u00b7 Plataforma desarrollada por The Judd Group LLC</div>")
+    parts.append("<div>\u00a9 The Judd Group LLC \u00b7 MASCI HUB\u2122</div>")
     parts.append("</section>")
 
     parts.append("</div>")
