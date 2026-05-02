@@ -1,11 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
+import HubBackLink from "@/components/HubBackLink";
 import CheatSheetCard from "@/components/CheatSheetCard";
 import TrenchBoxPosterCard from "@/components/TrenchBoxPosterCard";
 import JhaPlansPosterCard from "@/components/JhaPlansPosterCard";
@@ -31,13 +32,7 @@ export default function AllPostersPrint() {
 
       <header className="bg-slate-900 border-b-4 border-red-700 no-print">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <Link
-            to="/admin"
-            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="all-posters-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Admin")}
-          </Link>
+          <HubBackLink testId="all-posters-back" />
           <div className="hidden sm:block font-mono text-xs uppercase tracking-[0.25em] text-red-400">
             {t("All Site Posters · Print 3 sheets")}
           </div>

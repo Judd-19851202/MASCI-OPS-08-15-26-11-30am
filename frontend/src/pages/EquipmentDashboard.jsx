@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Wrench, Eye, Trash2, Loader2, ArrowLeft, AlertOctagon } from "lucide-react";
+import { Plus, Wrench, Eye, Trash2, Loader2, AlertOctagon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import HubBackLink, { useHubHome } from "@/components/HubBackLink";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
 import OpenItemsPanel from "@/components/OpenItemsPanel";
@@ -15,6 +16,7 @@ export default function EquipmentDashboard() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const hubHome = useHubHome();
 
   const load = async () => {
     setLoading(true);
@@ -48,14 +50,8 @@ export default function EquipmentDashboard() {
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <Link
-            to="/admin"
-            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="hub-link"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Admin
-          </Link>
-          <MasciLogo variant="mark" size="md" homeLink="/admin" />
+          <HubBackLink />
+          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex items-center gap-2">
             <ShareFormDialog
               formType="equipment-inspection"

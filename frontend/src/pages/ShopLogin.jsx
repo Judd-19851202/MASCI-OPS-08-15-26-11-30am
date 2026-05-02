@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Wrench, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,9 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
 import { api } from "@/lib/api";
-import { setShopToken } from "@/lib/shopAuth";
+import { setShopToken, clearShopToken } from "@/lib/shopAuth";
+import { clearAdminToken } from "@/lib/adminAuth";
+import { clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 
@@ -18,6 +20,14 @@ export default function ShopLogin() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    // Clear every tier's token on arrival so a shop user never inherits
+    // a ghost Admin/PM session from a previously logged-in teammate.
+    clearShopToken();
+    clearAdminToken();
+    clearPmToken();
+  }, []);
+
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!password) {
@@ -25,6 +35,9 @@ export default function ShopLogin() {
       return;
     }
     setSubmitting(true);
+    clearShopToken();
+    clearAdminToken();
+    clearPmToken();
     try {
       const res = await api.post("/shop/login", { password, _t: Date.now() }, {
         timeout: 90000, // backend cold-start on Atlas can take up to 60s

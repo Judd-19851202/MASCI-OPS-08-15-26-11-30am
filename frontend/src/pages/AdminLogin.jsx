@@ -9,6 +9,8 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
 import { api } from "@/lib/api";
 import { setAdminToken, clearAdminToken } from "@/lib/adminAuth";
+import { clearPmToken } from "@/lib/pmAuth";
+import { clearShopToken } from "@/lib/shopAuth";
 import { toast } from "sonner";
 
 export default function AdminLogin() {
@@ -18,10 +20,12 @@ export default function AdminLogin() {
   const [submitting, setSubmitting] = useState(false);
 
   // Landing on /admin/login means any prior session is over.
-  // Wipe any stale admin token so a bad token can't poison the next call
-  // and so the password field starts from a clean state.
+  // Wipe every tier's token so a bad token can't poison the next call
+  // and so an admin never inherits a ghost PM/Shop session.
   useEffect(() => {
     clearAdminToken();
+    clearPmToken();
+    clearShopToken();
   }, []);
 
   const onSubmit = async (e) => {
@@ -31,9 +35,12 @@ export default function AdminLogin() {
       return;
     }
     setSubmitting(true);
-    // Defensive: clear any token immediately before the POST so the
-    // request interceptor doesn't attach a stale X-Admin-Token header.
+    // Defensive: clear every tier's token immediately before the POST so
+    // the request interceptor doesn't attach a stale X-*-Token header
+    // and so an admin login can't piggyback on a PM/Shop identity.
     clearAdminToken();
+    clearPmToken();
+    clearShopToken();
     try {
       const res = await api.post("/admin/login", { password, _t: Date.now() }, {
         timeout: 90000, // backend cold-start on Atlas can take up to 60s

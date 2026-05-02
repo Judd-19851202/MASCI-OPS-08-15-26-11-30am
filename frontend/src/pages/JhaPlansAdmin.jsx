@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   FileText,
   FileSpreadsheet,
   FileType,
@@ -22,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MasciLogo } from "@/components/MasciLogo";
+import HubBackLink from "@/components/HubBackLink";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -207,13 +207,10 @@ export default function JhaPlansAdmin() {
     <main className="min-h-screen bg-slate-50">
       <header className="border-b-2 border-slate-200 bg-white sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
-          <Link
-            to="/admin"
+          <HubBackLink
             className="text-slate-600 hover:text-slate-900"
-            data-testid="jha-back-link"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
+            testId="jha-back-link"
+          />
           <MasciLogo className="h-6 w-auto" />
           <div className="flex-1">
             <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">

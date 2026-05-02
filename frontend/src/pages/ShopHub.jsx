@@ -12,6 +12,8 @@ import { LangToggle } from "@/components/LangToggle";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { clearShopToken } from "@/lib/shopAuth";
+import { clearAdminToken } from "@/lib/adminAuth";
+import { clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 
@@ -50,7 +52,11 @@ export default function ShopHub() {
   const totalSigned = items.reduce((acc, i) => acc + (i.signoff_count ?? (i.shop_signoffs || []).length), 0);
 
   const onLogout = () => {
+    // Wipe every tier on sign-out so a shared trailer phone can't leak
+    // an identity to the next user.
     clearShopToken();
+    clearAdminToken();
+    clearPmToken();
     navigate("/");
   };
 

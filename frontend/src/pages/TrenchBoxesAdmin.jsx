@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Loader2, Trash2, Pencil, Box, Printer, FolderOpen } from "lucide-react";
+import { Plus, Loader2, Trash2, Pencil, Box, Printer, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MasciLogo } from "@/components/MasciLogo";
+import HubBackLink, { useHubHome } from "@/components/HubBackLink";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import TrenchBoxTabulatedLibrary from "@/components/TrenchBoxTabulatedLibrary";
@@ -40,6 +41,7 @@ export default function TrenchBoxesAdmin() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
+  const hubHome = useHubHome();
 
   const refresh = async () => {
     setLoading(true);
@@ -123,10 +125,8 @@ export default function TrenchBoxesAdmin() {
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <Link to="/admin" className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide" data-testid="back-link">
-            <ArrowLeft className="w-4 h-4 mr-1" /> Admin
-          </Link>
-          <MasciLogo variant="mark" size="md" homeLink="/admin" />
+          <HubBackLink testId="back-link" />
+          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex items-center gap-2">
             <Link
               to="/admin/trench-boxes/poster"

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   TrendingUp,
   Loader2,
   Calendar,
@@ -18,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MasciLogo } from "@/components/MasciLogo";
+import HubBackLink from "@/components/HubBackLink";
 
 const fmtCurrency = (n) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
@@ -100,13 +100,10 @@ export default function ProjectPnlPage() {
       <div className="bg-slate-900 text-white sticky top-0 z-20 border-b-4 border-amber-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link
-              to="/admin"
+            <HubBackLink
               className="text-amber-400 hover:text-white transition-colors"
-              data-testid="pnl-back-link"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
+              testId="pnl-back-link"
+            />
             <MasciLogo variant="light" className="h-7" />
             <span className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.25em] text-amber-400 font-bold pl-3 border-l border-slate-700">
               Project P&amp;L Snapshot

@@ -10,6 +10,8 @@ import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setPmToken, clearPmToken } from "@/lib/pmAuth";
+import { clearAdminToken } from "@/lib/adminAuth";
+import { clearShopToken } from "@/lib/shopAuth";
 import { toast } from "sonner";
 
 export default function PmLogin() {
@@ -20,7 +22,11 @@ export default function PmLogin() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    // Clear every tier's token on arrival so a PM never inherits a ghost
+    // Admin/Shop session from whoever used this browser before them.
     clearPmToken();
+    clearAdminToken();
+    clearShopToken();
   }, []);
 
   const onSubmit = async (e) => {
@@ -31,6 +37,8 @@ export default function PmLogin() {
     }
     setSubmitting(true);
     clearPmToken();
+    clearAdminToken();
+    clearShopToken();
     try {
       const res = await api.post(
         "/pm/login",

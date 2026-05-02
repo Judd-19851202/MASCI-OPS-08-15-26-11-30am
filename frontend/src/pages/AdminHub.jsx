@@ -35,6 +35,8 @@ import SitePostersPanel from "@/components/SitePostersPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { clearAdminToken } from "@/lib/adminAuth";
+import { clearPmToken } from "@/lib/pmAuth";
+import { clearShopToken } from "@/lib/shopAuth";
 import { toast } from "sonner";
 
 const AdminTile = ({ to, icon: Icon, title, count, sub, accent = "red", testId }) => {
@@ -130,7 +132,11 @@ export default function AdminHub() {
   }, []);
 
   const signOut = () => {
+    // Wipe every tier on sign-out — shared office iPads / trailer
+    // phones must not leak an admin identity to the next user.
     clearAdminToken();
+    clearPmToken();
+    clearShopToken();
     toast.success("Signed out");
     navigate("/", { replace: true });
   };

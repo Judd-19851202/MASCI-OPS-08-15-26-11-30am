@@ -33,6 +33,8 @@ import SitePostersPanel from "@/components/SitePostersPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { clearPmToken } from "@/lib/pmAuth";
+import { clearAdminToken } from "@/lib/adminAuth";
+import { clearShopToken } from "@/lib/shopAuth";
 import { toast } from "sonner";
 
 const PmTile = ({ to, icon: Icon, title, count, sub, accent = "amber", testId }) => {
@@ -129,7 +131,11 @@ export default function PmHub() {
   }, []);
 
   const signOut = () => {
+    // Wipe every tier on sign-out so a shared device can't leak an
+    // identity to the next user.
     clearPmToken();
+    clearAdminToken();
+    clearShopToken();
     toast.success("Signed out");
     navigate("/", { replace: true });
   };
