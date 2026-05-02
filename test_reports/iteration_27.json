@@ -1,0 +1,33 @@
+{
+  "summary": "Frontend-only sweep across 14 public + auth surfaces on mobile (390x844) and desktop (1440x900). All pages load with ZERO console/page errors. Terms=14 H2s ending '14. Contact', Privacy=11 H2s ending '11. Contact' ✓. Cross-link Privacy→Terms ✓. Global footer on /admin, /pm/login, /shop/login reads '© 2026 MASCI · POWERED BY THE JUDD GROUP LLC · TERMS · PRIVACY' ✓. Admin(MASCI1982!)/PM(Happy123!)/Shop(Nothappy123!) logins all land on correct hubs ✓. Training lock-track tiles route shop→/shop/login, pm→/pm/login, admin→/admin/login ✓. Training QR poster attribution = '© 2026 MASCI · POWERED BY THE JUDD GROUP LLC · POST INSIDE EVERY SITE TRAILER / PEGUE DENTRO DE CADA TRÁILER' (no 'subsidiary' wording) ✓. Trench boxes page no longer contains 'subsidiary' ✓. Daily Report (/daily/new) date auto-populates to today's local date ✓. TALLY dismiss × works and chip appears; state re-expands via JS click. HOWEVER the TALLY bar and collapsed chip still COLLIDE with the Emergent badge on mobile — the safe-area-inset paddingRight fix does not push the control out of the badge's footprint.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "NewEquipmentInspection TALLY bar (/equipment/submit)",
+        "issue": "On mobile (390x844) the sticky tally bar bbox x=16..374 y=780..828 FULLY overlaps the 'Made with Emergent' badge at x=196..374 y=788..828 — the PASS/FAIL/N/A counts and the × dismiss button sit directly behind or beside the badge. The collapsed TALLY chip (x=255..374 y=800..828) sits ENTIRELY behind the Emergent badge, making it tap-blocked on real devices. The recent paddingRight:env(safe-area-inset-right) fix only reserves OS safe-area (notch/punch-hole) and does not reserve space for the Emergent preview badge (which is ~180px wide and permanently anchored bottom-right). During testing `page.click(force=True)` on the restore chip did NOT flip state on the first attempt — only a JS dispatchEvent click worked — strongly indicating the Emergent badge is intercepting pointer events.",
+        "selector": "[data-testid='equip-tally-bar'], [data-testid='equip-tally-restore']",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Fix TALLY bar + chip overlap with Emergent badge on mobile. Suggested options (pick one): (a) Add `pr-[11rem] sm:pr-3` to the outer wrapper so the counts clear the ~180px badge on small screens, or better: wrap the counts div with `mr-[11rem] sm:mr-0`. (b) Apply the same `mr-[11rem] sm:mr-0` to the collapsed chip so the chip floats LEFT of the badge. (c) Alternatively raise the bar with `bottom-20 sm:bottom-4` on mobile so it sits ABOVE the badge instead of beside it. Only the FIRST option keeps the bar readable without blocking the content above. After fix, re-verify chip is tappable with a normal (non-JS) click in playwright at viewport 390x844."
+  ],
+  "critical_code_review_comments": [
+    "/app/frontend/src/pages/NewEquipmentInspection.jsx:921 — paddingRight:env(safe-area-inset-right) does NOT address the Emergent badge footprint. Use tailwind mr- on the inner counts div or bottom- bump on mobile.",
+    "Same file line 947 (restore chip): has `ml-auto` + `sticky bottom-4` with NO right margin, so on mobile it renders squarely under the Emergent badge. Add `mr-[11rem] sm:mr-0` or `mr-44 sm:mr-0`.",
+    "Spec used routes /reports/daily/new, /safety/jha, /safety/trench-boxes but actual App.js routes are /daily/new, /jha, /trench-boxes. Consider adding redirect aliases (similar to /cheat-sheet→/cheatsheet) to avoid stale-link 404-likes from old QR prints."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only task)", "frontend": "94% — 17 of 18 checklist items pass; 1 mobile-layout regression (TALLY+badge overlap)"},
+  "test_credentials": "Admin: MASCI1982!  PM: Happy123!  Shop: Nothappy123!  — all verified working against preview.",
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Preview URL: https://safety-audit-mobile-1.preview.emergentagent.com. The ONE open issue is in /app/frontend/src/pages/NewEquipmentInspection.jsx lines ~918-955 where the TALLY sticky-bottom elements don't clear the Emergent preview badge on mobile viewports. Repro: set viewport 390x844, go to /equipment/submit, click [data-testid='select-equipment-type'], pick Dozer, scroll, inspect bounding_box of [data-testid='equip-tally-bar'] (x≈16,y≈780,w≈358) vs Emergent anchor href*='emergent' (x≈196,y≈788,w≈178). Content-level checks (legal sections count, footer text, attribution strings, login redirects, lock-track routing, date auto-populate) all pass — no need to re-verify those. Emergent badge only appears on preview/deployed Emergent URLs, not mascidocs.com, so the live prod site will NOT show this overlap — this is a PREVIEW + DEPLOYED-EMERGENT-URL regression only. The ACCOUNTABILITY/EXCELLENCE taglines are rendered as raster/SVG inside the MasciLogo image so they won't show up in document.body.innerText greps — verify via screenshot instead.",
+  "rca of the issue": "RCA — NewEquipmentInspection.jsx applies `paddingRight: max(0.75rem, env(safe-area-inset-right))` to the sticky tally bar. env(safe-area-inset-right) is the OS-level safe-area (iPhone notch / rounded-corner padding) and evaluates to 0 on most devices and in the preview browser. It does NOT reserve space for the 'Made with Emergent' floating anchor that Emergent injects in the bottom-right corner of preview and *.emergentagent.com URLs (bbox ≈196x788 to 374x828 on 390-wide viewport). Result: the entire right half of the tally bar, including the × dismiss on the left AND the PASS/FAIL/N/A counters, overlays the badge; the collapsed chip (which uses `ml-auto`) sits 100% underneath the badge and is not tappable with a real click on preview/deployed Emergent URLs. Mitigation: replace the paddingRight inline style with a responsive right-margin on the inner counts div (e.g. `mr-44 sm:mr-0` → ~176px → clears badge) and on the collapsed chip wrapper, and/or lift the whole bar with `bottom-20 sm:bottom-4`. This regression does NOT affect mascidocs.com production because Emergent only injects the badge on preview and emergentagent.com URLs — but it IS user-visible on any testing/staging viewer on a phone."
+}
