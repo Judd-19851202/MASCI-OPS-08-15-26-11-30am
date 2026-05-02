@@ -245,7 +245,7 @@ export default function ViewDailyReport() {
           {data.weather_snapshots?.length > 0 ? (
             <div className="grid grid-cols-3 gap-3 mt-3">
               {data.weather_snapshots.map((s, i) => (
-                <div key={i} className="border-2 border-slate-200 rounded-md p-3">
+                <div key={i} className="border-2 border-slate-200 rounded-md p-3 print-row">
                   <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-red-700 font-bold">
                     {s.time}
                   </div>

@@ -99,8 +99,14 @@ body {
         margin: 0 !important;
         box-shadow: none !important;
     }
+    /* Sections flow naturally across pages. Previously we set
+       `page-break-inside: avoid` here, which pushed any oversized section
+       (attendee list, discussion block, etc.) to the NEXT page, leaving
+       a huge empty gap on the page before. That's what made the Safety
+       Meeting PDF look "way out of spec" — whole pages had nothing but
+       a header. Now sections may split across pages where needed and
+       only small atoms (attendee card, crew row) stay together. */
     .print-section {
-        page-break-inside: avoid;
         border: 1px solid #000 !important;
         margin-bottom: 12px !important;
         padding: 12px !important;
@@ -113,6 +119,7 @@ body {
     .print-row {
         font-size: 10pt !important;
         line-height: 1.35 !important;
+        page-break-inside: avoid;
     }
     .print-status-yes {
         background: #fff !important;
