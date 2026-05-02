@@ -1,5 +1,31 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-02 — Language-Aware PDF Footer Fix (Blocker Found in Pre-Deploy Audit)
+
+Pre-deploy LIVE PDF audit caught two related bugs that the preview tests missed:
+
+### Bug A — Spanish packets rendered the English footer on every page
+- Root cause: `training_pdf.py` `_CSS` constant hardcoded `"\\00A9 MASCI \\00B7 Platform developed by The Judd Group LLC"` in the `@page @bottom-left` margin box. The `footer_legal` string in the `_strings_for(lang)` i18n table was only used by the endnote `<div>` on the final page.
+- Impact: On ES packets, the per-page footer (9 pages per packet × 4 tracks × ES) read English instead of `© MASCI · Plataforma desarrollada por The Judd Group LLC`.
+
+### Bug B — LIVE PM track packet had zero footers on any page
+- Root cause: Backend deployed was still running OLD code (pre-footer refactor) — confirmed by comparing LIVE `pm_en.pdf` (0/9 footer hits) to LOCAL `pm_en.pdf` rendered from current source (8/9 hits). Even with a cache-busting query string, LIVE returned the stale content + `cache-control: public, max-age=60` for gated tracks (old logic — new logic sets `private, no-store` for non-field).
+- Impact: Only the PM track was broken live; field/shop/admin had the correct English footer but ES versions still had Bug A.
+
+### Fix (both bugs, one code path)
+- Replaced monolithic `_CSS` constant with `_CSS_TEMPLATE` (has a `{FOOTER_TEXT}` placeholder) plus a new `_css_for_lang(lang)` helper that substitutes the correct language-aware footer string.
+- Both `render_packet` and `_render_bilingual` now call `_css_for_lang(lang)` when building the `<style>` block, so every page footer matches the body language.
+- Verified locally across all 8 permutations (field/shop/pm/admin × en/es):
+  - Footer on every non-cover page ✓
+  - Disclaimer appears exactly once on last page ✓
+  - Ownership clarification on last page ✓
+  - Zero "Powered by", "subsidiary", "ALL RIGHTS RESERVED", "Built with Emergent" ✓
+
+### Deployment note
+- LIVE mascidocs.com still serving stale backend PDFs until next redeploy. Frontend bundle is already current.
+- Once the redeploy lands, the training-PDF audit script (`/tmp/audit_live_pdfs.py`) can be re-run and should report 8/8 PASS.
+
+
 ## 2026-05-02 — Final Vendor/Customer Attribution Reframe (Round 3)
 
 Owner refined the wording one more time after the prior "Proprietary platform developed and maintained by" pass — the final brief shortens the footer, moves the safety disclaimer from every-page to last-page-only (less visually noisy), and adds admin-dashboard-specific wording.

@@ -852,12 +852,12 @@ def _normalize_lang(raw: str) -> str:
     return "en"
 
 
-_CSS = """
+_CSS_TEMPLATE = """
 @page {
   size: Letter;
   margin: 0.55in 0.55in 0.7in 0.55in;
   @bottom-left {
-    content: "\\00A9  MASCI \\00B7  Platform developed by The Judd Group LLC";
+    content: "{FOOTER_TEXT}";
     font-family: 'Helvetica Neue', Arial, sans-serif;
     font-size: 8pt;
     color: #64748B;
@@ -959,6 +959,18 @@ body { font-size: 10.5pt; line-height: 1.45; }
 """
 
 
+def _css_for_lang(lang: str) -> str:
+    """Render the packet CSS with a language-appropriate footer string
+    in the @page @bottom-left margin box. The footer text MUST match
+    the `footer_legal` string in the i18n table (see `_strings_for`)
+    so every page of the packet shows the same language as the body.
+    """
+    footer_en = "\\00A9  MASCI \\00B7  Platform developed by The Judd Group LLC"
+    footer_es = "\\00A9  MASCI \\00B7  Plataforma desarrollada por The Judd Group LLC"
+    footer = footer_es if lang == "es" else footer_en
+    return _CSS_TEMPLATE.replace("{FOOTER_TEXT}", footer)
+
+
 # ----------------------------------------------------------------------------
 # Bilingual renderer
 # ----------------------------------------------------------------------------
@@ -975,7 +987,9 @@ def _render_bilingual(track: str, meta: dict, lessons: list) -> bytes:
     now_es = datetime.now(timezone.utc).strftime("%d de %b, %Y")
 
     parts = []
-    parts.append(f"<style>{_CSS}</style>")
+    # Bilingual packet uses the English footer by default — body already
+    # covers both languages side-by-side.
+    parts.append(f"<style>{_css_for_lang('en')}</style>")
     parts.append(f"<div style='--accent: {accent};'>")
 
     # Cover
@@ -1134,7 +1148,7 @@ def render_packet(track: str, lang: str = "en") -> bytes:
     now = datetime.now(timezone.utc).strftime("%b %d, %Y") if lang == "en" else datetime.now(timezone.utc).strftime("%d de %b, %Y")
 
     parts = []
-    parts.append(f"<style>{_CSS}</style>")
+    parts.append(f"<style>{_css_for_lang(lang)}</style>")
     parts.append(f"<div style='--accent: {accent};'>")
 
     # Cover
