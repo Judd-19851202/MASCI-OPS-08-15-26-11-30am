@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ClipboardCheck, Users, AlertOctagon, FileText, Box, Plus, ArrowLeft, Shield,
+  ClipboardCheck, Users, AlertOctagon, FileText, Box, Plus, ArrowLeft, Shield, IdCard,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -123,6 +123,14 @@ export default function SafetySection() {
             desc={t("Learn what tabulated data is, why it keeps you alive, and pull the exact manufacturer data sheet for every shield in the MASCI fleet — bilingual.")}
             accent="slate"
             testId="safety-tile-trench"
+          />
+          <FormTile
+            to="/safety/cards"
+            icon={IdCard}
+            title={t("Field Safety Cards")}
+            desc={t("Bilingual wallet-sized safety cards — English and Español, front and back. Print on letter paper or email the PDF straight to the crew.")}
+            accent="redDeep"
+            testId="safety-tile-cards"
           />
         </div>
       </main>

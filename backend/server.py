@@ -4937,6 +4937,117 @@ async def email_report(
 
 app.include_router(_email_router)
 
+
+# ------------------------- Field Safety Cards -------------------------
+#
+# Printable/emailable bilingual safety cards meant for crew wallets. The
+# source of truth is four high-res PDFs shipped at /app/backend/static/
+# safety-cards. The frontend shows 150-DPI JPG previews served by the
+# frontend public folder so crews can eyeball the card before printing;
+# this email endpoint mails the ORIGINAL print-ready PDF attachment.
+#
+# Uses its own sub-router because `api_router` was already included on
+# the app before this block — late `@api_router.post(...)` registrations
+# silently fail to mount.
+
+_SAFETY_CARD_FILES = {
+    "en-front": ("MASCI_Safety_Card_EN_Front.pdf", "MASCI Safety Card — English · Front"),
+    "en-back":  ("MASCI_Safety_Card_EN_Back.pdf",  "MASCI Safety Card — English · Back"),
+    "es-front": ("MASCI_Safety_Card_ES_Front.pdf", "MASCI Tarjeta de Seguridad — Español · Frente"),
+    "es-back":  ("MASCI_Safety_Card_ES_Back.pdf",  "MASCI Tarjeta de Seguridad — Español · Reverso"),
+}
+
+
+class SafetyCardEmailRequest(BaseModel):
+    card: str
+    recipients: List[str]
+    subject: Optional[str] = None
+    note: Optional[str] = None
+
+
+_safety_cards_router = APIRouter(prefix="/api")
+
+
+@_safety_cards_router.post("/safety-cards/email")
+async def email_safety_card(body: SafetyCardEmailRequest):
+    """Email one of the 4 bilingual field safety cards as a PDF attachment.
+    Open to anyone in the crew — the cards are handout materials, not
+    gated compliance docs."""
+    if body.card not in _SAFETY_CARD_FILES:
+        raise HTTPException(status_code=400, detail=f"Unknown card: {body.card}")
+
+    filename, default_subject = _SAFETY_CARD_FILES[body.card]
+    pdf_path = Path(__file__).parent / "static" / "safety-cards" / filename
+    if not pdf_path.exists():
+        raise HTTPException(status_code=500, detail=f"Card file missing on server: {filename}")
+
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="RESEND_API_KEY not configured. Add it to /app/backend/.env and restart backend.",
+        )
+
+    valid_recipients = [r.strip() for r in (body.recipients or []) if r and r.strip()]
+    if not valid_recipients:
+        raise HTTPException(status_code=400, detail="At least one recipient email is required")
+
+    sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+
+    try:
+        import resend  # noqa: E402
+
+        resend.api_key = api_key
+        pdf_bytes = pdf_path.read_bytes()
+
+        note_html = ""
+        if body.note:
+            safe_note = body.note.replace("<", "&lt;").replace(">", "&gt;")
+            note_html = f"<p style='margin:16px 0;color:#334155;'>{safe_note}</p>"
+
+        html = (
+            "<div style='font-family:ui-sans-serif,system-ui,Arial;max-width:600px;'>"
+            "<h2 style='color:#991b1b;margin:0 0 8px;'>MASCI Field Safety Card</h2>"
+            f"<p style='margin:0 0 16px;color:#475569;'>Attached: <strong>{default_subject}</strong>. "
+            "Print on letter-size (8.5×11) and distribute to the crew.</p>"
+            f"{note_html}"
+            "<hr style='border:none;border-top:1px solid #e2e8f0;margin:16px 0;'>"
+            "<p style='font-size:12px;color:#64748b;margin:0;'>Sent from MASCI Hub · Safety · "
+            "Accountability · Adapt · Overcome</p>"
+            "</div>"
+        )
+
+        params = {
+            "from": f"MASCI Safety <{sender_email}>",
+            "to": valid_recipients,
+            "subject": body.subject.strip() if body.subject else default_subject,
+            "html": html,
+            "attachments": [
+                {
+                    "filename": filename,
+                    "content": _email_b64.b64encode(pdf_bytes).decode(),
+                }
+            ],
+        }
+
+        result = await asyncio.to_thread(resend.Emails.send, params)
+        return {
+            "ok": True,
+            "id": (result or {}).get("id"),
+            "to": valid_recipients,
+            "filename": filename,
+            "size_bytes": len(pdf_bytes),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"safety-cards/email failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Email send failed: {e}")
+
+
+app.include_router(_safety_cards_router)
+
+
 # ------------------------- Phase 1: per-user auth + projects (Basecamp-style /app) -------------------------
 from auth import build_auth_router, seed_initial_users  # noqa: E402
 from projects import build_projects_router, seed_initial_projects  # noqa: E402

@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 // AuthProvider removed 2026-04-28 — Crew Hub scrapped.
 import Hub from "@/pages/Hub";
 import SafetySection from "@/pages/SafetySection";
+import FieldSafetyCards from "@/pages/FieldSafetyCards";
 import FieldSection from "@/pages/FieldSection";
 import Dashboard from "@/pages/Dashboard";
 import NewInspection from "@/pages/NewInspection";
@@ -85,6 +86,7 @@ function App() {
             {/* MASCI Hub — public */}
             <Route path="/" element={<Hub />} />
             <Route path="/safety" element={<SafetySection />} />
+            <Route path="/safety/cards" element={<FieldSafetyCards />} />
             <Route path="/field" element={<FieldSection />} />
 
             <Route path="/inspect/new" element={<GateInspection><NewInspection /></GateInspection>} />
