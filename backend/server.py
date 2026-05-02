@@ -260,6 +260,61 @@ def api_healthz():
 
 
 # ---------------------------------------------------------------------------
+# Build fingerprint endpoint — /api/version
+#
+# Motivation: twice now we've hit silent backend-vs-frontend drift after a
+# deploy (frontend bundle updates, backend Python code stays on an older
+# snapshot). This endpoint gives every audit script + support ticket a
+# one-curl way to confirm the backend is actually running the committed
+# code.
+#
+# Returns three independent signals:
+#   • commit         — git SHA set at deploy time (env var GIT_COMMIT)
+#   • built_at       — ISO timestamp stamped at deploy (env var BUILT_AT)
+#   • source_hash    — md5 of key backend source files, computed at startup
+#
+# The source_hash is the truth even if the env vars aren't wired — if
+# this hash matches the one you get from running the same md5 locally
+# on the current commit, the backend code IS the current commit.
+# ---------------------------------------------------------------------------
+import hashlib as _hashlib  # noqa: E402 — deliberate inline import, local to this block
+
+_STARTUP_TS = datetime.now(timezone.utc)
+
+def _compute_source_hash() -> str:
+    """Hash the key backend source files so a running server can prove
+    which commit it's executing without needing git in the container."""
+    paths = [
+        ROOT_DIR / "server.py",
+        ROOT_DIR / "training_pdf.py",
+        ROOT_DIR / "pdf_render.py",
+    ]
+    h = _hashlib.md5()
+    for p in paths:
+        try:
+            with open(p, "rb") as f:
+                h.update(f.read())
+        except OSError:
+            # file missing — record that in the hash so drift is still visible
+            h.update(b"MISSING:" + str(p).encode())
+    return h.hexdigest()
+
+_SOURCE_HASH = _compute_source_hash()
+
+
+@api_router.get("/version")
+def api_version():
+    return {
+        "service": "masci-hub",
+        "commit": os.environ.get("GIT_COMMIT", "unknown"),
+        "built_at": os.environ.get("BUILT_AT", "unknown"),
+        "source_hash": _SOURCE_HASH,
+        "started_at": _STARTUP_TS.isoformat(),
+        "uptime_s": int((datetime.now(timezone.utc) - _STARTUP_TS).total_seconds()),
+    }
+
+
+# ---------------------------------------------------------------------------
 # Soft-delete framework — give every master-list 🗑️ button a 14-day undo
 # instead of an immediate hard-delete, so a mis-click on a 234-row table
 # is fully recoverable from the UI without restoring a backup.

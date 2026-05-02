@@ -1,5 +1,25 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-02 — Backend Version Endpoint + Post-Deploy Drift Check
+
+Added to prevent a third "live backend is stale" surprise:
+
+### `GET /api/version`
+- New public read-only endpoint on the backend (`server.py` just after `/health`).
+- Returns: `{ service, commit, built_at, source_hash, started_at, uptime_s }`.
+- `source_hash` is an md5 of `server.py + training_pdf.py + pdf_render.py` computed once at startup. Works even without git in the container — the hash is deterministic from source bytes.
+- Optional env vars `GIT_COMMIT` + `BUILT_AT` can be populated at deploy time to supplement `source_hash`; fall back to `"unknown"` when not set.
+
+### `scripts/post_deploy_check.py`
+- One-command post-deploy verification: `python3 scripts/post_deploy_check.py`
+- Hits `/api/version` on mascidocs.com, computes the same hash locally, compares.
+- On match → runs the existing training-PDF audit on live; on mismatch → tells you to redeploy.
+- Exit codes: 0=pass, 1=stale backend, 2=endpoint unreachable. Script-friendly for future CI.
+
+### Deployment note
+Endpoint is not yet on live mascidocs.com — takes effect after the next redeploy. Verified working on preview: hash matches local source, uptime counter increments, training-PDF audit trigger works.
+
+
 ## 2026-05-02 — Language-Aware PDF Footer Fix (Blocker Found in Pre-Deploy Audit)
 
 Pre-deploy LIVE PDF audit caught two related bugs that the preview tests missed:
