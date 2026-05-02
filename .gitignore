@@ -368,3 +368,15 @@ credentials.json
 *.pem
 *.key
 .credentials
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+backend/backups/MASCI_full_backup_2026-05-02_053846Z.zip
+backend/backups/MASCI_full_backup_2026-05-02_054022Z.zip
+backend/backups/MASCI_full_backup_2026-05-02_054259Z.zip
