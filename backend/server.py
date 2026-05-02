@@ -504,6 +504,144 @@ async def dev_ops_manual_snapshot_docx(
     )
 
 
+# --- Source bundle download --------------------------------------------
+# One-click zip of the full application source tree so an auditor /
+# acquirer / due-diligence package can pair the pinned Ops Manual with
+# a byte-exact copy of the code that produced it.
+#
+# Strict exclusions (never shipped in the zip):
+#   • /app/backend/backups/*            (customer DB dumps)
+#   • /app/backend/storage/*            (uploaded files — customer data)
+#   • /app/backend/__pycache__/*        (binary caches)
+#   • /app/backend/.env                 (secrets)
+#   • /app/backend/data/*.bak.json      (historical data snapshots)
+#   • /app/frontend/node_modules/*      (build artefact)
+#   • /app/frontend/build/*             (build artefact)
+#   • /app/frontend/.env                (secrets)
+#   • **/.git/*                         (repo metadata)
+#   • *.pyc                             (binary caches)
+import io as _src_io  # noqa: E402
+import zipfile as _src_zip  # noqa: E402
+from pathlib import Path as _SrcPath  # noqa: E402
+
+
+_SRC_EXCLUDE_DIRS = {
+    "backups", "storage", "__pycache__", "node_modules", "build",
+    ".git", ".next", ".cache", ".yarn", "dist", ".pytest_cache",
+    ".emergent",
+}
+_SRC_EXCLUDE_SUFFIXES = {".pyc", ".pyo", ".log"}
+_SRC_ROOTS = [
+    ("app", _SrcPath("/app"), {
+        "allowed_top_level": {
+            "backend", "frontend", "memory", "scripts", "test_reports",
+            "README.md", "ATLAS_MIGRATION.md", "auth_testing.md",
+            "test_result.md", "design_guidelines.json",
+        },
+    }),
+]
+
+
+def _src_should_skip(path: _SrcPath) -> bool:
+    name = path.name
+    # skip env files wherever they land
+    if name == ".env" or name.startswith(".env."):
+        return True
+    # skip historical data snapshots
+    if name.endswith(".bak.json"):
+        return True
+    if path.suffix in _SRC_EXCLUDE_SUFFIXES:
+        return True
+    # skip anything inside an excluded directory
+    for part in path.parts:
+        if part in _SRC_EXCLUDE_DIRS:
+            return True
+    return False
+
+
+def _build_source_bundle() -> bytes:
+    buf = _src_io.BytesIO()
+    with _src_zip.ZipFile(buf, "w", _src_zip.ZIP_DEFLATED, compresslevel=6) as zf:
+        manifest_lines = [
+            "MASCI HUB — Source Bundle",
+            f"Generated: {datetime.now(timezone.utc).isoformat()}",
+            f"Source hash: {_SOURCE_HASH}",
+            f"Commit: {os.environ.get('GIT_COMMIT', 'unknown')}",
+            f"Built at: {os.environ.get('BUILT_AT', 'unknown')}",
+            "",
+            "Classification: CONFIDENTIAL — The Judd Group LLC",
+            "Excluded: /backups, /storage, node_modules, build, .env, .git, *.pyc, *.bak.json",
+            "",
+        ]
+        for label, root, opts in _SRC_ROOTS:
+            if not root.exists():
+                continue
+            allowed = opts.get("allowed_top_level")
+            for item in sorted(root.iterdir()):
+                if allowed and item.name not in allowed:
+                    continue
+                if _src_should_skip(item):
+                    continue
+                if item.is_file():
+                    try:
+                        arcname = f"{label}/{item.name}"
+                        zf.write(item, arcname)
+                        manifest_lines.append(arcname)
+                    except OSError:
+                        continue
+                elif item.is_dir():
+                    for sub in item.rglob("*"):
+                        if sub.is_dir():
+                            continue
+                        if _src_should_skip(sub):
+                            continue
+                        try:
+                            rel = sub.relative_to(root)
+                            arcname = f"{label}/{rel.as_posix()}"
+                            zf.write(sub, arcname)
+                            manifest_lines.append(arcname)
+                        except (OSError, ValueError):
+                            continue
+        zf.writestr("app/MANIFEST.txt", "\n".join(manifest_lines) + "\n")
+    buf.seek(0)
+    return buf.getvalue()
+
+
+@api_router.get("/dev/source-bundle.zip")
+def dev_source_bundle(_: bool = Depends(require_dev)):
+    """Stream the full application source tree as a zip. Excludes all
+    customer data (backups, storage), secrets (.env), and build
+    artefacts (node_modules, build, __pycache__). Intended to be paired
+    with a pinned Ops Manual snapshot for a due-diligence package."""
+    data = _build_source_bundle()
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    return _FastAPIResponse(
+        content=data,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="MASCI_HUB_Source_Bundle_{stamp}.zip"',
+            "Cache-Control": "private, no-store",
+            "X-Source-Hash": _SOURCE_HASH,
+        },
+    )
+
+
+@api_router.get("/dev/source-bundle.info")
+def dev_source_bundle_info(_: bool = Depends(require_dev)):
+    """Quick metadata probe — size + file count — so the UI can show a
+    size estimate before the user clicks download."""
+    data = _build_source_bundle()
+    with _src_zip.ZipFile(_src_io.BytesIO(data), "r") as zf:
+        file_count = len(zf.namelist())
+    return {
+        "bytes": len(data),
+        "file_count": file_count,
+        "source_hash": _SOURCE_HASH,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+
 # ---------------------------------------------------------------------------
 # Soft-delete framework — give every master-list 🗑️ button a 14-day undo
 # instead of an immediate hard-delete, so a mis-click on a 234-row table

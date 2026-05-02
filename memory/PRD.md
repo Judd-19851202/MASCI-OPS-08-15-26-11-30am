@@ -55,6 +55,33 @@ architecture, V2 recommendations) stay with the vendor.
 - `DEV_PASSWORD=Maddix8530!` in `/app/backend/.env`.
 
 
+## 2026-05-02 — Dev Portal: Full Source Bundle Download
+
+Due-diligence companion to the Ops Manual archive. Lets the vendor hand
+a counsel / auditor / acquirer a byte-exact snapshot of the code that
+produced a pinned manual, paired with the manual itself.
+
+### Backend
+- `GET /api/dev/source-bundle.zip` — streams a zip of `/app/backend`,
+  `/app/frontend` (src/public only), `/app/memory`, `/app/scripts`, top-level
+  docs (README, ATLAS_MIGRATION, auth_testing, test_result, design_guidelines).
+- `GET /api/dev/source-bundle.info` — metadata probe so the UI can show a
+  file-count + size estimate before the user clicks download.
+- **Strict exclusions** (never leaked): `/backups/*` (customer DB dumps),
+  `/storage/*` (uploaded files), `node_modules`, `build`, `__pycache__`,
+  `.git`, `.env` / `.env.*`, `*.pyc`, `*.pyo`, `*.log`, `*.bak.json`.
+- A `MANIFEST.txt` is embedded in every zip with generation timestamp,
+  `source_hash`, and a full file listing for audit.
+- **Verified via curl**: 357 files · 16.9 MB · 0 leaked sensitive paths ·
+  admin token rejected with 401.
+
+### Frontend
+- New "Full Source Bundle" section in DevHub between "Pin a Snapshot" and
+  "Snapshot Archive". Shows file count + size + short hash probed from
+  `/api/dev/source-bundle.info` on mount. Single button triggers
+  download via `X-Dev-Token`-authed blob fetch.
+
+
 ## 2026-05-02 — Internal System Owner & Operations Manual (PDF + DOCX)
 
 Full 18-page confidential reference doc for The Judd Group LLC covering all 12 requested sections: system overview, architecture, third-party dependencies, cost breakdown, deployment, backup + recovery, performance + scaling, security, failure points, maintenance checklist, V2 scaling notes, and owner-notes. Real tables for dependencies, costs, collections, failure modes, and risk mitigations.

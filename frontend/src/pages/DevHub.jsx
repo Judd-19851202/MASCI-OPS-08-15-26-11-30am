@@ -11,6 +11,7 @@ import {
   Trash2,
   History,
   ArrowLeft,
+  Package,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getDevToken, clearDevToken } from "@/lib/devAuth";
@@ -59,10 +60,11 @@ function Section({ title, eyebrow, children }) {
 
 export default function DevHub() {
   const navigate = useNavigate();
-  const [busy, setBusy] = useState(null); // "pdf" | "docx" | "snap" | null
+  const [busy, setBusy] = useState(null); // "pdf" | "docx" | "snap" | "bundle" | null
   const [snaps, setSnaps] = useState([]);
   const [loadingSnaps, setLoadingSnaps] = useState(false);
   const [note, setNote] = useState("");
+  const [bundleInfo, setBundleInfo] = useState(null);
 
   const loadSnaps = useCallback(async () => {
     setLoadingSnaps(true);
@@ -80,9 +82,19 @@ export default function DevHub() {
     }
   }, [navigate]);
 
+  const loadBundleInfo = useCallback(async () => {
+    try {
+      const { data } = await api.get("/dev/source-bundle.info");
+      setBundleInfo(data);
+    } catch {
+      // silent — info probe is just a size hint
+    }
+  }, []);
+
   useEffect(() => {
     loadSnaps();
-  }, [loadSnaps]);
+    loadBundleInfo();
+  }, [loadSnaps, loadBundleInfo]);
 
   const onDownload = async (format) => {
     setBusy(format);
@@ -135,6 +147,24 @@ export default function DevHub() {
     clearDevToken();
     toast.success("Signed out");
     navigate("/dev/login", { replace: true });
+  };
+
+  const onDownloadBundle = async () => {
+    setBusy("bundle");
+    try {
+      const stamp = new Date()
+        .toISOString()
+        .replace(/[:.]/g, "-")
+        .split("Z")[0];
+      await downloadWithDevToken(
+        "/api/dev/source-bundle.zip",
+        `MASCI_HUB_Source_Bundle_${stamp}.zip`
+      );
+      // refresh info after download in case source changed
+      loadBundleInfo();
+    } finally {
+      setBusy(null);
+    }
   };
 
   const fmtBytes = (n) => {
@@ -260,6 +290,43 @@ export default function DevHub() {
                 <><Camera className="w-4 h-4" /> Save Snapshot</>
               )}
             </button>
+          </div>
+        </Section>
+
+        {/* Section: Source bundle download */}
+        <Section title="Full Source Bundle" eyebrow="Due-Diligence · Live zip of the code tree">
+          <p className="text-slate-400 text-sm mb-4 max-w-2xl">
+            One-click download of the entire application source tree —
+            backend, frontend, scripts, memory docs. Pair with a pinned Ops
+            Manual snapshot to hand a byte-exact code + documentation
+            package to counsel, an auditor, or an acquirer.
+          </p>
+          <div className="mb-4 flex flex-wrap items-center gap-3 font-mono text-[11px] text-slate-500">
+            <span className="px-2 py-1 rounded bg-slate-950 border border-slate-800">
+              {bundleInfo ? `${bundleInfo.file_count} files` : "…"}
+            </span>
+            <span className="px-2 py-1 rounded bg-slate-950 border border-slate-800">
+              {bundleInfo ? `${(bundleInfo.bytes / 1024 / 1024).toFixed(1)} MB` : "…"}
+            </span>
+            <span className="px-2 py-1 rounded bg-slate-950 border border-slate-800">
+              hash {bundleInfo ? (bundleInfo.source_hash || "").slice(0, 10) : "—"}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onDownloadBundle}
+            disabled={busy !== null}
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs uppercase tracking-wide disabled:opacity-50"
+            data-testid="dev-source-bundle-download"
+          >
+            {busy === "bundle" ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Building…</>
+            ) : (
+              <><Package className="w-4 h-4" /> Download Source Bundle</>
+            )}
+          </button>
+          <div className="mt-4 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-600">
+            Excluded: /backups · /storage · node_modules · build · .env · .git · *.pyc · *.bak.json
           </div>
         </Section>
 
