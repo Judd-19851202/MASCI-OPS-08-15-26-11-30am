@@ -1,6 +1,32 @@
 # MASCI Safety Hub — PRD
 
-## 2026-05-02 — Legal Documents Replaced (Owner-Authored)
+## 2026-05-02 — System-Wide Bug Sweep & Mobile TALLY Hardening
+
+After the owner-authored Legal + Vendor Attribution redeploy shipped to mascidocs.com, a system-wide sweep was requested for any mobile/desktop bugs and any other sticky UI that might collide with the Emergent floating badge on preview/deployed Emergent URLs.
+
+### Testing agent results — 17 of 18 surfaces passed on both viewports
+Mobile (390×844) + Desktop (1440×900), zero console/page errors on every surface:
+Home, Cheat Sheet, Training Hub + 4 tracks, Legal Terms (14 sections), Legal Privacy (11 sections), Admin/PM/Shop logins with correct credentials, Field Safety Cards, Daily Report form, Incident form, JHA Plans Hub, Trench Boxes, Training QR Poster, global footer wording.
+
+### ONE real regression caught — TALLY bar collides with Emergent badge on mobile
+Root cause identified by testing agent: `env(safe-area-inset-right)` is an OS-level inset (notch / rounded corners) and resolves to `0` on most devices. It does **NOT** reserve space for the "Made with Emergent" floating badge that Emergent injects in the bottom-right on preview + deployed `*.emergentagent.com` URLs. Result: tally bar AND collapsed chip sat directly over the badge on mobile — chip was even click-blocked on real devices.
+
+**Fix applied** (`NewEquipmentInspection.jsx` lines ~918-955):
+- `sticky bottom-4` → `sticky bottom-24 sm:bottom-4`: lifts the bar 96px above the badge on mobile, keeps desktop unchanged
+- Removed `env(safe-area-inset-right)` inline padding (was dead weight)
+- Added `mr-44 sm:mr-0` to the collapsed TALLY chip so it parks to the **left** of the Emergent badge — always tappable
+
+**Verified via DOM bounding-box check on mobile viewport:**
+- Expanded bar ↔ badge overlap = **0 px**
+- Collapsed chip ↔ badge overlap = **0 px**
+- Normal Playwright click on chip now restores the bar (was previously requiring JS `dispatchEvent` because the badge intercepted pointer events)
+
+### Other sticky surfaces swept
+Exhaustive grep for `sticky bottom-*` / `fixed bottom-*` across `/frontend/src`: only **one** match existed (the TALLY bar, now fixed). All other sticky elements are `sticky top-0` headers, which don't collide with the bottom-right badge. Clean.
+
+### Emergent badge removal answer (from Support)
+Free tier: badge cannot be removed. Paid plans (Standard/Pro/Team) can toggle "Show Emergent Badge" off via deployment settings on the Home tab. Upgrade via the Credits button. Minimum plan: $20/mo. The badge only appears on preview and `*.emergentagent.com` URLs — it is **NOT** visible on mascidocs.com custom domain, so production users never see this collision. It's only visible to anyone QA-ing via preview links.
+
 
 The owner supplied final authoritative text for both `/legal/terms` and `/legal/privacy`. Both files were rewritten verbatim against the supplied copy — no paraphrasing. **Treat the wording inside `<article>` on both pages as legal text and do not edit phrasing without explicit owner approval.**
 

@@ -912,13 +912,14 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               • Tap the × to collapse to a small floating chip that
                 stays out of the way of the Emergent badge.
               • Tap the chip to re-expand.
-            On mobile we add extra right-side padding so the counts
-            never collide with the "Made with Emergent" floating badge
-            that Emergent injects on preview / deployed URLs. */}
+            On mobile we bump the bar UP above the "Made with Emergent"
+            floating badge (only visible on preview / deployed emergent
+            URLs — never on mascidocs.com). `bottom-24 sm:bottom-4`
+            lifts it clear; `mr-44 sm:mr-0` on the collapsed chip
+            keeps it to the LEFT of the badge so it's always tappable. */}
         {data.equipment_type && !tallyCollapsed && (
           <div
-            className="bg-white border-2 border-slate-300 rounded-md px-3 py-2 sm:p-4 flex items-center justify-between gap-2 sm:gap-3 sticky bottom-4 shadow-md z-20"
-            style={{ paddingRight: "max(0.75rem, env(safe-area-inset-right))" }}
+            className="bg-white border-2 border-slate-300 rounded-md px-3 py-2 sm:p-4 flex items-center justify-between gap-2 sm:gap-3 sticky bottom-24 sm:bottom-4 shadow-md z-20"
             data-testid="equip-tally-bar"
           >
             <button
@@ -944,7 +945,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           <button
             type="button"
             onClick={() => setTallyCollapsed(false)}
-            className="sticky bottom-4 ml-auto flex items-center gap-2 bg-slate-900 text-white rounded-full px-3 py-1.5 shadow-md text-xs font-mono uppercase tracking-[0.15em] z-20 hover:bg-slate-800"
+            className="sticky bottom-24 sm:bottom-4 ml-auto mr-44 sm:mr-0 flex items-center gap-2 bg-slate-900 text-white rounded-full px-3 py-1.5 shadow-md text-xs font-mono uppercase tracking-[0.15em] z-20 hover:bg-slate-800"
             data-testid="equip-tally-restore"
           >
             <span>{t("Tally")}</span>
