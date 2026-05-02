@@ -1,8 +1,28 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-02 — Training Video Support + First Video Registered
+
+### Native <video> support for MP4/WEBM URLs
+- `TrainingTrack.jsx` `toEmbedUrl()` now returns `{ kind: "iframe" | "file", src }` instead of a bare URL string.
+- Direct file extensions (`.mp4`, `.webm`, `.ogv`, `.mov`, `.m4v`) render inside an HTML5 `<video>` tag with native controls, `playsInline`, `preload=metadata`. Field crews get a real mobile video player.
+- YouTube / Loom / Vimeo still render in their iframe embed — unchanged behaviour.
+- Rendered markup uses `data-testid="lesson-video-file"` vs `"lesson-video-iframe"` so tests can target either.
+
+### First video registered
+- Lesson slug: `field-01-hub-navigation` ("Lesson 1 — Navigating the MASCI Hub")
+- URL: `https://customer-assets.emergentagent.com/job_safety-audit-mobile-1/artifacts/mnrpeff0_MASCI_Hub_Navigating_FINAL_...mp4`
+- 19.2 MB MP4, `content-type: video/mp4`, served with CORS-friendly headers.
+- Saved to `training_videos` Mongo doc (`_id: "config"`, `videos.field-01-hub-navigation`) via `PUT /api/admin/training/videos`.
+- Verified visually on preview: `/training/field` renders the embedded player at the top of Lesson 1, other lessons still show the "Video tutorial coming soon" placeholder.
+
+### Future videos
+The admin can self-serve future video additions via the existing `/admin/training-videos` page — no agent round-trip needed. Paste the video URL next to the lesson slug, click Save, the video shows up on the field track immediately.
+
+
 ## 2026-05-02 — Admin Hub Backend Version Badge
 
-Follow-on to the `/api/version` endpoint — added a tiny self-diagnosing widget on the Admin Hub footer so the admin can see at a glance whether the live backend is running the latest deploy.
+
+Follow-on to the `/api/version` endpoint — tiny self-diagnosing widget
 
 ### `BackendVersionBadge` component
 - `/app/frontend/src/components/BackendVersionBadge.jsx`

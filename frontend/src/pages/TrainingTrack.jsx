@@ -20,17 +20,22 @@ function toEmbedUrl(raw) {
   try {
     // YouTube
     const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{6,})/);
-    if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+    if (yt) return { kind: "iframe", src: `https://www.youtube.com/embed/${yt[1]}` };
     // Loom
     const loom = url.match(/loom\.com\/(?:share|embed)\/([\w-]+)/);
-    if (loom) return `https://www.loom.com/embed/${loom[1]}`;
+    if (loom) return { kind: "iframe", src: `https://www.loom.com/embed/${loom[1]}` };
     // Vimeo
     const vim = url.match(/vimeo\.com\/(\d+)/);
-    if (vim) return `https://player.vimeo.com/video/${vim[1]}`;
+    if (vim) return { kind: "iframe", src: `https://player.vimeo.com/video/${vim[1]}` };
+    // Direct file — .mp4, .webm, .mov etc. → render with native <video>
+    // so field crews get real playback controls + captions on mobile.
+    if (/\.(mp4|webm|ogv|mov|m4v)(\?|$)/i.test(url)) {
+      return { kind: "file", src: url };
+    }
   } catch {
     /* noop */
   }
-  return url;
+  return { kind: "iframe", src: url };
 }
 
 export default function TrainingTrack() {
@@ -242,18 +247,32 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t, pick }) {
         </div>
       </div>
 
-      {/* Video embed slot — shown above the walk-through when a URL is saved */}
+      {/* Video embed slot — shown above the walk-through when a URL is saved.
+          MP4 URLs use native <video> so field crews get proper mobile
+          playback controls; YouTube / Loom / Vimeo URLs use an iframe. */}
       <div className="px-5 sm:px-7 print:hidden">
         {loadingVideo ? null : embedSrc ? (
           <div className="relative w-full rounded-md overflow-hidden border-2 border-slate-200 bg-black" style={{ paddingBottom: "56.25%" }}>
-            <iframe
-              src={embedSrc}
-              title={title}
-              className="absolute inset-0 w-full h-full"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            {embedSrc.kind === "file" ? (
+              <video
+                src={embedSrc.src}
+                className="absolute inset-0 w-full h-full"
+                controls
+                playsInline
+                preload="metadata"
+                data-testid="lesson-video-file"
+              />
+            ) : (
+              <iframe
+                src={embedSrc.src}
+                title={title}
+                className="absolute inset-0 w-full h-full"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                data-testid="lesson-video-iframe"
+              />
+            )}
           </div>
         ) : (
           <div className="rounded-md border-2 border-dashed border-slate-300 bg-slate-50 p-4 text-center text-xs text-slate-500 font-mono uppercase tracking-[0.15em]">
