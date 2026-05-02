@@ -1,6 +1,34 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-02 — Internal System Owner & Operations Manual (PDF + DOCX)
+
+Full 18-page confidential reference doc for The Judd Group LLC covering all 12 requested sections: system overview, architecture, third-party dependencies, cost breakdown, deployment, backup + recovery, performance + scaling, security, failure points, maintenance checklist, V2 scaling notes, and owner-notes. Real tables for dependencies, costs, collections, failure modes, and risk mitigations.
+
+### Architecture
+- `/app/backend/ops_manual.py` — single source of truth. `SECTIONS` list holds all content. Both renderers emit from the same data.
+- `render_ops_manual_pdf()` → WeasyPrint, custom @page CSS with CONFIDENTIAL margin banner.
+- `render_ops_manual_docx()` → python-docx, 150 paragraphs / 9 tables / Word-native Heading 1 styles.
+
+### Admin endpoints (both require `X-Admin-Token`)
+- `GET /api/admin/ops-manual.pdf` → 66 KB, 18 pages, attachment disposition.
+- `GET /api/admin/ops-manual.docx` → 48 KB, Word 2007+ format.
+- Both return 401 without token. Both `Cache-Control: private, no-store`.
+
+### Admin UI
+- `/app/frontend/src/components/OpsManualPanel.jsx` — mounted in `AdminHub.jsx` below `CrewRecoveryPanel`. Two clearly-labelled buttons ("Download PDF" / "Download Word (.docx)") with loading state. Classification line at the bottom.
+
+### Regression
+- `/app/backend/tests/test_ops_manual.py` — 2 tests: PDF size + magic bytes, DOCX size + ≥12 H1s + ≥8 tables. Passes.
+
+### Dependency added
+- `python-docx==1.2.0` (pulls `lxml`) added to `requirements.txt`.
+
+### Classification
+**CONFIDENTIAL — The Judd Group LLC internal use only.** Document explicitly states it is not for MASCI staff or customers. Content includes internal cost figures, env-var names, dependency criticality ratings, and Version-2 SaaS recommendations.
+
+
 ## 2026-05-02 — Training Video Support + First Video Registered
+
 
 ### Native <video> support for MP4/WEBM URLs
 - `TrainingTrack.jsx` `toEmbedUrl()` now returns `{ kind: "iframe" | "file", src }` instead of a bare URL string.

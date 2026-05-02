@@ -315,6 +315,42 @@ def api_version():
 
 
 # ---------------------------------------------------------------------------
+# Internal Operations Manual — admin-only download, both PDF and DOCX.
+# Generated on-demand from ops_manual.py so edits ship instantly without
+# requiring a redeploy of static assets.
+# ---------------------------------------------------------------------------
+from fastapi.responses import Response as _FastAPIResponse  # noqa: E402
+
+
+@api_router.get("/admin/ops-manual.pdf")
+def admin_ops_manual_pdf(_: bool = Depends(require_admin)):
+    from ops_manual import render_ops_manual_pdf
+    pdf = render_ops_manual_pdf()
+    return _FastAPIResponse(
+        content=pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": 'attachment; filename="MASCI_HUB_Operations_Manual.pdf"',
+            "Cache-Control": "private, no-store",
+        },
+    )
+
+
+@api_router.get("/admin/ops-manual.docx")
+def admin_ops_manual_docx(_: bool = Depends(require_admin)):
+    from ops_manual import render_ops_manual_docx
+    docx = render_ops_manual_docx()
+    return _FastAPIResponse(
+        content=docx,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={
+            "Content-Disposition": 'attachment; filename="MASCI_HUB_Operations_Manual.docx"',
+            "Cache-Control": "private, no-store",
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
 # Soft-delete framework — give every master-list 🗑️ button a 14-day undo
 # instead of an immediate hard-delete, so a mis-click on a 234-row table
 # is fully recoverable from the UI without restoring a backup.
