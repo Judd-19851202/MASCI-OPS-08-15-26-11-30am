@@ -47,7 +47,7 @@ export default function JhaPlansPosterCard() {
       {/* Top banner */}
       <div className="flex items-start justify-between gap-6 pb-5 border-b-4 border-amber-600">
         <div className="flex-1">
-          <MasciLogo variant="lockup" size="2xl" onLight homeLink="/admin" />
+          <MasciLogo variant="lockup" size="2xl" onLight homeLink={hubHome} />
           <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.3em] text-amber-700 font-bold">
             {t("Job Hazard Plans · One per active job")}
           </div>

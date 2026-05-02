@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Printer, Loader2, Trash2, MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import { useHubHome } from "@/components/HubBackLink";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
@@ -42,6 +43,7 @@ const KV = ({ label, value, full = false }) => (
 );
 
 export default function ViewMeeting() {
+  const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
@@ -106,7 +108,7 @@ export default function ViewMeeting() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Meetings
           </Link>
-          <MasciLogo variant="mark" size="md" homeLink="/admin" />
+          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -139,8 +141,8 @@ export default function ViewMeeting() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
         <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
-            <MasciLogo variant="lockup" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink="/admin" />
-            <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink="/admin" />
+            <MasciLogo variant="lockup" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink={hubHome} />
+            <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
               Site Safety Meeting Record
             </h1>

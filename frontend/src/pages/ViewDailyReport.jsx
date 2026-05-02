@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import { useHubHome } from "@/components/HubBackLink";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
@@ -87,6 +88,7 @@ const Table = ({ headers, rows, emptyText }) => {
 };
 
 export default function ViewDailyReport() {
+  const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
@@ -152,7 +154,7 @@ export default function ViewDailyReport() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Daily Reports
           </Link>
-          <MasciLogo variant="mark" size="md" homeLink="/admin" />
+          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -190,8 +192,8 @@ export default function ViewDailyReport() {
               size="2xl"
               className="hidden sm:block max-w-[420px]"
               onLight
-            homeLink="/admin" />
-            <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink="/admin" />
+            homeLink={hubHome} />
+            <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
               Daily Job Report
             </h1>

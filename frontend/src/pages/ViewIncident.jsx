@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Printer, Loader2, Trash2, MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import { useHubHome } from "@/components/HubBackLink";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
@@ -48,6 +49,7 @@ const severityOf = (key) =>
   SEVERITY_LEVELS.find((s) => s.key === key) || SEVERITY_LEVELS[0];
 
 export default function ViewIncident() {
+  const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
@@ -117,7 +119,7 @@ export default function ViewIncident() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Incidents
           </Link>
-          <MasciLogo variant="mark" size="md" homeLink="/admin" />
+          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -155,8 +157,8 @@ export default function ViewIncident() {
               size="2xl"
               className="hidden sm:block max-w-[420px]"
               onLight
-            homeLink="/admin" />
-            <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink="/admin" />
+            homeLink={hubHome} />
+            <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
               Accident / Incident Report
             </h1>
