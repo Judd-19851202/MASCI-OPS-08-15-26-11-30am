@@ -3,11 +3,15 @@ import { Link } from "react-router-dom";
 import juddLogo from "@/assets/judd-group-logo.png";
 
 /**
- * JuddGroupAttribution — three render modes for ownership labeling.
+ * JuddGroupAttribution — three render modes for developer credit.
  *
- * Per Jaymn's spec (2026-04-30):
- *   • global   — minimum-viable footer line, every page (text-only)
- *   • login    — small "Powered by [logo] The Judd Group LLC" under login form
+ * MASCI HUB is owned and operated by MASCI. The Judd Group LLC is the
+ * development contractor only. These renders give Judd Group a clean
+ * developer credit without implying ownership, partnership, or
+ * subsidiary status of any kind.
+ *
+ *   • global   — every-page footer: © MASCI · Developed by The Judd Group LLC
+ *   • login    — "Developed by [logo] The Judd Group LLC" under login form
  *   • admin    — slightly larger logo + maintenance line, admin pages only
  *
  * Field-crew pages get ONLY the `global` variant. MASCI branding stays
@@ -23,7 +27,7 @@ export function JuddGroupAttribution({ variant = "global", className = "" }) {
         className={`flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500 ${className}`}
         data-testid="judd-attr-login"
       >
-        <span>Powered by</span>
+        <span>Developed by</span>
         <img
           src={juddLogo}
           alt="The Judd Group"
@@ -47,7 +51,7 @@ export function JuddGroupAttribution({ variant = "global", className = "" }) {
         />
         <div className="text-center sm:text-left">
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-600 font-bold">
-            System Developed &amp; Maintained
+            Platform Developed &amp; Maintained
           </div>
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
             By The Judd Group LLC
@@ -63,7 +67,7 @@ export function JuddGroupAttribution({ variant = "global", className = "" }) {
       className={`text-center font-mono text-[9px] uppercase tracking-[0.2em] text-slate-400 ${className}`}
       data-testid="judd-attr-global"
     >
-      © {YEAR} The Judd Group LLC. All rights reserved. ·{" "}
+      © {YEAR} MASCI · Platform developed by The Judd Group LLC ·{" "}
       <Link
         to="/legal/terms"
         className="hover:text-slate-700 underline-offset-2 hover:underline"

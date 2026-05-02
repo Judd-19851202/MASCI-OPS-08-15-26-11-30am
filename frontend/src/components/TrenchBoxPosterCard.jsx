@@ -199,9 +199,9 @@ export default function TrenchBoxPosterCard() {
         </div>
       </div>
 
-      {/* Judd Group attribution */}
+      {/* Developer credit */}
       <div className="mt-3 text-center font-mono text-[9px] uppercase tracking-[0.3em] text-slate-400">
-        {t("Platform")} · The Judd Group LLC · © {new Date().getFullYear()}
+        © {new Date().getFullYear()} MASCI · {t("Developed by")} The Judd Group LLC
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowLeft, Printer, Mail, Loader2, X } from "lucide-react";
+import { ArrowLeft, Printer, Mail, MailPlus, Loader2, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,14 +64,15 @@ const DEFAULT_KEY = "masci.defaultRecipients.v1";
 const isValidEmail = (s) =>
   typeof s === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
 
-function EmailCardDialog({ open, onOpenChange, card }) {
+function EmailCardDialog({ open, onOpenChange, card, mode = "single" }) {
+  // mode: "single" → email one card.  "all" → email all 4 cards.
   const [recipients, setRecipients] = useState([""]);
   const [subject, setSubject] = useState("");
   const [note, setNote] = useState("");
   const [sending, setSending] = useState(false);
 
   React.useEffect(() => {
-    if (!open || !card) return;
+    if (!open) return;
     let saved = [];
     try {
       const raw = window.localStorage.getItem(DEFAULT_KEY);
@@ -81,9 +82,13 @@ function EmailCardDialog({ open, onOpenChange, card }) {
     }
     const valid = saved.filter(isValidEmail);
     setRecipients(valid.length > 0 ? valid : [""]);
-    setSubject(`MASCI Field Safety Card — ${card.title}`);
+    if (mode === "all") {
+      setSubject("MASCI Field Safety Cards — Full Bilingual Set");
+    } else if (card) {
+      setSubject(`MASCI Field Safety Card — ${card.title}`);
+    }
     setNote("");
-  }, [open, card]);
+  }, [open, card, mode]);
 
   const setAt = (i, v) =>
     setRecipients((r) => r.map((x, idx) => (idx === i ? v : x)));
@@ -99,20 +104,34 @@ function EmailCardDialog({ open, onOpenChange, card }) {
     }
     setSending(true);
     try {
-      const res = await api.post("/safety-cards/email", {
-        card: card.key,
-        recipients: valid,
-        subject: subject.trim(),
-        note: note.trim(),
-      });
+      const endpoint =
+        mode === "all" ? "/safety-cards/email-all" : "/safety-cards/email";
+      const payload =
+        mode === "all"
+          ? { recipients: valid, subject: subject.trim(), note: note.trim() }
+          : {
+              card: card.key,
+              recipients: valid,
+              subject: subject.trim(),
+              note: note.trim(),
+            };
+      const res = await api.post(endpoint, payload);
       try {
         window.localStorage.setItem(DEFAULT_KEY, JSON.stringify(valid));
       } catch {
         /* noop */
       }
-      toast.success(
-        `Sent (${((res.data?.size_bytes || 0) / 1024).toFixed(0)} KB PDF) to ${valid.length} recipient${valid.length === 1 ? "" : "s"}`
-      );
+      if (mode === "all") {
+        const kb = ((res.data?.total_size_bytes || 0) / 1024).toFixed(0);
+        toast.success(
+          `Sent all ${res.data?.card_count || 4} cards (${kb} KB) to ${valid.length} recipient${valid.length === 1 ? "" : "s"}`
+        );
+      } else {
+        const kb = ((res.data?.size_bytes || 0) / 1024).toFixed(0);
+        toast.success(
+          `Sent (${kb} KB PDF) to ${valid.length} recipient${valid.length === 1 ? "" : "s"}`
+        );
+      }
       onOpenChange(false);
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Email send failed");
@@ -121,18 +140,33 @@ function EmailCardDialog({ open, onOpenChange, card }) {
     }
   };
 
-  if (!card) return null;
+  // In single mode without a card, render nothing (used as placeholder).
+  if (mode === "single" && !card) return null;
+
+  const titleText =
+    mode === "all" ? "Email All Safety Cards" : "Email Safety Card";
+  const descText =
+    mode === "all"
+      ? "Sends the complete bilingual set (EN front+back, ES front+back) as 4 PDF attachments — perfect for onboarding a new hire in one tap."
+      : (
+          <>
+            Sends the print-ready PDF of <strong>{card?.title}</strong> as an attachment.
+          </>
+        );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" data-testid="safety-card-email-dialog">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl flex items-center gap-2">
-            <Mail className="w-5 h-5 text-red-700" /> Email Safety Card
+            {mode === "all" ? (
+              <MailPlus className="w-5 h-5 text-red-700" />
+            ) : (
+              <Mail className="w-5 h-5 text-red-700" />
+            )}{" "}
+            {titleText}
           </DialogTitle>
-          <DialogDescription>
-            Sends the print-ready PDF of <strong>{card.title}</strong> as an attachment.
-          </DialogDescription>
+          <DialogDescription>{descText}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 py-2">
           <div>
@@ -233,7 +267,8 @@ function EmailCardDialog({ open, onOpenChange, card }) {
 export default function FieldSafetyCards() {
   const { t } = useT();
   const [printing, setPrinting] = useState(null); // card.key currently being printed
-  const [emailing, setEmailing] = useState(null); // card object for dialog
+  const [emailing, setEmailing] = useState(null); // card object for single dialog
+  const [emailingAll, setEmailingAll] = useState(false); // bulk dialog open?
 
   const handlePrint = (card) => {
     // Swap in the print-only card, fire window.print(), then clear.
@@ -269,7 +304,7 @@ export default function FieldSafetyCards() {
           </Link>
         </div>
 
-        <div className="mb-10 flex items-start gap-4">
+        <div className="mb-10 flex flex-col sm:flex-row items-start gap-4 sm:items-end sm:justify-between">
           <div className="flex-1">
             <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
               {t("Safety · Field Handouts")}
@@ -283,6 +318,14 @@ export default function FieldSafetyCards() {
               )}
             </p>
           </div>
+          <Button
+            onClick={() => setEmailingAll(true)}
+            className="h-12 sm:h-14 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm sm:text-base border-b-4 border-red-900 px-6 shadow-md"
+            data-testid="safety-cards-email-all-btn"
+          >
+            <MailPlus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />{" "}
+            {t("Email All 4 Cards")}
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-7">
@@ -346,6 +389,14 @@ export default function FieldSafetyCards() {
         open={!!emailing}
         onOpenChange={(v) => !v && setEmailing(null)}
         card={emailing}
+        mode="single"
+      />
+
+      <EmailCardDialog
+        open={emailingAll}
+        onOpenChange={setEmailingAll}
+        card={null}
+        mode="all"
       />
 
       <style>{`
@@ -374,3 +425,4 @@ export default function FieldSafetyCards() {
     </div>
   );
 }
+

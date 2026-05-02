@@ -221,8 +221,8 @@ export default function TrainingQrPoster() {
             </div>
           </footer>
           <div className="qp-legal">
-            MASCI · A subsidiary of The Judd Group LLC · Post inside every
-            site trailer / Pegue dentro de cada tráiler
+            MASCI · Platform developed by The Judd Group LLC · Post inside
+            every site trailer / Pegue dentro de cada tráiler
           </div>
         </div>
       </div>

@@ -4965,6 +4965,15 @@ class SafetyCardEmailRequest(BaseModel):
     note: Optional[str] = None
 
 
+class SafetyCardEmailAllRequest(BaseModel):
+    """Bulk-send all four bilingual safety cards in one email — used by
+    foremen to onboard a new hire with the entire MASCI safety packet
+    in one tap."""
+    recipients: List[str]
+    subject: Optional[str] = None
+    note: Optional[str] = None
+
+
 _safety_cards_router = APIRouter(prefix="/api")
 
 
@@ -5045,7 +5054,98 @@ async def email_safety_card(body: SafetyCardEmailRequest):
         raise HTTPException(status_code=500, detail=f"Email send failed: {e}")
 
 
+@_safety_cards_router.post("/safety-cards/email-all")
+async def email_all_safety_cards(body: SafetyCardEmailAllRequest):
+    """Bulk-email all 4 safety cards (EN front+back, ES front+back) as
+    PDF attachments. One email, one click — perfect for new-hire
+    onboarding. Like /safety-cards/email this endpoint is open to the
+    crew because the cards themselves are handout materials."""
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="RESEND_API_KEY not configured. Add it to /app/backend/.env and restart backend.",
+        )
+
+    valid_recipients = [r.strip() for r in (body.recipients or []) if r and r.strip()]
+    if not valid_recipients:
+        raise HTTPException(status_code=400, detail="At least one recipient email is required")
+
+    # Read all 4 PDFs up-front
+    base = Path(__file__).parent / "static" / "safety-cards"
+    cards = []
+    total_size = 0
+    for key, (filename, label) in _SAFETY_CARD_FILES.items():
+        pdf_path = base / filename
+        if not pdf_path.exists():
+            raise HTTPException(status_code=500, detail=f"Card file missing on server: {filename}")
+        pdf_bytes = pdf_path.read_bytes()
+        total_size += len(pdf_bytes)
+        cards.append((filename, label, pdf_bytes))
+
+    sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+
+    try:
+        import resend  # noqa: E402
+
+        resend.api_key = api_key
+
+        note_html = ""
+        if body.note:
+            safe_note = body.note.replace("<", "&lt;").replace(">", "&gt;")
+            note_html = f"<p style='margin:16px 0;color:#334155;'>{safe_note}</p>"
+
+        card_list_html = "".join(
+            f"<li style='margin:4px 0;'>{label}</li>" for _, label, _ in cards
+        )
+
+        html = (
+            "<div style='font-family:ui-sans-serif,system-ui,Arial;max-width:600px;'>"
+            "<h2 style='color:#991b1b;margin:0 0 8px;'>MASCI Field Safety Cards — Full Set</h2>"
+            "<p style='margin:0 0 12px;color:#475569;'>Attached: the complete bilingual MASCI safety card set "
+            "(English front &amp; back, Spanish front &amp; back). Print on letter-size (8.5×11) and "
+            "distribute to your crew. Perfect for new-hire onboarding.</p>"
+            f"<ul style='margin:8px 0 16px 20px;color:#334155;'>{card_list_html}</ul>"
+            f"{note_html}"
+            "<hr style='border:none;border-top:1px solid #e2e8f0;margin:16px 0;'>"
+            "<p style='font-size:12px;color:#64748b;margin:0;'>Sent from MASCI Hub · Safety · "
+            "Accountability · Adapt · Overcome</p>"
+            "</div>"
+        )
+
+        params = {
+            "from": f"MASCI Safety <{sender_email}>",
+            "to": valid_recipients,
+            "subject": body.subject.strip() if body.subject else "MASCI Field Safety Cards — Full Bilingual Set",
+            "html": html,
+            "attachments": [
+                {
+                    "filename": filename,
+                    "content": _email_b64.b64encode(pdf_bytes).decode(),
+                }
+                for filename, _, pdf_bytes in cards
+            ],
+        }
+
+        result = await asyncio.to_thread(resend.Emails.send, params)
+        return {
+            "ok": True,
+            "id": (result or {}).get("id"),
+            "to": valid_recipients,
+            "card_count": len(cards),
+            "total_size_bytes": total_size,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"safety-cards/email-all failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Email send failed: {e}")
+
+
 app.include_router(_safety_cards_router)
+
+
+# Empty placeholder — was a stale duplicate route block, kept above before router include.
 
 
 # ------------------------- Phase 1: per-user auth + projects (Basecamp-style /app) -------------------------
