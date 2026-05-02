@@ -4712,39 +4712,58 @@ async def translate_strings(payload: TranslateRequest):
 #   { "_id": "config", "videos": {"field-01-hub-navigation": "https://…", ...} }
 
 
+_DEFAULT_TRAINING_VIDEOS = {
+    "field-01-hub-navigation": (
+        "https://customer-assets.emergentagent.com/"
+        "job_safety-audit-mobile-1/artifacts/"
+        "mnrpeff0_MASCI_Hub_Navigating_FINAL_"
+        "d0027eecc49143e4821881da34e363f3.mp4"
+    ),
+    "field-02-daily-report": (
+        "https://customer-assets.emergentagent.com/"
+        "job_safety-audit-mobile-1/artifacts/"
+        "po839naw_MASCI_Field_DailyReport_FINAL_"
+        "fca30414727a42b79598b7040111a60a.mp4"
+    ),
+    "field-03-equipment-preop": (
+        "https://customer-assets.emergentagent.com/"
+        "job_safety-audit-mobile-1/artifacts/"
+        "4tlu6yza_MASCI_Field_PreOp_FINAL_"
+        "f20fab41f4e1462699fbd60f75c991b7.mp4"
+    ),
+}
+
+
 @api_router.get("/training/videos")
 async def training_videos_get():
     """Public read. Field crews need this to render embedded videos without
-    a login. Returns `{videos: {slug: url}}` — empty dict if nothing saved.
+    a login. Returns `{videos: {slug: url}}`.
 
-    Self-heal: if the config doc is missing entirely (e.g. fresh
-    production Atlas after a new deployment), seed the known-good Field
-    Lesson 1 video so the Training Hub isn't blank on day 1.
+    Self-heal: any default video slug that is MISSING from the stored
+    doc gets back-filled with the known-good URL. Admin overrides
+    (existing non-empty values) are never touched. This makes the
+    Training Hub work immediately after a redeploy on a fresh Atlas DB
+    AND when new official videos are added to the default catalog
+    later — without requiring an admin round-trip to /admin/training-videos.
     """
     doc = await db["training_videos"].find_one({"_id": "config"}, {"_id": 0})
-    if not doc:
-        # First-boot seed — only writes when the collection is empty.
-        # Admins override via /admin/training-videos; this is just a
-        # floor so /training/field isn't empty on a fresh deploy.
-        default = {
-            "field-01-hub-navigation": (
-                "https://customer-assets.emergentagent.com/"
-                "job_safety-audit-mobile-1/artifacts/"
-                "mnrpeff0_MASCI_Hub_Navigating_FINAL_"
-                "d0027eecc49143e4821881da34e363f3.mp4"
-            ),
-        }
+    stored = (doc or {}).get("videos") or {}
+    missing = {
+        slug: url
+        for slug, url in _DEFAULT_TRAINING_VIDEOS.items()
+        if not stored.get(slug)
+    }
+    if missing:
+        # Build the per-key set so we don't clobber admin overrides.
+        set_ops = {f"videos.{slug}": url for slug, url in missing.items()}
+        set_ops["updated_at"] = datetime.now(timezone.utc).isoformat()
         await db["training_videos"].update_one(
             {"_id": "config"},
-            {"$setOnInsert": {
-                "videos": default,
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-                "seeded": True,
-            }},
+            {"$set": set_ops},
             upsert=True,
         )
-        doc = {"videos": default}
-    return {"videos": (doc or {}).get("videos", {})}
+        stored = {**stored, **missing}
+    return {"videos": stored}
 
 
 @api_router.get("/training/packet.pdf")

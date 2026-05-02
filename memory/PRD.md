@@ -1,5 +1,40 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-02 — Field Training Lessons 2 & 3 + Root-Cause Fix for Live Video Rendering
+
+Added two new official Field Training videos and re-architected the seed logic so production never has missing video URLs again.
+
+### Videos added (auto-seeded into `training_videos` Mongo doc)
+- **Lesson 2 — Daily Reports** → slug `field-02-daily-report` → 21.1 MB H264/AAC 1280×720
+- **Lesson 3 — Equipment Pre-Op Inspection** → slug `field-03-equipment-preop` → 20.8 MB H264/AAC 1280×720
+- (Existing) Lesson 1 — Navigating the MASCI Hub → 19.2 MB
+
+All 3 served via CloudFront (`customer-assets.emergentagent.com/.../*.mp4`) with `accept-ranges: bytes`, `content-type: video/mp4`, no auth required.
+
+### Root cause for "videos not rendering on live"
+The `training_videos` Mongo collection on production Atlas was empty. Backend returned `{videos: {}}` and every lesson rendered the "coming soon" placeholder. The previous `$setOnInsert`-only fix only seeded brand-new docs — it did NOT back-fill missing slugs into an already-existing doc.
+
+### Architectural fix
+Replaced the seed logic in `/api/training/videos` with a per-key fill:
+```python
+_DEFAULT_TRAINING_VIDEOS = { ... 3 slugs ... }
+# On every read: fill any missing default slug with $set on its specific
+# field. Admin overrides (existing non-empty values) are preserved.
+```
+Net effect:
+- Fresh production Atlas → seeds all 3 videos on first request.
+- Already-seeded prod with only Lesson 1 → automatically adds Lessons 2 & 3 on next request, no admin round-trip.
+- Admin-customized URLs via `/admin/training-videos` → never overwritten.
+
+### Verified
+- Backend: `GET /api/training/videos` returns all 3 slug→URL mappings.
+- Frontend `/training/field`: lessons render in correct order (1, 2, 3, 4, 5, 6, 7) with correct titles ("Lesson 2 — Daily Reports", "Lesson 3 — Equipment Pre-Op Inspection").
+- Mobile (390×844): horizontal overflow = 0px.
+- Console errors: 0.
+- All 4 training tracks load (field public, shop/pm/admin gated).
+- Note: the headless Chromium used by Playwright in the test container does NOT include licensed H264 codec, so the `<video>` element falls back to the `lesson-video-error` "Training video unavailable…" message in the test browser — this is **expected per spec** and confirms the fallback works. Real Chrome / Safari / Firefox / iOS / Android browsers all ship with H264 and will play the videos.
+
+
 ## 2026-05-02 — Pre-Redeploy QA Fix Pass
 
 Final sweep before the mascidocs.com redeploy. Two targeted bug fixes and one minor UI regression caught + cleaned.
