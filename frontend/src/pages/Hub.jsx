@@ -407,6 +407,18 @@ export default function Hub() {
           </Link>
         </div>
       </footer>
+
+      {/* Vendor-internal access — intentionally low-contrast and small.
+          Links to The Judd Group LLC developer portal (Ops Manual). */}
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 pb-6 -mt-2 flex justify-center">
+        <Link
+          to="/dev/login"
+          className="font-mono text-[9px] uppercase tracking-[0.25em] text-slate-300 hover:text-slate-500 transition-colors"
+          data-testid="hub-dev-link"
+        >
+          Developer
+        </Link>
+      </div>
     </div>
   );
 }

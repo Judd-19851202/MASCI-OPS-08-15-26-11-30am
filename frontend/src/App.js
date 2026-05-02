@@ -43,6 +43,8 @@ import TrainingTrack from "@/pages/TrainingTrack";
 import TrainingQrPoster from "@/pages/TrainingQrPoster";
 import TrainingPacketDownload from "@/pages/TrainingPacketDownload";
 import AdminTrainingVideos from "@/pages/AdminTrainingVideos";
+import DevLogin from "@/pages/DevLogin";
+import DevHub from "@/pages/DevHub";
 import CheatSheet from "@/pages/CheatSheet";
 import TermsOfService from "@/pages/legal/TermsOfService";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
@@ -51,6 +53,7 @@ import { RequireAdmin } from "@/components/RequireAdmin";
 import { RequireAdminOrPm } from "@/components/RequireAdminOrPm";
 import { RequirePm } from "@/components/RequirePm";
 import { RequireShop } from "@/components/RequireShop";
+import { RequireDev } from "@/components/RequireDev";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 import GlobalKeepalive from "@/components/GlobalKeepalive";
 import BackendStatusBanner from "@/components/BackendStatusBanner";
@@ -73,6 +76,7 @@ const A = (el) => <RequireAdmin>{el}</RequireAdmin>;
 const AP = (el) => <RequireAdminOrPm>{el}</RequireAdminOrPm>;
 const P = (el) => <RequirePm>{el}</RequirePm>;
 const S = (el) => <RequireShop>{el}</RequireShop>;
+const D = (el) => <RequireDev>{el}</RequireDev>;
 
 function App() {
   return (
@@ -193,6 +197,16 @@ function App() {
             <Route path="/training/:track/poster" element={<TrainingQrPoster />} />
             <Route path="/training/:track/packet" element={<TrainingPacketDownload />} />
             <Route path="/admin/training-videos" element={A(<AdminTrainingVideos />)} />
+
+            {/* ============================================================
+                Developer Portal — The Judd Group LLC vendor-internal only.
+                Hidden behind a tiny "Developer" link in the Hub footer;
+                password-gated with X-Dev-Token (distinct namespace from
+                admin/PM/shop tokens). Houses the System Owner & Operations
+                Manual + snapshot archive. NOT visible to MASCI staff.
+                ============================================================ */}
+            <Route path="/dev/login" element={<DevLogin />} />
+            <Route path="/dev" element={D(<DevHub />)} />
 
             {/* Legacy redirects */}
             <Route path="/inspections" element={<Navigate to="/admin/inspections" replace />} />

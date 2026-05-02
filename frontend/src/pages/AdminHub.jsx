@@ -17,7 +17,6 @@ import {
 import { MasciLogo } from "@/components/MasciLogo";
 import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
 import { BackendVersionBadge } from "@/components/BackendVersionBadge";
-import { OpsManualPanel } from "@/components/OpsManualPanel";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
@@ -352,9 +351,6 @@ export default function AdminHub() {
 
           {/* EMERGENCY: system status grid + force-reseed if data missing after a redeploy */}
           <CrewRecoveryPanel />
-
-          {/* Internal Operations Manual — admin download of PDF + DOCX */}
-          <OpsManualPanel />
         </div>
       </main>
 

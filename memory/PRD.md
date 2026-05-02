@@ -1,5 +1,60 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-02 — Developer Portal + Ops Manual Archive (Vendor-Only)
+
+Moved the System Owner & Operations Manual off the Admin Hub and behind a
+dedicated, hidden vendor portal at `/dev`. The portal is password-gated
+(`DEV_PASSWORD=Maddix8530!`), reached only via a tiny "Developer" footer
+link on the Home page, and backed by a brand-new HMAC namespace
+(`dev:<pw>`) so the token can never be replayed against any admin/PM route.
+
+### Backend (`/app/backend/server.py`)
+- New helpers: `_dev_token_for()`, `_is_valid_dev_token()`, `require_dev()`.
+- New routes:
+  - `POST /api/dev/login` — issues `X-Dev-Token` against `DEV_PASSWORD`.
+  - `GET /api/dev/check` — verifies a stored token.
+  - `GET /api/dev/ops-manual.pdf` / `.docx` — live renders (replaces the
+    old `/api/admin/ops-manual.*` routes — those are gone).
+  - `POST /api/dev/ops-manual/snapshot` — renders both PDF + DOCX, stores
+    base64 + source_hash + timestamp + optional note in a new
+    `ops_manual_snapshots` Mongo collection.
+  - `GET /api/dev/ops-manual/snapshots` — list pinned snapshots (metadata
+    only; base64 payload excluded from the list response for size).
+  - `GET /api/dev/ops-manual/snapshots/{id}.pdf` / `.docx` — byte-identical
+    re-download of a pinned snapshot months after the source data changes.
+  - `DELETE /api/dev/ops-manual/snapshots/{id}`.
+- **All 6 verified via curl**: dev login ✅, dev check ✅, admin token
+  rejected ✅, ops-manual.pdf ✅ 66 KB, snapshot create ✅, snapshot list ✅,
+  snapshot pdf/docx byte-exact ✅, delete ✅.
+
+### Frontend
+- `src/lib/devAuth.js` — localStorage key `masci.dev.token`.
+- `src/lib/api.js` — interceptor attaches `X-Dev-Token` and clears it on
+  401.
+- `src/components/RequireDev.jsx` — route guard (rejects admin/PM tokens).
+- `src/pages/DevLogin.jsx` — minimal vendor-branded (slate-950 terminal
+  look) password gate. Not MASCI-branded.
+- `src/pages/DevHub.jsx` — 3 sections: Live download (PDF + DOCX), Pin
+  Snapshot (note field + Save), Snapshot Archive table (per-row PDF/DOCX
+  re-download + delete).
+- `src/pages/AdminHub.jsx` — removed `OpsManualPanel` import + render;
+  deleted `src/components/OpsManualPanel.jsx`.
+- `src/pages/Hub.jsx` — tiny low-contrast "DEVELOPER" link at the very
+  bottom of the home page footer (slate-300 text, hover slate-500). Does
+  not draw attention but always reachable.
+- `src/App.js` — added `/dev/login` + `/dev` routes (guarded by `D`
+  = RequireDev).
+
+### Classification
+**CONFIDENTIAL — The Judd Group LLC internal use only.** Ops Manual is no
+longer visible or downloadable from the Admin Hub. MASCI admins retain
+their full operational console; vendor-internal docs (cost breakdowns,
+architecture, V2 recommendations) stay with the vendor.
+
+### Env var added
+- `DEV_PASSWORD=Maddix8530!` in `/app/backend/.env`.
+
+
 ## 2026-05-02 — Internal System Owner & Operations Manual (PDF + DOCX)
 
 Full 18-page confidential reference doc for The Judd Group LLC covering all 12 requested sections: system overview, architecture, third-party dependencies, cost breakdown, deployment, backup + recovery, performance + scaling, security, failure points, maintenance checklist, V2 scaling notes, and owner-notes. Real tables for dependencies, costs, collections, failure modes, and risk mitigations.

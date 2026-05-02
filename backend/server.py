@@ -165,6 +165,35 @@ def _is_valid_pm_token(tok: Optional[str]) -> bool:
     return hmac.compare_digest(tok, _pm_token_for(pw))
 
 
+def _dev_token_for(password: str) -> str:
+    """Developer (vendor/Judd Group LLC) portal token. Distinct namespace
+    from admin/pm so a stolen dev token cannot be replayed against any
+    MASCI-facing admin route, and vice versa."""
+    return hmac.new(_admin_hmac_secret(), b"dev:" + password.encode(), hashlib.sha256).hexdigest()
+
+
+def _is_valid_dev_token(tok: Optional[str]) -> bool:
+    pw = os.environ.get("DEV_PASSWORD", "")
+    if not tok or not pw:
+        return False
+    return hmac.compare_digest(tok, _dev_token_for(pw))
+
+
+def require_dev(x_dev_token: Optional[str] = Header(default=None)):
+    """Vendor-only gate — used for The Judd Group LLC internal pages
+    (System Owner & Operations Manual, manual snapshots). Admin and PM
+    tokens are NOT accepted: this surface is hidden from MASCI staff."""
+    expected_pw = os.environ.get("DEV_PASSWORD", "")
+    if not expected_pw:
+        # No dev password configured → gate disabled (local dev only)
+        return True
+    if not x_dev_token:
+        raise HTTPException(status_code=401, detail="Developer login required")
+    if not _is_valid_dev_token(x_dev_token):
+        raise HTTPException(status_code=401, detail="Invalid developer token")
+    return True
+
+
 def require_admin(
     x_admin_token: Optional[str] = Header(default=None),
     x_pm_token: Optional[str] = Header(default=None),
@@ -315,15 +344,38 @@ def api_version():
 
 
 # ---------------------------------------------------------------------------
-# Internal Operations Manual — admin-only download, both PDF and DOCX.
+# Internal Operations Manual — Developer portal only.
+# Gated by require_dev (password in DEV_PASSWORD, distinct from admin/pm).
 # Generated on-demand from ops_manual.py so edits ship instantly without
-# requiring a redeploy of static assets.
+# requiring a redeploy of static assets. Admin/PM tokens cannot access.
 # ---------------------------------------------------------------------------
 from fastapi.responses import Response as _FastAPIResponse  # noqa: E402
 
 
-@api_router.get("/admin/ops-manual.pdf")
-def admin_ops_manual_pdf(_: bool = Depends(require_admin)):
+@api_router.post("/dev/login")
+async def dev_login(body: AdminLoginRequest, request: Request):
+    """Developer (vendor/Judd Group LLC) portal login. Issues a token
+    accepted ONLY by require_dev — never by any admin/PM/shop route."""
+    ip = _client_ip(request)
+    _check_login_lockout(ip)
+    expected_pw = os.environ.get("DEV_PASSWORD", "")
+    if not expected_pw:
+        return {"ok": True, "token": "open-mode"}
+    if not hmac.compare_digest(body.password, expected_pw):
+        _record_login_fail(ip)
+        raise HTTPException(status_code=401, detail="Wrong password")
+    _reset_login_fails(ip)
+    return {"ok": True, "token": _dev_token_for(expected_pw)}
+
+
+@api_router.get("/dev/check")
+async def dev_check(_: bool = Depends(require_dev)):
+    """Verify a stored dev token is still valid."""
+    return {"ok": True}
+
+
+@api_router.get("/dev/ops-manual.pdf")
+def dev_ops_manual_pdf(_: bool = Depends(require_dev)):
     from ops_manual import render_ops_manual_pdf
     pdf = render_ops_manual_pdf()
     return _FastAPIResponse(
@@ -336,8 +388,8 @@ def admin_ops_manual_pdf(_: bool = Depends(require_admin)):
     )
 
 
-@api_router.get("/admin/ops-manual.docx")
-def admin_ops_manual_docx(_: bool = Depends(require_admin)):
+@api_router.get("/dev/ops-manual.docx")
+def dev_ops_manual_docx(_: bool = Depends(require_dev)):
     from ops_manual import render_ops_manual_docx
     docx = render_ops_manual_docx()
     return _FastAPIResponse(
@@ -345,6 +397,108 @@ def admin_ops_manual_docx(_: bool = Depends(require_admin)):
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={
             "Content-Disposition": 'attachment; filename="MASCI_HUB_Operations_Manual.docx"',
+            "Cache-Control": "private, no-store",
+        },
+    )
+
+
+# --- Ops Manual snapshots (pinned historical copies) ---------------------
+# Store both PDF + DOCX bytes (base64) plus the backend source_hash in
+# MongoDB so a specific "official" revision of the manual can be pulled
+# back verbatim months later even after the source data has changed.
+import base64 as _ops_b64  # noqa: E402
+
+
+@api_router.post("/dev/ops-manual/snapshot")
+async def dev_ops_manual_snapshot(
+    body: Optional[dict] = None,
+    _: bool = Depends(require_dev),
+):
+    from ops_manual import render_ops_manual_pdf, render_ops_manual_docx
+    note = ""
+    if isinstance(body, dict):
+        note = str(body.get("note", ""))[:500]
+    pdf = render_ops_manual_pdf()
+    docx = render_ops_manual_docx()
+    snap = {
+        "id": uuid.uuid4().hex,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "source_hash": _SOURCE_HASH,
+        "note": note,
+        "pdf_b64": _ops_b64.b64encode(pdf).decode("ascii"),
+        "docx_b64": _ops_b64.b64encode(docx).decode("ascii"),
+        "pdf_bytes": len(pdf),
+        "docx_bytes": len(docx),
+    }
+    await db.ops_manual_snapshots.insert_one(snap)
+    return {
+        "ok": True,
+        "id": snap["id"],
+        "created_at": snap["created_at"],
+        "source_hash": snap["source_hash"],
+        "note": snap["note"],
+        "pdf_bytes": snap["pdf_bytes"],
+        "docx_bytes": snap["docx_bytes"],
+    }
+
+
+@api_router.get("/dev/ops-manual/snapshots")
+async def dev_ops_manual_list_snapshots(_: bool = Depends(require_dev)):
+    cursor = db.ops_manual_snapshots.find(
+        {},
+        {"_id": 0, "pdf_b64": 0, "docx_b64": 0},
+    ).sort("created_at", -1).limit(200)
+    rows = await cursor.to_list(200)
+    return {"snapshots": rows}
+
+
+@api_router.delete("/dev/ops-manual/snapshots/{snap_id}")
+async def dev_ops_manual_delete_snapshot(
+    snap_id: str, _: bool = Depends(require_dev)
+):
+    r = await db.ops_manual_snapshots.delete_one({"id": snap_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    return {"ok": True}
+
+
+@api_router.get("/dev/ops-manual/snapshots/{snap_id}.pdf")
+async def dev_ops_manual_snapshot_pdf(
+    snap_id: str, _: bool = Depends(require_dev)
+):
+    doc = await db.ops_manual_snapshots.find_one(
+        {"id": snap_id}, {"_id": 0, "pdf_b64": 1, "created_at": 1}
+    )
+    if not doc or not doc.get("pdf_b64"):
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    pdf = _ops_b64.b64decode(doc["pdf_b64"])
+    stamp = (doc.get("created_at") or "").replace(":", "-").split(".")[0]
+    return _FastAPIResponse(
+        content=pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="MASCI_HUB_Operations_Manual_{stamp}.pdf"',
+            "Cache-Control": "private, no-store",
+        },
+    )
+
+
+@api_router.get("/dev/ops-manual/snapshots/{snap_id}.docx")
+async def dev_ops_manual_snapshot_docx(
+    snap_id: str, _: bool = Depends(require_dev)
+):
+    doc = await db.ops_manual_snapshots.find_one(
+        {"id": snap_id}, {"_id": 0, "docx_b64": 1, "created_at": 1}
+    )
+    if not doc or not doc.get("docx_b64"):
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    docx = _ops_b64.b64decode(doc["docx_b64"])
+    stamp = (doc.get("created_at") or "").replace(":", "-").split(".")[0]
+    return _FastAPIResponse(
+        content=docx,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={
+            "Content-Disposition": f'attachment; filename="MASCI_HUB_Operations_Manual_{stamp}.docx"',
             "Cache-Control": "private, no-store",
         },
     )
