@@ -173,3 +173,66 @@ body {
         border-bottom-color: inherit;
     }
 }
+
+
+/* Legal pages — typography hierarchy without @tailwindcss/typography */
+[data-testid="terms-of-service-page"],
+[data-testid="privacy-policy-page"] {
+    color: #0f172a;
+    line-height: 1.6;
+}
+[data-testid="terms-of-service-page"] h2,
+[data-testid="privacy-policy-page"] h2 {
+    font-family: "Chivo", "IBM Plex Sans", sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 1.75rem 0 0.6rem;
+    letter-spacing: -0.01em;
+}
+@media (min-width: 640px) {
+    [data-testid="terms-of-service-page"] h2,
+    [data-testid="privacy-policy-page"] h2 {
+        font-size: 1.4rem;
+    }
+}
+[data-testid="terms-of-service-page"] h3,
+[data-testid="privacy-policy-page"] h3 {
+    font-family: "Chivo", "IBM Plex Sans", sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 1.1rem 0 0.4rem;
+}
+[data-testid="terms-of-service-page"] p,
+[data-testid="privacy-policy-page"] p {
+    margin: 0.55rem 0;
+}
+[data-testid="terms-of-service-page"] ul,
+[data-testid="privacy-policy-page"] ul {
+    list-style: disc;
+    padding-left: 1.4rem;
+    margin: 0.5rem 0 0.8rem;
+}
+[data-testid="terms-of-service-page"] ol,
+[data-testid="privacy-policy-page"] ol {
+    list-style: decimal;
+    padding-left: 1.6rem;
+    margin: 0.5rem 0 0.8rem;
+}
+[data-testid="terms-of-service-page"] li,
+[data-testid="privacy-policy-page"] li {
+    margin: 0.2rem 0;
+}
+[data-testid="terms-of-service-page"] strong,
+[data-testid="privacy-policy-page"] strong {
+    color: #0f172a;
+    font-weight: 700;
+}
+[data-testid="terms-of-service-page"] em,
+[data-testid="privacy-policy-page"] em {
+    color: #475569;
+    font-style: italic;
+}

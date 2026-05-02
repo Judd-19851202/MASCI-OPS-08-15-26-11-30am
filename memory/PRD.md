@@ -1,5 +1,20 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-02 — Legal Documents Replaced (Owner-Authored)
+
+The owner supplied final authoritative text for both `/legal/terms` and `/legal/privacy`. Both files were rewritten verbatim against the supplied copy — no paraphrasing. **Treat the wording inside `<article>` on both pages as legal text and do not edit phrasing without explicit owner approval.**
+
+### Files updated
+- `/app/frontend/src/pages/legal/TermsOfService.jsx` — 14 sections (Relationship, Ownership of Platform, Ownership of Customer Data, License to Use with 6-item restriction list, Acceptable Use, Confidentiality, Availability, No Warranty, Limitation of Liability, Indemnification, Termination, Changes, Governing Law = Florida / Flagler County, Contact). Effective date set to **January 01, 2026**.
+- `/app/frontend/src/pages/legal/PrivacyPolicy.jsx` — 11 sections (Roles & Relationship — Judd = data processor / MASCI = data controller; Information Collected; How Used; Subprocessors = MongoDB Atlas, Resend, cloud infra; Security; Retention; Data Responsibility; User Rights; Transfers; Changes; Contact). Effective date **January 01, 2026**.
+
+### Typography
+The codebase uses `prose` classes but `@tailwindcss/typography` is not installed, so prose was a no-op — section headings rendered at body size. Added scoped CSS in `index.css` (under `[data-testid="terms-of-service-page"]` and `[data-testid="privacy-policy-page"]`) to give H2/H3/lists/strong proper hierarchy. Result: section headings 1.25rem→1.4rem on sm+, H3 sub-blocks (ACCOUNT INFORMATION, AUTHENTICATION DATA, etc.) in uppercase tracking, disc/decimal lists at 1.4rem indent.
+
+### Verified
+- `/legal/terms` and `/legal/privacy` both render with full hierarchy, lint clean, and link cross-reference at the foot of each page works.
+
+
 ## 2026-05-02 — Vendor Attribution Reframe + PDF Footers
 
 Reframed every vendor-attribution surface to match the legal model: **MASCI owns the brand & data; The Judd Group LLC powers the underlying platform.** The Judd Group does NOT sublicense or sublease the platform — internal MASCI use only (employees, PMs, supers, mechanics, crews).
