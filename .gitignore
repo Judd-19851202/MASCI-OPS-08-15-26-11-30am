@@ -393,3 +393,4 @@ credentials.json
 *.key
 .credentials
 backend/backups/MASCI_full_backup_2026-05-02_161050Z.zip
+frontend/node_modules/.cache/default-development/20.pack

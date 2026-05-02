@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
+import { BackendVersionBadge } from "@/components/BackendVersionBadge";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
@@ -357,6 +358,7 @@ export default function AdminHub() {
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
           MASCI · Office Console
         </div>
+        <BackendVersionBadge />
         <JuddGroupAttribution variant="admin" />
       </footer>
     </div>

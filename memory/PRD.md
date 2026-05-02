@@ -1,5 +1,21 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-02 — Admin Hub Backend Version Badge
+
+Follow-on to the `/api/version` endpoint — added a tiny self-diagnosing widget on the Admin Hub footer so the admin can see at a glance whether the live backend is running the latest deploy.
+
+### `BackendVersionBadge` component
+- `/app/frontend/src/components/BackendVersionBadge.jsx`
+- Calls `GET /api/version` on mount, renders a single rounded-pill status chip.
+- Three visual states:
+  - **Green** — endpoint reachable AND uptime ≤ 7 days (`BACKEND {short_hash} · UP 9M`)
+  - **Amber** — endpoint reachable AND uptime > 7 days (`BACKEND {short_hash} · UP 12D · stale?`)
+  - **Red** — endpoint unreachable / 404 (`Backend /api/version unreachable — redeploy`)
+- Native hover tooltip exposes the full `source_hash`, `commit`, `started_at` for audit.
+- Wired into `AdminHub.jsx` footer; lives between the console title and the `JuddGroupAttribution` block. Admin-only — not on field/shop surfaces.
+- Verified live on preview (green pill, full tooltip, no layout break).
+
+
 ## 2026-05-02 — Backend Version Endpoint + Post-Deploy Drift Check
 
 Added to prevent a third "live backend is stale" surprise:
