@@ -69,7 +69,7 @@ export function JuddGroupAttribution({ variant = "global", className = "" }) {
       className={`text-center font-mono text-[9px] uppercase tracking-[0.2em] text-slate-400 ${className}`}
       data-testid="judd-attr-global"
     >
-      © {YEAR} The Judd Group LLC · MASCI HUB™ ·{" "}
+      © {YEAR} MASCI · Powered by The Judd Group LLC ·{" "}
       <Link
         to="/legal/terms"
         className="hover:text-slate-700 underline-offset-2 hover:underline"

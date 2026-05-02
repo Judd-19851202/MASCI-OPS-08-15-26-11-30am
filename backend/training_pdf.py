@@ -808,7 +808,7 @@ _STRINGS = {
         "generated": "Generated",
         "page": "Page",
         "of": "of",
-        "footer_legal": "\u00a9 The Judd Group LLC \u00b7 MASCI HUB\u2122",
+        "footer_legal": "\u00a9 MASCI \u00b7 Powered by The Judd Group LLC",
     },
     "es": {
         "header_brand": "Capacitación Hub MASCI",
@@ -824,7 +824,7 @@ _STRINGS = {
         "generated": "Generado",
         "page": "Página",
         "of": "de",
-        "footer_legal": "\u00a9 The Judd Group LLC \u00b7 MASCI HUB\u2122",
+        "footer_legal": "\u00a9 MASCI \u00b7 Con tecnolog\u00eda de The Judd Group LLC",
     },
 }
 
@@ -853,7 +853,7 @@ _CSS = """
   size: Letter;
   margin: 0.55in 0.55in 0.65in 0.55in;
   @bottom-left {
-    content: "MASCI \\00B7  mascidocs.com";
+    content: "\\00A9  MASCI \\00B7  Powered by The Judd Group LLC";
     font-family: 'Helvetica Neue', Arial, sans-serif;
     font-size: 8pt;
     color: #64748B;
@@ -1090,7 +1090,7 @@ def _render_bilingual(track: str, meta: dict, lessons: list) -> bytes:
     # End note
     parts.append("<section class='endnote'>")
     parts.append("<div class='big'>mascidocs.com</div>")
-    parts.append("<div>\u00a9 The Judd Group LLC \u00b7 MASCI HUB\u2122</div>")
+    parts.append("<div>\u00a9 MASCI \u00b7 Powered by The Judd Group LLC</div>")
     parts.append("</section>")
 
     parts.append("</div>")
