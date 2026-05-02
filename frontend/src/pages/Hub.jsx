@@ -259,6 +259,23 @@ export default function Hub() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        {/* Hero brand showcase — the new MASCI HUB logo gets a proper
+            spotlight on its own home page. Sits on a subtle dark plate
+            with caution-stripe edges so the metallic detail in the
+            artwork reads cleanly. */}
+        <div className="mb-10 sm:mb-14 -mx-5 sm:-mx-8 sm:rounded-md overflow-hidden border-y-4 sm:border-4 border-red-700 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 relative">
+          <div className="caution-stripe" />
+          <div className="px-5 sm:px-8 py-10 sm:py-16 flex items-center justify-center">
+            <img
+              src="/masci-full-lockup.png"
+              alt="MASCI HUB — Accountability · Discipline · Execution"
+              className="w-full max-w-[760px] h-auto drop-shadow-[0_8px_32px_rgba(220,38,38,0.35)]"
+              data-testid="hub-home-hero-logo"
+            />
+          </div>
+          <div className="caution-stripe" />
+        </div>
+
         <div className="mb-10 sm:mb-14">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
             {t("MASCI Hub")}
