@@ -1,5 +1,40 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — 20-Minute Idle Auto-Logout (P1 — defence-in-depth)
+
+User accepted the proposed enhancement. Pairs with the URL-based `EnforcePortalScope` rule shipped earlier the same day:
+- **EnforcePortalScope** → URL-based: leave `/admin/*` (etc.) → token cleared.
+- **IdleTimeout** → time-based: 20 min of zero pointer / keyboard / scroll / touch / wheel activity → token cleared.
+
+Together they cover both an active "user navigated away" event and a passive "user walked away from the desk" event — the classic shared-office-computer threat model.
+
+### Implementation
+New `IdleTimeout` component (`frontend/src/components/IdleTimeout.jsx`) mounted right after `EnforcePortalScope` inside `<BrowserRouter>`:
+- `IDLE_MS = 20 * 60 * 1000` (20 minutes), `TICK_MS = 30 * 1000` (30-second poll).
+- On every URL change checks `activePortal(pathname)` — only arms when the user has a token AND is inside that portal's namespace. Public surfaces and login pages have nothing to time out.
+- Listens to `mousemove`, `mousedown`, `keydown`, `scroll`, `touchstart`, `wheel` (all `passive`) and bumps `deadlineRef = Date.now() + IDLE_MS` on each.
+- A 30-s `setInterval` checks `Date.now() > deadlineRef` — if so: tears down listeners, calls the active portal's `clear()` (one of `clearAdminToken` / `clearPmToken` / `clearShopToken`), shows a sonner toast (`"Signed out after 20 minutes of inactivity · Sign back in to continue."`), and `navigate(loginPath, { replace: true })`.
+- Cleanup on URL change or unmount removes both the interval and the listeners.
+
+### Verified (preview, with `IDLE_MS=8s` / `TICK_MS=2s` for the smoke run; restored to prod values after verification)
+| Scenario | Result |
+|---|---|
+| Login as admin → 12 s of zero activity | Token cleared, redirected to `/admin/login` ✅ |
+| Login as admin → 14 s of continuous mouse movement | Token kept alive, stayed on `/admin` ✅ |
+| Lint | Clean ✅ |
+
+Same logic applies to PM (`clearPmToken` → `/pm/login`) and Shop (`clearShopToken` → `/shop/login`). Dev portal intentionally not gated — same as the other portal-scope rules.
+
+### Files touched
+- **NEW** `frontend/src/components/IdleTimeout.jsx`
+- **MODIFIED** `frontend/src/App.js` — added the import and `<IdleTimeout />` mount inside `<BrowserRouter>`
+
+### Cross-portal behaviour confirmation (user clarification)
+User asked: *"if I'm in admin, leave, go to training, everything will be locked except for public (Field Training) because I'm not logged in anymore — correct? Same thing for shop & PM?"*
+
+**Yes — confirmed.** Once any portal-scope rule fires (URL navigation OR 20-min idle), the token is wiped from `localStorage`. When the user lands on `/training`, `isAdmin()` / `isPm()` / `isShop()` all return `false`. `trackUnlocked()` returns `true` only for `audience === "public"` — so the Field Crew tile is unlocked, and Shop / PM / Admin tiles all render "PASSWORD REQUIRED" with locks routing to their respective login pages. Same behaviour regardless of which portal the user started in.
+
+
 ## 2026-05-03 — Portal-Scope Auto-Logout + Poster Error Boundary (P0/P1)
 
 ### Two changes shipped together this pass

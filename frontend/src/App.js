@@ -66,6 +66,7 @@ import GlobalKeepalive from "@/components/GlobalKeepalive";
 import BackendStatusBanner from "@/components/BackendStatusBanner";
 import { validateStoredTokens } from "@/lib/tokenValidation";
 import EnforcePortalScope from "@/components/EnforcePortalScope";
+import IdleTimeout from "@/components/IdleTimeout";
 import PosterErrorBoundary from "@/components/PosterErrorBoundary";
 
 // Crew Hub (Basecamp-style /app section)
@@ -115,6 +116,7 @@ function App() {
       <BrowserRouter key={authTick}>
         <ScrollToTop />
         <EnforcePortalScope />
+        <IdleTimeout />
         <div className="flex-1 flex flex-col">
           <Routes>
             {/* MASCI Hub — public */}
