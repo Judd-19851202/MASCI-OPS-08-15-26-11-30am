@@ -829,7 +829,6 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
   {body}
   <div class="ftr">
     <span>MASCI · Field Safety Reporting Portal</span>
-    <span>No Guesswork. No Missed Steps. No Excuses.</span>
   </div>
   <!-- Last-page only: safety disclaimer + ownership clarification.
        Renders after all body content, so it naturally lands on the

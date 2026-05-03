@@ -194,9 +194,6 @@ export default function TrenchBoxPosterCard() {
         <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-slate-700">
           {t("Post inside every excavation kit toolbox.")}
         </div>
-        <div className="font-display font-black text-red-700 tracking-tight text-sm">
-          {t("No Guesswork. No Missed Steps. No Excuses.")}
-        </div>
       </div>
 
       {/* Vendor attribution */}

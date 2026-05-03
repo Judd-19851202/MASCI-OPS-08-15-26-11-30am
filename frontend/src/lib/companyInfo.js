@@ -5,7 +5,10 @@ const STORAGE_KEY = "masci.companyInfo.v1";
 
 export const DEFAULT_COMPANY_INFO = {
   company_name: "MASCI General Contractors Inc.",
-  tagline: "No Guesswork. No Missed Steps. No Excuses.",
+  // Tagline intentionally blank — it's now baked into the logo image
+  // itself (per the 2026-05-03 logo deployment). Print views guard on
+  // `company.tagline && …` so they skip rendering when this is empty.
+  tagline: "",
   address: "5752 South Ridgewood Avenue",
   city_state_zip: "Port Orange, FL 32127-6442",
   phone: "386-322-4500",

@@ -77,7 +77,6 @@ export const ShareFormDialog = ({
 </style></head><body>
   <div class="stripe"></div>
   <h1>MASCI SAFETY</h1>
-  <div class="sub">No Guesswork. No Missed Steps. No Excuses.</div>
   <div style="font-size:22px;font-weight:700;margin-bottom:18px">Scan to fill out today's<br/>Job Site Safety Inspection</div>
   <div class="qr">${document.getElementById("masci-share-qr")?.outerHTML || ""}</div>
   <div class="url">${publicUrl}</div>

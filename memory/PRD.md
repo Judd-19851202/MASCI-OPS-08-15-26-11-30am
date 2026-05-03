@@ -1,5 +1,61 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Full System-Wide Logo Replacement (P0 Asset Deployment)
+
+User uploaded a new MASCI HUB logo (image: `5dbhmebw_image0(1).png`, 1774×887, RGB, pure-black background). Goal: replace every logo asset across UI, PDFs, emails, posters, and remove any duplicated standalone tagline text.
+
+### What shipped
+- **Source-of-truth processing script** (`/app/scripts/install_new_logo.py`):
+  1. Downloads / opens the source PNG
+  2. Flood-fills all four corners with **alpha=0** at threshold 28 — perimeter black becomes transparent, interior dark pixels of the medallion stay opaque
+  3. Crops above the **first** sparse-row band that has dense content both above and below — drops the bottom "RUN EVERY JOB. CONTROL EVERY DETAIL. PROTECT EVERYTHING." line (which is already the Hub homepage H1; keeping it inside the logo would be tagline duplication per Section 4 of the spec)
+  4. Auto-crops to a tight bounding box
+  5. Resizes to 1600 px wide max (high-DPI safe; ~592 px tall after crop)
+  6. Splits into **mark** (M-shield medallion only) and **wordmark** (MASCI HUB plate only) using a column-density gap detector
+  7. Writes 11 destination files (transparent-PNG everywhere — the metallic-on-transparent palette reads cleanly on dark navy, white, and any in-between)
+
+- **Files deployed (all identical-MD5 where they should be):**
+  - `frontend/public/masci-full-lockup.png` + `-onblack` + `-onlight` (1600×592, transparent)
+  - `frontend/public/masci-mark.png` + `-onblack` + `-onlight` (530×614)
+  - `frontend/public/masci-wordmark.png` + `-onblack` + `-onlight` (1129×490)
+  - `backend/static/masci-logo.png` + `masci-logo-email.png` (same MD5 as frontend lockup)
+  - `frontend/public/_logo_source_2026-05-03.png` (audit copy of the original source)
+
+- **Obsolete asset cleanup:** removed `_old_safety_lockups/`, `_src/`, and the older `_pre_tagline_rebrand_backup/` directories from `frontend/public`. No old logo references remain.
+
+### Tagline-duplication cleanup (Section 4 of spec)
+Tagline "No Guesswork. No Missed Steps. No Excuses." is now baked into the deployed lockup PNG itself. Removed every standalone render of the same string outside the logo:
+- `backend/pdf_render.py` PDF footer
+- `backend/server.py` two email-template footers (Field Safety Card mailer + Cards bundle mailer)
+- `frontend/src/components/JhaPlansPosterCard.jsx`
+- `frontend/src/components/CheatSheetCard.jsx`
+- `frontend/src/components/TrenchBoxPosterCard.jsx`
+- `frontend/src/components/ShareFormDialog.jsx` (QR-share print template)
+- `frontend/src/pages/MaterialCalculators.jsx` page footer
+- `frontend/src/pages/FieldSection.jsx` page footer
+- `frontend/src/pages/AdminGuide.jsx` admin footer
+- `frontend/src/pages/SafetySection.jsx` page footer
+- `frontend/src/lib/companyInfo.js` — `tagline` field set to empty string (all 4 print views — ViewIncident/ViewInspection/ViewMeeting/ViewDailyReport — already guard with `company.tagline && …` so they auto-skip the duplicate render)
+
+The only remaining "No Guesswork…" string occurrences in the codebase are:
+- The **alt-text** on `<img>` tags inside `MasciLogo.jsx` (screen-reader description — required for a11y, not visually rendered)
+- The Spanish translation entries in `lib/i18n.js` (kept in case any in-flight feature references them, but no UI code currently does)
+
+### Verification
+- Hub home (desktop 1280×900): new logo + clean dark navy header, no tagline duplication ✅
+- Hub home (mobile 390×844): scales correctly, no clipping ✅
+- Field Section: transparent edges blend cleanly with dark navy header ✅
+- Admin Login: clean rendering, ≥proper sizing ✅
+- PDF generation (`render_record_pdf` for QA/QC): regenerated, `pdftotext` confirms **0 occurrences** of "No Guesswork / No Missed Steps / No Excuses" in extracted body text — only the `MASCI · Field Safety Reporting Portal` footer line remains ✅
+- All 11 logo files MD5-identical content (745,603 / 261,277 / 377,639 bytes per variant family) ✅
+
+### Files touched
+- **NEW**: `scripts/install_new_logo.py` (idempotent, re-runnable)
+- **REPLACED**: 11 logo PNGs in `frontend/public/` and `backend/static/`
+- **REMOVED**: `frontend/public/_old_safety_lockups/`, `frontend/public/_src/`
+- **MODIFIED** (tagline cleanup): `pdf_render.py`, `server.py`, `JhaPlansPosterCard.jsx`, `CheatSheetCard.jsx`, `TrenchBoxPosterCard.jsx`, `ShareFormDialog.jsx`, `MaterialCalculators.jsx`, `FieldSection.jsx`, `AdminGuide.jsx`, `SafetySection.jsx`, `companyInfo.js`
+
+
 ## 2026-05-03 — QA/QC PM Portal Integration + Concrete-Form Enhancements (P0 close-out)
 
 Completes the QA/QC module the previous fork left mid-stream. All three inspections (Concrete Form, Rebar, Subcontractor Work) are now wired end-to-end: Field Hub → Form → Backend → Auto-Email to PM → PM Portal scoped list → Admin Hub list.

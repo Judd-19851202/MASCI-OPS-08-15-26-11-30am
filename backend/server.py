@@ -5840,8 +5840,7 @@ async def email_safety_card(body: SafetyCardEmailRequest):
             "Print on letter-size (8.5×11) and distribute to the crew.</p>"
             f"{note_html}"
             "<hr style='border:none;border-top:1px solid #e2e8f0;margin:16px 0;'>"
-            "<p style='font-size:12px;color:#64748b;margin:0;'>Sent from MASCI Hub · Safety · "
-            "No Guesswork. No Missed Steps. No Excuses.</p>"
+            "<p style='font-size:12px;color:#64748b;margin:0;'>Sent from MASCI Hub · Safety</p>"
             "</div>"
         )
 
@@ -5927,8 +5926,7 @@ async def email_all_safety_cards(body: SafetyCardEmailAllRequest):
             f"<ul style='margin:8px 0 16px 20px;color:#334155;'>{card_list_html}</ul>"
             f"{note_html}"
             "<hr style='border:none;border-top:1px solid #e2e8f0;margin:16px 0;'>"
-            "<p style='font-size:12px;color:#64748b;margin:0;'>Sent from MASCI Hub · Safety · "
-            "No Guesswork. No Missed Steps. No Excuses.</p>"
+            "<p style='font-size:12px;color:#64748b;margin:0;'>Sent from MASCI Hub · Safety</p>"
             "</div>"
         )
 

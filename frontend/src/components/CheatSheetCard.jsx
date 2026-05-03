@@ -179,9 +179,6 @@ export default function CheatSheetCard() {
         <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-slate-700">
           {t("MASCI · Field Safety Reporting Portal")}
         </div>
-        <div className="font-display font-black text-red-700 tracking-tight text-sm">
-          {t("No Guesswork. No Missed Steps. No Excuses.")}
-        </div>
       </div>
     </div>
   );
