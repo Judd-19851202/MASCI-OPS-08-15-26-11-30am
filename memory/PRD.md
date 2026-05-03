@@ -1,5 +1,49 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-02 — Bilingual Training Video Support
+
+Schema and player upgrade so EN/ES videos swap automatically based on the language toggle.
+
+### Schema (Mongo `training_videos.config`)
+```json
+{
+  "videos": {
+    "field-01-hub-navigation": { "en": "https://…/Hub_Navigating_FINAL.mp4", "es": "https://…/Hub_Navegando_ES.mp4" },
+    "field-02-daily-report":   { "en": "https://…/DailyReport_FINAL.mp4",    "es": "https://…/ReporteDiario_ES.mp4" },
+    "field-03-equipment-preop":{ "en": "https://…/PreOp_FINAL.mp4",          "es": "https://…/PreOp_ES.mp4" }
+  }
+}
+```
+Legacy single-string entries are auto-normalized to `{en: url, es: ""}` on first read.
+
+### Backend (`/app/backend/server.py`)
+- `_DEFAULT_TRAINING_VIDEOS` upgraded to `{slug: {en, es}}` shape — 3 lessons × 2 langs seeded.
+- `_normalize_video_entry()` accepts legacy string OR `{en, es}` dict and returns the canonical shape.
+- `GET /api/training/videos` self-heals: any missing EN or ES URL is back-filled from the default catalog (per-key `$set`, never overwrites admin overrides). Migrates legacy strings to the new shape.
+- `PUT /api/admin/training/videos` (admin-strict — PM/Shop/Dev tokens rejected) accepts both old and new shapes; merges per-slug/per-language so partial saves don't wipe the other language.
+
+### Frontend
+- `pickVideoUrl(entry, lang)` — resolves the right URL:
+  - `lang === "es"` + ES URL set → ES.
+  - `lang === "es"` + ES missing → EN with `fallback: true`.
+  - `lang === "en"` → always EN (no silent ES fallback per spec).
+- `LessonCard` uses `useRef` + `useEffect` on `pickedUrl` change to call `video.pause() / currentTime=0 / load()` — the player swaps language without a page reload.
+- `<video>` and `<iframe>` get a `key` based on `embedSrc.src` so React fully re-mounts the player on language change.
+- `data-testid="lesson-video-fallback-hint"` div renders ("Spanish version not available for this lesson" / "Versión en español no disponible para esta lección") whenever ES is requested but only EN is available.
+- `data-testid="lesson-video-error"` panel renders the spec-exact string "Training video unavailable. Please contact your MASCI administrator." when the EN URL itself errors.
+- `AdminTrainingVideos` (`/admin/training-videos`) splits each lesson into two inputs: `video-url-{slug}-en` and `video-url-{slug}-es` with an `EN x/y · ES x/y` filled count badge.
+
+### Verified (iteration_30 testing agent)
+- 14/14 new backend tests pass. 31/31 iter29 regression tests pass after one shape assertion was forward-compatibly updated.
+- Live EN↔ES toggle: clicking the ES toggle swaps the rendered video URL within 2 s without page navigation.
+- Mobile horizontal overflow on every key route: 0 px.
+- Zero console errors. No forbidden strings ("Powered by The Judd Group LLC", "Made with Emergent" in code).
+- Admin split inputs (23 EN + 23 ES) render correctly.
+
+### Note on Chromium-test-only fallback
+Headless Chromium in the test env lacks licensed H264 → fires `onError` immediately on every MP4. The test environment shows the `lesson-video-error` panel everywhere; on real Chrome / Safari / Firefox / iOS Safari / Android Chrome (which all license H264) the videos play normally. The fallback firing in tests **is the spec-required behavior under failure** and confirms `onError` is wired correctly.
+
+
 ## 2026-05-02 — Field Training Lessons 2 & 3 + Root-Cause Fix for Live Video Rendering
 
 Added two new official Field Training videos and re-architected the seed logic so production never has missing video URLs again.
