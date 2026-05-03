@@ -1,5 +1,41 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Field Training: Material Calculators + QA/QC Lessons (P0)
+
+User requested 2 new training lessons in the Field Crew Training track:
+- **Lesson 4 — Material Calculators** — covers the 6 calculators (Aggregate, Asphalt, Concrete, Truck Load, Yield/Waste, Tons↔CY), feet-and-inches input pattern, the round-up rule, and the "Save / Log Use" tracking that drives PM-side waste analytics.
+- **Lesson 5 — QA / QC Inspections** — covers the 3 inspection forms (Concrete Form, Rebar, Subcontractor Work), PM auto-fill from JobPicker, GPS location capture, searchable supplier dropdown, the new required Concrete Placement fields (Mix Design / Yards Ordered / Concrete Vendor), required Work Area/Station, min-3-photos rule, and the auto-email-to-PM routing.
+
+Existing field lessons shifted +2 in their `order` field and `Lesson N —` title prefix:
+- Safety Meetings 4 → 6
+- JHP 5 → 7
+- Incident Reports 6 → 8
+- Site Inspection 7 → 9
+
+### Slug strategy
+Existing lesson **slugs were kept stable** (`field-04-safety-meeting`, `field-05-jhp`, etc.) so:
+- Backend `DEFAULT_VIDEOS` dict and uploaded `.mp4` files in `/api/training/video/` continue working without renames or migrations.
+- Any bookmarked lesson URL still resolves.
+- `MaterialCalculators` admin video tracking per slug is undisturbed.
+
+The two new lessons get new descriptive slugs:
+- `field-material-calculators` (no number prefix)
+- `field-qaqc-inspections` (no number prefix)
+
+This way the slug numerals on legacy lessons become a harmless historical artifact, and the displayed `Lesson N` title is the source of truth for ordering (driven by the explicit `order` field).
+
+### Files touched
+- **`frontend/src/data/training.js`** — inserted two new lesson objects after equipment-preop, shifted order + title for the 4 existing field lessons.
+- **`frontend/src/data/training_es.js`** — added two new translation entries, shifted Spanish title prefixes for the 4 existing field lessons.
+- **`backend/training_pdf.py`** — same edits to keep printable training-packet PDFs in sync (FIELD_LESSONS list at lines 200-330).
+
+### Verification
+- Live render at `/training/field`: 9 lessons in correct order with new titles ("Lesson 4 — Material Calculators", "Lesson 5 — QA / QC Inspections", through "Lesson 9 — Site Safety Inspection"). Header shows "9 LESSONS".
+- Live ES render at `/training/field` with `lang=es`: 9 lessons with Spanish titles ("Lección 4 — Calculadoras de Materiales", etc.). "9 LECCIONES".
+- Visual style matches all other lessons exactly — same VIDEO TUTORIAL COMING SOON banner, WHY THIS MATTERS / STEP-BY-STEP / TIPS / CHEAT SHEET sections.
+- ESLint clean. Backend Python ruff clean (pre-existing E741/F541 in unrelated lines).
+
+
 ## 2026-05-03 — Two-Variant Logo Strategy: Designer-Supplied Light-BG Variant Replaces Algorithmic One (P0 Asset Refinement)
 
 The previous algorithmic light-bg variant (deep-navy outline + silver darkening) was a workaround. User supplied a dedicated light-background logo file (`MASCI HUB-HUB ONLY Logo.png`) — a clean red M-shield + 3D MASCI/HUB lockup designed specifically for white surfaces, no metallic-plate-with-tagline. This pass swaps the algorithmic onlight derivation for the designer-supplied asset.

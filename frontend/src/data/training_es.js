@@ -75,8 +75,56 @@ export const LESSON_TRANSLATIONS_ES = {
       "Puntos de seguridad mayor = ALTO, no opere.",
     ],
   },
+  "field-material-calculators": {
+    title_es: "Lección 4 — Calculadoras de Materiales",
+    why_es: "Las cantidades adivinadas cuestan dinero. Pedir de menos → entrega al día siguiente, cuadrilla parada, cronograma roto. Pedir de más → yardas desperdiciadas que se le cobran al trabajo. Las Calculadoras de Materiales le dan estimaciones precisas en segundos, con las mismas fórmulas que usa la oficina, para que el número que pide coincida con el número de la factura.",
+    steps_es: [
+      "Hub → Campo → Calculadoras de Materiales. Verá seis tarjetas, una por calculadora: Agregado, Asfalto, Concreto, Carga de Camión, Rendimiento / Desperdicio y Conversión Toneladas ↔ CY.",
+      "Elija la calculadora correcta para el trabajo. Agregado (base, #57, riprap) → toneladas por área + profundidad. Asfalto → toneladas de HMA por área + profundidad + densidad de mezcla. Concreto → yardas cúbicas para losas, zapatas, columnas, muros. Carga de Camión → cuántas cargas pedir según tamaño del camión. Rendimiento / Desperdicio → ajusta el número limpio para derrames y sobre-vertido reales. Toneladas ↔ CY → conversión rápida de unidades.",
+      "Ingrese dimensiones en pies y pulgadas como las lee el campo. La calculadora hace los cálculos — no necesita convertir a decimales primero.",
+      "Lea el resultado y SIEMPRE REDONDEE HACIA ARRIBA al pedir. La línea 'Pedir esta cantidad' en cada calculadora ya incluye un pequeño margen de desperdicio; trátela como la cantidad mínima a pedir.",
+      "Toque 'Guardar / Registrar Uso' para registrar la estimación contra el trabajo. El PM y el Admin ven quién calculó qué y cuándo — esto alimenta el seguimiento de desperdicio y rendimiento de la oficina.",
+      "Cambie el idioma con el botón EN/ES arriba. Cada etiqueta, fórmula y línea de resultado es bilingüe.",
+    ],
+    tips_es: [
+      "En caso de duda, REDONDEE HACIA ARRIBA — quedar corto en una colada cuesta 10× más que estar un poco sobre.",
+      "La calculadora NO reemplaza el diseño de mezcla del proyecto ni el take-off oficial. Es una verificación de campo, no la cantidad oficial.",
+      "Guarde / Registre Uso cada vez. El patrón de los registros es cómo los PMs detectan qué cuadrillas piden de menos o de más constantemente.",
+    ],
+    cheatSheet_es: [
+      "Seis calculadoras: Agregado · Asfalto · Concreto · Carga de Camión · Rendimiento/Desperdicio · Toneladas↔CY.",
+      "Ingrese pies y pulgadas como las lee el campo. La app hace los cálculos.",
+      "REDONDEE HACIA ARRIBA al pedir. Toque 'Guardar / Registrar Uso' para que la oficina vea la estimación.",
+    ],
+  },
+  "field-qaqc-inspections": {
+    title_es: "Lección 5 — Inspecciones de QA / QC",
+    why_es: "Los problemas de calidad detectados ANTES de la colada o ANTES de que el subcontratista deje el sitio cuestan una fracción de lo que cuesta arreglarlos después. El módulo QA/QC documenta la inspección, captura fotos y firmas, genera un PDF, y lo envía directamente al Gerente de Proyecto asignado — cada registro vinculado a un trabajo, una estación, y un inspector. Esta es su evidencia para auditorías del dueño, disputas con subs y reclamos de garantía.",
+    steps_es: [
+      "Hub → QA / QC. Verá los tipos de inspección disponibles — actualmente tres: Inspección de Formaleta de Concreto, Inspección de Acero de Refuerzo, e Inspección de Trabajo del Subcontratista. Más formularios se agregan a medida que el sistema crece.",
+      "Toque la inspección que necesita. Elija su Trabajo MASCI del selector — número de proyecto, nombre, ubicación, cliente, Y el Gerente de Proyecto asignado se llenan automáticamente. El correo del PM se captura automáticamente para que el reporte se envíe a la persona correcta.",
+      "Toque el botón GPS al lado de Ubicación para autollenar la dirección del área de trabajo desde el GPS de su teléfono.",
+      "Subcontratista / Cuadrilla: lista buscable con todos los subs y vendedores en el sistema. Si el suyo no está, toque 'Agregar nuevo' y créelo en el momento.",
+      "Área de Trabajo / Estación es REQUERIDO en cada formulario QA/QC — sea específico: 'Tablero del puente, estribo norte EST 100+05', no 'en el puente'.",
+      "Solo Inspecciones de Formaleta de Concreto: ingrese Diseño de Mezcla (ej. 4000 PSI Clase IV), Yardas Pedidas (CY), y Vendedor de Concreto (lista buscable — misma lista de vendedores, agregue nuevo si necesario).",
+      "Recorra la lista de verificación. Cada punto recibe Aprobado, Falla o N/A. Cada FALLA requiere una nota de deficiencia describiendo qué está mal.",
+      "Fotos: mínimo 3 requeridas. Capture el área de trabajo, cualquier deficiencia y la condición general.",
+      "Notas de Inspección / Descripción, Deficiencias, Acciones Correctivas Requeridas — llene con detalle. La firma del Representante del Sub es opcional pero recomendada cuando el trabajo es rechazado.",
+      "El Inspector firma. Envíe. El PDF se genera y se envía por correo al PM asignado automáticamente; el registro aparece en el Portal del PM y en la Consola del Admin.",
+    ],
+    tips_es: [
+      "Si tiene una Falla, tome una foto del defecto con una cinta métrica u otra referencia en el cuadro. 'Asentamiento muy alto' por sí solo es difícil de defender; 'Asentamiento de 7 pulgadas en una especificación de 4 pulgadas, foto adjunta' es a prueba de balas.",
+      "El PM solo ve los registros QA/QC en trabajos donde está asignado. Elija el trabajo correcto — trabajo equivocado = el PM equivocado recibe el correo.",
+      "Use el formulario incluso cuando el trabajo pase limpiamente. Un registro de aprobación limpia del trabajo de un sub lo protege cuando el sub luego dice 'no lo hicimos así'.",
+    ],
+    cheatSheet_es: [
+      "Tres tipos de inspección hoy (más por venir): Formaleta de Concreto · Acero · Trabajo del Subcontratista.",
+      "Elija el trabajo → el PM se autollena. Use GPS para ubicación. Área de Trabajo requerida.",
+      "Mín. 3 fotos. Cada FALLA necesita una nota. El Inspector firma. El PM recibe el PDF automáticamente.",
+    ],
+  },
   "field-04-safety-meeting": {
-    title_es: "Lección 4 — Reuniones de Seguridad (Charlas de Caja)",
+    title_es: "Lección 6 — Reuniones de Seguridad (Charlas de Caja)",
     why_es: "Junta diaria requerida antes de comenzar el trabajo. Documenta que la cuadrilla fue informada sobre los peligros de hoy — crítico si OSHA aparece o pasa un incidente después.",
     steps_es: [
       "Hub → Seguridad → Reuniones de Seguridad → Nueva Reunión.",
@@ -96,7 +144,7 @@ export const LESSON_TRANSLATIONS_ES = {
     ],
   },
   "field-05-jhp": {
-    title_es: "Lección 5 — Plan de Peligros del Trabajo (JHP)",
+    title_es: "Lección 7 — Plan de Peligros del Trabajo (JHP)",
     why_es: "Los JHPs de MASCI se preparan antes de que comience el trabajo, por el Departamento de Seguridad, los Gerentes de Proyecto y el liderazgo — basados en el alcance del trabajo, condiciones del sitio, control de tráfico (MOT), factores ambientales y peligros conocidos del proyecto. Así los peligros se identifican y controlan ANTES de que la cuadrilla pise el sitio. Un JHP bien hecho es una de las mejores herramientas que tenemos para prevenir incidentes y eliminar la improvisación en el campo.",
     steps_es: [
       "Las cuadrillas NO crean JHPs. Los JHPs son documentos específicos del proyecto, preparados con anticipación por Seguridad, los Gerentes de Proyecto y el liderazgo, antes de que llegue cualquier cuadrilla.",
@@ -117,7 +165,7 @@ export const LESSON_TRANSLATIONS_ES = {
     ],
   },
   "field-06-incident": {
-    title_es: "Lección 6 — Reportes de Accidente / Incidente",
+    title_es: "Lección 8 — Reportes de Accidente / Incidente",
     why_es: "El momento que algo sale mal, este es el formulario. Cuasi-accidente, primeros auxilios, médico, DART, fatalidad — cada nivel se documenta. Causa raíz, testigos, acciones correctivas — todo en un registro.",
     steps_es: [
       "ASEGURE LA ESCENA PRIMERO. Consiga atención médica a los trabajadores lesionados. Llame al 911 si es grave. LUEGO abra la app.",
@@ -144,7 +192,7 @@ export const LESSON_TRANSLATIONS_ES = {
     ],
   },
   "field-07-site-inspection": {
-    title_es: "Lección 7 — Inspección de Seguridad del Sitio",
+    title_es: "Lección 9 — Inspección de Seguridad del Sitio",
     why_es: "Recorridos diarios y semanales para atrapar peligros antes de que lastimen a alguien. Calificados automáticamente para ver de un vistazo si su sitio está pasando OSHA.",
     steps_es: [
       "Hub → Seguridad → Inspecciones → Nueva Inspección.",

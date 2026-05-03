@@ -146,10 +146,66 @@ const FIELD_LESSONS = [
     ],
   },
   {
-    slug: "field-04-safety-meeting",
+    slug: "field-material-calculators",
     track: "field",
     order: 4,
-    title: "Lesson 4 — Safety Meetings (Toolbox Talks)",
+    title: "Lesson 4 — Material Calculators",
+    why: "Quantity guesses cost money. Order short → second-day delivery, idle crew, blown schedule. Order over → wasted yards billed against the job. The Material Calculators give you accurate field estimates in seconds, with the same formulas the office uses, so the number you call in matches the number that hits the invoice.",
+    duration: "~5 min",
+    steps: [
+      "Hub → Field → Material Calculators. You'll see six cards, one per calculator: Aggregate, Asphalt, Concrete, Truck Load, Yield / Waste, and Tons ↔ CY Conversion.",
+      "Pick the right calculator for the job. Aggregate (base, #57, riprap) → tons by area + depth. Asphalt → tons of HMA by area + depth + mix density. Concrete → cubic yards for slabs, footings, columns, walls. Truck Load → how many loads to call in based on truck size. Yield / Waste → adjusts a clean math number for real-world spillage / over-pour. Tons ↔ CY → quick unit conversion.",
+      "Enter dimensions in feet and inches the way the field reads them. The calculator handles the math — no need to convert to decimals first.",
+      "Read the result and ALWAYS ROUND UP for ordering. The 'Order This Much' line on each calculator already includes a small over-order buffer for waste; treat it as the minimum quantity to call in.",
+      "Tap 'Save / Log Use' to record the estimate against your job. The PM and Admin see who calculated what and when — drives the office's waste-and-yield tracking over time.",
+      "Switch language with the EN/ES toggle at the top. Every label, formula, and result line is bilingual.",
+    ],
+    tips: [
+      "When in doubt, round UP — being short on a pour costs 10× more than being slightly over.",
+      "The calculator does not replace the project's mix design or take-off. It's a field check, not the official quantity.",
+      "Save / Log Use every time. The pattern of saves is how PMs catch which crews consistently under- or over-order.",
+    ],
+    cheatSheet: [
+      "Six calculators: Aggregate · Asphalt · Concrete · Truck Load · Yield/Waste · Tons↔CY.",
+      "Enter feet & inches as the field reads them. App does the math.",
+      "ROUND UP for the order. Tap 'Save / Log Use' so the office sees the estimate.",
+    ],
+  },
+  {
+    slug: "field-qaqc-inspections",
+    track: "field",
+    order: 5,
+    title: "Lesson 5 — QA / QC Inspections",
+    why: "Quality issues caught BEFORE the pour or BEFORE the sub leaves the site cost a fraction of what it costs to fix later. The QA/QC module documents the inspection, captures photos and signatures, generates a PDF, and routes it straight to the assigned PM — every record tied to a job, a station, and an inspector. This is your evidence trail for owner audits, sub disputes, and warranty claims.",
+    duration: "~6 min",
+    steps: [
+      "Hub → QA / QC. You'll see the available inspection types — currently three: Concrete Form Inspection, Rebar Inspection, and Subcontractor Work Inspection. More forms are added as the system expands.",
+      "Tap the inspection you need. Pick your MASCI Job from the picker — project number, name, location, client, AND the assigned Project Manager auto-fill from the job. The PM's email is captured automatically so the report routes to the right person.",
+      "Tap the GPS button next to Location to auto-fill the work area address from your phone's GPS.",
+      "Subcontractor / Crew: searchable dropdown of every sub and vendor in the system. If yours isn't there, tap 'Add new' and create it on the spot.",
+      "Work Area / Station is REQUIRED on every QA/QC form — be specific: 'Bridge deck north abutment STA 100+05', not 'on the bridge'.",
+      "Concrete Form Inspections only: enter Mix Design (e.g. 4000 PSI Class IV), Yards Ordered (CY), and Concrete Vendor (searchable dropdown — same vendor list, add new if needed).",
+      "Run the checklist. Every item gets Pass, Fail, or N/A. Every FAIL requires a deficiency note describing what's wrong.",
+      "Photos: minimum 3 required. Capture the work area, any deficiencies, and the overall condition.",
+      "Inspection Notes / Description, Deficiencies, Corrective Actions Required — fill in detail. Sub Rep signature is optional but encouraged when work is rejected.",
+      "Inspector signs. Submit. The PDF generates and emails to the assigned PM automatically; the record shows up in your PM Portal and in the Admin Console.",
+    ],
+    tips: [
+      "If you have a Fail, take a photo of the defect with a tape measure or other reference in the frame. 'Slump too high' on its own is hard to defend; '7-inch slump on a 4-inch spec, photo attached' is bulletproof.",
+      "The PM only sees QA/QC records on jobs where they are the assigned PM. Pick the right job — wrong job = the wrong PM gets the email.",
+      "Use the form even when the work passes cleanly. A clean pass-record on a sub's work protects you when the sub later claims they 'didn't do it that way'.",
+    ],
+    cheatSheet: [
+      "Three inspection types today (more coming): Concrete Form · Rebar · Subcontractor Work.",
+      "Pick the job → PM auto-fills. Use GPS for location. Work Area required.",
+      "Min 3 photos. Every FAIL needs a note. Inspector signs. PM gets the PDF automatically.",
+    ],
+  },
+  {
+    slug: "field-04-safety-meeting",
+    track: "field",
+    order: 6,
+    title: "Lesson 6 — Safety Meetings (Toolbox Talks)",
     why: "Required daily huddle before work starts. Documents that the crew was briefed on today's hazards — critical if OSHA shows up or an incident happens later.",
     duration: "~4 min",
     steps: [
@@ -172,8 +228,8 @@ const FIELD_LESSONS = [
   {
     slug: "field-05-jhp",
     track: "field",
-    order: 5,
-    title: "Lesson 5 — Job Hazard Plan (JHP)",
+    order: 7,
+    title: "Lesson 7 — Job Hazard Plan (JHP)",
     why: "MASCI Job Hazard Analyses are built before work begins by the Safety Department, Project Managers, and leadership — based on scope of work, site conditions, traffic control (MOT), environmental factors, and known project hazards. This way hazards are identified and controlled BEFORE crews step onto the job. A properly built JHP is one of the strongest tools we have to prevent incidents and eliminate guesswork in the field.",
     duration: "~6 min",
     steps: [
@@ -197,8 +253,8 @@ const FIELD_LESSONS = [
   {
     slug: "field-06-incident",
     track: "field",
-    order: 6,
-    title: "Lesson 6 — Accident / Incident Reports",
+    order: 8,
+    title: "Lesson 8 — Accident / Incident Reports",
     why: "The moment something goes wrong, this is the form. Near miss, first aid, medical, DART, fatality — every level gets documented. Root cause, witnesses, corrective actions — all in one record.",
     duration: "~7 min",
     steps: [
@@ -228,8 +284,8 @@ const FIELD_LESSONS = [
   {
     slug: "field-07-site-inspection",
     track: "field",
-    order: 7,
-    title: "Lesson 7 — Site Safety Inspection",
+    order: 9,
+    title: "Lesson 9 — Site Safety Inspection",
     why: "Daily and weekly walk-throughs to catch hazards before they hurt someone. Graded automatically so you can see at a glance if your site is passing OSHA.",
     duration: "~5 min",
     steps: [
