@@ -321,17 +321,18 @@ export default function Hub() {
             testId="hub-section-projects"
           />
           <SectionCard
+            to="/qaqc"
             icon={ClipboardCheck}
+            eyebrow={t("Quality Assurance")}
             title={t("QA / QC")}
-            desc={t("Quality Assurance and Quality Control workflows for the field team — pour cards, density logs, and inspection forms ready to fill out and turn in. More forms rolling out soon.")}
+            desc={t("Quality assurance and quality control inspections for concrete, rebar, and subcontractor work — documented, signed, photographed, routed, and stored.")}
             bullets={[
-              t("Asphalt density · core samples · roadway reports"),
-              t("Rebar inspections · concrete form inspections"),
-              t("Daily QA / QC submittals · field-team turn-ins"),
+              t("Concrete Form Inspection"),
+              t("Rebar Inspection"),
+              t("Subcontractor Work Inspection"),
             ]}
-            accent="cyan"
+            accent="emerald"
             testId="hub-section-qc"
-            comingSoon
           />
           <SectionCard
             to="/pm/login"

@@ -8,6 +8,10 @@ import SafetySection from "@/pages/SafetySection";
 import FieldSafetyCards from "@/pages/FieldSafetyCards";
 import FieldSection from "@/pages/FieldSection";
 import MaterialCalculators from "@/pages/MaterialCalculators";
+import QaqcSection from "@/pages/QaqcSection";
+import NewQaqcInspection from "@/pages/NewQaqcInspection";
+import ViewQaqcInspection from "@/pages/ViewQaqcInspection";
+import AdminQaqcList from "@/pages/AdminQaqcList";
 import Dashboard from "@/pages/Dashboard";
 import NewInspection from "@/pages/NewInspection";
 import ViewInspection from "@/pages/ViewInspection";
@@ -115,6 +119,10 @@ function App() {
             <Route path="/safety/cards" element={<FieldSafetyCards />} />
             <Route path="/field" element={<FieldSection />} />
             <Route path="/field/calculators" element={<MaterialCalculators />} />
+            <Route path="/qaqc" element={<QaqcSection />} />
+            <Route path="/qaqc/:slug/new" element={<NewQaqcInspection />} />
+            <Route path="/qaqc/:id" element={<ViewQaqcInspection />} />
+            <Route path="/admin/qaqc" element={<AdminQaqcList />} />
 
             <Route path="/inspect/new" element={<GateInspection><NewInspection /></GateInspection>} />
             <Route path="/submit" element={<GateInspection><NewInspection publicMode /></GateInspection>} />

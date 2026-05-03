@@ -1170,6 +1170,17 @@ register_safety_routes(
 )
 
 
+# QA/QC inspection routes (Concrete Form / Rebar / Subcontractor Work).
+# Same pattern as the Safety routes — single registration helper, late-bound
+# auto-email so PM routing fires after submit.
+from routes.qaqc import register_qaqc_routes  # noqa: E402
+
+register_qaqc_routes(
+    api_router, db, require_admin, rate_limit_public_post,
+    lambda kind, record: schedule_auto_email(kind, record),
+)
+
+
 # ============================================================
 # Daily Job Reports
 # ----------------------------------------------------------

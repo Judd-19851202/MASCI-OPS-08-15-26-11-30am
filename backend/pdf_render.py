@@ -462,6 +462,7 @@ KIND_TITLES = {
     "incident": "Accident / Incident Report",
     "daily-report": "Daily Job Report",
     "equipment-inspection": "Equipment Pre-Op Inspection",
+    "qaqc": "QA / QC Inspection",
 }
 
 
@@ -578,6 +579,133 @@ def _render_equipment(d: Dict[str, Any]) -> str:
     return "\n".join(rows)
 
 
+
+def _render_qaqc(d: Dict[str, Any]) -> str:
+    """QA/QC inspection PDF body — concrete-form / rebar / subcontractor-work.
+
+    Single template covers all three because every QA/QC inspection shares
+    the same envelope (job info, subcontractor info, checklist, notes,
+    photos, sign-off). Only the header label and the checklist items
+    themselves differ between kinds — both come straight from the record.
+    """
+    rows = []
+
+    kind_label = {
+        "concrete_form": "Concrete Form Inspection",
+        "rebar": "Rebar Inspection",
+        "subcontractor_work": "Subcontractor Work Inspection",
+    }.get(d.get("inspection_kind", ""), "QA/QC Inspection")
+
+    # FAIL-flag banner if any checklist items failed
+    fail_count = int(d.get("fail_count") or 0)
+    if fail_count > 0:
+        rows.append(
+            f"<div class='esc' style='border-color:#c8102e;background:#fef2f2;'>"
+            f"<div class='esc-t'>⚠ {fail_count} item(s) failed inspection — corrective action required</div>"
+            f"<div style='font-size:9pt;color:#0f172a;'>{escape(d.get('deficiencies', '') or 'See Deficiencies section below.')}</div>"
+            f"</div>"
+        )
+
+    # Header / Job / Subcontractor info
+    rows.append(_section("Inspection", (
+        _kv("Type", kind_label)
+        + _kv("Date", _fmt_date(d.get("inspection_date")))
+        + _kv("Time", d.get("inspection_time"))
+        + _kv("Inspector", d.get("inspector_name"))
+        + _kv("Work Activity", d.get("work_activity"))
+        + _kv("Work Area / Station", d.get("work_area"))
+        + _kv("Weather / Conditions", d.get("weather_conditions"))
+    )))
+
+    rows.append(_section("Project", (
+        _kv("Project Name", d.get("project_name"))
+        + _kv("Project Number", d.get("project_number"))
+        + _kv("Location", d.get("location"))
+        + _kv("Client", d.get("client"))
+        + _kv("Project Manager", d.get("pm_name"))
+    )))
+
+    rows.append(_section("Subcontractor / Crew", (
+        _kv("Subcontractor", d.get("subcontractor_name"))
+        + _kv("Crew / Company", d.get("crew_company"))
+    )))
+
+    # Checklist
+    checklist = d.get("checklist") or []
+    if checklist:
+        body = ""
+        for item in checklist:
+            label = item.get("label") if isinstance(item, dict) else getattr(item, "label", "")
+            result = (item.get("result") if isinstance(item, dict) else getattr(item, "result", "")) or "na"
+            note = (item.get("note") if isinstance(item, dict) else getattr(item, "note", "")) or ""
+            color = "#16a34a" if result == "pass" else ("#c8102e" if result == "fail" else "#64748b")
+            badge = result.upper() if result != "na" else "N/A"
+            note_html = (
+                f"<div style='font-size:8.5pt;color:#475569;margin-top:2px;'>{escape(str(note))}</div>"
+                if note else ""
+            )
+            body += (
+                f"<div class='kv'>"
+                f"<div class='kv-k' style='flex:0 0 60%;'>{escape(str(label))}</div>"
+                f"<div class='kv-v' style='flex:1;'>"
+                f"<span style='font-family:Courier New,monospace;font-size:8pt;"
+                f"font-weight:900;letter-spacing:0.1em;color:{color};'>{badge}</span>"
+                f"{note_html}</div></div>"
+            )
+        rows.append(_section("Checklist", body))
+
+    # Tally
+    rows.append(_section("Inspection Summary", (
+        _kv("Pass Items", d.get("pass_count"))
+        + _kv("Fail Items", d.get("fail_count"))
+        + _kv("N/A Items", d.get("na_count"))
+    )))
+
+    # Notes
+    notes_body = ""
+    if d.get("inspection_notes"):
+        notes_body += _kv("Inspection Notes", d.get("inspection_notes"))
+    if d.get("deficiencies"):
+        notes_body += _kv("Deficiencies", d.get("deficiencies"))
+    if d.get("corrective_actions"):
+        notes_body += _kv("Corrective Actions", d.get("corrective_actions"))
+    if notes_body:
+        rows.append(_section("Notes & Corrective Actions", notes_body))
+
+    # Photos
+    photos = d.get("photos") or []
+    if photos:
+        photo_html = "<div class='photos'>"
+        for p in photos:
+            if isinstance(p, str) and p.startswith("data:image/"):
+                photo_html += f"<div class='photo'><img src='{escape(p)}'/></div>"
+        photo_html += "</div>"
+        rows.append(_section(f"Photos ({len(photos)})", photo_html))
+
+    # Sign-off
+    sig = ""
+    if d.get("inspector_signature"):
+        sig += (
+            f"<div class='sig'><div class='sig-img'>"
+            f"<img src='{escape(d.get('inspector_signature'))}'/></div>"
+            f"<div class='sig-meta'>"
+            f"<span class='sig-label'>Inspector</span> · {escape(d.get('inspector_name', ''))}"
+            f"</div></div>"
+        )
+    if d.get("sub_rep_signature"):
+        sig += (
+            f"<div class='sig'><div class='sig-img'>"
+            f"<img src='{escape(d.get('sub_rep_signature'))}'/></div>"
+            f"<div class='sig-meta'>"
+            f"<span class='sig-label'>Subcontractor Rep</span> · {escape(d.get('sub_rep_name', ''))}"
+            f"</div></div>"
+        )
+    if sig:
+        rows.append(_section("Sign-Off", sig))
+
+    return "\n".join(rows)
+
+
 def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     title = KIND_TITLES.get(kind, "MASCI Hub Record")
     logo_uri = _data_uri_for(LOGO_PATH)
@@ -587,6 +715,8 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
         body = _render_daily(record)
     elif kind == "equipment-inspection":
         body = _render_equipment(record)
+    elif kind == "qaqc":
+        body = _render_qaqc(record)
     else:
         body = _render_generic(title, record)
 
