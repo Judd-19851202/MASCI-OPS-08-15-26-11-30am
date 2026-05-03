@@ -1,5 +1,46 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Stale-Token Cache Bug on Live Site (mascidocs.com)
+
+User report: "On live site training tiles don't say password and open right up. PDF & QR say password but still open without." (Preview behaves correctly.)
+
+### Root cause — NOT a deployment mismatch
+Live backend is correctly gated (verified): `curl https://mascidocs.com/api/training/packet.pdf?track={shop,pm,admin}` → **401**, `track=field` → **200**. Live `/api/training/videos` returns the new `field-05-jhp` slug.
+
+The actual bug is **stale tokens in the user's browser `localStorage`**:
+- `isAdmin()` / `isPm()` / `isShop()` / `isDev()` only check for token **presence**, not **validity**.
+- When `ADMIN_PASSWORD` was rotated (MASCI1982! on 2026-04-30) and/or the `ADMIN_HMAC_SECRET` changed, any previously-stored token became unusable server-side — but the frontend still thought the user was signed in.
+- Result: Training Hub tiles render as "OPEN TRACK" (unlocked), gated PDF/QR endpoints show the login CTA because the fetch 401s, yet clicking "Open track" took the user inside the Track page because the gate also used the same broken `isAdmin()` check.
+
+### Fix — `/app/frontend/src/lib/tokenValidation.js` + `App.js` mount effect
+One-time `validateStoredTokens()` fires on every app load:
+1. Pings `/api/{admin,pm,shop,dev}/check` with whatever tokens live in localStorage, using `cache: "no-store"` so CDN doesn't mask a 401.
+2. Any `401` → that token is cleared from localStorage.
+3. If ANY token was cleared, an `authTick` state bumps → `<BrowserRouter key={authTick}>` remounts → every page re-reads localStorage → correct locked/unlocked state renders.
+4. Network errors never nuke a token (guards against transient offline states).
+
+Covers: `masci.admin.token`, `masci.pm.token`, `masci.shop.token`, `masci.dev.token`.
+
+### Verification (preview)
+Planted 3 fake stale tokens in localStorage, navigated to `/training`:
+
+| After 3.5s | Result |
+| --- | --- |
+| `localStorage.admin.token` | `null` (cleared) ✅ |
+| `localStorage.pm.token` | `null` (cleared) ✅ |
+| `localStorage.shop.token` | `null` (cleared) ✅ |
+| Shop/PM/Admin tiles href | `/{shop,pm,admin}/login` ✅ |
+| Shop/PM/Admin tiles display | "PASSWORD REQUIRED" + lock ✅ |
+| Field tile | "7 LESSONS" / "OPEN TRACK" (public, unchanged) ✅ |
+
+### Files touched
+- **NEW**: `frontend/src/lib/tokenValidation.js`
+- **MODIFIED**: `frontend/src/App.js` — added import, `authTick` state, mount effect, `key={authTick}` on `<BrowserRouter>`
+
+### Deployment needed
+Live site (`mascidocs.com`) needs a fresh frontend build + deploy to pick up this fix. After deploy, any user with stale tokens will have them auto-cleared on their first visit.
+
+
 ## 2026-05-03 — Lesson 5 (JHP) Bilingual Videos Added
 
 User uploaded EN + ES MP4s for **Lesson 5 — Job Hazard Plan (JHP)** in the Field Crew track. Integrated into the existing self-hosted, Range-aware video pipeline (no new player, no new code paths).

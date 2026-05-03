@@ -58,6 +58,7 @@ import { RequireDev } from "@/components/RequireDev";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 import GlobalKeepalive from "@/components/GlobalKeepalive";
 import BackendStatusBanner from "@/components/BackendStatusBanner";
+import { validateStoredTokens } from "@/lib/tokenValidation";
 
 // Crew Hub (Basecamp-style /app section)
 // Crew Hub pages removed 2026-04-28 — replaced by external Basecamp link.
@@ -80,12 +81,30 @@ const S = (el) => <RequireShop>{el}</RequireShop>;
 const D = (el) => <RequireDev>{el}</RequireDev>;
 
 function App() {
+  // Validate any locally-stored auth tokens against the backend on app
+  // load. If a password got rotated (or the HMAC secret changed) the
+  // user's old token no longer works server-side — but `isAdmin()` etc.
+  // only check for presence, so the UI keeps rendering gated surfaces
+  // as "unlocked". We ping the four /check endpoints once, clear any
+  // token the backend rejects with 401, then bump `authTick` so the
+  // router fully remounts and every page re-reads localStorage.
+  const [authTick, setAuthTick] = React.useState(0);
+  React.useEffect(() => {
+    let mounted = true;
+    validateStoredTokens().then((cleared) => {
+      if (mounted && cleared) setAuthTick((t) => t + 1);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className="App min-h-screen flex flex-col">
       <Toaster position="top-center" richColors closeButton />
       <GlobalKeepalive />
       <BackendStatusBanner />
-      <BrowserRouter>
+      <BrowserRouter key={authTick}>
         <ScrollToTop />
         <div className="flex-1 flex flex-col">
           <Routes>
