@@ -12,11 +12,26 @@ import { isShop } from "@/lib/shopAuth";
 
 // Convert any common training-video URL into an embeddable iframe `src`.
 // Supports: YouTube (watch?v=, youtu.be, /embed/), Loom (/share/), Vimeo
+// Resolve a stored video URL to one the browser can fetch directly.
+// If the URL starts with `/api/`, it points at our self-hosted
+// Range-aware streamer — prefix it with REACT_APP_BACKEND_URL so the
+// same DB value works on preview and production without rewrites.
+function resolveVideoUrl(raw) {
+  if (!raw) return "";
+  const url = raw.trim();
+  if (url.startsWith("/api/")) {
+    const base = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
+    return base + url;
+  }
+  return url;
+}
+
 // (vimeo.com/123), Wistia. Falls back to the raw URL if we can't parse it
 // (user can still click through).
 function toEmbedUrl(raw) {
   if (!raw) return null;
-  const url = raw.trim();
+  const resolved = resolveVideoUrl(raw);
+  const url = resolved.trim();
   try {
     // YouTube
     const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{6,})/);
@@ -430,7 +445,7 @@ function LessonCard({ lesson, videoEntry, loadingVideo, t, lang, pick }) {
       <div className="px-5 sm:px-7 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 print:hidden">
         {pickedUrl && (
           <a
-            href={pickedUrl}
+            href={resolveVideoUrl(pickedUrl)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.2em] font-bold text-slate-700 hover:text-red-700"

@@ -4715,50 +4715,113 @@ async def translate_strings(payload: TranslateRequest):
 # Default video catalog — keyed by lesson slug, each value is a
 # {"en": url, "es": url} pair. Spanish entry is optional; the player
 # falls back to English with a "Spanish version not available" hint.
+#
+# URLs use the relative path `/api/training/video/{slug}.{lang}.mp4`
+# pointing at our self-hosted Range-aware streamer below. Storing them
+# relative means the same URL works on preview AND production without
+# rewrites — the frontend prepends REACT_APP_BACKEND_URL on render.
+#
+# Why self-hosted instead of customer-assets.emergentagent.com:
+# the original CDN-hosted MP4s shipped with the `moov` atom at the END
+# of the file. Browsers must download the entire file before playback
+# can start reliably, which manifests as skipping / cutting in & out
+# during streaming. The files in /app/backend/static/training-videos/
+# were re-muxed with `+faststart` (moov atom moved to byte 36 = front
+# of file) so progressive playback works on every device.
 _DEFAULT_TRAINING_VIDEOS = {
     "field-01-hub-navigation": {
-        "en": (
-            "https://customer-assets.emergentagent.com/"
-            "job_safety-audit-mobile-1/artifacts/"
-            "mnrpeff0_MASCI_Hub_Navigating_FINAL_"
-            "d0027eecc49143e4821881da34e363f3.mp4"
-        ),
-        "es": (
-            "https://customer-assets.emergentagent.com/"
-            "job_safety-audit-mobile-1/artifacts/"
-            "dg78u6sq_MASCI_Hub_Navegando_ES_"
-            "042d287524984b9c8c54e7dfcebee3bd.mp4"
-        ),
+        "en": "/api/training/video/field-01-hub-navigation.en.mp4",
+        "es": "/api/training/video/field-01-hub-navigation.es.mp4",
     },
     "field-02-daily-report": {
-        "en": (
-            "https://customer-assets.emergentagent.com/"
-            "job_safety-audit-mobile-1/artifacts/"
-            "po839naw_MASCI_Field_DailyReport_FINAL_"
-            "fca30414727a42b79598b7040111a60a.mp4"
-        ),
-        "es": (
-            "https://customer-assets.emergentagent.com/"
-            "job_safety-audit-mobile-1/artifacts/"
-            "688i9s2l_MASCI_Field_ReporteDiario_ES_"
-            "c13a01fe0b7c4d86a60467ad2b7ea1d6.mp4"
-        ),
+        "en": "/api/training/video/field-02-daily-report.en.mp4",
+        "es": "/api/training/video/field-02-daily-report.es.mp4",
     },
     "field-03-equipment-preop": {
-        "en": (
-            "https://customer-assets.emergentagent.com/"
-            "job_safety-audit-mobile-1/artifacts/"
-            "4tlu6yza_MASCI_Field_PreOp_FINAL_"
-            "f20fab41f4e1462699fbd60f75c991b7.mp4"
-        ),
-        "es": (
-            "https://customer-assets.emergentagent.com/"
-            "job_safety-audit-mobile-1/artifacts/"
-            "seuz0fhg_MASCI_Field_PreOp_ES_"
-            "fe0ea0088bea4f05b234c0e4a1de7dee.mp4"
-        ),
+        "en": "/api/training/video/field-03-equipment-preop.en.mp4",
+        "es": "/api/training/video/field-03-equipment-preop.es.mp4",
     },
 }
+
+
+# ---------------------------------------------------------------------------
+# Range-aware video streamer — serves the faststart-fixed MP4s in
+# /app/backend/static/training-videos/ with full HTTP Range support so
+# the browser can request byte-slices, seek instantly, and start
+# playback after the first chunk arrives. This is what fixes the
+# "skipping / cutting in & out" symptom users reported with the
+# moov-at-end customer-assets MP4s.
+# ---------------------------------------------------------------------------
+import re as _vid_re  # noqa: E402
+from starlette.responses import StreamingResponse as _VidStreamResp  # noqa: E402
+
+_VIDEO_DIR = Path("/app/backend/static/training-videos")
+# Filename safety: only allow lowercase letters, digits, dot, dash, underscore.
+_VIDEO_NAME_RE = _vid_re.compile(r"^[a-z0-9][a-z0-9._-]{0,128}\.mp4$")
+
+
+@api_router.head("/training/video/{filename}")
+@api_router.get("/training/video/{filename}")
+async def training_video_stream(filename: str, request: Request):
+    """Range-aware MP4 streamer — returns the faststart-fixed bilingual
+    training videos with `Accept-Ranges: bytes`, proper `Content-Range`
+    on 206 responses, and `Content-Type: video/mp4`. Public read because
+    field crews scan the QR poster and load the page without auth."""
+    if not _VIDEO_NAME_RE.match(filename):
+        raise HTTPException(404, "Video not found")
+    path = _VIDEO_DIR / filename
+    if not path.exists() or not path.is_file():
+        raise HTTPException(404, "Video not found")
+
+    file_size = path.stat().st_size
+    range_header = request.headers.get("range") or request.headers.get("Range")
+    common_headers = {
+        "Accept-Ranges": "bytes",
+        "Content-Type": "video/mp4",
+        "Cache-Control": "public, max-age=86400",
+        # ETag = file size + mtime so browser cache invalidates on re-mux.
+        "ETag": f'W/"{file_size}-{int(path.stat().st_mtime)}"',
+    }
+
+    if range_header:
+        m = _vid_re.match(r"^bytes=(\d+)-(\d*)$", range_header.strip())
+        if not m:
+            return Response(status_code=416, headers={"Content-Range": f"bytes */{file_size}"})
+        start = int(m.group(1))
+        end = int(m.group(2)) if m.group(2) else file_size - 1
+        if start >= file_size or end >= file_size or start > end:
+            return Response(status_code=416, headers={"Content-Range": f"bytes */{file_size}"})
+        chunk_len = end - start + 1
+
+        async def iter_range():
+            # 256 KB read chunks — small enough for memory, large enough
+            # to keep TCP pipelined.
+            with open(path, "rb") as f:
+                f.seek(start)
+                remaining = chunk_len
+                while remaining > 0:
+                    buf = f.read(min(262144, remaining))
+                    if not buf:
+                        break
+                    remaining -= len(buf)
+                    yield buf
+
+        headers = {
+            **common_headers,
+            "Content-Length": str(chunk_len),
+            "Content-Range": f"bytes {start}-{end}/{file_size}",
+        }
+        # HEAD requests need the same headers but no body.
+        if request.method == "HEAD":
+            return Response(status_code=206, headers=headers)
+        return _VidStreamResp(iter_range(), status_code=206, headers=headers, media_type="video/mp4")
+
+    # Full-file request (no Range) — most browsers send Range immediately
+    # for <video>, but iOS Safari sometimes pulls the whole file.
+    headers = {**common_headers, "Content-Length": str(file_size)}
+    if request.method == "HEAD":
+        return Response(status_code=200, headers=headers)
+    return FileResponse(path=str(path), media_type="video/mp4", headers=headers)
 
 
 def _normalize_video_entry(entry):
@@ -4784,14 +4847,31 @@ async def training_videos_get():
     default back-filled (per-key, never overwriting admin overrides).
     Legacy single-string entries are normalized to the {en, es} shape on
     first read.
+
+    One-time migration: any stored URL pointing at the old customer-assets
+    CDN host (`customer-assets.emergentagent.com`) gets replaced with the
+    matching self-hosted faststart URL from the default catalog. The CDN
+    MP4s shipped with the moov atom at the END of file which made
+    streaming stutter; the self-hosted copies have moov at the front.
     """
     doc = await db["training_videos"].find_one({"_id": "config"}, {"_id": 0})
     stored = (doc or {}).get("videos") or {}
 
     set_ops = {}
     out = {}
+
+    def is_legacy_cdn(u):
+        return isinstance(u, str) and "customer-assets.emergentagent.com" in u
+
     for slug, default in _DEFAULT_TRAINING_VIDEOS.items():
         cur = _normalize_video_entry(stored.get(slug))
+        # Migration: replace legacy CDN URLs with self-hosted faststart.
+        if is_legacy_cdn(cur["en"]) and default.get("en"):
+            cur["en"] = default["en"]
+            set_ops[f"videos.{slug}.en"] = default["en"]
+        if is_legacy_cdn(cur["es"]) and default.get("es"):
+            cur["es"] = default["es"]
+            set_ops[f"videos.{slug}.es"] = default["es"]
         # Fill any blank language URL from the default.
         if not cur["en"] and default.get("en"):
             cur["en"] = default["en"]

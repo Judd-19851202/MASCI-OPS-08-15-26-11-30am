@@ -1,5 +1,55 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Training Video Playback Fix (Root Cause: moov atom + Range delivery)
+
+User reported: "Videos are skipping, cutting in/out, or not playing smoothly. Original source files play perfectly outside the system." This pattern is the universal signature of an MP4 with the `moov` atom at the END of the file being served by a CDN that doesn't web-optimize.
+
+### Root cause (verified)
+All 6 source MP4s (3 lessons × EN/ES) had `moov` atom at the very end:
+```
+field-01-hub-navigation EN: moov at byte 19,073,990 / mdat at byte 44 → BAD
+field-02-daily-report  EN: moov at byte 25,302,359 / mdat at byte 44 → BAD
+field-03-equipment-preop EN: moov at byte 24,858,963 / mdat at byte 44 → BAD
+(all 3 ES versions same pattern)
+```
+**Why this caused stuttering**: With moov at the end, browsers cannot decode any frame until the entire file has been downloaded. Mobile Safari/Chrome partially work around this by aggressive buffering, which manifests as: video plays for a few seconds → freezes → resumes → freezes → cuts in/out. Desktop Chrome on slow connections shows the same pattern. Source plays fine because local desktop players load the whole file before play starts.
+
+### Fix applied
+1. **Re-muxed all 6 videos with `+faststart`** (ffmpeg `-c copy -movflags +faststart`). This is a metadata move only — `moov` atom relocates from end-of-file to byte 36 — **no re-encoding, no quality loss, audio sync untouched**. File sizes within 1 byte of originals.
+2. **Self-hosted in `/app/backend/static/training-videos/`** instead of `customer-assets.emergentagent.com`. Filename pattern: `{slug}.{lang}.mp4`.
+3. **New Range-aware streaming endpoint**: `GET /api/training/video/{filename}` with:
+   - `Accept-Ranges: bytes`
+   - `Content-Type: video/mp4`
+   - HTTP 206 Partial Content for any `Range:` header
+   - `Content-Range: bytes start-end/total` correctly populated
+   - 416 returned for out-of-range
+   - Path traversal blocked (`/^[a-z0-9][a-z0-9._-]{0,128}\.mp4$/` filename whitelist)
+   - 256 KB streaming chunks (memory-bounded, TCP-pipelined)
+   - HEAD support
+4. **One-time DB migration** in `/api/training/videos`: any stored URL containing `customer-assets.emergentagent.com` is automatically replaced with the matching self-hosted URL. Admin overrides via `/admin/training-videos` are still respected (only legacy CDN URLs migrate).
+5. **Frontend URL resolver**: `resolveVideoUrl()` prefixes `REACT_APP_BACKEND_URL` to any `/api/...` path so the same DB value works on preview and production without rewrites.
+
+### Verified end-to-end
+- ✅ All 6 videos: `moov` atom at byte 36 (FAST-START).
+- ✅ Range: `bytes=0-1023` → HTTP 206, `Content-Range: bytes 0-1023/19261827`.
+- ✅ Mid-file seek: `bytes=5000000-5001023` → HTTP 206, correct content-range.
+- ✅ Out-of-range request → HTTP 416 with `Content-Range: bytes */{size}`.
+- ✅ Path traversal `../server.py` → HTTP 404 (filename regex blocks it).
+- ✅ DB migration ran: all 6 URLs are now self-hosted.
+- ✅ Browser-side `fetch(url, {Range})` from preview frontend returns correct 206 + content-type.
+- ✅ EN↔ES toggle still works (different URLs swap on language change without page reload).
+
+### Operational impact
+- **No CDN dependency for videos** — we control delivery 100%.
+- **Smooth progressive playback** on every device: faststart MP4 + Range support means the browser starts playback as soon as the first ~256 KB arrives, then streams the rest.
+- **130 MB committed to repo** (`/app/backend/static/training-videos/`) — one-time cost, ships with deployments.
+- **Same code path will work for any future videos** uploaded — admin uploads via `/admin/training-videos` UI will still accept any URL (CDN, S3, YouTube, etc.) but the default catalog now points at the self-hosted faststart copies.
+
+### Pre-deploy reminder
+- Set `DEV_PASSWORD=Maddix8530!` in production env.
+- After redeploy, verify `https://mascidocs.com/api/training/video/field-01-hub-navigation.en.mp4` returns 206 with proper Range headers.
+
+
 ## 2026-05-02 — Bilingual Training Video Support
 
 Schema and player upgrade so EN/ES videos swap automatically based on the language toggle.
