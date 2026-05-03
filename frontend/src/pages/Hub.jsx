@@ -271,28 +271,28 @@ export default function Hub() {
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">
             {lang === "es" ? (
               <>
-                {"Un solo lugar para cada trabajo de "}
-                <span className="text-red-700">MASCI</span>
+                {"Cada trabajo bajo control. Cada detalle dirigido. "}
+                <span className="text-red-700">Todo</span>
+                {" protegido"}
                 <span className="text-red-700">.</span>
               </>
             ) : (
               <>
-                {"One place for every "}
-                <span className="text-red-700">MASCI</span>
-                {" job"}
+                {"Run Every Job. Control Every Detail. Protect "}
+                <span className="text-red-700">Everything</span>
                 <span className="text-red-700">.</span>
               </>
             )}
           </h1>
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
-            {t("Field reports, safety records, mechanic sign-offs, project workspaces, training, and the back-office console — every MASCI workflow in one place.")}
+            {t("Daily reports, safety enforcement, equipment tracking, training, and complete documentation — automatically captured, routed, and stored in one system.")}
           </p>
           <div className="mt-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.25em] flex-wrap">
-            <span className="text-red-700 font-bold">{t("Accountability")}</span>
+            <span className="text-red-700 font-bold">{t("No Guesswork.")}</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span className="text-red-700 font-bold">{t("Adapt")}</span>
+            <span className="text-red-700 font-bold">{t("No Missed Steps.")}</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span className="text-red-700 font-bold">{t("Overcome")}</span>
+            <span className="text-red-700 font-bold">{t("No Excuses.")}</span>
           </div>
         </div>
 

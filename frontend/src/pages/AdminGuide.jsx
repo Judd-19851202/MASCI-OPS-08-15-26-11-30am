@@ -370,7 +370,7 @@ export default function AdminGuide() {
         </Section>
 
         <div className="mt-10 pt-6 border-t-2 border-slate-200 text-center text-xs font-mono uppercase tracking-[0.2em] text-slate-500">
-          MASCI · Accountability · Adapt · Overcome
+          MASCI · No Guesswork. No Missed Steps. No Excuses.
         </div>
       </main>
 

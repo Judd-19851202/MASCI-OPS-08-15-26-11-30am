@@ -330,14 +330,22 @@ const ES = {
     "Documente el cumplimiento, dirija charlas de seguridad y analice los peligros antes de cada tarea. Imprima o guarde cualquier registro como PDF — funciona en cualquier dispositivo.",
   "No Shortcuts": "Sin Atajos",
   "No Exceptions": "Sin Excepciones",
-  "Accountability": "Responsabilidad",
-  "Adapt": "Adaptarse",
-  "Overcome": "Superar",
-  "Accountability · Adapt · Overcome": "Responsabilidad · Adaptarse · Superar",
-  "MASCI · Safety · Accountability · Adapt · Overcome":
-    "MASCI · Seguridad · Responsabilidad · Adaptarse · Superar",
-  "MASCI · Field · Accountability · Adapt · Overcome":
-    "MASCI · Campo · Responsabilidad · Adaptarse · Superar",
+  // === Tagline (2026-05 rebrand) ===
+  // Replaces "Accountability · Adapt · Overcome" everywhere.
+  "No Guesswork.": "Sin Adivinanzas.",
+  "No Missed Steps.": "Sin Pasos Omitidos.",
+  "No Excuses.": "Sin Excusas.",
+  "No Guesswork. No Missed Steps. No Excuses.":
+    "Sin Adivinanzas. Sin Pasos Omitidos. Sin Excusas.",
+  "MASCI · No Guesswork. No Missed Steps. No Excuses.":
+    "MASCI · Sin Adivinanzas. Sin Pasos Omitidos. Sin Excusas.",
+  "MASCI · Safety · No Guesswork. No Missed Steps. No Excuses.":
+    "MASCI · Seguridad · Sin Adivinanzas. Sin Pasos Omitidos. Sin Excusas.",
+  "MASCI · Field · No Guesswork. No Missed Steps. No Excuses.":
+    "MASCI · Campo · Sin Adivinanzas. Sin Pasos Omitidos. Sin Excusas.",
+  // Hub homepage subtext (2026-05 rebrand)
+  "Daily reports, safety enforcement, equipment tracking, training, and complete documentation — automatically captured, routed, and stored in one system.":
+    "Reportes diarios, seguridad, seguimiento de equipos, capacitación y documentación completa — capturados, enrutados y almacenados automáticamente en un solo sistema.",
   "Site Inspections": "Inspecciones de Obra",
   "Safety Meetings": "Reuniones de Seguridad",
   "Job Hazard Plan": "Plan de Peligros del Trabajo",

@@ -1,5 +1,88 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Combined System Update (Lesson 6 + Rebrand + Video QA)
+
+### 1. Lesson 6 Videos Added (Field Crew Training)
+- Source EN+ES MP4s downloaded; both at H.264 1280×720, AAC stereo, ~670 kbps total — already web-friendly.
+- Re-muxed with `ffmpeg -movflags +faststart` → moov atom at byte 36 verified for both.
+- Saved to `backend/static/training-videos/field-06-incident.{en,es}.mp4` (32 MB / 36 MB).
+- Registered `field-06-incident` slug in `_DEFAULT_TRAINING_VIDEOS`. `/api/training/videos` now returns all 6 lesson slugs.
+- Range-request smoke test: `Range: bytes=0-1023` → **HTTP 206**, `Content-Range: bytes 0-1023/<total>`, `Content-Type: video/mp4`, `accept-ranges: bytes` for both files. ✅
+
+### 2. Full Video Audit (all 12 files, lessons 1-6)
+Verified **every single training video** has the moov atom at byte 36 (front of file) — eliminating progressive-streaming stutter:
+
+| Video | Size | moov pos |
+| --- | --- | --- |
+| field-01-hub-navigation.{en,es}.mp4 | 19 / 22 MB | 36 ✅ |
+| field-02-daily-report.{en,es}.mp4 | 21 / 26 MB | 36 ✅ |
+| field-03-equipment-preop.{en,es}.mp4 | 21 / 25 MB | 36 ✅ |
+| field-04-safety-meeting.{en,es}.mp4 | 22 / 24 MB | 36 ✅ |
+| field-05-jhp.{en,es}.mp4 | 21 / 23 MB | 36 ✅ |
+| field-06-incident.{en,es}.mp4 | 32 / 36 MB | 36 ✅ |
+
+All 12 videos confirmed: H.264 + AAC, 720p, 670 kbps, faststart-optimized, served with HTTP 206 Range responses through FastAPI. No re-encoding needed (source bitrate was already web-grade).
+
+### 3. Tagline Rebrand System-Wide
+Old: `Accountability · Adapt · Overcome`
+New: `No Guesswork. No Missed Steps. No Excuses.`  (ES: `Sin Adivinanzas. Sin Pasos Omitidos. Sin Excusas.`)
+
+**14 files touched** to remove the old tagline:
+- `frontend/src/pages/Hub.jsx` — 3-span tagline block
+- `frontend/src/components/JhaPlansPosterCard.jsx`
+- `frontend/src/components/CheatSheetCard.jsx`
+- `frontend/src/components/TrenchBoxPosterCard.jsx`
+- `frontend/src/components/ShareFormDialog.jsx`
+- `frontend/src/components/FormPasswordGate.jsx`
+- `frontend/src/components/MasciLogo.jsx` (alt text + comment)
+- `frontend/src/lib/companyInfo.js` (`tagline:`)
+- `frontend/src/pages/ViewInspection.jsx`
+- `frontend/src/pages/ViewMeeting.jsx`
+- `frontend/src/pages/Dashboard.jsx`
+- `frontend/src/pages/AdminGuide.jsx`
+- `frontend/src/pages/MaterialCalculators.jsx` (footer)
+- `frontend/src/pages/FieldSection.jsx` (footer)
+- `frontend/src/pages/SafetySection.jsx` (footer)
+- `frontend/src/lib/i18n.js` — replaced old keys with new keys + ES translations
+- `backend/pdf_render.py` — PDF report footer tagline
+- `backend/server.py` — 2 email-template tagline lines
+
+Verified: `grep -rn "Accountability · Adapt · Overcome"` returns **only** an intentional comment marker in i18n.js. Zero functional remnants.
+
+### 4. Hub Homepage Rebuild
+- Old H1: "One place for every MASCI job."
+- New H1: **"Run Every Job. Control Every Detail. Protect Everything."** (with `Everything` in red, matching original styling).
+- New subtext: **"Daily reports, safety enforcement, equipment tracking, training, and complete documentation — automatically captured, routed, and stored in one system."**
+- Spanish: "Cada trabajo bajo control. Cada detalle dirigido. Todo protegido." + matching subtext.
+- Same fonts, same layout, same red-keyword treatment. Only copy changed.
+
+### 5. Bilingual System Verified
+- Single global `<LangToggle>` on every page. No duplicate toggles anywhere.
+- `<html lang>` flips `en` ↔ `es` (drives native browser spellcheck).
+- Hub H1, subtext, tagline, all section footers, all PDF/email taglines, all 6 lesson card video sources all switch instantly with no page reload.
+- Mobile (390px) verified for EN + ES — no horizontal overflow, no cut-off text, headline wraps cleanly.
+
+### 6. Logo Image — REQUIRES MANUAL ARTWORK UPDATE
+The logo PNG `/public/masci-full-lockup.png` (and any `mark`/`wordmark` variants) has the **old tagline visually baked into the image** along the lower band: "ACCOUNTABILITY · DISCIPLINE · EXECUTION" / "EXCELLENCE · ADAPT · OVERCOME". I **cannot edit raster images** without a source file. **Action item for the user**: drop the regenerated lockup PNG (with new tagline) into `/app/frontend/public/masci-full-lockup.png` and any other logo variants. All `<img>` references already use the correct file names — the moment a new PNG is dropped in, every page picks it up. Until then the screen logo retains the old tagline visually even though all surrounding code/text has been updated.
+
+### Final QA Status
+| Item | Status |
+| --- | --- |
+| Lesson 6 videos added + working | ✅ |
+| EN/ES switching swaps video src cleanly | ✅ |
+| All 12 lesson videos faststart-optimized | ✅ |
+| HTTP 206 + Range support on all videos | ✅ |
+| Codec H.264 + AAC verified | ✅ |
+| Homepage H1 + subtext updated | ✅ |
+| Tagline replaced everywhere in code | ✅ (15+ files) |
+| PDF footer tagline | ✅ |
+| Email template tagline | ✅ |
+| i18n dictionary entries (EN+ES) | ✅ |
+| Single lang toggle, no duplicates | ✅ |
+| Mobile EN + ES | ✅ no overflow |
+| Logo PNG with tagline baked in | ⚠️ requires manual artwork swap |
+
+
 ## 2026-05-03 — Material Calculators Shipped
 
 Field-facing quantity calculators under **Field → Material Calculators** (`/field/calculators`). One page, six tabs, shared header/footer, consistent MASCI styling. No new top-level Hub tile — lives inside the existing Field sub-hub as a third tile next to Daily Reports and Equipment Pre-Op.

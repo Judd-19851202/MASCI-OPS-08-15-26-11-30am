@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
  *   - "mark"     → /masci-mark.png         (bold red M — the new 2026 mark)
  *   - "wordmark" → /masci-wordmark.png     (red MASCI text)
  *   - "lockup"   → /masci-full-lockup.png  (new M badge + MASCI HUB text
- *                                           + Accountability · Adapt · Overcome)
+ *                                           + No Guesswork. No Missed Steps. No Excuses.)
  *
  * Each logo ships in TWO derived forms:
  *   1. Default     — transparent canvas. Floats cleanly on the slate-900
@@ -85,7 +85,7 @@ export const MasciLogo = ({
     return wrap(
       <img
         src={src}
-        alt="MASCI Hub — Accountability · Adapt · Overcome"
+        alt="MASCI Hub — No Guesswork. No Missed Steps. No Excuses."
         className={cn(w, "h-auto select-none", homeLink && "cursor-pointer", className)}
         data-testid="masci-logo-lockup"
         draggable={false}

@@ -111,7 +111,7 @@ export default function FieldSection() {
       </main>
 
       <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 text-center font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-t-2 border-slate-200">
-        {t("MASCI · Field · Accountability · Adapt · Overcome")}
+        {t("MASCI · Field · No Guesswork. No Missed Steps. No Excuses.")}
       </footer>
     </div>
   );

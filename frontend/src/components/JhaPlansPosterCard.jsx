@@ -189,7 +189,7 @@ export default function JhaPlansPosterCard() {
           {t("Post inside every job trailer.")}
         </div>
         <div className="font-display font-black text-amber-700 tracking-tight text-sm">
-          {t("Accountability · Adapt · Overcome")}
+          {t("No Guesswork. No Missed Steps. No Excuses.")}
         </div>
       </div>
     </div>

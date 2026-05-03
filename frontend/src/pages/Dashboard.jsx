@@ -113,11 +113,11 @@ export default function Dashboard() {
             from any device — phone, tablet, or desktop.
           </p>
           <div className="mt-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.25em] flex-wrap">
-            <span className="text-red-700 font-bold">Accountability</span>
+            <span className="text-red-700 font-bold">No Guesswork.</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span className="text-red-700 font-bold">Adapt</span>
+            <span className="text-red-700 font-bold">No Missed Steps.</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span className="text-red-700 font-bold">Overcome</span>
+            <span className="text-red-700 font-bold">No Excuses.</span>
           </div>
         </div>
 

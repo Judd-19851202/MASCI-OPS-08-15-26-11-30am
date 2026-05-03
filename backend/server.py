@@ -4962,6 +4962,10 @@ _DEFAULT_TRAINING_VIDEOS = {
         "en": "/api/training/video/field-05-jhp.en.mp4",
         "es": "/api/training/video/field-05-jhp.es.mp4",
     },
+    "field-06-incident": {
+        "en": "/api/training/video/field-06-incident.en.mp4",
+        "es": "/api/training/video/field-06-incident.es.mp4",
+    },
 }
 
 
@@ -5826,7 +5830,7 @@ async def email_safety_card(body: SafetyCardEmailRequest):
             f"{note_html}"
             "<hr style='border:none;border-top:1px solid #e2e8f0;margin:16px 0;'>"
             "<p style='font-size:12px;color:#64748b;margin:0;'>Sent from MASCI Hub · Safety · "
-            "Accountability · Adapt · Overcome</p>"
+            "No Guesswork. No Missed Steps. No Excuses.</p>"
             "</div>"
         )
 
@@ -5913,7 +5917,7 @@ async def email_all_safety_cards(body: SafetyCardEmailAllRequest):
             f"{note_html}"
             "<hr style='border:none;border-top:1px solid #e2e8f0;margin:16px 0;'>"
             "<p style='font-size:12px;color:#64748b;margin:0;'>Sent from MASCI Hub · Safety · "
-            "Accountability · Adapt · Overcome</p>"
+            "No Guesswork. No Missed Steps. No Excuses.</p>"
             "</div>"
         )
 

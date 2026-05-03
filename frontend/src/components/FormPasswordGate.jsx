@@ -106,11 +106,11 @@ export function FormPasswordGate({
           </Button>
 
           <div className="mt-8 pt-5 border-t-2 border-slate-100 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex items-center justify-center gap-2 flex-wrap">
-            <span>Accountability</span>
+            <span>No Guesswork.</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span>Adapt</span>
+            <span>No Missed Steps.</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span>Overcome</span>
+            <span>No Excuses.</span>
           </div>
         </form>
       </main>
