@@ -1,5 +1,64 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — JHA → JHP System-Wide Terminology Migration
+
+User directive: rename "Job Hazard Analysis (JHA / JSA)" to "Job Hazard Plan (JHP)" everywhere, while preserving all legacy data and internal API/DB names so existing records still load.
+
+### Rules applied (in order, longest-match first)
+1. `Job Hazard Analysis (JHA / JSA)` → `Job Hazard Plan (JHP)`
+2. `Job Hazard Analysis (JHA)` → `Job Hazard Plan (JHP)`
+3. `Job Hazard Analysis` → `Job Hazard Plan`
+4. `Análisis de Peligros del Trabajo (JHA / JSA)` → `Plan de Peligros del Trabajo (JHP)`
+5. `Análisis de Peligros del Trabajo (JHA)` → `Plan de Peligros del Trabajo (JHP)`
+6. `Análisis de Peligros del Trabajo` → `Plan de Peligros del Trabajo`
+7. `JHA / JSA`, `JHA/JSA`, `JHAs`, `Planes JHA` → `JHP`, `JHP`, `JHPs`, `Planes JHP`
+8. Standalone `\bJHA\b` and `\bJSA\b` → `JHP` (word-boundary protected)
+9. `Hazard Analysis` (header) → `Hazard Plan`
+10. `Análisis de Peligros` → `Plan de Peligros`
+11. Slug rename: `field-05-jha` → `field-05-jhp` (training data only — no DB collection rename)
+
+### Migration script
+`/app/scripts/jha_to_jhp_rename.py` — idempotent Python rename script. Re-runnable safely.
+
+### Files updated (24 files, 144 string replacements)
+**Frontend (16 files):**
+- `data/training.js` (20), `data/training_es.js` (21), `lib/i18n.js` (20)
+- `lib/meetingTopicLibrary.js` (3), `lib/meetingTopicLibrary.es.js` (3)
+- `lib/jobLibrary.js` (1), `lib/jhaSchema.js` (1)
+- `pages/JhaPlansAdmin.jsx` (2), `pages/Hub.jsx` (2), `pages/AdminGuide.jsx` (3)
+- `components/CheatSheetCard.jsx` (2), `components/ComplianceExportPanel.jsx` (2)
+- `components/SystemHealthBadge.jsx` (1), `components/EmailReportDialog.jsx` (1)
+- `components/BilingualConsent.jsx` (1), `components/AutoEmailRoutingPanel.jsx` (1)
+- `components/AdminPMPanel.jsx` (1)
+
+**Backend (7 files):**
+- `training_pdf.py` (44), `server.py` (4), `routes/safety.py` (6)
+- `pm_routing.py` (1), `ops_manual.py` (3), `job_hazard_files.py` (1)
+- `pdf_render.py` (1)
+
+### Backward compatibility (deliberately NOT renamed)
+- Mongo collection names: `jhas`, `jha_files`
+- API paths: `/api/jhas/*`, `/api/jha-files/*`
+- Function names: `buildJhaDefaults`, `JhaPlansAdmin`, `route_jha_email`
+- Filenames: `jhaSchema.js`, `job_hazard_files.py`, `JhaPlansAdmin.jsx`
+
+This means **any record submitted before the rename still loads, displays as "JHP" in the UI, and is exportable** — exactly what the spec required.
+
+### Verified
+- ✅ Backend `/api/jhas` returns existing records (`HTTP 200`, 1 legacy record reads back).
+- ✅ All 12 training PDFs (4 tracks × en/es/bi) render with zero JHA/JSA/Análisis strings; all field-track variants contain JHP / Job Hazard Plan / Plan de Peligros del Trabajo.
+- ✅ Frontend EN: Lesson 5 card titled `Lesson 5 — Job Hazard Plan (JHP)`, slug `field-05-jhp`.
+- ✅ Frontend ES: Lesson 5 card titled `Lección 5 — Plan de Peligros del Trabajo (JHP)`.
+- ✅ Hub home Safety tile: `Inspections, toolbox talks, incident reports, JHPs, and trench-box guidance...`.
+- ✅ Hub home Safety bullets: `Job Hazard Plans · Trench Box Reference`.
+- ✅ Old slug `field-05-jha` no longer present in any rendered card.
+- ✅ Lint clean across all touched files.
+
+### Pre-deploy reminder
+- ⚠️ `DEV_PASSWORD=Maddix8530!` in production env vars.
+- After redeploy, any past JHA records remain accessible at `/safety/jha-plans` admin page (page UI now says "JHP Plans") and continue to surface under their original DB id.
+
+
 ## 2026-05-03 — Lesson 5 (JHA) Rewrite — Reflects MASCI's Actual JHA Process
 
 User clarified MASCI's real-world JHA workflow: **JHAs are NOT built in the field by crews. They are pre-built job-specific documents prepared in advance by the Safety Department, Project Managers, and senior leadership.** Crews USE them; they don't create them. The previous training content described a task-based crew-authored JHA workflow which doesn't match how MASCI actually operates.

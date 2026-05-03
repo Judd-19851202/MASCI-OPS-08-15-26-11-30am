@@ -820,7 +820,7 @@ export const TOPIC_LIBRARY_ES = {
     hazards_reviewed:
       "Desconocimiento de peligros del sitio · Equipo / procedimientos desconocidos · Mayor tasa de lesiones en primeros 30 días · EPP / capacitación faltante · Cultura desalineada en Stop Work",
     discussion_notes:
-      "• CADA nuevo contratado y CADA persona nueva en el sitio recibe orientación específica del sitio.\n• Recorrer el sitio, señalar peligros, rutas de evacuación, botiquín, extintores.\n• Revisar TCP específico, JHA de su cuadrilla y permisos activos.\n• Reforzar Autoridad para Suspender Trabajo — la tienen desde el minuto uno.\n• Emparejar con compañero experimentado por 1-3 días.\n• Confirmar certificaciones / capacitación vigentes antes de iniciar.",
+      "• CADA nuevo contratado y CADA persona nueva en el sitio recibe orientación específica del sitio.\n• Recorrer el sitio, señalar peligros, rutas de evacuación, botiquín, extintores.\n• Revisar TCP específico, JHP de su cuadrilla y permisos activos.\n• Reforzar Autoridad para Suspender Trabajo — la tienen desde el minuto uno.\n• Emparejar con compañero experimentado por 1-3 días.\n• Confirmar certificaciones / capacitación vigentes antes de iniciar.",
     references_cited: "OSHA 1926.21 · Procedimiento MASCI Nuevo Contratado",
     action_items:
       "Orientación completada · Compañero asignado · Registros de capacitación · Stop Work informado",
@@ -830,11 +830,11 @@ export const TOPIC_LIBRARY_ES = {
     hazards_reviewed:
       "Actividades en conflicto · Desconocimiento mutuo de peligros · Diferentes estándares de seguridad · Falla de comunicación · Presión de horario sobre secuencia",
     discussion_notes:
-      "• Cada sub en sitio ha tenido revisión pre-mob de seguridad con MASCI.\n• Reunión diaria de coordinación — quién está dónde, qué actividades, conflictos identificados.\n• Subs siguen estándares MASCI o más altos — nunca más bajos.\n• Autoridad MASCI para Suspender Trabajo se extiende a TODOS los trabajadores sin importar empleador.\n• JHA / plan pre-tarea compartido entre oficios en conflicto.\n• Incidentes reportados a MASCI mismo día.",
+      "• Cada sub en sitio ha tenido revisión pre-mob de seguridad con MASCI.\n• Reunión diaria de coordinación — quién está dónde, qué actividades, conflictos identificados.\n• Subs siguen estándares MASCI o más altos — nunca más bajos.\n• Autoridad MASCI para Suspender Trabajo se extiende a TODOS los trabajadores sin importar empleador.\n• JHP / plan pre-tarea compartido entre oficios en conflicto.\n• Incidentes reportados a MASCI mismo día.",
     references_cited:
       "Política OSHA Multi-Empleador · Pre-Cualificación MASCI",
     action_items:
-      "Reps de seguridad sub identificados · Coordinación diaria · Stop Work extendido · JHAs compartidos",
+      "Reps de seguridad sub identificados · Coordinación diaria · Stop Work extendido · JHPs compartidos",
   },
   emergency_action_plan: {
     title: "Plan de Acción de Emergencia / Evacuación",

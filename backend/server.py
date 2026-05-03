@@ -933,7 +933,7 @@ async def pm_check(_: bool = Depends(require_admin)):
 
 # ------------------------- Models -------------------------
 # ============================================================
-# Safety Forms — Inspections, Meetings, JHAs, Incidents
+# Safety Forms — Inspections, Meetings, JHPs, Incidents
 # ----------------------------------------------------------
 # Extracted to /app/backend/routes/safety.py 2026-04-28 (P1 refactor batch 2).
 # Pydantic models (InspectionCreate, Inspection, MeetingCreate, Meeting, etc.)
@@ -1139,7 +1139,7 @@ async def list_all_jha_files(_: bool = Depends(require_admin)):
 
 @api_router.get("/job-hazard-files/by-project/{project_number}")
 async def list_jha_files_for_project(project_number: str):
-    """Public — files for one project. Crews use this to pull JHAs offline."""
+    """Public — files for one project. Crews use this to pull JHPs offline."""
     from job_hazard_files import list_files_for_project
     return {"items": await list_files_for_project(db, project_number)}
 
@@ -2956,7 +2956,7 @@ async def exports_full_backup(_: bool = Depends(require_admin_strict)):
     /<kind>/json/        — every record as raw JSON (photos + signatures intact)
     /<kind>/pdf/         — every record rendered to PDF via WeasyPrint
     /crew_hub/           — Crew Hub collections as JSON
-    /safety_aux/         — Equipment unit registry, JHA plan PDFs, trench-box refs
+    /safety_aux/         — Equipment unit registry, JHP plan PDFs, trench-box refs
     /backup_manifest.json — schema + counts + generated_at
     /backup_log.txt      — human-readable summary
 
@@ -5771,7 +5771,7 @@ async def _seed_phase1():
         # Also runs the pm_email backfill against project_managers.
         from jobs_master import seed_jobs_master
         await seed_jobs_master(db)
-        # Index for the new multi-file JHA collection.
+        # Index for the new multi-file JHP collection.
         from job_hazard_files import ensure_indexes as _jha_files_indexes
         await _jha_files_indexes(db)
         # Zero-touch self-heal: auto-split equipment make/model on boot if any

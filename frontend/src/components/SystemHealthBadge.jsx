@@ -25,7 +25,7 @@ const ENDPOINTS = [
   { path: "/equipment-types",   label: "Equipment Types",  critical: true  },
   { path: "/inspections",       label: "Inspections",      critical: true  },
   { path: "/meetings",          label: "Meetings",         critical: false },
-  { path: "/jhas",              label: "JHAs",             critical: false },
+  { path: "/jhas",              label: "JHPs",             critical: false },
   { path: "/incidents",         label: "Incidents",        critical: false },
   { path: "/daily-reports",     label: "Daily Reports",    critical: false },
 ];

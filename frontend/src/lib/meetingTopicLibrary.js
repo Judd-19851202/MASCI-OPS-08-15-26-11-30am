@@ -1012,7 +1012,7 @@ export const TOPIC_LIBRARY = [
     hazards_reviewed:
       "Unfamiliarity with site hazards · Unknown equipment / procedures · Higher injury rate in first 30 days · Missed PPE / training requirements · Cultural mismatch on Stop Work",
     discussion_notes:
-      "• EVERY new hire and EVERY person new to this site gets a site-specific orientation.\n• Walk the site, point out hazards, evacuation routes, first-aid kit, fire extinguishers.\n• Review project-specific TCP, JHA for their crew, and any active permits.\n• Reinforce Stop Work Authority — they have it from minute one.\n• Pair with experienced buddy for first 1-3 days.\n• Confirm required certs / training current before they start.",
+      "• EVERY new hire and EVERY person new to this site gets a site-specific orientation.\n• Walk the site, point out hazards, evacuation routes, first-aid kit, fire extinguishers.\n• Review project-specific TCP, JHP for their crew, and any active permits.\n• Reinforce Stop Work Authority — they have it from minute one.\n• Pair with experienced buddy for first 1-3 days.\n• Confirm required certs / training current before they start.",
     references_cited:
       "OSHA 1926.21 · MASCI New Hire Procedure",
     action_items:
@@ -1025,11 +1025,11 @@ export const TOPIC_LIBRARY = [
     hazards_reviewed:
       "Conflicting work activities · Unfamiliar with each other's hazards · Different safety standards · Communication breakdown · Schedule pressure overriding sequence",
     discussion_notes:
-      "• Every sub onsite has had pre-mob safety review with MASCI.\n• Daily coordination meeting — who's where, what activities, conflicts identified.\n• Subs follow MASCI safety standards or higher — never lower.\n• MASCI Stop Work Authority extends to ALL workers regardless of employer.\n• JHA / pre-task plan shared between conflicting trades.\n• Incidents reported to MASCI same day.",
+      "• Every sub onsite has had pre-mob safety review with MASCI.\n• Daily coordination meeting — who's where, what activities, conflicts identified.\n• Subs follow MASCI safety standards or higher — never lower.\n• MASCI Stop Work Authority extends to ALL workers regardless of employer.\n• JHP / pre-task plan shared between conflicting trades.\n• Incidents reported to MASCI same day.",
     references_cited:
       "OSHA Multi-Employer Citation Policy · MASCI Subcontractor Pre-Qual",
     action_items:
-      "Sub safety reps identified · Daily coordination scheduled · Stop Work Authority extended · JHAs cross-shared",
+      "Sub safety reps identified · Daily coordination scheduled · Stop Work Authority extended · JHPs cross-shared",
   },
   {
     key: "emergency_action_plan",

@@ -458,7 +458,7 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
 KIND_TITLES = {
     "inspection": "Site Inspection Report",
     "meeting": "Site Safety Meeting",
-    "jha": "Job Hazard Analysis",
+    "jha": "Job Hazard Plan",
     "incident": "Accident / Incident Report",
     "daily-report": "Daily Job Report",
     "equipment-inspection": "Equipment Pre-Op Inspection",

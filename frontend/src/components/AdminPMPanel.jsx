@@ -27,7 +27,7 @@ import { toast } from "sonner";
  *   PATCH  /api/admin/project-managers/:id (partial)
  *   DELETE /api/admin/project-managers/:id (blocked if jobs reference)
  *
- * Auto-email (Site Inspections / Safety Meetings / JHAs / Incidents /
+ * Auto-email (Site Inspections / Safety Meetings / JHPs / Incidents /
  * Daily Reports / Equipment Pre-Op) routes per the PM assigned to each
  * job in /admin → Active Jobs Master. Add a new PM here, then open the
  * Active Jobs Master card to reassign jobs to them.

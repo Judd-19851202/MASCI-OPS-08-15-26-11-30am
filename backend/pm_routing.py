@@ -33,7 +33,7 @@ PM_TABLE: Dict[str, Dict[str, object]] = {
 
 
 # Always copied on every COMPLIANCE form (Site Inspection, Safety Meeting,
-# JHA, Incident Report). These are the four legal/compliance forms that the
+# JHP, Incident Report). These are the four legal/compliance forms that the
 # office needs a copy of. Daily Job Reports and Equipment Pre-Op Inspections
 # are operational forms — they go to the assigned PM only (no office CC).
 ALWAYS_CC: List[str] = [

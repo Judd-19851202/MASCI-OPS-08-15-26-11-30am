@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
  * Safety Hub. Accessible at /admin/guide. Crews never see this page.
  *
  * After the MASCI Hub rebrand the structure is now:
- *   🦺 Safety   — inspections, meetings, incidents, JHA, trench box
+ *   🦺 Safety   — inspections, meetings, incidents, JHP, trench box
  *   👷 Field    — daily reports, equipment pre-op
  *   🏗️ Basecamp  — external link to live MASCI Basecamp (project comms)
  *   📍 OnStation — external link to OnStation (field staking)
@@ -74,7 +74,7 @@ export default function AdminGuide() {
         <Section icon={ShieldCheck} title="The MASCI Hub at a glance" color="slate">
           <p>Open <code>mascidocs.com</code> and you'll see the main tiles. Here's who uses which:</p>
           <ul className="ml-5 list-disc space-y-1 mt-2">
-            <li>🦺 <strong>Safety</strong> — Compliance forms. Inspections · Meetings · Incidents · JHA Plans · Trench Box Data.</li>
+            <li>🦺 <strong>Safety</strong> — Compliance forms. Inspections · Meetings · Incidents · JHP Plans · Trench Box Data.</li>
             <li>👷 <strong>Field</strong> — Daily operational logs. Daily Reports · Equipment Pre-Op.</li>
             <li>🏗️ <strong>Basecamp</strong> — Opens our live Basecamp account in a new tab. Project messages, to-dos, schedules, docs, and hill charts all live in Basecamp now.</li>
             <li>📍 <strong>OnStation</strong> — Opens OnStation in a new tab for field staking, station mapping, and GPS coordination.</li>
@@ -277,7 +277,7 @@ export default function AdminGuide() {
             <li><code>CSV/</code> — one spreadsheet per module (open in Excel)</li>
             <li><code>inspections/pdf/</code>, <code>meetings/pdf/</code>, <code>incidents/pdf/</code>, etc. — every record as a printable PDF</li>
             <li><code>inspections/json/</code>, etc. — every record as a structured data file (includes photos + signatures)</li>
-            <li><code>safety_aux/</code> — equipment registry, JHA plans, trench-box data</li>
+            <li><code>safety_aux/</code> — equipment registry, JHP plans, trench-box data</li>
             <li><code>backup_log.txt</code> — human-readable manifest of how many of each thing was saved</li>
             <li><code>backup_manifest.json</code> — machine-readable version used by Restore</li>
           </ul>

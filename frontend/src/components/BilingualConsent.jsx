@@ -3,7 +3,7 @@ import { ShieldCheck } from "lucide-react";
 
 /**
  * Bilingual sign-off line shown above each signature box on Safety Meeting
- * and JHA forms + their printable PDF views. Always renders BOTH English
+ * and JHP forms + their printable PDF views. Always renders BOTH English
  * and Spanish so the legal record (PDF) is fully bilingual regardless of
  * which UI language the form was filled in.
  *

@@ -73,7 +73,7 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
         : kind === "meeting"
         ? "Safety Meeting"
         : kind === "jha"
-        ? "Job Hazard Analysis"
+        ? "Job Hazard Plan"
         : "Incident Report";
     setSubject(`${title} — ${proj}${date ? ` (${date})` : ""}`);
     setNote("");

@@ -22,7 +22,7 @@ import { useT } from "@/lib/i18n";
  * The app started as a Safety Hub and has grown into the full MASCI
  * operations platform. Sections:
  *
- *   🦺 Safety    — compliance forms (inspections, meetings, incidents, JHA, trench)
+ *   🦺 Safety    — compliance forms (inspections, meetings, incidents, JHP, trench)
  *   👷 Field     — daily operational logs (daily reports, equipment pre-op)
  *   🏗️ Basecamp  — external link to the live MASCI Basecamp account
  *   📍 OnStation — external link to the OnStation field-staking app
@@ -310,7 +310,7 @@ export default function Hub() {
             icon={Shield}
             eyebrow={t("Compliance")}
             title={t("Safety")}
-            desc={t("Inspections, toolbox talks, incident reports, JHAs, and trench-box guidance — if safety is on your mind, it lives here.")}
+            desc={t("Inspections, toolbox talks, incident reports, JHPs, and trench-box guidance — if safety is on your mind, it lives here.")}
             bullets={[
               t("Site Inspections · Safety Meetings · Incidents"),
               t("Job Hazard Plans · Trench Box Reference"),

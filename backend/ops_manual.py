@@ -37,13 +37,13 @@ Block = Union[str, tuple]
 
 SECTIONS: List[Tuple[str, List[Block]]] = [
     ("1. System Overview", [
-        "MASCI HUB is the field-operations and safety-documentation platform used by MASCI General Contractors Inc. and MASCI Corporation. It is delivered to end users at the customer-branded URL mascidocs.com. The platform captures, routes, and archives the paperwork that construction crews, mechanics, project managers, and office staff generate every day — Daily Reports, Equipment Pre-Op inspections, Site Safety Inspections, Safety Meetings, JHAs, Incident Reports, Training Packets, and the underlying master data (equipment, employees, suppliers, vendors, jobs, PM assignments).",
+        "MASCI HUB is the field-operations and safety-documentation platform used by MASCI General Contractors Inc. and MASCI Corporation. It is delivered to end users at the customer-branded URL mascidocs.com. The platform captures, routes, and archives the paperwork that construction crews, mechanics, project managers, and office staff generate every day — Daily Reports, Equipment Pre-Op inspections, Site Safety Inspections, Safety Meetings, JHPs, Incident Reports, Training Packets, and the underlying master data (equipment, employees, suppliers, vendors, jobs, PM assignments).",
         ("h3", "Core Modules"),
         ("table",
             ["Module", "Primary Audience", "What It Does"],
             [
                 ["Field Hub", "Foremen, crews, superintendents", "Daily Reports, Equipment Pre-Op, photos, signatures, crew hours, activities"],
-                ["Safety Hub", "Safety officers, foremen", "Site inspections, toolbox talks, JHAs, incident reports, trench box tracking, safety cards"],
+                ["Safety Hub", "Safety officers, foremen", "Site inspections, toolbox talks, JHPs, incident reports, trench box tracking, safety cards"],
                 ["Shop Hub", "Mechanics, shop supervisors", "Review failed pre-ops, sign off on repairs, parts + work orders"],
                 ["PM Hub", "Project managers", "Scoped dashboards per assigned project — daily-report summaries, job-specific incidents, notifications"],
                 ["Admin Hub", "Office / The Judd Group", "User roles, master lists (equipment, employees, subs, vendors), integrity checks, backups, training-video URL registry"],
@@ -53,7 +53,7 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
         ("list", [
             "Daily Report — foreman fills at end of shift → auto-routes to assigned PM via email → stored against the job.",
             "Equipment Pre-Op — operator fills at start of shift → FAIL items with photos route to Shop queue → shop signs off before unit returns to service.",
-            "Safety Inspection / JHA / Incident — filed as it happens → PM + safety officer notified → archived for OSHA record-keeping.",
+            "Safety Inspection / JHP / Incident — filed as it happens → PM + safety officer notified → archived for OSHA record-keeping.",
             "Training — crews scan a trailer QR code → open /training/field (no login) → watch/read/print the lesson → gated tracks (Shop/PM/Admin) require the matching portal password.",
         ]),
         ("h3", "User Tiers"),

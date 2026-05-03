@@ -5,7 +5,7 @@ import { useT } from "@/lib/i18n";
 
 /**
  * Pure printable card for the Crew Cheat Sheet poster. Same shape as the
- * Trench Box and JHA Plans poster cards — no toolbar, no print style block.
+ * Trench Box and JHP Plans poster cards — no toolbar, no print style block.
  */
 export default function CheatSheetCard() {
   const { t } = useT();
@@ -18,7 +18,7 @@ export default function CheatSheetCard() {
       n: t("Step 01"),
       title: t("Pick the form"),
       body: t(
-        "Daily Report, Site Inspection, Safety Meeting, JHA, or Incident — tap the tile."
+        "Daily Report, Site Inspection, Safety Meeting, JHP, or Incident — tap the tile."
       ),
     },
     {

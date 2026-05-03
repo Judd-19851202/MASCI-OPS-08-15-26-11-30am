@@ -1,4 +1,4 @@
-// Field definitions for the MASCI Job Hazard Analysis (JHA) form.
+// Field definitions for the MASCI Job Hazard Plan (JHP) form.
 import { todayLocalIso } from "@/lib/dateUtils";
 
 export const PPE_OPTIONS = [

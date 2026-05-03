@@ -1,4 +1,4 @@
-"""Safety-form routes: Inspections, Meetings, JHAs, Incidents.
+"""Safety-form routes: Inspections, Meetings, JHPs, Incidents.
 
 Extracted from server.py 2026-04-28 — second batch of the server.py refactor
 (P1 backlog). All four groups share the same shape:
@@ -137,7 +137,7 @@ class MeetingSummary(BaseModel):
 
 
 # ============================================================
-# Job Hazard Analysis
+# Job Hazard Plan
 # ============================================================
 class JhaCreate(BaseModel):
     model_config = ConfigDict(extra="allow")
@@ -259,7 +259,7 @@ class IncidentSummary(BaseModel):
 # Route registration
 # ============================================================
 def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_public_post, schedule_auto_email):
-    """Attach Inspection / Meeting / JHA / Incident endpoints to the router."""
+    """Attach Inspection / Meeting / JHP / Incident endpoints to the router."""
 
     # ---------- Inspections ----------
     @api_router.post("/inspections", response_model=Inspection, dependencies=[Depends(rate_limit_public_post)])
@@ -369,7 +369,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
             raise HTTPException(status_code=404, detail="Meeting not found")
         return {"deleted": True, "id": meeting_id}
 
-    # ---------- JHAs ----------
+    # ---------- JHPs ----------
     @api_router.post("/jhas", response_model=Jha, dependencies=[Depends(rate_limit_public_post)])
     async def create_jha(payload: JhaCreate):
         jha = Jha(**payload.model_dump())
@@ -406,14 +406,14 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     async def get_jha(jha_id: str, _: bool = Depends(require_admin)):
         doc = await db.jhas.find_one({"id": jha_id}, {"_id": 0})
         if not doc:
-            raise HTTPException(status_code=404, detail="JHA not found")
+            raise HTTPException(status_code=404, detail="JHP not found")
         return doc
 
     @api_router.delete("/jhas/{jha_id}")
     async def delete_jha(jha_id: str, _: bool = Depends(require_admin)):
         result = await db.jhas.delete_one({"id": jha_id})
         if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="JHA not found")
+            raise HTTPException(status_code=404, detail="JHP not found")
         return {"deleted": True, "id": jha_id}
 
     # ---------- Incidents ----------

@@ -6,7 +6,7 @@ job_hazard_files.py — multi-file library, used for:
 
 Same storage engine for both (disk for >8 MB, inline base64 below). This
 module is generic; callers decide the scope + key at upload time. Legacy
-JHA callers that omit scope are treated as scope="jha" for backwards
+JHP callers that omit scope are treated as scope="jha" for backwards
 compatibility.
 
 Schema (db.job_hazard_files):

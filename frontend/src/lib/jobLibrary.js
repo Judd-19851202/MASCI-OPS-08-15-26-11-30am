@@ -1,6 +1,6 @@
 // MASCI Current Jobs — extracted from "MASCI Current Jobs.pdf"
 // Each entry: { project_name (full label), project_number, location (suggested) }
-// Used by JobPicker on every form (Inspections, Meetings, JHA, Incidents).
+// Used by JobPicker on every form (Inspections, Meetings, JHP, Incidents).
 
 export const JOB_LIBRARY = [
   { project_name: "T5686 SR 15/SR600 (SANFORD, 17/92, LAKE MARY)", project_number: "20-07", location: "SANFORD, 17/92, LAKE MARY" },

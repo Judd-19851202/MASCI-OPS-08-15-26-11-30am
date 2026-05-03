@@ -30,7 +30,7 @@ const lastOfPriorMonthIso = () => {
 const KINDS = [
   { key: "inspections", label: "Site Inspections" },
   { key: "meetings", label: "Safety Meetings" },
-  { key: "jhas", label: "JHAs" },
+  { key: "jhas", label: "JHPs" },
   { key: "incidents", label: "Incident Reports" },
   { key: "daily-reports", label: "Daily Job Reports" },
   { key: "equipment-inspections", label: "Equipment Pre-Op" },
@@ -345,7 +345,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
           <p className="mt-3 text-xs text-slate-600 leading-relaxed">
             One dated .zip covering <strong>everything</strong> on the system: every safety record
             (CSVs + raw JSON + PDFs + photos + signatures) across all 6 modules,
-            plus the equipment-unit / JHA-plan / trench-box registries and employees /
+            plus the equipment-unit / JHP-plan / trench-box registries and employees /
             suppliers seed data. Drop the .zip on your office NAS or shared drive after
             download. Restore it anytime from the panel below.
           </p>

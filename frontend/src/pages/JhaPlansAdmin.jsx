@@ -87,7 +87,7 @@ export default function JhaPlansAdmin() {
       setGroups(r.data?.projects || []);
       setJobs(j.data?.items || []);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Failed to load JHA library");
+      toast.error(e?.response?.data?.detail || "Failed to load JHP library");
     } finally {
       setLoading(false);
     }
@@ -217,7 +217,7 @@ export default function JhaPlansAdmin() {
               Job Hazard Library
             </div>
             <h1 className="font-display text-lg sm:text-xl font-black text-slate-900">
-              JHA Plans &amp; Files
+              JHP Plans &amp; Files
             </h1>
           </div>
         </div>

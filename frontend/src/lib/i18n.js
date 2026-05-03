@@ -82,7 +82,7 @@ const ES = {
   "What the crew fills out every day, before and after the shift.":
     "Lo que la cuadrilla llena cada día, antes y después del turno.",
   "Site Inspections · Safety Meetings": "Inspecciones · Juntas de Seguridad",
-  "Incident Reports · JHA Plans · Trench Box Data": "Incidentes · Planes JHA · Trinchera",
+  "Incident Reports · JHP Plans · Trench Box Data": "Incidentes · Planes JHP · Trinchera",
   "Daily Reports — crews, subs, visitors, equipment, materials":
     "Reportes Diarios — cuadrillas, subcontratistas, visitantes, equipo, materiales",
   "Equipment Pre-Op — OSHA walk-arounds with pass/fail":
@@ -338,7 +338,7 @@ const ES = {
     "MASCI · Campo · Responsabilidad · Adaptarse · Superar",
   "Site Inspections": "Inspecciones de Obra",
   "Safety Meetings": "Reuniones de Seguridad",
-  "Job Hazard Analysis": "Análisis de Peligros del Trabajo",
+  "Job Hazard Plan": "Plan de Peligros del Trabajo",
   "Incident Reports": "Reportes de Incidentes",
   "Daily and weekly job-site safety inspections. PPE, MOT, fall protection, electrical, and more — graded automatically.":
     "Inspecciones diarias y semanales del sitio. EPP, control de tránsito, protección contra caídas, eléctrico y más — calificadas automáticamente.",
@@ -433,8 +433,8 @@ const ES = {
   "Step 03": "Paso 03",
   "Step 04": "Paso 04",
   "Pick the form": "Elija el formulario",
-  "Daily Report, Site Inspection, Safety Meeting, JHA, or Incident — tap the tile.":
-    "Reporte Diario, Inspección, Reunión de Seguridad, JHA o Incidente — toque la tarjeta.",
+  "Daily Report, Site Inspection, Safety Meeting, JHP, or Incident — tap the tile.":
+    "Reporte Diario, Inspección, Reunión de Seguridad, JHP o Incidente — toque la tarjeta.",
   "Fill it on site": "Llénelo en el sitio",
   "GPS auto-fills location, weather auto-loads, your job is in the picker. Tap to add photos.":
     "El GPS rellena la ubicación, el clima se carga solo, su obra está en el selector. Toque para agregar fotos.",
@@ -591,7 +591,7 @@ const ES = {
   "Saving Meeting...": "Guardando Reunión...",
 
   // ============================================================
-  // JHA
+  // JHP
   // ============================================================
   "Job / Task Information": "Información del Trabajo / Tarea",
   "Crew Lead / Foreman *": "Líder de Cuadrilla / Capataz *",
@@ -609,7 +609,7 @@ const ES = {
   "Tools & Equipment": "Herramientas y Equipo",
   "List tools, equipment, and machinery needed":
     "Liste herramientas, equipo y maquinaria necesaria",
-  "Hazard Analysis": "Análisis de Peligros",
+  "Hazard Plan": "Plan de Peligros",
   "Walk through each step of the task. For every step, list the potential hazards and the controls / safe practices to mitigate them.":
     "Recorra cada paso de la tarea. Para cada paso, liste los peligros potenciales y los controles / prácticas seguras para mitigarlos.",
   "Step": "Paso",
@@ -635,8 +635,8 @@ const ES = {
   "Foreman Approval": "Aprobación del Capataz",
   "Foreman / Crew Lead (Typed)": "Capataz / Líder de Cuadrilla (Escrito)",
   "Foreman Approval Signature *": "Firma de Aprobación del Capataz *",
-  "Submit JHA": "Enviar JHA",
-  "Saving JHA...": "Guardando JHA...",
+  "Submit JHP": "Enviar JHP",
+  "Saving JHP...": "Guardando JHP...",
 
   // ============================================================
   // Incident
@@ -875,7 +875,7 @@ const ES = {
   "Print Poster": "Imprimir Cartel",
 
   // ============================================================
-  // JHA Plans Poster (printable QR poster)
+  // JHP Plans Poster (printable QR poster)
   // ============================================================
   "Job Hazard Plans QR Poster": "Cartel QR de Planes de Peligros del Trabajo",
   "Job Hazard Plans · One per active job":
@@ -1212,8 +1212,8 @@ const ES = {
   "First time?": "¿Primera vez?",
   "Your login is the @mascigc.com email MASCI issued you — not 'admin'. Temp password is Welcome2MASCI! — you'll be asked to change it right after sign-in. Forgot your password? An owner can reset it from the Users panel.":
     "Su inicio de sesión es el correo @mascigc.com que MASCI le emitió — no 'admin'. La contraseña temporal es Welcome2MASCI! — se le pedirá cambiarla justo después de iniciar sesión. ¿Olvidó su contraseña? Un propietario puede restablecerla desde el panel de Usuarios.",
-  "Looking for the Safety Admin console (inspections, equipment, JHA plans)? Use":
-    "¿Busca la consola de Admin de Seguridad (inspecciones, equipo, planes JHA)? Use",
+  "Looking for the Safety Admin console (inspections, equipment, JHP plans)? Use":
+    "¿Busca la consola de Admin de Seguridad (inspecciones, equipo, planes JHP)? Use",
   "that's a different system.": "ese es un sistema diferente.",
   "Back to MASCI Hub": "Volver al Hub MASCI",
 
@@ -1228,8 +1228,8 @@ const ES = {
     "Reportes Diarios — lo que la cuadrilla hizo hoy",
   "Equipment Pre-Op — OSHA walk-around with pass / fail":
     "Pre-Op de Equipo — recorrido OSHA con aprobado / fallado",
-  "Inspections, toolbox talks, incident reports, JHAs, and trench-box guidance — if safety is on your mind, it lives here.":
-    "Inspecciones, charlas de seguridad, reportes de incidentes, JHAs y guía de cajas de zanja — si la seguridad está en mente, aquí vive.",
+  "Inspections, toolbox talks, incident reports, JHPs, and trench-box guidance — if safety is on your mind, it lives here.":
+    "Inspecciones, charlas de seguridad, reportes de incidentes, JHPs y guía de cajas de zanja — si la seguridad está en mente, aquí vive.",
   "Site Inspections · Safety Meetings · Incidents":
     "Inspecciones · Juntas de Seguridad · Incidentes",
   "Job Hazard Plans · Trench Box Reference":
@@ -1272,7 +1272,7 @@ const ES = {
   "Close Window": "Cerrar Ventana",
   "Inspection": "Inspección",
   "Meeting": "Reunión",
-  "JHA": "JHA",
+  "JHP": "JHP",
   "Incident": "Incidente",
   "Daily Report": "Reporte Diario",
   "Equipment Inspection": "Inspección de Equipo",

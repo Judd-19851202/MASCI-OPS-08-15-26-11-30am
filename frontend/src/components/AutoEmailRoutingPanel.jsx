@@ -67,7 +67,7 @@ export default function AutoEmailRoutingPanel() {
             Compliance forms → PM + Office
           </div>
           <p className="text-xs text-slate-600 leading-relaxed mb-1">
-            Site Inspections, Safety Meetings, JHAs, Incident Reports.
+            Site Inspections, Safety Meetings, JHPs, Incident Reports.
           </p>
           <ul className="text-sm text-slate-800 space-y-0.5">
             {(data.always_cc || []).map(e => (
