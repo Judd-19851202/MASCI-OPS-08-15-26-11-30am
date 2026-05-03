@@ -37,11 +37,15 @@ const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, te
   const { t } = useT();
   // accent classes kept static so Tailwind keeps them in the build
   const styles = {
-    red:   { bg: "bg-red-700",   bar: "border-red-700",   ring: "hover:border-red-700",   pill: "text-red-700 bg-red-50" },
-    amber: { bg: "bg-amber-600", bar: "border-amber-600", ring: "hover:border-amber-600", pill: "text-amber-700 bg-amber-50" },
-    slate: { bg: "bg-slate-900", bar: "border-slate-900", ring: "hover:border-slate-900", pill: "text-slate-800 bg-slate-100" },
+    red:    { bg: "bg-red-700",     bar: "border-red-700",     ring: "hover:border-red-700",     pill: "text-red-700 bg-red-50" },
+    amber:  { bg: "bg-amber-600",   bar: "border-amber-600",   ring: "hover:border-amber-600",   pill: "text-amber-700 bg-amber-50" },
+    slate:  { bg: "bg-slate-900",   bar: "border-slate-900",   ring: "hover:border-slate-900",   pill: "text-slate-800 bg-slate-100" },
     emerald:{ bg: "bg-emerald-700", bar: "border-emerald-700", ring: "hover:border-emerald-700", pill: "text-emerald-700 bg-emerald-50" },
-    blue:  { bg: "bg-blue-700",  bar: "border-blue-700",  ring: "hover:border-blue-700",  pill: "text-blue-700 bg-blue-50" },
+    blue:   { bg: "bg-blue-700",    bar: "border-blue-700",    ring: "hover:border-blue-700",    pill: "text-blue-700 bg-blue-50" },
+    teal:   { bg: "bg-teal-700",    bar: "border-teal-700",    ring: "hover:border-teal-700",    pill: "text-teal-700 bg-teal-50" },
+    purple: { bg: "bg-purple-700",  bar: "border-purple-700",  ring: "hover:border-purple-700",  pill: "text-purple-700 bg-purple-50" },
+    orange: { bg: "bg-orange-600",  bar: "border-orange-600",  ring: "hover:border-orange-600",  pill: "text-orange-700 bg-orange-50" },
+    indigo: { bg: "bg-indigo-700",  bar: "border-indigo-700",  ring: "hover:border-indigo-700",  pill: "text-indigo-700 bg-indigo-50" },
   };
   const s = styles[accent] || styles.red;
 
@@ -331,7 +335,7 @@ export default function Hub() {
               t("Rebar inspections · concrete form inspections"),
               t("Daily QA / QC submittals · field-team turn-ins"),
             ]}
-            accent="blue"
+            accent="teal"
             testId="hub-section-qc"
             comingSoon
           />
@@ -345,7 +349,7 @@ export default function Hub() {
               t("Active jobs · email routing · site posters"),
               t("Equipment fleet · employees · suppliers"),
             ]}
-            accent="amber"
+            accent="purple"
             testId="hub-section-pm"
             external
           />
@@ -359,7 +363,7 @@ export default function Hub() {
               t("Open Out-of-Service · Needs-Attention queue"),
               t("Recent inspections · full equipment list"),
             ]}
-            accent="amber"
+            accent="orange"
             testId="hub-section-shop"
             external
           />
@@ -373,7 +377,7 @@ export default function Hub() {
               t("Field Crew · Shop · PM · Admin tracks"),
               t("Written guides + video slots + print-friendly"),
             ]}
-            accent="blue"
+            accent="indigo"
             testId="hub-section-training"
           />
           <SectionCard
