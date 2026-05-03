@@ -1,5 +1,35 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Lesson 5 (JHP) Bilingual Videos Added
+
+User uploaded EN + ES MP4s for **Lesson 5 — Job Hazard Plan (JHP)** in the Field Crew track. Integrated into the existing self-hosted, Range-aware video pipeline (no new player, no new code paths).
+
+### Pipeline applied (same as lessons 1-4)
+1. Downloaded both MP4s from the customer-assets URLs.
+2. Re-muxed with `ffmpeg -c copy -movflags +faststart` so the moov atom moves to **byte 36** (front of file) for instant progressive playback. Verified.
+3. Saved to `/app/backend/static/training-videos/field-05-jhp.{en,es}.mp4`.
+4. Added the `field-05-jhp` slug to `_DEFAULT_TRAINING_VIDEOS` in `backend/server.py` with relative `/api/training/video/...` URLs.
+5. The `/api/training/videos` endpoint self-heals the Mongo `training_videos` config doc on next read, so no manual seed required.
+
+### Verification
+| Check | Result |
+| --- | --- |
+| `GET /api/training/videos` includes `field-05-jhp.{en,es}` | ✅ Confirmed |
+| `Range: bytes=0-1023` on both files returns **206 Partial Content** with `Content-Range: bytes 0-1023/<total>` | ✅ EN 21,494,105 / ES 23,282,090 |
+| `moov` atom present in first 1KB of both files | ✅ At byte 36 |
+| `Content-Type: video/mp4`, `accept-ranges: bytes` | ✅ |
+| Frontend EN/ES toggle swaps `<video>` `src` without page reload | Existing `useEffect` keyed on `pickedUrl` triggers `v.load()` — same as lessons 1-4 |
+| Lazy load: `preload="metadata"` only | ✅ (existing player config) |
+| Error fallback if media fails: "Training video unavailable. Please contact your MASCI administrator." | ✅ (existing `onError` handler) |
+
+### Files touched
+- `backend/server.py` — added `field-05-jhp` entry to `_DEFAULT_TRAINING_VIDEOS` (5 lines).
+- `backend/static/training-videos/field-05-jhp.en.mp4` (21 MB, faststart).
+- `backend/static/training-videos/field-05-jhp.es.mp4` (23 MB, faststart).
+
+No frontend changes were needed — the existing `LessonCard` in `TrainingTrack.jsx` already renders any slug returned from `/api/training/videos`.
+
+
 ## 2026-05-03 — Training Hub Auth Gate Verified (P0 closed)
 
 User concern (recurring): "Shop / PM / Admin training tracks, QR posters, and PDF downloads must require a password. Field is the only public surface."

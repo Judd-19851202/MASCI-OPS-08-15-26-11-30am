@@ -4745,6 +4745,10 @@ _DEFAULT_TRAINING_VIDEOS = {
         "en": "/api/training/video/field-04-safety-meeting.en.mp4",
         "es": "/api/training/video/field-04-safety-meeting.es.mp4",
     },
+    "field-05-jhp": {
+        "en": "/api/training/video/field-05-jhp.en.mp4",
+        "es": "/api/training/video/field-05-jhp.es.mp4",
+    },
 }
 
 
