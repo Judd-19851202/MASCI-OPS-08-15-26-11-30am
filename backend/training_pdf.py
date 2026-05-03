@@ -78,14 +78,14 @@ FIELD_LESSONS = [
         "why_es": "Todo empieza aquí. Si encuentra el Hub en su teléfono, puede llenar cualquier formulario que la compañía necesite en menos de 2 minutos.",
         "steps": [
             "Point your phone camera at the QR code posted inside the site trailer — the MASCI Hub opens in your browser automatically. No app to install, no login for Field forms.",
-            "On the Hub home page you'll see 7 tiles: Field, Safety, Projects, QA/QC (coming soon), PM Portal, Shop, and Admin. Field and Safety are the two you'll use every day.",
+            "On the Hub home page you'll see 8 tiles: Field, QA/QC, Safety, Projects, PM Portal, Shop, Training Hub, and Admin. Field, QA/QC, and Safety are the three you'll use every day.",
             "Tap the language toggle in the top-right to switch between EN and ES — your choice is remembered on this phone.",
             "Tap 'Company Info' in the top-right to see MASCI's office address and phone numbers if you need to call HQ from the field.",
             "Tap 'Add to Home Screen' in your browser menu once — after that the Hub opens like a real app with one tap.",
         ],
         "steps_es": [
             "Apunte la cámara de su teléfono al código QR dentro del tráiler — el Hub MASCI se abre en su navegador automáticamente. Sin aplicación que instalar, sin inicio de sesión para los formularios de Campo.",
-            "En la página principal verá 7 tarjetas: Campo, Seguridad, Proyectos, QA/QC (próximamente), Portal de Gestión, Taller y Admin. Campo y Seguridad son las que usará todos los días.",
+            "En la página principal verá 8 mosaicos: Campo, QA/QC, Seguridad, Proyectos, Portal del PM, Taller, Centro de Capacitación y Admin. Campo, QA/QC y Seguridad son los tres que usará todos los días.",
             "Toque el botón EN/ES en la esquina superior derecha para cambiar el idioma — su elección se recuerda en este teléfono.",
             "Toque 'Company Info' en la esquina superior derecha para ver la dirección y teléfonos de MASCI si necesita llamar a la oficina desde el campo.",
             "Toque 'Agregar a pantalla de inicio' en el menú del navegador una vez — después el Hub se abre como una aplicación real con un toque.",
@@ -316,7 +316,7 @@ FIELD_LESSONS = [
         "order": 7,
         "title": "Lesson 7 — Job Hazard Plan (JHP)",
         "title_es": "Lección 7 — Plan de Peligros del Trabajo (JHP)",
-        "why": "MASCI Job Hazard Analyses are built before work begins by the Safety Department, Project Managers, and leadership — based on scope of work, site conditions, traffic control (MOT), environmental factors, and known project hazards. Hazards are identified and controlled BEFORE crews step onto the job. A properly built JHP is one of the strongest tools we have to prevent incidents.",
+        "why": "MASCI Job Hazard Plans are built before work begins by the Safety Department, Project Managers, and leadership — based on scope of work, site conditions, traffic control (MOT), environmental factors, and known project hazards. Hazards are identified and controlled BEFORE crews step onto the job. A properly built JHP is one of the strongest tools we have to prevent incidents.",
         "why_es": "Los JHPs de MASCI se preparan antes de que comience el trabajo, por el Departamento de Seguridad, los Gerentes de Proyecto y el liderazgo — basados en el alcance, condiciones del sitio, control de tráfico (MOT), factores ambientales y peligros conocidos del proyecto. Los peligros se identifican y controlan ANTES de que la cuadrilla pise el sitio. Un JHP bien hecho es una de las mejores herramientas para prevenir incidentes.",
         "steps": [
             "Crews do NOT build JHPs. JHPs are job-specific documents prepared in advance by Safety, PMs, and senior leadership.",

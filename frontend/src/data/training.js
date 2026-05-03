@@ -74,7 +74,7 @@ const FIELD_LESSONS = [
     duration: "~4 min",
     steps: [
       "Point your phone camera at the QR code posted inside the site trailer — the MASCI Hub opens in your browser automatically. No app to install, no login for Field forms.",
-      "On the Hub home page you'll see 7 tiles: Field, Safety, Projects, QA/QC (coming soon), PM Portal, Shop, and Admin. Field and Safety are the two you'll use every day.",
+      "On the Hub home page you'll see 8 tiles: Field, QA/QC, Safety, Projects, PM Portal, Shop, Training Hub, and Admin. Field, QA/QC, and Safety are the three you'll use every day.",
       "Tap the language toggle in the top-right to switch between EN and ES — your choice is remembered on this phone.",
       "Tap 'Company Info' in the top-right to see MASCI's office address and phone numbers if you need to call HQ from the field.",
       "Tap 'Add to Home Screen' in your browser menu once — after that the Hub opens like a real app with one tap.",
@@ -230,7 +230,7 @@ const FIELD_LESSONS = [
     track: "field",
     order: 7,
     title: "Lesson 7 — Job Hazard Plan (JHP)",
-    why: "MASCI Job Hazard Analyses are built before work begins by the Safety Department, Project Managers, and leadership — based on scope of work, site conditions, traffic control (MOT), environmental factors, and known project hazards. This way hazards are identified and controlled BEFORE crews step onto the job. A properly built JHP is one of the strongest tools we have to prevent incidents and eliminate guesswork in the field.",
+    why: "MASCI Job Hazard Plans are built before work begins by the Safety Department, Project Managers, and leadership — based on scope of work, site conditions, traffic control (MOT), environmental factors, and known project hazards. This way hazards are identified and controlled BEFORE crews step onto the job. A properly built JHP is one of the strongest tools we have to prevent incidents and eliminate guesswork in the field.",
     duration: "~6 min",
     steps: [
       "Crews do NOT build JHPs. JHPs are job-specific documents prepared in advance by the Safety Department, Project Managers, and senior leadership before any crew shows up.",
