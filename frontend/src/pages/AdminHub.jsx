@@ -27,6 +27,7 @@ import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import TrainingStatsStripe from "@/components/TrainingStatsStripe";
 import BilingualAdoptionCard from "@/components/BilingualAdoptionCard";
+import CalculatorUsageCard from "@/components/CalculatorUsageCard";
 import AdminJobMasterPanel from "@/components/AdminJobMasterPanel";
 import AdminPMPanel from "@/components/AdminPMPanel";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
@@ -349,6 +350,9 @@ export default function AdminHub() {
 
           {/* Bilingual adoption — per-form EN vs ES filing counts */}
           <BilingualAdoptionCard />
+
+          {/* Material Calculator usage — per-calculator run counts + CSV export */}
+          <CalculatorUsageCard />
 
           {/* ONE-STOP backup + restore hero — 2 giant buttons, nothing else */}
           <BackupHeroPanel />

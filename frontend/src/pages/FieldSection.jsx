@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ClipboardList, Wrench, Plus, ArrowLeft, HardHat,
+  ClipboardList, Wrench, Plus, ArrowLeft, HardHat, Calculator,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -98,6 +98,14 @@ export default function FieldSection() {
             desc={t("Daily OSHA walk-around inspections for Heavy Equipment. PASS / FAIL each item — fail tags the unit out of service.")}
             accent="slate"
             testId="field-tile-equipment"
+          />
+          <FormTile
+            to="/field/calculators"
+            icon={Calculator}
+            title={t("Material Calculators")}
+            desc={t("Quickly estimate aggregate, asphalt, concrete, truck loads, yield, waste, and tons-to-cubic-yard conversions from the field.")}
+            accent="amber"
+            testId="field-tile-calculators"
           />
         </div>
       </main>

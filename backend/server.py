@@ -959,6 +959,147 @@ async def admin_submit_language_stats(_: bool = Depends(require_admin)):
 
 
 
+# ---------------------------------------------------------------------------
+# Material Calculators — Field page at /field/calculators
+#
+# Six calculators (aggregate, asphalt, concrete, truck-load, yield-waste,
+# tons-cy-conversion). Every time a crew member hits "Save Calculation"
+# the payload lands here and we persist to `calculator_runs`. Admin-side
+# analytics and a CSV export read from the same collection.
+# ---------------------------------------------------------------------------
+
+_ALLOWED_CALCULATOR_TYPES = {
+    "aggregate",
+    "asphalt",
+    "concrete",
+    "truck_load",
+    "yield_waste",
+    "conversion",
+}
+
+
+class CalculatorRun(BaseModel):
+    model_config = {"extra": "allow"}
+    calculator_type: str
+    language: str = "en"
+    job_number: Optional[str] = None
+    job_name: Optional[str] = None
+    user_name: Optional[str] = None
+    inputs: Dict[str, Any] = {}
+    outputs: Dict[str, Any] = {}
+
+
+@api_router.post("/calculators/save")
+async def save_calculator_run(payload: CalculatorRun):
+    """Public (field-facing) endpoint — crews don't need to log in to use
+    the calculators, so saving a run is open too. We store the full
+    inputs/outputs snapshot so admins can trace any quantity back to the
+    numbers that were typed in."""
+    if payload.calculator_type not in _ALLOWED_CALCULATOR_TYPES:
+        raise HTTPException(
+            status_code=400, detail=f"Unknown calculator_type '{payload.calculator_type}'"
+        )
+    lang = (payload.language or "en").lower()
+    if lang not in ("en", "es"):
+        lang = "en"
+    doc = {
+        "id": str(uuid.uuid4()),
+        "calculator_type": payload.calculator_type,
+        "language": lang,
+        "job_number": payload.job_number,
+        "job_name": payload.job_name,
+        "user_name": payload.user_name,
+        "inputs": payload.inputs or {},
+        "outputs": payload.outputs or {},
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.calculator_runs.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.get("/admin/calculators/stats")
+async def admin_calculator_stats(_: bool = Depends(require_admin)):
+    """Aggregate usage stats for the admin dashboard card. Counts by
+    calculator type and by language, plus most-used and last-used."""
+    total = await db.calculator_runs.count_documents({})
+    rows = []
+    labels = {
+        "aggregate": "Aggregate",
+        "asphalt": "Asphalt",
+        "concrete": "Concrete",
+        "truck_load": "Truck Load",
+        "yield_waste": "Yield / Waste",
+        "conversion": "Tons ↔ CY",
+    }
+    for ctype, label in labels.items():
+        c_total = await db.calculator_runs.count_documents({"calculator_type": ctype})
+        c_en = await db.calculator_runs.count_documents({"calculator_type": ctype, "language": "en"})
+        c_es = await db.calculator_runs.count_documents({"calculator_type": ctype, "language": "es"})
+        rows.append({
+            "calculator_type": ctype,
+            "label": label,
+            "total": c_total,
+            "en": c_en,
+            "es": c_es,
+        })
+    en_total = await db.calculator_runs.count_documents({"language": "en"})
+    es_total = await db.calculator_runs.count_documents({"language": "es"})
+
+    # Most used
+    most_used = max(rows, key=lambda r: r["total"]) if rows else None
+    if most_used and most_used["total"] == 0:
+        most_used = None
+
+    # Last used
+    last_doc = await db.calculator_runs.find_one(
+        {}, {"_id": 0, "calculator_type": 1, "created_at": 1, "language": 1}, sort=[("created_at", -1)]
+    )
+
+    return {
+        "totals": {"total": total, "en": en_total, "es": es_total},
+        "by_type": rows,
+        "most_used": most_used,
+        "last_used": last_doc,
+    }
+
+
+@api_router.get("/admin/calculators/export.csv")
+async def admin_calculator_export_csv(_: bool = Depends(require_admin)):
+    """Admin-only CSV dump of every saved calculator run. Used for
+    offline analysis and for the "export" button on the admin card."""
+    import csv as _csv
+    import json as _json_csv
+    buf = io.StringIO()
+    w = _csv.writer(buf)
+    w.writerow([
+        "Created At (UTC)", "Calculator", "Language", "Job Number",
+        "Job Name", "User", "Inputs (JSON)", "Outputs (JSON)",
+    ])
+    cursor = db.calculator_runs.find({}, {"_id": 0}).sort("created_at", -1)
+    async for r in cursor:
+        w.writerow([
+            r.get("created_at", ""),
+            r.get("calculator_type", ""),
+            r.get("language", ""),
+            r.get("job_number", "") or "",
+            r.get("job_name", "") or "",
+            r.get("user_name", "") or "",
+            _json_csv.dumps(r.get("inputs", {}), separators=(",", ":")),
+            _json_csv.dumps(r.get("outputs", {}), separators=(",", ":")),
+        ])
+    buf.seek(0)
+    return Response(
+        content=buf.read(),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": 'attachment; filename="masci-calculator-runs.csv"',
+        },
+    )
+
+
+
+
 
 @api_router.post("/shop/login")
 async def shop_login(body: AdminLoginRequest, request: Request):

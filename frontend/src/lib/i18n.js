@@ -1431,6 +1431,131 @@ const ES = {
   "Back to track": "Volver al track",
   "Couldn't open the packet": "No se pudo abrir el paquete",
 
+  // ===== Material Calculators =====
+  "Material Calculators": "Calculadoras de Materiales",
+  "Quickly estimate aggregate, asphalt, concrete, truck loads, yield, waste, and tons-to-cubic-yard conversions from the field.":
+    "Estime rápidamente agregado, asfalto, concreto, cargas de camión, rendimiento, desperdicio y conversiones de toneladas a yardas cúbicas desde el campo.",
+  "Field · Estimate Quantities": "Campo · Estimar Cantidades",
+  "Fast field math for aggregate, asphalt, concrete, truck loads, yield, waste, and tons↔CY conversions.":
+    "Matemáticas rápidas de campo para agregado, asfalto, concreto, cargas de camión, rendimiento, desperdicio y conversiones ton↔yd³.",
+
+  // Tabs
+  "Aggregate": "Agregado",
+  "Asphalt": "Asfalto",
+  "Concrete": "Concreto",
+  "Truck Load": "Carga de Camión",
+  "Yield / Waste": "Rendimiento / Desperdicio",
+  "Tons ↔ CY": "Ton ↔ YD³",
+
+  // Panel titles
+  "Aggregate Calculator": "Calculadora de Agregado",
+  "Asphalt Calculator": "Calculadora de Asfalto",
+  "Concrete Calculator": "Calculadora de Concreto",
+  "Truck Load Calculator": "Calculadora de Carga de Camión",
+  "Yield / Waste Factor": "Factor de Rendimiento / Desperdicio",
+  "Tons ↔ Cubic Yards Conversion": "Conversión Toneladas ↔ Yardas Cúbicas",
+
+  // Inputs
+  "Length (ft)": "Largo (pies)",
+  "Width (ft)": "Ancho (pies)",
+  "Thickness": "Espesor",
+  "Unit": "Unidad",
+  "inches": "pulgadas",
+  "feet": "pies",
+  "Material": "Material",
+  "Density (lb/ft³)": "Densidad (lb/pie³)",
+  "Override if mix/lab report differs.": "Sobrescriba si el reporte del laboratorio/mezcla difiere.",
+  "Waste %": "Desperdicio %",
+  "Truck capacity (tons)": "Capacidad del camión (toneladas)",
+  "Total material needed": "Material total necesario",
+  "Truck capacity": "Capacidad del camión",
+  "Truck capacity unit": "Unidad de capacidad del camión",
+  "Density (lb/ft³) for conversion": "Densidad (lb/pie³) para la conversión",
+  "Planned quantity": "Cantidad planeada",
+  "Actual installed quantity": "Cantidad realmente instalada",
+  "Target waste % (optional override)": "Desperdicio objetivo % (anulación opcional)",
+  "Direction": "Dirección",
+  "Tons → Cubic Yards": "Toneladas → Yardas Cúbicas",
+  "Cubic Yards → Tons": "Yardas Cúbicas → Toneladas",
+  "Quantity": "Cantidad",
+  "Mixer capacity (cy)": "Capacidad del mezclador (yd³)",
+  "Typical ready-mix truck ≈ 10 cy.": "Camión típico de concreto premezclado ≈ 10 yd³.",
+  "Coarse aggregate % (optional)": "Agregado grueso % (opcional)",
+  "Fine aggregate % (optional)": "Agregado fino % (opcional)",
+  "Asphalt binder %": "Porcentaje de asfalto (ligante) %",
+  "Standard HMA ≈ 145 lb/ft³.": "HMA estándar ≈ 145 lb/pie³.",
+
+  // Material labels
+  "Lime Rock Base": "Base de Roca Caliza",
+  "Crushed Stone": "Piedra Triturada",
+  "57 Stone": "Piedra 57",
+  "Washed Shell": "Concha Lavada",
+  "Sand": "Arena",
+  "Base Material": "Material de Base",
+  "RAP (Recycled Asphalt)": "RAP (Asfalto Reciclado)",
+  "Custom": "Personalizado",
+
+  // Units in results
+  "tons": "toneladas",
+  "cy": "yd³",
+  "cf": "pie³",
+  "cubic yards": "yardas cúbicas",
+  "cubic feet": "pies cúbicos",
+  "loads": "cargas",
+
+  // Result labels
+  "Cubic Feet": "Pies Cúbicos",
+  "Cubic Yards": "Yardas Cúbicas",
+  "Tons": "Toneladas",
+  "Tons + Waste": "Toneladas + Desperdicio",
+  "Truck Loads": "Cargas de Camión",
+  "Total Asphalt": "Asfalto Total",
+  "Binder": "Ligante",
+  "Aggregate in Mix": "Agregado en la Mezcla",
+  "Base Tons (no waste)": "Toneladas Base (sin desperdicio)",
+  "CY + Waste": "YD³ + Desperdicio",
+  "Mixer Loads": "Cargas del Mezclador",
+  "Coarse Aggregate": "Agregado Grueso",
+  "Fine Aggregate": "Agregado Fino",
+  "Adjusted Qty": "Cant. Ajustada",
+  "Qty in Truck Unit": "Cant. en Unidad del Camión",
+  "Partial Remaining": "Remanente Parcial",
+  "Difference": "Diferencia",
+  "Yield %": "Rendimiento %",
+  "Overrun": "Exceso",
+  "Underrun": "Faltante",
+  "Recommended Order": "Orden Recomendada",
+  "Result": "Resultado",
+  "Formula": "Fórmula",
+  "Density used": "Densidad usada",
+
+  // Actions
+  "Calculate": "Calcular",
+  "Reset": "Restablecer",
+  "Save Calculation": "Guardar Cálculo",
+  "Saved": "Guardado",
+  "Saved.": "Guardado.",
+  "Calculate first, then save.": "Calcule primero, luego guarde.",
+  "Could not save. Try again.": "No se pudo guardar. Intente de nuevo.",
+
+  // Validation
+  "Check your inputs — required values must be greater than 0.":
+    "Revise los valores — los campos obligatorios deben ser mayores que 0.",
+  "Length must be greater than 0.": "El largo debe ser mayor que 0.",
+  "Width must be greater than 0.": "El ancho debe ser mayor que 0.",
+  "Thickness must be greater than 0.": "El espesor debe ser mayor que 0.",
+  "Density must be greater than 0.": "La densidad debe ser mayor que 0.",
+  "Truck capacity must be greater than 0.": "La capacidad del camión debe ser mayor que 0.",
+  "Quantity must be greater than 0.": "La cantidad debe ser mayor que 0.",
+  "Enter a quantity greater than 0.": "Ingrese una cantidad mayor que 0.",
+  "Density required for unit conversion.": "Se requiere densidad para la conversión de unidades.",
+  "Planned must be greater than 0.": "El valor planeado debe ser mayor que 0.",
+  "Actual must be 0 or greater.": "El valor real debe ser 0 o mayor.",
+
+  // Disclaimer
+  "Calculations are estimates for planning purposes only. Actual quantities may vary based on field conditions, material density, moisture, compaction, yield, mix design, waste, and project specifications.":
+    "Los cálculos son estimaciones para fines de planificación únicamente. Las cantidades reales pueden variar según las condiciones del terreno, la densidad del material, humedad, compactación, rendimiento, diseño de mezcla, desperdicio y especificaciones del proyecto.",
+
 };
 
 const DICTS = { es: ES, en: {} };

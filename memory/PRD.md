@@ -1,5 +1,61 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Material Calculators Shipped
+
+Field-facing quantity calculators under **Field → Material Calculators** (`/field/calculators`). One page, six tabs, shared header/footer, consistent MASCI styling. No new top-level Hub tile — lives inside the existing Field sub-hub as a third tile next to Daily Reports and Equipment Pre-Op.
+
+### Calculators (all 6)
+1. **Aggregate** — L × W × T × density → ft³, cy, tons, tons+waste, truck loads. Material dropdown with editable defaults (Lime Rock 120, Crushed Stone 100, 57 Stone 95, Washed Shell 85, Sand 100, Base Material 120, RAP 110, Custom). Density override.
+2. **Asphalt** — default 145 lb/ft³, binder % split between binder tons and aggregate-in-mix tons.
+3. **Concrete** — primarily cubic yards + waste, mixer load count (default 10 cy), optional coarse/fine aggregate percentage splits.
+4. **Truck Load** — mixed-unit (tons/CY) with optional density-based conversion; outputs adjusted quantity, whole loads, partial remainder, rounded-up total.
+5. **Yield / Waste Factor** — planned vs actual, yield %, waste %, overrun/underrun, recommended order quantity.
+6. **Tons ↔ Cubic Yards Conversion** — bidirectional with material dropdown + density auto-fill, density override, formula displayed in the result.
+
+### Validation
+No negatives, all required inputs must be > 0 (length, width, thickness, density, quantity, truck capacity), errors toast user-friendly messages in the current language.
+
+### Save & track
+Every **Save Calculation** click persists full inputs + outputs + language + timestamp to the new `calculator_runs` Mongo collection via public `POST /api/calculators/save`. No auth required to save (matches field form posture). Button locks to "Saved" after a successful save.
+
+### Admin analytics
+New "Material Calculator Usage" card on `/admin`:
+- 4 big-stat tiles (Total / EN / ES / Most-used)
+- Per-calculator breakdown table with EN/ES columns
+- Last run timestamp
+- **Export CSV** button — does an auth-aware blob fetch so the admin token header actually attaches (direct `<a href>` would 401)
+- Backed by `GET /api/admin/calculators/stats` + `GET /api/admin/calculators/export.csv`
+
+### Bilingual
+Fully driven by the global `<LangToggle>`. No duplicate toggle, no local language state. Spanish dictionary entries added for all calculator labels, inputs, results, units, validation messages, and disclaimer. `<html lang>` auto-syncs → native browser spellcheck follows the toggle.
+
+### Verification (preview)
+- ✅ Route `/field/calculators` renders, 6 tabs, back-link to `/field`
+- ✅ Aggregate math verified: 100ft × 50ft × 6in @ 120 lb/ft³ + 10% waste, 20-ton truck → 2500 ft³ / 92.59 cy / 150 tons / 165 tons+waste / 9 loads
+- ✅ Concrete math verified: 20ft × 10ft × 4in + 10% waste, 10 cy mixer → 66.67 ft³ / 2.47 cy / 2.72 cy+waste / 1 load
+- ✅ Conversion verified: 10 tons @ 120 lb/ft³ → 6.173 cy with formula "(10 × 2000) / 120 / 27" displayed
+- ✅ Save button persists run; admin card shows total=1, EN=1, most-used=Aggregate, CSV export button rendered
+- ✅ Single lang toggle on the page; ES mode translates all 6 tab labels, H1, panel titles, inputs, result labels, and disclaimer
+- ✅ `<html lang>` flips between `en` and `es` on toggle
+- ✅ Field tile "Material Calculators" rendered on `/field` with correct copy and href
+
+### Files touched
+- **NEW**: `frontend/src/pages/MaterialCalculators.jsx` (single page, 6 calculator panels)
+- **NEW**: `frontend/src/lib/calculators.js` (shared math + density tables)
+- **NEW**: `frontend/src/components/CalculatorUsageCard.jsx` (admin card + CSV export)
+- **MODIFIED**: `frontend/src/pages/FieldSection.jsx` (added 3rd tile)
+- **MODIFIED**: `frontend/src/pages/AdminHub.jsx` (mounted usage card)
+- **MODIFIED**: `frontend/src/App.js` (added `/field/calculators` route)
+- **MODIFIED**: `frontend/src/lib/i18n.js` (Spanish dictionary entries)
+- **MODIFIED**: `backend/server.py` (added `CalculatorRun` model + 3 endpoints: POST save, GET stats, GET CSV export)
+
+### Future nice-to-haves (not shipped)
+- Job-number dropdown on every calculator (schema already supports `job_number` / `job_name`)
+- User name auto-fill when logged in
+- Per-calculator date-range filter on admin card
+- Per-user breakdown in admin stats
+
+
 ## 2026-05-03 — Bilingual Adoption Tracking Shipped
 
 User ask: "Track & see how many [crew members] submit in Spanish."

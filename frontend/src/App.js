@@ -7,6 +7,7 @@ import Hub from "@/pages/Hub";
 import SafetySection from "@/pages/SafetySection";
 import FieldSafetyCards from "@/pages/FieldSafetyCards";
 import FieldSection from "@/pages/FieldSection";
+import MaterialCalculators from "@/pages/MaterialCalculators";
 import Dashboard from "@/pages/Dashboard";
 import NewInspection from "@/pages/NewInspection";
 import ViewInspection from "@/pages/ViewInspection";
@@ -113,6 +114,7 @@ function App() {
             <Route path="/safety" element={<SafetySection />} />
             <Route path="/safety/cards" element={<FieldSafetyCards />} />
             <Route path="/field" element={<FieldSection />} />
+            <Route path="/field/calculators" element={<MaterialCalculators />} />
 
             <Route path="/inspect/new" element={<GateInspection><NewInspection /></GateInspection>} />
             <Route path="/submit" element={<GateInspection><NewInspection publicMode /></GateInspection>} />
