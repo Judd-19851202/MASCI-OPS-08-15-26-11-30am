@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { FileText } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
+import { useHubHome } from "@/components/HubBackLink";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { JOB_LIBRARY } from "@/lib/jobLibrary";
@@ -15,6 +16,7 @@ import { JOB_LIBRARY } from "@/lib/jobLibrary";
  */
 export default function JhaPlansPosterCard() {
   const { t } = useT();
+  const hubHome = useHubHome();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
 

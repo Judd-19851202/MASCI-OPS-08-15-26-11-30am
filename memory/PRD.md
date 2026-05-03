@@ -1,5 +1,74 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — P0 Bug Fix: JHP Poster + Print-All Page Rendered Blank
+
+**User report:** "In PM Portal & Admin the Site Posters … doesn't print anything when you hit print all nor does any posters pull up on preview when clicked or print when hit print individually."
+
+### Root cause (verified by reproducing live)
+`frontend/src/components/JhaPlansPosterCard.jsx` referenced an undeclared variable `hubHome` on line 50:
+```jsx
+<MasciLogo variant="lockup" size="2xl" onLight homeLink={hubHome} />
+```
+`hubHome` was never imported, declared, or passed as a prop — only `useT()` was called inside the component. Other poster cards (`TrenchBoxPosterCard`, every `View*` page) follow the pattern `const hubHome = useHubHome();` from `@/components/HubBackLink`, but this component was missing both the import and the call.
+
+The result: a `ReferenceError: hubHome is not defined` at render → React component crash → the page wrapper (`/admin/jha-plans/poster`) renders blank because there's no error boundary on poster routes. The same crash also nuked `/admin/posters/print-all` because `AllPostersPrint` mounts `JhaPlansPosterCard` as the third sheet — when that card throws, the entire stacked render returns nothing.
+
+So the report broke down as:
+- ❌ JHP poster preview / print → blank (CRASH)
+- ❌ Print-all page → blank (CRASH cascading from JHP card)
+- ✅ Crew Cheat Sheet preview / print → worked (separate component, no `hubHome` reference)
+- ✅ Trench Box poster preview / print → worked (had `useHubHome()` correctly)
+
+### Fix
+Single-line addition to `JhaPlansPosterCard.jsx`:
+```diff
++ import { useHubHome } from "@/components/HubBackLink";
+  ...
+  export default function JhaPlansPosterCard() {
+    const { t } = useT();
++   const hubHome = useHubHome();
+    ...
+```
+
+### Verification (preview)
+- `/admin/jha-plans/poster` — body_text_len=1736; H1 "Every active MASCI job. Its own Hazard Plan PDF. One scan."; QR code + 3 hazard-card grid + active-jobs table all render. ✅
+- `/admin/posters/print-all` — body_text_len=4545; `.poster-sheet` count=3 (Cheat Sheet · Trench Box · JHP); 3 logo images render. ✅
+- ESLint clean.
+
+### Deploy reminder
+Live `mascidocs.com` still has the broken bundle. Push a fresh frontend build and the JHP poster + Print-All will start working immediately — backend untouched, no data migration needed.
+
+
+## 2026-05-03 — Training Tile Gating Investigation (NOT a bug)
+
+**User report:** "In live site Shop, PM & Admin Training tiles are not password protected"
+
+### Investigation result — gating is working correctly
+
+Reproduced live on `mascidocs.com` with `localStorage.clear()` then `/training`:
+- Field tile: `href=/training/field`, 0 lock icons (PUBLIC) ✅
+- Shop tile: `href=/shop/login`, 2 lock icons, "PASSWORD REQUIRED" badge ✅
+- PM tile: `href=/pm/login`, 2 lock icons, "PASSWORD REQUIRED" badge ✅
+- Admin tile: `href=/admin/login`, 2 lock icons, "PASSWORD REQUIRED" badge ✅
+
+Also planted 3 fake stale tokens (admin/pm/shop) — `validateStoredTokens()` at app boot pinged the backend, all 3 returned 401, all 3 were nuked from localStorage, and the tiles correctly reverted to PASSWORD REQUIRED with login routing.
+
+### Why the user sees them unlocked
+`trackUnlocked()` returns `true` for ALL non-public tracks if `isAdmin()` is true:
+```js
+function trackUnlocked(track) {
+  if (track.audience === "public") return true;
+  if (isAdmin()) return true;          // ← admin sees every track
+  if (track.audience === "pm") return isPm();
+  if (track.audience === "shop") return isShop() || isPm();
+  return false;
+}
+```
+This is **by design** — once an admin signs in, they have access to every internal track without needing to sign back in as PM or Shop. The user is currently signed in as admin in their browser, which is why they see all 4 tracks open. A non-authenticated visitor at `mascidocs.com/training` sees Shop / PM / Admin locked.
+
+No code change required.
+
+
 ## 2026-05-03 — Training Hub: Shop/PM/Admin Packets + QR Posters Relocated to Admin Console
 
 User asked to keep the public Training Hub page focused on the Field Crew (the only externally-shareable track) and pull the back-office Shop / PM / Admin packets + QR posters out of it — into the Admin Console where they belong.
