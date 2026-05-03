@@ -1,5 +1,57 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Bilingual Translation System Audit & Tabulated Data Fix
+
+### User report
+On `/trench-boxes` (Tabulated Data page) the yellow "What is Tabulated Data?" primer card had its OWN local EN/ES toggle button that conflicted with the global EN/ES toggle in the page header — duplicate translation controls.
+
+### Audit performed (entire frontend `/app/frontend/src/`)
+| Anti-pattern checked | Result |
+| --- | --- |
+| Components with their own `useState("en"\|"es")` for language | **1 found**: `TabulatedDataPrimer.jsx` — fixed |
+| Non-`LangToggle` `<Languages>` icon buttons | **1 found**: same `TabulatedDataPrimer.jsx` — removed |
+| `data-testid` containing "lang" or "translate" outside the canonical toggle | Only `TrainingStatsStripe` per-language download-count chips (data display, not a toggle) — OK |
+| Files using the global `useT()` correctly | 43 files |
+
+**Conclusion**: The duplicate-toggle anti-pattern existed in exactly ONE file. No other Hub / Field / Safety / Projects / Training / Shop / PM / Admin / JHP / Reports / PDF / modal surface has duplicate language controls. Verified by the audit.
+
+### Fix to `TabulatedDataPrimer.jsx`
+- Removed local `useState("en")` and the local `Languages` toggle button.
+- Replaced with `useT()` from `@/lib/i18n` so the primer translates from the global header toggle.
+- Now: clicking the top EN/ES toggle on `/trench-boxes` fully translates the entire page — page intro, primer card, library card, file labels, footer.
+
+### Translated `TrenchBoxTabulatedLibrary.jsx` (the second card on the page)
+Wired `useT()` and added Spanish dictionary keys for the field-facing labels: "Field Reference", "Tabulated Data Library", "Start Here", "Box", "No files for this box yet…", "General / Educational — United Rentals explainers, OSHA references", and the body copy. Added `lang` to the `useMemo` deps so row labels recompute on language switch (the `t` function reference itself is stable across re-renders).
+
+### Translated `TrenchBoxes.jsx` page intro paragraphs
+Added Spanish dictionary entries for "Know Before You Dig" and the two intro paragraphs above the primer.
+
+### Verification (preview)
+- `/trench-boxes` rendered in EN: full English. Click ES → full Spanish (header eyebrow, H1, both intro paragraphs, primer card heading + body + footer, library card title + description + "Start Here" chip + folder label, file rows). Round-trip back to EN works.
+- Toggle counts on the page: `1` global toggle, `0` legacy primer toggle. ✅
+- `<html lang>` flips between `en` and `es` on toggle — drives native browser spellcheck on every `<input>` / `<textarea>` automatically (already wired in i18n.js `_syncHtmlLang()`).
+
+### Existing platform behaviour confirmed (already in place — no changes needed)
+1. **Single global toggle**: `<LangToggle>` (`@/components/LangToggle.jsx`) is the only language control across all 43 page/component files. Backed by `useSyncExternalStore` so every consumer re-renders when language flips.
+2. **Native spellcheck**: `_syncHtmlLang()` in `i18n.js` mirrors `_current` to `<html lang="…">` on mount and on every change. Browsers use this attribute to pick the spellcheck dictionary on `<input>` and `<textarea>`. EN mode → English red-underline; ES mode → Spanish red-underline. No per-input attribute needed.
+3. **Spanish→English on submit**: 5 form pages (`NewIncident`, `NewMeeting`, `NewDailyReport`, `NewInspection`, `NewEquipmentInspection`) plus `ShopSignoffCard` and `PartsCatalog` already pipe user-entered free-text through `translateUserInput()` → `POST /api/translate` (LLM-backed) before storing. Stored records are English; admin-facing PDFs/reports render in English regardless of which language the field crew used.
+
+### Files touched this audit
+- `frontend/src/components/TabulatedDataPrimer.jsx` — full rewrite (removed local lang state + duplicate toggle)
+- `frontend/src/components/TrenchBoxTabulatedLibrary.jsx` — wired `useT()`, translated user-facing labels, fixed useMemo deps
+- `frontend/src/lib/i18n.js` — added Spanish entries for Tabulated Data page intro + library labels
+
+### Status
+- ✅ Tabulated Data duplicate translate button removed
+- ✅ Tabulated Data page fully translates from the top EN/ES toggle
+- ✅ Audit confirmed: no duplicate translation buttons exist anywhere else on the platform
+- ✅ Every page translates from the top toggle (43 files use `useT()`)
+- ✅ Spanish form input → English on submit (already wired across all 5 form pages)
+- ✅ Native spellcheck switches with `<html lang>` (already wired in i18n.js)
+- ✅ No partial translation sections remain on `/trench-boxes`
+- ✅ No layout breakage from Spanish text expansion (verified by full-page screenshot)
+
+
 ## 2026-05-03 — `ADMIN_SESSION_EPOCH` Kill-Switch for All Tokens
 
 Zombie-token defence. Ticket driver: even after the 2026-04-30 password rotation, users on live mascidocs.com still had stale admin/pm/shop tokens in `localStorage` that made the UI render as "signed in" despite the backend 401-ing every request. The 2026-05-03 `tokenValidation.js` fix auto-clears those on next page load — and now this gives the admin a server-side lever to force it anytime.

@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -55,6 +56,7 @@ function bytesPretty(n) {
  * (adminMode=false) only allows browsing + downloading.
  */
 export default function TrenchBoxTabulatedLibrary({ adminMode = false }) {
+  const { t, lang } = useT();
   const [groups, setGroups] = useState([]);       // [{project_number, files:[]}]
   const [boxes, setBoxes] = useState([]);         // trench-box master list
   const [loading, setLoading] = useState(true);
@@ -91,8 +93,9 @@ export default function TrenchBoxTabulatedLibrary({ adminMode = false }) {
     const out = [];
     out.push({
       key: "general",
-      label:
-        "General / Educational — United Rentals explainers, OSHA references",
+      label: t(
+        "General / Educational — United Rentals explainers, OSHA references"
+      ),
       files: filesByKey.general || [],
       isGeneral: true,
     });
@@ -117,7 +120,7 @@ export default function TrenchBoxTabulatedLibrary({ adminMode = false }) {
       }
     }
     return out;
-  }, [groups, boxes]);
+  }, [groups, boxes, t, lang]);
 
   const toggleOpen = (k) =>
     setOpenMap((m) => ({ ...m, [k]: !m[k] }));
@@ -186,16 +189,17 @@ export default function TrenchBoxTabulatedLibrary({ adminMode = false }) {
         </div>
         <div className="flex-1">
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-800 font-bold">
-            {adminMode ? "Admin — upload · delete · browse" : "Field Reference"}
+            {adminMode ? "Admin — upload · delete · browse" : t("Field Reference")}
           </div>
           <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 leading-none mt-1">
-            Tabulated Data Library
+            {t("Tabulated Data Library")}
           </h2>
           <p className="text-sm text-slate-600 mt-1.5">
-            Manufacturer tabulated-data PDFs, technical data sheets, and
-            educational resources — one folder per trench box plus a shared
-            <strong> General / Educational </strong> folder. Total:{" "}
-            <strong>{totalFiles}</strong> files across <strong>{rows.length}</strong> folders.
+            {t("Manufacturer tabulated-data PDFs, technical data sheets, and educational resources — one folder per trench box plus a shared")}
+            <strong> {t("General / Educational")} </strong>
+            {t("folder. Total:")}{" "}
+            <strong>{totalFiles}</strong> {t("files across")}{" "}
+            <strong>{rows.length}</strong> {t("folders.")}
           </p>
         </div>
       </div>
@@ -203,7 +207,7 @@ export default function TrenchBoxTabulatedLibrary({ adminMode = false }) {
       {loading ? (
         <div className="text-center py-10 text-slate-500">
           <Loader2 className="w-6 h-6 animate-spin inline-block mr-2" />
-          Loading…
+          {t("Loading…")}
         </div>
       ) : (
         <div className="space-y-2">
@@ -235,11 +239,11 @@ export default function TrenchBoxTabulatedLibrary({ adminMode = false }) {
                   )}
                   {row.isGeneral ? (
                     <span className="inline-block px-1.5 py-0.5 bg-amber-500 text-white text-[10px] font-bold font-mono rounded uppercase tracking-wide shrink-0">
-                      Start Here
+                      {t("Start Here")}
                     </span>
                   ) : (
                     <span className="inline-block px-1.5 py-0.5 bg-red-700 text-white text-[10px] font-bold font-mono rounded uppercase tracking-wide shrink-0">
-                      Box
+                      {t("Box")}
                     </span>
                   )}
                   <span className="font-medium text-sm text-slate-900 truncate">
@@ -257,7 +261,7 @@ export default function TrenchBoxTabulatedLibrary({ adminMode = false }) {
                       <p className="text-xs text-slate-500 py-1.5">
                         {adminMode
                           ? "No files yet — drop one here or click + Add file."
-                          : "No files for this box yet. Ask the office to upload the manufacturer data sheet."}
+                          : t("No files for this box yet. Ask the office to upload the manufacturer data sheet.")}
                       </p>
                     )}
                     <ul className="space-y-1.5">

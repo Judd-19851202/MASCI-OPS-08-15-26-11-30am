@@ -821,6 +821,14 @@ const ES = {
   "MASCI trench-shield fleet. Size, weight, OSHA max-depth by soil type, and manufacturer tabulated-data PDFs.":
     "Flota de escudos de zanja MASCI. Tamaño, peso, profundidad máxima OSHA por tipo de suelo, y PDFs de datos tabulados del fabricante.",
   "Trench Box Tabulated Data": "Datos Tabulados de Cajas de Zanja",
+  "Know Before You Dig": "Conozca Antes de Excavar",
+  "This is where your trench shield's life-safety data lives. Every box in the MASCI fleet has a manufacturer-engineered data sheet that tells you exactly how deep you can dig, in what soil, with what spreaders, and under what conditions. Read it. Understand it. It's the difference between a safe shift and a collapse.":
+    "Aquí viven los datos de seguridad de su escudo de zanja. Cada caja en la flota MASCI tiene una hoja de datos diseñada por el fabricante que le dice exactamente qué tan profundo puede excavar, en qué tipo de suelo, con qué separadores y bajo qué condiciones. Léala. Entiéndala. Es la diferencia entre un turno seguro y un colapso.",
+  "Start with the primer below": "Comience con la guía a continuación",
+  "— a plain-English / Spanish walkthrough of what tabulated data is, why OSHA requires it, and how to read it in the field. Then open the":
+    " — un recorrido en inglés sencillo / español de qué son los datos tabulados, por qué OSHA los requiere y cómo leerlos en el campo. Luego abra la",
+  "to grab the exact PDF for the shield you're using.":
+    "para obtener el PDF exacto del escudo que está usando.",
   "OSHA-compliant trench shields in MASCI fleet":
     "Escudos de zanja conformes a OSHA en la flota MASCI",
   "Tap any box to see its size, weight, and maximum allowable depth by soil type (OSHA 1926 Subpart P).":
@@ -842,6 +850,21 @@ const ES = {
     "Profundidad Máxima Permitida (OSHA 1926.652)",
   "View Manufacturer Tabulated Data PDF":
     "Ver PDF de Datos Tabulados del Fabricante",
+  // Tabulated Data Library — public crew-facing labels
+  "Field Reference": "Referencia de Campo",
+  "Tabulated Data Library": "Biblioteca de Datos Tabulados",
+  "Manufacturer tabulated-data PDFs, technical data sheets, and educational resources — one folder per trench box plus a shared":
+    "PDFs de datos tabulados del fabricante, hojas técnicas y recursos educativos — una carpeta por cada caja de zanja más una compartida",
+  "General / Educational": "General / Educativo",
+  "folder. Total:": "carpeta. Total:",
+  "files across": "archivos en",
+  "folders.": "carpetas.",
+  "Start Here": "Comience Aquí",
+  "Box": "Caja",
+  "No files for this box yet. Ask the office to upload the manufacturer data sheet.":
+    "Aún no hay archivos para esta caja. Pídale a la oficina que suba la hoja de datos del fabricante.",
+  "General / Educational — United Rentals explainers, OSHA references":
+    "General / Educativo — explicaciones de United Rentals, referencias OSHA",
 
   // ============================================================
   // Trench Box Poster (printable QR poster)
