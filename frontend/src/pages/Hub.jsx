@@ -205,7 +205,7 @@ const ProjectsCard = ({ t, testId, className = "" }) => (
       {t("Project messages, to-dos, schedules, docs, and field staking all live in our two external apps. Pick one:")}
     </p>
 
-    <div className="grid sm:grid-cols-2 gap-2.5 mt-5">
+    <div className="grid grid-cols-1 gap-2.5 mt-5">
       <a
         href="https://3.basecamp.com/5958093/projects"
         target="_blank"
