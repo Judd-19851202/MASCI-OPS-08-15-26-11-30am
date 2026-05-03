@@ -42,10 +42,10 @@ const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, te
     slate:  { bg: "bg-slate-900",   bar: "border-slate-900",   ring: "hover:border-slate-900",   pill: "text-slate-800 bg-slate-100" },
     emerald:{ bg: "bg-emerald-700", bar: "border-emerald-700", ring: "hover:border-emerald-700", pill: "text-emerald-700 bg-emerald-50" },
     blue:   { bg: "bg-blue-700",    bar: "border-blue-700",    ring: "hover:border-blue-700",    pill: "text-blue-700 bg-blue-50" },
-    teal:   { bg: "bg-teal-700",    bar: "border-teal-700",    ring: "hover:border-teal-700",    pill: "text-teal-700 bg-teal-50" },
+    cyan:   { bg: "bg-cyan-600",    bar: "border-cyan-600",    ring: "hover:border-cyan-600",    pill: "text-cyan-700 bg-cyan-50" },
     purple: { bg: "bg-purple-700",  bar: "border-purple-700",  ring: "hover:border-purple-700",  pill: "text-purple-700 bg-purple-50" },
     orange: { bg: "bg-orange-600",  bar: "border-orange-600",  ring: "hover:border-orange-600",  pill: "text-orange-700 bg-orange-50" },
-    indigo: { bg: "bg-indigo-700",  bar: "border-indigo-700",  ring: "hover:border-indigo-700",  pill: "text-indigo-700 bg-indigo-50" },
+    fuchsia:{ bg: "bg-fuchsia-700", bar: "border-fuchsia-700", ring: "hover:border-fuchsia-700", pill: "text-fuchsia-700 bg-fuchsia-50" },
   };
   const s = styles[accent] || styles.red;
 
@@ -335,7 +335,7 @@ export default function Hub() {
               t("Rebar inspections · concrete form inspections"),
               t("Daily QA / QC submittals · field-team turn-ins"),
             ]}
-            accent="teal"
+            accent="cyan"
             testId="hub-section-qc"
             comingSoon
           />
@@ -377,7 +377,7 @@ export default function Hub() {
               t("Field Crew · Shop · PM · Admin tracks"),
               t("Written guides + video slots + print-friendly"),
             ]}
-            accent="indigo"
+            accent="fuchsia"
             testId="hub-section-training"
           />
           <SectionCard
