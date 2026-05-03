@@ -1,0 +1,35 @@
+{
+  "summary": "Iter-33 — Tested bilingual QA/QC end-to-end after i18n expansion + PDF localization. Backend: 21/21 pytest tests PASS in /app/backend/tests/test_qaqc_bilingual_iter33.py covering (a) POST /api/qaqc-inspections with submit_language='es'|'en' persists + GET round-trips correctly (id, pass/fail/na recomputed server-side: 2/1/1), (b) pdf_render.render_record_pdf('qaqc', record_es) emits a valid %PDF with Spanish title 'Inspección de QA / QC' localized from KIND_TITLES, (c) _render_qaqc() body HTML for submit_language='es' contains every required section header (Inspección, Obra, Subcontratista / Cuadrilla, Vaciado de Concreto, Lista de Verificación, Resumen de Inspección), every field label (Fecha, Inspector, Número de Proyecto, Diseño de Mezcla, Proveedor de Concreto, Actividad de Trabajo, Área de Trabajo / Estación), every badge (CUMPLE/NO CUMPLE/N/A), the FAIL banner 'no cumplen — se requiere acción correctiva', and checklist labels for all 3 kinds (concrete-form: 'Formaletas arriostradas y aseguradas', 'Formaletas limpias y libres de escombros', 'Línea y nivel verificados'; rebar: 'Diámetro de barra verificado', 'Separación de barras verificada', 'Recubrimiento de concreto requerido verificado'; subcontractor-work: 'El trabajo coincide con planos / especificaciones', 'Área de trabajo segura y accesible'), (d) submit_language='en' renders English-only PDF with no Spanish leakage (regression pass), (e) _QAQC_ES dict parametrized sanity for the 12 user-requested keys including Pass→Cumple / Fail→No Cumple / N/A→N/A. Frontend (playwright against REACT_APP_BACKEND_URL): /qaqc/concrete-form/new with localStorage.masci.lang='es' renders title 'Inspección de Formaleta de Concreto', sections (Obra, Subcontratista / Cuadrilla, Inspección, Vaciado de Concreto, Lista de Verificación, Notas y Acción Correctiva, Fotos, Firma), helper 'Marque cada punto Cumple, No Cumple, o N/A. Los No Cumple requieren una nota.', checklist items all in Spanish including 'Formaletas arriostradas y aseguradas', PASS/FAIL/N/A buttons render as CUMPLE/NO CUMPLE/N/A, tally pills CUMPLE 0 / NO CUMPLE 0 / N/A 13, submit button 'Enviar Inspección'. Zero English leakage. Toggling masci.lang back to 'en' + reload restores English (Forms braced and secured, PASS, FAIL). Rebar ES: checklist 'Diámetro de barra verificado', 'Inspección lista para vaciado de concreto' present, no Vaciado de Concreto section (correctly hidden for non-concrete form). Subcontractor-Work ES: 'El trabajo coincide con planos / especificaciones', 'Área de trabajo segura y accesible', Vaciado de Concreto correctly hidden.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_qaqc_bilingual_iter33.py",
+    "/app/test_reports/pytest/iter33_qaqc_bilingual.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "pdf_render._render_qaqc reads submit_language directly off the record and passes every static label through L() — clean, self-contained, no coupling to the frontend i18n bundle. Good.",
+    "Badge mapping for ES is computed inline: {'pass':'CUMPLE','fail':'NO CUMPLE','na':'N/A'} — consistent with user-requested keys.",
+    "render_record_pdf localizes the page title via _QAQC_ES lookup when kind=='qaqc' and submit_language=='es' — avoids leaking English 'QA / QC Inspection' header on Spanish PDFs.",
+    "QaqcInspectionCreate uses ConfigDict(extra='allow') so submit_language flows through Pydantic to Mongo without needing a schema edit — verified by GET roundtrip.",
+    "FAIL banner short-circuits on fail_count — but note that _render_qaqc relies on d.get('fail_count') being pre-set; the create route recomputes counts server-side before insert, so live records always have correct counts. Direct _render_qaqc calls in tests needed explicit counts set (non-issue for production flow)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_qaqc_bilingual_iter33.py (NEW — 21 tests)",
+    "/app/test_reports/pytest/iter33_qaqc_bilingual.xml (NEW JUnit)"
+  ],
+  "success_rate": {
+    "backend": "100% (21/21 tests pass — 2 API persistence + 6 PDF localization + 12 _QAQC_ES dict + 1 kind-title regression)",
+    "frontend": "100% (3/3 QA/QC forms verified ES + EN toggle-back, no English leakage in ES, no Spanish leakage in EN)"
+  },
+  "test_credentials": "Admin: MASCI1982! — verified working.",
+  "seed_data_creation": "Created 2 TEST_QAQC_BILINGUAL records (one ES, one EN); cleaned up at module teardown via autouse fixture.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Bilingual QA/QC is fully wired end-to-end. Spanish toggle (localStorage.masci.lang='es') translates: (1) all 3 QA/QC form pages + checklist labels + Pass/Fail/N/A buttons (render as CUMPLE/NO CUMPLE/N/A), (2) PDF body via _QAQC_ES dict in /app/backend/pdf_render.py (self-contained, no coupling to frontend i18n), (3) PDF page title via render_record_pdf override for kind=='qaqc' + submit_language=='es'. Record free-text fields (notes, deficiencies, signatures, names) intentionally stay in whatever language the office submitted them in — per Section 7 translate-on-submit contract. To regression-test PDF, import from pdf_render and call render_record_pdf('qaqc', record_dict) — returns %PDF bytes. To smoke-test UI, set localStorage.masci.lang in page.evaluate BEFORE navigation or reload after set. View pages (/qaqc/:id and /equipment/:id) were not re-tested UI-wise but backend PDF path covers the equivalent render route.",
+  "rca of the issue": "N/A — no product bugs found. Bilingual QA/QC shipped clean."
+}

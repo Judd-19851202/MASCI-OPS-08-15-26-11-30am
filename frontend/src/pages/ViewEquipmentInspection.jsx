@@ -29,10 +29,11 @@ const KV = ({ label, value, full = false }) => (
 );
 
 const StatusPill = ({ status }) => {
+  const { t } = useT();
   const map = {
-    pass: { cls: "bg-emerald-600 text-white", label: "PASS" },
-    fail: { cls: "bg-red-700 text-white", label: "FAIL" },
-    na: { cls: "bg-slate-500 text-white", label: "N/A" },
+    pass: { cls: "bg-emerald-600 text-white", label: t("PASS") },
+    fail: { cls: "bg-red-700 text-white", label: t("FAIL") },
+    na: { cls: "bg-slate-500 text-white", label: t("N/A") },
   };
   const v = map[status] || { cls: "bg-slate-300 text-slate-700", label: "—" };
   return (
@@ -195,19 +196,19 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
 
         {/* Tally */}
         <div className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
-          <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Inspection Summary</h2>
+          <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">{t("Inspection Summary")}</h2>
           <div className="flex flex-wrap items-center gap-4">
             <div className="text-center">
               <div className="font-display text-3xl font-black text-emerald-700" data-testid="view-pass-count">{data.pass_count || 0}</div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">Pass</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">{t("Pass")}</div>
             </div>
             <div className="text-center">
               <div className="font-display text-3xl font-black text-red-700" data-testid="view-fail-count">{data.fail_count || 0}</div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">Fail</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">{t("Fail")}</div>
             </div>
             <div className="text-center">
               <div className="font-display text-3xl font-black text-slate-600" data-testid="view-na-count">{data.na_count || 0}</div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">N/A</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">{t("N/A")}</div>
             </div>
             <div className="ml-auto">
               <div className={`px-4 py-2 rounded font-mono text-xs font-black uppercase tracking-[0.2em] ${

@@ -466,6 +466,111 @@ KIND_TITLES = {
 }
 
 
+# ────────────────────────────────────────────────────────────────────────
+# QA/QC PDF localization map (EN → ES).
+# Mirrors the strings _render_qaqc passes through L() when
+# record.submit_language == "es".  Stored in this module so the PDF can
+# localize without depending on the frontend i18n bundle.
+# ────────────────────────────────────────────────────────────────────────
+_QAQC_ES: Dict[str, str] = {
+    # Inspection-kind titles
+    "Concrete Form Inspection": "Inspección de Formaleta de Concreto",
+    "Rebar Inspection": "Inspección de Acero de Refuerzo",
+    "Subcontractor Work Inspection": "Inspección de Trabajo del Subcontratista",
+    "QA / QC Inspection": "Inspección de QA / QC",
+    "QA/QC Inspection": "Inspección de QA/QC",
+    # Section titles
+    "Inspection": "Inspección",
+    "Project": "Obra",
+    "Subcontractor / Crew": "Subcontratista / Cuadrilla",
+    "Concrete Placement": "Vaciado de Concreto",
+    "Checklist": "Lista de Verificación",
+    "Inspection Summary": "Resumen de Inspección",
+    "Notes & Corrective Actions": "Notas y Acciones Correctivas",
+    "Photos": "Fotos",
+    "Sign-Off": "Firma",
+    # Field labels
+    "Type": "Tipo",
+    "Date": "Fecha",
+    "Time": "Hora",
+    "Inspector": "Inspector",
+    "Work Activity": "Actividad de Trabajo",
+    "Work Area / Station": "Área de Trabajo / Estación",
+    "Weather / Conditions": "Clima / Condiciones",
+    "Project Name": "Nombre del Proyecto",
+    "Project Number": "Número de Proyecto",
+    "Location": "Ubicación",
+    "Client": "Cliente",
+    "Project Manager": "Gerente de Proyecto",
+    "Subcontractor": "Subcontratista",
+    "Crew / Company": "Cuadrilla / Empresa",
+    "Mix Design": "Diseño de Mezcla",
+    "Yards Ordered (CY)": "Yardas Pedidas (CY)",
+    "Concrete Vendor": "Proveedor de Concreto",
+    "Pass Items": "Cumple",
+    "Fail Items": "No Cumple",
+    "N/A Items": "N/A",
+    "Inspection Notes": "Notas de Inspección",
+    "Deficiencies": "Deficiencias",
+    "Corrective Actions": "Acciones Correctivas",
+    "See Deficiencies section below.": "Vea la sección de Deficiencias abajo.",
+    "Subcontractor Rep": "Rep. del Subcontratista",
+    # Concrete-Form checklist items
+    "Correct job selected": "Obra correcta seleccionada",
+    "Correct location / station": "Ubicación / estación correcta",
+    "Formwork installed per plans": "Encofrado instalado según planos",
+    "Line and grade checked": "Línea y nivel verificados",
+    "Dimensions verified": "Dimensiones verificadas",
+    "Elevation checked": "Elevación verificada",
+    "Forms braced and secured": "Formaletas arriostradas y aseguradas",
+    "Forms clean and free of debris":
+        "Formaletas limpias y libres de escombros",
+    "Chamfer / keyway / blockouts installed where required":
+        "Chaflán / llave / huecos instalados donde se requiere",
+    "Expansion / construction joints installed where required":
+        "Juntas de expansión / construcción instaladas donde se requiere",
+    "Embedded items / sleeves / inserts verified":
+        "Embebidos / camisas / insertos verificados",
+    "Access and pour area ready": "Acceso y área de vaciado listos",
+    "Safety / access around formwork acceptable":
+        "Seguridad / acceso alrededor del encofrado aceptable",
+    # Rebar checklist items
+    "Rebar installed per plans": "Acero de refuerzo instalado según planos",
+    "Bar size verified": "Diámetro de barra verificado",
+    "Bar spacing verified": "Separación de barras verificada",
+    "Bar quantity verified": "Cantidad de barras verificada",
+    "Bar lap lengths verified": "Longitud de traslape verificada",
+    "Tie spacing acceptable": "Separación de amarres aceptable",
+    "Chairs / supports installed": "Sillas / soportes instalados",
+    "Required concrete cover verified":
+        "Recubrimiento de concreto requerido verificado",
+    "Dowels / embeds / anchor bolts checked":
+        "Pasadores / embebidos / pernos de anclaje verificados",
+    "Rebar clean and free of mud, oil, or debris":
+        "Acero limpio y libre de lodo, aceite o escombros",
+    "Openings / blockouts verified": "Aberturas / huecos verificados",
+    "Inspection ready for concrete placement":
+        "Inspección lista para vaciado de concreto",
+    # Subcontractor-Work checklist items
+    "Work matches plans/specifications":
+        "El trabajo coincide con planos / especificaciones",
+    "Work area safe and accessible": "Área de trabajo segura y accesible",
+    "Subcontractor manpower adequate":
+        "Personal del subcontratista adecuado",
+    "Equipment / materials appropriate": "Equipo / materiales apropiados",
+    "Quality of workmanship acceptable":
+        "Calidad de la mano de obra aceptable",
+    "Layout / line / grade acceptable if applicable":
+        "Trazo / línea / nivel aceptables si aplica",
+    "Materials appear correct": "Los materiales parecen correctos",
+    "Required permits / approvals in place if applicable":
+        "Permisos / aprobaciones requeridos vigentes si aplica",
+    "Work area cleaned up": "Área de trabajo limpia",
+    "Rework required": "Se requiere re-trabajo",
+    "Follow-up inspection required": "Se requiere inspección de seguimiento",
+}
+
+
 def _render_equipment(d: Dict[str, Any]) -> str:
     """Render an equipment pre-op inspection. Highlights FAIL items + OOS banner."""
     rows = []
@@ -587,60 +692,82 @@ def _render_qaqc(d: Dict[str, Any]) -> str:
     the same envelope (job info, subcontractor info, checklist, notes,
     photos, sign-off). Only the header label and the checklist items
     themselves differ between kinds — both come straight from the record.
+
+    PDF localization (added 2026-05-03 per Section 6 of the bilingual
+    audit): every static label (section title, field label, checklist
+    item label, badge) honors `record.submit_language`.  User-entered
+    free-text fields (notes, deficiencies, names, signatures) stay in
+    whatever language the office stores them in — that's English per
+    the Section 7 "translate-on-submit" contract.
     """
+    is_es = (d.get("submit_language") or "").lower() == "es"
+
+    def L(en: str) -> str:
+        """Localize a static UI label to ES if submit_language=es."""
+        if not is_es:
+            return en
+        return _QAQC_ES.get(en, en)
+
     rows = []
 
-    kind_label = {
+    kind_label_en = {
         "concrete_form": "Concrete Form Inspection",
         "rebar": "Rebar Inspection",
         "subcontractor_work": "Subcontractor Work Inspection",
     }.get(d.get("inspection_kind", ""), "QA/QC Inspection")
+    kind_label = L(kind_label_en)
 
     # FAIL-flag banner if any checklist items failed
     fail_count = int(d.get("fail_count") or 0)
     if fail_count > 0:
+        banner_text = (
+            f"⚠ {fail_count} elemento(s) no cumplen — se requiere acción correctiva"
+            if is_es
+            else f"⚠ {fail_count} item(s) failed inspection — corrective action required"
+        )
         rows.append(
             f"<div class='esc' style='border-color:#c8102e;background:#fef2f2;'>"
-            f"<div class='esc-t'>⚠ {fail_count} item(s) failed inspection — corrective action required</div>"
-            f"<div style='font-size:9pt;color:#0f172a;'>{escape(d.get('deficiencies', '') or 'See Deficiencies section below.')}</div>"
-            f"</div>"
+            f"<div class='esc-t'>{banner_text}</div>"
+            f"<div style='font-size:9pt;color:#0f172a;'>"
+            f"{escape(d.get('deficiencies', '') or (L('See Deficiencies section below.')))}"
+            f"</div></div>"
         )
 
     # Header / Job / Subcontractor info
-    rows.append(_section("Inspection", (
-        _kv("Type", kind_label)
-        + _kv("Date", _fmt_date(d.get("inspection_date")))
-        + _kv("Time", d.get("inspection_time"))
-        + _kv("Inspector", d.get("inspector_name"))
-        + _kv("Work Activity", d.get("work_activity"))
-        + _kv("Work Area / Station", d.get("work_area"))
-        + _kv("Weather / Conditions", d.get("weather_conditions"))
+    rows.append(_section(L("Inspection"), (
+        _kv(L("Type"), kind_label)
+        + _kv(L("Date"), _fmt_date(d.get("inspection_date")))
+        + _kv(L("Time"), d.get("inspection_time"))
+        + _kv(L("Inspector"), d.get("inspector_name"))
+        + _kv(L("Work Activity"), d.get("work_activity"))
+        + _kv(L("Work Area / Station"), d.get("work_area"))
+        + _kv(L("Weather / Conditions"), d.get("weather_conditions"))
     )))
 
-    rows.append(_section("Project", (
-        _kv("Project Name", d.get("project_name"))
-        + _kv("Project Number", d.get("project_number"))
-        + _kv("Location", d.get("location"))
-        + _kv("Client", d.get("client"))
-        + _kv("Project Manager", d.get("pm_name"))
+    rows.append(_section(L("Project"), (
+        _kv(L("Project Name"), d.get("project_name"))
+        + _kv(L("Project Number"), d.get("project_number"))
+        + _kv(L("Location"), d.get("location"))
+        + _kv(L("Client"), d.get("client"))
+        + _kv(L("Project Manager"), d.get("pm_name"))
     )))
 
-    rows.append(_section("Subcontractor / Crew", (
-        _kv("Subcontractor", d.get("subcontractor_name"))
-        + _kv("Crew / Company", d.get("crew_company"))
+    rows.append(_section(L("Subcontractor / Crew"), (
+        _kv(L("Subcontractor"), d.get("subcontractor_name"))
+        + _kv(L("Crew / Company"), d.get("crew_company"))
     )))
 
     # Concrete-Form-only placement controls (only render if any value set)
     if d.get("inspection_kind") == "concrete_form" and (
         d.get("mix_design") or d.get("yards_ordered") or d.get("concrete_vendor")
     ):
-        rows.append(_section("Concrete Placement", (
-            _kv("Mix Design", d.get("mix_design"))
-            + _kv("Yards Ordered (CY)", d.get("yards_ordered"))
-            + _kv("Concrete Vendor", d.get("concrete_vendor"))
+        rows.append(_section(L("Concrete Placement"), (
+            _kv(L("Mix Design"), d.get("mix_design"))
+            + _kv(L("Yards Ordered (CY)"), d.get("yards_ordered"))
+            + _kv(L("Concrete Vendor"), d.get("concrete_vendor"))
         )))
 
-    # Checklist
+    # Checklist — labels are stored in English; translate via _QAQC_ES on ES.
     checklist = d.get("checklist") or []
     if checklist:
         body = ""
@@ -649,38 +776,41 @@ def _render_qaqc(d: Dict[str, Any]) -> str:
             result = (item.get("result") if isinstance(item, dict) else getattr(item, "result", "")) or "na"
             note = (item.get("note") if isinstance(item, dict) else getattr(item, "note", "")) or ""
             color = "#16a34a" if result == "pass" else ("#c8102e" if result == "fail" else "#64748b")
-            badge = result.upper() if result != "na" else "N/A"
+            if is_es:
+                badge = {"pass": "CUMPLE", "fail": "NO CUMPLE", "na": "N/A"}.get(result, "N/A")
+            else:
+                badge = result.upper() if result != "na" else "N/A"
             note_html = (
                 f"<div style='font-size:8.5pt;color:#475569;margin-top:2px;'>{escape(str(note))}</div>"
                 if note else ""
             )
             body += (
                 f"<div class='kv'>"
-                f"<div class='kv-k' style='flex:0 0 60%;'>{escape(str(label))}</div>"
+                f"<div class='kv-k' style='flex:0 0 60%;'>{escape(L(str(label)))}</div>"
                 f"<div class='kv-v' style='flex:1;'>"
                 f"<span style='font-family:Courier New,monospace;font-size:8pt;"
                 f"font-weight:900;letter-spacing:0.1em;color:{color};'>{badge}</span>"
                 f"{note_html}</div></div>"
             )
-        rows.append(_section("Checklist", body))
+        rows.append(_section(L("Checklist"), body))
 
     # Tally
-    rows.append(_section("Inspection Summary", (
-        _kv("Pass Items", d.get("pass_count"))
-        + _kv("Fail Items", d.get("fail_count"))
-        + _kv("N/A Items", d.get("na_count"))
+    rows.append(_section(L("Inspection Summary"), (
+        _kv(L("Pass Items"), d.get("pass_count"))
+        + _kv(L("Fail Items"), d.get("fail_count"))
+        + _kv(L("N/A Items"), d.get("na_count"))
     )))
 
     # Notes
     notes_body = ""
     if d.get("inspection_notes"):
-        notes_body += _kv("Inspection Notes", d.get("inspection_notes"))
+        notes_body += _kv(L("Inspection Notes"), d.get("inspection_notes"))
     if d.get("deficiencies"):
-        notes_body += _kv("Deficiencies", d.get("deficiencies"))
+        notes_body += _kv(L("Deficiencies"), d.get("deficiencies"))
     if d.get("corrective_actions"):
-        notes_body += _kv("Corrective Actions", d.get("corrective_actions"))
+        notes_body += _kv(L("Corrective Actions"), d.get("corrective_actions"))
     if notes_body:
-        rows.append(_section("Notes & Corrective Actions", notes_body))
+        rows.append(_section(L("Notes & Corrective Actions"), notes_body))
 
     # Photos
     photos = d.get("photos") or []
@@ -690,7 +820,7 @@ def _render_qaqc(d: Dict[str, Any]) -> str:
             if isinstance(p, str) and p.startswith("data:image/"):
                 photo_html += f"<div class='photo'><img src='{escape(p)}'/></div>"
         photo_html += "</div>"
-        rows.append(_section(f"Photos ({len(photos)})", photo_html))
+        rows.append(_section(f"{L('Photos')} ({len(photos)})", photo_html))
 
     # Sign-off
     sig = ""
@@ -699,7 +829,7 @@ def _render_qaqc(d: Dict[str, Any]) -> str:
             f"<div class='sig'><div class='sig-img'>"
             f"<img src='{escape(d.get('inspector_signature'))}'/></div>"
             f"<div class='sig-meta'>"
-            f"<span class='sig-label'>Inspector</span> · {escape(d.get('inspector_name', ''))}"
+            f"<span class='sig-label'>{L('Inspector')}</span> · {escape(d.get('inspector_name', ''))}"
             f"</div></div>"
         )
     if d.get("sub_rep_signature"):
@@ -707,17 +837,21 @@ def _render_qaqc(d: Dict[str, Any]) -> str:
             f"<div class='sig'><div class='sig-img'>"
             f"<img src='{escape(d.get('sub_rep_signature'))}'/></div>"
             f"<div class='sig-meta'>"
-            f"<span class='sig-label'>Subcontractor Rep</span> · {escape(d.get('sub_rep_name', ''))}"
+            f"<span class='sig-label'>{L('Subcontractor Rep')}</span> · {escape(d.get('sub_rep_name', ''))}"
             f"</div></div>"
         )
     if sig:
-        rows.append(_section("Sign-Off", sig))
+        rows.append(_section(L("Sign-Off"), sig))
 
     return "\n".join(rows)
 
 
 def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     title = KIND_TITLES.get(kind, "MASCI Hub Record")
+    # When QA/QC was submitted in Spanish, localize the page title too so
+    # the entire PDF matches the submit language end-to-end.
+    if kind == "qaqc" and (record.get("submit_language") or "").lower() == "es":
+        title = _QAQC_ES.get(title, title)
     logo_uri = _data_uri_for(LOGO_PATH)
     # NOTE: watermark removed 2026-04-29 per user request — clean PDFs.
 

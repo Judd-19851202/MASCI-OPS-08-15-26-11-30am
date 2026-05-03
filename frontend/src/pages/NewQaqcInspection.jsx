@@ -421,13 +421,13 @@ export default function NewQaqcInspection() {
             </div>
             <div className="mt-3 flex flex-wrap gap-2 font-mono text-[10px] uppercase tracking-[0.2em] font-bold">
               <span className="px-2 py-1 rounded bg-emerald-100 text-emerald-900 border border-emerald-300">
-                Pass {counts.ps}
+                {t("Pass")} {counts.ps}
               </span>
               <span className="px-2 py-1 rounded bg-red-100 text-red-900 border border-red-300">
-                Fail {counts.fs}
+                {t("Fail")} {counts.fs}
               </span>
               <span className="px-2 py-1 rounded bg-slate-100 text-slate-700 border border-slate-300">
-                N/A {counts.na}
+                {t("N/A")} {counts.na}
               </span>
             </div>
             {counts.fs > 0 && (
@@ -582,9 +582,9 @@ function ChecklistRow({ item, onChange, testid, t }) {
         </div>
         <div className="inline-flex rounded border-2 border-slate-300 overflow-hidden text-xs">
           {[
-            ["pass", "PASS", "bg-emerald-600 text-white"],
-            ["fail", "FAIL", "bg-red-600 text-white"],
-            ["na", "N/A", "bg-slate-700 text-white"],
+            ["pass", t("PASS"), "bg-emerald-600 text-white"],
+            ["fail", t("FAIL"), "bg-red-600 text-white"],
+            ["na", t("N/A"), "bg-slate-700 text-white"],
           ].map(([v, label, on]) => (
             <button
               key={v}

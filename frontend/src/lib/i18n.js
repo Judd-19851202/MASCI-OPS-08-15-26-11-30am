@@ -394,16 +394,17 @@ const ES = {
   "Leave blank if no odometer.": "Deje en blanco si no hay odómetro.",
   "Operator Name *": "Nombre del Operador *",
   "Your full name": "Su nombre completo",
-  "Pass": "Aprobado",
-  "Fail": "Falla",
+  "Pass": "Cumple",
+  "Fail": "No Cumple",
+  "PASS": "CUMPLE",
   "N/A": "N/A",
   "Describe the issue (required for FAIL — min 10 characters)":
-    "Describa el problema (requerido para FALLA — mínimo 10 caracteres)",
-  "Description required for FAIL": "Descripción requerida para FALLA",
+    "Describa el problema (requerido para NO CUMPLE — mínimo 10 caracteres)",
+  "Description required for FAIL": "Descripción requerida para NO CUMPLE",
   "At least 10 characters required": "Mínimo 10 caracteres requeridos",
   "Description": "Descripción",
   "Replace photo": "Reemplazar foto",
-  "Add photo (required for FAIL)": "Agregar foto (requerida para FALLA)",
+  "Add photo (required for FAIL)": "Agregar foto (requerida para NO CUMPLE)",
   "Tally": "Resumen",
   "Hide tally": "Ocultar resumen",
   "Notes & Photos": "Notas y Fotos",
@@ -1036,7 +1037,7 @@ const ES = {
   "ATTN": "ATN",
   "Sign Off": "Firmar",
   "signed": "firmado",
-  "FAIL": "FALLA",
+  "FAIL": "NO CUMPLE",
 
   // Sign-off card
   "Shop Sign-Off": "Firma del Taller",
@@ -1563,6 +1564,167 @@ const ES = {
   // Disclaimer
   "Calculations are estimates for planning purposes only. Actual quantities may vary based on field conditions, material density, moisture, compaction, yield, mix design, waste, and project specifications.":
     "Los cálculos son estimaciones para fines de planificación únicamente. Las cantidades reales pueden variar según las condiciones del terreno, la densidad del material, humedad, compactación, rendimiento, diseño de mezcla, desperdicio y especificaciones del proyecto.",
+
+  // ============================================================
+  // QA/QC INSPECTIONS — checklist labels, section titles, helper text,
+  // validation messages, button labels.  Added 2026-05-03 to fix the
+  // "85% translates" bug where checklist rows + Pass/Fail/N/A buttons
+  // stayed in English on ES. All three forms (concrete-form, rebar,
+  // subcontractor-work) draw from this dict via t(item.label).
+  // ============================================================
+
+  // Section titles
+  "Job": "Obra",
+  "Subcontractor / Crew": "Subcontratista / Cuadrilla",
+  "Inspection": "Inspección",
+  "Concrete Placement": "Vaciado de Concreto",
+  "Required for every concrete-form inspection.":
+    "Requerido en cada inspección de formaleta de concreto.",
+  "Checklist": "Lista de Verificación",
+  "Notes & Corrective Action": "Notas y Acción Correctiva",
+  "Photos": "Fotos",
+  "Sign-Off": "Firma",
+
+  // Field labels
+  "Location": "Ubicación",
+  "Project Manager": "Gerente de Proyecto",
+  "Auto-filled from job": "Llenado automático desde la obra",
+  "Subcontractor": "Subcontratista",
+  "Search or add a subcontractor / vendor…":
+    "Buscar o agregar un subcontratista / proveedor…",
+  "Crew / Company": "Cuadrilla / Empresa",
+  "Date": "Fecha",
+  "Time": "Hora",
+  "Inspector Name": "Nombre del Inspector",
+  "Work Area / Station": "Área de Trabajo / Estación",
+  "Work Activity": "Actividad de Trabajo",
+  "Weather / Site Conditions": "Clima / Condiciones del Sitio",
+  "e.g. 78°F, clear, light wind": "ej. 78°F, despejado, viento ligero",
+  "Mix Design": "Diseño de Mezcla",
+  "e.g. 4000 PSI Class IV": "ej. 4000 PSI Clase IV",
+  "Yards Ordered (CY)": "Yardas Pedidas (CY)",
+  "Concrete Vendor": "Proveedor de Concreto",
+  "Search or add the concrete supplier…":
+    "Buscar o agregar el proveedor de concreto…",
+  "Inspection Notes / Description": "Notas de Inspección / Descripción",
+  "Deficiencies": "Deficiencias",
+  "Corrective Actions Required": "Acciones Correctivas Requeridas",
+  "Upload at least 3 photos of the work area.":
+    "Suba al menos 3 fotos del área de trabajo.",
+  "Uploaded:": "Subidas:",
+  "min 3 required": "mín. 3 requeridas",
+  "Inspector Signature": "Firma del Inspector",
+  "Sub. Rep. Name (optional)": "Nombre del Rep. del Sub. (opcional)",
+  "Sub. Rep. Signature (optional)": "Firma del Rep. del Sub. (opcional)",
+
+  // Helper text + validation
+  "Mark each item Pass, Fail, or N/A. Fails require a note.":
+    "Marque cada punto Cumple, No Cumple, o N/A. Los No Cumple requieren una nota.",
+  "Deficiency note (required for Fail)":
+    "Nota de deficiencia (requerida para No Cumple)",
+  "One or more items failed. Document deficiencies and corrective actions before submitting.":
+    "Uno o más puntos no cumplen. Documente las deficiencias y acciones correctivas antes de enviar.",
+  "Select a job.": "Seleccione una obra.",
+  "Enter the work location.": "Ingrese la ubicación del trabajo.",
+  "Work Area / Station required.": "Área de Trabajo / Estación requerida.",
+  "Inspector name required.": "Nombre del Inspector requerido.",
+  "Inspection notes required.": "Notas de Inspección requeridas.",
+  "Minimum 3 photos required.": "Se requieren mínimo 3 fotos.",
+  "Inspector signature required.": "Firma del Inspector requerida.",
+  "Every Fail item needs a deficiency note.":
+    "Cada punto No Cumple necesita una nota de deficiencia.",
+  "Mix Design required.": "Diseño de Mezcla requerido.",
+  "Yards Ordered required.": "Yardas Pedidas requeridas.",
+  "Concrete Vendor required.": "Proveedor de Concreto requerido.",
+  "Translating to English…": "Traduciendo al inglés…",
+  "Submitted. Routing to assigned PM…":
+    "Enviado. Enviando al Gerente de Proyecto asignado…",
+  "Could not submit. Try again.":
+    "No se pudo enviar. Intente de nuevo.",
+  "Submit Inspection": "Enviar Inspección",
+  "Submitting…": "Enviando…",
+  "Use GPS": "Usar GPS",
+  "Location captured from GPS": "Ubicación capturada por GPS",
+  "Got GPS coordinates, but couldn't look up address":
+    "Coordenadas GPS obtenidas, pero no se pudo encontrar la dirección",
+  "Could not get GPS location": "No se pudo obtener la ubicación GPS",
+
+  // ----------------------------------------------------------------
+  // Concrete-Form inspection checklist labels
+  // ----------------------------------------------------------------
+  "Correct job selected": "Obra correcta seleccionada",
+  "Correct location / station": "Ubicación / estación correcta",
+  "Formwork installed per plans": "Encofrado instalado según planos",
+  "Line and grade checked": "Línea y nivel verificados",
+  "Dimensions verified": "Dimensiones verificadas",
+  "Elevation checked": "Elevación verificada",
+  "Forms braced and secured": "Formaletas arriostradas y aseguradas",
+  "Forms clean and free of debris":
+    "Formaletas limpias y libres de escombros",
+  "Chamfer / keyway / blockouts installed where required":
+    "Chaflán / llave / huecos instalados donde se requiere",
+  "Expansion / construction joints installed where required":
+    "Juntas de expansión / construcción instaladas donde se requiere",
+  "Embedded items / sleeves / inserts verified":
+    "Embebidos / camisas / insertos verificados",
+  "Access and pour area ready": "Acceso y área de vaciado listos",
+  "Safety / access around formwork acceptable":
+    "Seguridad / acceso alrededor del encofrado aceptable",
+
+  // ----------------------------------------------------------------
+  // Rebar inspection checklist labels
+  // ----------------------------------------------------------------
+  "Rebar installed per plans": "Acero de refuerzo instalado según planos",
+  "Bar size verified": "Diámetro de barra verificado",
+  "Bar spacing verified": "Separación de barras verificada",
+  "Bar quantity verified": "Cantidad de barras verificada",
+  "Bar lap lengths verified": "Longitud de traslape verificada",
+  "Tie spacing acceptable": "Separación de amarres aceptable",
+  "Chairs / supports installed": "Sillas / soportes instalados",
+  "Required concrete cover verified":
+    "Recubrimiento de concreto requerido verificado",
+  "Dowels / embeds / anchor bolts checked":
+    "Pasadores / embebidos / pernos de anclaje verificados",
+  "Rebar clean and free of mud, oil, or debris":
+    "Acero limpio y libre de lodo, aceite o escombros",
+  "Openings / blockouts verified": "Aberturas / huecos verificados",
+  "Inspection ready for concrete placement":
+    "Inspección lista para vaciado de concreto",
+
+  // ----------------------------------------------------------------
+  // Subcontractor work inspection checklist labels
+  // ----------------------------------------------------------------
+  "Work matches plans/specifications":
+    "El trabajo coincide con planos / especificaciones",
+  "Work area safe and accessible": "Área de trabajo segura y accesible",
+  "Subcontractor manpower adequate":
+    "Personal del subcontratista adecuado",
+  "Equipment / materials appropriate": "Equipo / materiales apropiados",
+  "Quality of workmanship acceptable":
+    "Calidad de la mano de obra aceptable",
+  "Layout / line / grade acceptable if applicable":
+    "Trazo / línea / nivel aceptables si aplica",
+  "Materials appear correct": "Los materiales parecen correctos",
+  "Required permits / approvals in place if applicable":
+    "Permisos / aprobaciones requeridos vigentes si aplica",
+  "Work area cleaned up": "Área de trabajo limpia",
+  "Rework required": "Se requiere re-trabajo",
+  "Follow-up inspection required": "Se requiere inspección de seguimiento",
+
+  // QA/QC navigation labels
+  "QA / QC": "QA / QC",
+
+  // QA/QC view-page extras (read-only inspection summary + KV labels)
+  "Inspection Summary": "Resumen de Inspección",
+  "Pass Items": "Cumple",
+  "Fail Items": "No Cumple",
+  "N/A Items": "N/A",
+  "Project Number": "Número de Proyecto",
+  "Client": "Cliente",
+  "Weather": "Clima",
+  "item(s) failed inspection": "elemento(s) no cumplen",
+  "See deficiencies below.": "Vea las deficiencias abajo.",
+  "Subcontractor Rep": "Rep. del Subcontratista",
 
 };
 

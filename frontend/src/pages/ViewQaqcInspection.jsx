@@ -112,20 +112,20 @@ export default function ViewQaqcInspection() {
           )}
 
           <KVGrid pairs={[
-            ["Project Number", data.project_number],
-            ["Client", data.client],
-            ["Project Manager", data.pm_name],
-            ["Subcontractor", data.subcontractor_name],
-            ["Crew / Company", data.crew_company],
-            ["Inspector", data.inspector_name],
-            ["Work Activity", data.work_activity],
-            ["Work Area / Station", data.work_area],
-            ["Weather", data.weather_conditions],
+            [t("Project Number"), data.project_number],
+            [t("Client"), data.client],
+            [t("Project Manager"), data.pm_name],
+            [t("Subcontractor"), data.subcontractor_name],
+            [t("Crew / Company"), data.crew_company],
+            [t("Inspector"), data.inspector_name],
+            [t("Work Activity"), data.work_activity],
+            [t("Work Area / Station"), data.work_area],
+            [t("Weather"), data.weather_conditions],
             ...(data.inspection_kind === "concrete_form"
               ? [
-                  ["Mix Design", data.mix_design],
-                  ["Yards Ordered (CY)", data.yards_ordered],
-                  ["Concrete Vendor", data.concrete_vendor],
+                  [t("Mix Design"), data.mix_design],
+                  [t("Yards Ordered (CY)"), data.yards_ordered],
+                  [t("Concrete Vendor"), data.concrete_vendor],
                 ]
               : []),
           ]} />
@@ -139,10 +139,12 @@ export default function ViewQaqcInspection() {
                    c.result === "fail" ? "bg-red-100 text-red-900" :
                    "bg-slate-100 text-slate-600")
                 }>
-                  {c.result === "na" ? "N/A" : c.result.toUpperCase()}
+                  {c.result === "pass" ? t("PASS") :
+                   c.result === "fail" ? t("FAIL") :
+                   t("N/A")}
                 </span>
                 <div className="flex-1 text-sm text-slate-900">
-                  <div>{c.label}</div>
+                  <div>{t(c.label)}</div>
                   {c.note && <div className="text-xs text-slate-500 mt-0.5">↳ {c.note}</div>}
                 </div>
               </div>
@@ -150,15 +152,15 @@ export default function ViewQaqcInspection() {
           </div>
 
           <KVGrid pairs={[
-            ["Pass Items", data.pass_count],
-            ["Fail Items", data.fail_count],
-            ["N/A Items", data.na_count],
+            [t("Pass Items"), data.pass_count],
+            [t("Fail Items"), data.fail_count],
+            [t("N/A Items"), data.na_count],
           ]} />
 
           <Heading>{t("Notes & Corrective Actions")}</Heading>
-          <Para label="Inspection Notes" value={data.inspection_notes} />
-          <Para label="Deficiencies" value={data.deficiencies} />
-          <Para label="Corrective Actions" value={data.corrective_actions} />
+          <Para label={t("Inspection Notes")} value={data.inspection_notes} />
+          <Para label={t("Deficiencies")} value={data.deficiencies} />
+          <Para label={t("Corrective Actions")} value={data.corrective_actions} />
 
           {data.photos?.length > 0 && (
             <>
