@@ -1,5 +1,39 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Field Track Lesson Reorder + Lesson 4 Toolbox Talk Videos
+
+User requested re-numbering of Field Crew Training lessons 4–7 to put Safety Meetings ahead of JHA / Incidents / Site Inspection. Two new bilingual videos (Lesson 4 — Toolbox Talk) added.
+
+### New Field Crew lesson order
+| # | Slug | Title (EN) | Title (ES) | Video |
+|---|---|---|---|---|
+| 1 | `field-01-hub-navigation` | Navigating the MASCI Hub | Navegando el Hub MASCI | EN+ES ✅ |
+| 2 | `field-02-daily-report` | Daily Reports | Reportes Diarios | EN+ES ✅ |
+| 3 | `field-03-equipment-preop` | Equipment Pre-Op Inspection | Inspección Pre-Operación de Equipo | EN+ES ✅ |
+| **4** | `field-04-safety-meeting` | **Safety Meetings (Toolbox Talks)** | **Reuniones de Seguridad (Charlas de Caja)** | **EN+ES ✅ NEW** |
+| 5 | `field-05-jha` | Job Hazard Analysis (JHA / JSA) | Análisis de Peligros del Trabajo | placeholder |
+| 6 | `field-06-incident` | Accident / Incident Reports | Reportes de Accidente / Incidente | placeholder |
+| 7 | `field-07-site-inspection` | Site Safety Inspection | Inspección de Seguridad del Sitio | placeholder |
+
+### What changed (consistent everywhere)
+- **`/app/frontend/src/data/training.js`**: 4 lesson blocks reordered + slugs renamed (`field-04-site-inspection` → `field-07-site-inspection`, `field-05-safety-meeting` → `field-04-safety-meeting`, `field-06-jha` → `field-05-jha`, `field-07-incident` → `field-06-incident`).
+- **`/app/frontend/src/data/training_es.js`**: Same reorder + slug rename in Spanish translations dict.
+- **`/app/backend/training_pdf.py`**: `FIELD_LESSONS` array reordered + slugs renamed → all 12 PDF permutations (field/shop/pm/admin × en/es/bi) regenerate with the new order.
+- **`/app/backend/server.py`**: `_DEFAULT_TRAINING_VIDEOS` adds `field-04-safety-meeting` entry; the legacy CDN→self-hosted migration logic continues to handle DB doc transitions.
+- **`/app/backend/static/training-videos/`**: 2 new MP4s — `field-04-safety-meeting.en.mp4` (21.7 MB, 4:03) + `field-04-safety-meeting.es.mp4` (23.1 MB, 4:37). Both re-muxed with `+faststart` (moov atom at byte 36), H.264 High / AAC LC / 1280×720.
+
+### Verified
+- ✅ UI lesson order EN: 1→2→3→4(Safety Meeting)→5(JHA)→6(Incident)→7(Site Inspection)
+- ✅ UI lesson order ES: same with Spanish titles (Lección 4 — Reuniones de Seguridad, etc.)
+- ✅ PDF EN: contains "Lesson 4 — Safety Meetings" + "Lesson 7 — Site Safety Inspection"
+- ✅ PDF ES: contains "Lección 4 — Reuniones de Seguridad" + "Lección 7 — Inspección de Seguridad"
+- ✅ PDF BI: contains both EN and ES titles in correct positions
+- ✅ Footer count: 1 per non-cover page across all 3 PDF variants (no duplicates)
+- ✅ `/api/training/videos` returns 4 slugs × {en, es} dict; URL resolution in browser correct
+- ✅ `/api/training/video/field-04-safety-meeting.{en,es}.mp4` returns HTTP 206 with `Content-Range` and `accept-ranges: bytes` (smooth streaming)
+- ✅ moov atom at byte 36 on both new videos (FAST-START)
+
+
 ## 2026-05-03 — Training Video Playback Fix (Root Cause: moov atom + Range delivery)
 
 User reported: "Videos are skipping, cutting in/out, or not playing smoothly. Original source files play perfectly outside the system." This pattern is the universal signature of an MP4 with the `moov` atom at the END of the file being served by a CDN that doesn't web-optimize.

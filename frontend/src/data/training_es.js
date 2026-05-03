@@ -75,28 +75,8 @@ export const LESSON_TRANSLATIONS_ES = {
       "Puntos de seguridad mayor = ALTO, no opere.",
     ],
   },
-  "field-04-site-inspection": {
-    title_es: "Lección 4 — Inspección de Seguridad del Sitio",
-    why_es: "Recorridos diarios y semanales para atrapar peligros antes de que lastimen a alguien. Calificados automáticamente para ver de un vistazo si su sitio está pasando OSHA.",
-    steps_es: [
-      "Hub → Seguridad → Inspecciones → Nueva Inspección.",
-      "Llene información del proyecto, elija Día o Noche, ingrese nombres de Inspector + Capataz.",
-      "Liste la cuadrilla y cualquier sub en sitio. Anote clima y en qué trabaja la cuadrilla hoy.",
-      "Recorra el sitio. Califique Cumplimiento de EPP, Peligros del Sitio, MOT, Protección contra Caídas, Eléctrico, Orden, Fuego, Estrés por Calor/Frío como Aprobado / Falla / N/A. El % en vivo se actualiza conforme avanza.",
-      "Fotografíe cada Falla. Anote Suspensión de Trabajo emitida, Corregido en Sitio, Parte Responsable.",
-      "Inspector + Capataz firman. Envíe.",
-    ],
-    tips_es: [
-      "Las inspecciones semanales son más completas que las diarias. Use el mismo formulario — solo marque más puntos.",
-      "Una Calificación en Vivo bajo 80% debe activar una parada con la cuadrilla.",
-    ],
-    cheatSheet_es: [
-      "Aprobado/Falla por cada categoría. Foto a cada Falla.",
-      "Calificación en Vivo muestra dónde está. <80% = parada.",
-    ],
-  },
-  "field-05-safety-meeting": {
-    title_es: "Lección 5 — Reuniones de Seguridad (Charlas de Caja)",
+  "field-04-safety-meeting": {
+    title_es: "Lección 4 — Reuniones de Seguridad (Charlas de Caja)",
     why_es: "Junta diaria requerida antes de comenzar el trabajo. Documenta que la cuadrilla fue informada sobre los peligros de hoy — crítico si OSHA aparece o pasa un incidente después.",
     steps_es: [
       "Hub → Seguridad → Reuniones de Seguridad → Nueva Reunión.",
@@ -115,8 +95,8 @@ export const LESSON_TRANSLATIONS_ES = {
       "Cada asistente firma. Conductor firma. Envíe.",
     ],
   },
-  "field-06-jha": {
-    title_es: "Lección 6 — Análisis de Peligros del Trabajo (JHA / JSA)",
+  "field-05-jha": {
+    title_es: "Lección 5 — Análisis de Peligros del Trabajo (JHA / JSA)",
     why_es: "Se hace ANTES de que comience una tarea específica, no al inicio del día. Recorre cada paso, lista cada peligro, documenta cada control. Mejor defensa contra 'no sabíamos' después de un incidente.",
     steps_es: [
       "Hub → Seguridad → Análisis de Peligros → Nuevo JHA.",
@@ -137,8 +117,8 @@ export const LESSON_TRANSLATIONS_ES = {
       "Cada miembro firma. El capataz aprueba.",
     ],
   },
-  "field-07-incident": {
-    title_es: "Lección 7 — Reportes de Accidente / Incidente",
+  "field-06-incident": {
+    title_es: "Lección 6 — Reportes de Accidente / Incidente",
     why_es: "El momento que algo sale mal, este es el formulario. Cuasi-accidente, primeros auxilios, médico, DART, fatalidad — cada nivel se documenta. Causa raíz, testigos, acciones correctivas — todo en un registro.",
     steps_es: [
       "ASEGURE LA ESCENA PRIMERO. Consiga atención médica a los trabajadores lesionados. Llame al 911 si es grave. LUEGO abra la app.",
@@ -162,6 +142,26 @@ export const LESSON_TRANSLATIONS_ES = {
       "Escena segura → médica primero → app después.",
       "Tipo + Severidad → Persona → Historia → Causa Raíz → Testigos → Correcciones → Notificaciones → Fotos.",
       "Reportero + Supervisor firman. Seguridad recibe correo automático.",
+    ],
+  },
+  "field-07-site-inspection": {
+    title_es: "Lección 7 — Inspección de Seguridad del Sitio",
+    why_es: "Recorridos diarios y semanales para atrapar peligros antes de que lastimen a alguien. Calificados automáticamente para ver de un vistazo si su sitio está pasando OSHA.",
+    steps_es: [
+      "Hub → Seguridad → Inspecciones → Nueva Inspección.",
+      "Llene información del proyecto, elija Día o Noche, ingrese nombres de Inspector + Capataz.",
+      "Liste la cuadrilla y cualquier sub en sitio. Anote clima y en qué trabaja la cuadrilla hoy.",
+      "Recorra el sitio. Califique Cumplimiento de EPP, Peligros del Sitio, MOT, Protección contra Caídas, Eléctrico, Orden, Fuego, Estrés por Calor/Frío como Aprobado / Falla / N/A. El % en vivo se actualiza conforme avanza.",
+      "Fotografíe cada Falla. Anote Suspensión de Trabajo emitida, Corregido en Sitio, Parte Responsable.",
+      "Inspector + Capataz firman. Envíe.",
+    ],
+    tips_es: [
+      "Las inspecciones semanales son más completas que las diarias. Use el mismo formulario — solo marque más puntos.",
+      "Una Calificación en Vivo bajo 80% debe activar una parada con la cuadrilla.",
+    ],
+    cheatSheet_es: [
+      "Aprobado/Falla por cada categoría. Foto a cada Falla.",
+      "Calificación en Vivo muestra dónde está. <80% = parada.",
     ],
   },
 

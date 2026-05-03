@@ -146,34 +146,10 @@ const FIELD_LESSONS = [
     ],
   },
   {
-    slug: "field-04-site-inspection",
+    slug: "field-04-safety-meeting",
     track: "field",
     order: 4,
-    title: "Lesson 4 — Site Safety Inspection",
-    why: "Daily and weekly walk-throughs to catch hazards before they hurt someone. Graded automatically so you can see at a glance if your site is passing OSHA.",
-    duration: "~5 min",
-    steps: [
-      "Hub → Safety → Site Inspections → New Inspection.",
-      "Fill project info, pick Day or Night operation, enter Inspector + Foreman names.",
-      "List the crew and any subs onsite. Note weather and what the crew is working on today.",
-      "Walk the site. Grade PPE Compliance, Site Hazards, MOT, Fall Protection, Electrical, Housekeeping, Fire, Heat/Cold Stress as Pass / Fail / N/A. Live Grade % updates as you go.",
-      "Photo any Fail. Note Stop Work issued, Corrected On Site, Responsible Party.",
-      "Inspector + Foreman sign. Submit.",
-    ],
-    tips: [
-      "Weekly inspections are more thorough than daily. Use the same form — just mark more items.",
-      "A Live Grade below 80% should trigger a stand-down with the crew.",
-    ],
-    cheatSheet: [
-      "Pass/Fail each category. Photo every Fail.",
-      "Live Grade shows where you stand. <80% = stand-down.",
-    ],
-  },
-  {
-    slug: "field-05-safety-meeting",
-    track: "field",
-    order: 5,
-    title: "Lesson 5 — Safety Meetings (Toolbox Talks)",
+    title: "Lesson 4 — Safety Meetings (Toolbox Talks)",
     why: "Required daily huddle before work starts. Documents that the crew was briefed on today's hazards — critical if OSHA shows up or an incident happens later.",
     duration: "~4 min",
     steps: [
@@ -194,10 +170,10 @@ const FIELD_LESSONS = [
     ],
   },
   {
-    slug: "field-06-jha",
+    slug: "field-05-jha",
     track: "field",
-    order: 6,
-    title: "Lesson 6 — Job Hazard Analysis (JHA / JSA)",
+    order: 5,
+    title: "Lesson 5 — Job Hazard Analysis (JHA / JSA)",
     why: "Done BEFORE a specific task starts, not at the start of the day. Walks every step, lists every hazard, documents every control. Best defense against 'we didn't know' after an incident.",
     duration: "~6 min",
     steps: [
@@ -220,10 +196,10 @@ const FIELD_LESSONS = [
     ],
   },
   {
-    slug: "field-07-incident",
+    slug: "field-06-incident",
     track: "field",
-    order: 7,
-    title: "Lesson 7 — Accident / Incident Reports",
+    order: 6,
+    title: "Lesson 6 — Accident / Incident Reports",
     why: "The moment something goes wrong, this is the form. Near miss, first aid, medical, DART, fatality — every level gets documented. Root cause, witnesses, corrective actions — all in one record.",
     duration: "~7 min",
     steps: [
@@ -248,6 +224,30 @@ const FIELD_LESSONS = [
       "Scene safe → medical first → app second.",
       "Type + Severity → Person → Story → Root Cause → Witnesses → Fixes → Notifications → Photos.",
       "Reporter + Supervisor sign. Safety is emailed automatically.",
+    ],
+  },
+  {
+    slug: "field-07-site-inspection",
+    track: "field",
+    order: 7,
+    title: "Lesson 7 — Site Safety Inspection",
+    why: "Daily and weekly walk-throughs to catch hazards before they hurt someone. Graded automatically so you can see at a glance if your site is passing OSHA.",
+    duration: "~5 min",
+    steps: [
+      "Hub → Safety → Site Inspections → New Inspection.",
+      "Fill project info, pick Day or Night operation, enter Inspector + Foreman names.",
+      "List the crew and any subs onsite. Note weather and what the crew is working on today.",
+      "Walk the site. Grade PPE Compliance, Site Hazards, MOT, Fall Protection, Electrical, Housekeeping, Fire, Heat/Cold Stress as Pass / Fail / N/A. Live Grade % updates as you go.",
+      "Photo any Fail. Note Stop Work issued, Corrected On Site, Responsible Party.",
+      "Inspector + Foreman sign. Submit.",
+    ],
+    tips: [
+      "Weekly inspections are more thorough than daily. Use the same form — just mark more items.",
+      "A Live Grade below 80% should trigger a stand-down with the crew.",
+    ],
+    cheatSheet: [
+      "Pass/Fail each category. Photo every Fail.",
+      "Live Grade shows where you stand. <80% = stand-down.",
     ],
   },
 ];

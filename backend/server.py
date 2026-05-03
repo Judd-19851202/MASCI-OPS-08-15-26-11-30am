@@ -4741,6 +4741,10 @@ _DEFAULT_TRAINING_VIDEOS = {
         "en": "/api/training/video/field-03-equipment-preop.en.mp4",
         "es": "/api/training/video/field-03-equipment-preop.es.mp4",
     },
+    "field-04-safety-meeting": {
+        "en": "/api/training/video/field-04-safety-meeting.en.mp4",
+        "es": "/api/training/video/field-04-safety-meeting.es.mp4",
+    },
 }
 
 
