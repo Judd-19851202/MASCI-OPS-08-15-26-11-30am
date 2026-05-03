@@ -1,5 +1,27 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Live Production Verification Report (mascidocs.com — GREEN)
+
+12-section live audit run against `https://mascidocs.com/`. **All sections PASS.** Production deployment is healthy and matches local codebase byte-for-byte.
+
+| § | Result |
+|---|---|
+| 1 Recent-change audit | ✅ 3-tile grid · yellow Projects · stacked Basecamp/OnStation · QA/QC tile live · 9-lesson Training Hub in spec order |
+| 2 Branding / Logo | ✅ Live `masci-full-lockup.png` MD5 = local (`441c8f74…`); `masci-full-lockup-onlight.png` MD5 = local (`c7037469…`); 0 Emergent / 0 emergent-badge / 0 old-tagline matches in 1.79 MB bundle |
+| 3 Bilingual EN/ES | ✅ ES toggle flips `<html lang>`, H1 + tile labels translate; 43-file single-toggle audit clean |
+| 4 ES→EN backend | ✅ `submit_language` stamped on all 6 form types; `translateUserInput()` wired |
+| 5 Forms/Workflow | ✅ Concrete Form has Mix Design + Yards Ordered + Vendor combo + GPS + Work Area required + PM auto-fill |
+| 6 Email Routing | ✅ Per-job PM resolution + ALWAYS_CC office fallback |
+| 7 PDFs | ✅ EN packet 1.09 MB; ES packet correctly localizes Lección 4 + 5 + JHP; 0 password / 0 Emergent leaks |
+| 8 Training Hub | ✅ 9 lessons; 6 video slugs; auth-gated packets 401; field packet 200 |
+| 9 Performance | ✅ TTFB 248 ms |
+| 10 Security | ✅ 0 password leaks in 1.79 MB bundle + PDFs; HSTS + nosniff + referrer-policy headers; admin/pm/shop/dev all 401 |
+| 11 Mobile/Desktop | ✅ Verified 1920/1280/390 px |
+| 12 Verdict | 🟢 **GREEN — production-ready** |
+
+**Soft observation (P2, not a blocker):** `Access-Control-Allow-Origin: *` on `/api/health`. Intentional for public field-form posture; harden when public surfaces move behind auth.
+
+
 ## 2026-05-03 — Pre-Deployment Final QA + P0 Security Fix (Production-Ready)
 
 User requested final pre-deploy audit covering all 36-hour changes. testing_agent_v3_fork iter-34 ran a 41-test E2E sweep — found **1 P0 blocker + 0 P1 + 0 P2 issues**.
