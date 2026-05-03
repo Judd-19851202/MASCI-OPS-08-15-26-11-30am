@@ -339,6 +339,10 @@ const ES = {
   "Site Inspections": "Inspecciones de Obra",
   "Safety Meetings": "Reuniones de Seguridad",
   "Job Hazard Plan": "Plan de Peligros del Trabajo",
+  "Start Form": "Iniciar Formulario",
+  "Open Library": "Abrir Biblioteca",
+  "Open Plans": "Abrir Planes",
+  "Open Cards": "Abrir Tarjetas",
   "Incident Reports": "Reportes de Incidentes",
   "Daily and weekly job-site safety inspections. PPE, MOT, fall protection, electrical, and more — graded automatically.":
     "Inspecciones diarias y semanales del sitio. EPP, control de tránsito, protección contra caídas, eléctrico y más — calificadas automáticamente.",
