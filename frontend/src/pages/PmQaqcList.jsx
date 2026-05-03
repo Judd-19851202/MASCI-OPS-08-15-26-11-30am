@@ -138,7 +138,7 @@ export default function PmQaqcList() {
               <option value="">— Pick your name —</option>
               {pms.map((p) => (
                 <option key={p.id} value={p.email}>
-                  {p.name} · {p.email}
+                  {p.name} — {p.email}
                 </option>
               ))}
             </select>

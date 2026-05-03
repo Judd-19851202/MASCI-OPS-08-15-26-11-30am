@@ -1,5 +1,84 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — QA/QC PM Portal Integration + Concrete-Form Enhancements (P0 close-out)
+
+Completes the QA/QC module the previous fork left mid-stream. All three inspections (Concrete Form, Rebar, Subcontractor Work) are now wired end-to-end: Field Hub → Form → Backend → Auto-Email to PM → PM Portal scoped list → Admin Hub list.
+
+### What shipped this pass
+
+**1. PM Portal QA/QC integration** (the missing piece from prior fork)
+- New `/pm/qaqc` page (`pages/PmQaqcList.jsx`) — PM-scoped list with viewer-identity picker (PMs share `Happy123!` so they self-identify once via dropdown; choice persists in `localStorage.masci.pm.viewer.email`).
+- New `pm-tile-qaqc` tile on `/pm` (PmHub) showing total count and linking to `/pm/qaqc`.
+- New backend endpoint `GET /api/pm/qaqc-inspections?pm=<email|name>` — admin-or-PM gated. Empty `pm` returns `[]` (security default — won't leak all records). Filters `qaqc_inspections` by `pm_email` (canonical) or `pm_name` (fallback).
+
+**2. Concrete-Form gets placement controls** (user requested)
+- New required fields on `/qaqc/concrete-form/new`:
+  - **Mix Design** (text, e.g. "4000 PSI Class IV")
+  - **Yards Ordered** (number, CY)
+  - **Concrete Vendor** — searchable `SupplierCombo` with add-new
+- All three are validated client-side; the Concrete Placement section only renders for `concrete-form` slug. Rebar + Subcontractor-Work forms remain unchanged.
+- PDF (`pdf_render._render_qaqc`) renders a "Concrete Placement" subsection only for `inspection_kind=concrete_form` records that carry any of the three fields.
+- View page (`ViewQaqcInspection.jsx`) extends KVGrid for concrete-form records.
+
+**3. Subcontractor / Vendor — searchable on every QA/QC form**
+- Replaced plain `Input` for Subcontractor with `SupplierCombo` (existing component, already wired to `/api/suppliers` + `/api/suppliers/add` add-new path).
+- Same combo used for the new Concrete Vendor field.
+
+**4. PM auto-fill from JobPicker** (user requested)
+- `applyJob()` in `NewQaqcInspection.jsx` now copies `job.project_manager → pm_name` AND `job.pm_email → pm_email`. Project Manager input shows "Auto-filled from job" placeholder; remains editable as a fallback.
+- Backend POST `/qaqc-inspections` does a server-side backfill from `jobs_master` if the payload omitted PM info — so legacy/custom job paths still route correctly.
+
+**5. GPS button on Location** (user requested)
+- New `qaqc-gps-btn` button next to Location field. Uses `lib/geolocation.js` (existing — same as NewIncident / NewMeeting / NewDailyReport) → reverse-geocodes via Nominatim and fills the Location input.
+
+**6. Work Area / Station required on every QA/QC form** (user requested)
+- Field marked required (red asterisk), client-side validation rejects empty value.
+
+**7. Admin Hub QA/QC tile**
+- New `admin-tile-qaqc` tile on `/admin` showing total count and linking to existing `/admin/qaqc`.
+
+### Backend additions
+- `routes/qaqc.py`:
+  - `QaqcInspectionCreate.work_area` is now required (was optional).
+  - New optional fields: `pm_email`, `mix_design`, `yards_ordered`, `concrete_vendor`.
+  - `QaqcInspectionSummary` now exposes `pm_name` + `pm_email`.
+  - POST: server-side PM backfill from `jobs_master` (idempotent — only fills when payload omits).
+  - New endpoint `GET /api/pm/qaqc-inspections?pm=<email|name>`.
+
+### Verification (testing_agent_v3_fork iter-32)
+- Backend: **16/16 pytest pass** (`/app/backend/tests/test_qaqc_inspections_iter32.py`):
+  - POST with new concrete fields persists correctly.
+  - Server-side PM backfill: `project_number=25-15` → `Chris Wright/chriswright@mascigc.com`.
+  - Admin GET list includes `pm_name` + `pm_email`.
+  - PM-scoped GET filters by email + by name; empty pm → `[]`; unknown PM → `[]`.
+  - Server-side count recomputation verified (`pass=2 / fail=1 / na=1`).
+  - DELETE works; no `_id` leakage.
+- Frontend: **7/7 UI checks pass**:
+  - `/admin` admin-tile-qaqc renders + nav.
+  - `/pm` pm-tile-qaqc renders + nav.
+  - `/pm/qaqc` empty-state requires PM picker; selecting Chris Wright persists localStorage.
+  - `/qaqc/concrete-form/new` shows all 7 critical fields (Mix Design, Yards Ordered, Concrete Vendor combo, Subcontractor combo, Work Area, GPS button, Job picker).
+  - `/qaqc/rebar/new` HIDES concrete-only fields, keeps Sub combo + GPS + Work Area.
+  - `/qaqc/subcontractor-work/new` shows Work Activity + shared fields.
+
+### Files touched
+- **NEW**: `frontend/src/pages/PmQaqcList.jsx`
+- **MODIFIED**: `backend/routes/qaqc.py` (new fields, PM backfill, /pm/qaqc-inspections endpoint)
+- **MODIFIED**: `backend/pdf_render.py` (Concrete Placement section in `_render_qaqc`)
+- **MODIFIED**: `frontend/src/pages/NewQaqcInspection.jsx` (full rewrite — SupplierCombo, GPS, concrete-only fields, PM auto-fill)
+- **MODIFIED**: `frontend/src/lib/qaqcSchema.js` (added `hasConcreteFields()`)
+- **MODIFIED**: `frontend/src/pages/PmHub.jsx` (added pm-tile-qaqc)
+- **MODIFIED**: `frontend/src/pages/AdminHub.jsx` (added admin-tile-qaqc)
+- **MODIFIED**: `frontend/src/pages/ViewQaqcInspection.jsx` (KVGrid for concrete fields)
+- **MODIFIED**: `frontend/src/App.js` (added `/pm/qaqc` route)
+
+### Backlog
+- **P1** Equipment Parts upload — BLOCKED (waiting on .xlsx from user)
+- **P1** Auto-suggest parts on Pre-Op FAIL — 1-click order from Shop Sign-off card
+- **P2** New Hire Onboarding flow (still "Coming Soon")
+- **P2** S3 object-storage migration for files/videos
+
+
 ## 2026-05-03 — Logo Cleanup & Tagline Consolidation (P0 Fix)
 
 User reported: (1) the new logo PNG had a heavy black box visible against the dark navy header, and (2) the tagline appeared duplicated below the hero subtext.
