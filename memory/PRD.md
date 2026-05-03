@@ -1,5 +1,45 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — QA/QC Bilingual Completeness + System-Wide Pass/Fail/N/A Audit (P0)
+
+User reported QA/QC Concrete Form Inspection translated ~85 % to ES — checklist labels and PASS/FAIL/N/A buttons stayed English. Root cause: hard-coded button labels + no ES dict entries for the schema's checklist strings. Spec also asked for system-wide standardization on `Pass→Cumple`, `Fail→No Cumple`, `N/A→N/A`, and required PDFs to honor `submit_language`.
+
+### What shipped
+
+**1. UI fix (Sections 1, 2, 4 of spec)**
+- `NewQaqcInspection.jsx` — wrapped tally-badge labels and PASS/FAIL/N/A button labels in `t()`. ChecklistRow already called `t(item.label)` so the dict additions auto-translate.
+- `ViewQaqcInspection.jsx` — wrapped all KVGrid pair labels (Project Number, Client, Project Manager, Subcontractor, Crew/Company, Inspector, Work Activity, Work Area/Station, Weather, Mix Design, Yards Ordered, Concrete Vendor), the checklist row PASS/FAIL/N/A badge, and the Para field labels (Inspection Notes, Deficiencies, Corrective Actions). `t(c.label)` on each row.
+- `ViewEquipmentInspection.jsx` — `StatusPill` converted to call `useT()` internally so PASS/FAIL/N/A pills + summary tally labels (Pass/Fail/N/A) translate. `Inspection Summary` heading wrapped.
+
+**2. i18n.js — 80+ new ES translations**
+- Pass→Cumple, Fail→No Cumple, FAIL→NO CUMPLE, PASS→CUMPLE (system-wide override of prior "Aprobado/Falla")
+- 12 section titles (Obra, Subcontratista / Cuadrilla, Inspección, Vaciado de Concreto, Lista de Verificación, Notas y Acción Correctiva, Fotos, Firma, Resumen de Inspección, etc.)
+- 30+ field labels (Mix Design, Yards Ordered, Inspector Name, Work Area, Weather/Site Conditions, etc.)
+- 38 checklist labels covering all 3 forms (concrete-form 13 items, rebar 12 items, subcontractor-work 13 items)
+- Helper text + 12 validation toasts (Select a job, Minimum 3 photos required, etc.)
+
+**3. PDF localization (Section 6)**
+- `pdf_render._QAQC_ES` — module-level EN→ES dict mirroring the frontend i18n entries. Self-contained, no coupling to the frontend bundle.
+- `_render_qaqc()` — reads `record.submit_language`, applies an inline `L(en)` helper to every static label (section titles, field labels, checklist[].label, badge text, FAIL banner, signatures section).
+- `render_record_pdf()` — when `kind=='qaqc'` and submit_language is ES, also localizes the page title from KIND_TITLES via `_QAQC_ES` lookup so the PDF title reads "Inspección de QA / QC".
+- User-entered free-text (notes, deficiencies, signature names) intentionally stays in whatever language the office stores it in — per Section 7's translate-on-submit contract (`translateUserInput` runs on the frontend before POST so the DB always has English free-text).
+
+### Verification (Section 8)
+- testing_agent_v3_fork iter-33: **21/21 backend pytest** + **3/3 frontend QA/QC forms** all pass. Zero English leakage in ES. Zero Spanish leakage in EN. Toggle EN↔ES updates instantly via `useT()` subscription, no page refresh.
+- All 3 QA/QC forms (concrete-form, rebar, subcontractor-work) verified independently — Vaciado de Concreto section correctly hidden on rebar + subcontractor-work.
+- `pdftotext` audit on ES-submit PDF: title localized, all section headers in Spanish, every checklist label translated, badge reads CUMPLE/NO CUMPLE/N/A, banner reads "no cumplen — se requiere acción correctiva".
+- EN regression: PDF still renders 100 % English when submit_language=en.
+
+### Files touched
+- **`frontend/src/lib/i18n.js`** — 80+ ES translations added (Pass/Fail terminology change is system-wide)
+- **`frontend/src/pages/NewQaqcInspection.jsx`** — t() wraps for tally + buttons
+- **`frontend/src/pages/ViewQaqcInspection.jsx`** — t() wraps for KV labels, badge, checklist label, Para labels
+- **`frontend/src/pages/ViewEquipmentInspection.jsx`** — StatusPill uses useT, summary labels wrapped
+- **`backend/pdf_render.py`** — `_QAQC_ES` dict + `_render_qaqc` localization + `render_record_pdf` qaqc-title localization
+- **NEW**: `/app/backend/tests/test_qaqc_bilingual_iter33.py` (21 tests)
+- **NEW**: `/app/test_reports/pytest/iter33_qaqc_bilingual.xml` (JUnit)
+
+
 ## 2026-05-03 — Field Training: Material Calculators + QA/QC Lessons (P0)
 
 User requested 2 new training lessons in the Field Crew Training track:
