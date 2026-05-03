@@ -75,17 +75,29 @@ function setByPath(root, path, value) {
 
 /**
  * Translate freeform user text in `payload` from `fromLang` (e.g. "es") into
- * English. Returns a NEW payload object — original is not mutated. If the
- * backend translate call fails for any reason, the original payload is
- * returned (we never block submit on a translation failure).
+ * English, and stamp the original submit language onto the returned payload
+ * so admins can see which records were originally filed in Spanish.
+ *
+ * - Returns a NEW payload object (original is never mutated).
+ * - `submit_language` is ALWAYS set on the output ("en" | "es") regardless
+ *   of whether any translation was actually needed. Downstream admin views
+ *   + the /api/admin/submit-language-stats endpoint read this field.
+ * - If the backend translate call fails for any reason, we still return a
+ *   clone of the original payload with `submit_language` stamped — we never
+ *   block submit on a translation failure.
  */
 export async function translateUserInput(payload, fromLang) {
-  if (!fromLang || fromLang === "en") return payload;
+  // English — no LLM call needed, still stamp the language for audit.
+  if (!fromLang || fromLang === "en") {
+    return { ...payload, submit_language: "en" };
+  }
 
   const items = [];
   collect(payload, "", items);
 
-  if (items.length === 0) return payload;
+  if (items.length === 0) {
+    return { ...payload, submit_language: fromLang };
+  }
 
   // Send the items as a flat dict { idx -> string }
   const dict = {};
@@ -109,9 +121,10 @@ export async function translateUserInput(payload, fromLang) {
         setByPath(next, it.path, translated[k]);
       }
     });
+    next.submit_language = fromLang;
     return next;
   } catch (err) {
     console.warn("Auto-translate failed; submitting as-typed.", err);
-    return payload;
+    return { ...payload, submit_language: fromLang };
   }
 }

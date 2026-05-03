@@ -906,6 +906,60 @@ async def admin_check(_: bool = Depends(require_admin)):
     return {"ok": True}
 
 
+@api_router.get("/admin/submit-language-stats")
+async def admin_submit_language_stats(_: bool = Depends(require_admin)):
+    """Per-collection counts of how many records were originally filed in
+    Spanish vs English. Surfaces MASCI's bilingual-crew adoption so admins
+    can see at a glance how much of the workforce is using Spanish mode.
+
+    Every form submission stamps `submit_language` ("en" | "es") at the
+    moment of submit. Missing field (legacy records from before the stamp
+    was added) counts as "unknown" and rolls up to "en" in totals so
+    default behaviour doesn't over-report Spanish usage.
+    """
+    collections = [
+        ("inspections", "Site Inspections"),
+        ("meetings", "Safety Meetings"),
+        ("incidents", "Incident Reports"),
+        ("daily_reports", "Daily Reports"),
+        ("equipment_inspections", "Equipment Pre-Op"),
+    ]
+    out = []
+    grand_en = 0
+    grand_es = 0
+    grand_unknown = 0
+    for coll_name, label in collections:
+        total = await db[coll_name].count_documents({})
+        es = await db[coll_name].count_documents({"submit_language": "es"})
+        en = await db[coll_name].count_documents({"submit_language": "en"})
+        unknown = max(0, total - es - en)
+        grand_en += en
+        grand_es += es
+        grand_unknown += unknown
+        out.append({
+            "collection": coll_name,
+            "label": label,
+            "total": total,
+            "en": en,
+            "es": es,
+            "unknown": unknown,
+            "es_pct": round((es / total) * 100, 1) if total else 0.0,
+        })
+    grand_total = grand_en + grand_es + grand_unknown
+    return {
+        "by_collection": out,
+        "totals": {
+            "total": grand_total,
+            "en": grand_en,
+            "es": grand_es,
+            "unknown": grand_unknown,
+            "es_pct": round((grand_es / grand_total) * 100, 1) if grand_total else 0.0,
+        },
+    }
+
+
+
+
 @api_router.post("/shop/login")
 async def shop_login(body: AdminLoginRequest, request: Request):
     """Mirror of /admin/login but for the shop console (mechanics)."""

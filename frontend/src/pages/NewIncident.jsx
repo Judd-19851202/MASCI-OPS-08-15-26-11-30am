@@ -157,6 +157,7 @@ export default function NewIncident({ publicMode = false }) {
         const { translateUserInput } = await import("@/lib/translateOnSubmit");
         payload = await translateUserInput(data, "es");
       }
+      payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/incidents", payload);
       toast.success("Incident report saved");
       if (publicMode || !isAdmin()) {

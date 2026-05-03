@@ -11,6 +11,7 @@ import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
+import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import ShopSignoffCard from "@/components/ShopSignoffCard";
 import { itemSeverity } from "@/lib/equipmentSeverity";
 import { isAdmin } from "@/lib/adminAuth";
@@ -152,6 +153,11 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
               <div className="text-sm text-slate-600 mt-2">
                 {formatDateLong(data.inspection_date)} · {data.inspection_time} · {data.location}
               </div>
+              {data.submit_language === "es" && (
+                <div className="mt-2">
+                  <SubmitLangBadge lang={data.submit_language} />
+                </div>
+              )}
             </div>
             {fail && (
               <div className="bg-red-50 border-2 border-red-700 rounded px-4 py-2 flex items-center gap-2">

@@ -441,6 +441,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
         const { translateUserInput } = await import("@/lib/translateOnSubmit");
         payload = await translateUserInput(payload, "es");
       }
+      payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/equipment-inspections", payload);
       toast.success(
         payload.fail_count > 0

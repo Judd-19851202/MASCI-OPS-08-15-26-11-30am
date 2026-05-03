@@ -15,6 +15,7 @@ import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
+import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import {
   SEVERITY_LEVELS,
   ROOT_CAUSE_CATEGORIES,
@@ -165,6 +166,11 @@ export default function ViewIncident() {
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1">
               Report ID · {data.id?.slice(0, 8).toUpperCase()}
             </div>
+            {data.submit_language === "es" && (
+              <div className="mt-2">
+                <SubmitLangBadge lang={data.submit_language} />
+              </div>
+            )}
             <div className="mt-2 flex items-center gap-2 flex-wrap">
               <span
                 className={`inline-flex items-center px-2.5 py-1 ${sev.color} text-white text-[11px] font-mono uppercase tracking-wider rounded font-bold`}

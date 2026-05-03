@@ -16,6 +16,7 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { BilingualConsent } from "@/components/BilingualConsent";
+import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 
 const ReportSection = ({ number, title, children }) => (
   <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
@@ -149,6 +150,11 @@ export default function ViewMeeting() {
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1">
               Report ID · {data.id?.slice(0, 8).toUpperCase()}
             </div>
+            {data.submit_language === "es" && (
+              <div className="mt-2">
+                <SubmitLangBadge lang={data.submit_language} />
+              </div>
+            )}
             <div className="mt-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex-wrap">
               <span>Accountability</span>
               <span className="w-1 h-1 rounded-full bg-red-700" />

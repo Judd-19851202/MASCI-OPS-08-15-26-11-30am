@@ -23,6 +23,7 @@ import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
+import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 
 const ReportSection = ({ number, title, children }) => (
   <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print:break-inside-avoid">
@@ -201,6 +202,11 @@ export default function ViewDailyReport() {
               Report ID · {data.id?.slice(0, 8).toUpperCase()}
               {data.report_number ? ` · #${data.report_number}` : ""}
             </div>
+            {data.submit_language === "es" && (
+              <div className="mt-2">
+                <SubmitLangBadge lang={data.submit_language} />
+              </div>
+            )}
           </div>
         </div>
 

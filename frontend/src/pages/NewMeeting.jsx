@@ -216,6 +216,7 @@ export default function NewMeeting({ publicMode = false }) {
         const { translateUserInput } = await import("@/lib/translateOnSubmit");
         payload = await translateUserInput(payload, "es");
       }
+      payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/meetings", payload);
       toast.success("Meeting saved");
       if (publicMode || !isAdmin()) {

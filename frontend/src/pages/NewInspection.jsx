@@ -155,6 +155,7 @@ export default function NewInspection({ publicMode = false }) {
         const { translateUserInput } = await import("@/lib/translateOnSubmit");
         payload = await translateUserInput(payload, "es");
       }
+      payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/inspections", payload);
       toast.success("Inspection saved");
       if (publicMode || !isAdmin()) {

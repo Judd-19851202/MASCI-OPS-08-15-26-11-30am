@@ -22,6 +22,7 @@ import {
   CONDITIONAL_SECTIONS,
 } from "@/lib/inspectionSchema";
 import { formatDateLong } from "@/lib/utils";
+import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 
 const StatusBadge = ({ value }) => {
   const v = (value || "").toString().toLowerCase();
@@ -215,6 +216,11 @@ export default function ViewInspection() {
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1">
               Report ID · {data.id?.slice(0, 8).toUpperCase()}
             </div>
+            {data.submit_language === "es" && (
+              <div className="mt-2">
+                <SubmitLangBadge lang={data.submit_language} />
+              </div>
+            )}
             <div className="mt-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex-wrap">
               <span>Accountability</span>
               <span className="w-1 h-1 rounded-full bg-red-700" />

@@ -1,5 +1,40 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Bilingual Adoption Tracking Shipped
+
+User ask: "Track & see how many [crew members] submit in Spanish."
+
+### What ships
+1. **`submit_language` stamp on every field submission.** The shared `translateUserInput()` helper in `lib/translateOnSubmit.js` now always stamps `submit_language: "en" | "es"` on the outgoing payload — whether or not it needed translation. The five `New*` form pages (Inspection, Meeting, Incident, DailyReport, EquipmentInspection) also explicitly spread `{ submit_language: lang }` just before `api.post(…)` so even the legacy "EN mode skips translate helper" path gets a stamp. Backend `Create` models already use `ConfigDict(extra="allow")` so the field is accepted and persisted to Mongo with no schema change.
+2. **`SubmitLangBadge` chip** (`components/SubmitLangBadge.jsx`). Renders a tiny amber "Originally entered in Spanish" pill with a `Languages` icon, `data-testid="submit-lang-badge"`. Shows nothing when language is EN or missing (no noise on the happy path).
+3. **Badge mounted on all 6 admin view pages**: `ViewInspection`, `ViewMeeting`, `ViewIncident`, `ViewDailyReport`, `ViewEquipmentInspection`. Placed right under the "Report ID · …" line so it's always visible above-the-fold.
+4. **New backend endpoint `GET /api/admin/submit-language-stats`** (admin-gated). Returns per-collection counts: `total`, `en`, `es`, `unknown` (legacy records that predate the stamp), and `es_pct`. Grand totals included.
+5. **`BilingualAdoptionCard`** on the Admin Hub (`components/BilingualAdoptionCard.jsx`). Renders 4 big-stat tiles (Total / EN / ES / ES%) + a per-form breakdown table. Legacy records shown faded so the happy-path read is clean.
+
+### Verification (preview)
+| Check | Result |
+| --- | --- |
+| Admin-authed `GET /api/admin/submit-language-stats` | 200, correctly structured JSON ✅ |
+| POST inspection with `submit_language: "es"` | `submit_language: "es"` in both POST response and round-trip GET ✅ |
+| Stats endpoint recomputes counts correctly after insert (es=1) | ✅ |
+| Bilingual card renders on /admin with 5 rows and 4 big-stat tiles | ✅ |
+| Legacy records classified as "unknown" (the 22 pre-stamp records) | ✅ |
+
+### Files touched
+- **NEW**: `frontend/src/components/SubmitLangBadge.jsx`
+- **NEW**: `frontend/src/components/BilingualAdoptionCard.jsx`
+- **MODIFIED**: `frontend/src/lib/translateOnSubmit.js` — always stamps `submit_language` (including EN mode).
+- **MODIFIED** (5 files): `frontend/src/pages/New{Inspection,Meeting,Incident,DailyReport,EquipmentInspection}.jsx` — spread `submit_language: lang || "en"` onto payload.
+- **MODIFIED** (5 files): `frontend/src/pages/View{Inspection,Meeting,Incident,DailyReport,EquipmentInspection}.jsx` — imported `SubmitLangBadge` and rendered it below the Report ID header.
+- **MODIFIED**: `frontend/src/pages/AdminHub.jsx` — imported + mounted `BilingualAdoptionCard` above the backup panel.
+- **MODIFIED**: `backend/server.py` — added `/api/admin/submit-language-stats` endpoint.
+
+### Future niceties (not shipped)
+- PDF badge on the cover of printed / emailed reports.
+- Per-user breakdown ("Crew Lead X files 90% in Spanish").
+- Date-range filter on the stats card (currently all-time counts).
+
+
 ## 2026-05-03 — Bilingual Translation System Audit & Tabulated Data Fix
 
 ### User report

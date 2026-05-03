@@ -388,6 +388,7 @@ export default function NewDailyReport({ publicMode = false }) {
         toast.info("Translating to English…");
         payload = await translateUserInput(data, "es");
       }
+      payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/daily-reports", payload);
       toast.success("Daily report saved");
       if (publicMode || !isAdmin()) {

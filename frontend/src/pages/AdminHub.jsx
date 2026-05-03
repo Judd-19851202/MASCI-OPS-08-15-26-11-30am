@@ -26,6 +26,7 @@ import BackupHeroPanel from "@/components/BackupHeroPanel";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import TrainingStatsStripe from "@/components/TrainingStatsStripe";
+import BilingualAdoptionCard from "@/components/BilingualAdoptionCard";
 import AdminJobMasterPanel from "@/components/AdminJobMasterPanel";
 import AdminPMPanel from "@/components/AdminPMPanel";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
@@ -345,6 +346,9 @@ export default function AdminHub() {
 
           {/* Data-loss warning banner — red if running on local Mongo, green if Atlas */}
           <PersistenceHealthBanner />
+
+          {/* Bilingual adoption — per-form EN vs ES filing counts */}
+          <BilingualAdoptionCard />
 
           {/* ONE-STOP backup + restore hero — 2 giant buttons, nothing else */}
           <BackupHeroPanel />
