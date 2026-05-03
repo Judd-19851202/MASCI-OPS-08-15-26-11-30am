@@ -1,5 +1,45 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Idle Warning Toast at 19-min mark + "Stay signed in" Action (UX polish)
+
+User accepted the proposed enhancement on top of the 20-min idle auto-logout.
+
+### What shipped
+`IdleTimeout.jsx` now fires a 60-second warning toast at the 19-minute mark instead of silently booting the user. Toast carries a `Stay signed in` action button — one click extends the session for another full 20 min.
+
+```
+const IDLE_MS = 20 * 60 * 1000;       // hard logout
+const WARN_BEFORE_MS = 60 * 1000;     // warn 1 min before
+const TICK_MS = 30 * 1000;            // poll every 30 s
+```
+
+Behaviour:
+- Per-tick check computes `msLeft = deadline - now`. When `msLeft ∈ (0, 60_000]` and `warnShownRef === false`, fires a sonner `toast.warning("Signing you out in 60 seconds", { id: "masci-idle-warn", action: { label: "Stay signed in", onClick: bump } })` — fixed `id` so we don't stack duplicate warnings on subsequent ticks.
+- Any pointer / keyboard / scroll / touch / wheel activity calls `bump()` which both extends the deadline and dismisses the warning toast (resets `warnShownRef`).
+- Clicking the **Stay signed in** action calls the same `bump()` — full 20-min session extension.
+- If the warning is ignored: at the 20-min mark we tear down listeners, dismiss the warn toast, clear the token, fire the existing "Signed out after 20 minutes of inactivity" red toast, and `navigate(loginPath, { replace: true })`.
+
+### Verified (preview, with `IDLE_MS=20s` / `WARN_BEFORE_MS=8s` / `TICK_MS=2s`; restored to prod values after)
+
+| Step | Result |
+|---|---|
+| Login as admin → 15 s of zero activity | Warning toast `Signing you out in 60 seconds` + `Stay signed in` button rendered ✅ (screenshot captured) |
+| Click `Stay signed in` → wait another 6 s | Token kept, still on `/admin`, warn toast dismissed ✅ |
+| Login again → ignore warning, idle 23 s | Token cleared, `toast.error` fired, redirected to `/admin/login` ✅ |
+| Lint | Clean ✅ |
+
+Same flow holds for PM (`/pm/login`) and Shop (`/shop/login`).
+
+### Files touched
+- **MODIFIED** `frontend/src/components/IdleTimeout.jsx` — added `WARN_BEFORE_MS`, `WARN_TOAST_ID`, `warnShownRef`, the warn-branch in the interval, and the toast-dismiss logic in `bump()` + `useEffect` cleanup.
+
+### Defence-in-depth security stack (frontend) — full picture
+1. **EnforcePortalScope** → leave portal URL = logout
+2. **IdleTimeout** → 19-min warn toast (with `Stay signed in`) → 20-min hard logout
+3. **validateStoredTokens** → on every page load, ping `/check` → 401 = clear
+4. **ADMIN_SESSION_EPOCH** → server-side kill-switch for all tokens at once
+
+
 ## 2026-05-03 — 20-Minute Idle Auto-Logout (P1 — defence-in-depth)
 
 User accepted the proposed enhancement. Pairs with the URL-based `EnforcePortalScope` rule shipped earlier the same day:
