@@ -1,5 +1,55 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Lesson 5 (JHA) Rewrite — Reflects MASCI's Actual JHA Process
+
+User clarified MASCI's real-world JHA workflow: **JHAs are NOT built in the field by crews. They are pre-built job-specific documents prepared in advance by the Safety Department, Project Managers, and senior leadership.** Crews USE them; they don't create them. The previous training content described a task-based crew-authored JHA workflow which doesn't match how MASCI actually operates.
+
+### What changed
+
+**Title** (system-wide):
+- EN: `Lesson 5 — Job Hazard Analysis (JHA)` *(removed `/JSA` suffix)*
+- ES: `Lección 5 — Análisis de Peligros del Trabajo (JHA)`
+
+**WHY THIS MATTERS** (new):
+> "MASCI Job Hazard Analyses are built before work begins by the Safety Department, Project Managers, and leadership — based on scope of work, site conditions, traffic control (MOT), environmental factors, and known project hazards. This way hazards are identified and controlled BEFORE crews step onto the job."
+
+**6-step body** (replaces old field-built workflow):
+1. Crews do NOT build JHAs — they're prepared in advance by Safety/PM/Leadership.
+2. Each JHA covers project-wide hazards, station-tied locations, required controls, environmental risks, MOT hazards, equipment/operational hazards.
+3. Two documents per JHA package: JHA Document + Hazard Worksheet (with station numbers, threat level, controls).
+4. Before work: review the JHA, understand area-specific hazards, follow every listed control.
+5. If conditions don't match the plan: ask questions, use Stop Work Authority, do not improvise.
+6. This is NOT a form completed in the field — it's a pre-built safety system.
+
+**Cheat sheet** (new):
+- "JHAs are pre-built by Safety / PM / Leadership — not the crew."
+- "Two documents per job: JHA + Hazard Worksheet (with station numbers)."
+- "Review before work. Follow controls. Stop Work if conditions change."
+
+### Files updated
+- `/app/frontend/src/data/training.js` — `field-05-jha` lesson body rewritten
+- `/app/frontend/src/data/training_es.js` — Spanish translation rewritten (natural field-crew Spanish, not literal)
+- `/app/backend/training_pdf.py` — `FIELD_LESSONS[4]` (JHA) — same rewrite for PDF generation
+- `/app/frontend/src/lib/i18n.js` — replaced stale dead key `"Pre-task JHA / JSA. Walk every step…"` with `"Pre-built by Safety, PMs, and leadership before work begins. Crews review and follow — they don't fill it out."`
+
+### What was deliberately NOT changed
+- The JHA **authoring form** at `/safety/jha` and its helper labels in `i18n.js` (e.g. "Walk through each step…") — that's for the Safety Department / PMs who DO author JHAs in the system. The previous content confused field-crew training (the people who USE JHAs) with the authoring workflow (the people who BUILD JHAs). Authoring form is correct as-is.
+
+### Verified system-wide
+- ✅ UI EN: `/training/field` Lesson 5 card shows new title and "MASCI Job Hazard Analyses are built before work begins…" copy.
+- ✅ UI ES: same card shows "Los JHAs de MASCI se preparan antes de que comience el trabajo…" copy.
+- ✅ Old workflow phrases (`Hub → Safety → Job Hazard Analysis`, `Walk every step`, `Walk the task first`, `Recorra cada paso`, `líder de cuadrilla`, `capataz aprueba`) — **0 occurrences** anywhere in lesson 5.
+- ✅ PDF EN (10 pages): Lesson 5 contains "built before work begins by the Safety Department, Project Managers".
+- ✅ PDF ES (10 pages): Lesson 5 contains "preparan antes de que comience el trabajo, por el Departamento de Seguridad".
+- ✅ PDF BI (15 pages): Lesson 5 page 10 shows EN+ES side-by-side with new content; ToC on page 2 lists "Lesson 5 — Job Hazard Analysis (JHA)" / "Lección 5 — Análisis de Peligros del Trabajo (JHA)".
+- ✅ Footer count: 1 per non-cover page across all 3 PDF variants.
+- ✅ Lesson order unchanged: 1-2-3-4(SafetyMtg)-5(JHA)-6(Incident)-7(SiteInsp).
+
+### Pre-deploy reminder
+- ⚠️ `DEV_PASSWORD=Maddix8530!` must be set in production env (gates `/dev` portal).
+- 173 MB of MP4s in `/app/backend/static/training-videos/` ships with the deployment.
+
+
 ## 2026-05-03 — Field Track Lesson Reorder + Lesson 4 Toolbox Talk Videos
 
 User requested re-numbering of Field Crew Training lessons 4–7 to put Safety Meetings ahead of JHA / Incidents / Site Inspection. Two new bilingual videos (Lesson 4 — Toolbox Talk) added.

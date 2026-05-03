@@ -344,8 +344,8 @@ const ES = {
     "Inspecciones diarias y semanales del sitio. EPP, control de tránsito, protección contra caídas, eléctrico y más — calificadas automáticamente.",
   "Toolbox talks and daily huddles. 80+ heavy-civil topics with prefilled hazards — every crew member signs in.":
     "Charlas de seguridad y reuniones diarias. Más de 80 temas con peligros prellenados — cada miembro de la cuadrilla firma.",
-  "Pre-task JHA / JSA. Walk every step, list hazards, document controls, and get the crew sign-off before work starts.":
-    "JHA / JSA previo a la tarea. Recorra cada paso, liste los peligros, documente los controles y obtenga la firma de la cuadrilla antes de comenzar.",
+  "Pre-built by Safety, PMs, and leadership before work begins. Crews review and follow — they don't fill it out.":
+    "Preparado por Seguridad, PMs y el liderazgo antes de comenzar el trabajo. Las cuadrillas revisan y siguen — no lo llenan.",
   "Document near misses, injuries, and damage. Severity tiers, root cause, witnesses, and follow-up — all in one record.":
     "Documente cuasi-accidentes, lesiones y daños. Niveles de severidad, causa raíz, testigos y seguimiento — todo en un registro.",
 
