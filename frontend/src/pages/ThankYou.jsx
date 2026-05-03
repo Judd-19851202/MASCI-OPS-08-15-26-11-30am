@@ -92,12 +92,12 @@ export default function ThankYou() {
             </Button>
           </div>
 
-          <div className="mt-10 pt-6 border-t-2 border-slate-100 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex items-center justify-center gap-2 flex-wrap">
-            <span>{t("Accountability")}</span>
+          <div className="mt-10 pt-6 border-t-2 border-slate-100 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex items-center justify-center gap-2 flex-wrap" hidden>
+            <span>{t("No Guesswork.")}</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span>{t("Adapt")}</span>
+            <span>{t("No Missed Steps.")}</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span>{t("Overcome")}</span>
+            <span>{t("No Excuses.")}</span>
           </div>
         </div>
       </main>

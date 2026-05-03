@@ -221,7 +221,7 @@ export default function ViewInspection() {
                 <SubmitLangBadge lang={data.submit_language} />
               </div>
             )}
-            <div className="mt-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex-wrap">
+            <div className="mt-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex-wrap" hidden>
               <span>No Guesswork.</span>
               <span className="w-1 h-1 rounded-full bg-red-700" />
               <span>No Missed Steps.</span>

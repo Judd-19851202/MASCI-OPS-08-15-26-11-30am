@@ -105,7 +105,7 @@ export function FormPasswordGate({
             <Unlock className="w-4 h-4 mr-2" /> Unlock Form
           </Button>
 
-          <div className="mt-8 pt-5 border-t-2 border-slate-100 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex items-center justify-center gap-2 flex-wrap">
+          <div className="mt-8 pt-5 border-t-2 border-slate-100 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex items-center justify-center gap-2 flex-wrap" hidden>
             <span>No Guesswork.</span>
             <span className="w-1 h-1 rounded-full bg-red-700" />
             <span>No Missed Steps.</span>

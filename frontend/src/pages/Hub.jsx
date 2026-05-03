@@ -287,13 +287,6 @@ export default function Hub() {
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
             {t("Daily reports, safety enforcement, equipment tracking, training, and complete documentation — automatically captured, routed, and stored in one system.")}
           </p>
-          <div className="mt-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.25em] flex-wrap">
-            <span className="text-red-700 font-bold">{t("No Guesswork.")}</span>
-            <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span className="text-red-700 font-bold">{t("No Missed Steps.")}</span>
-            <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span className="text-red-700 font-bold">{t("No Excuses.")}</span>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 mb-10">

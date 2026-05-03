@@ -1,5 +1,59 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Logo Cleanup & Tagline Consolidation (P0 Fix)
+
+User reported: (1) the new logo PNG had a heavy black box visible against the dark navy header, and (2) the tagline appeared duplicated below the hero subtext.
+
+### What was wrong
+1. The previous tagline-overlay script left the HUB rectangle's solid-black background intact — on `bg-slate-900` headers this read as a "box behind the logo".
+2. Hub.jsx, Dashboard.jsx, FormPasswordGate.jsx, ThankYou.jsx, ViewInspection.jsx, ViewMeeting.jsx all had a separate red 3-span tagline block ("No Guesswork · No Missed Steps · No Excuses") rendering OUTSIDE the logo.
+
+### Fix shipped
+**Logo PNG (rewrite_logo_tagline.py v2)** — does three things to the dark + onblack variants:
+1. Detects the HUB rectangle's solid-black fill (R<15, G<15, B<15, A≥200) bounded to `x ≥ 540` to avoid the M-shield artwork, converts it to **fully transparent**.
+2. Wipes both old-tagline pixel bands to transparent so the silver glyphs of "ACCOUNTABILITY · DISCIPLINE · EXECUTION" + "EXCELLENCE · ADAPT · OVERCOME" disappear.
+3. Stamps the new tagline `NO GUESSWORK · NO MISSED STEPS · NO EXCUSES` in silver Liberation Sans Bold at the same baseline as the original, both inside-band and below-band.
+
+The on-light variant is treated separately: it KEEPS the dark inner band (so the silver tagline reads against a black box that contrasts with white headers), and the below-band gets cleared to transparent so a darker grey tagline reads on white.
+
+**Hero text** — removed the standalone red 3-span tagline block from:
+- `pages/Hub.jsx` (homepage hero)
+- `pages/Dashboard.jsx` (dashboard hero — hidden via `hidden`)
+- `components/FormPasswordGate.jsx` (gate footer — hidden)
+- `pages/ThankYou.jsx` (thank-you footer — hidden)
+- `pages/ViewInspection.jsx` (report header — hidden)
+- `pages/ViewMeeting.jsx` (report header — hidden)
+
+**Meta description** — `frontend/public/index.html` had the old tagline in the `<meta name="description">` for SEO; updated to the new tagline.
+
+### Final verification
+| Check | Result |
+| --- | --- |
+| `grep -rEn "Accountability\|Adapt\|Overcome"` across `frontend/` + `backend/` (excluding history/comments) | **0 hits** ✅ |
+| Logo renders cleanly on `bg-slate-900` header — no boxy artifact | ✅ |
+| Inside-band tagline reads "NO GUESSWORK · NO MISSED STEPS · NO EXCUSES" in silver | ✅ |
+| Below-band tagline reads same | ✅ |
+| Standalone red tagline below hero subtext | **gone** ✅ |
+| M-shield medallion preserved (not corrupted by rectangle wipe) | ✅ |
+| MASCI HUB letters intact, original red gradient preserved | ✅ |
+| Both lockup variants (default + onblack) treated; onlight retains dark contrast box | ✅ |
+
+### Files touched
+- `scripts/rewrite_logo_tagline.py` — full v2 rewrite
+- `frontend/public/masci-full-lockup.png` (regenerated)
+- `frontend/public/masci-full-lockup-onblack.png` (regenerated)
+- `frontend/public/masci-full-lockup-onlight.png` (regenerated)
+- `frontend/public/index.html` (meta description)
+- `frontend/src/pages/Hub.jsx`
+- `frontend/src/pages/Dashboard.jsx`
+- `frontend/src/pages/ThankYou.jsx`
+- `frontend/src/pages/ViewInspection.jsx`
+- `frontend/src/pages/ViewMeeting.jsx`
+- `frontend/src/components/FormPasswordGate.jsx`
+
+Backups of the original PNGs remain at `frontend/public/_pre_tagline_rebrand_backup/` so the script can always be re-run from a clean source.
+
+
 ## 2026-05-03 — Combined System Update (Lesson 6 + Rebrand + Video QA)
 
 ### 1. Lesson 6 Videos Added (Field Crew Training)
