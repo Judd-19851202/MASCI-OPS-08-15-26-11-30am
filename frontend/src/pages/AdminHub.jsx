@@ -36,6 +36,7 @@ import EquipmentPartsPanel from "@/components/EquipmentPartsPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 import SupplierMasterPanel from "@/components/SupplierMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
+import AdminTrainingResourcesPanel from "@/components/AdminTrainingResourcesPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { clearAdminToken } from "@/lib/adminAuth";
@@ -366,6 +367,9 @@ export default function AdminHub() {
 
           {/* Material Calculator usage — per-calculator run counts + CSV export */}
           <CalculatorUsageCard />
+
+          {/* Internal training packets + QR posters (Shop / PM / Admin) — relocated from public Training Hub */}
+          <AdminTrainingResourcesPanel />
 
           {/* ONE-STOP backup + restore hero — 2 giant buttons, nothing else */}
           <BackupHeroPanel />

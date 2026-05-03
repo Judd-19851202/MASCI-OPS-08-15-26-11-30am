@@ -1,5 +1,33 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Training Hub: Shop/PM/Admin Packets + QR Posters Relocated to Admin Console
+
+User asked to keep the public Training Hub page focused on the Field Crew (the only externally-shareable track) and pull the back-office Shop / PM / Admin packets + QR posters out of it — into the Admin Console where they belong.
+
+### What shipped
+- **Training Hub (`/training`)**:
+  - "Downloadable packets" card now shows ONLY the Field Crew tile + updated copy: *"Field Crew is public — share with insurance, auditors, or new-hire onboarding. Internal Shop, PM, and Admin packets are managed in the Admin Console."*
+  - "Scan-&-Go Posters" card now shows ONLY the Field Crew tile.
+  - The standalone "Admin note" box (the explainer about Shop/PM/Admin tracks needing passwords + the YouTube/Loom URL line) is **removed**.
+  - Track preview cards above (Field / Shop / PM / Admin) are unchanged — that's the lessons grid, not the resources grid.
+
+- **Admin Console (`/admin`)** — new `AdminTrainingResourcesPanel` mounted under System Recovery → Training Stats area:
+  - Header: "Internal Training Resources · Shop · PM · Admin packets and QR posters"
+  - 3 PDF packet tiles (Shop / PM / Admin) — EN / ES / EN+ES buttons each, routed through the auth-aware `/training/<track>/packet` viewer (admin token attaches automatically).
+  - 3 Scan-&-Go QR poster tiles (Shop / PM / Admin) — View + Print buttons each.
+  - Tier badges + lock icons preserved so the back-office gating remains visually clear.
+
+### Files touched
+- **NEW**: `frontend/src/components/AdminTrainingResourcesPanel.jsx`
+- **MODIFIED**: `frontend/src/pages/TrainingHub.jsx` — filtered both packet + QR sections to `tr.audience === "public"`, refreshed the Downloadable Packets paragraph, removed the Admin note panel, narrowed the single-tile grid to `max-w-md` so it doesn't read as a half-empty 4-column row.
+- **MODIFIED**: `frontend/src/pages/AdminHub.jsx` — imported + mounted the new panel right after `CalculatorUsageCard`.
+
+### Verification
+- `/training` (logged-out): Admin-note panel count = 0; Downloadable packets tile count = 1 (Field only); QR poster tile count = 1 (Field only); all 3 internal track tiles (shop/pm/admin) absent from both grids.
+- `/admin` (admin-authed): `[data-testid='admin-training-resources-panel']` renders; 3 packet tiles + 3 QR tiles for shop/pm/admin all present and visually consistent.
+- ESLint clean across all 3 touched files.
+
+
 ## 2026-05-03 — Live Production Verification Report (mascidocs.com — GREEN)
 
 12-section live audit run against `https://mascidocs.com/`. **All sections PASS.** Production deployment is healthy and matches local codebase byte-for-byte.

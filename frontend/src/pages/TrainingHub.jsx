@@ -184,15 +184,6 @@ export default function TrainingHub() {
           })}
         </div>
 
-        <div className="rounded-md border-2 border-slate-200 bg-slate-50 p-5 sm:p-6 text-sm text-slate-700 leading-relaxed">
-          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 font-bold mb-2">
-            {t("Admin note")}
-          </div>
-          <p>
-            {t("Shop / PM / Admin tracks require their respective passwords. The Field Crew track is public — no login needed. Each lesson has a video slot; admins can paste YouTube / Loom / Vimeo URLs via the Admin console → Training Videos panel.")}
-          </p>
-        </div>
-
         <div className="mt-6 rounded-md border-2 border-slate-900 bg-slate-900 text-white p-5 sm:p-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
@@ -203,12 +194,12 @@ export default function TrainingHub() {
                 {t("PDF training packets")}
               </h3>
               <p className="text-slate-300 text-sm mt-1 leading-relaxed max-w-2xl">
-                {t("Field Crew is public — share with insurance, auditors, or new-hire onboarding. Shop, PM, and Admin packets require their respective passwords (back-office workflows aren't shared outside the company).")}
+                {t("Field Crew is public — share with insurance, auditors, or new-hire onboarding. Internal Shop, PM, and Admin packets are managed in the Admin Console.")}
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
-            {Object.values(TRACKS).map((tr) => {
+          <div className="grid grid-cols-1 gap-2 mt-4 max-w-md">
+            {Object.values(TRACKS).filter((tr) => tr.audience === "public").map((tr) => {
               const isPublic = tr.audience === "public";
               const unlocked = trackUnlocked(tr);
               // For PUBLIC tracks the buttons hit the PDF endpoint directly
@@ -306,8 +297,8 @@ export default function TrainingHub() {
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
-            {Object.values(TRACKS).map((tr) => {
+          <div className="grid grid-cols-1 gap-2 mt-4 max-w-md">
+            {Object.values(TRACKS).filter((tr) => tr.audience === "public").map((tr) => {
               const isPublic = tr.audience === "public";
               const unlocked = trackUnlocked(tr);
               const viewPath = unlocked
