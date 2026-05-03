@@ -13,6 +13,7 @@ import {
   LogOut,
   Home,
   TrendingUp,
+  ShieldCheck,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
@@ -92,6 +93,7 @@ export default function AdminHub() {
     incidents: null,
     daily: null,
     equipment: null,
+    qaqc: null,
   });
   const [loading, setLoading] = useState(true);
 
@@ -104,7 +106,7 @@ export default function AdminHub() {
     let alive = true;
     (async () => {
       try {
-        const [insp, mtgs, jhaPlans, trench, incs, daily, eq] = await Promise.all([
+        const [insp, mtgs, jhaPlans, trench, incs, daily, eq, qaqc] = await Promise.all([
           api.get("/inspections").catch(() => ({ data: [] })),
           api.get("/meetings").catch(() => ({ data: [] })),
           api.get("/job-hazard-plans").catch(() => ({ data: [] })),
@@ -112,6 +114,7 @@ export default function AdminHub() {
           api.get("/incidents").catch(() => ({ data: [] })),
           api.get("/daily-reports").catch(() => ({ data: [] })),
           api.get("/equipment-inspections").catch(() => ({ data: [] })),
+          api.get("/qaqc-inspections").catch(() => ({ data: [] })),
         ]);
         if (!alive) return;
         setCounts({
@@ -122,6 +125,7 @@ export default function AdminHub() {
           incidents: incs.data?.length || 0,
           daily: daily.data?.length || 0,
           equipment: eq.data?.length || 0,
+          qaqc: qaqc.data?.length || 0,
         });
       } catch {
         /* noop */
@@ -297,6 +301,15 @@ export default function AdminHub() {
               sub={counts.equipment === 1 ? "inspection on file" : "inspections on file"}
               accent="slate"
               testId="admin-tile-equipment"
+            />
+            <AdminTile
+              to="/admin/qaqc"
+              icon={ShieldCheck}
+              title="QA / QC Inspections"
+              count={counts.qaqc}
+              sub={counts.qaqc === 1 ? "record on file" : "records on file"}
+              accent="amber"
+              testId="admin-tile-qaqc"
             />
             </div>
           </>

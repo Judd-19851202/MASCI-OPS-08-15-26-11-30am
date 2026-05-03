@@ -55,14 +55,23 @@ class QaqcInspectionCreate(BaseModel):
     subcontractor_name: Optional[str] = ""
     crew_company: Optional[str] = ""
 
+    # PM email (auto-filled from JobPicker.pm_email so the auto-email
+    # pipeline can dispatch directly without re-resolving the PM)
+    pm_email: Optional[str] = ""
+
     # Inspection
     inspection_date: str  # YYYY-MM-DD
     inspection_time: str  # HH:MM
     inspector_name: str
     inspection_type: Optional[str] = ""
-    work_area: Optional[str] = ""
+    work_area: str  # required
     weather_conditions: Optional[str] = ""
     work_activity: Optional[str] = ""
+
+    # Concrete-Form-only placement controls (validated client-side)
+    mix_design: Optional[str] = ""
+    yards_ordered: Optional[str] = ""
+    concrete_vendor: Optional[str] = ""
 
     # Body
     checklist: List[QaqcChecklistItem] = Field(default_factory=list)
@@ -100,6 +109,8 @@ class QaqcInspectionSummary(BaseModel):
     inspection_date: str
     inspector_name: str
     subcontractor_name: str
+    pm_name: str = ""
+    pm_email: str = ""
     pass_count: int
     fail_count: int
     na_count: int
@@ -122,6 +133,8 @@ def _summary_from_doc(d: dict) -> QaqcInspectionSummary:
         inspection_date=d.get("inspection_date", ""),
         inspector_name=d.get("inspector_name", ""),
         subcontractor_name=d.get("subcontractor_name", "") or d.get("crew_company", "") or "",
+        pm_name=d.get("pm_name", "") or "",
+        pm_email=(d.get("pm_email", "") or "").lower(),
         pass_count=int(d.get("pass_count") or 0),
         fail_count=int(d.get("fail_count") or 0),
         na_count=int(d.get("na_count") or 0),
@@ -150,9 +163,27 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
         ps = sum(1 for i in items if i.result == "pass")
         fs = sum(1 for i in items if i.result == "fail")
         na = sum(1 for i in items if i.result == "na")
+        body = payload.model_dump()
+
+        # Server-side PM backfill from jobs_master if the form didn't carry
+        # one (e.g. crews on an old build, or a custom job typed in by hand).
+        pn = (body.get("project_number") or "").strip()
+        if pn and (not body.get("pm_email") or not body.get("pm_name")):
+            try:
+                job = await db.jobs_master.find_one(
+                    {"project_number": pn}, {"_id": 0}
+                )
+                if job:
+                    if not body.get("pm_name"):
+                        body["pm_name"] = job.get("project_manager") or ""
+                    if not body.get("pm_email"):
+                        body["pm_email"] = (job.get("pm_email") or "").lower()
+            except Exception:
+                pass
+
         rec = QaqcInspection(
             **{
-                **payload.model_dump(),
+                **body,
                 "pass_count": ps,
                 "fail_count": fs,
                 "na_count": na,
@@ -171,6 +202,39 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
     @api_router.get("/qaqc-inspections", response_model=List[QaqcInspectionSummary])
     async def list_qaqc(_: bool = Depends(require_admin)):
         cursor = db.qaqc_inspections.find({}, {"_id": 0}).sort("created_at", -1).limit(2000)
+        out: List[QaqcInspectionSummary] = []
+        async for d in cursor:
+            out.append(_summary_from_doc(d))
+        return out
+
+    @api_router.get(
+        "/pm/qaqc-inspections",
+        response_model=List[QaqcInspectionSummary],
+    )
+    async def list_qaqc_for_pm(
+        pm: str = "",
+        _: bool = Depends(require_admin),
+    ):
+        """PM portal scoped list. Filtered to records whose
+        `pm_email` (preferred) or `pm_name` matches the requested PM
+        identifier. PMs share a single password (Happy123!), so the actual
+        identity is selected client-side from the active PM roster — the
+        UI passes ?pm=<email-or-name>. Empty `pm` returns an empty list
+        instead of all records, so the field MUST be set to see anything.
+        """
+        pm_q = (pm or "").strip()
+        if not pm_q:
+            return []
+        is_email = "@" in pm_q
+        if is_email:
+            mongo_query = {"pm_email": pm_q.lower()}
+        else:
+            mongo_query = {"pm_name": pm_q}
+        cursor = (
+            db.qaqc_inspections.find(mongo_query, {"_id": 0})
+            .sort("created_at", -1)
+            .limit(2000)
+        )
         out: List[QaqcInspectionSummary] = []
         async for d in cursor:
             out.append(_summary_from_doc(d))

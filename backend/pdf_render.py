@@ -630,6 +630,16 @@ def _render_qaqc(d: Dict[str, Any]) -> str:
         + _kv("Crew / Company", d.get("crew_company"))
     )))
 
+    # Concrete-Form-only placement controls (only render if any value set)
+    if d.get("inspection_kind") == "concrete_form" and (
+        d.get("mix_design") or d.get("yards_ordered") or d.get("concrete_vendor")
+    ):
+        rows.append(_section("Concrete Placement", (
+            _kv("Mix Design", d.get("mix_design"))
+            + _kv("Yards Ordered (CY)", d.get("yards_ordered"))
+            + _kv("Concrete Vendor", d.get("concrete_vendor"))
+        )))
+
     # Checklist
     checklist = d.get("checklist") or []
     if checklist:

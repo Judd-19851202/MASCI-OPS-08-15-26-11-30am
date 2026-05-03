@@ -41,6 +41,7 @@ import AdminGuide from "@/pages/AdminGuide";
 import ProjectPnlPage from "@/pages/ProjectPnlPage";
 import PmLogin from "@/pages/PmLogin";
 import PmHub from "@/pages/PmHub";
+import PmQaqcList from "@/pages/PmQaqcList";
 import ShopLogin from "@/pages/ShopLogin";
 import ShopHub from "@/pages/ShopHub";
 import TrainingHub from "@/pages/TrainingHub";
@@ -210,6 +211,7 @@ function App() {
                 ============================================================ */}
             <Route path="/pm/login" element={<PmLogin />} />
             <Route path="/pm" element={P(<PmHub />)} />
+            <Route path="/pm/qaqc" element={P(<PmQaqcList />)} />
 
             {/* ============================================================
                 Shop Console — mechanics-only view, separate password

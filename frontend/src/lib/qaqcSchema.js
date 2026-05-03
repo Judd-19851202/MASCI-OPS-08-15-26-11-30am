@@ -95,6 +95,11 @@ export function checklistFor(slug) {
   return [];
 }
 
+/** Concrete-Form inspection requires extra placement-control inputs. */
+export function hasConcreteFields(slug) {
+  return slug === "concrete-form";
+}
+
 /** Build the empty checklist object the form starts with. */
 export function buildChecklist(slug) {
   return checklistFor(slug).map(([key, label]) => ({

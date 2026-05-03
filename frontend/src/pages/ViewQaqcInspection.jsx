@@ -119,8 +119,15 @@ export default function ViewQaqcInspection() {
             ["Crew / Company", data.crew_company],
             ["Inspector", data.inspector_name],
             ["Work Activity", data.work_activity],
-            ["Work Area", data.work_area],
+            ["Work Area / Station", data.work_area],
             ["Weather", data.weather_conditions],
+            ...(data.inspection_kind === "concrete_form"
+              ? [
+                  ["Mix Design", data.mix_design],
+                  ["Yards Ordered (CY)", data.yards_ordered],
+                  ["Concrete Vendor", data.concrete_vendor],
+                ]
+              : []),
           ]} />
 
           <Heading>{t("Checklist")}</Heading>

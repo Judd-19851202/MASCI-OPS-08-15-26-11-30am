@@ -1,6 +1,13 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate, useParams, Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Save, Loader2, ClipboardCheck, AlertTriangle } from "lucide-react";
+import {
+  ArrowLeft,
+  Save,
+  Loader2,
+  ClipboardCheck,
+  AlertTriangle,
+  MapPin,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,10 +17,16 @@ import { LangToggle } from "@/components/LangToggle";
 import { JobPicker } from "@/components/JobPicker";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
-import { useT, getLang } from "@/lib/i18n";
+import { SupplierCombo } from "@/components/SupplierCombo";
+import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { findKind, buildChecklist } from "@/lib/qaqcSchema";
+import { findKind, buildChecklist, hasConcreteFields } from "@/lib/qaqcSchema";
+import {
+  getCurrentPosition,
+  reverseGeocode,
+  formatCoords,
+} from "@/lib/geolocation";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2";
@@ -21,17 +34,12 @@ const inputCls =
 /**
  * NewQaqcInspection — single form component for all 3 QA/QC kinds.
  *
- * The kind comes from the URL slug (`/qaqc/:slug/new`). All three kinds
- * share the same envelope (job + subcontractor + photos + signatures);
- * only the checklist items differ, and those are loaded from
- * `lib/qaqcSchema.js` based on the slug.
- *
  * Submit flow:
- *   1. Validate required fields (job, location, inspector, ≥3 photos,
- *      inspector signature, every checklist item answered, every fail
- *      has a deficiency note).
- *   2. If lang is `es`, run the auto-translate pipeline so user-entered
- *      Spanish notes get stored as English.
+ *   1. Validate required fields (job, location, work area/station,
+ *      inspector, ≥3 photos, inspector signature, every checklist
+ *      item answered, every fail has a deficiency note). Concrete-Form
+ *      additionally requires Mix Design + Yards Ordered + Concrete Vendor.
+ *   2. If lang is `es`, run translate-on-submit so notes store as English.
  *   3. POST to `/api/qaqc-inspections`. Backend persists + auto-emails
  *      the assigned PM with the PDF attached.
  *   4. Redirect to `/qaqc/:id` for the print/download view.
@@ -41,6 +49,7 @@ export default function NewQaqcInspection() {
   const kindMeta = findKind(slug);
   const navigate = useNavigate();
   const { t, lang } = useT();
+  const isConcrete = hasConcreteFields(slug);
 
   const [data, setData] = useState(() => ({
     inspection_kind: kindMeta?.api_kind || "concrete_form",
@@ -49,6 +58,7 @@ export default function NewQaqcInspection() {
     location: "",
     client: "",
     pm_name: "",
+    pm_email: "",
     subcontractor_name: "",
     crew_company: "",
     inspection_date: new Date().toISOString().slice(0, 10),
@@ -57,6 +67,10 @@ export default function NewQaqcInspection() {
     work_activity: "",
     work_area: "",
     weather_conditions: "",
+    // Concrete-Form-only fields
+    mix_design: "",
+    yards_ordered: "",
+    concrete_vendor: "",
     checklist: buildChecklist(slug),
     inspection_notes: "",
     deficiencies: "",
@@ -67,6 +81,7 @@ export default function NewQaqcInspection() {
     sub_rep_signature: "",
   }));
   const [saving, setSaving] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   const counts = useMemo(() => {
     const ps = data.checklist.filter((c) => c.result === "pass").length;
@@ -92,14 +107,51 @@ export default function NewQaqcInspection() {
       checklist: p.checklist.map((c, i) => (i === idx ? { ...c, ...patch } : c)),
     }));
 
+  // The /api/jobs payload exposes `project_manager` (name) and `pm_email`.
+  // We map both onto the form so the PM section auto-fills the moment a
+  // job is picked, and we persist pm_email on submit so the auto-email
+  // pipeline can dispatch directly to the assigned PM without re-resolving.
   const applyJob = (job) => {
+    if (!job) {
+      // "Custom Job" path — clear job-derived fields but keep typed values.
+      update({
+        project_name: "",
+        project_number: "",
+        client: "",
+      });
+      return;
+    }
     update({
-      project_name: job?.project_name || "",
-      project_number: job?.project_number || "",
-      location: job?.location || data.location,
-      client: job?.client || data.client || "",
-      pm_name: job?.pm_name || data.pm_name || "",
+      project_name: job.project_name || "",
+      project_number: job.project_number || "",
+      location: job.location || data.location,
+      client: job.client || "",
+      pm_name: job.project_manager || "",
+      pm_email: job.pm_email || "",
     });
+    if (job.project_manager) {
+      toast.success(`PM set: ${job.project_manager}`);
+    }
+  };
+
+  const useGps = async () => {
+    setLocating(true);
+    try {
+      const pos = await getCurrentPosition();
+      const { latitude, longitude, accuracy } = pos.coords;
+      try {
+        const r = await reverseGeocode(latitude, longitude);
+        update({ location: r.display });
+        toast.success(t("Location captured from GPS"));
+      } catch {
+        update({ location: formatCoords(latitude, longitude, accuracy) });
+        toast.warning(t("Got GPS coordinates, but couldn't look up address"));
+      }
+    } catch (e) {
+      toast.error(e?.message || t("Could not get GPS location"));
+    } finally {
+      setLocating(false);
+    }
   };
 
   async function onSubmit(e) {
@@ -109,13 +161,21 @@ export default function NewQaqcInspection() {
     // ── Validation ────────────────────────────────────────────────────────
     const fails = [];
     if (!data.project_name) fails.push(t("Select a job."));
-    if (!data.location) fails.push(t("Enter the work location / station."));
+    if (!data.location) fails.push(t("Enter the work location."));
+    if (!data.work_area.trim()) fails.push(t("Work Area / Station required."));
     if (!data.inspector_name) fails.push(t("Inspector name required."));
     if (!data.inspection_notes.trim()) fails.push(t("Inspection notes required."));
     if (data.photos.length < 3) fails.push(t("Minimum 3 photos required."));
     if (!data.inspector_signature) fails.push(t("Inspector signature required."));
     if (failsWithoutNotes.length > 0)
       fails.push(t("Every Fail item needs a deficiency note."));
+    if (isConcrete) {
+      if (!data.mix_design.trim()) fails.push(t("Mix Design required."));
+      if (!String(data.yards_ordered).trim())
+        fails.push(t("Yards Ordered required."));
+      if (!data.concrete_vendor.trim())
+        fails.push(t("Concrete Vendor required."));
+    }
     if (fails.length) {
       toast.error(fails[0]);
       return;
@@ -185,19 +245,38 @@ export default function NewQaqcInspection() {
               onSelect={applyJob}
             />
             <Row>
-              <Field label={t("Location / Station")} required>
-                <Input
-                  className={inputCls}
-                  value={data.location}
-                  onChange={(e) => update({ location: e.target.value })}
-                  data-testid="qaqc-location"
-                />
+              <Field label={t("Location")} required>
+                <div className="flex gap-2">
+                  <Input
+                    className={inputCls + " flex-1"}
+                    value={data.location}
+                    onChange={(e) => update({ location: e.target.value })}
+                    data-testid="qaqc-location"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={useGps}
+                    disabled={locating}
+                    title={t("Use GPS")}
+                    className="h-12 border-2 border-slate-300 hover:border-emerald-600 hover:text-emerald-700 shrink-0"
+                    data-testid="qaqc-gps-btn"
+                  >
+                    {locating ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <MapPin className="w-4 h-4" />
+                    )}
+                    <span className="ml-1 hidden sm:inline">GPS</span>
+                  </Button>
+                </div>
               </Field>
               <Field label={t("Project Manager")}>
                 <Input
-                  className={inputCls}
+                  className={inputCls + " bg-slate-50"}
                   value={data.pm_name}
                   onChange={(e) => update({ pm_name: e.target.value })}
+                  placeholder={t("Auto-filled from job")}
                   data-testid="qaqc-pm-name"
                 />
               </Field>
@@ -207,12 +286,11 @@ export default function NewQaqcInspection() {
           <Section title={t("Subcontractor / Crew")}>
             <Row>
               <Field label={t("Subcontractor")}>
-                <Input
-                  className={inputCls}
+                <SupplierCombo
                   value={data.subcontractor_name}
-                  onChange={(e) => update({ subcontractor_name: e.target.value })}
-                  placeholder={t("Type or paste subcontractor name")}
-                  data-testid="qaqc-sub-name"
+                  onChange={(v) => update({ subcontractor_name: v })}
+                  testId="qaqc-sub-name"
+                  placeholder={t("Search or add a subcontractor / vendor…")}
                 />
               </Field>
               <Field label={t("Crew / Company")}>
@@ -256,7 +334,7 @@ export default function NewQaqcInspection() {
                   data-testid="qaqc-inspector"
                 />
               </Field>
-              <Field label={t("Work Area / Station")}>
+              <Field label={t("Work Area / Station")} required>
                 <Input
                   className={inputCls}
                   value={data.work_area}
@@ -280,10 +358,51 @@ export default function NewQaqcInspection() {
                 className={inputCls}
                 value={data.weather_conditions}
                 onChange={(e) => update({ weather_conditions: e.target.value })}
+                placeholder={t("e.g. 78°F, clear, light wind")}
                 data-testid="qaqc-weather"
               />
             </Field>
           </Section>
+
+          {isConcrete && (
+            <Section
+              title={t("Concrete Placement")}
+              desc={t("Required for every concrete-form inspection.")}
+            >
+              <Row>
+                <Field label={t("Mix Design")} required>
+                  <Input
+                    className={inputCls}
+                    value={data.mix_design}
+                    onChange={(e) => update({ mix_design: e.target.value })}
+                    placeholder={t("e.g. 4000 PSI Class IV")}
+                    data-testid="qaqc-mix-design"
+                  />
+                </Field>
+                <Field label={t("Yards Ordered (CY)")} required>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.5"
+                    min="0"
+                    className={inputCls}
+                    value={data.yards_ordered}
+                    onChange={(e) => update({ yards_ordered: e.target.value })}
+                    placeholder="0"
+                    data-testid="qaqc-yards-ordered"
+                  />
+                </Field>
+              </Row>
+              <Field label={t("Concrete Vendor")} required>
+                <SupplierCombo
+                  value={data.concrete_vendor}
+                  onChange={(v) => update({ concrete_vendor: v })}
+                  testId="qaqc-concrete-vendor"
+                  placeholder={t("Search or add the concrete supplier…")}
+                />
+              </Field>
+            </Section>
+          )}
 
           <Section title={t("Checklist")}>
             <p className="text-xs text-slate-500 mb-2">
