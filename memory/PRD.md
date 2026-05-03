@@ -1,5 +1,57 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Portal-Scope Auto-Logout + Poster Error Boundary (P0/P1)
+
+### Two changes shipped together this pass
+
+#### 1) Portal-scope auto-logout (P0 — security tightening)
+
+User asked: *"if admin leaves admin console it logs them out, PM leaves pm portal it logs them out, shop leaves shop portal it logs them out. Once logged out must resign in to have access to anything."*
+
+Implementation: new `EnforcePortalScope` component mounted right inside `<BrowserRouter>` (so it can read `useLocation()`). On every pathname change:
+- If `getAdminToken()` is set AND pathname is not `/admin` or `/admin/*` → `clearAdminToken()`
+- If `getPmToken()` is set AND pathname is not `/pm` or `/pm/*` → `clearPmToken()`
+- If `getShopToken()` is set AND pathname is not `/shop` or `/shop/*` → `clearShopToken()`
+
+Path matching is exact-prefix (`pathname === prefix || pathname.startsWith(prefix + "/")`) so a look-alike like `/admin-something` cannot be exploited to keep the token alive. Login pages (`/admin/login`, `/pm/login`, `/shop/login`) are inside their own portal's namespace, so visiting them doesn't pre-emptively wipe tokens — fresh logins still work the same way.
+
+Dev portal (`/dev`) intentionally left untouched — that's a vendor-internal surface and not part of the staff portal model.
+
+**Verified (preview)**:
+| Scenario | Token state | Expected | Result |
+|---|---|---|---|
+| Login as admin at `/admin/login` | admin token set | True | ✅ |
+| Navigate to `/admin/equipment` | admin token kept | True | ✅ |
+| Navigate to `/admin/jha-plans/poster` | admin token kept | True | ✅ |
+| Navigate to `/` (Hub home) | admin token cleared | False | ✅ |
+| Try to revisit `/admin` | redirected to `/admin/login` | redirect | ✅ |
+| Login as PM, navigate to `/pm/qaqc` | pm token kept | True | ✅ |
+| Navigate to `/` | pm token cleared | False | ✅ |
+| Login as Shop, navigate to `/` | shop token cleared | False | ✅ |
+
+#### 2) Poster error boundary (P1 — observability)
+
+User accepted the proposed improvement: surface render-time crashes instead of letting them silently blank the page (which is how the JhaPlansPosterCard `hubHome` ReferenceError went undetected).
+
+Implementation: new `PosterErrorBoundary` class component (`getDerivedStateFromError` + `componentDidCatch` + fallback render). Wraps these 4 routes in `App.js`:
+- `/cheatsheet` (Crew Cheat Sheet)
+- `/admin/trench-boxes/poster` (Trench Box poster, AP-gated)
+- `/admin/jha-plans/poster` (JHP poster, AP-gated)
+- `/admin/posters/print-all` (Print All, AP-gated)
+
+Fallback card shows: red header + alert icon, the actual error message in a copyable `<pre>` block, plus two buttons — **Retry** (`window.location.reload()`) and **Back to Admin** (`/admin`). The component also `console.error`s the stack trace + componentStack for production debugging.
+
+**Verified (preview)**: All 4 wrapped routes still render their normal content (boundary is transparent on the success path) — JHP poster body_text=1736 / Print-All `.poster-sheet` count=3 / boundary card count=0 on each.
+
+### Files touched
+- **NEW** `frontend/src/components/EnforcePortalScope.jsx`
+- **NEW** `frontend/src/components/PosterErrorBoundary.jsx`
+- **MODIFIED** `frontend/src/App.js` — imports + `<EnforcePortalScope />` mount inside BrowserRouter + `<PosterErrorBoundary>` wraps on the 4 poster routes
+
+### Deploy reminder
+Frontend-only; no backend or DB changes. Push a fresh build to `mascidocs.com` to ship both behaviors.
+
+
 ## 2026-05-03 — P0 Bug Fix: JHP Poster + Print-All Page Rendered Blank
 
 **User report:** "In PM Portal & Admin the Site Posters … doesn't print anything when you hit print all nor does any posters pull up on preview when clicked or print when hit print individually."

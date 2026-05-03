@@ -65,6 +65,8 @@ import { FormPasswordGate } from "@/components/FormPasswordGate";
 import GlobalKeepalive from "@/components/GlobalKeepalive";
 import BackendStatusBanner from "@/components/BackendStatusBanner";
 import { validateStoredTokens } from "@/lib/tokenValidation";
+import EnforcePortalScope from "@/components/EnforcePortalScope";
+import PosterErrorBoundary from "@/components/PosterErrorBoundary";
 
 // Crew Hub (Basecamp-style /app section)
 // Crew Hub pages removed 2026-04-28 — replaced by external Basecamp link.
@@ -112,6 +114,7 @@ function App() {
       <BackendStatusBanner />
       <BrowserRouter key={authTick}>
         <ScrollToTop />
+        <EnforcePortalScope />
         <div className="flex-1 flex flex-col">
           <Routes>
             {/* MASCI Hub — public */}
@@ -150,7 +153,7 @@ function App() {
             <Route path="/equipment/:id" element={<RedirectWithId base="/admin/equipment" />} />
 
             <Route path="/thank-you" element={<ThankYou />} />
-            <Route path="/cheatsheet" element={<CheatSheet />} />
+            <Route path="/cheatsheet" element={<PosterErrorBoundary><CheatSheet /></PosterErrorBoundary>} />
             <Route path="/cheat-sheet" element={<Navigate to="/cheatsheet" replace />} />
 
             {/* ------- Route aliases for old / printed QR codes ---------
@@ -189,11 +192,11 @@ function App() {
             <Route path="/admin/jha/:id" element={<Navigate to="/admin/jha-plans" replace />} />
 
             <Route path="/admin/trench-boxes" element={AP(<TrenchBoxesAdmin />)} />
-            <Route path="/admin/trench-boxes/poster" element={AP(<TrenchBoxPoster />)} />
+            <Route path="/admin/trench-boxes/poster" element={AP(<PosterErrorBoundary><TrenchBoxPoster /></PosterErrorBoundary>)} />
 
-            <Route path="/admin/jha-plans/poster" element={AP(<JhaPlansPoster />)} />
+            <Route path="/admin/jha-plans/poster" element={AP(<PosterErrorBoundary><JhaPlansPoster /></PosterErrorBoundary>)} />
 
-            <Route path="/admin/posters/print-all" element={AP(<AllPostersPrint />)} />
+            <Route path="/admin/posters/print-all" element={AP(<PosterErrorBoundary><AllPostersPrint /></PosterErrorBoundary>)} />
 
             <Route path="/admin/incidents" element={AP(<IncidentsDashboard />)} />
             <Route path="/admin/incidents/:id" element={AP(<ViewIncident />)} />
