@@ -23,7 +23,8 @@ const PM_PICK_KEY = "masci.pm.viewer.email";
 /**
  * PmQaqcList — PM portal scoped QA/QC list.
  *
- * The PM portal is shared by every PM (single password Happy123!), so we
+ * The PM portal is shared by every PM (single shared password issued
+ * offline), so we
  * ask each viewer to identify themselves once via the PM dropdown — the
  * choice is persisted in localStorage. The backend `/api/pm/qaqc-inspections`
  * filters by `pm_email` so each PM sees only their own jobs' records.

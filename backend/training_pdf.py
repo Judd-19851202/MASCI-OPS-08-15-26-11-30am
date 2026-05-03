@@ -519,14 +519,14 @@ PM_LESSONS = [
         "why": "Same surface as Admin for day-to-day work. Backup / restore / force-reseed are hidden from PMs — that's the Admin's job.",
         "why_es": "La misma superficie que Admin para el trabajo diario. Respaldo / restauración / force-reseed están ocultos de Gerentes — ese es trabajo del Admin.",
         "steps": [
-            "/pm/login → Happy123! → Records & Forms.",
+            "/pm/login → enter PM password (ask supervisor) → Records & Forms.",
             "Tiles: P&L, Daily Reports, Inspections, Safety Meetings, JHP, Trench Box, Incidents, Pre-Op.",
             "Scroll to master lists: Jobs, Employees, Suppliers, Equipment, Parts.",
             "Top bar: ALL OK badge, Guide, Company Info, Sign Out.",
             "Backup / restore controls DO NOT appear in PM Portal.",
         ],
         "steps_es": [
-            "/pm/login → Happy123! → Registros y Formularios.",
+            "/pm/login → ingrese la contraseña PM (pregunte al supervisor) → Registros y Formularios.",
             "Tarjetas: P&L, Reportes Diarios, Inspecciones, Reuniones, JHP, Caja de Zanja, Incidentes, Pre-Op.",
             "Baje a listas maestras: Trabajos, Empleados, Proveedores, Equipo, Partes.",
             "Barra superior: bandera ALL OK, Guía, Company Info, Cerrar Sesión.",
@@ -679,7 +679,7 @@ ADMIN_LESSONS = [
         "why_es": "Usted tiene la contraseña admin. Todo lo de Gerente, más controles para mantener la plataforma segura — respaldos, restauraciones, force-reseed, auditorías.",
         "steps": [
             "React (frontend) + FastAPI (backend) + MongoDB. Deployed at mascidocs.com.",
-            "3 passwords: Admin (MASCI1982!), PM (Happy123!), Shop (Nothappy123!).",
+            "3 access tiers: Admin, PM, Shop — each has its own password, issued offline by Safety Department leadership.",
             "/admin/login. Lands on Records & Forms + System Recovery at bottom.",
             "Top panels: Dashboards, Master Lists, Forms, Email Routing, Posters, JHP, Trench Boxes, PMs, System Recovery.",
             "System Recovery (admin-strict): Backup, Integrity Check, On-Server Backups, Crew Recovery, Force-Reseed.",
@@ -687,7 +687,7 @@ ADMIN_LESSONS = [
         ],
         "steps_es": [
             "React + FastAPI + MongoDB. Desplegado en mascidocs.com.",
-            "3 contraseñas: Admin (MASCI1982!), Gerente (Happy123!), Taller (Nothappy123!).",
+            "3 niveles de acceso: Admin, PM, Taller — cada uno tiene su propia contraseña, emitida fuera de línea por el liderazgo del Departamento de Seguridad.",
             "/admin/login. Aterriza en Registros + Recuperación del Sistema abajo.",
             "Paneles: Tableros, Listas Maestras, Formularios, Ruteo, Carteles, JHP, Cajas de Zanja, Gerentes, Recuperación.",
             "Recuperación (admin-estricto): Respaldo, Verificación de Integridad, Respaldos, Recuperación de Cuadrilla, Force-Reseed.",

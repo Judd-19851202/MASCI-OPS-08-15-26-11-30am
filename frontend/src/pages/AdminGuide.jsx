@@ -106,7 +106,7 @@ export default function AdminGuide() {
 
         {/* EVERY WEEK */}
         <Section icon={Users} title="Every week — you, in the office" color="amber">
-          <p>Sign in at <code>mascidocs.com/admin</code> with password <code className="font-bold">Happy123!</code>. You'll see:</p>
+          <p>Sign in at <code>mascidocs.com/admin</code> with the Admin password (issued offline by Safety Department leadership — never posted in writing). You'll see:</p>
           <ul className="ml-5 list-disc space-y-1 mt-2">
             <li><strong>6 module tiles</strong> showing how many records are on file. Click any tile to view / print / delete.</li>
             <li><strong>Auto-Email Routing panel</strong> — confirms which PM gets which job's reports.</li>
@@ -240,7 +240,7 @@ export default function AdminGuide() {
               Mechanics get their own focused console at <code>/shop</code> — Pre-Op trends, open
               items, recent inspections, and the full equipment list. Same sign-off endpoint;
               they don't see incidents / dailies / meetings / inspections / settings.
-              Default password: <strong>Nothappy123!</strong> (changeable via <code>SHOP_PASSWORD</code>
+              Default password: <strong>(issued offline by Safety Department leadership)</strong> (changeable via <code>SHOP_PASSWORD</code>
               env var). Admins automatically have shop access through their admin token.
             </p>
           </div>
@@ -301,17 +301,17 @@ export default function AdminGuide() {
             <tbody>
               <tr>
                 <td className="p-2 border border-slate-300">Admin console <code>/admin</code></td>
-                <td className="p-2 border border-slate-300 font-mono">Happy123!</td>
+                <td className="p-2 border border-slate-300 font-mono text-xs">— issued offline —</td>
                 <td className="p-2 border border-slate-300 text-xs">Your developer updates <code>ADMIN_PASSWORD</code> in the production deploy env vars</td>
               </tr>
               <tr>
                 <td className="p-2 border border-slate-300">Site Inspection form</td>
-                <td className="p-2 border border-slate-300 font-mono">1982</td>
-                <td className="p-2 border border-slate-300 text-xs">Hardcoded gate — prevents randos submitting</td>
+                <td className="p-2 border border-slate-300 font-mono text-xs">— field gate code —</td>
+                <td className="p-2 border border-slate-300 text-xs">Hardcoded gate — prevents randos submitting. Code on the field reference card.</td>
               </tr>
               <tr>
                 <td className="p-2 border border-slate-300">Shop console <code>/shop</code></td>
-                <td className="p-2 border border-slate-300 font-mono">Nothappy123!</td>
+                <td className="p-2 border border-slate-300 font-mono text-xs">— issued offline —</td>
                 <td className="p-2 border border-slate-300 text-xs">Developer updates <code>SHOP_PASSWORD</code> in the production deploy env vars</td>
               </tr>
               <tr>

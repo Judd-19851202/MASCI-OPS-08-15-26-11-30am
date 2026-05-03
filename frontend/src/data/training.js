@@ -397,7 +397,7 @@ const PM_LESSONS = [
     why: "Same surface as the Admin console for day-to-day work. Backup / restore / force-reseed are hidden from PMs on purpose — that's the Admin's job. Everything else is identical.",
     duration: "~5 min",
     steps: [
-      "Go to /pm/login → enter the PM password (Happy123!). You land on Records & Forms.",
+      "Go to /pm/login → enter the PM password (ask your supervisor — credentials are issued offline, not posted in any document). You land on Records & Forms.",
       "Dashboard tiles: Project P&L Snapshot, Daily Reports, Site Inspections, Safety Meetings, Job Hazard Plans, Trench Box Data, Incident Reports, Equipment Pre-Op.",
       "Scroll down to the master lists: Jobs, Employees, Suppliers, Equipment, Parts. Each has inline edit, bulk import, XLSX export, and Archive tab.",
       "Top bar: ALL OK badge (system health), PM Portal button, Guide link, Company Info, Sign Out.",
@@ -544,8 +544,8 @@ const ADMIN_LESSONS = [
     duration: "~8 min",
     steps: [
       "The platform is React (frontend) + FastAPI (backend) + MongoDB (database), deployed at mascidocs.com. Preview at safety-audit-mobile-1.preview.emergentagent.com.",
-      "Three password levels: Admin (MASCI1982!) sees everything. PM (Happy123!) sees day-to-day but NOT backup/restore. Shop (Nothappy123!) sees only equipment + Pre-Op sign-offs.",
-      "Admin Hub tile in the Hub bottom area. /admin/login with MASCI1982!. After login you land on Records & Forms (identical to PM view) + the System Recovery section at the bottom.",
+      "Three access tiers: Admin sees everything. PM sees day-to-day but NOT backup/restore. Shop sees only equipment + Pre-Op sign-offs. Each tier has its own password — issued by Safety Department leadership, never shared in writing.",
+      "Admin Hub tile in the Hub bottom area. /admin/login with the Admin password (ask Safety Department leadership). After login you land on Records & Forms (identical to PM view) + the System Recovery section at the bottom.",
       "Top-level panels under Admin: Dashboards (compliance), Master Lists (Jobs/Employees/Suppliers/Equipment/Parts), Forms (View & Email), Email Routing, Site Posters, JHP Admin, Trench Boxes Admin, Project Managers, System Recovery.",
       "System Recovery section (admin-strict, PMs cannot see it): Backup & Restore Everything, Integrity Check, On-Server Backups list, Crew Recovery, Force-Reseed.",
       "Scheduled backups run twice a day: 02:00 UTC and 18:00 UTC. 14-day retention. Pruned automatically. Admin has zero-touch.",

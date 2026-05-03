@@ -283,7 +283,7 @@ export const LESSON_TRANSLATIONS_ES = {
     title_es: "Lección 1 — Panorama del Portal de Gestión",
     why_es: "La misma superficie que la consola de Admin para el trabajo diario. Respaldo / restauración / force-reseed están ocultos de los Gerentes a propósito — ese es trabajo del Admin. Todo lo demás es idéntico.",
     steps_es: [
-      "Vaya a /pm/login → ingrese la contraseña PM (Happy123!). Aterriza en Registros y Formularios.",
+      "Vaya a /pm/login → ingrese la contraseña PM (pregunte a su supervisor — las credenciales se entregan fuera de línea, no se publican en ningún documento). Aterriza en Registros y Formularios.",
       "Tarjetas del tablero: Snapshot de P&L, Reportes Diarios, Inspecciones, Reuniones de Seguridad, Planes de Peligros, Cajas de Zanja, Incidentes, Pre-Op.",
       "Baje a las listas maestras: Trabajos, Empleados, Proveedores, Equipo, Partes. Cada una tiene edición en línea, importación masiva, exportación XLSX y pestaña de Archivo.",
       "Barra superior: bandera ALL OK (salud del sistema), botón Portal de Gestión, Guía, Company Info, Cerrar Sesión.",
@@ -404,8 +404,8 @@ export const LESSON_TRANSLATIONS_ES = {
     why_es: "Usted tiene la contraseña de admin. Eso significa todo lo que puede hacer un Gerente, más los controles que mantienen la plataforma segura — respaldos, restauraciones, force-reseed, auditorías de integridad. Esta lección es un mapa de lo que hay bajo el capó.",
     steps_es: [
       "La plataforma es React (frontend) + FastAPI (backend) + MongoDB (base de datos), desplegada en mascidocs.com. Preview en safety-audit-mobile-1.preview.emergentagent.com.",
-      "Tres niveles de contraseña: Admin (MASCI1982!) ve todo. Gerente (Happy123!) ve lo diario pero NO respaldo/restauración. Taller (Nothappy123!) solo ve equipo + firmas Pre-Op.",
-      "Tarjeta Admin en el área inferior del Hub. /admin/login con MASCI1982!. Después del login aterriza en Registros y Formularios (idéntico a la vista PM) + la sección Recuperación del Sistema abajo.",
+      "Tres niveles de acceso: Admin ve todo. Gerente (PM) ve lo diario pero NO respaldo/restauración. Taller solo ve equipo + firmas Pre-Op. Cada nivel tiene su propia contraseña — emitida por el liderazgo del Departamento de Seguridad, nunca compartida por escrito.",
+      "Tarjeta Admin en el área inferior del Hub. /admin/login con la contraseña de Admin (pregunte al liderazgo del Departamento de Seguridad). Después del login aterriza en Registros y Formularios (idéntico a la vista PM) + la sección Recuperación del Sistema abajo.",
       "Paneles principales bajo Admin: Tableros (cumplimiento), Listas Maestras (Trabajos/Empleados/Proveedores/Equipo/Partes), Formularios (Ver y Correo), Ruteo de Correos, Carteles, Admin JHP, Admin Cajas de Zanja, Gerentes de Proyecto, Recuperación del Sistema.",
       "Sección Recuperación del Sistema (admin-estricto, los Gerentes no la pueden ver): Respaldo y Restauración de Todo, Verificación de Integridad, lista de Respaldos en Servidor, Recuperación de Cuadrilla, Force-Reseed.",
       "Los respaldos programados corren dos veces al día: 02:00 UTC y 18:00 UTC. 14 días de retención. Podados automáticamente. Admin no hace nada.",

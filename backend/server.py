@@ -4189,7 +4189,7 @@ async def admin_run_data_fixes(_: bool = Depends(require_admin)):
 # -------------------- Crew Hub recovery (legacy admin-token gated) --------------------
 # These endpoints exist so the office can recover a Crew Hub login when nobody
 # remembers their password. Authenticated by the LEGACY admin password
-# (X-Admin-Token / Happy123!) — NOT by a Crew Hub JWT — so it works even when
+# (X-Admin-Token / env PM_PASSWORD) — NOT by a Crew Hub JWT — so it works even when
 # every crew owner+admin is locked out.
 
 @api_router.get("/admin/crew-recovery/status")

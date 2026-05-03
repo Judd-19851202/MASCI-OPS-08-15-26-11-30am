@@ -1,5 +1,84 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Pre-Deployment Final QA + P0 Security Fix (Production-Ready)
+
+User requested final pre-deploy audit covering all 36-hour changes. testing_agent_v3_fork iter-34 ran a 41-test E2E sweep — found **1 P0 blocker + 0 P1 + 0 P2 issues**.
+
+### P0 BLOCKER FOUND & FIXED — Production credentials leaked to public JS bundle
+
+**Issue:** Real production passwords (`MASCI1982!`, `Happy123!`, `Nothappy123!`) were hardcoded as plain-text in:
+- `frontend/src/data/training.js` Lesson 9 (Site Safety Inspection)
+- `frontend/src/data/training_es.js` Lesson 9
+- `frontend/src/pages/AdminGuide.jsx` (4 occurrences in admin guide tables)
+- `backend/training_pdf.py` (printable training packet — same Lesson 9)
+
+These would have shipped in the public JS bundle (`/static/js/bundle.js`) and PDF outputs. Anyone visiting the site or printing a training packet could harvest all 3 admin tier passwords.
+
+**Fix:** All references replaced with placeholder language ("issued offline by Safety Department leadership", "ask your supervisor"). `AdminGuide.jsx` password-tier table now shows `— issued offline —` instead of literal values. Backend Python comments scrubbed too (server-side only, but hygiene).
+
+**Verified clean** by curl-ing the live deployed bundle and grepping for each credential — **0 matches** for every password. Env-var NAME references (e.g. "set `ADMIN_PASSWORD` to a new value...") remain because they're documentation, not values.
+
+### Other recent-change checks (Section 1)
+
+| Item | Status | Verification |
+|---|---|---|
+| New MASCI HUB logo | ✅ | Dark variant on Hub header, light variant on PDFs/cheatsheet — distinct MD5 |
+| Dark-bg logo unchanged | ✅ | MD5 stable across last 3 install runs |
+| Light-bg logo on PDFs/docs/emails | ✅ | `backend/static/masci-logo.png` + `masci-logo-email.png` MD5-identical to `masci-full-lockup-onlight.png` |
+| QA/QC tile activated | ✅ | Hub home renders QA/QC tile; "Coming Soon" wording purged from Lesson 1 |
+| 3 QA/QC inspection forms | ✅ | iter-32 verified end-to-end |
+| PM Portal QA/QC tracking | ✅ | iter-32 + iter-34 |
+| Admin QA/QC tracking | ✅ | iter-32 + iter-34 |
+| Field Training Lesson 7 | ✅ | "Job Hazard Plan (JHP)", not "Analysis"; corrected `why` field which still said "Analyses" |
+| 9 lessons in correct order | ✅ | 1-Hub, 2-Daily, 3-PreOp, 4-MaterialCalculators, 5-QAQC, 6-SafetyMeeting, 7-JHP, 8-Incident, 9-SiteInspection |
+| EN/ES video support | ✅ | TrainingTrack swaps `videos[lang]`; smoke-tested both languages |
+| JHP terminology | ✅ | Zero "Job Hazard Analyses" or "Job Hazard Analysis" in user-facing strings |
+| Material Calculators | ✅ | iter-30 verified, included as Lesson 4 |
+| Translation: checklists + Pass/Fail/N/A | ✅ | iter-33 — 21/21 backend + 3/3 forms |
+| "Made with Emergent" removed | ✅ | iter-31 + verified again — 0 occurrences in bundle |
+
+### Deployment readiness — section-by-section per spec
+
+| § | Item | Status |
+|---|---|---|
+| 1 | Recent change audit | ✅ ALL GREEN |
+| 2 | Branding/logo QA | ✅ Dark unchanged, light high-contrast, 0 Emergent, no NoGuesswork-no-spaces issues |
+| 3 | Bilingual EN/ES | ✅ 100% translates; iter-33 verified zero leakage |
+| 4 | Spanish input → English backend | ✅ `translateUserInput` wired on all 6 form types (Incident/Meeting/Daily/Inspection/Equipment/QA-QC) |
+| 5 | Forms / workflow | ✅ iter-34 backend 18/18 + frontend 16/16 |
+| 6 | Email routing | ✅ Per-job PM resolution + ALWAYS_CC office fallback when no PM |
+| 7 | PDFs | ✅ Logo crisp, footer correct, 0 Emergent, ES-mode PDFs localize via `_QAQC_ES` |
+| 8 | Training Hub | ✅ 9 lessons, EN+ES; videos play; Lesson 9 access-restricted to Safety Dept |
+| 9 | Performance | ✅ Hub home loads < 5s clean session |
+| 10 | Security | ✅ **P0 leaks fixed** + admin/PM/shop tokens enforced; uploads magic-byte validated |
+| 11 | Mobile / desktop | ✅ Tested 1280×900 + 390×844; no horizontal scroll |
+| 12 | Final cleanup | ✅ "Coming Soon" QA/QC removed; 8-tile count corrected from 7 |
+| 13 | Final report | ✅ This block |
+| Field training structure | ✅ 1→9 in exact spec order |
+
+### Files touched (final pre-deploy pass)
+- `frontend/src/data/training.js` — Lesson 1 tile count (7→8) + remove QA/QC "coming soon"; Lesson 7 "Analyses" → "Plans"; Lesson 9 password leak redacted
+- `frontend/src/data/training_es.js` — same fixes in Spanish
+- `frontend/src/pages/AdminGuide.jsx` — 4 password leaks redacted to "— issued offline —"
+- `frontend/src/pages/PmQaqcList.jsx` — JSDoc password reference scrubbed
+- `backend/training_pdf.py` — Lesson 1 tile count + Lesson 7 "Analyses" → "Plans" + Lesson 9 password leak (EN+ES) redacted
+- `backend/routes/qaqc.py` — internal comment password reference scrubbed
+- `backend/server.py` — internal comment password reference scrubbed
+
+### Production-bundle verification
+```
+Bundle: 8,246,791 bytes
+  MASCI1982:        0 matches
+  Happy123:         0 matches
+  Nothappy123:      0 matches
+  Maddix8530:       0 matches
+  EMERGENT_LLM_KEY: 0 matches
+  RESEND_API_KEY:   5  ← env-var NAMES only (docs)
+  MONGO_URL:        2  ← env-var NAMES only (docs)
+  ADMIN_PASSWORD:   7  ← env-var NAMES only (docs)
+```
+
+
 ## 2026-05-03 — QA/QC Bilingual Completeness + System-Wide Pass/Fail/N/A Audit (P0)
 
 User reported QA/QC Concrete Form Inspection translated ~85 % to ES — checklist labels and PASS/FAIL/N/A buttons stayed English. Root cause: hard-coded button labels + no ES dict entries for the schema's checklist strings. Spec also asked for system-wide standardization on `Pass→Cumple`, `Fail→No Cumple`, `N/A→N/A`, and required PDFs to honor `submit_language`.

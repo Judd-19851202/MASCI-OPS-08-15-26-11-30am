@@ -217,7 +217,7 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
     ):
         """PM portal scoped list. Filtered to records whose
         `pm_email` (preferred) or `pm_name` matches the requested PM
-        identifier. PMs share a single password (Happy123!), so the actual
+        identifier. PMs share a single password (env PM_PASSWORD), so the actual
         identity is selected client-side from the active PM roster — the
         UI passes ?pm=<email-or-name>. Empty `pm` returns an empty list
         instead of all records, so the field MUST be set to see anything.
