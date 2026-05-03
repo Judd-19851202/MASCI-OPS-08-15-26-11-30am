@@ -749,13 +749,13 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
              content: "\u00A9 MASCI \u00B7 Platform developed by The Judd Group LLC";
              font-family: 'Courier New', monospace; font-size: 7pt;
              letter-spacing: 0.16em; text-transform: uppercase;
-             color: #94a3b8;
+             color: #334155; font-weight: bold;
            }}
            @bottom-right {{
              content: "Page " counter(page) " of " counter(pages);
              font-family: 'Courier New', monospace; font-size: 7pt;
              letter-spacing: 0.18em; text-transform: uppercase;
-             color: #94a3b8;
+             color: #334155; font-weight: bold;
            }}
         }}
   body {{ font-family: 'Helvetica', 'Arial', sans-serif; font-size: 9.5pt;
@@ -763,7 +763,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
   .hdr {{ display: flex; align-items: flex-start; justify-content: space-between;
           gap: 12px; border-bottom: 3px solid #c8102e; padding-bottom: 8px;
           margin-bottom: 14px; }}
-  .hdr img {{ height: 56px; width: auto; }}
+  .hdr img {{ height: 78px; width: auto; }}
   .hdr-r {{ text-align: right; }}
   .hdr-title {{ font-size: 18pt; font-weight: 900; letter-spacing: -0.02em;
                 color: #0f172a; margin: 0; line-height: 1; }}
@@ -834,14 +834,14 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
        Renders after all body content, so it naturally lands on the
        final page of the record PDF (records are typically 1-2 pages). -->
   <div class="last-page-legal" style="margin-top:0.4in;padding-top:8pt;
-       border-top:1px solid #e2e8f0;font-family:'Helvetica','Arial',sans-serif;
-       font-size:8pt;color:#94a3b8;line-height:1.45;font-style:italic;">
+       border-top:1px solid #cbd5e1;font-family:'Helvetica','Arial',sans-serif;
+       font-size:8pt;color:#334155;line-height:1.45;font-style:italic;">
     This platform and training material are provided as a documentation and
     support tool only and do not replace required safety supervision,
     inspections, or regulatory compliance responsibilities.
   </div>
   <div style="margin-top:6pt;font-family:'Helvetica','Arial',sans-serif;
-       font-size:7pt;color:#94a3b8;">
+       font-size:7pt;color:#475569;">
     mascidocs.com is a customer-branded deployment of a platform developed
     by The Judd Group LLC.
   </div>
@@ -884,7 +884,7 @@ def render_email_html(
         Filed via the MASCI Hub at mascidocs.com.
       </p>
       <hr style="border:0;border-top:1px solid #e2e8f0;margin:18px 0;" />
-      <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#94a3b8;">
+      <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#475569;font-weight:bold;">
         MASCI General Contractors · 386-322-4500 · safety@mascigc.com
       </div>
     </td></tr>

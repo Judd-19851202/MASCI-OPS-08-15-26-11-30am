@@ -910,14 +910,8 @@ export default function NewEquipmentInspection({ publicMode = false }) {
 
         {/* Tally bar — sticky at bottom while the user fills out the
             inspection so they can see running counts. Dismissible:
-              • Tap the × to collapse to a small floating chip that
-                stays out of the way of the Emergent badge.
-              • Tap the chip to re-expand.
-            On mobile we bump the bar UP above the "Made with Emergent"
-            floating badge (only visible on preview / deployed emergent
-            URLs — never on mascidocs.com). `bottom-24 sm:bottom-4`
-            lifts it clear; `mr-44 sm:mr-0` on the collapsed chip
-            keeps it to the LEFT of the badge so it's always tappable. */}
+              • Tap the × to collapse to a small floating chip.
+              • Tap the chip to re-expand. */}
         {data.equipment_type && !tallyCollapsed && (
           <div
             className="bg-white border-2 border-slate-300 rounded-md px-3 py-2 sm:p-4 flex items-center justify-between gap-2 sm:gap-3 sticky bottom-24 sm:bottom-4 shadow-md z-20"

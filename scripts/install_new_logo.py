@@ -1,20 +1,43 @@
-"""Install the new MASCI HUB logo across the platform.
+"""Install the new MASCI HUB logo, full pipeline.
 
-Steps performed:
-  1. Open the source PNG (1774x887, RGB, pure-black background).
+What this script does (idempotent, re-runnable):
+
+  1. Open the source PNG (1774×887, RGB, pure-black background).
   2. Flood-fill the four corners with transparent so the black perimeter
      becomes alpha=0 — preserves all dark pixels INSIDE the medallion
      (those are not connected to the corners).
-  3. Slice off the bottom "RUN EVERY JOB. CONTROL EVERY DETAIL. PROTECT
-     EVERYTHING." line.  That phrase is already the Hub homepage H1 — per
-     spec section 4 ("Do NOT duplicate this tagline anywhere else"),
-     keeping it inside the logo would duplicate it on Hub.
+  3. Crop above the gap that has dense content both sides — drops the
+     bottom "RUN EVERY JOB. CONTROL EVERY DETAIL. PROTECT EVERYTHING."
+     line so the logo lockup is just the medallion + MASCI HUB plate
+     (which already includes "NO GUESSWORK · NO MISSED STEPS · NO EXCUSES"
+     baked inside the metallic plate).
   4. Auto-crop to the tight bounding box of opaque pixels.
-  5. Write three lockup variants + an icon-only mark to
-     /app/frontend/public and /app/backend/static.
+  5. Split into mark (M-shield only) and wordmark (MASCI HUB plate only).
+  6. Generate **two distinct logo variants per piece**:
+       • dark-background variant — original transparent metallic-on-dark
+       • light-background variant — high-contrast version with bright
+         metallic pixels darkened so the lockup pops on white paper.
+         Strategy: any opaque pixel whose RGB sum > 540 (pale silver /
+         off-white) gets pushed down a uniform amount in luminance
+         (×0.45) and slightly toward charcoal-blue so it doesn't go
+         flat-grey.  Red and dark-navy pixels are untouched so the M
+         and the wordmark stay the brand colors.
+  7. Resize to sane sizes (lockup max 1600 wide; mark max 600).
+  8. Write 11 logo PNGs to /app/frontend/public + /app/backend/static.
+  9. Generate **brand-correct favicons + PWA icons** by rendering the
+     M-shield mark on a transparent canvas at every size needed by the
+     manifest:
+       • favicon-16/32/48
+       • apple-touch-icon-120/152/167/180
+       • icon-192/512
+       • icon-maskable-192/512  (with 10 % safe-zone padding per Android
+         maskable icon spec)
+ 10. Wipe obsolete asset directories (`_old_safety_lockups`, `_src`,
+     `_pre_tagline_rebrand_backup`).
 
-Re-runnable.  Source image is /tmp/new_masci_logo.png (downloaded from
-the customer-assets URL the user uploaded).
+Source image is /tmp/new_masci_logo.png.  If you push a new version,
+drop it at that path and re-run the script — every downstream PNG is
+regenerated from this single source.
 """
 from __future__ import annotations
 
@@ -28,10 +51,10 @@ PUBLIC = Path("/app/frontend/public")
 STATIC = Path("/app/backend/static")
 
 
-def _flood_corners_transparent(im: Image.Image, thresh: int = 25) -> Image.Image:
-    """Flood-fill from each corner; black-and-near-black pixels connected
-    to the corner become alpha=0.  Pixels inside the medallion that are
-    dark but isolated from the corner stay opaque."""
+# ───────────────────────── Helpers ─────────────────────────
+
+
+def _flood_corners_transparent(im: Image.Image, thresh: int = 28) -> Image.Image:
     if im.mode != "RGBA":
         im = im.convert("RGBA")
     w, h = im.size
@@ -41,30 +64,19 @@ def _flood_corners_transparent(im: Image.Image, thresh: int = 25) -> Image.Image
 
 
 def _autocrop(im: Image.Image) -> Image.Image:
-    """Trim to the tight bounding box of pixels with alpha > 8."""
     alpha = im.split()[-1]
     bbox = alpha.point(lambda v: 255 if v > 8 else 0).getbbox()
     return im.crop(bbox) if bbox else im
 
 
 def _crop_above_gap(im: Image.Image) -> Image.Image:
-    """Find the gap between two content blocks and crop above it.
-
-    Algorithm:
-      1. Compute opaque-pixel count per row.
-      2. Identify contiguous runs of "sparse" rows (count < 1% width).
-      3. Filter to runs that have dense content BOTH above and below
-         them — those are real visual breaks between two blocks (not the
-         leading/trailing padding around the canvas).
-      4. Of those, pick the FIRST one — that's the break right after the
-         primary lockup, which is what we want to crop above.
-    """
+    """Drop the bottom 'RUN EVERY JOB...' line by finding the first
+    sparse-row band that has dense content both above AND below it."""
     w, h = im.size
     alpha = im.split()[-1].load()
     counts = [sum(1 for x in range(w) if alpha[x, y] > 8) for y in range(h)]
     sparse_thresh = max(2, int(w * 0.01))
-
-    runs = []  # list of (start_y, length)
+    runs = []
     y = 0
     while y < h:
         if counts[y] < sparse_thresh:
@@ -84,41 +96,14 @@ def _crop_above_gap(im: Image.Image) -> Image.Image:
     qualifying = [
         (s, length)
         for s, length in runs
-        if length >= max(15, h // 35)
-        and has_dense_above(s)
-        and has_dense_below(s + length)
+        if length >= max(15, h // 35) and has_dense_above(s) and has_dense_below(s + length)
     ]
     if qualifying:
-        first_start = qualifying[0][0]
-        return im.crop((0, 0, w, first_start))
+        return im.crop((0, 0, w, qualifying[0][0]))
     return im
 
 
-def _extract_mark(im: Image.Image) -> Image.Image:
-    """The M-shield medallion is the leftmost cluster.  Walk in from the
-    right looking for the first "long vertical gap" — that's the column
-    between the medallion and the MASCI HUB plate.  Crop everything to
-    the left of that gap."""
-    x = _find_split_column(im)
-    if x is not None:
-        return _autocrop(im.crop((0, 0, x, im.height)))
-    # Fallback: left ~30%
-    return _autocrop(im.crop((0, 0, int(im.width * 0.32), im.height)))
-
-
-def _extract_wordmark(im: Image.Image) -> Image.Image:
-    """Inverse of _extract_mark — keep everything to the right of the
-    medallion (the MASCI HUB plate)."""
-    x = _find_split_column(im)
-    if x is not None:
-        return _autocrop(im.crop((x, 0, im.width, im.height)))
-    return _autocrop(im.crop((int(im.width * 0.32), 0, im.width, im.height)))
-
-
 def _find_split_column(im: Image.Image) -> int | None:
-    """Find the X-column that separates the M-shield (left) from the
-    MASCI HUB plate (right) — the first long run of mostly-transparent
-    columns starting after ~25% of the image width."""
     w, h = im.size
     alpha = im.split()[-1].load()
     col_counts = [sum(1 for y in range(h) if alpha[x, y] > 8) for x in range(w)]
@@ -134,11 +119,165 @@ def _find_split_column(im: Image.Image) -> int | None:
                 run += 1
                 xx += 1
             if run >= min_gap:
-                return x + run // 2  # split mid-gap
+                return x + run // 2
             x = xx
         else:
             x += 1
     return None
+
+
+def _extract_mark(im: Image.Image) -> Image.Image:
+    x = _find_split_column(im)
+    if x is not None:
+        return _autocrop(im.crop((0, 0, x, im.height)))
+    return _autocrop(im.crop((0, 0, int(im.width * 0.32), im.height)))
+
+
+def _extract_wordmark(im: Image.Image) -> Image.Image:
+    x = _find_split_column(im)
+    if x is not None:
+        return _autocrop(im.crop((x, 0, im.width, im.height)))
+    return _autocrop(im.crop((int(im.width * 0.32), 0, im.width, im.height)))
+
+
+def _to_onlight(im: Image.Image) -> Image.Image:
+    """Generate the light-background variant.
+
+    Strategy: keep the original metallic colors (so the brand integrity
+    of red-M / silver-plate / navy-text is preserved), but add a strong
+    DARK OUTLINE around every opaque pixel.  On white paper the outline
+    gives every silver/light-gray edge enough contrast to read clearly,
+    and the small "NO GUESSWORK · NO MISSED STEPS · NO EXCUSES" tagline
+    inside the metallic plate gets a halo that makes its characters
+    legible at print sizes.
+
+    Implementation:
+      1. Build a binary mask of opaque pixels (alpha > 32).
+      2. Dilate the mask by 3 px using a max-filter — this expanded
+         mask is the silhouette + a border.
+      3. Make a "dark layer" sized like the input, fully transparent,
+         where every pixel that's in the dilated mask is filled with
+         deep navy #0B1220 at full opacity.
+      4. Composite the original RGBA on top of the dark layer.  Result:
+         opaque pixels show original colors; the 3-px ring around them
+         shows deep navy (the outline); everywhere else stays
+         transparent.
+      5. Additionally, for any silver/very-pale opaque pixel we still
+         darken it slightly (×0.78) so the metallic interior doesn't
+         feel washed out next to the now-dark outline.
+    """
+    from PIL import ImageFilter, ImageChops
+
+    if im.mode != "RGBA":
+        im = im.convert("RGBA")
+    w, h = im.size
+
+    # Slight interior darkening so silver→pewter (avoids cartoony look
+    # of bright silver next to a black outline).
+    darkened = im.copy()
+    px = darkened.load()
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                continue
+            chroma = max(r, g, b) - min(r, g, b)
+            # Preserve brand red
+            if r > 80 and r > g + b and chroma > 60:
+                continue
+            lum = r + g + b
+            if lum > 600:
+                f = 0.55  # near-white silver → pewter
+            elif lum > 450:
+                f = 0.70
+            elif lum > 300:
+                f = 0.85
+            else:
+                continue
+            px[x, y] = (int(r * f), int(g * f), int(b * f), a)
+
+    # Build alpha mask + dilate
+    alpha = darkened.split()[-1]
+    # Threshold to a hard mask first (anti-aliased edges become a clean shape)
+    hard_mask = alpha.point(lambda v: 255 if v > 32 else 0)
+    # MaxFilter(7) ≈ 3-pixel-radius dilation in each direction
+    dilated = hard_mask.filter(ImageFilter.MaxFilter(7))
+    # Outline-only mask = dilated minus original opaque area
+    outline_mask = ImageChops.subtract(dilated, hard_mask)
+
+    # Build a deep-navy outline layer
+    outline_layer = Image.new("RGBA", (w, h), (11, 18, 32, 0))
+    # Fill the outline pixels with deep navy at full alpha
+    outline_layer.putalpha(outline_mask)
+
+    # Composite original on top of outline
+    out = Image.alpha_composite(outline_layer, darkened)
+    return out
+
+
+def _resize_max(im: Image.Image, max_w: int) -> Image.Image:
+    if im.width <= max_w:
+        return im
+    ratio = max_w / im.width
+    return im.resize((max_w, int(im.height * ratio)), Image.LANCZOS)
+
+
+def _save(path: Path, im: Image.Image) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    im.save(path, format="PNG", optimize=True)
+    print(f"[install-logo] wrote {path}  ({path.stat().st_size:,} bytes)")
+
+
+# ───────────────────────── Favicons / PWA icons ─────────────────────────
+
+
+def _square_canvas_for_icon(mark: Image.Image, side: int, pad_pct: float = 0.0) -> Image.Image:
+    """Center-place the mark on a square transparent canvas at `side`x`side`,
+    with `pad_pct` margin so the mark doesn't touch the edges."""
+    if mark.mode != "RGBA":
+        mark = mark.convert("RGBA")
+    target_inner = int(side * (1 - pad_pct * 2))
+    src = _autocrop(mark)
+    sw, sh = src.size
+    scale = min(target_inner / sw, target_inner / sh)
+    new_w = max(1, int(sw * scale))
+    new_h = max(1, int(sh * scale))
+    resized = src.resize((new_w, new_h), Image.LANCZOS)
+    canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    canvas.paste(resized, ((side - new_w) // 2, (side - new_h) // 2), resized)
+    return canvas
+
+
+def _generate_favicons(mark: Image.Image) -> None:
+    favs = [16, 32, 48]
+    for s in favs:
+        _save(PUBLIC / f"favicon-{s}.png", _square_canvas_for_icon(mark, s, pad_pct=0.05))
+    apples = [(120, "apple-touch-icon-120.png"), (152, "apple-touch-icon-152.png"),
+              (167, "apple-touch-icon-167.png"), (180, "apple-touch-icon.png")]
+    for s, name in apples:
+        # Apple icons render on iOS home screens: must be SQUARE with full
+        # opacity (no transparency — iOS blends transparent pixels with
+        # white which looks washed-out).  Composite over near-white so the
+        # rounded-square mask iOS adds wraps cleanly on the dark logo.
+        canvas = _square_canvas_for_icon(mark, s, pad_pct=0.08)
+        bg = Image.new("RGBA", (s, s), (255, 255, 255, 255))
+        bg.alpha_composite(canvas)
+        _save(PUBLIC / name, bg.convert("RGB").convert("RGBA"))
+    pwas = [192, 512]
+    for s in pwas:
+        # Standard PWA icon: transparent edges, mark centered with small pad
+        _save(PUBLIC / f"icon-{s}.png", _square_canvas_for_icon(mark, s, pad_pct=0.06))
+    # Maskable icons: Android crops to ~80 % of canvas, so we need a 10 %
+    # safe zone on EACH side.  Composite the mark on a deep-navy background
+    # to match the brand header palette.
+    for s in pwas:
+        canvas = _square_canvas_for_icon(mark, s, pad_pct=0.18)
+        bg = Image.new("RGBA", (s, s), (15, 23, 42, 255))  # slate-900
+        bg.alpha_composite(canvas)
+        _save(PUBLIC / f"icon-maskable-{s}.png", bg)
+
+
+# ───────────────────────── Main ─────────────────────────
 
 
 def main() -> None:
@@ -153,60 +292,50 @@ def main() -> None:
     print(f"[install-logo] tight lockup: {lockup.size}")
 
     mark = _extract_mark(lockup)
-    print(f"[install-logo] mark (M-shield only): {mark.size}")
-
-    # Wordmark = lockup minus the mark on the left.  Crop using the same
-    # gap detection as _extract_mark but keep the right portion.
     wordmark = _extract_wordmark(lockup)
-    print(f"[install-logo] wordmark (MASCI HUB plate only): {wordmark.size}")
 
-    # Resize sane: lockup target ~1500 px wide (high-DPI safe), mark ~600 wide
-    if lockup.width > 1600:
-        ratio = 1600 / lockup.width
-        lockup = lockup.resize(
-            (1600, int(lockup.height * ratio)), Image.LANCZOS
-        )
-        print(f"[install-logo] resized lockup: {lockup.size}")
-    if mark.width > 600:
-        ratio = 600 / mark.width
-        mark = mark.resize(
-            (600, int(mark.height * ratio)), Image.LANCZOS
-        )
-        print(f"[install-logo] resized mark: {mark.size}")
-    if wordmark.width > 1200:
-        ratio = 1200 / wordmark.width
-        wordmark = wordmark.resize(
-            (1200, int(wordmark.height * ratio)), Image.LANCZOS
-        )
-        print(f"[install-logo] resized wordmark: {wordmark.size}")
+    lockup = _resize_max(lockup, 1600)
+    mark = _resize_max(mark, 600)
+    wordmark = _resize_max(wordmark, 1200)
+    print(f"[install-logo] final sizes — lockup={lockup.size} mark={mark.size} wordmark={wordmark.size}")
 
-    # Write to disk.  The new logo is metallic-on-transparent so all
-    # "onblack" / "onlight" variants are the same file — they read on
-    # both dark and light backgrounds without separate light/dark renders.
+    # Build the light-bg variants from each dark variant
+    print("[install-logo] generating light-background variants…")
+    lockup_light = _to_onlight(lockup.copy())
+    mark_light = _to_onlight(mark.copy())
+    wordmark_light = _to_onlight(wordmark.copy())
+
+    # Write all logo variants
     targets = {
+        # On-dark (original transparent, metallic colors intact)
         PUBLIC / "masci-full-lockup.png": lockup,
         PUBLIC / "masci-full-lockup-onblack.png": lockup,
-        PUBLIC / "masci-full-lockup-onlight.png": lockup,
         PUBLIC / "masci-mark.png": mark,
         PUBLIC / "masci-mark-onblack.png": mark,
-        PUBLIC / "masci-mark-onlight.png": mark,
         PUBLIC / "masci-wordmark.png": wordmark,
         PUBLIC / "masci-wordmark-onblack.png": wordmark,
-        PUBLIC / "masci-wordmark-onlight.png": wordmark,
-        STATIC / "masci-logo.png": lockup,
-        STATIC / "masci-logo-email.png": lockup,
+        # On-light (darkened metallics, high contrast on white paper)
+        PUBLIC / "masci-full-lockup-onlight.png": lockup_light,
+        PUBLIC / "masci-mark-onlight.png": mark_light,
+        PUBLIC / "masci-wordmark-onlight.png": wordmark_light,
+        # Backend static — PDFs are white-paper output, use light variant.
+        # Email — clients render on white by default, also use light variant.
+        STATIC / "masci-logo.png": lockup_light,
+        STATIC / "masci-logo-email.png": lockup_light,
     }
     for path, img in targets.items():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        img.save(path, format="PNG", optimize=True)
-        print(f"[install-logo] wrote {path}  ({path.stat().st_size:,} bytes)")
+        _save(path, img)
 
-    # Also stash the original source for audit
+    # Audit copy of original source
     audit = PUBLIC / "_logo_source_2026-05-03.png"
     shutil.copy2(SRC, audit)
     print(f"[install-logo] audit copy: {audit}")
 
-    # Drop obsolete logo asset dirs left over from prior rebrands.
+    # Favicons + PWA icons (built from the M-shield mark)
+    print("[install-logo] regenerating favicons + PWA icons from mark…")
+    _generate_favicons(mark)
+
+    # Cleanup obsolete dirs
     for stale in [
         PUBLIC / "_pre_tagline_rebrand_backup",
         PUBLIC / "_old_safety_lockups",
@@ -215,6 +344,8 @@ def main() -> None:
         if stale.exists():
             shutil.rmtree(stale)
             print(f"[install-logo] removed obsolete dir: {stale}")
+
+    print("[install-logo] DONE")
 
 
 if __name__ == "__main__":

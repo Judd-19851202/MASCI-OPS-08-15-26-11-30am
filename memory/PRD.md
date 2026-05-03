@@ -1,5 +1,65 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Light-Background Logo Variant + Emergent Branding Removal + Favicons (P0 Fix)
+
+User reported the new logo looked muddy on white PDF backgrounds, the Crew Cheat Sheet logo wasn't rendering well, and PDFs still showed "Made with Emergent" branding. This pass addresses all 9 spec sections.
+
+### What shipped
+
+**1. True light-background logo variant** (`*-onlight.png`)
+- Algorithm: keep the original metallic on transparent, then add a 3-pixel deep-navy outline (#0B1220) around every opaque pixel via PIL `MaxFilter(7)` dilation + `ImageChops.subtract` to isolate the outline ring.
+- Plus interior darkening: silver pixels with luminance > 600 → ×0.55 (pewter), > 450 → ×0.70, > 300 → ×0.85. Brand-red pixels (red-dominant + saturated chroma > 60) are preserved untouched.
+- Result: logo readability on white paper jumped from 4/10 → **9/10** per visual analysis. Tagline characters now distinct, plate edges defined, M-shield still vibrant red.
+
+**2. Auto logo selection by background**
+- `MasciLogo` component already had `onLight` prop wiring through to `*-onlight.png` paths — now that the onlight files have actual high-contrast content, the swap "just works" on every surface that already passes `onLight`: cheat sheets, JHA posters, trench-box posters, PDFs (via `pdf_render.LOGO_PATH`), and emails (via `backend/static/masci-logo-email.png`).
+
+**3. PDF visual upgrades** (`backend/pdf_render.py`)
+- Logo height bumped from 56 → **78 px** so the embedded tagline reads at print size.
+- Footer text colors: `#94a3b8` (slate-400) → `#334155` (slate-700, bold) on per-page footers and page numbers — no more washed-out small text on print.
+- Last-page legal disclaimer: `#94a3b8` → `#334155` for the platform/safety disclaimer + `#475569` for the ownership-clarification line.
+- Email contact-info color same uplift (`#94a3b8` → `#475569` bold).
+
+**4. "Made with Emergent" removed everywhere**
+- `frontend/public/index.html`: deleted the entire `#emergent-badge` `<a>` block (the floating button bottom-right of every page).
+- `backend/ops_manual.py`: 22 "Emergent" string occurrences replaced with brand-neutral terms ("Hosting Platform", "Universal LLM Key", "the deployment dashboard", etc). The single remaining `emergentagent.com` reference is left because it's a real DNS hostname.
+- `frontend/src/pages/NewEquipmentInspection.jsx`: cleaned up an in-code comment that referenced "Made with Emergent badge" positioning.
+- Verified via `pdftotext` on a regenerated QA/QC PDF: **0 occurrences** of "Emergent" or "Made with" anywhere in the output text.
+
+**5. Footer consistency**
+- Single canonical line on every PDF page: `© MASCI · PLATFORM DEVELOPED BY THE JUDD GROUP LLC` (uppercase via CSS text-transform).
+- Verified count = 2 instances on a 2-page PDF (one per page), no duplicates, no squeezed lettering, no missing spaces.
+
+**6. Favicons + PWA icons regenerated from the M-shield mark**
+- The install script now produces the full icon family from the new M-shield:
+  - `favicon-16/32/48.png` (transparent, 5% pad)
+  - `apple-touch-icon-120/152/167/180.png` (white background, 8% pad — iOS rounds the corners; transparent would wash out)
+  - `icon-192/512.png` (transparent, 6% pad — standard PWA)
+  - `icon-maskable-192/512.png` (deep-navy slate-900 backdrop with 18% safe-zone — Android maskable spec)
+- 11 icon files generated, all referencing the new mark instead of the older logo.
+
+**7. Tagline duplication kept eliminated**
+- The previous-pass cleanup of standalone "No Guesswork. No Missed Steps. No Excuses." text remains intact. The tagline now appears ONLY inside the logo PNG itself (where the spacing is correct: `NO GUESSWORK · NO MISSED STEPS · NO EXCUSES`).
+
+### Verification
+- `analyze_file_tool` on white-paper logo render: **9/10** readability score.
+- `pdftotext` on regenerated QA/QC PDF: 0 Emergent matches, 0 standalone tagline matches, 2 correct footer matches.
+- Live-site Playwright check: `#emergent-badge` element count = 0. Hub home + cheat sheet + admin login all render the right variant for their backgrounds.
+- Backend lint: clean. Install script lint: clean.
+
+### Files touched
+- **NEW capabilities** in `scripts/install_new_logo.py`: `_to_onlight()` rewrite (outline halo + selective darkening), `_generate_favicons()` for the full icon family.
+- **MODIFIED**: `frontend/public/index.html` (badge removed), `backend/pdf_render.py` (logo size + 5 color contrast bumps), `backend/ops_manual.py` (22 Emergent term replacements), `frontend/src/pages/NewEquipmentInspection.jsx` (comment cleanup).
+- **REGENERATED**: 11 logo PNGs + 11 favicon/PWA icon PNGs.
+
+### Backlog
+- 🟡 **P1** Equipment Parts upload — BLOCKED (waiting on .xlsx)
+- 🟡 **P1** Auto-suggest parts on Pre-Op FAIL
+- 🟢 **P2** New Hire Onboarding flow
+- 🟢 **P2** S3 storage migration
+- 🟢 **P2** PM weekly digest email
+
+
 ## 2026-05-03 — Full System-Wide Logo Replacement (P0 Asset Deployment)
 
 User uploaded a new MASCI HUB logo (image: `5dbhmebw_image0(1).png`, 1774×887, RGB, pure-black background). Goal: replace every logo asset across UI, PDFs, emails, posters, and remove any duplicated standalone tagline text.
