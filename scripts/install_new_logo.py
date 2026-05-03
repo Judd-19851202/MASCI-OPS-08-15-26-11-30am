@@ -47,6 +47,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 SRC = Path("/tmp/new_masci_logo.png")
+SRC_LIGHT = Path("/tmp/new_masci_logo_light.png")
 PUBLIC = Path("/app/frontend/public")
 STATIC = Path("/app/backend/static")
 
@@ -140,31 +141,31 @@ def _extract_wordmark(im: Image.Image) -> Image.Image:
     return _autocrop(im.crop((int(im.width * 0.32), 0, im.width, im.height)))
 
 
-def _to_onlight(im: Image.Image) -> Image.Image:
-    """Generate the light-background variant.
+def _load_light_source() -> Image.Image | None:
+    """Load the user-supplied light-background logo source, if present.
 
-    Strategy: keep the original metallic colors (so the brand integrity
-    of red-M / silver-plate / navy-text is preserved), but add a strong
-    DARK OUTLINE around every opaque pixel.  On white paper the outline
-    gives every silver/light-gray edge enough contrast to read clearly,
-    and the small "NO GUESSWORK · NO MISSED STEPS · NO EXCUSES" tagline
-    inside the metallic plate gets a halo that makes its characters
-    legible at print sizes.
+    Prefers a real designed asset over algorithmic darkening — the
+    designer-provided image will always read better on white than
+    anything we can derive from the dark variant.
+    """
+    if not SRC_LIGHT.exists():
+        return None
+    im = Image.open(SRC_LIGHT).convert("RGBA")
+    # The supplied file may already be transparent (most exports are);
+    # if it has a hard-black perimeter, flood-fill it the same way as
+    # the dark variant.
+    px = im.getpixel((0, 0))
+    if px[3] > 200 and sum(px[:3]) < 60:
+        # Opaque black corner — flood out
+        im = _flood_corners_transparent(im, thresh=30)
+    return _autocrop(im)
 
-    Implementation:
-      1. Build a binary mask of opaque pixels (alpha > 32).
-      2. Dilate the mask by 3 px using a max-filter — this expanded
-         mask is the silhouette + a border.
-      3. Make a "dark layer" sized like the input, fully transparent,
-         where every pixel that's in the dilated mask is filled with
-         deep navy #0B1220 at full opacity.
-      4. Composite the original RGBA on top of the dark layer.  Result:
-         opaque pixels show original colors; the 3-px ring around them
-         shows deep navy (the outline); everywhere else stays
-         transparent.
-      5. Additionally, for any silver/very-pale opaque pixel we still
-         darken it slightly (×0.78) so the metallic interior doesn't
-         feel washed out next to the now-dark outline.
+
+def _to_onlight_algorithmic(im: Image.Image) -> Image.Image:
+    """Fallback: derive a light-bg variant from the dark logo by adding
+    a deep-navy outline + selective darkening of silver pixels.
+
+    Only used when no user-supplied light source exists at SRC_LIGHT.
     """
     from PIL import ImageFilter, ImageChops
 
@@ -172,8 +173,6 @@ def _to_onlight(im: Image.Image) -> Image.Image:
         im = im.convert("RGBA")
     w, h = im.size
 
-    # Slight interior darkening so silver→pewter (avoids cartoony look
-    # of bright silver next to a black outline).
     darkened = im.copy()
     px = darkened.load()
     for y in range(h):
@@ -182,12 +181,11 @@ def _to_onlight(im: Image.Image) -> Image.Image:
             if a == 0:
                 continue
             chroma = max(r, g, b) - min(r, g, b)
-            # Preserve brand red
             if r > 80 and r > g + b and chroma > 60:
                 continue
             lum = r + g + b
             if lum > 600:
-                f = 0.55  # near-white silver → pewter
+                f = 0.55
             elif lum > 450:
                 f = 0.70
             elif lum > 300:
@@ -196,23 +194,13 @@ def _to_onlight(im: Image.Image) -> Image.Image:
                 continue
             px[x, y] = (int(r * f), int(g * f), int(b * f), a)
 
-    # Build alpha mask + dilate
     alpha = darkened.split()[-1]
-    # Threshold to a hard mask first (anti-aliased edges become a clean shape)
     hard_mask = alpha.point(lambda v: 255 if v > 32 else 0)
-    # MaxFilter(7) ≈ 3-pixel-radius dilation in each direction
     dilated = hard_mask.filter(ImageFilter.MaxFilter(7))
-    # Outline-only mask = dilated minus original opaque area
     outline_mask = ImageChops.subtract(dilated, hard_mask)
-
-    # Build a deep-navy outline layer
     outline_layer = Image.new("RGBA", (w, h), (11, 18, 32, 0))
-    # Fill the outline pixels with deep navy at full alpha
     outline_layer.putalpha(outline_mask)
-
-    # Composite original on top of outline
-    out = Image.alpha_composite(outline_layer, darkened)
-    return out
+    return Image.alpha_composite(outline_layer, darkened)
 
 
 def _resize_max(im: Image.Image, max_w: int) -> Image.Image:
@@ -299,11 +287,23 @@ def main() -> None:
     wordmark = _resize_max(wordmark, 1200)
     print(f"[install-logo] final sizes — lockup={lockup.size} mark={mark.size} wordmark={wordmark.size}")
 
-    # Build the light-bg variants from each dark variant
-    print("[install-logo] generating light-background variants…")
-    lockup_light = _to_onlight(lockup.copy())
-    mark_light = _to_onlight(mark.copy())
-    wordmark_light = _to_onlight(wordmark.copy())
+    # Build the light-bg variants.  Prefer the user-supplied designed
+    # asset (SRC_LIGHT); fall back to the algorithmic outline if no
+    # designed file is available.
+    designed_light = _load_light_source()
+    if designed_light is not None:
+        print(f"[install-logo] using user-supplied light source: {SRC_LIGHT} {designed_light.size}")
+        # Resize to the SAME max width as the dark lockup so that
+        # everywhere the lockup renders the size is consistent.
+        lockup_light = _resize_max(designed_light, 1600)
+        mark_light = _resize_max(_extract_mark(designed_light), 600)
+        wordmark_light = _resize_max(_extract_wordmark(designed_light), 1200)
+        print(f"[install-logo] light-bg sizes — lockup={lockup_light.size} mark={mark_light.size} wordmark={wordmark_light.size}")
+    else:
+        print("[install-logo] no SRC_LIGHT — falling back to algorithmic onlight derivation")
+        lockup_light = _to_onlight_algorithmic(lockup.copy())
+        mark_light = _to_onlight_algorithmic(mark.copy())
+        wordmark_light = _to_onlight_algorithmic(wordmark.copy())
 
     # Write all logo variants
     targets = {

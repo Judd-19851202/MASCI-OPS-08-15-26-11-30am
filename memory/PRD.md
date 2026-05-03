@@ -1,5 +1,33 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Two-Variant Logo Strategy: Designer-Supplied Light-BG Variant Replaces Algorithmic One (P0 Asset Refinement)
+
+The previous algorithmic light-bg variant (deep-navy outline + silver darkening) was a workaround. User supplied a dedicated light-background logo file (`MASCI HUB-HUB ONLY Logo.png`) — a clean red M-shield + 3D MASCI/HUB lockup designed specifically for white surfaces, no metallic-plate-with-tagline. This pass swaps the algorithmic onlight derivation for the designer-supplied asset.
+
+### Strategy split
+- **Dark backgrounds** (Hub header, login, navigation, dark-theme UI) → `masci-full-lockup.png` (UNCHANGED — the original 1659×614 lockup with embedded tagline `NO GUESSWORK · NO MISSED STEPS · NO EXCUSES` inside the metallic plate)
+- **Light backgrounds** (PDFs, cheat sheets, training packets, JHA posters, QA/QC PDFs, daily reports, incident reports, equipment pre-op, email bodies, downloadable docs, print layouts) → **NEW** `masci-full-lockup-onlight.png` (1176×484, transparent, designer-supplied)
+
+### Implementation
+- `scripts/install_new_logo.py` extended:
+  - New `_load_light_source()` helper checks for `/tmp/new_masci_logo_light.png`. If present, uses it directly (transparent + autocrop only). If absent, falls back to algorithmic onlight derivation (kept as `_to_onlight_algorithmic()` for safety).
+  - Light-bg `mark` and `wordmark` extracted from the new source via the same column-density gap detector as the dark variant.
+- All `*-onlight.png` files (lockup, mark, wordmark) regenerated from the user file.
+- Backend `static/masci-logo.png` and `static/masci-logo-email.png` synced to the new light-bg lockup (PDFs + emails are white-paper output).
+- Dark variant files (`masci-full-lockup.png`, `masci-full-lockup-onblack.png`, `masci-mark.png`, `masci-mark-onblack.png`, `masci-wordmark.png`, `masci-wordmark-onblack.png`) untouched — verified MD5 unchanged from prior pass.
+
+### Verification (Section 7 of spec)
+- `analyze_file_tool` on regenerated PDF: **"crisp and professional, no black boxes, no muddy edges, vibrant red, readable footer"** — 100% confidence.
+- Live cheat-sheet screenshot: NEW logo renders cleanly on the white card; embedded tagline duplication still gone (the new lockup intentionally has no inside-plate tagline — "No Guesswork. No Missed Steps. No Excuses." appears only in the original dark variant which is on dark surfaces only).
+- Live Hub home screenshot: dark variant unchanged.
+- File MD5 audit: dark variants kept stable; light variants replaced with designer file.
+
+### Files touched
+- **MODIFIED**: `scripts/install_new_logo.py` — added `_load_light_source()`, renamed `_to_onlight()` → `_to_onlight_algorithmic()` as fallback.
+- **REGENERATED**: 3 `*-onlight.png` files in `frontend/public/`, 2 backend logo files in `backend/static/`.
+- **NEW SOURCE**: `/tmp/new_masci_logo_light.png` (also copied to `frontend/public/_logo_source_2026-05-03.png` audit slot).
+
+
 ## 2026-05-03 — Light-Background Logo Variant + Emergent Branding Removal + Favicons (P0 Fix)
 
 User reported the new logo looked muddy on white PDF backgrounds, the Crew Cheat Sheet logo wasn't rendering well, and PDFs still showed "Made with Emergent" branding. This pass addresses all 9 spec sections.
