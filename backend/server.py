@@ -141,14 +141,30 @@ def _admin_hmac_secret() -> bytes:
     return _ADMIN_HMAC_FALLBACK
 
 
+# Session epoch — a revocation dial that gets folded into every issued
+# token's HMAC input. Bumping `ADMIN_SESSION_EPOCH` in backend/.env and
+# restarting the backend instantly invalidates every token that was
+# issued before the bump (admin, PM, shop, dev) without having to rotate
+# the underlying passwords. Use this when a token leaks, an employee
+# leaves, or you just want every active session to re-authenticate.
+#
+# Default is "1" so existing deploys stay consistent. Any string works;
+# a timestamp or incrementing integer are both fine.
+def _session_epoch() -> str:
+    v = os.environ.get("ADMIN_SESSION_EPOCH", "1").strip()
+    return v or "1"
+
+
 def _admin_token_for(password: str) -> str:
-    return hmac.new(_admin_hmac_secret(), password.encode(), hashlib.sha256).hexdigest()
+    msg = (f"epoch={_session_epoch()}|admin:" + password).encode()
+    return hmac.new(_admin_hmac_secret(), msg, hashlib.sha256).hexdigest()
 
 
 def _pm_token_for(password: str) -> str:
     """PM portal token. Distinct namespace from admin so a stolen PM token
     cannot be replayed against admin-strict (backup/recovery) routes."""
-    return hmac.new(_admin_hmac_secret(), b"pm:" + password.encode(), hashlib.sha256).hexdigest()
+    msg = (f"epoch={_session_epoch()}|pm:" + password).encode()
+    return hmac.new(_admin_hmac_secret(), msg, hashlib.sha256).hexdigest()
 
 
 def _is_valid_admin_token(tok: Optional[str]) -> bool:
@@ -169,7 +185,8 @@ def _dev_token_for(password: str) -> str:
     """Developer (vendor/Judd Group LLC) portal token. Distinct namespace
     from admin/pm so a stolen dev token cannot be replayed against any
     MASCI-facing admin route, and vice versa."""
-    return hmac.new(_admin_hmac_secret(), b"dev:" + password.encode(), hashlib.sha256).hexdigest()
+    msg = (f"epoch={_session_epoch()}|dev:" + password).encode()
+    return hmac.new(_admin_hmac_secret(), msg, hashlib.sha256).hexdigest()
 
 
 def _is_valid_dev_token(tok: Optional[str]) -> bool:
@@ -233,7 +250,8 @@ def require_admin_strict(x_admin_token: Optional[str] = Header(default=None)):
 
 
 def _shop_token_for(password: str) -> str:
-    return hmac.new(_admin_hmac_secret(), b"shop:" + password.encode(), hashlib.sha256).hexdigest()
+    msg = (f"epoch={_session_epoch()}|shop:" + password).encode()
+    return hmac.new(_admin_hmac_secret(), msg, hashlib.sha256).hexdigest()
 
 
 def require_shop_or_admin(

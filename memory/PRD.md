@@ -1,5 +1,49 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — `ADMIN_SESSION_EPOCH` Kill-Switch for All Tokens
+
+Zombie-token defence. Ticket driver: even after the 2026-04-30 password rotation, users on live mascidocs.com still had stale admin/pm/shop tokens in `localStorage` that made the UI render as "signed in" despite the backend 401-ing every request. The 2026-05-03 `tokenValidation.js` fix auto-clears those on next page load — and now this gives the admin a server-side lever to force it anytime.
+
+### What changed in backend `server.py`
+1. New helper `_session_epoch()` reads `ADMIN_SESSION_EPOCH` from env (default `"1"`).
+2. All four token constructors now fold the epoch into the HMAC input:
+   - `_admin_token_for(pw)` = `HMAC(secret, f"epoch={epoch}|admin:{pw}")`
+   - `_pm_token_for(pw)` = `HMAC(secret, f"epoch={epoch}|pm:{pw}")`
+   - `_shop_token_for(pw)` = `HMAC(secret, f"epoch={epoch}|shop:{pw}")`
+   - `_dev_token_for(pw)` = `HMAC(secret, f"epoch={epoch}|dev:{pw}")`
+3. Bumping `ADMIN_SESSION_EPOCH` in `/app/backend/.env` + `sudo supervisorctl restart backend` invalidates every token ever issued — at once.
+
+### Verification (all green)
+| Step | Result |
+| --- | --- |
+| Login as admin at epoch=1 → `/api/admin/check` | 200 ✅ |
+| Bump epoch=2 + restart, reuse old admin token → `/api/admin/check` | **401** ✅ (kill-switch works) |
+| Fresh admin login at epoch=2 | new different token, `/check` 200 ✅ |
+| PM login + `/check` at epoch=2 | 200 ✅ |
+| Shop login + `/check` at epoch=2 | 200 ✅ |
+| Dev login + `/check` at epoch=2 | 200 ✅ |
+| Old admin token (from epoch=1) still rejected | 401 ✅ |
+
+### Env-var baseline
+- `/app/backend/.env` → `ADMIN_SESSION_EPOCH=1` (baseline). Any change from this value invalidates all existing tokens.
+- Production deploys MUST set `ADMIN_SESSION_EPOCH` explicitly (currently baseline `1` is fine; bump when needed).
+
+### Files touched
+- `backend/server.py` — added `_session_epoch()` helper; folded epoch into all 4 `_*_token_for()` constructors.
+- `backend/.env` — added `ADMIN_SESSION_EPOCH=1` line.
+- `memory/test_credentials.md` — documented how to bump and what it does.
+
+### Combined with the earlier `tokenValidation.js` fix
+When you bump the epoch:
+1. Backend instantly starts 401-ing all old tokens.
+2. Every user's next page load triggers `validateStoredTokens()` in `App.js`.
+3. `/api/{admin,pm,shop,dev}/check` returns 401 for their old tokens.
+4. Frontend auto-clears them from localStorage.
+5. `authTick` bumps → router remounts → user sees the correct login screen.
+
+No help-desk tickets. No "try incognito / clear cache" workarounds. Clean cutover.
+
+
 ## 2026-05-03 — Stale-Token Cache Bug on Live Site (mascidocs.com)
 
 User report: "On live site training tiles don't say password and open right up. PDF & QR say password but still open without." (Preview behaves correctly.)
