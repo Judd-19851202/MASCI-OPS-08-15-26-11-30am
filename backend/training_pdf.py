@@ -1309,7 +1309,7 @@ def render_packet(track: str, lang: str = "en") -> bytes:
     # every page (including this one) by the @page @bottom-left margin
     # box — do NOT repeat it here or it prints twice on the last page.
     parts.append("<section class='endnote'>")
-    parts.append(f"<div class='big'>mascidocs.com</div>")
+    parts.append("<div class='big'>mascidocs.com</div>")
     parts.append(
         f"<div style='margin-top:10pt;font-size:9pt;color:#64748B;'>"
         f"{escape(t['ownership_note'])}"

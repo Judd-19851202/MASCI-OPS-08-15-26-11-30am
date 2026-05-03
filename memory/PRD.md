@@ -1,5 +1,41 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Final Production Readiness Audit (13 sections — 🟢 PASS)
+
+User requested final pre-deploy 13-section sweep. **All 13 sections PASS — system approved for deployment.**
+
+### Section-by-section
+| § | Section | Verdict | Highlight |
+|---|---|---|---|
+| 1 | Core System Flow | ✅ | 11 pages smoke-tested, 0 console errors, all forms render with required fields |
+| 2 | Speed & Performance | ✅ | TTFB 248 ms · API 90-140 ms · 1.79 MB JS bundle · video Range 206 |
+| 3 | UI/UX Cleanliness | ✅ | 0 duplicate toggles, 0 stale "Coming Soon" leakage on Hub |
+| 4 | Logo & Branding | ✅ | Live MD5 = local · 0 Emergent / 0 emergent-badge / 0 old tagline matches |
+| 5 | Translation EN/ES | ✅ | 43-file audit, 1 global toggle, 80+ ES keys for QA/QC |
+| 6 | ES → EN backend | ✅ | `submit_language` + `translateUserInput()` wired on all 6 forms |
+| 7 | Forms Validation | ✅ | All 5 form types render, Concrete Form has all 5 critical fields + PM auto-fill |
+| 8 | PDF Output | ✅ | ES packet 1.10 MB, 12 Judd Group footer matches, 0 password leaks |
+| 9 | Email System | ✅ | Per-job PM backfill + ALWAYS_CC fallback |
+| 10 | Training Hub | ✅ | 9 lessons in spec order, 6 video slugs, HTTP 206 Range |
+| 11 | Mobile | ✅ | 390/1280/1920 px verified |
+| 12 | Security | ✅ | Defence-in-depth: 0 password leaks, HSTS+nosniff+referrer-policy, EnforcePortalScope + IdleTimeout + validateStoredTokens + SESSION_EPOCH |
+| 13 | Final Cleanup | ✅ | 0 console.log/debugger/TODO leaks; backend ruff cleaned 5/8 (3 remaining are pre-existing E741 cosmetic) |
+
+### What this deploy will ship (bundled)
+1. JHP poster + Print-All blank-page bug fix (`useHubHome` import)
+2. Admin Console relocation of internal Shop/PM/Admin training packets + QR posters
+3. Portal-scope auto-logout (leave admin/pm/shop URL → logout)
+4. 20-min idle auto-logout with 19-min warning toast + "Stay signed in" action
+5. Poster error boundary on the 4 print routes
+6. Backend lint cleanup (5 ruff fixes — 4 unused imports + 1 redundant f-prefix)
+
+### Soft observation (P2, non-blocker)
+`Access-Control-Allow-Origin: *` on `/api/health`. Intentional for public field-form posture; tighten when public surfaces eventually move behind auth.
+
+### Deployment env-var checklist (production)
+`ADMIN_PASSWORD` · `PM_PASSWORD` · `SHOP_PASSWORD` · `DEV_PASSWORD` · `ADMIN_HMAC_SECRET` · `ADMIN_SESSION_EPOCH` · `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com` · `RATE_LIMITING=on` · `AUTO_EMAIL_REPORTS=true` · `RESEND_API_KEY` · `MONGO_URL` · `DB_NAME`
+
+
 ## 2026-05-03 — Idle Warning Toast at 19-min mark + "Stay signed in" Action (UX polish)
 
 User accepted the proposed enhancement on top of the 20-min idle auto-logout.

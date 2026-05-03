@@ -1839,7 +1839,6 @@ async def admin_update_pm(
         raise HTTPException(400, "No fields to update")
     try:
         # Capture old email so we can cascade the email change to jobs_master.
-        from project_managers import find_pm_by_email
         old = await db.project_managers.find_one({"id": pm_id}, {"_id": 0})
         old_email = (old or {}).get("email", "").lower()
 
@@ -5422,7 +5421,6 @@ from pm_routing import (  # noqa: E402
     COMPLIANCE_KINDS,
     PM_ONLY_KINDS,
     auto_email_enabled,
-    recipients_for_record,
     recipients_for_record_async,
 )
 
