@@ -1316,6 +1316,8 @@ const ES = {
   "Video tutorial coming soon": "Video tutorial próximamente",
   "Open video": "Abrir video",
   "Video unavailable": "Video no disponible",
+  "Spanish version not available for this lesson":
+    "Versión en español no disponible para esta lección",
   "Training video unavailable. Please contact your MASCI administrator.":
     "Video de capacitación no disponible. Comuníquese con su administrador de MASCI.",
   "Open video in new tab": "Abrir video en nueva pestaña",

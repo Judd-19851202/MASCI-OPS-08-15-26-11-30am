@@ -49,7 +49,14 @@ export default function AdminTrainingVideos() {
   };
 
   const tracks = Object.values(TRACKS);
-  const filledCount = Object.values(videos).filter((v) => v && v.trim()).length;
+  // Normalize legacy single-string entries to {en, es} shape for the UI
+  const norm = (v) => {
+    if (!v) return { en: "", es: "" };
+    if (typeof v === "string") return { en: v, es: "" };
+    return { en: v.en || "", es: v.es || "" };
+  };
+  const filledEn = Object.values(videos).filter((v) => norm(v).en).length;
+  const filledEs = Object.values(videos).filter((v) => norm(v).es).length;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -87,7 +94,7 @@ export default function AdminTrainingVideos() {
           </div>
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-              {filledCount} / {LESSONS.length} filled
+              EN {filledEn}/{LESSONS.length} · ES {filledEs}/{LESSONS.length}
             </span>
             <Button
               onClick={onSave}
@@ -113,39 +120,59 @@ export default function AdminTrainingVideos() {
               </h2>
               <div className="space-y-3">
                 {trackLessons.map((l) => {
-                  const url = videos[l.slug] || "";
+                  const cur = norm(videos[l.slug]);
                   return (
                     <div
                       key={l.slug}
-                      className="bg-white border-2 border-slate-200 rounded-md p-4 flex items-center gap-3 flex-wrap sm:flex-nowrap"
+                      className="bg-white border-2 border-slate-200 rounded-md p-4"
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-bold text-slate-900 truncate">
-                          {l.title}
-                        </div>
-                        <div className="text-[11px] text-slate-500 font-mono uppercase tracking-[0.15em] mt-0.5 truncate">
-                          {l.slug}
+                      <div className="flex items-baseline justify-between gap-3 mb-2 flex-wrap">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-bold text-slate-900 truncate">
+                            {l.title}
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-mono uppercase tracking-[0.15em] mt-0.5 truncate">
+                            {l.slug}
+                          </div>
                         </div>
                       </div>
-                      <Input
-                        value={url}
-                        onChange={(e) =>
-                          setVideos((prev) => ({ ...prev, [l.slug]: e.target.value }))
-                        }
-                        placeholder="https://www.youtube.com/watch?v=…  or  https://loom.com/share/…"
-                        className="flex-1 min-w-[260px] h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-700"
-                        data-testid={`video-url-${l.slug}`}
-                      />
-                      {url && (
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="shrink-0 inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.15em] font-bold text-slate-700 hover:text-red-700"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" /> open
-                        </a>
-                      )}
+                      <div className="grid sm:grid-cols-2 gap-2.5">
+                        {[
+                          { code: "en", label: "English", color: "border-slate-300 focus-visible:ring-red-700" },
+                          { code: "es", label: "Español", color: "border-amber-300 focus-visible:ring-amber-600" },
+                        ].map(({ code, label, color }) => {
+                          const url = cur[code];
+                          return (
+                            <div key={code} className="flex items-center gap-2 min-w-0">
+                              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 shrink-0 w-12">
+                                {label}
+                              </span>
+                              <Input
+                                value={url}
+                                onChange={(e) =>
+                                  setVideos((prev) => ({
+                                    ...prev,
+                                    [l.slug]: { ...norm(prev[l.slug]), [code]: e.target.value },
+                                  }))
+                                }
+                                placeholder={code === "en" ? "https://… (English MP4 / YouTube / Loom)" : "https://… (Spanish MP4 — optional)"}
+                                className={`flex-1 min-w-0 h-10 text-sm border-2 ${color}`}
+                                data-testid={`video-url-${l.slug}-${code}`}
+                              />
+                              {url && (
+                                <a
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="shrink-0 inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.15em] font-bold text-slate-700 hover:text-red-700"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   );
                 })}

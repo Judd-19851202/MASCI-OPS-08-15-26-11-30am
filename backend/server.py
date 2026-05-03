@@ -4712,58 +4712,116 @@ async def translate_strings(payload: TranslateRequest):
 #   { "_id": "config", "videos": {"field-01-hub-navigation": "https://…", ...} }
 
 
+# Default video catalog — keyed by lesson slug, each value is a
+# {"en": url, "es": url} pair. Spanish entry is optional; the player
+# falls back to English with a "Spanish version not available" hint.
 _DEFAULT_TRAINING_VIDEOS = {
-    "field-01-hub-navigation": (
-        "https://customer-assets.emergentagent.com/"
-        "job_safety-audit-mobile-1/artifacts/"
-        "mnrpeff0_MASCI_Hub_Navigating_FINAL_"
-        "d0027eecc49143e4821881da34e363f3.mp4"
-    ),
-    "field-02-daily-report": (
-        "https://customer-assets.emergentagent.com/"
-        "job_safety-audit-mobile-1/artifacts/"
-        "po839naw_MASCI_Field_DailyReport_FINAL_"
-        "fca30414727a42b79598b7040111a60a.mp4"
-    ),
-    "field-03-equipment-preop": (
-        "https://customer-assets.emergentagent.com/"
-        "job_safety-audit-mobile-1/artifacts/"
-        "4tlu6yza_MASCI_Field_PreOp_FINAL_"
-        "f20fab41f4e1462699fbd60f75c991b7.mp4"
-    ),
+    "field-01-hub-navigation": {
+        "en": (
+            "https://customer-assets.emergentagent.com/"
+            "job_safety-audit-mobile-1/artifacts/"
+            "mnrpeff0_MASCI_Hub_Navigating_FINAL_"
+            "d0027eecc49143e4821881da34e363f3.mp4"
+        ),
+        "es": (
+            "https://customer-assets.emergentagent.com/"
+            "job_safety-audit-mobile-1/artifacts/"
+            "dg78u6sq_MASCI_Hub_Navegando_ES_"
+            "042d287524984b9c8c54e7dfcebee3bd.mp4"
+        ),
+    },
+    "field-02-daily-report": {
+        "en": (
+            "https://customer-assets.emergentagent.com/"
+            "job_safety-audit-mobile-1/artifacts/"
+            "po839naw_MASCI_Field_DailyReport_FINAL_"
+            "fca30414727a42b79598b7040111a60a.mp4"
+        ),
+        "es": (
+            "https://customer-assets.emergentagent.com/"
+            "job_safety-audit-mobile-1/artifacts/"
+            "688i9s2l_MASCI_Field_ReporteDiario_ES_"
+            "c13a01fe0b7c4d86a60467ad2b7ea1d6.mp4"
+        ),
+    },
+    "field-03-equipment-preop": {
+        "en": (
+            "https://customer-assets.emergentagent.com/"
+            "job_safety-audit-mobile-1/artifacts/"
+            "4tlu6yza_MASCI_Field_PreOp_FINAL_"
+            "f20fab41f4e1462699fbd60f75c991b7.mp4"
+        ),
+        "es": (
+            "https://customer-assets.emergentagent.com/"
+            "job_safety-audit-mobile-1/artifacts/"
+            "seuz0fhg_MASCI_Field_PreOp_ES_"
+            "fe0ea0088bea4f05b234c0e4a1de7dee.mp4"
+        ),
+    },
 }
+
+
+def _normalize_video_entry(entry):
+    """Normalize legacy single-string URLs to the new {en, es} shape.
+    Accepts either:
+      - "https://…"  (legacy single-language) → {"en": "https://…", "es": ""}
+      - {"en": "…", "es": "…"}  (new) → returned as-is with missing keys defaulted to ""
+    Anything else → empty pair.
+    """
+    if isinstance(entry, str):
+        return {"en": entry, "es": ""}
+    if isinstance(entry, dict):
+        return {"en": entry.get("en") or "", "es": entry.get("es") or ""}
+    return {"en": "", "es": ""}
 
 
 @api_router.get("/training/videos")
 async def training_videos_get():
     """Public read. Field crews need this to render embedded videos without
-    a login. Returns `{videos: {slug: url}}`.
+    a login. Returns `{videos: {slug: {en, es}}}`.
 
-    Self-heal: any default video slug that is MISSING from the stored
-    doc gets back-filled with the known-good URL. Admin overrides
-    (existing non-empty values) are never touched. This makes the
-    Training Hub work immediately after a redeploy on a fresh Atlas DB
-    AND when new official videos are added to the default catalog
-    later — without requiring an admin round-trip to /admin/training-videos.
+    Self-heal: any default video slug missing EN or ES URLs gets the
+    default back-filled (per-key, never overwriting admin overrides).
+    Legacy single-string entries are normalized to the {en, es} shape on
+    first read.
     """
     doc = await db["training_videos"].find_one({"_id": "config"}, {"_id": 0})
     stored = (doc or {}).get("videos") or {}
-    missing = {
-        slug: url
-        for slug, url in _DEFAULT_TRAINING_VIDEOS.items()
-        if not stored.get(slug)
-    }
-    if missing:
-        # Build the per-key set so we don't clobber admin overrides.
-        set_ops = {f"videos.{slug}": url for slug, url in missing.items()}
+
+    set_ops = {}
+    out = {}
+    for slug, default in _DEFAULT_TRAINING_VIDEOS.items():
+        cur = _normalize_video_entry(stored.get(slug))
+        # Fill any blank language URL from the default.
+        if not cur["en"] and default.get("en"):
+            cur["en"] = default["en"]
+            set_ops[f"videos.{slug}.en"] = default["en"]
+        if not cur["es"] and default.get("es"):
+            cur["es"] = default["es"]
+            set_ops[f"videos.{slug}.es"] = default["es"]
+        # Normalize legacy single-string in storage to {en, es} shape.
+        if isinstance(stored.get(slug), str):
+            set_ops[f"videos.{slug}"] = cur
+        out[slug] = cur
+
+    # Preserve any extra slugs admins added that aren't in defaults.
+    for slug, val in stored.items():
+        if slug in out:
+            continue
+        cur = _normalize_video_entry(val)
+        out[slug] = cur
+        if isinstance(val, str):
+            set_ops[f"videos.{slug}"] = cur
+
+    if set_ops:
         set_ops["updated_at"] = datetime.now(timezone.utc).isoformat()
         await db["training_videos"].update_one(
             {"_id": "config"},
             {"$set": set_ops},
             upsert=True,
         )
-        stored = {**stored, **missing}
-    return {"videos": stored}
+
+    return {"videos": out}
 
 
 @api_router.get("/training/packet.pdf")
@@ -4978,25 +5036,41 @@ async def training_videos_put(
     body: dict,
     _: bool = Depends(require_admin_strict),
 ):
-    """Admin-strict write. Body = `{videos: {slug: url}}`. Merge-updates the
-    stored map so partial saves are safe — only supplied slugs are changed.
-    Empty string for a slug clears that slug's video."""
+    """Admin-strict write. Body accepts either:
+      - `{videos: {slug: "https://…"}}` (legacy single-language → stored as {en: url})
+      - `{videos: {slug: {en: "https://…", es: "https://…"}}}` (new bilingual)
+    Merge-updates the stored map so partial saves are safe — only supplied
+    slugs/languages are changed. Empty string clears that field.
+    """
     incoming = (body or {}).get("videos")
     if not isinstance(incoming, dict):
-        raise HTTPException(400, "Body must be `{videos: {slug: url}}`")
-    # sanitize: trim whitespace, drop any non-string values
-    clean = {}
-    for slug, url in incoming.items():
+        raise HTTPException(400, "Body must be `{videos: {slug: url-or-{en,es}}}`")
+
+    existing = await db["training_videos"].find_one({"_id": "config"}) or {}
+    merged = {}
+    for slug, val in (existing.get("videos") or {}).items():
+        merged[slug] = _normalize_video_entry(val)
+
+    for slug, val in incoming.items():
         if not isinstance(slug, str) or not slug.strip():
             continue
-        if url is None:
-            clean[slug.strip()] = ""
-        elif isinstance(url, str):
-            clean[slug.strip()] = url.strip()
-    existing = await db["training_videos"].find_one({"_id": "config"}) or {}
-    merged = {**(existing.get("videos") or {}), **clean}
-    # drop empty strings so the map stays compact
-    merged = {k: v for k, v in merged.items() if v}
+        slug = slug.strip()
+        if isinstance(val, str):
+            cur = merged.get(slug, {"en": "", "es": ""})
+            cur["en"] = val.strip()
+            merged[slug] = cur
+        elif isinstance(val, dict):
+            cur = merged.get(slug, {"en": "", "es": ""})
+            if "en" in val:
+                cur["en"] = (val.get("en") or "").strip() if isinstance(val.get("en"), str) else ""
+            if "es" in val:
+                cur["es"] = (val.get("es") or "").strip() if isinstance(val.get("es"), str) else ""
+            merged[slug] = cur
+        elif val is None:
+            merged.pop(slug, None)
+
+    # drop completely empty slugs so the map stays compact
+    merged = {k: v for k, v in merged.items() if v.get("en") or v.get("es")}
     await db["training_videos"].update_one(
         {"_id": "config"},
         {"$set": {"videos": merged, "updated_at": datetime.now(timezone.utc).isoformat()}},

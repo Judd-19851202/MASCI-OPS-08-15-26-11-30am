@@ -116,8 +116,13 @@ class TestTrainingVideo:
             videos = data
         assert isinstance(videos, dict), f"unexpected shape: {data}"
         assert "field-01-hub-navigation" in videos, f"key missing; got {list(videos.keys())}"
-        url = videos["field-01-hub-navigation"]
-        assert isinstance(url, str) and url.startswith("http"), f"invalid url: {url}"
+        entry = videos["field-01-hub-navigation"]
+        # iter-30 schema: entry is {en, es} dict. Accept legacy str too.
+        if isinstance(entry, dict):
+            en_url = entry.get("en", "")
+            assert en_url.startswith("http"), f"invalid en url: {entry}"
+        else:
+            assert isinstance(entry, str) and entry.startswith("http"), f"invalid url: {entry}"
 
 
 # ------------------------ Training PDF footer tests ------------------------

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { ArrowLeft, Printer, ExternalLink, CheckCircle2, AlertCircle, FileDown } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -167,9 +167,10 @@ export default function TrainingTrack() {
             <LessonCard
               key={l.slug}
               lesson={l}
-              videoUrl={videoMap[l.slug]}
+              videoEntry={videoMap[l.slug]}
               loadingVideo={loadingVideos}
               t={t}
+              lang={lang}
               pick={pick}
             />
           ))}
@@ -222,9 +223,55 @@ function AccessDenied({ track, t, lang }) {
   );
 }
 
-function LessonCard({ lesson, videoUrl, loadingVideo, t, pick }) {
-  const embedSrc = toEmbedUrl(videoUrl);
+// Pick the right URL for the active language out of a video entry.
+// Accepts `videoEntry` in either legacy string form OR the new
+// {en, es} dict form. Returns:
+//   { url, served, fallback }   — `served` = "en" | "es" of the URL we picked,
+//                                  `fallback` = true when we requested ES but
+//                                  fell back to EN (UI shows a hint).
+function pickVideoUrl(entry, lang) {
+  if (!entry) return { url: "", served: null, fallback: false };
+  // Legacy single-string entry → English-only
+  if (typeof entry === "string") {
+    return { url: entry, served: "en", fallback: lang === "es" && !!entry };
+  }
+  if (typeof entry === "object") {
+    const en = entry.en || "";
+    const es = entry.es || "";
+    if (lang === "es") {
+      if (es) return { url: es, served: "es", fallback: false };
+      if (en) return { url: en, served: "en", fallback: true };
+    }
+    // English (default) — never silently fall back to ES
+    if (en) return { url: en, served: "en", fallback: false };
+  }
+  return { url: "", served: null, fallback: false };
+}
+
+function LessonCard({ lesson, videoEntry, loadingVideo, t, lang, pick }) {
+  const { url: pickedUrl, served, fallback } = pickVideoUrl(videoEntry, lang);
+  const embedSrc = toEmbedUrl(pickedUrl);
   const [videoError, setVideoError] = useState(false);
+  const videoRef = useRef(null);
+
+  // When the language toggle flips, reset the error state and force the
+  // <video> element to reload the new src from the start (time = 0).
+  // React updates `src` automatically; `load()` triggers the network
+  // fetch so the player swaps without a page refresh.
+  useEffect(() => {
+    setVideoError(false);
+    const v = videoRef.current;
+    if (v && embedSrc?.kind === "file") {
+      try {
+        v.pause();
+        v.currentTime = 0;
+        v.load();
+      } catch {
+        /* noop — older browsers */
+      }
+    }
+  }, [pickedUrl, embedSrc?.kind]);
+
   const title = pick(lesson, "title");
   const why = pick(lesson, "why");
   const steps = pick(lesson, "steps") || [];
@@ -250,31 +297,48 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t, pick }) {
 
       {/* Video embed slot — shown above the walk-through when a URL is saved.
           MP4 URLs use native <video> so field crews get proper mobile
-          playback controls; YouTube / Loom / Vimeo URLs use an iframe. */}
+          playback controls; YouTube / Loom / Vimeo URLs use an iframe.
+          The element key includes the picked URL so React fully re-mounts
+          the player on language change (no stale src or buffered audio). */}
       <div className="px-5 sm:px-7 print:hidden">
         {loadingVideo ? null : embedSrc && !videoError ? (
-          <div className="relative w-full rounded-md overflow-hidden border-2 border-slate-200 bg-black" style={{ paddingBottom: "56.25%" }}>
-            {embedSrc.kind === "file" ? (
-              <video
-                src={embedSrc.src}
-                className="absolute inset-0 w-full h-full"
-                controls
-                playsInline
-                preload="metadata"
-                onError={() => setVideoError(true)}
-                data-testid="lesson-video-file"
-              />
-            ) : (
-              <iframe
-                src={embedSrc.src}
-                title={title}
-                className="absolute inset-0 w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                onError={() => setVideoError(true)}
-                data-testid="lesson-video-iframe"
-              />
+          <div className="space-y-2">
+            <div className="relative w-full rounded-md overflow-hidden border-2 border-slate-200 bg-black" style={{ paddingBottom: "56.25%" }}>
+              {embedSrc.kind === "file" ? (
+                <video
+                  ref={videoRef}
+                  key={`v-${embedSrc.src}`}
+                  src={embedSrc.src}
+                  className="absolute inset-0 w-full h-full"
+                  controls
+                  playsInline
+                  preload="metadata"
+                  onError={() => setVideoError(true)}
+                  data-testid="lesson-video-file"
+                  data-served-lang={served || ""}
+                />
+              ) : (
+                <iframe
+                  key={`if-${embedSrc.src}`}
+                  src={embedSrc.src}
+                  title={title}
+                  className="absolute inset-0 w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  onError={() => setVideoError(true)}
+                  data-testid="lesson-video-iframe"
+                  data-served-lang={served || ""}
+                />
+              )}
+            </div>
+            {fallback && (
+              <div
+                className="text-[11px] font-mono uppercase tracking-[0.15em] text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2"
+                data-testid="lesson-video-fallback-hint"
+              >
+                {t("Spanish version not available for this lesson")}
+              </div>
             )}
           </div>
         ) : embedSrc && videoError ? (
@@ -364,9 +428,9 @@ function LessonCard({ lesson, videoUrl, loadingVideo, t, pick }) {
       </div>
 
       <div className="px-5 sm:px-7 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 print:hidden">
-        {videoUrl && (
+        {pickedUrl && (
           <a
-            href={videoUrl}
+            href={pickedUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.2em] font-bold text-slate-700 hover:text-red-700"
