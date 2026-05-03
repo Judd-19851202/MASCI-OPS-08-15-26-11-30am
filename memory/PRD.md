@@ -1,5 +1,32 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-03 — Training Hub Auth Gate Verified (P0 closed)
+
+User concern (recurring): "Shop / PM / Admin training tracks, QR posters, and PDF downloads must require a password. Field is the only public surface."
+
+### Verification done this session
+End-to-end smoke test from a logged-out browser (`localStorage.clear()` then direct navigation + Hub-button clicks):
+
+| Surface | Logged-out result |
+| --- | --- |
+| `GET /api/training/packet.pdf?track=shop\|pm\|admin&lang=en` | **401 Unauthorized** |
+| `GET /api/training/packet.pdf?track=field&lang=en` | 200 (public, by design) |
+| Frontend `/training/admin` direct visit | "This track is password-protected" + Sign In CTA |
+| Frontend `/training/admin/poster` direct visit | "Internal poster · password required" + Sign In CTA |
+| Frontend `/training/admin/packet?lang=en` direct visit | "INTERNAL TRAINING · PASSWORD REQUIRED" + `Sign In · Admin` CTA |
+| Hub → click `training-landing-pdf-shop-en` (logged out) | Routes to `/training/shop/packet?lang=en` → password gate |
+| Hub → click `training-qr-poster-pm` (logged out) | Routes to `/pm/login` |
+
+### Code paths confirmed in place
+- `frontend/src/pages/TrainingTrack.jsx` — gates by `track.audience` using `isAdmin/isPm/isShop`, renders `<AccessDenied />` when not allowed.
+- `frontend/src/pages/TrainingQrPoster.jsx` — same gate, renders inline lock card.
+- `frontend/src/pages/TrainingPacketDownload.jsx` — auth-aware blob downloader: uses `api.get(..., { responseType: 'blob' })` so the JWT/X-*-Token header attaches; on 401 shows login CTA.
+- `frontend/src/pages/TrainingHub.jsx` — for non-public tracks, all PDF buttons route through `/training/:track/packet?lang=…` and QR/poster buttons route to the correct login page when not unlocked.
+
+### Outcome
+P0 "Frontend Auth Gate bypass on Training Tracks & PDF Downloads" — **CLOSED · verified holding**. No code changes required this session; the prior agent's auto-committed fixes were already merged before context exhausted. Confirmed via direct screenshot + curl checks against the live preview URL.
+
+
 ## 2026-05-03 — JHA → JHP System-Wide Terminology Migration
 
 User directive: rename "Job Hazard Analysis (JHA / JSA)" to "Job Hazard Plan (JHP)" everywhere, while preserving all legacy data and internal API/DB names so existing records still load.
