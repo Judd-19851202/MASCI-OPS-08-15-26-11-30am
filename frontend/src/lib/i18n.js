@@ -65,6 +65,8 @@ const ES = {
   // "One place for every MASCI job." is now rendered directly in Hub.jsx
   // with a per-language branch (since the trailing " job" doesn't appear in
   // the Spanish version) — no t() call to translate.
+  "Field reports, safety records, mechanic sign-offs, project workspaces, bilingual training, and the back-office console — every MASCI workflow in one place.":
+    "Reportes de campo, registros de seguridad, firmas del taller, espacios de proyecto, capacitación bilingüe y la consola de oficina — cada flujo de MASCI en un solo lugar.",
   "Safety forms, field reports, project workspaces, and the office console — all under one roof.":
     "Formularios de seguridad, reportes de campo, espacios de proyecto y la consola de oficina — todo bajo un techo.",
   "Safety": "Seguridad",
