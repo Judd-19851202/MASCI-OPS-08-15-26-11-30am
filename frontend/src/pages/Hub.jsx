@@ -33,7 +33,7 @@ import { useT } from "@/lib/i18n";
  * out to the real Basecamp + OnStation that the team already pays for.
  */
 
-const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, testId, external, comingSoon }) => {
+const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, testId, external, comingSoon, className = "" }) => {
   const { t } = useT();
   // accent classes kept static so Tailwind keeps them in the build
   const styles = {
@@ -55,7 +55,7 @@ const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, te
   if (comingSoon) {
     return (
       <div
-        className="group relative bg-white border-2 border-dashed border-slate-300 rounded-md p-6 sm:p-8 flex flex-col opacity-90 cursor-not-allowed"
+        className={`group relative bg-white border-2 border-dashed border-slate-300 rounded-md p-6 sm:p-8 flex flex-col opacity-90 cursor-not-allowed ${className}`}
         data-testid={testId}
         aria-disabled="true"
       >
@@ -100,7 +100,7 @@ const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, te
         href={to}
         target="_blank"
         rel="noopener noreferrer"
-        className={`group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 transition-all duration-150 hover:-translate-y-0.5 ${s.ring} flex flex-col`}
+        className={`group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 transition-all duration-150 hover:-translate-y-0.5 ${s.ring} flex flex-col ${className}`}
         data-testid={testId}
       >
         <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${s.bg}`} />
@@ -141,7 +141,7 @@ const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, te
   return (
     <Link
       to={to}
-      className={`group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 transition-all duration-150 hover:-translate-y-0.5 ${s.ring} flex flex-col`}
+      className={`group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 transition-all duration-150 hover:-translate-y-0.5 ${s.ring} flex flex-col ${className}`}
       data-testid={testId}
     >
       <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${s.bg}`} />
@@ -184,17 +184,17 @@ const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, te
  * apps the team actually uses. NOT clickable as a whole; user picks one of
  * the two stacked buttons (Basecamp or OnStation).
  */
-const ProjectsCard = ({ t, testId }) => (
+const ProjectsCard = ({ t, testId, className = "" }) => (
   <div
-    className="group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 flex flex-col"
+    className={`group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 flex flex-col ${className}`}
     data-testid={testId}
   >
-    <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t bg-emerald-700" />
+    <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t bg-yellow-400" />
     <div className="flex items-start justify-between gap-3">
-      <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-emerald-700 text-white">
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-yellow-400 text-slate-900">
         <Building2 className="w-7 h-7" />
       </div>
-      <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-emerald-700 bg-emerald-50 font-mono text-[10px] uppercase tracking-[0.2em] font-bold">
+      <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-yellow-800 bg-yellow-100 font-mono text-[10px] uppercase tracking-[0.2em] font-bold">
         {t("Project Workspaces")}
       </span>
     </div>
@@ -289,7 +289,7 @@ export default function Hub() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-5 sm:gap-6 mb-10">
           <SectionCard
             to="/field"
             icon={HardHat}
@@ -302,23 +302,7 @@ export default function Hub() {
             ]}
             accent="amber"
             testId="hub-section-field"
-          />
-          <SectionCard
-            to="/safety"
-            icon={Shield}
-            eyebrow={t("Compliance")}
-            title={t("Safety")}
-            desc={t("Inspections, toolbox talks, incident reports, JHPs, and trench-box guidance — if safety is on your mind, it lives here.")}
-            bullets={[
-              t("Site Inspections · Safety Meetings · Incidents"),
-              t("Job Hazard Plans · Trench Box Reference"),
-            ]}
-            accent="red"
-            testId="hub-section-safety"
-          />
-          <ProjectsCard
-            t={t}
-            testId="hub-section-projects"
+            className="md:col-span-2"
           />
           <SectionCard
             to="/qaqc"
@@ -333,6 +317,26 @@ export default function Hub() {
             ]}
             accent="emerald"
             testId="hub-section-qc"
+            className="md:col-span-2"
+          />
+          <SectionCard
+            to="/safety"
+            icon={Shield}
+            eyebrow={t("Compliance")}
+            title={t("Safety")}
+            desc={t("Inspections, toolbox talks, incident reports, JHPs, and trench-box guidance — if safety is on your mind, it lives here.")}
+            bullets={[
+              t("Site Inspections · Safety Meetings · Incidents"),
+              t("Job Hazard Plans · Trench Box Reference"),
+            ]}
+            accent="red"
+            testId="hub-section-safety"
+            className="md:col-span-2"
+          />
+          <ProjectsCard
+            t={t}
+            testId="hub-section-projects"
+            className="md:col-span-2"
           />
           <SectionCard
             to="/pm/login"
@@ -347,6 +351,7 @@ export default function Hub() {
             accent="purple"
             testId="hub-section-pm"
             external
+            className="md:col-span-2"
           />
           <SectionCard
             to="/shop/login"
@@ -361,6 +366,7 @@ export default function Hub() {
             accent="orange"
             testId="hub-section-shop"
             external
+            className="md:col-span-2"
           />
           <SectionCard
             to="/training"
@@ -374,6 +380,7 @@ export default function Hub() {
             ]}
             accent="lime"
             testId="hub-section-training"
+            className="md:col-span-2 md:col-start-2"
           />
           <SectionCard
             to="/admin/login"
@@ -388,6 +395,7 @@ export default function Hub() {
             accent="slate"
             testId="hub-section-admin"
             external
+            className="md:col-span-2"
           />
         </div>
       </main>
