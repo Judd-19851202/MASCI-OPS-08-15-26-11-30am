@@ -285,7 +285,7 @@ export default function Hub() {
             )}
           </h1>
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
-            {t("Field reports, safety records, mechanic sign-offs, project workspaces, bilingual training, and the back-office console — every MASCI workflow in one place.")}
+            {t("Field reports, safety records, mechanic sign-offs, project workspaces, training, and the back-office console — every MASCI workflow in one place.")}
           </p>
           <div className="mt-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.25em] flex-wrap">
             <span className="text-red-700 font-bold">{t("Accountability")}</span>
