@@ -46,6 +46,7 @@ const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, te
     purple: { bg: "bg-purple-700",  bar: "border-purple-700",  ring: "hover:border-purple-700",  pill: "text-purple-700 bg-purple-50" },
     orange: { bg: "bg-orange-600",  bar: "border-orange-600",  ring: "hover:border-orange-600",  pill: "text-orange-700 bg-orange-50" },
     fuchsia:{ bg: "bg-fuchsia-700", bar: "border-fuchsia-700", ring: "hover:border-fuchsia-700", pill: "text-fuchsia-700 bg-fuchsia-50" },
+    lime:   { bg: "bg-lime-500",    bar: "border-lime-500",    ring: "hover:border-lime-500",    pill: "text-lime-700 bg-lime-50" },
   };
   const s = styles[accent] || styles.red;
 
@@ -377,7 +378,7 @@ export default function Hub() {
               t("Field Crew · Shop · PM · Admin tracks"),
               t("Written guides + video slots + print-friendly"),
             ]}
-            accent="fuchsia"
+            accent="lime"
             testId="hub-section-training"
           />
           <SectionCard
