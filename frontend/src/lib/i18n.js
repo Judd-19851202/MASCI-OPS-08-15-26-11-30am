@@ -1331,6 +1331,13 @@ const ES = {
   "Back to Training Hub": "Volver al Centro de Capacitación",
   "Downloadable packets": "Paquetes descargables",
   "PDF training packets · no login required": "Paquetes PDF de capacitación · sin inicio de sesión",
+  "PDF training packets": "Paquetes PDF de capacitación",
+  "Field Crew is public — share with insurance, auditors, or new-hire onboarding. Shop, PM, and Admin packets require their respective passwords (back-office workflows aren't shared outside the company).":
+    "Cuadrilla de Campo es público — compártalo con aseguradoras, auditores o nuevos empleados. Los paquetes de Taller, PM y Admin requieren sus contraseñas (los flujos internos no se comparten fuera de la empresa).",
+  "Public": "Público",
+  "Shop sign-in": "Acceso Taller",
+  "PM sign-in": "Acceso PM",
+  "Admin sign-in": "Acceso Admin",
   "Share these links with insurance, auditors, or new-hire onboarding. Cover, table of contents, and every lesson in one file — in English or Spanish.":
     "Comparta estos enlaces con seguros, auditores o nuevos empleados. Portada, contenido y cada lección en un archivo — en inglés o español.",
 

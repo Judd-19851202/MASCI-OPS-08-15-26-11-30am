@@ -200,31 +200,56 @@ export default function TrainingHub() {
                 <FileDown className="w-3.5 h-3.5" /> {t("Downloadable packets")}
               </div>
               <h3 className="font-display text-lg font-black text-white">
-                {t("PDF training packets · no login required")}
+                {t("PDF training packets")}
               </h3>
               <p className="text-slate-300 text-sm mt-1 leading-relaxed max-w-2xl">
-                {t("Share these links with insurance, auditors, or new-hire onboarding. Cover, table of contents, and every lesson in one file — in English or Spanish.")}
+                {t("Field Crew is public — share with insurance, auditors, or new-hire onboarding. Shop, PM, and Admin packets require their respective passwords (back-office workflows aren't shared outside the company).")}
               </p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
             {Object.values(TRACKS).map((tr) => {
+              const isPublic = tr.audience === "public";
               const unlocked = trackUnlocked(tr);
-              // For unlocked tracks the buttons hit the /api/.../packet.pdf
-              // URL directly so PMs/Admins can still right-click → save-as.
-              // For locked tracks they go to the auth-aware route which
-              // forces a login first.
+              // For PUBLIC tracks the buttons hit the PDF endpoint directly
+              // (anyone can pull). For GATED tracks they ALWAYS go through
+              // the auth-aware route — even when an admin is currently
+              // logged in — so the lock icon and the "Sign-in required"
+              // chip stay visible regardless of session state. (Otherwise
+              // admins testing the page see all 4 rows identical and
+              // think the gating is broken.)
               const link = (lng) =>
-                unlocked && tr.audience === "public"
+                isPublic
                   ? `${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${tr.slug}&lang=${lng}`
                   : `/training/${tr.slug}/packet?lang=${lng}`;
-              const target = unlocked && tr.audience === "public" ? "_blank" : undefined;
+              const target = isPublic ? "_blank" : undefined;
+              const tierLabel = isPublic
+                ? t("Public")
+                : tr.audience === "shop"
+                ? t("Shop sign-in")
+                : tr.audience === "pm"
+                ? t("PM sign-in")
+                : t("Admin sign-in");
               return (
-                <div key={tr.slug} className="bg-slate-800 rounded p-3 flex items-center justify-between gap-2 text-xs">
-                  <span className="font-bold truncate flex items-center gap-1.5">
-                    {!unlocked && <Lock className="w-3 h-3 text-amber-400 shrink-0" />}
-                    {lang === "es" && tr.title_es ? tr.title_es : tr.title}
-                  </span>
+                <div key={tr.slug} className="bg-slate-800 rounded p-3 flex flex-col gap-2 text-xs" data-testid={`training-landing-tile-${tr.slug}`}>
+                  <div className="flex items-center justify-between gap-2 min-w-0">
+                    <span className="font-bold truncate flex items-center gap-1.5 min-w-0">
+                      {!isPublic && <Lock className="w-3 h-3 text-amber-400 shrink-0" />}
+                      <span className="truncate">{lang === "es" && tr.title_es ? tr.title_es : tr.title}</span>
+                    </span>
+                    <span
+                      className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded font-mono text-[9px] tracking-[0.15em] uppercase ${
+                        isPublic
+                          ? "bg-emerald-700/30 text-emerald-300 border border-emerald-700/40"
+                          : unlocked
+                          ? "bg-amber-700/30 text-amber-300 border border-amber-700/40"
+                          : "bg-slate-700 text-slate-300 border border-slate-600"
+                      }`}
+                      data-testid={`training-landing-tier-${tr.slug}`}
+                    >
+                      {tierLabel}
+                    </span>
+                  </div>
                   <div className="flex gap-1 shrink-0">
                     <a
                       href={link("en")}
@@ -283,6 +308,7 @@ export default function TrainingHub() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
             {Object.values(TRACKS).map((tr) => {
+              const isPublic = tr.audience === "public";
               const unlocked = trackUnlocked(tr);
               const viewPath = unlocked
                 ? `/training/${tr.slug}/poster`
@@ -293,12 +319,31 @@ export default function TrainingHub() {
               const linkState = unlocked
                 ? undefined
                 : { from: `/training/${tr.slug}/poster` };
+              const tierLabel = isPublic
+                ? t("Public")
+                : tr.audience === "shop"
+                ? t("Shop sign-in")
+                : tr.audience === "pm"
+                ? t("PM sign-in")
+                : t("Admin sign-in");
               return (
-                <div key={tr.slug} className="bg-white border-2 border-amber-600 rounded p-3 flex items-center justify-between gap-2 text-xs">
-                  <span className="font-bold truncate text-slate-900 flex items-center gap-1.5">
-                    {!unlocked && <Lock className="w-3 h-3 text-amber-700 shrink-0" />}
-                    {lang === "es" && tr.title_es ? tr.title_es : tr.title}
-                  </span>
+                <div key={tr.slug} className="bg-white border-2 border-amber-600 rounded p-3 flex flex-col gap-2 text-xs" data-testid={`training-qr-tile-${tr.slug}`}>
+                  <div className="flex items-center justify-between gap-2 min-w-0">
+                    <span className="font-bold truncate text-slate-900 flex items-center gap-1.5 min-w-0">
+                      {!isPublic && <Lock className="w-3 h-3 text-amber-700 shrink-0" />}
+                      <span className="truncate">{lang === "es" && tr.title_es ? tr.title_es : tr.title}</span>
+                    </span>
+                    <span
+                      className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded font-mono text-[9px] tracking-[0.15em] uppercase border ${
+                        isPublic
+                          ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                          : "bg-amber-100 text-amber-800 border-amber-300"
+                      }`}
+                      data-testid={`training-qr-tier-${tr.slug}`}
+                    >
+                      {tierLabel}
+                    </span>
+                  </div>
                   <div className="flex gap-1 shrink-0">
                     <Link
                       to={viewPath}
