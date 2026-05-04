@@ -1,5 +1,39 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-04 — Small In-UI Mark Replaced with the New Red M
+
+User screenshot showed mobile-page headers still rendering the OLD chrome compass-shield mark instead of the new bold red M. Per user clarification: *"I don't want to replace MASCI HUB logo anywhere but anywhere small logo like in picture is use new M logo"*.
+
+### What shipped
+- New script `/app/scripts/install_mark.py` — extracts the red M from `red_m_master.png` (same black→transparent + trim pipeline as `install_icons.py` and `install_og_image.py`), then writes a 512×512 transparent-background PNG with 8% padding. Identical bytes saved to BOTH filenames so the existing `MasciLogo.SRC.mark = { dark: "/masci-mark.png", light: "/masci-mark-onlight.png" }` keeps working without component edits.
+- `frontend/public/masci-mark.png` — replaced (was 261 KB compass shield, now 89.7 KB transparent red M)
+- `frontend/public/masci-mark-onlight.png` — replaced (same content)
+
+### Surfaces affected (all use `<MasciLogo variant="mark">`)
+- `FormPasswordGate.jsx` — mobile login mark on form gates
+- `PmLogin.jsx` — PM login mobile header
+- `MaterialCalculators.jsx` — calculator page mobile header
+- `NewIncident.jsx` — incident form header
+- `QaqcSection.jsx` — QA/QC section mobile header
+- `ShopHub.jsx` — shop dashboard header
+- `ViewEquipmentInspection.jsx` — equipment view header
+- `AdminHub.jsx` — admin dashboard mobile header
+
+### Verified — full lockup UNTOUCHED (per user's rule)
+| File | MD5 | Status |
+|---|---|---|
+| `masci-full-lockup.png` | `441c8f74e9eac29e5a003ae8a9ec3f46` | ✅ unchanged (matches live deployment) |
+| `masci-full-lockup-onlight.png` | `c7037469d88453764c3fb54bf4137bd4` | ✅ unchanged |
+| `masci-mark.png` | `213f2ebcf3b0107139f33b94ad419390` | ⟲ regenerated (new red M) |
+| `masci-mark-onlight.png` | `213f2ebcf3b0107139f33b94ad419390` | ⟲ regenerated (new red M) |
+
+Hub home (desktop): `masci-full-lockup.png` 1600×592 — chrome MASCI HUB lockup renders unchanged.
+Daily Job Report mobile (414×896 viewport): `masci-mark.png` 512×512 — bold red M renders correctly in the dark navy header.
+
+### Deploy reminder
+Frontend-only. Push to `mascidocs.com`. Cloudflare may serve the cached old mark for a few minutes — hard-refresh on iOS/Android browsers will pull the new asset.
+
+
 ## 2026-05-04 — OG Card Stripped to Just the Red M (iMessage stacking fix)
 
 User screenshot showed iMessage rendering TWO link previews stacked on top of each other — caused by declaring `og:image` twice in `index.html` (landscape + square). User also asked to strip the card to just the M, no other wording.
