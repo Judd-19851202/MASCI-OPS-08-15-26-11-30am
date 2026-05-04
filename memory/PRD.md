@@ -1,5 +1,45 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-04 — System Icons Regenerated from new Red-M Artwork
+
+User uploaded a new red-M-on-black artwork and asked to use it ONLY for browser favicons + mobile bookmark/home-screen icons. Full MASCI Hub lockup (header / PDF / branding) and the in-UI `MasciLogo variant="mark"` files (`masci-mark.png` / `masci-mark-onlight.png`) explicitly left untouched.
+
+### What shipped
+- New script `/app/scripts/install_icons.py` — isolates the red M from the source by replacing pure black with transparency, trims to bbox, then composites onto either `slate-900 (#0f172a)` or pure white at the right padding ratio for each target size.
+- 17 regenerated icon files in `/app/frontend/public`:
+  - `favicon.ico` (multi-size 16/32/48/64)
+  - `favicon-16.png` / `favicon-32.png` / `favicon-48.png` / **`favicon-64.png`** (new)
+  - `favicon-light-16.png` / `favicon-light-32.png` / `favicon-light-48.png` (light-mode variants for `prefers-color-scheme: dark` browsers)
+  - `apple-touch-icon.png` (180), `apple-touch-icon-167.png`, `apple-touch-icon-152.png`, `apple-touch-icon-120.png`, `apple-touch-icon-light.png`
+  - `icon-192.png`, `icon-512.png` (Android + PWA standard)
+  - `icon-maskable-192.png`, `icon-maskable-512.png` (with 21% safe-zone padding for Android adaptive crops)
+- `/app/frontend/public/index.html` — added `<link rel="icon" sizes="64x64">` and three `prefers-color-scheme: dark` light-variant link tags. `site.webmanifest` already pointed at the right filenames so no manifest edits needed.
+
+### Visual rules implemented per spec
+- **Subtle padding**: standard icons fill 78% of the canvas (≈11% margin per side). Maskable icons fill only 58% of the canvas (≥21% safe-zone) so Android's adaptive circle / squircle crop never touches the M.
+- **Dark variant**: red M on slate-900 (matches `theme_color: #0f172a` already in manifest). High-contrast.
+- **Light variant**: red M on pure white. Pixel-sample at edges = `(255, 255, 255)`; M legs sample as `(196, 1, 13)` — full red saturation, no pink fade.
+- **Solid backgrounds**: All Apple touch icons have solid alpha = 255 so iOS Springboard doesn't auto-fill with default white.
+
+### Verified
+- All 17 files reachable on preview env at HTTP 200.
+- `favicon-32.png` decodes as 32×32 ✅ · `icon-192.png` decodes as 192×192 ✅
+- Edge-pixel samples on dark variants: `(15, 23, 42)` corners (slate-900) ✅
+- Edge-pixel samples on light variants: `(255, 255, 255)` corners ✅
+- 12 `<link rel*="icon">` tags rendered in DOM (8 default + 3 dark-mode media-query alts + apple-touch-icon set + manifest) ✅
+- Full MASCI Hub lockup in header still renders correctly (untouched) ✅
+
+### Files NOT touched (per user's rule)
+- `frontend/public/masci-full-lockup.png` (dark logo)
+- `frontend/public/masci-full-lockup-onlight.png` (light logo)
+- `frontend/public/masci-mark.png` / `masci-mark-onlight.png` (in-UI brand mark used by `<MasciLogo variant="mark">`)
+- `frontend/public/masci-wordmark*.png`
+- All PDF rendering paths in `backend/pdf_render.py` and `backend/training_pdf.py`
+
+### Deploy reminder
+Frontend-only — push a fresh build to `mascidocs.com` to flush Cloudflare's edge cache for the icon paths. Browsers will pick up the new favicon on next hard refresh; iOS will pick up the new apple-touch-icon next time the user re-adds to home screen (or after a reboot).
+
+
 ## 2026-05-03 — Final Production Readiness Audit (13 sections — 🟢 PASS)
 
 User requested final pre-deploy 13-section sweep. **All 13 sections PASS — system approved for deployment.**
