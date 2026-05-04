@@ -1,5 +1,38 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-04 — Open Graph / Twitter Card Branded Preview
+
+User accepted the proposed enhancement. Anyone pasting a `mascidocs.com` link into Slack / iMessage / SMS / WhatsApp / LinkedIn / Twitter now gets a branded card preview instead of just the URL.
+
+### What shipped
+- New script `/app/scripts/install_og_image.py` — programmatic Pillow render of two cards using the same red-M extraction pipeline as the icon installer (slate-900 background, MASCI red `#C4010D`, white wordmark, slate-400 subtitle, 4 px red bottom rule).
+- Two PNG outputs in `/app/frontend/public`:
+  - `og-image.png` — 1200×630, 83 KB (Facebook / LinkedIn / Slack / Twitter standard)
+  - `og-image-square.png` — 1200×1200, 141 KB (iMessage / WhatsApp / Discord prefer 1:1)
+- 14 new meta tags inserted in `index.html` directly under the `application-name` block:
+  - `og:type`, `og:site_name`, `og:title`, `og:description`, `og:url`
+  - `og:image` × 2 (landscape + square) with width/height/type/alt for each
+  - `og:locale=en_US` + `og:locale:alternate=es_ES`
+  - `twitter:card=summary_large_image` + `twitter:title` / `description` / `image` / `image:alt`
+
+### Layout
+- Side-by-side: red M (55% canvas height) on the left, "MASCI HUB" wordmark + tagline + Safety·Field·Projects·Admin subtitle on the right
+- Tagline `NO GUESSWORK · NO MISSED STEPS · NO EXCUSES` rendered in MASCI red `#C4010D`, sized to fit cleanly in the right column without clipping
+- Square variant: M centered on top, all text stacked underneath
+
+### Verified
+- `og-image.png` → HTTP 200, 1200×630 confirmed via `createImageBitmap`
+- `og-image-square.png` → HTTP 200, 1200×1200 confirmed
+- All 14 meta tags rendered in DOM after frontend hot-reload
+- Visual screenshot inspected — clean type, no clipping, brand colors correct
+
+### Files NOT touched
+- All existing logos, MasciLogo component, PDF rendering, in-UI brand mark — unchanged. This is a shareable-preview asset only, not a system-wide rebrand.
+
+### Deploy reminder
+Frontend-only. Push to `mascidocs.com`. Slack/Twitter/Facebook/LinkedIn cache OG previews aggressively — for an immediate refresh, paste the URL into the [LinkedIn Post Inspector](https://www.linkedin.com/post-inspector/) or [Twitter Card Validator](https://cards-dev.twitter.com/validator), which forces a re-fetch.
+
+
 ## 2026-05-04 — System Icons Regenerated from new Red-M Artwork
 
 User uploaded a new red-M-on-black artwork and asked to use it ONLY for browser favicons + mobile bookmark/home-screen icons. Full MASCI Hub lockup (header / PDF / branding) and the in-UI `MasciLogo variant="mark"` files (`masci-mark.png` / `masci-mark-onlight.png`) explicitly left untouched.
