@@ -1,5 +1,38 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-04 — Logo Asset Cleanup + Cache-Control Hardening
+
+User accepted both improvements proposed after the in-UI mark swap.
+
+### 1) Orphan logo files deleted (1.32 MB saved from deploy bundle)
+
+Reference scan found 3 orphans (zero codebase references) — all `*-onblack.png` variants left over from the dual-variant naming convention before the codebase settled on `dark` + `onlight`:
+
+| File | Size | Status |
+|---|---|---|
+| `masci-mark-onblack.png` | 261,277 B | DELETED |
+| `masci-wordmark-onblack.png` | 377,639 B | DELETED |
+| `masci-full-lockup-onblack.png` | 745,603 B | DELETED |
+| **Total** | **1,384,519 B (1.32 MB)** | |
+
+`MasciLogo.SRC` only ever read `dark` and `light` keys, so removing the `*-onblack` files is a pure no-op for runtime — and it shaves 1.32 MB off the build artifact. Verified the surviving 6 logo files (`masci-mark{,-onlight}.png` · `masci-wordmark{,-onlight}.png` · `masci-full-lockup{,-onlight}.png`) all still return HTTP 200.
+
+### 2) `frontend/public/_headers` — Cloudflare/Netlify-style cache rules
+
+Logo paths now publish with explicit `Cache-Control: public, max-age=300, must-revalidate` — future logo swaps propagate through Cloudflare to every browser within 5 minutes instead of being stuck on the previous asset for an hour.
+
+| Path pattern | Cache rule | Why |
+|---|---|---|
+| `/masci-mark*.png`, `/masci-full-lockup*.png`, `/masci-wordmark*.png`, `/og-image.png` | `public, max-age=300, must-revalidate` | We swap brand assets occasionally — 5-min ceiling = fast roll-out without filename-bumping |
+| `/favicon*.png`, `/apple-touch-icon*.png`, `/icon-*.png`, `/favicon.ico` | `public, max-age=604800` | Bumping these requires manifest edits anyway, so a week is fine |
+| `/static/*` (CRA hashed bundles) | `public, max-age=31536000, immutable` | Content-hashed by CRA — safe to cache forever |
+
+`_headers` is the standard Cloudflare Pages / Netlify convention. If Emergent's static host doesn't honour the file directly, the rules ALSO serve as copy-paste documentation for the user's Cloudflare → Rules → Page Rules dashboard.
+
+### Deploy reminder
+Frontend-only. The 1.32 MB savings show up in the next `mascidocs.com` build artifact. Cache-Control rules take effect at Cloudflare on the next deploy (or immediately if rules are pasted into the Cloudflare Page Rules dashboard).
+
+
 ## 2026-05-04 — Small In-UI Mark Replaced with the New Red M
 
 User screenshot showed mobile-page headers still rendering the OLD chrome compass-shield mark instead of the new bold red M. Per user clarification: *"I don't want to replace MASCI HUB logo anywhere but anywhere small logo like in picture is use new M logo"*.
