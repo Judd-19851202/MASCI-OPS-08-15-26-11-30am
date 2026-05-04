@@ -1001,10 +1001,24 @@ def render_email_html(
         if note
         else ""
     )
+    # Red-M brand mark embedded as a base64 data URI so every email
+    # client (Gmail, Outlook, Apple Mail, iOS Mail, mobile webmail)
+    # renders it without a remote fetch. Same image used by the OG card,
+    # favicon, PWA icons, and in-UI mobile headers — one symbol everywhere.
+    mark_uri = _data_uri_for(WATERMARK_PATH)
+    mark_html = (
+        f'<div style="background:#0f172a;border-radius:6px 6px 0 0;'
+        f'padding:18px 0;text-align:center;margin:-24px -24px 18px -24px;">'
+        f'<img src="{mark_uri}" alt="MASCI" width="56" height="56" '
+        f'style="display:inline-block;width:56px;height:56px;border:0;outline:none;" /></div>'
+        if mark_uri
+        else ""
+    )
     return f"""<!doctype html>
 <html><body style="margin:0;padding:24px;background:#f8fafc;font-family:Helvetica,Arial,sans-serif;color:#0f172a;">
   <table style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:24px;">
     <tr><td>
+      {mark_html}
       <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#c8102e;font-weight:700;">MASCI · Safety Record</div>
       <h1 style="margin:8px 0 4px;font-size:24px;font-weight:900;letter-spacing:-0.02em;">{escape(title)}</h1>
       <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#475569;">

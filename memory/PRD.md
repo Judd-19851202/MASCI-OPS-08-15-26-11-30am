@@ -1,5 +1,58 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-04 — Red M Banner Wired Into Resend Transactional Emails (brand parity complete)
+
+User accepted the brand-parity proposal. Transactional emails (auto-routed to PMs whenever a Daily Report / Equipment Pre-Op / QA-QC / Safety Meeting / Incident / Site Inspection is filed) now carry the same red-M banner as the OG card, favicon, PWA icons, and in-UI mobile headers.
+
+### Implementation
+`backend/pdf_render.py::render_email_html()` now prepends a slate-900 banner with the new red M centered. Embedded via the existing `_data_uri_for(WATERMARK_PATH)` helper — same pattern as PDF watermarks — so:
+- Renders inline in every email client (Gmail, Outlook, Apple Mail, iOS Mail, mobile webmail) without external image fetch
+- Doesn't depend on Cloudflare / network / CORS
+- 89,679 bytes embedded as base64 (the regenerated `masci-mark.png` from the morning's mark cleanup)
+
+### Banner styling
+```css
+background: #0f172a (slate-900)
+border-radius: 6px 6px 0 0  /* tucked inside the white card's rounded top */
+padding: 18px 0
+margin: -24px -24px 18px -24px  /* pulls past the card padding so banner is full-bleed */
+img: 56×56, centered, alt="MASCI"
+```
+
+### Surfaces affected
+Every PM auto-routed email goes through `render_email_html()` — used by:
+- `/api/auto-email/*` (server.py L5549) — automatic PM routing on every safety-record submission
+- `/api/admin/forward-email` (server.py L5731) — admin manual forward action
+
+So the banner ships on:
+- Daily Report routed to assigned PM
+- Equipment Pre-Op routed to mechanic + PM
+- QA/QC inspection routed to PM
+- Safety Meeting summary
+- Incident report
+- Site Inspection
+
+### Verified
+- Backend restarted clean, `/api/health` 200
+- `render_email_html()` rendered with sample data — output contains the slate-900 banner, the data-URI starting `iVBORw0KGgoAAAANSUhEUgAAAgAAAAIA...`, full 89,679-byte PNG decoded back, all eyebrow/H1/footer/note styling preserved
+- Visual screenshot inspection: clean centered red M on slate-900 banner, MASCI red `#c8102e` eyebrow, bold H1, monospace project/date line, red-left-bordered note callout, monospace footer with phone + safety email
+- `ruff check pdf_render.py` clean
+
+### Brand parity status — COMPLETE
+| Surface | Symbol |
+|---|---|
+| Web link previews (OG card) | ✅ Red M on slate-900 |
+| Browser tabs (favicon) | ✅ Red M on slate-900 |
+| iPhone home screen / PWA install | ✅ Red M on slate-900 |
+| Android home screen / PWA install | ✅ Red M on slate-900 (incl. maskable) |
+| In-UI mobile headers | ✅ Red M (transparent, on dark slate header) |
+| Transactional emails | ✅ Red M on slate-900 banner (NEW) |
+| Full Hub lockup (Hub home, PDFs, posters, cheat sheet) | ✅ unchanged — chrome MASCI HUB lockup |
+
+### Deploy reminder
+Backend change. Push the next deploy to `mascidocs.com` and the very next email auto-routed by the system will carry the red-M banner. PDFs and the Hub-home lockup are unchanged per your rule.
+
+
 ## 2026-05-04 — Logo Asset Cleanup + Cache-Control Hardening
 
 User accepted both improvements proposed after the in-UI mark swap.
