@@ -1,5 +1,20 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-04 — OG Card Stripped to Just the Red M (iMessage stacking fix)
+
+User screenshot showed iMessage rendering TWO link previews stacked on top of each other — caused by declaring `og:image` twice in `index.html` (landscape + square). User also asked to strip the card to just the M, no other wording.
+
+### What changed
+- `/app/scripts/install_og_image.py` rewritten — single 1200×630 image, just the centered red M on slate-900 (`#0f172a`). M fills 62% of canvas height for clean breathing border. No wordmark, tagline, subtitle, or rule. Square variant deleted.
+- `/app/frontend/public/index.html` — collapsed two `og:image` declarations to one. `og:title` shortened to `"MASCI Hub"`. Same change on `twitter:title`. Single 1200×630 image works on every link-preview surface (Slack / iMessage / WhatsApp / LinkedIn / Twitter / Discord all accept 1.91:1).
+
+### Verified
+- `og-image.png` → HTTP 200, 1200×630, 71.9 KB
+- `og-image-square.png` removed (was the source of the double-render)
+- HTML now contains exactly **1** `og:image` tag
+- Visual rendered: red M (`#C4010D`) centered on solid slate-900, no clipping, no extras
+
+
 ## 2026-05-04 — Open Graph / Twitter Card Branded Preview
 
 User accepted the proposed enhancement. Anyone pasting a `mascidocs.com` link into Slack / iMessage / SMS / WhatsApp / LinkedIn / Twitter now gets a branded card preview instead of just the URL.
