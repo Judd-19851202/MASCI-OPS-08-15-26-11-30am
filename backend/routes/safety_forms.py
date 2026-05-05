@@ -285,15 +285,29 @@ def render_issuance_pdf(rec: Dict[str, Any]) -> bytes:
     )
     legal_p2 = (
         "I understand that I am responsible for the proper use, care, maintenance, and "
-        "return of all issued equipment. Any equipment that is lost, stolen, misplaced, "
-        "or damaged due to negligence, misuse, or failure to follow manufacturer "
-        "guidelines, company policy, or OSHA requirements may result in financial "
-        "responsibility for the replacement cost or fair market value."
+        "return of all issued equipment. I further understand that I am responsible for "
+        "promptly reporting any loss, damage, or malfunction."
     )
     legal_p3 = (
+        "Equipment that is lost, stolen, misplaced, or damaged due to negligence, "
+        "misuse, or failure to follow manufacturer guidelines, company policy, or OSHA "
+        "requirements may result in financial responsibility for the reasonable "
+        "replacement cost or fair market value of the equipment, to the extent "
+        "permitted by law."
+    )
+    legal_p4 = (
+        "I understand that I will not be held responsible for normal wear and tear "
+        "resulting from proper use."
+    )
+    legal_p5 = (
         "Any reimbursement or payroll deduction will be handled in accordance with "
-        "applicable Florida law and the Fair Labor Standards Act (FLSA), and will not "
-        "occur without proper authorization where required."
+        "applicable Florida law and the Fair Labor Standards Act (FLSA), and will only "
+        "occur with proper written authorization where required."
+    )
+    legal_p6 = (
+        "I understand that failure to follow these requirements may also result in "
+        "disciplinary action, up to and including termination, in accordance with "
+        "company policy."
     )
 
     emp_sig = rec.get("employee_signature") or ""
@@ -347,7 +361,10 @@ def render_issuance_pdf(rec: Dict[str, Any]) -> bytes:
         <div class='legal'>
           <p style='margin:0 0 8px'>{legal_p1}</p>
           <p style='margin:0 0 8px'>{legal_p2}</p>
-          <p style='margin:0'>{legal_p3}</p>
+          <p style='margin:0 0 8px'>{legal_p3}</p>
+          <p style='margin:0 0 8px'>{legal_p4}</p>
+          <p style='margin:0 0 8px'>{legal_p5}</p>
+          <p style='margin:0'>{legal_p6}</p>
         </div>
       </div>
 

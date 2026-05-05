@@ -9,12 +9,17 @@ export const ITEM_TYPES = [
   "SRL Type 2",
   "Lanyard",
   "Hard Hat",
+  "Safety Glasses — Clear",
+  "Safety Glasses — Tinted",
+  "Safety Glasses — Premium / Branded",
   "Safety Vest Type II",
   "Safety Vest Type III",
   "Traffic Gators",
   "Headlamp",
   "Gloves",
   "Gas Monitor",
+  "Two-Way Radio",
+  "FAA Radio",
   "Ladder",
   "Other",
 ];
@@ -29,12 +34,17 @@ export const PRICE_BOOK = {
   "SRL Type 2": 550,
   "Lanyard": 100,
   "Hard Hat": 45,
+  "Safety Glasses — Clear": 10,
+  "Safety Glasses — Tinted": 15,
+  "Safety Glasses — Premium / Branded": 30,
   "Safety Vest Type II": 25,
   "Safety Vest Type III": 40,
   "Traffic Gators": 60,
   "Headlamp": 50,
   "Gloves": 8,
   "Gas Monitor": 900,
+  "Two-Way Radio": 150,
+  "FAA Radio": 500,
   "Ladder": 350,
 };
 
@@ -185,9 +195,15 @@ export function fmtMoney(v) {
 
 export const ISSUANCE_LEGAL = `I acknowledge that all issued equipment remains the property of MASCI General Contractors. I agree to use all equipment in accordance with manufacturer guidelines, company policy, and applicable OSHA safety requirements.`;
 
-export const ISSUANCE_RESPONSIBILITY = `I understand that I am responsible for the proper use, care, maintenance, and return of all issued equipment. Any equipment that is lost, stolen, misplaced, or damaged due to negligence, misuse, or failure to follow manufacturer guidelines, company policy, or OSHA requirements may result in financial responsibility for the replacement cost or fair market value.
+export const ISSUANCE_RESPONSIBILITY = `I understand that I am responsible for the proper use, care, maintenance, and return of all issued equipment. I further understand that I am responsible for promptly reporting any loss, damage, or malfunction.
 
-Any reimbursement or payroll deduction will be handled in accordance with applicable Florida law and the Fair Labor Standards Act (FLSA), and will not occur without proper authorization where required.`;
+Equipment that is lost, stolen, misplaced, or damaged due to negligence, misuse, or failure to follow manufacturer guidelines, company policy, or OSHA requirements may result in financial responsibility for the reasonable replacement cost or fair market value of the equipment, to the extent permitted by law.
+
+I understand that I will not be held responsible for normal wear and tear resulting from proper use.
+
+Any reimbursement or payroll deduction will be handled in accordance with applicable Florida law and the Fair Labor Standards Act (FLSA), and will only occur with proper written authorization where required.
+
+I understand that failure to follow these requirements may also result in disciplinary action, up to and including termination, in accordance with company policy.`;
 
 export const RETURN_STATUSES = [
   { key: "returned", label: "Returned OK", tone: "emerald" },
