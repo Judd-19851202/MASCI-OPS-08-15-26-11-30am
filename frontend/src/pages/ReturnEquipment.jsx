@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { SignaturePad } from "@/components/SignaturePad";
-import { useT } from "@/lib/i18n";
+import { useT, getLang } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { isSafetyForms } from "@/lib/safetyFormsAuth";
 import { isAdmin } from "@/lib/adminAuth";
@@ -132,10 +132,15 @@ export default function ReturnEquipment() {
     setSaving(true);
     try {
       rememberSupervisor(data.received_by);
-      await api.post(`/safety-forms/equipment-issuances/${id}/return`, {
-        ...data,
-        lang,
-      });
+      let payload = { ...data, lang };
+      const submitLang = getLang();
+      if (submitLang === "es") {
+        toast.info(t("Translating to English…"));
+        const { translateUserInput } = await import("@/lib/translateOnSubmit");
+        payload = await translateUserInput(payload, "es");
+      }
+      payload = { ...payload, submit_language: submitLang || "en" };
+      await api.post(`/safety-forms/equipment-issuances/${id}/return`, payload);
       toast.success(t("Check-in saved — PDF emailed to Safety"));
       navigate(`/safety/forms/equipment-issuance/${id}`);
     } catch (err) {

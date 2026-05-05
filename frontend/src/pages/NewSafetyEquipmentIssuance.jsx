@@ -19,7 +19,8 @@ import { LangToggle } from "@/components/LangToggle";
 import { JobPicker } from "@/components/JobPicker";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
-import { useT } from "@/lib/i18n";
+import { SearchableSelect } from "@/components/SearchableSelect";
+import { useT, getLang } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { isSafetyForms } from "@/lib/safetyFormsAuth";
 import {
@@ -163,7 +164,19 @@ export default function NewSafetyEquipmentIssuance() {
     setSaving(true);
     try {
       rememberSupervisor(data.issued_by);
-      const payload = { ...data, lang };
+      let payload = { ...data, lang };
+      // Match the rest of the Hub: any free-text typed in Spanish is
+      // auto-translated back to English so the office records stay
+      // canonical. Signatures, photos, numerics, and price-book item
+      // names are skipped by the walker. The original language is
+      // preserved as `submit_language` for the audit trail.
+      const submitLang = getLang();
+      if (submitLang === "es") {
+        toast.info(t("Translating to English…"));
+        const { translateUserInput } = await import("@/lib/translateOnSubmit");
+        payload = await translateUserInput(payload, "es");
+      }
+      payload = { ...payload, submit_language: submitLang || "en" };
       const res = await api.post("/safety-forms/equipment-issuances", payload);
       toast.success(t("Submitted — PDF emailed to Safety"));
       navigate(`/safety/forms/equipment-issuance/${res.data.id}`);
@@ -311,16 +324,14 @@ export default function NewSafetyEquipmentIssuance() {
                         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold mb-1 block">
                           {t("Item Type")}
                         </Label>
-                        <select
+                        <SearchableSelect
                           value={it.item_type}
-                          onChange={(e) => updateItem(idx, { item_type: e.target.value })}
-                          className="w-full h-12 border-2 border-slate-300 rounded px-2 text-base"
-                          data-testid={`iss-item-${idx}-type`}
-                        >
-                          {ITEM_TYPES.map((x) => (
-                            <option key={x} value={x}>{x}</option>
-                          ))}
-                        </select>
+                          onChange={(v) => updateItem(idx, { item_type: v })}
+                          options={ITEM_TYPES}
+                          placeholder={t("Select item")}
+                          searchPlaceholder={t("Type to filter…")}
+                          testId={`iss-item-${idx}-type`}
+                        />
                       </div>
                       {isOther && (
                         <div className="sm:col-span-3">

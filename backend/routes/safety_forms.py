@@ -109,6 +109,7 @@ class IssuanceBody(BaseModel):
     employee_signature: str  # data-URI PNG
     supervisor_signature: str  # data-URI PNG
     lang: Optional[str] = "en"
+    submit_language: Optional[str] = "en"  # original lang at submit; canonical record is always EN
 
     model_config = ConfigDict(extra="ignore")
 
@@ -141,6 +142,7 @@ class TrainingBody(BaseModel):
     employee_signature: str
     instructor_signature: str
     lang: Optional[str] = "en"
+    submit_language: Optional[str] = "en"
 
     model_config = ConfigDict(extra="ignore")
 
@@ -172,6 +174,7 @@ class ReturnBody(BaseModel):
     employee_signature: str
     supervisor_signature: str
     lang: Optional[str] = "en"
+    submit_language: Optional[str] = "en"
 
     model_config = ConfigDict(extra="ignore")
 

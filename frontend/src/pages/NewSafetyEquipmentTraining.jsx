@@ -17,7 +17,8 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { JobPicker } from "@/components/JobPicker";
 import { SignaturePad } from "@/components/SignaturePad";
-import { useT } from "@/lib/i18n";
+import { SearchableSelect } from "@/components/SearchableSelect";
+import { useT, getLang } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { isSafetyForms } from "@/lib/safetyFormsAuth";
 import {
@@ -109,7 +110,14 @@ export default function NewSafetyEquipmentTraining() {
     setSaving(true);
     try {
       rememberSupervisor(data.instructor_name);
-      const payload = { ...data, lang };
+      let payload = { ...data, lang };
+      const submitLang = getLang();
+      if (submitLang === "es") {
+        toast.info(t("Translating to English…"));
+        const { translateUserInput } = await import("@/lib/translateOnSubmit");
+        payload = await translateUserInput(payload, "es");
+      }
+      payload = { ...payload, submit_language: submitLang || "en" };
       const res = await api.post("/safety-forms/equipment-trainings", payload);
       toast.success(t("Submitted — PDF emailed to Safety"));
       navigate(`/safety/forms/equipment-training/${res.data.id}`);
@@ -243,16 +251,14 @@ export default function NewSafetyEquipmentTraining() {
                         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold mb-1 block">
                           {t("Equipment")}
                         </Label>
-                        <select
+                        <SearchableSelect
                           value={it.equipment_type}
-                          onChange={(e) => updateItem(idx, { equipment_type: e.target.value })}
-                          className="w-full h-12 border-2 border-slate-300 rounded px-2 text-base"
-                          data-testid={`trn-item-${idx}-type`}
-                        >
-                          {ITEM_TYPES.map((x) => (
-                            <option key={x} value={x}>{x}</option>
-                          ))}
-                        </select>
+                          onChange={(v) => updateItem(idx, { equipment_type: v })}
+                          options={ITEM_TYPES}
+                          placeholder={t("Select equipment")}
+                          searchPlaceholder={t("Type to filter…")}
+                          testId={`trn-item-${idx}-type`}
+                        />
                       </div>
                       {isOther && (
                         <div className="sm:col-span-3">
