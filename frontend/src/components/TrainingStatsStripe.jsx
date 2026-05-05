@@ -64,6 +64,9 @@ export default function TrainingStatsStripe() {
   const maxTrend = Math.max(1, ...trend.map((d) => d.n));
 
   // Build the full 14-day window so missing days show as zero bars.
+  // Keys here are UTC YYYY-MM-DD because the backend trend buckets are
+  // computed via $dateToString in UTC; keep them aligned so the join
+  // works regardless of the viewer's local timezone.
   const days = [];
   const today = new Date();
   for (let i = 13; i >= 0; i--) {

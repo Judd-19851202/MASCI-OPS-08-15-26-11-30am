@@ -1,5 +1,43 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-05 — Date-Display Bug Fix (P0 production hotfix)
+
+### Symptom (reported by Justin)
+*"Dates are coming in crazy on all reports in the field… crews select current date but when they come into system they have different date on them."*
+
+### Root cause — TWO independent UTC-vs-local timezone bugs
+
+**Bug 1 — Display shifts BACKWARD (the big one):**
+`formatDateLong("2026-05-05")` was doing `new Date("2026-05-05")`. Per ECMAScript spec, a bare `YYYY-MM-DD` string is parsed as **UTC midnight**. Then `toLocaleDateString()` rendered it in the viewer's local TZ → showed **"Mon, May 4"** for any user west of UTC (all of US). Affected every dashboard, every PM list, every report-view header, every PDF.
+
+**Bug 2 — Default date pre-fills FORWARD at night:**
+`new Date().toISOString().slice(0, 10)` returns the UTC date. A Florida foreman opening a QA/QC form at 8 PM ET would see **tomorrow's** date pre-filled in the picker.
+
+### Fix
+- `/app/frontend/src/lib/utils.js` → `formatDateLong()` now detects bare `YYYY-MM-DD` via regex and constructs the Date with local components (`new Date(year, month-1, day)`). Full ISO timestamps with time/zone (`...Z` or `+00:00`) still parse normally, so PDF "Generated …" footers still localize correctly.
+- `/app/frontend/src/pages/NewQaqcInspection.jsx` — switched `inspection_date` default from `toISOString().slice(0,10)` to `todayLocalIso()`. (The other 5 form pages — Inspection, Meeting, Incident, DailyReport, EquipmentInspection — were already on the local helper.)
+- `/app/frontend/src/components/ComplianceExportPanel.jsx` — admin export-range pickers now use `todayLocalIso()` / `toLocalIso()`.
+
+### Verification
+Node round-trip test in `TZ=America/New_York`:
+```
+input        | OLD (buggy)              | NEW (fixed)
+2026-05-05   | Mon, May 4, 2026         | Tue, May 5, 2026
+2026-01-01   | Wed, Dec 31, 2025        | Thu, Jan 1, 2026   ← year boundary disaster
+2026-12-31   | Wed, Dec 30, 2026        | Thu, Dec 31, 2026
+```
+Full ISO timestamps still localize correctly: `"2026-05-05T15:30:00Z"` → `Tue, May 5, 2026` in EDT (15:30 UTC = 11:30 EDT same day).
+
+### Production action
+Preview is patched. **User needs to redeploy `mascidocs.com`** to push the fix to production. No data migration required — the dates stored in MongoDB were always correct (`YYYY-MM-DD` as the crew picked them); only the rendering was off.
+
+---
+
+## 2026-05-05 — Issue-Password Modal Layout Fix
+- `AdminPMPanel.jsx` issue-password dialog was overflowing because default `max-w-lg` (512px) couldn't fit 4 footer buttons. Widened to `sm:max-w-2xl` + `flex-wrap` + `break-words` on title.
+
+---
+
 ## 2026-05-05 — Self-Service Password Reset + Remember Me + 2 New PMs
 
 ### Two new PMs added to roster (preview)

@@ -27,6 +27,7 @@ import {
   reverseGeocode,
   formatCoords,
 } from "@/lib/geolocation";
+import { todayLocalIso } from "@/lib/dateUtils";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2";
@@ -61,7 +62,7 @@ export default function NewQaqcInspection() {
     pm_email: "",
     subcontractor_name: "",
     crew_company: "",
-    inspection_date: new Date().toISOString().slice(0, 10),
+    inspection_date: todayLocalIso(),
     inspection_time: new Date().toTimeString().slice(0, 5),
     inspector_name: "",
     work_activity: "",

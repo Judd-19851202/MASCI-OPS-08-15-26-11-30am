@@ -6,11 +6,14 @@ import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
+import { todayLocalIso, toLocalIso } from "@/lib/dateUtils";
 import RestoreBackupPanel from "@/components/RestoreBackupPanel";
 import StoredBackupsPanel from "@/components/StoredBackupsPanel";
 
-// First day of current month + today (yyyy-mm-dd) — handy default range
-const todayIso = () => new Date().toISOString().slice(0, 10);
+// First day of current month + today (yyyy-mm-dd) — handy default range.
+// All helpers use LOCAL date components to avoid the UTC-rollover bug
+// where a default date renders as "tomorrow" for east-of-UTC users.
+const todayIso = () => todayLocalIso();
 const firstOfMonthIso = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
@@ -19,12 +22,12 @@ const firstOfPriorMonthIso = () => {
   const d = new Date();
   d.setDate(1);
   d.setMonth(d.getMonth() - 1);
-  return d.toISOString().slice(0, 10);
+  return toLocalIso(d);
 };
 const lastOfPriorMonthIso = () => {
   const d = new Date();
   d.setDate(0); // last day of prior month
-  return d.toISOString().slice(0, 10);
+  return toLocalIso(d);
 };
 
 const KINDS = [
