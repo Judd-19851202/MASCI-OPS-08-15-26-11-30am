@@ -468,7 +468,7 @@ export default function NewSafetyEquipmentIssuance() {
                   data-testid="iss-condition"
                 >
                   {CONDITIONS.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c} value={c}>{t(c)}</option>
                   ))}
                 </select>
               </Field>
@@ -511,10 +511,10 @@ export default function NewSafetyEquipmentIssuance() {
           <Section title={t("Acknowledgment & Legal")}>
             <div className="bg-amber-50 border-l-4 border-amber-600 p-4 rounded space-y-3">
               <p className="text-sm text-slate-800 leading-relaxed">
-                {ISSUANCE_LEGAL}
+                {t(ISSUANCE_LEGAL)}
               </p>
               <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">
-                {ISSUANCE_RESPONSIBILITY}
+                {t(ISSUANCE_RESPONSIBILITY)}
               </p>
             </div>
             <label className="flex items-start gap-3 cursor-pointer mt-3">

@@ -419,6 +419,12 @@ const ES = {
   "Operator Signature *": "Firma del Operador *",
   "Submit Inspection": "Enviar Inspección",
   "New": "Nuevo",
+  "Good": "Bueno",
+  "Fair": "Regular",
+  "Condition": "Condición",
+  "Initial Training": "Capacitación Inicial",
+  "Refresher": "Repaso",
+  "Retraining": "Reentrenamiento",
   "Open": "Abrir",
   "report on file": "reporte en archivo",
   "reports on file": "reportes en archivo",
@@ -1774,6 +1780,10 @@ const ES = {
   "Uploaded:": "Subidas:",
   "min 1 required": "mín. 1 requerida",
   "Acknowledgment & Legal": "Reconocimiento y Términos Legales",
+  "I acknowledge that all issued equipment remains the property of MASCI General Contractors. I agree to use all equipment in accordance with manufacturer guidelines, company policy, and applicable OSHA safety requirements.":
+    "Reconozco que todo el equipo emitido sigue siendo propiedad de MASCI General Contractors. Acepto utilizar todo el equipo conforme a las directrices del fabricante, las políticas de la empresa y los requisitos de seguridad de OSHA aplicables.",
+  "I understand that I am responsible for the proper use, care, maintenance, and return of all issued equipment. I further understand that I am responsible for promptly reporting any loss, damage, or malfunction.\n\nEquipment that is lost, stolen, misplaced, or damaged due to negligence, misuse, or failure to follow manufacturer guidelines, company policy, or OSHA requirements may result in financial responsibility for the reasonable replacement cost or fair market value of the equipment, to the extent permitted by law.\n\nI understand that I will not be held responsible for normal wear and tear resulting from proper use.\n\nAny reimbursement or payroll deduction will be handled in accordance with applicable Florida law and the Fair Labor Standards Act (FLSA), and will only occur with proper written authorization where required.\n\nI understand that failure to follow these requirements may also result in disciplinary action, up to and including termination, in accordance with company policy.":
+    "Entiendo que soy responsable del uso adecuado, cuidado, mantenimiento y devolución de todo el equipo emitido. Además, entiendo que soy responsable de reportar de manera oportuna cualquier pérdida, daño o mal funcionamiento.\n\nEl equipo que sea perdido, robado, extraviado o dañado debido a negligencia, mal uso, o por no seguir las directrices del fabricante, las políticas de la empresa o los requisitos de OSHA, puede resultar en responsabilidad financiera por el costo razonable de reemplazo o el valor justo de mercado del equipo, en la medida en que lo permita la ley.\n\nEntiendo que no se me responsabilizará por el desgaste normal resultante del uso adecuado.\n\nCualquier reembolso o deducción de nómina se manejará de acuerdo con la ley aplicable de Florida y la Ley de Normas Razonables de Trabajo (FLSA), y solo ocurrirá con la autorización escrita correspondiente cuando sea requerida.\n\nEntiendo que el incumplimiento de estos requisitos también puede resultar en acción disciplinaria, hasta e incluyendo la terminación del empleo, conforme a las políticas de la empresa.",
   "I acknowledge receipt of the listed equipment and accept responsibility.":
     "Reconozco la recepción del equipo listado y acepto la responsabilidad.",
   "Email a Copy to Employee (optional)": "Enviar Copia al Empleado (opcional)",

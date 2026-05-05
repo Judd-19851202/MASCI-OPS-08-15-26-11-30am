@@ -295,7 +295,7 @@ export default function NewSafetyEquipmentTraining() {
                           data-testid={`trn-item-${idx}-tt`}
                         >
                           {TRAINING_TYPES.map((x) => (
-                            <option key={x} value={x}>{x}</option>
+                            <option key={x} value={x}>{t(x)}</option>
                           ))}
                         </select>
                       </div>
