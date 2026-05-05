@@ -1226,6 +1226,15 @@ class PMSetPasswordBody(BaseModel):
     password: Optional[str] = None  # if absent, generate a random temp pw
 
 
+class PMForgotPasswordBody(BaseModel):
+    email: str
+
+
+class PMResetPasswordBody(BaseModel):
+    token: str
+    new_password: str
+
+
 @api_router.post("/pm/login")
 async def pm_login(body: PMLoginBody, request: Request):
     """Project-Manager portal login.
@@ -1300,6 +1309,174 @@ async def pm_login(body: PMLoginBody, request: Request):
         "token": _pm_token_for(expected_pw),
         "must_change_password": False,
         "pm": None,
+    }
+
+
+@api_router.post("/pm/forgot-password")
+async def pm_forgot_password(body: PMForgotPasswordBody, request: Request):
+    """Self-service password reset — step 1.
+
+    PM enters their email → backend mints a 30-min HMAC-signed token
+    bound to their current password_hash prefix → emails them a link
+    ``/pm/reset/<token>``. We always return 200 with a generic message
+    so an attacker can't enumerate which emails exist on the platform.
+
+    Per-IP brute-force protection is applied (same lockout as login)
+    so this endpoint can't be hammered to spam PMs with reset emails.
+
+    No DB writes — the token's binding to ``password_hash[:16]`` makes
+    it self-revoking the moment the PM uses it.
+    """
+    from pm_auth import find_pm_by_email, make_reset_token
+
+    ip = _client_ip(request)
+    _check_login_lockout(ip)
+    email = (body.email or "").strip().lower()
+
+    # Always return a generic success message, regardless of whether
+    # the email exists or has a password. This prevents email
+    # enumeration. Brute force is still bounded by per-IP lockout.
+    generic = {
+        "ok": True,
+        "message": (
+            "If that email is on file with a password, a reset link is on "
+            "its way. Check your inbox in the next minute."
+        ),
+    }
+
+    if not email or "@" not in email:
+        _record_login_fail(ip)
+        return generic
+
+    pm = await find_pm_by_email(db, email)
+    if not pm:
+        _record_login_fail(ip)
+        return generic
+    pwh = pm.get("password_hash") or ""
+    if not pwh:
+        # Admin hasn't issued a password yet — there's nothing to "reset".
+        # We still don't tell the PM that, but we also don't email them a
+        # broken link.
+        return generic
+    if pm.get("disabled"):
+        return generic
+
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        # Resend not configured — surface a clear error so the admin sees
+        # this in the logs and can fall back to "issue temp password".
+        logger.warning("[forgot-password] RESEND_API_KEY missing; cannot send")
+        return generic
+
+    portal_url = (
+        os.environ.get("PORTAL_URL", "").strip()
+        or os.environ.get("PRODUCTION_URL", "").strip()
+        or "https://mascidocs.com"
+    )
+    token = make_reset_token(pm["id"], pwh)
+    reset_link = f"{portal_url}/pm/reset/{token}"
+    pm_name = (pm.get("name") or "").strip() or "Project Manager"
+    html_body = f"""\
+<!DOCTYPE html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1e293b;background:#f8fafc;margin:0;padding:0">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;color:#fff;padding:18px 24px">
+    <tr><td>
+      <div style="font-family:Courier New,monospace;font-size:11px;letter-spacing:0.22em;color:#fbbf24;text-transform:uppercase;font-weight:700">MASCI Hub · PM Portal</div>
+      <div style="font-size:22px;font-weight:900;margin-top:4px">Reset your password</div>
+    </td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;padding:24px">
+    <tr><td>
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.5">Hi {pm_name},</p>
+      <p style="margin:0 0 14px;font-size:14px;line-height:1.55;color:#334155">
+        Someone (hopefully you) requested a password reset for the MASCI PM Portal account
+        <strong>{email}</strong>. Click the button below to choose a new password.
+      </p>
+
+      <table cellpadding="0" cellspacing="0" style="margin:18px 0">
+        <tr><td style="background:#b91c1c;border-radius:6px;padding:14px 28px">
+          <a href="{reset_link}" style="color:#fff;font-weight:800;font-size:14px;letter-spacing:0.05em;text-transform:uppercase;text-decoration:none">
+            Choose a new password
+          </a>
+        </td></tr>
+      </table>
+
+      <p style="margin:14px 0 0;font-size:13px;color:#64748b;line-height:1.55">
+        This link expires in 30 minutes. If you didn't request a reset, ignore this email — your current password keeps working.
+      </p>
+      <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;line-height:1.55">
+        Direct link: <span style="font-family:Courier New,monospace;font-size:10px;word-break:break-all;color:#475569">{reset_link}</span>
+      </p>
+    </td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:14px 24px;color:#94a3b8;font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;text-transform:uppercase">
+    <tr><td>MASCI · PM Portal · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}</td></tr>
+  </table>
+</body></html>"""
+
+    try:
+        import resend
+        resend.api_key = api_key
+        sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+        params = {
+            "from": sender_email,
+            "to": [email],
+            "subject": "[MASCI] Reset your PM Portal password",
+            "html": html_body,
+        }
+        reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
+        if reply_to:
+            params["reply_to"] = reply_to
+        await asyncio.to_thread(resend.Emails.send, params)
+    except Exception as e:  # noqa: BLE001
+        logger.error("[forgot-password] resend send failed: %s", e)
+        # Still return generic success — don't leak send errors to the
+        # caller (would also reveal the email exists).
+
+    return generic
+
+
+@api_router.post("/pm/reset-password")
+async def pm_reset_password(body: PMResetPasswordBody, request: Request):
+    """Self-service password reset — step 2.
+
+    PM clicks the email link → lands on ``/pm/reset/<token>`` → enters
+    a new password (6+ char) → frontend POSTs here → backend validates
+    the token, sets the new bcrypt hash, clears must_change_password
+    (because the PM has now picked their own password — no need to
+    force another rotation), and returns a fresh per-PM token so they
+    drop straight into ``/pm`` without a login round-trip."""
+    from pm_auth import (
+        consume_reset_token,
+        make_pm_token,
+        public_pm_view,
+        set_pm_password,
+        stamp_login,
+    )
+
+    ip = _client_ip(request)
+    _check_login_lockout(ip)
+
+    if len(body.new_password or "") < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+
+    pm = await consume_reset_token(db, body.token)
+    if not pm:
+        _record_login_fail(ip)
+        raise HTTPException(
+            status_code=400,
+            detail="This reset link is invalid or has expired. Request a new one from /pm/login.",
+        )
+
+    updated = await set_pm_password(db, pm["id"], body.new_password, must_change=False)
+    if not updated:
+        raise HTTPException(status_code=500, detail="Failed to update password")
+    _reset_login_fails(ip)
+    await stamp_login(db, updated["id"], ip=ip)
+    return {
+        "ok": True,
+        "token": make_pm_token(updated["id"], updated["password_hash"]),
+        "pm": public_pm_view(updated),
     }
 
 

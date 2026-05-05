@@ -1,5 +1,63 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-05 — Self-Service Password Reset + Remember Me + 2 New PMs
+
+### Two new PMs added to roster (preview)
+- **Asphalt PM** — `asphaltpm@mascigc.com`
+- **Leo Masci** — `leomasci@mascigc.com`
+> Both added in preview only. Need to be re-added in production via /admin → Project Managers panel after redeploy (or just redeploy — preview Mongo is separate from prod Mongo).
+
+### Self-service password reset (forgot-password flow)
+**User asked:** *"Now that 'Email to PM' works, you could enable self-service password reset for PMs themselves — Forgot password? link on /pm/login that emails the PM a reset link via Resend. Do this & a remember me thing at log ins option."*
+
+**Backend:**
+- `pm_auth.make_reset_token(pm_id, password_hash)` — `<exp_unix>.<pm_id>.<hmac>` format, 30-min TTL, signed against `_pm_hmac_secret()` and bound to first 16 chars of bcrypt hash. Self-revoking: when PM resets, hash changes → old token can't replay.
+- `pm_auth.consume_reset_token(db, token)` — validates exp + signature + PM exists + has a password.
+- `POST /api/pm/forgot-password` — admin-public, email-enumeration safe (always 200 generic message), per-IP lockout, sends email via Resend with `[MASCI] Reset your PM Portal password` subject line and a red "Choose a new password" CTA button.
+- `POST /api/pm/reset-password` — verifies token, writes new bcrypt hash, clears must_change_password, returns fresh per-PM session token + PM doc.
+
+**Frontend:**
+- New `/pm/reset/:token` route (`PmResetPassword.jsx`) — landing page from email link with new pw + confirm fields, submits and drops PM into `/pm`.
+- PmLogin: new **"Forgot password?"** red link next to Remember-me toggle; opens a Reset dialog with email input + "Email reset link" submit. Pre-fills with whatever email the PM was already typing in the login form. Friendly hint text below submit explains the full flow.
+- Login page hint text rewritten to mention the Forgot link AND the call-the-office fallback.
+
+### Remember Me toggle (all 3 portals)
+**Backend:** N/A — purely a frontend storage decision.
+
+**Frontend:**
+- New `/app/frontend/src/lib/tokenStorage.js` — single source of truth for `readToken/writeToken/clearToken`. Reads `sessionStorage` first then falls back to `localStorage`. Writes to one or the other based on `{remember}` flag. Clear wipes BOTH (no stale tokens lingering after logout).
+- `pmAuth.js`, `adminAuth.js`, `shopAuth.js` all rewritten to delegate to tokenStorage.
+- Login pages get a Remember-me checkbox (default ON) above the Sign In button — yellow accent for PM, red for Admin, amber for Shop.
+- All three login `setXToken(...)` calls now pass `{remember: rememberMe}`.
+
+### Verified end-to-end (preview)
+- `POST /api/pm/forgot-password` with real PM email → 200 generic message ✓ (Resend send succeeds, real email delivered).
+- Same endpoint with unknown email → SAME 200 generic message ✓ (no enumeration leak).
+- Bogus token to `/api/pm/reset-password` → 400 ✓.
+- Real token round-trip: mint via `make_reset_token` → consume → returns PM doc ✓; tampered token → returns None ✓.
+- PM Login: Remember me unchecked + login → token in `sessionStorage` only, NOT in `localStorage` ✓.
+- Admin Login + Shop Login both render the Remember-me checkbox ✓.
+- `/pm/reset/<token>` route renders with new pw + confirm fields ✓.
+- 2 new PMs (Asphalt PM, Leo Masci) confirmed in roster ✓.
+
+### Files added/touched
+**New:**
+- `/app/frontend/src/lib/tokenStorage.js`
+- `/app/frontend/src/pages/PmResetPassword.jsx`
+
+**Backend:**
+- `/app/backend/pm_auth.py` (make_reset_token + consume_reset_token + 30-min TTL constant)
+- `/app/backend/server.py` (PMForgotPasswordBody + PMResetPasswordBody models; `/pm/forgot-password` + `/pm/reset-password` endpoints with email-enum-safe generic responses)
+
+**Frontend:**
+- `/app/frontend/src/lib/pmAuth.js`, `adminAuth.js`, `shopAuth.js` — rewritten to delegate to tokenStorage
+- `/app/frontend/src/pages/PmLogin.jsx` — Remember-me + Forgot-password link + Forgot dialog + submitForgot handler
+- `/app/frontend/src/pages/AdminLogin.jsx` — Remember-me checkbox
+- `/app/frontend/src/pages/ShopLogin.jsx` — Remember-me checkbox
+- `/app/frontend/src/App.js` — `/pm/reset/:token` route
+
+
+
 ## 2026-05-05 — Email Welcome to PM + PM Training Login Bug Fix
 
 ### 🐛 Bug fixed: PM Training login redirected to /pm portal instead of /training/pm

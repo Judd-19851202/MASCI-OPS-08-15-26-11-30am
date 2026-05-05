@@ -18,6 +18,7 @@ export default function AdminLogin() {
   const location = useLocation();
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   // Landing on /admin/login means any prior session is over.
   // Wipe every tier's token so a bad token can't poison the next call
@@ -46,7 +47,7 @@ export default function AdminLogin() {
         timeout: 90000, // backend cold-start on Atlas can take up to 60s
       });
       if (res?.data?.ok && res?.data?.token) {
-        setAdminToken(res.data.token);
+        setAdminToken(res.data.token, { remember: rememberMe });
         toast.success("Welcome back, admin");
         const from = location.state?.from || "/admin";
         navigate(from, { replace: true });
@@ -135,6 +136,18 @@ export default function AdminLogin() {
                 toggleTestId="admin-password-toggle"
               />
             </div>
+            <label className="inline-flex items-center gap-2 cursor-pointer select-none -mt-1">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 accent-red-700"
+                data-testid="admin-remember-me"
+              />
+              <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
+                Remember me on this device
+              </span>
+            </label>
             <Button
               type="submit"
               disabled={submitting}

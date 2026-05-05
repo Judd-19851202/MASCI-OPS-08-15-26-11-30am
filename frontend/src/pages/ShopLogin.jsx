@@ -19,6 +19,7 @@ export default function ShopLogin() {
   const { t } = useT();
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   useEffect(() => {
     // Clear every tier's token on arrival so a shop user never inherits
@@ -43,7 +44,7 @@ export default function ShopLogin() {
         timeout: 90000, // backend cold-start on Atlas can take up to 60s
       });
       if (res?.data?.ok && res?.data?.token) {
-        setShopToken(res.data.token);
+        setShopToken(res.data.token, { remember: rememberMe });
         toast.success(t("Welcome to the Shop"));
         const from = location.state?.from || "/shop";
         navigate(from, { replace: true });
@@ -125,6 +126,18 @@ export default function ShopLogin() {
                 toggleTestId="shop-password-toggle"
               />
             </div>
+            <label className="inline-flex items-center gap-2 cursor-pointer select-none -mt-1">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 accent-amber-600"
+                data-testid="shop-remember-me"
+              />
+              <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
+                {t("Remember me on this device")}
+              </span>
+            </label>
             <Button
               type="submit"
               disabled={submitting}

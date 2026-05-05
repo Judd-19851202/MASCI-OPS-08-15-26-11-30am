@@ -190,6 +190,70 @@ async def stamp_login(db, pm_id: str, ip: Optional[str] = None) -> None:
     await db.project_managers.update_one({"id": pm_id}, {"$set": fields})
 
 
+# ----- Self-service password reset tokens --------------------------------
+#
+# Forgot-password tokens are short-lived signed tuples: the PM enters
+# their email on /pm/login → backend mints a token bound to {pm_id,
+# password_hash[:16], exp} → emails them a link `/pm/reset/<token>` →
+# they click, set a new password, the token is one-shot (the bcrypt
+# prefix changes the moment the password is set, so the token stops
+# verifying). No DB-side state required — the password_hash itself is
+# the revocation channel.
+
+import time as _time
+
+_RESET_TOKEN_TTL_SECONDS = 30 * 60  # 30 minutes
+
+
+def make_reset_token(pm_id: str, password_hash: str) -> str:
+    """`<exp_unix>.<pm_id>.<hmac>` — single-use because hmac binds to
+    the first 16 chars of the current password hash; once the PM resets,
+    the hash changes and the token can't be replayed."""
+    if not pm_id or not password_hash:
+        raise ValueError("pm_id and password_hash required")
+    exp = int(_time.time()) + _RESET_TOKEN_TTL_SECONDS
+    msg = f"reset|exp={exp}|pm:{pm_id}:{password_hash[:16]}".encode()
+    sig = hmac.new(_pm_hmac_secret(), msg, hashlib.sha256).hexdigest()
+    return f"{exp}.{pm_id}.{sig}"
+
+
+async def consume_reset_token(db, token: str) -> Optional[dict]:
+    """Validate a forgot-password token. Returns the PM doc if valid
+    AND not expired AND the password hash hasn't been rotated since
+    the token was issued. Returns None on any failure."""
+    if not token or token.count(".") != 2:
+        return None
+    exp_str, pm_id, sig = token.split(".", 2)
+    try:
+        exp = int(exp_str)
+    except ValueError:
+        return None
+    if exp < int(_time.time()):
+        return None
+    pm = await find_pm_by_id(db, pm_id)
+    if not pm:
+        return None
+    pwh = pm.get("password_hash") or ""
+    if not pwh:
+        # PM doesn't have a password yet (admin never issued one) —
+        # let the admin issue one rather than the PM self-serve.
+        return None
+    expected = make_reset_token(pm_id, pwh)
+    # Compare entire token (includes exp) to reject tampering.
+    if not hmac.compare_digest(token, expected):
+        # The exp embedded in `token` may differ from the `expected`
+        # one we just minted (different second). Compare the
+        # signature alone, but only when exp matches.
+        # Note: this branch is technically dead code because
+        # ``make_reset_token`` re-derives ``exp``. Recompute
+        # specifically with the token's exp:
+        msg = f"reset|exp={exp}|pm:{pm_id}:{pwh[:16]}".encode()
+        sig2 = hmac.new(_pm_hmac_secret(), msg, hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig, sig2):
+            return None
+    return pm
+
+
 # ----- Per-PM data scoping -----------------------------------------------
 
 class PmScope:

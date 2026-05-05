@@ -2,31 +2,25 @@
 // Token is sent on every request via the X-PM-Token header.
 // Backend's `require_admin` accepts admin OR PM tokens; backup/recovery
 // routes use `require_admin_strict` which rejects PM tokens.
+//
+// "Remember me" support: tokens written with {remember:true} live in
+// localStorage (persistent); {remember:false} writes to sessionStorage
+// (cleared on tab close).
+
+import { readToken, writeToken, clearToken } from "@/lib/tokenStorage";
 
 const KEY = "masci.pm.token";
 
 export function getPmToken() {
-  try {
-    return window.localStorage.getItem(KEY) || "";
-  } catch {
-    return "";
-  }
+  return readToken(KEY);
 }
 
-export function setPmToken(token) {
-  try {
-    window.localStorage.setItem(KEY, token);
-  } catch {
-    /* noop */
-  }
+export function setPmToken(token, opts = {}) {
+  writeToken(KEY, token, opts);
 }
 
 export function clearPmToken() {
-  try {
-    window.localStorage.removeItem(KEY);
-  } catch {
-    /* noop */
-  }
+  clearToken(KEY);
 }
 
 export function isPm() {

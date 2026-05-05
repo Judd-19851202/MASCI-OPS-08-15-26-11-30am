@@ -41,6 +41,7 @@ import AdminGuide from "@/pages/AdminGuide";
 import ProjectPnlPage from "@/pages/ProjectPnlPage";
 import PmLogin from "@/pages/PmLogin";
 import PmChangePassword from "@/pages/PmChangePassword";
+import PmResetPassword from "@/pages/PmResetPassword";
 import PmHub from "@/pages/PmHub";
 import PmQaqcList from "@/pages/PmQaqcList";
 import ShopLogin from "@/pages/ShopLogin";
@@ -216,6 +217,7 @@ function App() {
                 also accepted by the PM hub guard (RequirePm).
                 ============================================================ */}
             <Route path="/pm/login" element={<PmLogin />} />
+            <Route path="/pm/reset/:token" element={<PmResetPassword />} />
             <Route path="/pm/change-password" element={P(<PmChangePassword />)} />
             <Route path="/pm" element={P(<PmHub />)} />
             <Route path="/pm/qaqc" element={P(<PmQaqcList />)} />

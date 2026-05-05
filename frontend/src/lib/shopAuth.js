@@ -1,29 +1,24 @@
-// Shop token storage. Mirrors adminAuth.js but for the mechanic / shop
-// console (Pre-Op + sign-offs only).
+// Shop token storage. Mirrors adminAuth.js / pmAuth.js but for the
+// mechanic / shop console (Pre-Op + sign-offs only).
+//
+// "Remember me" support: tokens written with {remember:true} live in
+// localStorage (persistent); {remember:false} writes to sessionStorage
+// (cleared on tab close).
+
+import { readToken, writeToken, clearToken } from "@/lib/tokenStorage";
+
 const KEY = "masci.shop.token";
 
 export function getShopToken() {
-  try {
-    return window.localStorage.getItem(KEY) || "";
-  } catch {
-    return "";
-  }
+  return readToken(KEY);
 }
 
-export function setShopToken(token) {
-  try {
-    window.localStorage.setItem(KEY, token);
-  } catch {
-    /* noop */
-  }
+export function setShopToken(token, opts = {}) {
+  writeToken(KEY, token, opts);
 }
 
 export function clearShopToken() {
-  try {
-    window.localStorage.removeItem(KEY);
-  } catch {
-    /* noop */
-  }
+  clearToken(KEY);
 }
 
 export function isShop() {
