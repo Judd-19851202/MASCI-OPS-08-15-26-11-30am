@@ -1,5 +1,43 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-05 — Safety Forms (Equipment Issuance + Use & Care Training)
+
+### Scope
+New section under existing `/safety` sub-hub. Two forms used by the Safety Department:
+
+1. **Safety Equipment Issuance & Accountability** — itemized financial chain-of-custody with at-issuance condition, photos (≥1 required), 13-item dropdown + "Other" write-in, dual signatures, FLSA/Florida-compliant legal acknowledgment.
+2. **Safety Equipment Use & Care Training Documentation** — equipment trained on (Initial / Refresher / Retraining) + topics covered (Proper Use, Inspection, Maintenance, Storage, Limitations, OSHA, Other), instructor + employee signatures.
+
+### Auth
+Password-gated via `SAFETY_FORMS_PASSWORD=1982` (env). Token format mirrors the shop pattern. Admin tokens also satisfy the dependency. The list endpoints (admin dashboard) require an actual admin token.
+
+### PDFs + email
+WeasyPrint generates a clean, MASCI-branded PDF (lockup logo + red eyebrow + topical legal block + signatures + photos). On submit, the PDF is auto-emailed via Resend to `safety@mascigc.com` and `jaymn.judd@mascigc.com` (configurable via `SAFETY_FORMS_EMAIL_TO` env). Gated by `AUTO_EMAIL_REPORTS=true` (preview is `false`).
+
+### Admin dashboard
+New `AdminSafetyFormsPanel` mounted in `/admin` with tabs (Issuance / Training), filters (employee, project, date range, search across employee/project/supervisor), per-row Open + Download-PDF actions.
+
+### Files
+- `/app/backend/routes/safety_forms.py` — full router (login + 6 CRUD endpoints + PDF + auto-email)
+- `/app/backend/.env` — `SAFETY_FORMS_PASSWORD=1982`
+- `/app/frontend/src/lib/safetyFormsAuth.js`, `safetyFormsSchema.js`
+- `/app/frontend/src/pages/SafetyFormsLogin.jsx`, `SafetyFormsHub.jsx`, `NewSafetyEquipmentIssuance.jsx`, `NewSafetyEquipmentTraining.jsx`, `ViewSafetyForm.jsx`
+- `/app/frontend/src/components/AdminSafetyFormsPanel.jsx`
+- `/app/frontend/src/App.js` — 6 new routes
+- `/app/frontend/src/pages/SafetySection.jsx` — added "Safety Forms" tile
+
+### Test results — iteration 37
+- Backend: **19/19 PASS**
+- Frontend: **10/10 PASS**
+- Bugs: **0**
+- Pytest test file persisted at `/app/backend/tests/test_safety_forms_iter37.py`
+
+### Future-ready
+- Asset/Serial field on every issuance line + photos with serial number → ready for QR/barcode integration
+- Training topics persisted as keys (`proper_use`, `osha`, etc.) → ready for compliance-by-employee dashboard
+
+---
+
 ## 2026-05-05 — Date-Display Bug Fix (P0 production hotfix)
 
 ### Symptom (reported by Justin)
