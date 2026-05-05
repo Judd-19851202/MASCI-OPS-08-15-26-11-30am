@@ -17,6 +17,17 @@ import { clearShopToken, getShopToken } from "@/lib/shopAuth";
  * sandbox. Once you step out, you have to re-authenticate to come
  * back. Same rule for all 3 portals.
  *
+ * Multi-audience exemption:
+ *   The Training Hub at `/training/*` is a deliberately shared surface —
+ *   PMs / Admins / Shop staff all need to access training packets and
+ *   videos while signed into their own portal (clicking the "PM
+ *   Training" tile from the landing page is the canonical flow). To
+ *   prevent the scope check from wiping a freshly-issued PM/Shop/Admin
+ *   token the moment React Router lands on `/training/pm` after a
+ *   successful login, training routes are explicitly in-scope for
+ *   every portal. Per-track audience gating still happens inside the
+ *   training page itself (see `TrainingTrack.jsx`).
+ *
  * Notes:
  *   • Login pages (`/admin/login`, `/pm/login`, `/shop/login`) are
  *     inside their own portal namespace, so visiting them does not
@@ -31,7 +42,10 @@ import { clearShopToken, getShopToken } from "@/lib/shopAuth";
 function inScope(pathname, prefix) {
   // Allow the bare prefix `/admin` or any sub-path `/admin/*`. Reject
   // look-alikes like `/admin-something`.
-  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+  if (pathname === prefix || pathname.startsWith(`${prefix}/`)) return true;
+  // Multi-audience training surface — never wipes any portal token.
+  if (pathname === "/training" || pathname.startsWith("/training/")) return true;
+  return false;
 }
 
 export default function EnforcePortalScope() {

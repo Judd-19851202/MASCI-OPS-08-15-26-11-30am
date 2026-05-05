@@ -14,6 +14,7 @@ import {
   KeyRound,
   Copy,
   FileText,
+  Mail,
   Lock,
   ShieldOff,
   ShieldCheck,
@@ -215,7 +216,7 @@ export default function AdminPMPanel() {
     setCustomPw("");
   };
 
-  const submitSetPassword = async (mode /* "generate" | "custom" */) => {
+  const submitSetPassword = async (mode /* "generate" | "custom" | "welcome-pdf" | "email-welcome" */) => {
     if (!pwTargetPm) return;
     if (mode === "custom" && customPw.length < 6) {
       toast.error("Password must be at least 6 characters");
@@ -224,6 +225,55 @@ export default function AdminPMPanel() {
     setPwBusy(true);
     try {
       const body = mode === "custom" ? { password: customPw } : {};
+
+      if (mode === "welcome-pdf") {
+        // Mint a temp pw AND download a one-page welcome PDF in one shot.
+        const r = await api.post(
+          `/admin/project-managers/${pwTargetPm.id}/welcome-pdf`,
+          body,
+          { responseType: "blob" }
+        );
+        const cd =
+          r.headers["content-disposition"] ||
+          r.headers["Content-Disposition"] ||
+          "";
+        const m = /filename="?([^";]+)"?/i.exec(cd);
+        const fname = m ? m[1] : `MASCI_PM_Welcome_${pwTargetPm.name.replace(/\s+/g, "_")}.pdf`;
+        const url = window.URL.createObjectURL(
+          new Blob([r.data], { type: "application/pdf" })
+        );
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fname;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        toast.success(`Downloaded ${fname} — temp password is on the tear-off page`);
+        setPwTargetPm(null);
+        setCustomPw("");
+        await refresh();
+        return;
+      }
+
+      if (mode === "email-welcome") {
+        // Mint a temp pw AND email the welcome PDF + temp pw to the PM
+        // via Resend. Temp pw is in the email body; admin doesn't see
+        // it on screen so the network log stays clean.
+        const r = await api.post(
+          `/admin/project-managers/${pwTargetPm.id}/email-welcome`,
+          body
+        );
+        toast.success(
+          `Sent welcome email to ${r.data?.sent_to || pwTargetPm.email} — temp password is in the email body.`,
+          { duration: 6000 }
+        );
+        setPwTargetPm(null);
+        setCustomPw("");
+        await refresh();
+        return;
+      }
+
       const r = await api.post(
         `/admin/project-managers/${pwTargetPm.id}/set-password`,
         body
@@ -636,13 +686,16 @@ export default function AdminPMPanel() {
                 : `Issue password for ${pwTargetPm?.name}`}
             </DialogTitle>
             <DialogDescription className="leading-relaxed">
-              Three options:
-              <strong> Generate &amp; download Welcome PDF</strong> mints a temp
-              password AND downloads a one-page handoff letter for the PM
-              (recommended — print it, hand it over, shred after they log in).
-              <strong> Generate &amp; show on screen</strong> just shows the temp
-              password in a copy dialog if you'd rather text/call them.
-              Or type a <strong>custom</strong> password below. The PM
+              Three ways to issue (or reset) this PM's password — pick whichever
+              fits the situation:
+              <br /><strong>Email to PM</strong> (recommended for remote) — mints
+              a temp pw and emails the PM directly with the welcome PDF
+              attached. They click the link and log in.
+              <br /><strong>Download PDF</strong> — same handoff letter, but
+              downloaded so you can print it and hand it over in person.
+              <br /><strong>Show on screen</strong> — just the temp password in
+              a copy dialog, in case you'd rather text/call them.
+              <br />Or type a <strong>custom</strong> password below. The PM
               must rotate to their own on first login regardless.
             </DialogDescription>
           </DialogHeader>
@@ -698,13 +751,14 @@ export default function AdminPMPanel() {
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" /> …
                     </>
                   ) : (
-                    <>Generate &amp; show on screen</>
+                    <>Show on screen</>
                   )}
                 </Button>
                 <Button
                   onClick={() => submitSetPassword("welcome-pdf")}
                   disabled={pwBusy}
-                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide"
+                  variant="outline"
+                  className="font-bold uppercase tracking-wide"
                   data-testid="pm-set-password-welcome-pdf"
                 >
                   {pwBusy ? (
@@ -713,7 +767,24 @@ export default function AdminPMPanel() {
                     </>
                   ) : (
                     <>
-                      <FileText className="w-4 h-4 mr-1" /> Generate &amp; download Welcome PDF
+                      <FileText className="w-4 h-4 mr-1" /> Download PDF
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => submitSetPassword("email-welcome")}
+                  disabled={pwBusy}
+                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide"
+                  data-testid="pm-set-password-email-welcome"
+                  title={`Email the temp password + welcome PDF to ${pwTargetPm?.email}`}
+                >
+                  {pwBusy ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending…
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-4 h-4 mr-1" /> Email to PM
                     </>
                   )}
                 </Button>

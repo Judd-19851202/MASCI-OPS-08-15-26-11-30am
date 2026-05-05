@@ -1457,6 +1457,165 @@ async def admin_pm_welcome_pdf(
     )
 
 
+@api_router.post("/admin/project-managers/{pm_id}/email-welcome")
+async def admin_pm_email_welcome(
+    pm_id: str, body: PMSetPasswordBody, _: bool = Depends(require_admin_strict)
+):
+    """One-shot: issue (or rotate) a PM password AND email the welcome
+    PDF + the temp password directly to the PM via Resend.
+
+    Why this exists: the PDF version is the printable/in-person flow.
+    This endpoint is the remote/SaaS flow — admin clicks once, the PM
+    gets an email at their work address with the PDF attached and the
+    temp password called out in the email body. PM clicks the link in
+    the email, logs in, and is forced to rotate.
+
+    Returns ``{ok, pm, sent_to, resend_id}``. The temp password is NOT
+    echoed back to the admin in this response (it's already in the
+    email body and the PDF) — keeps the admin's network log clean.
+
+    Mirrors ``/welcome-pdf`` body shape: optional ``password``; auto-
+    generates 10-char if omitted.
+    """
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "RESEND_API_KEY not configured. "
+                "Use 'Generate & Download Welcome PDF' instead, or add the key to backend env."
+            ),
+        )
+
+    from pm_auth import (
+        find_pm_by_id,
+        generate_temp_password,
+        public_pm_view,
+        set_pm_password,
+    )
+    from pm_welcome_pdf import render_pm_welcome_pdf
+
+    pm = await find_pm_by_id(db, pm_id)
+    if not pm:
+        raise HTTPException(status_code=404, detail="PM not found")
+    pm_email = (pm.get("email") or "").strip()
+    pm_name = (pm.get("name") or "").strip() or "Project Manager"
+    if not pm_email:
+        raise HTTPException(status_code=400, detail="PM has no email address on file")
+    if body.password and len(body.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    plain = body.password or generate_temp_password(10)
+    updated = await set_pm_password(db, pm_id, plain, must_change=True)
+    if not updated:
+        raise HTTPException(status_code=500, detail="Failed to set password")
+
+    portal_url = (
+        os.environ.get("PORTAL_URL", "").strip()
+        or os.environ.get("PRODUCTION_URL", "").strip()
+        or "https://mascidocs.com"
+    )
+    pdf_bytes = await asyncio.to_thread(
+        render_pm_welcome_pdf,
+        public_pm_view(updated),
+        temp_password=plain,
+        portal_url=portal_url,
+    )
+
+    # ── Email body ────────────────────────────────────────────────────
+    # Plain HTML, MASCI red branding, no inline images other than the
+    # red-M data URI already used by render_email_html. Keep it short:
+    # the PDF attachment carries the full onboarding instructions.
+    is_reset = bool(pm.get("password_hash"))  # was True before this rotation
+    headline = "Your password has been reset" if is_reset else "Welcome to the MASCI PM Portal"
+    html_body = f"""\
+<!DOCTYPE html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1e293b;background:#f8fafc;margin:0;padding:0">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;color:#fff;padding:18px 24px">
+    <tr><td>
+      <div style="font-family:Courier New,monospace;font-size:11px;letter-spacing:0.22em;color:#fbbf24;text-transform:uppercase;font-weight:700">MASCI Hub · PM Portal</div>
+      <div style="font-size:22px;font-weight:900;margin-top:4px">{headline}</div>
+    </td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;padding:24px">
+    <tr><td>
+      <p style="margin:0 0 12px;font-size:15px;line-height:1.5">Hi {pm_name},</p>
+      <p style="margin:0 0 12px;font-size:14px;line-height:1.55;color:#334155">
+        {'Your MASCI PM Portal password has been reset. Use the temporary password below to sign in — you will be forced to choose your own on first login.' if is_reset else 'You have a new account on the MASCI PM Portal at <a href="' + portal_url + '/pm/login" style="color:#b91c1c;font-weight:700">' + portal_url + '/pm/login</a>. Use the temporary password below to sign in — you will be forced to choose your own on first login.'}
+      </p>
+
+      <table cellpadding="0" cellspacing="0" style="background:#0f172a;color:#f1f5f9;border-radius:6px;padding:18px 22px;margin:16px 0;width:100%;max-width:480px">
+        <tr><td>
+          <div style="font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;color:#94a3b8;text-transform:uppercase;font-weight:700">Account</div>
+          <div style="font-family:Courier New,monospace;font-size:13px;font-weight:800;margin-top:3px">{pm_email}</div>
+          <div style="font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;color:#94a3b8;text-transform:uppercase;font-weight:700;margin-top:14px">Temporary password</div>
+          <div style="font-family:Courier New,monospace;font-size:20px;font-weight:800;color:#34d399;letter-spacing:0.05em;margin-top:3px">{plain}</div>
+        </td></tr>
+      </table>
+
+      <p style="margin:14px 0 6px;font-size:14px;line-height:1.55"><strong>What to do next</strong></p>
+      <ol style="margin:0 0 14px 18px;padding:0;font-size:14px;line-height:1.55;color:#334155">
+        <li>Open <a href="{portal_url}/pm/login" style="color:#b91c1c;font-weight:700">{portal_url}/pm/login</a></li>
+        <li>Sign in with the email + temporary password above</li>
+        <li>Pick your own 6+ character password (the temp one stops working immediately)</li>
+        <li>You'll only see your assigned jobs — Daily Reports, Inspections, Meetings, Incidents, JHAs, Equipment Pre-Op, QA/QC, and your P&amp;L snapshot all auto-route to you</li>
+      </ol>
+
+      <p style="margin:14px 0 0;font-size:13px;color:#64748b;line-height:1.55">
+        The attached PDF has the full walkthrough. If you forget your password, just call the office — admin can issue a new temp pw in 30 seconds.
+      </p>
+    </td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:14px 24px;color:#94a3b8;font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;text-transform:uppercase">
+    <tr><td>MASCI · PM Portal · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}</td></tr>
+  </table>
+</body></html>"""
+
+    import resend  # noqa: E402
+
+    resend.api_key = api_key
+    sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+    reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
+    safe_name = pm_name.replace(" ", "_")
+    fname = f"MASCI_PM_Welcome_{safe_name}.pdf"
+
+    params = {
+        "from": sender_email,
+        "to": [pm_email],
+        "subject": f"[MASCI] {headline}",
+        "html": html_body,
+        "attachments": [
+            {
+                "filename": fname,
+                "content": _email_b64.b64encode(pdf_bytes).decode(),
+            }
+        ],
+    }
+    if reply_to:
+        params["reply_to"] = reply_to
+
+    try:
+        result = await asyncio.to_thread(resend.Emails.send, params)
+    except Exception as e:  # noqa: BLE001
+        # Password was rotated successfully, but the email send failed —
+        # surface a 502 so the admin can retry (or fall back to the PDF
+        # button). The temp pw is still active, just not delivered.
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                f"Password rotated but email send failed via Resend: {e}. "
+                "Use 'Download Welcome PDF' to recover the new temp password."
+            ),
+        )
+
+    return {
+        "ok": True,
+        "pm": public_pm_view(updated),
+        "sent_to": pm_email,
+        "resend_id": (result or {}).get("id") if isinstance(result, dict) else None,
+    }
+
+
 @api_router.post("/admin/project-managers/{pm_id}/disable")
 async def admin_set_pm_disabled(
     pm_id: str, body: dict, _: bool = Depends(require_admin_strict)

@@ -52,7 +52,13 @@ export default function PmLogin() {
         // First-time login OR admin reset → must rotate before any access.
         if (res.data.must_change_password) {
           toast.info(t("Welcome — please choose a new password"));
-          navigate("/pm/change-password", { replace: true });
+          navigate("/pm/change-password", {
+            replace: true,
+            // Forward the original target so PmChangePassword can land
+            // them where they were headed (e.g. /training/pm) instead
+            // of the generic /pm dashboard.
+            state: { from: location.state?.from },
+          });
           return;
         }
         const pmName = res.data?.pm?.name;

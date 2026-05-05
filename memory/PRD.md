@@ -1,5 +1,49 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-05 — Email Welcome to PM + PM Training Login Bug Fix
+
+### 🐛 Bug fixed: PM Training login redirected to /pm portal instead of /training/pm
+
+**User reported:** *"On live site I attempted to log into PM Training with my email & password, it took me to the pm portal not pm training."*
+
+**Root cause:** `EnforcePortalScope.useEffect` was wiping the PM token whenever the URL pathname left `/pm/*`. The user's flow was:
+1. Click PM Training tile while logged out → redirected to `/pm/login` with `state.from = "/training/pm"`
+2. Enter email + password → `PmLogin.onSubmit` sets the PM token and navigates to `/training/pm`
+3. **EnforcePortalScope fires** on the new pathname → `/training/pm` is OUTSIDE `/pm/*` → **wipes the freshly-set PM token**
+4. `TrainingTrack` re-renders → `isPm()` returns false → AccessDenied panel → user perceives this as "kicked back to login / portal"
+
+**Fix:** `/training/*` is a multi-audience shared surface — every authenticated user (admin, PM, shop) needs to access training packets while keeping their portal session. Updated `EnforcePortalScope.inScope()` to treat training paths as in-scope for ALL portals. Per-track audience gating still happens inside `TrainingTrack.jsx` (so a PM can't view shop-only content even though their token survives navigation).
+
+**Also fixed:** `PmLogin` now forwards `state.from` through the must-change-password redirect, and `PmChangePassword` honors `state.from` instead of hardcoding `/pm`. Result: a brand-new PM clicking "PM Training" now: PM Login → forced to set new password → lands directly on `/training/pm` with their token intact.
+
+**Verified end-to-end (preview):**
+- Logged-out user clicks PM Training tile → `/pm/login` ✅
+- Enters Chris's credentials → lands on `/training/pm` with PM token preserved (length 101) ✅
+- Lesson 1 renders fully (PM Portal Overview) ✅
+
+### 📧 Email Welcome to PM (new feature)
+
+**User asked:** *"Want me to draft a one-page 'Welcome to the new PM portal' PDF you can hand to each PM along with their temp password? Yes & it emails them temp password on first time or when reset."*
+
+**What was built:**
+- **New endpoint** `POST /api/admin/project-managers/{pm_id}/email-welcome` — admin-strict; mints (or rotates) the PM's password AND emails the welcome PDF + temp password to the PM via Resend in one shot. Returns `{ok, pm, sent_to, resend_id}`. Temp password is NOT echoed back to the admin in the response (it's already in the email body and PDF) — keeps the network log clean.
+- **Email body** uses the same MASCI red branding as the PDF; embeds a dark `Account / Temporary password` block with the email + 10-char temp pw highlighted in mint green; 4-step "what to do next" list; auto-detects whether this is a first-issue (subject: "Welcome to the MASCI PM Portal") or a reset (subject: "Your password has been reset").
+- **Failure modes handled:** 503 if `RESEND_API_KEY` isn't configured (recommends fallback to PDF download); 502 if Resend transport fails after the password was rotated (so admin can recover via `/welcome-pdf`).
+- **Frontend:** AdminPMPanel password-reset dialog now has **4 buttons**: Cancel · Show on Screen (outline) · Download PDF (outline + FileText icon) · **Email to PM** (orange primary + Mail icon). Description rewritten to explain when to use each. The "Email to PM" button hover-tooltip shows the PM's email so the admin can confirm before clicking.
+
+**Verified end-to-end (preview):**
+- Backend returned `{ok: true, sent_to: "chriswright@mascigc.com", resend_id: "d4532b74-…"}` — real Resend delivery.
+- Dialog renders all 4 buttons cleanly; tested that all are clickable and route to the correct mode.
+
+### Files touched
+- `/app/backend/server.py` — new `/email-welcome` endpoint (parallel to `/welcome-pdf`)
+- `/app/frontend/src/components/AdminPMPanel.jsx` — 4-button dialog + email-welcome handler
+- `/app/frontend/src/components/EnforcePortalScope.jsx` — `/training/*` paths in-scope for all portals
+- `/app/frontend/src/pages/PmLogin.jsx` — forwards `state.from` through must-change-password redirect
+- `/app/frontend/src/pages/PmChangePassword.jsx` — honors `state.from` after rotation
+
+
+
 ## 2026-05-05 — PM Welcome PDF (one-page handoff letter)
 
 **User request:** *"Want me to draft a one-page 'Welcome to the new PM portal' PDF you can hand to each PM along with their temp password? yes!"*

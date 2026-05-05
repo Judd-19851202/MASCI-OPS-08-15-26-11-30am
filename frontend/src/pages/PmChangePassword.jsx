@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { ShieldCheck, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,13 @@ import { toast } from "sonner";
 export default function PmChangePassword() {
   const { t } = useT();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Where the user originally wanted to go before they got bounced into
+  // the password rotation flow (e.g. /training/pm). PmLogin forwards the
+  // ``from`` state through ``navigate("/pm/change-password", {state})``,
+  // and we honour it here so first-time PMs don't get dumped onto the
+  // generic /pm dashboard when they were trying to reach a specific page.
+  const originalFrom = location.state?.from || "/pm";
   const [me, setMe] = useState(null);
   const [oldPw, setOldPw] = useState("");
   const [newPw, setNewPw] = useState("");
@@ -78,7 +85,7 @@ export default function PmChangePassword() {
       if (r.data?.ok && r.data?.token) {
         setPmToken(r.data.token);
         toast.success(t("Password updated"));
-        navigate("/pm", { replace: true });
+        navigate(originalFrom, { replace: true });
       } else {
         toast.error(t("Update failed"));
       }
