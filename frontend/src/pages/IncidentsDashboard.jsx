@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Plus,
   AlertOctagon,
@@ -23,6 +23,7 @@ export default function IncidentsDashboard() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const hubHome = useHubHome();
 
   const load = async () => {
@@ -135,7 +136,7 @@ export default function IncidentsDashboard() {
                 return (
                   <li
                     key={it.id}
-                    onClick={() => navigate(`/incidents/${it.id}`)}
+                    onClick={() => navigate(`${pathname}/${it.id}`)}
                     className="p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3"
                     data-testid={`incident-row-${it.id}`}
                   >

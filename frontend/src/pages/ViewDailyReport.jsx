@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   Printer,
@@ -24,6 +24,37 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
+
+// 24-hour HH:MM → 12-hour h:MM AM/PM (returns the original string if
+// it can't be parsed so we never silently drop user-typed data).
+function fmt12h(s) {
+  if (!s) return "";
+  const m = String(s).match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return s;
+  const h = Number(m[1]);
+  const mm = m[2];
+  if (Number.isNaN(h) || h < 0 || h > 23) return s;
+  const ampm = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${mm} ${ampm}`;
+}
+
+// "7:00 AM → 5:30 PM · 10.5 h gross − 0.5 h lunch = 10.00 h net"
+function grossNetLine(start, stop, lunchMin) {
+  if (!start || !stop) return "";
+  const a = String(start).match(/^(\d{1,2}):(\d{2})/);
+  const b = String(stop).match(/^(\d{1,2}):(\d{2})/);
+  if (!a || !b) return "";
+  const sh = Number(a[1]), sm = Number(a[2]);
+  const eh = Number(b[1]), em = Number(b[2]);
+  if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return "";
+  let grossMin = (eh * 60 + em) - (sh * 60 + sm);
+  if (grossMin < 0) grossMin += 24 * 60;
+  const lunch = Number(lunchMin) || 0;
+  const netMin = Math.max(0, grossMin - lunch);
+  const hr = (m) => (m % 60 === 0 ? (m / 60).toFixed(1) : (m / 60).toFixed(2));
+  return `${fmt12h(start)} \u2192 ${fmt12h(stop)} \u00b7 ${hr(grossMin)} h gross \u2212 ${hr(lunch)} h lunch = ${hr(netMin)} h net`;
+}
 
 const ReportSection = ({ number, title, children }) => (
   <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print:break-inside-avoid">
@@ -92,6 +123,12 @@ export default function ViewDailyReport() {
   const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  // Parent list URL — strips `/<id>` from the current pathname so PMs
+  // viewing /pm/daily/<id> bounce back to /pm/daily, and admins viewing
+  // /admin/daily/<id> bounce back to /admin/daily. Avoids the legacy
+  // hard-coded "/admin/daily" that wiped the PM token via EnforcePortalScope.
+  const listUrl = pathname.replace(/\/[^/]+$/, "") || "/admin/daily";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -104,7 +141,7 @@ export default function ViewDailyReport() {
         if (alive) setData(res.data);
       } catch {
         toast.error("Daily report not found");
-        navigate("/admin/daily");
+        navigate(listUrl);
       } finally {
         if (alive) setLoading(false);
       }
@@ -112,7 +149,7 @@ export default function ViewDailyReport() {
     return () => {
       alive = false;
     };
-  }, [id, navigate]);
+  }, [id, navigate, listUrl]);
 
   // Auto-print after the page renders if we landed here via ?autoprint=1
   useEffect(() => {
@@ -125,7 +162,7 @@ export default function ViewDailyReport() {
     try {
       await api.delete(`/daily-reports/${id}`);
       toast.success("Deleted");
-      navigate("/admin/daily");
+      navigate(listUrl);
     } catch {
       toast.error("Delete failed");
     }
@@ -323,22 +360,38 @@ export default function ViewDailyReport() {
           <Table
             headers={["Name", "Trade / Role", "Start", "Stop", "Lunch", "Hrs", "Work Performed"]}
             rows={[
-              ...(data.masci_crews || []).map((r) => [
-                r.name,
-                r.trade,
-                r.start_time,
-                r.stop_time,
-                r.lunch_minutes !== undefined && r.lunch_minutes !== "" ? `${r.lunch_minutes} min` : "",
-                r.hours,
-                r.work_performed,
-              ]),
+              ...(data.masci_crews || []).map((r, i) => {
+                // Build a small inline gross/net math line shown
+                // beneath the work-performed cell so a PM reviewing
+                // the report can sanity-check the hours calculation
+                // without a calculator.
+                const summary = grossNetLine(r.start_time, r.stop_time, r.lunch_minutes);
+                return [
+                  r.name,
+                  r.trade,
+                  fmt12h(r.start_time),
+                  fmt12h(r.stop_time),
+                  r.lunch_minutes !== undefined && r.lunch_minutes !== "" ? `${r.lunch_minutes} min` : "",
+                  r.hours,
+                  summary ? (
+                    <div key={`wp-${i}`}>
+                      <div>{r.work_performed}</div>
+                      <div className="mt-1 font-mono text-[10px] tracking-[0.02em] text-slate-500">
+                        {summary}
+                      </div>
+                    </div>
+                  ) : (
+                    r.work_performed
+                  ),
+                ];
+              }),
               ...((data.masci_crews || []).length > 0
                 ? [[
                     "",
                     "",
                     "",
                     "",
-                    <strong key="tl">Total</strong>,
+                    <strong key="tl">Total Hours</strong>,
                     <strong key="th">
                       {(data.masci_crews || [])
                         .reduce((s, r) => s + (parseFloat(r.hours) || 0), 0)
@@ -373,8 +426,8 @@ export default function ViewDailyReport() {
             rows={(data.visitors || []).map((r) => [
               r.name,
               r.company,
-              r.time_in,
-              r.time_out,
+              fmt12h(r.time_in),
+              fmt12h(r.time_out),
               r.purpose,
             ])}
             emptyText="No site visitors."
@@ -387,8 +440,8 @@ export default function ViewDailyReport() {
             rows={(data.equipment || []).map((r) => [
               r.description,
               r.hours_used,
-              r.time_delivered,
-              r.time_removed,
+              fmt12h(r.time_delivered),
+              fmt12h(r.time_removed),
               r.notes,
             ])}
             emptyText="No equipment logged."

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Printer, Loader2, AlertTriangle, Trash2, MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -96,6 +96,8 @@ export default function ViewInspection() {
   const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const listUrl = pathname.replace(/\/[^/]+$/, "") || "/admin/inspections";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -108,7 +110,7 @@ export default function ViewInspection() {
         if (alive) setData(res.data);
       } catch {
         toast.error("Inspection not found");
-        navigate("/admin/inspections");
+        navigate(listUrl);
       } finally {
         if (alive) setLoading(false);
       }
@@ -116,7 +118,7 @@ export default function ViewInspection() {
     return () => {
       alive = false;
     };
-  }, [id, navigate]);
+  }, [id, navigate, listUrl]);
 
   // Auto-print after the page renders if we landed here via ?autoprint=1
   useEffect(() => {
@@ -128,7 +130,7 @@ export default function ViewInspection() {
     try {
       await api.delete(`/inspections/${id}`);
       toast.success("Deleted");
-      navigate("/admin/inspections");
+      navigate(listUrl);
     } catch {
       toast.error("Delete failed");
     }

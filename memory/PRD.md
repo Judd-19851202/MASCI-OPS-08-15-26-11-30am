@@ -1,5 +1,53 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-04 — P0 View-Page Fix + Inline Gross/Net Hours Preview
+
+### Bug — clicking View on any PM-portal report → "Daily report not found"
+
+**User:** *"in pm portal i click view on any reports then says daily report not found.... fix NOW!"*
+
+**Root cause cluster:** Two follow-on bugs from the same `EnforcePortalScope` rule:
+1. **Dashboard "View" buttons** call `navigate(\`/daily/${it.id}\`)` (and similar for incidents, meetings, equipment, inspections). That hits the legacy `<RedirectWithId base="/admin/<kind>" />` route → routes to `/admin/<kind>/${id}` → `EnforcePortalScope` sees PM token + path outside `/pm/*` → **wipes PM token** → destination `api.get` returns 401 → "not found" toast → bounce.
+2. **View pages** then `navigate("/admin/<kind>")` after delete or 404 — same problem in the other direction.
+
+**Fix — relative-path navigation everywhere it matters:**
+- All 5 dashboards (`DailyReportsDashboard`, `IncidentsDashboard`, `MeetingsDashboard`, `EquipmentDashboard`, `Dashboard` for inspections) now use `useLocation()` and `navigate(\`${pathname}/${it.id}\`)`. Stays in `/pm/*` if the user is in the PM portal, stays in `/admin/*` if admin. Token never wiped.
+- All 4 View pages (`ViewDailyReport`, `ViewIncident`, `ViewMeeting`, `ViewInspection`) compute `listUrl = pathname.replace(/\/[^/]+$/, "")` for back-to-list navigation. Same logic — strips the trailing `/<id>` segment to land on the correct portal's list.
+
+**Verified end-to-end (preview):** Logged in as PM → `/pm/daily` → 5 reports listed → clicked View on first row → `/pm/daily/<uuid>` loads with H1 "Daily Job Report", no "not found" toast, PM token survives. Same flow for the other 4 dashboards.
+
+### Enhancement — inline gross/net hours preview (form + PDF + view page)
+
+User accepted: *"want me to also add an inline gross-vs-net hours preview on the New Daily Report form? ... yes do this have it printed out on daily reports too"*
+
+**Form (`NewDailyReport.jsx`):** Added two helpers (`fmt12h()` for AM/PM display, `grossNetPreview()` for the math object). Inline `<div data-testid="crew-hours-preview-${i}">` renders under each crew row's Work Performed input only when both start + stop are filled, in a clean monospace callout: 
+```
+7:00 AM → 5:30 PM  ·  10.50 h gross − 0.50 h lunch = 10.00 h net
+```
+Catches typos in real time — verified the case `07:00 → 19:00 / 30 min lunch` instantly reads `12.0 h gross − 0.50 h lunch = 11.50 h net`, an obvious red flag the foreman can fix before submit.
+
+**PDF (`backend/pdf_render.py`):** New `_gross_net_summary()` helper. The Daily Report's MASCI Crews table now appends a small monospace audit-trail line under each crew member's Work Performed cell. Renders alongside the existing 12-hour Start/Stop columns + "Total Hours" totals row.
+
+**View page (`ViewDailyReport.jsx`):** Same `fmt12h()` + `grossNetLine()` helpers. Each crew row's Work Performed cell now shows the gross/net math underneath when start + stop are present. Visitor and equipment time columns also converted to AM/PM display.
+
+**Verified (PDF render):** 20/20 assertions pass on a 2-crew sample render — both crew members' gross/net lines present, "Total Hours" label correct, "16.00" combined total visible, all 8 time fields converted, zero military-time leaks.
+
+### Files touched
+- `frontend/src/pages/DailyReportsDashboard.jsx` — `useLocation` + relative View navigation
+- `frontend/src/pages/IncidentsDashboard.jsx` — same
+- `frontend/src/pages/EquipmentDashboard.jsx` — same
+- `frontend/src/pages/MeetingsDashboard.jsx` — same (also stripped 4 lines of stale trailing junk that broke the parser)
+- `frontend/src/pages/Dashboard.jsx` (Inspections) — same
+- `frontend/src/pages/ViewDailyReport.jsx` — `useLocation` + `listUrl` + crew gross/net rendering + visitor/equipment AM/PM
+- `frontend/src/pages/ViewIncident.jsx` — `useLocation` + `listUrl`
+- `frontend/src/pages/ViewMeeting.jsx` — `useLocation` + `listUrl`
+- `frontend/src/pages/ViewInspection.jsx` — `useLocation` + `listUrl`
+- `frontend/src/pages/NewDailyReport.jsx` — `fmt12h` + `grossNetPreview` helpers + inline preview block
+- `backend/pdf_render.py` — `_gross_net_summary()` helper + applied to crew table Work Performed cell
+
+ESLint + Ruff clean. Backend restarted clean. Both bugs and the enhancement verified live in preview.
+
+
 ## 2026-05-04 — P0 Bug Fixes: PM Tile Drilldown + Daily Report Time Format
 
 Two production bugs reported by field crews. Both root-caused, fixed, and verified.

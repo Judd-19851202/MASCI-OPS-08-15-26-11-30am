@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Plus, Wrench, Eye, Trash2, Loader2, AlertOctagon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -16,6 +16,7 @@ export default function EquipmentDashboard() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const hubHome = useHubHome();
 
   const load = async () => {
@@ -140,7 +141,7 @@ export default function EquipmentDashboard() {
                 return (
                   <li
                     key={it.id}
-                    onClick={() => navigate(`/equipment/${it.id}`)}
+                    onClick={() => navigate(`${pathname}/${it.id}`)}
                     className={`p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3 ${
                       fail && !cleared ? "border-l-4 border-red-700" : cleared ? "border-l-4 border-emerald-600" : ""
                     }`}

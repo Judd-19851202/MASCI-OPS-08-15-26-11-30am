@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Printer, Loader2, Trash2, MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -47,6 +47,8 @@ export default function ViewMeeting() {
   const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const listUrl = pathname.replace(/\/[^/]+$/, "") || "/admin/meetings";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -59,7 +61,7 @@ export default function ViewMeeting() {
         if (alive) setData(res.data);
       } catch {
         toast.error("Meeting not found");
-        navigate("/admin/meetings");
+        navigate(listUrl);
       } finally {
         if (alive) setLoading(false);
       }
@@ -67,7 +69,7 @@ export default function ViewMeeting() {
     return () => {
       alive = false;
     };
-  }, [id, navigate]);
+  }, [id, navigate, listUrl]);
 
   // Auto-print after the page renders if we landed here via ?autoprint=1
   useEffect(() => {
@@ -79,7 +81,7 @@ export default function ViewMeeting() {
     try {
       await api.delete(`/meetings/${id}`);
       toast.success("Deleted");
-      navigate("/admin/meetings");
+      navigate(listUrl);
     } catch {
       toast.error("Delete failed");
     }

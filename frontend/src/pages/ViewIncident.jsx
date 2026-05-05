@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Printer, Loader2, Trash2, MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -53,6 +53,8 @@ export default function ViewIncident() {
   const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const listUrl = pathname.replace(/\/[^/]+$/, "") || "/admin/incidents";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -65,7 +67,7 @@ export default function ViewIncident() {
         if (alive) setData(res.data);
       } catch {
         toast.error("Incident not found");
-        navigate("/admin/incidents");
+        navigate(listUrl);
       } finally {
         if (alive) setLoading(false);
       }
@@ -73,7 +75,7 @@ export default function ViewIncident() {
     return () => {
       alive = false;
     };
-  }, [id, navigate]);
+  }, [id, navigate, listUrl]);
 
   // Auto-print after the page renders if we landed here via ?autoprint=1
   useEffect(() => {
@@ -86,7 +88,7 @@ export default function ViewIncident() {
     try {
       await api.delete(`/incidents/${id}`);
       toast.success("Deleted");
-      navigate("/incidents");
+      navigate(listUrl);
     } catch {
       toast.error("Delete failed");
     }

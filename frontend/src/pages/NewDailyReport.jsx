@@ -233,6 +233,34 @@ export default function NewDailyReport({ publicMode = false }) {
     return (mins / 60).toFixed(2);
   };
 
+  // Render a single inline preview line that walks the foreman through
+  // the time math the API just did, e.g.
+  //   "7:00 AM → 5:30 PM · 10.5 h gross − 0.5 h lunch = 10.00 h net"
+  // Catches typos like a 7-PM stop time before the report is filed.
+  const fmt12h = (s) => {
+    if (!s) return "";
+    const [h, m] = s.split(":").map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return s;
+    const ampm = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+  };
+  const grossNetPreview = (start, stop, lunchMin) => {
+    if (!start || !stop) return null;
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = stop.split(":").map(Number);
+    if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return null;
+    let grossMin = (eh * 60 + em) - (sh * 60 + sm);
+    if (grossMin < 0) grossMin += 24 * 60;
+    const lunchM = Number(lunchMin) || 0;
+    const netMin = Math.max(0, grossMin - lunchM);
+    const hr = (m) => (m / 60).toFixed(m % 60 === 0 ? 1 : 2);
+    return {
+      label: `${fmt12h(start)} \u2192 ${fmt12h(stop)}`,
+      math: `${hr(grossMin)} h gross \u2212 ${(lunchM / 60).toFixed(lunchM % 60 === 0 ? 1 : 2)} h lunch = ${hr(netMin)} h net`,
+    };
+  };
+
   const applyJob = (job) => {
     setData((p) => ({
       ...p,
@@ -995,6 +1023,22 @@ export default function NewDailyReport({ publicMode = false }) {
                         data-testid={`crew-work-${i}`}
                       />
                     </div>
+                    {(() => {
+                      // Live gross/net hours preview — shown only when both
+                      // start + stop are set so empty rows stay clean.
+                      const p = grossNetPreview(row.start_time, row.stop_time, row.lunch_minutes);
+                      if (!p) return null;
+                      return (
+                        <div
+                          className="sm:col-span-2 mt-1 px-3 py-2 rounded bg-slate-100 border-l-2 border-slate-700 font-mono text-[12px] text-slate-700 leading-snug"
+                          data-testid={`crew-hours-preview-${i}`}
+                        >
+                          <span className="font-bold text-slate-900">{p.label}</span>
+                          <span className="mx-2 text-slate-400">·</span>
+                          <span>{p.math}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               );

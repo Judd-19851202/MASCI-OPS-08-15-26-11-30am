@@ -35,6 +35,37 @@ def _data_uri_for(path: Path) -> str:
         return ""
 
 
+def _gross_net_summary(start: Optional[str], stop: Optional[str], lunch_min) -> str:
+    """Plain-text math line for a single crew row, e.g.
+    '7:00 AM → 5:30 PM · 10.5 h gross − 0.5 h lunch = 10.00 h net'.
+    Returns '' when we can't parse start+stop (silent passthrough)."""
+    if not start or not stop:
+        return ""
+    try:
+        sh, sm = (int(x) for x in str(start).split(":")[:2])
+        eh, em = (int(x) for x in str(stop).split(":")[:2])
+    except Exception:
+        return ""
+    gross_min = (eh * 60 + em) - (sh * 60 + sm)
+    if gross_min < 0:
+        gross_min += 24 * 60
+    try:
+        lunch_m = int(lunch_min or 0)
+    except (TypeError, ValueError):
+        lunch_m = 0
+    net_min = max(0, gross_min - lunch_m)
+
+    def _hr(m: int) -> str:
+        v = m / 60.0
+        return f"{v:.1f}" if m % 60 == 0 else f"{v:.2f}"
+
+    return (
+        f"{_fmt_time_12h(start)} \u2192 {_fmt_time_12h(stop)} "
+        f"\u00b7 {_hr(gross_min)} h gross \u2212 {_hr(lunch_m)} h lunch "
+        f"= {_hr(net_min)} h net"
+    )
+
+
 def _fmt_date(d: Optional[str]) -> str:
     if not d:
         return ""
@@ -190,6 +221,20 @@ def _render_daily(d: Dict[str, Any]) -> str:
                 total_hours += float(c.get("hours") or 0)
             except (TypeError, ValueError):
                 pass
+            # Build the work-performed cell with an inline gross/net math
+            # line underneath, so a PM reading the printed PDF can verify
+            # the hours math at a glance without a calculator.
+            wp = c.get("work_performed") or ""
+            summary = _gross_net_summary(
+                c.get("start_time"), c.get("stop_time"), c.get("lunch_minutes")
+            )
+            wp_cell = wp
+            if summary:
+                wp_cell = (
+                    f"{wp}<div style='margin-top:4px;font-family:monospace;"
+                    f"font-size:9px;color:#475569;letter-spacing:0.02em;'>"
+                    f"{summary}</div>"
+                )
             body_rows.append([
                 c.get("name") or "",
                 c.get("trade") or c.get("role") or "",
@@ -197,7 +242,7 @@ def _render_daily(d: Dict[str, Any]) -> str:
                 _fmt_time_12h(c.get("stop_time")),
                 str(c.get("lunch_minutes") or "") + (" min" if c.get("lunch_minutes") else ""),
                 c.get("hours") or "",
-                c.get("work_performed") or "",
+                wp_cell,
             ])
         # Append a totals row. Show "Total Hours" label alongside the
         # numeric total so the field reader can sanity-check the math
