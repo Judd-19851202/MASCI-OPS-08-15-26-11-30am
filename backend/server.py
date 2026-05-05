@@ -16,7 +16,7 @@ import io
 from collections import defaultdict
 from threading import Lock
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -4453,6 +4453,57 @@ _RESTORE_CREW_HUB = {
     "notifications",
 }
 _RESTORE_SAFETY_AUX = {"equipment_units", "job_hazard_plans", "trench_boxes"}
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# Edit project on an existing record (admin OR PM)
+# ────────────────────────────────────────────────────────────────────────────
+# Foremen and superintendents occasionally pick the wrong job at submit time
+# ("HQ" vs "T5860 SR 9", say) and the report lands under the wrong project.
+# This endpoint lets a PM or admin re-tag the record after the fact without
+# editing any other field. Only project_name / project_number / project_id /
+# location may be changed; everything else (signatures, photos, narrative,
+# checklist results) stays exactly as the foreman submitted it.
+_EDIT_KIND_TO_COLL = {
+    "daily-reports":         "daily_reports",
+    "incidents":             "incidents",
+    "meetings":              "meetings",
+    "inspections":           "inspections",
+    "equipment-inspections": "equipment_inspections",
+}
+
+
+class EditProjectRequest(BaseModel):
+    project_name: Optional[str] = None
+    project_number: Optional[str] = None
+    project_id: Optional[str] = None
+    location: Optional[str] = None
+    model_config = ConfigDict(extra="ignore")
+
+
+@api_router.patch("/admin/records/{kind}/{record_id}/project")
+async def edit_record_project(
+    kind: str,
+    record_id: str,
+    payload: EditProjectRequest,
+    _: bool = Depends(require_admin),
+):
+    coll_name = _EDIT_KIND_TO_COLL.get(kind)
+    if not coll_name:
+        raise HTTPException(status_code=400, detail=f"Unknown record kind: {kind}")
+    update: Dict[str, Any] = {}
+    for field in ("project_name", "project_number", "project_id", "location"):
+        v = getattr(payload, field, None)
+        if v is not None:
+            update[field] = (v or "").strip()
+    if not update:
+        raise HTTPException(status_code=400, detail="No project fields supplied")
+    update["project_edited_at"] = datetime.now(timezone.utc).isoformat()
+    res = await db[coll_name].update_one({"id": record_id}, {"$set": update})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Record not found")
+    doc = await db[coll_name].find_one({"id": record_id}, {"_id": 0})
+    return {"ok": True, "record": doc}
 
 
 @api_router.post("/exports/restore")

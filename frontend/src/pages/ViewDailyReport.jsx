@@ -23,6 +23,7 @@ import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
+import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 
 // 24-hour HH:MM → 12-hour h:MM AM/PM (returns the original string if
@@ -186,7 +187,7 @@ export default function ViewDailyReport() {
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <Link
-            to="/admin/daily"
+            to={listUrl}
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="back-link"
           >
@@ -194,6 +195,12 @@ export default function ViewDailyReport() {
           </Link>
           <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
+            <EditProjectDialog
+              kind="daily-reports"
+              recordId={data.id}
+              current={data}
+              onSaved={(rec) => rec && setData(rec)}
+            />
             <Button
               variant="outline"
               size="icon"

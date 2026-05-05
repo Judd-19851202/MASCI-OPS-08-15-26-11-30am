@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Printer, Loader2, Trash2, Mail, AlertOctagon, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -46,13 +46,19 @@ const StatusPill = ({ status }) => {
 export default function ViewEquipmentInspection({ context = "admin" }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { t } = useT();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
 
   const isShopContext = context === "shop";
-  const backHref = isShopContext ? "/shop" : "/admin/equipment";
+  // Portal-aware back href: shop context always sends to /shop; otherwise
+  // strip the trailing /<id> from the current pathname so /pm/equipment/<id>
+  // bounces to /pm/equipment and /admin/equipment/<id> bounces to /admin/equipment.
+  const backHref = isShopContext
+    ? "/shop"
+    : (pathname.replace(/\/[^/]+$/, "") || "/admin/equipment");
   const headerAccent = isShopContext ? "border-amber-500" : "border-red-700";
 
   useEffect(() => {
