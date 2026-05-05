@@ -38,6 +38,20 @@ def _normalize(doc: Dict[str, Any]) -> Dict[str, Any]:
     """Strip _id, ensure id, fill defaults."""
     if "_id" in doc:
         doc.pop("_id")
+    co = doc.get("co_pm_emails") or []
+    if not isinstance(co, list):
+        co = []
+    cleaned_co = []
+    seen = set()
+    for e in co:
+        if not isinstance(e, str):
+            continue
+        em = e.strip().lower()
+        if em and em not in seen:
+            seen.add(em)
+            cleaned_co.append(em)
+        if len(cleaned_co) >= 4:
+            break
     out = {
         "id": doc.get("id") or str(uuid.uuid4()),
         "project_number": (doc.get("project_number") or "").strip(),
@@ -46,6 +60,7 @@ def _normalize(doc: Dict[str, Any]) -> Dict[str, Any]:
         "client": (doc.get("client") or "").strip(),
         "project_manager": (doc.get("project_manager") or "").strip(),
         "pm_email": (doc.get("pm_email") or "").strip().lower(),
+        "co_pm_emails": cleaned_co,
         "active": bool(doc.get("active", True)),
         "created_at": doc.get("created_at") or _now(),
         "updated_at": doc.get("updated_at") or _now(),
@@ -138,6 +153,10 @@ async def upsert_job(db, body: Dict[str, Any]) -> Dict[str, Any]:
     `id` and `created_at` are insert-only: on update we never overwrite the
     existing primary key, otherwise PATCH/DELETE by id would 404 right after
     an Add/Update click.
+
+    ``co_pm_emails`` is only written when the caller explicitly passes a
+    list — passing ``None`` (the default) preserves the existing co-PMs
+    so the primary-PM reassign UI doesn't accidentally wipe them.
     """
     doc = _normalize(body)
     if not doc["project_number"]:
@@ -159,6 +178,12 @@ async def upsert_job(db, body: Dict[str, Any]) -> Dict[str, Any]:
         "active": doc["active"],
         "updated_at": now,
     }
+    # Only write co_pm_emails when the caller explicitly passed a list.
+    if body.get("co_pm_emails") is not None:
+        update_fields["co_pm_emails"] = doc["co_pm_emails"]
+    else:
+        # On insert, co_pm_emails defaults to [] (handled by setOnInsert).
+        insert_only["co_pm_emails"] = []
     await db.jobs_master.update_one(
         {"project_number": doc["project_number"]},
         {"$set": update_fields, "$setOnInsert": insert_only},

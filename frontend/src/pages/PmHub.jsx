@@ -24,7 +24,7 @@ import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import AdminJobMasterPanel from "@/components/AdminJobMasterPanel";
-import AdminPMPanel from "@/components/AdminPMPanel";
+// AdminPMPanel intentionally NOT imported here — PM roster is admin-only as of 2026-05-05.
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
 import EquipmentPartsPanel from "@/components/EquipmentPartsPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
@@ -299,8 +299,10 @@ export default function PmHub() {
         {/* 3 · Active Jobs */}
         <AdminJobMasterPanel />
 
-        {/* 4 · Email Routing (PM roster + auto-routing rules) */}
-        <AdminPMPanel />
+        {/* 4 · Email Routing — Project Manager roster is admin-only as of
+            2026-05-05. PMs no longer see/edit each other's accounts; the
+            auto-routing summary stays so a PM can sanity-check who an
+            email goes to. */}
         <AutoEmailRoutingPanel />
 
         {/* 5 · Site Posters */}

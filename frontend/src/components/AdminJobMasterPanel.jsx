@@ -9,6 +9,8 @@ import {
   RefreshCcw,
   CheckCircle2,
   XCircle,
+  Users,
+  X as XIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +57,9 @@ export default function AdminJobMasterPanel() {
   const [bulkText, setBulkText] = useState("");
   const [bulkRunning, setBulkRunning] = useState(false);
   const [savingRow, setSavingRow] = useState(null);
+  const [coPmJob, setCoPmJob] = useState(null);   // job whose co-PMs are being edited
+  const [coPmDraft, setCoPmDraft] = useState([]); // emails currently selected
+  const [savingCoPms, setSavingCoPms] = useState(false);
   const [form, setForm] = useState({
     project_number: "",
     project_name: "",
@@ -143,6 +148,43 @@ export default function AdminJobMasterPanel() {
     } finally {
       setSavingRow(null);
     }
+  };
+
+  // ---------- Co-PMs ----------
+  const openCoPm = (job) => {
+    setCoPmJob(job);
+    setCoPmDraft(Array.isArray(job.co_pm_emails) ? [...job.co_pm_emails] : []);
+  };
+
+  const toggleCoPm = (email) => {
+    const e = (email || "").toLowerCase();
+    setCoPmDraft((prev) =>
+      prev.includes(e) ? prev.filter((x) => x !== e) : (prev.length >= 4 ? prev : [...prev, e])
+    );
+  };
+
+  const saveCoPms = async () => {
+    if (!coPmJob) return;
+    setSavingCoPms(true);
+    try {
+      await api.patch(`/admin/jobs/${coPmJob.id}/co-pms`, {
+        co_pm_emails: coPmDraft,
+      });
+      toast.success(`Co-PMs updated for ${coPmJob.project_number}`);
+      setCoPmJob(null);
+      setCoPmDraft([]);
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Co-PM save failed");
+    } finally {
+      setSavingCoPms(false);
+    }
+  };
+
+  const pmNameByEmailLower = (email) => {
+    const e = (email || "").toLowerCase();
+    const p = pms.find((x) => (x.email || "").toLowerCase() === e);
+    return p ? p.name : email;
   };
 
   const toggleActive = async (job) => {
@@ -491,6 +533,7 @@ export default function AdminJobMasterPanel() {
               <th className="px-3 py-2">Location</th>
               <th className="px-3 py-2">Client</th>
               <th className="px-3 py-2">PM</th>
+              <th className="px-3 py-2">Co-PMs</th>
               <th className="px-3 py-2 text-center">Active</th>
               <th className="px-3 py-2 w-12"></th>
             </tr>
@@ -498,13 +541,13 @@ export default function AdminJobMasterPanel() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-slate-500">
+                <td colSpan={8} className="px-3 py-6 text-center text-slate-500">
                   <Loader2 className="w-5 h-5 animate-spin inline-block" /> Loading…
                 </td>
               </tr>
             ) : jobs.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-slate-500">
+                <td colSpan={8} className="px-3 py-6 text-center text-slate-500">
                   No jobs yet. Add one above or bulk-replace from JSON.
                 </td>
               </tr>
@@ -545,6 +588,29 @@ export default function AdminJobMasterPanel() {
                       {savingRow === j.id && (
                         <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
                       )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-xs">
+                    <div className="flex items-center gap-1 flex-wrap max-w-[260px]">
+                      {(j.co_pm_emails || []).slice(0, 4).map((e) => (
+                        <span
+                          key={e}
+                          className="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-200 text-slate-800 font-mono text-[10px]"
+                          title={e}
+                        >
+                          {pmNameByEmailLower(e)}
+                        </span>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => openCoPm(j)}
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-dashed border-slate-300 text-slate-500 hover:border-amber-500 hover:text-amber-700 font-mono text-[10px] uppercase tracking-wide"
+                        data-testid={`job-copm-add-${j.project_number}`}
+                        title="Add or remove co-PMs"
+                      >
+                        <Plus className="w-2.5 h-2.5" />
+                        {(j.co_pm_emails || []).length === 0 ? "Add" : "Edit"}
+                      </button>
                     </div>
                   </td>
                   <td className="px-3 py-2 text-center">
@@ -628,6 +694,97 @@ export default function AdminJobMasterPanel() {
                 <>
                   <Upload className="w-4 h-4 mr-2" /> Replace all jobs
                 </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Co-PMs editor — assign up to 4 additional PMs per job */}
+      <Dialog open={!!coPmJob} onOpenChange={(o) => !o && setCoPmJob(null)}>
+        <DialogContent data-testid="co-pm-dialog">
+          <DialogHeader>
+            <DialogTitle className="font-display font-black flex items-center gap-2 text-amber-700">
+              <Users className="w-5 h-5" />
+              Co-PMs for {coPmJob?.project_number}
+            </DialogTitle>
+            <DialogDescription className="leading-relaxed">
+              Pick up to <strong>4 additional PMs</strong> who should also
+              receive every Daily Report, Incident, Inspection, Meeting,
+              and Pre-Op email filed against this job. The primary PM
+              ({pmNameByEmail(coPmJob?.pm_email) || "Unassigned"}) stays
+              unchanged — co-PMs are CC'd on top.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1">
+            {pms
+              .filter((p) => (p.email || "").toLowerCase() !== (coPmJob?.pm_email || "").toLowerCase())
+              .map((p) => {
+                const e = (p.email || "").toLowerCase();
+                const checked = coPmDraft.includes(e);
+                const disabled = !checked && coPmDraft.length >= 4;
+                return (
+                  <label
+                    key={p.id}
+                    className={`flex items-center gap-2 p-2 rounded border ${
+                      checked
+                        ? "bg-amber-50 border-amber-400"
+                        : disabled
+                        ? "bg-slate-50 border-slate-200 opacity-50 cursor-not-allowed"
+                        : "bg-white border-slate-200 hover:bg-slate-50 cursor-pointer"
+                    }`}
+                    data-testid={`co-pm-option-${p.id}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={disabled}
+                      onChange={() => toggleCoPm(p.email)}
+                      className="w-4 h-4"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-slate-900 truncate">{p.name}</div>
+                      <div className="text-[11px] font-mono text-slate-500 truncate">{p.email}</div>
+                    </div>
+                    {p.is_active === false && (
+                      <span className="text-[10px] font-mono uppercase tracking-wide text-slate-400">Inactive</span>
+                    )}
+                  </label>
+                );
+              })}
+            {pms.filter((p) => (p.email || "").toLowerCase() !== (coPmJob?.pm_email || "").toLowerCase()).length === 0 && (
+              <div className="text-sm text-slate-500 text-center py-4">
+                No other PMs available — add them in the Project Managers panel first.
+              </div>
+            )}
+          </div>
+
+          <div className="text-[11px] font-mono uppercase tracking-wide text-slate-600 pt-1">
+            {coPmDraft.length} / 4 selected
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCoPmJob(null)}
+              disabled={savingCoPms}
+              data-testid="co-pm-cancel"
+            >
+              <XIcon className="w-4 h-4 mr-1" /> Cancel
+            </Button>
+            <Button
+              onClick={saveCoPms}
+              disabled={savingCoPms}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide"
+              data-testid="co-pm-save"
+            >
+              {savingCoPms ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving…
+                </>
+              ) : (
+                <>Save co-PMs</>
               )}
             </Button>
           </DialogFooter>

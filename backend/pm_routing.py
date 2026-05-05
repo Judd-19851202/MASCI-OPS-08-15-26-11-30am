@@ -156,17 +156,49 @@ async def recipients_for_record_async(
     """
     DB-backed distribution list builder.
 
-    Routing rules (per user spec, 2026-02-26):
+    Routing rules (per user spec, 2026-02-26 + co-PM expansion 2026-05-05):
       • Compliance kinds (inspection/meeting/jha/incident):
-          PM + ALWAYS_CC (jaymn.judd + safety@). Office must keep a copy.
+          Primary PM + ALL co-PMs assigned to the job + ALWAYS_CC
+          (jaymn.judd + safety@). Office must keep a copy.
       • Operational kinds (daily-report / equipment-inspection):
-          ONLY the assigned PM. Exception: if Jaymn IS the assigned PM
-          (e.g. job 26-06 Knox McRae), he gets it naturally as the PM.
+          Primary PM + co-PMs ONLY (no office CC). Co-PMs are CC'd; the
+          primary stays in To: so the email thread visibly belongs to
+          them. Exception: if Jaymn IS the primary, he gets it as PM.
 
-    Returns: {pm_name, pm_email, to[], cc[], all[]}.
+    Returns: {pm_name, pm_email, co_pm_emails[], to[], cc[], all[]}.
     """
     pm = await resolve_pm_for_record_async(db, record)
     pm_name, pm_email = (pm if pm else (None, None))
+
+    # Pull the matching job again so we can grab co_pm_emails. resolve_pm_*
+    # already did this lookup but didn't return the doc; cheap to re-fetch.
+    co_pm_emails: List[str] = []
+    pn_raw = (record.get("project_number") or "").strip()
+    if pn_raw:
+        job = await db.jobs_master.find_one(
+            {"project_number": {"$regex": f"^{_re_escape(pn_raw)}$", "$options": "i"}},
+            {"_id": 0, "co_pm_emails": 1},
+        )
+        if not job:
+            # Fallback: normalized scan (rare path)
+            pn_norm = _normalize_job_number(pn_raw)
+            cursor = db.jobs_master.find({}, {"_id": 0, "project_number": 1, "co_pm_emails": 1})
+            async for j in cursor:
+                if _normalize_job_number(j.get("project_number") or "") == pn_norm:
+                    job = j
+                    break
+        if job:
+            raw_co = job.get("co_pm_emails") or []
+            if isinstance(raw_co, list):
+                primary_lower = (pm_email or "").lower()
+                seen = {primary_lower} if primary_lower else set()
+                for e in raw_co:
+                    if not isinstance(e, str):
+                        continue
+                    em = e.strip().lower()
+                    if em and em not in seen:
+                        seen.add(em)
+                        co_pm_emails.append(em)
 
     is_pm_only = kind in PM_ONLY_KINDS
 
@@ -175,11 +207,15 @@ async def recipients_for_record_async(
         to.append(pm_email)
 
     if is_pm_only:
-        cc: List[str] = []
+        # Co-PMs ride along on operational reports — primary remains To:,
+        # co-PMs become CC: so the email thread visibly belongs to the
+        # primary but every assigned PM still gets a copy.
+        cc: List[str] = list(co_pm_emails)
         if not to:
+            # No primary PM resolved — default office address.
             to = ["jaymn.judd@mascigc.com"]
     else:
-        cc = [
+        cc = list(co_pm_emails) + [
             e
             for e in ALWAYS_CC
             if e and (not pm_email or e.lower() != pm_email.lower())
@@ -212,6 +248,7 @@ async def recipients_for_record_async(
     return {
         "pm_name": pm_name,
         "pm_email": pm_email,
+        "co_pm_emails": co_pm_emails,
         "to": to,
         "cc": cc,
         "all": all_unique,

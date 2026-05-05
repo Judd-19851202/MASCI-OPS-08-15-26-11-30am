@@ -1,5 +1,55 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-05 — Per-PM Auth + Co-PMs per Job
+
+**User request:** *"Project Managers needs to be removed from PM Portal & only be in admin... Need option to issue PM passwords... On first login require them to pick their own 6 character password, but from admin we can reset any time. Also Active Jobs Master need to be able to assign up to 5 PMs per job — DO NOT change current PM, just allow multiple."*
+
+### Backend
+- **New module:** `/app/backend/pm_auth.py` — bcrypt password hashing, per-PM HMAC token (`{pm_id}.{hmac}` with first 16 chars of password_hash baked in so password resets invalidate old tokens), DB helpers (`set_pm_password`, `set_pm_disabled`, `is_valid_pm_user_token_async`), random temp-password generator (10-char, ambiguous-char-stripped).
+- **New endpoints in `server.py`:**
+  - `POST /api/pm/login` (replaced) — body `{email, password}` → `{ok, token, must_change_password, pm}`. Falls back to legacy shared-password bypass when email omitted AND `PM_SHARED_LOGIN_ENABLED=true`.
+  - `POST /api/pm/change-password` — `{old_password, new_password}`, requires per-PM session, returns rotated token.
+  - `GET /api/pm/me` — returns the signed-in PM doc or `{is_admin_or_legacy:true}`.
+  - `POST /api/admin/project-managers/{pm_id}/set-password` — admin-strict; generates random temp pw if no body, returns plaintext ONCE.
+  - `POST /api/admin/project-managers/{pm_id}/disable` — admin-strict; locks/unlocks login.
+- **`require_admin` is now async** so it can DB-validate per-PM tokens. All existing `Depends(require_admin)` usages continue working transparently.
+- **Brute force**: `_check_login_lockout` re-applied to all three new endpoints (login, set-password indirectly via require_admin_strict, change-password).
+- **Co-PMs per job:**
+  - `JobIn.co_pm_emails: Optional[List[str]] = None` — `None` preserves existing co-PMs on primary-PM reassign.
+  - `PATCH /api/admin/jobs/{job_id}/co-pms` body `{co_pm_emails: [...]}` (max 4, validates each email against the PM roster, deduplicates against primary).
+  - `pm_routing.recipients_for_record_async` now also pulls `co_pm_emails` from the matched job and adds them as CC on every routed email (compliance + operational).
+
+### Frontend
+- **`/pm/login`** revamped — email + password fields. On `must_change_password=true` redirects to `/pm/change-password`.
+- **NEW `/pm/change-password`** page — old / new / confirm fields + 6-char minimum, swaps stored token to the rotated one.
+- **`AdminPMPanel`** gains:
+  - "Login" status column (Set / Temp / None / Locked badges).
+  - Per-row **KeyRound** button → "Reset password" dialog (Generate or Custom). After save, shows the issued temp password ONCE in a copy-able banner.
+  - Per-row **ShieldOff/Lock** toggle to lock/unlock login.
+- **`AdminPMPanel` removed from `/pm`** (PmHub.jsx) — admin-only as of today.
+- **`AdminJobMasterPanel`** gains a **Co-PMs** column with chip preview and an Add/Edit dialog (multi-select checkboxes, max 4). Primary PM is auto-excluded from the picker.
+
+### Verified end-to-end (preview)
+- Admin sets temp pw via UI → temp pw shown ONCE → PM logs in → forced to `/pm/change-password` → sets `ChrisRocks2026` → lands on `/pm` with `AdminPMPanel` no longer rendered.
+- Admin sets co-PMs `[chriswright, jaymn.judd]` on job `24-06` → `/auto-email/preview?kind=inspection` returns `[davidjewett, chriswright, jaymn.judd, safety@]`. ✅
+- Admin reassigns primary PM on `24-06` via the existing dropdown → co_pm_emails preserved (didn't get wiped). ✅
+- 5+ co-PMs → 422; unknown email → 400; locked PM → 401 on subsequent calls. ✅
+- Legacy bypass still works (no-email POST) for the office break-glass case.
+
+### Files touched
+- `/app/backend/pm_auth.py` (NEW)
+- `/app/backend/server.py` (require_admin async; PM login/me/change-password; admin set-password / disable; co-pms PATCH)
+- `/app/backend/pm_routing.py` (recipients include co_pm_emails)
+- `/app/backend/jobs_master.py` (co_pm_emails field; preserve-on-upsert)
+- `/app/frontend/src/pages/PmLogin.jsx` (email+password)
+- `/app/frontend/src/pages/PmChangePassword.jsx` (NEW)
+- `/app/frontend/src/pages/PmHub.jsx` (AdminPMPanel removed)
+- `/app/frontend/src/components/AdminPMPanel.jsx` (Login column + reset/lock + dialogs)
+- `/app/frontend/src/components/AdminJobMasterPanel.jsx` (Co-PMs column + dialog)
+- `/app/frontend/src/App.js` (added /pm/change-password route)
+
+
+
 ## 2026-05-05 — Backup Section Reorganization + Destructive-Action Password Gate
 
 **User request:** *"Leave everything as-is... in admin anything & everything backup-related move to lower section of admin screen & give a brief description of what each does. For any button that deletes or wipes data: 'are you sure' screen pops up & admin password must be entered to continue."*

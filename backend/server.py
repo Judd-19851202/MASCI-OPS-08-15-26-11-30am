@@ -175,8 +175,22 @@ def _is_valid_admin_token(tok: Optional[str]) -> bool:
 
 
 def _is_valid_pm_token(tok: Optional[str]) -> bool:
+    """Legacy shared-PM token validator. Returns True only when:
+       1) ``PM_SHARED_LOGIN_ENABLED`` is on (the env-flag emergency bypass),
+       2) AND the token matches the HMAC of the shared ``PM_PASSWORD``.
+
+    Per-PM (per-user) tokens are validated via
+    ``pm_auth.is_valid_pm_user_token_async`` which needs a DB lookup."""
     pw = os.environ.get("PM_PASSWORD", "")
     if not tok or not pw:
+        return False
+    # Per-PM tokens have a `.` delimiter — they're handled in the async
+    # validator. Reject them here so the legacy path doesn't accidentally
+    # pass them.
+    if "." in tok:
+        return False
+    flag = os.environ.get("PM_SHARED_LOGIN_ENABLED", "true").strip().lower()
+    if flag not in ("1", "true", "yes", "on"):
         return False
     return hmac.compare_digest(tok, _pm_token_for(pw))
 
@@ -211,7 +225,7 @@ def require_dev(x_dev_token: Optional[str] = Header(default=None)):
     return True
 
 
-def require_admin(
+async def require_admin(
     x_admin_token: Optional[str] = Header(default=None),
     x_pm_token: Optional[str] = Header(default=None),
 ):
@@ -221,19 +235,56 @@ def require_admin(
     employees, safety records, posters, compliance exports). Backup &
     recovery routes use ``require_admin_strict`` instead so a fired PM
     cannot exfiltrate or wipe the system on the way out.
+
+    Async because per-PM tokens (introduced 2026-05-05) require a DB
+    lookup on ``project_managers`` to match the stored bcrypt-hash prefix
+    embedded in the token. Legacy shared-PM tokens and admin tokens
+    validate without DB I/O.
     """
     expected_pw = os.environ.get("ADMIN_PASSWORD", "")
     pm_pw = os.environ.get("PM_PASSWORD", "")
     if not expected_pw and not pm_pw:
-        # No passwords configured → gate disabled (open mode)
         return True
     if x_admin_token and _is_valid_admin_token(x_admin_token):
         return True
-    if x_pm_token and _is_valid_pm_token(x_pm_token):
-        return True
+    if x_pm_token:
+        # New per-PM token → has a `.` between pm_id and the HMAC.
+        if "." in x_pm_token:
+            from pm_auth import is_valid_pm_user_token_async
+            pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
+            if pm_doc:
+                return True
+        # Legacy shared-PM token (env-flag bypass).
+        elif _is_valid_pm_token(x_pm_token):
+            return True
     if not x_admin_token and not x_pm_token:
         raise HTTPException(status_code=401, detail="Admin or PM login required")
     raise HTTPException(status_code=401, detail="Invalid admin/PM token")
+
+
+async def require_admin_async(
+    x_admin_token: Optional[str] = Header(default=None),
+    x_pm_token: Optional[str] = Header(default=None),
+):
+    """Variant of ``require_admin`` that returns the PM doc (instead of
+    just True) when a per-PM token authenticates the request. Used by
+    routes that need to identify which PM is logged in (``/pm/me``,
+    ``/pm/change-password``)."""
+    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
+    pm_pw = os.environ.get("PM_PASSWORD", "")
+    if not expected_pw and not pm_pw:
+        return True
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return True
+    if x_pm_token:
+        if "." in x_pm_token:
+            from pm_auth import is_valid_pm_user_token_async
+            pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
+            if pm_doc:
+                return pm_doc
+        elif _is_valid_pm_token(x_pm_token):
+            return True
+    raise HTTPException(status_code=401, detail="Admin or PM login required")
 
 
 def require_admin_strict(x_admin_token: Optional[str] = Header(default=None)):
@@ -1144,27 +1195,207 @@ async def shop_check(_: bool = Depends(require_shop_or_admin)):
     return {"ok": True}
 
 
+class PMLoginBody(BaseModel):
+    email: Optional[str] = None
+    password: str
+
+    model_config = {"extra": "ignore"}  # tolerate the legacy `_t` cache buster
+
+
+class PMChangePasswordBody(BaseModel):
+    old_password: str
+    new_password: str
+
+
+class PMSetPasswordBody(BaseModel):
+    password: Optional[str] = None  # if absent, generate a random temp pw
+
+
 @api_router.post("/pm/login")
-async def pm_login(body: AdminLoginRequest, request: Request):
-    """Project-Manager portal login. Issues a token accepted by every
-    ``require_admin`` route except the backup/recovery routes (which use
-    ``require_admin_strict``)."""
+async def pm_login(body: PMLoginBody, request: Request):
+    """Project-Manager portal login.
+
+    NEW per-PM flow: PM enters their work email + password. We look up
+    the matching PM in ``project_managers``, verify the bcrypt hash, and
+    issue a per-PM token. The token expires when the admin resets the
+    PM's password (the hash changes → token mismatch).
+
+    LEGACY shared-password flow (env-flag bypass): if email is empty or
+    a sentinel "office-bypass@" string AND ``PM_SHARED_LOGIN_ENABLED=true``,
+    accept the legacy ``PM_PASSWORD`` so the office can still log in if a
+    per-PM account is broken. Returns the legacy token format (no dot)."""
+    from pm_auth import (
+        find_pm_by_email,
+        make_pm_token,
+        public_pm_view,
+        shared_pm_login_enabled,
+        stamp_login,
+        verify_password,
+    )
+
     ip = _client_ip(request)
     _check_login_lockout(ip)
+    email = (body.email or "").strip().lower()
+    password = body.password or ""
+
+    # ---- Per-PM auth path ----
+    if email:
+        pm = await find_pm_by_email(db, email)
+        if not pm:
+            _record_login_fail(ip)
+            raise HTTPException(status_code=401, detail="Wrong email or password")
+        if pm.get("disabled"):
+            raise HTTPException(
+                status_code=403,
+                detail="This PM account is disabled. Contact the admin.",
+            )
+        pwh = pm.get("password_hash") or ""
+        if not pwh:
+            raise HTTPException(
+                status_code=403,
+                detail="No password set for this PM yet. Ask the admin to issue one.",
+            )
+        if not verify_password(password, pwh):
+            _record_login_fail(ip)
+            raise HTTPException(status_code=401, detail="Wrong email or password")
+        _reset_login_fails(ip)
+        await stamp_login(db, pm["id"])
+        return {
+            "ok": True,
+            "token": make_pm_token(pm["id"], pwh),
+            "must_change_password": bool(pm.get("must_change_password")),
+            "pm": public_pm_view(pm),
+        }
+
+    # ---- Legacy shared-password emergency bypass ----
+    if not shared_pm_login_enabled():
+        raise HTTPException(
+            status_code=400,
+            detail="Email is required.",
+        )
     expected_pw = os.environ.get("PM_PASSWORD", "")
     if not expected_pw:
-        return {"ok": True, "token": "open-mode"}
-    if not hmac.compare_digest(body.password, expected_pw):
+        return {"ok": True, "token": "open-mode", "must_change_password": False}
+    if not hmac.compare_digest(password, expected_pw):
         _record_login_fail(ip)
         raise HTTPException(status_code=401, detail="Wrong password")
     _reset_login_fails(ip)
-    return {"ok": True, "token": _pm_token_for(expected_pw)}
+    return {
+        "ok": True,
+        "token": _pm_token_for(expected_pw),
+        "must_change_password": False,
+        "pm": None,
+    }
 
 
 @api_router.get("/pm/check")
 async def pm_check(_: bool = Depends(require_admin)):
     """Verify a stored PM (or Admin) token is still valid."""
     return {"ok": True}
+
+
+@api_router.get("/pm/me")
+async def pm_me(actor=Depends(require_admin_async)):
+    """Return the currently signed-in PM's record (sans password_hash).
+    Returns ``{is_admin: true, pm: null}`` when an Admin token is being
+    used or when the legacy shared-PM bypass is active."""
+    from pm_auth import public_pm_view
+    if actor is True:
+        return {"is_admin_or_legacy": True, "pm": None}
+    return {"is_admin_or_legacy": False, "pm": public_pm_view(actor)}
+
+
+@api_router.post("/pm/change-password")
+async def pm_change_password(
+    body: PMChangePasswordBody, actor=Depends(require_admin_async)
+):
+    """PM rotates their own password. Required after admin issues a temp
+    password. Returns a fresh per-PM token (the old one is invalidated
+    because it embeds the previous hash prefix)."""
+    from pm_auth import (
+        make_pm_token,
+        public_pm_view,
+        set_pm_password,
+        verify_password,
+    )
+    if actor is True:
+        raise HTTPException(
+            status_code=403,
+            detail="Only a per-PM session can rotate a PM password.",
+        )
+    pm = actor
+    pwh = pm.get("password_hash") or ""
+    if not verify_password(body.old_password, pwh):
+        raise HTTPException(status_code=401, detail="Old password is wrong")
+    if len(body.new_password) < 6:
+        raise HTTPException(
+            status_code=400, detail="New password must be at least 6 characters"
+        )
+    if body.new_password == body.old_password:
+        raise HTTPException(
+            status_code=400, detail="New password must be different from the old one"
+        )
+    updated = await set_pm_password(db, pm["id"], body.new_password, must_change=False)
+    if not updated:
+        raise HTTPException(status_code=500, detail="Failed to update password")
+    return {
+        "ok": True,
+        "token": make_pm_token(updated["id"], updated["password_hash"]),
+        "pm": public_pm_view(updated),
+    }
+
+
+@api_router.post("/admin/project-managers/{pm_id}/set-password")
+async def admin_set_pm_password(
+    pm_id: str,
+    body: PMSetPasswordBody,
+    _: bool = Depends(require_admin_strict),
+):
+    """Admin issues or resets a PM's password.
+
+    If ``body.password`` is provided, we use it verbatim (must be 6+ chars).
+    If absent, we generate a crypto-random temp password and return it
+    ONCE in the response — the admin shows it to the PM, the PM must
+    rotate it on first login (must_change_password=true).
+
+    The new hash invalidates any old per-PM token the PM still has,
+    forcing a fresh login on whatever device they were using."""
+    from pm_auth import (
+        find_pm_by_id,
+        generate_temp_password,
+        public_pm_view,
+        set_pm_password,
+    )
+    pm = await find_pm_by_id(db, pm_id)
+    if not pm:
+        raise HTTPException(status_code=404, detail="PM not found")
+    if body.password and len(body.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    plain = body.password or generate_temp_password(10)
+    updated = await set_pm_password(db, pm_id, plain, must_change=True)
+    if not updated:
+        raise HTTPException(status_code=500, detail="Failed to set password")
+    return {
+        "ok": True,
+        "pm": public_pm_view(updated),
+        # Returned ONCE — admin must convey it to the PM out-of-band.
+        "issued_password": plain,
+        "generated": body.password is None,
+    }
+
+
+@api_router.post("/admin/project-managers/{pm_id}/disable")
+async def admin_set_pm_disabled(
+    pm_id: str, body: dict, _: bool = Depends(require_admin_strict)
+):
+    """Lock or unlock a PM account. A disabled PM cannot log in even with
+    the right password; existing tokens stop validating immediately."""
+    from pm_auth import public_pm_view, set_pm_disabled
+    disabled = bool(body.get("disabled", True))
+    updated = await set_pm_disabled(db, pm_id, disabled)
+    if not updated:
+        raise HTTPException(status_code=404, detail="PM not found")
+    return {"ok": True, "pm": public_pm_view(updated)}
 
 
 # ------------------------- Models -------------------------
@@ -1804,7 +2035,14 @@ class JobIn(BaseModel):
     client: str = ""
     project_manager: str = ""   # display name (kept for backwards-compat)
     pm_email: str = ""           # canonical key — drives auto-email routing
+    # ``None`` = keep existing co-PMs untouched on upsert. Use the dedicated
+    # ``PATCH /admin/jobs/{id}/co-pms`` endpoint to set the list.
+    co_pm_emails: Optional[List[str]] = None
     active: bool = True
+
+
+class JobCoPMsBody(BaseModel):
+    co_pm_emails: List[str] = Field(default_factory=list, max_length=4)
 
 
 # -------------------- Project Managers (admin-managed roster) --------------------
@@ -1825,7 +2063,10 @@ class PMUpdate(BaseModel):
 @api_router.get("/admin/project-managers")
 async def admin_list_pms(_: bool = Depends(require_admin)):
     from project_managers import list_pms
-    return {"items": await list_pms(db, only_active=False)}
+    from pm_auth import public_pm_view
+    items = await list_pms(db, only_active=False)
+    # Never leak password_hash to the client.
+    return {"items": [public_pm_view(p) for p in items]}
 
 
 @api_router.get("/project-managers")
@@ -1992,6 +2233,50 @@ async def admin_bulk_replace_jobs(body: dict, _: bool = Depends(require_admin)):
         return await bulk_replace(db, rows)
     except ValueError as e:
         raise HTTPException(400, str(e))
+
+
+@api_router.patch("/admin/jobs/{job_id}/co-pms")
+async def admin_set_job_co_pms(
+    job_id: str, body: JobCoPMsBody, _: bool = Depends(require_admin)
+):
+    """Set the list of co-PMs for a job. Up to 4 additional PMs (the
+    primary PM stays in ``pm_email``; total assignment is 5). The list
+    is normalized to lowercase emails, the primary is removed if it
+    appears, duplicates are dropped, and unknown emails are validated
+    against the active PM roster."""
+    job = await db.jobs_master.find_one({"id": job_id}, {"_id": 0})
+    if not job:
+        raise HTTPException(404, "Job not found")
+
+    primary = (job.get("pm_email") or "").strip().lower()
+    seen = {primary} if primary else set()
+    cleaned: List[str] = []
+    for raw in (body.co_pm_emails or []):
+        if not isinstance(raw, str):
+            continue
+        e = raw.strip().lower()
+        if not e or e in seen:
+            continue
+        # Validate against the project_managers roster — we never want
+        # to silently route emails to a typo or a deleted PM.
+        pm = await db.project_managers.find_one({"email": e}, {"_id": 0})
+        if not pm:
+            raise HTTPException(400, f"PM with email {e} not found")
+        if pm.get("is_active") is False:
+            raise HTTPException(
+                400,
+                f"PM {pm.get('name')} ({e}) is deactivated — reactivate first.",
+            )
+        seen.add(e)
+        cleaned.append(e)
+        if len(cleaned) >= 4:
+            break
+    await db.jobs_master.update_one(
+        {"id": job_id},
+        {"$set": {"co_pm_emails": cleaned, "updated_at": _now_iso()}},
+    )
+    saved = await db.jobs_master.find_one({"id": job_id}, {"_id": 0})
+    return saved
 
 
 # -------------------- Inline "Add to roster" (no admin token) --------------------

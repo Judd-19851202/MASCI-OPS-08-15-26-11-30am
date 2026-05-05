@@ -11,10 +11,23 @@ import {
   Save,
   X,
   Download,
+  KeyRound,
+  Copy,
+  Lock,
+  ShieldOff,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -41,6 +54,13 @@ export default function AdminPMPanel() {
   const [savingId, setSavingId] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
+
+  // ----- Password management -----
+  const [pwTargetPm, setPwTargetPm] = useState(null);   // PM doc the dialog is acting on
+  const [customPw, setCustomPw] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
+  const [issuedPw, setIssuedPw] = useState(null);       // {pm_name, plain, generated}
+  const [disablingId, setDisablingId] = useState(null);
 
   const refresh = async () => {
     setLoading(true);
@@ -150,6 +170,69 @@ export default function AdminPMPanel() {
       toast.error(err?.response?.data?.detail || "Delete failed");
     } finally {
       setSavingId(null);
+    }
+  };
+
+  // ---------- Password issue / reset ----------
+  const openPwDialog = (pm) => {
+    setPwTargetPm(pm);
+    setCustomPw("");
+  };
+
+  const submitSetPassword = async (mode /* "generate" | "custom" */) => {
+    if (!pwTargetPm) return;
+    if (mode === "custom" && customPw.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    setPwBusy(true);
+    try {
+      const body = mode === "custom" ? { password: customPw } : {};
+      const r = await api.post(
+        `/admin/project-managers/${pwTargetPm.id}/set-password`,
+        body
+      );
+      setPwTargetPm(null);
+      setCustomPw("");
+      // Stash the issued password so we can show it ONCE in a copy dialog.
+      setIssuedPw({
+        pm_name: r.data?.pm?.name || pwTargetPm.name,
+        pm_email: r.data?.pm?.email || pwTargetPm.email,
+        plain: r.data?.issued_password,
+        generated: !!r.data?.generated,
+      });
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Password set failed");
+    } finally {
+      setPwBusy(false);
+    }
+  };
+
+  const copyIssued = async () => {
+    if (!issuedPw?.plain) return;
+    try {
+      await navigator.clipboard.writeText(issuedPw.plain);
+      toast.success("Copied — paste it into your secure channel");
+    } catch {
+      toast.error("Copy failed — select and copy manually");
+    }
+  };
+
+  const toggleDisabled = async (pm) => {
+    setDisablingId(pm.id);
+    try {
+      const r = await api.post(`/admin/project-managers/${pm.id}/disable`, {
+        disabled: !pm.disabled,
+      });
+      toast.success(
+        r.data?.pm?.disabled ? `Locked ${pm.name}` : `Unlocked ${pm.name}`
+      );
+      await refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Toggle failed");
+    } finally {
+      setDisablingId(null);
     }
   };
 
@@ -263,20 +346,21 @@ export default function AdminPMPanel() {
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2">Email</th>
               <th className="px-3 py-2">Phone</th>
+              <th className="px-3 py-2 text-center">Login</th>
               <th className="px-3 py-2 text-center">Active</th>
-              <th className="px-3 py-2 w-32 text-right">Actions</th>
+              <th className="px-3 py-2 w-44 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-slate-500">
+                <td colSpan={6} className="px-3 py-6 text-center text-slate-500">
                   <Loader2 className="w-5 h-5 animate-spin inline-block" /> Loading…
                 </td>
               </tr>
             ) : pms.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-slate-500">
+                <td colSpan={6} className="px-3 py-6 text-center text-slate-500">
                   No PMs yet. Add one above.
                 </td>
               </tr>
@@ -329,6 +413,40 @@ export default function AdminPMPanel() {
                         />
                       ) : (
                         p.phone || "—"
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-center text-xs">
+                      {p.has_password ? (
+                        p.must_change_password ? (
+                          <span
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-mono text-[10px] uppercase tracking-wide"
+                            title="Temp password issued — PM must rotate on next login"
+                          >
+                            <KeyRound className="w-3 h-3" /> Temp
+                          </span>
+                        ) : (
+                          <span
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[10px] uppercase tracking-wide"
+                            title="PM has set their own password"
+                          >
+                            <ShieldCheck className="w-3 h-3" /> Set
+                          </span>
+                        )
+                      ) : (
+                        <span
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-200 text-slate-600 font-mono text-[10px] uppercase tracking-wide"
+                          title="No password issued yet"
+                        >
+                          <XCircle className="w-3 h-3" /> None
+                        </span>
+                      )}
+                      {p.disabled && (
+                        <div
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-mono text-[10px] uppercase tracking-wide ml-1"
+                          title="Account locked"
+                        >
+                          <Lock className="w-3 h-3" /> Locked
+                        </div>
                       )}
                     </td>
                     <td className="px-3 py-2 text-center">
@@ -384,6 +502,31 @@ export default function AdminPMPanel() {
                           <>
                             <button
                               type="button"
+                              onClick={() => openPwDialog(p)}
+                              className="inline-flex items-center justify-center w-7 h-7 rounded text-amber-700 hover:bg-amber-50"
+                              title={p.has_password ? "Reset password" : "Issue password"}
+                              data-testid={`pm-set-password-${p.id}`}
+                            >
+                              <KeyRound className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => toggleDisabled(p)}
+                              disabled={disablingId === p.id}
+                              className={`inline-flex items-center justify-center w-7 h-7 rounded ${p.disabled ? "text-red-700 hover:bg-red-50" : "text-slate-500 hover:bg-slate-100"}`}
+                              title={p.disabled ? "Unlock login" : "Lock login"}
+                              data-testid={`pm-toggle-disabled-${p.id}`}
+                            >
+                              {disablingId === p.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : p.disabled ? (
+                                <Lock className="w-4 h-4" />
+                              ) : (
+                                <ShieldOff className="w-4 h-4" />
+                              )}
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => startEdit(p)}
                               className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-600 hover:bg-slate-100"
                               title="Edit"
@@ -412,6 +555,147 @@ export default function AdminPMPanel() {
           </tbody>
         </table>
       </div>
+      {/* Set / Reset password dialog */}
+      <Dialog
+        open={!!pwTargetPm}
+        onOpenChange={(o) => !o && setPwTargetPm(null)}
+      >
+        <DialogContent data-testid="pm-set-password-dialog">
+          <DialogHeader>
+            <DialogTitle className="font-display font-black flex items-center gap-2 text-amber-700">
+              <KeyRound className="w-5 h-5" />
+              {pwTargetPm?.has_password
+                ? `Reset password for ${pwTargetPm?.name}`
+                : `Issue password for ${pwTargetPm?.name}`}
+            </DialogTitle>
+            <DialogDescription className="leading-relaxed">
+              You can either let the system generate a secure 10-character
+              temporary password (recommended) or set a custom one. Either
+              way, the PM will be forced to choose their own password on
+              their next login. The new password is shown ONCE — copy it
+              before closing the dialog.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 pt-1">
+            <div className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded p-3">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold mb-1">
+                Account
+              </div>
+              <div>
+                <span className="font-bold">{pwTargetPm?.name}</span>{" "}
+                <span className="font-mono text-slate-500">
+                  &lt;{pwTargetPm?.email}&gt;
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
+                Custom password (optional — leave blank to auto-generate)
+              </Label>
+              <Input
+                type="text"
+                value={customPw}
+                onChange={(e) => setCustomPw(e.target.value)}
+                placeholder="At least 6 characters"
+                className="h-10 text-sm mt-1 font-mono"
+                data-testid="pm-set-password-custom-input"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setPwTargetPm(null)}
+              disabled={pwBusy}
+              data-testid="pm-set-password-cancel"
+            >
+              Cancel
+            </Button>
+            {customPw.length === 0 ? (
+              <Button
+                onClick={() => submitSetPassword("generate")}
+                disabled={pwBusy}
+                className="bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide"
+                data-testid="pm-set-password-generate"
+              >
+                {pwBusy ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating…
+                  </>
+                ) : (
+                  <>Generate &amp; Issue</>
+                )}
+              </Button>
+            ) : (
+              <Button
+                onClick={() => submitSetPassword("custom")}
+                disabled={pwBusy || customPw.length < 6}
+                className="bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide"
+                data-testid="pm-set-password-custom"
+              >
+                {pwBusy ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Setting…
+                  </>
+                ) : (
+                  <>Set custom password</>
+                )}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Issued password — shown ONCE */}
+      <Dialog
+        open={!!issuedPw}
+        onOpenChange={(o) => !o && setIssuedPw(null)}
+      >
+        <DialogContent data-testid="pm-issued-password-dialog">
+          <DialogHeader>
+            <DialogTitle className="font-display font-black flex items-center gap-2 text-emerald-700">
+              <CheckCircle2 className="w-5 h-5" />
+              {issuedPw?.generated ? "Temporary password issued" : "Password set"}
+            </DialogTitle>
+            <DialogDescription className="leading-relaxed">
+              Send this password to{" "}
+              <strong>
+                {issuedPw?.pm_name} ({issuedPw?.pm_email})
+              </strong>{" "}
+              through a secure channel (in person, work phone, encrypted
+              chat). They'll be forced to choose their own password on
+              first login. <strong>You will NOT see this password again
+              after closing this dialog.</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="bg-slate-900 text-emerald-300 border-2 border-emerald-500 rounded p-4 font-mono text-2xl text-center tracking-widest break-all select-all"
+            data-testid="pm-issued-password-value"
+          >
+            {issuedPw?.plain}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={copyIssued}
+              data-testid="pm-issued-password-copy"
+            >
+              <Copy className="w-4 h-4 mr-1" /> Copy
+            </Button>
+            <Button
+              onClick={() => setIssuedPw(null)}
+              className="bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide"
+              data-testid="pm-issued-password-close"
+            >
+              I've copied it — close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

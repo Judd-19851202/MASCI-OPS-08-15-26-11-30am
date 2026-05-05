@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Briefcase, Loader2, ArrowLeft } from "lucide-react";
+import { Briefcase, Loader2, ArrowLeft, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -18,6 +19,7 @@ export default function PmLogin() {
   const { t } = useT();
   const navigate = useNavigate();
   const location = useLocation();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -31,8 +33,8 @@ export default function PmLogin() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (!password) {
-      toast.error(t("Enter the PM password"));
+    if (!email.trim() || !password) {
+      toast.error(t("Enter your work email and password"));
       return;
     }
     setSubmitting(true);
@@ -42,12 +44,19 @@ export default function PmLogin() {
     try {
       const res = await api.post(
         "/pm/login",
-        { password, _t: Date.now() },
+        { email: email.trim().toLowerCase(), password },
         { timeout: 90000 }
       );
       if (res?.data?.ok && res?.data?.token) {
         setPmToken(res.data.token);
-        toast.success(t("Welcome, PM"));
+        // First-time login OR admin reset → must rotate before any access.
+        if (res.data.must_change_password) {
+          toast.info(t("Welcome — please choose a new password"));
+          navigate("/pm/change-password", { replace: true });
+          return;
+        }
+        const pmName = res.data?.pm?.name;
+        toast.success(pmName ? `${t("Welcome")} ${pmName}` : t("Welcome, PM"));
         const from = location.state?.from || "/pm";
         navigate(from, { replace: true });
       } else {
@@ -55,8 +64,10 @@ export default function PmLogin() {
       }
     } catch (err) {
       const status = err?.response?.status;
+      const detail = err?.response?.data?.detail;
       let msg;
-      if (status === 401) msg = t("Wrong password");
+      if (status === 401) msg = typeof detail === "string" ? detail : t("Wrong email or password");
+      else if (status === 403) msg = typeof detail === "string" ? detail : t("Account locked — contact admin");
       else if ([520, 521, 522, 523, 524].includes(status))
         msg = t("Server is waking up — give it ~60 seconds and try again");
       else if (status >= 500 && status < 600)
@@ -105,22 +116,43 @@ export default function PmLogin() {
             </div>
           </div>
           <p className="text-slate-600 text-sm mt-3 mb-6">
-            {t("Project-manager workspace — every record, every form, every master list. Backup / restore controls live in the Admin Console only.")}
+            {t("Sign in with your MASCI work email. If this is your first time, the admin will give you a temporary password — you'll choose your own on first login.")}
           </p>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="pm-login-form">
             <div>
               <Label
+                htmlFor="pm-email"
+                className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700"
+              >
+                {t("Work Email")}
+              </Label>
+              <div className="relative mt-2">
+                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <Input
+                  id="pm-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoFocus
+                  autoComplete="username"
+                  placeholder="yourname@mascigc.com"
+                  className="h-12 pl-9 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-amber-500"
+                  data-testid="pm-email-input"
+                />
+              </div>
+            </div>
+            <div>
+              <Label
                 htmlFor="pm-password"
                 className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700"
               >
-                {t("PM Password")}
+                {t("Password")}
               </Label>
               <PasswordInput
                 id="pm-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoFocus
                 autoComplete="current-password"
                 className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-amber-500"
                 data-testid="pm-password-input"
@@ -141,6 +173,9 @@ export default function PmLogin() {
                 <>{t("Sign In")}</>
               )}
             </Button>
+            <p className="text-xs text-slate-500 leading-relaxed pt-1">
+              {t("Forgot your password? Ask the admin to issue you a new one — they can reset any PM password from the office console.")}
+            </p>
           </form>
         </div>
       </main>
