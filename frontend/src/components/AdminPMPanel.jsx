@@ -677,15 +677,20 @@ export default function AdminPMPanel() {
         open={!!pwTargetPm}
         onOpenChange={(o) => !o && setPwTargetPm(null)}
       >
-        <DialogContent data-testid="pm-set-password-dialog">
+        <DialogContent
+          data-testid="pm-set-password-dialog"
+          className="sm:max-w-2xl max-h-[90vh] overflow-y-auto"
+        >
           <DialogHeader>
-            <DialogTitle className="font-display font-black flex items-center gap-2 text-amber-700">
-              <KeyRound className="w-5 h-5" />
-              {pwTargetPm?.has_password
-                ? `Reset password for ${pwTargetPm?.name}`
-                : `Issue password for ${pwTargetPm?.name}`}
+            <DialogTitle className="font-display font-black flex items-center gap-2 text-amber-700 break-words">
+              <KeyRound className="w-5 h-5 shrink-0" />
+              <span className="break-words">
+                {pwTargetPm?.has_password
+                  ? `Reset password for ${pwTargetPm?.name}`
+                  : `Issue password for ${pwTargetPm?.name}`}
+              </span>
             </DialogTitle>
-            <DialogDescription className="leading-relaxed">
+            <DialogDescription className="leading-relaxed text-sm">
               Three ways to issue (or reset) this PM's password — pick whichever
               fits the situation:
               <br /><strong>Email to PM</strong> (recommended for remote) — mints
@@ -728,7 +733,7 @@ export default function AdminPMPanel() {
             </div>
           </div>
 
-          <DialogFooter className="gap-2 pt-2">
+          <DialogFooter className="gap-2 pt-2 sm:flex-wrap">
             <Button
               variant="outline"
               onClick={() => setPwTargetPm(null)}
