@@ -27,6 +27,9 @@ import {
   CONDITIONS,
   ISSUANCE_LEGAL,
   ISSUANCE_RESPONSIBILITY,
+  PRICE_BOOK,
+  isUnitValueLocked,
+  resolveUnitValue,
   blankIssuanceItem,
   buildIssuanceDefaults,
   rememberSupervisor,
@@ -65,7 +68,20 @@ export default function NewSafetyEquipmentIssuance() {
     return <Navigate to="/safety/forms/login" replace />;
   }
 
-  const update = (patch) => setData((d) => ({ ...d, ...patch }));
+  // When the form-level condition changes, re-apply the price book to
+  // every item so locked values snap to the catalog price (or unlock).
+  const update = (patch) => {
+    setData((d) => {
+      const next = { ...d, ...patch };
+      if ("condition" in patch) {
+        next.items = (d.items || []).map((it) => ({
+          ...it,
+          unit_value: resolveUnitValue(it.item_type, next.condition, it.unit_value),
+        }));
+      }
+      return next;
+    });
+  };
 
   const applyJob = (job) => {
     update({
@@ -90,10 +106,26 @@ export default function NewSafetyEquipmentIssuance() {
     }
   };
 
+  // When item_type changes, snap unit_value to the price book if the
+  // current condition locks it; otherwise leave the user's value alone.
   const updateItem = (idx, patch) => {
     setData((d) => ({
       ...d,
-      items: d.items.map((it, i) => (i === idx ? { ...it, ...patch } : it)),
+      items: d.items.map((it, i) => {
+        if (i !== idx) return it;
+        const merged = { ...it, ...patch };
+        if ("item_type" in patch) {
+          // Switching to a price-book item under a locked condition →
+          // overwrite. Switching to "Other" → drop to 0 so the field is
+          // visibly empty for manual entry.
+          if (isUnitValueLocked(merged.item_type, d.condition)) {
+            merged.unit_value = PRICE_BOOK[merged.item_type];
+          } else if (merged.item_type === "Other") {
+            merged.unit_value = 0;
+          }
+        }
+        return merged;
+      }),
     }));
   };
 
@@ -331,15 +363,31 @@ export default function NewSafetyEquipmentIssuance() {
                       <div className="sm:col-span-2">
                         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold mb-1 block">
                           {t("Unit $")}
+                          {isUnitValueLocked(it.item_type, data.condition) && (
+                            <span className="ml-1 text-emerald-700 normal-case tracking-normal">
+                              · {t("auto")}
+                            </span>
+                          )}
                         </Label>
                         <Input
                           type="number"
                           min="0"
                           step="0.01"
-                          className={inputCls}
+                          readOnly={isUnitValueLocked(it.item_type, data.condition)}
+                          className={
+                            inputCls +
+                            (isUnitValueLocked(it.item_type, data.condition)
+                              ? " bg-slate-100 text-slate-700 cursor-not-allowed"
+                              : "")
+                          }
                           value={it.unit_value}
                           onChange={(e) => updateItem(idx, { unit_value: e.target.value })}
                           data-testid={`iss-item-${idx}-unit`}
+                          title={
+                            isUnitValueLocked(it.item_type, data.condition)
+                              ? t("Auto-filled from price book — change condition to Fair or Damaged to edit")
+                              : ""
+                          }
                         />
                       </div>
                       <div className={isOther ? "sm:col-span-12 sm:col-start-1" : "sm:col-span-2"}>
@@ -396,7 +444,10 @@ export default function NewSafetyEquipmentIssuance() {
           </Section>
 
           {/* Condition */}
-          <Section title={t("Condition at Issuance")}>
+          <Section
+            title={t("Condition at Issuance")}
+            desc={t("New / Good auto-prices from the catalog. Fair / Damaged unlocks Unit $ so you can enter a depreciated value.")}
+          >
             <Row>
               <Field label={t("Condition")} required>
                 <select

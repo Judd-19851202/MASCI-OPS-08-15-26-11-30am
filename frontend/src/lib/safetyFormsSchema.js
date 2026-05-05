@@ -19,6 +19,53 @@ export const ITEM_TYPES = [
   "Other",
 ];
 
+// Price book — replacement / fair-market value per item at NEW or GOOD
+// condition. Fair / Damaged conditions unlock the field for the
+// supervisor to enter a depreciated value, and "Other" is always
+// open-text. Keep this list in sync with ITEM_TYPES.
+export const PRICE_BOOK = {
+  "Harness": 225,
+  "SRL Type 1": 350,
+  "SRL Type 2": 550,
+  "Lanyard": 100,
+  "Hard Hat": 45,
+  "Safety Vest Type II": 25,
+  "Safety Vest Type III": 40,
+  "Traffic Gators": 60,
+  "Headlamp": 50,
+  "Gloves": 8,
+  "Gas Monitor": 900,
+  "Ladder": 350,
+};
+
+// Conditions that lock the unit-value input to the price-book value.
+// Anything else (Fair, Damaged) makes the field editable so the
+// supervisor can capture a depreciated/agreed-upon value.
+const LOCKED_CONDITIONS = new Set(["New", "Good"]);
+
+/**
+ * Returns true if the unit-value field should be auto-filled and
+ * locked for this combination of item type + form-level condition.
+ * "Other" is never locked because there's no price-book entry.
+ */
+export function isUnitValueLocked(itemType, condition) {
+  if (!itemType || itemType === "Other") return false;
+  if (PRICE_BOOK[itemType] == null) return false;
+  return LOCKED_CONDITIONS.has(condition);
+}
+
+/**
+ * Resolve the unit value to apply to an item. When the field is
+ * locked, return the price-book value. Otherwise leave whatever the
+ * user has entered (preserves manual edits when condition is Fair/Damaged).
+ */
+export function resolveUnitValue(itemType, condition, currentValue) {
+  if (isUnitValueLocked(itemType, condition)) {
+    return PRICE_BOOK[itemType];
+  }
+  return currentValue;
+}
+
 export const CONDITIONS = ["New", "Good", "Fair", "Damaged"];
 
 export const TRAINING_TYPES = ["Initial Training", "Refresher", "Retraining"];
@@ -42,7 +89,8 @@ export function blankIssuanceItem() {
     item_type_other: "",
     description: "",
     quantity: 1,
-    unit_value: 0,
+    // Default condition is New → Harness locks at price-book ($225).
+    unit_value: PRICE_BOOK["Harness"],
     asset_id: "",
   };
 }
