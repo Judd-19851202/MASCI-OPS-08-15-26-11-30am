@@ -6,6 +6,7 @@ import {
   Loader2,
   Download,
   CheckCircle2,
+  PackageCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -17,6 +18,12 @@ import { isAdmin, getAdminToken } from "@/lib/adminAuth";
 import { fmtMoney } from "@/lib/safetyFormsSchema";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
+
+const STATUS_TONES = {
+  returned: { bg: "bg-emerald-100", fg: "text-emerald-800", border: "border-emerald-300", label: "Returned OK" },
+  damaged: { bg: "bg-amber-100", fg: "text-amber-800", border: "border-amber-300", label: "Damaged" },
+  lost: { bg: "bg-red-100", fg: "text-red-800", border: "border-red-300", label: "Lost" },
+};
 
 /**
  * Single shared view page for both Safety Forms record types.
@@ -49,17 +56,15 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
     return <Navigate to="/safety/forms/login" replace />;
   }
 
-  const downloadPdf = async () => {
+  const downloadPdf = async (subPath = "/pdf", suffix = "") => {
     setDownloading(true);
     try {
-      // Use a hidden link with token-set headers via fetch + blob so the
-      // browser keeps Content-Disposition's filename.
       const headers = {};
       const adminTok = getAdminToken();
       const sfTok = getSafetyFormsToken();
       if (adminTok) headers["X-Admin-Token"] = adminTok;
       if (sfTok) headers["X-Safety-Forms-Token"] = sfTok;
-      const res = await fetch(`${API}${apiBase}/${id}/pdf`, { headers });
+      const res = await fetch(`${API}${apiBase}/${id}${subPath}`, { headers });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -67,7 +72,7 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
       const cd = res.headers.get("content-disposition") || "";
       const m = /filename="?([^";]+)"?/i.exec(cd);
       a.href = url;
-      a.download = m ? m[1] : "MASCI_safety_form.pdf";
+      a.download = m ? m[1] : `MASCI_safety_form${suffix}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -141,7 +146,7 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
               <p className="text-xs font-mono text-slate-500 mt-1">{t("Form Ref")}: {doc.id}</p>
             </div>
             <Button
-              onClick={downloadPdf}
+              onClick={() => downloadPdf("/pdf")}
               disabled={downloading}
               className="bg-red-700 hover:bg-red-800 h-10 font-bold uppercase tracking-wide text-xs"
               data-testid="view-download-pdf"
@@ -242,6 +247,133 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
                   {t("Total Issued Value")}
                 </div>
                 <div className="font-display text-xl font-black text-slate-900">{fmtMoney(total)}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Check-In / Return — issuance only */}
+          {!isTraining && !doc.return && (
+            <div className="mt-6 p-4 rounded-md border-2 border-emerald-300 bg-emerald-50 flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-900 font-bold">
+                  {t("Equipment Out")}
+                </div>
+                <div className="text-sm text-slate-700 mt-0.5">
+                  {t("When this gear comes back, log the check-in to close the loop.")}
+                </div>
+              </div>
+              <Link
+                to={`/safety/forms/equipment-issuance/${id}/return`}
+                className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white font-bold uppercase tracking-wide text-xs border-b-2 border-emerald-900"
+                data-testid="view-checkin-btn"
+              >
+                <PackageCheck className="w-4 h-4" /> {t("Start Check-In / Return")}
+              </Link>
+            </div>
+          )}
+
+          {/* Return summary — issuance only, when already returned */}
+          {!isTraining && doc.return && (
+            <div className="mt-6 p-5 rounded-md border-2 border-slate-300 bg-white">
+              <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-700 font-bold inline-flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> {t("Returned")}
+                  </div>
+                  <h2 className="font-display text-lg font-black text-slate-900 mt-1">
+                    {t("Check-In Receipt")}
+                  </h2>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    {formatDateLong(doc.return.check_in_date)} · {t("Received by")} {doc.return.received_by}
+                  </p>
+                </div>
+                <Button
+                  onClick={() => downloadPdf("/return/pdf", "_return")}
+                  disabled={downloading}
+                  variant="outline"
+                  className="h-9 border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold uppercase tracking-wide text-xs"
+                  data-testid="view-download-return-pdf"
+                >
+                  {downloading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
+                  {t("Download Return PDF")}
+                </Button>
+              </div>
+
+              <div className="overflow-x-auto border border-slate-200 rounded">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50">
+                    <tr className="text-left font-mono text-[10px] uppercase tracking-wide text-slate-700">
+                      <th className="px-3 py-2">{t("Item")}</th>
+                      <th className="px-3 py-2 text-right">{t("Issued")}</th>
+                      <th className="px-3 py-2 text-right">{t("Returned")}</th>
+                      <th className="px-3 py-2">{t("Status")}</th>
+                      <th className="px-3 py-2 text-right">{t("Chargeback")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(doc.return.items || []).map((it, i) => {
+                      const tone = STATUS_TONES[it.status] || STATUS_TONES.returned;
+                      const sq = parseFloat(it.source_quantity) || 0;
+                      const rq = parseFloat(it.returned_quantity) || 0;
+                      const uv = parseFloat(it.source_unit_value) || 0;
+                      const cb =
+                        it.status === "lost" ? sq * uv :
+                        it.status === "damaged" ? sq * uv :
+                        it.status === "returned" && rq < sq ? (sq - rq) * uv : 0;
+                      const itemLabel =
+                        it.source_item_type === "Other" && it.source_item_type_other
+                          ? `Other — ${it.source_item_type_other}`
+                          : it.source_item_type;
+                      return (
+                        <tr key={i} className="border-t border-slate-100 align-top">
+                          <td className="px-3 py-2">
+                            <div className="font-medium">{itemLabel}</div>
+                            <div className="text-xs text-slate-500">{it.source_description}</div>
+                          </td>
+                          <td className="px-3 py-2 text-right">{sq}</td>
+                          <td className="px-3 py-2 text-right">{rq}</td>
+                          <td className="px-3 py-2">
+                            <span className={`inline-block px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wide border ${tone.bg} ${tone.fg} ${tone.border}`}>
+                              {t(tone.label)}
+                            </span>
+                            {it.note ? <div className="text-xs text-slate-600 mt-1">{it.note}</div> : null}
+                          </td>
+                          <td className={`px-3 py-2 text-right font-bold ${cb > 0 ? "text-red-700" : "text-slate-600"}`}>
+                            {fmtMoney(cb)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex justify-between items-end mt-3 flex-wrap gap-3">
+                {doc.return.return_notes ? (
+                  <div className="text-xs text-slate-600 max-w-md">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.2em] font-bold text-slate-500">
+                      {t("Notes")}:
+                    </span>{" "}
+                    {doc.return.return_notes}
+                  </div>
+                ) : <span />}
+                <div
+                  className={`border-2 rounded px-4 py-2 text-right ${
+                    (doc.return.chargeback?.total || 0) > 0 ? "bg-red-50 border-red-700" : "bg-emerald-50 border-emerald-600"
+                  }`}
+                >
+                  <div className={`font-mono text-[9px] uppercase tracking-[0.25em] font-bold ${
+                    (doc.return.chargeback?.total || 0) > 0 ? "text-red-900" : "text-emerald-900"
+                  }`}>
+                    {t("Total Chargeback")}
+                  </div>
+                  <div className="font-display text-xl font-black text-slate-900">
+                    {fmtMoney(doc.return.chargeback?.total || 0)}
+                  </div>
+                  <div className="font-mono text-[9px] text-slate-600 mt-0.5">
+                    {t("Lost")} {fmtMoney(doc.return.chargeback?.lost || 0)} · {t("Damaged")} {fmtMoney(doc.return.chargeback?.damaged || 0)}
+                  </div>
+                </div>
               </div>
             </div>
           )}

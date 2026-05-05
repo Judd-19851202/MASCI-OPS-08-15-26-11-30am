@@ -133,8 +133,64 @@ export function fmtMoney(v) {
   });
 }
 
-export const ISSUANCE_LEGAL = `I acknowledge that all issued equipment remains the property of MASCI General Contractors. I agree to use all equipment in accordance with company policy and OSHA safety requirements.
+export const ISSUANCE_LEGAL = `I acknowledge that all issued equipment remains the property of MASCI General Contractors. I agree to use all equipment in accordance with manufacturer guidelines, company policy, and applicable OSHA safety requirements.`;
 
-I understand that I am responsible for the care and return of all issued equipment. Any equipment that is lost, stolen, misplaced, or damaged due to negligence or misuse may result in financial responsibility for replacement cost or fair market value.
+export const ISSUANCE_RESPONSIBILITY = `I understand that I am responsible for the proper use, care, maintenance, and return of all issued equipment. Any equipment that is lost, stolen, misplaced, or damaged due to negligence, misuse, or failure to follow manufacturer guidelines, company policy, or OSHA requirements may result in financial responsibility for the replacement cost or fair market value.
 
 Any reimbursement or payroll deduction will be handled in accordance with applicable Florida law and the Fair Labor Standards Act (FLSA), and will not occur without proper authorization where required.`;
+
+export const RETURN_STATUSES = [
+  { key: "returned", label: "Returned OK", tone: "emerald" },
+  { key: "damaged", label: "Damaged", tone: "amber" },
+  { key: "lost", label: "Lost / Not Returned", tone: "red" },
+];
+
+export function blankReturnRow(issuedItem) {
+  return {
+    // Snapshot of the original issued item so chargebacks stay stable
+    // even if the issuance is edited later.
+    source_item_type: issuedItem.item_type || "",
+    source_item_type_other: issuedItem.item_type_other || "",
+    source_description: issuedItem.description || "",
+    source_asset_id: issuedItem.asset_id || "",
+    source_quantity: parseFloat(issuedItem.quantity) || 0,
+    source_unit_value: parseFloat(issuedItem.unit_value) || 0,
+
+    status: "returned", // one of RETURN_STATUSES keys
+    returned_quantity: parseFloat(issuedItem.quantity) || 0,
+    note: "",
+  };
+}
+
+export function buildReturnDefaults(issuanceDoc) {
+  return {
+    items: (issuanceDoc?.items || []).map(blankReturnRow),
+    check_in_date: todayLocalIso(),
+    received_by: recallSupervisor(),
+    return_notes: "",
+    acknowledgment: false,
+    employee_signature: "",
+    supervisor_signature: "",
+  };
+}
+
+// Chargeback = (lost qty × unit) + (damaged qty × unit). A partial
+// return (returned_quantity < source_quantity) for status="returned"
+// is also treated as a loss on the missing count.
+export function computeChargeback(items) {
+  let lost = 0;
+  let damaged = 0;
+  for (const it of items || []) {
+    const src = parseFloat(it.source_quantity) || 0;
+    const ret = parseFloat(it.returned_quantity) || 0;
+    const uv = parseFloat(it.source_unit_value) || 0;
+    if (it.status === "lost") {
+      lost += src * uv;
+    } else if (it.status === "damaged") {
+      damaged += src * uv;
+    } else if (it.status === "returned" && ret < src) {
+      lost += (src - ret) * uv;
+    }
+  }
+  return { lost, damaged, total: lost + damaged };
+}

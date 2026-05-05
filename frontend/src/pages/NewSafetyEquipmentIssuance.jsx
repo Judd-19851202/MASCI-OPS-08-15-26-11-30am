@@ -26,6 +26,7 @@ import {
   ITEM_TYPES,
   CONDITIONS,
   ISSUANCE_LEGAL,
+  ISSUANCE_RESPONSIBILITY,
   blankIssuanceItem,
   buildIssuanceDefaults,
   rememberSupervisor,
@@ -446,9 +447,12 @@ export default function NewSafetyEquipmentIssuance() {
 
           {/* Acknowledgment */}
           <Section title={t("Acknowledgment & Legal")}>
-            <div className="bg-amber-50 border-l-4 border-amber-600 p-4 rounded">
-              <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+            <div className="bg-amber-50 border-l-4 border-amber-600 p-4 rounded space-y-3">
+              <p className="text-sm text-slate-800 leading-relaxed">
                 {ISSUANCE_LEGAL}
+              </p>
+              <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+                {ISSUANCE_RESPONSIBILITY}
               </p>
             </div>
             <label className="flex items-start gap-3 cursor-pointer mt-3">

@@ -233,6 +233,7 @@ export default function AdminSafetyFormsPanel() {
                   <th className="px-3 py-2">Issued By</th>
                   <th className="px-3 py-2">Items</th>
                   <th className="px-3 py-2 text-right">Total $</th>
+                  <th className="px-3 py-2">Status</th>
                 </>
               ) : (
                 <>
@@ -247,7 +248,7 @@ export default function AdminSafetyFormsPanel() {
           <tbody>
             {items.length === 0 && !loading && (
               <tr>
-                <td colSpan="7" className="px-3 py-8 text-center text-slate-500 italic">
+                <td colSpan="8" className="px-3 py-8 text-center text-slate-500 italic">
                   No records.
                 </td>
               </tr>
@@ -274,6 +275,27 @@ export default function AdminSafetyFormsPanel() {
                       <td className="px-3 py-2 text-xs">{(row.items || []).length}</td>
                       <td className="px-3 py-2 text-right font-bold">
                         {fmtMoney(row.total_value)}
+                      </td>
+                      <td className="px-3 py-2">
+                        {row.status === "returned" ? (
+                          <span
+                            className="inline-block px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            title={
+                              row.return?.chargeback?.total
+                                ? `Chargeback: ${fmtMoney(row.return.chargeback.total)}`
+                                : "Returned in full"
+                            }
+                          >
+                            Returned
+                            {row.return?.chargeback?.total ? (
+                              <span className="ml-1 text-red-700 font-bold">· {fmtMoney(row.return.chargeback.total)}</span>
+                            ) : null}
+                          </span>
+                        ) : (
+                          <span className="inline-block px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-300">
+                            Out
+                          </span>
+                        )}
                       </td>
                     </>
                   ) : (

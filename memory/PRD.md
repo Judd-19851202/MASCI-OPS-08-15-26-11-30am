@@ -1,5 +1,46 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-05 — Safety Forms Check-In / Return + Updated Legal
+
+### What was added
+1. **Updated Acknowledgment & Legal text** on the Issuance form per Justin's revision (manufacturer guidelines + proper care & maintenance language)
+2. **Check-In / Return flow** paired with each issuance — embedded on the issuance doc (no new collection)
+
+### Check-In UX
+- Open a previously-issued record → green "Start Check-In / Return" button on the view page
+- For each issued line item, tap one of three giant pill buttons: **Returned OK** / **Damaged** / **Lost**
+- Notes auto-required for Damaged or Lost
+- Returned-but-partial qty is auto-billed as Lost
+- Live chargeback total updates as you tap (Lost + Damaged @ original unit value)
+- Dual signatures + FLSA acknowledgment → submit
+- Auto-emails a separate "Check-In & Return Receipt" PDF to safety@ + jaymn.judd@
+- Idempotent: 409 on double-return
+
+### Backend
+- `POST /api/safety-forms/equipment-issuances/{id}/return` — creates the embedded `return` block on the issuance, recomputes chargeback server-side
+- `GET /api/safety-forms/equipment-issuances/{id}/return/pdf` — WeasyPrint check-in receipt
+- List endpoint now strips nested `return.*_signature` fields
+
+### Admin dashboard
+- Issuance tab now shows a **Status** column: amber "OUT" pill (still issued) or emerald "RETURNED" pill (with chargeback amount inline if any)
+
+### Files
+- `/app/backend/routes/safety_forms.py` — `+ ReturnRow`, `ReturnBody`, `compute_chargeback`, `render_return_pdf`, return endpoints, updated email dispatcher to handle `kind="return"`
+- `/app/frontend/src/lib/safetyFormsSchema.js` — `+ ISSUANCE_RESPONSIBILITY`, `RETURN_STATUSES`, `blankReturnRow`, `buildReturnDefaults`, `computeChargeback`
+- `/app/frontend/src/pages/ReturnEquipment.jsx` (new) — the check-in form
+- `/app/frontend/src/pages/ViewSafetyForm.jsx` — Check-In CTA + Return summary block
+- `/app/frontend/src/components/AdminSafetyFormsPanel.jsx` — Status column
+- `/app/frontend/src/pages/NewSafetyEquipmentIssuance.jsx` — split legal text (2 paragraphs)
+- `/app/frontend/src/App.js` — `/safety/forms/equipment-issuance/:id/return` route
+
+### Verified end-to-end
+- Issued $190 of gear → Lost 1 of 2 Harnesses + Damaged 1 Hat → chargeback computed $190 server-side ($150 lost + $40 damaged)
+- Re-listing shows status="returned" with chargeback inline; signatures stripped from list response
+- Double-return blocked with 409
+- Frontend smoke screenshot of the check-in form rendered cleanly: 3-pill status row, live chargeback total, FLSA block, sticky submit
+
+---
+
 ## 2026-05-05 — Safety Forms (Equipment Issuance + Use & Care Training)
 
 ### Scope

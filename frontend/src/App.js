@@ -10,6 +10,7 @@ import SafetyFormsHub from "@/pages/SafetyFormsHub";
 import NewSafetyEquipmentIssuance from "@/pages/NewSafetyEquipmentIssuance";
 import NewSafetyEquipmentTraining from "@/pages/NewSafetyEquipmentTraining";
 import ViewSafetyForm from "@/pages/ViewSafetyForm";
+import ReturnEquipment from "@/pages/ReturnEquipment";
 import FieldSafetyCards from "@/pages/FieldSafetyCards";
 import FieldSection from "@/pages/FieldSection";
 import MaterialCalculators from "@/pages/MaterialCalculators";
@@ -133,6 +134,7 @@ function App() {
             <Route path="/safety/forms" element={<SafetyFormsHub />} />
             <Route path="/safety/forms/equipment-issuance/new" element={<NewSafetyEquipmentIssuance />} />
             <Route path="/safety/forms/equipment-issuance/:id" element={<ViewSafetyForm kind="issuance" />} />
+            <Route path="/safety/forms/equipment-issuance/:id/return" element={<ReturnEquipment />} />
             <Route path="/safety/forms/equipment-training/new" element={<NewSafetyEquipmentTraining />} />
             <Route path="/safety/forms/equipment-training/:id" element={<ViewSafetyForm kind="training" />} />
             <Route path="/safety/cards" element={<FieldSafetyCards />} />
