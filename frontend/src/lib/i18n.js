@@ -74,6 +74,8 @@ const ES = {
   "Projects": "Proyectos",
   "Admin": "Admin",
   "Compliance": "Cumplimiento",
+  "Quality Assurance": "Aseguramiento de Calidad",
+  "Quality Assurance · Quality Control": "Aseguramiento de Calidad · Control de Calidad",
   "Daily Ops": "Operaciones diarias",
   "Project Workspaces": "Espacios de proyecto",
   "Office Console": "Consola de oficina",
@@ -346,6 +348,8 @@ const ES = {
   // Hub homepage subtext (2026-05 rebrand)
   "Daily reports, safety enforcement, equipment tracking, training, and complete documentation — automatically captured, routed, and stored in one system.":
     "Reportes diarios, seguridad, seguimiento de equipos, capacitación y documentación completa — capturados, enrutados y almacenados automáticamente en un solo sistema.",
+  "Quality assurance and quality control inspections for concrete, rebar, and subcontractor work — documented, signed, photographed, routed, and stored.":
+    "Inspecciones de aseguramiento y control de calidad para concreto, varilla y trabajo de subcontratistas — documentadas, firmadas, fotografiadas, enrutadas y almacenadas.",
   "Site Inspections": "Inspecciones de Obra",
   "Safety Meetings": "Reuniones de Seguridad",
   "Job Hazard Plan": "Plan de Peligros del Trabajo",

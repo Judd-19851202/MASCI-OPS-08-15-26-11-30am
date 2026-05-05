@@ -3895,3 +3895,43 @@ Customer reported data loss after Emergent redeploy — in-container MongoDB and
 - Validated by testing agent: 9/9 backend pytest passes, 3/3 frontend smoke flows verified end-to-end (panel renders, Pre-Op combo filters + auto-fills make, Daily Report combo opens, upload replaces collection + JSON + creates backup, auth gates work).
 
 
+
+---
+
+## CHANGELOG · 2026-05-05 · Pre-Deploy QA Sweep (iter 38)
+
+**Saved permanent QA prompt** at `/app/memory/MASCI_HUB_PreDeploy_QA_Prompt.md` — must be reused before EVERY future MASCI HUB deployment/update.
+
+**Verdict: PASS — ready for deployment.**
+
+### Backend (100% — 50/50)
+- All 4 auth gates (admin, PM, shop, safety-forms) reject bad creds with 401 ✅
+- All scoped/admin list endpoints (jobs, PMs, safety-forms, equipment-inspections, qaqc, daily-reports, inspections, meetings, incidents, jhas, trench-boxes, equipment-master) return 200 for admin token, 401 unauthenticated ✅
+- PM scoping verified: Chris Wright's per-PM token returns proper subset of admin job list ✅
+- ES → EN translate pipeline returns correct English ✅
+- WeasyPrint PDFs render real %PDF bytes >1KB ✅
+- Auto-email correctly skipped in preview (AUTO_EMAIL_REPORTS=false) ✅
+- 127 backend routes, 0 errors in startup log ✅
+
+### Frontend Fixes Applied (3 patches)
+1. `/qa-qc` route alias added → redirects to `/qaqc` (was 'No routes matched location')
+2. `/training-hub` route alias added → redirects to `/training` (same)
+3. ES translation entries added in `/app/frontend/src/lib/i18n.js`:
+   - "Quality Assurance" → "Aseguramiento de Calidad"
+   - "Quality Assurance · Quality Control" → "Aseguramiento de Calidad · Control de Calidad"
+   - "Quality assurance and quality control inspections for concrete, rebar, and subcontractor work — documented, signed, photographed, routed, and stored." → full ES translation
+
+### Verified visually
+- Home in ES: zero English leaks on hub tiles (Campo / QA·QC / Seguridad / Cumplimiento)
+- Mobile @ 390px: zero horizontal overflow
+- Footer: "© MASCI · Platform developed by The Judd Group LLC" (single, correct)
+- No Emergent branding visible
+
+### Production deploy reminders (NOT preview blockers)
+- Set `AUTO_EMAIL_REPORTS=true` in production env (preview is intentionally false to spare Resend quota)
+- Set `RATE_LIMITING=on` in production env (preview is off so test suite doesn't trip 429s)
+- Test data cleanup: 2 TEST_QA38_* safety issuances were created during testing and removed via direct mongo cleanup.
+
+### Test report
+- `/app/test_reports/iteration_38.json` — full pre-deploy QA sweep log
+- `/app/backend/tests/test_iter38_predeploy_qa.py` — pytest suite created by testing agent (50/50 pass)

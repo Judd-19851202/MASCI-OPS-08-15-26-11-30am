@@ -141,6 +141,7 @@ function App() {
             <Route path="/field" element={<FieldSection />} />
             <Route path="/field/calculators" element={<MaterialCalculators />} />
             <Route path="/qaqc" element={<QaqcSection />} />
+            <Route path="/qa-qc" element={<Navigate to="/qaqc" replace />} />
             <Route path="/qaqc/:slug/new" element={<NewQaqcInspection />} />
             <Route path="/qaqc/:id" element={<ViewQaqcInspection />} />
             <Route path="/admin/qaqc" element={<AdminQaqcList />} />
@@ -269,6 +270,7 @@ function App() {
                 Admin video URL manager lives behind /admin/training-videos.
                 ============================================================ */}
             <Route path="/training" element={<TrainingHub />} />
+            <Route path="/training-hub" element={<Navigate to="/training" replace />} />
             <Route path="/training/:track" element={<TrainingTrack />} />
             <Route path="/training/:track/poster" element={<TrainingQrPoster />} />
             <Route path="/training/:track/packet" element={<TrainingPacketDownload />} />
