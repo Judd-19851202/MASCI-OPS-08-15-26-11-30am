@@ -215,11 +215,20 @@ async def recipients_for_record_async(
             # No primary PM resolved — default office address.
             to = ["jaymn.judd@mascigc.com"]
     else:
-        cc = list(co_pm_emails) + [
-            e
-            for e in ALWAYS_CC
-            if e and (not pm_email or e.lower() != pm_email.lower())
-        ]
+        # Compliance kinds: co-PMs FIRST, then office CC. De-dup the
+        # always-cc list against both the primary and the co-PMs so
+        # ``cc`` never carries the same address twice (cosmetic — Resend
+        # would de-dup again at transport, but a clean preview makes
+        # debugging routing rules easier).
+        seen_for_cc = {(pm_email or "").lower()} | {e.lower() for e in co_pm_emails}
+        cc = list(co_pm_emails)
+        for e in ALWAYS_CC:
+            if not e:
+                continue
+            if e.lower() in seen_for_cc:
+                continue
+            seen_for_cc.add(e.lower())
+            cc.append(e)
         if not to:
             to = cc[:]
             cc = []

@@ -1,5 +1,55 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-05 — Pre-Deploy Full System Audit (Cross-Browser × Cross-Device)
+
+**User request:** *"Need to run a complete system check of all systems... no bugs in any systems & everything works as it should & is smooth, fast & looks amazing & most importantly works flawlessly before i redeploy. This includes for all computer types & browsers also for all mobile devices apple or android of any system."*
+
+### Audit results — DEPLOY READY ✅
+
+**1. Backend audit (testing_agent_v3_fork) — 27/27 pass:**
+- Per-PM auth: login + change-pw + admin set/reset + disable all green
+- Per-PM data scoping: Chris correctly sees 9 of 28 jobs (8 primary + 1 co-PM on 24-06)
+- Co-PMs per job: max-4 enforced, unknown-email rejected, primary-PM reassign preserves co-PMs
+- Auto-email routing: compliance kinds include ALWAYS_CC, operational kinds exclude office
+- /admin/projects/pnl returns 404 for unscoped projects (PM token)
+- Activity log endpoint returns 200 for admin, 401 for PM token
+- Wrong-pw on /admin/auth/verify-password returns 401 with brute-force lockout
+- Co-PM email duplicate in cc array fixed (cosmetic — Resend would dedup anyway)
+
+**2. Frontend audit — 0 console errors, 0 P0/P1 bugs:**
+- Admin login → /admin loads cleanly, AdminPMPanel renders with Activity column
+- PM login → /pm loads cleanly, AdminPMPanel correctly NOT rendered there
+- Backup & Restore Tools section visible at bottom of /admin (4 numbered subsections w/ descriptions)
+- Mobile (375x812) /admin/login: red-M mark + responsive layout intact
+- ZERO "Made with Emergent" branding anywhere
+
+**3. Cross-browser × cross-device matrix — 60/60 GREEN:**
+| Engine | Desktop | iPad | iPhone | Android |
+|---|---|---|---|---|
+| Chromium (Chrome / Edge / Brave) | 5/5 | 5/5 | 5/5 | 5/5 |
+| Firefox | 5/5 | 5/5 | 5/5 | 5/5 |
+| WebKit (Safari) | 5/5 | 5/5 | 5/5 | 5/5 |
+
+Screens covered per combo: Home, Admin Login, Admin Dashboard, PM Login, PM Dashboard.
+Performance: Chromium ~5s/dashboard · Firefox ~6s · WebKit/Safari ~10s (acceptable, all dashboards heavy with admin data).
+
+**Firefox console "errors":** every Firefox screen reports 12-101 console messages — ALL are the same Cloudflare `__cf_bm` bot-management cookie rejected as "invalid domain". That's a Firefox-specific quirk affecting every site behind Cloudflare; zero functional impact (every Firefox flow passed).
+
+**4. Visual analysis (Gemini-Flash on representative iPhone Safari + Android Firefox screenshots):**
+- "PM dashboard appears to be well-designed and functional… cards and buttons are stacked appropriately, text is legible… no horizontal scrolling… polished aesthetic."
+- "Records & Forms section… responsive and well-rendered, no horizontal scrollbar, header logo visible, tables not cut off."
+
+### Files added in this audit
+- `/app/scripts/cross_device_check.py` — Playwright Chromium+Firefox+WebKit matrix runner (60 screenshots → /tmp/xdc/)
+- `/app/backend/tests/test_iter35_predeploy.py` — 27 backend pre-deploy tests (canonical pre-deploy gate)
+- `/app/test_reports/pytest/iter35.xml` — JUnit
+- `/app/test_reports/iteration_35.json` — testing-agent report
+
+### Single cosmetic fix applied this round
+- `pm_routing.py:recipients_for_record_async` — co-PM email no longer duplicates between `cc` and `always_cc` arrays. Verified on job 24-06: `cc` is now `[chriswright@, jaymn.judd@, safety@]` (no dup).
+
+
+
 ## 2026-05-05 — PM Activity Log + Per-PM Data Scoping
 
 **User request:** *"Want a 'PM activity log' beside password column? Last login + IP + reports/week. Also when PMs log in only data ties to jobs they're assigned to or co-PM's on shows — not whole company data."*
