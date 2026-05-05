@@ -1,0 +1,40 @@
+{
+  "summary": "Iter 36 pre-redeploy e2e: backend 28/28 PASS (1 skipped public POST), frontend 9/10 PASS — only a horizontal-scroll regression at 390px on /admin. Admin login + Remember Me default-ON, PM login (Chris Wright lands at /pm with no must_change_password), PM forgot-password generic-success toast, Shop login, Issue-password modal renders all 4 footer buttons (Cancel / Show on screen / Download PDF / Email to PM) without overflow, Date Audit scan executes cleanly (Scanned 23 · Suspects 0 · Review 20 · OK 3 — 'No high-confidence Bug-2 victims found') and Review table renders 20 rows. PM scoping verified at API: PM list count <= admin list count for /inspections. Backend security check: /api/admin/date-audit and /apply both reject unauthenticated callers (401).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/inspections (public)", "issue": "TEST_DATE_AUDIT smoke payload returned 4xx validation; unrelated to date fix — public inspection POST currently requires more fields than the smoke payload provided. Test was skipped, not failed."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "AdminHub header / page chrome", "issue": "Horizontal scroll on iPhone 390x844 — document.scrollWidth=570 vs clientWidth=390 (~180px overflow). Header action row 'MASCI HUB · Slow · PM Portal · Guide · Company Info · Sign Out' does not wrap on narrow viewports.", "selector": "/admin top header button row", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/admin @ 390px", "issues": ["Horizontal scroll + header overflow as above. iPad 768 and desktop 1440 are clean."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter36_pre_redeploy.py",
+    "/app/test_reports/pytest/iter36_results.xml"
+  ],
+  "action_items": [
+    "Make /admin header responsive at <=390px so it wraps or collapses (e.g. flex-wrap, hide labels, or move secondary buttons into a kebab menu). Currently producing ~180px horizontal scroll on iPhone."
+  ],
+  "critical_code_review_comments": [
+    "formatDateLong fix (utils.js L51-71) — clean, regex-bounded, falls through to native Date for full ISO timestamps. LGTM.",
+    "DateAuditPanel POST /apply gated by AdminPasswordConfirm — verified admin-only at API (401 without token). LGTM.",
+    "Issue-password modal sm:max-w-2xl + flex-wrap renders 4 footer buttons cleanly at 1440. Did not regress at 768/390 in this run."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter36_pre_redeploy.py (new)"
+  ],
+  "success_rate": {"backend": "100% (28/28 executed)", "frontend": "90% (9/10 — admin mobile horiz-scroll)"},
+  "test_credentials": "Admin MASCI1982! · PM chriswright@mascigc.com / ChrisRocksThis2026 · Shop Nothappy123! (all from /app/memory/test_credentials.md)",
+  "seed_data_creation": "None. Used the synthetic Bug-2 record main agent already cleared; date-audit re-scan returned 0 suspects.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend fully green, including new /api/admin/date-audit GET and /apply POST (admin-gated 401). PM forgot-password is enumeration-safe (200 for known and unknown emails). PM scoped lists return subset of admin list. Only known issue is /admin header horizontal-scroll at 390px — does NOT block redeploy, but should be fixed for mobile parity.",
+  "rca of the issue": "Header on /admin uses a single non-wrapping flex row. At iPhone width (390px) the 5-6 action buttons exceed viewport, causing scrollWidth to grow to 570px. Fix: add flex-wrap or collapse to icon-only / kebab below sm breakpoint."
+}
