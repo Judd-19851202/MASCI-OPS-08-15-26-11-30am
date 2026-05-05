@@ -4,6 +4,7 @@ import { getShopToken, clearShopToken } from "@/lib/shopAuth";
 import { getPmToken, clearPmToken } from "@/lib/pmAuth";
 import { getDevToken, clearDevToken } from "@/lib/devAuth";
 import { getJwt, clearJwt } from "@/lib/jwtAuth";
+import { getSafetyFormsToken, clearSafetyFormsToken } from "@/lib/safetyFormsAuth";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -38,6 +39,10 @@ api.interceptors.request.use((config) => {
   if (devTok) {
     config.headers["X-Dev-Token"] = devTok;
   }
+  const sfTok = getSafetyFormsToken();
+  if (sfTok) {
+    config.headers["X-Safety-Forms-Token"] = sfTok;
+  }
   const jwt = getJwt();
   if (jwt && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${jwt}`;
@@ -60,6 +65,7 @@ api.interceptors.response.use(
       if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
       if (cfg.headers?.["X-PM-Token"]) clearPmToken();
       if (cfg.headers?.["X-Dev-Token"]) clearDevToken();
+      if (cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
       if (cfg.headers?.Authorization) clearJwt();
     }
     return Promise.reject(err);

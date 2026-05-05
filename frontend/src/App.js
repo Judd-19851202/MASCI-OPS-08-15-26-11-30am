@@ -5,6 +5,11 @@ import { Toaster } from "sonner";
 // AuthProvider removed 2026-04-28 — Crew Hub scrapped.
 import Hub from "@/pages/Hub";
 import SafetySection from "@/pages/SafetySection";
+import SafetyFormsLogin from "@/pages/SafetyFormsLogin";
+import SafetyFormsHub from "@/pages/SafetyFormsHub";
+import NewSafetyEquipmentIssuance from "@/pages/NewSafetyEquipmentIssuance";
+import NewSafetyEquipmentTraining from "@/pages/NewSafetyEquipmentTraining";
+import ViewSafetyForm from "@/pages/ViewSafetyForm";
 import FieldSafetyCards from "@/pages/FieldSafetyCards";
 import FieldSection from "@/pages/FieldSection";
 import MaterialCalculators from "@/pages/MaterialCalculators";
@@ -124,6 +129,12 @@ function App() {
             {/* MASCI Hub — public */}
             <Route path="/" element={<Hub />} />
             <Route path="/safety" element={<SafetySection />} />
+            <Route path="/safety/forms/login" element={<SafetyFormsLogin />} />
+            <Route path="/safety/forms" element={<SafetyFormsHub />} />
+            <Route path="/safety/forms/equipment-issuance/new" element={<NewSafetyEquipmentIssuance />} />
+            <Route path="/safety/forms/equipment-issuance/:id" element={<ViewSafetyForm kind="issuance" />} />
+            <Route path="/safety/forms/equipment-training/new" element={<NewSafetyEquipmentTraining />} />
+            <Route path="/safety/forms/equipment-training/:id" element={<ViewSafetyForm kind="training" />} />
             <Route path="/safety/cards" element={<FieldSafetyCards />} />
             <Route path="/field" element={<FieldSection />} />
             <Route path="/field/calculators" element={<MaterialCalculators />} />

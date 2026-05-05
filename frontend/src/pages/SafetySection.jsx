@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ClipboardCheck, Users, AlertOctagon, FileText, Box, Plus, ArrowLeft, ArrowRight, BookOpen, Shield, IdCard,
+  ClipboardCheck, Users, AlertOctagon, FileText, Box, Plus, ArrowLeft, ArrowRight, BookOpen, Shield, ShieldCheck, IdCard,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -154,6 +154,16 @@ export default function SafetySection() {
             kind="library"
             ctaLabel={t("Open Cards")}
             testId="safety-tile-cards"
+          />
+          <FormTile
+            to="/safety/forms"
+            icon={ShieldCheck}
+            title={t("Safety Forms")}
+            desc={t("Equipment Issuance & Accountability + Use & Care Training documentation — password-gated for the Safety Department.")}
+            accent="redDeep"
+            kind="form"
+            ctaLabel={t("Open Forms")}
+            testId="safety-tile-forms"
           />
         </div>
       </main>

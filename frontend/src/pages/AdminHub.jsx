@@ -40,6 +40,7 @@ import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 import SupplierMasterPanel from "@/components/SupplierMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import AdminTrainingResourcesPanel from "@/components/AdminTrainingResourcesPanel";
+import AdminSafetyFormsPanel from "@/components/AdminSafetyFormsPanel";
 import DateAuditPanel from "@/components/DateAuditPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -390,6 +391,9 @@ export default function AdminHub() {
 
           {/* Internal training packets + QR posters (Shop / PM / Admin) — relocated from public Training Hub */}
           <AdminTrainingResourcesPanel />
+
+          {/* Safety Forms (Equipment Issuance + Use & Care Training) */}
+          <AdminSafetyFormsPanel />
 
           {/* One-shot timezone-bug sweep (added 2026-05-05) */}
           <DateAuditPanel />

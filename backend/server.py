@@ -6269,6 +6269,12 @@ from routes.date_audit import build_date_audit_router  # noqa: E402
 _date_audit_router = build_date_audit_router(db, require_admin_strict)
 app.include_router(_date_audit_router)
 
+# ------------------------- Safety Forms (Equipment Issuance + Training) -------------------------
+from routes.safety_forms import build_safety_forms_router  # noqa: E402
+
+_safety_forms_router = build_safety_forms_router(db, _is_valid_admin_token)
+app.include_router(_safety_forms_router)
+
 
 # ============================================================
 # Email a saved record as a PDF (Resend)
