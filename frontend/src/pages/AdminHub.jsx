@@ -12,6 +12,7 @@ import {
   Loader2,
   LogOut,
   Home,
+  Building2,
   TrendingUp,
   ShieldCheck,
 } from "lucide-react";
@@ -156,19 +157,19 @@ export default function AdminHub() {
     <div className="min-h-screen blueprint-bg">
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
+        <div className="max-w-6xl mx-auto px-3 sm:px-8 py-4 flex items-center justify-between gap-2 sm:gap-3 flex-wrap">
           <div className="flex items-center gap-3">
             <Link
               to="/"
               className="inline-flex items-center text-white hover:text-red-300 text-xs font-bold uppercase tracking-wide"
               data-testid="admin-hub-public"
             >
-              <Home className="w-4 h-4 mr-1" /> MASCI Hub
+              <Home className="w-4 h-4 mr-1" /> <span className="hidden xs:inline">MASCI</span> Hub
             </Link>
           </div>
           <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/admin" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/admin" />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
             <SystemHealthBadge />
             <Link
               to="/pm"
@@ -180,19 +181,35 @@ export default function AdminHub() {
             </Link>
             <Link
               to="/admin/guide"
-              className="inline-flex items-center h-9 px-3 rounded-md bg-slate-800 text-white border-2 border-slate-600 hover:border-amber-500 hover:text-amber-300 text-xs font-bold uppercase tracking-wide"
+              className="inline-flex items-center h-9 px-2 sm:px-3 rounded-md bg-slate-800 text-white border-2 border-slate-600 hover:border-amber-500 hover:text-amber-300 text-xs font-bold uppercase tracking-wide"
               data-testid="admin-guide-link"
+              title="Admin guide"
             >
-              📖 Guide
+              <span className="sm:hidden">📖</span>
+              <span className="hidden sm:inline">📖 Guide</span>
             </Link>
-            <CompanyInfoDialog />
+            <CompanyInfoDialog
+              trigger={
+                <Button
+                  variant="outline"
+                  className="h-9 px-2 sm:px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-amber-500 hover:text-amber-300 text-xs font-bold uppercase tracking-wide"
+                  data-testid="admin-company-info-btn"
+                  title="Company Info"
+                >
+                  <Building2 className="w-3.5 h-3.5 sm:mr-1" />
+                  <span className="hidden sm:inline">Info</span>
+                </Button>
+              }
+            />
             <Button
               onClick={signOut}
               variant="outline"
-              className="h-9 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400 text-xs font-bold uppercase tracking-wide"
+              className="h-9 px-2 sm:px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400 text-xs font-bold uppercase tracking-wide"
               data-testid="admin-signout-btn"
+              title="Sign out"
             >
-              <LogOut className="w-3.5 h-3.5 mr-1" /> Sign out
+              <LogOut className="w-3.5 h-3.5 sm:mr-1" />
+              <span className="hidden sm:inline">Sign out</span>
             </Button>
           </div>
         </div>
