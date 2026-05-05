@@ -24,6 +24,8 @@ import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
 import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 import BackupHeroPanel from "@/components/BackupHeroPanel";
+import StoredBackupsPanel from "@/components/StoredBackupsPanel";
+import RestoreBackupPanel from "@/components/RestoreBackupPanel";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import TrainingStatsStripe from "@/components/TrainingStatsStripe";
@@ -316,8 +318,8 @@ export default function AdminHub() {
           </>
         )}
 
-        {/* 2 · Compliance Export */}
-        <ComplianceExportPanel />
+        {/* 2 · Compliance Export — backup/restore tools relocated to bottom System Recovery section */}
+        <ComplianceExportPanel hideBackupTools />
 
         {/* 3 · Active Jobs */}
         <AdminJobMasterPanel />
@@ -371,10 +373,90 @@ export default function AdminHub() {
           {/* Internal training packets + QR posters (Shop / PM / Admin) — relocated from public Training Hub */}
           <AdminTrainingResourcesPanel />
 
-          {/* ONE-STOP backup + restore hero — 2 giant buttons, nothing else */}
+          {/* ============================================================
+              BACKUP & RESTORE — every backup/recovery tool lives below
+              this header, in order of escalating risk:
+                1. Backup Hero    (safe — make + email + download .zip)
+                2. Stored Backups (server-side library; delete is gated)
+                3. Restore        (merge=safe; replace=wipes, gated)
+                4. System Recovery (force re-seed; wipes, gated)
+              Every destructive button (delete, replace, force re-seed)
+              prompts an "Are you sure?" + admin-password re-entry before
+              running. Live counts up top via PersistenceHealthBanner.
+              ============================================================ */}
+          <div className="mt-10 mb-4 pb-3 border-b-2 border-slate-300">
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-900">
+              Backup &amp; Restore Tools
+            </span>
+            <h3 className="font-display text-xl sm:text-2xl font-black tracking-tight text-slate-900 mt-1">
+              Everything backup-related, in one place
+            </h3>
+            <p className="text-slate-600 text-sm mt-2 max-w-3xl">
+              Anything that <strong>deletes or wipes data</strong> is locked behind an
+              "Are you sure?" prompt and requires re-typing the admin password. The
+              live database is never touched without your explicit re-confirmation.
+            </p>
+          </div>
+
+          {/* 1 · BACKUP HERO — make + email + download .zip (always safe) */}
+          <div className="mb-2">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 font-bold">
+              1 · One-click backup &amp; restore
+            </div>
+            <p className="text-xs text-slate-600 mt-1 mb-2 max-w-3xl">
+              The two big buttons most admins ever need. <strong>Backup Everything</strong>{" "}
+              builds a single .zip of every safety record, photo, signature, and PDF —
+              downloads it AND emails a copy. <strong>Restore From File</strong> uploads
+              that .zip back in safe merge mode (existing rows updated, new rows added,
+              nothing wiped).
+            </p>
+          </div>
           <BackupHeroPanel />
 
-          {/* EMERGENCY: system status grid + force-reseed if data missing after a redeploy */}
+          {/* 2 · STORED BACKUPS — on-server backup library */}
+          <div className="mt-8 mb-2">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 font-bold">
+              2 · Stored backups on this server
+            </div>
+            <p className="text-xs text-slate-600 mt-1 mb-2 max-w-3xl">
+              The list of every scheduled backup .zip currently saved on disk. Run a
+              backup now, download an old one for off-site storage, or delete one you
+              no longer need. <strong>Delete</strong> requires admin-password
+              re-entry. Backups are made automatically twice daily (02:00 UTC + 18:00
+              UTC) and pruned after retention.
+            </p>
+          </div>
+          <StoredBackupsPanel />
+
+          {/* 3 · RESTORE FROM BACKUP — merge (safe) or replace (wipes) */}
+          <div className="mt-8 mb-2">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 font-bold">
+              3 · Restore from backup file
+            </div>
+            <p className="text-xs text-slate-600 mt-1 mb-2 max-w-3xl">
+              Advanced restore with two modes. <strong>Merge</strong> upserts every
+              row in the .zip — safe, repeatable, nothing is wiped. <strong>Replace</strong>{" "}
+              wipes every collection found in the .zip first, then reinserts — used
+              only to roll the system back to a known-good snapshot. Replace requires
+              typing <em>REPLACE</em> AND the admin password.
+            </p>
+          </div>
+          <RestoreBackupPanel />
+
+          {/* 4 · SYSTEM RECOVERY — force-reseed equipment / employees / suppliers */}
+          <div className="mt-8 mb-2">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 font-bold">
+              4 · Emergency system recovery
+            </div>
+            <p className="text-xs text-slate-600 mt-1 mb-2 max-w-3xl">
+              Live count of every database collection — flags equipment / employees /
+              suppliers in red if any are empty after a redeploy. The{" "}
+              <strong>Force re-seed</strong> button wipes those four lists and reloads
+              them from the JSON seed files; safety records, projects, and user
+              accounts are never touched. Force re-seed requires admin-password
+              re-entry.
+            </p>
+          </div>
           <CrewRecoveryPanel />
         </div>
       </main>

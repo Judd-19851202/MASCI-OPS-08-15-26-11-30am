@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
 
 /**
  * SystemRecoveryPanel — admin recovery for the office.
@@ -34,6 +35,7 @@ export default function CrewRecoveryPanel() {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reseedConfirmOpen, setReseedConfirmOpen] = useState(false);
+  const [reseedPasswordOpen, setReseedPasswordOpen] = useState(false);
   const [reseedRunning, setReseedRunning] = useState(false);
 
   const refresh = async () => {
@@ -60,13 +62,18 @@ export default function CrewRecoveryPanel() {
       toast.success(
         `Re-seeded: equipment ${s.equipment_master?.after_seed ?? 0}, employees ${s.employees?.after_seed ?? 0}, suppliers ${s.suppliers?.after_seed ?? 0}`
       );
-      setReseedConfirmOpen(false);
       await refresh();
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Force-reseed failed");
+      throw err;
     } finally {
       setReseedRunning(false);
     }
+  };
+
+  const proceedToPassword = () => {
+    setReseedConfirmOpen(false);
+    setReseedPasswordOpen(true);
   };
 
   const counts = status?.counts || {};
@@ -220,7 +227,7 @@ export default function CrewRecoveryPanel() {
               No, cancel
             </Button>
             <Button
-              onClick={runReseed}
+              onClick={proceedToPassword}
               disabled={reseedRunning}
               className="bg-orange-600 hover:bg-orange-700 text-white font-bold uppercase tracking-wide"
               data-testid="crew-recovery-reseed-confirm-btn"
@@ -231,13 +238,31 @@ export default function CrewRecoveryPanel() {
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" /> Yes, re-seed now
+                  <CheckCircle2 className="w-4 h-4 mr-2" /> Continue
                 </>
               )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* SECOND GATE — admin password required before wipe */}
+      <AdminPasswordConfirm
+        open={reseedPasswordOpen}
+        onOpenChange={setReseedPasswordOpen}
+        title="Force re-seed — wipe & reload?"
+        description={
+          `This will delete every row in equipment_master (${counts.equipment_master ?? 0}), ` +
+          `equipment_units (${counts.equipment_units ?? 0}), ` +
+          `employees (${counts.employees ?? 0}), and suppliers (${counts.suppliers ?? 0}), ` +
+          `then re-create them from the JSON seed files. Re-enter the admin password ` +
+          `to authorize this destructive action.`
+        }
+        confirmLabel="Wipe & re-seed"
+        destructive
+        onConfirm={runReseed}
+        testId="crew-recovery-password-confirm"
+      />
     </section>
   );
 }

@@ -5,6 +5,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
 
 const fmtBytes = (n) => {
   if (!n) return "0 B";
@@ -27,6 +28,7 @@ export default function StoredBackupsPanel() {
   const [data, setData] = useState(null);
   const [busy, setBusy] = useState(false);
   const [loadingFile, setLoadingFile] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   const load = async () => {
     try {
@@ -74,14 +76,18 @@ export default function StoredBackupsPanel() {
     }
   };
 
-  const remove = async (f) => {
-    if (!window.confirm(`Delete ${f.filename}?\n\nThis backup will be gone forever — only the live system data remains.`)) return;
+  const remove = (f) => setPendingDelete(f);
+
+  const confirmRemove = async () => {
+    if (!pendingDelete) return;
     try {
-      await api.delete(`/admin/backups/${encodeURIComponent(f.filename)}`);
-      toast.success(`Deleted ${f.filename}`);
+      await api.delete(`/admin/backups/${encodeURIComponent(pendingDelete.filename)}`);
+      toast.success(`Deleted ${pendingDelete.filename}`);
+      setPendingDelete(null);
       await load();
     } catch {
       toast.error("Delete failed");
+      throw new Error("delete-failed");
     }
   };
 
@@ -215,6 +221,21 @@ export default function StoredBackupsPanel() {
           </ul>
         </div>
       )}
+
+      <AdminPasswordConfirm
+        open={!!pendingDelete}
+        onOpenChange={(o) => !o && setPendingDelete(null)}
+        title={`Delete ${pendingDelete?.filename}?`}
+        description={
+          `This backup .zip will be permanently removed from the server. ` +
+          `It cannot be recovered unless you previously downloaded a copy. ` +
+          `Live database records are NOT touched — only this archive is deleted.`
+        }
+        confirmLabel="Yes, delete backup"
+        destructive
+        onConfirm={confirmRemove}
+        testId="stored-backup-delete-confirm"
+      />
 
       <p className="mt-3 text-[11px] text-slate-500 leading-relaxed">
         Scheduled backups run at{" "}

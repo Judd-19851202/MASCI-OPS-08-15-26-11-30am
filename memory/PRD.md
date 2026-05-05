@@ -1,5 +1,45 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-05 — Backup Section Reorganization + Destructive-Action Password Gate
+
+**User request:** *"Leave everything as-is... in admin anything & everything backup-related move to lower section of admin screen & give a brief description of what each does. For any button that deletes or wipes data: 'are you sure' screen pops up & admin password must be entered to continue."*
+
+### Changes
+1. **All backup/restore tools relocated to bottom of `/admin`.** Before, `StoredBackupsPanel` and `RestoreBackupPanel` rendered inside `ComplianceExportPanel` near the top of the page. They now live at the very bottom (only the page footer is below them) under a single labeled section: "Backup & Restore Tools — everything backup-related, in one place."
+   - `<ComplianceExportPanel hideBackupTools />` flag activated to suppress the in-line "Full Off-Site Backup" + Stored/Restore panels there.
+   - AdminHub.jsx renders 4 numbered sub-blocks in order of escalating risk:
+     1. `BackupHeroPanel` — safe one-click backup + safe-merge restore.
+     2. `StoredBackupsPanel` — list/run/download/delete of nightly zips.
+     3. `RestoreBackupPanel` — merge (safe) or replace (wipes).
+     4. `CrewRecoveryPanel` — system status + force re-seed.
+   - Each block has a brief plain-English description above it.
+
+2. **New destructive-action password gate.** Every button that deletes or wipes data now requires the admin to re-enter the admin password before the action runs.
+   - **Backend:** `POST /api/admin/auth/verify-password` — HMAC-checks the typed password against `ADMIN_PASSWORD`, with the same `_check_login_lockout` brute-force protection as `/admin/login`. Returns 200 / 401. Doesn't rotate the stored session token.
+   - **Frontend:** new reusable `<AdminPasswordConfirm>` dialog component (`/app/frontend/src/components/AdminPasswordConfirm.jsx`). Renders an "Are you sure?" pane with description, password input, Cancel + Confirm. Confirm is disabled until a password is typed, then verifies against the backend before firing the supplied `onConfirm()`.
+   - **Wired into:**
+     - `StoredBackupsPanel` — `Delete <filename>` button (replaced the old `window.confirm` with the password dialog).
+     - `RestoreBackupPanel` — `REPLACE` mode now requires typing "REPLACE" **AND** then the admin password as a second gate.
+     - `CrewRecoveryPanel` — `Force re-seed` button now requires the existing dialog confirm **AND** then the admin password.
+
+### Files touched
+- `/app/backend/server.py` — added `/admin/auth/verify-password`.
+- `/app/frontend/src/components/AdminPasswordConfirm.jsx` — NEW reusable dialog.
+- `/app/frontend/src/components/StoredBackupsPanel.jsx` — delete now password-gated.
+- `/app/frontend/src/components/RestoreBackupPanel.jsx` — REPLACE adds 2nd password gate.
+- `/app/frontend/src/components/CrewRecoveryPanel.jsx` — force re-seed adds 2nd password gate.
+- `/app/frontend/src/pages/AdminHub.jsx` — relocated backup panels with descriptions.
+
+### Verified end-to-end (preview)
+- `POST /admin/auth/verify-password` with wrong password → 401 + lockout counter ticks.
+- `POST /admin/auth/verify-password` with correct password → 200, no token rotation.
+- `/admin` bottom shows the new "Backup & Restore Tools" header with all 4 numbered subsections.
+- Stored Backups → Delete → password gate appears → wrong pw shows toast + dialog stays open.
+- Force re-seed → first dialog → Continue → password gate appears with destructive description.
+- Replace restore → REPLACE typed → password gate appears as 2nd guard.
+
+
+
 ## 2026-05-04 — P0 Hotfix: Daily Report VIEW link still hardcoded to /admin
 
 **User report:** *"Still getting daily report not found message we i click view.... In PM Portal... Is this truly fixed & only doing this because this is a demo preview?"*

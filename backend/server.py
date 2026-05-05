@@ -906,6 +906,29 @@ async def admin_check(_: bool = Depends(require_admin)):
     return {"ok": True}
 
 
+@api_router.post("/admin/auth/verify-password")
+async def admin_verify_password(body: AdminLoginRequest, request: Request):
+    """Re-verify the admin password without rotating the stored session
+    token. Used by destructive-action confirmation dialogs (delete backup
+    file, REPLACE restore, force re-seed) so an admin must re-type the
+    password before the action runs.
+
+    Shares the same lockout protection as ``/admin/login`` so brute force
+    against this endpoint is rate-limited per IP.
+    """
+    ip = _client_ip(request)
+    _check_login_lockout(ip)
+    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
+    if not expected_pw:
+        # Gate disabled — anyone can "confirm"
+        return {"ok": True}
+    if not hmac.compare_digest(body.password or "", expected_pw):
+        _record_login_fail(ip)
+        raise HTTPException(status_code=401, detail="Wrong password")
+    _reset_login_fails(ip)
+    return {"ok": True}
+
+
 @api_router.get("/admin/submit-language-stats")
 async def admin_submit_language_stats(_: bool = Depends(require_admin)):
     """Per-collection counts of how many records were originally filed in

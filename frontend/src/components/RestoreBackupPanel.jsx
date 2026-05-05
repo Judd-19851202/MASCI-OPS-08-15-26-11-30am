@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
 
 /**
  * RestoreBackupPanel — pair to the "Download Full Backup" button.
@@ -25,6 +26,7 @@ export default function RestoreBackupPanel() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [pendingFile, setPendingFile] = useState(null);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const fileRef = useRef(null);
 
   const onPick = (e) => {
@@ -83,7 +85,14 @@ export default function RestoreBackupPanel() {
   const confirmReplace = () => {
     if (confirmText !== "REPLACE" || !pendingFile) return;
     setConfirmOpen(false);
-    runRestore(pendingFile, false);
+    // Second gate — admin must re-type the password before any
+    // collection is wiped. The pending file is already vetted.
+    setPasswordOpen(true);
+  };
+
+  const passwordConfirmReplace = async () => {
+    if (!pendingFile) return;
+    await runRestore(pendingFile, false);
   };
 
   return (
@@ -255,6 +264,26 @@ export default function RestoreBackupPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* SECOND GATE — admin password required before wipe */}
+      <AdminPasswordConfirm
+        open={passwordOpen}
+        onOpenChange={(o) => {
+          setPasswordOpen(o);
+          if (!o) setPendingFile(null);
+        }}
+        title="Confirm REPLACE — wipe collections?"
+        description={
+          `Every collection inside ${pendingFile?.name || "this backup"} will be ` +
+          `WIPED first, then repopulated from the .zip. Records added since the ` +
+          `backup was generated will be permanently lost. Re-enter the admin ` +
+          `password to authorize this destructive restore.`
+        }
+        confirmLabel="Wipe & restore"
+        destructive
+        onConfirm={passwordConfirmReplace}
+        testId="restore-password-confirm"
+      />
     </section>
   );
 }
