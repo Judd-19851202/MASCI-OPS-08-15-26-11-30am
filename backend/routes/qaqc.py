@@ -20,6 +20,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, ConfigDict, Field
 
+from pm_auth import compute_pm_scope
+
 
 _ALLOWED_KINDS = {"concrete_form", "rebar", "subcontractor_work"}
 
@@ -200,8 +202,9 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
         return rec
 
     @api_router.get("/qaqc-inspections", response_model=List[QaqcInspectionSummary])
-    async def list_qaqc(_: bool = Depends(require_admin)):
-        cursor = db.qaqc_inspections.find({}, {"_id": 0}).sort("created_at", -1).limit(2000)
+    async def list_qaqc(actor=Depends(require_admin)):
+        scope = await compute_pm_scope(db, actor)
+        cursor = db.qaqc_inspections.find(scope.filter({}), {"_id": 0}).sort("created_at", -1).limit(2000)
         out: List[QaqcInspectionSummary] = []
         async for d in cursor:
             out.append(_summary_from_doc(d))
@@ -241,9 +244,12 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
         return out
 
     @api_router.get("/qaqc-inspections/{inspection_id}")
-    async def get_qaqc(inspection_id: str, _: bool = Depends(require_admin)):
+    async def get_qaqc(inspection_id: str, actor=Depends(require_admin)):
         doc = await db.qaqc_inspections.find_one({"id": inspection_id}, {"_id": 0})
         if not doc:
+            raise HTTPException(status_code=404, detail="QA/QC inspection not found")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(doc.get("project_number")):
             raise HTTPException(status_code=404, detail="QA/QC inspection not found")
         return doc
 
@@ -255,21 +261,24 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
         return {"deleted": True, "id": inspection_id}
 
     @api_router.get("/admin/qaqc-inspections/stats")
-    async def qaqc_stats(_: bool = Depends(require_admin)):
-        total = await db.qaqc_inspections.count_documents({})
+    async def qaqc_stats(actor=Depends(require_admin)):
+        scope = await compute_pm_scope(db, actor)
+        base = scope.filter({})
+        total = await db.qaqc_inspections.count_documents(base)
         rows = []
         for k in ("concrete_form", "rebar", "subcontractor_work"):
-            c = await db.qaqc_inspections.count_documents({"inspection_kind": k})
+            c = await db.qaqc_inspections.count_documents({**base, "inspection_kind": k})
             rows.append({"kind": k, "label": _label_for(k), "count": c})
         last = await db.qaqc_inspections.find_one(
-            {},
+            base,
             {"_id": 0, "id": 1, "inspection_kind": 1, "project_name": 1, "created_at": 1},
             sort=[("created_at", -1)],
         )
         return {"total": total, "by_kind": rows, "last": last}
 
     @api_router.get("/admin/qaqc-inspections/export.csv")
-    async def qaqc_export(_: bool = Depends(require_admin)):
+    async def qaqc_export(actor=Depends(require_admin)):
+        scope = await compute_pm_scope(db, actor)
         buf = io.StringIO()
         w = _csv.writer(buf)
         w.writerow([
@@ -277,7 +286,7 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
             "Location", "Inspector", "Subcontractor", "Pass", "Fail", "N/A",
             "Photos", "Deficiencies",
         ])
-        cursor = db.qaqc_inspections.find({}, {"_id": 0}).sort("created_at", -1)
+        cursor = db.qaqc_inspections.find(scope.filter({}), {"_id": 0}).sort("created_at", -1)
         async for d in cursor:
             w.writerow([
                 d.get("created_at", ""),

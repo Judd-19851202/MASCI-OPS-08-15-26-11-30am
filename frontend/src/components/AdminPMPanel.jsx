@@ -55,6 +55,31 @@ export default function AdminPMPanel() {
   const [exporting, setExporting] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
 
+  // ----- Activity rollup (last login + 7-day report count) -----
+  const [activity, setActivity] = useState({}); // { pm_id: {last_login_at, last_login_ip, reports_7d, job_count} }
+
+  // Relative-time formatter ("3h ago", "yesterday", "5d ago")
+  const fmtRel = (iso) => {
+    if (!iso) return "Never";
+    try {
+      const t = new Date(iso).getTime();
+      if (!t || Number.isNaN(t)) return "Never";
+      const diffMs = Date.now() - t;
+      const m = Math.floor(diffMs / 60000);
+      if (m < 1) return "Just now";
+      if (m < 60) return `${m}m ago`;
+      const h = Math.floor(m / 60);
+      if (h < 24) return `${h}h ago`;
+      const d = Math.floor(h / 24);
+      if (d === 1) return "Yesterday";
+      if (d < 30) return `${d}d ago`;
+      const mo = Math.floor(d / 30);
+      return mo === 1 ? "1mo ago" : `${mo}mo ago`;
+    } catch {
+      return "Never";
+    }
+  };
+
   // ----- Password management -----
   const [pwTargetPm, setPwTargetPm] = useState(null);   // PM doc the dialog is acting on
   const [customPw, setCustomPw] = useState("");
@@ -67,6 +92,16 @@ export default function AdminPMPanel() {
     try {
       const r = await api.get("/admin/project-managers");
       setPms(r.data?.items || []);
+      // Pull activity rollup in parallel — non-blocking, swallow failures
+      // so a transient activity error doesn't break the roster.
+      api
+        .get("/admin/project-managers/activity")
+        .then((act) => {
+          const byId = {};
+          for (const p of act.data?.items || []) byId[p.id] = p;
+          setActivity(byId);
+        })
+        .catch(() => {});
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Failed to load PMs");
     } finally {
@@ -347,6 +382,7 @@ export default function AdminPMPanel() {
               <th className="px-3 py-2">Email</th>
               <th className="px-3 py-2">Phone</th>
               <th className="px-3 py-2 text-center">Login</th>
+              <th className="px-3 py-2">Activity</th>
               <th className="px-3 py-2 text-center">Active</th>
               <th className="px-3 py-2 w-44 text-right">Actions</th>
             </tr>
@@ -354,13 +390,13 @@ export default function AdminPMPanel() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-slate-500">
+                <td colSpan={7} className="px-3 py-6 text-center text-slate-500">
                   <Loader2 className="w-5 h-5 animate-spin inline-block" /> Loading…
                 </td>
               </tr>
             ) : pms.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-slate-500">
+                <td colSpan={7} className="px-3 py-6 text-center text-slate-500">
                   No PMs yet. Add one above.
                 </td>
               </tr>
@@ -448,6 +484,36 @@ export default function AdminPMPanel() {
                           <Lock className="w-3 h-3" /> Locked
                         </div>
                       )}
+                    </td>
+                    <td className="px-3 py-2 text-xs text-slate-600 leading-tight">
+                      {(() => {
+                        const a = activity[p.id] || {};
+                        const last = a.last_login_at;
+                        const ip = a.last_login_ip;
+                        const rep = a.reports_7d ?? 0;
+                        const jobs = a.job_count ?? 0;
+                        return (
+                          <div data-testid={`pm-activity-${p.id}`}>
+                            <div
+                              className="font-mono text-[10px] uppercase tracking-wide text-slate-700 font-bold"
+                              title={last ? `Last login: ${last}${ip ? ` from ${ip}` : ""}` : "Never logged in via per-PM auth"}
+                            >
+                              {fmtRel(last)}
+                              {ip && (
+                                <span className="ml-1 text-slate-400 normal-case font-normal">
+                                  · {ip}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">
+                              <span className={rep > 0 ? "text-emerald-700 font-bold" : ""}>
+                                {rep} reports / 7d
+                              </span>
+                              <span className="text-slate-400"> · {jobs} jobs</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-3 py-2 text-center">
                       <button

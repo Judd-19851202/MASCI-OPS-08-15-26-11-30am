@@ -1,5 +1,43 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-05 — PM Activity Log + Per-PM Data Scoping
+
+**User request:** *"Want a 'PM activity log' beside password column? Last login + IP + reports/week. Also when PMs log in only data ties to jobs they're assigned to or co-PM's on shows — not whole company data."*
+
+**User choices (locked in):** primary OR co-PM counts; reads scoped on safety/jobs/P&L only (masters stay shared); writes UNTOUCHED this round; activity column = last login + IP + reports / 7d.
+
+### Backend
+- **`pm_auth.PmScope`** + **`compute_pm_scope(db, actor)`** — resolves actor → either admin (no filter) or set of assigned project_numbers. `.filter(q)` injects `project_number $in [...]` into a Mongo query; `.allows(pn)` is a single-record check.
+- **Empty scope ≠ all records** — `.filter({})` returns an impossible filter (`__pm_empty_scope__: true`) when a PM has zero assigned jobs, so they see nothing instead of everything by accident.
+- **`require_admin` and `require_shop_or_admin` now return the PM doc** (instead of just `True`) when authenticated by a per-PM token. Existing `_: bool = Depends(...)` callers continue working.
+- **List endpoints scoped (8 routes in routes/, 4 in server.py)**: site inspections, meetings, JHPs, incidents, daily reports, equipment inspections, QA/QC inspections, equipment trends, equipment open-items, QA/QC stats, QA/QC CSV, /admin/jobs, /admin/jobs/archive, /admin/projects/list.
+- **Detail endpoints scoped (7 routes)**: same as above plus /admin/projects/pnl. PM hitting a record outside their scope → 404.
+- **Public endpoints intentionally NOT scoped**: /jobs (JobPicker on field forms), /job-hazard-plans, /trench-boxes, equipment-master, employees, suppliers, parts.
+- **NEW endpoint** `GET /api/admin/project-managers/activity` (admin-strict) — single roundtrip rolls up `{last_login_at, last_login_ip, reports_7d, job_count}` for every PM by aggregating over jobs_master + 7 safety collections in the last 7 days.
+- **`stamp_login(db, pm_id, ip)`** now persists the request IP on `/pm/login`.
+
+### Frontend
+- **`AdminPMPanel`** gains an **Activity** column between Login and Active. Shows: relative-time "1m ago", login IP, "6 reports / 7d", "9 jobs". Loaded on mount in parallel with the PM list (non-blocking — failures are silent so a transient activity error never breaks the roster).
+
+### Verified end-to-end (preview)
+- Admin sees 7 inspections / 5 dailies / 28 jobs. Chris (per-PM) sees 1 inspection / 0 dailies / 9 jobs / 0 incidents / 5 equipment.
+- Detail GET on a daily report Chris isn't on returns 404.
+- `/admin/projects/pnl?project_number=…` for a project Chris isn't on returns 404.
+- Activity payload returns IP `34.16.56.64` for Chris (the only PM who has logged in via per-PM auth).
+- Legacy shared bypass token still sees everything (the office break-glass case).
+- The `/pm/qaqc-inspections` endpoint that already had its own pm-email filter is left untouched (no double-scoping).
+
+### Files touched
+- `/app/backend/pm_auth.py` (PmScope, compute_pm_scope, stamp_login w/ IP)
+- `/app/backend/server.py` (require_admin / require_shop_or_admin return PM doc; activity endpoint; /admin/jobs* + projects/pnl scope)
+- `/app/backend/routes/safety.py` (4 list + 4 detail scoped)
+- `/app/backend/routes/daily_reports.py` (list + detail scoped)
+- `/app/backend/routes/equipment.py` (list + detail + trends + open-items scoped; trailing garbage cleaned)
+- `/app/backend/routes/qaqc.py` (list + detail + stats + CSV scoped)
+- `/app/frontend/src/components/AdminPMPanel.jsx` (Activity column + relative-time formatter + parallel activity fetch)
+
+
+
 ## 2026-05-05 — Per-PM Auth + Co-PMs per Job
 
 **User request:** *"Project Managers needs to be removed from PM Portal & only be in admin... Need option to issue PM passwords... On first login require them to pick their own 6 character password, but from admin we can reset any time. Also Active Jobs Master need to be able to assign up to 5 PMs per job — DO NOT change current PM, just allow multiple."*

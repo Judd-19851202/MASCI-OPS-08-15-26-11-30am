@@ -11,6 +11,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
+from pm_auth import compute_pm_scope
+
 
 class DailyReportCreate(BaseModel):
     """Daily site activity log (replaces Fieldwire daily reports)."""
@@ -88,8 +90,10 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         return report
 
     @api_router.get("/daily-reports", response_model=List[DailyReportSummary])
-    async def list_daily_reports(_: bool = Depends(require_admin)):
+    async def list_daily_reports(actor=Depends(require_admin)):
+        scope = await compute_pm_scope(db, actor)
         pipeline = [
+            {"$match": scope.filter({})},
             {"$sort": {"created_at": -1}},
             {"$limit": 1000},
             {"$project": {
@@ -130,9 +134,12 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         return {"report_number": f"{prefix}{n + 1:03d}", "prefix": prefix}
 
     @api_router.get("/daily-reports/{report_id}")
-    async def get_daily_report(report_id: str, _: bool = Depends(require_admin)):
+    async def get_daily_report(report_id: str, actor=Depends(require_admin)):
         doc = await db.daily_reports.find_one({"id": report_id}, {"_id": 0})
         if not doc:
+            raise HTTPException(status_code=404, detail="Daily report not found")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(doc.get("project_number")):
             raise HTTPException(status_code=404, detail="Daily report not found")
         return doc
 
@@ -141,4 +148,5 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         result = await db.daily_reports.delete_one({"id": report_id})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Daily report not found")
+        return {"deleted": True, "id": report_id}
         return {"deleted": True, "id": report_id}

@@ -21,6 +21,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
+from pm_auth import compute_pm_scope
+
 
 # ============================================================
 # Pydantic models
@@ -230,9 +232,12 @@ def register_equipment_routes(
         ]
 
     @api_router.get("/equipment-inspections/{inspection_id}")
-    async def get_equipment_inspection(inspection_id: str, _: bool = Depends(require_shop_or_admin)):
+    async def get_equipment_inspection(inspection_id: str, actor=Depends(require_shop_or_admin)):
         doc = await db.equipment_inspections.find_one({"id": inspection_id}, {"_id": 0})
         if not doc:
+            raise HTTPException(status_code=404, detail="Equipment inspection not found")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(doc.get("project_number")):
             raise HTTPException(status_code=404, detail="Equipment inspection not found")
         return doc
 
@@ -247,13 +252,17 @@ def register_equipment_routes(
     @api_router.get("/admin/equipment-inspections/trends")
     async def equipment_inspection_trends(
         days: int = 90,
-        _: bool = Depends(require_shop_or_admin),
+        actor=Depends(require_shop_or_admin),
     ):
         """Three leaderboards: most-problematic equipment units, operators with
         most failed inspections, and jobsites trending bad. Last `days` days.
         """
+        scope = await compute_pm_scope(db, actor)
         since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
-        cursor = db.equipment_inspections.find({"created_at": {"$gte": since}}, {"_id": 0})
+        cursor = db.equipment_inspections.find(
+            scope.filter({"created_at": {"$gte": since}}),
+            {"_id": 0},
+        )
         eq: Dict[str, Dict[str, Any]] = {}
         op: Dict[str, Dict[str, Any]] = {}
         site: Dict[str, Dict[str, Any]] = {}
@@ -324,12 +333,13 @@ def register_equipment_routes(
     @api_router.get("/admin/equipment-inspections/open-items")
     async def open_signoff_items(
         severity: str = "all",  # oos | attn | all
-        _: bool = Depends(require_shop_or_admin),
+        actor=Depends(require_shop_or_admin),
     ):
         """Every still-open FAIL item (no shop sign-off yet) across all
         equipment inspections, sorted by inspection date desc."""
+        scope = await compute_pm_scope(db, actor)
         cursor = db.equipment_inspections.find(
-            {"fail_count": {"$gt": 0}}, {"_id": 0}
+            scope.filter({"fail_count": {"$gt": 0}}), {"_id": 0}
         ).sort("created_at", -1)
         out: List[Dict[str, Any]] = []
         async for d in cursor:

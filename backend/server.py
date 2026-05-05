@@ -253,7 +253,11 @@ async def require_admin(
             from pm_auth import is_valid_pm_user_token_async
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
             if pm_doc:
-                return True
+                # Return the PM doc (not just True) so list endpoints can
+                # apply per-PM data scoping. Existing callers that ignore
+                # the value (``_: bool = Depends(require_admin)``) keep
+                # working since a non-empty dict is truthy.
+                return pm_doc
         # Legacy shared-PM token (env-flag bypass).
         elif _is_valid_pm_token(x_pm_token):
             return True
@@ -305,7 +309,7 @@ def _shop_token_for(password: str) -> str:
     return hmac.new(_admin_hmac_secret(), msg, hashlib.sha256).hexdigest()
 
 
-def require_shop_or_admin(
+async def require_shop_or_admin(
     x_admin_token: Optional[str] = Header(default=None),
     x_shop_token: Optional[str] = Header(default=None),
     x_pm_token: Optional[str] = Header(default=None),
@@ -315,6 +319,11 @@ def require_shop_or_admin(
     Used on equipment master / equipment-parts / inspection-signoff routes
     that any of the three personas can legitimately touch. Backup &
     recovery routes still use ``require_admin_strict``.
+
+    Returns ``True`` for admin / shop / legacy-shared-PM, returns the
+    PM doc for per-PM tokens (so list endpoints can apply data
+    scoping). Existing ``_: bool = Depends(...)`` callers keep working
+    because non-empty dicts are truthy.
     """
     admin_pw = os.environ.get("ADMIN_PASSWORD", "")
     shop_pw = os.environ.get("SHOP_PASSWORD", "")
@@ -323,8 +332,14 @@ def require_shop_or_admin(
         return True  # all gates disabled
     if x_admin_token and _is_valid_admin_token(x_admin_token):
         return True
-    if x_pm_token and _is_valid_pm_token(x_pm_token):
-        return True
+    if x_pm_token:
+        if "." in x_pm_token:
+            from pm_auth import is_valid_pm_user_token_async
+            pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
+            if pm_doc:
+                return pm_doc
+        elif _is_valid_pm_token(x_pm_token):
+            return True
     if x_shop_token and shop_pw:
         expected = _shop_token_for(shop_pw)
         if hmac.compare_digest(x_shop_token, expected):
@@ -1259,7 +1274,7 @@ async def pm_login(body: PMLoginBody, request: Request):
             _record_login_fail(ip)
             raise HTTPException(status_code=401, detail="Wrong email or password")
         _reset_login_fails(ip)
-        await stamp_login(db, pm["id"])
+        await stamp_login(db, pm["id"], ip=ip)
         return {
             "ok": True,
             "token": make_pm_token(pm["id"], pwh),
@@ -1396,6 +1411,74 @@ async def admin_set_pm_disabled(
     if not updated:
         raise HTTPException(status_code=404, detail="PM not found")
     return {"ok": True, "pm": public_pm_view(updated)}
+
+
+@api_router.get("/admin/project-managers/activity")
+async def admin_pm_activity(_: bool = Depends(require_admin_strict)):
+    """Per-PM activity rollup for the admin Activity column.
+
+    For every PM, returns:
+      • last_login_at + last_login_ip (heartbeat from /pm/login).
+      • reports_7d — count of safety / operational records they've filed
+        OR that have been filed against jobs they own/co-own in the
+        last 7 days. Aggregated across inspections, meetings, JHAs,
+        incidents, daily_reports, equipment_inspections, qaqc_inspections.
+      • job_count — how many active jobs they're assigned to.
+    """
+    from pm_auth import public_pm_view
+    from datetime import timedelta
+
+    # 1. Pull PM roster (without password_hash).
+    pm_cursor = db.project_managers.find({}, {"_id": 0})
+    pms: List[dict] = []
+    async for p in pm_cursor:
+        pms.append(p)
+
+    # 2. Build the email → project_numbers map in one pass over jobs_master.
+    by_email: dict = {}
+    job_cursor = db.jobs_master.find(
+        {"deleted_at": {"$in": [None, ""]}},
+        {"_id": 0, "pm_email": 1, "co_pm_emails": 1, "project_number": 1, "active": 1},
+    )
+    async for j in job_cursor:
+        pn = (j.get("project_number") or "").strip()
+        if not pn:
+            continue
+        primary = (j.get("pm_email") or "").strip().lower()
+        if primary:
+            by_email.setdefault(primary, set()).add(pn)
+        for e in (j.get("co_pm_emails") or []):
+            if isinstance(e, str) and e.strip():
+                by_email.setdefault(e.strip().lower(), set()).add(pn)
+
+    # 3. Roll up "reports filed in the last 7 days for each PM's jobs".
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    collections = [
+        "inspections", "meetings", "incidents", "daily_reports",
+        "equipment_inspections", "qaqc_inspections", "job_hazard_plans",
+    ]
+    items = []
+    for pm in pms:
+        email = (pm.get("email") or "").strip().lower()
+        nums = by_email.get(email, set())
+        reports_7d = 0
+        if nums:
+            for coll in collections:
+                try:
+                    n = await db[coll].count_documents({
+                        "project_number": {"$in": list(nums)},
+                        "created_at": {"$gte": cutoff},
+                    })
+                    reports_7d += n
+                except Exception:  # noqa: BLE001
+                    # Some collections may not have either field; skip safely.
+                    pass
+        items.append({
+            **public_pm_view(pm),
+            "job_count": len(nums),
+            "reports_7d": reports_7d,
+        })
+    return {"items": items, "since": cutoff, "collections": collections}
 
 
 # ------------------------- Models -------------------------
@@ -2171,9 +2254,18 @@ async def list_jobs_public():
 
 
 @api_router.get("/admin/jobs")
-async def admin_list_jobs(_: bool = Depends(require_admin)):
+async def admin_list_jobs(actor=Depends(require_admin)):
+    """List jobs. Admin sees all; per-PM sees only jobs they're primary
+    or co-PM on (matches the data-scoping rules applied to safety
+    records). Legacy shared-PM tokens see all (the office bypass)."""
     from jobs_master import list_jobs
-    return {"items": await list_jobs(db, only_active=False)}
+    from pm_auth import compute_pm_scope
+    items = await list_jobs(db, only_active=False)
+    scope = await compute_pm_scope(db, actor)
+    if not scope.is_admin:
+        nums = scope.project_numbers or set()
+        items = [j for j in items if (j.get("project_number") or "") in nums]
+    return {"items": items}
 
 
 @api_router.post("/admin/jobs")
@@ -2206,9 +2298,15 @@ async def admin_delete_job(job_id: str, _: bool = Depends(require_admin)):
 
 
 @api_router.get("/admin/jobs/archive")
-async def admin_jobs_archive(_: bool = Depends(require_admin)):
+async def admin_jobs_archive(actor=Depends(require_admin)):
     from jobs_master import list_archived_jobs
-    return {"items": await list_archived_jobs(db), "retain_days": SOFT_DELETE_RETAIN_DAYS}
+    from pm_auth import compute_pm_scope
+    items = await list_archived_jobs(db)
+    scope = await compute_pm_scope(db, actor)
+    if not scope.is_admin:
+        nums = scope.project_numbers or set()
+        items = [j for j in items if (j.get("project_number") or "") in nums]
+    return {"items": items, "retain_days": SOFT_DELETE_RETAIN_DAYS}
 
 
 @api_router.post("/admin/jobs/{job_id}/restore")
@@ -2783,12 +2881,16 @@ def _coerce_float(v: Any, default: float = 0.0) -> float:
 
 
 @api_router.get("/admin/projects/list")
-async def list_projects_in_dailies(_: bool = Depends(require_admin)):
+async def list_projects_in_dailies(actor=Depends(require_admin)):
     """Return distinct {project_number, project_name} tuples seen across all
     daily reports — gives the P&L picker a curated dropdown so users don't
-    have to type project numbers from memory."""
+    have to type project numbers from memory.
+
+    PMs see only projects from THEIR jobs (primary or co-PM)."""
+    from pm_auth import compute_pm_scope
+    scope = await compute_pm_scope(db, actor)
     pipeline = [
-        {"$match": {"project_number": {"$nin": [None, ""]}}},
+        {"$match": scope.filter({"project_number": {"$nin": [None, ""]}})},
         {"$group": {
             "_id": "$project_number",
             "project_name": {"$last": "$project_name"},
@@ -2819,7 +2921,7 @@ async def project_pnl(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     labor_rate: Optional[float] = None,
-    _: bool = Depends(require_admin),
+    actor=Depends(require_admin),
 ):
     """Live job-cost dashboard for one project + date range.
 
@@ -2829,9 +2931,18 @@ async def project_pnl(
       - material_lines (one row per ticket)
       - cost_summary (labor cost, sub cost — sub cost left blank unless rate set)
       - report_count, date_range_actual
+
+    PMs can only pull P&L for their own jobs (primary or co-PM). Admins
+    and legacy bypass see all.
     """
     if not project_number:
         raise HTTPException(status_code=400, detail="project_number is required")
+
+    # Per-PM scope check — block leakage to projects this PM isn't on.
+    from pm_auth import compute_pm_scope
+    scope = await compute_pm_scope(db, actor)
+    if not scope.allows(project_number):
+        raise HTTPException(status_code=404, detail="Project not found in your assignments")
 
     rate = labor_rate if labor_rate and labor_rate > 0 else DEFAULT_LABOR_RATE
 

@@ -180,10 +180,93 @@ async def set_pm_disabled(db, pm_id: str, disabled: bool) -> Optional[dict]:
     return await find_pm_by_id(db, pm_id)
 
 
-async def stamp_login(db, pm_id: str) -> None:
-    await db.project_managers.update_one(
-        {"id": pm_id}, {"$set": {"last_login_at": now_iso()}}
+async def stamp_login(db, pm_id: str, ip: Optional[str] = None) -> None:
+    """Update the heartbeat fields after a successful per-PM login. Used
+    by the admin Activity panel to spot ghost sessions, fired employees
+    whose token is still in use, etc."""
+    fields: dict = {"last_login_at": now_iso()}
+    if ip:
+        fields["last_login_ip"] = ip
+    await db.project_managers.update_one({"id": pm_id}, {"$set": fields})
+
+
+# ----- Per-PM data scoping -----------------------------------------------
+
+class PmScope:
+    """Resolved data-visibility scope for the current request.
+
+    ``is_admin`` — admin token / legacy shared-PM bypass (no filtering).
+    ``project_numbers`` — set of canonical project_number strings the PM
+    is assigned to (primary OR co-PM). When ``is_admin`` is True the set
+    is always None.
+    """
+
+    __slots__ = ("is_admin", "project_numbers", "pm")
+
+    def __init__(self, *, is_admin: bool, project_numbers=None, pm=None):
+        self.is_admin = is_admin
+        self.project_numbers = project_numbers  # Optional[set[str]]
+        self.pm = pm  # Optional[dict]
+
+    def filter(self, query: Optional[dict] = None) -> dict:
+        """Return a Mongo filter dict that ANDs in the PM's project scope.
+        Admin → returns the original query unchanged. PM with 0 jobs →
+        returns an impossible filter so they see nothing (instead of
+        seeing everything by accident)."""
+        q = dict(query or {})
+        if self.is_admin:
+            return q
+        nums = list(self.project_numbers or [])
+        if not nums:
+            # No assigned jobs → no records at all.
+            q["__pm_empty_scope__"] = True
+            return q
+        # Match on project_number (case-insensitive) — store records use
+        # the same dropdown values as jobs_master so equality works for
+        # 99% of cases. Some legacy records have whitespace differences
+        # though, so the regex approach normalizes both sides.
+        q["project_number"] = {"$in": nums}
+        return q
+
+    def allows(self, project_number: Optional[str]) -> bool:
+        """Used by single-record GETs to decide whether the PM can read
+        a given record. Admin → always True. PM → only if the record's
+        project_number is in their assigned set."""
+        if self.is_admin:
+            return True
+        if not project_number:
+            return False
+        return project_number in (self.project_numbers or set())
+
+
+async def compute_pm_scope(db, actor) -> PmScope:
+    """Resolve a PmScope for the request actor returned by
+    ``require_admin``. Admin / legacy shared bypass → ``is_admin=True``.
+    Per-PM dict → looks up every job assigned to this PM (primary OR
+    co-PM, active OR inactive — historical reports stay visible) and
+    returns the set of project_numbers."""
+    if actor is True or not isinstance(actor, dict):
+        return PmScope(is_admin=True)
+    email = (actor.get("email") or "").strip().lower()
+    if not email:
+        return PmScope(is_admin=True)
+    # Pull every job where this PM is primary OR appears in co_pm_emails.
+    cursor = db.jobs_master.find(
+        {
+            "$or": [
+                {"pm_email": email},
+                {"co_pm_emails": email},
+            ],
+            "deleted_at": {"$in": [None, ""]},
+        },
+        {"_id": 0, "project_number": 1},
     )
+    nums = set()
+    async for j in cursor:
+        pn = (j.get("project_number") or "").strip()
+        if pn:
+            nums.add(pn)
+    return PmScope(is_admin=False, project_numbers=nums, pm=actor)
 
 
 def public_pm_view(pm: dict) -> dict:

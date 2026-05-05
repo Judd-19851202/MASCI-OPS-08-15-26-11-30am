@@ -20,6 +20,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
+from pm_auth import compute_pm_scope
+
 
 # ============================================================
 # Inspections
@@ -272,8 +274,10 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return inspection
 
     @api_router.get("/inspections", response_model=List[InspectionSummary])
-    async def list_inspections(_: bool = Depends(require_admin)):
+    async def list_inspections(actor=Depends(require_admin)):
+        scope = await compute_pm_scope(db, actor)
         pipeline = [
+            {"$match": scope.filter({})},
             {"$sort": {"created_at": -1}},
             {"$limit": 1000},
             {"$project": {
@@ -309,9 +313,12 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/inspections/{inspection_id}")
-    async def get_inspection(inspection_id: str, _: bool = Depends(require_admin)):
+    async def get_inspection(inspection_id: str, actor=Depends(require_admin)):
         doc = await db.inspections.find_one({"id": inspection_id}, {"_id": 0})
         if not doc:
+            raise HTTPException(status_code=404, detail="Inspection not found")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(doc.get("project_number")):
             raise HTTPException(status_code=404, detail="Inspection not found")
         return doc
 
@@ -333,9 +340,10 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return meeting
 
     @api_router.get("/meetings", response_model=List[MeetingSummary])
-    async def list_meetings(_: bool = Depends(require_admin)):
+    async def list_meetings(actor=Depends(require_admin)):
+        scope = await compute_pm_scope(db, actor)
         cursor = db.meetings.find(
-            {},
+            scope.filter({}),
             {"_id": 0, "id": 1, "project_name": 1, "location": 1, "meeting_date": 1,
              "conducted_by": 1, "topic": 1, "topic_category": 1, "attendees": 1, "created_at": 1},
         ).sort("created_at", -1)
@@ -356,9 +364,12 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/meetings/{meeting_id}")
-    async def get_meeting(meeting_id: str, _: bool = Depends(require_admin)):
+    async def get_meeting(meeting_id: str, actor=Depends(require_admin)):
         doc = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
         if not doc:
+            raise HTTPException(status_code=404, detail="Meeting not found")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(doc.get("project_number")):
             raise HTTPException(status_code=404, detail="Meeting not found")
         return doc
 
@@ -380,9 +391,10 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return jha
 
     @api_router.get("/jhas", response_model=List[JhaSummary])
-    async def list_jhas(_: bool = Depends(require_admin)):
+    async def list_jhas(actor=Depends(require_admin)):
+        scope = await compute_pm_scope(db, actor)
         cursor = db.jhas.find(
-            {},
+            scope.filter({}),
             {"_id": 0, "id": 1, "project_name": 1, "location": 1, "jha_date": 1,
              "crew_lead": 1, "job_title": 1, "task_steps": 1, "crew_signoffs": 1, "created_at": 1},
         ).sort("created_at", -1)
@@ -403,9 +415,12 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/jhas/{jha_id}")
-    async def get_jha(jha_id: str, _: bool = Depends(require_admin)):
+    async def get_jha(jha_id: str, actor=Depends(require_admin)):
         doc = await db.jhas.find_one({"id": jha_id}, {"_id": 0})
         if not doc:
+            raise HTTPException(status_code=404, detail="JHP not found")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(doc.get("project_number")):
             raise HTTPException(status_code=404, detail="JHP not found")
         return doc
 
@@ -427,8 +442,10 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return incident
 
     @api_router.get("/incidents", response_model=List[IncidentSummary])
-    async def list_incidents(_: bool = Depends(require_admin)):
+    async def list_incidents(actor=Depends(require_admin)):
+        scope = await compute_pm_scope(db, actor)
         pipeline = [
+            {"$match": scope.filter({})},
             {"$sort": {"created_at": -1}},
             {"$limit": 1000},
             {"$project": {
@@ -457,9 +474,12 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/incidents/{incident_id}")
-    async def get_incident(incident_id: str, _: bool = Depends(require_admin)):
+    async def get_incident(incident_id: str, actor=Depends(require_admin)):
         doc = await db.incidents.find_one({"id": incident_id}, {"_id": 0})
         if not doc:
+            raise HTTPException(status_code=404, detail="Incident not found")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(doc.get("project_number")):
             raise HTTPException(status_code=404, detail="Incident not found")
         return doc
 
