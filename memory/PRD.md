@@ -1,5 +1,79 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-04 — P0 Bug Fixes: PM Tile Drilldown + Daily Report Time Format
+
+Two production bugs reported by field crews. Both root-caused, fixed, and verified.
+
+### Bug #1 — PM/Admin tile counts vs empty list pages + missing back button
+
+**User report:** *"in admin & pm portal all tiles like daily reports, equipment ops, project snapshots, etc shows reports in them but when clicked on pulls up no reports are inside also no back button to PM portal or admin when in either only to hub page"*
+
+**Root cause:** All 8 PM-portal tiles were routing to `/admin/<dashboard>` paths (e.g., `/admin/daily`, `/admin/incidents`). The `EnforcePortalScope` rule shipped earlier the same week wipes the PM token the moment the URL leaves `/pm/*`. Cascade:
+1. PM clicks "Daily Reports" tile from `/pm` → routes to `/admin/daily`
+2. `EnforcePortalScope` sees PM token + path outside `/pm/*` → calls `clearPmToken()`
+3. Destination dashboard mounts, fires `api.get("/daily-reports")` with no token
+4. Backend returns 401, axios catch shows empty list
+5. `useHubHome()` → `isPm()` is now false (token was just cleared) → returns `/` instead of `/pm` → header logo links to public Hub instead of PM portal
+
+Admin side worked because admin tiles already route inside `/admin/*` so admin token survived.
+
+**Fix:** Added 13 PM-namespaced route aliases in `App.js` mounting the EXACT same dashboard components used by `/admin/*`:
+```
+/pm/daily            → DailyReportsDashboard       /pm/daily/:id       → ViewDailyReport
+/pm/incidents        → IncidentsDashboard          /pm/incidents/:id   → ViewIncident
+/pm/meetings         → MeetingsDashboard           /pm/meetings/:id    → ViewMeeting
+/pm/inspections      → Dashboard                   /pm/inspections/:id → ViewInspection
+/pm/jha-plans        → JhaPlansAdmin
+/pm/trench-boxes     → TrenchBoxesAdmin
+/pm/equipment        → EquipmentDashboard          /pm/equipment/:id   → ViewEquipmentInspection
+/pm/pnl              → ProjectPnlPage
+```
+All wrapped with `AP(...)` so admin tokens are also accepted (admin deep-links into `/pm/...` URLs still work).
+
+`PmHub.jsx` updated — all 8 tile destinations switched from `/admin/<x>` to `/pm/<x>`. PM session now stays inside `/pm/*` for the entire drill-down session. `useHubHome()` correctly returns `/pm` so the header logo + back button send users home to the PM portal, not to the public Hub.
+
+**Verified end-to-end (preview):**
+- `/pm` → click "Daily Reports" tile → routes to `/pm/daily` (was `/admin/daily`) ✅
+- PM token survives the navigation ✅
+- 5 daily reports rendered (was 0) ✅
+- Header back button: `← PM` visible top-left, M logo links to `/pm` (was `/`) ✅
+- Equipment tile: same flow, routes to `/pm/equipment`, token survives, list populates ✅
+
+### Bug #2 — Daily Report PDF showing military time + unclear total label
+
+**User report:** *"on daily reports showing military time & the time total looks funny & not correct"*
+
+**Root cause:** `pdf_render.py` was rendering raw `start_time` / `stop_time` / visitor `time_in,time_out` / equipment `time_delivered,time_removed` strings as 24-hour HH:MM. The math behind the totals was actually correct (07:00 → 17:30 with 30-min lunch = 10.0h net) but military time made it impossible for a field reader to sanity-check at a glance — and the totals row was just labeled `Total` with no clarification it meant total *hours*.
+
+**Fix:** New helper `_fmt_time_12h()` in `pdf_render.py` parses HH:MM (with optional seconds) and returns h:MM AM/PM via `strftime("%-I:%M %p")`. Garbage / None / blank values pass through untouched so we never silently drop data. Applied to:
+- `04 · MASCI Crews on Site` → Start, Stop columns
+- `06 · Visitors` → Time In, Time Out columns
+- `07 · Equipment Log` → Time Delivered, Time Removed columns
+- Totals row label changed from `Total` to `Total Hours` for clarity
+
+**Verified (sample render):**
+| Input | Output |
+|---|---|
+| `07:00` | `7:00 AM` |
+| `17:30` | `5:30 PM` |
+| `00:00` | `12:00 AM` |
+| `12:30` | `12:30 PM` |
+| `garbage` | `garbage` (passthrough) |
+| `None` / `''` | `''` |
+
+PDF render of a 2-crew Daily Report with visitors + equipment: 14/14 assertions pass — all 8 time fields converted, "Total Hours" label appears, "16.00" total visible, **zero** military-time leaks (`17:30`, `14:30`, `17:00`, `06:30` all absent from the rendered PDF text).
+
+### Files touched
+- **MODIFIED** `frontend/src/App.js` — 13 new `/pm/*` route aliases
+- **MODIFIED** `frontend/src/pages/PmHub.jsx` — 8 tile destinations switched from `/admin/<x>` to `/pm/<x>`
+- **MODIFIED** `backend/pdf_render.py` — new `_fmt_time_12h()` helper + applied to crew/visitor/equipment time columns + totals row label
+
+ESLint + Ruff clean. Backend restarted clean, `/api/health` 200.
+
+### Deploy reminder
+Frontend + backend changes. Push fresh build to `mascidocs.com`. The next time a field crew submits a Daily Report, the PDF will use 12-hour AM/PM. PMs will be able to drill down through every dashboard tile immediately on the new build.
+
+
 ## 2026-05-04 — Red M Banner Wired Into Resend Transactional Emails (brand parity complete)
 
 User accepted the brand-parity proposal. Transactional emails (auto-routed to PMs whenever a Daily Report / Equipment Pre-Op / QA-QC / Safety Meeting / Incident / Site Inspection is filed) now carry the same red-M banner as the OG card, favicon, PWA icons, and in-UI mobile headers.

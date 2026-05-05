@@ -208,7 +208,7 @@ export default function PmHub() {
             <TrainingStatsStripe />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
             <PmTile
-              to="/admin/pnl"
+              to="/pm/pnl"
               icon={TrendingUp}
               title="Project P&L Snapshot"
               count={counts.daily}
@@ -217,7 +217,7 @@ export default function PmHub() {
               testId="pm-tile-pnl"
             />
             <PmTile
-              to="/admin/daily"
+              to="/pm/daily"
               icon={ClipboardList}
               title="Daily Reports"
               count={counts.daily}
@@ -226,7 +226,7 @@ export default function PmHub() {
               testId="pm-tile-daily"
             />
             <PmTile
-              to="/admin/inspections"
+              to="/pm/inspections"
               icon={ClipboardCheck}
               title="Site Inspections"
               count={counts.inspections}
@@ -235,7 +235,7 @@ export default function PmHub() {
               testId="pm-tile-inspections"
             />
             <PmTile
-              to="/admin/meetings"
+              to="/pm/meetings"
               icon={Users}
               title="Safety Meetings"
               count={counts.meetings}
@@ -244,7 +244,7 @@ export default function PmHub() {
               testId="pm-tile-meetings"
             />
             <PmTile
-              to="/admin/jha-plans"
+              to="/pm/jha-plans"
               icon={FileText}
               title="Job Hazard Plans"
               count={counts.jhaPlans}
@@ -253,7 +253,7 @@ export default function PmHub() {
               testId="pm-tile-jha-plans"
             />
             <PmTile
-              to="/admin/trench-boxes"
+              to="/pm/trench-boxes"
               icon={Box}
               title="Trench Box Data"
               count={counts.trenchBoxes}
@@ -262,7 +262,7 @@ export default function PmHub() {
               testId="pm-tile-trench-boxes"
             />
             <PmTile
-              to="/admin/incidents"
+              to="/pm/incidents"
               icon={AlertOctagon}
               title="Incident Reports"
               count={counts.incidents}
@@ -271,7 +271,7 @@ export default function PmHub() {
               testId="pm-tile-incidents"
             />
             <PmTile
-              to="/admin/equipment"
+              to="/pm/equipment"
               icon={Wrench}
               title="Equipment Pre-Op"
               count={counts.equipment}

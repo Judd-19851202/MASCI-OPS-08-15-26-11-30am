@@ -218,6 +218,27 @@ function App() {
             <Route path="/pm" element={P(<PmHub />)} />
             <Route path="/pm/qaqc" element={P(<PmQaqcList />)} />
 
+            {/* PM-namespaced aliases for the shared dashboards. Same
+                components as /admin/* — routing them under /pm/* keeps
+                the EnforcePortalScope rule happy (PM session survives
+                drill-down) AND lets useHubHome() return "/pm" so the
+                back-link goes home to the PM portal, not to the public
+                Hub. AP wrappers accept both admin and PM tokens so an
+                admin who deep-links into a /pm/... URL still works. */}
+            <Route path="/pm/daily" element={AP(<DailyReportsDashboard />)} />
+            <Route path="/pm/daily/:id" element={AP(<ViewDailyReport />)} />
+            <Route path="/pm/incidents" element={AP(<IncidentsDashboard />)} />
+            <Route path="/pm/incidents/:id" element={AP(<ViewIncident />)} />
+            <Route path="/pm/meetings" element={AP(<MeetingsDashboard />)} />
+            <Route path="/pm/meetings/:id" element={AP(<ViewMeeting />)} />
+            <Route path="/pm/inspections" element={AP(<Dashboard />)} />
+            <Route path="/pm/inspections/:id" element={AP(<ViewInspection />)} />
+            <Route path="/pm/jha-plans" element={AP(<JhaPlansAdmin />)} />
+            <Route path="/pm/trench-boxes" element={AP(<TrenchBoxesAdmin />)} />
+            <Route path="/pm/equipment" element={AP(<EquipmentDashboard />)} />
+            <Route path="/pm/equipment/:id" element={AP(<ViewEquipmentInspection context="admin" />)} />
+            <Route path="/pm/pnl" element={AP(<ProjectPnlPage />)} />
+
             {/* ============================================================
                 Shop Console — mechanics-only view, separate password
                 ============================================================ */}

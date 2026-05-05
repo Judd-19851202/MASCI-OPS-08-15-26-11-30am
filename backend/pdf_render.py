@@ -44,6 +44,25 @@ def _fmt_date(d: Optional[str]) -> str:
         return d
 
 
+def _fmt_time_12h(t: Optional[str]) -> str:
+    """Convert a 24-hour 'HH:MM' (or 'HH:MM:SS') string to '12-hour h:MM AM/PM'.
+    Anything we can't parse is returned untouched so we never silently
+    drop a value the user typed in. Used in the Daily Report crew /
+    visitor / equipment time columns — field crews read AM/PM far
+    faster than military time, and the difference between e.g. 07:00
+    and 17:30 reads as 10.5 h much more obviously when shown as
+    '7:00 AM → 5:30 PM'."""
+    if not t:
+        return ""
+    s = str(t).strip()
+    for fmt in ("%H:%M:%S", "%H:%M"):
+        try:
+            return datetime.strptime(s, fmt).strftime("%-I:%M %p")
+        except Exception:
+            pass
+    return s
+
+
 def _e(v: Any) -> str:
     """Escape and stringify any value safely."""
     if v is None:
@@ -174,14 +193,16 @@ def _render_daily(d: Dict[str, Any]) -> str:
             body_rows.append([
                 c.get("name") or "",
                 c.get("trade") or c.get("role") or "",
-                c.get("start_time") or "",
-                c.get("stop_time") or "",
+                _fmt_time_12h(c.get("start_time")),
+                _fmt_time_12h(c.get("stop_time")),
                 str(c.get("lunch_minutes") or "") + (" min" if c.get("lunch_minutes") else ""),
                 c.get("hours") or "",
                 c.get("work_performed") or "",
             ])
-        # Append a totals row
-        body_rows.append(["", "", "", "", "<b>Total</b>", f"<b>{total_hours:.2f}</b>", ""])
+        # Append a totals row. Show "Total Hours" label alongside the
+        # numeric total so the field reader can sanity-check the math
+        # against the Start → Stop columns above.
+        body_rows.append(["", "", "", "", "<b>Total Hours</b>", f"<b>{total_hours:.2f}</b>", ""])
         rows.append(
             _section(
                 "04 · MASCI Crews on Site",
@@ -225,8 +246,8 @@ def _render_daily(d: Dict[str, Any]) -> str:
                             v.get("name") or "",
                             v.get("company") or "",
                             v.get("purpose") or "",
-                            v.get("time_in") or "",
-                            v.get("time_out") or "",
+                            _fmt_time_12h(v.get("time_in")),
+                            _fmt_time_12h(v.get("time_out")),
                         ]
                         for v in visitors
                     ],
@@ -245,8 +266,8 @@ def _render_daily(d: Dict[str, Any]) -> str:
                         [
                             e.get("description") or e.get("name") or "",
                             e.get("hours_used") or "",
-                            e.get("time_delivered") or "",
-                            e.get("time_removed") or "",
+                            _fmt_time_12h(e.get("time_delivered")),
+                            _fmt_time_12h(e.get("time_removed")),
                             e.get("notes") or "",
                         ]
                         for e in equip
