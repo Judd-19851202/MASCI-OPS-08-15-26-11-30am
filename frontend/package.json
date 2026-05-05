@@ -59,6 +59,8 @@
     "zod": "^3.24.4"
   },
   "scripts": {
+    "stamp-version": "node scripts/stamp-build-version.js",
+    "prebuild": "node scripts/stamp-build-version.js",
     "start": "craco start",
     "build": "craco build",
     "test": "craco test"

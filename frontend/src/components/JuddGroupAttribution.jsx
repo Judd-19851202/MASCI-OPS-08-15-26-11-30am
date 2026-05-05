@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import juddLogo from "@/assets/judd-group-logo.png";
+import { BUILD_VERSION, BUILT_AT_ISO } from "@/buildVersion.generated";
 
 /**
  * JuddGroupAttribution — platform ownership line, three render modes.
@@ -79,7 +80,15 @@ export function JuddGroupAttribution({ variant = "global", className = "" }) {
         className="hover:text-slate-700 underline-offset-2 hover:underline"
       >
         Privacy
-      </Link>
+      </Link>{" "}
+      ·{" "}
+      <span
+        title={`Built ${BUILT_AT_ISO}`}
+        data-testid="build-version-stamp"
+        className="cursor-help select-all"
+      >
+        {BUILD_VERSION}
+      </span>
     </div>
   );
 }
