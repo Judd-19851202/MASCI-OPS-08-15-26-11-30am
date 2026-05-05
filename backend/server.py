@@ -1399,6 +1399,64 @@ async def admin_set_pm_password(
     }
 
 
+@api_router.post("/admin/project-managers/{pm_id}/welcome-pdf")
+async def admin_pm_welcome_pdf(
+    pm_id: str, body: PMSetPasswordBody, _: bool = Depends(require_admin_strict)
+):
+    """One-shot: issue (or rotate) a PM password AND return a one-page
+    welcome PDF the admin can hand to the PM along with the temp pw.
+
+    Body shape matches ``/admin/project-managers/{id}/set-password`` —
+    optional ``password`` field; if omitted, a 10-char temp pw is
+    generated. The PDF embeds the temp pw in a tear-off block at the
+    bottom so the admin can shred it after the PM has logged in.
+    """
+    from pm_auth import (
+        find_pm_by_id,
+        generate_temp_password,
+        public_pm_view,
+        set_pm_password,
+    )
+    from pm_welcome_pdf import render_pm_welcome_pdf
+
+    pm = await find_pm_by_id(db, pm_id)
+    if not pm:
+        raise HTTPException(status_code=404, detail="PM not found")
+    if body.password and len(body.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    plain = body.password or generate_temp_password(10)
+    updated = await set_pm_password(db, pm_id, plain, must_change=True)
+    if not updated:
+        raise HTTPException(status_code=500, detail="Failed to set password")
+
+    portal_url = (
+        os.environ.get("PORTAL_URL", "").strip()
+        or os.environ.get("PRODUCTION_URL", "").strip()
+        or "https://mascidocs.com"
+    )
+    try:
+        pdf_bytes = render_pm_welcome_pdf(
+            public_pm_view(updated),
+            temp_password=plain,
+            portal_url=portal_url,
+        )
+    except Exception as e:  # noqa: BLE001
+        # If PDF rendering breaks for any reason, the password was still
+        # rotated — surface a clean error so the admin can retry just
+        # the PDF step (or fall back to the manual key-icon flow).
+        raise HTTPException(
+            status_code=500,
+            detail=f"Password set, but PDF rendering failed: {e}",
+        )
+    safe_name = (updated.get("name") or "pm").replace(" ", "_")
+    fname = f"MASCI_PM_Welcome_{safe_name}.pdf"
+    return _FastAPIResponse(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+    )
+
+
 @api_router.post("/admin/project-managers/{pm_id}/disable")
 async def admin_set_pm_disabled(
     pm_id: str, body: dict, _: bool = Depends(require_admin_strict)

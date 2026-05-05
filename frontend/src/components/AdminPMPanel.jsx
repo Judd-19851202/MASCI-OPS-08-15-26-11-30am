@@ -13,6 +13,7 @@ import {
   Download,
   KeyRound,
   Copy,
+  FileText,
   Lock,
   ShieldOff,
   ShieldCheck,
@@ -635,11 +636,14 @@ export default function AdminPMPanel() {
                 : `Issue password for ${pwTargetPm?.name}`}
             </DialogTitle>
             <DialogDescription className="leading-relaxed">
-              You can either let the system generate a secure 10-character
-              temporary password (recommended) or set a custom one. Either
-              way, the PM will be forced to choose their own password on
-              their next login. The new password is shown ONCE — copy it
-              before closing the dialog.
+              Three options:
+              <strong> Generate &amp; download Welcome PDF</strong> mints a temp
+              password AND downloads a one-page handoff letter for the PM
+              (recommended — print it, hand it over, shred after they log in).
+              <strong> Generate &amp; show on screen</strong> just shows the temp
+              password in a copy dialog if you'd rather text/call them.
+              Or type a <strong>custom</strong> password below. The PM
+              must rotate to their own on first login regardless.
             </DialogDescription>
           </DialogHeader>
 
@@ -681,20 +685,39 @@ export default function AdminPMPanel() {
               Cancel
             </Button>
             {customPw.length === 0 ? (
-              <Button
-                onClick={() => submitSetPassword("generate")}
-                disabled={pwBusy}
-                className="bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide"
-                data-testid="pm-set-password-generate"
-              >
-                {pwBusy ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating…
-                  </>
-                ) : (
-                  <>Generate &amp; Issue</>
-                )}
-              </Button>
+              <>
+                <Button
+                  onClick={() => submitSetPassword("generate")}
+                  disabled={pwBusy}
+                  variant="outline"
+                  className="font-bold uppercase tracking-wide"
+                  data-testid="pm-set-password-generate"
+                >
+                  {pwBusy ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> …
+                    </>
+                  ) : (
+                    <>Generate &amp; show on screen</>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => submitSetPassword("welcome-pdf")}
+                  disabled={pwBusy}
+                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide"
+                  data-testid="pm-set-password-welcome-pdf"
+                >
+                  {pwBusy ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> …
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4 mr-1" /> Generate &amp; download Welcome PDF
+                    </>
+                  )}
+                </Button>
+              </>
             ) : (
               <Button
                 onClick={() => submitSetPassword("custom")}

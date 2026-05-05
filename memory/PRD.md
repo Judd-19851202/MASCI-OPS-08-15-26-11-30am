@@ -1,5 +1,31 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-05 — PM Welcome PDF (one-page handoff letter)
+
+**User request:** *"Want me to draft a one-page 'Welcome to the new PM portal' PDF you can hand to each PM along with their temp password? yes!"*
+
+### What was built
+- **`/app/backend/pm_welcome_pdf.py`** — WeasyPrint generator for a single-page Letter-size welcome letter. Embeds the MASCI lockup (top), red-M mark (footer), and a tear-off credential block at the bottom with the PM's email + temp pw in a dark banner. Layout: 4 numbered onboarding steps + 2 side-by-side info cards ("What you'll see" / "If you forget your password") + tear-off.
+- **New endpoint `POST /api/admin/project-managers/{pm_id}/welcome-pdf`** (admin-strict) — atomically mints a temp password AND returns the PDF as `application/pdf` attachment. Body shape matches `set-password` (optional `password` field; auto-generates 10-char if omitted).
+- **AdminPMPanel** — Reset-password dialog now has 3 buttons: Cancel · Generate & Show on Screen · Generate & Download Welcome PDF (the new orange primary button with FileText icon). Description rewritten to explain all three options.
+
+### Verified end-to-end (preview)
+- Backend returns 200 with valid PDF (828 KB) in <1 sec. Header `%PDF-1.7` confirmed.
+- Visual analysis (Gemini-Flash on the rendered output): 7/7 verification points ✓ — logo at top, PM name in headline, 4 numbered steps, 2 info cards, tear-off banner with the temp pw `PueSDXkw3Q` confirmed inserted, single page, professional design.
+- Frontend dialog renders all 3 buttons; description text reads cleanly.
+- Backend test passes lint; no regressions to other set-password / disable / activity endpoints.
+
+### Files touched
+- `/app/backend/pm_welcome_pdf.py` (NEW)
+- `/app/backend/server.py` (new `/welcome-pdf` endpoint)
+- `/app/frontend/src/components/AdminPMPanel.jsx` (3-button dialog + blob-download flow)
+
+### Notes for prod
+- The PDF embeds full lockup + red-M from `/app/frontend/public/`. Production pulls those from the same path so the PDF will look identical post-deploy.
+- Endpoint defaults to `https://mascidocs.com` for the portal URL on the letter; can be overridden with `PORTAL_URL` env var if subdomain ever changes.
+
+
+
 ## 2026-05-05 — Pre-Deploy Full System Audit (Cross-Browser × Cross-Device)
 
 **User request:** *"Need to run a complete system check of all systems... no bugs in any systems & everything works as it should & is smooth, fast & looks amazing & most importantly works flawlessly before i redeploy. This includes for all computer types & browsers also for all mobile devices apple or android of any system."*
