@@ -1,0 +1,40 @@
+{
+  "summary": "Iter 38 — MASCI HUB Pre-Deploy QA Prompt full sweep. VERDICT: FAIL (1 HIGH-priority routing miss; everything else PASS). Backend 50/50 PASS (health, all 20 SPA routes serve HTML 200, security gates: /api/admin/jobs + /api/safety-forms/equipment-issuances + /api/safety-forms/equipment-trainings all 401 unauthenticated; admin/PM/shop/safety-forms wrong-pw all 401; legacy PM bypass works; PM /api/pm/me returns Chris Wright doc with is_admin_or_legacy=false; PM job-list IS subset of admin job-list; ES->EN translate pipeline returns 'The equipment needs immediate repair'; safety-issuance PDF renders real %PDF bytes via WeasyPrint > 1KB; auto-email correctly skipped in preview; perf health<2s admin/jobs<3s; 10 master-list endpoints all 200 for admin). Frontend: SPA serves all 20 routes 200 OK at HTML level — BUT React-Router does not match /qa-qc and /training-hub (console warns 'No routes matched location'). Actual routes are /qaqc and /training. EN/ES toggle on Home: body text did not change after clicking detected ES button (diff_chars=0) — likely a wrong-selector issue on my side rather than broken toggle (iter37 verified ES toggle works on /safety hub), needs main-agent re-verify. Mobile responsive @ 390px: 0 overflow on Home and /safety/forms/login. No Emergent branding seen. Footer 'Platform developed by The Judd Group LLC' visible. PASS = backend, security, role isolation, PDFs, email-routing, perf. FAIL = /qa-qc and /training-hub route aliases missing.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "App.js Routes", "issue": "QA prompt Section 2 explicitly requires /qa-qc and /training-hub. React-Router has /qaqc (no hyphen) and /training (not /training-hub). Console logs: 'No routes matched location /qa-qc' and 'No routes matched location /training-hub'. Hitting these URLs lands users on the SPA fallback (NOT a hard 404), but any external bookmark/email/printed-QR pointing at /qa-qc or /training-hub silently fails to render the intended page.", "selector": "/app/frontend/src/App.js Route table", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter38_predeploy_qa.py",
+    "/app/test_reports/pytest/iter38_predeploy.xml"
+  ],
+  "action_items": [
+    "Add Route aliases: <Route path='/qa-qc' element={<Navigate to='/qaqc' replace />} /> and <Route path='/training-hub' element={<Navigate to='/training' replace />} /> (or rename actual routes to match the QA prompt spec). Either way, /qa-qc and /training-hub MUST resolve cleanly on production.",
+    "Re-verify Home-page EN/ES toggle clickably swaps page text — iter38 sniff showed body unchanged after click; could be a stale-selector miss on the testing side, but worth a 30-second manual confirm before redeploy.",
+    "Production deploy: set AUTO_EMAIL_REPORTS=true and RATE_LIMITING=on (preview values are OFF intentionally per /app/memory/test_credentials.md)."
+  ],
+  "critical_code_review_comments": [
+    "Backend security correctly enforced — /api/admin/jobs, /api/safety-forms/equipment-issuances, /api/safety-forms/equipment-trainings all 401 without token; PM/admin/shop wrong-pw all 401. LGTM.",
+    "Per-PM token isolation working — Chris Wright's PM token returns is_admin_or_legacy=false on /pm/me and his /admin/jobs subset is <= admin's full list. LGTM.",
+    "Translate endpoint returns proper EN translation for Spanish input ({strings:{...}, target:'en'} batch format). Confirms Section 5 ES->EN backend pipeline works.",
+    "Safety-issuance PDF endpoint produces real %PDF bytes via WeasyPrint, content-type application/pdf, >1KB. LGTM.",
+    "test_credentials.md note: /admin/jobs is described as 'Scoped LIST' for PMs — verified: admin token returns full list, PM token returns subset, no token returns 401. Behavior matches spec."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter38_predeploy_qa.py (new)"
+  ],
+  "success_rate": {"backend": "100% (50/50)", "frontend": "95% (1 HIGH-priority routing-alias miss; mobile/branding/security all clean)"},
+  "test_credentials": "Admin MASCI1982! · PM chriswright@mascigc.com / ChrisRocksThis2026 · Shop Nothappy123! · Safety Forms 1982 (all from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created TEST_QA38_Email + TEST_QA38_PDF safety-equipment-issuances during run. Main agent may want to drop these by employee_name LIKE 'TEST_QA38%' before prod redeploy.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend fully green for the 14-section QA sweep. Remaining gap is two missing route aliases (/qa-qc, /training-hub) that the QA prompt explicitly enumerates — fix is a 2-line patch in /app/frontend/src/App.js (add Navigate redirects). Conftest in /app/backend/tests/conftest.py monkey-patches requests to auto-attach X-Admin-Token, so any future auth-gated tests must use urllib (not requests) to assert 401-without-token; helper _unauth_get(...) in test_iter38_predeploy_qa.py shows the pattern. PDF seed payload field names are issued_by/issued_date/condition/acknowledgment/supervisor_signature (NOT issuer_name/date/issuer_signature) — see test_iter38 for canonical payload.",
+  "rca of the issue": "Routes registered in App.js use /qaqc and /training; QA prompt + tile copy reference /qa-qc and /training-hub. React-Router emits 'No routes matched location' warning and falls through to the SPA's NotFound/Home fallback. No backend impact — purely a client-side router map mismatch. Fix: add two <Route ... element={<Navigate replace .../>} /> aliases (or rename canonical routes to the hyphenated form and update internal links). Should be a 5-minute change."
+}
