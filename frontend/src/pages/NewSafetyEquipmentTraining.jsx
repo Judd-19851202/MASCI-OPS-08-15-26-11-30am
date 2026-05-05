@@ -397,6 +397,25 @@ export default function NewSafetyEquipmentTraining() {
             </label>
           </Section>
 
+          {/* Optional employee email for CC */}
+          <Section
+            title={t("Email a Copy to Employee (optional)")}
+            desc={t("If provided, the employee will receive a copy of the signed PDF along with the Safety Department.")}
+          >
+            <Field label={t("Employee Email")}>
+              <Input
+                type="email"
+                inputMode="email"
+                autoComplete="off"
+                placeholder="name@example.com"
+                className={inputCls}
+                value={data.employee_email}
+                onChange={(e) => update({ employee_email: e.target.value })}
+                data-testid="trn-employee-email"
+              />
+            </Field>
+          </Section>
+
           <Section title={t("Signatures")}>
             <Field label={t("Employee Signature")} required>
               <SignaturePad

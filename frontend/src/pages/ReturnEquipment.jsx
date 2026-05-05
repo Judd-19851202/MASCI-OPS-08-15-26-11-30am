@@ -392,6 +392,29 @@ export default function ReturnEquipment() {
             </label>
           </Section>
 
+          {/* Optional employee email for CC */}
+          <Section
+            title={t("Email a Copy to Employee (optional)")}
+            desc={
+              issuance?.employee_email
+                ? t("Pre-filled from the original issuance. Edit or clear to change.")
+                : t("If provided, the employee will receive a copy of the signed receipt along with the Safety Department.")
+            }
+          >
+            <Field label={t("Employee Email")}>
+              <Input
+                type="email"
+                inputMode="email"
+                autoComplete="off"
+                placeholder="name@example.com"
+                className={inputCls}
+                value={data.employee_email}
+                onChange={(e) => update({ employee_email: e.target.value })}
+                data-testid="ret-employee-email"
+              />
+            </Field>
+          </Section>
+
           <Section title={t("Signatures")}>
             <Field label={t("Employee Signature")} required>
               <SignaturePad

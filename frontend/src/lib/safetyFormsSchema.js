@@ -128,6 +128,7 @@ export function buildIssuanceDefaults() {
   return {
     employee_name: "",
     employee_id: "",
+    employee_email: "",
     position: "",
     project_name: "",
     project_number: "",
@@ -148,6 +149,7 @@ export function buildTrainingDefaults() {
   return {
     employee_name: "",
     employee_id: "",
+    employee_email: "",
     position: "",
     project_name: "",
     project_number: "",
@@ -216,6 +218,9 @@ export function buildReturnDefaults(issuanceDoc) {
     check_in_date: todayLocalIso(),
     received_by: recallSupervisor(),
     return_notes: "",
+    // Pre-fill from the parent issuance so the supervisor doesn't
+    // have to retype it; still editable in case it changed.
+    employee_email: issuanceDoc?.employee_email || "",
     acknowledgment: false,
     employee_signature: "",
     supervisor_signature: "",

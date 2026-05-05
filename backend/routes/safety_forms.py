@@ -94,6 +94,7 @@ class IssuanceItem(BaseModel):
 class IssuanceBody(BaseModel):
     employee_name: str
     employee_id: Optional[str] = ""
+    employee_email: Optional[str] = ""  # optional CC on auto-email
     position: Optional[str] = ""
     project_name: Optional[str] = ""
     project_number: Optional[str] = ""
@@ -126,6 +127,7 @@ class TrainingItem(BaseModel):
 class TrainingBody(BaseModel):
     employee_name: str
     employee_id: Optional[str] = ""
+    employee_email: Optional[str] = ""  # optional CC on auto-email
     position: Optional[str] = ""
     project_name: Optional[str] = ""
     project_number: Optional[str] = ""
@@ -165,6 +167,7 @@ class ReturnBody(BaseModel):
     check_in_date: str  # YYYY-MM-DD
     received_by: str
     return_notes: Optional[str] = ""
+    employee_email: Optional[str] = ""  # optional CC on auto-email; if blank, falls back to parent issuance's employee_email
     acknowledgment: bool
     employee_signature: str
     supervisor_signature: str
@@ -618,6 +621,17 @@ def render_training_pdf(rec: Dict[str, Any]) -> bytes:
 # ─────────────────────────────────────────────────────────────────────
 
 
+import re
+
+# Quick-and-dirty syntactic email validator. We don't need RFC-compliant —
+# just enough to filter out typos before handing the value to Resend.
+_EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+
+def _looks_like_email(s: Optional[str]) -> bool:
+    return bool(s and _EMAIL_RE.match(s.strip()))
+
+
 def _email_recipients() -> List[str]:
     raw = os.environ.get(
         "SAFETY_FORMS_EMAIL_TO",
@@ -689,6 +703,15 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
                 {"filename": fname, "content": base64.b64encode(pdf_bytes).decode()}
             ],
         }
+        # CC the employee a copy if they supplied an email on the form.
+        # For Returns, we fall back to whatever email was on the parent
+        # issuance so the loop closes cleanly even if the supervisor
+        # didn't retype it.
+        emp_email = (rec.get("employee_email") or "").strip()
+        if kind == "return" and not emp_email:
+            emp_email = ((extra or {}).get("employee_email") or "").strip()
+        if _looks_like_email(emp_email) and emp_email.lower() not in {r.lower() for r in recipients}:
+            params["cc"] = [emp_email]
         if reply_to:
             params["reply_to"] = reply_to
         result = await asyncio.to_thread(resend.Emails.send, params)
