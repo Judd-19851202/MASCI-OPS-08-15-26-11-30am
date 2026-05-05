@@ -6263,6 +6263,13 @@ async def training_videos_put(
 app.include_router(api_router)
 
 
+# ------------------------- Date Audit (one-shot timezone-bug repair) -------------------------
+from routes.date_audit import build_date_audit_router  # noqa: E402
+
+_date_audit_router = build_date_audit_router(db, require_admin_strict)
+app.include_router(_date_audit_router)
+
+
 # ============================================================
 # Email a saved record as a PDF (Resend)
 # ============================================================

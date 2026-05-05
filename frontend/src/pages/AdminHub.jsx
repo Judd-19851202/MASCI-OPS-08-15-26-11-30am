@@ -39,6 +39,7 @@ import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 import SupplierMasterPanel from "@/components/SupplierMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import AdminTrainingResourcesPanel from "@/components/AdminTrainingResourcesPanel";
+import DateAuditPanel from "@/components/DateAuditPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { clearAdminToken } from "@/lib/adminAuth";
@@ -372,6 +373,9 @@ export default function AdminHub() {
 
           {/* Internal training packets + QR posters (Shop / PM / Admin) — relocated from public Training Hub */}
           <AdminTrainingResourcesPanel />
+
+          {/* One-shot timezone-bug sweep (added 2026-05-05) */}
+          <DateAuditPanel />
 
           {/* ============================================================
               BACKUP & RESTORE — every backup/recovery tool lives below
