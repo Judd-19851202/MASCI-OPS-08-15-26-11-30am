@@ -1,5 +1,49 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-04 — P0 Hotfix: Daily Report VIEW link still hardcoded to /admin
+
+**User report:** *"Still getting daily report not found message we i click view.... In PM Portal... Is this truly fixed & only doing this because this is a demo preview?"*
+
+**Answer:** Real bug, not a preview quirk. Earlier fix was incomplete.
+
+### What I missed in the previous patch
+
+The earlier fix (2026-05-04 17:30 UTC) repointed each dashboard row's `onClick={() => navigate("/${kind}/${id}")}` to `navigate("${pathname}/${id}")`. That works when a user clicks the row anywhere except on the per-row buttons.
+
+But each row ALSO has a `<Link>` "VIEW" button with `e.stopPropagation()` that intercepts the click before the row handler fires. The Link's `to` prop was still hardcoded to `/admin/<kind>/<id>` in all 5 dashboards. So:
+- PM clicks VIEW → `<Link to="/admin/daily/<id>">` navigates to `/admin/daily/<id>`
+- `EnforcePortalScope` sees PM token + path outside `/pm/*` → wipes PM token
+- `ViewDailyReport` mounts, fires `api.get("/daily-reports/<id>")` without auth → 401
+- catch fires `toast.error("Daily report not found")` → bounce
+- Exact symptom user reported.
+
+### Hotfix
+Switched all 5 dashboard `<Link to>` props from absolute `/admin/<kind>/<id>` to `${pathname}/${id}`:
+
+| File | Line | Before | After |
+|---|---|---|---|
+| `DailyReportsDashboard.jsx` | 178 | `to={\`/admin/daily/${it.id}\`}` | `to={\`${pathname}/${it.id}\`}` |
+| `EquipmentDashboard.jsx` | 175 | `to={\`/admin/equipment/${it.id}\`}` | same |
+| `IncidentsDashboard.jsx` | 171 | `to={\`/admin/incidents/${it.id}\`}` | same |
+| `MeetingsDashboard.jsx` | 154 | `to={\`/admin/meetings/${it.id}\`}` | same |
+| `Dashboard.jsx` | 210 | `to={\`/admin/inspections/${it.id}\`}` | same |
+
+`pathname` came from the `useLocation()` already added in the previous patch — no other infrastructure needed.
+
+### Verified end-to-end (preview)
+- PM logs in → `/pm/daily` → first View link href reads `/pm/daily/9aa02e33-…` (was `/admin/daily/…`)
+- Click VIEW → URL stays at `/pm/daily/9aa02e33-…`
+- PM token survives
+- H1 = "Daily Job Report" (was "not found" toast → bounce)
+- Header back-button reads `← DAILY REPORTS` linking to `/pm/daily` (was `/`)
+- Full report data renders: project, location, date, prepared by, all sections
+
+ESLint clean across all 5 files.
+
+### Deploy reminder
+Hotfix is in preview only. Production at `mascidocs.com` still has the broken bundle. Push a fresh build and the bug is resolved for every crew member who lands in PM portal.
+
+
 ## 2026-05-04 — P0 View-Page Fix + Inline Gross/Net Hours Preview
 
 ### Bug — clicking View on any PM-portal report → "Daily report not found"

@@ -151,7 +151,7 @@ export default function MeetingsDashboard() {
                   </div>
                   <div className="flex gap-2">
                     <Link
-                      to={`/admin/meetings/${it.id}`}
+                      to={`${pathname}/${it.id}`}
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
                       data-testid={`view-${it.id}`}
