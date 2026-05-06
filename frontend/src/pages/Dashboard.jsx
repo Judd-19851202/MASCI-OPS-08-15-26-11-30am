@@ -7,6 +7,7 @@ import HubBackLink, { useHubHome } from "@/components/HubBackLink";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import { GradePill } from "@/components/Grade";
+import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
@@ -164,8 +165,11 @@ export default function Dashboard() {
               </Button>
             </div>
           ) : (
-            <ul className="divide-y-2 divide-slate-100">
-              {items.map((it) => {
+            <JobFolderList
+              items={items}
+              dateField="inspection_date"
+              testIdPrefix="inspection-folders"
+              renderItem={(it) => {
                 const flagged = it.hazards_observed === "Yes" || it.stop_work_issued === "Yes";
                 const grade = it.score != null
                   ? {
@@ -178,8 +182,7 @@ export default function Dashboard() {
                     }
                   : null;
                 return (
-                  <li
-                    key={it.id}
+                  <div
                     onClick={() => navigate(`${pathname}/${it.id}`)}
                     className="p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3"
                     data-testid={`inspection-row-${it.id}`}
@@ -224,10 +227,10 @@ export default function Dashboard() {
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                  </li>
+                  </div>
                 );
-              })}
-            </ul>
+              }}
+            />
           )}
         </div>
       </main>

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import HubBackLink, { useHubHome } from "@/components/HubBackLink";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
+import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ export default function MeetingsDashboard() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const hubHome = useHubHome();
 
   const load = async () => {
@@ -122,10 +124,12 @@ export default function MeetingsDashboard() {
               </Button>
             </div>
           ) : (
-            <ul className="divide-y-2 divide-slate-100">
-              {items.map((it) => (
-                <li
-                  key={it.id}
+            <JobFolderList
+              items={items}
+              dateField="meeting_date"
+              testIdPrefix="meeting-folders"
+              renderItem={(it) => (
+                <div
                   onClick={() => navigate(`${pathname}/${it.id}`)}
                   className="p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3"
                   data-testid={`meeting-row-${it.id}`}
@@ -168,9 +172,9 @@ export default function MeetingsDashboard() {
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                </li>
-              ))}
-            </ul>
+                </div>
+              )}
+            />
           )}
         </div>
       </main>

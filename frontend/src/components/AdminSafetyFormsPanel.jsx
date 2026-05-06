@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import JobFolderList from "@/components/JobFolderList";
 import { api, API } from "@/lib/api";
 import { getAdminToken } from "@/lib/adminAuth";
 import { fmtMoney } from "@/lib/safetyFormsSchema";
@@ -220,93 +221,59 @@ export default function AdminSafetyFormsPanel() {
         </span>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto border border-slate-200 rounded">
-        <table className="w-full text-sm" data-testid="admin-sf-table">
-          <thead className="bg-slate-100">
-            <tr className="text-left font-mono text-[10px] uppercase tracking-wide text-slate-700">
-              <th className="px-3 py-2">Date</th>
-              <th className="px-3 py-2">Employee</th>
-              <th className="px-3 py-2">Project</th>
-              {tab === "issuance" ? (
-                <>
-                  <th className="px-3 py-2">Issued By</th>
-                  <th className="px-3 py-2">Items</th>
-                  <th className="px-3 py-2 text-right">Total $</th>
-                  <th className="px-3 py-2">Status</th>
-                </>
-              ) : (
-                <>
-                  <th className="px-3 py-2">Instructor</th>
-                  <th className="px-3 py-2">Equipment</th>
-                  <th className="px-3 py-2">Topics</th>
-                </>
-              )}
-              <th className="px-3 py-2 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.length === 0 && !loading && (
-              <tr>
-                <td colSpan="8" className="px-3 py-8 text-center text-slate-500 italic">
-                  No records.
-                </td>
-              </tr>
-            )}
-            {items.map((row) => {
+      {/* Records — grouped by job folder */}
+      <div className="border-2 border-slate-200 rounded-md overflow-hidden" data-testid="admin-sf-list">
+        {loading && items.length === 0 ? (
+          <div className="p-10 text-center text-slate-500">
+            <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />
+            Loading…
+          </div>
+        ) : (
+          <JobFolderList
+            items={items.map((row) => ({
+              ...row,
+              _sf_date: tab === "issuance" ? row.issued_date : row.training_date,
+            }))}
+            dateField="_sf_date"
+            testIdPrefix={`admin-sf-folders-${tab}`}
+            renderItem={(row) => {
               const date = tab === "issuance" ? row.issued_date : row.training_date;
               return (
-                <tr
-                  key={row.id}
-                  className="border-t border-slate-100 hover:bg-red-50/40"
+                <div
+                  className="p-4 sm:p-5 hover:bg-red-50 transition-colors duration-150"
                   data-testid={`admin-sf-row-${row.id}`}
                 >
-                  <td className="px-3 py-2 font-mono text-xs">{formatDateLong(date)}</td>
-                  <td className="px-3 py-2 font-medium">{row.employee_name}</td>
-                  <td className="px-3 py-2 text-xs">
-                    {row.project_name || "—"}
-                    {row.project_number ? (
-                      <span className="text-slate-500"> · {row.project_number}</span>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="inline-flex items-center px-2 py-0.5 bg-red-700 text-white text-[10px] font-mono uppercase tracking-wider rounded font-bold">
+                      {formatDateLong(date)}
+                    </span>
+                    <span className="font-display text-base font-bold text-slate-900 truncate">
+                      {row.employee_name}
+                    </span>
+                    {tab === "issuance" ? (
+                      row.status === "returned" ? (
+                        <span
+                          className="inline-block px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-800 border border-emerald-300"
+                          title={
+                            row.return?.chargeback?.total
+                              ? `Chargeback: ${fmtMoney(row.return.chargeback.total)}`
+                              : "Returned in full"
+                          }
+                        >
+                          Returned
+                          {row.return?.chargeback?.total ? (
+                            <span className="ml-1 text-red-700 font-bold">
+                              · {fmtMoney(row.return.chargeback.total)}
+                            </span>
+                          ) : null}
+                        </span>
+                      ) : (
+                        <span className="inline-block px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-300">
+                          Out
+                        </span>
+                      )
                     ) : null}
-                  </td>
-                  {tab === "issuance" ? (
-                    <>
-                      <td className="px-3 py-2 text-xs">{row.issued_by}</td>
-                      <td className="px-3 py-2 text-xs">{(row.items || []).length}</td>
-                      <td className="px-3 py-2 text-right font-bold">
-                        {fmtMoney(row.total_value)}
-                      </td>
-                      <td className="px-3 py-2">
-                        {row.status === "returned" ? (
-                          <span
-                            className="inline-block px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-800 border border-emerald-300"
-                            title={
-                              row.return?.chargeback?.total
-                                ? `Chargeback: ${fmtMoney(row.return.chargeback.total)}`
-                                : "Returned in full"
-                            }
-                          >
-                            Returned
-                            {row.return?.chargeback?.total ? (
-                              <span className="ml-1 text-red-700 font-bold">· {fmtMoney(row.return.chargeback.total)}</span>
-                            ) : null}
-                          </span>
-                        ) : (
-                          <span className="inline-block px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-300">
-                            Out
-                          </span>
-                        )}
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td className="px-3 py-2 text-xs">{row.instructor_name}</td>
-                      <td className="px-3 py-2 text-xs">{(row.items || []).length}</td>
-                      <td className="px-3 py-2 text-xs">{(row.topics || []).length}</td>
-                    </>
-                  )}
-                  <td className="px-3 py-2 text-right">
-                    <div className="inline-flex items-center gap-1">
+                    <div className="ml-auto inline-flex items-center gap-1">
                       <Link
                         to={`/safety/forms/${tab === "issuance" ? "equipment-issuance" : "equipment-training"}/${row.id}`}
                         className="inline-flex items-center justify-center w-8 h-8 rounded border-2 border-slate-200 text-slate-700 hover:border-slate-900 hover:text-slate-900"
@@ -317,7 +284,9 @@ export default function AdminSafetyFormsPanel() {
                       </Link>
                       <button
                         type="button"
-                        onClick={() => downloadPdf(row.id, tab === "issuance" ? "Issuance" : "Training")}
+                        onClick={() =>
+                          downloadPdf(row.id, tab === "issuance" ? "Issuance" : "Training")
+                        }
                         className="inline-flex items-center justify-center w-8 h-8 rounded border-2 border-red-200 text-red-700 hover:border-red-700 hover:bg-red-50"
                         title="Download PDF"
                         data-testid={`admin-sf-pdf-${row.id}`}
@@ -325,12 +294,27 @@ export default function AdminSafetyFormsPanel() {
                         <Download className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mt-1 flex flex-wrap gap-x-3">
+                    {tab === "issuance" ? (
+                      <>
+                        <span>By: {row.issued_by}</span>
+                        <span>{(row.items || []).length} item{(row.items || []).length === 1 ? "" : "s"}</span>
+                        <span className="font-bold text-slate-700">{fmtMoney(row.total_value)}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Instructor: {row.instructor_name}</span>
+                        <span>{(row.items || []).length} equipment</span>
+                        <span>{(row.topics || []).length} topics</span>
+                      </>
+                    )}
+                  </div>
+                </div>
               );
-            })}
-          </tbody>
-        </table>
+            }}
+          />
+        )}
       </div>
     </section>
   );

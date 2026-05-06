@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import HubBackLink, { useHubHome } from "@/components/HubBackLink";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
+import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
@@ -130,12 +131,14 @@ export default function IncidentsDashboard() {
               </Button>
             </div>
           ) : (
-            <ul className="divide-y-2 divide-slate-100">
-              {items.map((it) => {
+            <JobFolderList
+              items={items}
+              dateField="incident_date"
+              testIdPrefix="incident-folders"
+              renderItem={(it) => {
                 const sev = severityOf(it.severity);
                 return (
-                  <li
-                    key={it.id}
+                  <div
                     onClick={() => navigate(`${pathname}/${it.id}`)}
                     className="p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3"
                     data-testid={`incident-row-${it.id}`}
@@ -185,10 +188,10 @@ export default function IncidentsDashboard() {
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                  </li>
+                  </div>
                 );
-              })}
-            </ul>
+              }}
+            />
           )}
         </div>
       </main>

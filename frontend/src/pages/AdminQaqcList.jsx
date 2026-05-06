@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ClipboardCheck, Download, Loader2, Search } from "lucide-react";
+import { ArrowLeft, ClipboardCheck, Download, Loader2, Search, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
+import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
 import { getAdminToken } from "@/lib/adminAuth";
 
@@ -118,42 +119,43 @@ export default function AdminQaqcList() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-10 text-slate-500 italic">No QA/QC inspections yet.</div>
         ) : (
-          <div className="bg-white border-2 border-slate-300 rounded-md overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b-2 border-slate-200">
-                <tr className="text-left">
-                  <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Date</th>
-                  <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Kind</th>
-                  <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Project</th>
-                  <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Location</th>
-                  <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Inspector</th>
-                  <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 text-right">Pass / Fail / N/A</th>
-                  <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 text-right">Photos</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((r) => (
-                  <tr key={r.id} className="border-b border-slate-100 hover:bg-emerald-50/40" data-testid={`qaqc-row-${r.id}`}>
-                    <td className="px-3 py-2 text-slate-900">
-                      <Link to={`/qaqc/${r.id}`} className="hover:text-emerald-700 font-medium">
-                        {r.inspection_date}
-                      </Link>
-                    </td>
-                    <td className="px-3 py-2 text-slate-600">{KIND_LABEL[r.inspection_kind] || r.inspection_kind}</td>
-                    <td className="px-3 py-2 text-slate-900 font-medium">
-                      {r.project_name}
-                      {r.project_number && <span className="text-slate-400 text-xs ml-1">· {r.project_number}</span>}
-                    </td>
-                    <td className="px-3 py-2 text-slate-600">{r.location}</td>
-                    <td className="px-3 py-2 text-slate-600">{r.inspector_name}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">
-                      <span className="text-emerald-700">{r.pass_count}</span> / <span className="text-red-700 font-bold">{r.fail_count}</span> / <span className="text-slate-500">{r.na_count}</span>
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600">{r.photo_count}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="bg-white border-2 border-slate-300 rounded-md overflow-hidden">
+            <JobFolderList
+              items={filtered}
+              dateField="inspection_date"
+              testIdPrefix="qaqc-folders"
+              renderItem={(r) => (
+                <Link
+                  to={`/qaqc/${r.id}`}
+                  className="block p-4 sm:p-5 hover:bg-emerald-50 transition-colors duration-150"
+                  data-testid={`qaqc-row-${r.id}`}
+                >
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="inline-flex items-center px-2 py-0.5 bg-emerald-700 text-white text-[10px] font-mono uppercase tracking-wider rounded font-bold">
+                      {r.inspection_date}
+                    </span>
+                    <span className="inline-flex items-center px-2 py-0.5 bg-slate-200 text-slate-700 text-[10px] font-mono uppercase tracking-wider rounded">
+                      {KIND_LABEL[r.inspection_kind] || r.inspection_kind}
+                    </span>
+                    <span className="font-display text-base font-bold text-slate-900 truncate">
+                      {r.location || r.project_name}
+                    </span>
+                    <span className="ml-auto text-xs tabular-nums">
+                      <span className="text-emerald-700 font-bold">{r.pass_count}</span>
+                      <span className="text-slate-400"> / </span>
+                      <span className="text-red-700 font-bold">{r.fail_count}</span>
+                      <span className="text-slate-400"> / </span>
+                      <span className="text-slate-500">{r.na_count}</span>
+                      <span className="text-slate-400 ml-3">📷 {r.photo_count}</span>
+                    </span>
+                  </div>
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mt-1">
+                    Inspector: {r.inspector_name || "—"}
+                    {r.subcontractor_name ? ` · Sub: ${r.subcontractor_name}` : ""}
+                  </div>
+                </Link>
+              )}
+            />
           </div>
         )}
       </main>

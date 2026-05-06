@@ -14,6 +14,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import HubBackLink, { useHubHome } from "@/components/HubBackLink";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import { LangToggle } from "@/components/LangToggle";
+import JobFolderList from "@/components/JobFolderList";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
@@ -132,10 +133,12 @@ export default function DailyReportsDashboard() {
               </Button>
             </div>
           ) : (
-            <ul className="divide-y-2 divide-slate-100">
-              {items.map((it) => (
-                <li
-                  key={it.id}
+            <JobFolderList
+              items={items}
+              dateField="report_date"
+              testIdPrefix="daily-folders"
+              renderItem={(it) => (
+                <div
                   onClick={() => navigate(`${pathname}/${it.id}`)}
                   className="p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3"
                   data-testid={`daily-row-${it.id}`}
@@ -192,9 +195,9 @@ export default function DailyReportsDashboard() {
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                </li>
-              ))}
-            </ul>
+                </div>
+              )}
+            />
           )}
         </div>
       </main>

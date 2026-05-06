@@ -3935,3 +3935,50 @@ Customer reported data loss after Emergent redeploy — in-container MongoDB and
 ### Test report
 - `/app/test_reports/iteration_38.json` — full pre-deploy QA sweep log
 - `/app/backend/tests/test_iter38_predeploy_qa.py` — pytest suite created by testing agent (50/50 pass)
+
+---
+
+## CHANGELOG · 2026-05-06 · Records & Forms — Job Folder Rollup
+
+**User request**: "in pm & admin portals could we place all info in Records & Forms tiles sorted into job folders? Example: if i clicked on daily report tile of Records & Forms now it list all jobs in whatever order reports came in vs sorted by job name."
+
+**User chose**: Pattern A (accordion folders) + most-recent-first folder sort + all collapsed by default + roll out to all 7 dashboards in admin + PM.
+
+### Built
+- **New reusable component**: `/app/frontend/src/components/JobFolderList.jsx`
+  - Groups any record list by `project_number` + `project_name`
+  - Sorts folders by max(dateField) DESC (newest activity first)
+  - All folders collapsed by default
+  - Per-folder header: chevron + folder icon + #PROJECT-NUMBER badge + project name + count badge + "Last activity:" timestamp
+  - Toolbar: search jobs (filters folder names), Expand All / Collapse All buttons
+  - Empty state + no-match state
+  - Bilingual (EN/ES) via existing i18n
+  - Full data-testid coverage (`{prefix}`, `{prefix}-search`, `{prefix}-expand-all`, `{prefix}-collapse-all`, `{prefix}-toggle-{number}`, `{prefix}-count-{number}`, `{prefix}-body-{number}`)
+
+### Wired into all 7 Records & Forms dashboards
+| File | Date field | testIdPrefix |
+|---|---|---|
+| `pages/DailyReportsDashboard.jsx` (admin + PM) | `report_date` | `daily-folders` |
+| `pages/Dashboard.jsx` (Site Inspections, admin + PM) | `inspection_date` | `inspection-folders` |
+| `pages/MeetingsDashboard.jsx` (admin + PM) | `meeting_date` | `meeting-folders` |
+| `pages/IncidentsDashboard.jsx` (admin + PM) | `incident_date` | `incident-folders` |
+| `pages/EquipmentDashboard.jsx` (admin + PM Pre-Op) | `inspection_date` | `equipment-folders` |
+| `pages/AdminQaqcList.jsx` + `pages/PmQaqcList.jsx` | `inspection_date` | `qaqc-folders` / `pm-qaqc-folders` |
+| `components/AdminSafetyFormsPanel.jsx` (Issuance + Training tabs) | `_sf_date` (synthesised) | `admin-sf-folders-{tab}` |
+
+### Notes
+- All existing per-row content preserved verbatim (badges, status pills, View/Delete buttons, OSHA-recordable flags, FAIL highlights, score grades)
+- QA/QC and Safety Forms converted from `<table>` to card-style rows for visual consistency with the other 5 dashboards
+- Fixed pre-existing latent bug in `MeetingsDashboard.jsx`: `pathname` was referenced but never destructured from `useLocation`
+- Lint clean across all 9 modified files
+- Smoke-tested in admin: 5/6 dashboards verified rendering folders with correct counts, search, and expand/collapse working. QA/QC tested empty (no records in preview DB).
+
+### Translation strings added (EN/ES)
+- "Search jobs…" / "Buscar trabajos…"
+- "Clear search" / "Borrar búsqueda"
+- "Expand All" / "Expandir Todo"
+- "Collapse All" / "Colapsar Todo"
+- "Last activity:" / "Última actividad:"
+- "No jobs match" / "Ningún trabajo coincide"
+- "No records yet." / "Aún no hay registros."
+- "(No Job)" / "(Sin Trabajo)"

@@ -8,6 +8,7 @@ import { ShareFormDialog } from "@/components/ShareFormDialog";
 import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
 import OpenItemsPanel from "@/components/OpenItemsPanel";
 import ShopActivityFeed from "@/components/ShopActivityFeed";
+import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
@@ -134,13 +135,15 @@ export default function EquipmentDashboard() {
               </Button>
             </div>
           ) : (
-            <ul className="divide-y-2 divide-slate-100">
-              {items.map((it) => {
+            <JobFolderList
+              items={items}
+              dateField="inspection_date"
+              testIdPrefix="equipment-folders"
+              renderItem={(it) => {
                 const fail = (it.fail_count || 0) > 0;
                 const cleared = it.cleared || (fail && (it.signoff_count || 0) >= it.fail_count);
                 return (
-                  <li
-                    key={it.id}
+                  <div
                     onClick={() => navigate(`${pathname}/${it.id}`)}
                     className={`p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3 ${
                       fail && !cleared ? "border-l-4 border-red-700" : cleared ? "border-l-4 border-emerald-600" : ""
@@ -189,10 +192,10 @@ export default function EquipmentDashboard() {
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                  </li>
+                  </div>
                 );
-              })}
-            </ul>
+              }}
+            />
           )}
         </div>
       </main>
