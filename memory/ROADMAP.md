@@ -6,6 +6,53 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ## 🅿️ PARKED — Awaiting User Green Light
 
+### 🚛 Motive Fleet Watcher Integration
+- **Status**: PARKED by user on 2026-02 — *"keep it on the list of things to add in the future"*
+- **Priority when unparked**: P1 (huge ROI — Motive already knows almost everything crews currently type by hand)
+- **Why parked**: User wants other priorities first; Motive can wait.
+- **Reminder trigger**: Surface during any conversation about reducing Pre-Op friction, fleet visibility, incident documentation, or "what should we add next?"
+
+**Spec Summary (already mapped out — ready to scope on user's go):**
+
+Top 5 integrations ranked by MASCI impact:
+1. 🥇 **Equipment Pre-Op auto-fill** — odometer, engine hours, last DVIR, fault codes (DTCs), last 24-hr driver auto-pulled from Motive when operator picks unit. Cuts Pre-Op time from ~8 min → ~3 min.
+2. 🥈 **Equipment Master auto-sync** — nightly pull of Motive vehicle list into MASCI's `equipment_master`. New units appear in dropdowns automatically. Decommissioned units auto-flagged inactive. Ends manual roster maintenance forever.
+3. 🥉 **GPS verification on Daily Reports + Site Inspections** — cross-reference MASCI form GPS with Motive trip log. Auto-fill arrival/departure/hours-on-site. Flag phantom reports where unit was in yard but report claims work was done. Audit gold.
+4. 🏅 **Dashcam clips auto-attached to Incident Reports** — when an incident is filed for a unit, auto-pull the 60-sec dashcam clip from Motive bracketing the incident time. Embed in PDF. Insurance/legal killer feature.
+5. 🎖️ **Live fleet map on Admin Dashboard** — every unit pinned with status (active/idle/off/OOS). Click pin → today's daily report status, open Pre-Op fails, current driver, today's job site.
+
+Mid-tier opportunities:
+- 6. Fault code → Shop ticket (webhook-driven check-engine alerts auto-create Needs-Attention queue items)
+- 7. HOS clock on Pre-Op (CDL drivers see remaining drive time)
+- 8. Trip log → Daily Report pre-fill (miles driven, hours run, idle time)
+- 9. Geofence arrival → auto-Slack/email PM
+- 10. Per-driver safety scoring (harsh braking, speeding events)
+- 11. Monthly fuel/idle abuse reports
+
+**Tech approach (already designed):**
+- Base URL: `api.gomotive.com` (formerly KeepTruckin/api.keeptruckin.com)
+- Auth: API key from Motive dashboard → Settings → Integrations → API → Generate Key (free with existing Motive subscription)
+- Rate limit: 1000 req/min — plenty
+- Webhooks supported (real-time safety events / DVIR submissions)
+- New module: `/app/backend/integrations/motive.py`
+- Mongo cache collections: `motive_vehicles`, `motive_drivers`, `motive_trips`, `motive_events`
+- Single env var: `MOTIVE_API_KEY`
+- Nightly background job + on-demand calls + webhook receiver
+
+**Phase options when unparked:**
+- 🐢 **Phase 1a (1 day)**: Equipment master sync only
+- 🚙 **Phase 1b (2–3 days)**: Sync + Pre-Op auto-fill
+- 🚀 **Phase 1c (~1 week)**: Sync + Pre-Op + GPS verification + live fleet map
+- 🛡️ **Phase 2**: Dashcam clips on incidents (killer for insurance/legal)
+- 🔔 **Phase 3**: Webhook-driven fault codes, geofence alerts, safety scoring
+
+**Open questions when unparked:**
+- Top 3 features to ship in Phase 1
+- Approximate fleet size (informs polling vs webhook strategy)
+- Phase 1 scope choice
+
+---
+
 ### 📷 Photo-First Daily Report (Gallery Upload + AI Draft)
 - **Status**: PARKED by user on 2026-02 — *"Keep this for later rollout after crews learn the system... Will wait, remind me later."*
 - **Priority when unparked**: P1 (high ROI, ~2–3 hour build)
