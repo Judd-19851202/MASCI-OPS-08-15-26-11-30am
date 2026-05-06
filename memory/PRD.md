@@ -3982,3 +3982,42 @@ Customer reported data loss after Emergent redeploy — in-container MongoDB and
 - "No jobs match" / "Ningún trabajo coincide"
 - "No records yet." / "Aún no hay registros."
 - "(No Job)" / "(Sin Trabajo)"
+
+---
+
+## CHANGELOG · 2026-05-06 · Daily Report PDF Bug Fixes
+
+**Field foreman report** (Leandro Juarez): "filled out activity log & general notes — not showing on report in admin or PM portal or PDF. Also funky HTML letters showing in Work Performed column."
+
+### Three bugs in `/app/backend/pdf_render.py` — ALL fixed
+
+#### Bug 1 — Activities Performed PDF section blank (CRITICAL data loss appearance)
+- **Root cause**: PDF renderer at line 355-365 read `a.get("description")` but the frontend Daily Report form sends `activity` / `percent_complete` / `station_from` / `station_to` / `notes`. Every cell was None → table rendered with empty rows.
+- **Fix**: Renderer now reads all 5 actual frontend keys and renders them across columns "Activity / % Done / From / To / Notes", matching the on-screen view.
+
+#### Bug 2 — Raw HTML showing as text in "Work Performed" column (visible to crews)
+- **Root cause**: `_table()` runs every cell value through `_e()` which HTML-escapes the string. The crew-table builder injected raw `<div style='...'>gross/net summary</div>` strings + `<b>Total Hours</b>` into cells expecting them to render as markup. They were escaped → printed as literal `<div style='margin-top:4px;font-family:monospace;…'>` text in the PDF.
+- **Fix**: Introduced `_RawHtml` marker class. `_e()` checks for it and returns the unescaped HTML. Crew work-performed cell + Total Hours bold cells now wrap their HTML in `_RawHtml(...)`. All other cells continue to be HTML-escaped as before (XSS-safe).
+
+#### Bug 3 (latent) — User text not escaped within the raw-HTML cell
+- **Root cause**: When mixing user input with raw HTML, the user input was concatenated unescaped — meaning a crew member's "<test>" comment would render as broken markup.
+- **Fix**: User text inside `_RawHtml` cells now gets `escape()`-ed before concatenation. User text safe + intentional markup raw.
+
+### Files changed
+- `/app/backend/pdf_render.py`:
+  - Added `_RawHtml` class (lines 95-110)
+  - Updated `_e()` to skip escaping for `_RawHtml` instances
+  - Crew table builder now wraps gross/net summary cell in `_RawHtml(escape(wp) + summary_div)`
+  - Total Hours row wraps both label and total in `_RawHtml`
+  - Activities Performed section reads correct frontend keys (5 columns)
+
+### Verified
+- Lint clean
+- E2E: rendered real report `b9564cc5-f129-4745-982d-cce58465e5cb`:
+  - ✓ "Curb pour", "60%", "10+00" all render in Activities table
+  - ✓ "Smooth day." renders in General Notes
+  - ✓ No escaped `&lt;div` or `&lt;b&gt;` markers anywhere
+  - ✓ `<b>Total Hours</b>` and `<b>20.00</b>` render as bold (raw HTML preserved)
+
+### ⚠️ Production redeploy required
+This is in PREVIEW. Production daily-report PDFs on `mascidocs.com` are still showing escaped markup + empty Activities sections until redeployed.

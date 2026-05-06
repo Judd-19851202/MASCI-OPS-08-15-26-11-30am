@@ -94,10 +94,29 @@ def _fmt_time_12h(t: Optional[str]) -> str:
     return s
 
 
+class _RawHtml:
+    """Marker for an already-safe HTML string that must NOT be re-escaped
+    when passed through the table cell renderer. Used for cells that
+    intentionally embed inline styling, like the gross/net hours summary
+    line under each crew's work-performed text and the bold totals row.
+    """
+
+    __slots__ = ("html",)
+
+    def __init__(self, html: str):
+        self.html = html
+
+    def __str__(self) -> str:
+        return self.html
+
+
 def _e(v: Any) -> str:
-    """Escape and stringify any value safely."""
+    """Escape and stringify any value safely. Skips escaping for any
+    `_RawHtml` value so callers can opt-in to raw markup per-cell."""
     if v is None:
         return ""
+    if isinstance(v, _RawHtml):
+        return v.html
     return escape(str(v))
 
 
@@ -228,13 +247,18 @@ def _render_daily(d: Dict[str, Any]) -> str:
             summary = _gross_net_summary(
                 c.get("start_time"), c.get("stop_time"), c.get("lunch_minutes")
             )
-            wp_cell = wp
+            # The cell mixes the foreman's free-text (escape-safe) with an
+            # inline gross/net summary div (raw HTML) — wrap the whole thing
+            # in _RawHtml so the table renderer does not double-escape the
+            # markup we intentionally added.
             if summary:
-                wp_cell = (
-                    f"{wp}<div style='margin-top:4px;font-family:monospace;"
+                wp_cell: Any = _RawHtml(
+                    f"{escape(wp)}<div style='margin-top:4px;font-family:monospace;"
                     f"font-size:9px;color:#475569;letter-spacing:0.02em;'>"
-                    f"{summary}</div>"
+                    f"{escape(summary)}</div>"
                 )
+            else:
+                wp_cell = wp
             body_rows.append([
                 c.get("name") or "",
                 c.get("trade") or c.get("role") or "",
@@ -247,7 +271,15 @@ def _render_daily(d: Dict[str, Any]) -> str:
         # Append a totals row. Show "Total Hours" label alongside the
         # numeric total so the field reader can sanity-check the math
         # against the Start → Stop columns above.
-        body_rows.append(["", "", "", "", "<b>Total Hours</b>", f"<b>{total_hours:.2f}</b>", ""])
+        body_rows.append([
+            "",
+            "",
+            "",
+            "",
+            _RawHtml("<b>Total Hours</b>"),
+            _RawHtml(f"<b>{total_hours:.2f}</b>"),
+            "",
+        ])
         rows.append(
             _section(
                 "04 · MASCI Crews on Site",
@@ -354,12 +386,30 @@ def _render_daily(d: Dict[str, Any]) -> str:
 
     acts = d.get("activities") or []
     if acts:
+        # Foremen fill these 5 fields on the daily-report Activity Log
+        # (frontend keys: activity / percent_complete / station_from /
+        # station_to / notes). Earlier versions of this PDF expected a
+        # single `description` key — which silently rendered as empty
+        # cells and made the section appear blank in printed PDFs.
+        body_rows = []
+        for a in acts:
+            pct = a.get("percent_complete")
+            pct_cell = (
+                f"{pct}%" if pct not in (None, "", []) else ""
+            )
+            body_rows.append([
+                a.get("activity") or "",
+                pct_cell,
+                a.get("station_from") or "",
+                a.get("station_to") or "",
+                a.get("notes") or "",
+            ])
         rows.append(
             _section(
                 "09 · Activities Performed",
                 _table(
-                    ["Description"],
-                    [[a.get("description")] for a in acts],
+                    ["Activity", "% Done", "From", "To", "Notes"],
+                    body_rows,
                 ),
             )
         )
