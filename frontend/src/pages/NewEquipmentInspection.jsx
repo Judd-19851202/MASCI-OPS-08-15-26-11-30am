@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Save, Loader2, AlertOctagon, Plus, Wrench, Search } from "lucide-react";
+import { ArrowLeft, Save, Loader2, AlertOctagon, Plus, Wrench, Search, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -367,6 +367,31 @@ export default function NewEquipmentInspection({ publicMode = false }) {
     toast.success(`Unit loaded: ${u.unit_label}`);
   };
 
+  // Live gating: every FAIL needs a 10-char description AND a photo.
+  // Surface the count so the Submit button can disable itself + tell
+  // the user exactly what's missing instead of a post-tap toast error.
+  const failGating = useMemo(() => {
+    let failCount = 0;
+    let needPhoto = 0;
+    let needNote = 0;
+    Object.entries(data.checklist || {}).forEach(([, items]) => {
+      Object.entries(items || {}).forEach(([, res]) => {
+        if (res?.status === "fail") {
+          failCount += 1;
+          if (!res.photo) needPhoto += 1;
+          const note = (res.note || "").trim();
+          if (note.length < 10) needNote += 1;
+        }
+      });
+    });
+    return {
+      failCount,
+      needPhoto,
+      needNote,
+      blocked: needPhoto > 0 || needNote > 0,
+    };
+  }, [data.checklist]);
+
   const submit = async () => {
     if (saving) return;
     if (!data.project_name) return toast.error("Project name is required");
@@ -561,12 +586,18 @@ export default function NewEquipmentInspection({ publicMode = false }) {
             <LangToggle />
             <Button
               onClick={submit}
-              disabled={saving}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+              disabled={saving || failGating.blocked}
+              className="h-11 px-4 bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:border-slate-400"
               data-testid="submit-top-btn"
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
-              {t("Submit")}
+              {saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : failGating.blocked ? (
+                <Camera className="w-4 h-4 mr-1" />
+              ) : (
+                <Save className="w-4 h-4 mr-1" />
+              )}
+              {failGating.blocked ? t("Fix FAILs") : t("Submit")}
             </Button>
           </div>
         </div>
@@ -980,10 +1011,46 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           />
         </Section>
 
-        <div className="flex items-center justify-end gap-3">
-          <Button onClick={submit} disabled={saving} className="h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900" data-testid="submit-bottom-btn">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
-            {t("Submit Inspection")}
+        <div className="flex flex-col items-end gap-2">
+          {failGating.blocked && (
+            <p
+              className="text-sm text-red-700 font-bold text-right"
+              data-testid="equip-submit-fail-hint"
+            >
+              <Camera className="w-4 h-4 inline-block mr-1 -mt-0.5" />
+              {failGating.needPhoto > 0 && failGating.needNote > 0 ? (
+                <>
+                  {failGating.needPhoto} {failGating.needPhoto === 1 ? t("FAIL needs photo") : t("FAILs need photos")}
+                  {" · "}
+                  {failGating.needNote} {failGating.needNote === 1 ? t("FAIL needs description") : t("FAILs need descriptions")}
+                </>
+              ) : failGating.needPhoto > 0 ? (
+                <>
+                  {failGating.needPhoto} {failGating.needPhoto === 1 ? t("FAIL needs photo") : t("FAILs need photos")}
+                </>
+              ) : (
+                <>
+                  {failGating.needNote} {failGating.needNote === 1 ? t("FAIL needs description") : t("FAILs need descriptions")}
+                </>
+              )}
+            </p>
+          )}
+          <Button
+            onClick={submit}
+            disabled={saving || failGating.blocked}
+            className="h-12 px-6 bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:border-slate-400"
+            data-testid="submit-bottom-btn"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-1" />
+            ) : failGating.blocked ? (
+              <Camera className="w-4 h-4 mr-1" />
+            ) : (
+              <Save className="w-4 h-4 mr-1" />
+            )}
+            {failGating.blocked
+              ? t("Complete FAIL items to submit")
+              : t("Submit Inspection")}
           </Button>
         </div>
       </main>
