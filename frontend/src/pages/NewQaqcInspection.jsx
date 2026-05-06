@@ -166,7 +166,7 @@ export default function NewQaqcInspection() {
     if (!data.work_area.trim()) fails.push(t("Work Area / Station required."));
     if (!data.inspector_name) fails.push(t("Inspector name required."));
     if (!data.inspection_notes.trim()) fails.push(t("Inspection notes required."));
-    if (data.photos.length < 3) fails.push(t("Minimum 3 photos required."));
+    if (data.photos.length < 4) fails.push(t("Minimum 4 photos required."));
     if (!data.inspector_signature) fails.push(t("Inspector signature required."));
     if (failsWithoutNotes.length > 0)
       fails.push(t("Every Fail item needs a deficiency note."));
@@ -468,17 +468,16 @@ export default function NewQaqcInspection() {
             </Field>
           </Section>
 
-          <Section title={t("Photos")} desc={t("Upload at least 3 photos of the work area.")}>
+          <Section title={t("Photos")} desc={t("Upload at least 4 photos of the work area.")}>
             <PhotoUpload
-              value={data.photos}
+              photos={data.photos}
               onChange={(photos) => update({ photos })}
-              max={20}
             />
             <p className="text-[11px] text-slate-500 mt-1">
               {t("Uploaded:")}{" "}
               <span
                 className={
-                  data.photos.length >= 3
+                  data.photos.length >= 4
                     ? "text-emerald-700 font-bold"
                     : "text-red-700 font-bold"
                 }
@@ -487,7 +486,7 @@ export default function NewQaqcInspection() {
                 {data.photos.length}
               </span>
               {" / "}
-              <span className="font-mono">{t("min 3 required")}</span>
+              <span className="font-mono">{t("min 4 required")}</span>
             </p>
           </Section>
 

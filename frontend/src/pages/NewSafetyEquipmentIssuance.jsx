@@ -489,9 +489,8 @@ export default function NewSafetyEquipmentIssuance() {
           {/* Photos */}
           <Section title={t("Photos")} desc={t("Required — capture serial number and/or condition.")}>
             <PhotoUpload
-              value={data.photos}
+              photos={data.photos}
               onChange={(photos) => update({ photos })}
-              max={8}
             />
             <p className="text-[11px] text-slate-500 mt-1">
               {t("Uploaded:")}{" "}

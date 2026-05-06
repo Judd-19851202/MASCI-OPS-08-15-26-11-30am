@@ -1619,10 +1619,10 @@ const ES = {
   "Inspection Notes / Description": "Notas de Inspección / Descripción",
   "Deficiencies": "Deficiencias",
   "Corrective Actions Required": "Acciones Correctivas Requeridas",
-  "Upload at least 3 photos of the work area.":
-    "Suba al menos 3 fotos del área de trabajo.",
+  "Upload at least 4 photos of the work area.":
+    "Suba al menos 4 fotos del área de trabajo.",
   "Uploaded:": "Subidas:",
-  "min 3 required": "mín. 3 requeridas",
+  "min 4 required": "mín. 4 requeridas",
   "Inspector Signature": "Firma del Inspector",
   "Sub. Rep. Name (optional)": "Nombre del Rep. del Sub. (opcional)",
   "Sub. Rep. Signature (optional)": "Firma del Rep. del Sub. (opcional)",
@@ -1639,7 +1639,7 @@ const ES = {
   "Work Area / Station required.": "Área de Trabajo / Estación requerida.",
   "Inspector name required.": "Nombre del Inspector requerido.",
   "Inspection notes required.": "Notas de Inspección requeridas.",
-  "Minimum 3 photos required.": "Se requieren mínimo 3 fotos.",
+  "Minimum 4 photos required.": "Se requieren mínimo 4 fotos.",
   "Inspector signature required.": "Firma del Inspector requerida.",
   "Every Fail item needs a deficiency note.":
     "Cada punto No Cumple necesita una nota de deficiencia.",
