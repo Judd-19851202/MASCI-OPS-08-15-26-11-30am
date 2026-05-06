@@ -9,6 +9,7 @@ import {
   Trash2,
   MapPin,
   ShieldCheck,
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -565,27 +566,42 @@ export default function NewSafetyEquipmentIssuance() {
             </Field>
           </Section>
 
-          <div className="sticky bottom-0 bg-white border-t-2 border-red-700 -mx-5 sm:-mx-8 px-5 sm:px-8 py-3 flex justify-between items-center shadow-lg gap-3">
-            <div className="text-xs font-mono text-slate-600 truncate">
-              <ShieldCheck className="w-4 h-4 inline-block mr-1 text-red-700" />
-              {t("Auto-emails Safety dept on submit")}
+          <div className="sticky bottom-0 bg-white border-t-2 border-red-700 -mx-5 sm:-mx-8 px-5 sm:px-8 py-3 shadow-lg">
+            {data.photos.length < 1 && (
+              <p
+                className="text-xs text-red-700 font-bold mb-2 text-right"
+                data-testid="iss-submit-photos-hint"
+              >
+                <Camera className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" />
+                {t("Add at least 1 photo to submit")}
+              </p>
+            )}
+            <div className="flex justify-between items-center gap-3">
+              <div className="text-xs font-mono text-slate-600 truncate">
+                <ShieldCheck className="w-4 h-4 inline-block mr-1 text-red-700" />
+                {t("Auto-emails Safety dept on submit")}
+              </div>
+              <Button
+                type="submit"
+                disabled={saving || data.photos.length < 1}
+                className="bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed h-12 px-6 font-bold uppercase tracking-wide"
+                data-testid="iss-submit"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Submitting…")}
+                  </>
+                ) : data.photos.length < 1 ? (
+                  <>
+                    <Camera className="w-4 h-4 mr-2" /> {t("Photo required")}
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" /> {t("Submit & Email PDF")}
+                  </>
+                )}
+              </Button>
             </div>
-            <Button
-              type="submit"
-              disabled={saving}
-              className="bg-red-700 hover:bg-red-800 h-12 px-6 font-bold uppercase tracking-wide"
-              data-testid="iss-submit"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Submitting…")}
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" /> {t("Submit & Email PDF")}
-                </>
-              )}
-            </Button>
           </div>
         </form>
       </main>

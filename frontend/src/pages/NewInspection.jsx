@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Save, Loader2, MapPin } from "lucide-react";
+import { ArrowLeft, Save, Loader2, MapPin, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -130,6 +130,10 @@ export default function NewInspection({ publicMode = false }) {
     }
     if (!data.foreman_signature) {
       toast.error("Foreman / Supervisor signature is required");
+      return false;
+    }
+    if ((data.photos || []).length < 4) {
+      toast.error(t("Minimum 4 photos required."));
       return false;
     }
     return true;
@@ -561,12 +565,27 @@ export default function NewInspection({ publicMode = false }) {
           </div>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 block mb-2">
-              Photo Documentation
+              {t("Photo Documentation")}
             </Label>
             <PhotoUpload
               photos={data.photos}
               onChange={(photos) => set("photos", photos)}
             />
+            <p className="text-[11px] text-slate-500 mt-1">
+              {t("Uploaded:")}{" "}
+              <span
+                className={
+                  (data.photos || []).length >= 4
+                    ? "text-emerald-700 font-bold"
+                    : "text-red-700 font-bold"
+                }
+                data-testid="inspection-photo-count"
+              >
+                {(data.photos || []).length}
+              </span>
+              {" / "}
+              <span className="font-mono">{t("min 4 required")}</span>
+            </p>
           </div>
         </Section>
 
@@ -617,16 +636,34 @@ export default function NewInspection({ publicMode = false }) {
         </Section>
 
         <div className="pt-4">
+          {(data.photos || []).length < 4 && (
+            <p
+              className="text-center text-sm text-red-700 font-bold mb-2"
+              data-testid="inspection-submit-photos-hint"
+            >
+              <Camera className="w-4 h-4 inline-block mr-1 -mt-0.5" />
+              {t("Add")}{" "}
+              <span className="font-mono">{4 - (data.photos || []).length}</span>{" "}
+              {(data.photos || []).length === 3
+                ? t("more photo to submit")
+                : t("more photos to submit")}
+            </p>
+          )}
           <Button
             onClick={submit}
-            disabled={saving}
-            className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900"
+            disabled={saving || (data.photos || []).length < 4}
+            className="w-full h-16 bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900 disabled:border-slate-400"
             data-testid="submit-bottom-btn"
           >
             {saving ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 {t("Saving Inspection...")}
+              </>
+            ) : (data.photos || []).length < 4 ? (
+              <>
+                <Camera className="w-5 h-5 mr-2" />
+                {t("Need 4 photos to submit")}
               </>
             ) : (
               <>

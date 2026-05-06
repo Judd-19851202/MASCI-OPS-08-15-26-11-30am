@@ -9,6 +9,7 @@ import {
   X,
   CloudSun,
   AlertTriangle,
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1282,16 +1283,34 @@ export default function NewDailyReport({ publicMode = false }) {
         </Section>
 
         <div className="pt-4">
+          {photosCount < photoMin && (
+            <p
+              className="text-center text-sm text-red-700 font-bold mb-2"
+              data-testid="daily-submit-photos-hint"
+            >
+              <Camera className="w-4 h-4 inline-block mr-1 -mt-0.5" />
+              {t("Add")}{" "}
+              <span className="font-mono">{photoMin - photosCount}</span>{" "}
+              {photoMin - photosCount === 1
+                ? t("more photo to submit")
+                : t("more photos to submit")}
+            </p>
+          )}
           <Button
             onClick={submit}
-            disabled={saving}
-            className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900"
+            disabled={saving || photosCount < photoMin}
+            className="w-full h-16 bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900 disabled:border-slate-400"
             data-testid="submit-bottom-btn"
           >
             {saving ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />{" "}
                 {t("Saving Report...")}
+              </>
+            ) : photosCount < photoMin ? (
+              <>
+                <Camera className="w-5 h-5 mr-2" />{" "}
+                {t("Need")} {photoMin} {t("photos to submit")}
               </>
             ) : (
               <>
