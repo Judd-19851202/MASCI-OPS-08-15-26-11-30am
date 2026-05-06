@@ -7,6 +7,7 @@ import {
   ClipboardCheck,
   AlertTriangle,
   MapPin,
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -515,25 +516,44 @@ export default function NewQaqcInspection() {
             </Field>
           </Section>
 
-          <div className="sticky bottom-0 bg-white border-t-2 border-emerald-600 -mx-5 sm:-mx-8 px-5 sm:px-8 py-3 flex justify-end shadow-lg">
-            <Button
-              type="submit"
-              disabled={saving}
-              className="bg-emerald-600 hover:bg-emerald-700 h-12 px-6 font-bold"
-              data-testid="qaqc-submit"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  {t("Submitting…")}
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  {t("Submit Inspection")}
-                </>
-              )}
-            </Button>
+          <div className="sticky bottom-0 bg-white border-t-2 border-emerald-600 -mx-5 sm:-mx-8 px-5 sm:px-8 py-3 shadow-lg">
+            {data.photos.length < 4 && (
+              <p
+                className="text-xs text-red-700 font-bold mb-2 text-right"
+                data-testid="qaqc-submit-photos-hint"
+              >
+                {t("Add")}{" "}
+                <span className="font-mono">{4 - data.photos.length}</span>{" "}
+                {data.photos.length === 3
+                  ? t("more photo to submit")
+                  : t("more photos to submit")}
+              </p>
+            )}
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                disabled={saving || data.photos.length < 4}
+                className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed h-12 px-6 font-bold"
+                data-testid="qaqc-submit"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    {t("Submitting…")}
+                  </>
+                ) : data.photos.length < 4 ? (
+                  <>
+                    <Camera className="w-4 h-4 mr-2" />
+                    {t("Need 4 photos to submit")}
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    {t("Submit Inspection")}
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </main>
