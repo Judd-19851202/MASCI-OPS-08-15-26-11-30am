@@ -4021,3 +4021,40 @@ Customer reported data loss after Emergent redeploy — in-container MongoDB and
 
 ### ⚠️ Production redeploy required
 This is in PREVIEW. Production daily-report PDFs on `mascidocs.com` are still showing escaped markup + empty Activities sections until redeployed.
+
+---
+
+## CHANGELOG · 2026-05-07 · Deep Pre-Deploy QA Sweep (iter 39) — VERDICT: PASS
+
+**Context**: User legitimately called out that previous QA sweeps were too shallow — they missed bugs that crews then reported in production (photo thumbnails not rendering, escaped HTML in PDFs, empty activities sections, silent missed backups). This sweep was redesigned to ACTUALLY exercise critical flows end-to-end instead of just loading pages.
+
+### Six-phase audit completed
+1. **Static code audit** — 102 routes, no PhotoUpload prop mismatches, no console.log, no hardcoded localhost, no production-leaked TODOs, frontend builds clean (18s)
+2. **Deep PDF + data schema audit** — all 6 form-type PDFs render valid bytes (>5KB, %PDF magic, zero escaped HTML markers), all sample fields present in rendered output
+3. **Backend endpoint health** — all 4 auth gates 401 on bad creds, all admin endpoints 401 without token + 200 with token, translate API works ES→EN
+4. **Deep end-to-end form submission + photo upload + PDF generation** — actually uploaded photos and verified thumbnails render in DOM, actually submitted forms and verified records, actually generated PDFs and verified content (5 kinds direct render via pdf_render.render_record_pdf)
+5. **EN/ES leak hunt** — 7 hub/login pages tested. Zero English leaks for the watch list ['Quality Assurance','Submit Inspection','Back to Hub','Add Photo','Loading...','Logout','View All']. Admin login is intentionally English-only (internal staff)
+6. **Mobile + route hunt** — 14 routes 200 OK with substantive bodies, /qa-qc and /training-hub aliases redirect correctly, build version stamp v2026.05.07-4209543 present in footer
+
+### New persistent regression suite
+`/app/backend/tests/test_predeploy_iter39.py` — 29 tests covering:
+- Auth gate enforcement (4 logins)
+- Admin endpoint token enforcement (8 endpoints)
+- PM scoping (cannot hit admin endpoints, jobs subset)
+- ES→EN translate
+- PDF render for 5 record kinds (no escaped HTML in extracted text)
+- Daily Report PDF specifically asserts Activities Performed marker + General Notes marker (regression for Leandro's bug)
+- Footer "Judd Group" attribution
+
+**29/29 PASS — confirmed re-running after seed cleanup.**
+
+### Action items for production deploy
+- ✅ Redeploy approved
+- ⚠️ Set on production env: `AUTO_EMAIL_REPORTS=true` and `RATE_LIMITING=on` (preview leaves both off intentionally)
+- Test seed data cleaned (4 TEST_ITER39 records removed across collections)
+- (Optional, non-blocking): add EN/ES toggle to /admin/login if bilingual policy is universal
+
+### Test report
+- `/app/test_reports/iteration_39.json`
+- `/app/backend/tests/test_predeploy_iter39.py` (NEW — 29 tests, all green)
+- `/app/test_reports/pytest/iter39_results.xml`
