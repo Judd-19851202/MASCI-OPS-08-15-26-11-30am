@@ -1,0 +1,48 @@
+{
+  "summary": "Job Photos Library (Phase 1) regression — 13/13 backend pytest cases pass; frontend /admin/photos and /pm/photos both render correctly with PM scoping enforced. Pre-Op exclusion verified (no equipment_inspections sources in index).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "JobPhotosLibrary thumbnails",
+        "issue": "Photo thumbnails render as blank gray boxes in the expanded folder grid and console shows repeated 'Failed to load resource: net::ERR_INVALID_URL'. Source badge, date overlay and checkbox render correctly on top of the empty thumbnail. The lightbox opens with metadata and a working close (X) button. Likely cause: <img src> is set to an empty/undefined string before the lazy /raw fetch resolves, or the seeded TEST_ data URLs decode to non-renderable bytes. Worth verifying by either (a) gating the <img> render until data_url is fetched, or (b) only setting src after the GET /raw promise resolves.",
+        "selector": "img inside .grid (photo thumbnails)",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_job_photos.py",
+    "/app/test_reports/pytest/iter40_job_photos.xml"
+  ],
+  "action_items": [
+    "Investigate ERR_INVALID_URL console errors on /admin/photos thumbnail grid — guard <img src> from rendering until /job-photos/{id}/raw resolves (or fall back to an inline placeholder).",
+    "Optional: when a folder is expanded, prefetch all the /raw URLs for its photos in parallel (batched) instead of N sequential XHRs."
+  ],
+  "critical_code_review_comments": [
+    "routes/job_photos.py — index_record_photos always wipes prior rows for the source/source_id pair before re-inserting; that's correct for idempotency but means a transient empty `photos` list on a record (e.g. user re-saves with photos temporarily blank) will permanently delete the index entries. Consider only deleting when the new list has rows.",
+    "routes/job_photos.py:309 limit=5000 hardcoded — at 1080p the UI still renders the full set; once production has > 5000 photos the count and folder list will silently truncate. Add a 'limited=true' flag in the response when len(items) == 5000.",
+    "POST /job-photos/email returns HTTP 500 if RESEND_API_KEY is missing instead of a clearer 503/'email not configured' — minor, but improves observability.",
+    "Frontend: lightbox close handler is ESC + click X, but no overlay click-to-close (verified via screenshot — escape works). Optional polish.",
+    "Frontend: the lightbox container does not set role=\"dialog\" / aria-modal — accessibility miss; also makes automated tests harder to target. Add role=\"dialog\" and aria-label.",
+    "Both admin & pm pages have no data-testid on folder rows, checkboxes, lightbox, action bar, or re-index button — adding stable testids would let regression suites lock onto these without fragile text selectors."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_job_photos.py"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "90%"
+  },
+  "test_credentials": "Admin password MASCI1982! (worked); PM chriswright@mascigc.com / ChrisRocksThis2026 (worked). Conftest auto-attaches X-Admin-Token to all requests.* calls — tests that need to assert un-authed or PM-only paths must explicitly override with headers={'X-Admin-Token': ''}.",
+  "seed_data_creation": "None — relied on the existing 21 indexed TEST_ photos that were already present in the database from earlier iterations.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend Job Photos endpoints are solid (13/13 pytest pass at /app/backend/tests/test_job_photos.py). Pre-Op (equipment_inspections) is correctly excluded from SOURCE_COLLECTIONS. PM scoping enforced both at list and at /raw endpoint (403). Admin-only reindex enforced (PM gets 403). The only real frontend gap is that thumbnails render blank with ERR_INVALID_URL console errors — likely a guard-against-empty-src issue, not a backend bug (raw endpoint returns full data: URLs as expected). Folder expand, search box, source dropdown, lightbox open/close, PM scoping at the URL level (Total: 0 vs Admin Total: 21), and Re-index button visibility (admin only) all verified working.",
+  "rca of the issue": "Initial pytest run showed 2 'failures' (no_auth_rejected and pm_cannot_reindex returning 200). RCA: /app/backend/tests/conftest.py monkey-patches requests.api.request and Session.request to setdefault X-Admin-Token on every backend call, which masks both the 'no auth' and 'PM-only header' scenarios. Fix applied in test_job_photos.py: pm_headers fixture and the no-auth test explicitly pass X-Admin-Token: '' so setdefault is a no-op and the request hits the backend with the intended auth state. After the fix, both tests pass and the backend behaviour is verified to be correct (401 without auth, 403 for PM hitting admin reindex)."
+}

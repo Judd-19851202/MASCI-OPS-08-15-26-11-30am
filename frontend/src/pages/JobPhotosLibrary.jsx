@@ -62,7 +62,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
 
   // Load metadata
   useEffect(() => {
-    api.get("/api/job-photos").then(
+    api.get("/job-photos").then(
       (res) => setItems(res.data.items || []),
       () => {
         toast.error(t("Failed to load photos"));
@@ -121,7 +121,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
   const ensureThumb = async (id) => {
     if (thumbCache[id]) return;
     try {
-      const res = await api.get(`/api/job-photos/${id}/raw`);
+      const res = await api.get(`/job-photos/${id}/raw`);
       setThumbCache((p) => ({ ...p, [id]: res.data.data_url }));
     } catch {
       // soft fail — leave a placeholder
@@ -150,7 +150,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
     setBusy(true);
     try {
       const res = await api.post(
-        "/api/job-photos/zip",
+        "/job-photos/zip",
         { photo_ids: Array.from(selected) },
         { responseType: "blob" }
       );
@@ -180,7 +180,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
     }
     setBusy(true);
     try {
-      const res = await api.post("/api/job-photos/email", {
+      const res = await api.post("/job-photos/email", {
         photo_ids: Array.from(selected),
         ...emailForm,
       });
@@ -200,11 +200,11 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
   const reindex = async () => {
     setBusy(true);
     try {
-      const res = await api.post("/api/job-photos/admin/reindex");
+      const res = await api.post("/job-photos/admin/reindex");
       toast.success(
         t("Re-indexed {n} photos.").replace("{n}", res.data.total || 0)
       );
-      const r2 = await api.get("/api/job-photos");
+      const r2 = await api.get("/job-photos");
       setItems(r2.data.items || []);
     } catch {
       toast.error(t("Re-index failed"));
