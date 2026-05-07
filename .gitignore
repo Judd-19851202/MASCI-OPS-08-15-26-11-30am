@@ -557,3 +557,12 @@ credentials.json
 .credentials
 backend/backups/MASCI_full_backup_2026-05-07_094615Z.zip
 backend/backups/MASCI_full_backup_2026-05-07_095348Z.zip
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
