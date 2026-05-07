@@ -273,14 +273,13 @@ export default function Hub() {
               <>
                 {"Cada trabajo bajo control. Cada detalle dirigido. "}
                 <span className="text-red-700">Todo</span>
-                {" protegido"}
-                <span className="text-red-700">.</span>
+                {" protegido."}
               </>
             ) : (
               <>
                 {"Run Every Job. Control Every Detail. Protect "}
                 <span className="text-red-700">Everything</span>
-                <span className="text-red-700">.</span>
+                {"."}
               </>
             )}
           </h1>
