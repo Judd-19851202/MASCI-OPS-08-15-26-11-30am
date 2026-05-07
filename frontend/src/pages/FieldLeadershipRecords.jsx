@@ -7,7 +7,7 @@
 // Actions: open record view, download PDF, export CSV, soft-delete (admin only).
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft, Search, FileDown, FileText, Trash2, ListChecks,
 } from "lucide-react";
@@ -21,21 +21,20 @@ import {
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
-import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600";
 
 export default function FieldLeadershipRecords() {
   const { t, lang } = useT();
-  const navigate = useNavigate();
   const admin = isAdmin();
 
-  useEffect(() => {
-    if (!getLeadershipToken() && !admin) {
-      navigate("/leadership", { replace: true });
-    }
-  }, [admin, navigate]);
+  // Auth is enforced by the backend (admin / PM / leadership token all
+  // accepted). If the call returns 401, the API interceptor clears the
+  // matching token and the route guards on the calling page handle the
+  // redirect — we don't pre-empt with a client-side redirect because we
+  // can't always tell synchronously which token type the user has yet
+  // (the PM session may have just been hydrated from localStorage).
 
   const [items, setItems] = useState([]);
   const [counts, setCounts] = useState({});
@@ -169,21 +168,21 @@ export default function FieldLeadershipRecords() {
 
         {/* FILTERS */}
         <Card className="mt-6 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
-          <Input placeholder={t("Employee")} value={employee} onChange={(e) => setEmployee(e.target.value)} className={inputCls} data-testid="filter-employee" />
-          <Input placeholder={t("Job # or Name")} value={job} onChange={(e) => setJob(e.target.value)} className={inputCls} data-testid="filter-job" />
-          <Input placeholder={t("Supervisor")} value={supervisor} onChange={(e) => setSupervisor(e.target.value)} className={inputCls} data-testid="filter-supervisor" />
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={inputCls} data-testid="filter-date-from" />
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={inputCls} data-testid="filter-date-to" />
-          <Input placeholder={t("Search…")} value={q} onChange={(e) => setQ(e.target.value)} className={inputCls} data-testid="filter-q" />
+          <Input placeholder={t("Employee")} value={employee} onChange={(e) => setEmployee(e.target.value)} className={inputCls} data-testid="records-filter-employee" />
+          <Input placeholder={t("Job # or Name")} value={job} onChange={(e) => setJob(e.target.value)} className={inputCls} data-testid="records-filter-job" />
+          <Input placeholder={t("Supervisor")} value={supervisor} onChange={(e) => setSupervisor(e.target.value)} className={inputCls} data-testid="records-filter-supervisor" />
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={inputCls} data-testid="records-filter-date-from" />
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={inputCls} data-testid="records-filter-date-to" />
+          <Input placeholder={t("Search…")} value={q} onChange={(e) => setQ(e.target.value)} className={inputCls} data-testid="records-filter-q" />
           <div className="md:col-span-6 flex gap-2">
-            <Button onClick={fetchRecords} className="bg-red-700 hover:bg-red-800 text-white" data-testid="leadership-search-btn">
+            <Button onClick={fetchRecords} className="bg-red-700 hover:bg-red-800 text-white" data-testid="records-search-btn">
               <Search className="w-4 h-4 mr-1" />{t("Search")}
             </Button>
-            <Button variant="outline" onClick={() => { setEmployee(""); setJob(""); setSupervisor(""); setDateFrom(""); setDateTo(""); setQ(""); fetchRecords(); }}>
+            <Button variant="outline" onClick={() => { setEmployee(""); setJob(""); setSupervisor(""); setDateFrom(""); setDateTo(""); setQ(""); fetchRecords(); }} data-testid="records-clear-btn">
               {t("Clear")}
             </Button>
             <div className="flex-1" />
-            <Button variant="outline" onClick={exportCsv} data-testid="leadership-export-csv">
+            <Button variant="outline" onClick={exportCsv} data-testid="records-export-csv">
               <FileDown className="w-4 h-4 mr-1" />{t("Export CSV")}
             </Button>
           </div>

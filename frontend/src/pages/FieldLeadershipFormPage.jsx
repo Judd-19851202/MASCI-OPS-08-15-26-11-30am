@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
+import { getPmToken } from "@/lib/pmAuth";
 import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { SignaturePad } from "@/components/SignaturePad";
@@ -157,7 +158,7 @@ export default function FieldLeadershipFormPage() {
 
   // Bail if no token (gate will redirect)
   useEffect(() => {
-    if (!getLeadershipToken() && !isAdmin()) {
+    if (!getLeadershipToken() && !isAdmin() && !getPmToken()) {
       navigate("/leadership", { replace: true });
     }
   }, [navigate]);

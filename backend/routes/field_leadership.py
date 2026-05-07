@@ -251,7 +251,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         # Cheap check for admin token via the shared validator
         if x_admin_token and await _admin_token_valid(x_admin_token):
             return {"role": "admin", "token": x_admin_token}
-        if x_pm_token and get_pm_user is not None:
+        if x_pm_token:
             pm = await _pm_token_valid(x_pm_token)
             if pm:
                 return {"role": "pm", "token": x_pm_token, "pm": pm}
@@ -509,7 +509,12 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         q: Optional[str] = Query(default=None),
         limit: int = Query(default=500, le=2000),
     ):
-        # Hide Supervisor Notes from non-admin viewers entirely.
+        # Admin-only: Supervisor Notes — explicit guard so a hand-crafted
+        # ?kind=supervisor_notes query from a non-admin returns 403 instead
+        # of leaking those records.
+        if kind == "supervisor_notes" and auth["role"] != "admin":
+            raise HTTPException(status_code=403, detail="Supervisor Notes require admin")
+
         f = await _scope_filter(auth)
         if kind:
             f["kind"] = kind
@@ -544,8 +549,14 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         ).sort("occurred_at", -1).limit(limit)
         items = await cursor.to_list(limit)
 
-        # Counts by kind for the dashboard tile row
-        counts_pipeline = [{"$match": f}, {"$group": {"_id": "$kind", "n": {"$sum": 1}}}]
+        # Counts by kind — always run on the SCOPE filter (without the
+        # current `kind` selector) so the dashboard tile row reflects the
+        # full breakdown the user can see, not just the slice they're
+        # currently filtering to.
+        scope_only = await _scope_filter(auth)
+        if auth["role"] != "admin":
+            scope_only["kind"] = {"$ne": "supervisor_notes"}
+        counts_pipeline = [{"$match": scope_only}, {"$group": {"_id": "$kind", "n": {"$sum": 1}}}]
         counts: Dict[str, int] = {k: 0 for k in KIND_ORDER}
         try:
             async for row in db.field_leadership_records.aggregate(counts_pipeline):

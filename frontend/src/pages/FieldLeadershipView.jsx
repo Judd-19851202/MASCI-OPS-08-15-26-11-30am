@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
+import { getPmToken } from "@/lib/pmAuth";
 import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
 
@@ -23,7 +24,7 @@ export default function FieldLeadershipView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!getLeadershipToken() && !isAdmin()) {
+    if (!getLeadershipToken() && !isAdmin() && !getPmToken()) {
       navigate("/leadership", { replace: true });
       return;
     }
