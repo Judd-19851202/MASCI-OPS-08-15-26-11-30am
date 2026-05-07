@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, Phone } from "lucide-react";
+import { Building2, Phone, Lock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,22 +17,42 @@ import {
   saveCompanyInfo,
   buildTelHref,
 } from "@/lib/companyInfo";
+import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
+const inputClsLocked =
+  "h-12 text-base border-2 border-slate-200 bg-slate-50 text-slate-700 cursor-not-allowed";
 
-export const CompanyInfoDialog = ({ trigger }) => {
+/**
+ * Edit gate — only an authenticated admin in THIS browser may change
+ * Company Info (it prints on every PDF footer + watermark, so a stray
+ * field-worker edit corrupts every report they generate from that device).
+ *
+ * The dialog is rendered in 8 places (Hub, FieldSection, SafetySection,
+ * Dashboard, SafetyFormsHub, AdminHub, PmHub, plus a couple of record
+ * viewers). To keep call-sites unchanged, we detect the admin token via
+ * `isAdmin()` rather than threading a prop through every mount point.
+ * Callers can still force-unlock with `editable={true}` if needed.
+ */
+
+export const CompanyInfoDialog = ({ trigger, editable }) => {
   const [open, setOpen] = useState(false);
   const [info, setInfo] = useState(getCompanyInfo());
+  const [canEdit, setCanEdit] = useState(false);
 
   useEffect(() => {
-    if (open) setInfo(getCompanyInfo());
-  }, [open]);
+    if (open) {
+      setInfo(getCompanyInfo());
+      setCanEdit(editable ?? isAdmin());
+    }
+  }, [open, editable]);
 
   const set = (k, v) => setInfo((p) => ({ ...p, [k]: v }));
 
   const save = () => {
+    if (!canEdit) return;
     saveCompanyInfo(info);
     toast.success("Company info saved — appears on every printed report");
     setOpen(false);
@@ -61,10 +81,21 @@ export const CompanyInfoDialog = ({ trigger }) => {
             Company Info
           </DialogTitle>
           <DialogDescription>
-            Appears on the print/PDF footer of every safety report. Stored
-            only on this device.
+            {canEdit
+              ? "Appears on the print/PDF footer of every safety report. Stored only on this device."
+              : "Appears on every printed report. Admin only — sign in as admin to make changes."}
           </DialogDescription>
         </DialogHeader>
+
+        {!canEdit && (
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded-md bg-amber-50 border border-amber-300 text-amber-900 text-xs font-mono uppercase tracking-[0.15em]"
+            data-testid="ci-readonly-banner"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            View only · Admin login required to edit
+          </div>
+        )}
 
         {/* Quick-call CTA — large red pill at the top of the dialog. Uses
             the tel: URI so a tap on phone dials, on desktop pops the user's
@@ -88,7 +119,9 @@ export const CompanyInfoDialog = ({ trigger }) => {
             <Input
               value={info.company_name}
               onChange={(e) => set("company_name", e.target.value)}
-              className={inputCls}
+              className={canEdit ? inputCls : inputClsLocked}
+              readOnly={!canEdit}
+              tabIndex={canEdit ? 0 : -1}
               data-testid="ci-company-name"
             />
           </div>
@@ -99,7 +132,9 @@ export const CompanyInfoDialog = ({ trigger }) => {
             <Input
               value={info.address}
               onChange={(e) => set("address", e.target.value)}
-              className={inputCls}
+              className={canEdit ? inputCls : inputClsLocked}
+              readOnly={!canEdit}
+              tabIndex={canEdit ? 0 : -1}
               placeholder="123 Main St"
               data-testid="ci-address"
             />
@@ -111,7 +146,9 @@ export const CompanyInfoDialog = ({ trigger }) => {
             <Input
               value={info.city_state_zip}
               onChange={(e) => set("city_state_zip", e.target.value)}
-              className={inputCls}
+              className={canEdit ? inputCls : inputClsLocked}
+              readOnly={!canEdit}
+              tabIndex={canEdit ? 0 : -1}
               placeholder="Orlando, FL 32801"
               data-testid="ci-csz"
             />
@@ -124,7 +161,9 @@ export const CompanyInfoDialog = ({ trigger }) => {
               <Input
                 value={info.phone}
                 onChange={(e) => set("phone", e.target.value)}
-                className={inputCls}
+                className={canEdit ? inputCls : inputClsLocked}
+                readOnly={!canEdit}
+                tabIndex={canEdit ? 0 : -1}
                 placeholder="(555) 555-5555"
                 data-testid="ci-phone"
                 inputMode="tel"
@@ -137,7 +176,9 @@ export const CompanyInfoDialog = ({ trigger }) => {
               <Input
                 value={info.email}
                 onChange={(e) => set("email", e.target.value)}
-                className={inputCls}
+                className={canEdit ? inputCls : inputClsLocked}
+                readOnly={!canEdit}
+                tabIndex={canEdit ? 0 : -1}
                 placeholder="safety@masci.com"
                 data-testid="ci-email"
               />
@@ -150,7 +191,9 @@ export const CompanyInfoDialog = ({ trigger }) => {
             <Input
               value={info.website}
               onChange={(e) => set("website", e.target.value)}
-              className={inputCls}
+              className={canEdit ? inputCls : inputClsLocked}
+              readOnly={!canEdit}
+              tabIndex={canEdit ? 0 : -1}
               placeholder="masci.com"
               data-testid="ci-website"
             />
@@ -162,15 +205,17 @@ export const CompanyInfoDialog = ({ trigger }) => {
             onClick={() => setOpen(false)}
             data-testid="ci-cancel"
           >
-            Cancel
+            {canEdit ? "Cancel" : "Close"}
           </Button>
-          <Button
-            onClick={save}
-            className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
-            data-testid="ci-save"
-          >
-            Save
-          </Button>
+          {canEdit && (
+            <Button
+              onClick={save}
+              className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
+              data-testid="ci-save"
+            >
+              Save
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
