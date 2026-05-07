@@ -93,6 +93,10 @@ export default function TermsOfService() {
           systems based on the Platform.
         </p>
         <p>
+          Customer deployments may be customized and branded for operational
+          use while remaining part of the ForgedOps platform ecosystem.
+        </p>
+        <p>
           MASCI&rsquo;s use of the Platform is limited to the rights expressly
           granted in MASCI&rsquo;s separate written services agreement with
           ForgedOps LLC.

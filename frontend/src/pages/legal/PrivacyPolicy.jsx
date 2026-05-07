@@ -62,6 +62,10 @@ export default function PrivacyPolicy() {
           ForgedOps LLC owns and operates the Platform, including its
           source code, software, infrastructure, and platform technology.
         </p>
+        <p>
+          Customer deployments may be customized and branded for operational
+          use while remaining part of the ForgedOps platform ecosystem.
+        </p>
         <p>For data protection purposes:</p>
         <ul>
           <li>
@@ -135,7 +139,7 @@ export default function PrivacyPolicy() {
           <li>
             Send transactional emails (e.g., PM notifications, safety alerts)
           </li>
-          <li>Maintain system backups for operational and compliance purposes</li>
+          <li>Maintain limited operational backup and recovery processes necessary to support Platform functionality</li>
           <li>Monitor system performance and resolve technical issues</li>
         </ul>
         <p>
