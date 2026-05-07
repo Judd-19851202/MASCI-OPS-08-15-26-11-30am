@@ -61,6 +61,10 @@ import DevLogin from "@/pages/DevLogin";
 import DevHub from "@/pages/DevHub";
 import CheatSheet from "@/pages/CheatSheet";
 import JobPhotosLibrary from "@/pages/JobPhotosLibrary";
+import FieldLeadershipHub from "@/pages/FieldLeadershipHub";
+import FieldLeadershipFormPage from "@/pages/FieldLeadershipFormPage";
+import FieldLeadershipRecords from "@/pages/FieldLeadershipRecords";
+import FieldLeadershipView from "@/pages/FieldLeadershipView";
 import TermsOfService from "@/pages/legal/TermsOfService";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import GlobalFooter from "@/components/GlobalFooter";
@@ -147,6 +151,12 @@ function App() {
             <Route path="/qaqc/:id" element={<ViewQaqcInspection />} />
             <Route path="/admin/qaqc" element={<AdminQaqcList />} />
             <Route path="/admin/photos" element={A(<JobPhotosLibrary portalKey="admin" />)} />
+
+            {/* Field Leadership — supervisor docs gated by MASCIGC password */}
+            <Route path="/leadership" element={<FieldLeadershipHub />} />
+            <Route path="/leadership/records" element={<FieldLeadershipRecords />} />
+            <Route path="/leadership/records/:id" element={<FieldLeadershipView />} />
+            <Route path="/leadership/:kind/new" element={<FieldLeadershipFormPage />} />
 
             <Route path="/inspect/new" element={<GateInspection><NewInspection /></GateInspection>} />
             <Route path="/submit" element={<GateInspection><NewInspection publicMode /></GateInspection>} />

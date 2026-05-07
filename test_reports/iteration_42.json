@@ -1,0 +1,45 @@
+{
+  "summary": "Iter42 — NEW Field Leadership module regression. Backend: 27/28 pytest pass — auth (login wrong/right, /check leadership+admin), reference data (jobs, employees ≥ 100, inline employee create), all 10 record kinds POST/list/filter/get/PDF/CSV/admin-only-supervisor-notes/admin-only-delete. PDF magic bytes (%PDF-) verified, footer text contains 'MASCI HUB' + 'ForgedOps' + '2026' AND no 'Judd Group' (extracted via pypdf). 1 critical FAIL: PM token cannot authenticate any /api/field-leadership endpoint (returns 401). Frontend: Hub tile renders (testid hub-section-leadership), password gate works (wrong → toast + stays, MASCIGC → 11 tiles), Supervisor Notes shows ADMIN ONLY badge, Write-Up form fully renders (Active Job, Employee picker w/ + Add new employee, Position, Supervisor, Date/Time native picker, Location, Category, Severity, Description), Records dashboard shows count tiles for Total + 10 kinds with filter inputs (employee/job/supervisor/date_from/date_to/q) + Search + Clear + Export CSV buttons, PM hub `/pm` shows Field Leadership tile.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "/api/field-leadership/* (any) with X-PM-Token", "issue": "PM token completely rejected — server.py does NOT pass get_pm_user into attach_routes, so _is_authed never validates X-PM-Token and PMs always get 401 'Field Leadership access required'. This breaks the entire PM scoping requirement and the /pm → /leadership/records integration (PM is forced into the leadership password gate). Fix: in /app/backend/server.py around line 6438, pass get_pm_user=<the same dep used elsewhere, e.g. get_pm_user_dep> into _attach_field_leadership_routes(...).", "priority": "CRITICAL"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "FieldLeadershipRecords", "issue": "Count tiles (Total + 10 kinds) and record rows + Export CSV button render visually but are missing data-testid attributes (records-count-*, record-row-*, records-export-csv, records-filter-employee, etc). Smoke selectors fall back to text-match. Add data-testid on each count tile, each filter input, Search/Clear/Export CSV buttons and each record row PDF/view link for stable tests.", "selector": "n/a", "priority": "LOW"},
+      {"component": "FieldLeadershipHub", "issue": "EN/ES language toggle button not detectable on /leadership (no button with text 'ES' nor data-testid containing lang-es). Either it lives elsewhere (global header) or hasn't been added to the leadership pages. Verify the schema-driven form renders Spanish labels (Categoría, Severidad) when language=es and the submit POSTs language='es'.", "selector": "n/a", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "PM portal → Field Leadership records", "issue": "PM hub links to /leadership/records but PM token is rejected by backend (see backend critical). PM ends up at MASCIGC password gate instead of seeing PM-scoped records. End-to-end PM scoping is completely broken until backend wiring is fixed.", "affected_selectors": ["[data-testid='hub-section-leadership']", "PmHub Field Leadership tile"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_field_leadership_iter42.py",
+    "/app/test_reports/pytest/iter42_field_leadership.xml"
+  ],
+  "action_items": [
+    "CRITICAL: Wire get_pm_user dependency into _attach_field_leadership_routes() in /app/backend/server.py — without it, X-PM-Token is never validated and PM scoping (records list filtered to assigned jobs) is dead code. Smoke test: POST /api/pm/login → use returned token as X-PM-Token on GET /api/field-leadership/check → expect {ok:true, role:'pm'} (currently returns 401).",
+    "Add data-testid attributes to FieldLeadershipRecords count tiles, filter inputs, Search/Clear/Export buttons, and record rows for stable Playwright selectors.",
+    "Confirm EN/ES toggle is exposed on Field Leadership pages (currently not detected). If toggle is intentionally global, ensure it persists across /leadership routes; if missing, add it.",
+    "Backend: add a regression test that calls /api/field-leadership/check with X-PM-Token (expect 200, role='pm') and a PM-scoped GET / list assertion (records for unassigned project_number filtered out)."
+  ],
+  "critical_code_review_comments": [
+    "/app/backend/routes/field_leadership.py _is_authed: PM branch is gated on `get_pm_user is not None` — defensive but brittle. Since server.py never passes it, the entire branch is dead. Either drop the optional gate (always validate when X-PM-Token is present) or assert at attach_routes that get_pm_user was provided.",
+    "/app/backend/routes/field_leadership.py: Supervisor Notes filter for non-admin uses `f['kind'] = {'$ne': 'supervisor_notes'}` only when no kind filter is supplied. If a non-admin PM/leadership user passes ?kind=supervisor_notes explicitly, the filter is overwritten and they may see Supervisor Notes records (admin-only data leak). Add an explicit guard: if auth['role'] != 'admin' and kind == 'supervisor_notes', raise 403.",
+    "list_records counts_by_kind aggregation reuses `f` after possibly setting `kind` filter — counts will be skewed when a kind filter is active (other kinds always 0). Consider running counts on the unfiltered scope filter so the dashboard tile row always reflects totals across kinds.",
+    "test_credentials.md still references 'CONFIDENTIAL · The Judd Group LLC' — leftover from iter41 RCA; should be updated to 'ForgedOps LLC' for consistency."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_field_leadership_iter42.py"
+  ],
+  "success_rate": {"backend": "96% (27/28)", "frontend": "85% — UI renders end-to-end but PM integration broken + data-testids missing on records page + ES toggle not visible"},
+  "test_credentials": "Field Leadership: MASCIGC (verified). Admin: MASCI1982! (verified). PM: chriswright@mascigc.com / ChrisRocksThis2026 (login works but PM token does NOT authenticate field-leadership API).",
+  "seed_data_creation": "Created ~22 TEST_FL_* records via leadership token across all 10 kinds + 1 inline employee 'TEST_FL_Employee_iter42'. Cleanup not performed — admin can soft-delete via /api/field-leadership/{id} or filter out by employee_name prefix TEST_FL_.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "test_field_leadership_iter42.py covers all login/check/CRUD/PDF/CSV/admin-gate paths. The conftest.py auto-injects X-Admin-Token on every request — to test leadership-only or PM-only paths you MUST explicitly override `X-Admin-Token` to empty string in the request headers (see H() helper). Once main agent wires get_pm_user into attach_routes, the test_pm_scoping test will pass and you should add additional positive PM scoping tests (PM sees their assigned-job records, doesn't see TEST-FL-001). PDF text extraction uses pypdf; raw byte scan fails due to FlateDecode compression. Frontend records dashboard works but lacks data-testids — selectors had to fall back to text/role.",
+  "rca of the issue": "PM scoping broken: routes/field_leadership.py:attach_routes(...) declares `get_pm_user=None` as an optional kwarg. Inside _is_authed, the X-PM-Token branch only fires if `get_pm_user is not None`. server.py:6438 calls _attach_field_leadership_routes(app, db, require_admin, _field_leadership_send_email, _render_field_leadership_pdf, compute_pm_scope=_field_leadership_compute_pm_scope) — note get_pm_user is NOT passed. Result: every X-PM-Token request falls through to the leadership-token check, which fails, and the user gets 401. Reproduction: `curl -H \"X-PM-Token: <pm_token>\" {BASE}/api/field-leadership/check` → 401 'Field Leadership access required'. Mitigation: add `get_pm_user=<the same FastAPI dep used by other PM endpoints, likely `pm_auth.get_pm_user_optional` or inline `_pm_token_valid`>` to the attach_routes call. Alternatively, since _pm_token_valid is already defined inside attach_routes, simply drop the `get_pm_user is not None` guard so PM tokens are validated unconditionally."
+}

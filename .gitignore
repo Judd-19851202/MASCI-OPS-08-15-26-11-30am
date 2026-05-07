@@ -575,3 +575,4 @@ credentials.json
 *.pem
 *.key
 .credentials
+backend/backups/MASCI_full_backup_2026-05-07_213848Z.zip

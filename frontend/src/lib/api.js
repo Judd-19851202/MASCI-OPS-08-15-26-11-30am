@@ -5,6 +5,7 @@ import { getPmToken, clearPmToken } from "@/lib/pmAuth";
 import { getDevToken, clearDevToken } from "@/lib/devAuth";
 import { getJwt, clearJwt } from "@/lib/jwtAuth";
 import { getSafetyFormsToken, clearSafetyFormsToken } from "@/lib/safetyFormsAuth";
+import { getLeadershipToken, clearLeadershipToken } from "@/lib/leadershipAuth";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -43,6 +44,10 @@ api.interceptors.request.use((config) => {
   if (sfTok) {
     config.headers["X-Safety-Forms-Token"] = sfTok;
   }
+  const leadTok = getLeadershipToken();
+  if (leadTok) {
+    config.headers["X-Leadership-Token"] = leadTok;
+  }
   const jwt = getJwt();
   if (jwt && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${jwt}`;
@@ -66,6 +71,7 @@ api.interceptors.response.use(
       if (cfg.headers?.["X-PM-Token"]) clearPmToken();
       if (cfg.headers?.["X-Dev-Token"]) clearDevToken();
       if (cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
+      if (cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
       if (cfg.headers?.Authorization) clearJwt();
     }
     return Promise.reject(err);

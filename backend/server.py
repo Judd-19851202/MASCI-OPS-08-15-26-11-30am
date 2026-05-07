@@ -6392,6 +6392,59 @@ async def _job_photos_send_email(*, to: str, subject: str, text: str, attachment
 _attach_job_photos_routes(app, db, require_admin, _job_photos_send_email)
 
 
+# ============================================================
+# Field Leadership routes — supervisor docs (write-ups, coaching, etc.)
+# ============================================================
+from routes.field_leadership import attach_routes as _attach_field_leadership_routes  # noqa: E402
+from field_leadership_pdf import render_field_leadership_pdf as _render_field_leadership_pdf  # noqa: E402
+
+
+async def _field_leadership_send_email(recipients, subject, html_body, attachments=None):
+    """Resend wrapper used by Field Leadership form submits. Sends HTML +
+    optional PDF attachments to the assigned PM, jaymn, and safety. Returns
+    silently on missing API key or AUTO_EMAIL_REPORTS=false (preview)."""
+    if (os.environ.get("AUTO_EMAIL_REPORTS") or "").strip().lower() not in ("true", "1", "yes"):
+        return
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        return
+    import resend as _resend  # noqa: PLC0415
+    _resend.api_key = api_key
+    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    params: dict = {
+        "from": f"MASCI HUB Notifications <{sender}>",
+        "to": list(recipients),
+        "subject": subject,
+        "html": html_body,
+    }
+    if attachments:
+        params["attachments"] = attachments
+    return await asyncio.to_thread(_resend.Emails.send, params)
+
+
+async def _field_leadership_compute_pm_scope(pm_email):
+    """Returns the set of project_numbers assigned to the given PM email."""
+    if not pm_email:
+        return set()
+    try:
+        from pm_auth import compute_pm_scope  # noqa: PLC0415
+        # The shared helper takes (db, actor_dict) — fake an actor.
+        scope = await compute_pm_scope(db, {"email": pm_email, "is_admin_or_legacy": False})
+        return set(scope or [])
+    except Exception:
+        return set()
+
+
+_attach_field_leadership_routes(
+    app,
+    db,
+    require_admin,
+    _field_leadership_send_email,
+    _render_field_leadership_pdf,
+    compute_pm_scope=_field_leadership_compute_pm_scope,
+)
+
+
 @app.on_event("startup")
 async def _start_job_photos_indexer():
     asyncio.create_task(_job_photos_indexer_loop(db))

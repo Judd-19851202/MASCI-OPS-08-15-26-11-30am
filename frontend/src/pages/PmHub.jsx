@@ -15,6 +15,7 @@ import {
   Briefcase,
   ShieldCheck,
   Image as ImageIcon,
+  UserCheck,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
@@ -287,6 +288,15 @@ export default function PmHub() {
               sub="All photos by job & week"
               accent="rose"
               testId="pm-tile-photos"
+            />
+            <PmTile
+              to="/leadership/records"
+              icon={UserCheck}
+              title="Field Leadership"
+              count={null}
+              sub="Crew docs · my jobs only"
+              accent="indigo"
+              testId="pm-tile-leadership"
             />
             </div>
           </>

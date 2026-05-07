@@ -8,6 +8,7 @@ import {
   Wrench,
   ClipboardCheck,
   GraduationCap,
+  UserCheck,
   ArrowRight,
   MapPin,
 } from "lucide-react";
@@ -379,7 +380,21 @@ export default function Hub() {
             ]}
             accent="lime"
             testId="hub-section-training"
-            className="md:col-span-2 md:col-start-2"
+            className="md:col-span-2"
+          />
+          <SectionCard
+            to="/leadership"
+            icon={UserCheck}
+            eyebrow={t("Restricted")}
+            title={t("Field Leadership")}
+            desc={t("Crew accountability, employee documentation, equipment responsibility, recognition, and workforce-management tools for MASCI field leadership.")}
+            bullets={[
+              t("Write-Ups · Coaching · Attendance · Recognition"),
+              t("Equipment Checkout · Evaluations · Supervisor Notes"),
+            ]}
+            accent="indigo"
+            testId="hub-section-leadership"
+            className="md:col-span-2"
           />
           <SectionCard
             to="/admin/login"

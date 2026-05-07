@@ -16,6 +16,7 @@ import {
   TrendingUp,
   ShieldCheck,
   Image as ImageIcon,
+  UserCheck,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
@@ -342,6 +343,15 @@ export default function AdminHub() {
               sub="All photos by job & week"
               accent="rose"
               testId="admin-tile-photos"
+            />
+            <AdminTile
+              to="/leadership/records"
+              icon={UserCheck}
+              title="Field Leadership"
+              count={null}
+              sub="Write-ups · Coaching · Recognition"
+              accent="indigo"
+              testId="admin-tile-leadership"
             />
             </div>
           </>
