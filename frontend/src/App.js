@@ -60,6 +60,7 @@ import AdminTrainingVideos from "@/pages/AdminTrainingVideos";
 import DevLogin from "@/pages/DevLogin";
 import DevHub from "@/pages/DevHub";
 import CheatSheet from "@/pages/CheatSheet";
+import JobPhotosLibrary from "@/pages/JobPhotosLibrary";
 import TermsOfService from "@/pages/legal/TermsOfService";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import GlobalFooter from "@/components/GlobalFooter";
@@ -145,6 +146,7 @@ function App() {
             <Route path="/qaqc/:slug/new" element={<NewQaqcInspection />} />
             <Route path="/qaqc/:id" element={<ViewQaqcInspection />} />
             <Route path="/admin/qaqc" element={<AdminQaqcList />} />
+            <Route path="/admin/photos" element={A(<JobPhotosLibrary portalKey="admin" />)} />
 
             <Route path="/inspect/new" element={<GateInspection><NewInspection /></GateInspection>} />
             <Route path="/submit" element={<GateInspection><NewInspection publicMode /></GateInspection>} />
@@ -235,6 +237,7 @@ function App() {
             <Route path="/pm/change-password" element={P(<PmChangePassword />)} />
             <Route path="/pm" element={P(<PmHub />)} />
             <Route path="/pm/qaqc" element={P(<PmQaqcList />)} />
+            <Route path="/pm/photos" element={P(<JobPhotosLibrary portalKey="pm" />)} />
 
             {/* PM-namespaced aliases for the shared dashboards. Same
                 components as /admin/* — routing them under /pm/* keeps

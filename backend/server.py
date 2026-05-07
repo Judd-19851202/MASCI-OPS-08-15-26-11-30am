@@ -6351,6 +6351,52 @@ _safety_forms_router = build_safety_forms_router(db, _is_valid_admin_token)
 app.include_router(_safety_forms_router)
 
 
+# ------------------------- Job Photos (Phase 1 — read-only aggregator) -------------------------
+from routes.job_photos import (  # noqa: E402
+    attach_routes as _attach_job_photos_routes,
+    background_indexer_loop as _job_photos_indexer_loop,
+    index_record_photos as _index_record_photos,
+)
+
+
+async def _job_photos_send_email(*, to: str, subject: str, text: str, attachments=None):
+    """Tiny Resend wrapper used by the Job Photos email endpoint. Mirrors
+    the headers + retry behaviour of the rest of the system. Imports
+    `resend` lazily so the module-level import order stays unchanged."""
+    import base64 as _b64  # noqa: PLC0415
+    import resend as _resend  # noqa: PLC0415
+
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        raise RuntimeError("RESEND_API_KEY missing")
+    _resend.api_key = api_key
+    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    params: dict = {
+        "from": sender,
+        "to": [to],
+        "subject": subject,
+        "text": text or " ",
+    }
+    if attachments:
+        params["attachments"] = [
+            {
+                "filename": a["filename"],
+                "content": _b64.b64encode(a["content"]).decode("ascii"),
+                "content_type": a.get("content_type", "application/octet-stream"),
+            }
+            for a in attachments
+        ]
+    return await asyncio.to_thread(_resend.Emails.send, params)
+
+
+_attach_job_photos_routes(app, db, require_admin, _job_photos_send_email)
+
+
+@app.on_event("startup")
+async def _start_job_photos_indexer():
+    asyncio.create_task(_job_photos_indexer_loop(db))
+
+
 # ============================================================
 # Email a saved record as a PDF (Resend)
 # ============================================================

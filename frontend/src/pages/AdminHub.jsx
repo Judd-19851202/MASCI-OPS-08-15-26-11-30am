@@ -15,6 +15,7 @@ import {
   Building2,
   TrendingUp,
   ShieldCheck,
+  Image as ImageIcon,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
@@ -332,6 +333,15 @@ export default function AdminHub() {
               sub={counts.qaqc === 1 ? "record on file" : "records on file"}
               accent="amber"
               testId="admin-tile-qaqc"
+            />
+            <AdminTile
+              to="/admin/photos"
+              icon={ImageIcon}
+              title="Job Photos"
+              count={null}
+              sub="All photos by job & week"
+              accent="rose"
+              testId="admin-tile-photos"
             />
             </div>
           </>

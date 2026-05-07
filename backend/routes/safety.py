@@ -270,6 +270,12 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         doc = inspection.model_dump()
         await db.inspections.insert_one(doc)
         doc.pop("_id", None)
+        # Mirror photos into the Job Photos library (Phase 1 read-only).
+        try:
+            from routes.job_photos import index_record_photos
+            await index_record_photos(db, "inspection", doc)
+        except Exception:
+            pass
         schedule_auto_email("inspection", doc)
         return inspection
 

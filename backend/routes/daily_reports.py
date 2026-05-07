@@ -86,6 +86,12 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         doc = report.model_dump()
         await db.daily_reports.insert_one(doc)
         doc.pop("_id", None)
+        # Mirror photos into the Job Photos library (Phase 1 read-only).
+        try:
+            from routes.job_photos import index_record_photos
+            await index_record_photos(db, "daily_report", doc)
+        except Exception:
+            pass  # never block a submit on indexing
         schedule_auto_email("daily-report", doc)
         return report
 

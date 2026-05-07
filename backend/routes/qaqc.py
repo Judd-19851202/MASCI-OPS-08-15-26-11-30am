@@ -194,6 +194,12 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
         doc = rec.model_dump()
         await db.qaqc_inspections.insert_one(doc)
         doc.pop("_id", None)
+        # Mirror photos into the Job Photos library (Phase 1 read-only).
+        try:
+            from routes.job_photos import index_record_photos
+            await index_record_photos(db, "qaqc", doc)
+        except Exception:
+            pass
         # Route to assigned PM via the existing auto-email pipeline.
         # The kind passed downstream is "qaqc" — pdf_render maps it to a
         # generic QA/QC PDF and the email subject already reads

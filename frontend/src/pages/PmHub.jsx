@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Briefcase,
   ShieldCheck,
+  Image as ImageIcon,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
@@ -287,6 +288,15 @@ export default function PmHub() {
               sub="Records on your jobs"
               accent="amber"
               testId="pm-tile-qaqc"
+            />
+            <PmTile
+              to="/pm/photos"
+              icon={ImageIcon}
+              title="Job Photos"
+              count={null}
+              sub="All photos by job & week"
+              accent="rose"
+              testId="pm-tile-photos"
             />
             </div>
           </>
