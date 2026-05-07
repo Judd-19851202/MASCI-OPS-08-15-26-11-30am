@@ -4803,37 +4803,80 @@ async def _send_backup_email(
 _backup_task: Optional[asyncio.Task] = None
 
 
+def _hours_since_last_backup() -> Optional[float]:
+    """Return how many hours have elapsed since the most recent successful
+    backup file was written. Returns None if no backup file exists.
+
+    Used by the scheduler at boot time to decide whether to trigger a
+    catch-up backup (because the container restarted across a missed slot).
+    """
+    if not BACKUPS_DIR.exists():
+        return None
+    try:
+        files = list(BACKUPS_DIR.glob("MASCI_full_backup_*.zip"))
+        if not files:
+            return None
+        newest = max(f.stat().st_mtime for f in files)
+        delta = datetime.now(timezone.utc) - datetime.fromtimestamp(
+            newest, tz=timezone.utc
+        )
+        return delta.total_seconds() / 3600.0
+    except Exception:
+        return None
+
+
 async def _backup_scheduler_loop(db) -> None:
     """Background loop — wakes up every ~5 min and fires the backup when
     we OBSERVE an hour transition into a scheduled slot while running.
 
-    CRITICAL: we do NOT retroactively fire catch-up backups on boot.
-    Rationale: if a backup crashes the container (OOM, disk, etc.), the
-    container restarts, the scheduler would see "this slot hasn't run
-    today" and fire again, crashing again → infinite loop keeping prod
-    down for hours. Instead, on boot we mark every already-crossed slot
-    as "run today" so only FUTURE slots ever trigger. If the admin needs
-    an immediate backup they click "Run backup now" in /admin.
-    """
-    # Per-hour bookkeeping: hour → last date we ran for that slot.
-    last_run_for_hour: dict[int, "datetime.date"] = {}
+    Robust catch-up behaviour (introduced 2026-05-07):
+      • At boot we look at the most recent backup file on disk.
+      • If it's <8 hours old, the system is healthy — we mark same-day past
+        slots as "already run" so we never double-fire.
+      • If it's ≥8 hours old (or missing entirely), we DO NOT seed past
+        slots → the loop discovers them on its next tick and fires a
+        catch-up backup ~30 seconds after startup. This is what handles
+        the "container restarted right after a scheduled slot, so the
+        slot got skipped" scenario.
 
-    # Seed: mark every scheduled hour we've already crossed today as
-    # "already run" — this prevents any backup from firing as part of
-    # container startup. Only future slots will trigger.
+    Crash-loop protection:
+      • If today's backup attempts fail MAX_DAILY_ATTEMPTS times in a row,
+        a circuit breaker engages and we stop retrying until midnight
+        UTC. This preserves the original safety guarantee that a
+        crashing backup can't pin the container in a restart loop.
+    """
+    MAX_DAILY_ATTEMPTS = 3
+
+    # hour → last date we ran for that slot (for slot-collapsing logic)
+    last_run_for_hour: dict[int, "datetime.date"] = {}
+    # date → number of attempts that failed today (circuit breaker)
+    failed_attempts: dict["datetime.date", int] = {}
+
     now = datetime.now(timezone.utc)
     today = now.date()
-    for h in BACKUP_HOURS_UTC:
-        if now.hour >= h:
-            last_run_for_hour[h] = today
 
-    skipped = sorted([h for h in BACKUP_HOURS_UTC if now.hour >= h])
-    upcoming = sorted([h for h in BACKUP_HOURS_UTC if now.hour < h])
-    logger.info(
-        f"[scheduled-backup] scheduler armed — skipping past slots today "
-        f"{[f'{h:02d}:00' for h in skipped] or 'none'}, "
-        f"next slots {[f'{h:02d}:00' for h in upcoming] or 'tomorrow'}"
-    )
+    hours_stale = _hours_since_last_backup()
+
+    if hours_stale is not None and hours_stale <= 8:
+        # System is healthy. Original behaviour: skip past slots today.
+        for h in BACKUP_HOURS_UTC:
+            if now.hour >= h:
+                last_run_for_hour[h] = today
+        skipped = sorted(h for h in BACKUP_HOURS_UTC if now.hour >= h)
+        upcoming = sorted(h for h in BACKUP_HOURS_UTC if now.hour < h)
+        logger.info(
+            f"[scheduled-backup] scheduler armed — last backup ~{hours_stale:.1f}h ago "
+            f"(healthy). skipping past slots today "
+            f"{[f'{h:02d}:00' for h in skipped] or 'none'}, "
+            f"next slots {[f'{h:02d}:00' for h in upcoming] or 'tomorrow'}"
+        )
+    else:
+        # Stale or missing → don't seed; let the next loop tick fire a catch-up.
+        stale_label = "NEVER (no prior backup)" if hours_stale is None else f"~{hours_stale:.1f}h ago"
+        logger.warning(
+            f"[scheduled-backup] scheduler armed — last backup {stale_label} "
+            f"(stale). Catch-up will fire ~30s after startup."
+        )
 
     # Give the app a moment to finish startup before first tick
     await asyncio.sleep(30)
@@ -4842,27 +4885,46 @@ async def _backup_scheduler_loop(db) -> None:
             now = datetime.now(timezone.utc)
             today = now.date()
             # Find the latest scheduled hour crossed today that hasn't fired.
-            # Since boot-seeding marks same-day past slots as already-run,
-            # this only catches NEW slots we cross while running.
             due_hour: Optional[int] = None
             for h in BACKUP_HOURS_UTC:
                 if now.hour >= h and last_run_for_hour.get(h) != today:
                     due_hour = h
             if due_hour is not None:
-                logger.info(
-                    f"[scheduled-backup] firing for {today} (slot {due_hour:02d}:00 UTC)"
-                )
-                result = await _run_scheduled_backup(db)
-                if result:
-                    last_run_for_hour[due_hour] = today
-                    # Collapse earlier same-day slots into this run.
-                    for h in BACKUP_HOURS_UTC:
-                        if h <= due_hour:
+                # Circuit breaker: bail out if we've already failed too
+                # many times today, so a deterministically-broken backup
+                # cannot keep retrying.
+                attempts = failed_attempts.get(today, 0)
+                if attempts >= MAX_DAILY_ATTEMPTS:
+                    if last_run_for_hour.get(due_hour) != today:
+                        logger.error(
+                            f"[scheduled-backup] CIRCUIT BREAKER engaged — "
+                            f"{attempts} failed attempts today. Skipping "
+                            f"remaining slots until midnight UTC."
+                        )
+                        for h in BACKUP_HOURS_UTC:
                             last_run_for_hour[h] = today
-                # If it failed, leave the bookkeeping alone so we retry next tick.
+                else:
+                    logger.info(
+                        f"[scheduled-backup] firing for {today} "
+                        f"(slot {due_hour:02d}:00 UTC, attempt #{attempts + 1})"
+                    )
+                    result = await _run_scheduled_backup(db)
+                    if result:
+                        last_run_for_hour[due_hour] = today
+                        # Collapse earlier same-day slots into this run.
+                        for h in BACKUP_HOURS_UTC:
+                            if h <= due_hour:
+                                last_run_for_hour[h] = today
+                    else:
+                        failed_attempts[today] = attempts + 1
+                        logger.warning(
+                            f"[scheduled-backup] attempt #{attempts + 1} returned no result — "
+                            f"will retry on next loop tick."
+                        )
         except asyncio.CancelledError:
             raise
         except Exception as e:
+            failed_attempts[today] = failed_attempts.get(today, 0) + 1
             logger.exception(f"[scheduled-backup] loop tick error: {e}")
         await asyncio.sleep(300)  # 5 min ticks — low overhead, catches missed slots
 
