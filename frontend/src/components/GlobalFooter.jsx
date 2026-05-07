@@ -1,5 +1,5 @@
 import React from "react";
-import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 
 /**
  * GlobalFooter — single, app-wide attribution strip mounted once in App.js
@@ -14,7 +14,7 @@ export default function GlobalFooter() {
       className="border-t border-slate-200/60 bg-white py-3 px-4 mt-auto"
       data-testid="global-footer"
     >
-      <JuddGroupAttribution variant="global" />
+      <ForgedOpsAttribution variant="global" />
     </footer>
   );
 }

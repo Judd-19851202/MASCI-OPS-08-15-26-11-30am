@@ -18,7 +18,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
-import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { BackendVersionBadge } from "@/components/BackendVersionBadge";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
@@ -501,7 +501,7 @@ export default function AdminHub() {
           MASCI · Office Console
         </div>
         <BackendVersionBadge />
-        <JuddGroupAttribution variant="admin" />
+        <ForgedOpsAttribution variant="admin" />
       </footer>
     </div>
   );

@@ -902,8 +902,8 @@ _STRINGS = {
         "generated": "Generated",
         "page": "Page",
         "of": "of",
-        "footer_legal": "\u00a9 MASCI \u00b7 Platform developed by The Judd Group LLC",
-        "ownership_note": "mascidocs.com is a customer-branded deployment of a platform developed by The Judd Group LLC.",
+        "footer_legal": "Generated through MASCI HUB \u2014 Powered by ForgedOps LLC | \u00a9 2026 ForgedOps LLC",
+        "ownership_note": "mascidocs.com is a customer-branded deployment of an enterprise operational platform owned and operated by ForgedOps LLC.",
         "disclaimer": "This platform and training material are provided as a documentation and support tool only and do not replace required safety supervision, inspections, or regulatory compliance responsibilities.",
     },
     "es": {
@@ -920,8 +920,8 @@ _STRINGS = {
         "generated": "Generado",
         "page": "Página",
         "of": "de",
-        "footer_legal": "\u00a9 MASCI \u00b7 Plataforma desarrollada por The Judd Group LLC",
-        "ownership_note": "mascidocs.com es una implementaci\u00f3n con marca del cliente de una plataforma desarrollada por The Judd Group LLC.",
+        "footer_legal": "Generado a trav\u00e9s de MASCI HUB \u2014 Desarrollado por ForgedOps LLC | \u00a9 2026 ForgedOps LLC",
+        "ownership_note": "mascidocs.com es una implementaci\u00f3n con marca del cliente de una plataforma operativa empresarial propiedad de y operada por ForgedOps LLC.",
         "disclaimer": "Esta plataforma y el material de capacitaci\u00f3n se proporcionan \u00fanicamente como herramienta de documentaci\u00f3n y apoyo, y no reemplazan la supervisi\u00f3n de seguridad, inspecciones o responsabilidades de cumplimiento regulatorio requeridas.",
     },
 }
@@ -1059,8 +1059,8 @@ def _css_for_lang(lang: str) -> str:
     the `footer_legal` string in the i18n table (see `_strings_for`)
     so every page of the packet shows the same language as the body.
     """
-    footer_en = "\\00A9  MASCI \\00B7  Platform developed by The Judd Group LLC"
-    footer_es = "\\00A9  MASCI \\00B7  Plataforma desarrollada por The Judd Group LLC"
+    footer_en = "Generated through MASCI HUB \u2014 Powered by ForgedOps LLC | \\00A9  2026 ForgedOps LLC"
+    footer_es = "Generado a trav\u00e9s de MASCI HUB \u2014 Desarrollado por ForgedOps LLC | \\00A9  2026 ForgedOps LLC"
     footer = footer_es if lang == "es" else footer_en
     return _CSS_TEMPLATE.replace("{FOOTER_TEXT}", footer)
 
@@ -1207,7 +1207,7 @@ def _render_bilingual(track: str, meta: dict, lessons: list) -> bytes:
     parts.append(
         "<div style='margin-top:10pt;font-size:9pt;color:#64748B;'>"
         "mascidocs.com is a customer-branded deployment of a platform developed by "
-        "The Judd Group LLC."
+        "ForgedOps LLC."
         "</div>"
         "<div style='margin-top:10pt;font-size:8.5pt;color:#94A3B8;font-style:italic;max-width:5in;margin-left:auto;margin-right:auto;'>"
         "This platform and training material are provided as a documentation and "

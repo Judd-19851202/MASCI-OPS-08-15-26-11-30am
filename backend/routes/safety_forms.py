@@ -709,7 +709,7 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
             extra_html = ""
 
         params = {
-            "from": f"MASCI Safety <{sender}>",
+            "from": f"MASCI HUB Notifications <{sender}>",
             "to": recipients,
             "subject": subject,
             "html": (

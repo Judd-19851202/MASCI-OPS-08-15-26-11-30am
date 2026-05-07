@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
-import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { LangToggle } from "@/components/LangToggle";
 import { api } from "@/lib/api";
 import { setSafetyFormsToken, clearSafetyFormsToken } from "@/lib/safetyFormsAuth";
@@ -141,7 +141,7 @@ export default function SafetyFormsLogin() {
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
           MASCI · {t("Safety Department")}
         </div>
-        <JuddGroupAttribution variant="login" />
+        <ForgedOpsAttribution variant="login" />
       </footer>
     </div>
   );

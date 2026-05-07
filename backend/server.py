@@ -196,7 +196,7 @@ def _is_valid_pm_token(tok: Optional[str]) -> bool:
 
 
 def _dev_token_for(password: str) -> str:
-    """Developer (vendor/Judd Group LLC) portal token. Distinct namespace
+    """Developer (vendor/ForgedOps LLC) portal token. Distinct namespace
     from admin/pm so a stolen dev token cannot be replayed against any
     MASCI-facing admin route, and vice versa."""
     msg = (f"epoch={_session_epoch()}|dev:" + password).encode()
@@ -211,7 +211,7 @@ def _is_valid_dev_token(tok: Optional[str]) -> bool:
 
 
 def require_dev(x_dev_token: Optional[str] = Header(default=None)):
-    """Vendor-only gate — used for The Judd Group LLC internal pages
+    """Vendor-only gate — used for ForgedOps LLC internal pages
     (System Owner & Operations Manual, manual snapshots). Admin and PM
     tokens are NOT accepted: this surface is hidden from MASCI staff."""
     expected_pw = os.environ.get("DEV_PASSWORD", "")
@@ -438,7 +438,7 @@ from fastapi.responses import Response as _FastAPIResponse  # noqa: E402
 
 @api_router.post("/dev/login")
 async def dev_login(body: AdminLoginRequest, request: Request):
-    """Developer (vendor/Judd Group LLC) portal login. Issues a token
+    """Developer (vendor/ForgedOps LLC) portal login. Issues a token
     accepted ONLY by require_dev — never by any admin/PM/shop route."""
     ip = _client_ip(request)
     _check_login_lockout(ip)
@@ -653,7 +653,7 @@ def _build_source_bundle() -> bytes:
             f"Commit: {os.environ.get('GIT_COMMIT', 'unknown')}",
             f"Built at: {os.environ.get('BUILT_AT', 'unknown')}",
             "",
-            "Classification: CONFIDENTIAL — The Judd Group LLC",
+            "Classification: CONFIDENTIAL — ForgedOps LLC",
             "Excluded: /backups, /storage, node_modules, build, .env, .git, *.pyc, *.bak.json",
             "",
         ]
@@ -1419,7 +1419,7 @@ async def pm_forgot_password(body: PMForgotPasswordBody, request: Request):
         resend.api_key = api_key
         sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
         params = {
-            "from": sender_email,
+            "from": f"MASCI HUB Notifications <{sender_email}>",
             "to": [email],
             "subject": "[MASCI] Reset your PM Portal password",
             "html": html_body,
@@ -1757,7 +1757,7 @@ async def admin_pm_email_welcome(
     fname = f"MASCI_PM_Welcome_{safe_name}.pdf"
 
     params = {
-        "from": sender_email,
+        "from": f"MASCI HUB Notifications <{sender_email}>",
         "to": [pm_email],
         "subject": f"[MASCI] {headline}",
         "html": html_body,
@@ -4794,7 +4794,7 @@ async def _send_backup_email(
         import resend  # noqa: E402
         resend.api_key = api_key
         params: Dict[str, Any] = {
-            "from": sender,
+            "from": f"MASCI HUB Notifications <{sender}>",
             "to": [to],
             "subject": f"MASCI Nightly Backup · {stamp} · {total_records} records",
             "html": html,
@@ -6372,7 +6372,7 @@ async def _job_photos_send_email(*, to: str, subject: str, text: str, attachment
     _resend.api_key = api_key
     sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
     params: dict = {
-        "from": sender,
+        "from": f"MASCI HUB Notifications <{sender}>",
         "to": [to],
         "subject": subject,
         "text": text or " ",
@@ -6541,7 +6541,7 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             )
 
         params = {
-            "from": f"MASCI Docs <{sender_email}>",
+            "from": f"MASCI HUB Notifications <{sender_email}>",
             "to": recipients,
             "subject": subject,
             "html": render_email_html(kind, record, note),
@@ -6723,7 +6723,7 @@ async def email_report(
         subject = body.subject or f"{title} · {project}".strip(" ·")
 
         params = {
-            "from": f"MASCI Docs <{sender_email}>",
+            "from": f"MASCI HUB Notifications <{sender_email}>",
             "to": [r for r in body.recipients if r and r.strip()],
             "subject": subject,
             "html": render_email_html(body.kind, record, body.note or ""),
@@ -6841,7 +6841,7 @@ async def email_safety_card(body: SafetyCardEmailRequest):
         )
 
         params = {
-            "from": f"MASCI Safety <{sender_email}>",
+            "from": f"MASCI HUB Notifications <{sender_email}>",
             "to": valid_recipients,
             "subject": body.subject.strip() if body.subject else default_subject,
             "html": html,
@@ -6927,7 +6927,7 @@ async def email_all_safety_cards(body: SafetyCardEmailAllRequest):
         )
 
         params = {
-            "from": f"MASCI Safety <{sender_email}>",
+            "from": f"MASCI HUB Notifications <{sender_email}>",
             "to": valid_recipients,
             "subject": body.subject.strip() if body.subject else "MASCI Field Safety Cards — Full Bilingual Set",
             "html": html,

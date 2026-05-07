@@ -198,7 +198,7 @@ export default function TrenchBoxPosterCard() {
 
       {/* Vendor attribution */}
       <div className="mt-3 text-center font-mono text-[9px] uppercase tracking-[0.3em] text-slate-400">
-        © {new Date().getFullYear()} MASCI · Platform developed by The Judd Group LLC
+        Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC
       </div>
     </div>
   );

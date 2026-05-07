@@ -1,17 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
-import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
 
 /**
  * /legal/privacy — Privacy Policy.
  *
- * Authoritative text supplied by the customer (MASCI / Judd Group)
+ * Authoritative text supplied by the customer (MASCI / ForgedOps)
  * on 2026-05-02. Treat the wording inside <article> as legal text — do
  * not edit phrasing without explicit owner approval.
  *
  * Roles:
- *   • The Judd Group LLC = data PROCESSOR (owns and operates the
+ *   • ForgedOps LLC = data PROCESSOR (owns and operates the
  *     Platform — code, software, infrastructure, mascidocs.com).
  *   • MASCI = data CONTROLLER (owns all Customer Data submitted
  *     through MASCI HUB).
@@ -47,13 +46,12 @@ export default function PrivacyPolicy() {
 
         <p>
           This Privacy Policy describes how information is collected, used,
-          and protected when you access the field-operations and
-          safety-documentation software platform (the &ldquo;
-          <strong>Platform</strong>&rdquo;) operated by{" "}
-          <strong>The Judd Group LLC</strong> and delivered to{" "}
-          <strong>MASCI General Contractors Inc.</strong> and{" "}
+          and protected when you access the enterprise operational platform
+          technology (the &ldquo;<strong>Platform</strong>&rdquo;) owned and
+          operated by <strong>ForgedOps LLC</strong> and deployed for the use
+          of <strong>MASCI General Contractors Inc.</strong> and{" "}
           <strong>MASCI Corporation</strong> (collectively, &ldquo;
-          <strong>MASCI</strong>&rdquo;) at <em>mascidocs.com</em> as &ldquo;
+          <strong>MASCI</strong>&rdquo;) as &ldquo;
           <strong>MASCI HUB</strong>&rdquo;.
         </p>
 
@@ -61,13 +59,13 @@ export default function PrivacyPolicy() {
 
         <h2>1. Roles &amp; Relationship</h2>
         <p>
-          The Judd Group LLC owns and operates the Platform, including its
-          source code, software, infrastructure, and domain.
+          ForgedOps LLC owns and operates the Platform, including its
+          source code, software, infrastructure, and platform technology.
         </p>
         <p>For data protection purposes:</p>
         <ul>
           <li>
-            <strong>The Judd Group LLC</strong> acts as a{" "}
+            <strong>ForgedOps LLC</strong> acts as a{" "}
             <strong>data processor</strong>, storing and processing
             information solely on behalf of MASCI.
           </li>
@@ -84,11 +82,11 @@ export default function PrivacyPolicy() {
           <li>Managing data use within its operations</li>
         </ul>
         <p>
-          The Judd Group LLC and MASCI are independent companies. Neither is a
+          ForgedOps LLC and MASCI are independent companies. Neither is a
           parent, subsidiary, affiliate, partner, or co-owner of the other.
         </p>
         <p>
-          The Judd Group LLC does not own Customer Data and does not use it
+          ForgedOps LLC does not own Customer Data and does not use it
           for any purpose other than providing and maintaining the Platform.
         </p>
 
@@ -141,7 +139,7 @@ export default function PrivacyPolicy() {
           <li>Monitor system performance and resolve technical issues</li>
         </ul>
         <p>
-          <strong>The Judd Group LLC does NOT:</strong>
+          <strong>ForgedOps LLC does NOT:</strong>
         </p>
         <ul>
           <li>Sell or monetize Customer Data</li>
@@ -156,7 +154,7 @@ export default function PrivacyPolicy() {
 
         <h2>4. Subprocessors</h2>
         <p>
-          The Judd Group LLC uses a limited number of vetted third-party
+          ForgedOps LLC uses a limited number of vetted third-party
           providers (&ldquo;<strong>Subprocessors</strong>&rdquo;) to operate
           the Platform, including:
         </p>
@@ -190,7 +188,7 @@ export default function PrivacyPolicy() {
         </ul>
         <p>
           While reasonable safeguards are in place, no system is completely
-          secure. The Judd Group LLC does not guarantee absolute security.
+          secure. ForgedOps LLC does not guarantee absolute security.
         </p>
         <p>Users must:</p>
         <ul>
@@ -206,7 +204,7 @@ export default function PrivacyPolicy() {
           for compliance and operational recordkeeping.
         </p>
         <p>
-          <strong>The Judd Group LLC:</strong>
+          <strong>ForgedOps LLC:</strong>
         </p>
         <ul>
           <li>Stores data only as long as necessary to provide the Platform</li>
@@ -222,7 +220,7 @@ export default function PrivacyPolicy() {
         </ul>
         <p>
           Requests are handled in accordance with MASCI&rsquo;s agreement with
-          The Judd Group LLC.
+          ForgedOps LLC.
         </p>
 
         <hr className="my-6 border-slate-200" />
@@ -240,7 +238,7 @@ export default function PrivacyPolicy() {
           <li>Determining how Customer Data is used within its operations</li>
         </ul>
         <p>
-          <strong>The Judd Group LLC is not responsible for:</strong>
+          <strong>ForgedOps LLC is not responsible for:</strong>
         </p>
         <ul>
           <li>How MASCI uses Customer Data</li>
@@ -265,7 +263,7 @@ export default function PrivacyPolicy() {
           </li>
         </ul>
         <p>
-          The Judd Group LLC will assist MASCI in fulfilling these requests as
+          ForgedOps LLC will assist MASCI in fulfilling these requests as
           required.
         </p>
 
@@ -285,7 +283,7 @@ export default function PrivacyPolicy() {
         <hr className="my-6 border-slate-200" />
 
         <h2>10. Changes to This Policy</h2>
-        <p>The Judd Group LLC may update this Privacy Policy at any time.</p>
+        <p>ForgedOps LLC may update this Privacy Policy at any time.</p>
         <p>
           Material changes will be communicated to MASCI and, where
           appropriate, to users.
@@ -304,7 +302,7 @@ export default function PrivacyPolicy() {
         </p>
         <p>
           For questions regarding the Platform:
-          <br />→ Contact The Judd Group LLC
+          <br />→ Contact ForgedOps LLC
         </p>
 
         <hr className="my-8 border-slate-200" />
@@ -316,10 +314,6 @@ export default function PrivacyPolicy() {
           .
         </p>
       </article>
-
-      <footer className="border-t border-slate-200 py-6">
-        <JuddGroupAttribution variant="global" />
-      </footer>
     </main>
   );
 }

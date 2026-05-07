@@ -1,5 +1,128 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-07 — Platform-Owner Rebrand: Judd Group → ForgedOps LLC
+
+### Scope
+Per Justin: full system-wide replacement of "The Judd Group LLC" (developer/
+platform-owner branding) with **ForgedOps LLC**. MASCI HUB customer branding
+is **untouched** — MASCI logos, colors, identity, and operational copy all
+remain dominant. ForgedOps becomes the platform-technology owner, present
+subtly in attribution areas only.
+
+### What shipped
+- New attribution component `/app/frontend/src/components/ForgedOpsAttribution.jsx`
+  (renamed from `JuddGroupAttribution`); old component + asset deleted.
+- New logo asset `/app/frontend/src/assets/forgedops-logo.png` (256×256 UI use)
+  + `/app/frontend/public/forgedops-logo-512.png` (PDF/email embedding).
+- **Global footer** rewritten to two-row layout per user spec:
+  - Dominant: `POWERED BY FORGEDOPS LLC · BUILDING SAFER JOBS | POWERING PERFORMANCE`
+  - Subtle: `Terms · Privacy · v2026.MM.DD-hash` (clickable, build-version preserved)
+- **Login attribution** (admin/PM/shop/safety-forms): `Powered by ForgedOps LLC` + small ForgedOps mark.
+- **Admin attribution** (admin/PM hubs): `Platform developed & maintained by ForgedOps LLC`.
+- **PDF footer** (every generated record PDF — daily reports, inspections, QA/QC,
+  meetings, incidents, equipment, safety forms, training packets, posters):
+  `Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC`
+  (Spanish: `Generado a través de MASCI HUB — Desarrollado por ForgedOps LLC | © 2026 ForgedOps LLC`)
+- **Email sender** unified across all 8 send paths in `server.py`,
+  `routes/safety_forms.py`, `routes/shop_parts.py`:
+  `MASCI HUB Notifications <noreply@mascidocs.com>` (overridable via `SENDER_EMAIL` env).
+- **Terms of Service / Privacy Policy** rewritten:
+  - "software vendor" → "platform technology owner and operator"
+  - "customer-branded URL mascidocs.com" wording removed
+  - Multi-line "The Judd\nGroup LLC" splits caught and replaced
+  - Pages now read as "enterprise operational platform technology deployed for MASCI use"
+  - Removed redundant inline `<footer>` (was duplicating GlobalFooter — pre-existing
+    bug surfaced during this work; cleaned up)
+- **Admin/Dev/Vendor area copy** — DevHub, DevLogin, AdminGuide, Hub.jsx,
+  TrainingQrPoster, TrenchBoxPosterCard, App.js comments — all updated
+  to reference ForgedOps LLC.
+- **Backend internal attribution** — server.py docstrings + DEV portal
+  classification text + ops_manual.py + recolor_lockup_tagline.py — all
+  updated to ForgedOps LLC.
+- **Old logo file deleted**: `/app/frontend/src/assets/judd-group-logo.png` removed.
+- **Legacy test fixtures** updated (test_iter29_predeploy.py, test_iter31_predeploy_audit.py)
+  to assert the new footer string.
+
+### What was deliberately NOT changed
+- **MASCI HUB branding** — logos, colors, page chrome, copy: untouched per user.
+- **Person name "Jaymn Judd"** — actual MASCI Safety Manager, real human, kept
+  as-is in employees, project_managers, jobs, tests, and form placeholders.
+- **historical test reports** (`/app/test_reports/iteration_*.json`) — immutable
+  audit trail of past QA runs; left intact.
+- **historical PRD entries** — older session notes in this PRD.md kept as-is
+  for historical context. Search for "Judd Group" returns 0 hits in active
+  code; PRD/test-report mentions are dated history.
+
+### Historical document audit (per user spec)
+- **PDF exports**: dynamically rendered every download from `pdf_render.py` /
+  `training_pdf.py` / `pm_welcome_pdf.py` — all old records re-downloaded
+  going forward will carry the new ForgedOps footer. **Auto-updated.**
+- **Email templates**: rendered live by `render_email_html()` in `pdf_render.py`
+  — all future emails carry the new branding immediately. **Auto-updated.**
+- **Stored email artifacts**: only Resend-hosted send logs (managed by Resend,
+  not editable from the app). **Static, no action.**
+- **Backups (zips on disk)**: contain MongoDB JSON and uploaded photo bytes —
+  no rendered PDFs stored. **Static, no action needed.**
+- **Ops Manual snapshots** (`ops_manual_snapshots` collection): pinned PDF/DOCX
+  bytes that reflect branding at the time of pinning. **Static.** Future
+  snapshots will be ForgedOps-branded automatically; old ones can be
+  regenerated via the existing `/dev/ops-manual/snapshot` button if needed.
+
+### Verified end-to-end (preview)
+- 0 "Judd Group" references in active code (frontend/src + backend + public assets)
+- Footer renders correctly desktop + mobile (390px), no horizontal overflow,
+  no clipping, single instance per page
+- Terms/Privacy/Admin-Login/Hub all show the new branding cleanly
+- Build version stamp (`v2026.05.07-4209543`) preserved in subtle line
+- Backend `/api/health` returns 200; ESLint + ruff clean
+
+### Known caveat — ForgedOps logo image typo
+Attached logo image renders the tagline as `BUILDING SAFER JOBS | POWERING
+PEREDRMANCE` (missing letter — should read `PERFORMANCE`). Per user
+direction, the logo image is used as-is for the brand graphic, but the
+**tagline text is always rendered separately** in the UI/PDF/email as
+`BUILDING SAFER JOBS | POWERING PERFORMANCE` (correct spelling). Recommend
+re-exporting a clean logo asset when convenient — drop a corrected PNG at
+`/app/frontend/src/assets/forgedops-logo.png` (and the public/ copy) and
+no code changes are needed.
+
+### Files added/touched (selected)
+- NEW: `/app/frontend/src/components/ForgedOpsAttribution.jsx`,
+  `/app/frontend/src/assets/forgedops-logo.png`,
+  `/app/frontend/public/forgedops-logo.png`,
+  `/app/frontend/public/forgedops-logo-512.png`
+- DELETED: `/app/frontend/src/components/JuddGroupAttribution.jsx`,
+  `/app/frontend/src/assets/judd-group-logo.png`
+- MODIFIED: `frontend/src/components/GlobalFooter.jsx`,
+  `frontend/src/pages/legal/{TermsOfService,PrivacyPolicy}.jsx`,
+  `frontend/src/pages/{PmLogin,AdminLogin,ShopLogin,SafetyFormsLogin,PmChangePassword,PmResetPassword,AdminHub,PmHub,Hub,DevHub,DevLogin,AdminGuide,TrainingQrPoster}.jsx`,
+  `frontend/src/components/TrenchBoxPosterCard.jsx`,
+  `frontend/src/lib/devAuth.js`,
+  `frontend/src/App.js`,
+  `backend/server.py` (docstrings + 8 email-send paths unified to MASCI HUB Notifications),
+  `backend/pdf_render.py`, `backend/training_pdf.py`, `backend/ops_manual.py`,
+  `backend/scripts/recolor_lockup_tagline.py`,
+  `backend/data/suppliers_seed.json`,
+  `backend/tests/test_iter29_predeploy.py`,
+  `backend/tests/test_iter31_predeploy_audit.py`,
+  `backend/tests/test_predeploy_iter39.py`
+
+### Deploy reminder
+Push fresh build to `mascidocs.com`. The next email any crew receives after
+deploy will carry the new `MASCI HUB Notifications <noreply@mascidocs.com>`
+sender. The next PDF any crew downloads (even of old records) will carry
+the new ForgedOps footer. Cloudflare may cache the OLD Judd Group logo for
+a few minutes — hard refresh on iOS/Android to pull the new ForgedOps mark.
+
+---
+
+## 2026-05-07 — P&L Snapshot removed from PM Portal
+- Removed Project P&L Snapshot tile from `/pm` (PmHub.jsx) per owner direction
+- Unmounted `/pm/pnl` route in App.js — PMs cannot deep-link
+- Admin still has full P&L access at `/admin/pnl` — untouched
+
+---
+
 ## 2026-05-07 — Job Photos Library Phase 1 (read-only aggregator)
 
 ### Scope

@@ -187,11 +187,11 @@ class TestTrainingVideos:
 
 # ---------- SECTION 4 — PDF footer audit ----------
 @pytest.mark.parametrize("track,lang,expected_phrase", [
-    ("field", "en", "Platform developed by The Judd Group LLC"),
-    ("field", "es", "Plataforma desarrollada por The Judd Group LLC"),
-    ("shop", "en", "Platform developed by The Judd Group LLC"),
-    ("pm", "en", "Platform developed by The Judd Group LLC"),
-    ("admin", "en", "Platform developed by The Judd Group LLC"),
+    ("field", "en", "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC"),
+    ("field", "es", "Generado a través de MASCI HUB — Desarrollado por ForgedOps LLC | © 2026 ForgedOps LLC"),
+    ("shop", "en", "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC"),
+    ("pm", "en", "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC"),
+    ("admin", "en", "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC"),
 ])
 def test_pdf_footer_no_duplication(track, lang, expected_phrase, admin_token):
     headers = {"X-Admin-Token": admin_token}
@@ -213,7 +213,7 @@ def test_pdf_footer_no_duplication(track, lang, expected_phrase, admin_token):
 
 
 def test_pdf_no_old_powered_by_wording(admin_token):
-    """Forbidden old wording 'Powered by The Judd Group LLC' must not appear."""
+    """Forbidden old wording 'Powered by ForgedOps LLC' must not appear."""
     r = requests.get(f"{API}/training/packet.pdf?track=field&lang=en", timeout=60)
     reader = PdfReader(io.BytesIO(r.content))
     full = ""
@@ -222,7 +222,7 @@ def test_pdf_no_old_powered_by_wording(admin_token):
             full += p.extract_text() or ""
         except Exception:
             pass
-    assert "Powered by The Judd Group LLC" not in full, "old wording present"
+    assert "Powered by ForgedOps LLC" not in full, "old wording present"
 
 
 def test_wallet_safety_cards_pdf():

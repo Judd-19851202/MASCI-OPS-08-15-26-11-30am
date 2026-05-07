@@ -1,6 +1,6 @@
 """Internal System Owner & Operations Manual — MASCI HUB
 
-Generates both PDF (WeasyPrint) and DOCX (python-docx) for The Judd Group LLC.
+Generates both PDF (WeasyPrint) and DOCX (python-docx) for ForgedOps LLC.
 Not a customer-facing document. Admin-only download via /api/admin/ops-manual.{pdf,docx}.
 
 Content is kept in structured Python data (SECTIONS) so both renderers emit the
@@ -46,7 +46,7 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
                 ["Safety Hub", "Safety officers, foremen", "Site inspections, toolbox talks, JHPs, incident reports, trench box tracking, safety cards"],
                 ["Shop Hub", "Mechanics, shop supervisors", "Review failed pre-ops, sign off on repairs, parts + work orders"],
                 ["PM Hub", "Project managers", "Scoped dashboards per assigned project — daily-report summaries, job-specific incidents, notifications"],
-                ["Admin Hub", "Office / The Judd Group", "User roles, master lists (equipment, employees, subs, vendors), integrity checks, backups, training-video URL registry"],
+                ["Admin Hub", "Office / ForgedOps", "User roles, master lists (equipment, employees, subs, vendors), integrity checks, backups, training-video URL registry"],
                 ["Training Hub", "All personnel (field public, shop/PM/admin gated)", "Step-by-step lessons, bilingual EN/ES content, PDF packets, scan-&-go QR posters"],
             ]),
         ("h3", "Primary Workflows"),
@@ -130,7 +130,7 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
                 ["Domain registrar (mascidocs.com)", "Annual domain renewal", "~$1.20 (annualised)", "$12-15/year typical (.com)."],
                 ["Universal LLM Key usage", "AI text via Universal Key", "$0-5", "Pay-per-use. Small model calls are $0.001-0.01 each. Top up via Profile → Universal Key."],
                 ["Training video storage", "Customer-asset CDN (platform-hosted)", "$0.00", "Included in hosting platform plan. If video library grows past ~20 videos (~500 MB) consider moving to dedicated S3 + CloudFront."],
-                ["Operator time (The Judd Group)", "Admin / maintenance labor", "variable", "1-4 hours/mo at current scale. Rises to 8-10 hours/mo when Daily Reports > 100/week."],
+                ["Operator time (ForgedOps)", "Admin / maintenance labor", "variable", "1-4 hours/mo at current scale. Rises to 8-10 hours/mo when Daily Reports > 100/week."],
             ]),
         ("h3", "Usage Tier Estimates"),
         ("table",
@@ -243,7 +243,7 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
                 ["JWT_SECRET leak", "Rotate JWT_SECRET + redeploy. All tokens instantly invalid."],
                 ["Public endpoint abuse", "Rate limiting already on. Cloudflare adds DDoS absorption."],
                 ["Atlas credentials leak", "Atlas IP allowlist + rotate DB user password."],
-                ["Lost admin password", "Recoverable via deploy env vars — only The Judd Group LLC has access to those."],
+                ["Lost admin password", "Recoverable via deploy env vars — only ForgedOps LLC has access to those."],
             ]),
     ]),
 
@@ -304,7 +304,7 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
         ("list", [
             "the hosting platform lock-in — DR plan mitigates this but worth decoupling if MASCI ever grows to multiple customers.",
             "WeasyPrint — stable but requires GTK system libs; could be replaced with a headless Chrome PDF service (Gotenberg, Browserless) for better CSS support.",
-            "Custom-asset CDN for training videos — moving to a dedicated S3 + CloudFront bucket gives The Judd Group LLC direct ownership of video storage."
+            "Custom-asset CDN for training videos — moving to a dedicated S3 + CloudFront bucket gives ForgedOps LLC direct ownership of video storage."
         ]),
         ("h3", "Long-Term SaaS Recommendations"),
         ("list", [
@@ -316,7 +316,7 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
     ]),
 
     ("12. Owner Notes", [
-        "This section is intentionally blank — The Judd Group LLC should use this space for ongoing observations, custom changes, and future-improvement ideas as they come up during daily operation of MASCI HUB.",
+        "This section is intentionally blank — ForgedOps LLC should use this space for ongoing observations, custom changes, and future-improvement ideas as they come up during daily operation of MASCI HUB.",
         ("h3", "Custom Notes"),
         "—",
         ("h3", "Future Improvements"),
@@ -329,7 +329,7 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
 
 COVER_TITLE = "MASCI HUB"
 COVER_SUBTITLE = "Internal System Owner & Operations Manual"
-COVER_OWNER = "The Judd Group LLC"
+COVER_OWNER = "ForgedOps LLC"
 COVER_CLASSIFICATION = "CONFIDENTIAL — Not for Customer or Public Use"
 
 
@@ -344,7 +344,7 @@ def _pdf_html() -> str:
 <style>
 @page { size: Letter; margin: 0.75in 0.75in 0.95in 0.75in;
   @bottom-left  { content: "MASCI HUB · Internal Operations Manual"; font-family: 'Helvetica', sans-serif; font-size: 8pt; color: #6b7280; }
-  @bottom-center { content: "CONFIDENTIAL — The Judd Group LLC"; font-family: 'Helvetica', sans-serif; font-size: 8pt; color: #b91c1c; letter-spacing: 0.1em; text-transform: uppercase; }
+  @bottom-center { content: "CONFIDENTIAL — ForgedOps LLC"; font-family: 'Helvetica', sans-serif; font-size: 8pt; color: #b91c1c; letter-spacing: 0.1em; text-transform: uppercase; }
   @bottom-right { content: counter(page) " / " counter(pages); font-family: 'Helvetica', sans-serif; font-size: 8pt; color: #6b7280; }
 }
 @page :first { margin: 1.2in 0.75in 1in 0.75in;
@@ -499,7 +499,7 @@ def render_ops_manual_docx() -> bytes:
     section = doc.sections[0]
     footer = section.footer
     fp = footer.paragraphs[0]
-    fp.text = "CONFIDENTIAL — The Judd Group LLC · MASCI HUB Operations Manual"
+    fp.text = "CONFIDENTIAL — ForgedOps LLC · MASCI HUB Operations Manual"
     fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
     for run in fp.runs:
         run.font.size = Pt(8)

@@ -1,6 +1,6 @@
 """Recolour the bottom tagline ("EXCELLENCE • ADAPT • OVERCOME") on the
 MASCI HUB lockup so it has the right contrast for the surface it sits on,
-and bake a small "Developed & Maintained by The Judd Group LLC" vendor
+and bake a small "Developed & Maintained by ForgedOps LLC" vendor
 credit into the
 print-bound variants only (on-light, on-black). The transparent variant
 that lives in the live app stays clean — no vendor credit baked in.
@@ -133,7 +133,7 @@ def main():
     print(f"  saved {OUT_TRANSPARENT}")
 
     # 2) on-light variant — DARK NAVY tagline so it reads on white,
-    #    + small "Developed & Maintained by The Judd Group LLC" credit baked in.
+    #    + small "Developed & Maintained by ForgedOps LLC" credit baked in.
     print("[masci-full-lockup-onlight.png] white-bg flatten + dark-navy tagline + credit")
     dark = recolour(src, DARK_NAVY)
     dark_with_credit = add_credit(dark, DARK_NAVY + (180,))  # 70% opacity slate-900

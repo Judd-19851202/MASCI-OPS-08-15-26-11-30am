@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
-import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { api } from "@/lib/api";
 import { setAdminToken, clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
@@ -170,7 +170,7 @@ export default function AdminLogin() {
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
           MASCI · Office Use Only
         </div>
-        <JuddGroupAttribution variant="login" />
+        <ForgedOpsAttribution variant="login" />
       </footer>
     </div>
   );

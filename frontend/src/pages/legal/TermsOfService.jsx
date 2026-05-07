@@ -1,17 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Scale } from "lucide-react";
-import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
 
 /**
  * /legal/terms — Terms of Service.
  *
- * Authoritative text supplied by the customer (MASCI / Judd Group)
+ * Authoritative text supplied by the customer (MASCI / ForgedOps)
  * on 2026-05-02. Treat the wording inside <article> as legal text — do
  * not edit phrasing without explicit owner approval.
  *
  * Relationship model:
- *   • The Judd Group LLC owns the Platform (code, software,
+ *   • ForgedOps LLC owns the Platform (code, software,
  *     infrastructure, mascidocs.com domain).
  *   • MASCI is the customer that licenses the Platform and owns all
  *     Customer Data submitted through it.
@@ -48,16 +47,15 @@ export default function TermsOfService() {
 
         <p>
           These Terms of Service (&ldquo;<strong>Terms</strong>&rdquo;) govern
-          your access to and use of the field-operations and
-          safety-documentation software platform (the &ldquo;
-          <strong>Platform</strong>&rdquo;) provided by{" "}
-          <strong>The Judd Group LLC</strong> (&ldquo;<strong>Provider</strong>
-          &rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;). The Platform is
-          licensed to <strong>MASCI General Contractors Inc.</strong> and{" "}
+          your access to and use of the enterprise operational platform
+          technology (the &ldquo;<strong>Platform</strong>&rdquo;) owned and
+          operated by <strong>ForgedOps LLC</strong> (&ldquo;
+          <strong>Provider</strong>&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;).
+          The Platform is deployed for the use of{" "}
+          <strong>MASCI General Contractors Inc.</strong> and{" "}
           <strong>MASCI Corporation</strong> (collectively, &ldquo;
-          <strong>MASCI</strong>&rdquo;) and is delivered to MASCI&rsquo;s
-          users at the customer-branded URL <em>mascidocs.com</em> as &ldquo;
-          <strong>MASCI HUB</strong>&rdquo;.
+          <strong>MASCI</strong>&rdquo;) and delivered to MASCI&rsquo;s users
+          as &ldquo;<strong>MASCI HUB</strong>&rdquo;.
         </p>
         <p>
           By accessing or using the Platform, you (&ldquo;
@@ -68,22 +66,21 @@ export default function TermsOfService() {
 
         <h2>1. Relationship of the Parties</h2>
         <p>
-          The Judd Group LLC and MASCI are independent companies. Neither is a
+          ForgedOps LLC and MASCI are independent companies. Neither is a
           parent, subsidiary, affiliate, partner, agent, or co-owner of the
-          other. The Judd Group LLC is the software vendor; MASCI is the
-          customer.
+          other. ForgedOps LLC is the platform technology owner and operator;
+          MASCI is the deployed-for organization.
         </p>
 
         <hr className="my-6 border-slate-200" />
 
         <h2>2. Ownership of the Platform</h2>
         <p>
-          The Judd Group LLC owns and retains all right, title, and interest
+          ForgedOps LLC owns and retains all right, title, and interest
           in the Platform, including all source code, designs, databases,
           software, documentation, configurations, infrastructure, proprietary
-          methods, workflows, system designs, and the <em>mascidocs.com</em>{" "}
-          domain (collectively, the &ldquo;<strong>Platform IP</strong>
-          &rdquo;).
+          methods, workflows, and system designs (collectively, the &ldquo;
+          <strong>Platform IP</strong>&rdquo;).
         </p>
         <p>
           Nothing in these Terms transfers any ownership of the Platform IP to
@@ -91,14 +88,14 @@ export default function TermsOfService() {
         </p>
         <p>
           MASCI acknowledges that the Platform includes proprietary systems
-          and operational methodologies developed by The Judd Group LLC, and
+          and operational methodologies developed by ForgedOps LLC, and
           no rights are granted to replicate, reproduce, or develop competing
           systems based on the Platform.
         </p>
         <p>
           MASCI&rsquo;s use of the Platform is limited to the rights expressly
           granted in MASCI&rsquo;s separate written services agreement with
-          The Judd Group LLC.
+          ForgedOps LLC.
         </p>
 
         <hr className="my-6 border-slate-200" />
@@ -111,16 +108,16 @@ export default function TermsOfService() {
           MASCI.
         </p>
         <p>
-          The Judd Group LLC stores and processes Customer Data solely to
+          ForgedOps LLC stores and processes Customer Data solely to
           provide the Platform and related services.
         </p>
         <p>
-          The Judd Group LLC does not claim ownership of Customer Data and
+          ForgedOps LLC does not claim ownership of Customer Data and
           will not sell, share, or use it for advertising purposes.
         </p>
         <p>
           MASCI may request export of its Customer Data in a standard format.
-          The Judd Group LLC will provide reasonable assistance but is not
+          ForgedOps LLC will provide reasonable assistance but is not
           responsible for long-term storage, backup, or retention beyond
           normal system operations.
         </p>
@@ -129,7 +126,7 @@ export default function TermsOfService() {
 
         <h2>4. License to Use</h2>
         <p>
-          Subject to these Terms, The Judd Group LLC grants MASCI&rsquo;s
+          Subject to these Terms, ForgedOps LLC grants MASCI&rsquo;s
           authorized employees, contractors, project managers, foremen, shop
           personnel, and approved clients a limited, revocable, non-exclusive,
           non-transferable, non-sublicensable license to access and use the
@@ -141,8 +138,7 @@ export default function TermsOfService() {
         </p>
         <p>
           Use by any affiliate, subsidiary, joint venture, partner company, or
-          third party requires a separate written agreement with The Judd
-          Group LLC.
+          third party requires a separate written agreement with ForgedOps LLC.
         </p>
         <p>This license does not grant any right to:</p>
         <ol>
@@ -203,19 +199,19 @@ export default function TermsOfService() {
         <h2>7. Platform Availability &amp; Services</h2>
         <p>
           Access to the Platform is dependent on systems, infrastructure, and
-          services controlled by The Judd Group LLC.
+          services controlled by ForgedOps LLC.
         </p>
         <p>
-          The Judd Group LLC reserves the right to modify, suspend, or
+          ForgedOps LLC reserves the right to modify, suspend, or
           discontinue any portion of the Platform at its sole discretion.
         </p>
         <p>
-          The Judd Group LLC does not guarantee uninterrupted access, uptime,
+          ForgedOps LLC does not guarantee uninterrupted access, uptime,
           or availability.
         </p>
         <p>
           Support, maintenance, and updates may be provided at the discretion
-          of The Judd Group LLC or under separate agreement.
+          of ForgedOps LLC or under separate agreement.
         </p>
 
         <hr className="my-6 border-slate-200" />
@@ -241,8 +237,7 @@ export default function TermsOfService() {
 
         <h2>9. Limitation of Liability</h2>
         <p className="uppercase">
-          To the fullest extent permitted by law, in no event shall The Judd
-          Group LLC or MASCI be liable to any user for any indirect,
+          To the fullest extent permitted by law, in no event shall ForgedOps LLC or MASCI be liable to any user for any indirect,
           incidental, special, consequential, or punitive damages arising out
           of or related to the Platform or these Terms.
         </p>
@@ -251,7 +246,7 @@ export default function TermsOfService() {
 
         <h2>10. Indemnification</h2>
         <p>
-          MASCI agrees to defend, indemnify, and hold harmless The Judd Group
+          MASCI agrees to defend, indemnify, and hold harmless ForgedOps
           LLC from and against any claims, damages, losses, liabilities, or
           expenses arising out of or related to:
         </p>
@@ -266,7 +261,7 @@ export default function TermsOfService() {
 
         <h2>11. Termination</h2>
         <p>
-          The Judd Group LLC or MASCI may suspend or terminate any
+          ForgedOps LLC or MASCI may suspend or terminate any
           user&rsquo;s access to the Platform at any time, with or without
           cause.
         </p>
@@ -279,7 +274,7 @@ export default function TermsOfService() {
         <hr className="my-6 border-slate-200" />
 
         <h2>12. Changes to These Terms</h2>
-        <p>The Judd Group LLC may update these Terms at any time.</p>
+        <p>ForgedOps LLC may update these Terms at any time.</p>
         <p>Material changes will be communicated to MASCI.</p>
         <p>
           Continued use of the Platform after changes become effective
@@ -300,7 +295,7 @@ export default function TermsOfService() {
         <h2>14. Contact</h2>
         <p>
           For questions regarding these Terms, contact MASCI administration or
-          The Judd Group LLC regarding the Platform.
+          ForgedOps LLC regarding the Platform.
         </p>
 
         <hr className="my-8 border-slate-200" />
@@ -312,10 +307,6 @@ export default function TermsOfService() {
           .
         </p>
       </article>
-
-      <footer className="border-t border-slate-200 py-6">
-        <JuddGroupAttribution variant="global" />
-      </footer>
     </main>
   );
 }

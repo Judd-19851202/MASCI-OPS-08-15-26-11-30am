@@ -996,7 +996,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
 <style>
   @page {{ size: Letter; margin: 0.5in 0.5in 0.85in 0.5in;
            @bottom-left {{
-             content: "\u00A9 MASCI \u00B7 Platform developed by The Judd Group LLC";
+             content: "Generated through MASCI HUB — Powered by ForgedOps LLC | \u00A9 2026 ForgedOps LLC";
              font-family: 'Courier New', monospace; font-size: 7pt;
              letter-spacing: 0.16em; text-transform: uppercase;
              color: #334155; font-weight: bold;
@@ -1093,7 +1093,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
   <div style="margin-top:6pt;font-family:'Helvetica','Arial',sans-serif;
        font-size:7pt;color:#475569;">
     mascidocs.com is a customer-branded deployment of a platform developed
-    by The Judd Group LLC.
+    by ForgedOps LLC.
   </div>
 </body></html>"""
 

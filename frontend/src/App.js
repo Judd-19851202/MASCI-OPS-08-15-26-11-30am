@@ -280,7 +280,7 @@ function App() {
             <Route path="/admin/training-videos" element={A(<AdminTrainingVideos />)} />
 
             {/* ============================================================
-                Developer Portal — The Judd Group LLC vendor-internal only.
+                Developer Portal — ForgedOps LLC vendor-internal only.
                 Hidden behind a tiny "Developer" link in the Hub footer;
                 password-gated with X-Dev-Token (distinct namespace from
                 admin/PM/shop tokens). Houses the System Owner & Operations

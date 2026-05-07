@@ -17,7 +17,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
-import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
@@ -322,7 +322,7 @@ export default function PmHub() {
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
           MASCI · Project Management Portal
         </div>
-        <JuddGroupAttribution variant="admin" />
+        <ForgedOpsAttribution variant="admin" />
       </footer>
     </div>
   );

@@ -200,7 +200,7 @@ export default function DevHub() {
             </div>
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500">
-                The Judd Group LLC · Vendor Portal
+                ForgedOps LLC · Vendor Portal
               </div>
               <h1 className="font-mono text-base font-bold text-white leading-none mt-0.5">
                 dev.portal / ops-manual
@@ -408,7 +408,7 @@ export default function DevHub() {
         </Section>
 
         <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 text-center pt-4">
-          Classification: CONFIDENTIAL · The Judd Group LLC · Not for MASCI staff distribution
+          Classification: CONFIDENTIAL · ForgedOps LLC · Not for MASCI staff distribution
         </div>
       </main>
     </div>

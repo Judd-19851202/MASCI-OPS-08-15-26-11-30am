@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
-import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
@@ -319,7 +319,7 @@ export default function PmLogin() {
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
           {t("MASCI · Project Management Portal")}
         </div>
-        <JuddGroupAttribution variant="login" />
+        <ForgedOpsAttribution variant="login" />
       </footer>
     </div>
   );

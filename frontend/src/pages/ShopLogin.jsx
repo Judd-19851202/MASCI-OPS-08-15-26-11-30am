@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
-import { JuddGroupAttribution } from "@/components/JuddGroupAttribution";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { api } from "@/lib/api";
 import { setShopToken, clearShopToken } from "@/lib/shopAuth";
 import { clearAdminToken } from "@/lib/adminAuth";
@@ -160,7 +160,7 @@ export default function ShopLogin() {
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
           MASCI · {t("Shop Use Only")}
         </div>
-        <JuddGroupAttribution variant="login" />
+        <ForgedOpsAttribution variant="login" />
       </footer>
     </div>
   );

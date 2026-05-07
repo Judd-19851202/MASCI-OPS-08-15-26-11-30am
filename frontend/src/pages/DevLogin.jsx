@@ -9,7 +9,7 @@ import { setDevToken, clearDevToken } from "@/lib/devAuth";
 import { toast } from "sonner";
 
 /**
- * Developer portal login — vendor-only entry point (The Judd Group LLC).
+ * Developer portal login — vendor-only entry point (ForgedOps LLC).
  *
  * Deliberately plain, not branded to MASCI. Reached via a tiny
  * "Developer" link in the Hub footer so MASCI staff and field crews
@@ -75,7 +75,7 @@ export default function DevLogin() {
             <ArrowLeft className="w-3 h-3 mr-1" /> Home
           </Link>
           <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500">
-            The Judd Group LLC
+            ForgedOps LLC
           </span>
         </div>
       </header>
@@ -96,7 +96,7 @@ export default function DevLogin() {
             </div>
           </div>
           <p className="text-slate-500 text-xs font-mono mb-6">
-            Restricted. For The Judd Group LLC use only.
+            Restricted. For ForgedOps LLC use only.
           </p>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="dev-login-form">
@@ -138,7 +138,7 @@ export default function DevLogin() {
 
       <footer className="max-w-3xl mx-auto px-5 sm:px-8 py-5 text-center">
         <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-600">
-          Confidential · The Judd Group LLC
+          Confidential · ForgedOps LLC
         </span>
       </footer>
     </div>

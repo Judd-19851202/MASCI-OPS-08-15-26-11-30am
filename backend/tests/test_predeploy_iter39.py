@@ -265,7 +265,7 @@ class TestPdfRenders:
         _assert_no_escaped_html(text, "daily-report")
         assert "ITER39_ACTIVITY_MARKER" in text, "Activities Performed empty (Leandro bug)"
         assert "ITER39_GENERAL_NOTES_MARKER" in text, "General notes missing"
-        assert "Judd Group" in text
+        assert "ForgedOps" in text
 
     def test_inspection_pdf_no_escaped_html(self):
         render = self._import_render()

@@ -416,7 +416,7 @@ export default function Hub() {
       </footer>
 
       {/* Vendor-internal access — intentionally low-contrast and small.
-          Links to The Judd Group LLC developer portal (Ops Manual). */}
+          Links to ForgedOps LLC developer portal (Ops Manual). */}
       <div className="max-w-6xl mx-auto px-5 sm:px-8 pb-6 -mt-2 flex justify-center">
         <Link
           to="/dev/login"
