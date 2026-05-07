@@ -4208,26 +4208,41 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
         log_lines.append(f"  Auto-discovered subtotal: {auto_total}")
 
         # ====================================================================
-        # DISK-BACKED FILES — the /app/backend/storage tree (Oxford 153 MB
-        # FDOT plans + every other big project doc that exceeds Mongo's BSON
-        # limit). These would otherwise be lost on container redeploy.
+        # DISK-BACKED FILES — every directory under /app/backend/ that holds
+        # file uploads or generated assets that aren't in MongoDB. Includes:
+        #   • storage/   — uploaded FDOT plans / project docs (>16 MB BSON limit)
+        #   • static/    — training videos, safety cards, branding logos
+        #                  (uploaded by admin, would be lost on container death)
+        #   • data/      — equipment_master JSON snapshots + employee seed
+        # These would otherwise be lost on container redeploy.
         # ====================================================================
-        DISK_STORAGE_ROOT = Path("/app/backend/storage")
+        DISK_BACKUP_ROOTS = [
+            ("/app/backend/storage", "storage"),
+            ("/app/backend/static", "static"),
+            ("/app/backend/data", "data"),
+        ]
         log_lines.append("")
         log_lines.append("Disk-backed files (storage tree):")
         disk_files_count = 0
         disk_bytes = 0
-        if DISK_STORAGE_ROOT.is_dir():
-            for f in DISK_STORAGE_ROOT.rglob("*"):
+        for root_path_str, archive_prefix in DISK_BACKUP_ROOTS:
+            root_path = Path(root_path_str)
+            if not root_path.is_dir():
+                continue
+            for f in root_path.rglob("*"):
                 await asyncio.sleep(0)  # yield each file — disk_files can be 100MB+
                 if not f.is_file():
                     continue
+                # Skip Python bytecode caches and any tmp files.
+                if "__pycache__" in f.parts or f.name.endswith(".pyc"):
+                    continue
                 try:
-                    rel = f.relative_to(DISK_STORAGE_ROOT)
+                    rel = f.relative_to(root_path)
                     # STREAM the file into the zip 1 MB at a time so even a
                     # 150 MB+ PDF (Oxford FDOT plans) never lives in RAM.
                     size = f.stat().st_size
-                    with zf.open(f"disk_files/{rel.as_posix()}", "w", force_zip64=True) as zdst, \
+                    arcname = f"disk_files/{archive_prefix}/{rel.as_posix()}"
+                    with zf.open(arcname, "w", force_zip64=True) as zdst, \
                          f.open("rb") as src:
                         while True:
                             chunk = src.read(1024 * 1024)
@@ -4239,12 +4254,10 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
                     disk_bytes += size
                 except Exception as e:  # noqa: BLE001
                     log_lines.append(f"    [warn] disk file {f} failed: {e}")
-            log_lines.append(
-                f"  /app/backend/storage  : {disk_files_count} files, "
-                f"{disk_bytes / (1024 * 1024):.1f} MB"
-            )
-        else:
-            log_lines.append("  (no disk storage tree — nothing to bundle)")
+        log_lines.append(
+            f"  disk_files            : {disk_files_count} files, "
+            f"{disk_bytes / (1024 * 1024):.1f} MB"
+        )
 
         # ---------- Backup integrity manifest ----------
         # Records what was captured so a future restore can verify the zip
