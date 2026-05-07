@@ -15,6 +15,9 @@ import { isAdmin } from "@/lib/adminAuth";
 import { getPmToken } from "@/lib/pmAuth";
 import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
+import { MasciLogo } from "@/components/MasciLogo";
+import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
+import { LangToggle } from "@/components/LangToggle";
 
 export default function FieldLeadershipView() {
   const { t, lang } = useT();
@@ -70,19 +73,48 @@ export default function FieldLeadershipView() {
   ];
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-16">
-      <header className="bg-slate-900 text-white px-5 sm:px-8 py-5 flex items-center justify-between">
-        <Link to="/leadership/records" className="text-xs font-mono uppercase tracking-[0.2em] text-slate-300 hover:text-white">
-          <ArrowLeft className="inline w-3 h-3 mr-1" /> {t("Records")}
-        </Link>
-        <Button onClick={downloadPdf} variant="outline" className="h-9 border-2 border-slate-600 bg-slate-800 text-white hover:border-amber-500 text-xs font-bold uppercase tracking-wide" data-testid="leadership-view-pdf">
-          <FileDown className="w-3.5 h-3.5 mr-1" />{t("Download PDF")}
-        </Button>
+    <main className="min-h-screen blueprint-bg pb-16">
+      <div className="caution-stripe" />
+      <header className="bg-slate-900 border-b-4 border-red-700">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+          <MasciLogo variant="lockup" size="xl" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
+          <div className="flex items-center gap-2">
+            <LangToggle />
+            <CompanyInfoDialog />
+            <Button
+              onClick={downloadPdf}
+              variant="outline"
+              className="h-10 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-amber-500 text-xs font-bold uppercase tracking-wide"
+              data-testid="leadership-view-pdf"
+            >
+              <FileDown className="w-3.5 h-3.5 mr-1" />{t("Download PDF")}
+            </Button>
+          </div>
+        </div>
       </header>
 
       <section className="max-w-3xl mx-auto px-5 sm:px-8 pt-6">
+        <div className="mb-6 flex items-center gap-4">
+          <Link
+            to="/leadership/records"
+            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
+            data-testid="leadership-view-back-records"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> {t("Records")}
+          </Link>
+          <span className="text-slate-300">·</span>
+          <Link
+            to="/leadership"
+            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
+            data-testid="leadership-view-back-hub"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> {t("Field Leadership")}
+          </Link>
+        </div>
+
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
-        <h1 className="font-display text-2xl sm:text-3xl font-black mt-1">{kindLabel(rec.kind)}</h1>
+        <h1 className="font-display text-3xl sm:text-4xl font-black mt-1">{kindLabel(rec.kind)}</h1>
 
         <Card className="mt-5 p-5">
           <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Summary")}</h3>

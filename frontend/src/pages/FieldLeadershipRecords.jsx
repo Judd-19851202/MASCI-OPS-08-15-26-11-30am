@@ -22,6 +22,9 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
 import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
+import { MasciLogo } from "@/components/MasciLogo";
+import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
+import { LangToggle } from "@/components/LangToggle";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600";
 
@@ -124,19 +127,34 @@ export default function FieldLeadershipRecords() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-16">
-      <header className="bg-slate-900 text-white px-5 sm:px-8 py-5 flex items-center justify-between">
-        <Link to="/leadership" className="text-xs font-mono uppercase tracking-[0.2em] text-slate-300 hover:text-white">
-          <ArrowLeft className="inline w-3 h-3 mr-1" /> {t("Field Leadership")}
-        </Link>
-        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400">
-          <ListChecks className="inline w-3 h-3 mr-1" /> {t("Records")}
-        </span>
+    <main className="min-h-screen blueprint-bg pb-16">
+      <div className="caution-stripe" />
+      <header className="bg-slate-900 border-b-4 border-red-700">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+          <MasciLogo variant="lockup" size="xl" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
+          <div className="flex items-center gap-2">
+            <LangToggle />
+            <CompanyInfoDialog />
+          </div>
+        </div>
       </header>
 
       <section className="max-w-6xl mx-auto px-5 sm:px-8 pt-6">
-        <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
-        <h1 className="font-display text-2xl sm:text-3xl font-black mt-1">{t("Records & Submissions")}</h1>
+        <div className="mb-6">
+          <Link
+            to="/leadership"
+            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
+            data-testid="leadership-records-back"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> {t("Field Leadership")}
+          </Link>
+        </div>
+
+        <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
+          <ListChecks className="inline w-3.5 h-3.5 mr-1" />{t("Field Leadership · Records")}
+        </div>
+        <h1 className="font-display text-3xl sm:text-4xl font-black mt-1">{t("Records & Submissions")}</h1>
         <p className="text-slate-600 mt-1 text-sm">
           {admin ? t("All Field Leadership submissions across every job.") : t("Submissions for jobs assigned to you.")}
         </p>
