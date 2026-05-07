@@ -1,5 +1,49 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-07 — Field Leadership Module — DEPLOY READY
+
+### Scope
+Password-gated supervisor/PM module at `/leadership` containing 10 brand-new
+crew-documentation forms plus a link to the existing Safety Equipment
+Issuance form. Visual chrome matches the main MASCI Hub 1:1 (slate-900
+header, MasciLogo, blueprint-bg, caution stripe, SectionCard tile pattern,
+red eyebrow tags, 4xl/5xl/6xl display headline).
+
+### What shipped this session
+- **FieldLeadershipHub.jsx rewritten** to use the same `SectionCard` pattern
+  + header chrome as `Hub.jsx` (per user demand: "tiles dont look same as
+  rest of the system nor does header anything"). Visual parity confirmed
+  via screenshot.
+- **Critical compile fix**: `LangToggle` is a named export — corrected the
+  default-import that was breaking the bundle (`Compiled with problems`
+  overlay was blocking the entire app, not just /leadership).
+- **iter43 regression run**: 28/28 backend pytest pass + Playwright frontend
+  pass. PM scoping verified, Supervisor Notes admin gate verified, ForgedOps
+  PDF footer verified, no "Judd Group" leakage in any new artifact.
+
+### Module surface
+- Routes: `/leadership` (password gate + tile hub), `/leadership/{kind}/new`
+  (dynamic form), `/leadership/records` (PM-scoped list w/ filters + CSV
+  export), `/leadership/records/{id}` (detail + PDF download).
+- 10 form kinds: write_up, verbal_coaching, attendance, recognition,
+  equipment_checkout, new_employee_eval, crew_eval, promotion_recommendation,
+  training_deficiency, supervisor_notes (admin-only).
+- 11th tile: external link to `/safety/equipment-issuance` (preserves
+  existing safety-forms login flow).
+- Auth layers: sessionStorage `X-Leadership-Token` (12h TTL) +
+  admin/PM token implicitly satisfies. `supervisor_notes` additionally
+  requires admin token.
+- Email recipients (when `AUTO_EMAIL_REPORTS=true`): assigned PM +
+  jaymn.judd@mascigc.com + safety@mascigc.com.
+
+### Known minor (non-blocking, parked)
+- Wrong-password feedback on /leadership relies on a sonner toast (~1.5s
+  visibility) without a persistent `data-testid`. Functional behavior is
+  correct (401 emitted, retry available). Optional future polish.
+- Records-page count tiles + filter inputs lack `data-testid` (carried from
+  iter42 minor item).
+
+
 ## 2026-05-07 — Platform-Owner Rebrand: Judd Group → ForgedOps LLC
 
 ### Scope
