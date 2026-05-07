@@ -6,6 +6,65 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ## 🅿️ PARKED — Awaiting User Green Light
 
+### 🔐 Site-Wide Employee Login Gate
+- **Status**: PARKED by user on 2026-05-07 — *"we will do this soon just not today"*
+- **Priority when unparked**: P1 (security + audit trail + usage analytics)
+- **Why parked**: Other priorities first. User wants this in the very near future.
+- **Reminder trigger**: Surface during any conversation about user audit trail, security hardening, employee accountability, or "what should we tackle next?"
+
+**Spec Summary (already mapped out in detail — ready to execute on user's go):**
+
+The gate: every visitor to mascidocs.com hits a login screen first. Only after entering their employee credentials do they see any HUB content. PM/Shop/Admin/Safety-Forms portals stay as their own gates inside.
+
+**Eight components to build (~14 hours / 1.5–2 days total):**
+1. Bulk employee import from spreadsheet (name, email/ID, password, active flag) — ~1 hr
+2. Site-wide login gate component wrapping the whole app — ~3 hr
+3. `/api/field/login` endpoint (issues 30-day signed cookie token) — ~1 hr
+4. Usage tracking: every page view + form submission stamps who/when/what — ~3 hr
+5. Termination toggle: admin button → revokes all tokens instantly + blocks future logins — ~1 hr
+6. Self-service password reset via Resend — ~2 hr
+7. (Optional) First-time forced password change — ~1 hr
+8. Per-employee record stamping: every form auto-tags `submitted_by_employee_id` — ~2 hr
+
+**Smart additions I'd build alongside (free since we're in there):**
+- Multi-device tracking (flag password sharing — same login from 3+ IPs in a week)
+- "Stay logged in 30 days" on mobile (so crews don't type passwords at 6am)
+- Biometric unlock prompt on iOS (Face ID via passkeys)
+- Admin "Recent Activity" live stream
+- Per-employee productivity stats (reports filed per month)
+- Auto-flag accounts inactive for 90+ days
+
+**Recommended phased rollout:**
+- 🥇 Phase 1 (Day 1): Hard gate + employee import + admin termination toggle — ~6–10 hrs
+- 🥈 Phase 2: Usage tracking + per-record stamping + admin activity dashboard — ~½ day
+- 🥉 Phase 3: Self-service password reset + 30-day mobile sessions — ~½ day
+- 🎖️ Phase 4: Productivity dashboard + multi-device alerts — ~½ day, optional
+
+**Open decisions when unparked:**
+- a) Identifier: email / employee ID / **either (recommended)**
+- b) Force password change on first MASCI HUB login: yes / no / optional
+- c) Pages staying public (no login): `/legal/terms`, `/legal/privacy`, `/company-info`?
+- d) Subcontractor share-links: keep one-time signed URLs or also gate behind login?
+- e) Phase 1 scope: just gate / gate + record stamping / full Phase 1+2
+- f) Build a hardcoded "super-owner" backdoor login (strongly recommend yes — prevents lockout if deploy goes sideways)
+
+**Tech approach:**
+- Reuses existing JWT/signed-token pattern from PM/Admin/Shop auth (no new dependencies)
+- New collection: `field_user_sessions` for active tokens
+- New collection: `audit_log` for per-employee activity (or extend existing `activity_log`)
+- Uses existing Resend integration for password reset emails
+- Uses existing brute-force protection / rate limiting (already in production)
+
+**Key gotchas to flag at build time:**
+- Bootstrap risk: very first deploy with login required → user could lock self out → MUST ship super-owner backdoor first
+- Existing 8-char paystub passwords are weak → recommend forced upgrade to 10+ chars on first MASCI HUB login
+- Password sharing is real in construction → audit trail matters more than prevention
+- Foremen at 6am with cold hands: 30-day sessions + Face ID is non-negotiable for adoption
+
+**Call `integration_playbook_expert_v2` BEFORE writing any auth code** (per system policy — auth is always an integration).
+
+---
+
 ### 🚛 Motive Fleet Watcher Integration
 - **Status**: PARKED by user on 2026-02 — *"keep it on the list of things to add in the future"*
 - **Priority when unparked**: P1 (huge ROI — Motive already knows almost everything crews currently type by hand)
