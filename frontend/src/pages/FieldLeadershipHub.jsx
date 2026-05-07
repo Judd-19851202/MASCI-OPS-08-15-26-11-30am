@@ -20,7 +20,7 @@ import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
 import { getPmToken } from "@/lib/pmAuth";
 import { MasciLogo } from "@/components/MasciLogo";
-import LangToggle from "@/components/LangToggle";
+import { LangToggle } from "@/components/LangToggle";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import {
   getLeadershipToken,
