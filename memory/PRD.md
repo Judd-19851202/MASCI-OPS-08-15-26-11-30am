@@ -1,5 +1,58 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-07 — Job Photos Library Phase 1 (read-only aggregator)
+
+### Scope
+Centralized photo viewer for Admin and PM portals that aggregates photos crews
+have already submitted on **Daily Reports**, **Site Inspections**, and
+**QA/QC inspections**. Pre-Op photos explicitly EXCLUDED per user direction.
+
+### What shipped
+- Backend router `/app/backend/routes/job_photos.py` — 5 endpoints + indexer:
+  - `GET /api/job-photos` — paginated metadata index (filters: source, project_number, week_of, date range, submitter)
+  - `GET /api/job-photos/{id}/raw` — lazy-fetches the full data URL for a single photo
+  - `POST /api/job-photos/zip` — streams a ZIP organized by `<job>/<week>/<source>__<date>__N.<ext>` (cap 1000 photos)
+  - `POST /api/job-photos/email` — emails a ZIP packet via Resend (cap 25 MB / 200 photos)
+  - `POST /api/job-photos/admin/reindex` — admin-only full rebuild
+- Indexer hooks placed in `daily_reports.py`, `qaqc.py`, `inspections.py` —
+  every new submission auto-mirrors photos into the index. Background catch-up
+  loop runs every 30 min on records modified in the last 2 hours.
+- Storage: lightweight metadata-only collection `job_photos`. Photo bytes are
+  NOT duplicated — `/raw` re-reads from the source record on demand.
+- PM scoping: `compute_pm_scope` enforced on every endpoint. PM only sees
+  photos from jobs they own or co-PM. `/raw` returns 403 for out-of-scope IDs.
+- Admin-only reindex: PM token gets 403.
+- Frontend `/app/frontend/src/pages/JobPhotosLibrary.jsx` — accordion folder
+  list (Job → Week), source-color-coded thumbnails, search + source filter,
+  multi-select + bulk ZIP / Email, lightbox with ESC close, ARIA dialog role,
+  graceful fallback for corrupt/missing photos (renders camera icon if data
+  URL is <200 chars or fails to load — protects against future corrupt uploads).
+- Routes: `/admin/photos` (admin) and `/pm/photos` (PM scoping enforced).
+
+### Bug fix during this build
+Frontend had a duplicate `/api/` prefix in 5 axios calls (`api.get("/api/job-photos")`)
+because the axios baseURL already includes `/api`. Stripped to relative paths.
+
+### Verified end-to-end (preview)
+- iteration_40 testing: 13/13 backend pytest pass, 100% backend success
+- Frontend: 0 console errors, 0 failed API calls, folders expand correctly,
+  source badges render, lightbox opens + closes, multi-select action bar,
+  PM scoping returns Total: 0 vs Admin Total: 21
+- Pre-Op exclusion verified: `equipment_inspections` not in `SOURCE_COLLECTIONS`
+
+### Files added/touched
+- `/app/backend/routes/job_photos.py` (NEW)
+- `/app/backend/server.py` lines 6354-6395 — router wiring + Resend wrapper
+- `/app/backend/routes/daily_reports.py`, `qaqc.py`, `inspections.py` — indexer hooks
+- `/app/frontend/src/pages/JobPhotosLibrary.jsx` (NEW)
+- `/app/frontend/src/App.js` — `/admin/photos` and `/pm/photos` routes
+- `/app/backend/tests/test_job_photos.py` (NEW)
+
+### Deploy reminder
+Production redeploy needed at `mascidocs.com` to expose this feature.
+
+---
+
 ## 2026-05-05 — Safety Forms Check-In / Return + Updated Legal
 
 ### What was added

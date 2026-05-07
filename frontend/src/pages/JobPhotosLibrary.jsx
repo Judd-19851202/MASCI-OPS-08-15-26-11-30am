@@ -479,10 +479,16 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
 }
 
 function PhotoTile({ photo, src, onLoad, selected, onToggle, onZoom }) {
+  const [broken, setBroken] = useState(false);
   useEffect(() => {
     onLoad();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Real photos from the field are 100-500 KB. Anything under ~200 chars is
+  // either an empty placeholder or a corrupt / truncated data URL — skip the
+  // <img> render so the browser doesn't fire ERR_INVALID_URL.
+  const renderable =
+    typeof src === "string" && src.startsWith("data:image/") && src.length > 200;
   return (
     <div
       className={`relative group rounded overflow-hidden border-2 ${
@@ -490,12 +496,13 @@ function PhotoTile({ photo, src, onLoad, selected, onToggle, onZoom }) {
       } cursor-pointer aspect-square bg-slate-100`}
       data-testid={`photo-tile-${photo.id}`}
     >
-      {src ? (
+      {renderable && !broken ? (
         <img
           src={src}
           alt=""
           className="w-full h-full object-cover"
           onClick={onZoom}
+          onError={() => setBroken(true)}
         />
       ) : (
         <div
@@ -545,17 +552,23 @@ function Lightbox({ src, meta, onClose, onLoad }) {
     return () => document.removeEventListener("keydown", onEsc);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const renderable =
+    typeof src === "string" && src.startsWith("data:image/") && src.length > 200;
   return (
     <div
       className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
       onClick={onClose}
       data-testid="photos-lightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Photo preview"
     >
       <button
         type="button"
         onClick={onClose}
         className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full"
         aria-label="Close"
+        data-testid="photos-lightbox-close"
       >
         <X className="w-6 h-6" />
       </button>
@@ -563,12 +576,17 @@ function Lightbox({ src, meta, onClose, onLoad }) {
         className="max-w-5xl max-h-full flex flex-col items-center"
         onClick={(e) => e.stopPropagation()}
       >
-        {src ? (
+        {renderable ? (
           <img
             src={src}
             alt=""
             className="max-w-full max-h-[85vh] object-contain rounded"
           />
+        ) : src ? (
+          <div className="px-8 py-12 bg-white/5 rounded text-white/70 text-sm font-mono text-center">
+            <Camera className="w-12 h-12 mx-auto mb-3 text-white/40" />
+            Photo data unavailable or corrupt.
+          </div>
         ) : (
           <Loader2 className="w-8 h-8 animate-spin text-white" />
         )}
