@@ -110,7 +110,6 @@ FIELD_LEADERSHIP_KINDS: Dict[str, Dict[str, Any]] = {
         "needs_signatures": False,
         "allow_refusal": False,
         "allows_photos": True,
-        "admin_only": True,
     },
 }
 
@@ -356,12 +355,6 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         request: Request,
         auth: Dict[str, Any] = Depends(_is_authed),
     ):
-        # Supervisor Notes are admin-only.
-        meta = FIELD_LEADERSHIP_KINDS.get(payload.kind, {})
-        if meta.get("admin_only") and auth["role"] != "admin":
-            raise HTTPException(status_code=403,
-                                detail="Supervisor Notes require admin login")
-
         rec = _normalize_record(payload)
         # Stamp who submitted (best-effort — leadership-only doesn't have a user id)
         rec["submitted_via_role"] = auth["role"]
@@ -509,17 +502,11 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         q: Optional[str] = Query(default=None),
         limit: int = Query(default=500, le=2000),
     ):
-        # Admin-only: Supervisor Notes — explicit guard so a hand-crafted
-        # ?kind=supervisor_notes query from a non-admin returns 403 instead
-        # of leaking those records.
-        if kind == "supervisor_notes" and auth["role"] != "admin":
-            raise HTTPException(status_code=403, detail="Supervisor Notes require admin")
-
+        # Supervisor Notes are gated by the leadership password (no extra
+        # admin requirement — leadership token grants access).
         f = await _scope_filter(auth)
         if kind:
             f["kind"] = kind
-        elif auth["role"] != "admin":
-            f["kind"] = {"$ne": "supervisor_notes"}
         if employee:
             f["employee_name"] = {"$regex": _escape(employee), "$options": "i"}
         if job:
@@ -554,8 +541,6 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         # full breakdown the user can see, not just the slice they're
         # currently filtering to.
         scope_only = await _scope_filter(auth)
-        if auth["role"] != "admin":
-            scope_only["kind"] = {"$ne": "supervisor_notes"}
         counts_pipeline = [{"$match": scope_only}, {"$group": {"_id": "$kind", "n": {"$sum": 1}}}]
         counts: Dict[str, int] = {k: 0 for k in KIND_ORDER}
         try:
@@ -573,8 +558,6 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         rec = await db.field_leadership_records.find_one(f, {"_id": 0})
         if not rec:
             raise HTTPException(status_code=404, detail="Record not found")
-        if rec.get("kind") == "supervisor_notes" and auth["role"] != "admin":
-            raise HTTPException(status_code=403, detail="Supervisor Notes require admin")
         return rec
 
     @router.get("/{rec_id}/pdf")
@@ -584,8 +567,6 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         rec = await db.field_leadership_records.find_one(f, {"_id": 0})
         if not rec:
             raise HTTPException(status_code=404, detail="Record not found")
-        if rec.get("kind") == "supervisor_notes" and auth["role"] != "admin":
-            raise HTTPException(status_code=403, detail="Supervisor Notes require admin")
         try:
             pdf_bytes = render_pdf_bytes(rec)
         except Exception as exc:  # noqa: BLE001
@@ -619,8 +600,6 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         employee: Optional[str] = Query(default=None),
     ):
         f = await _scope_filter(auth)
-        if auth["role"] != "admin":
-            f["kind"] = {"$ne": "supervisor_notes"}
         if kind:
             f["kind"] = kind
         if employee:

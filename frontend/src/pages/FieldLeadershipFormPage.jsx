@@ -217,25 +217,6 @@ export default function FieldLeadershipFormPage() {
     selectedEmp?.name || employeeNameOverride.trim() || "";
 
   // Conditional returns AFTER all hooks (rules of hooks).
-  if (form?.admin_only && !isAdmin()) {
-    return (
-      <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-        <Card className="max-w-md w-full p-6 text-center">
-          <ShieldAlert className="w-10 h-10 text-amber-600 mx-auto" />
-          <h2 className="font-display text-xl font-black mt-3">{t("Admin Login Required")}</h2>
-          <p className="text-sm text-slate-600 mt-2">
-            {t("Supervisor Notes are restricted. Sign in as an Admin from the Hub.")}
-          </p>
-          <Button asChild className="mt-4">
-            <Link to="/admin/login">{t("Admin Login")}</Link>
-          </Button>
-          <Link to="/leadership" className="block mt-3 text-xs font-mono uppercase tracking-[0.2em] text-slate-500 hover:text-red-700">
-            {t("← Back to Field Leadership")}
-          </Link>
-        </Card>
-      </main>
-    );
-  }
   if (!form) {
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6">

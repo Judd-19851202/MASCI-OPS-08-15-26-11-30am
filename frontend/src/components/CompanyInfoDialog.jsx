@@ -18,6 +18,7 @@ import {
   buildTelHref,
 } from "@/lib/companyInfo";
 import { isAdmin } from "@/lib/adminAuth";
+import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 
 const inputCls =
@@ -41,6 +42,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
   const [open, setOpen] = useState(false);
   const [info, setInfo] = useState(getCompanyInfo());
   const [canEdit, setCanEdit] = useState(false);
+  const { t } = useT();
 
   useEffect(() => {
     if (open) {
@@ -54,7 +56,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
   const save = () => {
     if (!canEdit) return;
     saveCompanyInfo(info);
-    toast.success("Company info saved — appears on every printed report");
+    toast.success(t("Company info saved — appears on every printed report"));
     setOpen(false);
   };
 
@@ -70,20 +72,20 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
             data-testid="company-info-btn"
           >
             <Building2 className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Company Info</span>
-            <span className="sm:hidden">Info</span>
+            <span className="hidden sm:inline">{t("Company Info")}</span>
+            <span className="sm:hidden">{t("Info")}</span>
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg" data-testid="company-info-dialog">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">
-            Company Info
+            {t("Company Info")}
           </DialogTitle>
           <DialogDescription>
             {canEdit
-              ? "Appears on the print/PDF footer of every safety report. Stored only on this device."
-              : "Appears on every printed report. Admin only — sign in as admin to make changes."}
+              ? t("Appears on the print/PDF footer of every safety report. Stored only on this device.")
+              : t("Appears on every printed report. Admin only — sign in as admin to make changes.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -93,7 +95,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
             data-testid="ci-readonly-banner"
           >
             <Lock className="w-3.5 h-3.5" />
-            View only · Admin login required to edit
+            {t("View only · Admin login required to edit")}
           </div>
         )}
 
@@ -107,14 +109,14 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
             data-testid="ci-call-now"
           >
             <Phone className="w-5 h-5 group-hover:animate-pulse" />
-            Call Office · {info.phone}
+            {t("Call Office")} · {info.phone}
           </a>
         )}
 
         <div className="grid gap-3 py-2">
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Company Name
+              {t("Company Name")}
             </Label>
             <Input
               value={info.company_name}
@@ -127,7 +129,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
           </div>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Street Address
+              {t("Street Address")}
             </Label>
             <Input
               value={info.address}
@@ -141,7 +143,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
           </div>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              City, State, ZIP
+              {t("City, State, ZIP")}
             </Label>
             <Input
               value={info.city_state_zip}
@@ -156,7 +158,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Office Phone
+                {t("Office Phone")}
               </Label>
               <Input
                 value={info.phone}
@@ -171,7 +173,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                Email
+                {t("Email")}
               </Label>
               <Input
                 value={info.email}
@@ -186,7 +188,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
           </div>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Website
+              {t("Website")}
             </Label>
             <Input
               value={info.website}
@@ -205,7 +207,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
             onClick={() => setOpen(false)}
             data-testid="ci-cancel"
           >
-            {canEdit ? "Cancel" : "Close"}
+            {canEdit ? t("Cancel") : t("Close")}
           </Button>
           {canEdit && (
             <Button
@@ -213,7 +215,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
               className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
               data-testid="ci-save"
             >
-              Save
+              {t("Save")}
             </Button>
           )}
         </DialogFooter>

@@ -359,11 +359,10 @@ export const FIELD_LEADERSHIP_FORMS = [
     kind: "supervisor_notes",
     icon: FileText,
     accent: "slate",
-    admin_only: true,
     title: { en: "Supervisor Notes Log", es: "Registro de Notas del Supervisor" },
     desc: {
-      en: "Internal leadership documentation log. Admin login required.",
-      es: "Registro interno de documentación de liderazgo. Se requiere acceso de administrador.",
+      en: "Internal leadership documentation log.",
+      es: "Registro interno de documentación de liderazgo.",
     },
     needs_signatures: false,
     allows_photos: true,

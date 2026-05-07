@@ -69,8 +69,8 @@ const BULLETS = {
                               es: ["Ascenso · Aumento · Desarrollo de liderazgo", "Fortalezas, liderazgo, seguridad"] },
   training_deficiency: { en: ["Document deficiency + assigned retraining", "Track due date + completion status"],
                          es: ["Documente deficiencia + reentrenamiento", "Registre fecha límite y estado"] },
-  supervisor_notes: { en: ["Internal leadership documentation log", "Admin login required"],
-                      es: ["Registro interno de liderazgo", "Se requiere acceso de administrador"] },
+  supervisor_notes: { en: ["Internal leadership documentation log", "Visible to admins, PMs, and field leadership"],
+                      es: ["Registro interno de liderazgo", "Visible para administradores, PMs y liderazgo de campo"] },
 };
 
 function PasswordGate({ onAuthed }) {

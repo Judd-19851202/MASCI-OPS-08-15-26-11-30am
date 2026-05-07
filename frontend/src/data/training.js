@@ -59,6 +59,16 @@ export const TRACKS = {
     audience: "admin",
     icon: "ShieldCheck",
   },
+  leadership: {
+    slug: "leadership",
+    title: "Field Leadership Training",
+    title_es: "Capacitación de Liderazgo de Campo",
+    blurb: "Crew accountability, employee documentation, equipment responsibility, recognition, and workforce-management forms. For supervisors, foremen, and superintendents.",
+    blurb_es: "Responsabilidad de cuadrilla, documentación de empleados, responsabilidad de equipo, reconocimiento y formularios de gestión de personal. Para supervisores, capataces y superintendentes.",
+    accent: "red",
+    audience: "public",
+    icon: "ShieldCheck",
+  },
 };
 
 // ============================================================
@@ -716,11 +726,94 @@ const ADMIN_LESSONS = [
   },
 ];
 
+// ============================================================
+// FIELD LEADERSHIP LESSONS (3) — supervisors, foremen, superintendents
+// ============================================================
+const LEADERSHIP_LESSONS = [
+  {
+    slug: "leadership-01-overview",
+    track: "leadership",
+    order: 1,
+    title: "Lesson 1 — Field Leadership Overview",
+    why: "Field Leadership is the supervisor toolkit for documenting people decisions: write-ups, coaching, recognition, attendance, equipment, evaluations, training gaps, and supervisor notes. Done right, every conversation is on the record, defensible, and routed to the right people automatically.",
+    duration: "~5 min",
+    steps: [
+      "From the MASCI Hub home screen, tap the red 'Field Leadership' tile.",
+      "Enter the Field Leadership password: MASCIGC. The password is shared with foremen, superintendents, PMs, Safety, and Admin — not the general crew.",
+      "Once unlocked, you see 11 tiles: 10 supervisor forms + 1 link back to the existing Safety Equipment Issuance form. The hub stays unlocked for 12 hours per device.",
+      "Every form auto-fills your active job, picks the employee from the master roster (or lets you add one inline), captures supervisor + employee signatures, and routes a PDF to the assigned PM, jaymn.judd@mascigc.com, and safety@mascigc.com.",
+      "Hit 'Records' in the top-right of the Field Leadership hub to see every submission. PMs see only records for their assigned jobs. Admins see everything.",
+    ],
+    tips: [
+      "Treat every entry as a legal document. Write what happened — not how you feel about it. The forms are factual by design.",
+      "If an employee refuses to sign a Write-Up, check 'Employee refused to sign' and capture a witness signature. The PDF still stands.",
+      "Spanish-speaking supervisors: flip the language toggle. The form fills in Spanish and the system auto-translates to English before saving — Admin always reads English.",
+    ],
+    cheatSheet: [
+      "Hub → Field Leadership tile → MASCIGC → Pick form → Fill → Sign → Submit.",
+      "PDF auto-emails to the assigned PM + Jaymn + Safety. Records dashboard at /leadership/records.",
+      "Refusal-to-sign supported on Write-Up, Attendance, Training Deficiency.",
+    ],
+  },
+  {
+    slug: "leadership-02-discipline-and-coaching",
+    track: "leadership",
+    order: 2,
+    title: "Lesson 2 — Discipline, Coaching, Attendance & Training Deficiency",
+    why: "These are the four 'corrective' forms. Each one has a different evidentiary weight — using the right form protects both the employee and the company. Use the wrong one and you either escalate too fast or fail to build the paper trail you need.",
+    duration: "~7 min",
+    steps: [
+      "Employee Write-Up — formal disciplinary or corrective action. Pick category (Safety, Performance, Attendance, Conduct, Policy) and severity (Verbal, Written, Final). Always include: what happened, when, where, what policy was violated, what corrective action is required, follow-up date. Both supervisor and employee sign. If employee refuses, witness signs.",
+      "Verbal Coaching — a documented conversation that is NOT a write-up. Use this BEFORE jumping to a Write-Up. It captures that the conversation happened, what was discussed, and the follow-up date. Employee signature is optional.",
+      "Attendance / Tardy — late arrival, left early, or no-show. Capture scheduled vs. actual times and reason. Repeated entries become the basis for an Attendance Write-Up later.",
+      "Training Deficiency / Retraining — when an employee is observed not following trained procedure. Document the deficiency, the assigned retraining (which course, when, who delivers it), and the due date. Re-evaluate after retraining is complete.",
+    ],
+    tips: [
+      "The progression is: Verbal Coaching → Written Write-Up → Final Write-Up → Termination. Skipping steps is what costs companies wrongful-termination cases.",
+      "Recognition (next lesson) is just as important as discipline — for every Write-Up filed, file at least one Recognition for someone doing it right.",
+      "Photos help on Attendance (e.g., timestamped photo of empty work area at start time) and Training Deficiency (photo of the issue).",
+    ],
+    cheatSheet: [
+      "Coaching first, Written next, Final last. Don't skip steps.",
+      "Always capture: what / when / where / policy / corrective action / follow-up date.",
+      "Refusal-to-sign + Witness = still binding.",
+    ],
+  },
+  {
+    slug: "leadership-03-recognition-equipment-evaluations",
+    track: "leadership",
+    order: 3,
+    title: "Lesson 3 — Recognition, Equipment, Evaluations & Supervisor Notes",
+    why: "These six forms cover the positive, the operational, and the strategic side of leadership. Recognition keeps morale up. Equipment Checkout protects company assets. Evaluations and Promotion Recommendations build the bench. Supervisor Notes are your private leadership log.",
+    duration: "~8 min",
+    steps: [
+      "Recognition / Reward — file when an employee shows safety leadership, quality, teamwork, or going above and beyond. Categories drive PM/HR follow-up (e.g., Safety Recognition can trigger a safety bonus).",
+      "Equipment Checkout & Accountability — every tool, vehicle, or asset issued to an employee. Capture asset ID, condition at checkout (Good / Fair / Damaged), expected return date. Photos are REQUIRED if condition is Fair or Damaged. Both supervisor and employee sign.",
+      "New Employee Evaluation — 30 / 60 / 90-day check-ins on a new hire. Rate Safety, Quality, Productivity, Attitude, Initiative. Recommend: Continue / Coach / Separate.",
+      "Crew Evaluation — evaluate the entire crew (not one employee). Rate Safety, Production, Quality, Communication. Capture issues observed and positive observations. Used by PMs to spot problem crews early.",
+      "Promotion Recommendation — recommend an employee for promotion, raise, or leadership development. Captures strengths, leadership behaviors, safety record, and your specific recommendation. Routes to PM and HR.",
+      "Supervisor Notes Log — your private leadership notebook. Manpower issues, performance trends, crew conflicts, safety culture observations. Visible to the assigned PM, you, other field leadership, and Admin — not the general crew. This is where you keep running notes BEFORE they become a formal Write-Up.",
+    ],
+    tips: [
+      "File at least 1 Recognition for every Write-Up. Crews that only see discipline disengage.",
+      "Equipment Checkout photos save you when the asset comes back damaged — 'this is how it left' vs. 'this is how it came back' is the whole argument.",
+      "Use Supervisor Notes throughout the week, then reference them when filing the formal Write-Up. Notes show pattern; Write-Ups show events.",
+      "Crew Evaluations every 30 days catch crew-level issues (safety culture, quality drift) before they become incidents.",
+    ],
+    cheatSheet: [
+      "Recognition often. Equipment Checkout always. Evaluations on schedule.",
+      "Photos required on Equipment Checkout if condition is Fair or Damaged.",
+      "Supervisor Notes = your private running log. Use it before the formal Write-Up.",
+    ],
+  },
+];
+
 export const LESSONS = [
   ...FIELD_LESSONS,
   ...SHOP_LESSONS,
   ...PM_LESSONS,
   ...ADMIN_LESSONS,
+  ...LEADERSHIP_LESSONS,
 ].map((l) => {
   const es = LESSON_TRANSLATIONS_ES[l.slug];
   return es ? { ...l, ...es } : l;

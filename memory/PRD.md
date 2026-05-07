@@ -1,6 +1,6 @@
 # MASCI Safety Hub — PRD
 
-## 2026-05-07 — Field Leadership Module — DEPLOY READY
+## 2026-05-07 — Field Leadership Polish: i18n, Supervisor Notes Gate, Training
 
 ### Scope
 Password-gated supervisor/PM module at `/leadership` containing 10 brand-new
