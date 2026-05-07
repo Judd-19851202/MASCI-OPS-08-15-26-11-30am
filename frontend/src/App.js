@@ -258,7 +258,7 @@ function App() {
             <Route path="/pm/trench-boxes" element={AP(<TrenchBoxesAdmin />)} />
             <Route path="/pm/equipment" element={AP(<EquipmentDashboard />)} />
             <Route path="/pm/equipment/:id" element={AP(<ViewEquipmentInspection context="admin" />)} />
-            <Route path="/pm/pnl" element={AP(<ProjectPnlPage />)} />
+            {/* /pm/pnl removed 2026-05-07 per Justin — owners want P&L kept admin-only */}
 
             {/* ============================================================
                 Shop Console — mechanics-only view, separate password

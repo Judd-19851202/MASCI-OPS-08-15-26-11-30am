@@ -12,7 +12,6 @@ import {
   Loader2,
   LogOut,
   Home,
-  TrendingUp,
   Briefcase,
   ShieldCheck,
   Image as ImageIcon,
@@ -208,15 +207,6 @@ export default function PmHub() {
           <>
             <TrainingStatsStripe />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
-            <PmTile
-              to="/pm/pnl"
-              icon={TrendingUp}
-              title="Project P&L Snapshot"
-              count={counts.daily}
-              sub="Live job-cost dashboard"
-              accent="amber"
-              testId="pm-tile-pnl"
-            />
             <PmTile
               to="/pm/daily"
               icon={ClipboardList}
