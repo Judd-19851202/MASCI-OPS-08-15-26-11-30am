@@ -7039,29 +7039,26 @@ async def admin_find_by_doc_id(doc_id: str, _: bool = Depends(require_admin)):
     rid = rec.get("id") or ""
     kind = rec.get("kind") or ""
     if coll == "field_leadership_records":
-        route = f"/leadership/records/{rid}"
+        route = f"/admin/leadership/records/{rid}"
     elif coll == "daily_reports":
         route = f"/admin/daily/{rid}"
     elif coll == "equipment_inspections":
         route = f"/admin/equipment/{rid}"
     elif coll == "qaqc_inspections":
-        route = f"/qaqc/{rid}"
+        route = f"/admin/qaqc/{rid}"
     elif coll == "inspections":
         route = f"/admin/inspections/{rid}"
     elif coll == "meetings":
         route = f"/admin/meetings/{rid}"
     elif coll == "jhas":
-        # JHA admin page is a list view — drop into the dashboard
-        # filtered to this record. The dashboard auto-opens by id when
-        # ``?focus=<id>`` is supplied.
+        # JHA admin dashboard auto-opens by ?focus=<id>.
         route = f"/admin/jha-plans?focus={rid}"
     elif coll == "incidents":
         route = f"/admin/incidents/{rid}"
     elif coll == "safety_equipment_issuances":
-        # Safety forms list is the canonical viewer; signal which row to open.
-        route = f"/admin/safety?focus_issuance={rid}"
+        route = f"/admin/safety/issuance/{rid}"
     elif coll == "safety_equipment_trainings":
-        route = f"/admin/safety?focus_training={rid}"
+        route = f"/admin/safety/training/{rid}"
     else:
         route = f"/admin?doc_id={rec.get('doc_id')}"
 

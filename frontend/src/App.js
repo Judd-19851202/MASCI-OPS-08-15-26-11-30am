@@ -241,6 +241,17 @@ function App() {
             <Route path="/admin/equipment" element={AP(<EquipmentDashboard />)} />
             <Route path="/admin/equipment/:id" element={AP(<ViewEquipmentInspection context="admin" />)} />
 
+            {/* Admin-namespaced aliases for cross-portal record views.
+                These exist purely so the global doc-ID search can route
+                without triggering EnforcePortalScope's admin-token wipe
+                (which fires the moment the path leaves /admin/*). The
+                underlying components are unchanged — they accept admin
+                tokens via their own gates. */}
+            <Route path="/admin/qaqc/:id" element={AP(<ViewQaqcInspection />)} />
+            <Route path="/admin/leadership/records/:id" element={AP(<FieldLeadershipView />)} />
+            <Route path="/admin/safety/issuance/:id" element={AP(<ViewSafetyForm kind="issuance" />)} />
+            <Route path="/admin/safety/training/:id" element={AP(<ViewSafetyForm kind="training" />)} />
+
             {/* ============================================================
                 Project Management Portal — same surface as admin minus
                 backup/recovery. Backed by PM_PASSWORD; admin tokens are

@@ -1,5 +1,51 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter54+55+56: Human-readable doc IDs system-wide + admin search bar
+
+### User ask
+"I want every report, form, pre op, etc. — basically anything that is filled out & sent in anywhere in the system — to be given a unique ID # that is on the form, prints on PDF & from admin console only is searchable."
+
+User confirmed format `<KIND>-<YEAR>-<5digit>` resetting each year, full backfill of existing records, doc ID printed top-right of PDF header, and a global search bar at the top of `/admin`.
+
+### What shipped
+- **`/app/backend/doc_ids.py`** (NEW) — central numbering module
+  - Atomic `find_one_and_update($inc, upsert)` counter on `db.doc_id_counters` keyed by `<PREFIX>-<YEAR>` — concurrent-safe (50-way concurrent test passed, all 50 sequence numbers distinct)
+  - `_field_leadership_prefix(rec)` reconciled with the actual `FIELD_LEADERSHIP_KINDS` taxonomy: EQC/EQR for equipment, FLW/FLC/FLA/FLR/FLE/FLG/FLP/FLT/FLN for the 9 people-management kinds
+  - `ensure_doc_id` is idempotent (re-saves don't re-mint), `backfill_collection` walks chronologically, `backfill_all` runs every collection
+  - `find_record_by_doc_id` does case-insensitive cross-collection lookup
+  - `REGISTRY` pinned by a guardrail unit test so a new submission collection added without doc_id wiring breaks CI
+- **Backend wiring** — `ensure_doc_id` called on insert in:
+  - `routes/daily_reports.py` (DR), `routes/equipment.py` (PRE), `routes/safety.py` (INSP/MTG/JHA/INC), `routes/qaqc.py` (QC), `routes/field_leadership.py` (kind-aware), `routes/safety_forms.py` (SEI/SET)
+  - 10 collections total
+- **Startup migration** (`server.py @app.on_event("startup")`) — `backfill_all(db)` runs once per boot. Idempotent. Backfilled 233+ existing field_leadership_records, 8 daily reports, 5 pre-ops, 1 QC inspection on first boot.
+- **Admin search endpoint** `GET /api/admin/find-by-doc-id?doc_id=X` (admin-strict) returns `{found, collection, id, doc_id, kind, route}`. Routes are admin-namespaced (under `/admin/*`) so `EnforcePortalScope` doesn't wipe the admin token mid-navigation — that was a real bug caught in iter56 retest.
+- **Frontend** — `AdminDocIdSearch.jsx` (NEW): amber-bordered search bar at the top of `/admin` home with the placeholder showing real example doc IDs. Type → submit → navigate. "No record found" shown inline when bogus.
+- **App.js** — added 4 admin-namespaced route aliases so the global search routes safely without portal-scope side effects:
+  - `/admin/qaqc/:id`, `/admin/leadership/records/:id`, `/admin/safety/issuance/:id`, `/admin/safety/training/:id`
+- **PDFs** — doc ID printed in red, top-right of the header, in:
+  - `pdf_render.py` (catch-all PDF for daily reports / inspections / meetings / jhas / incidents)
+  - `field_leadership_pdf.py` (Field Leadership: equipment checkout/return + supervisor notes etc.)
+  - `routes/safety_forms.py` (Issuance / Return Receipt / Training PDFs)
+- **Detail UI** — red "DOC ID …" badge added to `ViewDailyReport.jsx` and `FieldLeadershipView.jsx` headers.
+
+### Verified (NOT MOCKED)
+- 21/21 backend tests pass: 10 unit tests (mint atomicity, idempotence, year buckets, year-end DST edge case, backfill, find-by-doc-id case insensitive, registry pin, FL kinds in sync) + 11 e2e tests (auth gate, real POST DR/PRE/EQR/supervisor_notes mint, sequential collision-free, admin search routes).
+- Frontend smoke screenshot: search for `EQR-2026-00001` from `/admin` correctly routes to `/admin/leadership/records/<id>` with the **DOC ID EQR-2026-00001** red badge in the header AND the side-by-side return comparison from iter53 still rendering (Damage owed $5,000.00). Admin token preserved (no portal-scope bounce). Same for `DR-2026-00007` → `/admin/daily/<id>` with **DOC ID DR-2026-00007** badge.
+- Backfill correctness: every kind in field_leadership_records now starts with the right prefix (EQC for checkout, EQR for return, FLN for supervisor_notes, FLW for write_up, etc.).
+
+### Files added/touched
+- NEW: `/app/backend/doc_ids.py`, `/app/backend/tests/test_iter54_doc_ids.py`, `/app/backend/tests/test_iter54_doc_ids_e2e.py`, `/app/frontend/src/components/AdminDocIdSearch.jsx`
+- MODIFIED: `/app/backend/server.py` (startup backfill + `/api/admin/find-by-doc-id`), `/app/backend/routes/{daily_reports,equipment,safety,qaqc,field_leadership,safety_forms}.py`, `/app/backend/pdf_render.py`, `/app/backend/field_leadership_pdf.py`, `/app/frontend/src/pages/{AdminHub,FieldLeadershipView,ViewDailyReport}.jsx`, `/app/frontend/src/App.js` (4 new admin-aliased routes)
+
+### Deploy reminder
+- Backend + frontend changes — push to `mascidocs.com`. On first boot the migration will backfill every existing record (idempotent on subsequent boots — second restart sees zero records to stamp).
+- After deploy: open `/admin`, type any printed doc ID into the new search bar, hit Find. Done.
+
+### Known limitation
+- Free-text search (e.g., "find all reports for Topcon Pipe Laser") is NOT in scope — only doc-ID lookup. List pages already have their own free-text search.
+
+---
+
 ## 2026-05-08 — Iter53: Side-by-side photo comparison on Field Leadership detail view
 
 ### User ask
