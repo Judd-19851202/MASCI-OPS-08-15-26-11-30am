@@ -1,5 +1,44 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter51: Job Photos Performance Overhaul (HEIC + cache + signed URLs + health-badge debounce)
+
+### User report
+PDF screenshots showed: ~70-156 photos per job loading slowly in admin & PM portals, several photos showing permanent broken-icon placeholders even after lazy-load fired, and a red "server down" `SystemHealthBadge` flashing on screen mid-gallery-load. Production deploy (mascidocs.com) — real iPhone HEIC photos.
+
+### Root causes
+1. **No iPhone HEIC support** — Pillow couldn't decode HEIC by default; fell into a silent fallback that returned raw HEIC bytes labeled `image/jpeg` → permanent placeholder for every iPhone photo.
+2. **No server-side thumbnail cache** — every gallery load re-rendered every photo through Pillow on every visit; ~600-800ms × 70 photos = ~50s of saturated worker.
+3. **axios+blob+objectURL bypassed all caching** — iter44 frontend defeated browser HTTP cache AND service worker because nothing saw a real `<img src>` URL.
+4. **SystemHealthBadge over-eager** — single transient timeout from a saturated worker would paint the dashboard red.
+
+### What shipped
+- **Backend (`routes/job_photos.py`)**:
+  - `pillow-heif==1.3.0` added; `register_heif_opener()` runs at module import. iPhone HEIC decodes correctly.
+  - **Mongo thumb cache** (`db.job_photo_thumb_cache`) keyed by `<photo_id>:<fmt>`, 7-day TTL. ~10ms hit vs ~800ms render.
+  - **`make_thumb_token` / `verify_thumb_token`** — HMAC `<exp>.<sig>` bound to (exp, photo_id), 1h TTL, photo-id-locked.
+  - **`GET /api/job-photos/{id}/thumb-signed?t=<token>`** — browser-friendly endpoint; `<img src>` works directly without auth headers, so service worker + browser cache finally do their job.
+  - **`_serve_thumb`** shared helper for both `/thumb` and `/thumb-signed`. `X-Thumb-Cache: hit|miss` instrumentation.
+  - **Pillow rendering offloaded via `asyncio.to_thread`** — concurrent gallery loads no longer block `/api/health`, killing the SystemHealthBadge red-banner trigger.
+  - **`POST /admin/reindex` wipes the thumb cache** on every reindex.
+  - **CDN-friendly headers** — `Cache-Control: public, max-age=604800, immutable` + `CDN-Cache-Control` + `Surrogate-Control: max-age=604800`. (Note: Emergent/Cloudflare ingress rewrites Cache-Control on preview; Surrogate-Control survives. SW caches regardless.)
+- **Frontend (`pages/JobPhotosLibrary.jsx`)**: dropped axios+blob+objectURL fetch. PhotoTile now renders `<img loading="lazy" decoding="async" fetchPriority="low" src="…/thumb-signed?t=…">` directly. Removed IntersectionObserver — browser native lazy-loading is the right tool now that the URL is cacheable.
+- **Frontend (`components/SystemHealthBadge.jsx`)**: `failStreakRef` per-endpoint counter. **Two consecutive failures required** before painting red. `/health` timeout 15s, others 10s.
+- **Frontend (`public/sw-thumbs.js`)**: v2 cache (auto-purges v1), MAX_ENTRIES=400, matches both `/thumb` and `/thumb-signed`. `thumbCacheKey()` strips rotating `t` param so same `photo_id` shares one cache entry across token rotations.
+
+### Verified end-to-end (preview)
+- 12/12 backend tests pass (`test_iter51_thumb_signed.py`).
+- Cache miss → cache hit confirmed via `X-Thumb-Cache` header.
+- Format negotiation: AVIF 338b > WebP 174b > JPEG 540b.
+- Token security: cross-photo token reuse → 403; bogus → 403; missing → 422.
+- pillow-heif registered (Pillow extension list verified at import).
+- Frontend smoke: real 200×200 PNG renders via `<img src=/thumb-signed?t=>` with `naturalWidth=200`.
+
+### Deploy reminder
+- Backend dependency change (`pillow-heif`) — re-deploy will install the wheel.
+- **Tell the user to click "Re-index" once on the admin Job Photos page after deploy** — that wipes the production thumb cache and re-renders every iPhone photo through the new pipeline. All galleries fast after that.
+
+---
+
 ## 2026-05-08 — Iter50: Shop password feature parity with PM portal
 
 ### Scope

@@ -458,7 +458,16 @@ async def _serve_thumb(db, photo_id: str, meta: dict, accept: str) -> Response:
             content=cached,
             media_type=f"image/{fmt_pref if fmt_pref != 'jpeg' else 'jpeg'}",
             headers={
-                "Cache-Control": "private, max-age=604800, immutable",
+                # End-user (browser) directive — note that the Emergent /
+                # Cloudflare ingress can rewrite this to no-store on the
+                # preview environment, so we ALSO send CDN-Cache-Control
+                # and Surrogate-Control which Cloudflare honors separately.
+                # Net effect: even when the browser cache is defeated by
+                # the ingress, the CDN edge keeps a copy and the on-device
+                # service worker (sw-thumbs.js) does the rest.
+                "Cache-Control": "public, max-age=604800, immutable",
+                "CDN-Cache-Control": "public, max-age=604800, immutable",
+                "Surrogate-Control": "max-age=604800",
                 "Vary": "Accept",
                 "X-Thumb-Cache": "hit",
             },
@@ -486,7 +495,9 @@ async def _serve_thumb(db, photo_id: str, meta: dict, accept: str) -> Response:
         content=payload,
         media_type=mime,
         headers={
-            "Cache-Control": "private, max-age=604800, immutable",
+            "Cache-Control": "public, max-age=604800, immutable",
+            "CDN-Cache-Control": "public, max-age=604800, immutable",
+            "Surrogate-Control": "max-age=604800",
             "Vary": "Accept",
             "X-Thumb-Cache": "miss",
         },

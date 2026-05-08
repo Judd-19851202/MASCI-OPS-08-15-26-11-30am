@@ -519,7 +519,7 @@ function PhotoTile({ photo, src, selected, onToggle, onZoom }) {
           alt=""
           loading="lazy"
           decoding="async"
-          fetchpriority="low"
+          fetchPriority="low"
           className="w-full h-full object-cover"
           onClick={onZoom}
           onError={() => setBroken(true)}
