@@ -111,6 +111,13 @@ FIELD_LEADERSHIP_KINDS: Dict[str, Dict[str, Any]] = {
         "allow_refusal": False,
         "allows_photos": True,
     },
+    "equipment_return": {
+        "title_en": "Equipment Return & Reconciliation",
+        "title_es": "Devolución y Reconciliación de Equipo",
+        "needs_signatures": True,
+        "allow_refusal": True,
+        "allows_photos": False,
+    },
 }
 
 KIND_ORDER = list(FIELD_LEADERSHIP_KINDS.keys())
@@ -359,6 +366,11 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         # Stamp who submitted (best-effort — leadership-only doesn't have a user id)
         rec["submitted_via_role"] = auth["role"]
 
+        # Equipment_return: compute deltas vs the original checkout value
+        # and mark the matched checkout lines as returned.
+        if rec.get("kind") == "equipment_return":
+            await _process_equipment_return(rec)
+
         await db.field_leadership_records.insert_one(dict(rec))
 
         # Best-effort email + photo indexer (fire-and-forget)
@@ -374,6 +386,66 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
         rec.pop("_id", None)
         return {"ok": True, "id": rec["id"], "record": rec}
+
+    async def _process_equipment_return(rec: Dict[str, Any]) -> None:
+        """For each return line that references a checkout (via checkout_id +
+        line_index OR by matching serial), compute the delta vs the original
+        replacement value, mark the original line as returned, and stamp the
+        return record with totals."""
+        return_lines = (rec.get("details") or {}).get("equipment_lines") or []
+        if not return_lines:
+            return
+        damage_total = 0.0
+        for rl in return_lines:
+            checkout_id = rl.get("checkout_id")
+            line_index = rl.get("line_index")
+            try:
+                rv = float(rl.get("replacement_value") or 0)
+            except (TypeError, ValueError):
+                rv = 0
+            try:
+                qty = float(rl.get("qty") or 1)
+            except (TypeError, ValueError):
+                qty = 1
+            cond = (rl.get("return_condition") or rl.get("condition") or "").strip().lower()
+            # Damage delta: missing/lost = 100% of replacement; damaged = 100%
+            # (foreman can override per-line via damage_amount); good/fair = 0
+            try:
+                override = rl.get("damage_amount")
+                override_val = float(override) if override not in (None, "") else None
+            except (TypeError, ValueError):
+                override_val = None
+            if override_val is not None:
+                line_damage = override_val
+            elif cond in ("missing", "lost", "damaged"):
+                line_damage = qty * rv
+            else:
+                line_damage = 0.0
+            rl["damage_amount"] = line_damage
+            damage_total += line_damage
+
+            if checkout_id and isinstance(line_index, int):
+                # Mark the matched checkout line as returned (idempotent —
+                # if multiple Returns are filed for the same line we only
+                # log the most recent one).
+                co = await db.field_leadership_records.find_one(
+                    {"id": checkout_id}, {"_id": 0}
+                )
+                if co:
+                    lines = (co.get("details") or {}).get("equipment_lines") or []
+                    if 0 <= line_index < len(lines):
+                        lines[line_index]["returned"] = True
+                        lines[line_index]["return_record_id"] = rec.get("id")
+                        lines[line_index]["return_condition"] = rl.get("return_condition")
+                        lines[line_index]["returned_at"] = rec.get("occurred_at") or rec.get("created_at")
+                        await db.field_leadership_records.update_one(
+                            {"id": checkout_id},
+                            {"$set": {"details.equipment_lines": lines}},
+                        )
+        # Persist computed totals on the return record
+        details = rec.get("details") or {}
+        details["damage_total"] = damage_total
+        rec["details"] = details
 
     async def _send_submit_email(rec: Dict[str, Any]) -> None:
         """Email the assigned PM + jaymn + safety with the record summary."""
@@ -554,7 +626,8 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
     # Reserved sub-paths under this router that look like path-params but
     # are actually their own endpoints. Keep this in sync if more routes
     # are added below.
-    _RESERVED_REC_IDS = {"equipment-catalog", "equipment-makes", "admin", "export", "login", "check", "jobs", "employees"}
+    _RESERVED_REC_IDS = {"equipment-catalog", "equipment-makes", "equipment-checkout-lookup",
+                         "admin", "export", "login", "check", "jobs", "employees"}
 
     # ----- Equipment Catalog + Manufacturers (public read) ----------
     # MUST be declared before /{rec_id} to win route matching.
@@ -574,6 +647,54 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         ).sort("name", 1)
         items = await cursor.to_list(500)
         return {"items": items, "count": len(items)}
+
+    @router.get("/equipment-checkout-lookup")
+    async def lookup_equipment_by_serial(
+        serial: str = "",
+        auth: Dict[str, Any] = Depends(_is_authed),
+    ):
+        """Find an open (un-returned) equipment_checkout line by serial/asset
+        ID so a foreman can quickly auto-fill the Return form. Searches every
+        non-deleted equipment_checkout record the requester is allowed to
+        see, returning the most-recent matching line + its parent record."""
+        s = (serial or "").strip()
+        if not s:
+            raise HTTPException(status_code=400, detail="Serial / asset ID is required")
+        scope = await _scope_filter(auth)
+        scope["kind"] = "equipment_checkout"
+        # We only care about lines whose serial matches AND that haven't
+        # been returned yet (returned=true is set when a Return form is
+        # filed for that line — see _mark_lines_returned below).
+        cursor = db.field_leadership_records.find(scope, {"_id": 0}).sort(
+            "occurred_at", -1
+        )
+        records = await cursor.to_list(500)
+        target = s.lower()
+        matches: List[Dict[str, Any]] = []
+        for rec in records:
+            details = rec.get("details") or {}
+            for line_idx, line in enumerate(details.get("equipment_lines") or []):
+                if (line.get("serial") or "").strip().lower() == target:
+                    if line.get("returned"):
+                        continue
+                    matches.append({
+                        "checkout_id": rec.get("id"),
+                        "checkout_date": rec.get("occurred_at") or rec.get("created_at"),
+                        "project_number": rec.get("project_number"),
+                        "project_name": rec.get("project_name"),
+                        "employee_name": rec.get("employee_name"),
+                        "employee_position": rec.get("employee_position"),
+                        "supervisor_name": rec.get("supervisor_name"),
+                        "assigned_pm": rec.get("assigned_pm"),
+                        "assigned_pm_email": rec.get("assigned_pm_email"),
+                        "line_index": line_idx,
+                        "line": line,
+                    })
+        if not matches:
+            raise HTTPException(status_code=404,
+                                detail=f"No open checkout found for serial '{s}'")
+        # Most recent first.
+        return {"matches": matches[:5]}
 
     @router.get("/{rec_id}")
     async def get_record(rec_id: str, auth: Dict[str, Any] = Depends(_is_authed)):

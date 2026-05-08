@@ -201,6 +201,123 @@ def _equipment_ack_block(language: str) -> str:
     )
 
 
+# ----- Equipment Return — line-items table with return condition + delta
+
+def _equipment_return_block(details: Dict[str, Any]) -> str:
+    lines = details.get("equipment_lines") or []
+    if not lines:
+        return ""
+    rows: List[str] = []
+    grand_value = 0.0
+    grand_damage = 0.0
+    for line in lines:
+        try:
+            qty = float(line.get("qty") or 1)
+        except (TypeError, ValueError):
+            qty = 1
+        try:
+            rv = float(line.get("replacement_value") or 0)
+        except (TypeError, ValueError):
+            rv = 0
+        try:
+            damage = float(line.get("damage_amount") or 0)
+        except (TypeError, ValueError):
+            damage = 0
+        line_value = qty * rv
+        grand_value += line_value
+        grand_damage += damage
+        rc = (line.get("return_condition") or "").strip()
+        rc_class = "ret-good" if rc.lower() in ("good", "new", "fair") else (
+            "ret-bad" if rc.lower() in ("damaged", "missing", "lost") else "ret-neutral"
+        )
+        rows.append(
+            "<tr>"
+            f"<td>{_h(line.get('manufacturer') or '—')}</td>"
+            f"<td>{_h(line.get('name') or '—')}</td>"
+            f"<td>{_h(line.get('model') or '')}</td>"
+            f"<td>{_h(line.get('serial') or '')}</td>"
+            f"<td class='num'>{int(qty) if qty == int(qty) else qty}</td>"
+            f"<td>{_h(line.get('condition') or '')}</td>"
+            f"<td class='{rc_class}'>{_h(rc or '—')}</td>"
+            f"<td class='num'>{_money(line_value)}</td>"
+            f"<td class='num damage'>{_money(damage)}</td>"
+            "</tr>"
+        )
+        notes = (line.get("return_notes") or line.get("notes") or "").strip()
+        if notes:
+            rows.append(
+                f"<tr class='notes-row'><td colspan='9'>"
+                f"<span class='notes-lbl'>Notes:</span> {_h(notes)}"
+                "</td></tr>"
+            )
+    table = (
+        "<table class='lines'>"
+        "<thead><tr>"
+        "<th>Manufacturer</th><th>Equipment / Tool</th><th>Model</th>"
+        "<th>Serial / Asset ID</th><th class='num'>Qty</th>"
+        "<th>Issued Cond.</th><th>Return Cond.</th>"
+        "<th class='num'>Replacement</th><th class='num'>Loss / Damage</th>"
+        "</tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody>"
+        "<tfoot>"
+        "<tr>"
+        "<td colspan='7' class='grand-label'>Total Replacement Value</td>"
+        f"<td class='num grand'>{_money(grand_value)}</td>"
+        f"<td class='num grand damage'>{_money(grand_damage)}</td>"
+        "</tr>"
+        "</tfoot>"
+        "</table>"
+    )
+    delta_callout = ""
+    if grand_damage > 0:
+        delta_callout = (
+            "<div class='delta-callout'>"
+            "<span class='delta-lbl'>Total Loss / Damage Owed</span>"
+            f"<span class='delta-amt'>{_money(grand_damage)}</span>"
+            "</div>"
+        )
+    return f"<section><h3>Equipment Returned</h3>{delta_callout}{table}</section>"
+
+
+EQUIPMENT_RETURN_ACK_EN = (
+    "I acknowledge that the equipment listed above has been returned to "
+    "MASCI General Contractors in the condition documented on this form, "
+    "with photographs and notes attached as evidence.\n\n"
+    "I understand that any equipment listed as DAMAGED, MISSING, or LOST "
+    "may result in financial responsibility for repair or replacement "
+    "costs, only to the extent permitted by applicable federal law, "
+    "Florida law, and company policy. Any payroll deduction or "
+    "reimbursement will be handled only where legally permitted and "
+    "with any required authorization.\n\n"
+    "My signature confirms the return condition recorded above is "
+    "accurate to the best of my knowledge."
+)
+
+EQUIPMENT_RETURN_ACK_ES = (
+    "Reconozco que el equipo enumerado arriba ha sido devuelto a "
+    "MASCI General Contractors en la condición documentada en este "
+    "formulario, con fotografías y notas adjuntas como evidencia.\n\n"
+    "Entiendo que cualquier equipo registrado como DAÑADO, FALTANTE o "
+    "PERDIDO puede generar responsabilidad económica por costos de "
+    "reparación o reemplazo, únicamente en la medida permitida por la "
+    "ley federal aplicable, la ley de Florida y la política de la "
+    "empresa. Cualquier deducción de nómina o reembolso se realizará "
+    "solo donde sea legalmente permitido y con cualquier autorización "
+    "requerida.\n\n"
+    "Mi firma confirma que la condición de devolución registrada arriba "
+    "es precisa al mejor de mi conocimiento."
+)
+
+
+def _equipment_return_ack_block(language: str) -> str:
+    text = EQUIPMENT_RETURN_ACK_ES if language == "es" else EQUIPMENT_RETURN_ACK_EN
+    paragraphs = "".join(f"<p>{_h(p)}</p>" for p in text.split("\n\n"))
+    return (
+        "<section class='ack-section'><h3>Equipment Return Acknowledgement</h3>"
+        f"<div class='ack-box'>{paragraphs}</div></section>"
+    )
+
+
 def _signatures_block(rec: Dict[str, Any]) -> str:
     """Renders supervisor + employee (or refusal-with-witness) signatures."""
     parts: List[str] = []
@@ -266,13 +383,21 @@ def render_field_leadership_pdf(rec: Dict[str, Any]) -> bytes:
     details_for_pdf = rec.get("details_en") or rec.get("details") or {}
 
     # Equipment Checkout uses a custom line-items table + acknowledgement
-    # in place of the generic _details_block. All other kinds use the
-    # generic details rendering.
+    # in place of the generic _details_block. Equipment Return uses a
+    # similar but distinct table with return condition, return photos, and
+    # a damage delta column.
     if kind == "equipment_checkout":
         body_blocks = (
             _equipment_lines_block(details_for_pdf)
             + _photos_block(rec.get("photos") or [])
             + _equipment_ack_block(rec.get("language") or "en")
+            + _signatures_block(rec)
+        )
+    elif kind == "equipment_return":
+        body_blocks = (
+            _equipment_return_block(details_for_pdf)
+            + _photos_block(rec.get("photos") or [])
+            + _equipment_return_ack_block(rec.get("language") or "en")
             + _signatures_block(rec)
         )
     else:
@@ -344,6 +469,13 @@ table.lines tr.notes-row .notes-lbl {{ font-family: ui-monospace, monospace; fon
 .ack-section .ack-box {{ background:#f8fafc; border:1px solid #cbd5e1; border-left:3px solid #b91c1c; padding:10pt 12pt; font-size:9pt; line-height:1.55; }}
 .ack-section .ack-box p {{ margin:0 0 6pt 0; }}
 .ack-section .ack-box p:last-child {{ margin:0; }}
+table.lines td.damage {{ color:#b91c1c; font-weight:700; }}
+table.lines td.ret-good {{ color:#15803d; font-weight:700; }}
+table.lines td.ret-bad {{ color:#b91c1c; font-weight:700; }}
+table.lines td.ret-neutral {{ color:#92400e; font-weight:700; }}
+.delta-callout {{ display:flex; justify-content:space-between; align-items:center; background:#fef2f2; border:2px solid #b91c1c; border-radius:4px; padding:8pt 12pt; margin:6pt 0 8pt; }}
+.delta-callout .delta-lbl {{ font-family: ui-monospace, monospace; font-size:8pt; letter-spacing:.15em; text-transform:uppercase; color:#b91c1c; font-weight:700; }}
+.delta-callout .delta-amt {{ font-size:14pt; font-weight:900; color:#b91c1c; font-variant-numeric: tabular-nums; }}
 </style></head><body>
   <div class='header'>
     <div>

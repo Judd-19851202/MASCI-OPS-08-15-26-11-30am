@@ -69,7 +69,7 @@ export function EquipmentLines({ value, onChange, lang, t }) {
     const q = catalogQuery.trim().toLowerCase();
     if (!q) return catalog.slice(0, 50);
     return catalog
-      .filter((c) => (c.name || "").toLowerCase().includes(q) || (c.default_make || "").toLowerCase().includes(q))
+      .filter((c) => (c.name || "").toLowerCase().includes(q))
       .slice(0, 50);
   }, [catalog, catalogQuery]);
 
@@ -170,7 +170,9 @@ export function EquipmentLines({ value, onChange, lang, t }) {
             {/* Catalog picker */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <div>
-                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Equipment / Tool")}</Label>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t("Equipment / Tool")}<span className="text-red-700 ml-1">*</span>
+                </Label>
                 <div className="relative">
                   <button
                     type="button"
@@ -209,10 +211,7 @@ export function EquipmentLines({ value, onChange, lang, t }) {
                             className="w-full text-left px-3 py-2 hover:bg-blue-50 text-sm border-b border-slate-100 flex justify-between items-center"
                             data-testid={`equipment-catalog-item-${c.id}`}
                           >
-                            <span>
-                              <span className="font-semibold">{c.name}</span>
-                              {c.default_make && <span className="text-slate-500 ml-2 text-xs">· {c.default_make}</span>}
-                            </span>
+                            <span className="font-semibold">{c.name}</span>
                             <span className="font-mono text-blue-700 font-bold text-xs">{fmtMoney(c.replacement_value)}</span>
                           </button>
                         ))
@@ -231,7 +230,9 @@ export function EquipmentLines({ value, onChange, lang, t }) {
               </div>
 
               <div>
-                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Manufacturer / Make")}</Label>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t("Manufacturer / Make")}<span className="text-red-700 ml-1">*</span>
+                </Label>
                 <Select
                   value={line.manufacturer || ""}
                   onValueChange={(v) => updateLine(idx, { manufacturer: v, manufacturer_custom: v === "Other" ? line.manufacturer_custom : "" })}
@@ -261,7 +262,9 @@ export function EquipmentLines({ value, onChange, lang, t }) {
             {/* Model + Serial */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <div>
-                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Model")}</Label>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t("Model")}<span className="text-red-700 ml-1">*</span>
+                </Label>
                 <Input
                   value={line.model || ""}
                   onChange={(e) => updateLine(idx, { model: e.target.value })}
@@ -270,7 +273,9 @@ export function EquipmentLines({ value, onChange, lang, t }) {
                 />
               </div>
               <div>
-                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Serial / Asset ID")}</Label>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t("Serial / Asset ID")}<span className="text-red-700 ml-1">*</span>
+                </Label>
                 <Input
                   value={line.serial || ""}
                   onChange={(e) => updateLine(idx, { serial: e.target.value })}
@@ -283,7 +288,9 @@ export function EquipmentLines({ value, onChange, lang, t }) {
             {/* Qty + Replacement + Condition */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
               <div>
-                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Quantity")}</Label>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t("Quantity")}<span className="text-red-700 ml-1">*</span>
+                </Label>
                 <Input
                   type="number"
                   min="1"
@@ -295,7 +302,9 @@ export function EquipmentLines({ value, onChange, lang, t }) {
                 />
               </div>
               <div>
-                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Replacement $")}</Label>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t("Replacement $")}<span className="text-red-700 ml-1">*</span>
+                </Label>
                 <Input
                   type="number"
                   min="0"
@@ -307,7 +316,9 @@ export function EquipmentLines({ value, onChange, lang, t }) {
                 />
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Condition")}</Label>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t("Condition")}<span className="text-red-700 ml-1">*</span>
+                </Label>
                 <Select value={line.condition || "Good"} onValueChange={(v) => updateLine(idx, { condition: v })}>
                   <SelectTrigger className={smallCls} data-testid={`equipment-condition-${idx}`}>
                     <SelectValue />
@@ -339,12 +350,22 @@ export function EquipmentLines({ value, onChange, lang, t }) {
             </div>
 
             <div>
-              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Photos (optional)")}</Label>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                {t("Photos")}<span className="text-red-700 ml-1">*</span>
+                <span className="ml-2 font-sans normal-case tracking-normal text-[10px] text-slate-500">
+                  {t("(Minimum 2 photos required)")}
+                </span>
+              </Label>
               <PhotoUpload
                 photos={line.photos || []}
                 onChange={(p) => updateLine(idx, { photos: p })}
                 testIdBase={`equipment-photos-${idx}`}
               />
+              {(line.photos || []).length < 2 && (
+                <p className="text-xs text-red-700 mt-1 font-mono uppercase tracking-[0.15em]" data-testid={`equipment-photos-warning-${idx}`}>
+                  {t("Need")} {2 - (line.photos || []).length} {t("more photo(s)")}
+                </p>
+              )}
             </div>
           </div>
         );

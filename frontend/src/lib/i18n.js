@@ -2235,6 +2235,57 @@ const ES = {
   "Name required": "Se requiere nombre",
   "Name": "Nombre",
 
+  // ---- Stricter Equipment Checkout validation messages ----------------
+  "Employee position is required": "Se requiere el puesto del empleado",
+  "equipment name is required": "se requiere el nombre del equipo",
+  "manufacturer is required": "se requiere el fabricante",
+  "model is required": "se requiere el modelo",
+  "serial / asset ID is required": "se requiere la serie / ID de activo",
+  "quantity is required": "se requiere la cantidad",
+  "replacement value is required": "se requiere el valor de reemplazo",
+  "condition is required": "se requiere la condición",
+  "at least 2 photos are required per item": "se requieren al menos 2 fotos por artículo",
+  "Photos": "Fotos",
+  "(Minimum 2 photos required)": "(Mínimo 2 fotos requeridas)",
+  "Need": "Faltan",
+  "more photo(s)": "foto(s) más",
+
+  // ---- Equipment Return form ------------------------------------------
+  "Equipment Return & Reconciliation": "Devolución y Reconciliación de Equipo",
+  "Close the loop on issued equipment — scan or look up by serial/asset ID, document return condition with photos, auto-flag damage or loss against the original replacement value.":
+    "Cierre el ciclo del equipo entregado — busque por serie/ID de activo, documente la condición de devolución con fotos, marque daños o pérdidas contra el valor de reemplazo original.",
+  "Look Up by Serial / Asset ID": "Buscar por Serie / ID de Activo",
+  "Scan or type the serial / asset ID stamped on the equipment to pull the original checkout record.":
+    "Escanee o escriba la serie / ID de activo del equipo para abrir el registro original de entrega.",
+  "e.g. RL200-789": "ej. RL200-789",
+  "Searching…": "Buscando…",
+  "Look Up": "Buscar",
+  "Add Manual Entry": "Agregar Entrada Manual",
+  "No items yet. Look up a serial or add a manual entry.": "Aún no hay artículos. Busque una serie o agregue una entrada manual.",
+  "Loaded original checkout — record return condition + photos": "Entrega original cargada — registre la condición de devolución y fotos",
+  "Lookup failed": "Búsqueda fallida",
+  "No open checkout found for that serial": "No se encontró una entrega abierta para esa serie",
+  "Enter a serial / asset ID to look up": "Ingrese una serie / ID de activo para buscar",
+  "Look up at least one item by serial or add it manually": "Busque al menos un artículo por serie o agréguelo manualmente",
+  "return condition is required": "se requiere la condición de devolución",
+  "at least 2 return photos are required per item": "se requieren al menos 2 fotos de devolución por artículo",
+  "Matched checkout": "Entrega coincidente",
+  "Damage flagged": "Daño marcado",
+  "Equipment": "Equipo",
+  "Manufacturer": "Fabricante",
+  "Qty": "Cant.",
+  "Issued Cond.": "Cond. Entregada",
+  "Return Condition": "Condición de Devolución",
+  "Loss / Damage Amount": "Monto de Pérdida / Daño",
+  "Defaults to full replacement": "Por defecto al reemplazo total",
+  "Auto-zero unless damaged/lost": "Cero automático salvo dañado/perdido",
+  "Return Notes": "Notas de Devolución",
+  "Return Photos": "Fotos de Devolución",
+  "Total Replacement Value": "Valor Total de Reemplazo",
+  "Total Loss / Damage": "Pérdida / Daño Total",
+  "Auto-flagged on return": "Marcado automáticamente al devolver",
+  "Clean return — no damage": "Devolución limpia — sin daños",
+
 };
 
 const DICTS = { es: ES, en: {} };

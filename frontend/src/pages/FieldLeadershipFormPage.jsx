@@ -25,6 +25,7 @@ import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { SignaturePad } from "@/components/SignaturePad";
 import { EquipmentLines } from "@/components/EquipmentLines";
+import { EquipmentReturnLines } from "@/components/EquipmentReturnLines";
 import { getFormByKind } from "@/lib/fieldLeadershipSchemas";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -246,24 +247,82 @@ export default function FieldLeadershipFormPage() {
       toast.error(t("Employee name required"));
       return false;
     }
-    // Equipment Checkout: at least one line + each line has name + replacement value > 0
+    // Equipment Checkout: at least one line + EVERY line has all required
+    // fields including 2 photos. Per spec: "all required fields not filled
+    // or not 2 pictures per item checked out no submit".
     if (form.custom_renderer === "equipment_lines") {
+      // Position is required at the top of the equipment checkout form.
+      if (!(employeePosition || "").trim()) {
+        toast.error(t("Employee position is required"));
+        return false;
+      }
       const lines = details.equipment_lines || [];
       if (lines.length === 0) {
         toast.error(t("Add at least one equipment item"));
         return false;
       }
-      for (const ln of lines) {
+      for (let i = 0; i < lines.length; i++) {
+        const ln = lines[i];
+        const itemNo = `#${i + 1}`;
         if (!(ln.name || "").trim()) {
-          toast.error(t("Every equipment item needs a name"));
+          toast.error(`${t("Item")} ${itemNo}: ${t("equipment name is required")}`);
           return false;
         }
-        if (!Number(ln.replacement_value) || Number(ln.replacement_value) <= 0) {
-          toast.error(t("Every equipment item needs a replacement value greater than zero"));
+        const mfg = ln.manufacturer === "Other"
+          ? (ln.manufacturer_custom || "").trim()
+          : (ln.manufacturer || "").trim();
+        if (!mfg) {
+          toast.error(`${t("Item")} ${itemNo}: ${t("manufacturer is required")}`);
+          return false;
+        }
+        if (!(ln.model || "").trim()) {
+          toast.error(`${t("Item")} ${itemNo}: ${t("model is required")}`);
+          return false;
+        }
+        if (!(ln.serial || "").trim()) {
+          toast.error(`${t("Item")} ${itemNo}: ${t("serial / asset ID is required")}`);
           return false;
         }
         if (!Number(ln.qty) || Number(ln.qty) <= 0) {
-          toast.error(t("Every equipment item needs a quantity"));
+          toast.error(`${t("Item")} ${itemNo}: ${t("quantity is required")}`);
+          return false;
+        }
+        if (!Number(ln.replacement_value) || Number(ln.replacement_value) <= 0) {
+          toast.error(`${t("Item")} ${itemNo}: ${t("replacement value is required")}`);
+          return false;
+        }
+        if (!(ln.condition || "").trim()) {
+          toast.error(`${t("Item")} ${itemNo}: ${t("condition is required")}`);
+          return false;
+        }
+        if (!Array.isArray(ln.photos) || ln.photos.length < 2) {
+          toast.error(`${t("Item")} ${itemNo}: ${t("at least 2 photos are required per item")}`);
+          return false;
+        }
+      }
+    }
+    // Equipment Return: must have ≥1 line; each line must have a return
+    // condition + 2 return photos. Other fields are pre-filled from the
+    // matched checkout line (employee can edit but not blank).
+    if (form.custom_renderer === "equipment_return_lines") {
+      const lines = details.equipment_lines || [];
+      if (lines.length === 0) {
+        toast.error(t("Look up at least one item by serial or add it manually"));
+        return false;
+      }
+      for (let i = 0; i < lines.length; i++) {
+        const ln = lines[i];
+        const itemNo = `#${i + 1}`;
+        if (!(ln.serial || "").trim()) {
+          toast.error(`${t("Item")} ${itemNo}: ${t("serial / asset ID is required")}`);
+          return false;
+        }
+        if (!(ln.return_condition || "").trim()) {
+          toast.error(`${t("Item")} ${itemNo}: ${t("return condition is required")}`);
+          return false;
+        }
+        if (!Array.isArray(ln.return_photos) || ln.return_photos.length < 2) {
+          toast.error(`${t("Item")} ${itemNo}: ${t("at least 2 return photos are required per item")}`);
           return false;
         }
       }
@@ -482,7 +541,12 @@ export default function FieldLeadershipFormPage() {
                   </div>
                 )}
                 <div className="mt-3">
-                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Position")}</Label>
+                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                    {t("Position")}
+                    {(form.custom_renderer === "equipment_lines" || form.custom_renderer === "equipment_return_lines") && (
+                      <span className="text-red-700 ml-1">*</span>
+                    )}
+                  </Label>
                   <Input value={employeePosition} onChange={(e) => setEmployeePosition(e.target.value)} className={inputCls} data-testid="field-employee-position" placeholder={selectedEmp?.role || selectedEmp?.trade || ""} />
                 </div>
               </div>
@@ -509,6 +573,13 @@ export default function FieldLeadershipFormPage() {
           <div className="border-t-2 border-slate-200 pt-5 space-y-4">
             {form.custom_renderer === "equipment_lines" ? (
               <EquipmentLines
+                value={details.equipment_lines || []}
+                onChange={(v) => updateField("equipment_lines", v)}
+                lang={lang}
+                t={t}
+              />
+            ) : form.custom_renderer === "equipment_return_lines" ? (
+              <EquipmentReturnLines
                 value={details.equipment_lines || []}
                 onChange={(v) => updateField("equipment_lines", v)}
                 lang={lang}

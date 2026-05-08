@@ -20,7 +20,7 @@
 
 import {
   AlertTriangle, MessageCircle, Clock, Award, Wrench, UserCheck,
-  Users, TrendingUp, GraduationCap, FileText, ShieldCheck,
+  Users, TrendingUp, GraduationCap, FileText, ShieldCheck, Undo2,
 } from "lucide-react";
 
 const RATING_OPTIONS = [
@@ -380,6 +380,33 @@ export const FIELD_LEADERSHIP_FORMS = [
       { name: "follow_up_required", label: { en: "Follow-Up Required?", es: "¿Necesita Seguimiento?" }, type: "yesno" },
       { name: "follow_up_date", label: { en: "Follow-Up Date", es: "Fecha de Seguimiento" }, type: "date", visible_if: { field: "follow_up_required", equals: "yes" } },
     ],
+  },
+  {
+    kind: "equipment_return",
+    icon: Undo2,
+    accent: "blue",
+    title: { en: "Equipment Return & Reconciliation", es: "Devolución y Reconciliación de Equipo" },
+    desc: {
+      en: "Close the loop on issued equipment — scan or look up by serial/asset ID, document return condition with photos, auto-flag damage or loss against the original replacement value.",
+      es: "Cierre el ciclo del equipo entregado — busque por serie/ID de activo, documente la condición de devolución con fotos, marque daños o pérdidas contra el valor de reemplazo original.",
+    },
+    needs_signatures: true,
+    allow_refusal: true,
+    allows_photos: false,
+    custom_renderer: "equipment_return_lines",
+    acknowledgement: {
+      en: [
+        "I acknowledge that the equipment listed above has been returned to MASCI General Contractors in the condition documented on this form, with photographs and notes attached as evidence.",
+        "I understand that any equipment listed as DAMAGED, MISSING, or LOST may result in financial responsibility for repair or replacement costs, only to the extent permitted by applicable federal law, Florida law, and company policy. Any payroll deduction or reimbursement will be handled only where legally permitted and with any required authorization.",
+        "My signature confirms the return condition recorded above is accurate to the best of my knowledge.",
+      ],
+      es: [
+        "Reconozco que el equipo enumerado arriba ha sido devuelto a MASCI General Contractors en la condición documentada en este formulario, con fotografías y notas adjuntas como evidencia.",
+        "Entiendo que cualquier equipo registrado como DAÑADO, FALTANTE o PERDIDO puede generar responsabilidad económica por costos de reparación o reemplazo, únicamente en la medida permitida por la ley federal aplicable, la ley de Florida y la política de la empresa. Cualquier deducción de nómina o reembolso se realizará solo donde sea legalmente permitido y con cualquier autorización requerida.",
+        "Mi firma confirma que la condición de devolución registrada arriba es precisa al mejor de mi conocimiento.",
+      ],
+    },
+    fields: [],
   },
 ];
 
