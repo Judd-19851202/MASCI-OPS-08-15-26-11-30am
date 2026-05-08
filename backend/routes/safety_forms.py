@@ -669,18 +669,34 @@ def _email_recipients() -> List[str]:
     return [e.strip() for e in raw.split(",") if e.strip()]
 
 
+async def _email_recipients_async(db) -> List[str]:
+    """DB-backed recipients (admin can override via /admin → Email Routing).
+    Falls back to the env-derived list when no DB override exists."""
+    try:
+        from email_routing import get_value as _routing_get
+        v = await _routing_get(db, "safety_forms_to")
+        if isinstance(v, list) and v:
+            return v
+    except Exception:
+        pass
+    return _email_recipients()
+
+
 def _auto_email_enabled() -> bool:
     flag = (os.environ.get("AUTO_EMAIL_REPORTS", "false") or "").strip().lower()
     has_key = bool((os.environ.get("RESEND_API_KEY") or "").strip())
     return flag == "true" and has_key
 
 
-async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[str, Any]] = None) -> None:
+async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[str, Any]] = None, *, db=None) -> None:
     try:
         if not _auto_email_enabled():
             logger.info(f"safety-forms auto-email skipped — {kind} {rec.get('id')}")
             return
-        recipients = _email_recipients()
+        if db is not None:
+            recipients = await _email_recipients_async(db)
+        else:
+            recipients = _email_recipients()
         if not recipients:
             return
         import resend  # noqa: E402
@@ -760,7 +776,7 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
 
 def _schedule_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[str, Any]] = None) -> None:
     try:
-        asyncio.create_task(_dispatch_email(kind, dict(rec), dict(extra) if extra else None))
+        asyncio.create_task(_dispatch_email(kind, dict(rec), dict(extra) if extra else None, db=db))
     except RuntimeError:
         pass
 

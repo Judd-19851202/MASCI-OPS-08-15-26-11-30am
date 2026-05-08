@@ -1,5 +1,52 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter60: Admin Email Routing console (DB-backed overrides)
+
+### User ask
+"make any of these routes editable from the admin console (e.g. an Email Routing panel where you can change SAFETY_FORMS_EMAIL_TO or add severe-incident CC's without a redeploy)"
+
+### What shipped
+- **NEW `backend/email_routing.py`** — single-doc Mongo collection (`email_routing_config`, `_id="default"`) overlays env-derived defaults. 60s per-process cache busted on every `save()`. Six routing keys exposed:
+  - `always_cc` — compliance form CC (Site Inspection, Meeting, JHA, Incident, QA/QC)
+  - `safety_forms_to` — Safety Forms (Issuance / Training / Return Receipt) full To: list
+  - `leadership_always_to` — Field Leadership 10-form CC
+  - `severe_incident_cc` — extra CC ONLY when an incident is flagged Severe
+  - `shop_manager_fallback` — single fallback when shop_users is empty
+  - `backup_email_to` — daily auto-backup destination
+- **NEW endpoints** (admin-strict):
+  - `GET  /api/admin/email-routing` — returns merged config + env defaults so UI can show "Reset to default"
+  - `PUT  /api/admin/email-routing` — partial update; pass `[]` to silence a route, omit a key to leave it untouched
+  - `POST /api/admin/email-routing/test` — sends a one-off Resend test email to confirm DNS + sender + destination are wired
+- **All 4 consumer sites wired** to the new helper, falling back to env when no DB override exists:
+  - `pm_routing.py::recipients_for_record_async` (compliance always_cc)
+  - `routes/safety_forms.py::_email_recipients_async` (3 form kinds)
+  - `routes/field_leadership.py::_send_submit_email` (10 form kinds)
+  - `server.py::_dispatch_auto_email` (severe-incident extras + shop fallback)
+  - `server.py::_send_backup_email` (backup destination)
+- **NEW `frontend/src/components/AdminEmailRoutingPanel.jsx`** — mounted in `/admin` between `AutoEmailRoutingPanel` and `SitePostersPanel`. 6 routing rows with:
+  - live value + env default + "OVERRIDE" badge when divergent
+  - per-row `Default` / `Save` buttons
+  - source pill (`Defaults (env)` / `Custom (DB)` amber)
+  - "Send test email" row at the bottom
+  - last-edited audit line (`updated_at` + `updated_by`)
+- **NEW `tests/test_iter60_email_routing.py`** — 8 tests covering env fallback, save persistence, cache invalidation, empty-list-as-silence, dedup, string-to-list coercion, single-string field, and rogue-key rejection.
+
+### Verified end-to-end (preview)
+- 8/8 unit tests pass.
+- `GET → PUT → GET` cycle: env source flips to db source, override badge appears, untouched keys preserved.
+- Empty-list PUT (`severe_incident_cc=[]`) correctly persists the silence and is NOT confused with "missing → use env".
+- Frontend Playwright smoke: panel renders with all 6 rows, edit + Save flow toasts `Saved · Severe Incident extra-CC`, source badge flips from "Defaults (env)" to "Custom (DB)" automatically.
+- ESLint + ruff clean.
+
+### Files added/touched
+- NEW: `/app/backend/email_routing.py`, `/app/backend/tests/test_iter60_email_routing.py`, `/app/frontend/src/components/AdminEmailRoutingPanel.jsx`
+- MODIFIED: `/app/backend/pm_routing.py` (dynamic always_cc), `/app/backend/routes/safety_forms.py` (async `_email_recipients_async`), `/app/backend/routes/field_leadership.py` (dynamic leadership CC), `/app/backend/server.py` (`/admin/email-routing` CRUD + test endpoint, severe-incident dynamic, shop-fallback dynamic, backup destination dynamic), `/app/frontend/src/pages/AdminHub.jsx` (mount panel)
+
+### Deploy reminder
+Backend + frontend changes. Push to `mascidocs.com`. After deploy, admin can change every email-routing list directly from `/admin → Email Routing` panel. Existing env vars stay in place as fallbacks; DB overrides win when present.
+
+---
+
 ## 2026-05-08 — Iter59 (continued): Auto-warm scheduler
 
 Per user request: with the new `warm-cache` endpoint in place, the existing 30-min `background_indexer_loop` was bumped to 10-min cadence and now also auto-warms any indexed photo missing a JPEG cache entry.

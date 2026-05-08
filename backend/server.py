@@ -5130,6 +5130,15 @@ async def _email_backup_zip_from_path(zip_path: Path, total_records: int) -> Opt
     container on every scheduled backup.
     """
     to = (os.environ.get("BACKUP_EMAIL_TO") or "").strip()
+    # Allow admin to override via DB (Email Routing panel). DB list joined
+    # with commas to match the existing comma-delimited contract Resend uses.
+    try:
+        from email_routing import get_value as _routing_get
+        v = await _routing_get(db, "backup_email_to")
+        if isinstance(v, list) and v:
+            to = ",".join(v)
+    except Exception:
+        pass
     if not to:
         return None
     api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
@@ -7183,9 +7192,16 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"shop fan-out lookup failed: {e}")
             if not shop_emails:
-                fallback = (
-                    os.environ.get("SHOP_MANAGER_EMAIL", "shopmanager@mascigc.com").strip()
-                )
+                fallback = ""
+                try:
+                    from email_routing import get_value as _routing_get
+                    fallback = (await _routing_get(db, "shop_manager_fallback")) or ""
+                except Exception:
+                    pass
+                if not fallback:
+                    fallback = os.environ.get(
+                        "SHOP_MANAGER_EMAIL", "shopmanager@mascigc.com"
+                    ).strip()
                 if fallback:
                     shop_emails = [fallback]
             for shop_email in shop_emails:
@@ -7195,8 +7211,21 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         # Severity fan-out for incidents (Major/Severe currently mirrors the
         # always-CC; future ops/GC list can be appended here from env.)
         if kind == "incident" and _is_severe_incident(record):
-            extra = os.environ.get("SEVERE_INCIDENT_CC", "")
-            for e in [x.strip() for x in extra.split(",") if x.strip()]:
+            extras: List[str] = []
+            try:
+                from email_routing import get_value as _routing_get
+                v = await _routing_get(db, "severe_incident_cc")
+                if isinstance(v, list):
+                    extras = v
+            except Exception:
+                pass
+            if not extras:
+                extras = [
+                    x.strip()
+                    for x in (os.environ.get("SEVERE_INCIDENT_CC", "") or "").split(",")
+                    if x.strip()
+                ]
+            for e in extras:
                 if e.lower() not in {r.lower() for r in recipients}:
                     recipients.append(e)
 
@@ -7392,6 +7421,90 @@ async def auto_email_routing_table(_: bool = Depends(require_admin)):
         "project_managers": project_managers,
         "unassigned_jobs": unassigned,
     }
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Admin Email Routing — DB-backed overrides for the env-default lists.
+# Lets the admin change "who gets what email" from the console without
+# a redeploy. See backend/email_routing.py for storage + cache details.
+# ─────────────────────────────────────────────────────────────────────────
+class EmailRoutingUpdate(BaseModel):
+    """Partial update — only included keys are written. Pass [] to clear
+    a list (e.g. severe_incident_cc=[] to silence the severe-incident
+    fan-out). Keys not present are left untouched."""
+    always_cc: Optional[List[str]] = None
+    safety_forms_to: Optional[List[str]] = None
+    leadership_always_to: Optional[List[str]] = None
+    shop_manager_fallback: Optional[str] = None
+    severe_incident_cc: Optional[List[str]] = None
+    backup_email_to: Optional[List[str]] = None
+
+
+class EmailRoutingTestBody(BaseModel):
+    to: str
+    subject: Optional[str] = None
+
+
+@_email_router.get("/admin/email-routing")
+async def admin_email_routing_get(_: bool = Depends(require_admin)):
+    """Return the merged routing config (env defaults + DB overrides)
+    plus the env-only defaults so the UI can show "Reset to default"."""
+    from email_routing import load as _routing_load, env_defaults as _routing_env_defaults
+    cfg = await _routing_load(db)
+    return {"config": cfg, "env_defaults": _routing_env_defaults()}
+
+
+@_email_router.put("/admin/email-routing")
+async def admin_email_routing_put(
+    body: EmailRoutingUpdate, _: bool = Depends(require_admin)
+):
+    """Persist any subset of routing keys. Returns the freshly-merged config."""
+    from email_routing import save as _routing_save
+    updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    cfg = await _routing_save(db, updates, updated_by="admin")
+    return {"ok": True, "config": cfg}
+
+
+@_email_router.post("/admin/email-routing/test")
+async def admin_email_routing_test(
+    body: EmailRoutingTestBody, _: bool = Depends(require_admin)
+):
+    """Send a one-off test email to confirm Resend + sender + DNS are wired."""
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        raise HTTPException(503, "RESEND_API_KEY not configured")
+    target = (body.to or "").strip()
+    if not target or "@" not in target:
+        raise HTTPException(400, "Valid 'to' address required")
+    import resend  # noqa: E402
+    resend.api_key = api_key
+    sender_email = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
+    subject = body.subject or "[MASCI HUB] Email Routing test"
+    html = (
+        "<div style='font-family:Arial,sans-serif;max-width:540px'>"
+        "<h2 style='color:#C8102E'>Email Routing test — success</h2>"
+        "<p>This message was sent from the MASCI HUB Admin Console "
+        "&rarr; Email Routing &rarr; Send test.</p>"
+        "<p>If you received it, Resend, the sender domain, and the "
+        "destination address are all wired up correctly. The address "
+        "you tested can safely be added to any of the routing lists.</p>"
+        f"<p style='color:#64748b;font-size:12px'>Sent {datetime.now(timezone.utc).isoformat()} UTC</p>"
+        "</div>"
+    )
+    try:
+        params = {
+            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "to": [target],
+            "subject": subject,
+            "html": html,
+        }
+        reply_to = (os.environ.get("REPLY_TO_EMAIL") or "").strip()
+        if reply_to:
+            params["reply_to"] = reply_to
+        result = await asyncio.to_thread(resend.Emails.send, params)
+        return {"ok": True, "to": target, "resend_id": (result or {}).get("id")}
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(502, f"Resend send failed: {e}")
 
 
 @_email_router.post("/email-report")

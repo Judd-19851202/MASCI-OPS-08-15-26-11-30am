@@ -222,7 +222,16 @@ async def recipients_for_record_async(
         # debugging routing rules easier).
         seen_for_cc = {(pm_email or "").lower()} | {e.lower() for e in co_pm_emails}
         cc = list(co_pm_emails)
-        for e in ALWAYS_CC:
+        # Pull the live always-CC from the DB-backed admin override; falls
+        # back to the module-level env default when no override exists.
+        try:
+            from email_routing import get_value as _routing_get
+            always_cc_dynamic = await _routing_get(db, "always_cc")
+            if not isinstance(always_cc_dynamic, list):
+                always_cc_dynamic = ALWAYS_CC
+        except Exception:
+            always_cc_dynamic = ALWAYS_CC
+        for e in always_cc_dynamic:
             if not e:
                 continue
             if e.lower() in seen_for_cc:

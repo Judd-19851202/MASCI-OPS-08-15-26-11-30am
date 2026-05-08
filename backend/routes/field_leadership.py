@@ -457,10 +457,21 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
     async def _send_submit_email(rec: Dict[str, Any]) -> None:
         """Email the assigned PM + jaymn + safety with the record summary."""
         recipients: List[str] = []
-        always_cc = [
-            os.environ.get("LEADERSHIP_ALWAYS_TO_1", "jaymn.judd@mascigc.com"),
-            os.environ.get("LEADERSHIP_ALWAYS_TO_2", "safety@mascigc.com"),
-        ]
+        # Live admin override (DB-backed). Falls back to env defaults
+        # when no override has been set.
+        always_cc: List[str] = []
+        try:
+            from email_routing import get_value as _routing_get
+            v = await _routing_get(db, "leadership_always_to")
+            if isinstance(v, list):
+                always_cc = v
+        except Exception:
+            pass
+        if not always_cc:
+            always_cc = [
+                os.environ.get("LEADERSHIP_ALWAYS_TO_1", "jaymn.judd@mascigc.com"),
+                os.environ.get("LEADERSHIP_ALWAYS_TO_2", "safety@mascigc.com"),
+            ]
         recipients.extend([r for r in always_cc if r])
 
         pm_email = (rec.get("assigned_pm_email") or "").strip()
