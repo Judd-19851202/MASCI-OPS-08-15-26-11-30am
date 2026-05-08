@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Wrench, Loader2, ArrowLeft } from "lucide-react";
+import { Wrench, Loader2, ArrowLeft, Mail, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -13,6 +13,14 @@ import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function ShopLogin() {
   const navigate = useNavigate();
@@ -22,6 +30,9 @@ export default function ShopLogin() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotBusy, setForgotBusy] = useState(false);
 
   useEffect(() => {
     // Clear every tier's token on arrival so a shop user never inherits
@@ -30,6 +41,33 @@ export default function ShopLogin() {
     clearAdminToken();
     clearPmToken();
   }, []);
+
+  const submitForgot = async () => {
+    const e = (forgotEmail || "").trim();
+    if (!e) return;
+    setForgotBusy(true);
+    try {
+      const res = await api.post("/shop/forgot-password", { email: e.toLowerCase() });
+      // Backend always returns ok:true with a generic message — no email enumeration.
+      toast.success(
+        res?.data?.message ||
+          t("If that email is on file, a reset link is on its way.")
+      );
+      setForgotOpen(false);
+    } catch (err) {
+      const status = err?.response?.status;
+      const detail = err?.response?.data?.detail;
+      toast.error(
+        typeof detail === "string"
+          ? detail
+          : status === 429
+          ? t("Too many requests — wait a minute and try again")
+          : t("Couldn't send reset email — try again or call the office")
+      );
+    } finally {
+      setForgotBusy(false);
+    }
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -160,18 +198,31 @@ export default function ShopLogin() {
                 toggleTestId="shop-password-toggle"
               />
             </div>
-            <label className="inline-flex items-center gap-2 cursor-pointer select-none -mt-1">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 accent-amber-600"
-                data-testid="shop-remember-me"
-              />
-              <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
-                {t("Remember me on this device")}
-              </span>
-            </label>
+            <div className="flex items-center justify-between flex-wrap gap-2 -mt-1">
+              <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 accent-amber-600"
+                  data-testid="shop-remember-me"
+                />
+                <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
+                  {t("Remember me on this device")}
+                </span>
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotEmail(email);
+                  setForgotOpen(true);
+                }}
+                className="text-xs font-bold text-orange-700 hover:text-orange-900 underline-offset-2 hover:underline"
+                data-testid="shop-forgot-password-link"
+              >
+                {t("Forgot password?")}
+              </button>
+            </div>
             <Button
               type="submit"
               disabled={submitting}
@@ -189,6 +240,69 @@ export default function ShopLogin() {
           </form>
         </div>
       </main>
+
+      {/* Forgot password dialog */}
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent data-testid="shop-forgot-dialog">
+          <DialogHeader>
+            <DialogTitle className="font-display font-black flex items-center gap-2 text-orange-700">
+              <KeyRound className="w-5 h-5" /> {t("Reset your password")}
+            </DialogTitle>
+            <DialogDescription className="leading-relaxed">
+              {t("Enter your work email. If we have you on file with an active account, we'll email you a one-time link to set a new password. Link expires in 30 minutes.")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="pt-1">
+            <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
+              {t("Work Email")}
+            </Label>
+            <div className="relative mt-1.5">
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <Input
+                type="email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    submitForgot();
+                  }
+                }}
+                placeholder="yourname@mascigc.com"
+                className="h-11 pl-9 text-base border-2 border-slate-300"
+                data-testid="shop-forgot-email-input"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setForgotOpen(false)}
+              disabled={forgotBusy}
+              data-testid="shop-forgot-cancel"
+            >
+              {t("Cancel")}
+            </Button>
+            <Button
+              onClick={submitForgot}
+              disabled={forgotBusy || !forgotEmail.trim()}
+              className="bg-orange-600 hover:bg-orange-700 text-white font-bold uppercase tracking-wide"
+              data-testid="shop-forgot-submit"
+            >
+              {forgotBusy ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Sending…")}
+                </>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4 mr-1" /> {t("Email reset link")}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">

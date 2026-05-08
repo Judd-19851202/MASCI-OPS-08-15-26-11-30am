@@ -1339,6 +1339,166 @@ async def shop_change_password(
     }
 
 
+class ShopForgotPasswordBody(BaseModel):
+    email: str
+
+
+class ShopResetPasswordBody(BaseModel):
+    token: str
+    new_password: str
+
+
+@api_router.post("/shop/forgot-password")
+async def shop_forgot_password(body: ShopForgotPasswordBody, request: Request):
+    """Self-service password reset — step 1.
+
+    Mirror of ``/pm/forgot-password`` for the Shop portal. Always
+    returns a generic 200 to prevent email enumeration. A 30-min
+    HMAC-signed reset token is emailed via Resend bound to the first
+    16 chars of the user's current password_hash so a successful
+    reset invalidates the link.
+    """
+    from shop_users import find_shop_user_by_email, make_shop_reset_token
+
+    ip = _client_ip(request)
+    _check_login_lockout(ip)
+    email = (body.email or "").strip().lower()
+
+    generic = {
+        "ok": True,
+        "message": (
+            "If that email is on file with a password, a reset link is on "
+            "its way. Check your inbox in the next minute."
+        ),
+    }
+
+    if not email or "@" not in email:
+        _record_login_fail(ip)
+        return generic
+
+    user = await find_shop_user_by_email(db, email)
+    if not user:
+        _record_login_fail(ip)
+        return generic
+    pwh = user.get("password_hash") or ""
+    if not pwh or user.get("disabled"):
+        return generic
+
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        logger.warning("[shop forgot-password] RESEND_API_KEY missing; cannot send")
+        return generic
+
+    portal_url = (
+        os.environ.get("PORTAL_URL", "").strip()
+        or os.environ.get("PRODUCTION_URL", "").strip()
+        or "https://mascidocs.com"
+    )
+    token = make_shop_reset_token(user["id"], pwh)
+    reset_link = f"{portal_url}/shop/reset/{token}"
+    user_name = (user.get("name") or "").strip() or "Mechanic"
+    html_body = f"""\
+<!DOCTYPE html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1e293b;background:#f8fafc;margin:0;padding:0">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;color:#fff;padding:18px 24px">
+    <tr><td>
+      <div style="font-family:Courier New,monospace;font-size:11px;letter-spacing:0.22em;color:#fbbf24;text-transform:uppercase;font-weight:700">MASCI Hub · Shop Portal</div>
+      <div style="font-size:22px;font-weight:900;margin-top:4px">Reset your password</div>
+    </td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;padding:24px">
+    <tr><td>
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.5">Hi {user_name},</p>
+      <p style="margin:0 0 14px;font-size:14px;line-height:1.55;color:#334155">
+        Someone (hopefully you) requested a password reset for the MASCI Shop Portal account
+        <strong>{email}</strong>. Click the button below to choose a new password.
+      </p>
+
+      <table cellpadding="0" cellspacing="0" style="margin:18px 0">
+        <tr><td style="background:#ea580c;border-radius:6px;padding:14px 28px">
+          <a href="{reset_link}" style="color:#fff;font-weight:800;font-size:14px;letter-spacing:0.05em;text-transform:uppercase;text-decoration:none">
+            Choose a new password
+          </a>
+        </td></tr>
+      </table>
+
+      <p style="margin:14px 0 0;font-size:13px;color:#64748b;line-height:1.55">
+        This link expires in 30 minutes. If you didn't request a reset, ignore this email — your current password keeps working.
+      </p>
+      <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;line-height:1.55">
+        Direct link: <span style="font-family:Courier New,monospace;font-size:10px;word-break:break-all;color:#475569">{reset_link}</span>
+      </p>
+    </td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:14px 24px;color:#94a3b8;font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;text-transform:uppercase">
+    <tr><td>MASCI · Shop Portal · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}</td></tr>
+  </table>
+</body></html>"""
+
+    try:
+        import resend
+        resend.api_key = api_key
+        sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+        params = {
+            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "to": [email],
+            "subject": "[MASCI] Reset your Shop Portal password",
+            "html": html_body,
+        }
+        reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
+        if reply_to:
+            params["reply_to"] = reply_to
+        await asyncio.to_thread(resend.Emails.send, params)
+    except Exception as e:  # noqa: BLE001
+        logger.error("[shop forgot-password] resend send failed: %s", e)
+
+    return generic
+
+
+@api_router.post("/shop/reset-password")
+async def shop_reset_password(body: ShopResetPasswordBody, request: Request):
+    """Self-service password reset — step 2.
+
+    User clicks the email link → lands on ``/shop/reset/<token>`` →
+    enters a new password (6+ char) → frontend POSTs here. Backend
+    validates the token, sets the new bcrypt hash, clears
+    must_change_password (the user has now picked their own pw), and
+    returns a fresh per-user token so they drop straight into ``/shop``.
+    """
+    from shop_users import (
+        consume_shop_reset_token,
+        make_shop_user_token,
+        public_shop_user_view,
+        set_shop_user_password,
+        stamp_shop_login,
+    )
+
+    ip = _client_ip(request)
+    _check_login_lockout(ip)
+
+    if len(body.new_password or "") < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+
+    user = await consume_shop_reset_token(db, body.token)
+    if not user:
+        _record_login_fail(ip)
+        raise HTTPException(
+            status_code=400,
+            detail="This reset link is invalid or has expired. Request a new one from /shop/login.",
+        )
+
+    updated = await set_shop_user_password(db, user["id"], body.new_password, must_change=False)
+    if not updated:
+        raise HTTPException(status_code=500, detail="Failed to update password")
+    _reset_login_fails(ip)
+    await stamp_shop_login(db, updated["id"], ip=ip)
+    return {
+        "ok": True,
+        "token": make_shop_user_token(updated["id"], updated.get("password_hash") or ""),
+        "user": public_shop_user_view(updated),
+    }
+
+
 class PMLoginBody(BaseModel):
     email: Optional[str] = None
     password: str

@@ -1,5 +1,44 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter49: Self-service "Forgot password?" for Shop portal
+
+### Scope
+Mirror of the PM forgot-password flow on `/shop/login`. Stranded mechanics in the field can recover their own account without calling the office. Identical token contract, identical UX pattern.
+
+### What shipped
+- **Backend (`shop_users.py`)**:
+  - `make_shop_reset_token(user_id, password_hash)` — `<exp_unix>.<user_id>.<hmac>`, 30-min TTL, HMAC-bound to `password_hash[:16]` so any successful reset invalidates the link.
+  - `consume_shop_reset_token(db, token)` — validates exp + HMAC + user existence + not-disabled + has-password. Returns shop user doc on success, None on any failure (no leak of which step failed).
+- **Backend (`server.py`)**:
+  - `POST /api/shop/forgot-password` body `{email}` — always returns generic 200 (no email enumeration); per-IP brute-force lockout; emails reset link via Resend in orange shop styling. Returns generic message even when Resend send fails.
+  - `POST /api/shop/reset-password` body `{token, new_password}` — validates token, sets new bcrypt hash with `must_change_password=false`, returns fresh per-user shop token + user doc. Stamps login.
+- **Frontend**:
+  - `ShopLogin.jsx` — added "Forgot password?" link next to Remember-me, opens an orange-themed dialog with email input + "Email reset link" CTA. Pre-fills with whatever email the user was already typing.
+  - **NEW `ShopResetPassword.jsx`** at route `/shop/reset/:token` — mirrors `PmResetPassword.jsx`, amber/orange branding, new + confirm password fields, persists fresh token and drops user into `/shop`.
+  - `App.js` — `/shop/reset/:token` route (public, like `/pm/reset/:token`).
+
+### Verified end-to-end (preview)
+- `POST /shop/forgot-password` with unknown email → 200 generic ✓
+- `POST /shop/forgot-password` with empty email → 200 generic ✓ (no enumeration)
+- `POST /shop/reset-password` with bogus token → 400 "invalid or expired" ✓
+- `POST /shop/reset-password` with short password → 400 "must be at least 6 characters" ✓
+- Token round-trip: mint via `make_shop_reset_token` → consume → returns shop user ✓
+- Tampered token (last 4 chars flipped) → rejected ✓
+- Expired token (exp=now-60s) → rejected ✓
+- Real reset: token → POST /reset-password → 200 with fresh per-user token ✓
+- Token replay-protection: same token reused after rotation → 400 (hash changed) ✓
+- Login with newly-set password → `must_change_password=false` ✓
+- Frontend smoke screenshot: Forgot password? link visible, dialog renders with orange branding, "Email reset link" CTA wired
+
+### Files added/touched
+- NEW: `/app/frontend/src/pages/ShopResetPassword.jsx`
+- MODIFIED: `/app/backend/shop_users.py` (reset token helpers + __all__), `/app/backend/server.py` (2 new endpoints + `ShopForgotPasswordBody` / `ShopResetPasswordBody` models), `/app/frontend/src/pages/ShopLogin.jsx` (Forgot password link + dialog + submitForgot handler), `/app/frontend/src/App.js` (`/shop/reset/:token` route)
+
+### Deploy reminder
+Backend + frontend changes. Push to `mascidocs.com`. After deploy, mechanics with valid accounts and a set password can self-recover; admin can still issue temp passwords from the Shop Users panel.
+
+---
+
 ## 2026-05-08 — Iter48: Granular Shop User Management (per-user accounts)
 
 ### Scope

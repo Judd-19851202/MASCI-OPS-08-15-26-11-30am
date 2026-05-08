@@ -217,6 +217,56 @@ async def stamp_shop_login(db, user_id: str, ip: Optional[str] = None) -> None:
     await db.shop_users.update_one({"id": user_id}, {"$set": fields})
 
 
+# ----- Self-service password reset ------------------------------------
+# Mirrors pm_auth.make_reset_token / consume_reset_token. The token is
+# self-revoking: once the user resets, password_hash[:16] changes →
+# the token's HMAC no longer matches.
+
+import time as _time
+
+_SHOP_RESET_TOKEN_TTL_SECONDS = 30 * 60  # 30 minutes
+
+
+def make_shop_reset_token(user_id: str, password_hash: str) -> str:
+    """``<exp_unix>.<user_id>.<hmac>`` — single-use, 30-min TTL.
+
+    Bound to the first 16 chars of the current password_hash so any
+    successful reset invalidates the token immediately.
+    """
+    if not user_id or not password_hash:
+        raise ValueError("user_id and password_hash required")
+    exp = int(_time.time()) + _SHOP_RESET_TOKEN_TTL_SECONDS
+    msg = f"reset|exp={exp}|shop_user:{user_id}:{password_hash[:16]}".encode()
+    sig = hmac.new(_pm_hmac_secret(), msg, hashlib.sha256).hexdigest()
+    return f"{exp}.{user_id}.{sig}"
+
+
+async def consume_shop_reset_token(db, token: str) -> Optional[dict]:
+    """Validate a forgot-password token. Returns the shop user doc if
+    valid AND not expired AND the password_hash hasn't been rotated.
+    Returns None on any failure (no leakage of which step failed)."""
+    if not token or token.count(".") != 2:
+        return None
+    exp_str, user_id, sig = token.split(".", 2)
+    try:
+        exp = int(exp_str)
+    except ValueError:
+        return None
+    if exp < int(_time.time()):
+        return None
+    user = await db.shop_users.find_one({"id": user_id}, {"_id": 0})
+    if not user or user.get("disabled"):
+        return None
+    pwh = user.get("password_hash") or ""
+    if not pwh:
+        return None
+    msg = f"reset|exp={exp}|shop_user:{user_id}:{pwh[:16]}".encode()
+    expected_sig = hmac.new(_pm_hmac_secret(), msg, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(sig, expected_sig):
+        return None
+    return user
+
+
 def public_shop_user_view(user: dict) -> dict:
     if not user:
         return {}
@@ -237,6 +287,8 @@ __all__ = [
     "stamp_shop_login",
     "make_shop_user_token",
     "is_valid_shop_user_token_async",
+    "make_shop_reset_token",
+    "consume_shop_reset_token",
     "public_shop_user_view",
     "verify_password",
     "generate_temp_password",
