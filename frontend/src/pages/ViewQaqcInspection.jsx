@@ -91,8 +91,17 @@ export default function ViewQaqcInspection() {
             <div className="font-mono text-xs text-slate-500 mt-1">
               {formatDateLong(data.inspection_date)} · {data.inspection_time} · {data.location}
             </div>
-            <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1">
-              ID · {data.id?.slice(0, 8).toUpperCase()}
+            <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+              {data.doc_id && (
+                <span
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold tabular-nums tracking-wide"
+                  data-testid="record-doc-id-badge"
+                >
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-emerald-700">Doc ID</span>
+                  {data.doc_id}
+                </span>
+              )}
+              <span>ID · {data.id?.slice(0, 8).toUpperCase()}</span>
             </div>
             {data.submit_language === "es" && (
               <div className="mt-2"><SubmitLangBadge lang={data.submit_language} /></div>

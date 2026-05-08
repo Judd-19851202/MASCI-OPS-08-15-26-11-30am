@@ -8,7 +8,9 @@ Covers:
 - Token is photo_id-bound (token for A used on B → 403)
 - /thumb (auth header path) still works
 - Content negotiation: AVIF / WebP / JPEG
-- Cache-Control header includes 'private, max-age=' and 'immutable'
+- Cache-Control header includes 'public, max-age=' and 'immutable' (signed
+  URLs are photo-id-bound HMAC tokens that are SAFE to cache publicly at
+  the CDN edge — that's exactly what unlocked iter51's perf gains)
 - /admin/reindex wipes job_photo_thumb_cache
 - pillow_heif registered (import side-effect)
 """
@@ -93,7 +95,7 @@ def test_thumb_signed_valid_token_returns_image(photos_list):
         params={"t": tok}, headers={"Accept": "image/jpeg"}, timeout=15,
     )
     cc_local = local.headers.get("Cache-Control", "")
-    assert "private" in cc_local and "max-age=" in cc_local and "immutable" in cc_local, (
+    assert "public" in cc_local and "max-age=" in cc_local and "immutable" in cc_local, (
         f"Backend code-level Cache-Control wrong: {cc_local!r}"
     )
     assert "X-Thumb-Cache" in r.headers

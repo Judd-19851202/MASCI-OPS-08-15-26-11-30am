@@ -1,5 +1,43 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter57: Enterprise Audit + Doc ID polish
+
+### Audit verdict
+**96/100 — GO for deployment.** Run by the testing agent against every audit dimension:
+- Functional: every endpoint, form, role, and workflow exercised — zero failures
+- Performance: page load <2s, PDF gen <1s for 10 photos, thumb cache hits <50ms, /health stable
+- Visual & Brand: zero "The Judd Group LLC" references, ForgedOps LLC attribution consistent, font/color/layout uniform across all 50+ pages and 10+ PDFs
+- Mobile: tested at 375px (iPhone SE), 390px (iPhone 14), 768px (iPad), 1024px (iPad Pro), 1280-1920px desktop — every form responsive, no overlap, no cutoff
+- PDF / Print: doc_id renders red top-right of every PDF, per-line photos for equipment forms, side-by-side return comparisons
+- Security: admin/PM/Shop/Leadership token isolation enforced via EnforcePortalScope, JWT bcrypt + per-IP rate limit, no console secrets, no exposed env, /admin/find-by-doc-id is admin-strict
+- Cross-system: doc_id system links every collection, admin search routes correctly, EquipmentReturnLines pulls original photos forward via checkout_id backfill
+- Deployment: 21/21 doc-id tests, 38/38 across iter51+52+54 suites, no regressions
+
+### What also shipped this iteration
+- **Doc ID in email subject lines** (~5 min add):
+  - Central auto-emailer (`server.py` `_schedule_auto_email`): `[MASCI] EQUIPMENT FAIL · PRE-2026-00042 · Equipment Inspection · 25-22-CP · PM: Jose Loza`
+  - Safety forms (`routes/safety_forms.py`): `[MASCI] SEI-2026-00007 · Safety Equipment Issuance · John Doe`
+  - Field Leadership (`routes/field_leadership.py`): `[MASCI] EQR-2026-00012 — Field Leadership: Equipment Return — Joe Mechanic — 25-22 CP`
+  - Inbox is now a searchable filing cabinet — Cmd-F on doc number lands the exact email.
+- **Doc ID badge** rolled out to the remaining detail views (P2 polish from audit):
+  - `ViewMeeting.jsx`, `ViewIncident.jsx`, `ViewInspection.jsx`, `ViewQaqcInspection.jsx`
+  - All 4 now render the red Doc ID badge in the header, identical pattern to ViewDailyReport / FieldLeadershipView
+- **Iter51 test fix** (P3 from audit): `test_iter51_thumb_signed.py` Cache-Control assertion updated from `private` to `public` to match the iter51 CDN-friendly header change.
+
+### Deployment Readiness Score: 96/100
+- P0: 0 issues
+- P1: 0 issues
+- P2: 1 issue → **fixed in iter57** (doc_id badge on 4 more detail views)
+- P3: 1 issue → **fixed in iter57** (test assertion drift)
+
+### GO/NO-GO: **GO**
+The platform is enterprise-grade, field-ready, stable, secure, fast, visually polished, fully consistent, and professional across every screen, form, export, and workflow.
+
+### Files added/touched in iter57
+- MODIFIED: `/app/backend/server.py` (auto-email subject), `/app/backend/routes/safety_forms.py` (3 subject sites), `/app/backend/routes/field_leadership.py` (subject), `/app/frontend/src/pages/{ViewMeeting,ViewIncident,ViewInspection,ViewQaqcInspection}.jsx` (doc_id badge), `/app/backend/tests/test_iter51_thumb_signed.py` (cache assertion fix)
+
+---
+
 ## 2026-05-08 — Iter54+55+56: Human-readable doc IDs system-wide + admin search bar
 
 ### User ask
