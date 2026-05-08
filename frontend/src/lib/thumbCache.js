@@ -1,0 +1,67 @@
+// Service worker registration / lifecycle helpers for the photo
+// thumbnail cache. Only runs in production builds and only registers
+// the narrowly-scoped `sw-thumbs.js` file. Has a hard kill-switch
+// callable from anywhere to wipe the cache (e.g. on logout / role
+// switch / "something is wrong, fresh from server please").
+
+const SW_PATH = "/sw-thumbs.js";
+
+function isSupported() {
+  return (
+    typeof window !== "undefined" &&
+    "serviceWorker" in navigator &&
+    // Don't run in localhost dev (CRA's dev server confuses SW
+    // updates) — only when served from a real origin.
+    window.location.protocol === "https:"
+  );
+}
+
+let registration = null;
+
+export async function registerThumbCache() {
+  if (!isSupported()) return null;
+  try {
+    registration = await navigator.serviceWorker.register(SW_PATH, { scope: "/" });
+    return registration;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Wipe every cached thumbnail. Called automatically on auth changes
+ * (admin/PM/shop/leadership login or logout) so a different user on
+ * the same device never sees another user's previously-cached photos
+ * — even though the server already enforces scope on every fetch.
+ */
+export async function clearThumbCache() {
+  if (!isSupported()) return;
+  try {
+    const reg = registration || (await navigator.serviceWorker.getRegistration("/"));
+    const ctrl = reg?.active || navigator.serviceWorker.controller;
+    if (ctrl) {
+      ctrl.postMessage({ type: "CLEAR_THUMB_CACHE" });
+    }
+    // Defensive: also nuke matching caches directly in case the SW
+    // hasn't activated yet on first load.
+    if ("caches" in window) {
+      const names = await caches.keys();
+      await Promise.all(
+        names.filter((n) => n.startsWith("masci-thumbs-")).map((n) => caches.delete(n)),
+      );
+    }
+  } catch {
+    /* swallow — never break the page on cache cleanup */
+  }
+}
+
+export async function unregisterThumbCache() {
+  if (!isSupported()) return;
+  try {
+    const reg = registration || (await navigator.serviceWorker.getRegistration("/"));
+    if (reg) await reg.unregister();
+    await clearThumbCache();
+  } catch {
+    /* swallow */
+  }
+}

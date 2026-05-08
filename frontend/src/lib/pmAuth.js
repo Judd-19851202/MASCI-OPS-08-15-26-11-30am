@@ -8,6 +8,7 @@
 // (cleared on tab close).
 
 import { readToken, writeToken, clearToken } from "@/lib/tokenStorage";
+import { clearThumbCache } from "@/lib/thumbCache";
 
 const KEY = "masci.pm.token";
 
@@ -17,10 +18,12 @@ export function getPmToken() {
 
 export function setPmToken(token, opts = {}) {
   writeToken(KEY, token, opts);
+  clearThumbCache();
 }
 
 export function clearPmToken() {
   clearToken(KEY);
+  clearThumbCache();
 }
 
 export function isPm() {

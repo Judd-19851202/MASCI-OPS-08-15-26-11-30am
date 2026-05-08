@@ -4,6 +4,7 @@
 // browser session. Backend issues a 12h token; we also age-check on read.
 
 import { api } from "@/lib/api";
+import { clearThumbCache } from "@/lib/thumbCache";
 
 const KEY = "masci.leadership.token";
 const ISSUED_KEY = "masci.leadership.issued";
@@ -29,6 +30,7 @@ export function setLeadershipToken(tok) {
   try {
     window.sessionStorage.setItem(KEY, tok);
     window.sessionStorage.setItem(ISSUED_KEY, String(Date.now()));
+    clearThumbCache();
   } catch {
     /* sessionStorage disabled — gate becomes per-page-load */
   }
@@ -38,6 +40,7 @@ export function clearLeadershipToken() {
   try {
     window.sessionStorage.removeItem(KEY);
     window.sessionStorage.removeItem(ISSUED_KEY);
+    clearThumbCache();
   } catch { /* noop */ }
 }
 

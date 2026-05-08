@@ -6,6 +6,7 @@
 // (cleared on tab close).
 
 import { readToken, writeToken, clearToken } from "@/lib/tokenStorage";
+import { clearThumbCache } from "@/lib/thumbCache";
 
 const KEY = "masci.shop.token";
 
@@ -15,10 +16,12 @@ export function getShopToken() {
 
 export function setShopToken(token, opts = {}) {
   writeToken(KEY, token, opts);
+  clearThumbCache();
 }
 
 export function clearShopToken() {
   clearToken(KEY);
+  clearThumbCache();
 }
 
 export function isShop() {
