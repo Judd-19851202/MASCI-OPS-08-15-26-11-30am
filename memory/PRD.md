@@ -1,5 +1,40 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter53: Side-by-side photo comparison on Field Leadership detail view
+
+### User ask
+"Add side-by-side photo comparison directly on the Admin/PM Field Leadership detail view for return records — so we can see difference if any in return without having to download the PDF."
+
+### What shipped
+- **`FieldLeadershipView.jsx`**:
+  - New `<EquipmentComparisonCard />` rendered for both `equipment_checkout` and `equipment_return` records (suppresses the generic `<dl>` Details card for these kinds since the new component tells the same story better).
+  - **Checkout mode**: per-line cards with manufacturer · name · model · S/N · qty + condition + 4-up photo grid + notes.
+  - **Return mode**: per-line cards with **two-column layout** — emerald-bordered `Original at checkout` (condition + photos) on the left, amber/red-bordered `Returned condition` (condition + photos + notes) on the right. Card border turns red when `return_condition` is Damaged/Missing/Lost. Per-line replacement value + damage owed shown in the corner.
+  - Top-of-card summary chip: total items · total replacement value · `Damage owed: $X` red pill (or `Clean return` emerald pill).
+  - **Backfill** for older return records that don't carry `original_photos` inline (pre-iter52): on mount, a single batched `GET /api/field-leadership/<checkout_id>` per unique parent fills in the missing photos by `line_index`. Falls back gracefully to "No original photos on file (manual return entry)" when no checkout match exists.
+  - Photos are clickable (`<a target="_blank">`) — tap any thumbnail to open full-size in a new tab.
+- New icons: `AlertTriangle`, `CheckCircle2`, `Camera` from lucide-react.
+
+### Verified end-to-end (preview)
+- Existing `equipment_return` record `0dd32470-…` (created pre-iter52, no `original_photos` inline, has `checkout_id`):
+  - Backfill API call resolves the parent checkout
+  - 2 original photos render in the emerald column
+  - 2 return photos render in the red column (record was condition=Damaged)
+  - Damage pill correctly displays "DAMAGE OWED: $5,000.00"
+  - "Matched checkout" badge present
+- All iter52 PDF tests still green (no regression in PDF photo rendering).
+- Code reviewed: no test changes required — this is a pure UI enhancement on top of existing API contracts.
+
+### Files added/touched
+- MODIFIED: `/app/frontend/src/pages/FieldLeadershipView.jsx` (added `EquipmentComparisonCard` component + suppress generic `<dl>` for equipment kinds)
+
+### Deploy reminder
+- Frontend-only change. Push to `mascidocs.com`. After deploy:
+  - Old return records show side-by-side comparison thanks to the `checkout_id` backfill.
+  - New return records (post-iter52) skip the lookup since they carry `original_photos` inline.
+
+---
+
 ## 2026-05-08 — Iter52: Equipment Checkout/Return — per-line photos in PDFs + side-by-side comparison
 
 ### User report
