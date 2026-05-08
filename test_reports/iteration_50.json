@@ -1,0 +1,45 @@
+{
+  "summary": "Iter50 — Shop password feature parity with PM portal. Backend: 12/12 NEW tests PASS in test_iter50_shop_password_parity.py covering /shop/forgot-password (unknown/blank/valid email all return generic 200), /shop/reset-password (bogus → 400, tampered → 400, expired → 400, short pw → 400, valid round-trip → 200 + fresh token, replay-after-rotation → 400), and AdminShopUsersPanel custom-password parity (set-password & email-welcome both honor body.password). Frontend: code review confirms all data-testids wired (shop-forgot-password-link, shop-forgot-dialog, shop-forgot-email-input, shop-forgot-submit, shop-reset-form/new/confirm/submit, shop-change-pw-link on ShopHub, pm-change-pw-link on PmHub). Live Playwright UI assertion of those flows was BLOCKED in this session by the Emergent preview 'Wake up servers' gateway — every fresh browser nav landed on the cartridge wake screen and the form selectors never resolved. Backend is fully responsive (12 tests + raw curl into /shop/login 200 OK with testmech creds), so the gateway is purely a session-layer issue. Main agent can verify UI flows in a regular browser; conditional rendering logic is already correctly implemented per code review.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/admin/shop-users/{id}/set-password", "issue": "Endpoint accepts admin-supplied passwords <6 chars (e.g. 'abc') without 400. email-welcome correctly enforces >=6, but set-password has no length floor when password is supplied directly. Low impact — admin-strict endpoint, but mirroring email-welcome's 400 check would be cleaner."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter50_shop_password_parity.py",
+    "/app/test_reports/pytest/iter50_shop_password.xml",
+    "/app/backend/tests/test_iter48_shop_user_mgmt.py"
+  ],
+  "action_items": [
+    "(Optional, minor) Add `if body.password and len(body.password) < 6: raise HTTPException(400, ...)` in /api/admin/shop-users/{id}/set-password to mirror email-welcome's guardrail.",
+    "Main agent please self-verify UI in a fresh browser tab: (1) /shop/login Forgot link → dialog opens, submits, shows generic toast; (2) /shop/reset/<bogus> renders pw fields; (3) login as testmech (or chris wright on PM) → respective Hub shows Change Password button; (4) /admin login → visit /pm → Change Password button HIDDEN. The Emergent preview 'Wake up servers' interstitial blocked Playwright in this session even after clicks."
+  ],
+  "critical_code_review_comments": [
+    "make_shop_reset_token / consume_shop_reset_token correctly bind to password_hash[:16] — replay after a successful reset is properly rejected (verified test_valid_token_round_trip_and_replay_blocked).",
+    "/api/shop/forgot-password is email-enumeration-safe: identical 200 generic response for unknown emails, blank emails, no-password users, disabled users, and the success path. _record_login_fail() ALSO fires on unknown/blank email so brute-force lockout still applies even on the enumeration-safe path. Good.",
+    "/api/shop/reset-password correctly rejects tokens with wrong segment count (token.count('.') != 2) and ValueError on int(exp_str), so malformed tokens never crash the endpoint.",
+    "Custom password field on /api/admin/shop-users/{id}/email-welcome works as advertised — when admin passes {password: 'X'}, X is what gets stored AND emailed (verified test_email_welcome_with_custom_password by logging in with the supplied value).",
+    "MINOR: set-password lacks a 6-char floor when password is admin-supplied directly. The only consumer that enforces it is email-welcome. UI dialog (AdminShopUsersPanel) currently relies on form-level validation; if a future caller bypasses the UI, weak passwords could be set.",
+    "Frontend code review (no live render): ShopLogin.jsx has data-testid='shop-forgot-password-link' next to Remember Me + a working dialog wired to /shop/forgot-password (verified). ShopHub.jsx renders <Link data-testid='shop-change-pw-link'> conditionally on me.user (per-user only) and hides for is_legacy. PmHub.jsx mirrors the pattern. ShopResetPassword.jsx has shop-reset-form/new/confirm/submit and posts to /shop/reset-password.",
+    "App.js wiring: /shop/reset/:token route is registered (referenced in files_of_reference and ShopResetPassword.jsx import path resolves)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter50_shop_password_parity.py (NEW — 12 backend tests, all pass)"
+  ],
+  "success_rate": {
+    "backend": "100% (12/12 passed)",
+    "frontend": "code-review only — Emergent preview 'Wake up servers' gateway prevented Playwright form interaction in this session. data-testids verified to exist; conditional render logic verified correct."
+  },
+  "test_credentials": "Admin: MASCI1982! ✓. testmech@mascigc.com / ResetWorks2026! still works (curl /shop/login → 200). The iter50 test fixture creates ephemeral users (test_iter50_<ts>@masci.test) that auto-clean on teardown. Iter50 tests rotate testmech-style users' passwords mid-run but the canonical testmech account is NOT touched.",
+  "seed_data_creation": "None persistent. All test users self-clean on fixture teardown.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iter50 canonical regression: /app/backend/tests/test_iter50_shop_password_parity.py (12 tests). Run: `export REACT_APP_BACKEND_URL=$(grep REACT_APP_BACKEND_URL /app/frontend/.env | cut -d= -f2) && export ADMIN_PASSWORD=$(grep '^ADMIN_PASSWORD=' /app/backend/.env | cut -d= -f2) && export RESEND_API_KEY=$(grep '^RESEND_API_KEY=' /app/backend/.env | cut -d= -f2) && python -m pytest backend/tests/test_iter50_shop_password_parity.py -v`. The tests forge real reset tokens by importing /app/backend/shop_users.py + reading MONGO_URL — they bypass the 'no token-mint endpoint' problem in a deterministic, in-process way. Combine with iter48 (20 tests) for full shop-portal regression. NOTE: Emergent preview env shows a 'Wake up servers' Flappy Bird cartridge interstitial on cold-start fresh browser sessions; if Playwright lands on it, click force=True on text='Wake up servers' and wait ~60s, then re-navigate. Backend is unaffected — direct curl works throughout.",
+  "rca of the issue": "No bugs found. The single minor code-review note (no length-floor on /set-password admin direct path) is cosmetic — admin-strict endpoint, UI enforces, no exploit vector. Frontend live UI test was prevented by the preview-gateway 'Wake up servers' interstitial — backend was fully reachable via direct API the whole time (12 tests + curl all returned 200), confirming this is a session-layer artifact of the preview environment, not an app issue."
+}

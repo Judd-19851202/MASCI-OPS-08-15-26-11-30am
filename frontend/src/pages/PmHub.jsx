@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Image as ImageIcon,
   UserCheck,
+  KeyRound,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
@@ -92,11 +93,31 @@ export default function PmHub() {
     qaqc: null,
   });
   const [loading, setLoading] = useState(true);
+  const [me, setMe] = useState(null); // per-PM identity, null for admin/legacy
 
   // Always start at the top of the page after login, regardless of any
   // scroll position React Router may have preserved from the login screen.
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await api.get("/pm/me");
+        if (!alive) return;
+        // /pm/me returns {pm: {...}} for per-PM tokens, {is_admin_or_legacy: true}
+        // for admin or shared-PM bypass. Only show the change-pw button for
+        // real PMs — admins use /admin reset flow, legacy bypass has no record.
+        if (r.data?.pm?.id && !r.data?.is_admin_or_legacy) {
+          setMe(r.data.pm);
+        }
+      } catch {
+        /* non-fatal — just hide the button */
+      }
+    })();
+    return () => { alive = false; };
   }, []);
 
   useEffect(() => {
@@ -164,6 +185,17 @@ export default function PmHub() {
           <div className="flex items-center gap-2">
             <SystemHealthBadge />
             <CompanyInfoDialog />
+            {me && (
+              <Button
+                onClick={() => navigate("/pm/change-password")}
+                variant="outline"
+                className="h-9 border-2 border-slate-600 bg-slate-800 text-white hover:border-amber-500 hover:text-amber-300 text-xs font-bold uppercase tracking-wide hidden sm:inline-flex"
+                title={`Signed in as ${me.email}`}
+                data-testid="pm-change-pw-link"
+              >
+                <KeyRound className="w-3.5 h-3.5 mr-1" /> Change password
+              </Button>
+            )}
             <Button
               onClick={signOut}
               variant="outline"

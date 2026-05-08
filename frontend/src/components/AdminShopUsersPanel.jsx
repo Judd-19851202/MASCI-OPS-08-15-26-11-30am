@@ -49,8 +49,9 @@ export default function AdminShopUsersPanel() {
   const [showPwReveal, setShowPwReveal] = useState(false);
   const [pwReveal, setPwReveal] = useState({ name: "", email: "", password: "", must_change: true });
 
-  // Issue-password choice dialog (Show / Email)
+  // Issue-password choice dialog (Show / Email / Custom)
   const [pwChoice, setPwChoice] = useState({ open: false, user: null, sending: false });
+  const [customPw, setCustomPw] = useState("");
 
   const refresh = async () => {
     setLoading(true);
@@ -136,19 +137,19 @@ export default function AdminShopUsersPanel() {
     }
   };
 
-  const issuePassword = async (u, mode = "auto") => {
-    const password = mode === "manual"
-      ? window.prompt(`Set a password for ${u.name} (min 8 chars):`, "")
-      : null;
-    if (mode === "manual" && (!password || password.length < 8)) return;
+  const issuePassword = async (u, customPassword = null) => {
+    if (customPassword !== null && customPassword.length < 6) {
+      toast.error("Custom password must be at least 6 characters");
+      return;
+    }
     try {
       const r = await api.post(`/admin/shop-users/${u.id}/set-password`, {
-        password: password || undefined,
+        password: customPassword || undefined,
         must_change: true,
       });
       setPwReveal({
         name: u.name, email: u.email,
-        password: r.data?.temp_password || password,
+        password: r.data?.temp_password || customPassword,
         must_change: r.data?.must_change_password,
       });
       setShowPwReveal(true);
@@ -161,12 +162,13 @@ export default function AdminShopUsersPanel() {
   const emailWelcome = async (u) => {
     setPwChoice((p) => ({ ...p, sending: true }));
     try {
-      const r = await api.post(`/admin/shop-users/${u.id}/email-welcome`, {
-        must_change: true,
-      });
+      const payload = { must_change: true };
+      if (customPw.trim()) payload.password = customPw.trim();
+      const r = await api.post(`/admin/shop-users/${u.id}/email-welcome`, payload);
       if (r.data?.ok) {
         toast.success(`Welcome email sent to ${r.data.sent_to}`);
         setPwChoice({ open: false, user: null, sending: false });
+        setCustomPw("");
         refresh();
       } else {
         toast.error("Email send failed");
@@ -180,7 +182,9 @@ export default function AdminShopUsersPanel() {
 
   const showOnScreen = async (u) => {
     setPwChoice({ open: false, user: null, sending: false });
-    await issuePassword(u, "auto");
+    const custom = customPw.trim();
+    setCustomPw("");
+    await issuePassword(u, custom || null);
   };
 
   const copyPw = async () => {
@@ -366,31 +370,65 @@ export default function AdminShopUsersPanel() {
         </DialogContent>
       </Dialog>
 
-      {/* Issue password — choose Email vs Show on Screen */}
-      <Dialog open={pwChoice.open} onOpenChange={(open) => !pwChoice.sending && setPwChoice({ open, user: pwChoice.user, sending: false })}>
+      {/* Issue password — choose Email vs Show on Screen vs Custom */}
+      <Dialog open={pwChoice.open} onOpenChange={(open) => {
+        if (pwChoice.sending) return;
+        if (!open) setCustomPw("");
+        setPwChoice({ open, user: pwChoice.user, sending: false });
+      }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Issue a password for {pwChoice.user?.name}</DialogTitle>
-            <DialogDescription>
-              Choose how to deliver the temporary password. Either way, the user will be forced to set their own on first login.
+            <DialogTitle>
+              {pwChoice.user?.has_password
+                ? `Reset password for ${pwChoice.user?.name}`
+                : `Issue password for ${pwChoice.user?.name}`}
+            </DialogTitle>
+            <DialogDescription className="leading-relaxed text-sm">
+              Three ways to issue (or reset) this shop user's password — pick whichever fits the situation.
+              <br /><strong>Email to User</strong> (recommended for remote) — auto-generates a temp pw and emails it directly to the user.
+              <br /><strong>Show on Screen</strong> — temp pw rendered in a copy dialog, in case you'd rather text/call them.
+              <br />Or type a <strong>custom</strong> password below. The user must rotate to their own on first login regardless.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2 text-sm">
-            <div className="bg-slate-50 border border-slate-200 rounded px-3 py-2 font-mono">
-              <span className="text-slate-500 text-xs uppercase tracking-[0.15em] mr-2">Email</span>
-              {pwChoice.user?.email || "—"}
+          <div className="space-y-3 pt-1">
+            <div className="bg-slate-50 border border-slate-200 rounded p-3">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold mb-1">Account</div>
+              <div className="text-sm">
+                <span className="font-bold">{pwChoice.user?.name}</span>{" "}
+                <span className="font-mono text-slate-500">&lt;{pwChoice.user?.email}&gt;</span>
+              </div>
             </div>
-            <p className="text-slate-600 text-xs leading-relaxed">
-              <strong>Email to user</strong> — system generates a temp password, emails it directly to {pwChoice.user?.email || "the user"}, and forces a rotation on first login.<br/>
-              <strong>Show on screen</strong> — system generates a temp password and shows it once so you can text or hand it to them.
-            </p>
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
+                Custom password (optional — leave blank to auto-generate)
+              </Label>
+              <Input
+                type="text"
+                value={customPw}
+                onChange={(e) => setCustomPw(e.target.value)}
+                placeholder="At least 6 characters"
+                className="h-10 text-sm mt-1 font-mono"
+                data-testid="admin-shop-set-password-custom-input"
+              />
+            </div>
           </div>
-          <DialogFooter className="flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setPwChoice({ open: false, user: null, sending: false })} disabled={pwChoice.sending} data-testid="admin-shop-pw-choice-cancel">
+          <DialogFooter className="flex-wrap gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => { setCustomPw(""); setPwChoice({ open: false, user: null, sending: false }); }}
+              disabled={pwChoice.sending}
+              data-testid="admin-shop-pw-choice-cancel"
+            >
               Cancel
             </Button>
-            <Button variant="outline" onClick={() => showOnScreen(pwChoice.user)} disabled={pwChoice.sending} data-testid="admin-shop-pw-choice-show">
-              <KeyRound className="w-4 h-4 mr-1" /> Show on Screen
+            <Button
+              variant="outline"
+              onClick={() => showOnScreen(pwChoice.user)}
+              disabled={pwChoice.sending}
+              data-testid="admin-shop-pw-choice-show"
+            >
+              <KeyRound className="w-4 h-4 mr-1" />
+              {customPw.trim() ? "Set custom · Show" : "Show on Screen"}
             </Button>
             <Button
               onClick={() => emailWelcome(pwChoice.user)}
@@ -399,7 +437,7 @@ export default function AdminShopUsersPanel() {
               data-testid="admin-shop-pw-choice-email"
             >
               {pwChoice.sending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Mail className="w-4 h-4 mr-1" />}
-              Email to User
+              {customPw.trim() ? "Set custom · Email" : "Email to User"}
             </Button>
           </DialogFooter>
         </DialogContent>

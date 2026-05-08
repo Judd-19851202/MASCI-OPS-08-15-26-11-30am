@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Wrench, Eye, AlertOctagon, Loader2, LogOut, Truck } from "lucide-react";
+import { ArrowLeft, Wrench, Eye, AlertOctagon, Loader2, LogOut, Truck, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
@@ -30,6 +30,24 @@ export default function ShopHub() {
   const [equipmentMaster, setEquipmentMaster] = useState({ items: [], grouped: {}, count: 0 });
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("open"); // open | activity | trends | recent | equipment | parts
+  const [me, setMe] = useState(null); // per-shop-user identity, null for legacy/admin
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await api.get("/shop/me");
+        if (!alive) return;
+        // /shop/me returns {ok, user} for per-user OR {ok, is_legacy: true}
+        // for admin/shared. We only show the change-pw button when there's
+        // a real shop user behind the token — admins use /admin reset flow.
+        if (r.data?.user?.id) setMe(r.data.user);
+      } catch {
+        // Endpoint failure is non-fatal — just hide the button.
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
 
   const load = async () => {
     setLoading(true);
@@ -71,6 +89,17 @@ export default function ShopHub() {
           <MasciLogo variant="mark" size="md" homeLink="/" />
           <div className="flex items-center gap-2">
             <LangToggle />
+            {me && (
+              <Button
+                onClick={() => navigate("/shop/change-password")}
+                variant="outline"
+                className="h-10 px-3 border-2 border-amber-400 text-amber-400 hover:bg-amber-500 hover:text-white bg-transparent font-bold uppercase tracking-wide text-xs hidden sm:inline-flex"
+                title={`Signed in as ${me.email}`}
+                data-testid="shop-change-pw-link"
+              >
+                <KeyRound className="w-4 h-4 mr-1" /> {t("Change password")}
+              </Button>
+            )}
             <Button
               onClick={onLogout}
               variant="outline"
