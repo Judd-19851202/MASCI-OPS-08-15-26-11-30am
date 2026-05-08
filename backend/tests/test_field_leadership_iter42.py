@@ -141,10 +141,15 @@ def test_create_all_kinds_leadership(kind, leadership_token):
     assert "id" in rec
 
 
-def test_supervisor_notes_blocked_for_leadership(leadership_token):
+def test_supervisor_notes_allowed_for_leadership(leadership_token):
+    """Per product update: Field Leadership password (MASCIGC) is sufficient
+    to file supervisor notes. The earlier admin-only restriction was removed
+    on 2026-05-07 per the owner's explicit request — 'if you have password
+    to Field Leadership that's good enough'."""
     r = requests.post(API, headers=H(leadership_token),
                       json=_minimal_payload("supervisor_notes"), timeout=15)
-    assert r.status_code == 403
+    assert r.status_code == 200
+    assert r.json()["record"]["kind"] == "supervisor_notes"
 
 
 def test_supervisor_notes_allowed_for_admin(admin_token):
