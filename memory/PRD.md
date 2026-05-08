@@ -1,5 +1,42 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter52: Equipment Checkout/Return — per-line photos in PDFs + side-by-side comparison
+
+### User report
+"In Field Leadership equipment check out forms don't show pictures of equipment on PDF & on equipment check in no pictures show up when you enter unit number for return to compare & no returned photos show up on PDF of return form."
+
+### Root cause
+The PDF generator (`field_leadership_pdf.py`) only rendered `rec.photos` (top-level), completely ignoring the per-line photo arrays:
+- Checkout: `details.equipment_lines[*].photos` (where the foreman actually attaches them)
+- Return: `details.equipment_lines[*].return_photos`
+On the frontend Return form, the per-line photo gallery wasn't carrying the original checkout photos forward — the lookup endpoint was returning them, but the form didn't store or render them.
+
+### What shipped
+- **Backend (`field_leadership_pdf.py`)**:
+  - **NEW `_equipment_lines_photos_block(lines, photo_field, heading)`** — walks every equipment line and emits a captioned grid (Item #N · mfg · name · S/N) per line. Caps at 8 photos per line so foremen who upload 30 don't blow up the PDF size.
+  - **Checkout PDF** — now includes "Equipment Photos by Item" section after the line items table, before the responsibility ack.
+  - **Return PDF** — now includes BOTH "Original Checkout Photos (for comparison)" AND "Return Condition Photos by Item" sections, rendered side-by-side so PMs/admins can visually verify damage claims.
+  - **CSS** — new `.line-photos`, `.line-photos-caption`, `.line-photos-num`, `.line-photos-meta`. Line photos render at 31% width (3 across) vs the older top-level photos at 48% width (2 across) so 8 fit cleanly.
+- **Frontend (`components/EquipmentReturnLines.jsx`)**:
+  - Lookup result now carries `original_photos: ln.photos` from the checkout record into the return line state.
+  - New emerald-bordered read-only photo grid on each return line: "Original checkout photos · N on file · Use these to compare against return condition. Tap to enlarge." Each photo opens full-size in a new tab.
+  - `original_photos` flows through the form submission as part of the `equipment_lines` array — the backend stores it and the PDF renders it.
+
+### Verified
+- 5/5 NEW tests pass (`test_iter52_equipment_pdf_photos.py`):
+  1. Checkout PDF contains per-line photos with mfg/name/serial caption
+  2. Return PDF contains BOTH original AND return photo sections
+  3. Return PDF correctly skips photo blocks when no photos uploaded
+  4. Lookup endpoint contract preserves original photos
+  5. Per-line cap of 8 photos enforced (uploads of 30 → 8 rendered)
+- 22/22 existing iter44 + iter45 equipment tests still pass — no regression.
+
+### Files added/touched
+- NEW: `/app/backend/tests/test_iter52_equipment_pdf_photos.py`
+- MODIFIED: `/app/backend/field_leadership_pdf.py` (new `_equipment_lines_photos_block` + CSS + Checkout/Return body wiring), `/app/frontend/src/components/EquipmentReturnLines.jsx` (`original_photos` in line state + read-only comparison grid in UI)
+
+---
+
 ## 2026-05-08 — Iter51: Job Photos Performance Overhaul (HEIC + cache + signed URLs + health-badge debounce)
 
 ### User report

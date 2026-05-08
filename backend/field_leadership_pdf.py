@@ -78,6 +78,51 @@ def _details_block(details: Dict[str, Any]) -> str:
     return f"<section><h3>Details</h3>{''.join(blocks)}</section>"
 
 
+def _equipment_lines_photos_block(lines: List[Dict[str, Any]],
+                                  photo_field: str = "photos",
+                                  heading: str = "Photos by Item",
+                                  empty_label: str = "—") -> str:
+    """Render a per-line photo gallery block.
+
+    The Checkout/Return forms collect photos PER equipment line (not at
+    the top of the record), but the canonical PDF photo block was reading
+    ``rec.photos`` only and missing them entirely. This walks every line
+    and emits a captioned grid for each line that has photos.
+
+    Each grid limits to 8 photos to keep the PDF size reasonable when a
+    foreman uploads dozens. Photos are passed through verbatim — they
+    can be data URLs (data:image/...;base64,...) or HTTP URLs; WeasyPrint
+    handles both.
+    """
+    if not lines:
+        return ""
+    blocks: List[str] = []
+    for idx, line in enumerate(lines):
+        photos = line.get(photo_field) or []
+        if not photos:
+            continue
+        caption = " · ".join(p for p in [
+            line.get("manufacturer") or "",
+            line.get("name") or "",
+            f"S/N {line.get('serial')}" if line.get("serial") else "",
+        ] if p) or empty_label
+        imgs = "".join(
+            f"<img src='{_h(p)}' alt='Item {idx+1} photo' />" for p in photos[:8]
+        )
+        blocks.append(
+            f"<div class='line-photos'>"
+            f"<div class='line-photos-caption'>"
+            f"<span class='line-photos-num'>Item #{idx + 1}</span>"
+            f"<span class='line-photos-meta'>{_h(caption)}</span>"
+            f"</div>"
+            f"<div class='photos'>{imgs}</div>"
+            f"</div>"
+        )
+    if not blocks:
+        return ""
+    return f"<section><h3>{_h(heading)}</h3>{''.join(blocks)}</section>"
+
+
 def _photos_block(photos: List[str]) -> str:
     if not photos:
         return ""
@@ -387,15 +432,32 @@ def render_field_leadership_pdf(rec: Dict[str, Any]) -> bytes:
     # similar but distinct table with return condition, return photos, and
     # a damage delta column.
     if kind == "equipment_checkout":
+        equipment_lines_for_pdf = details_for_pdf.get("equipment_lines") or []
         body_blocks = (
             _equipment_lines_block(details_for_pdf)
+            + _equipment_lines_photos_block(
+                equipment_lines_for_pdf,
+                photo_field="photos",
+                heading="Equipment Photos by Item",
+            )
             + _photos_block(rec.get("photos") or [])
             + _equipment_ack_block(rec.get("language") or "en")
             + _signatures_block(rec)
         )
     elif kind == "equipment_return":
+        equipment_lines_for_pdf = details_for_pdf.get("equipment_lines") or []
         body_blocks = (
             _equipment_return_block(details_for_pdf)
+            + _equipment_lines_photos_block(
+                equipment_lines_for_pdf,
+                photo_field="original_photos",
+                heading="Original Checkout Photos (for comparison)",
+            )
+            + _equipment_lines_photos_block(
+                equipment_lines_for_pdf,
+                photo_field="return_photos",
+                heading="Return Condition Photos by Item",
+            )
             + _photos_block(rec.get("photos") or [])
             + _equipment_return_ack_block(rec.get("language") or "en")
             + _signatures_block(rec)
@@ -450,6 +512,11 @@ table.kv th {{ background:#f8fafc; font-weight:600; width:38%; color:#475569; }}
 .detail-value {{ text-align:right; max-width:60%; }}
 .photos {{ display:flex; flex-wrap:wrap; gap:8pt; }}
 .photos img {{ width:48%; max-height:280pt; object-fit:contain; border:1px solid #e2e8f0; padding:3pt; background:#f8fafc; }}
+.line-photos {{ margin:10pt 0 14pt; padding:8pt 10pt; background:#f8fafc; border-left:3px solid #b91c1c; border-radius:3pt; page-break-inside: avoid; }}
+.line-photos-caption {{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6pt; gap:10pt; flex-wrap:wrap; }}
+.line-photos-num {{ font-family: ui-monospace, monospace; font-size:8.5pt; font-weight:700; color:#b91c1c; letter-spacing:.18em; text-transform:uppercase; }}
+.line-photos-meta {{ font-size:9pt; color:#475569; font-weight:600; }}
+.line-photos .photos img {{ width:31%; max-height:200pt; }}
 .sigs {{ display:flex; gap:14pt; flex-wrap:wrap; margin-top:8pt; }}
 .sig-card {{ flex:1; min-width:180pt; border:1px solid #cbd5e1; border-radius:4pt; padding:10pt; background:#fff; }}
 .sig-card.refused {{ background:#fef2f2; border-color:#fca5a5; }}

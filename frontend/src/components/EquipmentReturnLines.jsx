@@ -48,6 +48,7 @@ const blankReturnLine = () => ({
   return_notes: "",
   return_photos: [],
   damage_amount: "",      // optional foreman override
+  original_photos: [],    // snapshot of original checkout photos (read-only)
 });
 
 const fmtMoney = (n) =>
@@ -96,6 +97,12 @@ export function EquipmentReturnLines({ value, onChange, lang, t }) {
         return_condition: "",
         return_notes: "",
         return_photos: [],
+        // Carry the original checkout photos forward so the foreman can
+        // visually compare "what was checked out" vs. "what came back" on
+        // the same screen — and so the PDF generator can render them
+        // side-by-side on the return form. These are NEVER edited from
+        // the return form; they're a snapshot of the original record.
+        original_photos: Array.isArray(ln.photos) ? ln.photos : [],
       };
       onChange([...lines, newLine]);
       setSerialSearch("");
@@ -317,6 +324,42 @@ export function EquipmentReturnLines({ value, onChange, lang, t }) {
                 className="border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600"
                 data-testid={`equipment-return-notes-${idx}`} />
             </div>
+
+            {/* Original checkout photos — read-only side-by-side comparison */}
+            {Array.isArray(line.original_photos) && line.original_photos.length > 0 && (
+              <div className="mb-3 bg-emerald-50 border-2 border-emerald-300 rounded-md p-3">
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-emerald-900 font-bold flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  {t("Original checkout photos")}{" "}
+                  <span className="text-emerald-700 normal-case font-sans tracking-normal">
+                    ({line.original_photos.length} {t("on file")})
+                  </span>
+                </Label>
+                <p className="text-[10px] text-emerald-800 font-mono uppercase tracking-[0.15em] mt-1">
+                  {t("Use these to compare against return condition. Tap to enlarge.")}
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2" data-testid={`equipment-return-original-photos-${idx}`}>
+                  {line.original_photos.slice(0, 8).map((src, pi) => (
+                    <a
+                      key={pi}
+                      href={src}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block aspect-square rounded overflow-hidden border-2 border-emerald-200 bg-white hover:border-emerald-500 transition-colors"
+                      data-testid={`equipment-return-original-photo-${idx}-${pi}`}
+                    >
+                      <img
+                        src={src}
+                        alt={`Original ${pi + 1}`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover"
+                      />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
