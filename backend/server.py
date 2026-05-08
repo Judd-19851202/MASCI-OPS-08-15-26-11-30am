@@ -3061,6 +3061,8 @@ async def admin_set_shop_user_password(
     from shop_users import (
         set_shop_user_password, generate_temp_password, public_shop_user_view,
     )
+    if body.password and len(body.password) < 6:
+        raise HTTPException(400, "Password must be at least 6 characters")
     pw = (body.password or "").strip() or generate_temp_password()
     try:
         saved = await set_shop_user_password(

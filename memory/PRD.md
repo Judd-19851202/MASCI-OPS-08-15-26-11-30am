@@ -1,5 +1,55 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter50: Shop password feature parity with PM portal
+
+### Scope
+Last lap of password-feature parity between the Shop and PM portals. Shop now matches PM 1:1 on every password-related touchpoint: in-Hub Change Password button, custom-password admin issuance, and a hardened length-floor on `/set-password`.
+
+### What shipped
+- **Frontend**:
+  - `ShopHub.jsx` — header now renders a **CHANGE PASSWORD** button (amber outline) next to **SIGN OUT** when the signed-in token belongs to a per-shop-user account. Hidden for legacy-shared / admin sessions. Fetches identity via `GET /api/shop/me` on mount; `null` user → button hidden.
+  - `PmHub.jsx` — same treatment: **Change password** button next to Sign out, only shown when `/pm/me` returns a real PM doc (hidden for `is_admin_or_legacy: true`).
+  - `AdminShopUsersPanel.jsx` — issue-password dialog upgraded to mirror `AdminPMPanel`:
+    - Account name + email card at top
+    - **Custom password (optional — leave blank to auto-generate)** input field
+    - 3 buttons: Cancel · Show on Screen · Email to User. Button labels switch to "Set custom · Show" / "Set custom · Email" when the custom input has content.
+- **Backend**:
+  - `POST /api/admin/shop-users/{id}/set-password` — added 6-char floor when admin supplies a custom password (mirrors email-welcome's existing guardrail).
+
+### Verified end-to-end (preview)
+- 12/12 NEW backend tests pass (`test_iter50_shop_password_parity.py`).
+- Combined with iter48 (20 tests) and iter49 changes, the Shop portal has 32 dedicated regression tests.
+- Frontend smoke screenshots confirmed: Shop Hub header shows CHANGE PASSWORD button → routes to `/shop/change-password` showing "Signed in as testmech@mascigc.com".
+- 6-char floor on `/set-password`: short pw `abc` → 400 "Password must be at least 6 characters" ✓
+- Custom password on `/email-welcome` is honored: when admin supplies `{password: "X"}`, X is stored and emailed ✓
+
+### Files added/touched
+- NEW: `/app/backend/tests/test_iter50_shop_password_parity.py`
+- MODIFIED: `/app/frontend/src/pages/ShopHub.jsx`, `/app/frontend/src/pages/PmHub.jsx`, `/app/frontend/src/components/AdminShopUsersPanel.jsx`, `/app/backend/server.py` (set-password length floor).
+
+### Shop portal vs PM portal — password feature matrix
+| Feature | PM | Shop |
+|---|---|---|
+| Email + password login | ✅ | ✅ |
+| First-login forced rotation (`must_change_password`) | ✅ | ✅ |
+| Self-service Change Password page | ✅ `/pm/change-password` | ✅ `/shop/change-password` |
+| Change Password button in Hub header | ✅ NEW | ✅ NEW |
+| Self-service Forgot Password (Resend reset link) | ✅ | ✅ |
+| Reset link page | ✅ `/pm/reset/:token` | ✅ `/shop/reset/:token` |
+| Remember Me toggle | ✅ | ✅ |
+| Admin: Issue temp pw — Show on Screen | ✅ | ✅ |
+| Admin: Issue temp pw — Email to user (Resend) | ✅ | ✅ |
+| Admin: Custom password input in dialog | ✅ | ✅ NEW |
+| Admin: 6-char floor on direct set-password | ✅ | ✅ NEW |
+| Admin: Lock / unlock account | ✅ | ✅ |
+| Admin: Welcome PDF download | ✅ | ❌ (PDF not generated for shop — by design) |
+| Admin: Activity column (last_login + IP) | ✅ | ❌ (data tracked, just not surfaced — backlog) |
+
+### Deploy reminder
+Frontend + backend changes. Push to `mascidocs.com`. After deploy, every logged-in mechanic / PM can rotate their own password in one click from their Hub header without logging out.
+
+---
+
 ## 2026-05-08 — Iter49: Self-service "Forgot password?" for Shop portal
 
 ### Scope
