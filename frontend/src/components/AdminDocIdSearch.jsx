@@ -45,8 +45,19 @@ export default function AdminDocIdSearch() {
       } else {
         setNotFound(true);
       }
-    } catch {
-      setNotFound(true);
+    } catch (err) {
+      // Production returns HTTP 404 on unknown doc IDs; preview returns
+      // 200 + {found:false}. Treat both as "no record" so admins always
+      // see a friendly inline message instead of a network-error toast.
+      const status = err?.response?.status;
+      if (status === 404 || status === 200) {
+        setNotFound(true);
+      } else {
+        // Real failure (auth, 5xx) — still show "not found" inline so
+        // the search bar never throws an unhandled rejection in the UI;
+        // the underlying error surfaces in the network tab if needed.
+        setNotFound(true);
+      }
     } finally {
       setBusy(false);
     }

@@ -157,8 +157,17 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
               <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
                 {data.equipment_type} · {data.equipment_unit}
               </h1>
-              <div className="text-sm text-slate-600 mt-2">
-                {formatDateLong(data.inspection_date)} · {data.inspection_time} · {data.location}
+              <div className="text-sm text-slate-600 mt-2 flex items-center gap-2 flex-wrap">
+                {data.doc_id && (
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold text-xs tabular-nums tracking-wide font-mono"
+                    data-testid="record-doc-id-badge"
+                  >
+                    <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">Doc ID</span>
+                    {data.doc_id}
+                  </span>
+                )}
+                <span>{formatDateLong(data.inspection_date)} · {data.inspection_time} · {data.location}</span>
               </div>
               {data.submit_language === "es" && (
                 <div className="mt-2">
