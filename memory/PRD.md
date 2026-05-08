@@ -1,5 +1,37 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter48: Granular Shop User Management (per-user accounts)
+
+### Scope
+Replaced the global static `SHOP_PASSWORD` paradigm with per-user mechanic / shop-manager / parts-coordinator accounts that mirror the PM portal. Admin issues each user a temp password, the user is forced to rotate on first login, failed Pre-Op inspections fan out to all active shop users.
+
+### What shipped
+- **Backend (`server.py`)**:
+  - `GET /api/shop/me` — returns per-user shop user doc OR `{is_legacy:true}` for admin/shared.
+  - `POST /api/shop/change-password` — old + new password rotation, returns fresh token (old token invalidated by password_hash change).
+  - `POST /api/admin/shop-users/{id}/email-welcome` — admin-strict; rotates temp pw and emails it via Resend (mirrors PM email-welcome). 503 when RESEND_API_KEY missing, 502 if Resend send fails post-rotation.
+  - **Pre-Op fan-out** — when `fail_count > 0` OR `out_of_service=yes`, recipients now include EVERY active non-disabled shop user (replaces single `SHOP_MANAGER_EMAIL` env). Falls back to env when shop_users empty.
+- **Frontend**:
+  - `ShopLogin.jsx` — email field is REQUIRED (no longer "optional — leave blank for shared shop password"). Toast error if email missing. On `must_change_password=true` redirects to `/shop/change-password` with `state.from`.
+  - **NEW `ShopChangePassword.jsx`** — mirrors `PmChangePassword.jsx`, amber/orange shop branding, requires old + new + confirm, persists fresh token, navigates back to original `state.from`.
+  - `AdminShopUsersPanel.jsx` — issue-password button now opens a 3-button choice dialog (Cancel · Show on Screen · Email to User). Email button calls `/email-welcome`, Show button calls `/set-password` and reveals temp pw in copy-able amber-bordered code box.
+  - `App.js` — `/shop/change-password` route protected by `RequireShop`.
+
+### Verified end-to-end (iter48)
+- 20/20 backend pytest pass (`test_iter48_shop_user_mgmt.py`).
+- Frontend Playwright E2E: login UI no longer mentions shared-pw, email-required toast fires, must_change_password redirect lands on `/shop/change-password`, change-pw form submit returns user to `/shop` with rotated token, AdminShopUsersPanel renders 3-button dialog, Show on Screen reveals temp pw.
+- Per-user shop token correctly invalidates after password rotation (old token → 401 on `/shop/me`).
+- Disabled shop user blocked from login (401/403).
+
+### Files added/touched
+- NEW: `/app/frontend/src/pages/ShopChangePassword.jsx`, `/app/backend/tests/test_iter48_shop_user_mgmt.py`
+- MODIFIED: `/app/frontend/src/pages/ShopLogin.jsx`, `/app/frontend/src/components/AdminShopUsersPanel.jsx`, `/app/frontend/src/App.js`, `/app/backend/server.py` (3 new endpoints + Pre-Op fan-out logic).
+
+### Deploy reminder
+Backend + frontend changes. Push fresh build to `mascidocs.com`. After deploy, admin must seed real shop users via `/admin` → Shop Users panel and email each one their temp password. Legacy `SHOP_PASSWORD` env can stay as an API-only break-glass — UI can no longer hit it.
+
+---
+
 ## 2026-05-07 — Field Leadership Polish: i18n, Supervisor Notes Gate, Training
 
 ### Scope
