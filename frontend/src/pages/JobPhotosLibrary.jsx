@@ -118,13 +118,33 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
   const total = items?.length || 0;
 
   // ── Thumbnail loader (lazy, cached) ──────────────────────────────────
+  // Uses the small /thumb endpoint (~5-20 KB JPEGs) so a 60-photo week
+  // loads in ~1s instead of 30s. The lightbox/zoom path still hits /raw
+  // for full-resolution viewing.
+  const THUMB_BASE = `${process.env.REACT_APP_BACKEND_URL}/api/job-photos`;
   const ensureThumb = async (id) => {
-    if (thumbCache[id]) return;
+    if (thumbCache[id] === "loading" || thumbCache[id]) return;
+    setThumbCache((p) => ({ ...p, [id]: "loading" }));
+    try {
+      // Direct-from-server <img src> would need auth headers, so we fetch
+      // via axios (which carries the token) and turn it into an object URL.
+      const res = await api.get(`/job-photos/${id}/thumb`, { responseType: "blob" });
+      const objUrl = URL.createObjectURL(res.data);
+      setThumbCache((p) => ({ ...p, [id]: objUrl }));
+    } catch {
+      setThumbCache((p) => ({ ...p, [id]: "error" }));
+    }
+  };
+
+  // Full-resolution loader for the lightbox only.
+  const ensureFullSrc = async (id) => {
+    const key = `full:${id}`;
+    if (thumbCache[key]) return;
     try {
       const res = await api.get(`/job-photos/${id}/raw`);
-      setThumbCache((p) => ({ ...p, [id]: res.data.data_url }));
+      setThumbCache((p) => ({ ...p, [key]: res.data.data_url }));
     } catch {
-      // soft fail — leave a placeholder
+      setThumbCache((p) => ({ ...p, [key]: "error" }));
     }
   };
 
@@ -452,14 +472,14 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
         </div>
       )}
 
-      {/* Lightbox */}
+      {/* Lightbox — uses full-resolution /raw, not the small /thumb */}
       {lightboxId && (
         <Lightbox
           id={lightboxId}
-          src={thumbCache[lightboxId]}
+          src={thumbCache[`full:${lightboxId}`]}
           meta={(items || []).find((i) => i.id === lightboxId)}
           onClose={() => setLightboxId(null)}
-          onLoad={() => ensureThumb(lightboxId)}
+          onLoad={() => ensureFullSrc(lightboxId)}
         />
       )}
 
@@ -480,17 +500,46 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
 
 function PhotoTile({ photo, src, onLoad, selected, onToggle, onZoom }) {
   const [broken, setBroken] = useState(false);
+  const wrapperRef = React.useRef(null);
+  const [visible, setVisible] = useState(false);
+
+  // IntersectionObserver — only fetch the thumb when the tile is actually
+  // about to scroll into view. With ~60 photos in an open week this drops
+  // simultaneous fetches from 60 to ~10 (only what's visible) and means
+  // the user feels the gallery is instant even on a slow network.
   useEffect(() => {
-    onLoad();
+    if (!wrapperRef.current || visible) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return;
+    }
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setVisible(true);
+            obs.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: "300px" }
+    );
+    obs.observe(wrapperRef.current);
+    return () => obs.disconnect();
+  }, [visible]);
+
+  useEffect(() => {
+    if (visible) onLoad();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  // Real photos from the field are 100-500 KB. Anything under ~200 chars is
-  // either an empty placeholder or a corrupt / truncated data URL — skip the
-  // <img> render so the browser doesn't fire ERR_INVALID_URL.
-  const renderable =
-    typeof src === "string" && src.startsWith("data:image/") && src.length > 200;
+  }, [visible]);
+
+  // Server returns a real JPEG via /thumb (object URL) OR a base64 data URL
+  // from /raw — both render in <img>. "loading" / "error" sentinels skip.
+  const renderable = typeof src === "string" && src !== "loading" && src !== "error" && src.length > 30;
   return (
     <div
+      ref={wrapperRef}
       className={`relative group rounded overflow-hidden border-2 ${
         selected ? "border-red-700 ring-2 ring-red-300" : "border-slate-200"
       } cursor-pointer aspect-square bg-slate-100`}
@@ -500,6 +549,8 @@ function PhotoTile({ photo, src, onLoad, selected, onToggle, onZoom }) {
         <img
           src={src}
           alt=""
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover"
           onClick={onZoom}
           onError={() => setBroken(true)}
@@ -509,7 +560,11 @@ function PhotoTile({ photo, src, onLoad, selected, onToggle, onZoom }) {
           className="w-full h-full flex items-center justify-center text-slate-300"
           onClick={onZoom}
         >
-          <Camera className="w-6 h-6" />
+          {src === "error" || broken ? (
+            <ImageIcon className="w-6 h-6 text-slate-400" title="Photo unavailable" />
+          ) : (
+            <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+          )}
         </div>
       )}
       {/* Source badge */}
@@ -553,7 +608,11 @@ function Lightbox({ src, meta, onClose, onLoad }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const renderable =
-    typeof src === "string" && src.startsWith("data:image/") && src.length > 200;
+    typeof src === "string" &&
+    src !== "loading" &&
+    src !== "error" &&
+    (src.startsWith("data:image/") || src.startsWith("blob:") || src.startsWith("http")) &&
+    src.length > 30;
   return (
     <div
       className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"

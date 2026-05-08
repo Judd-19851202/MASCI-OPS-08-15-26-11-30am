@@ -333,9 +333,18 @@ export default function Hub() {
             testId="hub-section-safety"
             className="md:col-span-2"
           />
-          <ProjectsCard
-            t={t}
-            testId="hub-section-projects"
+          <SectionCard
+            to="/leadership"
+            icon={UserCheck}
+            eyebrow={t("Restricted")}
+            title={t("Field Leadership")}
+            desc={t("Crew accountability, employee documentation, equipment responsibility, recognition, and workforce-management tools for MASCI field leadership.")}
+            bullets={[
+              t("Write-Ups · Coaching · Attendance · Recognition"),
+              t("Equipment Checkout/Return · Evaluations · Supervisor Notes"),
+            ]}
+            accent="slate"
+            testId="hub-section-leadership"
             className="md:col-span-2"
           />
           <SectionCard
@@ -375,25 +384,16 @@ export default function Hub() {
             title={t("Training Hub")}
             desc={t("Short lessons, printable cheat sheets, and video walk-throughs for Field, Shop, PMs, and Admins. New hires up to speed in an afternoon.")}
             bullets={[
-              t("Field Crew · Shop · PM · Admin tracks"),
+              t("Field Crew · Shop · PM · Admin · Field Leadership tracks"),
               t("Written guides + video slots + print-friendly"),
             ]}
             accent="lime"
             testId="hub-section-training"
             className="md:col-span-2"
           />
-          <SectionCard
-            to="/leadership"
-            icon={UserCheck}
-            eyebrow={t("Restricted")}
-            title={t("Field Leadership")}
-            desc={t("Crew accountability, employee documentation, equipment responsibility, recognition, and workforce-management tools for MASCI field leadership.")}
-            bullets={[
-              t("Write-Ups · Coaching · Attendance · Recognition"),
-              t("Equipment Checkout · Evaluations · Supervisor Notes"),
-            ]}
-            accent="indigo"
-            testId="hub-section-leadership"
+          <ProjectsCard
+            t={t}
+            testId="hub-section-projects"
             className="md:col-span-2"
           />
           <SectionCard

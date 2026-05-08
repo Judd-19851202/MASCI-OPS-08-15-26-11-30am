@@ -21,13 +21,17 @@ import { TRACKS, lessonsForTrack } from "@/data/training";
 import { isAdmin } from "@/lib/adminAuth";
 import { isPm } from "@/lib/pmAuth";
 import { isShop } from "@/lib/shopAuth";
+import { isLeadershipAuthed } from "@/lib/leadershipAuth";
 
 const ICONS = { HardHat, Wrench, Briefcase, ShieldCheck };
 
 const ACCENTS = {
   amber: "border-amber-600 hover:border-amber-700 bg-amber-600",
   red: "border-red-700 hover:border-red-800 bg-red-700",
-  slate: "border-slate-900 hover:border-slate-950 bg-slate-900",
+  slate: "border-slate-700 hover:border-slate-800 bg-slate-700",
+  orange: "border-orange-600 hover:border-orange-700 bg-orange-600",
+  purple: "border-purple-700 hover:border-purple-800 bg-purple-700",
+  lime: "border-lime-600 hover:border-lime-700 bg-lime-600",
   emerald: "border-emerald-700 hover:border-emerald-800 bg-emerald-700",
 };
 
@@ -43,6 +47,7 @@ function trackUnlocked(track) {
   if (isAdmin()) return true;
   if (track.audience === "pm") return isPm();
   if (track.audience === "shop") return isShop() || isPm();
+  if (track.audience === "leadership") return isLeadershipAuthed();
   return false;
 }
 
@@ -50,12 +55,13 @@ function loginPathFor(audience) {
   if (audience === "admin") return "/admin/login";
   if (audience === "pm") return "/pm/login";
   if (audience === "shop") return "/shop/login";
+  if (audience === "leadership") return "/leadership";
   return "/";
 }
 
 function loginLabelFor(audience, lang) {
-  const en = { admin: "Admin", pm: "Project Manager", shop: "Shop" };
-  const es = { admin: "Administrador", pm: "Gerente de Proyecto", shop: "Taller" };
+  const en = { admin: "Admin", pm: "Project Manager", shop: "Shop", leadership: "Field Leadership" };
+  const es = { admin: "Administrador", pm: "Gerente de Proyecto", shop: "Taller", leadership: "Liderazgo de Campo" };
   return (lang === "es" ? es : en)[audience] || audience;
 }
 

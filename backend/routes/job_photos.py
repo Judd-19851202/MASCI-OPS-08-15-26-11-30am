@@ -328,6 +328,70 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
             raise HTTPException(404, "source photo missing")
         return {"data_url": url, "meta": meta}
 
+    @router.get("/{photo_id}/thumb")
+    async def get_photo_thumb(
+        photo_id: str,
+        actor=Depends(require_caller),
+    ):
+        """Return a small (≤ 360px on the long edge, JPEG q60) thumbnail
+        of a photo. ~5–20 KB per response vs. 200 KB–2 MB for /raw — the
+        difference is the difference between a snappy gallery and 'super
+        slow'. Cached for 24h (immutable: photo_id never changes content)."""
+        scope = await compute_pm_scope(db, actor)
+        meta = await db.job_photos.find_one({"id": photo_id}, {"_id": 0})
+        if not meta:
+            raise HTTPException(404, "photo not found")
+        if not scope.allows(meta.get("project_number")):
+            raise HTTPException(403, "not in scope")
+        url = await _load_photo(db, meta["source"], meta["source_id"], meta["photo_index"])
+        decoded = _decode_data_url(url) if url else None
+        if not decoded:
+            raise HTTPException(404, "source photo missing")
+        raw, _ext = decoded
+        try:
+            from PIL import Image as _PILImage  # type: ignore  # noqa: WPS433
+            with _PILImage.open(io.BytesIO(raw)) as im:
+                im.thumbnail((360, 360), _PILImage.LANCZOS)
+                if im.mode in ("RGBA", "LA", "P"):
+                    im = im.convert("RGB")
+                buf = io.BytesIO()
+                im.save(buf, format="JPEG", quality=60, optimize=True)
+                jpeg = buf.getvalue()
+        except Exception:
+            # If Pillow choked (heic/heif/corrupt), fall back to original
+            jpeg = raw
+        from fastapi.responses import Response  # local import to avoid clash
+        return Response(
+            content=jpeg,
+            media_type="image/jpeg",
+            headers={"Cache-Control": "private, max-age=86400, immutable"},
+        )
+
+    @router.post("/raw-batch")
+    async def get_photo_raw_batch(
+        body: BulkSelection,
+        actor=Depends(require_caller),
+    ):
+        """Bulk fetch up to 50 full-resolution photos in a single round-trip.
+        Used by the lightbox preloader and downstream tooling that needs
+        original bytes (e.g. ZIP). For gallery thumbnails, use /thumb."""
+        ids = (body.photo_ids or [])[:50]
+        if not ids:
+            return {"items": []}
+        scope = await compute_pm_scope(db, actor)
+        metas = await db.job_photos.find(
+            {"id": {"$in": ids}}, {"_id": 0}
+        ).to_list(length=len(ids))
+        out: List[Dict[str, Any]] = []
+        for meta in metas:
+            if not scope.allows(meta.get("project_number")):
+                continue
+            url = await _load_photo(db, meta["source"], meta["source_id"], meta["photo_index"])
+            if not url:
+                continue
+            out.append({"id": meta["id"], "data_url": url})
+        return {"items": out}
+
     @router.post("/zip")
     async def download_zip(
         body: BulkSelection,

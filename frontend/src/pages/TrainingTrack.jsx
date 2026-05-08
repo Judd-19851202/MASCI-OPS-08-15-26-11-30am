@@ -9,6 +9,7 @@ import { TRACKS, lessonsForTrack } from "@/data/training";
 import { isAdmin } from "@/lib/adminAuth";
 import { isPm } from "@/lib/pmAuth";
 import { isShop } from "@/lib/shopAuth";
+import { isLeadershipAuthed } from "@/lib/leadershipAuth";
 
 // Convert any common training-video URL into an embeddable iframe `src`.
 // Supports: YouTube (watch?v=, youtu.be, /embed/), Loom (/share/), Vimeo
@@ -85,6 +86,7 @@ export default function TrainingTrack() {
   if (audience === "admin") allowed = isAdmin();
   else if (audience === "pm") allowed = isAdmin() || isPm();
   else if (audience === "shop") allowed = isAdmin() || isShop();
+  else if (audience === "leadership") allowed = isAdmin() || isLeadershipAuthed();
   // field is public — no gate
 
   if (!allowed) {
@@ -214,13 +216,23 @@ function AccessDenied({ track, t, lang }) {
             {t("This track is password-protected")}
           </h2>
           <p className="text-slate-600 text-sm mt-3">
-            {lang === "es"
-              ? `Inicie sesión como ${track.audience === "admin" ? "Administrador" : track.audience === "pm" ? "Gerente de Proyecto" : "Taller"} para ver esta capacitación.`
-              : `Sign in as ${track.audience === "admin" ? "Admin" : track.audience === "pm" ? "Project Manager" : "Shop"} to view this training.`}
+            {(() => {
+              const role = lang === "es"
+                ? { admin: "Administrador", pm: "Gerente de Proyecto", shop: "Taller", leadership: "Liderazgo de Campo" }
+                : { admin: "Admin", pm: "Project Manager", shop: "Shop", leadership: "Field Leadership" };
+              const label = role[track.audience] || track.audience;
+              return lang === "es"
+                ? `Inicie sesión como ${label} para ver esta capacitación.`
+                : `Sign in as ${label} to view this training.`;
+            })()}
           </p>
           <div className="mt-6 flex flex-col gap-2">
             <Link
-              to={track.audience === "admin" ? "/admin/login" : track.audience === "pm" ? "/pm/login" : "/shop/login"}
+              to={track.audience === "admin" ? "/admin/login"
+                  : track.audience === "pm" ? "/pm/login"
+                  : track.audience === "shop" ? "/shop/login"
+                  : track.audience === "leadership" ? "/leadership"
+                  : "/"}
               className="inline-flex items-center justify-center h-11 rounded-md bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
             >
               {t("Sign In")}

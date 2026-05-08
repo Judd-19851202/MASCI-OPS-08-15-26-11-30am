@@ -1,0 +1,46 @@
+{
+  "summary": "Iter46 — End-to-end verification of (a) Job Photos perf endpoints (/thumb + /raw-batch + lightbox /raw), (b) Field Leadership training-track gating, (c) Training Hub track-tile colors, (d) Hub leadership/projects re-ordering with slate accent, (e) lesson-3 'Equipment Return' content. Backend: 7 NEW thumb/raw-batch tests pass + 50 regression tests pass = 57/58 (1 PM-scope test skipped because Chris Wright is admin/legacy bypass). The supervisor_notes regression flagged in iter45 was intentional per user direction — the iter42 test was updated to assert leadership CAN now create supervisor_notes (test_supervisor_notes_allowed_for_leadership) and it passes. Frontend (Playwright on desktop 1920x1080): Hub DOM order verified [field, qc, safety, leadership, pm, shop, training, projects, admin] — Leadership tile is immediately AFTER Safety with slate class, Projects tile is LAST after Training Hub. Training Hub renders 5 track tiles with correct accents (Field=amber via icon, Shop=orange, PM=purple, Admin=red, Leadership=slate) and 4 internal tracks show 'Password required' lock badges. /training/leadership without token renders AccessDenied screen ('This track is password-protected · Sign in as Field Leadership to view this training. SIGN IN' button) and the SIGN IN button links to /leadership (NOT /admin/login). After leadership login (MASCIGC), /training/leadership renders 3 lessons. Lesson 3 content contains all required keywords: 'Equipment Return', '31', '9', '2 photos', 'auto-flag', 'serial'.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /api/job-photos/{id}/thumb",
+        "issue": "INFRASTRUCTURE NOTE: the Cloudflare/preview edge proxy rewrites the response Cache-Control header from origin's 'private, max-age=86400, immutable' to 'no-store, no-cache, must-revalidate' — verified by curl-ing localhost:8001 (correct header) vs the public URL (rewritten). This nullifies the browser-level caching benefit of /thumb in the preview environment. Production may have the same issue depending on the deployed edge configuration. Action item for main agent: confirm Cloudflare Page/Cache rules on mascidocs.com do NOT strip /api/job-photos/*/thumb cache headers; consider serving thumbs from a static-style path or adding a Vary header that the edge respects. The architectural improvements (Pillow downscale, 200 status, image/jpeg, payload ≤25 KB, IntersectionObserver lazy-load on the frontend) are still active and meaningful even without the cache header."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_job_photos_thumb_iter46.py",
+    "/app/test_reports/pytest/iter46_full.xml",
+    "/app/test_reports/pytest/iter46_thumb.xml"
+  ],
+  "action_items": [
+    "[INFRASTRUCTURE — non-blocking for code] Confirm production CDN/edge does not strip the Cache-Control header on /api/job-photos/*/thumb. The origin returns 'private, max-age=86400, immutable' correctly; only the preview edge proxy is rewriting it.",
+    "(Optional) Add data-testid='training-leadership-signin' on the Sign In button in TrainingTrack AccessDenied for cleaner regression."
+  ],
+  "critical_code_review_comments": [
+    "/api/job-photos/{id}/thumb implementation is solid: Pillow LANCZOS thumbnail to 360px, JPEG q60 + optimize, RGB conversion for RGBA/LA/P modes, graceful fallback to original bytes when Pillow chokes (heic/heif), proper PM-scope check, 404 on missing.",
+    "/api/job-photos/raw-batch correctly caps at 50 ids, drops out-of-scope silently (no information leak), returns empty list on empty input — ideal lightbox preloader API.",
+    "Hub.jsx ordering is exactly per spec: leadership immediately after safety, projects last after training. The slate accent on Field Leadership is visible and visually consistent with the Training Hub leadership tile.",
+    "TrainingTrack.jsx leadership gate works correctly — without token it shows the dedicated 'This track is password-protected · Sign in as Field Leadership' AccessDenied with a SIGN IN button that resolves to /leadership (not /admin/login).",
+    "Lesson 3 ('leadership-03-recognition-equipment-evaluations') was rewritten as required: contains references to Equipment Return, 31-item catalog, 9 manufacturers, 2-photo minimum, auto-flag damage, and serial-lookup workflow."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_job_photos_thumb_iter46.py (new)"
+  ],
+  "success_rate": {
+    "backend": "98% (57/58 — 7/7 new + 50/50 regression. 1 skip is intentional: PM Chris Wright is admin/legacy bypass so out-of-scope test is N/A.)",
+    "frontend": "100% on tested surfaces — Hub ordering, Training Hub colors + lock badges, Field Leadership gate (denied path + signed-in path), lesson 3 content keywords"
+  },
+  "test_credentials": "Field Leadership: MASCIGC ✓. Admin: MASCI1982! ✓. PM: chriswright@mascigc.com / ChrisRocksThis2026 ✓ (admin/legacy bypass).",
+  "seed_data_creation": "Created via tests: 1 daily report under TEST-PHOTO-{uuid} project with a single 2x2 PNG photo, then triggered admin reindex. Idempotent — TEST-PHOTO-* prefix is safe to leave or sweep.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Canonical regression now: test_job_photos_thumb_iter46.py (8 tests, 7 pass + 1 admin/legacy-bypass skip), test_field_leadership_iter42.py (29 pass — supervisor_notes assertion was rewritten to expect leadership CAN create supervisor_notes per user direction in iter46), test_field_leadership_equipment_iter44.py (11 pass), test_field_leadership_equipment_return_iter45.py (11 pass). Total: 58 collected, 57 pass. The Cache-Control rewrite by the preview edge proxy is a known infra constraint, not a code bug — origin (localhost:8001) returns the correct header. I18N (ES toggle on /leadership/equipment_return/new and /admin/leadership-equipment) was not exercised this round; the agent-to-agent context note from the main agent confirmed those translations are in place — recommend a quick visual ES-toggle check on next iteration if regression is needed.",
+  "rca of the issue": "Cache-Control rewrite RCA: curl http://localhost:8001/api/job-photos/<id>/thumb returns 'cache-control: private, max-age=86400, immutable' (correct). curl https://safety-audit-mobile-1.preview.emergentagent.com/...same path returns 'cache-control: no-store, no-cache, must-revalidate' with cf-ray header (Cloudflare edge). The override is at the edge layer (Cloudflare or Emergent's preview ingress), not the FastAPI route. No code change required if production CDN is configured to respect origin headers — only verification is needed."
+}
