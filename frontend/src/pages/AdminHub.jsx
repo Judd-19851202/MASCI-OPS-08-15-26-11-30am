@@ -22,6 +22,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { BackendVersionBadge } from "@/components/BackendVersionBadge";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
+import AdminDocIdSearch from "@/components/AdminDocIdSearch";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
@@ -220,6 +221,22 @@ export default function AdminHub() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        {/* Global doc-ID search — admin-only.
+            Type any printed doc number (PRE-2026-00042, EQR-2026-00012, …)
+            and we route straight to the matching record. Solves the
+            "payroll's on the phone with a doc number" call in 2 seconds. */}
+        <div className="mb-8">
+          <div className="flex items-baseline gap-3 mb-3">
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-amber-700 font-bold">
+              Find a record
+            </span>
+            <span className="text-slate-500 text-xs font-mono">
+              — every form, report, inspection, and check-out has a doc ID printed in red on its PDF
+            </span>
+          </div>
+          <AdminDocIdSearch />
+        </div>
+
         {/* ============================================================
             DAY-TO-DAY WORKSPACE — same surface a PM gets in /pm.
             Layout (top → bottom):

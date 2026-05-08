@@ -59,6 +59,7 @@ class DailyReportCreate(BaseModel):
 
 class DailyReport(DailyReportCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    doc_id: Optional[str] = ""  # human-readable: DR-YYYY-NNNNN, stamped on insert
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -84,6 +85,11 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
     async def create_daily_report(payload: DailyReportCreate):
         report = DailyReport(**payload.model_dump())
         doc = report.model_dump()
+        # Stamp human-readable doc ID (DR-2026-00001) so the form, the PDF,
+        # and the admin search bar can all reference the same number.
+        from doc_ids import ensure_doc_id  # local import to keep startup fast
+        await ensure_doc_id(db, doc, "DR", when=doc.get("report_date") or doc.get("created_at"))
+        report.doc_id = doc["doc_id"]
         await db.daily_reports.insert_one(doc)
         doc.pop("_id", None)
         # Mirror photos into the Job Photos library (Phase 1 read-only).

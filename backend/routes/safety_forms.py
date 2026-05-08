@@ -324,7 +324,10 @@ def render_issuance_pdf(rec: Dict[str, Any]) -> bytes:
           <h1>Safety Equipment Issuance &amp; Accountability</h1>
           <p class='sub'>Form Ref: {_safe(rec.get('id'))}</p>
         </div>
-        <div class='logo'><img src='{_logo_data_uri()}' /></div>
+        <div style='text-align:right'>
+          {('<div style="font-family:Courier New,monospace;font-size:13pt;font-weight:900;color:#c8102e;letter-spacing:.05em;margin-bottom:6pt">' + _safe(rec.get('doc_id') or '') + '</div>') if rec.get('doc_id') else ''}
+          <div class='logo'><img src='{_logo_data_uri()}' /></div>
+        </div>
       </div>
 
       <div class='section'>
@@ -482,7 +485,10 @@ def render_return_pdf(issuance: Dict[str, Any], ret: Dict[str, Any]) -> bytes:
           <h1>Equipment Check-In &amp; Return Receipt</h1>
           <p class='sub'>Issuance Ref: {_safe(issuance.get('id'))}</p>
         </div>
-        <div class='logo'><img src='{_logo_data_uri()}' /></div>
+        <div style='text-align:right'>
+          {('<div style="font-family:Courier New,monospace;font-size:13pt;font-weight:900;color:#c8102e;letter-spacing:.05em;margin-bottom:6pt">' + _safe(issuance.get('doc_id') or '') + '</div>') if issuance.get('doc_id') else ''}
+          <div class='logo'><img src='{_logo_data_uri()}' /></div>
+        </div>
       </div>
 
       <div class='section'>
@@ -580,7 +586,10 @@ def render_training_pdf(rec: Dict[str, Any]) -> bytes:
           <h1>Equipment Use &amp; Care Training</h1>
           <p class='sub'>Form Ref: {_safe(rec.get('id'))}</p>
         </div>
-        <div class='logo'><img src='{_logo_data_uri()}' /></div>
+        <div style='text-align:right'>
+          {('<div style="font-family:Courier New,monospace;font-size:13pt;font-weight:900;color:#c8102e;letter-spacing:.05em;margin-bottom:6pt">' + _safe(rec.get('doc_id') or '') + '</div>') if rec.get('doc_id') else ''}
+          <div class='logo'><img src='{_logo_data_uri()}' /></div>
+        </div>
       </div>
 
       <div class='section'>
@@ -814,10 +823,12 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         rec["total_value"] = round(total, 2)
         rec["created_at"] = datetime.now(timezone.utc).isoformat()
         rec["updated_at"] = rec["created_at"]
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, rec, "SEI", when=rec.get("issued_at") or rec.get("created_at"))
         await db.safety_equipment_issuances.insert_one(dict(rec))
         rec.pop("_id", None)
         _schedule_email("issuance", rec)
-        return {"ok": True, "id": rec["id"], "total_value": rec["total_value"]}
+        return {"ok": True, "id": rec["id"], "doc_id": rec.get("doc_id"), "total_value": rec["total_value"]}
 
     @router.get("/equipment-issuances")
     async def list_issuances(
@@ -968,10 +979,12 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         rec["items"] = [dict(it) for it in rec.get("items", [])]
         rec["created_at"] = datetime.now(timezone.utc).isoformat()
         rec["updated_at"] = rec["created_at"]
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, rec, "SET", when=rec.get("training_date") or rec.get("created_at"))
         await db.safety_equipment_trainings.insert_one(dict(rec))
         rec.pop("_id", None)
         _schedule_email("training", rec)
-        return {"ok": True, "id": rec["id"]}
+        return {"ok": True, "id": rec["id"], "doc_id": rec.get("doc_id")}
 
     @router.get("/equipment-trainings")
     async def list_trainings(

@@ -77,6 +77,7 @@ class InspectionCreate(BaseModel):
 
 class Inspection(InspectionCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    doc_id: Optional[str] = ""  # INSP-YYYY-NNNNN, stamped on insert
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -123,6 +124,7 @@ class MeetingCreate(BaseModel):
 
 class Meeting(MeetingCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    doc_id: Optional[str] = ""  # MTG-YYYY-NNNNN
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -165,6 +167,7 @@ class JhaCreate(BaseModel):
 
 class Jha(JhaCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    doc_id: Optional[str] = ""  # JHA-YYYY-NNNNN
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -240,6 +243,7 @@ class IncidentCreate(BaseModel):
 
 class Incident(IncidentCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    doc_id: Optional[str] = ""  # INC-YYYY-NNNNN
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -268,6 +272,9 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     async def create_inspection(payload: InspectionCreate):
         inspection = Inspection(**payload.model_dump())
         doc = inspection.model_dump()
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, doc, "INSP", when=doc.get("inspection_date") or doc.get("created_at"))
+        inspection.doc_id = doc["doc_id"]
         await db.inspections.insert_one(doc)
         doc.pop("_id", None)
         # Mirror photos into the Job Photos library (Phase 1 read-only).
@@ -340,6 +347,9 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     async def create_meeting(payload: MeetingCreate):
         meeting = Meeting(**payload.model_dump())
         doc = meeting.model_dump()
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, doc, "MTG", when=doc.get("meeting_date") or doc.get("created_at"))
+        meeting.doc_id = doc["doc_id"]
         await db.meetings.insert_one(doc)
         doc.pop("_id", None)
         schedule_auto_email("meeting", doc)
@@ -391,6 +401,9 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     async def create_jha(payload: JhaCreate):
         jha = Jha(**payload.model_dump())
         doc = jha.model_dump()
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, doc, "JHA", when=doc.get("jha_date") or doc.get("created_at"))
+        jha.doc_id = doc["doc_id"]
         await db.jhas.insert_one(doc)
         doc.pop("_id", None)
         schedule_auto_email("jha", doc)
@@ -442,6 +455,9 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     async def create_incident(payload: IncidentCreate):
         incident = Incident(**payload.model_dump())
         doc = incident.model_dump()
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, doc, "INC", when=doc.get("incident_date") or doc.get("created_at"))
+        incident.doc_id = doc["doc_id"]
         await db.incidents.insert_one(doc)
         doc.pop("_id", None)
         schedule_auto_email("incident", doc)

@@ -6999,6 +6999,78 @@ async def _seed_shop_users():
     await seed_shop_users(db)
 
 
+@app.on_event("startup")
+async def _backfill_doc_ids() -> None:
+    """One-shot backfill: every existing record across the registered
+    submission collections gets a human-readable doc_id stamped if it
+    doesn't already have one. Idempotent — subsequent boots are no-ops."""
+    try:
+        from doc_ids import backfill_all
+        summary = await backfill_all(db)
+        if summary:
+            logger.info(f"[doc_ids] startup backfill: {summary}")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[doc_ids] startup backfill failed: {e}")
+
+
+# Admin-only doc-ID lookup powering the global search bar at /admin home.
+# NOTE: declared on `app` (not `api_router`) because this block runs AFTER
+# `app.include_router(api_router)` and FastAPI doesn't pick up routes
+# added to an already-included router.
+@app.get("/api/admin/find-by-doc-id")
+async def admin_find_by_doc_id(doc_id: str, _: bool = Depends(require_admin)):
+    """Resolve a human-readable doc ID to the underlying record.
+
+    Returns ``{found, collection, id, doc_id, route}`` where ``route``
+    is the frontend path the admin UI should navigate to. Missing IDs
+    return ``{found: false}``.
+    """
+    from doc_ids import find_record_by_doc_id
+
+    rec = await find_record_by_doc_id(db, doc_id)
+    if not rec:
+        return {"found": False}
+
+    # Compute a frontend route per-collection so the admin can be
+    # one-clicked into the right page.
+    coll = rec.get("collection") or ""
+    rid = rec.get("id") or ""
+    kind = rec.get("kind") or ""
+    if coll == "field_leadership_records":
+        route = f"/leadership/records/{rid}"
+    elif coll == "daily_reports":
+        route = f"/daily-reports/{rid}"
+    elif coll == "equipment_inspections":
+        route = f"/equipment-inspections/{rid}"
+    elif coll == "qaqc_inspections":
+        route = f"/qaqc/inspections/{rid}"
+    elif coll == "inspections":
+        route = f"/inspections/{rid}"
+    elif coll == "meetings":
+        route = f"/meetings/{rid}"
+    elif coll == "jhas":
+        route = f"/jhas/{rid}"
+    elif coll == "incidents":
+        route = f"/incidents/{rid}"
+    elif coll == "safety_equipment_issuances":
+        route = f"/safety-forms/issuance/{rid}"
+    elif coll == "safety_equipment_trainings":
+        route = f"/safety-forms/training/{rid}"
+    else:
+        route = f"/admin?doc_id={rec.get('doc_id')}"
+
+    return {
+        "found": True,
+        "collection": coll,
+        "id": rid,
+        "doc_id": rec.get("doc_id"),
+        "kind": kind,
+        "project_number": rec.get("project_number"),
+        "project_name": rec.get("project_name"),
+        "route": route,
+    }
+
+
 # ============================================================
 # Email a saved record as a PDF (Resend)
 # ============================================================

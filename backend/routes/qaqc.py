@@ -98,6 +98,7 @@ class QaqcInspectionCreate(BaseModel):
 
 class QaqcInspection(QaqcInspectionCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    doc_id: Optional[str] = ""  # QC-YYYY-NNNNN
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -192,6 +193,8 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
             }
         )
         doc = rec.model_dump()
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, doc, "QC", when=doc.get("inspection_date") or doc.get("created_at"))
         await db.qaqc_inspections.insert_one(doc)
         doc.pop("_id", None)
         # Mirror photos into the Job Photos library (Phase 1 read-only).

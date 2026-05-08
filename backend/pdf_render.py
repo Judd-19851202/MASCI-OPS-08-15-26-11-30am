@@ -981,6 +981,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
         body = _render_generic(title, record)
 
     record_id = (record.get("id") or "")[:8].upper()
+    doc_id = (record.get("doc_id") or "").strip()
     project = (
         record.get("project_name")
         or record.get("project")
@@ -1069,6 +1070,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     <div class="hdr-r">
       <div class="hdr-title">{escape(title)}</div>
       <div class="hdr-kicker">Field Safety Reporting Portal</div>
+      {('<div class="hdr-docid" style="font-family:Courier New,monospace;font-size:11pt;font-weight:900;color:#c8102e;letter-spacing:0.05em;margin-top:6px">' + escape(doc_id) + '</div>') if doc_id else ''}
     </div>
   </header>
   <div class="meta">

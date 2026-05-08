@@ -551,6 +551,7 @@ table.lines td.ret-neutral {{ color:#92400e; font-weight:700; }}
       <div class='kicker'>{_h(rec.get('project_number') or '')} · {_h(rec.get('project_name') or '')}</div>
     </div>
     <div style='text-align:right;font-size:9pt;color:#64748b'>
+      <div style='font-family:ui-monospace,monospace;font-size:11pt;font-weight:800;color:#b91c1c;letter-spacing:.05em;margin-bottom:2pt'>{_h(rec.get('doc_id') or '')}</div>
       <div>{_fmt_date(rec.get('occurred_at') or '')}</div>
       <div>ID {_h((rec.get('id') or '')[:8])}</div>
     </div>

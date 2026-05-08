@@ -62,6 +62,7 @@ class EquipmentInspectionCreate(BaseModel):
 
 class EquipmentInspection(EquipmentInspectionCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    doc_id: Optional[str] = ""  # PRE-YYYY-NNNNN, stamped on insert
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -179,6 +180,9 @@ def register_equipment_routes(
     async def create_equipment_inspection(payload: EquipmentInspectionCreate):
         insp = EquipmentInspection(**payload.model_dump())
         doc = insp.model_dump()
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, doc, "PRE", when=doc.get("inspection_date") or doc.get("created_at"))
+        insp.doc_id = doc["doc_id"]
         await db.equipment_inspections.insert_one(doc)
         doc.pop("_id", None)
         # Also remember this unit so it shows up in the dropdown next time

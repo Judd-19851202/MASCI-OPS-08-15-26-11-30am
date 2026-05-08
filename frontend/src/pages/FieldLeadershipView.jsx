@@ -114,7 +114,18 @@ export default function FieldLeadershipView() {
         </div>
 
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
-        <h1 className="font-display text-3xl sm:text-4xl font-black mt-1">{kindLabel(rec.kind)}</h1>
+        <div className="flex items-center justify-between gap-4 flex-wrap mt-1">
+          <h1 className="font-display text-3xl sm:text-4xl font-black">{kindLabel(rec.kind)}</h1>
+          {rec.doc_id && (
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-red-50 border-2 border-red-300"
+              data-testid="record-doc-id-badge"
+            >
+              <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-red-700 font-bold">{t("Doc ID")}</span>
+              <span className="font-mono text-base font-black text-red-800 tracking-wide tabular-nums">{rec.doc_id}</span>
+            </div>
+          )}
+        </div>
 
         <Card className="mt-5 p-5">
           <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Summary")}</h3>

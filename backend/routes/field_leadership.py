@@ -371,6 +371,13 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         if rec.get("kind") == "equipment_return":
             await _process_equipment_return(rec)
 
+        # Stamp human-readable doc ID (EQC/EQR/FL prefix per kind).
+        from doc_ids import ensure_doc_id, _field_leadership_prefix
+        await ensure_doc_id(
+            db, rec, _field_leadership_prefix,
+            when=rec.get("occurred_at") or rec.get("created_at"),
+        )
+
         await db.field_leadership_records.insert_one(dict(rec))
 
         # Best-effort email + photo indexer (fire-and-forget)
