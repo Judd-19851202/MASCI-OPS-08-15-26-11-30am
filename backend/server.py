@@ -7222,7 +7222,14 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             and (record.get("fail_count") or 0) > 0
         )
         fail_prefix = "EQUIPMENT FAIL · " if equipment_fail else ""
-        subject = f"[MASCI] {fail_prefix}{title} · {project}{pm_tag}"
+        # Stamp the human-readable doc_id into the subject so the inbox
+        # becomes a searchable filing cabinet (Cmd-F by doc number)
+        # instead of 50 emails titled "Daily Job Report".
+        doc_id_segment = ""
+        doc_id_val = (record.get("doc_id") or "").strip()
+        if doc_id_val:
+            doc_id_segment = f"{doc_id_val} · "
+        subject = f"[MASCI] {fail_prefix}{doc_id_segment}{title} · {project}{pm_tag}"
 
         note = ""
         if kind == "incident" and _is_severe_incident(record):

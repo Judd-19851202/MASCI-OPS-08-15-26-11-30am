@@ -479,8 +479,12 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         kind_meta = FIELD_LEADERSHIP_KINDS.get(rec["kind"], {})
         kind_label = kind_meta.get("title_en", rec["kind"])
 
+        # Stamp the doc_id (EQC-2026-00042 / FLN-2026-00007 etc.) into
+        # the subject so the inbox is searchable by record number.
+        doc_id_val = (rec.get("doc_id") or "").strip()
+        doc_seg = f"{doc_id_val} — " if doc_id_val else ""
         subject = (
-            f"Field Leadership Form Submitted — {kind_label} — "
+            f"[MASCI] {doc_seg}Field Leadership: {kind_label} — "
             f"{rec.get('employee_name') or '—'} — "
             f"{rec.get('project_number') or ''} {rec.get('project_name') or ''}".strip()
         )

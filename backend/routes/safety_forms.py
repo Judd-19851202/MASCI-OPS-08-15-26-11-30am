@@ -688,11 +688,18 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
         sender = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
         reply_to = (os.environ.get("REPLY_TO_EMAIL") or "").strip()
 
+        # Stamp the human-readable doc_id into the subject across all
+        # three kinds (issuance, return, training). For ``return`` we
+        # use the parent issuance's doc_id since the return is a
+        # follow-up event on that same record.
+        rec_doc_id = (rec.get("doc_id") or "").strip()
+
         if kind == "issuance":
             pdf_bytes = await asyncio.to_thread(render_issuance_pdf, rec)
             title = "Safety Equipment Issuance"
             who = rec.get("employee_name") or "—"
-            subject = f"[MASCI] {title} · {who}"
+            doc_seg = f"{rec_doc_id} · " if rec_doc_id else ""
+            subject = f"[MASCI] {doc_seg}{title} · {who}"
             fname = f"MASCI_Equipment_Issuance_{(who or '').replace(' ', '_')}_{rec.get('issued_date', '')}.pdf"
             extra_html = ""
         elif kind == "return":
@@ -700,7 +707,8 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
             pdf_bytes = await asyncio.to_thread(render_return_pdf, rec, extra or {})
             title = "Equipment Check-In & Return"
             who = rec.get("employee_name") or "—"
-            subject = f"[MASCI] {title} · {who}"
+            doc_seg = f"{rec_doc_id} · " if rec_doc_id else ""
+            subject = f"[MASCI] {doc_seg}{title} · {who}"
             fname = f"MASCI_Equipment_Return_{(who or '').replace(' ', '_')}_{(extra or {}).get('check_in_date', '')}.pdf"
             cb = compute_chargeback((extra or {}).get("items") or [])
             extra_html = (
@@ -713,7 +721,8 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
             pdf_bytes = await asyncio.to_thread(render_training_pdf, rec)
             title = "Equipment Use & Care Training"
             who = rec.get("employee_name") or "—"
-            subject = f"[MASCI] {title} · {who}"
+            doc_seg = f"{rec_doc_id} · " if rec_doc_id else ""
+            subject = f"[MASCI] {doc_seg}{title} · {who}"
             fname = f"MASCI_Equipment_Training_{(who or '').replace(' ', '_')}_{rec.get('training_date', '')}.pdf"
             extra_html = ""
 
