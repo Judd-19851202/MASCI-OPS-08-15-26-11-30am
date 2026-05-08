@@ -728,7 +728,10 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         )
         if res.matched_count == 0:
             raise HTTPException(status_code=404, detail="Item not found")
-        return {"ok": True}
+        doc = await db.field_leadership_equipment_catalog.find_one(
+            {"id": item_id}, {"_id": 0}
+        )
+        return doc or {"ok": True}
 
     @router.delete("/admin/equipment-catalog/{item_id}")
     async def admin_delete_catalog(item_id: str, _: bool = Depends(require_admin)):
@@ -780,7 +783,10 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         )
         if res.matched_count == 0:
             raise HTTPException(status_code=404, detail="Make not found")
-        return {"ok": True}
+        doc = await db.field_leadership_equipment_makes.find_one(
+            {"id": item_id}, {"_id": 0}
+        )
+        return doc or {"ok": True}
 
     @router.delete("/admin/equipment-makes/{item_id}")
     async def admin_delete_make(item_id: str, _: bool = Depends(require_admin)):
