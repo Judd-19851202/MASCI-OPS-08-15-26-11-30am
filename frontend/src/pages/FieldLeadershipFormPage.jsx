@@ -24,6 +24,7 @@ import { getPmToken } from "@/lib/pmAuth";
 import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { SignaturePad } from "@/components/SignaturePad";
+import { EquipmentLines } from "@/components/EquipmentLines";
 import { getFormByKind } from "@/lib/fieldLeadershipSchemas";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -245,6 +246,28 @@ export default function FieldLeadershipFormPage() {
       toast.error(t("Employee name required"));
       return false;
     }
+    // Equipment Checkout: at least one line + each line has name + replacement value > 0
+    if (form.custom_renderer === "equipment_lines") {
+      const lines = details.equipment_lines || [];
+      if (lines.length === 0) {
+        toast.error(t("Add at least one equipment item"));
+        return false;
+      }
+      for (const ln of lines) {
+        if (!(ln.name || "").trim()) {
+          toast.error(t("Every equipment item needs a name"));
+          return false;
+        }
+        if (!Number(ln.replacement_value) || Number(ln.replacement_value) <= 0) {
+          toast.error(t("Every equipment item needs a replacement value greater than zero"));
+          return false;
+        }
+        if (!Number(ln.qty) || Number(ln.qty) <= 0) {
+          toast.error(t("Every equipment item needs a quantity"));
+          return false;
+        }
+      }
+    }
     for (const f of form.fields) {
       if (!isFieldVisible(f)) continue;
       if (f.required) {
@@ -301,6 +324,19 @@ export default function FieldLeadershipFormPage() {
     if (!validate()) return;
     setSubmitting(true);
     try {
+      // Normalize equipment_lines so manufacturer holds the final value
+      // (custom string or dropdown name) — backend/PDF read a single field.
+      let detailsToSend = details;
+      if (form.custom_renderer === "equipment_lines") {
+        const normLines = (details.equipment_lines || []).map((ln) => ({
+          ...ln,
+          manufacturer: ln.manufacturer === "Other"
+            ? (ln.manufacturer_custom || "").trim()
+            : (ln.manufacturer || ""),
+          manufacturer_custom: undefined,
+        }));
+        detailsToSend = { ...details, equipment_lines: normLines };
+      }
       const payload = {
         kind: form.kind,
         job_id: selectedJob?.id || null,
@@ -317,7 +353,7 @@ export default function FieldLeadershipFormPage() {
         supervisor_name: supervisorName,
         occurred_at: occurredAt ? new Date(occurredAt).toISOString() : null,
         work_area: workArea,
-        details,
+        details: detailsToSend,
         photos,
         supervisor_signature: supSig,
         employee_signature: empRefused ? "" : empSig,
@@ -469,28 +505,45 @@ export default function FieldLeadershipFormPage() {
             </div>
           </div>
 
-          {/* SCHEMA-DRIVEN FIELDS */}
+          {/* SCHEMA-DRIVEN FIELDS or CUSTOM RENDERER */}
           <div className="border-t-2 border-slate-200 pt-5 space-y-4">
-            {form.fields.filter(isFieldVisible).map((f) => (
-              <div key={f.name}>
-                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                  {l(f.label, lang)}{f.required && <span className="text-red-700 ml-1">*</span>}
-                </Label>
-                <FieldRenderer
-                  field={f}
-                  value={details[f.name]}
-                  onChange={(v) => updateField(f.name, v)}
-                  lang={lang}
-                  t={t}
-                />
-              </div>
-            ))}
+            {form.custom_renderer === "equipment_lines" ? (
+              <EquipmentLines
+                value={details.equipment_lines || []}
+                onChange={(v) => updateField("equipment_lines", v)}
+                lang={lang}
+                t={t}
+              />
+            ) : (
+              form.fields.filter(isFieldVisible).map((f) => (
+                <div key={f.name}>
+                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                    {l(f.label, lang)}{f.required && <span className="text-red-700 ml-1">*</span>}
+                  </Label>
+                  <FieldRenderer
+                    field={f}
+                    value={details[f.name]}
+                    onChange={(v) => updateField(f.name, v)}
+                    lang={lang}
+                    t={t}
+                  />
+                </div>
+              ))
+            )}
           </div>
 
           {/* ACKNOWLEDGEMENT */}
           {form.acknowledgement && (
-            <div className="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-xs text-amber-900">
-              {l(form.acknowledgement, lang)}
+            <div className="rounded-md bg-amber-50 border-2 border-amber-300 px-4 py-3 text-xs text-amber-900 leading-relaxed">
+              {(() => {
+                const ack = form.acknowledgement[lang] || form.acknowledgement.en;
+                if (Array.isArray(ack)) {
+                  return ack.map((p, i) => (
+                    <p key={i} className={i === 0 ? "" : "mt-2"}>{p}</p>
+                  ));
+                }
+                return ack;
+              })()}
             </div>
           )}
 

@@ -87,6 +87,120 @@ def _photos_block(photos: List[str]) -> str:
     return f"<section><h3>Photos</h3><div class='photos'>{imgs}</div></section>"
 
 
+# ----- Equipment Checkout — line-items table + grand total ----------
+
+def _money(v: Any) -> str:
+    try:
+        return f"${float(v or 0):,.2f}"
+    except (TypeError, ValueError):
+        return "$0.00"
+
+
+def _equipment_lines_block(details: Dict[str, Any]) -> str:
+    """Render the line-items table for equipment_checkout records."""
+    lines = details.get("equipment_lines") or []
+    if not lines:
+        return ""
+    rows: List[str] = []
+    grand_total = 0.0
+    for line in lines:
+        try:
+            qty = float(line.get("qty") or 1)
+        except (TypeError, ValueError):
+            qty = 1
+        try:
+            rv = float(line.get("replacement_value") or 0)
+        except (TypeError, ValueError):
+            rv = 0
+        line_total = qty * rv
+        grand_total += line_total
+        rows.append(
+            "<tr>"
+            f"<td>{_h(line.get('manufacturer') or '—')}</td>"
+            f"<td>{_h(line.get('name') or '—')}</td>"
+            f"<td>{_h(line.get('model') or '')}</td>"
+            f"<td>{_h(line.get('serial') or '')}</td>"
+            f"<td class='num'>{int(qty) if qty == int(qty) else qty}</td>"
+            f"<td>{_h(line.get('condition') or '')}</td>"
+            f"<td class='num'>{_money(rv)}</td>"
+            f"<td class='num'><strong>{_money(line_total)}</strong></td>"
+            "</tr>"
+        )
+        notes = (line.get("notes") or "").strip()
+        if notes:
+            rows.append(
+                f"<tr class='notes-row'><td colspan='8'>"
+                f"<span class='notes-lbl'>Notes:</span> {_h(notes)}"
+                "</td></tr>"
+            )
+    table = (
+        "<table class='lines'>"
+        "<thead><tr>"
+        "<th>Manufacturer</th><th>Equipment / Tool</th><th>Model</th>"
+        "<th>Serial / Asset ID</th><th class='num'>Qty</th>"
+        "<th>Condition</th><th class='num'>Replacement</th>"
+        "<th class='num'>Line Total</th>"
+        "</tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody>"
+        "<tfoot><tr>"
+        "<td colspan='7' class='grand-label'>Total Replacement Value Issued</td>"
+        f"<td class='num grand'>{_money(grand_total)}</td>"
+        "</tr></tfoot>"
+        "</table>"
+    )
+    return f"<section><h3>Equipment Issued</h3>{table}</section>"
+
+
+# Long acknowledgement text per company spec — exact wording.
+EQUIPMENT_ACK_EN = (
+    "I acknowledge receipt of the company equipment, tools, and/or property "
+    "listed above. I understand that this equipment remains the property of "
+    "MASCI General Contractors and is issued to me for company business "
+    "purposes only.\n\n"
+    "I agree to use, secure, care for, maintain, and return all issued "
+    "equipment in accordance with company policy, manufacturer instructions, "
+    "and applicable safety requirements.\n\n"
+    "I understand that loss, theft, damage, misuse, neglect, abuse, "
+    "unauthorized use, or failure to return company equipment may result "
+    "in disciplinary action and may result in financial responsibility for "
+    "repair or replacement costs, only to the extent permitted by applicable "
+    "federal law, Florida law, and company policy. Any payroll deduction or "
+    "reimbursement will be handled only where legally permitted and with "
+    "any required authorization.\n\n"
+    "My signature acknowledges receipt of the listed equipment and this "
+    "responsibility notice."
+)
+
+EQUIPMENT_ACK_ES = (
+    "Reconozco haber recibido el equipo, herramientas y/o propiedad de la "
+    "empresa que se enumeran arriba. Entiendo que este equipo sigue siendo "
+    "propiedad de MASCI General Contractors y se me entrega únicamente "
+    "para fines comerciales de la empresa.\n\n"
+    "Acepto usar, asegurar, cuidar, mantener y devolver todo el equipo "
+    "entregado conforme a la política de la empresa, las instrucciones del "
+    "fabricante y los requisitos de seguridad aplicables.\n\n"
+    "Entiendo que la pérdida, robo, daño, uso indebido, negligencia, abuso, "
+    "uso no autorizado o falta de devolución del equipo de la empresa "
+    "puede resultar en acción disciplinaria y puede generar responsabilidad "
+    "económica por costos de reparación o reemplazo, únicamente en la "
+    "medida permitida por la ley federal aplicable, la ley de Florida y "
+    "la política de la empresa. Cualquier deducción de nómina o "
+    "reembolso se realizará solo donde sea legalmente permitido y con "
+    "cualquier autorización requerida.\n\n"
+    "Mi firma reconoce la recepción del equipo enumerado y este aviso "
+    "de responsabilidad."
+)
+
+
+def _equipment_ack_block(language: str) -> str:
+    text = EQUIPMENT_ACK_ES if language == "es" else EQUIPMENT_ACK_EN
+    paragraphs = "".join(f"<p>{_h(p)}</p>" for p in text.split("\n\n"))
+    return (
+        "<section class='ack-section'><h3>Employee Responsibility Acknowledgement</h3>"
+        f"<div class='ack-box'>{paragraphs}</div></section>"
+    )
+
+
 def _signatures_block(rec: Dict[str, Any]) -> str:
     """Renders supervisor + employee (or refusal-with-witness) signatures."""
     parts: List[str] = []
@@ -151,6 +265,23 @@ def render_field_leadership_pdf(rec: Dict[str, Any]) -> bytes:
     # legible to office staff, even if the foreman submitted in Spanish.
     details_for_pdf = rec.get("details_en") or rec.get("details") or {}
 
+    # Equipment Checkout uses a custom line-items table + acknowledgement
+    # in place of the generic _details_block. All other kinds use the
+    # generic details rendering.
+    if kind == "equipment_checkout":
+        body_blocks = (
+            _equipment_lines_block(details_for_pdf)
+            + _photos_block(rec.get("photos") or [])
+            + _equipment_ack_block(rec.get("language") or "en")
+            + _signatures_block(rec)
+        )
+    else:
+        body_blocks = (
+            _details_block(details_for_pdf)
+            + _photos_block(rec.get("photos") or [])
+            + _signatures_block(rec)
+        )
+
     doc_html = f"""<!doctype html><html><head><meta charset='utf-8'>
 <title>{_h(title)} — MASCI HUB</title>
 <style>
@@ -201,6 +332,18 @@ table.kv th {{ background:#f8fafc; font-weight:600; width:38%; color:#475569; }}
 .sig-card img {{ max-height:60pt; max-width:100%; }}
 .sig-name {{ margin-top:4pt; font-weight:600; font-size:9pt; }}
 .ack {{ font-size:8pt; color:#475569; font-style:italic; margin:0 0 8pt; }}
+table.lines {{ width:100%; border-collapse:collapse; font-size:9pt; margin-top:6pt; }}
+table.lines th, table.lines td {{ border:1px solid #cbd5e1; padding:5pt 6pt; text-align:left; vertical-align:top; }}
+table.lines th {{ background:#f1f5f9; font-family: ui-monospace, monospace; font-size:8pt; letter-spacing:.1em; text-transform:uppercase; color:#475569; }}
+table.lines td.num, table.lines th.num {{ text-align:right; font-variant-numeric: tabular-nums; }}
+table.lines tfoot td {{ background:#fef3c7; border-top:2px solid #b45309; padding:7pt; }}
+table.lines tfoot td.grand {{ font-size:11pt; font-weight:900; color:#0f172a; }}
+table.lines tfoot td.grand-label {{ text-align:right; font-family: ui-monospace, monospace; letter-spacing:.12em; text-transform:uppercase; font-weight:700; color:#92400e; }}
+table.lines tr.notes-row td {{ background:#f8fafc; font-size:8.5pt; color:#475569; padding:3pt 6pt 5pt 6pt; }}
+table.lines tr.notes-row .notes-lbl {{ font-family: ui-monospace, monospace; font-size:7.5pt; letter-spacing:.12em; text-transform:uppercase; color:#94a3b8; margin-right:4pt; }}
+.ack-section .ack-box {{ background:#f8fafc; border:1px solid #cbd5e1; border-left:3px solid #b91c1c; padding:10pt 12pt; font-size:9pt; line-height:1.55; }}
+.ack-section .ack-box p {{ margin:0 0 6pt 0; }}
+.ack-section .ack-box p:last-child {{ margin:0; }}
 </style></head><body>
   <div class='header'>
     <div>
@@ -222,9 +365,7 @@ table.kv th {{ background:#f8fafc; font-weight:600; width:38%; color:#475569; }}
     </div>
   </section>
 
-  {_details_block(details_for_pdf)}
-  {_photos_block(rec.get("photos") or [])}
-  {_signatures_block(rec)}
+  {body_blocks}
 
 </body></html>"""
 

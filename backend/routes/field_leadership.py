@@ -551,8 +551,34 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
         return {"items": items, "count": len(items), "counts_by_kind": counts}
 
+    # Reserved sub-paths under this router that look like path-params but
+    # are actually their own endpoints. Keep this in sync if more routes
+    # are added below.
+    _RESERVED_REC_IDS = {"equipment-catalog", "equipment-makes", "admin", "export", "login", "check", "jobs", "employees"}
+
+    # ----- Equipment Catalog + Manufacturers (public read) ----------
+    # MUST be declared before /{rec_id} to win route matching.
+
+    @router.get("/equipment-catalog")
+    async def list_equipment_catalog(auth: Dict[str, Any] = Depends(_is_authed)):
+        cursor = db.field_leadership_equipment_catalog.find(
+            {"active": {"$ne": False}}, {"_id": 0}
+        ).sort("name", 1)
+        items = await cursor.to_list(2000)
+        return {"items": items, "count": len(items)}
+
+    @router.get("/equipment-makes")
+    async def list_equipment_makes(auth: Dict[str, Any] = Depends(_is_authed)):
+        cursor = db.field_leadership_equipment_makes.find(
+            {"active": {"$ne": False}}, {"_id": 0}
+        ).sort("name", 1)
+        items = await cursor.to_list(500)
+        return {"items": items, "count": len(items)}
+
     @router.get("/{rec_id}")
     async def get_record(rec_id: str, auth: Dict[str, Any] = Depends(_is_authed)):
+        if rec_id in _RESERVED_REC_IDS:
+            raise HTTPException(status_code=404, detail="Not a record id")
         f = await _scope_filter(auth)
         f["id"] = rec_id
         rec = await db.field_leadership_records.find_one(f, {"_id": 0})
@@ -643,8 +669,275 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
             },
         )
 
+    # ============================================================
+    # Equipment Catalog + Manufacturers — admin CRUD endpoints.
+    # Public read endpoints live above (before /{rec_id}) for route
+    # ordering reasons.
+    # ============================================================
+
+    # ----- Admin CRUD ------------------------------------------------
+
+    @router.get("/admin/equipment-catalog")
+    async def admin_list_catalog(_: bool = Depends(require_admin)):
+        cursor = db.field_leadership_equipment_catalog.find({}, {"_id": 0}).sort("name", 1)
+        return {"items": await cursor.to_list(2000)}
+
+    @router.post("/admin/equipment-catalog")
+    async def admin_create_catalog(body: Dict[str, Any], _: bool = Depends(require_admin)):
+        name = (body.get("name") or "").strip()
+        if not name:
+            raise HTTPException(status_code=400, detail="Name is required")
+        try:
+            value = float(body.get("replacement_value") or 0)
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="replacement_value must be a number")
+        now = datetime.now(timezone.utc).isoformat()
+        doc = {
+            "id": str(uuid.uuid4()),
+            "name": name,
+            "name_es": (body.get("name_es") or "").strip() or None,
+            "replacement_value": value,
+            "default_make": (body.get("default_make") or "").strip() or None,
+            "category": (body.get("category") or "").strip() or None,
+            "active": bool(body.get("active", True)),
+            "created_at": now,
+            "updated_at": now,
+        }
+        await db.field_leadership_equipment_catalog.insert_one(dict(doc))
+        doc.pop("_id", None)
+        return doc
+
+    @router.patch("/admin/equipment-catalog/{item_id}")
+    async def admin_patch_catalog(item_id: str, body: Dict[str, Any], _: bool = Depends(require_admin)):
+        updates: Dict[str, Any] = {}
+        for k in ("name", "name_es", "default_make", "category"):
+            if k in body:
+                updates[k] = (body.get(k) or "").strip() or None
+        if "replacement_value" in body:
+            try:
+                updates["replacement_value"] = float(body["replacement_value"])
+            except (TypeError, ValueError):
+                raise HTTPException(status_code=400, detail="replacement_value must be a number")
+        if "active" in body:
+            updates["active"] = bool(body["active"])
+        if not updates:
+            raise HTTPException(status_code=400, detail="No updates provided")
+        updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+        res = await db.field_leadership_equipment_catalog.update_one(
+            {"id": item_id}, {"$set": updates}
+        )
+        if res.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Item not found")
+        return {"ok": True}
+
+    @router.delete("/admin/equipment-catalog/{item_id}")
+    async def admin_delete_catalog(item_id: str, _: bool = Depends(require_admin)):
+        res = await db.field_leadership_equipment_catalog.update_one(
+            {"id": item_id}, {"$set": {"active": False,
+                                         "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        if res.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Item not found")
+        return {"ok": True}
+
+    @router.get("/admin/equipment-makes")
+    async def admin_list_makes(_: bool = Depends(require_admin)):
+        cursor = db.field_leadership_equipment_makes.find({}, {"_id": 0}).sort("name", 1)
+        return {"items": await cursor.to_list(500)}
+
+    @router.post("/admin/equipment-makes")
+    async def admin_create_make(body: Dict[str, Any], _: bool = Depends(require_admin)):
+        name = (body.get("name") or "").strip()
+        if not name:
+            raise HTTPException(status_code=400, detail="Name is required")
+        now = datetime.now(timezone.utc).isoformat()
+        doc = {
+            "id": str(uuid.uuid4()),
+            "name": name,
+            "active": bool(body.get("active", True)),
+            "created_at": now,
+            "updated_at": now,
+        }
+        await db.field_leadership_equipment_makes.insert_one(dict(doc))
+        doc.pop("_id", None)
+        return doc
+
+    @router.patch("/admin/equipment-makes/{item_id}")
+    async def admin_patch_make(item_id: str, body: Dict[str, Any], _: bool = Depends(require_admin)):
+        updates: Dict[str, Any] = {}
+        if "name" in body:
+            n = (body.get("name") or "").strip()
+            if not n:
+                raise HTTPException(status_code=400, detail="Name cannot be empty")
+            updates["name"] = n
+        if "active" in body:
+            updates["active"] = bool(body["active"])
+        if not updates:
+            raise HTTPException(status_code=400, detail="No updates")
+        updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+        res = await db.field_leadership_equipment_makes.update_one(
+            {"id": item_id}, {"$set": updates}
+        )
+        if res.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Make not found")
+        return {"ok": True}
+
+    @router.delete("/admin/equipment-makes/{item_id}")
+    async def admin_delete_make(item_id: str, _: bool = Depends(require_admin)):
+        res = await db.field_leadership_equipment_makes.update_one(
+            {"id": item_id}, {"$set": {"active": False,
+                                         "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        if res.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Make not found")
+        return {"ok": True}
+
+    @router.get("/admin/equipment-checkout-export.csv")
+    async def admin_export_equipment_checkout(_: bool = Depends(require_admin)):
+        """CSV with one row per equipment line item across all checkout records."""
+        cursor = db.field_leadership_records.find(
+            {"kind": "equipment_checkout", "deleted_at": None},
+            {"_id": 0}
+        ).sort("occurred_at", -1)
+        records = await cursor.to_list(5000)
+
+        out = io.StringIO()
+        w = csv.writer(out)
+        w.writerow([
+            "Date", "Project #", "Project Name", "Employee", "Supervisor",
+            "Manufacturer", "Equipment", "Model", "Serial", "Qty",
+            "Condition", "Replacement Value", "Line Total", "Notes",
+        ])
+        for r in records:
+            details = r.get("details_en") or r.get("details") or {}
+            lines = details.get("equipment_lines") or []
+            base = [
+                _fmt_date_str(r.get("occurred_at") or r.get("created_at") or ""),
+                r.get("project_number") or "", r.get("project_name") or "",
+                r.get("employee_name") or "", r.get("supervisor_name") or "",
+            ]
+            if not lines:
+                w.writerow(base + [""] * 9)
+                continue
+            for line in lines:
+                try:
+                    qty = float(line.get("qty") or 1)
+                except (TypeError, ValueError):
+                    qty = 1
+                try:
+                    rv = float(line.get("replacement_value") or 0)
+                except (TypeError, ValueError):
+                    rv = 0
+                w.writerow(base + [
+                    line.get("manufacturer") or "",
+                    line.get("name") or "",
+                    line.get("model") or "",
+                    line.get("serial") or "",
+                    qty,
+                    line.get("condition") or "",
+                    f"{rv:.2f}",
+                    f"{(qty * rv):.2f}",
+                    (line.get("notes") or "").replace("\n", " "),
+                ])
+        return Response(
+            content=out.getvalue(),
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": 'attachment; filename="equipment_checkout_export.csv"',
+            },
+        )
+
     app.include_router(router)
     return router
+
+
+def _fmt_date_str(iso: str) -> str:
+    if not iso:
+        return ""
+    return iso.replace("T", " ").split(".", 1)[0][:16]
+
+
+# ----------------------------------------------------------------------
+# Seed defaults — equipment catalog + makes. Idempotent: only inserts if
+# the collection is empty. Re-running deploy/restart never duplicates.
+# ----------------------------------------------------------------------
+
+EQUIPMENT_CATALOG_DEFAULTS = [
+    ("Rotating Laser Kit", 1000.00, "Topcon"),
+    ("Pipe Laser Kit", 5000.00, "Topcon"),
+    ("GPS Base/Rover Kit", 50000.00, "Topcon"),
+    ("Total Station Robot Kit", 60000.00, "Topcon"),
+    ("Eye Level Kit / Transit", 650.00, "Spectra"),
+    ("Chainsaw", 450.00, "Stihl"),
+    ("14\" Cut-Off Saw", 1850.00, "Stihl"),
+    ("Walk-Behind Saw", 4200.00, "Husqvarna"),
+    ("LPS Prism Head", 6000.00, "Topcon"),
+    ("Tripod", 350.00, "Spectra"),
+    ("Grade Rod", 250.00, "Spectra"),
+    ("GPS Rover Pole", 300.00, "Topcon"),
+    ("Laser Receiver", 450.00, "Spectra"),
+    ("Magnetic Locator", 1200.00, None),
+    ("Gas Monitor", 950.00, None),
+    ("Plate Compactor", 2800.00, "Honda"),
+    ("Jumping Jack / Trench Rammer", 3500.00, "Honda"),
+    ("Trash Pump", 1500.00, "Honda"),
+    ("Submersible Pump", 850.00, "Honda"),
+    ("Generator", 1200.00, "Honda"),
+    ("Demo Saw Cart", 900.00, "Stihl"),
+    ("Concrete Vibrator", 750.00, None),
+    ("Core Drill", 2500.00, "Milwaukee"),
+    ("Hammer Drill", 600.00, "Milwaukee"),
+    ("Milwaukee High Torque Impact Kit", 700.00, "Milwaukee"),
+    ("Pipe Laser Target Set", 500.00, "Topcon"),
+    ("Traffic Message Board Remote / Controller", 1000.00, None),
+    ("Radio / Communication Device", 350.00, None),
+    ("iPad / Tablet", 700.00, None),
+    ("Company Phone", 900.00, None),
+    ("Laptop", 1500.00, None),
+]
+
+EQUIPMENT_MAKES_DEFAULTS = [
+    "Topcon", "Stihl", "Honda", "Spectra", "Trimble",
+    "Predator", "Milwaukee", "DeWalt", "Husqvarna",
+]
+
+
+async def seed_equipment_defaults(db) -> None:
+    """Idempotent — seeds catalog + makes only if collections are empty."""
+    try:
+        existing = await db.field_leadership_equipment_catalog.count_documents({})
+        if existing == 0:
+            now = datetime.now(timezone.utc).isoformat()
+            docs = []
+            for name, value, default_make in EQUIPMENT_CATALOG_DEFAULTS:
+                docs.append({
+                    "id": str(uuid.uuid4()),
+                    "name": name,
+                    "name_es": None,
+                    "replacement_value": value,
+                    "default_make": default_make,
+                    "category": None,
+                    "active": True,
+                    "created_at": now,
+                    "updated_at": now,
+                })
+            if docs:
+                await db.field_leadership_equipment_catalog.insert_many(docs)
+    except Exception:
+        pass
+    try:
+        existing = await db.field_leadership_equipment_makes.count_documents({})
+        if existing == 0:
+            now = datetime.now(timezone.utc).isoformat()
+            docs = [
+                {"id": str(uuid.uuid4()), "name": n, "active": True,
+                 "created_at": now, "updated_at": now}
+                for n in EQUIPMENT_MAKES_DEFAULTS
+            ]
+            if docs:
+                await db.field_leadership_equipment_makes.insert_many(docs)
+    except Exception:
+        pass
 
 
 def _escape(s: str) -> str:

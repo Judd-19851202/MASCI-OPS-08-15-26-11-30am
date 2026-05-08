@@ -6395,7 +6395,7 @@ _attach_job_photos_routes(app, db, require_admin, _job_photos_send_email)
 # ============================================================
 # Field Leadership routes — supervisor docs (write-ups, coaching, etc.)
 # ============================================================
-from routes.field_leadership import attach_routes as _attach_field_leadership_routes  # noqa: E402
+from routes.field_leadership import attach_routes as _attach_field_leadership_routes, seed_equipment_defaults as _seed_field_leadership_equipment  # noqa: E402
 from field_leadership_pdf import render_field_leadership_pdf as _render_field_leadership_pdf  # noqa: E402
 
 
@@ -6448,6 +6448,11 @@ _attach_field_leadership_routes(
 @app.on_event("startup")
 async def _start_job_photos_indexer():
     asyncio.create_task(_job_photos_indexer_loop(db))
+
+
+@app.on_event("startup")
+async def _seed_field_leadership_equipment_catalog():
+    await _seed_field_leadership_equipment(db)
 
 
 # ============================================================

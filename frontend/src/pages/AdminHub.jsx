@@ -379,6 +379,32 @@ export default function AdminHub() {
         <EmployeeMasterPanel />
         <SupplierMasterPanel />
 
+        {/* 7b · Field Leadership — Equipment Catalog + Manufacturers */}
+        <div className="border-2 border-slate-300 rounded-md p-5 bg-white">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold">
+                Field Leadership
+              </span>
+              <h3 className="font-display text-xl sm:text-2xl font-black mt-1">
+                Equipment Catalog & Manufacturers
+              </h3>
+              <p className="text-sm text-slate-600 mt-1 max-w-xl">
+                Manage the searchable equipment list and manufacturer dropdown used by the
+                Equipment Checkout & Accountability form. Edit replacement values, disable
+                old items, and export the full checkout history.
+              </p>
+            </div>
+            <Link
+              to="/admin/leadership-equipment"
+              className="inline-flex items-center h-10 px-4 rounded-md bg-blue-700 hover:bg-blue-800 text-white font-bold uppercase tracking-wide text-xs"
+              data-testid="admin-leadership-equipment-link"
+            >
+              Open
+            </Link>
+          </div>
+        </div>
+
         {/* ============================================================
             SYSTEM RECOVERY — admin-only destructive controls.
             Parked at the bottom of the page on purpose so the PM

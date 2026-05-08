@@ -44,6 +44,7 @@ import ViewEquipmentInspection from "@/pages/ViewEquipmentInspection";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
 import AdminGuide from "@/pages/AdminGuide";
+import AdminLeadershipEquipment from "@/pages/AdminLeadershipEquipment";
 import ProjectPnlPage from "@/pages/ProjectPnlPage";
 import PmLogin from "@/pages/PmLogin";
 import PmChangePassword from "@/pages/PmChangePassword";
@@ -208,6 +209,7 @@ function App() {
                 ============================================================ */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={A(<AdminHub />)} />
+            <Route path="/admin/leadership-equipment" element={A(<AdminLeadershipEquipment />)} />
             <Route path="/admin/guide" element={A(<AdminGuide />)} />
             <Route path="/admin/pnl" element={AP(<ProjectPnlPage />)} />
 

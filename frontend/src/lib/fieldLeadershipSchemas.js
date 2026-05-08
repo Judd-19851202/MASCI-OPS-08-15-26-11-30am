@@ -176,30 +176,28 @@ export const FIELD_LEADERSHIP_FORMS = [
     accent: "blue",
     title: { en: "Equipment Checkout & Accountability", es: "Asignación y Responsabilidad de Equipo" },
     desc: {
-      en: "Track company tools/equipment issued to employees with sign-out and return condition.",
-      es: "Registre herramientas/equipo de la empresa entregados a empleados con firma y condición de devolución.",
+      en: "Track company tools/equipment issued to employees with sign-out and replacement-value accountability.",
+      es: "Registre herramientas/equipo de la empresa entregados con firma y valor de reemplazo.",
     },
     needs_signatures: true,
-    allows_photos: true,
-    photos_required_when: { field: "condition", equals_any: ["Fair", "Damaged"] },
+    allow_refusal: true,
+    allows_photos: false, // Photos live on each line, not the form root
+    custom_renderer: "equipment_lines",
     acknowledgement: {
-      en: "Employee acknowledges receipt of company property and agrees to use, maintain, and return the equipment in accordance with company policy and applicable law.",
-      es: "El empleado acusa recibo de la propiedad de la empresa y acepta usar, mantener y devolver el equipo conforme a las políticas de la empresa y la ley aplicable.",
+      en: [
+        "I acknowledge receipt of the company equipment, tools, and/or property listed above. I understand that this equipment remains the property of MASCI General Contractors and is issued to me for company business purposes only.",
+        "I agree to use, secure, care for, maintain, and return all issued equipment in accordance with company policy, manufacturer instructions, and applicable safety requirements.",
+        "I understand that loss, theft, damage, misuse, neglect, abuse, unauthorized use, or failure to return company equipment may result in disciplinary action and may result in financial responsibility for repair or replacement costs, only to the extent permitted by applicable federal law, Florida law, and company policy. Any payroll deduction or reimbursement will be handled only where legally permitted and with any required authorization.",
+        "My signature acknowledges receipt of the listed equipment and this responsibility notice.",
+      ],
+      es: [
+        "Reconozco haber recibido el equipo, herramientas y/o propiedad de la empresa que se enumeran arriba. Entiendo que este equipo sigue siendo propiedad de MASCI General Contractors y se me entrega únicamente para fines comerciales de la empresa.",
+        "Acepto usar, asegurar, cuidar, mantener y devolver todo el equipo entregado conforme a la política de la empresa, las instrucciones del fabricante y los requisitos de seguridad aplicables.",
+        "Entiendo que la pérdida, robo, daño, uso indebido, negligencia, abuso, uso no autorizado o falta de devolución del equipo de la empresa puede resultar en acción disciplinaria y puede generar responsabilidad económica por costos de reparación o reemplazo, únicamente en la medida permitida por la ley federal aplicable, la ley de Florida y la política de la empresa. Cualquier deducción de nómina o reembolso se realizará solo donde sea legalmente permitido y con cualquier autorización requerida.",
+        "Mi firma reconoce la recepción del equipo enumerado y este aviso de responsabilidad.",
+      ],
     },
-    fields: [
-      { name: "equipment_type", label: { en: "Equipment / Tool Type", es: "Tipo de Equipo / Herramienta" }, type: "text", required: true },
-      { name: "asset_id", label: { en: "Asset ID / Serial Number", es: "ID de Activo / Número de Serie" }, type: "text" },
-      { name: "condition", label: { en: "Condition at Checkout", es: "Condición al Entregar" }, type: "select", required: true,
-        options: [
-          { en: "New", es: "Nuevo" },
-          { en: "Good", es: "Bueno" },
-          { en: "Fair", es: "Aceptable" },
-          { en: "Damaged", es: "Dañado" },
-        ] },
-      { name: "condition_description", label: { en: "Description of Condition", es: "Descripción de la Condición" }, type: "textarea", rows: 3 },
-      { name: "date_issued", label: { en: "Date Issued", es: "Fecha de Entrega" }, type: "date", required: true },
-      { name: "expected_return", label: { en: "Expected Return Date", es: "Fecha Esperada de Devolución" }, type: "date" },
-    ],
+    fields: [],
   },
   {
     kind: "new_employee_eval",
