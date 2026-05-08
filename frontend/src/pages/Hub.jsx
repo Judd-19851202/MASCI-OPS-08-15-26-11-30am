@@ -41,6 +41,7 @@ const SectionCard = ({ to, icon: Icon, eyebrow, title, desc, bullets, accent, te
     red:    { bg: "bg-red-700",     bar: "border-red-700",     ring: "hover:border-red-700",     pill: "text-red-700 bg-red-50" },
     amber:  { bg: "bg-amber-600",   bar: "border-amber-600",   ring: "hover:border-amber-600",   pill: "text-amber-700 bg-amber-50" },
     slate:  { bg: "bg-slate-900",   bar: "border-slate-900",   ring: "hover:border-slate-900",   pill: "text-slate-800 bg-slate-100" },
+    lightGrey: { bg: "bg-slate-400", bar: "border-slate-400",   ring: "hover:border-slate-500",   pill: "text-slate-700 bg-slate-100" },
     emerald:{ bg: "bg-emerald-700", bar: "border-emerald-700", ring: "hover:border-emerald-700", pill: "text-emerald-700 bg-emerald-50" },
     blue:   { bg: "bg-blue-700",    bar: "border-blue-700",    ring: "hover:border-blue-700",    pill: "text-blue-700 bg-blue-50" },
     cyan:   { bg: "bg-cyan-600",    bar: "border-cyan-600",    ring: "hover:border-cyan-600",    pill: "text-cyan-700 bg-cyan-50" },
@@ -343,7 +344,7 @@ export default function Hub() {
               t("Write-Ups · Coaching · Attendance · Recognition"),
               t("Equipment Checkout/Return · Evaluations · Supervisor Notes"),
             ]}
-            accent="slate"
+            accent="lightGrey"
             testId="hub-section-leadership"
             className="md:col-span-2"
           />
