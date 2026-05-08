@@ -26,10 +26,13 @@
 // 6. NO HTML CACHING. The app shell is never cached here, so a deploy
 //    of new index.html / JS bundles is always fetched fresh.
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `masci-thumbs-${CACHE_VERSION}`;
-const MAX_ENTRIES = 200;
-const THUMB_URL_RE = /\/api\/job-photos\/[^/]+\/thumb(\?|$)/;
+const MAX_ENTRIES = 400;
+// Cache both the legacy auth-header endpoint and the new signed-URL
+// endpoint. The signed endpoint is the hot path (gallery <img src>),
+// the legacy one stays for lightbox preloads + native shells.
+const THUMB_URL_RE = /\/api\/job-photos\/[^/]+\/thumb(-signed)?(\?|$)/;
 
 self.addEventListener("install", (event) => {
   // Take over from the previous SW immediately on first load.
@@ -73,13 +76,31 @@ async function trimCache(cache) {
  * have one, then refresh it in the background. If nothing is cached we
  * fall through to a normal network fetch and cache the result.
  *
+ * Cache key normalization: signed-URL thumbs include a 1h-rotating
+ * ``?t=<token>`` parameter. Without normalization every page reload
+ * after the token TTL would re-fetch every photo from the network.
+ * We strip ``t`` (and any other ephemeral params) from the cache key
+ * so the same ``photo_id`` shares one entry across token rotations.
+ *
  * Errors at every step are swallowed — the user always gets the
  * default browser/network behaviour as the safety net.
  */
+function thumbCacheKey(req) {
+  try {
+    const u = new URL(req.url);
+    u.searchParams.delete("t");
+    // Build a stable Request matching the original method/headers but
+    // with the normalized URL. Cache API matches by URL string + method.
+    return new Request(u.toString(), { method: "GET" });
+  } catch {
+    return req;
+  }
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
-  // Only same-origin /api/job-photos/*/thumb requests.
+  // Only same-origin /api/job-photos/*/thumb(-signed)? requests.
   let url;
   try { url = new URL(req.url); } catch { return; }
   if (url.origin !== self.location.origin) return;
@@ -89,14 +110,15 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       try {
         const cache = await caches.open(CACHE_NAME);
+        const key = thumbCacheKey(req);
         // ignoreVary:false so AVIF/WebP/JPEG variants stay separate.
-        const cached = await cache.match(req, { ignoreVary: false });
+        const cached = await cache.match(key, { ignoreVary: false });
         const networkPromise = fetch(req)
           .then(async (res) => {
             // Only cache successful, complete responses.
             if (res && res.ok && res.status === 200) {
               try {
-                await cache.put(req, res.clone());
+                await cache.put(key, res.clone());
                 trimCache(cache);
               } catch { /* QuotaExceededError, ignore */ }
             }

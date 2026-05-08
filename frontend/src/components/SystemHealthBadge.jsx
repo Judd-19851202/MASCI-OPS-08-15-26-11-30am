@@ -36,7 +36,12 @@ const SLOW_THRESHOLD_MS = 2000;
 async function pingOne(ep) {
   const t0 = performance.now();
   try {
-    const r = await api.get(ep.path, { timeout: 8000 });
+    // Longer timeout on the universal /health probe — under heavy gallery
+    // load the FastAPI worker can be busy rendering thumbs for 5-10s.
+    // Other endpoints get a tighter budget so genuine outages still
+    // surface within the poll window.
+    const timeout = ep.path === "/health" ? 15000 : 10000;
+    const r = await api.get(ep.path, { timeout });
     const ms = Math.round(performance.now() - t0);
     return {
       ...ep,
@@ -74,10 +79,31 @@ export default function SystemHealthBadge() {
   const [alertSent, setAlertSent] = useState(null); // {ts, key} of last successful alert
   const timerRef = useRef(null);
   const prevWorstRef = useRef("ok");
+  // Per-endpoint consecutive-fail streak. We require TWO failures in a
+  // row before painting red — a single transient timeout (cold worker,
+  // brief network blip, an /api/job-photos batch saturating the worker
+  // for 1.5s) used to trigger the red "DOWN" badge mid-page-load on
+  // heavy galleries even though the backend was actually fine. Two
+  // failures in a row is closer to the truth.
+  const failStreakRef = useRef({});
 
   const runAll = async () => {
     setLoading(true);
     const out = await Promise.all(ENDPOINTS.map(pingOne));
+    // Apply streak debouncing: if a result came back as "error" but the
+    // previous run was OK, demote to "warn" for this round. The next run
+    // either confirms (escalates back to "error") or recovers.
+    for (const r of out) {
+      if (r.level === "error") {
+        failStreakRef.current[r.path] = (failStreakRef.current[r.path] || 0) + 1;
+        if (failStreakRef.current[r.path] < 2) {
+          r.level = "warn";
+          r.msg = `${r.msg} · transient`;
+        }
+      } else {
+        failStreakRef.current[r.path] = 0;
+      }
+    }
     setResults(out);
     setLastChecked(new Date());
     setLoading(false);

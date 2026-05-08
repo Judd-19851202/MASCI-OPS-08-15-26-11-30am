@@ -41,18 +41,36 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
+import hmac
 import io
 import logging
+import os
 import re
+import time
 import zipfile
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
 from pm_auth import compute_pm_scope
+
+# Register HEIF/HEIC opener once at import. Without this, iPhone photos
+# (default HEIC format) cannot be decoded by Pillow and end up rendered
+# as broken thumbnails for every job-photo gallery view. pillow-heif is a
+# hard dependency of this module — falling back silently would mask a
+# very real and recurring user-facing bug.
+try:
+    from pillow_heif import register_heif_opener  # type: ignore
+    register_heif_opener()
+except Exception as _heif_err:  # noqa: BLE001
+    logging.getLogger(__name__).warning(
+        f"[job-photos] pillow-heif failed to register: {_heif_err}. "
+        "iPhone HEIC thumbnails will fall back to broken-image placeholders."
+    )
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/job-photos", tags=["job-photos"])
@@ -251,6 +269,156 @@ async def _load_photo(db, source: str, source_id: str, idx: int) -> Optional[str
 
 
 # ─────────────────────────────────────────────────────────────────────────
+# Server-side thumbnail cache (Mongo) + signed-URL helpers
+# ─────────────────────────────────────────────────────────────────────────
+# Why a Mongo cache instead of disk?
+# 1. Disk on the Emergent container is ephemeral — survives a single boot
+#    but vanishes on every redeploy. A 156-photo gallery would re-render
+#    every photo through Pillow on every deploy → user sees the slow load
+#    again every time.
+# 2. Multi-worker uvicorn would need a shared volume to share the disk
+#    cache anyway — Mongo is already there and shared.
+# 3. Each AVIF thumb is ~5-15 KB so even 50K photos × 3 formats = ~3 GB
+#    which is well within the Atlas plan we're on. We bound it with a
+#    7-day TTL so cold photos drop out automatically.
+#
+# Schema (db.job_photo_thumb_cache):
+#   _id               composite "<photo_id>:<fmt>" — e.g. "daily:abc123:0:avif"
+#   photo_id          str — the job_photos id
+#   fmt               "avif" | "webp" | "jpeg"
+#   bytes             binary blob
+#   created_at        datetime UTC (TTL index)
+_THUMB_TTL_DAYS = 7
+
+
+def _thumb_cache_key(photo_id: str, fmt: str) -> str:
+    return f"{photo_id}:{fmt.lower()}"
+
+
+async def _ensure_thumb_cache_indexes(db) -> None:
+    try:
+        await db.job_photo_thumb_cache.create_index(
+            "created_at", expireAfterSeconds=_THUMB_TTL_DAYS * 86400
+        )
+        await db.job_photo_thumb_cache.create_index("photo_id")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[job-photos] thumb cache index create failed: {e}")
+
+
+async def _read_thumb_cache(db, photo_id: str, fmt: str) -> Optional[bytes]:
+    doc = await db.job_photo_thumb_cache.find_one(
+        {"_id": _thumb_cache_key(photo_id, fmt)}, {"bytes": 1}
+    )
+    if not doc:
+        return None
+    payload = doc.get("bytes")
+    # PyMongo returns binary as `bytes` directly. Defensive against
+    # legacy {"$binary": ...} payloads.
+    if isinstance(payload, (bytes, bytearray)):
+        return bytes(payload)
+    return None
+
+
+async def _write_thumb_cache(db, photo_id: str, fmt: str, payload: bytes) -> None:
+    try:
+        await db.job_photo_thumb_cache.update_one(
+            {"_id": _thumb_cache_key(photo_id, fmt)},
+            {"$set": {
+                "_id": _thumb_cache_key(photo_id, fmt),
+                "photo_id": photo_id,
+                "fmt": fmt,
+                "bytes": payload,
+                "created_at": datetime.now(timezone.utc),
+            }},
+            upsert=True,
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[job-photos] thumb cache write failed: {e}")
+
+
+def _thumb_secret() -> bytes:
+    """HMAC secret for signed thumbnail URLs. Re-uses the same admin
+    HMAC secret as the rest of the auth system so rotation invalidates
+    every signed URL too."""
+    s = (os.environ.get("ADMIN_HMAC_SECRET") or "").strip()
+    if not s:
+        # Fall back to a per-process random — survives the worker
+        # lifetime, which is fine for cached <img src> tokens.
+        s = hashlib.sha256(os.urandom(32)).hexdigest()
+    return s.encode()
+
+
+def make_thumb_token(photo_id: str, ttl_seconds: int = 3600) -> str:
+    """`<exp_unix>.<hmac>` — signed-URL token for <img src>.
+
+    The token grants thumbnail access for a single photo for the next
+    ``ttl_seconds`` (default 1h). It does NOT grant access to /raw or
+    any other endpoint. Browser-cacheable, SW-cacheable, no axios round-
+    trip needed. Renew by re-listing /job-photos which mints fresh ones.
+    """
+    exp = int(time.time()) + max(60, ttl_seconds)
+    msg = f"thumb|exp={exp}|photo:{photo_id}".encode()
+    sig = hmac.new(_thumb_secret(), msg, hashlib.sha256).hexdigest()[:32]
+    return f"{exp}.{sig}"
+
+
+def verify_thumb_token(photo_id: str, token: str) -> bool:
+    if not token or "." not in token:
+        return False
+    exp_str, sig = token.split(".", 1)
+    try:
+        exp = int(exp_str)
+    except ValueError:
+        return False
+    if exp < int(time.time()):
+        return False
+    msg = f"thumb|exp={exp}|photo:{photo_id}".encode()
+    expected = hmac.new(_thumb_secret(), msg, hashlib.sha256).hexdigest()[:32]
+    return hmac.compare_digest(sig, expected)
+
+
+def _render_thumb_payload(raw: bytes, accept: str) -> tuple[bytes, str]:
+    """Pillow-render a thumbnail in the best format the client supports.
+
+    Returns ``(bytes, mime)``. Falls back to the original bytes labeled
+    image/jpeg if Pillow can't decode (which now also covers HEIC via
+    pillow-heif). Lossy 360px on the long edge — gallery thumbs only.
+    """
+    accept_l = (accept or "").lower()
+    prefers_avif = "image/avif" in accept_l
+    prefers_webp = "image/webp" in accept_l
+    try:
+        from PIL import Image as _PILImage  # type: ignore  # noqa: WPS433
+        with _PILImage.open(io.BytesIO(raw)) as im:
+            im.thumbnail((360, 360), _PILImage.LANCZOS)
+            if im.mode in ("RGBA", "LA", "P"):
+                im = im.convert("RGB")
+            fmt, mime, kwargs = "JPEG", "image/jpeg", {"quality": 60, "optimize": True}
+            if prefers_avif:
+                try:
+                    test = io.BytesIO()
+                    im.save(test, format="AVIF", quality=45)
+                    fmt, mime = "AVIF", "image/avif"
+                    kwargs = {"quality": 45}
+                except Exception:
+                    prefers_avif = False
+            if not prefers_avif and prefers_webp:
+                try:
+                    test = io.BytesIO()
+                    im.save(test, format="WebP", quality=60)
+                    fmt, mime = "WebP", "image/webp"
+                    kwargs = {"quality": 60, "method": 4}
+                except Exception:
+                    pass
+            buf = io.BytesIO()
+            im.save(buf, format=fmt, **kwargs)
+            return buf.getvalue(), mime
+    except Exception as e:
+        logger.debug(f"[job-photos] Pillow render failed, using raw: {e}")
+        return raw, "image/jpeg"
+
+
+# ─────────────────────────────────────────────────────────────────────────
 # Pydantic models for endpoints
 # ─────────────────────────────────────────────────────────────────────────
 class BulkSelection(BaseModel):
@@ -267,6 +435,64 @@ class BulkEmail(BaseModel):
 # ─────────────────────────────────────────────────────────────────────────
 # Endpoints — wired into server.py via include_router
 # ─────────────────────────────────────────────────────────────────────────
+async def _serve_thumb(db, photo_id: str, meta: dict, accept: str) -> Response:
+    """Shared cache-or-render path for both /thumb and /thumb-signed.
+
+    Resolves the requested format from the Accept header, hits the
+    Mongo cache, and renders through Pillow only on miss. All paths
+    return a Response with appropriate Cache-Control + Vary headers
+    so the browser, the service worker, and any intermediate proxy
+    cache the bytes correctly across visits.
+    """
+    accept_l = (accept or "").lower()
+    if "image/avif" in accept_l:
+        fmt_pref = "avif"
+    elif "image/webp" in accept_l:
+        fmt_pref = "webp"
+    else:
+        fmt_pref = "jpeg"
+
+    cached = await _read_thumb_cache(db, photo_id, fmt_pref)
+    if cached:
+        return Response(
+            content=cached,
+            media_type=f"image/{fmt_pref if fmt_pref != 'jpeg' else 'jpeg'}",
+            headers={
+                "Cache-Control": "private, max-age=604800, immutable",
+                "Vary": "Accept",
+                "X-Thumb-Cache": "hit",
+            },
+        )
+
+    url = await _load_photo(db, meta["source"], meta["source_id"], meta["photo_index"])
+    decoded = _decode_data_url(url) if url else None
+    if not decoded:
+        raise HTTPException(404, "source photo missing")
+    raw, _ext = decoded
+
+    # Render off the event loop so concurrent gallery loads don't block
+    # other endpoints (e.g. /api/health, which was timing out under load
+    # and tripping the SystemHealthBadge red banner).
+    payload, mime = await asyncio.to_thread(_render_thumb_payload, raw, accept)
+    actual_fmt = mime.split("/")[-1]
+    if actual_fmt == "jpeg":
+        actual_fmt = "jpeg"
+    # Persist into cache (best-effort). Using fmt_pref keeps lookup keys
+    # consistent — if Pillow couldn't honor the preferred format we still
+    # store under the requested key so we don't re-render every time.
+    await _write_thumb_cache(db, photo_id, fmt_pref, payload)
+
+    return Response(
+        content=payload,
+        media_type=mime,
+        headers={
+            "Cache-Control": "private, max-age=604800, immutable",
+            "Vary": "Accept",
+            "X-Thumb-Cache": "miss",
+        },
+    )
+
+
 def attach_routes(app, db, require_caller, send_email_fn) -> None:
     """Wire endpoints to a running FastAPI app.
 
@@ -293,7 +519,14 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         submitter: Optional[str] = Query(None),
     ):
         """Return the metadata index (no photo bytes). Frontend then asks
-        for individual photo bytes only when rendering a thumbnail / zoom."""
+        for individual photo bytes only when rendering a thumbnail / zoom.
+
+        Each item also carries a ``thumb_token`` — a 1h HMAC-signed URL
+        token the frontend uses as ``<img src=".../thumb-signed?t=...">``.
+        That lets the browser cache + service worker cache do their job
+        WITHOUT a per-thumb axios round-trip, and is the single biggest
+        wire-time speedup vs. iter44's blob-via-axios approach.
+        """
         scope = await compute_pm_scope(db, actor)
         q: Dict[str, Any] = {}
         if source: q["source"] = source
@@ -308,6 +541,10 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         q = scope.filter(q)
         cursor = db.job_photos.find(q, {"_id": 0}).sort("record_date", -1).limit(5000)
         items = await cursor.to_list(length=5000)
+        # Mint a 1h thumb token per item so the gallery can render via
+        # plain <img src> with no axios overhead.
+        for it in items:
+            it["thumb_token"] = make_thumb_token(it["id"], ttl_seconds=3600)
         return {"items": items, "count": len(items)}
 
     @router.get("/{photo_id}/raw")
@@ -334,73 +571,49 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         request: Request,
         actor=Depends(require_caller),
     ):
-        """Return a small (≤ 360px on the long edge) thumbnail of a photo.
-        Content-negotiated: serves AVIF (best, ~40% smaller than JPEG) when
-        the client's Accept header advertises image/avif, then WebP, then
-        falls back to JPEG q60 for legacy clients (older iOS Safari, curl,
-        bots). All paths use Pillow which is already a hard dependency.
-        Cached for 24h (immutable: photo_id never changes content)."""
+        """Auth-header thumbnail endpoint. Kept for backward compat with
+        existing clients (lightbox preview, mobile native shells). New
+        gallery uses the signed-URL ``/thumb-signed`` path instead so
+        the browser cache + service worker can do their job without an
+        axios interceptor in the way.
+
+        Hits the Mongo cache first; only renders through Pillow on miss.
+        """
         scope = await compute_pm_scope(db, actor)
         meta = await db.job_photos.find_one({"id": photo_id}, {"_id": 0})
         if not meta:
             raise HTTPException(404, "photo not found")
         if not scope.allows(meta.get("project_number")):
             raise HTTPException(403, "not in scope")
-        url = await _load_photo(db, meta["source"], meta["source_id"], meta["photo_index"])
-        decoded = _decode_data_url(url) if url else None
-        if not decoded:
-            raise HTTPException(404, "source photo missing")
-        raw, _ext = decoded
-        # Pick best format the caller can decode. We bias toward AVIF first
-        # since it's the smallest and every modern phone/browser supports
-        # it. If anything in the chain fails (codec missing, decode error,
-        # weird source format like HEIC) we fall back to the original
-        # bytes — the gallery will still render correctly.
-        accept = (request.headers.get("accept") or "").lower()
-        prefers_avif = "image/avif" in accept
-        prefers_webp = "image/webp" in accept
-        try:
-            from PIL import Image as _PILImage  # type: ignore  # noqa: WPS433
-            with _PILImage.open(io.BytesIO(raw)) as im:
-                im.thumbnail((360, 360), _PILImage.LANCZOS)
-                if im.mode in ("RGBA", "LA", "P"):
-                    im = im.convert("RGB")
-                fmt, mime, kwargs = "JPEG", "image/jpeg", {"quality": 60, "optimize": True}
-                if prefers_avif:
-                    try:
-                        buf_test = io.BytesIO()
-                        im.save(buf_test, format="AVIF", quality=45)
-                        fmt, mime = "AVIF", "image/avif"
-                        kwargs = {"quality": 45}
-                    except Exception:
-                        prefers_avif = False
-                if not prefers_avif and prefers_webp:
-                    try:
-                        buf_test = io.BytesIO()
-                        im.save(buf_test, format="WebP", quality=60)
-                        fmt, mime = "WebP", "image/webp"
-                        kwargs = {"quality": 60, "method": 4}
-                    except Exception:
-                        pass
-                buf = io.BytesIO()
-                im.save(buf, format=fmt, **kwargs)
-                payload = buf.getvalue()
-        except Exception:
-            # Pillow choked entirely (corrupt/heic/heif) — fall back to
-            # original bytes with image/jpeg content type as a guess.
-            payload = raw
-            mime = "image/jpeg"
-        from fastapi.responses import Response  # local import to avoid clash
-        return Response(
-            content=payload,
-            media_type=mime,
-            headers={
-                "Cache-Control": "private, max-age=86400, immutable",
-                # Tell intermediate caches that responses depend on Accept,
-                # so AVIF/WebP/JPEG variants don't bleed across browsers.
-                "Vary": "Accept",
-            },
-        )
+        return await _serve_thumb(db, photo_id, meta, request.headers.get("accept", ""))
+
+    @router.get("/{photo_id}/thumb-signed")
+    async def get_photo_thumb_signed(
+        photo_id: str,
+        request: Request,
+        t: str = Query(..., description="HMAC signed token from /api/job-photos"),
+    ):
+        """Browser-friendly signed-URL thumbnail. No auth header required —
+        the ``t`` query parameter carries a 1h HMAC token minted in the
+        list endpoint and bound to this single ``photo_id``. Does NOT
+        grant access to /raw or any other endpoint.
+
+        Why this exists: <img src=...> can't carry custom headers, so
+        the original /thumb endpoint forced us to fetch via axios → blob
+        → object URL, which kills both the browser cache AND the service
+        worker cache. With a signed query param, the browser caches by
+        URL, the SW caches by URL, and the second visit to a job is
+        effectively instant.
+        """
+        if not verify_thumb_token(photo_id, t):
+            raise HTTPException(403, "thumb token invalid or expired")
+        meta = await db.job_photos.find_one({"id": photo_id}, {"_id": 0})
+        if not meta:
+            raise HTTPException(404, "photo not found")
+        # Note: PM scope was already enforced at list-time when the token
+        # was minted. The token+expiry binding makes lateral leakage to
+        # other photos impossible (signature is photo_id-specific).
+        return await _serve_thumb(db, photo_id, meta, request.headers.get("accept", ""))
 
     @router.post("/raw-batch")
     async def get_photo_raw_batch(
@@ -546,11 +759,26 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
     async def admin_reindex(
         actor=Depends(require_caller),
     ):
-        """Admin-only: wipe and rebuild the photo index from scratch."""
+        """Admin-only: wipe and rebuild the photo index from scratch.
+
+        Also wipes the thumbnail cache so the next gallery load picks
+        up any photos that were previously failing (e.g. iPhone HEIC
+        before pillow-heif was installed).
+        """
         scope = await compute_pm_scope(db, actor)
         if not scope.is_admin:
             raise HTTPException(403, "admin only")
+        try:
+            await db.job_photo_thumb_cache.delete_many({})
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[job-photos] thumb cache wipe failed: {e}")
         result = await reindex_all(db)
         return {"ok": True, **result}
+
+    # Best-effort thumb-cache index creation at module load. Idempotent.
+    try:
+        asyncio.get_event_loop().create_task(_ensure_thumb_cache_indexes(db))
+    except Exception:
+        pass
 
     app.include_router(router)

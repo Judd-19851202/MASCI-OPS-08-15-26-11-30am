@@ -117,30 +117,23 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
 
   const total = items?.length || 0;
 
-  // ── Thumbnail loader (lazy, cached) ──────────────────────────────────
-  // Uses the small /thumb endpoint (~5-20 KB JPEGs) so a 60-photo week
-  // loads in ~1s instead of 30s. The lightbox/zoom path still hits /raw
-  // for full-resolution viewing.
+  // ── Thumbnail loader (now signed-URL, no axios round-trip) ────────────
+  // Each photo metadata row from /api/job-photos carries a 1h HMAC-signed
+  // ``thumb_token`` we can plug straight into <img src=...?t=...>. That:
+  //   • Lets the browser cache + service worker actually do their job
+  //     (axios+blob+objectURL bypassed both → ~1s/photo on a warm reload).
+  //   • Drops 60 axios requests + 60 token-validation passes per gallery
+  //     view → backend worker stays free for /api/health, killing the
+  //     phantom "server down" red banner reports.
+  //   • Lazy-decoded by the <img> tag itself (loading="lazy") so the
+  //     browser only fetches what scrolls into view.
+  // We still keep the OBSERVER below for visibility tracking (used to
+  // gate the lightbox preloader), but no per-thumb fetch is needed.
   const THUMB_BASE = `${process.env.REACT_APP_BACKEND_URL}/api/job-photos`;
-  const ensureThumb = async (id) => {
-    if (thumbCache[id] === "loading" || thumbCache[id]) return;
-    setThumbCache((p) => ({ ...p, [id]: "loading" }));
-    try {
-      // Direct-from-server <img src> would need auth headers, so we fetch
-      // via axios (which carries the token) and turn it into an object URL.
-      // The Accept header tells the backend which formats this client can
-      // decode — modern browsers + iOS Safari handle AVIF + WebP, saving
-      // ~50% on the wire vs. the JPEG fallback for legacy clients.
-      const res = await api.get(`/job-photos/${id}/thumb`, {
-        responseType: "blob",
-        headers: { Accept: "image/avif,image/webp,image/jpeg,image/*,*/*;q=0.8" },
-      });
-      const objUrl = URL.createObjectURL(res.data);
-      setThumbCache((p) => ({ ...p, [id]: objUrl }));
-    } catch {
-      setThumbCache((p) => ({ ...p, [id]: "error" }));
-    }
-  };
+  const thumbSrc = (it) =>
+    it?.thumb_token
+      ? `${THUMB_BASE}/${encodeURIComponent(it.id)}/thumb-signed?t=${encodeURIComponent(it.thumb_token)}`
+      : null;
 
   // Full-resolution loader for the lightbox only.
   const ensureFullSrc = async (id) => {
@@ -412,8 +405,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
                                   <PhotoTile
                                     key={p.id}
                                     photo={p}
-                                    src={thumbCache[p.id]}
-                                    onLoad={() => ensureThumb(p.id)}
+                                    src={thumbSrc(p)}
                                     selected={selected.has(p.id)}
                                     onToggle={() => toggle(p.id)}
                                     onZoom={() => setLightboxId(p.id)}
@@ -504,59 +496,30 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
   );
 }
 
-function PhotoTile({ photo, src, onLoad, selected, onToggle, onZoom }) {
+function PhotoTile({ photo, src, selected, onToggle, onZoom }) {
   const [broken, setBroken] = useState(false);
-  const wrapperRef = React.useRef(null);
-  const [visible, setVisible] = useState(false);
 
-  // IntersectionObserver — only fetch the thumb when the tile is actually
-  // about to scroll into view. With ~60 photos in an open week this drops
-  // simultaneous fetches from 60 to ~10 (only what's visible) and means
-  // the user feels the gallery is instant even on a slow network.
-  useEffect(() => {
-    if (!wrapperRef.current || visible) return;
-    if (typeof IntersectionObserver === "undefined") {
-      setVisible(true);
-      return;
-    }
-    const obs = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            setVisible(true);
-            obs.disconnect();
-            break;
-          }
-        }
-      },
-      { rootMargin: "300px" }
-    );
-    obs.observe(wrapperRef.current);
-    return () => obs.disconnect();
-  }, [visible]);
-
-  useEffect(() => {
-    if (visible) onLoad();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible]);
-
-  // Server returns a real JPEG via /thumb (object URL) OR a base64 data URL
-  // from /raw — both render in <img>. "loading" / "error" sentinels skip.
-  const renderable = typeof src === "string" && src !== "loading" && src !== "error" && src.length > 30;
+  // Plain <img src=signed-url loading="lazy"> — the browser handles
+  // visibility tracking + native lazy-loading. The previous
+  // IntersectionObserver was needed because we were axios-fetching
+  // each thumb and converting to an object URL; now that the URL is
+  // browser-cacheable directly, the OS-level lazy loader is the right
+  // tool for the job. ~10× less JS work per gallery scroll.
+  const renderable = typeof src === "string" && src.length > 10 && !broken;
   return (
     <div
-      ref={wrapperRef}
       className={`relative group rounded overflow-hidden border-2 ${
         selected ? "border-red-700 ring-2 ring-red-300" : "border-slate-200"
       } cursor-pointer aspect-square bg-slate-100`}
       data-testid={`photo-tile-${photo.id}`}
     >
-      {renderable && !broken ? (
+      {renderable ? (
         <img
           src={src}
           alt=""
           loading="lazy"
           decoding="async"
+          fetchpriority="low"
           className="w-full h-full object-cover"
           onClick={onZoom}
           onError={() => setBroken(true)}
@@ -566,7 +529,7 @@ function PhotoTile({ photo, src, onLoad, selected, onToggle, onZoom }) {
           className="w-full h-full flex items-center justify-center text-slate-300"
           onClick={onZoom}
         >
-          {src === "error" || broken ? (
+          {broken || !src ? (
             <ImageIcon className="w-6 h-6 text-slate-400" title="Photo unavailable" />
           ) : (
             <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
