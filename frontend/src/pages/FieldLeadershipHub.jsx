@@ -112,7 +112,10 @@ function PasswordGate({ onAuthed }) {
           </Link>
           <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
+          <div className="flex items-center gap-2">
+            <LangToggle />
+            <CompanyInfoDialog />
+          </div>
         </div>
       </header>
 
