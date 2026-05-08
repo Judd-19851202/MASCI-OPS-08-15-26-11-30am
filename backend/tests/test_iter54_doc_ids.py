@@ -86,9 +86,30 @@ def test_ensure_doc_id_idempotent():
 def test_field_leadership_prefix_resolver():
     assert _field_leadership_prefix({"kind": "equipment_checkout"}) == "EQC"
     assert _field_leadership_prefix({"kind": "equipment_return"}) == "EQR"
-    assert _field_leadership_prefix({"kind": "near_miss"}) == "FLM"
+    assert _field_leadership_prefix({"kind": "supervisor_notes"}) == "FLN"
+    assert _field_leadership_prefix({"kind": "write_up"}) == "FLW"
+    assert _field_leadership_prefix({"kind": "verbal_coaching"}) == "FLC"
+    assert _field_leadership_prefix({"kind": "attendance"}) == "FLA"
+    assert _field_leadership_prefix({"kind": "recognition"}) == "FLR"
+    assert _field_leadership_prefix({"kind": "new_employee_eval"}) == "FLE"
+    assert _field_leadership_prefix({"kind": "crew_eval"}) == "FLG"
+    assert _field_leadership_prefix({"kind": "promotion_recommendation"}) == "FLP"
+    assert _field_leadership_prefix({"kind": "training_deficiency"}) == "FLT"
     assert _field_leadership_prefix({"kind": "anything_else"}) == "FL"
     assert _field_leadership_prefix({}) == "FL"
+
+
+def test_field_leadership_resolver_in_sync_with_kinds():
+    """Guardrail: every kind in FIELD_LEADERSHIP_KINDS should resolve to
+    a deterministic prefix. If someone adds a new kind without updating
+    the resolver, this test catches it."""
+    from routes.field_leadership import FIELD_LEADERSHIP_KINDS  # noqa: WPS433
+    for kind in FIELD_LEADERSHIP_KINDS.keys():
+        prefix = _field_leadership_prefix({"kind": kind})
+        assert prefix != "FL", (
+            f"Kind '{kind}' falls into the catch-all 'FL' prefix — add an "
+            f"explicit entry to _field_leadership_prefix in doc_ids.py"
+        )
 
 
 def test_year_for_resolver():

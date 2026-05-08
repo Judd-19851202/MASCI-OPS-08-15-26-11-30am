@@ -54,17 +54,28 @@ PrefixResolver = Union[str, Callable[[Dict[str, Any]], str]]
 
 def _field_leadership_prefix(rec: Dict[str, Any]) -> str:
     """field_leadership_records hold many shapes — give each a distinct
-    prefix so the doc ID itself communicates what kind of form it is."""
+    prefix so the doc ID itself communicates what kind of form it is.
+
+    Keys MUST stay in sync with FIELD_LEADERSHIP_KINDS in
+    routes/field_leadership.py — the resolver ran against an older
+    taxonomy in iter54 and silently bucketed everything that didn't
+    match into the catch-all "FL", producing PRD drift. Now reconciled.
+    """
     kind = (rec.get("kind") or "").lower()
     return {
-        "equipment_checkout": "EQC",
-        "equipment_return":   "EQR",
-        "supervisor_note":    "FLN",
-        "observation":        "FLO",
-        "near_miss":          "FLM",
-        "weekly_safety":      "FLW",
-        "subcontractor_audit": "FLA",
-        "weekly_progress":    "FLP",
+        # Equipment lifecycle
+        "equipment_checkout":         "EQC",
+        "equipment_return":           "EQR",
+        # People-management touchpoints
+        "write_up":                   "FLW",  # write-up / discipline
+        "verbal_coaching":            "FLC",  # coaching
+        "attendance":                 "FLA",  # attendance log
+        "recognition":                "FLR",  # recognition / kudos
+        "new_employee_eval":          "FLE",  # evaluation
+        "crew_eval":                  "FLG",  # crew evaluation (group)
+        "promotion_recommendation":   "FLP",  # promotion
+        "training_deficiency":        "FLT",  # training gap
+        "supervisor_notes":           "FLN",  # supervisor notes
     }.get(kind, "FL")
 
 

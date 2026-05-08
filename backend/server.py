@@ -7031,31 +7031,37 @@ async def admin_find_by_doc_id(doc_id: str, _: bool = Depends(require_admin)):
     if not rec:
         return {"found": False}
 
-    # Compute a frontend route per-collection so the admin can be
-    # one-clicked into the right page.
+    # Frontend route per-collection. Every path here MUST exist in
+    # /app/frontend/src/App.js — iter54 testing caught a regression where
+    # /daily-reports/<id> was returned but App.js only registered
+    # /admin/daily/<id>. Keep this map next to the App.js routes.
     coll = rec.get("collection") or ""
     rid = rec.get("id") or ""
     kind = rec.get("kind") or ""
     if coll == "field_leadership_records":
         route = f"/leadership/records/{rid}"
     elif coll == "daily_reports":
-        route = f"/daily-reports/{rid}"
+        route = f"/admin/daily/{rid}"
     elif coll == "equipment_inspections":
-        route = f"/equipment-inspections/{rid}"
+        route = f"/admin/equipment/{rid}"
     elif coll == "qaqc_inspections":
-        route = f"/qaqc/inspections/{rid}"
+        route = f"/qaqc/{rid}"
     elif coll == "inspections":
-        route = f"/inspections/{rid}"
+        route = f"/admin/inspections/{rid}"
     elif coll == "meetings":
-        route = f"/meetings/{rid}"
+        route = f"/admin/meetings/{rid}"
     elif coll == "jhas":
-        route = f"/jhas/{rid}"
+        # JHA admin page is a list view — drop into the dashboard
+        # filtered to this record. The dashboard auto-opens by id when
+        # ``?focus=<id>`` is supplied.
+        route = f"/admin/jha-plans?focus={rid}"
     elif coll == "incidents":
-        route = f"/incidents/{rid}"
+        route = f"/admin/incidents/{rid}"
     elif coll == "safety_equipment_issuances":
-        route = f"/safety-forms/issuance/{rid}"
+        # Safety forms list is the canonical viewer; signal which row to open.
+        route = f"/admin/safety?focus_issuance={rid}"
     elif coll == "safety_equipment_trainings":
-        route = f"/safety-forms/training/{rid}"
+        route = f"/admin/safety?focus_training={rid}"
     else:
         route = f"/admin?doc_id={rec.get('doc_id')}"
 

@@ -242,9 +242,18 @@ export default function ViewDailyReport() {
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
               Daily Job Report
             </h1>
-            <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1">
-              Report ID · {data.id?.slice(0, 8).toUpperCase()}
-              {data.report_number ? ` · #${data.report_number}` : ""}
+            <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+              {data.doc_id && (
+                <span
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide"
+                  data-testid="record-doc-id-badge"
+                >
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">Doc ID</span>
+                  {data.doc_id}
+                </span>
+              )}
+              <span>Report ID · {data.id?.slice(0, 8).toUpperCase()}</span>
+              {data.report_number ? <span>· #{data.report_number}</span> : null}
             </div>
             {data.submit_language === "es" && (
               <div className="mt-2">
