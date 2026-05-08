@@ -144,6 +144,20 @@ export default function CheatSheetCard() {
                 "If GPS doesn't grab, type the address in the Location field — same result."
               )}
             </li>
+            <li>
+              <span className="font-black text-red-700">·</span>{" "}
+              <strong>{t("Doc ID:")}</strong>{" "}
+              {t(
+                "Every submission gets a unique tracking number printed on the PDF (e.g. DR-2026-00042). Read it back when the office calls — they find it instantly."
+              )}
+            </li>
+            <li>
+              <span className="font-black text-red-700">·</span>{" "}
+              <strong>{t("Pre-Op FAILs")}</strong>{" "}
+              {t(
+                "auto-email every active mechanic + the parts office in 60 seconds. No need to call separately."
+              )}
+            </li>
           </ul>
         </div>
 

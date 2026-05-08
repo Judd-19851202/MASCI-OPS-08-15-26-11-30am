@@ -1,5 +1,51 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter61: Training docs full sweep (iter48–60 features documented)
+
+### User ask
+"make sure all training programs, cheat sheets, system guides everything are up to date with all new features how to use them how to fill out everything the whys, how comes all this"
+
+### What shipped
+**7 BRAND-NEW LESSONS** (full bilingual EN + ES):
+- `field-08-doc-ids` — every form's Doc ID (DR-2026-00042 etc.) explained
+- `shop-04-account-and-password` — per-mechanic login, forgot/change password, account lifecycle
+- `pm-07-field-leadership` — PM-side guide to the 10 Field Leadership forms (incl. Equipment Return side-by-side comparison)
+- `pm-08-job-photos` — Job Photos Library (browse → ZIP → email packet)
+- `admin-08-email-routing` — the iter60 console (no-redeploy email overrides)
+- `admin-09-doc-id-search` — global Doc ID search bar
+- `admin-10-job-photos-perf` — HEIC pipeline, render semaphore, auto-warm scheduler, Re-index button
+
+**3 UPDATED LESSONS** (existing, refreshed for iter48–60 reality):
+- `field-03-equipment-preop` — added Pre-Op FAIL fan-out to all active mechanics + Doc ID note
+- `shop-01-portal-intro` — rewritten for per-user accounts (email + password, forgot link, change-password button)
+- `pm-05-email-routing` — repointed at the new Admin Email Routing console (iter60)
+
+**3 surfaces synchronized**:
+- `frontend/src/data/training.js` (rich EN content, source of truth for the Training Hub UI)
+- `frontend/src/data/training_es.js` (full ES translations for all 7 new + 3 updated lessons)
+- `backend/training_pdf.py` (condensed EN+ES mirror — feeds the PDF packet generator at `/api/training/packet.pdf`)
+- `frontend/src/components/CheatSheetCard.jsx` (printable foreman cheat sheet — added Doc ID note + Pre-Op FAIL fan-out tip)
+
+### Verified
+- ESLint clean on all 3 frontend files; `import training_pdf` succeeds.
+- **Total lesson count: 32** (was 25 — added 7).
+- Frontend Playwright smoke: signed in as admin, visited every track. All 6 new gated lessons (Email Routing Console, Doc ID Global Search, Job Photos performance, Field Leadership Hub, Job Photos Library, Your Account) PRESENT. Field-08 'Doc IDs' lesson visible to public.
+- **PDF generator verified**: `/api/training/packet.pdf` returns 200 + valid PDFs containing every new lesson:
+  - Shop (7 pages, 989KB) — "Your Account", "Change Password", "Forgot password", "Lesson 4", "per-user" all present
+  - Admin (18 pages, 2.3MB, EN+ES bilingual) — "Email Routing", "Doc ID Global", "warm-cache", "HEIC", "OVERRIDE", "semaphore" all present
+  - Field (13 pages, 1.1MB) — "Doc IDs", "tracking number", "DR-2026", "Lesson 8" all present
+
+### Files added/touched
+- MODIFIED: `/app/frontend/src/data/training.js` (+7 new lessons, 3 lesson updates)
+- MODIFIED: `/app/frontend/src/data/training_es.js` (+7 new ES translations, 3 ES updates)
+- MODIFIED: `/app/backend/training_pdf.py` (condensed EN+ES mirror of all changes)
+- MODIFIED: `/app/frontend/src/components/CheatSheetCard.jsx` (Doc ID + Pre-Op fan-out lines)
+
+### Deploy reminder
+Frontend + backend changes. Push to `mascidocs.com`. After deploy, every PM/mechanic visiting the Training Hub sees the new lessons immediately, and the PDF packets they download include every iter48–iter60 feature.
+
+---
+
 ## 2026-05-08 — Iter60: Admin Email Routing console (DB-backed overrides)
 
 ### User ask
