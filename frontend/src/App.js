@@ -53,6 +53,7 @@ import PmHub from "@/pages/PmHub";
 import PmQaqcList from "@/pages/PmQaqcList";
 import ShopLogin from "@/pages/ShopLogin";
 import ShopHub from "@/pages/ShopHub";
+import ShopChangePassword from "@/pages/ShopChangePassword";
 import TrainingHub from "@/pages/TrainingHub";
 import TrainingTrack from "@/pages/TrainingTrack";
 import TrainingQrPoster from "@/pages/TrainingQrPoster";
@@ -276,6 +277,7 @@ function App() {
                 Shop Console — mechanics-only view, separate password
                 ============================================================ */}
             <Route path="/shop/login" element={<ShopLogin />} />
+            <Route path="/shop/change-password" element={S(<ShopChangePassword />)} />
             <Route path="/shop" element={S(<ShopHub />)} />
             <Route path="/shop/equipment/:id" element={S(<ViewEquipmentInspection context="shop" />)} />
 

@@ -1263,6 +1263,82 @@ async def shop_check(_: bool = Depends(require_shop_or_admin)):
     return {"ok": True}
 
 
+class ShopChangePasswordBody(BaseModel):
+    old_password: str
+    new_password: str
+
+
+@api_router.get("/shop/me")
+async def shop_me(
+    actor=Depends(require_shop_or_admin),
+    x_shop_token: Optional[str] = Header(default=None),
+):
+    """Return the signed-in shop user (per-user account) or a flag
+    indicating a legacy shared-password / admin / open-mode session.
+
+    The ``actor`` resolution in ``require_shop_or_admin`` returns the
+    shop_user document for per-user tokens, ``True`` otherwise. We
+    re-detect the per-user case by inspecting ``actor`` so the admin
+    UI can show the right state.
+    """
+    from shop_users import public_shop_user_view
+
+    if isinstance(actor, dict) and actor.get("id") and actor.get("email"):
+        return {"ok": True, "user": public_shop_user_view(actor)}
+    return {"ok": True, "is_legacy": True}
+
+
+@api_router.post("/shop/change-password")
+async def shop_change_password(
+    body: ShopChangePasswordBody,
+    request: Request,
+    actor=Depends(require_shop_or_admin),
+):
+    """Per-shop-user password rotation. Requires a valid per-user shop
+    token. Verifies ``old_password`` against the stored bcrypt hash,
+    writes the new hash with ``must_change_password=false`` and
+    returns a freshly-issued token (the prior token is invalidated by
+    the hash change)."""
+    from shop_users import (
+        find_shop_user_by_email,
+        make_shop_user_token,
+        public_shop_user_view,
+        set_shop_user_password,
+        verify_password,
+    )
+
+    if not isinstance(actor, dict) or not actor.get("id"):
+        raise HTTPException(
+            status_code=403,
+            detail="Only per-user shop accounts can change password here.",
+        )
+    if len(body.new_password or "") < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+    if body.new_password == body.old_password:
+        raise HTTPException(status_code=400, detail="New password must be different from the old one")
+
+    ip = _client_ip(request)
+    _check_login_lockout(ip)
+    pwh = actor.get("password_hash") or ""
+    if not pwh or not verify_password(body.old_password, pwh):
+        _record_login_fail(ip)
+        raise HTTPException(status_code=401, detail="Current password is wrong")
+    _reset_login_fails(ip)
+
+    saved = await set_shop_user_password(
+        db, actor["id"], body.new_password, must_change=False
+    )
+    if not saved:
+        raise HTTPException(status_code=500, detail="Failed to set password")
+    new_pwh = saved.get("password_hash") or ""
+    fresh = await find_shop_user_by_email(db, saved["email"])
+    return {
+        "ok": True,
+        "token": make_shop_user_token(saved["id"], new_pwh),
+        "user": public_shop_user_view(fresh or saved),
+    }
+
+
 class PMLoginBody(BaseModel):
     email: Optional[str] = None
     password: str
@@ -2851,6 +2927,143 @@ async def admin_disable_shop_user(
     if not saved:
         raise HTTPException(404, "Shop user not found")
     return public_shop_user_view(saved)
+
+
+@api_router.post("/admin/shop-users/{user_id}/email-welcome")
+async def admin_shop_user_email_welcome(
+    user_id: str, body: ShopSetPasswordBody, _: bool = Depends(require_admin_strict)
+):
+    """One-shot: issue (or rotate) a shop-user password AND email the
+    temp password to the user via Resend.
+
+    Mirrors the PM ``email-welcome`` endpoint but lighter (no welcome
+    PDF — shop users only need creds + the portal URL).
+    Returns ``{ok, user, sent_to, resend_id}``. The temp password is
+    NOT echoed back in the response (it's already in the email body)
+    so admin network logs stay clean.
+    """
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "RESEND_API_KEY not configured. "
+                "Use 'Generate & Show on Screen' to give the user the temp password manually."
+            ),
+        )
+
+    from shop_users import (
+        generate_temp_password,
+        public_shop_user_view,
+        set_shop_user_password,
+    )
+
+    user = await db.shop_users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Shop user not found")
+    user_email = (user.get("email") or "").strip()
+    user_name = (user.get("name") or "").strip() or "Mechanic"
+    if not user_email:
+        raise HTTPException(status_code=400, detail="Shop user has no email on file")
+    if body.password and len(body.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    plain = (body.password or "").strip() or generate_temp_password()
+    updated = await set_shop_user_password(
+        db, user_id, plain, must_change=bool(body.must_change),
+    )
+    if not updated:
+        raise HTTPException(status_code=500, detail="Failed to set password")
+
+    portal_url = (
+        os.environ.get("PORTAL_URL", "").strip()
+        or os.environ.get("PRODUCTION_URL", "").strip()
+        or "https://mascidocs.com"
+    )
+
+    is_reset = bool(user.get("password_hash"))
+    headline = "Your password has been reset" if is_reset else "Welcome to the MASCI Shop Portal"
+    intro = (
+        "Your MASCI Shop Portal password has been reset. Use the temporary password below to "
+        "sign in — you will be forced to choose your own on first login."
+        if is_reset else
+        f'You have a new account on the MASCI Shop Portal at '
+        f'<a href="{portal_url}/shop/login" style="color:#b91c1c;font-weight:700">{portal_url}/shop/login</a>. '
+        "Use the temporary password below to sign in — you will be forced to choose your own on first login."
+    )
+    html_body = f"""\
+<!DOCTYPE html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1e293b;background:#f8fafc;margin:0;padding:0">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;color:#fff;padding:18px 24px">
+    <tr><td>
+      <div style="font-family:Courier New,monospace;font-size:11px;letter-spacing:0.22em;color:#fbbf24;text-transform:uppercase;font-weight:700">MASCI Hub · Shop Portal</div>
+      <div style="font-size:22px;font-weight:900;margin-top:4px">{headline}</div>
+    </td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;padding:24px">
+    <tr><td>
+      <p style="margin:0 0 12px;font-size:15px;line-height:1.5">Hi {user_name},</p>
+      <p style="margin:0 0 12px;font-size:14px;line-height:1.55;color:#334155">{intro}</p>
+
+      <table cellpadding="0" cellspacing="0" style="background:#0f172a;color:#f1f5f9;border-radius:6px;padding:18px 22px;margin:16px 0;width:100%;max-width:480px">
+        <tr><td>
+          <div style="font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;color:#94a3b8;text-transform:uppercase;font-weight:700">Account</div>
+          <div style="font-family:Courier New,monospace;font-size:13px;font-weight:800;margin-top:3px">{user_email}</div>
+          <div style="font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;color:#94a3b8;text-transform:uppercase;font-weight:700;margin-top:14px">Temporary password</div>
+          <div style="font-family:Courier New,monospace;font-size:20px;font-weight:800;color:#fbbf24;letter-spacing:0.05em;margin-top:3px">{plain}</div>
+        </td></tr>
+      </table>
+
+      <p style="margin:14px 0 6px;font-size:14px;line-height:1.55"><strong>What to do next</strong></p>
+      <ol style="margin:0 0 14px 18px;padding:0;font-size:14px;line-height:1.55;color:#334155">
+        <li>Open <a href="{portal_url}/shop/login" style="color:#b91c1c;font-weight:700">{portal_url}/shop/login</a></li>
+        <li>Sign in with the email + temporary password above</li>
+        <li>Pick your own 6+ character password (the temp one stops working immediately)</li>
+        <li>Failed Pre-Op inspections (Out-of-Service / Needs-Attention) auto-route to your inbox so you can plan parts &amp; scheduling</li>
+      </ol>
+
+      <p style="margin:14px 0 0;font-size:13px;color:#64748b;line-height:1.55">
+        If you forget your password, ask the admin to issue a new temp pw — it takes 30 seconds.
+      </p>
+    </td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:14px 24px;color:#94a3b8;font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;text-transform:uppercase">
+    <tr><td>MASCI · Shop Portal · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}</td></tr>
+  </table>
+</body></html>"""
+
+    import resend  # noqa: E402
+
+    resend.api_key = api_key
+    sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+    reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
+    params = {
+        "from": f"MASCI HUB Notifications <{sender_email}>",
+        "to": [user_email],
+        "subject": f"[MASCI] {headline}",
+        "html": html_body,
+    }
+    if reply_to:
+        params["reply_to"] = reply_to
+
+    try:
+        result = await asyncio.to_thread(resend.Emails.send, params)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                f"Password rotated but email send failed via Resend: {e}. "
+                "Use 'Show on Screen' to recover the new temp password."
+            ),
+        )
+
+    return {
+        "ok": True,
+        "user": public_shop_user_view(updated),
+        "sent_to": user_email,
+        "resend_id": (result or {}).get("id") if isinstance(result, dict) else None,
+    }
+
 
 
 
@@ -6711,7 +6924,9 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         recipients: List[str] = list(dist["all"])  # type: ignore[arg-type]
 
         # Equipment Pre-Op with FAILs / out-of-service items — always
-        # CC the shop manager so they can plan parts + scheduling.
+        # CC every active shop user so they can plan parts + scheduling.
+        # Falls back to the legacy single SHOP_MANAGER_EMAIL env when no
+        # shop_users have been seeded yet.
         if (
             kind == "equipment-inspection"
             and (
@@ -6719,11 +6934,26 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                 or (record.get("out_of_service") or "").strip().lower() in ("yes", "true", "1")
             )
         ):
-            shop_email = (
-                os.environ.get("SHOP_MANAGER_EMAIL", "shopmanager@mascigc.com").strip()
-            )
-            if shop_email and shop_email.lower() not in {r.lower() for r in recipients}:
-                recipients.append(shop_email)
+            shop_emails: List[str] = []
+            try:
+                from shop_users import list_shop_users
+                shop_users_list = await list_shop_users(db, only_active=True)
+                shop_emails = [
+                    (u.get("email") or "").strip()
+                    for u in shop_users_list
+                    if u.get("email") and not u.get("disabled")
+                ]
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"shop fan-out lookup failed: {e}")
+            if not shop_emails:
+                fallback = (
+                    os.environ.get("SHOP_MANAGER_EMAIL", "shopmanager@mascigc.com").strip()
+                )
+                if fallback:
+                    shop_emails = [fallback]
+            for shop_email in shop_emails:
+                if shop_email and shop_email.lower() not in {r.lower() for r in recipients}:
+                    recipients.append(shop_email)
 
         # Severity fan-out for incidents (Major/Severe currently mirrors the
         # always-CC; future ops/GC list can be appended here from env.)

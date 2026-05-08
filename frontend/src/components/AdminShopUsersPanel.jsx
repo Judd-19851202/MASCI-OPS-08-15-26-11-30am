@@ -49,6 +49,9 @@ export default function AdminShopUsersPanel() {
   const [showPwReveal, setShowPwReveal] = useState(false);
   const [pwReveal, setPwReveal] = useState({ name: "", email: "", password: "", must_change: true });
 
+  // Issue-password choice dialog (Show / Email)
+  const [pwChoice, setPwChoice] = useState({ open: false, user: null, sending: false });
+
   const refresh = async () => {
     setLoading(true);
     try {
@@ -153,6 +156,31 @@ export default function AdminShopUsersPanel() {
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Could not set password");
     }
+  };
+
+  const emailWelcome = async (u) => {
+    setPwChoice((p) => ({ ...p, sending: true }));
+    try {
+      const r = await api.post(`/admin/shop-users/${u.id}/email-welcome`, {
+        must_change: true,
+      });
+      if (r.data?.ok) {
+        toast.success(`Welcome email sent to ${r.data.sent_to}`);
+        setPwChoice({ open: false, user: null, sending: false });
+        refresh();
+      } else {
+        toast.error("Email send failed");
+        setPwChoice((p) => ({ ...p, sending: false }));
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Email send failed");
+      setPwChoice((p) => ({ ...p, sending: false }));
+    }
+  };
+
+  const showOnScreen = async (u) => {
+    setPwChoice({ open: false, user: null, sending: false });
+    await issuePassword(u, "auto");
   };
 
   const copyPw = async () => {
@@ -291,7 +319,7 @@ export default function AdminShopUsersPanel() {
                     ) : (
                       <div className="inline-flex gap-1">
                         <Button size="sm" variant="outline" onClick={() => startEdit(u)} className="h-8" title="Edit" data-testid={`admin-shop-edit-${u.id}`}><Pencil className="w-3.5 h-3.5" /></Button>
-                        <Button size="sm" variant="outline" onClick={() => issuePassword(u, "auto")} className="h-8" title="Issue password" data-testid={`admin-shop-pw-${u.id}`}><KeyRound className="w-3.5 h-3.5" /></Button>
+                        <Button size="sm" variant="outline" onClick={() => setPwChoice({ open: true, user: u, sending: false })} className="h-8" title="Issue password" data-testid={`admin-shop-pw-${u.id}`}><KeyRound className="w-3.5 h-3.5" /></Button>
                         <Button size="sm" variant="outline" onClick={() => removeUser(u)} className="border-red-300 text-red-700 hover:bg-red-50 h-8" title="Delete" data-testid={`admin-shop-delete-${u.id}`}><Trash2 className="w-3.5 h-3.5" /></Button>
                       </div>
                     )}
@@ -334,6 +362,45 @@ export default function AdminShopUsersPanel() {
           </div>
           <DialogFooter>
             <Button onClick={() => setShowPwReveal(false)} className="bg-slate-700 hover:bg-slate-800 text-white">Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Issue password — choose Email vs Show on Screen */}
+      <Dialog open={pwChoice.open} onOpenChange={(open) => !pwChoice.sending && setPwChoice({ open, user: pwChoice.user, sending: false })}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Issue a password for {pwChoice.user?.name}</DialogTitle>
+            <DialogDescription>
+              Choose how to deliver the temporary password. Either way, the user will be forced to set their own on first login.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 text-sm">
+            <div className="bg-slate-50 border border-slate-200 rounded px-3 py-2 font-mono">
+              <span className="text-slate-500 text-xs uppercase tracking-[0.15em] mr-2">Email</span>
+              {pwChoice.user?.email || "—"}
+            </div>
+            <p className="text-slate-600 text-xs leading-relaxed">
+              <strong>Email to user</strong> — system generates a temp password, emails it directly to {pwChoice.user?.email || "the user"}, and forces a rotation on first login.<br/>
+              <strong>Show on screen</strong> — system generates a temp password and shows it once so you can text or hand it to them.
+            </p>
+          </div>
+          <DialogFooter className="flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setPwChoice({ open: false, user: null, sending: false })} disabled={pwChoice.sending} data-testid="admin-shop-pw-choice-cancel">
+              Cancel
+            </Button>
+            <Button variant="outline" onClick={() => showOnScreen(pwChoice.user)} disabled={pwChoice.sending} data-testid="admin-shop-pw-choice-show">
+              <KeyRound className="w-4 h-4 mr-1" /> Show on Screen
+            </Button>
+            <Button
+              onClick={() => emailWelcome(pwChoice.user)}
+              disabled={pwChoice.sending || !pwChoice.user?.email}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+              data-testid="admin-shop-pw-choice-email"
+            >
+              {pwChoice.sending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Mail className="w-4 h-4 mr-1" />}
+              Email to User
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

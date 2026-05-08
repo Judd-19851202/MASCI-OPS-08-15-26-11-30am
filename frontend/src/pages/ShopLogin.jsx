@@ -33,6 +33,11 @@ export default function ShopLogin() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      toast.error(t("Enter your work email"));
+      return;
+    }
     if (!password) {
       toast.error(t("Enter your password"));
       return;
@@ -42,16 +47,23 @@ export default function ShopLogin() {
     clearAdminToken();
     clearPmToken();
     try {
-      const payload = { password, _t: Date.now() };
-      if (email.trim()) payload.email = email.trim().toLowerCase();
+      const payload = { email: cleanEmail, password, _t: Date.now() };
       const res = await api.post("/shop/login", payload, {
         timeout: 90000, // backend cold-start on Atlas can take up to 60s
       });
       if (res?.data?.ok && res?.data?.token) {
         setShopToken(res.data.token, { remember: rememberMe });
-        toast.success(t("Welcome to the Shop"));
-        const from = location.state?.from || "/shop";
-        navigate(from, { replace: true });
+        const intended = location.state?.from || "/shop";
+        if (res.data.must_change_password) {
+          toast.success(t("Password rotation required — pick a new one"));
+          navigate("/shop/change-password", {
+            replace: true,
+            state: { from: intended },
+          });
+        } else {
+          toast.success(t("Welcome to the Shop"));
+          navigate(intended, { replace: true });
+        }
       } else {
         toast.error(t("Login failed — server didn't return a token"));
       }
@@ -59,7 +71,7 @@ export default function ShopLogin() {
       const status = err?.response?.status;
       let msg;
       if (status === 401) {
-        msg = email ? t("Wrong email or password") : t("Wrong password");
+        msg = t("Wrong email or password");
       } else if (status === 403) {
         msg = err?.response?.data?.detail || t("Access blocked");
       } else if (status >= 520 && status <= 524) {
@@ -113,13 +125,13 @@ export default function ShopLogin() {
             </div>
           </div>
           <p className="text-slate-600 text-sm mt-3 mb-6">
-            {t("Sign in to review every Pre-Op inspection, sign off on Out-of-Service and Needs-Attention items, and keep the fleet running.")}
+            {t("Sign in with the account the admin issued you. First-time users will be prompted to set their own password after entering the temporary one from their welcome email.")}
           </p>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="shop-login-form">
             <div>
               <Label htmlFor="shop-email" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                {t("Email (optional — leave blank for shared shop password)")}
+                {t("Work email")}
               </Label>
               <Input
                 id="shop-email"
@@ -127,6 +139,7 @@ export default function ShopLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
+                required
                 placeholder="shopmanager@mascigc.com"
                 className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-amber-500"
                 data-testid="shop-email-input"
