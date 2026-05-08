@@ -377,45 +377,79 @@ def verify_thumb_token(photo_id: str, token: str) -> bool:
     return hmac.compare_digest(sig, expected)
 
 
-def _render_thumb_payload(raw: bytes, accept: str) -> tuple[bytes, str]:
-    """Pillow-render a thumbnail in the best format the client supports.
+def _render_all_formats(raw: bytes) -> Dict[str, bytes]:
+    """Pillow-render a thumbnail in EVERY format we serve, in a single
+    decode pass. Returns a dict keyed by ``"avif"`` / ``"webp"`` / ``"jpeg"``
+    with the encoded bytes, omitting any format Pillow refuses to encode.
 
-    Returns ``(bytes, mime)``. Falls back to the original bytes labeled
-    image/jpeg if Pillow can't decode (which now also covers HEIC via
-    pillow-heif). Lossy 360px on the long edge — gallery thumbs only.
+    Why render all three at once? On the first miss we always pay the
+    full HEIC/JPEG decode cost (the expensive part). Encoding three
+    output formats from the already-loaded Image is nearly free
+    compared to the decode. Caching all three at once means a Chrome
+    request and a Safari request for the same photo never both trigger
+    a re-decode of the source — second visitor wins by hitting the
+    Mongo cache regardless of which Accept header they carry.
+
+    JPEG is always present — it's the universal fallback if AVIF/WebP
+    encoding fails on this Pillow build.
     """
-    accept_l = (accept or "").lower()
-    prefers_avif = "image/avif" in accept_l
-    prefers_webp = "image/webp" in accept_l
+    out: Dict[str, bytes] = {}
     try:
         from PIL import Image as _PILImage  # type: ignore  # noqa: WPS433
         with _PILImage.open(io.BytesIO(raw)) as im:
             im.thumbnail((360, 360), _PILImage.LANCZOS)
             if im.mode in ("RGBA", "LA", "P"):
                 im = im.convert("RGB")
-            fmt, mime, kwargs = "JPEG", "image/jpeg", {"quality": 60, "optimize": True}
-            if prefers_avif:
-                try:
-                    test = io.BytesIO()
-                    im.save(test, format="AVIF", quality=45)
-                    fmt, mime = "AVIF", "image/avif"
-                    kwargs = {"quality": 45}
-                except Exception:
-                    prefers_avif = False
-            if not prefers_avif and prefers_webp:
-                try:
-                    test = io.BytesIO()
-                    im.save(test, format="WebP", quality=60)
-                    fmt, mime = "WebP", "image/webp"
-                    kwargs = {"quality": 60, "method": 4}
-                except Exception:
-                    pass
-            buf = io.BytesIO()
-            im.save(buf, format=fmt, **kwargs)
-            return buf.getvalue(), mime
+            # JPEG (always — universal fallback)
+            try:
+                buf = io.BytesIO()
+                im.save(buf, format="JPEG", quality=60, optimize=True)
+                out["jpeg"] = buf.getvalue()
+            except Exception as e:
+                logger.warning(f"[job-photos] JPEG encode failed: {e}")
+            # WebP (Chrome/Edge/Firefox/Safari14+)
+            try:
+                buf = io.BytesIO()
+                im.save(buf, format="WebP", quality=60, method=4)
+                out["webp"] = buf.getvalue()
+            except Exception as e:
+                logger.debug(f"[job-photos] WebP encode skipped: {e}")
+            # AVIF (Chrome/Edge — best compression). pillow-avif-plugin
+            # may not be present; fall through silently.
+            try:
+                buf = io.BytesIO()
+                im.save(buf, format="AVIF", quality=45)
+                out["avif"] = buf.getvalue()
+            except Exception as e:
+                logger.debug(f"[job-photos] AVIF encode skipped: {e}")
     except Exception as e:
-        logger.debug(f"[job-photos] Pillow render failed, using raw: {e}")
-        return raw, "image/jpeg"
+        logger.debug(f"[job-photos] Pillow decode failed, using raw bytes as JPEG: {e}")
+        out["jpeg"] = raw
+    return out
+
+
+# Concurrency cap on Pillow rendering. Without this, 30+ simultaneous
+# /thumb-signed requests (gallery first-load on a busy job) all hit
+# asyncio.to_thread at once, the default ThreadPoolExecutor explodes
+# to 32 workers, each holding a decompressed image in RAM, and the
+# FastAPI worker gets OOM-killed by Cloudflare → HTTP 520 storm to
+# the user. Serializing render+encode to ~2 in-flight CPU jobs keeps
+# memory bounded; cache hits skip the lock entirely so the second
+# visit to a job is instant.
+_RENDER_SEMA: Optional[asyncio.Semaphore] = None
+_RENDER_CONCURRENCY = max(
+    1, int(os.environ.get("JOB_PHOTO_RENDER_CONCURRENCY", "2"))
+)
+
+
+def _render_sema() -> asyncio.Semaphore:
+    """Lazy semaphore so we attach to the running event loop, not the
+    import-time loop (FastAPI's startup event loop is created after
+    module import)."""
+    global _RENDER_SEMA
+    if _RENDER_SEMA is None:
+        _RENDER_SEMA = asyncio.Semaphore(_RENDER_CONCURRENCY)
+    return _RENDER_SEMA
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -479,17 +513,41 @@ async def _serve_thumb(db, photo_id: str, meta: dict, accept: str) -> Response:
         raise HTTPException(404, "source photo missing")
     raw, _ext = decoded
 
-    # Render off the event loop so concurrent gallery loads don't block
-    # other endpoints (e.g. /api/health, which was timing out under load
-    # and tripping the SystemHealthBadge red banner).
-    payload, mime = await asyncio.to_thread(_render_thumb_payload, raw, accept)
-    actual_fmt = mime.split("/")[-1]
-    if actual_fmt == "jpeg":
-        actual_fmt = "jpeg"
-    # Persist into cache (best-effort). Using fmt_pref keeps lookup keys
-    # consistent — if Pillow couldn't honor the preferred format we still
-    # store under the requested key so we don't re-render every time.
-    await _write_thumb_cache(db, photo_id, fmt_pref, payload)
+    # Serialize Pillow render to bound CPU + memory. Without this cap,
+    # 30+ concurrent gallery requests would each spawn a thread holding
+    # a decompressed iPhone HEIC in RAM (~30-60 MB resident each), the
+    # worker would OOM, and Cloudflare would paint HTTP 520 across the
+    # gallery — exactly the bug reported on 2026-05-08.
+    async with _render_sema():
+        # Re-check cache after acquiring the lock — another concurrent
+        # request for the same photo may have just rendered it while
+        # we were waiting in line.
+        cached_again = await _read_thumb_cache(db, photo_id, fmt_pref)
+        if cached_again:
+            return Response(
+                content=cached_again,
+                media_type=f"image/{fmt_pref}",
+                headers={
+                    "Cache-Control": "public, max-age=604800, immutable",
+                    "CDN-Cache-Control": "public, max-age=604800, immutable",
+                    "Surrogate-Control": "max-age=604800",
+                    "Vary": "Accept",
+                    "X-Thumb-Cache": "hit-after-wait",
+                },
+            )
+
+        # Render every format we can in a single decode pass, then
+        # cache them all. Means a Chrome visit and a Safari visit for
+        # the same photo never re-decode the source.
+        rendered = await asyncio.to_thread(_render_all_formats, raw)
+
+    # Persist all formats (best-effort) outside the render lock so the
+    # next request through doesn't have to wait on Mongo writes.
+    for fmt_key, payload_bytes in rendered.items():
+        await _write_thumb_cache(db, photo_id, fmt_key, payload_bytes)
+
+    payload = rendered.get(fmt_pref) or rendered.get("jpeg") or raw
+    mime = f"image/{fmt_pref}" if fmt_pref in rendered else "image/jpeg"
 
     return Response(
         content=payload,
@@ -785,6 +843,81 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
             logger.warning(f"[job-photos] thumb cache wipe failed: {e}")
         result = await reindex_all(db)
         return {"ok": True, **result}
+
+    @router.post("/admin/warm-cache")
+    async def admin_warm_cache(
+        actor=Depends(require_caller),
+        project_number: Optional[str] = Query(None),
+        limit: int = Query(2000, ge=1, le=20000),
+    ):
+        """Admin-only: pre-render every thumbnail in the index into the
+        Mongo cache so the first viewer of a job page gets instant
+        photos instead of paying the Pillow decode cost on every tile.
+
+        Honors the same render concurrency cap as the on-demand path,
+        so we never blow up the worker even when warming 1000+ photos.
+        Skips photos that already have a cached JPEG (we treat JPEG as
+        the "warmed" sentinel since it always renders if any format
+        does).
+
+        Returns ``{warmed, skipped, failed, elapsed_seconds}``.
+        """
+        scope = await compute_pm_scope(db, actor)
+        if not scope.is_admin:
+            raise HTTPException(403, "admin only")
+
+        q: Dict[str, Any] = {}
+        if project_number:
+            q["project_number"] = project_number
+
+        t0 = time.time()
+        warmed = 0
+        skipped = 0
+        failed = 0
+
+        async def _warm_one(meta: Dict[str, Any]) -> None:
+            nonlocal warmed, skipped, failed
+            pid = meta["id"]
+            # Skip if already cached as JPEG (universal format).
+            existing = await db.job_photo_thumb_cache.find_one(
+                {"_id": _thumb_cache_key(pid, "jpeg")}, {"_id": 1}
+            )
+            if existing:
+                skipped += 1
+                return
+            try:
+                url = await _load_photo(
+                    db, meta["source"], meta["source_id"], meta["photo_index"]
+                )
+                decoded = _decode_data_url(url) if url else None
+                if not decoded:
+                    failed += 1
+                    return
+                raw, _ext = decoded
+                async with _render_sema():
+                    rendered = await asyncio.to_thread(_render_all_formats, raw)
+                for fmt_key, payload_bytes in rendered.items():
+                    await _write_thumb_cache(db, pid, fmt_key, payload_bytes)
+                if rendered:
+                    warmed += 1
+                else:
+                    failed += 1
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[job-photos] warm-cache failed for {pid}: {e}")
+                failed += 1
+
+        # Stream the index — never load 20K rows into RAM at once.
+        cursor = db.job_photos.find(q, {"_id": 0}).limit(limit)
+        async for meta in cursor:
+            await _warm_one(meta)
+
+        return {
+            "ok": True,
+            "warmed": warmed,
+            "skipped": skipped,
+            "failed": failed,
+            "elapsed_seconds": round(time.time() - t0, 2),
+        }
 
     # Best-effort thumb-cache index creation at module load. Idempotent.
     try:

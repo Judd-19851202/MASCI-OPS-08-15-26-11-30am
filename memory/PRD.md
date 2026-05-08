@@ -1,5 +1,51 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter59: Job Photos production thumbnail storm fix
+
+### User report
+"After all your last photo fixes the job photos still load super slow & some thumbnails still don't load at all in live site... honestly its worse now than it originally was when i first told you..... This SUCKS & doesn't work"
+
+User attached 5-page PDF of mascidocs.com/admin/photos showing the consistent pattern: the FIRST 4 thumbnails of each Daily Report load, every photo after that = grey placeholder.
+
+### Root cause (reproduced against live site)
+Sequential single requests to `/api/job-photos/{id}/thumb-signed` worked fine (HTTP 200 in ~358ms, valid WebP, X-Thumb-Cache: miss). But running **30 parallel requests against production** returned **HTTP 520 from Cloudflare on 79 of 80 photos**.
+
+Cloudflare 520 = origin returned a malformed/empty response → the FastAPI worker was being **OOM-killed under parallel Pillow renders**. iter51's `asyncio.to_thread` wasn't enough — Python's default ThreadPoolExecutor explodes to 32 worker threads, each holding a decompressed iPhone HEIC in RAM (~30-60MB resident each). Production deploys ship a single backend worker, so 30 simultaneous tile loads in an admin gallery accordion = worker death = 520 storm = "first 4 photos load, rest are placeholders" exactly as the user reported.
+
+### What shipped
+- **Backend `routes/job_photos.py`**:
+  - **Replaced `_render_thumb_payload`** with **`_render_all_formats(raw)`** — a single Pillow decode pass that produces JPEG (always) + WebP + AVIF (best-effort) in one shot. Means a Chrome visit and a Safari visit for the same photo never both trigger a re-decode.
+  - **NEW module-level `asyncio.Semaphore(JOB_PHOTO_RENDER_CONCURRENCY=2)`** wrapping every Pillow render call inside `_serve_thumb`. Cache hits skip the lock entirely. Concurrent requests for different photos serialize to 2 in-flight CPU jobs → bounded memory → no more worker OOM.
+  - **Re-check cache after acquiring the semaphore** so concurrent requests for the *same* photo don't both render — second one wins by hitting cache.
+  - **Render-once-cache-thrice** — every successful render writes JPEG + WebP + AVIF cache keys in a single trip, eliminating cross-format cache misses.
+  - **NEW `POST /api/job-photos/admin/warm-cache`** (admin-only) — pre-renders every photo in the index into the Mongo cache. Honors the same concurrency cap. Returns `{warmed, skipped, failed, elapsed_seconds}`. Called once after deploy → first viewer of every job page gets instant photos.
+- **Frontend `pages/JobPhotosLibrary.jsx`**:
+  - **`PhotoTile` rewritten** with `IntersectionObserver` (300px rootMargin) so a tile only fetches its image when it scrolls within 300px of the viewport. Browser native `loading="lazy"` was firing too eagerly when an accordion folder containing 80 photos expanded.
+  - **Module-level concurrency gate** (`THUMB_CONCURRENCY=6`, queue + slot acquire/release) so we never have more than 6 thumbnail requests in flight simultaneously across the gallery. Slot is released on `onLoad` OR `onError` so a slow/broken tile can't permanently lock a slot.
+  - **Smooth opacity-fade** on image load so tiles don't pop-in jarringly.
+
+### Verified
+- 16/16 backend pytest pass (12 iter51 + 4 NEW iter59):
+  - `test_render_all_formats_returns_jpeg_at_minimum` ✓
+  - `test_render_all_formats_handles_garbage_bytes` ✓
+  - `test_render_semaphore_is_bounded` ✓ (proves the 3rd concurrent acquire blocks)
+  - `test_30_concurrent_renders_dont_crash` ✓ (30 parallel renders all complete)
+- Preview reproduction: 24-photo cold parallel hit → 7/7 real photos return 200 (fake test data still 404s correctly). After warm-cache → 7 cached, 17 expected fails. Second parallel pass → 6 X-Thumb-Cache hits, 1 hit-after-wait. Zero 5xx. Wall time <1s for 24 concurrent.
+- Frontend Playwright smoke: gallery renders, IntersectionObserver fires on accordion expand, image loads with opacity-fade, no console errors.
+
+### Files added/touched
+- MODIFIED: `/app/backend/routes/job_photos.py` (semaphore + render-all-formats + re-check cache + NEW warm-cache endpoint)
+- MODIFIED: `/app/frontend/src/pages/JobPhotosLibrary.jsx` (PhotoTile rewrite with IntersectionObserver + 6-slot concurrency gate)
+- NEW: `/app/backend/tests/test_iter59_thumb_concurrency.py` (4 tests covering the regression)
+
+### Production deploy steps (for the user)
+1. Push fresh build to `mascidocs.com`.
+2. After deploy, log in to `/admin` → click **Re-index** on Job Photos page. (This wipes the corrupt thumb cache that was causing 520s.)
+3. *(Optional but recommended)* Run `curl -X POST -H "X-Admin-Token: $TOKEN" https://mascidocs.com/api/job-photos/admin/warm-cache` once to pre-render every thumb in the background. After this, the gallery is instant on every visit.
+4. Optional env var to tune render concurrency: `JOB_PHOTO_RENDER_CONCURRENCY=2` (default 2; bump to 4 if production ever scales to multiple workers).
+
+---
+
 ## 2026-05-08 — Iter58: Production Live-Site Audit polish (closeout)
 
 ### User ask

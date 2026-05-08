@@ -496,18 +496,102 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
   );
 }
 
+// Module-level concurrency gate so we never have more than N thumbnail
+// requests in flight at once across the entire gallery — even if the user
+// expands a folder containing 80 photos. Without this gate, all 80
+// requests fire simultaneously, the FastAPI worker chokes on parallel
+// Pillow renders, and Cloudflare paints HTTP 520 across half the grid.
+const THUMB_CONCURRENCY = 6;
+let _thumbInFlight = 0;
+const _thumbWaiters = [];
+function acquireThumbSlot() {
+  if (_thumbInFlight < THUMB_CONCURRENCY) {
+    _thumbInFlight += 1;
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => _thumbWaiters.push(resolve));
+}
+function releaseThumbSlot() {
+  if (_thumbWaiters.length > 0) {
+    const next = _thumbWaiters.shift();
+    next();
+  } else {
+    _thumbInFlight = Math.max(0, _thumbInFlight - 1);
+  }
+}
+
 function PhotoTile({ photo, src, selected, onToggle, onZoom }) {
   const [broken, setBroken] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [activeSrc, setActiveSrc] = useState(null);
+  const tileRef = React.useRef(null);
+  const slotHeldRef = React.useRef(false);
 
-  // Plain <img src=signed-url loading="lazy"> — the browser handles
-  // visibility tracking + native lazy-loading. The previous
-  // IntersectionObserver was needed because we were axios-fetching
-  // each thumb and converting to an object URL; now that the URL is
-  // browser-cacheable directly, the OS-level lazy loader is the right
-  // tool for the job. ~10× less JS work per gallery scroll.
-  const renderable = typeof src === "string" && src.length > 10 && !broken;
+  // IntersectionObserver-gated visibility. Browsers' native loading="lazy"
+  // is a hint, not a guarantee — when we expand an accordion of 80 photos
+  // they ALL kick off at once because the entire DOM subtree is rendered
+  // and within the viewport's "near" window. Manual gating means a tile
+  // truly only fetches when the user can see it (or is about to).
+  useEffect(() => {
+    const el = tileRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setVisible(true);
+            obs.disconnect();
+            return;
+          }
+        }
+      },
+      { rootMargin: "300px" }, // start loading 300px before the tile enters view
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // Once visible, queue the actual image load through the global slot
+  // limiter. Slot is released on load OR error so a slow/broken image
+  // can't permanently consume a slot.
+  useEffect(() => {
+    if (!visible || !src || activeSrc || broken) return;
+    let cancelled = false;
+    acquireThumbSlot().then(() => {
+      if (cancelled) {
+        releaseThumbSlot();
+        return;
+      }
+      slotHeldRef.current = true;
+      setActiveSrc(src);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [visible, src, activeSrc, broken]);
+
+  // Release slot after image settles (loaded OR errored) so the next
+  // tile in the queue can start fetching.
+  const handleLoad = () => {
+    setLoaded(true);
+    if (slotHeldRef.current) {
+      slotHeldRef.current = false;
+      releaseThumbSlot();
+    }
+  };
+  const handleError = () => {
+    setBroken(true);
+    if (slotHeldRef.current) {
+      slotHeldRef.current = false;
+      releaseThumbSlot();
+    }
+  };
+
+  const renderable = typeof activeSrc === "string" && activeSrc.length > 10 && !broken;
   return (
     <div
+      ref={tileRef}
       className={`relative group rounded overflow-hidden border-2 ${
         selected ? "border-red-700 ring-2 ring-red-300" : "border-slate-200"
       } cursor-pointer aspect-square bg-slate-100`}
@@ -515,21 +599,23 @@ function PhotoTile({ photo, src, selected, onToggle, onZoom }) {
     >
       {renderable ? (
         <img
-          src={src}
+          src={activeSrc}
           alt=""
           loading="lazy"
           decoding="async"
-          fetchPriority="low"
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover transition-opacity duration-300 ${
+            loaded ? "opacity-100" : "opacity-0"
+          }`}
           onClick={onZoom}
-          onError={() => setBroken(true)}
+          onLoad={handleLoad}
+          onError={handleError}
         />
       ) : (
         <div
           className="w-full h-full flex items-center justify-center text-slate-300"
           onClick={onZoom}
         >
-          {broken || !src ? (
+          {broken ? (
             <ImageIcon className="w-6 h-6 text-slate-400" title="Photo unavailable" />
           ) : (
             <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
