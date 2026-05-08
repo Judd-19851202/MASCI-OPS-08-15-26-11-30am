@@ -344,6 +344,12 @@ async def require_shop_or_admin(
         expected = _shop_token_for(shop_pw)
         if hmac.compare_digest(x_shop_token, expected):
             return True
+    # Per-shop-user token (new)
+    if x_shop_token and "." in x_shop_token:
+        from shop_users import is_valid_shop_user_token_async
+        user = await is_valid_shop_user_token_async(db, x_shop_token)
+        if user:
+            return user
     raise HTTPException(status_code=401, detail="Shop, PM, or admin login required")
 
 
@@ -1192,9 +1198,56 @@ async def admin_calculator_export_csv(_: bool = Depends(require_admin)):
 
 @api_router.post("/shop/login")
 async def shop_login(body: AdminLoginRequest, request: Request):
-    """Mirror of /admin/login but for the shop console (mechanics)."""
+    """Mirror of /admin/login but for the shop console (mechanics).
+
+    Per-user flow: if `email` is present in the body, look up the
+    shop_user, verify their bcrypt password, and issue a per-user token.
+    Falls back to the legacy shared SHOP_PASSWORD when email is absent
+    so existing kiosks/bookmarks keep working until you migrate every
+    mechanic onto a per-user account."""
     ip = _client_ip(request)
     _check_login_lockout(ip)
+
+    body_email = ""
+    try:
+        # AdminLoginRequest is `{password: str}`. Accept email too if
+        # included in the raw body.
+        raw = await request.json()
+        body_email = (raw.get("email") or "").strip().lower()
+    except Exception:
+        body_email = ""
+
+    # ---- Per-user shop auth ----
+    if body_email:
+        from shop_users import (
+            find_shop_user_by_email,
+            make_shop_user_token,
+            public_shop_user_view,
+            stamp_shop_login,
+            verify_password,
+        )
+        user = await find_shop_user_by_email(db, body_email)
+        if not user:
+            _record_login_fail(ip)
+            raise HTTPException(status_code=401, detail="Wrong email or password")
+        if user.get("disabled"):
+            raise HTTPException(status_code=403, detail="This shop user is disabled. Contact the admin.")
+        pwh = user.get("password_hash") or ""
+        if not pwh:
+            raise HTTPException(status_code=403, detail="No password set yet. Ask the admin to issue one.")
+        if not verify_password(body.password, pwh):
+            _record_login_fail(ip)
+            raise HTTPException(status_code=401, detail="Wrong email or password")
+        _reset_login_fails(ip)
+        await stamp_shop_login(db, user["id"], ip=ip)
+        return {
+            "ok": True,
+            "token": make_shop_user_token(user["id"], pwh),
+            "must_change_password": bool(user.get("must_change_password")),
+            "user": public_shop_user_view(user),
+        }
+
+    # ---- Legacy shared-password path ----
     expected_pw = os.environ.get("SHOP_PASSWORD", "")
     if not expected_pw:
         return {"ok": True, "token": "open-mode"}
@@ -2689,6 +2742,116 @@ async def admin_delete_job(job_id: str, _: bool = Depends(require_admin)):
     if not ok:
         raise HTTPException(404, "Job not found")
     return {"ok": True, "soft_deleted": True, "retain_days": SOFT_DELETE_RETAIN_DAYS}
+
+
+# ====================================================================
+# Shop Users — admin-only CRUD + per-user password issuance.
+# Mirrors the PM admin panel. Used by the "Shop Users" admin section.
+# ====================================================================
+
+class ShopUserIn(BaseModel):
+    name: str
+    email: str
+    phone: Optional[str] = ""
+    role: Optional[str] = "Mechanic"
+    is_active: Optional[bool] = True
+
+
+class ShopUserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
+    disabled: Optional[bool] = None
+
+
+class ShopSetPasswordBody(BaseModel):
+    password: Optional[str] = None
+    must_change: Optional[bool] = True
+
+
+@api_router.get("/admin/shop-users")
+async def admin_list_shop_users(_: bool = Depends(require_admin)):
+    from shop_users import list_shop_users, public_shop_user_view
+    items = await list_shop_users(db, only_active=False)
+    return {"items": [public_shop_user_view(u) for u in items]}
+
+
+@api_router.post("/admin/shop-users")
+async def admin_add_shop_user(body: ShopUserIn, _: bool = Depends(require_admin)):
+    from shop_users import add_shop_user, public_shop_user_view
+    try:
+        user = await add_shop_user(db, body.model_dump())
+        return public_shop_user_view(user)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@api_router.patch("/admin/shop-users/{user_id}")
+async def admin_update_shop_user(
+    user_id: str, body: ShopUserUpdate, _: bool = Depends(require_admin)
+):
+    from shop_users import update_shop_user, public_shop_user_view
+    fields = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not fields:
+        raise HTTPException(400, "No fields to update")
+    try:
+        saved = await update_shop_user(db, user_id, fields)
+        if not saved:
+            raise HTTPException(404, "Shop user not found")
+        return public_shop_user_view(saved)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@api_router.delete("/admin/shop-users/{user_id}")
+async def admin_delete_shop_user(user_id: str, _: bool = Depends(require_admin)):
+    from shop_users import delete_shop_user
+    ok = await delete_shop_user(db, user_id)
+    if not ok:
+        raise HTTPException(404, "Shop user not found")
+    return {"ok": True}
+
+
+@api_router.post("/admin/shop-users/{user_id}/set-password")
+async def admin_set_shop_user_password(
+    user_id: str, body: ShopSetPasswordBody, _: bool = Depends(require_admin)
+):
+    """Issue a new password for a shop user. If `password` is omitted,
+    generates a crypto-random temp password. Returned ONCE — admin
+    shows it to the user verbally / on a sticky note. Subsequent reads
+    of the user record never include the plaintext."""
+    from shop_users import (
+        set_shop_user_password, generate_temp_password, public_shop_user_view,
+    )
+    pw = (body.password or "").strip() or generate_temp_password()
+    try:
+        saved = await set_shop_user_password(
+            db, user_id, pw, must_change=bool(body.must_change),
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    if not saved:
+        raise HTTPException(404, "Shop user not found")
+    return {
+        "ok": True,
+        "user": public_shop_user_view(saved),
+        "temp_password": pw,
+        "must_change_password": bool(saved.get("must_change_password")),
+    }
+
+
+@api_router.post("/admin/shop-users/{user_id}/disable")
+async def admin_disable_shop_user(
+    user_id: str, body: dict, _: bool = Depends(require_admin)
+):
+    from shop_users import update_shop_user, public_shop_user_view
+    saved = await update_shop_user(db, user_id, {"disabled": bool(body.get("disabled", True))})
+    if not saved:
+        raise HTTPException(404, "Shop user not found")
+    return public_shop_user_view(saved)
+
 
 
 @api_router.get("/admin/jobs/archive")
@@ -6455,6 +6618,12 @@ async def _seed_field_leadership_equipment_catalog():
     await _seed_field_leadership_equipment(db)
 
 
+@app.on_event("startup")
+async def _seed_shop_users():
+    from shop_users import seed_shop_users
+    await seed_shop_users(db)
+
+
 # ============================================================
 # Email a saved record as a PDF (Resend)
 # ============================================================
@@ -6540,6 +6709,21 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
 
         dist = await recipients_for_record_async(db, record, kind)
         recipients: List[str] = list(dist["all"])  # type: ignore[arg-type]
+
+        # Equipment Pre-Op with FAILs / out-of-service items — always
+        # CC the shop manager so they can plan parts + scheduling.
+        if (
+            kind == "equipment-inspection"
+            and (
+                (record.get("fail_count") or 0) > 0
+                or (record.get("out_of_service") or "").strip().lower() in ("yes", "true", "1")
+            )
+        ):
+            shop_email = (
+                os.environ.get("SHOP_MANAGER_EMAIL", "shopmanager@mascigc.com").strip()
+            )
+            if shop_email and shop_email.lower() not in {r.lower() for r in recipients}:
+                recipients.append(shop_email)
 
         # Severity fan-out for incidents (Major/Severe currently mirrors the
         # always-CC; future ops/GC list can be appended here from env.)

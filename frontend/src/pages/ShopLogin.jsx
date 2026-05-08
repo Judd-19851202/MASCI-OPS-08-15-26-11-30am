@@ -4,6 +4,7 @@ import { Wrench, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
+import { Input } from "@/components/ui/input";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { api } from "@/lib/api";
@@ -17,6 +18,7 @@ export default function ShopLogin() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useT();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -32,7 +34,7 @@ export default function ShopLogin() {
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!password) {
-      toast.error(t("Enter the shop password"));
+      toast.error(t("Enter your password"));
       return;
     }
     setSubmitting(true);
@@ -40,7 +42,9 @@ export default function ShopLogin() {
     clearAdminToken();
     clearPmToken();
     try {
-      const res = await api.post("/shop/login", { password, _t: Date.now() }, {
+      const payload = { password, _t: Date.now() };
+      if (email.trim()) payload.email = email.trim().toLowerCase();
+      const res = await api.post("/shop/login", payload, {
         timeout: 90000, // backend cold-start on Atlas can take up to 60s
       });
       if (res?.data?.ok && res?.data?.token) {
@@ -55,7 +59,9 @@ export default function ShopLogin() {
       const status = err?.response?.status;
       let msg;
       if (status === 401) {
-        msg = t("Wrong password");
+        msg = email ? t("Wrong email or password") : t("Wrong password");
+      } else if (status === 403) {
+        msg = err?.response?.data?.detail || t("Access blocked");
       } else if (status >= 520 && status <= 524) {
         msg = t("Server is waking up — give it ~60 seconds and try again");
       } else if (status >= 500 && status < 600) {
@@ -112,8 +118,23 @@ export default function ShopLogin() {
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="shop-login-form">
             <div>
+              <Label htmlFor="shop-email" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                {t("Email (optional — leave blank for shared shop password)")}
+              </Label>
+              <Input
+                id="shop-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                placeholder="shopmanager@mascigc.com"
+                className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-amber-500"
+                data-testid="shop-email-input"
+              />
+            </div>
+            <div>
               <Label htmlFor="shop-password" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                {t("Shop Password")}
+                {t("Password")}
               </Label>
               <PasswordInput
                 id="shop-password"

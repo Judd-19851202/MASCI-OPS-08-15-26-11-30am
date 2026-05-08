@@ -36,6 +36,7 @@ import BilingualAdoptionCard from "@/components/BilingualAdoptionCard";
 import CalculatorUsageCard from "@/components/CalculatorUsageCard";
 import AdminJobMasterPanel from "@/components/AdminJobMasterPanel";
 import AdminPMPanel from "@/components/AdminPMPanel";
+import AdminShopUsersPanel from "@/components/AdminShopUsersPanel";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
 import EquipmentPartsPanel from "@/components/EquipmentPartsPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
@@ -365,6 +366,7 @@ export default function AdminHub() {
 
         {/* 4 · Email Routing (PM roster + auto-routing rules) */}
         <AdminPMPanel />
+        <AdminShopUsersPanel />
         <AutoEmailRoutingPanel />
 
         {/* 5 · Site Posters */}
