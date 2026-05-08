@@ -107,7 +107,6 @@ def test_render_semaphore_is_bounded():
     )
 
 
-# ─── integration: 30 concurrent renders complete without crashing ────────
 def test_30_concurrent_renders_dont_crash():
     """30 parallel calls into the render pipeline must all complete
     successfully under the semaphore. We measure wall-clock to make
@@ -137,3 +136,93 @@ def test_30_concurrent_renders_dont_crash():
     # more than 30s on any reasonable CI box. We're not racing performance,
     # just proving nothing hung.
     assert elapsed < 30.0, f"30 renders took {elapsed:.1f}s — pipeline stalled"
+
+
+# ─── auto-warm scheduler: warms photos missing JPEG cache, skips warm ones ─
+def test_warm_missing_thumbs_skips_already_warm():
+    """`_warm_missing_thumbs` must:
+       * skip photos that already have a JPEG cache entry
+       * render + cache photos missing one
+       * never blow past `batch_limit`"""
+    import routes.job_photos as jp
+
+    raw_jpeg = _make_real_jpeg_bytes(size=120)
+    data_url = _make_data_url(raw_jpeg)
+
+    class _FakeCursor:
+        def __init__(self, docs):
+            self._docs = docs
+        def limit(self, n):
+            self._docs = self._docs[:n]
+            return self
+        def __aiter__(self):
+            self._i = 0
+            return self
+        async def __anext__(self):
+            if self._i >= len(self._docs):
+                raise StopAsyncIteration
+            d = self._docs[self._i]
+            self._i += 1
+            return d
+
+    class _FakeDb:
+        def __init__(self):
+            self.photos = [
+                {"id": "p:warm:0", "source": "daily_report", "source_id": "warm-rec", "photo_index": 0},
+                {"id": "p:cold:1", "source": "daily_report", "source_id": "cold-rec", "photo_index": 0},
+                {"id": "p:cold:2", "source": "daily_report", "source_id": "cold-rec", "photo_index": 1},
+            ]
+            # Pre-warm one photo
+            self.thumb_cache = {"p:warm:0:jpeg": True}
+            self.write_log = []
+            self.records = {
+                "warm-rec": {"id": "warm-rec", "photos": [data_url]},
+                "cold-rec": {"id": "cold-rec", "photos": [data_url, data_url]},
+            }
+        @property
+        def job_photos(self):
+            outer = self
+            class _C:
+                def find(self_inner, q, proj=None):
+                    return _FakeCursor(list(outer.photos))
+            return _C()
+        @property
+        def job_photo_thumb_cache(self):
+            outer = self
+            class _C:
+                def find(self_inner, q, proj=None):
+                    # Return docs whose _id ends with ":jpeg"
+                    rows = [{"photo_id": k.rsplit(":", 1)[0]} for k in outer.thumb_cache.keys() if k.endswith(":jpeg")]
+                    return _FakeCursor(rows)
+                async def find_one(self_inner, q, proj=None):
+                    return outer.thumb_cache.get(q.get("_id"))
+                async def update_one(self_inner, q, update, upsert=False):
+                    key = q.get("_id")
+                    outer.thumb_cache[key] = True
+                    outer.write_log.append(key)
+            return _C()
+        @property
+        def daily_reports(self):
+            outer = self
+            class _C:
+                async def find_one(self_inner, q, proj=None):
+                    return outer.records.get(q.get("id"))
+            return _C()
+        def __getitem__(self, name):
+            if name == "daily_reports":
+                return self.daily_reports
+            raise KeyError(name)
+
+    fake_db = _FakeDb()
+    jp._RENDER_SEMA = None  # rebind to test loop
+    result = asyncio.run(jp._warm_missing_thumbs(fake_db, batch_limit=10))
+
+    # Expect 2 photos warmed (cold-rec:0 and cold-rec:1); warm-rec was skipped
+    assert result["warmed"] == 2, f"expected 2 warmed, got {result}"
+    assert result["failed"] == 0
+    # Each warmed photo writes JPEG (always) + maybe WebP/AVIF
+    jpeg_writes = [k for k in fake_db.write_log if k.endswith(":jpeg")]
+    assert "p:cold:1:jpeg" in jpeg_writes
+    assert "p:cold:2:jpeg" in jpeg_writes
+    # Warm photo NOT re-rendered
+    assert "p:warm:0:jpeg" not in fake_db.write_log

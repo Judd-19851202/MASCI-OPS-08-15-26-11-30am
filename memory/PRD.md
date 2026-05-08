@@ -1,5 +1,22 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter59 (continued): Auto-warm scheduler
+
+Per user request: with the new `warm-cache` endpoint in place, the existing 30-min `background_indexer_loop` was bumped to 10-min cadence and now also auto-warms any indexed photo missing a JPEG cache entry.
+
+### What shipped
+- **`_warm_missing_thumbs(db, batch_limit=200)`** — reads every `photo_id` in `job_photo_thumb_cache` with `fmt=jpeg` into a set, walks the `job_photos` index, and renders+caches up to 200 photos per tick that aren't already warm. Honors the same `_render_sema` concurrency cap so the worker stays bounded.
+- **`background_indexer_loop`** — interval changed from 1800s (30m) to 600s (10m). Each tick now runs the existing 2-hour catch-up reindex AND a warm-pass. Logs `[job-photos] auto-warm tick: N warmed, M failed` only when there's actual work (silent when steady-state).
+- **NEW test** `test_warm_missing_thumbs_skips_already_warm` — verifies the skip-already-warm logic, the batch_limit cap, and that the cached JPEG sentinel works correctly.
+
+### Verified
+- 5/5 `test_iter59_thumb_concurrency.py` pass. Backend restart clean. Auto-warm is running on the 10-min cycle in preview.
+
+### Net effect for production
+After deploy, every NEW Daily Report's photos get pre-rendered into JPEG/WebP/AVIF cache within 10 minutes of submission, in the background, without any user action. The first PM/admin to open the gallery for that job sees thumbnails appear instantly instead of paying the Pillow decode cost on every tile.
+
+---
+
 ## 2026-05-08 — Iter59: Job Photos production thumbnail storm fix
 
 ### User report

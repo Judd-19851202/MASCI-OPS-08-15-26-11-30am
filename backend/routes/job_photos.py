@@ -218,9 +218,65 @@ async def reindex_all(db) -> Dict[str, int]:
     return counts
 
 
+async def _warm_missing_thumbs(db, batch_limit: int = 200) -> Dict[str, int]:
+    """Pre-render thumbs for any indexed photo that doesn't yet have a
+    JPEG cache entry. Honors the same render concurrency cap as the
+    on-demand path so we never blow up the worker. Cap batch size so a
+    single tick never runs longer than the next tick interval.
+
+    Returns ``{warmed, failed}`` for log surfacing.
+    """
+    warmed = 0
+    failed = 0
+    # Pull all photo_ids that already have a JPEG cache entry — these
+    # are "warm" and can be skipped.
+    warm_ids = set()
+    async for d in db.job_photo_thumb_cache.find(
+        {"fmt": "jpeg"}, {"photo_id": 1, "_id": 0}
+    ):
+        if d.get("photo_id"):
+            warm_ids.add(d["photo_id"])
+
+    # Walk the index, render any photo missing from `warm_ids`.
+    cursor = db.job_photos.find(
+        {}, {"_id": 0, "id": 1, "source": 1, "source_id": 1, "photo_index": 1}
+    ).limit(batch_limit * 5)  # over-fetch since most will be warm
+    async for meta in cursor:
+        if meta["id"] in warm_ids:
+            continue
+        if warmed + failed >= batch_limit:
+            break
+        try:
+            url = await _load_photo(
+                db, meta["source"], meta["source_id"], meta["photo_index"]
+            )
+            decoded = _decode_data_url(url) if url else None
+            if not decoded:
+                failed += 1
+                continue
+            raw, _ext = decoded
+            async with _render_sema():
+                rendered = await asyncio.to_thread(_render_all_formats, raw)
+            for fmt_key, payload_bytes in rendered.items():
+                await _write_thumb_cache(db, meta["id"], fmt_key, payload_bytes)
+            if rendered:
+                warmed += 1
+            else:
+                failed += 1
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[job-photos] auto-warm failed for {meta['id']}: {e}")
+            failed += 1
+    return {"warmed": warmed, "failed": failed}
+
+
 async def background_indexer_loop(db) -> None:
-    """Periodic catch-up. Runs every 30 minutes. On startup, only reindexes
-    if the collection is empty — first deploy / fresh database scenario."""
+    """Periodic catch-up. Runs every 10 minutes. On startup, only reindexes
+    if the collection is empty — first deploy / fresh database scenario.
+
+    Each tick also auto-warms up to 200 thumbs that haven't been rendered
+    yet, so the first viewer of any newly-submitted daily report's
+    photos gets instant load instead of paying the Pillow decode cost.
+    """
     try:
         existing = await db.job_photos.count_documents({})
         if existing == 0:
@@ -231,7 +287,7 @@ async def background_indexer_loop(db) -> None:
 
     while True:
         try:
-            await asyncio.sleep(1800)  # 30 minutes
+            await asyncio.sleep(600)  # 10 minutes
             # Light catch-up: only re-index records modified in last 2h
             cutoff = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
             for source, cfg in SOURCE_COLLECTIONS.items():
@@ -242,6 +298,13 @@ async def background_indexer_loop(db) -> None:
                 ):
                     await index_record_photos(db, source, rec)
                     await asyncio.sleep(0)
+            # Auto-warm any thumbs that haven't been rendered yet.
+            warm_result = await _warm_missing_thumbs(db, batch_limit=200)
+            if warm_result["warmed"] or warm_result["failed"]:
+                logger.info(
+                    f"[job-photos] auto-warm tick: {warm_result['warmed']} warmed, "
+                    f"{warm_result['failed']} failed"
+                )
         except asyncio.CancelledError:
             raise
         except Exception as e:
