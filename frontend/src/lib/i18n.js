@@ -2286,6 +2286,13 @@ const ES = {
   "Auto-flagged on return": "Marcado automáticamente al devolver",
   "Clean return — no damage": "Devolución limpia — sin daños",
 
+  // ---- Field Leadership login screen (matches Admin/PM/Shop chrome) ----
+  "Restricted Area": "Área Restringida",
+  "Field Leadership Sign In": "Inicio de Sesión · Liderazgo de Campo",
+  "Leadership Password": "Contraseña de Liderazgo",
+  "Sign In": "Iniciar Sesión",
+  "MASCI · Field Leadership · Restricted": "MASCI · Liderazgo de Campo · Restringido",
+
 };
 
 const DICTS = { es: ES, en: {} };

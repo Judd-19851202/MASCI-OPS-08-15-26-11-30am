@@ -128,7 +128,13 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
     try {
       // Direct-from-server <img src> would need auth headers, so we fetch
       // via axios (which carries the token) and turn it into an object URL.
-      const res = await api.get(`/job-photos/${id}/thumb`, { responseType: "blob" });
+      // The Accept header tells the backend which formats this client can
+      // decode — modern browsers + iOS Safari handle AVIF + WebP, saving
+      // ~50% on the wire vs. the JPEG fallback for legacy clients.
+      const res = await api.get(`/job-photos/${id}/thumb`, {
+        responseType: "blob",
+        headers: { Accept: "image/avif,image/webp,image/jpeg,image/*,*/*;q=0.8" },
+      });
       const objUrl = URL.createObjectURL(res.data);
       setThumbCache((p) => ({ ...p, [id]: objUrl }));
     } catch {

@@ -11,10 +11,12 @@
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowLeft, Lock, ListChecks } from "lucide-react";
+import { ArrowRight, ArrowLeft, Lock, ListChecks, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { PasswordInput } from "@/components/PasswordInput";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
@@ -97,58 +99,82 @@ function PasswordGate({ onAuthed }) {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg">
+    <div className="min-h-screen blueprint-bg flex flex-col">
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-5 sm:py-7 flex items-center justify-between">
-          <MasciLogo variant="lockup" size="4xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="lockup" size="xl" className="sm:hidden" homeLink="/" />
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+          <Link
+            to="/"
+            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
+            data-testid="leadership-login-back"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Hub")}
+          </Link>
+          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <LangToggle />
         </div>
       </header>
-      <main className="max-w-md mx-auto px-5 py-12 sm:py-20">
-        <Card className="p-8 border-2 border-slate-300 rounded-md">
-          <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-md bg-red-700 flex items-center justify-center">
-              <Lock className="w-7 h-7 text-white" />
+
+      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
+        <div className="w-full max-w-md bg-white border-2 border-slate-300 rounded-md p-7 sm:p-9 shadow-xl">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-700 text-white">
+              <Lock className="w-6 h-6" />
             </div>
-            <span className="mt-4 font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
-              {t("Restricted")}
-            </span>
-            <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2">
-              {t("Field Leadership")}
-            </h1>
-            <p className="text-slate-600 text-sm sm:text-base mt-3">
-              {t("This section is restricted to MASCI field supervisors, foremen, superintendents, PMs, Safety, and Admin. Enter the leadership password to continue.")}
-            </p>
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700">
+                {t("Restricted Area")}
+              </div>
+              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
+                {t("Field Leadership Sign In")}
+              </h1>
+            </div>
           </div>
-          <form onSubmit={submit} className="mt-6 space-y-3" data-testid="leadership-gate-form">
-            <Input
-              type="password"
-              autoFocus
-              value={pw}
-              onChange={(e) => setPw(e.target.value)}
-              placeholder={t("Leadership password")}
-              className="h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600"
-              data-testid="leadership-pw-input"
-            />
+          <p className="text-slate-600 text-sm mt-3 mb-6">
+            {t("This section is restricted to MASCI field supervisors, foremen, superintendents, PMs, Safety, and Admin. Enter the leadership password to continue.")}
+          </p>
+
+          <form onSubmit={submit} className="space-y-4" data-testid="leadership-gate-form">
+            <div>
+              <Label htmlFor="leadership-password" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                {t("Leadership Password")}
+              </Label>
+              <PasswordInput
+                id="leadership-password"
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                autoFocus
+                autoComplete="current-password"
+                className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600"
+                data-testid="leadership-pw-input"
+                toggleTestId="leadership-pw-toggle"
+              />
+            </div>
             <Button
               type="submit"
               disabled={busy || !pw.trim()}
-              className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
+              className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
               data-testid="leadership-pw-submit"
             >
-              {busy ? t("Verifying…") : t("Enter Field Leadership")}
+              {busy ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Verifying…")}
+                </>
+              ) : (
+                <>{t("Sign In")}</>
+              )}
             </Button>
           </form>
-          <Link
-            to="/"
-            className="mt-6 flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-[0.2em] text-slate-500 hover:text-red-700"
-          >
-            <ArrowLeft className="w-3 h-3" /> {t("Back to Hub")}
-          </Link>
-        </Card>
+        </div>
       </main>
+
+      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
+          {t("MASCI · Field Leadership · Restricted")}
+        </div>
+        <ForgedOpsAttribution variant="login" />
+      </footer>
     </div>
   );
 }

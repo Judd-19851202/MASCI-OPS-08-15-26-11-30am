@@ -48,7 +48,7 @@ import zipfile
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -331,12 +331,15 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
     @router.get("/{photo_id}/thumb")
     async def get_photo_thumb(
         photo_id: str,
+        request: Request,
         actor=Depends(require_caller),
     ):
-        """Return a small (≤ 360px on the long edge, JPEG q60) thumbnail
-        of a photo. ~5–20 KB per response vs. 200 KB–2 MB for /raw — the
-        difference is the difference between a snappy gallery and 'super
-        slow'. Cached for 24h (immutable: photo_id never changes content)."""
+        """Return a small (≤ 360px on the long edge) thumbnail of a photo.
+        Content-negotiated: serves AVIF (best, ~40% smaller than JPEG) when
+        the client's Accept header advertises image/avif, then WebP, then
+        falls back to JPEG q60 for legacy clients (older iOS Safari, curl,
+        bots). All paths use Pillow which is already a hard dependency.
+        Cached for 24h (immutable: photo_id never changes content)."""
         scope = await compute_pm_scope(db, actor)
         meta = await db.job_photos.find_one({"id": photo_id}, {"_id": 0})
         if not meta:
@@ -348,23 +351,55 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         if not decoded:
             raise HTTPException(404, "source photo missing")
         raw, _ext = decoded
+        # Pick best format the caller can decode. We bias toward AVIF first
+        # since it's the smallest and every modern phone/browser supports
+        # it. If anything in the chain fails (codec missing, decode error,
+        # weird source format like HEIC) we fall back to the original
+        # bytes — the gallery will still render correctly.
+        accept = (request.headers.get("accept") or "").lower()
+        prefers_avif = "image/avif" in accept
+        prefers_webp = "image/webp" in accept
         try:
             from PIL import Image as _PILImage  # type: ignore  # noqa: WPS433
             with _PILImage.open(io.BytesIO(raw)) as im:
                 im.thumbnail((360, 360), _PILImage.LANCZOS)
                 if im.mode in ("RGBA", "LA", "P"):
                     im = im.convert("RGB")
+                fmt, mime, kwargs = "JPEG", "image/jpeg", {"quality": 60, "optimize": True}
+                if prefers_avif:
+                    try:
+                        buf_test = io.BytesIO()
+                        im.save(buf_test, format="AVIF", quality=45)
+                        fmt, mime = "AVIF", "image/avif"
+                        kwargs = {"quality": 45}
+                    except Exception:
+                        prefers_avif = False
+                if not prefers_avif and prefers_webp:
+                    try:
+                        buf_test = io.BytesIO()
+                        im.save(buf_test, format="WebP", quality=60)
+                        fmt, mime = "WebP", "image/webp"
+                        kwargs = {"quality": 60, "method": 4}
+                    except Exception:
+                        pass
                 buf = io.BytesIO()
-                im.save(buf, format="JPEG", quality=60, optimize=True)
-                jpeg = buf.getvalue()
+                im.save(buf, format=fmt, **kwargs)
+                payload = buf.getvalue()
         except Exception:
-            # If Pillow choked (heic/heif/corrupt), fall back to original
-            jpeg = raw
+            # Pillow choked entirely (corrupt/heic/heif) — fall back to
+            # original bytes with image/jpeg content type as a guess.
+            payload = raw
+            mime = "image/jpeg"
         from fastapi.responses import Response  # local import to avoid clash
         return Response(
-            content=jpeg,
-            media_type="image/jpeg",
-            headers={"Cache-Control": "private, max-age=86400, immutable"},
+            content=payload,
+            media_type=mime,
+            headers={
+                "Cache-Control": "private, max-age=86400, immutable",
+                # Tell intermediate caches that responses depend on Accept,
+                # so AVIF/WebP/JPEG variants don't bleed across browsers.
+                "Vary": "Accept",
+            },
         )
 
     @router.post("/raw-batch")
