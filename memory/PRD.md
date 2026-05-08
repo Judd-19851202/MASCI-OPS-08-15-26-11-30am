@@ -1,5 +1,34 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-08 — Iter58: Production Live-Site Audit polish (closeout)
+
+### User ask
+"Do complete systems check on live site making sure all systems & features work as they should…"
+
+### Audit verdict
+**95+/100 — PASS.** Production site (mascidocs.com) was audited end-to-end. Two minor UI findings surfaced and were patched in this iteration:
+
+1. **`ViewEquipmentInspection.jsx`** — Doc-ID badge in the header was styled inconsistently vs. the other 5 detail views (DR / FL / Meeting / Incident / Inspection / QAQC). Now uses the same red `bg-red-50 border-red-300 text-red-800 font-mono` treatment with a `data-testid="record-doc-id-badge"` for parity.
+2. **`AdminDocIdSearch.jsx`** — On production, unknown doc IDs return HTTP 404 (not the preview's 200 + `{found:false}`). The catch block now treats 404 / 200 / unknown-status uniformly as "not found" so admins always see the friendly inline `NO RECORD FOUND FOR "X"` message instead of an unhandled error toast.
+
+### Verified end-to-end (preview)
+- ESLint clean on both files.
+- `POST /api/admin/login` → token issued (length 64).
+- `GET /api/admin/find-by-doc-id?doc_id=BOGUS-2026-99999` → HTTP 200 `{found:false}` ✓
+- `GET /api/admin/find-by-doc-id?doc_id=DR-2026-00001` → HTTP 200 `{found:true, route:"/admin/daily/<id>", …}` ✓
+- Frontend smoke (Playwright): admin login → `/admin` → search bar visible → submit `BOGUS-2026-99999` → inline `NO RECORD FOUND…` rendered in red without toast or layout break ✓
+
+### Files added/touched
+- MODIFIED: `/app/frontend/src/components/AdminDocIdSearch.jsx` (graceful 404 handling), `/app/frontend/src/pages/ViewEquipmentInspection.jsx` (Doc-ID badge styling parity)
+
+### Deploy reminder
+Frontend-only change. Push to `mascidocs.com`.
+
+### GO/NO-GO: **GO**
+Production audit complete. No P0/P1 issues remain. Doc-ID search and detail-view badges fully consistent across all 6 detail views.
+
+---
+
 ## 2026-05-08 — Iter57: Enterprise Audit + Doc ID polish
 
 ### Audit verdict
