@@ -14,7 +14,15 @@ from __future__ import annotations
 import html
 from typing import Any, Dict, List
 
-from weasyprint import HTML, CSS  # type: ignore
+from weasyprint import HTML
+
+# Resolve photo:// refs (R2-backed) → base64 data URLs at render time so
+# WeasyPrint can embed them. Pass-through for legacy data: URLs.
+try:
+    from photo_storage import resolve_to_data_url_sync as _resolve_photo_ref
+except Exception:  # noqa: BLE001
+    def _resolve_photo_ref(ref: str) -> str:  # type: ignore[misc]
+        return ref or ""
 
 # Same kind-meta dict as the route file — duplicated to avoid a circular
 # import (this file is imported from server.py at module load time).
@@ -106,9 +114,14 @@ def _equipment_lines_photos_block(lines: List[Dict[str, Any]],
             line.get("name") or "",
             f"S/N {line.get('serial')}" if line.get("serial") else "",
         ] if p) or empty_label
-        imgs = "".join(
-            f"<img src='{_h(p)}' alt='Item {idx+1} photo' />" for p in photos[:8]
-        )
+        imgs_list = []
+        for p in photos[:8]:
+            if not isinstance(p, str):
+                continue
+            resolved = _resolve_photo_ref(p)
+            if resolved:
+                imgs_list.append(f"<img src='{_h(resolved)}' alt='Item {idx+1} photo' />")
+        imgs = "".join(imgs_list)
         blocks.append(
             f"<div class='line-photos'>"
             f"<div class='line-photos-caption'>"
@@ -126,9 +139,16 @@ def _equipment_lines_photos_block(lines: List[Dict[str, Any]],
 def _photos_block(photos: List[str]) -> str:
     if not photos:
         return ""
-    imgs = "".join(
-        f"<img src='{_h(p)}' alt='photo' />" for p in photos[:8]
-    )
+    imgs_list = []
+    for p in photos[:8]:
+        if not isinstance(p, str):
+            continue
+        resolved = _resolve_photo_ref(p)
+        if resolved:
+            imgs_list.append(f"<img src='{_h(resolved)}' alt='photo' />")
+    if not imgs_list:
+        return ""
+    imgs = "".join(imgs_list)
     return f"<section><h3>Photos</h3><div class='photos'>{imgs}</div></section>"
 
 

@@ -300,6 +300,54 @@ async def read_photo_bytes(ref: str) -> bytes:
     return buf.getvalue()
 
 
+def read_photo_bytes_sync(ref: str) -> bytes:
+    """Synchronous variant of read_photo_bytes — used by sync PDF render
+    paths (weasyprint) that can't await. Safe to call from inside an
+    ``asyncio.to_thread`` wrapper. Same dual-read contract: handles both
+    base64 ``data:`` URLs and ``photo://`` refs."""
+    if not ref or not isinstance(ref, str):
+        raise ValueError("empty photo reference")
+    if ref.startswith("data:"):
+        try:
+            _head, b64 = ref.split(",", 1)
+            return base64.b64decode(b64)
+        except Exception as e:
+            raise ValueError(f"corrupt base64 data URL: {e}") from e
+    if not is_storage_ref(ref):
+        raise ValueError(f"unrecognized photo ref scheme: {ref[:40]}")
+    bucket, key = _parse_ref(ref)
+    c = _client()
+    if c is None:
+        raise RuntimeError("photo_storage client unavailable but ref requires it")
+    obj = c.get_object(Bucket=bucket, Key=key)
+    return obj["Body"].read()
+
+
+def resolve_to_data_url_sync(ref: str) -> str:
+    """Sync helper: take ANY photo ref (data: or photo://) and return a
+    base64 ``data:image/...`` URL suitable for embedding in HTML/PDF.
+    Returns the input unchanged when it's already a data: URL. Returns
+    empty string on failure (caller should treat as "no photo")."""
+    if not ref or not isinstance(ref, str):
+        return ""
+    if ref.startswith("data:"):
+        return ref
+    if not is_storage_ref(ref):
+        return ""
+    try:
+        raw = read_photo_bytes_sync(ref)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[photo-storage] resolve_to_data_url_sync failed for {ref[:80]}: {e}")
+        return ""
+    # Pick a sensible content-type from the key extension.
+    ext = (ref.rsplit(".", 1)[-1] or "jpg").lower()
+    ct = {
+        "png": "image/png", "webp": "image/webp", "avif": "image/avif",
+        "heic": "image/heic", "heif": "image/heif", "gif": "image/gif",
+    }.get(ext, "image/jpeg")
+    return f"data:{ct};base64,{base64.b64encode(raw).decode('ascii')}"
+
+
 async def presigned_get_url(ref: str, ttl_seconds: int = 900) -> str:
     """Mint a presigned GET URL the browser can fetch directly. Use this
     when serving full-resolution photos to the gallery lightbox so we

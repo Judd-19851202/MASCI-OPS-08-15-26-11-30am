@@ -216,7 +216,9 @@ async def index_record_photos(db, source: str, record: Dict[str, Any]) -> int:
 
     rows = []
     for idx, p in enumerate(photos):
-        if not isinstance(p, str) or not p.startswith("data:"):
+        # Accept BOTH legacy base64 (data:) AND migrated cloud refs (photo://).
+        # Skipping photo:// refs here would un-index every photo after R2 migration.
+        if not isinstance(p, str) or not (p.startswith("data:") or p.startswith("photo://")):
             continue
         rows.append({
             "id": f"{source}:{src_id}:{idx}",
@@ -350,6 +352,31 @@ async def background_indexer_loop(db) -> None:
                     f"[job-photos] auto-warm tick: {warm_result['warmed']} warmed, "
                     f"{warm_result['failed']} failed"
                 )
+            # Auto-vacuum: when R2 storage is configured, sweep any
+            # base64 photos still in MongoDB out to R2 in small batches.
+            # This is the steady-state companion to the one-shot
+            # admin migration endpoint — keeps DB size flat as new
+            # uploads come in. Bounded to 25 docs/collection/tick so we
+            # never hammer R2 or block the loop. Idempotent — already
+            # migrated photo:// refs are skipped.
+            try:
+                from photo_storage import is_configured as _ps_configured
+                if _ps_configured():
+                    from photo_migration import migrate_all
+                    vacuum = await migrate_all(
+                        db, dry_run=False,
+                        limit_per_collection=25, resume=True,
+                    )
+                    v = vacuum.get("totals") or {}
+                    if v.get("photos_migrated") or v.get("photos_failed"):
+                        logger.info(
+                            f"[job-photos] R2 vacuum tick: "
+                            f"{v.get('photos_migrated', 0)} migrated, "
+                            f"{v.get('photos_failed', 0)} failed, "
+                            f"{v.get('bytes_migrated', 0)} bytes"
+                        )
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[job-photos] R2 vacuum failed: {e}")
         except asyncio.CancelledError:
             raise
         except Exception as e:

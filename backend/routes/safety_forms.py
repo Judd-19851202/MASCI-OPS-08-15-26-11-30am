@@ -38,6 +38,13 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
+# Resolve photo:// refs (R2) → base64 data URLs at PDF render time.
+try:
+    from photo_storage import resolve_to_data_url_sync as _resolve_photo_ref
+except Exception:  # noqa: BLE001
+    def _resolve_photo_ref(ref: str) -> str:  # type: ignore[misc]
+        return ref or ""
+
 logger = logging.getLogger("safety_forms")
 
 
@@ -272,9 +279,15 @@ def render_issuance_pdf(rec: Dict[str, Any]) -> bytes:
     photos_html = ""
     photos = [p for p in (rec.get("photos") or []) if p]
     if photos:
-        photos_html = "<div class='section'><h2>Photos</h2><div class='photos'>" + "".join(
-            f"<img src='{_safe(p)}' />" for p in photos[:6]
-        ) + "</div></div>"
+        _resolved_photos = []
+        for p in photos[:6]:
+            r = _resolve_photo_ref(p) if isinstance(p, str) else ""
+            if r:
+                _resolved_photos.append(r)
+        if _resolved_photos:
+            photos_html = "<div class='section'><h2>Photos</h2><div class='photos'>" + "".join(
+                f"<img src='{_safe(rp)}' />" for rp in _resolved_photos
+            ) + "</div></div>"
 
     cond = rec.get("condition") or ""
     cond_note = ""
@@ -774,9 +787,19 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
         logger.exception(f"safety-forms auto-email failed for {kind} {rec.get('id')}: {e}")
 
 
+# Module-level handle to the active Mongo db, set when
+# build_safety_forms_router(db, ...) is called. Lets _schedule_email
+# (which runs as a fire-and-forget BackgroundTask outside the router
+# closure) pass the correct db to _dispatch_email's dynamic email
+# recipient lookup. Pre-iter60 the lookup was env-only and didn't
+# need db; iter60 added DB-backed routing overrides so this handle
+# closes the gap.
+_DB_REF: Any = None
+
+
 def _schedule_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[str, Any]] = None) -> None:
     try:
-        asyncio.create_task(_dispatch_email(kind, dict(rec), dict(extra) if extra else None, db=db))
+        asyncio.create_task(_dispatch_email(kind, dict(rec), dict(extra) if extra else None, db=_DB_REF))
     except RuntimeError:
         pass
 
@@ -792,6 +815,8 @@ def build_safety_forms_router(db, _is_valid_admin_token):
     ``_is_valid_admin_token`` is the existing helper from server.py so we
     can satisfy the same admin token everywhere without duplication.
     """
+    global _DB_REF
+    _DB_REF = db
     router = APIRouter(prefix="/api/safety-forms", tags=["safety-forms"])
 
     def _require_safety_or_admin(

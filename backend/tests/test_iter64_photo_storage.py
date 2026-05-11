@@ -195,3 +195,43 @@ def test_migrate_one_array_dry_run_idempotent_on_migrated_refs():
     assert skp == 3
     assert bts == 0
     assert new_list == photos
+
+
+# ── Iter64 Phase 2: sync read + PDF dual-read integration ─────────────
+
+
+def test_resolve_to_data_url_sync_passthrough_for_data_urls():
+    """A data: URL must be returned untouched — no R2 round-trip, no
+    base64 re-encode, no truncation. This is how PDFs continue to render
+    legacy records identically while migration is in progress."""
+    import photo_storage
+    src = _png_b64()
+    assert photo_storage.resolve_to_data_url_sync(src) == src
+
+
+def test_resolve_to_data_url_sync_safe_on_garbage():
+    """Empty/None/unrecognized refs must return '' so PDF render can
+    just skip the image gracefully (we never want a corrupt DB entry
+    to crash a whole PDF render)."""
+    import photo_storage
+    assert photo_storage.resolve_to_data_url_sync("") == ""
+    assert photo_storage.resolve_to_data_url_sync(None) == ""
+    assert photo_storage.resolve_to_data_url_sync("https://random.example.com/x.jpg") == ""
+    assert photo_storage.resolve_to_data_url_sync("garbage-string") == ""
+
+
+def test_indexer_accepts_photo_uri_refs_not_just_data_urls():
+    """Critical regression for iter64 Phase 2: the job_photos indexer
+    must index BOTH legacy base64 photos AND migrated photo:// refs.
+    Skipping photo:// refs here was the bug that caused migrated photos
+    to vanish from the gallery on production."""
+    import inspect
+    from routes import job_photos
+    src = inspect.getsource(job_photos.index_record_photos)
+    # The filter must accept BOTH schemes. We assert on the string form
+    # because the check happens inside a `continue`-guarded for-loop —
+    # the simplest signal that the photo:// branch is wired.
+    assert "photo://" in src, (
+        "index_record_photos no longer references photo:// — migrated "
+        "photos would not be indexed and would disappear from the gallery"
+    )

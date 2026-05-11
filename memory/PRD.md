@@ -1,5 +1,125 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-11 — Iter64 (phase 2): R2 photo migration GOES LIVE + dual-read in every PDF renderer
+
+### User ask
+"do it" — referring to the iter64 plan to migrate base64 photos from
+MongoDB into Cloudflare R2 now that the user supplied valid R2 S3 API
+credentials.
+
+### What shipped (phase 2)
+
+**1. R2 credentials wired into preview** `/app/backend/.env`:
+- `S3_ENDPOINT_URL=https://46400762d3027afbb26819a8de8528e6.r2.cloudflarestorage.com`
+- `S3_BUCKET=masci-hub`
+- `S3_ACCESS_KEY` + `S3_SECRET_KEY` (provided by user)
+- `S3_REGION=auto`
+
+Connectivity verified: `GET /api/admin/photo-storage/health` →
+`{configured:true, ok:true, bucket:"masci-hub", endpoint:"..."}`.
+
+**2. Capped real migration executed on preview**:
+- `daily_reports`, `inspections`, `meetings` migrated.
+- 8 base64 data URLs → 8 `photo://masci-hub/photos/2026/05/...` refs
+  in R2 bucket. R2 round-trip verified via Python script: bytes
+  retrieved match PNG header magic (`89 50 4e 47`).
+- 17 corrupt-base64 fixtures preserved (preview test stubs with
+  invalid padding — won't exist on prod).
+- **Idempotency confirmed**: re-running dry-run found 10 skipped
+  refs (5 already migrated + 5 non-string entries). Re-running
+  real-mode produced 0 doc-updates for already-migrated photos.
+
+**3. Critical bug found + fixed during validation**:
+- `routes/job_photos.py::index_record_photos` was filtering to `data:` URLs
+  only, **dropping every photo:// ref from the gallery index** post-migration.
+  Fixed by accepting both schemes. Without this, the migration would
+  have made photos invisible to the admin gallery.
+
+**4. Dual-read wired into EVERY PDF renderer** so legacy + migrated
+photos embed identically in WeasyPrint output:
+- NEW `photo_storage.read_photo_bytes_sync()` — sync variant of the
+  async dual-read, used by sync PDF render paths.
+- NEW `photo_storage.resolve_to_data_url_sync()` — takes ANY photo ref
+  (`data:` or `photo://`), returns base64 `data:` URL for embed.
+  Empty string on failure so PDF gracefully skips a broken image
+  instead of crashing the whole render.
+- `pdf_render.py` — `_photos_block`, `_render_daily` material-ticket
+  block, `_render_equipment` per-checklist photo, `_render_qaqc`
+  photos — all 4 sites now resolve refs before embedding.
+- `field_leadership_pdf.py` — `_photos_block` + `_equipment_lines_photos_block`
+  (Equipment Checkout/Return per-item photos) both resolve refs.
+- `routes/safety_forms.py` — Equipment Issuance / Training / Return Receipt
+  PDF photo grids resolve refs.
+
+**5. Auto-vacuum hook in `background_indexer_loop`** (every 10 min):
+- When R2 is configured, every tick calls `migrate_all(dry_run=false,
+  limit_per_collection=25, resume=true)` to sweep base64 photos
+  that snuck in since the last tick out to R2.
+- Bounded batch + resume markers prevent runaway / repeat work.
+- Steady-state cure for "new photos still landing as base64" without
+  patching 5+ upload endpoints individually.
+
+**6. Production cutover runbook** `/app/PRODUCTION_R2_CUTOVER.md`
+documents the prod deploy steps end-to-end (health check, dry-run,
+canary migration, full migration, rollback, follow-ups).
+
+### Verified end-to-end (preview, configured state)
+- ✓ R2 client initializes cleanly on startup (`[photo-storage] boto3
+  client initialized · endpoint=… bucket=masci-hub`)
+- ✓ Health check returns `{configured:true, ok:true}` — proves
+  HEAD bucket succeeds
+- ✓ Photo upload to R2: 8 successful uploads in `/photos/2026/05/...`
+- ✓ Photo READ from R2: 8 bytes retrieved with correct PNG header
+- ✓ PDF render with mixed `photo://` + `data:` refs: 920 KB valid PDF
+  produced (starts with `%PDF-1`)
+- ✓ Index re-pickup: reindex captured all 22 daily_report photos
+  (was 17 before fix — missing the 5 migrated `photo://` refs)
+- ✓ Thumb-signed endpoint serves R2-backed photos via dual-read (200 OK)
+- ✓ Idempotency proof: 2nd real run produced 0 updates for already-migrated docs
+- ✓ Auto-vacuum task wired in background loop, no errors logged
+- ✓ **56/56 tests pass** across iter48/50/54/59/60/62/64 suites
+  (12 iter64 — 9 originals + 3 new for sync read, passthrough,
+  garbage-safety, indexer regression guard)
+
+### Production deploy steps (for the user)
+See `/app/PRODUCTION_R2_CUTOVER.md` — full step-by-step runbook.
+
+### Estimated production impact
+- Mongo `photos` field size: ~600 MB → < 5 MB (only `photo://` strings)
+- Backup zip size: 887 MB → ~10 MB (just JSON metadata)
+- OOM crashes during backup: should drop to zero
+- R2 storage cost: ~$0.015/GB-month × 0.6 GB = **<$0.01/month**
+- R2 egress: free (within Cloudflare network for the gallery thumbs)
+
+### Files added/touched (phase 2)
+- MODIFIED: `/app/backend/.env` (5 new R2 env vars)
+- MODIFIED: `/app/backend/photo_storage.py` (+`read_photo_bytes_sync`,
+  +`resolve_to_data_url_sync`)
+- MODIFIED: `/app/backend/routes/job_photos.py` (index accepts `photo://`,
+  background auto-vacuum every 10 min)
+- MODIFIED: `/app/backend/pdf_render.py` (dual-read at 4 photo-embed sites)
+- MODIFIED: `/app/backend/field_leadership_pdf.py` (dual-read at 2 sites)
+- MODIFIED: `/app/backend/routes/safety_forms.py` (dual-read on photos block)
+- MODIFIED: `/app/backend/tests/test_iter64_photo_storage.py` (+3 tests)
+- NEW: `/app/PRODUCTION_R2_CUTOVER.md` (prod deploy runbook)
+
+### Deferred (phase 3, P1)
+- Wire backup zips to R2 (`r2://masci-hub/backups/` prefix). Currently
+  zips live on worker filesystem + emailed via Resend (subject to 40MB
+  attachment cap). R2-backed retention decouples from worker disk.
+- Direct R2 writes from photo upload endpoints (skip the 10-min
+  auto-vacuum round-trip). Operationally identical, just faster.
+
+### Side bug fixed during validation
+**Pre-existing NameError in `_schedule_email`** (introduced in Iter60):
+`asyncio.create_task(_dispatch_email(..., db=db))` referenced `db`
+from outside the closure where it wasn't visible. This was crashing
+every safety-forms auto-email submission since Iter60. Fixed by
+adding a module-level `_DB_REF` that `build_safety_forms_router` sets
+on init so `_schedule_email` can read it. Verified end-to-end.
+
+---
+
 ## 2026-05-11 — Iter64 (phase 1): Photo storage abstraction + migrator (S3/R2)
 
 ### User ask

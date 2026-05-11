@@ -17,6 +17,15 @@ from typing import Any, Dict, List, Optional
 
 from weasyprint import HTML
 
+# Local import — used to inline photo:// refs (R2-backed) into base64 data
+# URLs so weasyprint can embed them. Falls back gracefully for data: URLs
+# (returns the input untouched) and for non-photo strings.
+try:
+    from photo_storage import resolve_to_data_url_sync as _resolve_photo_ref
+except Exception:  # noqa: BLE001
+    def _resolve_photo_ref(ref: str) -> str:  # type: ignore[misc]
+        return ref or ""
+
 ROOT = Path(__file__).parent
 LOGO_PATH = ROOT.parent / "frontend" / "public" / "masci-full-lockup-onlight.png"
 WATERMARK_PATH = ROOT.parent / "frontend" / "public" / "masci-mark.png"
@@ -152,14 +161,21 @@ def _table(headers: List[str], rows: List[List[Any]]) -> str:
 
 
 def _photos_block(photos: Optional[List[str]]) -> str:
-    """Render photo thumbnails as a CSS grid. Photos are already base64 data
-    URIs from the frontend, so we can embed them directly."""
+    """Render photo thumbnails as a CSS grid. Each entry may be a base64
+    ``data:`` URL (legacy in-Mongo storage) OR a ``photo://`` ref pointing
+    at R2/S3 — ``_resolve_photo_ref`` collapses both to an embeddable
+    data URL so weasyprint can inline the image."""
     if not photos:
         return ""
-    cells = "".join(
-        f'<div class="photo"><img src="{p}" /></div>' for p in photos[:24]
-    )
-    return f'<div class="photos">{cells}</div>'
+    cells = []
+    for p in photos[:24]:
+        resolved = _resolve_photo_ref(p) if isinstance(p, str) else ""
+        if not resolved:
+            continue
+        cells.append(f'<div class="photo"><img src="{resolved}" /></div>')
+    if not cells:
+        return ""
+    return f'<div class="photos">{"".join(cells)}</div>'
 
 
 def _signature(label: str, sig: Optional[str], name: str = "") -> str:
@@ -375,7 +391,10 @@ def _render_daily(d: Dict[str, Any]) -> str:
         if ticket_imgs:
             section_html += '<div class="photos-grid" style="margin-top:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">'
             for src in ticket_imgs:
-                section_html += f'<img src="{src}" style="width:100%;border:1px solid #ccc;border-radius:3px;" />'
+                resolved = _resolve_photo_ref(src) if isinstance(src, str) else ""
+                if not resolved:
+                    continue
+                section_html += f'<img src="{resolved}" style="width:100%;border:1px solid #ccc;border-radius:3px;" />'
             section_html += "</div>"
         rows.append(
             _section(
@@ -746,10 +765,12 @@ def _render_equipment(d: Dict[str, Any]) -> str:
                 if note
                 else ""
             )
+            # Resolve photo:// refs to data: URLs (or pass-through data: refs).
+            _photo_resolved = _resolve_photo_ref(photo) if isinstance(photo, str) else ""
             photo_html = (
-                f"<div style='margin-top:4px;'><img src='{escape(photo)}' "
+                f"<div style='margin-top:4px;'><img src='{escape(_photo_resolved)}' "
                 f"style='max-width:140px;max-height:100px;border:1px solid #c8102e;'/></div>"
-                if photo and photo.startswith("data:image/")
+                if _photo_resolved
                 else ""
             )
             body += (
@@ -933,8 +954,11 @@ def _render_qaqc(d: Dict[str, Any]) -> str:
     if photos:
         photo_html = "<div class='photos'>"
         for p in photos:
-            if isinstance(p, str) and p.startswith("data:image/"):
-                photo_html += f"<div class='photo'><img src='{escape(p)}'/></div>"
+            if not isinstance(p, str):
+                continue
+            resolved = _resolve_photo_ref(p)
+            if resolved:
+                photo_html += f"<div class='photo'><img src='{escape(resolved)}'/></div>"
         photo_html += "</div>"
         rows.append(_section(f"{L('Photos')} ({len(photos)})", photo_html))
 
