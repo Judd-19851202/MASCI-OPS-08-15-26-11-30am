@@ -348,6 +348,54 @@ def resolve_to_data_url_sync(ref: str) -> str:
     return f"data:{ct};base64,{base64.b64encode(raw).decode('ascii')}"
 
 
+async def upload_local_file(local_path, *, key: str, content_type: str = "application/zip") -> str:
+    """Stream-upload a local file to S3 in chunks (multipart). Used by the
+    nightly complete-archive backup so a 100-500 MB zip doesn't need to
+    be loaded into RAM. Returns the ``photo://<bucket>/<key>`` reference.
+
+    Path-like object accepted (``str`` or ``pathlib.Path``)."""
+    import asyncio
+    from pathlib import Path
+    if not is_configured():
+        raise RuntimeError("photo_storage not configured (missing env vars)")
+    c = _client()
+    if c is None:
+        raise RuntimeError("photo_storage client failed to initialize")
+    p = Path(str(local_path))
+    if not p.exists():
+        raise FileNotFoundError(p)
+    # boto3 upload_file streams in chunks (default 8 MB multipart).
+    # Run in a thread so the asyncio loop isn't blocked.
+    await asyncio.to_thread(
+        c.upload_file,
+        str(p),
+        _bucket(),
+        key,
+        ExtraArgs={"ContentType": content_type},
+    )
+    return f"photo://{_bucket()}/{key}"
+
+
+async def presigned_get_url_for_key(key: str, ttl_seconds: int = 7 * 24 * 3600) -> str:
+    """Mint a presigned GET URL by raw key (no ``photo://`` parse). Used
+    by the backup notification email to give the admin a download link
+    valid for a week (default TTL 7 days). Cloudflare R2 caps presigned
+    URLs at 7 days; AWS S3 allows up to 7 days for SigV4 presigned URLs."""
+    import asyncio
+    c = _client()
+    if c is None:
+        raise RuntimeError("photo_storage client unavailable")
+    # R2 / S3 SigV4 max TTL is 7 days (604800 s).
+    ttl = min(int(ttl_seconds), 7 * 24 * 3600)
+    url = await asyncio.to_thread(
+        c.generate_presigned_url,
+        ClientMethod="get_object",
+        Params={"Bucket": _bucket(), "Key": key},
+        ExpiresIn=ttl,
+    )
+    return url
+
+
 async def presigned_get_url(ref: str, ttl_seconds: int = 900) -> str:
     """Mint a presigned GET URL the browser can fetch directly. Use this
     when serving full-resolution photos to the gallery lightbox so we

@@ -1,5 +1,124 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-11 — Iter64 (phase 2c): Complete-system archive to R2 + nightly upload
+
+### User ask
+"I want EVERYTHING getting backup up to R2 complete system, plus my multiple daily email backups of everything then once IT get figured out a nightly complete system backup in addition to everything else"
+
+Translation:
+- **R2** holds a *complete* archive (Mongo records + photo bytes inlined, fully standalone)
+- **Email** keeps the existing 2-per-day heartbeat (slim, ~74 KB)
+- **Future** IT server pull added on top
+
+### What shipped (phase 2c)
+
+**1. `upload_local_file()` in `photo_storage.py`**
+Streams a local file to R2 in 8 MB multipart chunks. Never holds the
+whole zip in RAM — important for the worker container which OOMed on
+the old "build full zip in memory + email-attach" path.
+
+**2. `presigned_get_url_for_key()` in `photo_storage.py`**
+Mints a 7-day presigned download URL for any R2 key. Used in the
+heartbeat email and the admin "List R2 backups" panel so the user can
+download yesterday's complete archive with one click.
+
+**3. `_build_complete_archive_on_disk()` in `server.py`**
+Sync helper run via `asyncio.to_thread`:
+- Walks every `EXPORTABLE_KINDS` collection → writes each record as
+  `<kind>/json/<id>.json` (no `_id` exposure)
+- For every `photo://` ref found (top-level `photos` AND nested
+  `items[].photos / return_photos / original_photos`) → fetches bytes
+  from R2 → writes them as `photos/<bucket-key>` inside the zip
+- Deduplicates by R2 key (same photo referenced from 2 docs = 1 entry)
+- Writes a `MANIFEST.json` describing what's inside (record count,
+  per-kind breakdown, inlined photo count + bytes, failed photos)
+- Result: a single standalone zip — restore the whole Hub from this
+  one file even if Cloudflare R2 becomes unreachable
+
+**4. `_run_complete_archive_to_r2()` async orchestrator**
+Build on disk → stream-upload to `r2://<bucket>/backups/<file>.zip` →
+generate 7-day presigned URL → delete local copy → record health.
+
+**5. Nightly hook in `background_indexer_loop`** (`server.py`)
+Once per UTC day at `BACKUP_R2_FULL_HOUR_UTC` (default **03:00 UTC**),
+the scheduler tick runs `_run_complete_archive_to_r2(db)` IN ADDITION
+to the regular 2x/day lite email runs. Tracks `last_r2_complete_date`
+in `_BACKUP_SCHEDULER_STATE` so it only runs once per day even though
+the tick fires every 5 min.
+
+**6. Admin endpoints (3 new)**
+- `POST /api/admin/backups/run-complete-now` — fire-and-forget manual
+  trigger (202 instantly, runs in BackgroundTask). For pre-deploy
+  snapshots or post-incident captures.
+- `GET /api/admin/backups-complete-r2-state` — live status of the
+  manual or nightly run (in_progress, last outcome, last filename,
+  size, presigned URL, per-kind stats).
+- `GET /api/admin/backups-list-r2?limit=100` — lists every zip in
+  `r2://<bucket>/backups/` with presigned download URLs. Sorted
+  newest-first. This is what an admin or future IT panel reads.
+- Routes use dashes (not slashes) after `/admin/backups-...` so they
+  don't collide with the parameterized `/admin/backups/{filename}`
+  download route. (Caught the collision when the first smoke test
+  returned `"Invalid backup filename"` — fixed before any user impact.)
+
+**7. Heartbeat email now embeds the R2 link**
+`_email_lite_backup_zip()` reads `_BACKUP_SCHEDULER_STATE.last_r2_complete`
+and adds a green-callout block with a 7-day presigned download link
+to the most recent complete archive. So the user's daily email now
+contains:
+- The slim 74 KB heartbeat (proves pipeline is alive)
+- A one-click R2 link to last night's complete archive (~MB scale)
+
+**8. Tests**
+- `test_complete_archive_helper_walks_nested_photo_refs` — catches the
+  bug where the helper would miss equipment-form photos
+- `test_complete_archive_handles_doc_without_photos` — empty docs
+  don't crash
+- **25/25 photo + backup tests pass**
+
+### Verified on preview
+- `POST /api/admin/backups/run-complete-now` → 202 in 4 ms
+- Build + upload completes in **1.4 sec** for the 77-record / 8-photo
+  preview dataset
+- `GET /api/admin/backups-complete-r2-state` returns full outcome with
+  7-day presigned URL
+- `GET /api/admin/backups-list-r2` returns 5 historical archives with
+  click-to-download links
+- R2 bucket `masci-hub/backups/` confirmed populated
+
+### Production cutover after this deploy
+**No env vars need to change.** Just deploy the code. From the moment
+the next 03:00 UTC tick fires, your prod system will:
+1. Continue emailing 2x/day heartbeats (lite mode default)
+2. Build a complete-system archive at 03:00 UTC nightly
+3. Upload it to `r2://masci-hub/backups/MASCI_complete_backup_YYYY-MM-DD_HHMMSSz.zip`
+4. Embed a clickable 7-day download link in the next heartbeat email
+
+Optional knob: `BACKUP_R2_FULL_HOUR_UTC` (default 3) to shift the
+nightly slot if needed.
+
+### Future: IT server pull
+When IT is ready, the same architecture supports their nightly pull.
+Two options:
+1. **IT pulls from MASCI Hub** via `GET /api/admin/backups-list-r2`
+   + presigned URL → download the latest zip directly
+2. **IT pulls from R2 directly** via Cloudflare R2 read-only API token
+   we issue them (no traffic through our worker at all)
+
+Either way, the complete archive already exists in R2 — IT's pull is
+just an additional download leg.
+
+### Files touched
+- MODIFIED: `/app/backend/photo_storage.py` (+upload_local_file,
+  +presigned_get_url_for_key)
+- MODIFIED: `/app/backend/server.py` (+`_iter_photo_refs`,
+  +`_build_complete_archive_on_disk`, +`_run_complete_archive_to_r2`,
+  +3 admin endpoints, nightly scheduler hook, heartbeat-email R2 link)
+- MODIFIED: `/app/backend/tests/test_iter64_photo_storage.py`
+  (+2 tests for the new helpers)
+
+---
+
 ## 2026-05-11 — Iter64 (phase 2b): Lite-mode-by-default for production safety
 
 ### What changed

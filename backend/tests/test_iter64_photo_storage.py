@@ -235,3 +235,39 @@ def test_indexer_accepts_photo_uri_refs_not_just_data_urls():
         "index_record_photos no longer references photo:// — migrated "
         "photos would not be indexed and would disappear from the gallery"
     )
+
+
+def test_complete_archive_helper_walks_nested_photo_refs():
+    """Iter64 Phase 2c — _iter_photo_refs must find photos in BOTH
+    the top-level `photos` array AND in `items[].photos` /
+    `items[].return_photos` (equipment forms). If we miss the nested
+    refs, the complete archive would skip equipment-form photos and
+    IT's backup would be incomplete."""
+    import server
+    doc = {
+        "photos": ["photo://b/k1.jpg", "data:image/png;base64,AAAA"],
+        "items": [
+            {"photos": ["photo://b/k2.jpg"]},
+            {"return_photos": ["photo://b/k3.jpg"], "photos": []},
+            {"original_photos": ["photo://b/k4.jpg"]},
+            "junk-string-ignored",
+        ],
+        "unrelated_field": "ignore me",
+    }
+    refs = list(server._iter_photo_refs(doc))
+    assert "photo://b/k1.jpg" in refs
+    assert "data:image/png;base64,AAAA" in refs  # data: refs also yielded
+    assert "photo://b/k2.jpg" in refs
+    assert "photo://b/k3.jpg" in refs
+    assert "photo://b/k4.jpg" in refs
+    # Non-dict items and unrelated fields don't crash or pollute output
+    assert all(isinstance(r, str) for r in refs)
+
+
+def test_complete_archive_handles_doc_without_photos():
+    """Empty / missing photos arrays must yield nothing, not raise."""
+    import server
+    assert list(server._iter_photo_refs({})) == []
+    assert list(server._iter_photo_refs({"photos": None})) == []
+    assert list(server._iter_photo_refs({"items": None})) == []
+    assert list(server._iter_photo_refs({"photos": [], "items": []})) == []

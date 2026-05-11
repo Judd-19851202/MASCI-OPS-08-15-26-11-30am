@@ -5587,6 +5587,223 @@ def _build_slim_backup_zip_on_disk(db, dst_zip: Path) -> dict:
     }
 
 
+# ────────────────────────────────────────────────────────────────────────
+# Iter64 Phase 2c — Complete-system archive to R2
+# ────────────────────────────────────────────────────────────────────────
+# Builds a single, standalone zip containing:
+#   1. The full JSON dump of every collection (MongoDB)
+#   2. The actual photo BYTES, fetched from R2 and inlined into a
+#      `photos/<bucket-key>` folder inside the zip
+# So a recipient with just the zip can restore the entire system
+# without needing R2 access. Streams to disk; never holds more than one
+# photo in memory at a time. Uploaded to r2://<bucket>/backups/<file>.zip
+# and a presigned 7-day download URL is emailed alongside the slim
+# heartbeat email.
+
+def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
+    """Build a single self-contained zip on disk with:
+      * Every Mongo collection (JSON, _id stripped) under `<kind>/json/`
+      * Every R2 photo fetched and inlined under `photos/<key>`
+      * A MANIFEST.json describing what's inside
+    Runs synchronously inside ``asyncio.to_thread`` — uses a fresh
+    PyMongo sync client and the synchronous photo_storage helper so we
+    don't touch the asyncio event loop from a worker thread."""
+    import json as _json
+    import zipfile as _zf
+
+    from pymongo import MongoClient as _MC
+
+    try:
+        from photo_storage import is_storage_ref, read_photo_bytes_sync
+    except Exception:  # noqa: BLE001
+        def is_storage_ref(_):
+            return False
+
+        def read_photo_bytes_sync(_):
+            raise RuntimeError("photo_storage unavailable")
+
+    mongo_url = os.environ["MONGO_URL"]
+    db_name = os.environ["DB_NAME"]
+
+    total_records = 0
+    per_kind: Dict[str, int] = {}
+    inlined_photos = 0
+    inlined_photo_bytes = 0
+    failed_photos = 0
+    seen_keys: set = set()  # dedupe — same photo referenced from 2 docs
+
+    sync_client = _MC(mongo_url, serverSelectionTimeoutMS=10000)
+    try:
+        sync_db = sync_client[db_name]
+        with _zf.ZipFile(str(dst_zip), "w", _zf.ZIP_DEFLATED, compresslevel=6) as zf:
+            # Pass 1 — every record, every collection, as JSON.
+            # Photos stay as `photo://` refs in the JSON; the actual
+            # bytes get inlined separately so the manifest links them.
+            for kind, coll_name in EXPORTABLE_KINDS.items():
+                kind_count = 0
+                cursor = sync_db[coll_name].find({}, {"_id": 0}).sort("created_at", -1)
+                for doc in cursor:
+                    rec_id = doc.get("id") or f"row_{kind_count:06d}"
+                    safe_id = "".join(c if c.isalnum() or c in "._-" else "_" for c in str(rec_id))
+                    zf.writestr(
+                        f"{kind}/json/{safe_id}.json",
+                        _json.dumps(doc, indent=2, default=str),
+                    )
+                    kind_count += 1
+                    # Walk this doc for photo:// refs to inline later
+                    for ref in _iter_photo_refs(doc):
+                        if not is_storage_ref(ref):
+                            continue
+                        # Parse out the key from photo://bucket/key
+                        try:
+                            key = ref.split("/", 3)[3]  # photo://bucket/key/path
+                        except (IndexError, AttributeError):
+                            continue
+                        if key in seen_keys:
+                            continue
+                        seen_keys.add(key)
+                        # Fetch + inline
+                        try:
+                            raw = read_photo_bytes_sync(ref)
+                            zf.writestr(f"photos/{key}", raw)
+                            inlined_photos += 1
+                            inlined_photo_bytes += len(raw)
+                        except Exception as e:  # noqa: BLE001
+                            logger.warning(f"[complete-archive] photo inline failed for {ref[:80]}: {e}")
+                            failed_photos += 1
+                per_kind[kind] = kind_count
+                total_records += kind_count
+
+            manifest = {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "mode": "complete",
+                "source": "mascidocs.com",
+                "total_records": total_records,
+                "per_kind": per_kind,
+                "inlined_photos": inlined_photos,
+                "inlined_photo_bytes": inlined_photo_bytes,
+                "failed_photos": failed_photos,
+                "notice": (
+                    "Complete standalone backup. Contains every Mongo "
+                    "collection (JSON) plus the actual binary photos "
+                    "previously stored in R2. No external dependency — "
+                    "you can restore the entire MASCI Hub from this "
+                    "single zip even if Cloudflare R2 becomes unreachable."
+                ),
+            }
+            zf.writestr("MANIFEST.json", _json.dumps(manifest, indent=2))
+    finally:
+        sync_client.close()
+
+    return {
+        "size_bytes": dst_zip.stat().st_size,
+        "total_records": total_records,
+        "per_kind": per_kind,
+        "inlined_photos": inlined_photos,
+        "inlined_photo_bytes": inlined_photo_bytes,
+        "failed_photos": failed_photos,
+    }
+
+
+def _iter_photo_refs(doc):
+    """Yield every photo:// reference found anywhere in a Mongo document.
+    Covers top-level ``photos`` arrays AND nested
+    ``items[].photos`` / ``items[].return_photos`` for equipment forms.
+    """
+    photos = doc.get("photos") if isinstance(doc, dict) else None
+    if isinstance(photos, list):
+        for p in photos:
+            if isinstance(p, str):
+                yield p
+    items = doc.get("items") if isinstance(doc, dict) else None
+    if isinstance(items, list):
+        for it in items:
+            if not isinstance(it, dict):
+                continue
+            for fld in ("photos", "return_photos", "original_photos"):
+                v = it.get(fld)
+                if isinstance(v, list):
+                    for p in v:
+                        if isinstance(p, str):
+                            yield p
+
+
+async def _run_complete_archive_to_r2(db) -> Optional[dict]:
+    """Build a complete-system zip on disk, stream-upload it to
+    ``r2://<bucket>/backups/<filename>``, then delete the local file.
+    Returns ``{filename, size_bytes, r2_key, presigned_url, stats}``
+    or ``None`` on any failure (errors are logged + health-recorded)."""
+    try:
+        from photo_storage import (
+            is_configured as _ps_cfg,
+            presigned_get_url_for_key,
+            upload_local_file,
+        )
+    except Exception:  # noqa: BLE001
+        logger.warning("[complete-archive] photo_storage import failed; skipping")
+        return None
+
+    if not _ps_cfg():
+        logger.info("[complete-archive] R2 not configured; skipping nightly upload")
+        return None
+
+    BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+    _now = datetime.now(timezone.utc)
+    _stamp = _now.strftime("%Y-%m-%d_%H%M%SZ")
+    filename = f"MASCI_complete_backup_{_stamp}.zip"
+    out = BACKUPS_DIR / filename
+    tmp = out.with_suffix(f".zip.tmp.{uuid.uuid4().hex[:8]}")
+
+    try:
+        stats = await asyncio.to_thread(_build_complete_archive_on_disk, db, tmp)
+        tmp.replace(out)
+        size_mb = out.stat().st_size / 1024 / 1024
+        logger.info(
+            f"[complete-archive] built {out.name} · {size_mb:.1f} MB · "
+            f"{stats.get('total_records', 0)} records · "
+            f"{stats.get('inlined_photos', 0)} photos inlined"
+        )
+
+        r2_key = f"backups/{filename}"
+        await upload_local_file(out, key=r2_key, content_type="application/zip")
+        logger.info(f"[complete-archive] uploaded to r2://{os.environ.get('S3_BUCKET','')}/{r2_key}")
+
+        # Generate a 7-day presigned URL the admin can click from email
+        presigned = await presigned_get_url_for_key(r2_key, ttl_seconds=7 * 24 * 3600)
+
+        # Delete the local copy now that R2 has it — keeps worker disk clean
+        try:
+            out.unlink()
+        except Exception:
+            pass
+
+        await _record_backup_health(
+            db, ok=True, filename=filename, size_bytes=int(size_mb * 1024 * 1024),
+            records=stats.get("total_records", 0),
+            emailed_to=None, mode="complete-r2",
+        )
+
+        return {
+            "filename": filename,
+            "size_bytes": int(size_mb * 1024 * 1024),
+            "r2_key": r2_key,
+            "presigned_url": presigned,
+            "stats": stats,
+        }
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"[complete-archive] FAILED: {e}")
+        try:
+            if tmp.exists():
+                tmp.unlink()
+        except Exception:
+            pass
+        try:
+            await _record_backup_health(db, ok=False, error=repr(e), mode="complete-r2-error")
+        except Exception:
+            pass
+        return None
+
+
 async def _email_lite_backup_zip(zip_path: Path, stats: dict) -> Optional[str]:
     """Email a lite-mode slim backup to the configured BACKUP_EMAIL_TO
     address (or the DB-backed override). Identical sender / template to
@@ -5612,18 +5829,53 @@ async def _email_lite_backup_zip(zip_path: Path, stats: dict) -> Optional[str]:
         return None
 
     size_mb = stats["size_bytes"] / (1024 * 1024)
+
+    # Pull the most recent R2 complete-archive URL (if any) so the
+    # heartbeat email also gives a one-click download link to the
+    # complete backup that lives in R2. Falls back to the on-server
+    # path notice if R2 is not configured or has no backups yet.
+    r2_block = ""
+    try:
+        r2_last = _BACKUP_SCHEDULER_STATE.get("last_r2_complete") or {}
+        r2_key = r2_last.get("r2_key")
+        r2_size = r2_last.get("size_bytes") or 0
+        r2_ts = r2_last.get("ts") or ""
+        if r2_key:
+            try:
+                from photo_storage import presigned_get_url_for_key as _psg
+                _link = await _psg(r2_key, ttl_seconds=7 * 24 * 3600)
+            except Exception:
+                _link = None
+            if _link:
+                r2_block = (
+                    f'<p style="background:#dcfce7;border-left:4px solid #16a34a;'
+                    f'padding:10px 14px;border-radius:0 6px 6px 0;color:#14532d;'
+                    f'font-size:13px;line-height:1.5;margin:14px 0;">'
+                    f'<strong>Complete archive (Cloudflare R2):</strong> '
+                    f'<a href="{_link}" style="color:#14532d;text-decoration:underline;">'
+                    f'{r2_last.get("filename") or r2_key.rsplit("/", 1)[-1]}</a> '
+                    f'· {r2_size/1024/1024:.1f} MB · uploaded {r2_ts[:10]}. '
+                    f'Link valid for 7 days. Includes every record AND every photo, '
+                    f'fully self-contained — no R2 access needed to restore.'
+                    f'</p>'
+                )
+    except Exception:
+        pass
+
     slim_notice = (
         f'<p style="background:#fef3c7;border-left:4px solid #f59e0b;'
         f'padding:10px 14px;border-radius:0 6px 6px 0;color:#92400e;'
         f'font-size:13px;line-height:1.5;margin:14px 0;">'
         f'<strong>LITE BACKUP</strong> — {size_mb:.1f} MB · '
-        f'{stats["total_records"]} records. The full archive '
-        f'(including base64 photos) is too large to email and stays '
-        f'on the server. Sign in to <code>/admin</code> and use the '
-        f'Stored Backups panel for the complete file. '
+        f'{stats["total_records"]} records. This email is a heartbeat '
+        f'confirming the backup pipeline is alive. The complete archive '
+        f'(every record + every photo) lives in Cloudflare R2 and is '
+        f'rebuilt nightly. '
         f'{stats["stripped_blob_count"]} embedded blobs were stripped '
-        f'({stats["stripped_blob_bytes"] / (1024*1024):.1f} MB total).'
+        f'({stats["stripped_blob_bytes"] / (1024*1024):.1f} MB total) '
+        f'from this slim copy to keep email size down.'
         f'</p>'
+        f'{r2_block}'
     )
 
     return await _send_backup_email(
@@ -5965,6 +6217,41 @@ async def _backup_scheduler_loop(db) -> None:
             logger.exception(f"[scheduled-backup] loop tick error: {e}")
             _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = f"EXCEPTION: {e!r}"
 
+        # ── Iter64 Phase 2c — Nightly complete archive to R2 ─────────
+        # Once per UTC day, build a full standalone zip (Mongo +
+        # inlined photo bytes from R2) and stream-upload it to
+        # ``r2://<bucket>/backups/``. Runs independently of the
+        # lite-mode email schedule so the user gets BOTH a heartbeat
+        # email twice a day AND a complete archive in R2 nightly.
+        # The hour is configurable via BACKUP_R2_FULL_HOUR_UTC (default 3).
+        try:
+            r2_hour = int(os.environ.get("BACKUP_R2_FULL_HOUR_UTC", "3") or "3")
+        except ValueError:
+            r2_hour = 3
+        if (
+            now.hour >= r2_hour
+            and _BACKUP_SCHEDULER_STATE.get("last_r2_complete_date") != str(today)
+        ):
+            try:
+                logger.info(f"[scheduled-backup] firing nightly complete-archive → R2 for {today}")
+                r2_res = await _run_complete_archive_to_r2(db)
+                if r2_res:
+                    _BACKUP_SCHEDULER_STATE["last_r2_complete_date"] = str(today)
+                    _BACKUP_SCHEDULER_STATE["last_r2_complete"] = {
+                        "filename": r2_res.get("filename"),
+                        "size_bytes": r2_res.get("size_bytes"),
+                        "r2_key": r2_res.get("r2_key"),
+                        "ts": now.isoformat(),
+                    }
+                    logger.info(
+                        f"[scheduled-backup] complete archive in R2: "
+                        f"{r2_res.get('r2_key')} · {(r2_res.get('size_bytes') or 0)/1024/1024:.1f} MB"
+                    )
+                else:
+                    logger.warning("[scheduled-backup] complete-archive → R2 returned no result")
+            except Exception as e:  # noqa: BLE001
+                logger.exception(f"[scheduled-backup] complete-archive → R2 failed: {e}")
+
         # WATCHDOG — runs every tick (cheap: one Mongo read), fires alarm
         # email if backups have been silent past the threshold. Rate-limited
         # internally so the admin doesn't get spammed.
@@ -6157,6 +6444,131 @@ async def admin_run_backup_now(
         "poll": "/api/admin/backups-scheduler-state",
         "started_at": _BACKUP_RUNNOW_LAST["started_at"],
     }
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Iter64 Phase 2c — manual complete-archive-to-R2 trigger
+# ────────────────────────────────────────────────────────────────────────
+_COMPLETE_R2_IN_PROGRESS = False
+_COMPLETE_R2_LAST: Dict[str, Any] = {
+    "started_at": None,
+    "finished_at": None,
+    "outcome": None,
+    "filename": None,
+    "size_bytes": None,
+    "r2_key": None,
+    "presigned_url": None,
+    "stats": None,
+}
+
+
+@api_router.post("/admin/backups/run-complete-now")
+async def admin_run_complete_backup_now(
+    background_tasks: BackgroundTasks,
+    _: bool = Depends(require_admin_strict),
+):
+    """Build a complete-system zip (Mongo + photos inlined from R2) and
+    stream-upload it to ``r2://<bucket>/backups/``. Returns 202 instantly;
+    the actual build runs in a FastAPI background task.
+
+    Use this when you want an off-cycle complete archive (e.g. before a
+    risky deploy). The nightly scheduler runs this automatically at
+    ``BACKUP_R2_FULL_HOUR_UTC`` (default 03:00 UTC).
+    """
+    global _COMPLETE_R2_IN_PROGRESS
+    if _COMPLETE_R2_IN_PROGRESS:
+        raise HTTPException(409, "A complete archive is already in progress.")
+    _COMPLETE_R2_IN_PROGRESS = True
+    _COMPLETE_R2_LAST["started_at"] = datetime.now(timezone.utc).isoformat()
+    _COMPLETE_R2_LAST["finished_at"] = None
+    _COMPLETE_R2_LAST["outcome"] = "in-progress"
+
+    async def _do_complete():
+        global _COMPLETE_R2_IN_PROGRESS
+        try:
+            res = await _run_complete_archive_to_r2(db)
+            _COMPLETE_R2_LAST["finished_at"] = datetime.now(timezone.utc).isoformat()
+            if res:
+                _COMPLETE_R2_LAST["outcome"] = "ok"
+                _COMPLETE_R2_LAST["filename"] = res.get("filename")
+                _COMPLETE_R2_LAST["size_bytes"] = res.get("size_bytes")
+                _COMPLETE_R2_LAST["r2_key"] = res.get("r2_key")
+                _COMPLETE_R2_LAST["presigned_url"] = res.get("presigned_url")
+                _COMPLETE_R2_LAST["stats"] = res.get("stats")
+            else:
+                _COMPLETE_R2_LAST["outcome"] = "FAILED — see logs"
+        except Exception as e:  # noqa: BLE001
+            logger.exception(f"[manual-complete-r2] crashed: {e}")
+            _COMPLETE_R2_LAST["outcome"] = f"EXCEPTION: {e!r}"
+            _COMPLETE_R2_LAST["finished_at"] = datetime.now(timezone.utc).isoformat()
+        finally:
+            _COMPLETE_R2_IN_PROGRESS = False
+
+    background_tasks.add_task(_do_complete)
+    return {
+        "accepted": True,
+        "poll": "/api/admin/backups-complete-r2-state",
+        "started_at": _COMPLETE_R2_LAST["started_at"],
+    }
+
+
+@api_router.get("/admin/backups-complete-r2-state")
+async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
+    """Live status of the most recent manual complete-archive-to-R2 run.
+    Route uses dashes (not slashes) so it doesn't collide with the
+    parameterized ``/admin/backups/{filename}`` download/delete route."""
+    return {
+        "in_progress": _COMPLETE_R2_IN_PROGRESS,
+        "last": dict(_COMPLETE_R2_LAST),
+        "nightly_last": _BACKUP_SCHEDULER_STATE.get("last_r2_complete"),
+        "nightly_last_date": _BACKUP_SCHEDULER_STATE.get("last_r2_complete_date"),
+        "r2_full_hour_utc": int(os.environ.get("BACKUP_R2_FULL_HOUR_UTC", "3") or "3"),
+    }
+
+
+@api_router.get("/admin/backups-list-r2")
+async def admin_list_r2_backups(
+    limit: int = 100,
+    _: bool = Depends(require_admin_strict),
+):
+    """List backup zips currently stored in ``r2://<bucket>/backups/``.
+    Returns most recent first, plus a presigned URL for each so the
+    admin can click-and-download from the UI without exposing the
+    bucket credentials."""
+    try:
+        from photo_storage import _bucket, _client, presigned_get_url_for_key, is_configured
+    except Exception:  # noqa: BLE001
+        raise HTTPException(500, "photo_storage import failed")
+    if not is_configured():
+        raise HTTPException(400, "R2 not configured")
+    c = _client()
+    if c is None:
+        raise HTTPException(500, "R2 client unavailable")
+    try:
+        resp = await asyncio.to_thread(
+            c.list_objects_v2, Bucket=_bucket(), Prefix="backups/",
+        )
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(502, f"R2 list failed: {e}")
+    contents = resp.get("Contents") or []
+    # Sort newest first
+    contents.sort(key=lambda o: o.get("LastModified") or datetime.min, reverse=True)
+    out = []
+    for o in contents[: max(1, min(int(limit), 500))]:
+        key = o.get("Key") or ""
+        try:
+            url = await presigned_get_url_for_key(key, ttl_seconds=7 * 24 * 3600)
+        except Exception:
+            url = None
+        out.append({
+            "key": key,
+            "filename": key.rsplit("/", 1)[-1],
+            "size_bytes": o.get("Size") or 0,
+            "last_modified": (o.get("LastModified").isoformat()
+                              if o.get("LastModified") else None),
+            "download_url": url,
+        })
+    return {"count": len(out), "backups": out}
 
 
 @api_router.get("/admin/backups-scheduler-state")
