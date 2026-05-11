@@ -1,5 +1,62 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-11 — Iter63: Backup hardening (preflight + watchdog + supervisor)
+
+### User concern
+"Make sure no other issues or concerns are anywhere in the system — we have fixed this backup things many times now with same result of issues days later."
+
+Translation: the fix-then-broken-days-later pattern needs a structural answer, not another patch.
+
+### Root structural cause (identified via troubleshoot-agent audit)
+Until iter63, the scheduler asyncio Task had **no resurrection mechanism**. If it died for any reason — Mongo blip, unhandled exception, OOM mid-tick — the Task silently went `done()` and the operator only found out 25+ hours later when the watchdog email fired (and only if the watchdog itself was wired). This explains every previous recurrence: a one-time exception killed the Task, supervisord restarted the WORKER but FastAPI startup never re-ran the on_event handler (it had already fired), so the scheduler stayed dead until the next deploy.
+
+### What shipped (5 layers of defense)
+
+1. **OOM-watermark preflight** (`BACKUP_FULL_OOM_WATERMARK_MB`, default 600 MB) — before building a full zip, look at the latest existing full archive on disk. If it's ≥ watermark, auto-downgrade to lite mode for this run. Logs `PREFLIGHT: most recent full zip is X MB (watermark Y MB). Auto-downgrading…` so it's visible. Set the env to 0 to disable.
+
+2. **Persisted health log** — every successful + failed backup writes a row to MongoDB `backup_health` collection (id, ts, ok, mode, filename, size_bytes, records, emailed_to, error). Trimmed to last 200 rows. Survives worker restarts.
+
+3. **Watchdog email alarm** — every 5-minute tick checks "how long since the last `ok=true` row?" If > `BACKUP_WATCHDOG_HOURS` (default 25h), fires an alarm email to BACKUP_EMAIL_TO with the last known state + 3 troubleshooting steps. Rate-limited via cooldown marker stored in `backup_health` (default 12h between alarms). Brand-new DBs (no history) return `reason=no_history` and never alarm.
+
+4. **Startup task validation** — `await asyncio.sleep(1.5)` after `asyncio.create_task(_backup_scheduler_loop(db))`, then check `_backup_task.done()`. If True, log CRITICAL and re-raise the exception. Catches "scheduler died at init" cases that previously slipped past the on_event handler.
+
+5. **Scheduler supervisor task** — a second fire-and-forget task created during startup that wakes every 5 minutes, checks `_backup_task.done()`, and **respawns the scheduler** if dead. Logs CRITICAL `scheduler task is DEAD — respawning. Last state: <exception repr>` so the operator sees the resurrection event. Records the resurrection in `_BACKUP_SCHEDULER_STATE["last_attempt_outcome"]`.
+
+### Surfaced in the diagnostic endpoint
+`GET /api/admin/backups-scheduler-state` now returns:
+- `task_alive` (bool, derived live from `_backup_task.done()`)
+- `oom_watermark_mb`
+- `watchdog_threshold_hours`
+- `recent_health` (last 10 rows from MongoDB)
+- everything iter62 already exposed (scheduler state, manual_run, seconds_since_last_tick, lite_mode_only_env, etc.)
+
+### Verified end-to-end (preview)
+- `?lite=true` → 200 in 133 ms → slim 47 KB zip → emailed → health row recorded. ✓
+- Plant 750 MB fake full archive → trigger `run-now` without lite param → backend log: `PREFLIGHT: most recent full zip is 750.0 MB (watermark 600.0 MB). Auto-downgrading…` → produces 47 KB lite zip → emailed. ✓
+- Diagnostic endpoint shows `task_alive=true`, `scheduler.alive=true`, `recent_health` rows populated. ✓
+- Backend logs `[scheduled-backup] supervisor armed — checks task health every 5 min` on every boot. ✓
+- 11/11 backend pytest pass.
+
+### Files added/touched
+- MODIFIED: `/app/backend/server.py` (OOM-watermark preflight, `_record_backup_health`, `_backup_watchdog_check`, `_send_watchdog_alarm`, scheduler-state additions, startup task validation, supervisor task, `task_alive` in diagnostic endpoint)
+- MODIFIED: `/app/backend/tests/test_iter62_backup_resiliency.py` (11 tests total — 8 from iter62 + 3 iter63b)
+
+### Production deploy steps (for the user)
+1. **Push to `mascidocs.com`**.
+2. **After deploy**:
+   - `POST /api/admin/backups/run-now?lite=true` → 202 instant, lite email within 60 s.
+   - `GET /api/admin/backups-scheduler-state` — confirm `task_alive=true`, `scheduler.alive=true`, supervisor armed.
+3. **Recommended env on production**:
+   - `BACKUP_LITE_MODE_ONLY=true` (until S3 photo migration is done) — every scheduled run emails the slim version.
+   - `BACKUP_FULL_OOM_WATERMARK_MB=600` (default) — safety net even if you flip lite-only off.
+   - `BACKUP_WATCHDOG_HOURS=25` (default) — alarm if silent > 25 h.
+4. **Monitoring habit**: bookmark `/api/admin/backups-scheduler-state` in your admin browser. If `task_alive=false` ever appears, supervisor will respawn within 5 min; if you see two respawns in a row, contact Emergent Support — something is consistently killing the worker.
+
+### Deferred (P1 — was P2)
+- **S3 photo migration** is the only real fix for the underlying disease (887 MB full archives). Once photos live outside MongoDB, the full archive shrinks back to <50 MB and you can flip `BACKUP_LITE_MODE_ONLY` off permanently.
+
+---
+
 ## 2026-05-11 — Iter62: Backup resiliency (production was OOM-looping)
 
 ### User report

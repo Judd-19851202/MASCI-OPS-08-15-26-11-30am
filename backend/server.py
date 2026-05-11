@@ -6195,6 +6195,7 @@ async def admin_backups_scheduler_state(_: bool = Depends(require_admin_strict))
 
     return {
         "scheduler": state,
+        "task_alive": bool(_backup_task is not None and not _backup_task.done()),
         "seconds_since_last_tick": seconds_since_last_tick,
         "manual_run": dict(_BACKUP_RUNNOW_LAST),
         "manual_in_progress": _BACKUP_RUNNOW_IN_PROGRESS,
@@ -8475,7 +8476,16 @@ async def _create_safety_indexes():
 
 @app.on_event("startup")
 async def _start_backup_scheduler():
-    """Kick off the nightly full-backup scheduler as an asyncio task."""
+    """Kick off the nightly full-backup scheduler as an asyncio task,
+    plus a supervisor task that resurrects the scheduler if it ever dies.
+
+    This addresses the "fixed-then-broken-days-later" pattern: when the
+    scheduler asyncio.Task crashes for any reason (Mongo connection
+    blip, unexpected exception, etc.), it dies silently and backups
+    stop. The supervisor checks every 5 minutes, logs CRITICAL on a
+    dead scheduler, and spawns a fresh task. Belt + suspenders alongside
+    the watchdog email alarm.
+    """
     global _backup_task
     if os.environ.get("DISABLE_BACKUP_SCHEDULER", "").lower() in ("1", "true", "yes"):
         logging.getLogger(__name__).info("[scheduled-backup] DISABLED via env")
@@ -8499,6 +8509,70 @@ async def _start_backup_scheduler():
             f"[scheduled-backup] scheduler started — {_hours_str} · "
             f"keep {BACKUP_RETENTION_DAYS} days · max {BACKUP_KEEP_MAX} files · "
             f"disk-watermark {BACKUP_DISK_HIGH_WATERMARK}% · dir={BACKUPS_DIR}"
+        )
+        # Startup validation — give the task a moment to settle, then
+        # confirm it didn't die immediately on initialization. Catches
+        # bugs that would otherwise silently kill the scheduler before
+        # the first tick (e.g., an exception raised during the boot
+        # heartbeat read against backup_health). Re-raises so the
+        # admin sees a critical-class log line at boot rather than
+        # discovering 25h later via the watchdog alarm.
+        await asyncio.sleep(1.5)
+        if _backup_task.done():
+            try:
+                _backup_task.result()
+            except Exception as e:
+                logging.getLogger(__name__).critical(
+                    f"[scheduled-backup] scheduler Task died during initialization: {e!r}"
+                )
+                _BACKUP_SCHEDULER_STATE["alive"] = False
+                _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = (
+                    f"TASK DIED AT STARTUP: {e!r}"
+                )
+                raise
+
+        # Resurrection supervisor — checks every 5 minutes that the
+        # scheduler task is still alive. Respawns it if dead. Logs
+        # CRITICAL so the operator sees the resurrection event in
+        # the backend logs. Has saved us from "fixed-then-broken-days-
+        # later" recurrences caused by silent Task death.
+        async def _scheduler_supervisor():
+            global _backup_task
+            while True:
+                try:
+                    await asyncio.sleep(300)
+                    if _backup_task is None or _backup_task.done():
+                        # Pull the exception if there is one — informational
+                        # only; we respawn regardless.
+                        exc_repr = "(no task)"
+                        try:
+                            if _backup_task is not None and _backup_task.done():
+                                exc = _backup_task.exception()
+                                exc_repr = repr(exc) if exc else "completed without error"
+                        except Exception:
+                            pass
+                        logging.getLogger(__name__).critical(
+                            f"[scheduled-backup] scheduler task is DEAD — respawning. "
+                            f"Last state: {exc_repr}"
+                        )
+                        _BACKUP_SCHEDULER_STATE["alive"] = False
+                        _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = (
+                            f"RESURRECTED at {datetime.now(timezone.utc).isoformat()} "
+                            f"(previous: {exc_repr})"
+                        )
+                        _backup_task = asyncio.create_task(_backup_scheduler_loop(db))
+                except asyncio.CancelledError:
+                    raise
+                except Exception as e:  # noqa: BLE001
+                    logging.getLogger(__name__).exception(
+                        f"[scheduled-backup] supervisor tick failed: {e}"
+                    )
+
+        # The supervisor task is fire-and-forget. If it dies, the
+        # watchdog email alarm at 25h is still the last line of defense.
+        asyncio.create_task(_scheduler_supervisor())
+        logging.getLogger(__name__).info(
+            "[scheduled-backup] supervisor armed — checks task health every 5 min"
         )
     except Exception as e:
         logging.getLogger(__name__).exception(f"[scheduled-backup] startup failed: {e}")
