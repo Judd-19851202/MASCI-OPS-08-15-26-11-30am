@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends, Response, Request, UploadFile, File, Form
+from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends, Response, Request, UploadFile, File, Form, BackgroundTasks
 from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -4940,10 +4940,19 @@ def _list_stored_backups() -> List[dict]:
     return rows
 
 
-async def _run_scheduled_backup(db) -> Optional[dict]:
+async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
     """Build a backup and persist to BACKUPS_DIR. Prune files older than the
     retention window and over the max-keep ceiling. Returns a small summary
-    dict or None on failure."""
+    dict or None on failure.
+
+    When ``lite_mode`` is True (or the global ``BACKUP_LITE_MODE_ONLY`` env
+    flag is set), the full zip step is skipped entirely — we build ONLY the
+    slim metadata-and-JSON zip suitable for emailing. This is the escape
+    hatch when the full archive has grown so large (e.g. 887 MB of base64
+    photos) that every full-build attempt OOM-kills the worker.
+    """
+    if not lite_mode:
+        lite_mode = _lite_mode_default()
     try:
         BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -5022,6 +5031,49 @@ async def _run_scheduled_backup(db) -> Optional[dict]:
         # Pre-compute target name; we'll rename after stream completes.
         _now = datetime.now(timezone.utc)
         _stamp = _now.strftime("%Y-%m-%d_%H%M%SZ")
+
+        # ── Lite-mode escape hatch ─────────────────────────────────────
+        # When the full archive is too big to build in-process (e.g. base64
+        # photos pushing the zip past 800 MB and OOM-killing the worker),
+        # skip the full zip entirely and build only the slim, base64-
+        # stripped JSON-only zip. Tiny output (~1-3 MB), emails cleanly.
+        if lite_mode:
+            logger.info("[scheduled-backup] LITE MODE — skipping full zip, building slim only")
+            slim_filename = f"MASCI_lite_backup_{_stamp}.zip"
+            slim_out = BACKUPS_DIR / slim_filename
+            slim_tmp = slim_out.with_suffix(f".zip.tmp.{uuid.uuid4().hex[:8]}")
+            try:
+                stats = await asyncio.to_thread(
+                    _build_slim_backup_zip_on_disk, db, slim_tmp
+                )
+            except Exception as e:  # noqa: BLE001
+                logger.exception(f"[scheduled-backup] lite-mode slim build failed: {e}")
+                try:
+                    if slim_tmp.exists():
+                        slim_tmp.unlink()
+                except Exception:
+                    pass
+                return None
+            slim_tmp.replace(slim_out)
+            slim_size = slim_out.stat().st_size
+            logger.info(
+                f"[scheduled-backup] LITE wrote {slim_out.name} "
+                f"({slim_size/1024/1024:.2f} MB · {stats.get('total_records', 0)} records)"
+            )
+            emailed_to = None
+            try:
+                emailed_to = await _email_lite_backup_zip(slim_out, stats)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[scheduled-backup] lite email step failed: {e}")
+            return {
+                "filename": slim_out.name,
+                "size_bytes": slim_size,
+                "records": stats.get("total_records", 0),
+                "pruned_old": pre_pruned,
+                "emailed_to": emailed_to,
+                "lite_mode": True,
+            }
+
         filename = f"MASCI_full_backup_{_stamp}.zip"
         out = BACKUPS_DIR / filename
         # Per-call unique tmp suffix so concurrent backup requests can't
@@ -5233,6 +5285,131 @@ async def _email_backup_zip_from_path(zip_path: Path, total_records: int) -> Opt
                 pass
 
 
+def _build_slim_backup_zip_on_disk(db, dst_zip: Path) -> dict:
+    """LITE-MODE direct-from-Mongo slim backup. Streams every record from
+    every EXPORTABLE_KINDS collection to ``dst_zip`` on disk, stripping
+    base64 blobs inline. Bypasses the full-zip step entirely — used when
+    the full archive is so large it OOM-kills the worker.
+
+    Runs synchronously inside ``asyncio.to_thread`` so Motor calls have to
+    be replaced with PyMongo-style synchronous iteration. We use a
+    fresh sync PyMongo client so this thread never blocks the event-loop
+    Motor client.
+
+    Returns ``{size_bytes, total_records, stripped_blob_count,
+    stripped_blob_bytes, per_kind: {kind: count}}``.
+    """
+    import zipfile as _zf
+    import json as _json
+    from pymongo import MongoClient as _MC
+
+    mongo_url = os.environ["MONGO_URL"]
+    db_name = os.environ["DB_NAME"]
+
+    total_records = 0
+    stripped_blob_count = 0
+    stripped_blob_bytes = 0
+    per_kind: Dict[str, int] = {}
+    sync_client = _MC(mongo_url, serverSelectionTimeoutMS=10000)
+    try:
+        sync_db = sync_client[db_name]
+        with _zf.ZipFile(str(dst_zip), "w", _zf.ZIP_DEFLATED, compresslevel=6) as zf:
+            for kind, coll_name in EXPORTABLE_KINDS.items():
+                kind_count = 0
+                cursor = sync_db[coll_name].find({}, {"_id": 0}).sort("created_at", -1)
+                for doc in cursor:
+                    new_doc, sc, sb = _strip_base64_blobs(doc)
+                    stripped_blob_count += sc
+                    stripped_blob_bytes += sb
+                    rec_id = (new_doc.get("id") or f"row_{kind_count:06d}")
+                    safe_id = "".join(c if c.isalnum() or c in "._-" else "_" for c in str(rec_id))
+                    path_in_zip = f"{kind}/json/{safe_id}.json"
+                    zf.writestr(
+                        path_in_zip,
+                        _json.dumps(new_doc, indent=2, default=str),
+                    )
+                    kind_count += 1
+                per_kind[kind] = kind_count
+                total_records += kind_count
+            # Manifest so the recipient can see what's inside.
+            manifest = {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "mode": "lite",
+                "source": "mascidocs.com",
+                "total_records": total_records,
+                "per_kind": per_kind,
+                "stripped_blob_count": stripped_blob_count,
+                "stripped_blob_bytes": stripped_blob_bytes,
+                "notice": (
+                    "This is a LITE backup — metadata + JSON only, no PDFs, "
+                    "no embedded media. The full archive (including base64 "
+                    "photos) lives in /app/backend/backups on the server. "
+                    "Restore via /admin → Restore from Backup."
+                ),
+            }
+            zf.writestr("MANIFEST.json", _json.dumps(manifest, indent=2))
+    finally:
+        sync_client.close()
+
+    return {
+        "size_bytes": dst_zip.stat().st_size,
+        "total_records": total_records,
+        "per_kind": per_kind,
+        "stripped_blob_count": stripped_blob_count,
+        "stripped_blob_bytes": stripped_blob_bytes,
+    }
+
+
+async def _email_lite_backup_zip(zip_path: Path, stats: dict) -> Optional[str]:
+    """Email a lite-mode slim backup to the configured BACKUP_EMAIL_TO
+    address (or the DB-backed override). Identical sender / template to
+    the full-mode email but with a clear LITE banner so the recipient
+    knows the full archive lives on the server.
+
+    Returns the To: address(es) on success, ``None`` otherwise.
+    """
+    to = (os.environ.get("BACKUP_EMAIL_TO") or "").strip()
+    try:
+        from email_routing import get_value as _routing_get
+        v = await _routing_get(db, "backup_email_to")
+        if isinstance(v, list) and v:
+            to = ",".join(v)
+    except Exception:
+        pass
+    if not to:
+        logger.info("[scheduled-backup·lite] email skipped — no BACKUP_EMAIL_TO configured")
+        return None
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        logger.info("[scheduled-backup·lite] email skipped — RESEND_API_KEY missing")
+        return None
+
+    size_mb = stats["size_bytes"] / (1024 * 1024)
+    slim_notice = (
+        f'<p style="background:#fef3c7;border-left:4px solid #f59e0b;'
+        f'padding:10px 14px;border-radius:0 6px 6px 0;color:#92400e;'
+        f'font-size:13px;line-height:1.5;margin:14px 0;">'
+        f'<strong>LITE BACKUP</strong> — {size_mb:.1f} MB · '
+        f'{stats["total_records"]} records. The full archive '
+        f'(including base64 photos) is too large to email and stays '
+        f'on the server. Sign in to <code>/admin</code> and use the '
+        f'Stored Backups panel for the complete file. '
+        f'{stats["stripped_blob_count"]} embedded blobs were stripped '
+        f'({stats["stripped_blob_bytes"] / (1024*1024):.1f} MB total).'
+        f'</p>'
+    )
+
+    return await _send_backup_email(
+        to=to,
+        api_key=api_key,
+        attachment_path=zip_path,
+        attachment_name=zip_path.name,
+        full_size_mb=size_mb,
+        total_records=stats["total_records"],
+        slim_notice=slim_notice,
+    )
+
+
 def _build_slim_email_zip_on_disk(src_zip: Path, dst_zip: Path) -> dict:
     """Synchronous helper run via asyncio.to_thread. Streams entries from
     src_zip → dst_zip on disk, dropping non-essential files and stripping
@@ -5385,11 +5562,46 @@ def _hours_since_last_backup() -> Optional[float]:
         return None
 
 
+# Diagnostic state — exposed by /api/admin/backups/scheduler-state so the
+# admin console can confirm the scheduler is alive WITHOUT firing a fresh
+# backup. Populated by `_backup_scheduler_loop` on every tick.
+_BACKUP_SCHEDULER_STATE: dict = {
+    "alive": False,
+    "armed_at": None,
+    "last_tick_ts": None,
+    "in_progress": False,
+    "last_attempt_started_at": None,
+    "last_attempt_outcome": None,
+    "last_run_for_hour": {},
+    "failed_attempts": {},
+}
+
+# Module-level "in-progress" guard for the manual /admin/backups/run-now
+# endpoint so two clicks 5 seconds apart can't both spawn 887 MB zip
+# builds and OOM the worker.
+_BACKUP_RUNNOW_IN_PROGRESS: bool = False
+_BACKUP_RUNNOW_LAST: dict = {
+    "started_at": None,
+    "finished_at": None,
+    "outcome": None,
+    "lite_mode": None,
+}
+
+
+def _lite_mode_default() -> bool:
+    """When ``BACKUP_LITE_MODE_ONLY`` env is truthy, every backup (manual or
+    scheduled) skips the full-zip pipeline and ONLY produces the slim
+    metadata-and-JSON zip suitable for emailing. Used when the full archive
+    is so large it's OOM-killing the worker (e.g. base64 photos
+    accumulating past the 600+ MB mark)."""
+    return (os.environ.get("BACKUP_LITE_MODE_ONLY", "") or "").strip().lower() in (
+        "1", "true", "yes", "y", "on",
+    )
+
+
 async def _backup_scheduler_loop(db) -> None:
     """Background loop — wakes up every ~5 min and fires the backup when
     we OBSERVE an hour transition into a scheduled slot while running.
-
-    Robust catch-up behaviour (introduced 2026-05-07):
       • At boot we look at the most recent backup file on disk.
       • If it's <8 hours old, the system is healthy — we mark same-day past
         slots as "already run" so we never double-fire.
@@ -5404,16 +5616,26 @@ async def _backup_scheduler_loop(db) -> None:
         a circuit breaker engages and we stop retrying until midnight
         UTC. This preserves the original safety guarantee that a
         crashing backup can't pin the container in a restart loop.
+
+    Diagnostic state (iter62):
+      • Loop state (last_run_for_hour, failed_attempts, last_tick_ts,
+        last_attempt_outcome, in_progress) is published into module-scope
+        `_BACKUP_SCHEDULER_STATE` so the admin diagnostic endpoint
+        ``GET /api/admin/backups-scheduler-state`` can show whether the
+        scheduler is alive, what tick it's on, and what the last
+        attempt actually did — without triggering a fresh backup.
     """
     MAX_DAILY_ATTEMPTS = 3
 
     # hour → last date we ran for that slot (for slot-collapsing logic)
-    last_run_for_hour: dict[int, "datetime.date"] = {}
+    last_run_for_hour: dict[int, "datetime.date"] = _BACKUP_SCHEDULER_STATE["last_run_for_hour"]
     # date → number of attempts that failed today (circuit breaker)
-    failed_attempts: dict["datetime.date", int] = {}
+    failed_attempts: dict["datetime.date", int] = _BACKUP_SCHEDULER_STATE["failed_attempts"]
 
     now = datetime.now(timezone.utc)
     today = now.date()
+    _BACKUP_SCHEDULER_STATE["alive"] = True
+    _BACKUP_SCHEDULER_STATE["armed_at"] = now.isoformat()
 
     hours_stale = _hours_since_last_backup()
 
@@ -5444,6 +5666,7 @@ async def _backup_scheduler_loop(db) -> None:
         try:
             now = datetime.now(timezone.utc)
             today = now.date()
+            _BACKUP_SCHEDULER_STATE["last_tick_ts"] = now.isoformat()
             # Find the latest scheduled hour crossed today that hasn't fired.
             due_hour: Optional[int] = None
             for h in BACKUP_HOURS_UTC:
@@ -5461,6 +5684,9 @@ async def _backup_scheduler_loop(db) -> None:
                             f"{attempts} failed attempts today. Skipping "
                             f"remaining slots until midnight UTC."
                         )
+                        _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = (
+                            f"circuit-breaker (attempts={attempts}, date={today})"
+                        )
                         for h in BACKUP_HOURS_UTC:
                             last_run_for_hour[h] = today
                 else:
@@ -5468,24 +5694,37 @@ async def _backup_scheduler_loop(db) -> None:
                         f"[scheduled-backup] firing for {today} "
                         f"(slot {due_hour:02d}:00 UTC, attempt #{attempts + 1})"
                     )
-                    result = await _run_scheduled_backup(db)
+                    _BACKUP_SCHEDULER_STATE["in_progress"] = True
+                    _BACKUP_SCHEDULER_STATE["last_attempt_started_at"] = now.isoformat()
+                    try:
+                        result = await _run_scheduled_backup(db)
+                    finally:
+                        _BACKUP_SCHEDULER_STATE["in_progress"] = False
                     if result:
                         last_run_for_hour[due_hour] = today
                         # Collapse earlier same-day slots into this run.
                         for h in BACKUP_HOURS_UTC:
                             if h <= due_hour:
                                 last_run_for_hour[h] = today
+                        _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = (
+                            f"ok · {result.get('filename')} · {result.get('size_bytes', 0)} bytes · "
+                            f"emailed_to={result.get('emailed_to')}"
+                        )
                     else:
                         failed_attempts[today] = attempts + 1
                         logger.warning(
                             f"[scheduled-backup] attempt #{attempts + 1} returned no result — "
                             f"will retry on next loop tick."
                         )
+                        _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = (
+                            f"FAILED (attempt {attempts + 1}, no result returned)"
+                        )
         except asyncio.CancelledError:
             raise
         except Exception as e:
             failed_attempts[today] = failed_attempts.get(today, 0) + 1
             logger.exception(f"[scheduled-backup] loop tick error: {e}")
+            _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = f"EXCEPTION: {e!r}"
         await asyncio.sleep(300)  # 5 min ticks — low overhead, catches missed slots
 
 
@@ -5600,12 +5839,122 @@ async def admin_delete_stored_backup(
 
 
 @api_router.post("/admin/backups/run-now")
-async def admin_run_backup_now(_: bool = Depends(require_admin_strict)):
-    """Trigger an immediate scheduled backup (same path as nightly, just now)."""
-    result = await _run_scheduled_backup(db)
-    if not result:
-        raise HTTPException(500, "Backup failed — see server logs")
-    return {"ok": True, **result}
+async def admin_run_backup_now(
+    background_tasks: BackgroundTasks,
+    lite: Optional[bool] = None,
+    _: bool = Depends(require_admin_strict),
+):
+    """Schedule an immediate backup. Returns HTTP 202 instantly — the
+    actual zip build runs in a FastAPI ``BackgroundTask`` so this endpoint
+    never blocks the request worker.
+
+    The old synchronous path was Cloudflare-524'ing on the 887 MB zip
+    builds because the worker held the request open for >100 seconds.
+    Worse, repeated retries could OOM the worker entirely (origin 520
+    storm). With the background task, the worker returns 202 in <50 ms;
+    the zip writes in the background; the email helper picks up the
+    finished file and sends it.
+
+    Query params:
+      • ``lite=true`` — skip the full zip and produce only the slim
+        metadata-only zip. Use when the full archive is too big.
+        Defaults to the ``BACKUP_LITE_MODE_ONLY`` env flag.
+
+    Module-level guard prevents two manual triggers from running
+    simultaneously (would double the memory pressure and double the
+    OOM risk). Second click within an in-progress window gets a 409.
+    """
+    global _BACKUP_RUNNOW_IN_PROGRESS
+    if _BACKUP_RUNNOW_IN_PROGRESS:
+        raise HTTPException(
+            409,
+            "Another manual backup is already in progress. "
+            "Check /api/admin/backups/scheduler-state for status.",
+        )
+
+    use_lite = _lite_mode_default() if lite is None else bool(lite)
+    _BACKUP_RUNNOW_IN_PROGRESS = True
+    _BACKUP_RUNNOW_LAST["started_at"] = datetime.now(timezone.utc).isoformat()
+    _BACKUP_RUNNOW_LAST["finished_at"] = None
+    _BACKUP_RUNNOW_LAST["outcome"] = "in-progress"
+    _BACKUP_RUNNOW_LAST["lite_mode"] = use_lite
+
+    async def _do_run() -> None:
+        global _BACKUP_RUNNOW_IN_PROGRESS
+        try:
+            result = await _run_scheduled_backup(db, lite_mode=use_lite)
+            _BACKUP_RUNNOW_LAST["finished_at"] = datetime.now(timezone.utc).isoformat()
+            if result and not result.get("skipped"):
+                _BACKUP_RUNNOW_LAST["outcome"] = (
+                    f"ok · {result.get('filename')} · "
+                    f"{(result.get('size_bytes') or 0)//1024} KB · "
+                    f"emailed_to={result.get('emailed_to')}"
+                )
+            elif result and result.get("skipped"):
+                _BACKUP_RUNNOW_LAST["outcome"] = f"skipped ({result.get('reason', '?')})"
+            else:
+                _BACKUP_RUNNOW_LAST["outcome"] = "FAILED — see server logs"
+        except Exception as e:  # noqa: BLE001
+            logger.exception(f"[manual-backup] background task crashed: {e}")
+            _BACKUP_RUNNOW_LAST["finished_at"] = datetime.now(timezone.utc).isoformat()
+            _BACKUP_RUNNOW_LAST["outcome"] = f"EXCEPTION: {e!r}"
+        finally:
+            _BACKUP_RUNNOW_IN_PROGRESS = False
+
+    background_tasks.add_task(_do_run)
+    return {
+        "accepted": True,
+        "lite_mode": use_lite,
+        "poll": "/api/admin/backups-scheduler-state",
+        "started_at": _BACKUP_RUNNOW_LAST["started_at"],
+    }
+
+
+@api_router.get("/admin/backups-scheduler-state")
+async def admin_backups_scheduler_state(_: bool = Depends(require_admin_strict)):
+    """Read-only snapshot of the backup scheduler's internal state.
+
+    Use when you want to know "is the backup scheduler alive? did the
+    last attempt succeed? what's it doing right now?" WITHOUT triggering
+    a fresh backup. Returns the module-level state dicts as-is plus a
+    derived `seconds_since_last_tick` so the admin UI can colour a
+    health pill green/amber/red.
+
+    Note: the path uses a hyphen rather than a slash separator to avoid
+    colliding with the ``/admin/backups/{filename}`` download/delete
+    routes, which would otherwise match ``scheduler-state`` as a
+    filename and 400 on the validator.
+    """
+    state = dict(_BACKUP_SCHEDULER_STATE)
+    last_tick = state.get("last_tick_ts")
+    seconds_since_last_tick: Optional[float] = None
+    if last_tick:
+        try:
+            last_dt = datetime.fromisoformat(last_tick)
+            seconds_since_last_tick = (datetime.now(timezone.utc) - last_dt).total_seconds()
+        except Exception:
+            pass
+
+    # last_run_for_hour keys are date objects → coerce to ISO strings for JSON.
+    state["last_run_for_hour"] = {
+        str(h): (d.isoformat() if hasattr(d, "isoformat") else str(d))
+        for h, d in (state.get("last_run_for_hour") or {}).items()
+    }
+    state["failed_attempts"] = {
+        (k.isoformat() if hasattr(k, "isoformat") else str(k)): v
+        for k, v in (state.get("failed_attempts") or {}).items()
+    }
+
+    return {
+        "scheduler": state,
+        "seconds_since_last_tick": seconds_since_last_tick,
+        "manual_run": dict(_BACKUP_RUNNOW_LAST),
+        "manual_in_progress": _BACKUP_RUNNOW_IN_PROGRESS,
+        "lite_mode_only_env": _lite_mode_default(),
+        "now_utc": datetime.now(timezone.utc).isoformat(),
+        "scheduled_hours_utc": list(BACKUP_HOURS_UTC),
+        "circuit_breaker_max_attempts_per_day": 3,
+    }
 
 
 @api_router.post("/admin/data-fixes/run")

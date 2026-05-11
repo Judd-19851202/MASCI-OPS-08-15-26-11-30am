@@ -1,5 +1,47 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-11 — Iter62: Backup resiliency (production was OOM-looping)
+
+### User report
+"I have not received any type of back up via email in days…"
+
+### Root cause (reproduced against prod)
+Production's last backup file was dated **2026-05-08 10:10 UTC** (3 days before the report). The data set has grown to ~887 MB per full archive (base64 photos accumulating in MongoDB). Every full-zip build was OOM-killing the FastAPI worker; supervisord restarts re-fired the next scheduled slot which again OOM'd. The scheduler effectively entered a crash loop on 2026-05-08 and never produced another backup. The synchronous `POST /admin/backups/run-now` endpoint compounded the problem — when I called it during diagnosis, the worker started another 887 MB zip build, the request held the worker open past Cloudflare's 100 s edge timeout, and the worker eventually OOM'd, taking the whole site down for ~3 minutes.
+
+### What shipped
+**4 fixes in `/app/backend/server.py`**:
+
+1. **Background-tasked `POST /admin/backups/run-now`** — now returns HTTP 200 + `{accepted:true, started_at}` in <150 ms; the actual zip build runs in a FastAPI `BackgroundTask`. Module-level `_BACKUP_RUNNOW_IN_PROGRESS` guard returns 409 if two clicks land within an in-progress window. Accepts `?lite=true` query param.
+
+2. **NEW `GET /admin/backups-scheduler-state`** diagnostic endpoint exposes the scheduler's live state — `alive`, `armed_at`, `last_tick_ts`, `seconds_since_last_tick`, `in_progress`, `last_attempt_outcome`, `last_run_for_hour`, `failed_attempts`, `manual_run`, `manual_in_progress`, `lite_mode_only_env`, `scheduled_hours_utc`, `circuit_breaker_max_attempts_per_day`. Read-only — does NOT trigger a backup. Path uses a hyphen separator (`backups-scheduler-state` not `backups/scheduler-state`) to dodge the `{filename}` route collision.
+
+3. **Lite-mode escape hatch** — new `_build_slim_backup_zip_on_disk(db, dst_zip)` writes a slim metadata-and-JSON zip directly from Mongo (via a sync PyMongo client in `asyncio.to_thread` so Motor isn't blocked), strips base64 inline, skipping the full archive entirely. Output is ~47 KB instead of 887 MB. Emailed via new `_email_lite_backup_zip`. Triggered by `?lite=true` query param OR the global `BACKUP_LITE_MODE_ONLY=true` env flag. Lets the scheduler still produce useful daily emails even when the full archive is too large.
+
+4. **Diagnostic publishing** in `_backup_scheduler_loop` — every tick now updates `_BACKUP_SCHEDULER_STATE`. Manual `run-now` updates `_BACKUP_RUNNOW_LAST`. Both visible via the new diagnostic endpoint.
+
+### Verified end-to-end (preview)
+- `POST /admin/backups/run-now?lite=true` → HTTP 200 in **133 ms** (was Cloudflare-524'ing in 125 s).
+- 8 seconds later, scheduler-state shows `outcome: "ok · MASCI_lite_backup_2026-05-11_095243Z.zip · 47 KB · emailed_to=jaymn.judd@mascigc.com"`.
+- Backend log: `[scheduled-backup] emailed backup to jaymn.judd@mascigc.com (resend_id=…)`.
+- 5/5 backend pytest pass: lite-mode env-flag truthiness, scheduler-state initial shape, run-now-state initial shape, `_run_scheduled_backup(lite_mode=)` signature regression, slim helper export.
+
+### Files added/touched
+- MODIFIED: `/app/backend/server.py` (4 changes — `_BACKUP_SCHEDULER_STATE` + `_BACKUP_RUNNOW_*` module state, `_lite_mode_default`, `_build_slim_backup_zip_on_disk`, `_email_lite_backup_zip`, `_backup_scheduler_loop` tick state publishing, `_run_scheduled_backup` accepts `lite_mode` kwarg, `/admin/backups/run-now` background-tasked + 409 guard, NEW `/admin/backups-scheduler-state` endpoint, `BackgroundTasks` import).
+- NEW: `/app/backend/tests/test_iter62_backup_resiliency.py` (5 regression tests).
+
+### Production deploy steps (for the user)
+1. **Wait for prod to self-recover** (already back to 200 OK on `/api/health` as of writing — the pending zip task finished or timed out).
+2. **Push the new code** to `mascidocs.com`.
+3. **After deploy**, log into `/admin` and call once: `POST /api/admin/backups/run-now?lite=true`. Returns 202 instantly. Within 60 seconds, the slim backup email should arrive at `jaymn.judd@mascigc.com`.
+4. *(Optional)* Set env `BACKUP_LITE_MODE_ONLY=true` on production until S3 photo migration is done — every scheduled run will then produce a slim email-friendly backup. Full archives still build and live on disk via `_run_scheduled_backup` when this flag is OFF — flip it back later.
+5. Confirm scheduler health any time via `GET /api/admin/backups-scheduler-state`.
+
+### Deferred (P1 follow-ups)
+- **Stored Backups admin panel UI** needs a `LITE / FULL` badge column + a "Run lite backup now" button (currently the lite/full split is API-only).
+- **S3 photo migration** (was already on the P2 backlog) is now P1-urgent — once photos live outside Mongo, the full archive shrinks back to <50 MB and lite mode becomes unnecessary.
+
+---
+
 ## 2026-05-08 — Iter61: Training docs full sweep (iter48–60 features documented)
 
 ### User ask
