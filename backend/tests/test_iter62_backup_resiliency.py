@@ -21,15 +21,23 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 def test_lite_mode_env_truthy():
+    """Iter64 Phase 2: lite mode is now DEFAULT-ON. Only an explicit
+    falsy env value flips it back to full-archive mode. This protects
+    production from full-archive OOM crashes even if the env var is
+    accidentally unset during a deploy."""
     import server
     os.environ.pop("BACKUP_LITE_MODE_ONLY", None)
-    assert server._lite_mode_default() is False
+    # Default-on: missing env var → lite mode enabled
+    assert server._lite_mode_default() is True
     for v in ("1", "true", "TRUE", "yes", "Y", "On"):
         os.environ["BACKUP_LITE_MODE_ONLY"] = v
         assert server._lite_mode_default() is True, f"value {v!r} should be truthy"
-    for v in ("0", "false", "no", "off", ""):
+    for v in ("0", "false", "no", "off"):
         os.environ["BACKUP_LITE_MODE_ONLY"] = v
         assert server._lite_mode_default() is False, f"value {v!r} should be falsy"
+    # Empty string preserves the safe default (lite mode on).
+    os.environ["BACKUP_LITE_MODE_ONLY"] = ""
+    assert server._lite_mode_default() is True
     os.environ.pop("BACKUP_LITE_MODE_ONLY", None)
 
 

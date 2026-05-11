@@ -5816,14 +5816,26 @@ _BACKUP_RUNNOW_LAST: dict = {
 
 
 def _lite_mode_default() -> bool:
-    """When ``BACKUP_LITE_MODE_ONLY`` env is truthy, every backup (manual or
-    scheduled) skips the full-zip pipeline and ONLY produces the slim
-    metadata-and-JSON zip suitable for emailing. Used when the full archive
-    is so large it's OOM-killing the worker (e.g. base64 photos
-    accumulating past the 600+ MB mark)."""
-    return (os.environ.get("BACKUP_LITE_MODE_ONLY", "") or "").strip().lower() in (
-        "1", "true", "yes", "y", "on",
-    )
+    """Default to **lite mode ON** so every backup (manual or scheduled)
+    produces the slim email-friendly metadata-and-JSON zip and never
+    tries to build the 800+ MB full archive on the worker.
+
+    Why default-on?
+    Iter64 phase 2 (2026-05-11) moved photos out of MongoDB into R2
+    object storage, but other base64 fields (signatures, training
+    photos, etc.) still live in Mongo and a full-archive build of all
+    of them was still long enough to recycle the worker mid-task on
+    production. Until those remaining fields are migrated AND/OR the
+    IT-pull endpoint replaces email-attached backups, the safest
+    default is "always send the slim 74 KB email, never block the
+    worker." Anyone who explicitly wants a full archive can set
+    ``BACKUP_LITE_MODE_ONLY=false`` to opt back in.
+    """
+    raw = (os.environ.get("BACKUP_LITE_MODE_ONLY", "") or "").strip().lower()
+    # Explicit opt-OUT only — falsy strings disable lite-mode default.
+    if raw in ("0", "false", "no", "n", "off"):
+        return False
+    return True
 
 
 async def _backup_scheduler_loop(db) -> None:

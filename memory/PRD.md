@@ -1,5 +1,44 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-11 — Iter64 (phase 2b): Lite-mode-by-default for production safety
+
+### What changed
+After running the iter64 phase 2 R2 photo migration on production, a manual full-backup test revealed that **other base64 fields** (signatures, training photos, etc.) still in MongoDB are heavy enough to recycle the worker mid-backup. Photos were the largest single source but not the only one.
+
+Until those remaining fields are migrated AND/OR the IT-pull endpoint replaces email-attached backups, the safest default is **lite mode on for every backup**.
+
+### Code change
+`_lite_mode_default()` in `server.py` now returns `True` by default. Only an explicit falsy env value (`BACKUP_LITE_MODE_ONLY=false` etc.) flips it back to full-archive mode.
+
+```python
+# Before iter64 phase 2b
+return env_value in ("1","true",...)  # default False
+
+# After iter64 phase 2b
+if env_value in ("0","false",...): return False
+return True  # default True (lite mode on)
+```
+
+This means **no env var change is required on production** to get lite-mode protection. A clean deploy of this code → next scheduled backup runs in lite mode → 74 KB email arrives every night → no OOM risk, no long-running tasks.
+
+### Verified
+- 11/11 backup resiliency tests pass (updated `test_lite_mode_env_truthy` for the new default-on semantics)
+- Preview restart confirms `lite_mode_only_env: true` with no env var present
+- Manual run-now in preview produces a slim ~74 KB zip and emails it
+
+### Files touched
+- MODIFIED: `/app/backend/server.py` (`_lite_mode_default` inverted default)
+- MODIFIED: `/app/backend/tests/test_iter62_backup_resiliency.py` (test updated for new default-on)
+
+### To re-enable full-archive mode later
+Once we've migrated the remaining base64 fields and/or built the IT-pull endpoint, the user can flip a single env var on production:
+```
+BACKUP_LITE_MODE_ONLY=false
+```
+And the system goes back to producing full archives. No code change needed.
+
+---
+
 ## 2026-05-11 — Iter64 (phase 2): R2 photo migration GOES LIVE + dual-read in every PDF renderer
 
 ### User ask
