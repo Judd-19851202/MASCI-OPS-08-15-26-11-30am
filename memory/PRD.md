@@ -1,5 +1,57 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-11 — Iter64 (phase 2d): Cloud Archives admin UI panel
+
+### User ask
+"yes do this... any other suggestions?" — wire up an admin UI panel at
+`/admin` that shows the R2 archives list with one-click download
+buttons (instead of digging through Cloudflare's dashboard).
+
+### What shipped
+**NEW: `/app/frontend/src/components/CloudArchivesPanel.jsx`** — a sibling
+to `StoredBackupsPanel` that renders:
+
+- An orange "Cloud Archives · Cloudflare R2" header (mirrors the slate
+  StoredBackups header so the two read as a pair)
+- **"Build complete archive now"** button that calls
+  `POST /api/admin/backups/run-complete-now`, polls
+  `/api/admin/backups-complete-r2-state` every 4 sec while the build
+  is in-flight, and refreshes the archive list when it finishes
+- **Nightly schedule strip** showing the next nightly hour (default
+  03:00 UTC) and the last successful nightly date
+- **Live in-flight banner** while a build is happening
+- **Last manual-run result** banner showing filename + size after
+  each manual trigger
+- **R2 archive list** — newest first, with click-to-download anchors
+  pointing at 7-day Cloudflare presigned URLs (no auth headers needed,
+  can be safely shared with IT)
+- **Empty + disabled states** — when R2 isn't configured, renders an
+  amber notice explaining which env vars are missing instead of erroring
+- All elements have `data-testid` attrs for automated testing
+
+Mounted in `/app/frontend/src/pages/AdminHub.jsx` directly below the
+existing `StoredBackupsPanel`, so an admin sees the on-server slim
+backup library and the cloud complete-archive library back to back.
+
+### Build verified
+- `yarn build` clean (0 warnings, 0 errors)
+- ESLint clean on the new file
+- Backend endpoints already verified live on production:
+  - `GET /admin/backups-complete-r2-state` → 200
+  - `GET /admin/backups-list-r2` → 200 (5 archives visible)
+  - `POST /admin/backups/run-complete-now` → 200, completes in ~40 sec
+
+### Files touched
+- NEW: `/app/frontend/src/components/CloudArchivesPanel.jsx`
+- MODIFIED: `/app/frontend/src/pages/AdminHub.jsx` (+import, +mount)
+
+### Production deploy
+Hit "Save to GitHub" → deploy. The new panel will appear automatically
+in `/admin` under the Backup & Restore section, populated with the 5
+archives already in R2 from today's testing.
+
+---
+
 ## 2026-05-11 — Iter64 (phase 2c): Complete-system archive to R2 + nightly upload
 
 ### User ask

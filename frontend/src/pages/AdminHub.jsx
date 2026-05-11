@@ -29,6 +29,7 @@ import ComplianceExportPanel from "@/components/ComplianceExportPanel";
 import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 import BackupHeroPanel from "@/components/BackupHeroPanel";
 import StoredBackupsPanel from "@/components/StoredBackupsPanel";
+import CloudArchivesPanel from "@/components/CloudArchivesPanel";
 import RestoreBackupPanel from "@/components/RestoreBackupPanel";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
@@ -519,6 +520,7 @@ export default function AdminHub() {
             </p>
           </div>
           <StoredBackupsPanel />
+          <CloudArchivesPanel />
 
           {/* 3 · RESTORE FROM BACKUP — merge (safe) or replace (wipes) */}
           <div className="mt-8 mb-2">
