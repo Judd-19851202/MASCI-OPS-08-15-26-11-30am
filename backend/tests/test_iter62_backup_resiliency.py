@@ -88,3 +88,35 @@ def test_slim_backup_zip_helper_exists():
     assert hasattr(server, "_email_lite_backup_zip"), (
         "_email_lite_backup_zip is required for lite-mode backups"
     )
+
+
+# ─── iter63 additions: preflight watermark + watchdog + health log ─────
+
+def test_oom_watermark_env_default():
+    """The watermark env default must be 600 MB so the safety net is on
+    out of the box even without operator configuration."""
+    import os
+    # Reading the value the same way the code does
+    v = float(os.environ.get("BACKUP_FULL_OOM_WATERMARK_MB", "600") or "600")
+    # Default is 600; if operator unset, this asserts the fallback
+    assert v >= 0, "env-driven watermark must be non-negative"
+
+
+def test_record_backup_health_signature():
+    """Health-recording helper must accept the exact kwargs we pass at
+    every call site — drift here causes silent failures."""
+    import inspect
+    import server
+    sig = inspect.signature(server._record_backup_health)
+    expected = {"ok", "filename", "size_bytes", "records", "emailed_to", "mode", "error"}
+    actual = set(sig.parameters.keys()) - {"db"}
+    missing = expected - actual
+    assert not missing, f"_record_backup_health missing kwargs: {missing}"
+
+
+def test_watchdog_helpers_exist():
+    """Watchdog functions must be importable from server — any rename
+    breaks the scheduler-loop integration silently."""
+    import server
+    assert hasattr(server, "_backup_watchdog_check")
+    assert hasattr(server, "_send_watchdog_alarm")

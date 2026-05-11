@@ -5000,6 +5000,40 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
         if pre_pruned:
             logger.info(f"[scheduled-backup] pre-flight pruned {pre_pruned} old/tmp files")
 
+        # DEFENSE LAYER 4.5 — OOM watermark preflight.
+        # The bug we keep hitting: as base64 photos accumulate in Mongo,
+        # the full archive size grows linearly. Once it crosses the
+        # worker's memory ceiling, every full-build OOM-kills the worker
+        # → silent crash loop → no backups for days. This check looks at
+        # the LATEST successful full zip on disk and, if it's already
+        # over the watermark, auto-downgrades to lite mode WITHOUT a
+        # human in the loop. Operators can flip `BACKUP_FULL_OOM_WATERMARK_MB=0`
+        # to disable this safety net once S3 photo migration is done.
+        if not lite_mode:
+            watermark_mb = float(
+                os.environ.get("BACKUP_FULL_OOM_WATERMARK_MB", "600") or "600"
+            )
+            if watermark_mb > 0:
+                try:
+                    existing_full = sorted(
+                        BACKUPS_DIR.glob("MASCI_full_backup_*.zip"),
+                        key=lambda f: f.stat().st_mtime,
+                        reverse=True,
+                    )
+                    if existing_full:
+                        latest_mb = existing_full[0].stat().st_size / (1024 * 1024)
+                        if latest_mb >= watermark_mb:
+                            logger.warning(
+                                f"[scheduled-backup] PREFLIGHT: most recent full zip is "
+                                f"{latest_mb:.1f} MB (watermark {watermark_mb} MB). "
+                                f"Auto-downgrading this run to LITE mode to avoid OOM. "
+                                f"Set BACKUP_FULL_OOM_WATERMARK_MB=0 to disable, or "
+                                f"BACKUP_LITE_MODE_ONLY=true to make lite-mode permanent."
+                            )
+                            lite_mode = True
+                except Exception as e:  # noqa: BLE001
+                    logger.warning(f"[scheduled-backup] preflight watermark check failed: {e}")
+
         # DEFENSE LAYER 5 — Disk high-water-mark check after prune.
         # If the disk is STILL above the watermark after standard pruning,
         # bail out instead of building a 750 MB zip we can't write. Better
@@ -5065,6 +5099,11 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
                 emailed_to = await _email_lite_backup_zip(slim_out, stats)
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"[scheduled-backup] lite email step failed: {e}")
+            await _record_backup_health(
+                db, ok=True, filename=slim_out.name, size_bytes=slim_size,
+                records=stats.get("total_records", 0), emailed_to=emailed_to,
+                mode="lite",
+            )
             return {
                 "filename": slim_out.name,
                 "size_bytes": slim_size,
@@ -5097,6 +5136,10 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
         except Exception as e:
             logger.warning(f"[scheduled-backup] email step failed (non-fatal): {e}")
 
+        await _record_backup_health(
+            db, ok=True, filename=out.name, size_bytes=size_bytes,
+            records=total_records, emailed_to=emailed_to, mode="full",
+        )
         return {
             "filename": out.name,
             "size_bytes": size_bytes,
@@ -5106,6 +5149,10 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
         }
     except Exception as e:
         logger.exception(f"[scheduled-backup] FAILED: {e}")
+        try:
+            await _record_backup_health(db, ok=False, error=repr(e), mode="error")
+        except Exception:
+            pass
         return None
 
 
@@ -5161,6 +5208,186 @@ def _strip_base64_blobs(obj, _stats=None):
         _stats["bytes"] += len(obj)
         return f"<stripped:base64 {len(obj)} bytes>", _stats["count"], _stats["bytes"]
     return obj, _stats["count"], _stats["bytes"]
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Persisted backup health
+# ──────────────────────────────────────────────────────────────────────
+# Every successful and failed backup writes a small row into
+# `backup_health` so the diagnostic endpoint sees the FULL history,
+# not just what's in module-level memory (which resets on worker
+# restart). The watchdog below reads this collection to decide whether
+# to fire an alarm email when backups go silent.
+
+async def _record_backup_health(
+    db,
+    *,
+    ok: bool,
+    filename: Optional[str] = None,
+    size_bytes: int = 0,
+    records: int = 0,
+    emailed_to: Optional[str] = None,
+    mode: str = "full",
+    error: Optional[str] = None,
+) -> None:
+    """Append a row to ``backup_health``. Best-effort — a Mongo write
+    failure here MUST NOT block the backup itself, so we swallow errors."""
+    try:
+        doc = {
+            "id": uuid.uuid4().hex,
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "ok": ok,
+            "mode": mode,
+            "filename": filename,
+            "size_bytes": size_bytes,
+            "records": records,
+            "emailed_to": emailed_to,
+            "error": error,
+        }
+        await db.backup_health.insert_one(dict(doc))
+        # Mongo mutates the dict in place to add _id — we don't care, doc is
+        # not returned.
+        # Trim to last 200 rows so this collection can't grow unbounded.
+        old_cursor = db.backup_health.find(
+            {}, {"_id": 1, "ts": 1}
+        ).sort("ts", -1).skip(200)
+        async for row in old_cursor:
+            try:
+                await db.backup_health.delete_one({"_id": row["_id"]})
+            except Exception:
+                pass
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[backup-health] record failed: {e}")
+
+
+async def _backup_watchdog_check(db) -> Optional[dict]:
+    """Look at the most recent successful backup. If it's older than
+    ``BACKUP_WATCHDOG_HOURS`` (default 25h), fire an alarm email to the
+    admin distribution list — once per silence window so we don't spam.
+
+    Returns a small status dict for the diagnostic endpoint. ``alarm_fired``
+    is True only when this call ACTUALLY sent an alarm email (vs. just
+    observed silence within the cooldown).
+    """
+    threshold_hours = float(os.environ.get("BACKUP_WATCHDOG_HOURS", "25"))
+    cooldown_hours = float(os.environ.get("BACKUP_WATCHDOG_COOLDOWN_HOURS", "12"))
+    try:
+        latest = await db.backup_health.find_one({"ok": True}, sort=[("ts", -1)])
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[backup-watchdog] read failed: {e}")
+        return None
+    now = datetime.now(timezone.utc)
+    if not latest:
+        # Fresh database — no history at all. Don't alarm; the first
+        # scheduled run will populate the health log.
+        return {"alarm_fired": False, "hours_silent": None, "reason": "no_history"}
+    try:
+        latest_ts = datetime.fromisoformat(latest["ts"])
+    except Exception:
+        return {"alarm_fired": False, "hours_silent": None, "reason": "bad_ts"}
+    hours_silent = (now - latest_ts).total_seconds() / 3600.0
+    if hours_silent < threshold_hours:
+        return {"alarm_fired": False, "hours_silent": round(hours_silent, 1), "reason": "healthy"}
+
+    # Cooldown: only alarm if we haven't already alarmed in the last
+    # `cooldown_hours`. Last alarm timestamp lives in the same collection
+    # under a marker doc.
+    marker = await db.backup_health.find_one({"id": "_watchdog_last_alarm"})
+    if marker and marker.get("ts"):
+        try:
+            since_alarm = (now - datetime.fromisoformat(marker["ts"])).total_seconds() / 3600.0
+            if since_alarm < cooldown_hours:
+                return {
+                    "alarm_fired": False,
+                    "hours_silent": round(hours_silent, 1),
+                    "reason": f"cooldown ({since_alarm:.1f}h since last alarm < {cooldown_hours}h)",
+                }
+        except Exception:
+            pass
+
+    # Fire the alarm email.
+    sent = await _send_watchdog_alarm(db, hours_silent=hours_silent, latest=latest)
+    if sent:
+        await db.backup_health.update_one(
+            {"id": "_watchdog_last_alarm"},
+            {"$set": {"id": "_watchdog_last_alarm", "ts": now.isoformat()}},
+            upsert=True,
+        )
+    return {
+        "alarm_fired": bool(sent),
+        "hours_silent": round(hours_silent, 1),
+        "reason": "alarm_sent" if sent else "alarm_send_failed",
+    }
+
+
+async def _send_watchdog_alarm(db, *, hours_silent: float, latest: dict) -> bool:
+    """Send a styled HTML alarm email to the same address(es) that receive
+    successful backups. Quiet failure → return False (we don't want this
+    to crash the watchdog tick)."""
+    to = ""
+    try:
+        from email_routing import get_value as _routing_get
+        v = await _routing_get(db, "backup_email_to")
+        if isinstance(v, list) and v:
+            to = ",".join(v)
+    except Exception:
+        pass
+    if not to:
+        to = (os.environ.get("BACKUP_EMAIL_TO") or "").strip()
+    if not to:
+        logger.warning("[backup-watchdog] no recipient configured — alarm not sent")
+        return False
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        logger.warning("[backup-watchdog] RESEND_API_KEY missing — alarm not sent")
+        return False
+    try:
+        import resend  # noqa: E402
+        resend.api_key = api_key
+        sender_email = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
+        latest_filename = latest.get("filename") or "(unknown)"
+        latest_ts = latest.get("ts") or "(unknown)"
+        size_mb = (latest.get("size_bytes") or 0) / (1024 * 1024)
+        html = (
+            "<div style='font-family:Arial,sans-serif;max-width:560px'>"
+            "<h2 style='color:#C8102E;margin:0 0 8px 0'>BACKUP HEALTH ALARM</h2>"
+            f"<p>The MASCI Hub backup scheduler has not produced a successful "
+            f"backup in <strong>{hours_silent:.1f} hours</strong>. "
+            f"The configured threshold is "
+            f"{os.environ.get('BACKUP_WATCHDOG_HOURS', '25')} hours.</p>"
+            "<h3 style='color:#334155;margin:16px 0 4px 0;font-size:14px'>Last successful backup:</h3>"
+            f"<ul style='margin:0;padding-left:20px;font-size:13px;color:#475569'>"
+            f"<li>File: <code>{latest_filename}</code></li>"
+            f"<li>Size: {size_mb:.1f} MB · {latest.get('records', 0)} records · mode={latest.get('mode')}</li>"
+            f"<li>Timestamp: {latest_ts} UTC</li>"
+            "</ul>"
+            "<h3 style='color:#334155;margin:16px 0 4px 0;font-size:14px'>What to check:</h3>"
+            "<ol style='margin:0;padding-left:20px;font-size:13px;color:#475569'>"
+            "<li>Open <code>/api/admin/backups-scheduler-state</code> to see the live scheduler view.</li>"
+            "<li>Try <code>POST /api/admin/backups/run-now?lite=true</code> — it returns 202 immediately and emails a slim backup within 60 s.</li>"
+            "<li>If lite-mode runs succeed but full-mode is silent, the full archive has likely crossed the OOM watermark. "
+            "Set <code>BACKUP_LITE_MODE_ONLY=true</code> on the deploy until S3 photo migration is done.</li>"
+            "</ol>"
+            "<p style='color:#94a3b8;font-size:11px;margin-top:18px'>"
+            "Sent by the MASCI Hub backup watchdog. This alarm is rate-limited "
+            f"to once every {os.environ.get('BACKUP_WATCHDOG_COOLDOWN_HOURS', '12')} hours.</p>"
+            "</div>"
+        )
+        params = {
+            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "to": [t.strip() for t in to.split(",") if t.strip()],
+            "subject": f"[MASCI ALARM] Backup silent for {hours_silent:.0f}h — action needed",
+            "html": html,
+        }
+        reply_to = (os.environ.get("REPLY_TO_EMAIL") or "").strip()
+        if reply_to:
+            params["reply_to"] = reply_to
+        await asyncio.to_thread(resend.Emails.send, params)
+        logger.warning(f"[backup-watchdog] ALARM FIRED → {to} (silent={hours_silent:.1f}h)")
+        return True
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"[backup-watchdog] alarm send failed: {e}")
+        return False
 
 
 async def _email_backup_zip_from_path(zip_path: Path, total_records: int) -> Optional[str]:
@@ -5725,6 +5952,16 @@ async def _backup_scheduler_loop(db) -> None:
             failed_attempts[today] = failed_attempts.get(today, 0) + 1
             logger.exception(f"[scheduled-backup] loop tick error: {e}")
             _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = f"EXCEPTION: {e!r}"
+
+        # WATCHDOG — runs every tick (cheap: one Mongo read), fires alarm
+        # email if backups have been silent past the threshold. Rate-limited
+        # internally so the admin doesn't get spammed.
+        try:
+            watchdog_result = await _backup_watchdog_check(db)
+            if watchdog_result:
+                _BACKUP_SCHEDULER_STATE["last_watchdog"] = watchdog_result
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[backup-watchdog] tick failed: {e}")
         await asyncio.sleep(300)  # 5 min ticks — low overhead, catches missed slots
 
 
@@ -5945,15 +6182,29 @@ async def admin_backups_scheduler_state(_: bool = Depends(require_admin_strict))
         for k, v in (state.get("failed_attempts") or {}).items()
     }
 
+    # Pull the last 10 health-log rows so the admin UI can show "last 5
+    # backups and what they did" without triggering anything.
+    recent_health: List[dict] = []
+    try:
+        async for row in db.backup_health.find(
+            {"id": {"$ne": "_watchdog_last_alarm"}}, {"_id": 0}
+        ).sort("ts", -1).limit(10):
+            recent_health.append(row)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[scheduler-state] health history read failed: {e}")
+
     return {
         "scheduler": state,
         "seconds_since_last_tick": seconds_since_last_tick,
         "manual_run": dict(_BACKUP_RUNNOW_LAST),
         "manual_in_progress": _BACKUP_RUNNOW_IN_PROGRESS,
         "lite_mode_only_env": _lite_mode_default(),
+        "oom_watermark_mb": float(os.environ.get("BACKUP_FULL_OOM_WATERMARK_MB", "600") or "600"),
+        "watchdog_threshold_hours": float(os.environ.get("BACKUP_WATCHDOG_HOURS", "25")),
         "now_utc": datetime.now(timezone.utc).isoformat(),
         "scheduled_hours_utc": list(BACKUP_HOURS_UTC),
         "circuit_breaker_max_attempts_per_day": 3,
+        "recent_health": recent_health,
     }
 
 
