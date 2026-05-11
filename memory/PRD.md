@@ -1,5 +1,47 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-11 — Iter64 (phase 1): Photo storage abstraction + migrator (S3/R2)
+
+### User ask
+"get working on it the best way you see to do it" — referring to the S3 photo migration plan to shrink backup zips from 887 MB to <50 MB and eliminate the OOM crash root cause permanently.
+
+### What shipped (phase 1 — backend infrastructure, no breaking changes)
+**NEW backend modules**:
+- `/app/backend/photo_storage.py` — provider-agnostic S3-compatible storage layer (boto3 with path-style addressing for R2 / AWS / B2 / DO Spaces). Public API: `is_configured()`, `upload_photo_bytes()`, `upload_data_url()`, `read_photo_bytes()` (dual-read for `photo://` AND `data:` refs), `presigned_get_url()`, `delete_photo()`, `health_check()`. Lazy client init, cached. Env-driven feature flag — if `S3_ENDPOINT_URL` etc. aren't set, every helper silently falls back to base64 storage with zero behavior change for existing deploys.
+- `/app/backend/photo_migration.py` — batch migrator covering all 12 photo-bearing collections (daily_reports, inspections, qaqc_inspections, safety_incidents, meetings, jha_records, equipment_inspections, shop_signoffs, safety_form_records, safety_equipment_trainings, safety_equipment_returns, field_leadership_records — including nested `items.*.photos` for equipment checkout). Idempotent (skips already-migrated refs), resumable (per-collection `last_doc_id` checkpoint in `photo_migration_progress` Mongo collection), dry-run-safe (no S3 writes, no DB updates), capped batches (operator chooses `limit_per_collection`).
+
+**Modified `routes/job_photos.py`** — added `_load_photo_bytes(ref)` async helper that transparently handles both schemes. All 4 read paths (`_serve_thumb`, `warm-cache`, `email-packet`, `zip-download`) now use the unified helper, so mid-migration the gallery serves a mix of base64 and S3-backed photos identically.
+
+**New admin endpoints** (all admin-strict in `server.py`):
+- `GET /api/admin/photo-storage/health` → `{configured, ok, bucket?, endpoint?}` — verify connectivity to R2
+- `POST /api/admin/photos/migrate` (body: `{dry_run, limit_per_collection, resume, collection?}`) — preview or run migration
+- `GET /api/admin/photos/migrate/progress` → per-collection progress markers
+- `POST /api/admin/photos/migrate/reset?collection=...` — wipe progress markers (does NOT undo migrated photos)
+
+### Verified end-to-end (preview, unconfigured state)
+- ✓ Health check honestly reports `{configured:false, reason:"env vars missing"}` — proves the feature flag works
+- ✓ Dry-run migration found **25 base64 photos across 5 collections** in preview data totaling 2 MB (will be hundreds of MB on prod)
+- ✓ Existing thumbnails serve HTTP 200 via the dual-read path — backwards-compatible
+- ✓ **37/37 backend tests pass** (iter51 + iter59 + iter62 + 9 new iter64 tests)
+- ✓ ESLint + ruff clean
+
+### Deferred to phase 2 (next session, after user provides R2 credentials)
+- Add R2 creds to preview `.env` (4 strings from user)
+- Run dry-run migration on prod data via `/api/admin/photos/migrate?dry_run=true` to estimate full scope
+- Run capped real migration (start with `daily_reports` only, `limit=10`, verify thumbnails still work)
+- Update photo WRITE paths so new uploads go to R2 directly (~5 endpoints)
+- Wire backup destination to R2 (`backups/` prefix in same bucket)
+- Reduce MongoDB `photos` field size once migrator clears the collection
+
+### Files added/touched
+- NEW: `/app/backend/photo_storage.py`, `/app/backend/photo_migration.py`, `/app/backend/tests/test_iter64_photo_storage.py`
+- MODIFIED: `/app/backend/routes/job_photos.py` (dual-read helper + 4 call-site updates), `/app/backend/server.py` (4 admin endpoints + Pydantic body)
+
+### Deploy reminder
+**Safe to push to prod right now** — zero behavior change without R2 env vars set. Tests prove the unconfigured fallback path. After deploy, you can call dry-run from prod admin to see exactly what would migrate.
+
+---
+
 ## 2026-05-11 — Iter63: Backup hardening (preflight + watchdog + supervisor)
 
 ### User concern

@@ -8108,6 +8108,77 @@ async def admin_email_routing_test(
         raise HTTPException(502, f"Resend send failed: {e}")
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# Photo Storage (iter64): S3-compatible cloud storage admin endpoints.
+# Lets admin: (1) check connectivity to R2/S3, (2) run a dry-run migration
+# preview, (3) run a real migration in capped batches, (4) inspect progress.
+# ─────────────────────────────────────────────────────────────────────────
+class PhotoMigrateBody(BaseModel):
+    dry_run: bool = True
+    limit_per_collection: int = 100
+    resume: bool = True
+    collection: Optional[str] = None  # single-collection mode
+
+
+@_email_router.get("/admin/photo-storage/health")
+async def admin_photo_storage_health(_: bool = Depends(require_admin)):
+    """Verify the backend can reach the configured S3-compatible bucket.
+    Returns ``{configured, ok, bucket?, endpoint?, reason?}``."""
+    try:
+        from photo_storage import health_check as _ps_health
+        return await _ps_health()
+    except Exception as e:  # noqa: BLE001
+        return {"configured": False, "ok": False, "reason": f"import failed: {e}"}
+
+
+@_email_router.post("/admin/photos/migrate")
+async def admin_photos_migrate(
+    body: PhotoMigrateBody, _: bool = Depends(require_admin)
+):
+    """Run the base64→S3 photo migration. Defaults to a tiny dry-run
+    (no S3 writes, no DB updates) so the admin can preview what would
+    happen before committing.
+
+    For real runs: ``dry_run=false`` + a small ``limit_per_collection``
+    (e.g. 50). Re-call as many times as needed — ``resume=true`` (default)
+    picks up where the last run left off, so re-running is safe and fast.
+    """
+    from photo_migration import migrate_all, migrate_collection
+    if body.collection:
+        s = await migrate_collection(
+            db, body.collection,
+            dry_run=body.dry_run,
+            limit=body.limit_per_collection,
+        )
+        return {"ok": True, "per_collection": [s]}
+    out = await migrate_all(
+        db,
+        dry_run=body.dry_run,
+        limit_per_collection=body.limit_per_collection,
+        resume=body.resume,
+    )
+    return {"ok": True, **out}
+
+
+@_email_router.get("/admin/photos/migrate/progress")
+async def admin_photos_migrate_progress(_: bool = Depends(require_admin)):
+    """Snapshot of per-collection migration progress (last_doc_id, stats)."""
+    from photo_migration import get_progress
+    return await get_progress(db)
+
+
+@_email_router.post("/admin/photos/migrate/reset")
+async def admin_photos_migrate_reset(
+    collection: Optional[str] = None, _: bool = Depends(require_admin)
+):
+    """Wipe the progress markers so the next run starts from scratch.
+    DOES NOT undo migrated photos — they stay in S3. Used when you
+    want to re-walk every collection (e.g. for verification)."""
+    from photo_migration import reset_progress
+    n = await reset_progress(db, collection)
+    return {"ok": True, "deleted_markers": n}
+
+
 @_email_router.post("/email-report")
 async def email_report(
     body: EmailReportRequest, _: bool = Depends(require_admin)

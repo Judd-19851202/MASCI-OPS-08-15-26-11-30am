@@ -125,7 +125,12 @@ def _safe_filename(s: str, fallback: str = "photo") -> str:
 
 
 def _decode_data_url(data_url: str) -> Optional[tuple[bytes, str]]:
-    """Return (raw_bytes, ext) from a `data:image/...;base64,...` URL."""
+    """Return (raw_bytes, ext) from a `data:image/...;base64,...` URL.
+
+    Pre-iter64 only handled base64 data URLs. For S3-migrated photos,
+    callers should use ``_load_photo_bytes`` which transparently handles
+    both schemes. This sync helper is retained for legacy code paths
+    that haven't been updated yet and for the unit tests."""
     if not isinstance(data_url, str) or not data_url.startswith("data:"):
         return None
     try:
@@ -137,6 +142,46 @@ def _decode_data_url(data_url: str) -> Optional[tuple[bytes, str]]:
         return base64.b64decode(b64), ext
     except Exception:
         return None
+
+
+async def _load_photo_bytes(ref: Optional[str]) -> Optional[tuple[bytes, str]]:
+    """Unified async reader: returns (raw_bytes, ext) for ANY photo ref —
+    a base64 ``data:`` URL (legacy in-Mongo storage) OR a ``photo://``
+    pointer (S3-migrated). Returns None on any failure so callers can
+    serve a graceful 404 instead of crashing.
+
+    This is the unifying read API every thumb/raw/preview/PDF path
+    should call. Once iter64 migration completes, the base64 branch
+    will only fire for records the migrator hasn't reached yet.
+    """
+    if not ref or not isinstance(ref, str):
+        return None
+    # Legacy base64 fast path — no async work needed.
+    if ref.startswith("data:"):
+        return _decode_data_url(ref)
+    # S3-backed pointer
+    try:
+        from photo_storage import is_storage_ref, read_photo_bytes
+    except Exception:
+        return None
+    if not is_storage_ref(ref):
+        return None
+    try:
+        raw = await read_photo_bytes(ref)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[job-photos] S3 fetch failed for {ref[:60]}: {e}")
+        return None
+    # Pull extension out of the ref's URL key for the downstream PDF embed.
+    ext = "jpg"
+    try:
+        ext = ref.rsplit(".", 1)[-1].lower()
+        if ext not in ("jpg", "jpeg", "png", "webp", "gif", "heic", "heif", "avif"):
+            ext = "jpg"
+        if ext == "jpeg":
+            ext = "jpg"
+    except Exception:
+        pass
+    return raw, ext
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -250,7 +295,7 @@ async def _warm_missing_thumbs(db, batch_limit: int = 200) -> Dict[str, int]:
             url = await _load_photo(
                 db, meta["source"], meta["source_id"], meta["photo_index"]
             )
-            decoded = _decode_data_url(url) if url else None
+            decoded = await _load_photo_bytes(url) if url else None
             if not decoded:
                 failed += 1
                 continue
@@ -571,7 +616,7 @@ async def _serve_thumb(db, photo_id: str, meta: dict, accept: str) -> Response:
         )
 
     url = await _load_photo(db, meta["source"], meta["source_id"], meta["photo_index"])
-    decoded = _decode_data_url(url) if url else None
+    decoded = await _load_photo_bytes(url) if url else None
     if not decoded:
         raise HTTPException(404, "source photo missing")
     raw, _ext = decoded
@@ -798,7 +843,7 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
                 url = await _load_photo(db, m["source"], m["source_id"], m["photo_index"])
                 if not url:
                     continue
-                decoded = _decode_data_url(url)
+                decoded = await _load_photo_bytes(url)
                 if not decoded:
                     continue
                 raw, ext = decoded
@@ -849,7 +894,7 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED, allowZip64=True) as zf:
             for m in metas:
                 url = await _load_photo(db, m["source"], m["source_id"], m["photo_index"])
-                decoded = _decode_data_url(url) if url else None
+                decoded = await _load_photo_bytes(url) if url else None
                 if not decoded:
                     continue
                 raw, ext = decoded
@@ -952,7 +997,7 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
                 url = await _load_photo(
                     db, meta["source"], meta["source_id"], meta["photo_index"]
                 )
-                decoded = _decode_data_url(url) if url else None
+                decoded = await _load_photo_bytes(url) if url else None
                 if not decoded:
                     failed += 1
                     return
