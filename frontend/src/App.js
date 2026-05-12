@@ -80,6 +80,7 @@ import { RequireDev } from "@/components/RequireDev";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 import GlobalKeepalive from "@/components/GlobalKeepalive";
 import BackendStatusBanner from "@/components/BackendStatusBanner";
+import BannerStrip from "@/components/BannerStrip";
 import { validateStoredTokens } from "@/lib/tokenValidation";
 import EnforcePortalScope from "@/components/EnforcePortalScope";
 import IdleTimeout from "@/components/IdleTimeout";
@@ -129,6 +130,7 @@ function App() {
       <Toaster position="top-center" richColors closeButton />
       <GlobalKeepalive />
       <BackendStatusBanner />
+      <BannerStrip />
       <BrowserRouter key={authTick}>
         <ScrollToTop />
         <EnforcePortalScope />

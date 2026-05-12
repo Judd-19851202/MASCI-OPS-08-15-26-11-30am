@@ -30,6 +30,7 @@ import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 import BackupHeroPanel from "@/components/BackupHeroPanel";
 import StoredBackupsPanel from "@/components/StoredBackupsPanel";
 import CloudArchivesPanel from "@/components/CloudArchivesPanel";
+import AdminBannersPanel from "@/components/AdminBannersPanel";
 import RestoreBackupPanel from "@/components/RestoreBackupPanel";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
@@ -379,6 +380,9 @@ export default function AdminHub() {
 
         {/* 2 · Compliance Export — backup/restore tools relocated to bottom System Recovery section */}
         <ComplianceExportPanel hideBackupTools />
+
+        {/* 2b · Hub Banner Messages — site-wide alerts (Heat, Hurricane, OSHA, etc.) */}
+        <AdminBannersPanel />
 
         {/* 3 · Active Jobs */}
         <AdminJobMasterPanel />

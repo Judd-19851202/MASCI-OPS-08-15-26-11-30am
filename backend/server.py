@@ -7937,6 +7937,13 @@ from routes.job_photos import (  # noqa: E402
 app.include_router(_photo_bytes_router)
 
 
+# ------------------------- Hub Banners (site-wide messaging) -------------------------
+from routes.hub_banners import build_hub_banners_router  # noqa: E402
+
+_hub_banners_router = build_hub_banners_router(db, require_admin)
+app.include_router(_hub_banners_router)
+
+
 async def _job_photos_send_email(*, to: str, subject: str, text: str, attachments=None):
     """Tiny Resend wrapper used by the Job Photos email endpoint. Mirrors
     the headers + retry behaviour of the rest of the system. Imports
