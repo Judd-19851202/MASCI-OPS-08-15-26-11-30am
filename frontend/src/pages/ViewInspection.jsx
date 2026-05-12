@@ -15,6 +15,7 @@ import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
 import {
@@ -404,7 +405,7 @@ export default function ViewInspection() {
                     testId={`view-photo-${i}`}
                   >
                     <img
-                      src={p}
+                      src={resolvePhotoSrc(p)}
                       alt={`Finding ${i + 1}`}
                       className="absolute inset-0 w-full h-full object-cover"
                     />

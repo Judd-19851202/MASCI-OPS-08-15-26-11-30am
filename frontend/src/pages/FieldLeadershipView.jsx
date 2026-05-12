@@ -18,6 +18,7 @@ import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 
 export default function FieldLeadershipView() {
   const { t, lang } = useT();
@@ -182,7 +183,7 @@ export default function FieldLeadershipView() {
             <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Photos")}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {rec.photos.map((p, i) => (
-                <img key={i} src={p} alt={`photo ${i}`} className="w-full rounded border border-slate-200 object-contain max-h-48 bg-slate-50" />
+                <img key={i} src={resolvePhotoSrc(p)} alt={`photo ${i}`} className="w-full rounded border border-slate-200 object-contain max-h-48 bg-slate-50" />
               ))}
             </div>
           </Card>
@@ -239,9 +240,10 @@ export default function FieldLeadershipView() {
 const DAMAGE_RC = ["Damaged", "Missing", "Lost"];
 
 function PhotoLightboxLink({ src, idx, label }) {
+  const resolved = resolvePhotoSrc(src);
   return (
     <a
-      href={src}
+      href={resolved}
       target="_blank"
       rel="noopener noreferrer"
       className="block aspect-square rounded overflow-hidden border-2 border-slate-200 bg-white hover:border-amber-500 transition-colors"
@@ -249,7 +251,7 @@ function PhotoLightboxLink({ src, idx, label }) {
       data-testid={`photo-${label}-${idx}`}
     >
       <img
-        src={src}
+        src={resolved}
         alt={`${label} ${idx + 1}`}
         loading="lazy"
         decoding="async"

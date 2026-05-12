@@ -5,6 +5,7 @@ import { compressImage } from "@/lib/utils";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 
 /**
  * PhotoUpload — gallery-or-camera picker.
@@ -139,7 +140,7 @@ export const PhotoUpload = ({
                 testId={`${testIdBase}-lightbox-${i}`}
               >
                 <img
-                  src={p}
+                  src={resolvePhotoSrc(p)}
                   alt={`Photo ${i + 1}`}
                   className="w-full h-full object-cover"
                 />

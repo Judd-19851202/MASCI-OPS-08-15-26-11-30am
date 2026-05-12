@@ -14,6 +14,7 @@ import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { BilingualConsent } from "@/components/BilingualConsent";
@@ -283,7 +284,7 @@ export default function ViewMeeting() {
                   className="relative w-full aspect-square rounded-md overflow-hidden border-2 border-slate-200 bg-white"
                   testId={`view-photo-${i}`}
                 >
-                  <img src={p} alt={`Photo ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={resolvePhotoSrc(p)} alt={`Photo ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
                 </PhotoLightbox>
               ))}
             </div>

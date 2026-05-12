@@ -17,6 +17,7 @@ import { isSafetyForms, getSafetyFormsToken } from "@/lib/safetyFormsAuth";
 import { isAdmin, getAdminToken } from "@/lib/adminAuth";
 import { fmtMoney } from "@/lib/safetyFormsSchema";
 import { formatDateLong } from "@/lib/utils";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { toast } from "sonner";
 
 const STATUS_TONES = {
@@ -397,7 +398,7 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
               <h2 className="font-display text-lg font-black text-slate-900 mt-6 mb-2">{t("Photos")}</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {(doc.photos || []).map((p, i) => (
-                  <img key={i} src={p} alt="" className="w-full h-32 object-cover rounded border border-slate-200" />
+                  <img key={i} src={resolvePhotoSrc(p)} alt="" className="w-full h-32 object-cover rounded border border-slate-200" />
                 ))}
               </div>
             </>

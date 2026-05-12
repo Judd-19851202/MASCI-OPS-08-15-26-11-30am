@@ -1,5 +1,74 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-12 — Iter64 (phase 2e): Blank-photo regression fix on View pages
+
+### User report
+"on old daily reports, safety meetings, pre ops, all old reports & new
+ones pictures are not showing up just a blank square where picture
+was."
+
+### Root cause
+The iter64 R2 photo migration rewrote every `data:image/...` value in
+Mongo to a `photo://masci-hub/...` reference. Browsers can render
+`data:` URLs natively but have no clue what to do with `photo://`, so
+the moment a record's photos array was migrated, every `<img src={p}>`
+in the View pages collapsed to a blank square.
+
+The backend resolver (`GET /api/photo-bytes?ref=…`) and the frontend
+helper (`resolvePhotoSrc` in `/app/frontend/src/lib/photoSrc.js`) were
+already in place. What was missing was the actual `<img>` wiring on
+every record-detail view.
+
+### What shipped (this commit)
+Added `resolvePhotoSrc(p)` wrapping to every `<img>` that renders a
+photo from a record's `photos` array:
+
+- `pages/ViewDailyReport.jsx`  (Photos section)
+- `pages/ViewIncident.jsx`     (Photos section)
+- `pages/ViewInspection.jsx`   (Finding photos)
+- `pages/ViewMeeting.jsx`      (Photos section)
+- `pages/ViewQaqcInspection.jsx` (Photos section — import existed, was unused)
+- `pages/ViewSafetyForm.jsx`   (Photos section + new import)
+- `pages/FieldLeadershipView.jsx` (record photos + `PhotoLightboxLink`
+  helper used by Equipment Checkout/Return comparison cards — both
+  `href` and `src` now route through the resolver)
+- `components/PhotoUpload.jsx` (preview tile — covers the "edit existing
+  record" case where pre-uploaded photos came in as `photo://` refs)
+
+`PhotoLightbox` was already resolving `src` internally for the modal,
+so the modal preview wasn't part of this regression — only the
+thumbnail grid + the standalone Field Leadership viewer were broken.
+
+### Verified
+- Lint clean on `pages/` and `components/`.
+- Backend resolver smoke: HTTP 200 with `image/jpeg` content-type and
+  real bytes (1305 B) returned for a known `photo://` ref.
+- Frontend smoke (Playwright, admin/MASCI1982! session):
+  visiting `/admin/daily/9aa02e33-…` after the fix, photo 1 (the real
+  R2-backed photo) renders at 200×200 natural pixels; the other five
+  thumbnails in that record were already known-garbage test payloads
+  (`data:image/png;base64,a` — 1-char base64, stored long before iter64
+  ran) and naturally still render as broken-image placeholders —
+  unrelated to this fix.
+
+### Files touched
+- MODIFIED: `pages/ViewDailyReport.jsx`
+- MODIFIED: `pages/ViewIncident.jsx`
+- MODIFIED: `pages/ViewInspection.jsx`
+- MODIFIED: `pages/ViewMeeting.jsx`
+- MODIFIED: `pages/ViewQaqcInspection.jsx`
+- MODIFIED: `pages/ViewSafetyForm.jsx`
+- MODIFIED: `pages/FieldLeadershipView.jsx`
+- MODIFIED: `components/PhotoUpload.jsx`
+
+### Production deploy
+Click **"Save to GitHub" → Deploy**. After the deploy, every old daily
+report / safety meeting / pre-op / incident / inspection / QA-QC /
+field-leadership / equipment-checkout view will render its photos
+again. No backend redeploy required — the `/api/photo-bytes` route
+has been live since the iter64 cutover.
+
+
 ## 2026-05-11 — Iter64 (phase 2d): Cloud Archives admin UI panel
 
 ### User ask
