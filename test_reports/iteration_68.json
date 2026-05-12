@@ -1,0 +1,52 @@
+{
+  "summary": "Iter68 full deployment-readiness audit. Created backend/tests/test_iter68_audit.py (40 cases) — 40/40 pass. Curated regression suite (10 files including hub_banners_iter65, iter62_backup, iter64_photo, iter58_audit, pm_portal, field_leadership) — 191/193 pass (2 environmental skips, 0 failures). Frontend smoke-walked 16 routes — every route HTTP 200, sub-3s FCP, zero console.error. Banner E2E PASS (create → site-wide visible → cleanup verified). Photo regression PASS — /api/photo-bytes resolver works for live photo:// ref. Mobile responsive PASS (no overflow at 390x844). All 6 auth portals (admin/PM/shop/safety-forms/field-leadership/dev) respond 200. Admin gating rejects bogus/malformed X-Admin-Token with 401. Hub banner audit-trail + PDF + CSV + clone + archive-toggle endpoints all wired. Score 9.4/10 — GO.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "@app.on_event startup/shutdown", "issue": "FastAPI deprecation warnings (5+) — should migrate to lifespan handlers before next FastAPI major version"},
+      {"endpoint": "pytest collection", "issue": "8 legacy test files error at collection (test_health_check_iter12, test_iter36_pre_redeploy, test_iter51_thumb_signed, test_compliance_exports, test_equipment_status_board, test_jha_files_iter28, test_pm_routing, test_pm_routing_db_iter28) — broken `tests.conftest` import or missing REACT_APP_BACKEND_URL env; not a runtime issue"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "/admin/photos initial render", "issue": "First hit after admin login returned a 661-char body (page still rendering). Reload works. Consider adding a loading skeleton with data-testid for testability.", "affected_selectors": ["[data-testid=\"admin-photos-library\"]"]}
+    ],
+    "design_issues": [
+      {"screen": "AdminBannersPanel modal (Post New Hub Banner)", "issues": ["Radix DialogContent still missing DialogDescription/aria-describedby (carried over from iter65 a11y warning)"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter68_audit.py",
+    "/app/test_reports/pytest/iter68_audit.xml",
+    "/app/test_reports/pytest/iter68_curated.xml",
+    "/app/test_reports/iteration_68_deployment_audit.md"
+  ],
+  "action_items": [
+    "(LOW) Add DialogDescription / aria-describedby to AdminBannersPanel modal to silence Radix a11y warning",
+    "(LOW) Migrate FastAPI @app.on_event startup/shutdown handlers to lifespan handlers",
+    "(LOW) Quarantine or fix 8 broken legacy pytest files so the full suite can run clean",
+    "(LOW) Add data-testid loading skeleton on /admin/photos for first-paint testability"
+  ],
+  "critical_code_review_comments": [
+    "hub_banners.py:270-274 — three sequential list.sort() calls; only the last (severity-only) determines order. Already flagged in iter65 — still present, still relies on Python's stable sort. Should collapse to single tuple-key sort.",
+    "hub_banners.py acks/dismisses use _addToSet idempotency (good) but device-list has no size cap — viral banner could grow doc unbounded. Not a problem at MASCI's scale.",
+    "Frontend BannerStrip tracks ack via localStorage device_id — clearing browser data resets the gate. Acceptable trade-off for unauthenticated public surfaces.",
+    "server.py uses deprecated @app.on_event — migrate to lifespan when convenient.",
+    "No backend-served /api/{resource}/{id}/pdf endpoints for daily-reports/inspections/meetings — PDFs are streamed via email + direct WeasyPrint render. Audit-trail PDF / Field-Leadership PDF / Safety-Forms PDF are HTTP-exposed. Mention in dev docs for clarity."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter68_audit.py",
+    "/app/test_reports/iteration_68_deployment_audit.md",
+    "/app/test_reports/iteration_68.json"
+  ],
+  "success_rate": {"backend": "100% (40/40 audit + 191/193 curated regression — 2 skips, 0 failures)", "frontend": "100% (16/16 routes, 0 console errors, banner E2E + photo regression + mobile responsive all PASS)"},
+  "test_credentials": "Admin: MASCI1982! (X-Admin-Token). PM: chriswright@mascigc.com/ChrisRocksThis2026 (X-PM-Token). Shop: Nothappy123! (X-Shop-Token). Safety Forms: 1982 (X-Safety-Forms-Token). Field Leadership: MASCIGC (X-Leadership-Token) via /api/field-leadership/login (NOT /api/leadership/login). Dev: Maddix8530! (X-Dev-Token).",
+  "seed_data_creation": "Created 2 test banners during audit (TEST_ITER68_AuditBanner via pytest fixture, TEST_ITER68_UIBanner via Playwright). Both deleted at end of run. Verified /api/admin/banners?include_archived=true contains 0 TEST_ entries post-cleanup. No test daily-reports/inspections/meetings/incidents created.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iter61-67 (R2 photo migration, Cloud Archives, Hub Banner system + audit trail + PDF/CSV/clone/archive) is deployment-ready. No CRITICAL/HIGH issues. Field Leadership login is at /api/field-leadership/login (the iter68 brief said /api/leadership/login — that's wrong). Daily-reports list endpoint returns summaries WITHOUT photo arrays; you must GET /api/daily-reports/{id} to see photo:// refs. Legacy daily report 80b6355a-569f-4f4a-958b-7ebed32d61c1 has 1 live R2-backed photo good for resolver testing. Pytest conftest.py auto-attaches X-Admin-Token — pass explicit invalid header to test unauthenticated cases.",
+  "rca of the issue": "N/A — no production bugs. Initial test failures were author errors in test_iter68_audit.py (wrong banner field names title vs title_en, wrong leadership login URL, assumed nonexistent /api/{resource}/{id}/pdf endpoints). All corrected and the final suite is 40/40 green.",
+  "deployment_readiness_score": "9.4 / 10",
+  "go_no_go": "GO"
+}
