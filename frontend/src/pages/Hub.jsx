@@ -9,6 +9,7 @@ import {
   ClipboardCheck,
   GraduationCap,
   UserCheck,
+  Users,
   ArrowRight,
   MapPin,
 } from "lucide-react";
@@ -375,6 +376,21 @@ export default function Hub() {
             ]}
             accent="orange"
             testId="hub-section-shop"
+            external
+            className="md:col-span-2"
+          />
+          <SectionCard
+            to="/hr/login"
+            icon={Users}
+            eyebrow={t("Human Resources")}
+            title={t("HR Portal")}
+            desc={t("Employee records, accountability, and payroll-time verification — isolated HR scope with no access to PM or financial surfaces.")}
+            bullets={[
+              t("Field Leadership records · accountability · termination history"),
+              t("Daily-Report time verification · training compliance"),
+            ]}
+            accent="purple"
+            testId="hub-section-hr"
             external
             className="md:col-span-2"
           />

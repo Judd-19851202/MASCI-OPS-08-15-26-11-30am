@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { clearAdminToken, getAdminToken } from "@/lib/adminAuth";
 import { clearPmToken, getPmToken } from "@/lib/pmAuth";
 import { clearShopToken, getShopToken } from "@/lib/shopAuth";
+import { clearHrToken, getHrToken } from "@/lib/hrAuth";
 
 /**
  * EnforcePortalScope — auto-logout when an authenticated user navigates
@@ -60,6 +61,9 @@ export default function EnforcePortalScope() {
     }
     if (getShopToken() && !inScope(pathname, "/shop")) {
       clearShopToken();
+    }
+    if (getHrToken() && !inScope(pathname, "/hr")) {
+      clearHrToken();
     }
   }, [pathname]);
 

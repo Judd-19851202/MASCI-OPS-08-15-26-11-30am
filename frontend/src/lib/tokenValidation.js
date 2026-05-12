@@ -17,6 +17,7 @@ import { getAdminToken, clearAdminToken } from "./adminAuth";
 import { getPmToken, clearPmToken } from "./pmAuth";
 import { getShopToken, clearShopToken } from "./shopAuth";
 import { getDevToken, clearDevToken } from "./devAuth";
+import { getHrToken, clearHrToken } from "./hrAuth";
 
 const API = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
 
@@ -57,6 +58,10 @@ export async function validateStoredTokens() {
       kind: "dev",
       valid: v,
     })),
+    accepts("/api/hr/me", "X-HR-Token", getHrToken()).then((v) => ({
+      kind: "hr",
+      valid: v,
+    })),
   ]);
 
   let cleared = false;
@@ -66,6 +71,7 @@ export async function validateStoredTokens() {
     else if (r.kind === "pm") clearPmToken();
     else if (r.kind === "shop") clearShopToken();
     else if (r.kind === "dev") clearDevToken();
+    else if (r.kind === "hr") clearHrToken();
     cleared = true;
   }
   return cleared;

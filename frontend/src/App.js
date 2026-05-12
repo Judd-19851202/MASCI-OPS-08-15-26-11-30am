@@ -56,6 +56,15 @@ import ShopLogin from "@/pages/ShopLogin";
 import ShopHub from "@/pages/ShopHub";
 import ShopChangePassword from "@/pages/ShopChangePassword";
 import ShopResetPassword from "@/pages/ShopResetPassword";
+import HrLogin from "@/pages/HrLogin";
+import HrHub from "@/pages/HrHub";
+import HrChangePassword from "@/pages/HrChangePassword";
+import HrResetPassword from "@/pages/HrResetPassword";
+import HrForgotPassword from "@/pages/HrForgotPassword";
+import HrTimeVerification from "@/pages/HrTimeVerification";
+import HrFieldLeadership from "@/pages/HrFieldLeadership";
+import HrEmployeeAccountability from "@/pages/HrEmployeeAccountability";
+import HrTrainingRecords from "@/pages/HrTrainingRecords";
 import TrainingHub from "@/pages/TrainingHub";
 import TrainingTrack from "@/pages/TrainingTrack";
 import TrainingQrPoster from "@/pages/TrainingQrPoster";
@@ -77,6 +86,7 @@ import { RequireAdmin } from "@/components/RequireAdmin";
 import { RequireAdminOrPm } from "@/components/RequireAdminOrPm";
 import { RequirePm } from "@/components/RequirePm";
 import { RequireShop } from "@/components/RequireShop";
+import { RequireHr } from "@/components/RequireHr";
 import { RequireDev } from "@/components/RequireDev";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 import GlobalKeepalive from "@/components/GlobalKeepalive";
@@ -105,6 +115,7 @@ const A = (el) => <RequireAdmin>{el}</RequireAdmin>;
 const AP = (el) => <RequireAdminOrPm>{el}</RequireAdminOrPm>;
 const P = (el) => <RequirePm>{el}</RequirePm>;
 const S = (el) => <RequireShop>{el}</RequireShop>;
+const H = (el) => <RequireHr>{el}</RequireHr>;
 const D = (el) => <RequireDev>{el}</RequireDev>;
 
 function App() {
@@ -297,6 +308,23 @@ function App() {
             <Route path="/shop/change-password" element={S(<ShopChangePassword />)} />
             <Route path="/shop" element={S(<ShopHub />)} />
             <Route path="/shop/equipment/:id" element={S(<ViewEquipmentInspection context="shop" />)} />
+
+            {/* ============================================================
+                HR Portal — isolated read-only HR scope. Admin tokens do
+                NOT satisfy these routes; HR users authenticate at
+                /hr/login with their email + password and only see
+                HR-scoped data (Field Leadership records, accountability,
+                Daily-Report-derived time verification, training records).
+                ============================================================ */}
+            <Route path="/hr/login" element={<HrLogin />} />
+            <Route path="/hr/forgot" element={<HrForgotPassword />} />
+            <Route path="/hr/reset/:token" element={<HrResetPassword />} />
+            <Route path="/hr/change-password" element={H(<HrChangePassword />)} />
+            <Route path="/hr" element={H(<HrHub />)} />
+            <Route path="/hr/field-leadership" element={H(<HrFieldLeadership />)} />
+            <Route path="/hr/employee-accountability" element={H(<HrEmployeeAccountability />)} />
+            <Route path="/hr/time-verification" element={H(<HrTimeVerification />)} />
+            <Route path="/hr/training-records" element={H(<HrTrainingRecords />)} />
 
             {/* ============================================================
                 Training Hub — landing is public, tracks gate per audience
