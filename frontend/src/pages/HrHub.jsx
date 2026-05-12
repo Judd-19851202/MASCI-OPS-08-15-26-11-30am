@@ -3,7 +3,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -64,18 +63,23 @@ export default function HrHub() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
           {TILES.map((tile) => (
-            <Card key={tile.to} className={`border-2 ${tile.accent} p-5 hover:shadow-md transition-shadow`} data-testid={`hr-tile-${tile.to.split('/').pop()}`}>
+            <Link
+              key={tile.to}
+              to={tile.to}
+              className={`block rounded-lg border-2 ${tile.accent} p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150`}
+              data-testid={`hr-tile-${tile.to.split('/').pop()}`}
+            >
               <div className="flex items-start gap-3">
                 <tile.icon className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display text-lg font-black">{t(tile.label)}</h3>
                   <p className="text-sm text-slate-700 mt-1">{t(tile.desc)}</p>
-                  <Link to={tile.to} className={`mt-3 inline-flex items-center h-9 px-3 rounded-md ${tile.btn} text-white font-bold uppercase tracking-wide text-xs`}>
+                  <span className={`mt-3 inline-flex items-center h-9 px-3 rounded-md ${tile.btn} text-white font-bold uppercase tracking-wide text-xs`}>
                     {t("OPEN →")}
-                  </Link>
+                  </span>
                 </div>
               </div>
-            </Card>
+            </Link>
           ))}
         </div>
       </main>
