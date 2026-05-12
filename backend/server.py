@@ -8052,6 +8052,42 @@ async def _seed_shop_users():
 
 
 @app.on_event("startup")
+async def _seed_hr_users():
+    from hr_users import seed_hr_users
+    await seed_hr_users(db)
+
+
+# ------------------------- HR Portal (iter71) -------------------------
+from routes.hr_portal import build_hr_portal_router  # noqa: E402
+
+
+async def _hr_send_email(to_email: str, subject: str, html: str):
+    """Resend wrapper used by HR welcome / reset emails."""
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        logger.info(f"[hr-email-stub] to={to_email} subject={subject}")
+        return
+    if (os.environ.get("AUTO_EMAIL_REPORTS") or "").strip().lower() not in ("true", "1", "yes"):
+        # Preview env — log instead of sending.
+        logger.info(f"[hr-email-preview] to={to_email} subject={subject}")
+        return
+    import resend as _resend  # noqa: PLC0415
+    _resend.api_key = api_key
+    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    params = {
+        "from": f"MASCI HR Portal <{sender}>",
+        "to": [to_email],
+        "subject": subject,
+        "html": html,
+    }
+    return await asyncio.to_thread(_resend.Emails.send, params)
+
+
+_hr_portal_router = build_hr_portal_router(db, require_admin, _hr_send_email)
+app.include_router(_hr_portal_router)
+
+
+@app.on_event("startup")
 async def _backfill_doc_ids() -> None:
     """One-shot backfill: every existing record across the registered
     submission collections gets a human-readable doc_id stamped if it
