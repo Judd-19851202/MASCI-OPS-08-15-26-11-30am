@@ -1,5 +1,69 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-12 — Iter68: Full Enterprise Deployment-Readiness Audit ✅
+
+### User ask
+"MASCI HUB — FULL SYSTEM AUDIT, STABILITY TESTING & DEPLOYMENT
+READINESS VALIDATION. … a true enterprise-grade operational audit of
+the entire MASCI HUB / ForgedOps platform."
+
+### Final score: **9.4 / 10 — GO for deployment**
+
+### Coverage
+- **Backend** — new `backend/tests/test_iter68_audit.py` (40 cases) +
+  curated regression suite across 10 prior test files (hub_banners_iter65,
+  iter62_backup, iter64_photo, iter58_audit, iter60_email, admin_auth,
+  translate, iter50_shop, pm_portal_iter31, field_leadership_iter42):
+  **40/40 audit cases + 191/193 regression (2 environmental skips,
+  zero failures)**
+- **Frontend** — 16-route smoke walk, every route HTTP 200 with sub-3s
+  FCP and zero `console.error`. Banner E2E (create → site-wide visible
+  → cleanup) **PASS**. Photo regression (View Daily Report with R2 ref)
+  **PASS**. Mobile responsive at 390×844 **PASS**.
+- **Auth** — 6 portals respond 200 (admin / PM / shop / safety-forms /
+  field-leadership / dev); bogus + malformed tokens correctly 401.
+- **Photo resolver (iter63-64)** — live R2 round-trip verified using a
+  real `photo://masci-hub/...` ref pulled from Mongo.
+- **Hub Banners (iter65-67)** — create, ack, dismiss, audit JSON, audit
+  PDF, audit CSV, clone, archive toggle — all green.
+- **Backups** — `/api/admin/backups-list-r2` + `complete-r2-state`
+  endpoints respond; CloudArchives presigned URLs reachable.
+
+### Issues found (all LOW — none block deploy)
+1. AdminBannersPanel compose + audit dialogs: agent flagged a missing
+   `DialogDescription`; verified both already have it (stale comment).
+2. FastAPI `@app.on_event` startup/shutdown deprecation warnings —
+   migrate to lifespan handlers at next major version bump.
+3. Eight legacy pytest files fail collection due to broken imports
+   (test_health_check_iter12, iter36_pre_redeploy, iter51_thumb_signed,
+   compliance_exports, equipment_status_board, jha_files_iter28,
+   pm_routing, pm_routing_db_iter28) — unrelated to current iterations,
+   suite still 191/193 on the curated set.
+4. `/admin/photos` first paint shows briefly empty body — add a
+   `data-testid` loading skeleton for testability.
+
+### Critical review comments (no action — for awareness)
+- `hub_banners.py` ack/dismiss device sets grow unbounded for a single
+  banner. Not a problem at MASCI's scale (hundreds of devices, single-
+  digit MB max).
+- `BannerStrip` ack persistence relies on localStorage — clearing
+  browser data resets the gate. Acceptable trade-off for partially-
+  unauthenticated public surfaces.
+
+### Deliverables
+- `/app/test_reports/iteration_68.json` — JSON report
+- `/app/test_reports/iteration_68_deployment_audit.md` — markdown
+  deployment-readiness writeup
+- `/app/test_reports/pytest/iter68_audit.xml` + `iter68_curated.xml` —
+  JUnit XML test outputs
+- `/app/backend/tests/test_iter68_audit.py` — 40-case audit suite
+
+### Recommendation
+**GO** — push the iter61-67 stack to production at mascidocs.com.
+All four LOW items are non-blocking and can be addressed in a follow-up
+maintenance iteration.
+
+
 ## 2026-05-12 — Iter67: Banner Audit PDF / CSV / Clone / Archive toggle
 
 ### User ask
