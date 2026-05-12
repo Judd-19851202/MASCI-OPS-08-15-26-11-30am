@@ -15,6 +15,7 @@ import {
   Info,
   Clock,
   History,
+  Copy,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -363,6 +364,7 @@ export default function AdminBannersPanel() {
   const [composeOpen, setComposeOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [auditBanner, setAuditBanner] = useState(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -391,10 +393,32 @@ export default function AdminBannersPanel() {
     }
   };
 
+  const clone = async (b) => {
+    if (!window.confirm(`Re-broadcast this banner?\n\n"${b.title_en}"\n\nA new copy will be posted immediately with empty ack/dismiss state. The original stays untouched.`))
+      return;
+    try {
+      const r = await api.post(`/admin/banners/${b.id}/clone`, {});
+      toast.success("Re-broadcast posted — visible site-wide within 60s");
+      load();
+      // Open the editor on the new copy so admin can tweak before users see it.
+      setEditing(r.data?.banner || null);
+      setComposeOpen(true);
+    } catch (e) {
+      toast.error(`Clone failed: ${e?.response?.data?.detail || e.message}`);
+    }
+  };
+
   const openCompose = (b = null) => {
     setEditing(b);
     setComposeOpen(true);
   };
+
+  // Split active vs archived for the optional filter toggle.
+  const now = new Date();
+  const isExpired = (b) => b.expires_at && new Date(b.expires_at) < now;
+  const activeCount = banners.filter((b) => !isExpired(b)).length;
+  const archivedCount = banners.length - activeCount;
+  const visibleBanners = showArchived ? banners : banners.filter((b) => !isExpired(b));
 
   return (
     <div className="border-2 border-amber-300 rounded-md p-5 bg-amber-50" data-testid="admin-banners-panel">
@@ -421,18 +445,33 @@ export default function AdminBannersPanel() {
         English is auto-translated to Spanish via Claude.
       </p>
 
+      {banners.length > 0 && archivedCount > 0 && (
+        <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.15em] text-amber-900 mb-2">
+          <button
+            type="button"
+            onClick={() => setShowArchived((v) => !v)}
+            className="inline-flex items-center gap-1.5 px-2 py-1 rounded border-2 border-amber-400 bg-white hover:bg-amber-100"
+            data-testid="banner-archive-toggle"
+          >
+            {showArchived ? "Hide archived" : `Show archived (${archivedCount})`}
+          </button>
+          <span>· active · {activeCount}</span>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center gap-2 text-amber-900 text-sm py-4">
           <Loader2 className="w-4 h-4 animate-spin" /> Loading banners…
         </div>
-      ) : banners.length === 0 ? (
+      ) : visibleBanners.length === 0 ? (
         <div className="border-2 border-dashed border-amber-300 rounded p-6 text-center text-sm text-amber-900">
-          No banners posted yet. Click "Post New Banner" to broadcast a notice
-          to all crews.
+          {banners.length === 0
+            ? 'No banners posted yet. Click "Post New Banner" to broadcast a notice to all crews.'
+            : 'No active banners. Toggle "Show archived" to see expired notices.'}
         </div>
       ) : (
         <div className="space-y-2">
-          {banners.map((b) => {
+          {visibleBanners.map((b) => {
             const m = SEVERITY_META[b.severity] || SEVERITY_META.advisory;
             const Icon = SEVERITY_ICON[b.severity] || AlertTriangle;
             const expired = b.expires_at && new Date(b.expires_at) < new Date();
@@ -485,6 +524,16 @@ export default function AdminBannersPanel() {
                       title="Audit trail"
                     >
                       <History className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      onClick={() => clone(b)}
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      data-testid={`banner-clone-${b.id}`}
+                      title="Re-broadcast (clone)"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
                     </Button>
                     <Button
                       onClick={() => openCompose(b)}

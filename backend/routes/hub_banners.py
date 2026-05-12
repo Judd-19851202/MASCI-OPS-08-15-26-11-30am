@@ -62,6 +62,7 @@ from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -456,21 +457,9 @@ def build_hub_banners_router(db, require_admin_dep: Callable) -> APIRouter:
         tr = await _translate_to_spanish(payload.title_en, payload.body_en)
         return {"ok": True, **tr}
 
-    @router.get("/admin/banners/{banner_id}/audit", dependencies=[Depends(require_admin_dep)])
-    async def banner_audit(banner_id: str):
-        """Combined timeline of every interaction with a banner: admin
-        create/update/delete actions PLUS every per-device ack and
-        dismiss with timestamp + IP + browser + page. Used by the
-        AdminBannersPanel "Audit Trail" peek for legal-cover proof
-        ("foreman acked the stand-down at 4:42 PM from the job-site
-        IP before leaving").
-
-        IMPORTANT: still returns admin actions even after the banner is
-        deleted — that's the whole point of an audit log. Only the per-
-        device ack/dismiss timelines disappear with the parent doc.
-
-        Returns newest-first, capped at 500 rows total.
-        """
+    async def _build_audit_payload(banner_id: str) -> Dict[str, Any]:
+        """Shared builder used by /audit (JSON), /audit.pdf, /audit.csv.
+        Returns the banner metadata + the merged + sorted timeline."""
         b = await banners.find_one({"id": banner_id}, {"_id": 0})
 
         rows: List[Dict[str, Any]] = []
@@ -501,22 +490,165 @@ def build_hub_banners_router(db, require_admin_dep: Callable) -> APIRouter:
                     "actor_name": entry.get("actor_name"),
                 })
 
-        # Newest first. Missing ts goes to the bottom.
         rows.sort(key=lambda x: x.get("ts") or "", reverse=True)
 
-        banner_meta = (
-            {
+        if b is not None:
+            banner_meta: Dict[str, Any] = {
                 "id": b.get("id"),
                 "title_en": b.get("title_en"),
+                "title_es": b.get("title_es"),
+                "body_en": b.get("body_en"),
+                "body_es": b.get("body_es"),
                 "severity": b.get("severity"),
                 "require_ack": b.get("require_ack"),
                 "created_at": b.get("created_at"),
                 "ack_count": len(b.get("acks") or []),
                 "dismiss_count": len(b.get("dismisses") or []),
             }
-            if b is not None
-            else {"id": banner_id, "deleted": True}
+        else:
+            banner_meta = {"id": banner_id, "deleted": True, "title_en": "(deleted banner)"}
+
+        return {"banner": banner_meta, "audit": rows[:500]}
+
+    @router.get("/admin/banners/{banner_id}/audit", dependencies=[Depends(require_admin_dep)])
+    async def banner_audit(banner_id: str):
+        """Combined timeline of every interaction with a banner: admin
+        create/update/delete actions PLUS every per-device ack and
+        dismiss with timestamp + IP + browser + page. Used by the
+        AdminBannersPanel "Audit Trail" peek for legal-cover proof
+        ("foreman acked the stand-down at 4:42 PM from the job-site
+        IP before leaving").
+
+        IMPORTANT: still returns admin actions even after the banner is
+        deleted — that's the whole point of an audit log. Only the per-
+        device ack/dismiss timelines disappear with the parent doc.
+
+        Returns newest-first, capped at 500 rows total.
+        """
+        data = await _build_audit_payload(banner_id)
+        return {"ok": True, **data}
+
+    @router.get("/admin/banners/{banner_id}/audit.pdf", dependencies=[Depends(require_admin_dep)])
+    async def banner_audit_pdf(banner_id: str):
+        """Render the audit trail as a MASCI-letterheaded PDF suitable
+        for handing to an OSHA investigator or attaching to an incident
+        report. Lazy-imports the renderer so the rest of the module
+        keeps loading even on environments where WeasyPrint is broken."""
+        data = await _build_audit_payload(banner_id)
+        try:
+            from hub_banners_pdf import render_banner_audit_pdf
+        except Exception as e:  # noqa: BLE001
+            logger.exception("[hub-banners] PDF renderer import failed")
+            raise HTTPException(500, f"PDF renderer unavailable: {e}")
+        try:
+            pdf_bytes = render_banner_audit_pdf(data["banner"], data["audit"])
+        except Exception as e:  # noqa: BLE001
+            logger.exception("[hub-banners] PDF render failed")
+            raise HTTPException(500, f"PDF render failed: {e}")
+
+        title_seg = (data["banner"].get("title_en") or "banner")[:40]
+        safe = "".join(c if c.isalnum() else "_" for c in title_seg).strip("_") or "banner"
+        filename = f"MASCI_banner_audit_{safe}_{banner_id[:8]}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "X-Content-Type-Options": "nosniff",
+            },
         )
-        return {"ok": True, "banner": banner_meta, "audit": rows[:500]}
+
+    @router.get("/admin/banners/{banner_id}/audit.csv", dependencies=[Depends(require_admin_dep)])
+    async def banner_audit_csv(banner_id: str):
+        """Same data as the PDF, but as a CSV the admin can open in
+        Excel / Sheets and pivot however they like. Useful for HR or
+        compliance teams that don't want a formatted PDF."""
+        import csv as _csv
+        import io as _io
+        data = await _build_audit_payload(banner_id)
+        buf = _io.StringIO()
+        w = _csv.writer(buf)
+        w.writerow([
+            "kind", "action", "timestamp_utc", "actor_name", "device_id",
+            "ip", "user_agent", "page", "lang",
+        ])
+        for r in data["audit"]:
+            w.writerow([
+                r.get("kind") or "",
+                r.get("action") or "",
+                r.get("ts") or "",
+                r.get("actor_name") or "",
+                r.get("device_id") or "",
+                r.get("ip") or "",
+                r.get("ua") or "",
+                r.get("path") or "",
+                r.get("lang") or "",
+            ])
+        csv_bytes = buf.getvalue().encode("utf-8")
+        title_seg = (data["banner"].get("title_en") or "banner")[:40]
+        safe = "".join(c if c.isalnum() else "_" for c in title_seg).strip("_") or "banner"
+        filename = f"MASCI_banner_audit_{safe}_{banner_id[:8]}.csv"
+        return Response(
+            content=csv_bytes,
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+
+    @router.post("/admin/banners/{banner_id}/clone", dependencies=[Depends(require_admin_dep)])
+    async def clone_banner(banner_id: str, payload: Optional[BannerPatch] = Body(default=None)):
+        """One-click re-broadcast: clone the source banner with empty
+        ack/dismiss state and a fresh timestamp. Optional body lets the
+        admin override fields on the way (e.g. push out the same
+        Heat Advisory with a new expiration time without retyping the
+        whole body)."""
+        src = await banners.find_one({"id": banner_id}, {"_id": 0})
+        if not src:
+            raise HTTPException(404, "source banner not found")
+
+        new_doc: Dict[str, Any] = {
+            "id": uuid.uuid4().hex,
+            "title_en": src.get("title_en", ""),
+            "body_en": src.get("body_en", ""),
+            "title_es": src.get("title_es", ""),
+            "body_es": src.get("body_es", ""),
+            "severity": src.get("severity", "advisory"),
+            "require_ack": bool(src.get("require_ack")),
+            "expires_at": src.get("expires_at"),
+            "template_id": src.get("template_id"),
+            "created_at": _now().isoformat(),
+            "updated_at": _now().isoformat(),
+            "disabled": False,
+            "acks": [],
+            "dismisses": [],
+            "ack_log": [],
+            "dismiss_log": [],
+            "cloned_from": banner_id,
+        }
+
+        # Apply optional patch fields (lets admin tweak severity or
+        # expiration without retyping).
+        if payload is not None:
+            if payload.title_en is not None:
+                new_doc["title_en"] = payload.title_en.strip()
+            if payload.body_en is not None:
+                new_doc["body_en"] = payload.body_en.strip()
+            if payload.title_es is not None:
+                new_doc["title_es"] = payload.title_es.strip()
+            if payload.body_es is not None:
+                new_doc["body_es"] = payload.body_es.strip()
+            if payload.severity is not None:
+                new_doc["severity"] = _validate_severity(payload.severity)
+            if payload.require_ack is not None:
+                new_doc["require_ack"] = bool(payload.require_ack)
+            if payload.expires_at is not None:
+                if payload.expires_at.strip() == "":
+                    new_doc["expires_at"] = None
+                else:
+                    exp_dt = _parse_iso(payload.expires_at)
+                    new_doc["expires_at"] = exp_dt.isoformat() if exp_dt else None
+
+        await banners.insert_one(new_doc)
+        await _audit_log("clone", new_doc["id"], "admin", {"cloned_from": banner_id})
+        return {"ok": True, "banner": _serialize(new_doc)}
 
     return router

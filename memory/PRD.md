@@ -1,5 +1,84 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-12 — Iter67: Banner Audit PDF / CSV / Clone / Archive toggle
+
+### User ask
+"yes along with any other improvements you think would be good"
+
+### What shipped
+Four targeted improvements bundled together so the Banner system feels
+production-grade for legal use cases:
+
+1. **PDF Export** (`GET /api/admin/banners/{id}/audit.pdf`)
+   - MASCI-letterheaded single-page PDF rendered with WeasyPrint
+   - Banner severity chip + EN/ES title + EN/ES body
+   - Stat row: posted-at, ack-required, ack count, dismiss count
+   - Full timeline table: kind chip · timestamp · actor · device tail ·
+     IP · page · lang · browser
+   - Footer with banner ID + render timestamp + "Confidential" mark
+   - Deterministic output — same inputs → same bytes
+   - Suitable for OSHA officers, incident-report attachments, or HR files
+
+2. **CSV Export** (`GET /api/admin/banners/{id}/audit.csv`)
+   - Same data, raw-pivot-friendly format
+   - Columns: kind, action, timestamp_utc, actor_name, device_id, ip,
+     user_agent, page, lang
+   - Lets compliance teams pull into Excel and group by device or IP
+
+3. **Clone / Re-broadcast** (`POST /api/admin/banners/{id}/clone`)
+   - One-click: posts a new banner with the same content but empty
+     acks/dismisses and fresh timestamps. Stamps a `cloned_from` link
+     on the new doc so the audit trail can trace the lineage.
+   - Optional body payload lets admin tweak severity / expiration in
+     the same call (used by future automation).
+   - Frontend wires it as a copy icon next to the audit icon — clicking
+     it pops the Edit dialog open on the new copy so admin can tweak
+     wording before crews see it. Toast: "Re-broadcast posted — visible
+     site-wide within 60s".
+
+4. **Active-only / Archive toggle**
+   - When ≥1 banner has `expires_at` in the past, a "Show archived
+     (N)" pill renders above the row list.
+   - Default view shows active banners only — no expired clutter.
+   - Toggle to "Hide archived" reveals every banner including past
+     ones (still dimmed via the existing opacity rule).
+
+### Verified
+- 16/16 pytest cases pass
+- Manual curl tests:
+  - PDF: 904 KB, valid `%PDF-` magic, Content-Type `application/pdf`,
+    Content-Disposition with sanitized filename
+  - CSV: header row + 3 data rows, text/csv content-type
+  - Clone: new banner ID, empty `acks`/`dismisses`/`ack_log`/`dismiss_log`,
+    `cloned_from` pointer set
+- Playwright UI:
+  - Archive toggle shows "Show archived (1)" → click reveals expired row
+  - Audit dialog renders Export PDF + Export CSV buttons
+  - Clicking Export PDF triggers a real download (897 KB binary received
+    by the test browser)
+  - Clone button opens compose dialog auto-populated with cloned content
+  - Sticky banner strip on the page immediately reflects the new
+    re-broadcast copy
+
+### Files added
+- `/app/backend/hub_banners_pdf.py` (WeasyPrint renderer)
+
+### Files modified
+- `/app/backend/routes/hub_banners.py` (new endpoints + refactored
+  `_build_audit_payload` shared helper)
+- `/app/frontend/src/components/AdminBannersPanel.jsx` (Clone button +
+  Archive toggle + `visibleBanners` filter)
+- `/app/frontend/src/components/BannerAuditDialog.jsx` (Export PDF +
+  Export CSV buttons with token-attached fetch download)
+
+### Production deploy
+"Save to GitHub → Deploy". After deploy, admins get four new
+capabilities in `/admin → Hub Banner Messages`:
+- Clock icon → Audit Trail dialog (existing) now has Export PDF / CSV
+- Copy icon → Re-broadcast / clone any banner
+- Archive toggle at top of list to hide/show expired notices
+
+
 ## 2026-05-12 — Iter66: Banner Audit Trail (legal-cover proof)
 
 ### User ask

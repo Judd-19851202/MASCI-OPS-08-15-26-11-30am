@@ -10,6 +10,8 @@ import {
   X,
   Globe,
   Monitor,
+  FileText,
+  Sheet,
 } from "lucide-react";
 import {
   Dialog,
@@ -19,6 +21,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
+import { API } from "@/lib/api";
+import { getAdminToken } from "@/lib/adminAuth";
 import { toast } from "sonner";
 
 /**
@@ -94,6 +98,34 @@ const browserOf = (ua) => {
   return ua.slice(0, 30);
 };
 
+/**
+ * downloadFile — fetch the URL with the admin token attached, save as a
+ * blob, and pop a synthetic <a download> click. We can't use a plain
+ * <a href=...> because the browser will strip the Authorization /
+ * X-Admin-Token header on navigation; pinning auth via a `?token=`
+ * query param works but exposes the token in the referer chain. The
+ * blob approach keeps the token in the request headers only.
+ */
+async function downloadFile(url, filename) {
+  try {
+    const token = getAdminToken() || "";
+    const r = await fetch(url, { headers: { "X-Admin-Token": token } });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const blob = await r.blob();
+    const objUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(objUrl), 1500);
+    toast.success("Saved to your device");
+  } catch (e) {
+    toast.error(`Download failed: ${e.message}`);
+  }
+}
+
 export default function BannerAuditDialog({ banner, onClose }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -138,6 +170,43 @@ export default function BannerAuditDialog({ banner, onClose }) {
             critical notices.
           </DialogDescription>
         </DialogHeader>
+
+        {banner && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            <button
+              type="button"
+              onClick={() =>
+                downloadFile(
+                  `${API}/admin/banners/${banner.id}/audit.pdf`,
+                  `MASCI_banner_audit_${(banner.title_en || "banner")
+                    .replace(/[^A-Za-z0-9]+/g, "_")
+                    .slice(0, 40)}.pdf`
+                )
+              }
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border-2 border-red-700 bg-red-50 text-red-900 hover:bg-red-100 text-xs font-bold uppercase tracking-wider"
+              data-testid="banner-audit-pdf-btn"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Export PDF
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                downloadFile(
+                  `${API}/admin/banners/${banner.id}/audit.csv`,
+                  `MASCI_banner_audit_${(banner.title_en || "banner")
+                    .replace(/[^A-Za-z0-9]+/g, "_")
+                    .slice(0, 40)}.csv`
+                )
+              }
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border-2 border-slate-400 bg-white text-slate-900 hover:bg-slate-50 text-xs font-bold uppercase tracking-wider"
+              data-testid="banner-audit-csv-btn"
+            >
+              <Sheet className="w-3.5 h-3.5" />
+              Export CSV
+            </button>
+          </div>
+        )}
 
         {banner && (
           <div className="rounded border-2 border-slate-200 p-3 bg-slate-50">
