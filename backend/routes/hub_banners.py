@@ -61,7 +61,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -98,6 +98,11 @@ class BannerPatch(BaseModel):
 
 class AckPayload(BaseModel):
     device_id: str = Field(..., min_length=4, max_length=80)
+    # Optional client-supplied context — used to give the admin audit
+    # trail something more useful than "device-abc123 acknowledged".
+    path: Optional[str] = Field(default=None, max_length=200)
+    lang: Optional[str] = Field(default=None, max_length=10)
+    actor_name: Optional[str] = Field(default=None, max_length=120)
 
 
 class TranslatePayload(BaseModel):
@@ -274,32 +279,68 @@ def build_hub_banners_router(db, require_admin_dep: Callable) -> APIRouter:
         out.sort(key=lambda x: sev_rank.get(x.get("severity", "info"), 9))
         return {"ok": True, "banners": out, "now": now.isoformat()}
 
+    def _client_meta(req: Request, payload: AckPayload) -> Dict[str, Any]:
+        """Pull whatever audit-useful context we can off the request +
+        payload. Stored verbatim in the per-banner ack_log / dismiss_log
+        arrays so the admin "Audit Trail" panel can show a meaningful
+        timeline ("acked at 3:42 PM from 24.x.x.x via /daily/new")."""
+        try:
+            ip = req.client.host if req.client else None
+        except Exception:
+            ip = None
+        # FastAPI may sit behind the Emergent ingress — prefer the
+        # forwarded-for header when present (first hop = real client).
+        fwd = req.headers.get("x-forwarded-for") or req.headers.get("x-real-ip")
+        if fwd:
+            ip = fwd.split(",")[0].strip()
+        ua = (req.headers.get("user-agent") or "")[:200]
+        return {
+            "device_id": payload.device_id.strip(),
+            "ts": _now().isoformat(),
+            "ip": ip,
+            "ua": ua,
+            "path": (payload.path or "")[:200] or None,
+            "lang": payload.lang or None,
+            "actor_name": (payload.actor_name or "")[:120] or None,
+        }
+
     @router.post("/banners/{banner_id}/acknowledge")
-    async def acknowledge_banner(banner_id: str, payload: AckPayload):
-        """Record an acknowledgment from a device. Idempotent — the same
-        device can hit this multiple times without inflating the count."""
+    async def acknowledge_banner(banner_id: str, payload: AckPayload, request: Request):
+        """Record an acknowledgment from a device. Always appends a row
+        to `ack_log` (timestamped audit trail). The legacy `acks` set is
+        kept for fast O(1) "has this device acked?" lookups by the
+        public list endpoint."""
         device_id = payload.device_id.strip()
         if not device_id:
             raise HTTPException(400, "device_id required")
+        entry = _client_meta(request, payload)
         res = await banners.update_one(
             {"id": banner_id},
-            {"$addToSet": {"acks": device_id}, "$set": {"last_ack_at": _now().isoformat()}},
+            {
+                "$addToSet": {"acks": device_id},
+                "$push": {"ack_log": entry},
+                "$set": {"last_ack_at": entry["ts"]},
+            },
         )
         if res.matched_count == 0:
             raise HTTPException(404, "banner not found")
         return {"ok": True}
 
     @router.post("/banners/{banner_id}/dismiss")
-    async def dismiss_banner(banner_id: str, payload: AckPayload):
-        """Soft-dismiss for the current device. Only persists across
-        page loads — admin can still see total impressions. Useful for
-        INFO/ADVISORY banners that don't require ack."""
+    async def dismiss_banner(banner_id: str, payload: AckPayload, request: Request):
+        """Soft-dismiss — same dual-write pattern as acknowledge_banner.
+        `dismisses` set drives the public ack-status check; `dismiss_log`
+        feeds the admin Audit Trail panel."""
         device_id = payload.device_id.strip()
         if not device_id:
             raise HTTPException(400, "device_id required")
+        entry = _client_meta(request, payload)
         res = await banners.update_one(
             {"id": banner_id},
-            {"$addToSet": {"dismisses": device_id}},
+            {
+                "$addToSet": {"dismisses": device_id},
+                "$push": {"dismiss_log": entry},
+            },
         )
         if res.matched_count == 0:
             raise HTTPException(404, "banner not found")
@@ -417,9 +458,65 @@ def build_hub_banners_router(db, require_admin_dep: Callable) -> APIRouter:
 
     @router.get("/admin/banners/{banner_id}/audit", dependencies=[Depends(require_admin_dep)])
     async def banner_audit(banner_id: str):
+        """Combined timeline of every interaction with a banner: admin
+        create/update/delete actions PLUS every per-device ack and
+        dismiss with timestamp + IP + browser + page. Used by the
+        AdminBannersPanel "Audit Trail" peek for legal-cover proof
+        ("foreman acked the stand-down at 4:42 PM from the job-site
+        IP before leaving").
+
+        IMPORTANT: still returns admin actions even after the banner is
+        deleted — that's the whole point of an audit log. Only the per-
+        device ack/dismiss timelines disappear with the parent doc.
+
+        Returns newest-first, capped at 500 rows total.
+        """
+        b = await banners.find_one({"id": banner_id}, {"_id": 0})
+
         rows: List[Dict[str, Any]] = []
         async for r in audit.find({"banner_id": banner_id}, {"_id": 0}).sort("ts", -1).limit(200):
-            rows.append(r)
-        return {"ok": True, "audit": rows}
+            rows.append({**r, "kind": "admin"})
+
+        if b is not None:
+            for entry in (b.get("ack_log") or []):
+                rows.append({
+                    "kind": "ack",
+                    "ts": entry.get("ts"),
+                    "device_id": entry.get("device_id"),
+                    "ip": entry.get("ip"),
+                    "ua": entry.get("ua"),
+                    "path": entry.get("path"),
+                    "lang": entry.get("lang"),
+                    "actor_name": entry.get("actor_name"),
+                })
+            for entry in (b.get("dismiss_log") or []):
+                rows.append({
+                    "kind": "dismiss",
+                    "ts": entry.get("ts"),
+                    "device_id": entry.get("device_id"),
+                    "ip": entry.get("ip"),
+                    "ua": entry.get("ua"),
+                    "path": entry.get("path"),
+                    "lang": entry.get("lang"),
+                    "actor_name": entry.get("actor_name"),
+                })
+
+        # Newest first. Missing ts goes to the bottom.
+        rows.sort(key=lambda x: x.get("ts") or "", reverse=True)
+
+        banner_meta = (
+            {
+                "id": b.get("id"),
+                "title_en": b.get("title_en"),
+                "severity": b.get("severity"),
+                "require_ack": b.get("require_ack"),
+                "created_at": b.get("created_at"),
+                "ack_count": len(b.get("acks") or []),
+                "dismiss_count": len(b.get("dismisses") or []),
+            }
+            if b is not None
+            else {"id": banner_id, "deleted": True}
+        )
+        return {"ok": True, "banner": banner_meta, "audit": rows[:500]}
 
     return router

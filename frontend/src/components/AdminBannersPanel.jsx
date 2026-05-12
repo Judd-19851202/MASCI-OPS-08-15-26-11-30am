@@ -14,6 +14,7 @@ import {
   OctagonAlert,
   Info,
   Clock,
+  History,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { HUB_BANNER_TEMPLATES, SEVERITY_META } from "@/lib/hubBannerTemplates";
+import BannerAuditDialog from "@/components/BannerAuditDialog";
 
 /**
  * AdminBannersPanel — admin tool for managing the site-wide Hub
@@ -360,6 +362,7 @@ export default function AdminBannersPanel() {
   const [loading, setLoading] = useState(true);
   const [composeOpen, setComposeOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [auditBanner, setAuditBanner] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -474,11 +477,22 @@ export default function AdminBannersPanel() {
                   </div>
                   <div className="flex flex-col gap-1 shrink-0">
                     <Button
+                      onClick={() => setAuditBanner(b)}
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      data-testid={`banner-audit-${b.id}`}
+                      title="Audit trail"
+                    >
+                      <History className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
                       onClick={() => openCompose(b)}
                       variant="outline"
                       size="sm"
                       className="h-7 px-2 text-xs"
                       data-testid={`banner-edit-${b.id}`}
+                      title="Edit"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                     </Button>
@@ -488,6 +502,7 @@ export default function AdminBannersPanel() {
                       size="sm"
                       className="h-7 px-2 text-xs text-red-700 hover:bg-red-50 border-red-300"
                       data-testid={`banner-delete-${b.id}`}
+                      title="Delete"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
@@ -508,6 +523,13 @@ export default function AdminBannersPanel() {
         initial={editing}
         onSaved={load}
       />
+
+      {auditBanner && (
+        <BannerAuditDialog
+          banner={auditBanner}
+          onClose={() => setAuditBanner(null)}
+        />
+      )}
     </div>
   );
 }

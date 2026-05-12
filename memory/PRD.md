@@ -1,5 +1,73 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-12 — Iter66: Banner Audit Trail (legal-cover proof)
+
+### User ask
+"yes" — add a small "Audit Trail" peek to each banner row in the
+admin panel.
+
+### What shipped
+**Backend** (`routes/hub_banners.py`)
+- New `_client_meta(request, payload)` helper extracts IP (incl.
+  X-Forwarded-For unwinding), User-Agent, page path, language, and
+  optional `actor_name` from every ack/dismiss POST.
+- `acknowledge_banner` and `dismiss_banner` now do a **dual write**:
+  - `$addToSet: {acks: device_id}` (fast O(1) "has this device acked?"
+    lookup, unchanged)
+  - `$push: {ack_log: {device_id, ts, ip, ua, path, lang, actor_name}}`
+    (append-only audit trail)
+  - Mirror pattern for dismisses (`dismisses` set + `dismiss_log` array).
+  - Schema is additive — existing banners with no `ack_log` array just
+    return an empty timeline.
+- `GET /api/admin/banners/{id}/audit` upgraded to return a **unified
+  timeline**: admin create/update/delete actions PLUS every per-device
+  ack and dismiss, sorted newest-first, capped at 500 rows.
+  - Survives banner deletion — admin audit rows persist even after the
+    banner doc is gone (intentional: the whole point of an audit log).
+  - Response payload also embeds a `banner` summary (title, severity,
+    ack_count, dismiss_count, `deleted: true` if the banner is gone).
+- `AckPayload` model extended with optional `path`, `lang`, `actor_name`.
+
+**Frontend**
+- NEW `components/BannerAuditDialog.jsx` — modal with three row kinds:
+  - 🛡️ **Acknowledged** (emerald-bordered) — actor_name · device tail ·
+    IP · page · lang · browser
+  - 👁️ **Dismissed** (amber-bordered) — same fields
+  - ✏️ **Admin · create / update / delete** (slate-bordered)
+  Each row shows absolute timestamp; "Deleted — admin history retained"
+  badge appears in the header when the banner doc is gone.
+- `components/AdminBannersPanel.jsx` — added a clock-icon button to
+  every row (left of Edit / Delete) that opens the audit dialog.
+- `components/BannerStrip.jsx` — `acknowledge` / `dismiss` calls now
+  pass `path` (window.location.pathname) + `lang` so the audit trail
+  captures where the user was when they responded.
+
+### Verified end-to-end
+- 16/16 pytest cases still pass after the dual-write upgrade
+- Manual curl flow: created banner → 2 acks + 1 dismiss from 3 different
+  UAs (iPhone, Android Chrome, Windows Chrome) → audit endpoint returned
+  4 rows (1 create + 2 acks + 1 dismiss) with full IP / UA / page /
+  lang / actor_name fields populated.
+- Playwright UI: opened admin → clicked clock icon → audit dialog
+  rendered with 4 timeline rows in correct order (newest first),
+  colored borders matched kind, actor names ("Chris Wright (PM)",
+  "Juan (Foreman)") rendered, IPs + page paths + browser fingerprints
+  visible.
+- Test banners cleaned up — prod deploys clean.
+
+### Files
+- NEW: `/app/frontend/src/components/BannerAuditDialog.jsx`
+- MODIFIED: `/app/backend/routes/hub_banners.py`
+- MODIFIED: `/app/frontend/src/components/AdminBannersPanel.jsx`
+- MODIFIED: `/app/frontend/src/components/BannerStrip.jsx`
+
+### Production deploy
+"Save to GitHub → Deploy". After deploy: in `/admin → Hub Banner
+Messages`, every banner row has a clock icon next to Edit/Delete.
+Clicking it opens the audit trail with every ack + dismiss + admin
+action timestamped, IP-stamped, and browser-fingerprinted.
+
+
 ## 2026-05-12 — Iter65: Hub Banner Messaging System
 
 ### User ask

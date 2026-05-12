@@ -76,7 +76,11 @@ export default function BannerStrip() {
       await fetch(`${API}/banners/${top.id}/acknowledge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ device_id: deviceId }),
+        body: JSON.stringify({
+          device_id: deviceId,
+          path: typeof window !== "undefined" ? window.location.pathname : null,
+          lang,
+        }),
       });
       await load();
     } catch {
@@ -89,7 +93,11 @@ export default function BannerStrip() {
       await fetch(`${API}/banners/${top.id}/dismiss`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ device_id: deviceId }),
+        body: JSON.stringify({
+          device_id: deviceId,
+          path: typeof window !== "undefined" ? window.location.pathname : null,
+          lang,
+        }),
       });
       await load();
     } catch {
