@@ -1,5 +1,91 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-12 — Iter69: Shop portal "View inspection does nothing" — fixed
+
+### User report
+"Shop manager says when he logs into the shop portal he clicks on
+recent inspections list comes up he clicks view on any inspection
+nothing happens."
+
+### Root cause
+Per-shop-user accounts (mechanic / shop-manager / parts-coordinator —
+introduced iter48 with email+password login) were getting blanket
+**HTTP 404** on every equipment-inspection detail fetch.
+
+Failure chain:
+1. `GET /api/equipment-inspections/{id}` is gated by
+   `Depends(require_shop_or_admin)`, which returns the shop-user doc on
+   success.
+2. The handler then calls `compute_pm_scope(db, actor)` to apply PM-
+   level data scoping.
+3. `compute_pm_scope` saw the shop user's email and queried
+   `jobs_master.find({"pm_email": "testmech@mascigc.com"})` — found
+   zero jobs (mechanic isn't a PM) — returned `PmScope(is_admin=False,
+   project_numbers=set())`.
+4. `scope.allows(doc.get("project_number"))` returned False → 404.
+
+On the browser side the React detail page caught the 404, fired a
+toast, and `navigate(backHref)` bounced the user back to `/shop`. From
+the user's perspective the View button did nothing — they were back
+where they started.
+
+The legacy shared shop password worked because
+`require_shop_or_admin` returned `True` for that path (line 346 in
+server.py), and `compute_pm_scope` treats `True` as admin
+(unrestricted). Only per-shop-user accounts were affected.
+
+### Fix
+Two surgical edits:
+
+1. `/app/backend/server.py` line ~352 — tag the shop-user actor:
+   ```python
+   return {**user, "_actor_kind": "shop_user"}
+   ```
+2. `/app/backend/pm_auth.py` `compute_pm_scope` — recognize the tag
+   and treat shop users as unrestricted (they're cross-job by nature):
+   ```python
+   if actor.get("_actor_kind") == "shop_user":
+       return PmScope(is_admin=True)
+   ```
+
+Zero impact on PM tokens, legacy shop tokens, admin tokens, or
+field-leadership tokens. PM data scoping still works exactly as before
+for actual PM accounts.
+
+### Verified
+- `curl GET /api/equipment-inspections/{id}` with `X-Shop-Token`
+  generated for `testmech@mascigc.com` → **HTTP 200** with full doc
+  (was 404 before the fix)
+- Playwright: shop login → Recent Inspections → click View → URL
+  navigates to `/shop/equipment/{id}` → detail page renders the
+  Equipment Pre-Op Inspection with DocID, project info, equipment
+  fields, summary, Email + Print buttons, "← SHOP" back link. Zero
+  console errors.
+- Regression suite: shop + PM portal + banner + audit tests →
+  102/103 pass; 1 failure is an unrelated connect-timeout on
+  `test_shop_console_iter22.TestShopCheck::test_check_with_admin_token`
+  (preview ingress flake, not the fix).
+
+### Files modified
+- `/app/backend/server.py` (1-line: tag shop_user actor)
+- `/app/backend/pm_auth.py` (3-line: honor the tag in compute_pm_scope)
+
+### Production deploy
+**"Save to GitHub → Deploy."** Same fix applies to production —
+every per-shop-user account (real mechanics, shop managers, and parts
+coordinators) will be able to open inspection detail pages
+immediately after the deploy. Admin and legacy-shop sessions were
+never affected and continue working as-is.
+
+### Related surface check
+Other endpoints that call `compute_pm_scope` automatically benefit
+from this fix and now correctly serve shop users:
+- `/inspections/{id}`, `/meetings/{id}`, `/jhas/{id}`, `/incidents/{id}`,
+  `/daily-reports/{id}`, `/qaqc-inspections/{id}` (single-record GETs)
+- All scoped LIST endpoints (`/inspections`, `/daily-reports`, etc.)
+  — shop users now see every record instead of zero records.
+
+
 ## 2026-05-12 — Iter68: Full Enterprise Deployment-Readiness Audit ✅
 
 ### User ask

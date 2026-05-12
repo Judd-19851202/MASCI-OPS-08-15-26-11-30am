@@ -349,7 +349,12 @@ async def require_shop_or_admin(
         from shop_users import is_valid_shop_user_token_async
         user = await is_valid_shop_user_token_async(db, x_shop_token)
         if user:
-            return user
+            # Tag the actor so ``compute_pm_scope`` knows this is a shop
+            # user (cross-job mechanic/shop-manager/parts-coordinator) and
+            # NOT a project-scoped PM. Without this tag the scope helper
+            # would treat the shop user's email as a PM email, find zero
+            # assigned jobs, and 404 every record fetch. Fixed iter69.
+            return {**user, "_actor_kind": "shop_user"}
     raise HTTPException(status_code=401, detail="Shop, PM, or admin login required")
 
 

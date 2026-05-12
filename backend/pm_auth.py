@@ -308,8 +308,20 @@ async def compute_pm_scope(db, actor) -> PmScope:
     ``require_admin``. Admin / legacy shared bypass → ``is_admin=True``.
     Per-PM dict → looks up every job assigned to this PM (primary OR
     co-PM, active OR inactive — historical reports stay visible) and
-    returns the set of project_numbers."""
+    returns the set of project_numbers.
+
+    Shop users (mechanic / shop-manager / parts-coordinator) are
+    cross-job — they need to see every equipment inspection regardless
+    of which PM owns the project. ``require_shop_or_admin`` tags the
+    actor dict with ``_actor_kind == "shop_user"`` to flag this case;
+    we treat them as unrestricted here. Fix for iter69 regression
+    where per-shop-user accounts could not open inspection detail pages
+    (got blanket 404 because their email matched zero PM-assigned jobs).
+    """
     if actor is True or not isinstance(actor, dict):
+        return PmScope(is_admin=True)
+    # Shop users (cross-job, not project-scoped)
+    if actor.get("_actor_kind") == "shop_user":
         return PmScope(is_admin=True)
     email = (actor.get("email") or "").strip().lower()
     if not email:
