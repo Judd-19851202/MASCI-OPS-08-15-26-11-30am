@@ -267,9 +267,9 @@ def build_hub_banners_router(db, require_admin_dep: Callable) -> APIRouter:
             out.append(b)
 
         sev_rank = {"critical": 0, "warning": 1, "advisory": 2, "info": 3}
-        out.sort(key=lambda x: (sev_rank.get(x.get("severity", "info"), 9), -1 * (x.get("created_at") or "")
-                                .__hash__()))
-        # secondary sort fallback: created_at desc
+        # Single-pass sort: highest severity first, then newest first.
+        # (negating the str is awkward — use a tuple of (rank, -ts_int)
+        # by reverse-sorting on created_at since Python sort is stable.)
         out.sort(key=lambda x: x.get("created_at") or "", reverse=True)
         out.sort(key=lambda x: sev_rank.get(x.get("severity", "info"), 9))
         return {"ok": True, "banners": out, "now": now.isoformat()}

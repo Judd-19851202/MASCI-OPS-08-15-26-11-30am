@@ -1,5 +1,92 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-12 — Iter65: Hub Banner Messaging System
+
+### User ask
+"Hub Banner Messaging System ... Do this i want to be able to put really
+any message I want but Have a bunch of major ones preloaded in system."
+
+### What shipped
+Site-wide sticky banner with admin compose UI, 9 preloaded templates,
+4 severity tiers, ack hard-gate, optional expiration, and auto-Spanish
+translation via Claude Haiku 4.5.
+
+**Backend** (`/app/backend/routes/hub_banners.py`, mounted in
+server.py near the photo-bytes router)
+
+Collections:
+- `hub_banners` — title_en/title_es/body_en/body_es/severity/
+  require_ack/expires_at/acks[]/dismisses[]/created_at/updated_at
+- `hub_banner_audit` — every create/update/delete stamped with actor + ts
+
+Routes:
+- Public: `GET /api/banners/active`, `POST /api/banners/{id}/acknowledge`,
+  `POST /api/banners/{id}/dismiss`
+- Admin: `GET/POST /api/admin/banners`, `PATCH/DELETE
+  /api/admin/banners/{id}`, `POST /api/admin/banners/translate` (preview
+  utility), `GET /api/admin/banners/{id}/audit`
+
+Auto-translate runs through the existing `emergentintegrations` +
+`EMERGENT_LLM_KEY` pipeline using `claude-haiku-4-5-20251001` — same
+model the `/api/translate` route already uses. Falls back to English
+silently on any LLM failure so banner creation never blocks.
+
+**Frontend**
+- `lib/hubBannerTemplates.js` — 9 preloaded templates (heat advisory /
+  excessive heat warning / hurricane watch / hurricane warning /
+  lightning / flood watch / OSHA visit / safety stand-down / illness
+  reporting reminder / holiday closure) + `SEVERITY_META` color map.
+- `lib/deviceId.js` — one-time UUID stored in localStorage to identify
+  the browser for ack tracking (site is partially unauthenticated).
+- `components/BannerStrip.jsx` — sticky top strip. Two modes:
+  1. `require_ack=false` → thin colored strip with title + body +
+     dismiss × (per-device soft hide).
+  2. `require_ack=true` → full-screen modal that intercepts all pointer
+     events until "I Acknowledge" is clicked.
+  Polls `/api/banners/active` every 60 sec so a banner posted mid-shift
+  shows up on field devices without a reload.
+- `components/AdminBannersPanel.jsx` — sits in `/admin` directly under
+  Compliance Export. Template chips along the top, full compose form
+  below, live "Preview Spanish" button, severity picker, optional
+  expiration datetime, "Require Acknowledgment" checkbox. Active list
+  shows ack/dismiss counts + expiration countdown per banner with edit
+  / delete buttons.
+- `App.js` — mounts `<BannerStrip />` once at the root (above the
+  Router) so the banner appears on every page including deep links
+  like `/daily/new` and `/admin`.
+
+### Auto-Spanish quality (verified live)
+- "Heat Advisory" → "Alerta de Calor"
+- "Temperatures will exceed 95°F today..." →
+  "Las temperaturas van a exceder 95°F hoy..."
+Claude Haiku preserves numbers, units, and technical terms exactly.
+
+### Verified
+- 16/16 pytest cases pass (`backend/tests/test_hub_banners_iter65.py`)
+- Frontend smoke (Playwright): admin panel renders + 9 templates + soft
+  banner appears site-wide + critical banner hard-gates the Hub home +
+  Spanish toggle swaps copy + I Acknowledge dismisses gate
+- All preview test banners cleaned up — prod deploys empty
+
+### Files added
+- `/app/backend/routes/hub_banners.py`
+- `/app/frontend/src/lib/hubBannerTemplates.js`
+- `/app/frontend/src/lib/deviceId.js`
+- `/app/frontend/src/components/BannerStrip.jsx`
+- `/app/frontend/src/components/AdminBannersPanel.jsx`
+- `/app/backend/tests/test_hub_banners_iter65.py` (16 cases)
+
+### Files modified
+- `/app/backend/server.py` (mount the new router)
+- `/app/frontend/src/App.js` (import + mount `<BannerStrip />`)
+- `/app/frontend/src/pages/AdminHub.jsx` (import + mount AdminBannersPanel)
+
+### Production deploy
+**"Save to GitHub" → Deploy**. After deploy, the admin can post the
+first real banner from `/admin → Hub Banner Messages`. The strip will
+appear on every page within 60 seconds.
+
+
 ## 2026-05-12 — Iter64 (phase 2e): Blank-photo regression fix on View pages
 
 ### User report

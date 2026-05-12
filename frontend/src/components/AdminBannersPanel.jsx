@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { HUB_BANNER_TEMPLATES, SEVERITY_META } from "@/lib/hubBannerTemplates";
@@ -175,6 +175,11 @@ function ComposeDialog({ open, onClose, initial, onSaved }) {
           <DialogTitle className="font-display text-xl">
             {isEdit ? "Edit Hub Banner" : "Post New Hub Banner"}
           </DialogTitle>
+          <DialogDescription className="text-xs text-slate-600">
+            Pick a template or compose freely. English is auto-translated to
+            Spanish on save. CRITICAL banners hard-gate every page until each
+            device acknowledges.
+          </DialogDescription>
         </DialogHeader>
 
         {!isEdit && (
