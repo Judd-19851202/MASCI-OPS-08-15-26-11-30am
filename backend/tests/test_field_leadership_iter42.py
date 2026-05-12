@@ -141,22 +141,65 @@ def test_create_all_kinds_leadership(kind, leadership_token):
     assert "id" in rec
 
 
-def test_supervisor_notes_allowed_for_leadership(leadership_token):
-    """Per product update: Field Leadership password (MASCIGC) is sufficient
-    to file supervisor notes. The earlier admin-only restriction was removed
-    on 2026-05-07 per the owner's explicit request — 'if you have password
-    to Field Leadership that's good enough'."""
+def test_supervisor_notes_no_longer_creatable(leadership_token):
+    """Iter70 update: the Supervisor Notes Log tile was replaced with
+    the Employee Termination workflow. The `supervisor_notes` kind was
+    removed from FIELD_LEADERSHIP_KINDS so it can no longer be POSTed.
+    Existing DB rows still render via the PDF + view endpoints (the
+    field_leadership_pdf title map keeps the entry).
+
+    Pin the new reality — POSTing supervisor_notes returns 400."""
     r = requests.post(API, headers=H(leadership_token),
                       json=_minimal_payload("supervisor_notes"), timeout=15)
-    assert r.status_code == 200
-    assert r.json()["record"]["kind"] == "supervisor_notes"
+    assert r.status_code == 400, (
+        f"Iter70 removed supervisor_notes from the writable kind list. "
+        f"Expected 400, got {r.status_code}. If supervisor_notes was "
+        f"deliberately re-added, update this test to match."
+    )
 
 
-def test_supervisor_notes_allowed_for_admin(admin_token):
-    r = requests.post(API, headers=H(admin_token, "admin"),
-                      json=_minimal_payload("supervisor_notes"), timeout=20)
-    assert r.status_code == 200
-    assert r.json()["record"]["kind"] == "supervisor_notes"
+def test_employee_termination_creatable_by_leadership(leadership_token):
+    """Iter70: the replacement workflow. Employee Termination must be
+    POSTable by Field Leadership (MASCIGC) password the same way
+    Supervisor Notes used to be."""
+    payload = _minimal_payload("employee_termination")
+    payload["details"] = {
+        "separation_type": "Performance Issues",
+        "detailed_explanation": "Iter42 regression test minimum 40 character explanation goes here for coverage.",
+        "prior_disciplinary_actions": "Written Warning",
+        "rehire_eligibility": "No",
+        "law_enforcement_involved": "No",
+    }
+    r = requests.post(API, headers=H(leadership_token), json=payload, timeout=15)
+    assert r.status_code == 200, f"create returned {r.status_code}: {r.text[:200]}"
+    body = r.json()
+    rec = body.get("record") or body
+    assert rec["kind"] == "employee_termination"
+    # Cleanup
+    rid = rec.get("id")
+    if rid:
+        requests.delete(f"{API}/{rid}", headers=H(leadership_token), timeout=10)
+
+
+def test_employee_termination_creatable_by_admin(admin_token):
+    """Same as above, via the admin token path."""
+    payload = _minimal_payload("employee_termination")
+    payload["details"] = {
+        "separation_type": "Safety Violation",
+        "detailed_explanation": "Admin-path regression test minimum 40 character explanation goes here for coverage.",
+        "prior_disciplinary_actions": "Final Warning",
+        "rehire_eligibility": "Conditional",
+        "rehire_conditions": "6 month re-eval.",
+        "law_enforcement_involved": "No",
+    }
+    r = requests.post(API, headers=H(admin_token, "admin"), json=payload, timeout=20)
+    assert r.status_code == 200, f"admin create returned {r.status_code}: {r.text[:200]}"
+    body = r.json()
+    rec = body.get("record") or body
+    assert rec["kind"] == "employee_termination"
+    rid = rec.get("id")
+    if rid:
+        requests.delete(f"{API}/{rid}", headers=H(admin_token, "admin"), timeout=10)
 
 
 # ---------- LIST + filters ----------

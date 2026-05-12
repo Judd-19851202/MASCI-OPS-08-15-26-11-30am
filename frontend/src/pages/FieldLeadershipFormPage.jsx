@@ -26,6 +26,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { SignaturePad } from "@/components/SignaturePad";
 import { EquipmentLines } from "@/components/EquipmentLines";
 import { EquipmentReturnLines } from "@/components/EquipmentReturnLines";
+import { OutstandingEquipmentLookup } from "@/components/OutstandingEquipmentLookup";
 import { getFormByKind } from "@/lib/fieldLeadershipSchemas";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -152,6 +153,41 @@ function FieldRenderer({ field, value, onChange, lang, t }) {
       </div>
     );
   }
+  if (field.type === "checkboxes") {
+    // Checkbox group. `value` is a dict of {option_key: true|false}.
+    // We also broadcast a flat `<name>__<key>` boolean so other fields
+    // can use visible_if against a single option (e.g. show the "Other
+    // description" only when property_returned__other is true).
+    const current = (value && typeof value === "object") ? value : {};
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 border-2 border-slate-200 rounded-md p-3 bg-slate-50"
+           data-testid={`field-${field.name}`}>
+        {(field.options || []).map((opt) => {
+          const key = opt.key || opt.en;
+          const active = !!current[key];
+          return (
+            <label key={key} className={`flex items-center gap-2 px-2 py-1.5 rounded border-2 cursor-pointer text-sm font-bold ${
+              active ? "bg-red-700 text-white border-red-800" : "bg-white text-slate-700 border-slate-300 hover:border-red-400"
+            }`}>
+              <input
+                type="checkbox"
+                checked={active}
+                onChange={(e) => onChange({ ...current, [key]: e.target.checked })}
+                data-testid={`field-${field.name}-${key}`}
+                className="sr-only"
+              />
+              <span className={`w-4 h-4 inline-flex items-center justify-center rounded border-2 shrink-0 ${
+                active ? "bg-white border-white" : "bg-white border-slate-400"
+              }`}>
+                {active && <span className="w-2 h-2 bg-red-700 rounded-sm" />}
+              </span>
+              <span>{l(opt, lang)}</span>
+            </label>
+          );
+        })}
+      </div>
+    );
+  }
   return <div className="text-xs text-red-600">Unknown field type: {field.type}</div>;
 }
 
@@ -185,6 +221,7 @@ export default function FieldLeadershipFormPage() {
   const [supSig, setSupSig] = useState("");
   const [empSig, setEmpSig] = useState("");
   const [empRefused, setEmpRefused] = useState(false);
+  const [empNotPresent, setEmpNotPresent] = useState(false);
   const [witnessName, setWitnessName] = useState("");
   const [witnessSig, setWitnessSig] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -230,8 +267,27 @@ export default function FieldLeadershipFormPage() {
     );
   }
 
-  const updateField = (name, val) =>
-    setDetails((p) => ({ ...p, [name]: val }));
+  const updateField = (name, val) => {
+    setDetails((p) => {
+      const next = { ...p, [name]: val };
+      // Special handling for `checkboxes` fields: broadcast a flat
+      // `<name>__<optionKey>` boolean into details so other fields'
+      // `visible_if` rules can target individual options (e.g. show
+      // "Other description" only when property_returned__other is true).
+      if (val && typeof val === "object" && !Array.isArray(val)) {
+        // Drop any previous shadow keys for this field.
+        for (const k of Object.keys(next)) {
+          if (k.startsWith(`${name}__`)) delete next[k];
+        }
+        for (const [optKey, on] of Object.entries(val)) {
+          if (typeof on === "boolean") {
+            next[`${name}__${optKey}`] = on;
+          }
+        }
+      }
+      return next;
+    });
+  };
 
   const isFieldVisible = (f) => {
     if (!f.visible_if) return true;
@@ -243,7 +299,7 @@ export default function FieldLeadershipFormPage() {
       toast.error(t("Supervisor name required"));
       return false;
     }
-    if (!form.supervisor_signature_only && !employeeNameFinal && form.kind !== "supervisor_notes") {
+    if (!form.supervisor_signature_only && !employeeNameFinal) {
       toast.error(t("Employee name required"));
       return false;
     }
@@ -329,12 +385,30 @@ export default function FieldLeadershipFormPage() {
     }
     for (const f of form.fields) {
       if (!isFieldVisible(f)) continue;
+      // Outstanding equipment lookup is informational — never required.
+      if (f.type === "outstanding_equipment_lookup") continue;
       if (f.required) {
         const v = details[f.name];
         if (v === undefined || v === null || v === "" ||
-            (typeof v === "object" && Object.keys(v).length === 0)) {
+            (typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0) ||
+            (Array.isArray(v) && v.length === 0)) {
           toast.error(`${l(f.label, lang)} ${t("is required")}`);
           return false;
+        }
+        // `checkboxes` field with `min` option requires at least N keys
+        // set to true. The detailed_explanation textarea uses min_length.
+        if (f.type === "checkboxes" && f.min) {
+          const onCount = Object.values(v || {}).filter(Boolean).length;
+          if (onCount < f.min) {
+            toast.error(`${l(f.label, lang)}: ${t("at least")} ${f.min} ${t("required")}`);
+            return false;
+          }
+        }
+        if (f.type === "textarea" && f.min_length) {
+          if (String(v || "").trim().length < f.min_length) {
+            toast.error(`${l(f.label, lang)}: ${t("must be at least")} ${f.min_length} ${t("characters")}`);
+            return false;
+          }
         }
       }
     }
@@ -351,12 +425,16 @@ export default function FieldLeadershipFormPage() {
       return false;
     }
     if (form.needs_signatures && !form.supervisor_signature_only && !form.employee_signature_optional) {
-      if (!empSig && !empRefused) {
-        toast.error(t("Employee signature OR refusal required"));
+      if (!empSig && !empRefused && !empNotPresent) {
+        toast.error(t("Employee signature, refusal, or 'not present' is required"));
         return false;
       }
       if (empRefused && form.allow_refusal && (!witnessName.trim() || !witnessSig)) {
         toast.error(t("Witness name and signature required when employee refuses to sign"));
+        return false;
+      }
+      if (empNotPresent && !witnessName.trim()) {
+        toast.error(t("Witness name required when employee is not present"));
         return false;
       }
     }
@@ -415,9 +493,10 @@ export default function FieldLeadershipFormPage() {
         details: detailsToSend,
         photos,
         supervisor_signature: supSig,
-        employee_signature: empRefused ? "" : empSig,
+        employee_signature: (empRefused || empNotPresent) ? "" : empSig,
         employee_refused: empRefused,
-        witness_name: empRefused ? witnessName : "",
+        employee_not_present: empNotPresent,
+        witness_name: (empRefused || empNotPresent) ? witnessName : "",
         witness_signature: empRefused ? witnessSig : "",
         language: lang,
       };
@@ -489,7 +568,8 @@ export default function FieldLeadershipFormPage() {
             )}
           </div>
 
-          {form.kind !== "supervisor_notes" && (
+          {/* EMPLOYEE picker — every kind needs it */}
+          <>
             <>
               {/* EMPLOYEE */}
               <div>
@@ -551,7 +631,7 @@ export default function FieldLeadershipFormPage() {
                 </div>
               </div>
             </>
-          )}
+          </>
 
           {/* SUPERVISOR + DATE */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -586,20 +666,41 @@ export default function FieldLeadershipFormPage() {
                 t={t}
               />
             ) : (
-              form.fields.filter(isFieldVisible).map((f) => (
-                <div key={f.name}>
-                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                    {l(f.label, lang)}{f.required && <span className="text-red-700 ml-1">*</span>}
-                  </Label>
-                  <FieldRenderer
-                    field={f}
-                    value={details[f.name]}
-                    onChange={(v) => updateField(f.name, v)}
-                    lang={lang}
-                    t={t}
-                  />
-                </div>
-              ))
+              form.fields.filter(isFieldVisible).map((f) => {
+                if (f.type === "outstanding_equipment_lookup") {
+                  return (
+                    <div key={f.name}>
+                      <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                        {l(f.label, lang)}
+                      </Label>
+                      <OutstandingEquipmentLookup
+                        employeeName={employeeNameFinal}
+                        value={details[f.name]}
+                        onChange={(v) => updateField(f.name, v)}
+                        lang={lang}
+                        t={t}
+                      />
+                    </div>
+                  );
+                }
+                return (
+                  <div key={f.name}>
+                    <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                      {l(f.label, lang)}{f.required && <span className="text-red-700 ml-1">*</span>}
+                    </Label>
+                    <FieldRenderer
+                      field={f}
+                      value={details[f.name]}
+                      onChange={(v) => updateField(f.name, v)}
+                      lang={lang}
+                      t={t}
+                    />
+                    {f.help && (
+                      <p className="text-[11px] text-slate-500 mt-1">{l(f.help, lang)}</p>
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
 
@@ -642,7 +743,7 @@ export default function FieldLeadershipFormPage() {
               <SignaturePad value={supSig} onChange={setSupSig} label={t("Supervisor Signature")} testId="leadership-sup-sig" />
               {!form.supervisor_signature_only && (
                 <>
-                  {!empRefused && (
+                  {!empRefused && !empNotPresent && (
                     <SignaturePad
                       value={empSig}
                       onChange={setEmpSig}
@@ -651,18 +752,41 @@ export default function FieldLeadershipFormPage() {
                     />
                   )}
                   {form.allow_refusal && (
-                    <div className="rounded-md border-2 border-slate-200 p-3 bg-slate-50">
+                    <div className="rounded-md border-2 border-slate-200 p-3 bg-slate-50 space-y-2">
                       <label className="flex items-center gap-2 text-sm font-bold">
-                        <input type="checkbox" checked={empRefused} onChange={(e) => setEmpRefused(e.target.checked)} data-testid="leadership-refused" />
+                        <input
+                          type="checkbox"
+                          checked={empRefused}
+                          onChange={(e) => { setEmpRefused(e.target.checked); if (e.target.checked) setEmpNotPresent(false); }}
+                          data-testid="leadership-refused"
+                          disabled={empNotPresent}
+                        />
                         {t("Employee refused to sign")}
                       </label>
-                      {empRefused && (
+                      <label className="flex items-center gap-2 text-sm font-bold">
+                        <input
+                          type="checkbox"
+                          checked={empNotPresent}
+                          onChange={(e) => { setEmpNotPresent(e.target.checked); if (e.target.checked) setEmpRefused(false); }}
+                          data-testid="leadership-not-present"
+                          disabled={empRefused}
+                        />
+                        {t("Employee not present (Quit / Abandonment / Discharged off-site)")}
+                      </label>
+                      {(empRefused || empNotPresent) && (
                         <div className="mt-3 space-y-3">
                           <div>
                             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Witness Name")}</Label>
                             <Input value={witnessName} onChange={(e) => setWitnessName(e.target.value)} className={inputCls} data-testid="leadership-witness-name" />
                           </div>
-                          <SignaturePad value={witnessSig} onChange={setWitnessSig} label={t("Witness Signature")} testId="leadership-witness-sig" />
+                          {empRefused && (
+                            <SignaturePad value={witnessSig} onChange={setWitnessSig} label={t("Witness Signature")} testId="leadership-witness-sig" />
+                          )}
+                          {empNotPresent && (
+                            <p className="text-[11px] text-slate-600 italic">
+                              {t("Witness signature is optional when the employee is not present — the witness name is sufficient documentation.")}
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>

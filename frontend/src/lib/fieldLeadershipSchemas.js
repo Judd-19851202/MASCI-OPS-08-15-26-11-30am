@@ -21,6 +21,7 @@
 import {
   AlertTriangle, MessageCircle, Clock, Award, Wrench, UserCheck,
   Users, TrendingUp, GraduationCap, FileText, ShieldCheck, Undo2,
+  UserX,
 } from "lucide-react";
 
 const RATING_OPTIONS = [
@@ -354,31 +355,124 @@ export const FIELD_LEADERSHIP_FORMS = [
     ],
   },
   {
-    kind: "supervisor_notes",
-    icon: FileText,
-    accent: "slate",
-    title: { en: "Supervisor Notes Log", es: "Registro de Notas del Supervisor" },
-    desc: {
-      en: "Internal leadership documentation log.",
-      es: "Registro interno de documentación de liderazgo.",
+    // iter70 — replaces the old "Supervisor Notes Log" tile. This is the
+    // formalized HR/legal Employee Termination workflow. Same schema-
+    // driven renderer; uses a new `checkboxes` field type for property
+    // returned, a new `equipment_lookup` custom block for outstanding
+    // checkouts auto-link, and supports BOTH "refused to sign" AND
+    // "employee not present" signature states.
+    kind: "employee_termination",
+    icon: UserX,
+    accent: "red",
+    title: {
+      en: "Employee Termination",
+      es: "Terminación de Empleo",
     },
-    needs_signatures: false,
+    desc: {
+      en: "Document employee separation, resignation, policy violations, or termination actions.",
+      es: "Documente la separación, renuncia, infracciones de política o acciones de terminación.",
+    },
+    needs_signatures: true,
+    allow_refusal: true,
     allows_photos: true,
+    // The form has its own job + employee pickers (same as every other
+    // FL form) — those cover spec fields 1, 2, 3, 4, 5, 6, and the
+    // supervisor signature in 16. The schema-driven fields below cover
+    // spec fields 7–15 + the rehire/law-enforcement metadata.
     fields: [
-      { name: "note_category", label: { en: "Note Category", es: "Categoría de Nota" }, type: "select", required: true,
+      // 7 — Type of Separation (required dropdown w/ "Other" gate)
+      { name: "separation_type", label: { en: "Type of Separation", es: "Tipo de Separación" }, type: "select", required: true,
         options: [
-          { en: "Manpower", es: "Mano de Obra" },
-          { en: "Performance", es: "Desempeño" },
-          { en: "Crew Conflict", es: "Conflicto de Cuadrilla" },
-          { en: "Production Concern", es: "Preocupación de Producción" },
-          { en: "Safety Concern", es: "Preocupación de Seguridad" },
-          { en: "Subcontractor Issue", es: "Problema con Subcontratista" },
-          { en: "Leadership Observation", es: "Observación de Liderazgo" },
+          { en: "Safety Violation", es: "Infracción de Seguridad" },
+          { en: "Company Policy Violation", es: "Infracción de Política" },
+          { en: "Attendance Issues", es: "Problemas de Asistencia" },
+          { en: "Performance Issues", es: "Problemas de Desempeño" },
+          { en: "Insubordination", es: "Insubordinación" },
+          { en: "Drug/Alcohol Violation", es: "Infracción de Drogas/Alcohol" },
+          { en: "Equipment Abuse/Damage", es: "Abuso/Daño de Equipo" },
+          { en: "Workplace Violence/Threats", es: "Violencia/Amenazas Laborales" },
+          { en: "Reduction in Workforce", es: "Reducción de Personal" },
+          { en: "End of Project", es: "Fin de Proyecto" },
+          { en: "Self Termination (Quit)", es: "Renuncia Voluntaria" },
+          { en: "Job Abandonment", es: "Abandono de Trabajo" },
+          { en: "Failure to Meet Training Requirements", es: "Incumplimiento de Capacitación" },
           { en: "Other", es: "Otro" },
         ] },
-      { name: "detailed_note", label: { en: "Detailed Note", es: "Nota Detallada" }, type: "textarea", required: true, rows: 6 },
-      { name: "follow_up_required", label: { en: "Follow-Up Required?", es: "¿Necesita Seguimiento?" }, type: "yesno" },
-      { name: "follow_up_date", label: { en: "Follow-Up Date", es: "Fecha de Seguimiento" }, type: "date", visible_if: { field: "follow_up_required", equals: "yes" } },
+      { name: "separation_type_other", label: { en: "If Other, please explain", es: "Si seleccionó Otro, explique" },
+        type: "textarea", rows: 2, required: true, visible_if: { field: "separation_type", equals: "Other" } },
+
+      // 8 — Detailed Explanation (required, long text)
+      { name: "detailed_explanation", label: { en: "Detailed Explanation / Incident Description",
+                                               es: "Explicación Detallada / Descripción del Incidente" },
+        type: "textarea", rows: 7, required: true, min_length: 40,
+        help: {
+          en: "Required minimum 40 characters. Explain what occurred, dates/timeline, witnesses if applicable, previous warnings, policy/safety concerns, and final action taken.",
+          es: "Mínimo 40 caracteres. Explique qué ocurrió, fechas/cronología, testigos si aplica, advertencias previas, preocupaciones de política/seguridad y la acción final tomada.",
+        } },
+
+      // 9 — Prior Disciplinary Actions
+      { name: "prior_disciplinary_actions", label: { en: "Prior Disciplinary Actions", es: "Acciones Disciplinarias Previas" },
+        type: "select", required: true,
+        options: [
+          { en: "None", es: "Ninguna" },
+          { en: "Verbal Coaching", es: "Asesoramiento Verbal" },
+          { en: "Written Warning", es: "Advertencia Escrita" },
+          { en: "Final Warning", es: "Advertencia Final" },
+          { en: "Multiple Previous Incidents", es: "Múltiples Incidentes Previos" },
+        ] },
+
+      // 10 — Property Returned (checkbox group — NEW field type)
+      { name: "property_returned", label: { en: "Company Property Returned", es: "Propiedad de la Empresa Devuelta" },
+        type: "checkboxes",
+        options: [
+          { key: "hard_hat", en: "Hard Hat", es: "Casco" },
+          { key: "safety_vest", en: "Safety Vest", es: "Chaleco de Seguridad" },
+          { key: "radio", en: "Radio", es: "Radio" },
+          { key: "keys", en: "Keys", es: "Llaves" },
+          { key: "fuel_card", en: "Fuel Card", es: "Tarjeta de Combustible" },
+          { key: "tablet_ipad", en: "Tablet / iPad", es: "Tableta / iPad" },
+          { key: "tools_equipment", en: "Tools / Equipment", es: "Herramientas / Equipo" },
+          { key: "company_vehicle", en: "Company Vehicle", es: "Vehículo de la Empresa" },
+          { key: "badge_access_card", en: "Badge / Access Card", es: "Insignia / Tarjeta de Acceso" },
+          { key: "other", en: "Other", es: "Otro" },
+        ] },
+      { name: "property_returned_other", label: { en: "Other Property Description", es: "Descripción de Otra Propiedad" },
+        type: "text", visible_if: { field: "property_returned__other", equals: true } },
+
+      // 11 — Outstanding Equipment Assigned (custom auto-lookup block).
+      // The renderer reads the employee name picker and lists every
+      // un-returned line from the equipment_checkout collection.
+      // Supervisor reviews + confirms each chip.
+      { name: "outstanding_equipment_acknowledged", type: "outstanding_equipment_lookup",
+        label: { en: "Outstanding Equipment Assigned", es: "Equipo Pendiente Asignado" }, required: false },
+
+      // 12 — Eligible for Rehire
+      { name: "rehire_eligibility", label: { en: "Eligible for Rehire?", es: "¿Elegible para Recontratación?" },
+        type: "select", required: true,
+        options: [
+          { en: "Yes", es: "Sí" },
+          { en: "No", es: "No" },
+          { en: "Conditional", es: "Condicional" },
+        ] },
+      { name: "rehire_conditions", label: { en: "Rehire Conditions", es: "Condiciones de Recontratación" },
+        type: "textarea", rows: 2, required: true, visible_if: { field: "rehire_eligibility", equals: "Conditional" } },
+
+      // 13 — Law Enforcement / Incident Report Involved
+      { name: "law_enforcement_involved", label: { en: "Law Enforcement / Incident Report Involved?",
+                                                   es: "¿Hubo Involucramiento de las Autoridades / Reporte de Incidente?" },
+        type: "select", required: true,
+        options: [
+          { en: "No", es: "No" },
+          { en: "Yes", es: "Sí" },
+        ] },
+      { name: "law_enforcement_details", label: { en: "Law Enforcement / Report Details",
+                                                  es: "Detalles del Reporte / Autoridades" },
+        type: "textarea", rows: 3, required: true, visible_if: { field: "law_enforcement_involved", equals: "Yes" } },
+
+      // 14 — Witnesses (optional, one per line)
+      { name: "witnesses_present", label: { en: "Witnesses Present (one per line)",
+                                            es: "Testigos Presentes (uno por línea)" },
+        type: "textarea", rows: 3 },
     ],
   },
   {

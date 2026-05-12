@@ -75,6 +75,8 @@ const BULLETS = {
                          es: ["Documente deficiencia + reentrenamiento", "Registre fecha límite y estado"] },
   supervisor_notes: { en: ["Internal leadership documentation log", "Visible to admins, PMs, and field leadership"],
                       es: ["Registro interno de liderazgo", "Visible para administradores, PMs y liderazgo de campo"] },
+  employee_termination: { en: ["Document separation, resignation, or termination", "Termination documentation · resignation tracking · policy enforcement"],
+                          es: ["Documente separación, renuncia o terminación", "Documentación de terminación · seguimiento de renuncias · cumplimiento de políticas"] },
 };
 
 function PasswordGate({ onAuthed }) {

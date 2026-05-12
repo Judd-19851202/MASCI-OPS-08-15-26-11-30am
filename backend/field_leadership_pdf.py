@@ -37,6 +37,7 @@ _KIND_META: Dict[str, Dict[str, Any]] = {
     "promotion_recommendation":  {"title_en": "Promotion Recommendation",         "title_es": "Recomendación de Ascenso"},
     "training_deficiency":       {"title_en": "Training Deficiency / Retraining", "title_es": "Deficiencia de Capacitación / Reentrenamiento"},
     "supervisor_notes":          {"title_en": "Supervisor Notes Log",             "title_es": "Registro de Notas del Supervisor"},
+    "employee_termination":      {"title_en": "Employee Termination",             "title_es": "Terminación de Empleo"},
 }
 
 
@@ -63,9 +64,52 @@ def _section_rows(label_value_pairs: List) -> str:
 def _details_block(details: Dict[str, Any]) -> str:
     if not details:
         return ""
+    # Skip the flat checkbox-shadow keys (e.g. property_returned__hard_hat).
+    # The compound `property_returned` dict already covers them.
     blocks = []
     for k, v in details.items():
+        if "__" in k:
+            continue
         label = k.replace("_", " ").title()
+
+        # Special handling: outstanding equipment from the Employee
+        # Termination form renders as a status-grouped sub-table so HR
+        # can scan it without parsing JSON.
+        if k == "outstanding_equipment_acknowledged" and isinstance(v, list) and v:
+            sub_rows = []
+            for line in v:
+                status = (line or {}).get("status") or "—"
+                pretty = {
+                    "returned_at_termination": "RETURNED AT TERMINATION",
+                    "still_outstanding": "STILL OUTSTANDING",
+                    "removed": "NOT ASSIGNED TO EMPLOYEE",
+                }.get(status, status.upper())
+                sub_rows.append(
+                    f"<tr><th>{_h(line.get('name') or '—')}</th>"
+                    f"<td>{_h(line.get('serial') or '')}</td>"
+                    f"<td>{_h(pretty)}</td></tr>"
+                )
+            blocks.append(
+                f"<div class='detail'><h4>{_h(label)}</h4>"
+                f"<table class='kv'><thead><tr><th>Item</th><th>SN/Asset</th><th>Status</th></tr></thead>"
+                f"<tbody>{''.join(sub_rows)}</tbody></table></div>"
+            )
+            continue
+
+        # Property-returned dict — render as TWO rows (returned vs not).
+        if k == "property_returned" and isinstance(v, dict) and v:
+            returned = [kk.replace("_", " ").title() for kk, vv in v.items() if vv]
+            not_returned = [kk.replace("_", " ").title() for kk, vv in v.items() if vv is False]
+            blocks.append(
+                f"<div class='detail'><h4>{_h(label)}</h4>"
+                f"<div class='detail-row'><span class='detail-label'>Returned</span>"
+                f"<span class='detail-value'>{_h(', '.join(returned)) or '<span class=muted>None</span>'}</span></div>"
+                f"<div class='detail-row'><span class='detail-label'>Not Returned</span>"
+                f"<span class='detail-value'>{_h(', '.join(not_returned)) or '<span class=muted>—</span>'}</span></div>"
+                f"</div>"
+            )
+            continue
+
         if isinstance(v, list):
             v = ", ".join(str(x) for x in v) or "—"
         elif isinstance(v, dict):

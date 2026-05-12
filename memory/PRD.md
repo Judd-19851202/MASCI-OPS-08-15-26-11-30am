@@ -1,5 +1,106 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-12 — Iter70: Field Leadership — Employee Termination workflow
+
+### User ask
+"FIELD LEADERSHIP — EMPLOYEE TERMINATION FORM IMPLEMENTATION …
+Remove the existing Supervisor Notes Log tile completely … replace it
+with a new enterprise-level Employee Termination form and workflow."
+
+### What shipped
+
+**Removed**
+- `Supervisor Notes Log` tile from `/leadership` hub
+- `supervisor_notes` kind from `FIELD_LEADERSHIP_KINDS` (no longer
+  creatable). The PDF title map keeps the entry so existing DB rows
+  still render — historical records are never lost.
+- All `supervisor_notes` references from the form-page render gates
+  (employee picker no longer hidden for the new kind).
+
+**Added — schema-driven form**
+- New `kind: "employee_termination"` in
+  `lib/fieldLeadershipSchemas.js` with all 17 required fields:
+  - Job + Supervisor + Date + Time + Location pickers (shared FL chrome)
+  - Type of Separation dropdown (14 options + "Other" gate)
+  - Detailed Explanation textarea (`min_length: 40`)
+  - Prior Disciplinary Actions
+  - Property Returned (NEW `checkboxes` field type — 2-col grid)
+  - Outstanding Equipment Assigned (NEW `outstanding_equipment_lookup`
+    auto-link block — queries equipment_checkout, surfaces every
+    un-returned line as a red chip, supervisor confirms each one
+    Returned / Unreturned / Not-Assigned)
+  - Eligible for Rehire (Yes / No / Conditional + conditional explanation)
+  - Law Enforcement Involved + details on Yes
+  - Witnesses Present (textarea, one per line)
+  - Photos / Attachments (shared FL chrome)
+  - Supervisor Signature (required) + Employee Signature with TWO
+    distinct absent states: "Refused to sign" (with witness + witness
+    signature) and NEW "Employee not present (Quit / Abandonment /
+    Discharged off-site)" (witness name only — sufficient docs).
+
+**Added — backend**
+- `FIELD_LEADERSHIP_KINDS["employee_termination"]` entry with
+  `needs_signatures: True, allow_refusal: True, allows_photos: True`.
+- New `employee_not_present: bool` field on the record model and the
+  `_normalize_record` writer.
+- PDF renderer (`field_leadership_pdf.py`):
+  - New title-map entry for `employee_termination`.
+  - `_details_block` now special-cases `outstanding_equipment_
+    acknowledged` (renders as a status-grouped sub-table) and
+    `property_returned` (renders as two rows: Returned vs Not Returned).
+  - Existing legacy renderer still works for all other kinds.
+
+**Added — admin HR dashboard**
+- NEW route `/admin/terminations` + `pages/AdminTerminations.jsx`.
+- 5-stat strip: Total · Rehire Yes · Rehire No · Outstanding Equip ·
+  Law Enforcement.
+- Search box + 4 rehire-eligibility filter chips (All / Yes / No /
+  Conditional).
+- Full table with Date · Employee · Supervisor · Job · Separation
+  Type · Rehire chip · Flags column (🔧 outstanding count, ✓ all-
+  returned, 🛡️ law-enforcement, ⚠ refused-to-sign, ABS not-present)
+  · View action.
+- New tile in `/admin` hub linking to it (red accent).
+- Records also still appear in the standard Field Leadership records
+  list (both surfaces, per spec).
+
+### Verified
+- 4-case iter70 backend regression suite — all green
+- iter42 (Field Leadership), iter65 (Hub Banners), iter69 (Shop scope)
+  + iter70 → **56/56 pass**
+- Playwright end-to-end: leadership login → new tile visible →
+  termination form loads with all 17 fields → admin/terminations
+  dashboard shows seeded record with correct stats + flags
+- PDF round-trip: 158 KB valid `%PDF-`, proper Content-Disposition
+  filename `employee_termination_<employee>_<date>.pdf`
+
+### Files added
+- `/app/frontend/src/components/OutstandingEquipmentLookup.jsx`
+- `/app/frontend/src/pages/AdminTerminations.jsx`
+- `/app/backend/tests/test_iter70_termination.py`
+
+### Files modified
+- `/app/frontend/src/lib/fieldLeadershipSchemas.js` (schema swap + new icon)
+- `/app/frontend/src/pages/FieldLeadershipFormPage.jsx` (checkboxes
+  renderer, outstanding-equipment block, not-present state, min_length
+  validation, shadow keys for visible_if)
+- `/app/frontend/src/pages/FieldLeadershipHub.jsx` (description map)
+- `/app/frontend/src/pages/Hub.jsx` (FL tile bullet text)
+- `/app/frontend/src/pages/AdminHub.jsx` (new Terminations tile)
+- `/app/frontend/src/App.js` (new route)
+- `/app/backend/routes/field_leadership.py` (kind swap, new field)
+- `/app/backend/field_leadership_pdf.py` (title-map + special details)
+- `/app/backend/tests/test_field_leadership_iter42.py` (update 2 stale
+  tests, add 2 new termination tests)
+
+### Production deploy
+**"Save to GitHub → Deploy."** The old Supervisor Notes Log tile is
+gone; the new Employee Termination tile lives in the same Field
+Leadership Hub. HR admins can view consolidated termination metrics
+at `/admin/terminations`. Existing supervisor_notes records in the DB
+keep rendering — nothing is lost.
+
+
 ## 2026-05-12 — Iter69: Shop portal "View inspection does nothing" — fixed
 
 ### User report

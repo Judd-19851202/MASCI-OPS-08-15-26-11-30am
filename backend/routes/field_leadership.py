@@ -104,11 +104,11 @@ FIELD_LEADERSHIP_KINDS: Dict[str, Dict[str, Any]] = {
         "allow_refusal": True,
         "allows_photos": False,
     },
-    "supervisor_notes": {
-        "title_en": "Supervisor Notes Log",
-        "title_es": "Registro de Notas del Supervisor",
-        "needs_signatures": False,
-        "allow_refusal": False,
+    "employee_termination": {
+        "title_en": "Employee Termination",
+        "title_es": "Terminación de Empleo",
+        "needs_signatures": True,
+        "allow_refusal": True,
         "allows_photos": True,
     },
     "equipment_return": {
@@ -155,6 +155,7 @@ class FieldLeadershipCreate(BaseModel):
     supervisor_signature: Optional[str] = ""  # data URL
     employee_signature: Optional[str] = ""    # data URL OR ""
     employee_refused: bool = False
+    employee_not_present: bool = False
     witness_name: Optional[str] = ""
     witness_signature: Optional[str] = ""
 

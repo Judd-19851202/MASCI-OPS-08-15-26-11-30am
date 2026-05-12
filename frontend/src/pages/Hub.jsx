@@ -342,7 +342,7 @@ export default function Hub() {
             desc={t("Crew accountability, employee documentation, equipment responsibility, recognition, and workforce-management tools for MASCI field leadership.")}
             bullets={[
               t("Write-Ups · Coaching · Attendance · Recognition"),
-              t("Equipment Checkout/Return · Evaluations · Supervisor Notes"),
+              t("Equipment Checkout/Return · Evaluations · Employee Termination"),
             ]}
             accent="lightGrey"
             testId="hub-section-leadership"

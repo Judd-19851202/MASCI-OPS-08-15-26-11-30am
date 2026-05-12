@@ -431,6 +431,33 @@ export default function AdminHub() {
           </div>
         </div>
 
+        {/* Employee Terminations — dedicated HR dashboard added iter70. */}
+        <div className="mt-6 border-2 border-red-300 bg-red-50 rounded-md p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
+                HR · Field Leadership
+              </span>
+              <h3 className="font-display text-xl sm:text-2xl font-black mt-1">
+                Employee Terminations
+              </h3>
+              <p className="text-sm text-slate-700 mt-1 max-w-xl">
+                Dedicated termination dashboard with rehire-eligibility filters,
+                outstanding-equipment status, law-enforcement flags, and a
+                refusal-to-sign / not-present audit trail. Same records also
+                appear in the standard Field Leadership list.
+              </p>
+            </div>
+            <Link
+              to="/admin/terminations"
+              className="inline-flex items-center h-10 px-4 rounded-md bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
+              data-testid="admin-terminations-link"
+            >
+              Open
+            </Link>
+          </div>
+        </div>
+
         {/* ============================================================
             SYSTEM RECOVERY — admin-only destructive controls.
             Parked at the bottom of the page on purpose so the PM
