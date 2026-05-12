@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 
 /**
  * PhotoLightbox
@@ -40,17 +41,23 @@ export const PhotoLightbox = ({
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // Iter64: src may be a photo:// ref (R2-backed). Resolve to an actual
+  // browser-loadable URL before rendering or fetching. resolvePhotoSrc
+  // pass-throughs data: URLs and http(s) URLs unchanged, so this is safe
+  // for every legacy and new caller.
+  const resolvedSrc = resolvePhotoSrc(src);
+
   const download = async () => {
-    if (!src) return;
+    if (!resolvedSrc) return;
     setBusy(true);
     try {
       // fetch supports both http(s) and data: URIs and gives us a Blob.
-      const r = await fetch(src);
+      const r = await fetch(resolvedSrc);
       const blob = await r.blob();
       const ext =
         (blob.type && blob.type.split("/")[1]) ||
-        (src.startsWith("data:image/")
-          ? src.slice(11, src.indexOf(";"))
+        (resolvedSrc.startsWith("data:image/")
+          ? resolvedSrc.slice(11, resolvedSrc.indexOf(";"))
           : "jpg");
       const fname =
         filename || `masci-photo-${Date.now()}.${ext.replace("jpeg", "jpg")}`;
@@ -67,7 +74,7 @@ export const PhotoLightbox = ({
     } catch {
       // Cross-origin or unsupported — open in a new tab so the user can
       // long-press / right-click "Save image as…".
-      window.open(src, "_blank", "noopener");
+      window.open(resolvedSrc, "_blank", "noopener");
       toast.message("Opened in a new tab — long-press / right-click to save");
     } finally {
       setBusy(false);
@@ -96,7 +103,7 @@ export const PhotoLightbox = ({
 
           <div className="relative">
             <img
-              src={src}
+              src={resolvedSrc}
               alt={alt}
               className="block w-full max-h-[78vh] object-contain bg-black"
               data-testid={`${testId}-img`}

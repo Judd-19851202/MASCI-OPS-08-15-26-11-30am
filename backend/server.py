@@ -7928,7 +7928,13 @@ from routes.job_photos import (  # noqa: E402
     attach_routes as _attach_job_photos_routes,
     background_indexer_loop as _job_photos_indexer_loop,
     index_record_photos as _index_record_photos,
+    photo_bytes_router as _photo_bytes_router,
 )
+
+# Mount the photo-bytes resolver immediately — public route, no DB hooks.
+# Lets <img src> tags in record-detail pages render photo:// refs that
+# went into Mongo via the iter64 R2 migration.
+app.include_router(_photo_bytes_router)
 
 
 async def _job_photos_send_email(*, to: str, subject: str, text: str, attachments=None):

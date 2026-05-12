@@ -16,6 +16,7 @@ import ShopSignoffCard from "@/components/ShopSignoffCard";
 import { itemSeverity } from "@/lib/equipmentSeverity";
 import { isAdmin } from "@/lib/adminAuth";
 import { useT } from "@/lib/i18n";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 
 const KV = ({ label, value, full = false }) => (
   <div className={full ? "sm:col-span-2" : ""}>
@@ -324,13 +325,13 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
               {data.photos.map((p, i) => (
                 <PhotoLightbox
                   key={i}
-                  src={p}
+                  src={resolvePhotoSrc(p)}
                   alt={`Equipment Photo ${i + 1}`}
                   filename={`MASCI_Equipment_${(data.id || id || "").slice(0, 8)}_photo${i + 1}.jpg`}
                   className="block w-full"
                   testId={`equip-photo-${i}`}
                 >
-                  <img src={p} alt={`Photo ${i + 1}`} className="w-full aspect-[4/3] object-cover rounded border border-slate-200" />
+                  <img src={resolvePhotoSrc(p)} alt={`Photo ${i + 1}`} className="w-full aspect-[4/3] object-cover rounded border border-slate-200" />
                 </PhotoLightbox>
               ))}
             </div>

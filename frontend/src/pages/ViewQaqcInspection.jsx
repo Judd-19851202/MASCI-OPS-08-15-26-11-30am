@@ -10,6 +10,7 @@ import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { formatDateLong } from "@/lib/utils";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 
 const KIND_LABEL = {
   concrete_form: "Concrete Form Inspection",

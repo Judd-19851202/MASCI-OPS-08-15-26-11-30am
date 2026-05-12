@@ -75,6 +75,70 @@ except Exception as _heif_err:  # noqa: BLE001
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/job-photos", tags=["job-photos"])
 
+# ─────────────────────────────────────────────────────────────────────────
+# Iter64 hotfix — Photo Bytes resolver (sibling router, no prefix collision)
+# ─────────────────────────────────────────────────────────────────────────
+# Direct img-src endpoint for ``photo://`` refs that ended up rendered in
+# record-detail views (ViewDailyReport, ViewMeeting, ViewInspection,
+# ViewIncident, ViewQaqcInspection, ViewEquipmentInspection,
+# ViewSafetyForm, FieldLeadershipView, PhotoUpload preview). These pages
+# render the raw `record.photos[i]` string straight into <img src=...>.
+# Before iter64 phase 2 the string was a base64 data: URL that browsers
+# could load natively. After migration the string became
+# ``photo://masci-hub/...`` which browsers can't fetch → blank squares.
+# This endpoint resolves the ref to actual image bytes on the server
+# and returns them as a normal HTTP image response so browsers display
+# them transparently.
+#
+# Auth: deliberately public. The threat model is identical to having
+# the photos embedded as base64 inside the record JSON — if you can
+# fetch the record, you can see the photos. Refs are unguessable
+# (UUID-keyed paths) and we cache aggressively to keep this cheap.
+photo_bytes_router = APIRouter(prefix="/api", tags=["photo-bytes"])
+
+
+@photo_bytes_router.get("/photo-bytes")
+async def photo_bytes_resolve(ref: str = Query(..., min_length=10, max_length=512)):
+    """Return raw image bytes for any photo ref. Accepts both legacy
+    base64 ``data:`` URLs (in which case we just unbox the base64) and
+    ``photo://`` storage refs (in which case we fetch from R2). Sets
+    aggressive cache headers — these URLs are content-addressable so
+    a 1-year cache is correct.
+
+    Frontend usage:
+        <img src={`${API}/photo-bytes?ref=${encodeURIComponent(p)}`} />
+    """
+    from fastapi.responses import Response
+    if not ref or not isinstance(ref, str):
+        raise HTTPException(400, "ref required")
+    # Reject obvious garbage early so we don't burn an R2 call.
+    if not (ref.startswith("data:") or ref.startswith("photo://")):
+        raise HTTPException(400, "unsupported photo ref scheme")
+
+    result = await _load_photo_bytes(ref)
+    if not result:
+        raise HTTPException(404, "photo not available")
+    raw, ext = result
+    content_type = {
+        "jpg": "image/jpeg",
+        "png": "image/png",
+        "webp": "image/webp",
+        "gif": "image/gif",
+        "heic": "image/heic",
+        "heif": "image/heif",
+        "avif": "image/avif",
+    }.get(ext, "image/jpeg")
+    return Response(
+        content=raw,
+        media_type=content_type,
+        headers={
+            # Aggressive cache — refs are immutable so the bytes never change.
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
 # Sources we mirror photos FROM. Pre-Op (`equipment_inspections`) is
 # intentionally excluded for this Phase 1 per user direction — Pre-Op fail
 # photos are diagnostic, not job-progress documentation.
