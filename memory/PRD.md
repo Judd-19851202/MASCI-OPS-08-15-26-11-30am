@@ -139,6 +139,45 @@ what they are, look clean & professional."
 
 ---
 
+## 2026-05-13 — Iter78e: CompanyInfoDialog Two-Tier + Hub Header Cleanup
+
+### User feedback
+1. Header "INFO" button and bottom "Need Help" tile are duplicates
+   — drop one.
+2. The "VIEW ONLY · ADMIN LOGIN REQUIRED TO EDIT" banner felt off —
+   should just silently disable, not warn.
+
+### What shipped
+- **Header INFO button removed from Hub.jsx** (line 235). The bottom
+  "Need Help?" tile under the Reference section is now the single
+  entry point.
+- **CompanyInfoDialog rebuilt as two-tier**:
+  - **Public / field-crew view**: title flips to "Need Help?", description
+    explains "Office phone, address, and after-hours contact for
+    MASCI General Contractors Inc.", renders as a clean business-card-
+    style display (Company / Address / Office Phone / Website rows
+    using new `InfoRow` sub-component). Email field hidden — field
+    crews don't need internal addresses. Big red `Call Office`
+    button preserved. Just a single `Close` button — no Save, no
+    warning banner, no greyed-out form inputs.
+  - **Admin view**: full editable form preserved unchanged. Title
+    stays "Company Info", Save button + Cancel button.
+- Removed unused `Lock` icon import + the `inputClsLocked` style
+  fallback path.
+
+### Verification
+- Header: `info-btn count=0`, lang toggle remains.
+- Read-only: banner gone, read-only card present, Save hidden, Close
+  button visible, title = "Need Help?".
+- Admin: full editable form + Save button restored after admin login.
+
+### Files touched
+- `/app/frontend/src/pages/Hub.jsx`
+- `/app/frontend/src/components/CompanyInfoDialog.jsx`
+
+---
+
+
 ## 2026-05-13 — Iter78c+d: Email Subject Redesign + Long-Form Brand Strings
 
 ### What shipped

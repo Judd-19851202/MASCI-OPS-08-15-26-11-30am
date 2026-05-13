@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, Phone, Lock } from "lucide-react";
+import { Building2, Phone } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -80,28 +80,16 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
       <DialogContent className="sm:max-w-lg" data-testid="company-info-dialog">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">
-            {t("Company Info")}
+            {canEdit ? t("Company Info") : t("Need Help?")}
           </DialogTitle>
           <DialogDescription>
             {canEdit
               ? t("Appears on the print/PDF footer of every safety report. Stored only on this device.")
-              : t("Appears on every printed report. Admin only — sign in as admin to make changes.")}
+              : t("Office phone, address, and after-hours contact for MASCI General Contractors Inc.")}
           </DialogDescription>
         </DialogHeader>
 
-        {!canEdit && (
-          <div
-            className="flex items-center gap-2 px-3 py-2 rounded-md bg-amber-50 border border-amber-300 text-amber-900 text-xs font-mono uppercase tracking-[0.15em]"
-            data-testid="ci-readonly-banner"
-          >
-            <Lock className="w-3.5 h-3.5" />
-            {t("View only · Admin login required to edit")}
-          </div>
-        )}
-
-        {/* Quick-call CTA — large red pill at the top of the dialog. Uses
-            the tel: URI so a tap on phone dials, on desktop pops the user's
-            default phone app. Disabled silently when no phone is set. */}
+        {/* Quick-call CTA — large red pill. Same for everyone. */}
         {tel && (
           <a
             href={tel}
@@ -113,113 +101,160 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
           </a>
         )}
 
-        <div className="grid gap-3 py-2">
-          <div>
-            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              {t("Company Name")}
-            </Label>
-            <Input
-              value={info.company_name}
-              onChange={(e) => set("company_name", e.target.value)}
-              className={canEdit ? inputCls : inputClsLocked}
-              readOnly={!canEdit}
-              tabIndex={canEdit ? 0 : -1}
-              data-testid="ci-company-name"
-            />
-          </div>
-          <div>
-            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              {t("Street Address")}
-            </Label>
-            <Input
-              value={info.address}
-              onChange={(e) => set("address", e.target.value)}
-              className={canEdit ? inputCls : inputClsLocked}
-              readOnly={!canEdit}
-              tabIndex={canEdit ? 0 : -1}
-              placeholder="123 Main St"
-              data-testid="ci-address"
-            />
-          </div>
-          <div>
-            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              {t("City, State, ZIP")}
-            </Label>
-            <Input
-              value={info.city_state_zip}
-              onChange={(e) => set("city_state_zip", e.target.value)}
-              className={canEdit ? inputCls : inputClsLocked}
-              readOnly={!canEdit}
-              tabIndex={canEdit ? 0 : -1}
-              placeholder="Orlando, FL 32801"
-              data-testid="ci-csz"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                {t("Office Phone")}
-              </Label>
-              <Input
-                value={info.phone}
-                onChange={(e) => set("phone", e.target.value)}
-                className={canEdit ? inputCls : inputClsLocked}
-                readOnly={!canEdit}
-                tabIndex={canEdit ? 0 : -1}
-                placeholder="(555) 555-5555"
-                data-testid="ci-phone"
-                inputMode="tel"
-              />
+        {canEdit ? (
+          // ── Admin edit form ────────────────────────────────────────
+          <>
+            <div className="grid gap-3 py-2">
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t("Company Name")}
+                </Label>
+                <Input
+                  value={info.company_name}
+                  onChange={(e) => set("company_name", e.target.value)}
+                  className={inputCls}
+                  data-testid="ci-company-name"
+                />
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t("Street Address")}
+                </Label>
+                <Input
+                  value={info.address}
+                  onChange={(e) => set("address", e.target.value)}
+                  className={inputCls}
+                  placeholder="123 Main St"
+                  data-testid="ci-address"
+                />
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t("City, State, ZIP")}
+                </Label>
+                <Input
+                  value={info.city_state_zip}
+                  onChange={(e) => set("city_state_zip", e.target.value)}
+                  className={inputCls}
+                  placeholder="Orlando, FL 32801"
+                  data-testid="ci-csz"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                    {t("Office Phone")}
+                  </Label>
+                  <Input
+                    value={info.phone}
+                    onChange={(e) => set("phone", e.target.value)}
+                    className={inputCls}
+                    placeholder="(555) 555-5555"
+                    data-testid="ci-phone"
+                    inputMode="tel"
+                  />
+                </div>
+                <div>
+                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                    {t("Email")}
+                  </Label>
+                  <Input
+                    value={info.email}
+                    onChange={(e) => set("email", e.target.value)}
+                    className={inputCls}
+                    placeholder="safety@masci.com"
+                    data-testid="ci-email"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t("Website")}
+                </Label>
+                <Input
+                  value={info.website}
+                  onChange={(e) => set("website", e.target.value)}
+                  className={inputCls}
+                  placeholder="masci.com"
+                  data-testid="ci-website"
+                />
+              </div>
             </div>
-            <div>
-              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                {t("Email")}
-              </Label>
-              <Input
-                value={info.email}
-                onChange={(e) => set("email", e.target.value)}
-                className={canEdit ? inputCls : inputClsLocked}
-                readOnly={!canEdit}
-                tabIndex={canEdit ? 0 : -1}
-                placeholder="safety@masci.com"
-                data-testid="ci-email"
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setOpen(false)}
+                data-testid="ci-cancel"
+              >
+                {t("Cancel")}
+              </Button>
+              <Button
+                onClick={save}
+                className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
+                data-testid="ci-save"
+              >
+                {t("Save")}
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          // ── Read-only contact card — business-card-style display ──
+          <>
+            <div className="space-y-3 py-2" data-testid="ci-readonly-card">
+              <InfoRow
+                label={t("Company")}
+                value={info.company_name}
+                testId="ci-display-company"
               />
+              <InfoRow
+                label={t("Address")}
+                value={[info.address, info.city_state_zip].filter(Boolean).join(", ")}
+                testId="ci-display-address"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <InfoRow
+                  label={t("Office Phone")}
+                  value={info.phone}
+                  testId="ci-display-phone"
+                />
+                <InfoRow
+                  label={t("Website")}
+                  value={info.website}
+                  testId="ci-display-website"
+                />
+              </div>
             </div>
-          </div>
-          <div>
-            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              {t("Website")}
-            </Label>
-            <Input
-              value={info.website}
-              onChange={(e) => set("website", e.target.value)}
-              className={canEdit ? inputCls : inputClsLocked}
-              readOnly={!canEdit}
-              tabIndex={canEdit ? 0 : -1}
-              placeholder="masci.com"
-              data-testid="ci-website"
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setOpen(false)}
-            data-testid="ci-cancel"
-          >
-            {canEdit ? t("Cancel") : t("Close")}
-          </Button>
-          {canEdit && (
-            <Button
-              onClick={save}
-              className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
-              data-testid="ci-save"
-            >
-              {t("Save")}
-            </Button>
-          )}
-        </DialogFooter>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setOpen(false)}
+                data-testid="ci-cancel"
+                className="w-full sm:w-auto"
+              >
+                {t("Close")}
+              </Button>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
 };
+
+/** Plain read-only display row — looks like a business card, not a form. */
+function InfoRow({ label, value, testId }) {
+  if (!value) return null;
+  return (
+    <div>
+      <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
+        {label}
+      </div>
+      <div
+        className="font-display text-base text-slate-900 leading-snug mt-0.5"
+        data-testid={testId}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}

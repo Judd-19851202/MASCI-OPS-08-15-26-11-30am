@@ -232,7 +232,6 @@ export default function Hub() {
           <MasciLogo variant="lockup" size="xl" className="sm:hidden" homeLink="/" />
           <div className="flex items-center gap-2">
             <LangToggle />
-            <CompanyInfoDialog />
           </div>
         </div>
       </header>
