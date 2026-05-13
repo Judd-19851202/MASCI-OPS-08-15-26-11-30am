@@ -1,5 +1,57 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter92: Admin KPI Strip — Whole-Platform Visibility
+
+### User report
+"Still missing all forms submitted through field leadership too, job
+photos, safety reports, accident/incident reports, etc. this is the
+ADMIN console the whole world view......you messed this up fix it"
+
+### Confirmed gap
+iter91's strip only showed 8 of the 10 user-facing record collections.
+Field Leadership records (335 supervisor records spanning 11 different
+kinds — write-ups, coaching, attendance, recognition, terminations,
+evaluations, equipment checkouts, etc.) and Job Photos (58 curated
+images) had no top-level surface area.
+
+### What shipped
+Restructured `AdminKpiStrip.jsx` into two labeled sections so the
+visual layout matches how admins think about the platform:
+
+**Section 1 — "Safety & Field forms · Records on file"** (the 8 from iter91):
+Daily Reports · Site Inspections · Safety Meetings · Incident Reports ·
+Equipment Pre-Op · Job Hazard Plans · Trench Box Data · QA/QC
+
+**Section 2 — "Leadership & Media · Records on file"** (NEW):
+- **Field Leadership** (purple accent) — single tile with the total
+  count rolled up across every "kind". The kind-by-kind breakdown
+  (Write-ups: 3 · Coaching: 5 · Terminations: 1 · …) shows up in the
+  hover title attribute so admins don't have to click through to see
+  the distribution. Links to `/leadership`.
+- **Job Photos** (slate accent) — count of indexed photos from the
+  curated gallery, links to `/job-photos`.
+
+### Implementation notes
+- Field Leadership endpoint (`GET /api/field-leadership`) returns
+  `counts_by_kind` even when items are limited — used `limit=1` to
+  avoid hauling 335 records just for a count.
+- Job Photos endpoint (`GET /api/job-photos`) returns top-level `count`
+  in its response envelope.
+- Both endpoints accept the admin token directly.
+
+### Verified
+- `curl /field-leadership?limit=1` returns counts_by_kind ✅
+- `curl /job-photos?limit=1` returns count: 58 ✅
+- Screenshot of `/admin` shows both sections rendering with live data:
+  Safety & Field (56 / 7 / 1 / 4 / 18 / 0 / 0 / 0) + Leadership & Media
+  (335 / 58) ✅
+
+### Files touched
+- `/app/frontend/src/components/AdminKpiStrip.jsx` (rewrite)
+
+---
+
+
 ## 2026-05-13 — Iter91: Admin Overview — KPI Strip Restored
 
 ### User report
