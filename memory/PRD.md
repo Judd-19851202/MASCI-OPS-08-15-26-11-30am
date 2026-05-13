@@ -1,5 +1,39 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter77: Crew Cheat Sheet → "Field Card" Redesign
+
+### User ask
+Uploaded `Cheat Sheet Issues.pdf` requesting the printable Crew Cheat
+Sheet be redesigned to reflect the full 5-portal MASCI Hub (not just
+the legacy safety-only flow) and remove the hardcoded
+`safety@mascigc.com` email.
+
+### What shipped
+- **`CheatSheetCard.jsx` full rebuild**:
+  - Re-titled "MASCI Operations Platform · Field Card" (legacy was
+    "Crew Cheat Sheet · Field Safety Reporting Portal").
+  - **3 Submission tiles** (public, no sign-in): Field · QA / QC · Safety.
+  - **4 Office Portal pills** (sign-in required): PM · Shop · HR ·
+    Field Leadership — matches the iter73 Hub redesign exactly.
+  - Removed `safety@mascigc.com` everywhere. Office phone-only
+    contact (386-322-4500).
+  - Footer standardized to "MASCI Operations Platform · Powered by
+    ForgedOps™" (matches iter74 / iter76 brand standard).
+  - "Stop-the-Line · Accidents & Injuries" 4-step protocol preserved.
+  - "Tips for Everyone" expanded (ES toggle · 6-photo rule · Doc ID
+    tracking · Pre-Op FAIL auto-emails · home-screen install).
+  - Training Hub + Need Help mini-strip retained.
+- Verified visually at `/cheatsheet`: layout responsive, branding
+  correct, all 5-portal verbiage present.
+
+### Files touched
+- `/app/frontend/src/components/CheatSheetCard.jsx` (rewrite)
+
+---
+
+
+# MASCI Safety Hub — PRD
+
 ## 2026-05-13 — Iter76: Legal / Infrastructure / Branding Hardening
 
 ### User ask
