@@ -1,20 +1,26 @@
 // Field Leadership Hub — landing page after the MASCIGC password gate.
 //
-// Visual style mirrors the main MASCI Hub: same blueprint-bg + caution-stripe
-// chrome, slate-900 header w/ MasciLogo + LangToggle + CompanyInfoDialog,
-// page-eyebrow + 4xl/5xl/6xl display headline + body copy, then the same
-// SectionCard tile pattern used on the Hub for every other section.
+// Layout mirrors the main MASCI Hub: blueprint-bg + caution-stripe chrome,
+// slate-900 header w/ MasciLogo + LangToggle + CompanyInfoDialog, page-eyebrow
+// + display headline, then GROUPED `SectionTile` rows (same shared component
+// used on Hub.jsx / FieldSection / SafetySection / QaqcSection so every tile
+// in the system is the exact same size and rhythm).
 //
-// Each form is a SectionCard with an accent color, eyebrow tag, icon, title,
-// description, and bullet list. Supervisor Notes locks out non-admin users.
-// Safety Equipment Issuance opens the existing Safety Forms login.
+// Forms are organized into 4 logical groups instead of dumped in build order:
+//   01 · Daily Crew Documentation
+//   02 · Evaluations & Career Path
+//   03 · Equipment Accountability
+//   04 · HR Actions
+//
+// Each group renders its own `SectionHeader` (kicker + dashed rule + h2) and
+// a `SectionTile` grid underneath. Bullets per form live in the BULLETS table
+// below — keeps each tile body skim-able and consistent.
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowLeft, Lock, ListChecks, Loader2 } from "lucide-react";
+import { ArrowLeft, Lock, ListChecks, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import { PasswordInput } from "@/components/PasswordInput";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { toast } from "sonner";
@@ -24,6 +30,7 @@ import { getPmToken } from "@/lib/pmAuth";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
+import { SectionTile } from "@/components/SectionTile";
 import {
   getLeadershipToken,
   loginLeadership,
@@ -34,24 +41,8 @@ import {
   SAFETY_EQUIPMENT_ISSUANCE_LINK,
 } from "@/lib/fieldLeadershipSchemas";
 
-// Same accent palette as Hub.jsx SectionCard so Tailwind retains the classes.
-const STYLES = {
-  red:    { bg: "bg-red-700",     ring: "hover:border-red-700",     pill: "text-red-700 bg-red-50" },
-  amber:  { bg: "bg-amber-600",   ring: "hover:border-amber-600",   pill: "text-amber-700 bg-amber-50" },
-  orange: { bg: "bg-orange-600",  ring: "hover:border-orange-600",  pill: "text-orange-700 bg-orange-50" },
-  emerald:{ bg: "bg-emerald-700", ring: "hover:border-emerald-700", pill: "text-emerald-700 bg-emerald-50" },
-  blue:   { bg: "bg-blue-700",    ring: "hover:border-blue-700",    pill: "text-blue-700 bg-blue-50" },
-  cyan:   { bg: "bg-cyan-600",    ring: "hover:border-cyan-600",    pill: "text-cyan-700 bg-cyan-50" },
-  purple: { bg: "bg-purple-700",  ring: "hover:border-purple-700",  pill: "text-purple-700 bg-purple-50" },
-  indigo: { bg: "bg-indigo-700",  ring: "hover:border-indigo-700",  pill: "text-indigo-700 bg-indigo-50" },
-  fuchsia:{ bg: "bg-fuchsia-700", ring: "hover:border-fuchsia-700", pill: "text-fuchsia-700 bg-fuchsia-50" },
-  lime:   { bg: "bg-lime-500",    ring: "hover:border-lime-500",    pill: "text-lime-700 bg-lime-50" },
-  yellow: { bg: "bg-yellow-500",  ring: "hover:border-yellow-500",  pill: "text-yellow-800 bg-yellow-50" },
-  slate:  { bg: "bg-slate-900",   ring: "hover:border-slate-900",   pill: "text-slate-800 bg-slate-100" },
-};
-
 // Bullet content per form — keeps each tile's body grounded and skim-able,
-// matching the rest of the Hub which always shows 2 bullets per SectionCard.
+// matching the rest of the Hub which always shows 2 bullets per tile.
 const BULLETS = {
   write_up: { en: ["Disciplinary or corrective action", "Written/Verbal/Final · refusal-to-sign supported"],
               es: ["Acción disciplinaria o correctiva", "Verbal/Escrita/Final · admite negativa a firmar"] },
@@ -73,13 +64,59 @@ const BULLETS = {
                               es: ["Ascenso · Aumento · Desarrollo de liderazgo", "Fortalezas, liderazgo, seguridad"] },
   training_deficiency: { en: ["Document deficiency + assigned retraining", "Track due date + completion status"],
                          es: ["Documente deficiencia + reentrenamiento", "Registre fecha límite y estado"] },
-  supervisor_notes: { en: ["Internal leadership documentation log", "Visible to admins, PMs, and field leadership"],
-                      es: ["Registro interno de liderazgo", "Visible para administradores, PMs y liderazgo de campo"] },
-  employee_termination: { en: ["Document separation, resignation, or termination", "Termination documentation · resignation tracking · policy enforcement"],
-                          es: ["Documente separación, renuncia o terminación", "Documentación de terminación · seguimiento de renuncias · cumplimiento de políticas"] },
-  time_off_request: { en: ["Vacation · Sick · Medical · Family · Bereavement · Personal", "HR auto-notified · they approve/deny in the HR Portal"],
-                      es: ["Vacaciones · Enfermedad · Médico · Familiar · Duelo · Personal", "RRHH se notifica automáticamente · aprueban/niegan en el Portal"] },
+  employee_termination: { en: ["Document separation, resignation, or termination", "Termination · resignation tracking · policy enforcement"],
+                          es: ["Documente separación, renuncia o terminación", "Terminación · seguimiento de renuncias · cumplimiento"] },
+  time_off_request: { en: ["Vacation · Sick · Medical · Family · Bereavement · Personal", "HR auto-notified · approved/denied in the HR Portal"],
+                      es: ["Vacaciones · Enfermedad · Médico · Familiar · Duelo · Personal", "RRHH se notifica · aprueban/niegan en el Portal"] },
+  safety_equipment_issuance: { en: ["PPE + safety-equipment accountability", "Records shared with the Safety section"],
+                               es: ["Responsabilidad de EPP y equipo de seguridad", "Registros compartidos con la sección de Seguridad"] },
 };
+
+// 4 logical groups — ordered most-used → least-used.
+// `kinds` is a list of form `kind` keys; tiles render in this exact order.
+const GROUPS = [
+  {
+    kicker: "01",
+    title: { en: "Daily Crew Documentation", es: "Documentación Diaria del Personal" },
+    subtitle: { en: "What you fill out at the end of a shift to keep the paper trail clean.",
+                es: "Lo que llenas al final del turno para mantener el registro limpio." },
+    kinds: ["verbal_coaching", "write_up", "attendance", "recognition"],
+  },
+  {
+    kicker: "02",
+    title: { en: "Evaluations & Career Path", es: "Evaluaciones y Carrera Profesional" },
+    subtitle: { en: "Performance, promotions, and training accountability.",
+                es: "Desempeño, ascensos y responsabilidad de capacitación." },
+    kinds: ["new_employee_eval", "crew_eval", "promotion_recommendation", "training_deficiency"],
+  },
+  {
+    kicker: "03",
+    title: { en: "Equipment Accountability", es: "Responsabilidad de Equipo" },
+    subtitle: { en: "Who's responsible for what — checkout, return, and PPE issuance.",
+                es: "Quién es responsable de qué — entrega, devolución y emisión de EPP." },
+    kinds: ["equipment_checkout", "equipment_return", "safety_equipment_issuance"],
+  },
+  {
+    kicker: "04",
+    title: { en: "HR Actions", es: "Acciones de RRHH" },
+    subtitle: { en: "Routes straight to the HR Portal for approval or final processing.",
+                es: "Se enrutan al Portal de RRHH para aprobación o procesamiento final." },
+    kinds: ["time_off_request", "employee_termination"],
+  },
+];
+
+function SectionHeader({ kicker, title, subtitle }) {
+  return (
+    <div className="flex items-baseline gap-3 mb-4 sm:mb-5 mt-10 sm:mt-12 first:mt-0">
+      <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-red-700 font-black">{kicker}</span>
+      <span className="h-px flex-1 bg-slate-300 max-w-6" />
+      <div className="flex-1 min-w-0">
+        <h2 className="font-display text-lg sm:text-xl font-black tracking-tight text-slate-900">{title}</h2>
+        {subtitle && <p className="text-xs sm:text-sm text-slate-500 mt-0.5">{subtitle}</p>}
+      </div>
+    </div>
+  );
+}
 
 function PasswordGate({ onAuthed }) {
   const { t } = useT();
@@ -186,108 +223,17 @@ function PasswordGate({ onAuthed }) {
   );
 }
 
-function LeadershipTile({ form, lang, t, locked, isExternal, externalTo }) {
-  const s = STYLES[form.accent] || STYLES.red;
-  const Icon = form.icon;
-  const title = form.title[lang] || form.title.en;
-  const desc = form.desc[lang] || form.desc.en;
-  const bullets = (BULLETS[form.kind] || { en: [] })[lang] || BULLETS[form.kind]?.en || [];
-
-  if (locked) {
-    return (
-      <div
-        className="group relative bg-white border-2 border-dashed border-slate-300 rounded-md p-6 sm:p-8 flex flex-col opacity-90 cursor-not-allowed"
-        data-testid={`leadership-tile-${form.kind}`}
-        aria-disabled="true"
-      >
-        <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${s.bg} opacity-60`} />
-        <div className="flex items-start justify-between gap-3">
-          <div className={`inline-flex items-center justify-center w-14 h-14 rounded-md ${s.bg} text-white opacity-70`}>
-            <Icon className="w-7 h-7" />
-          </div>
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-900 text-amber-300 font-mono text-[10px] uppercase tracking-[0.2em] font-bold">
-            <Lock className="w-3 h-3" /> {t("Admin Only")}
-          </span>
-        </div>
-        <h3 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-700 mt-4">
-          {title}
-        </h3>
-        <p className="text-slate-500 text-sm sm:text-base mt-2 leading-relaxed">{desc}</p>
-        {bullets.length > 0 && (
-          <ul className="mt-4 space-y-1.5 text-xs sm:text-sm text-slate-500">
-            {bullets.map((b) => (
-              <li key={b} className="flex items-start gap-2">
-                <span className={`mt-1.5 w-1 h-1 rounded-full ${s.bg} shrink-0 opacity-60`} />
-                <span>{b}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-        <div className="mt-6 pt-5 border-t-2 border-dashed border-slate-200">
-          <span className="font-mono text-xs uppercase tracking-[0.2em] font-bold text-slate-400">
-            {t("Sign in as Admin to unlock")}
-          </span>
-        </div>
-      </div>
-    );
+/**
+ * Resolve a `kind` key to a form definition. Schema kinds come from
+ * FIELD_LEADERSHIP_FORMS; the one external kind comes from
+ * SAFETY_EQUIPMENT_ISSUANCE_LINK.
+ */
+function resolveForm(kind) {
+  if (kind === SAFETY_EQUIPMENT_ISSUANCE_LINK.kind) {
+    return { ...SAFETY_EQUIPMENT_ISSUANCE_LINK, external: true };
   }
-
-  const className = `group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 transition-all duration-150 hover:-translate-y-0.5 ${s.ring} flex flex-col`;
-  const inner = (
-    <>
-      <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${s.bg}`} />
-      <div className="flex items-start justify-between gap-3">
-        <div className={`inline-flex items-center justify-center w-14 h-14 rounded-md ${s.bg} text-white`}>
-          <Icon className="w-7 h-7" />
-        </div>
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded ${s.pill} font-mono text-[10px] uppercase tracking-[0.2em] font-bold`}>
-          {isExternal ? t("Existing Form") : t("Field Leadership")}
-        </span>
-      </div>
-      <h3 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-4">
-        {title}
-      </h3>
-      <p className="text-slate-600 text-sm sm:text-base mt-2 leading-relaxed">{desc}</p>
-      {bullets.length > 0 && (
-        <ul className="mt-4 space-y-1.5 text-xs sm:text-sm text-slate-700">
-          {bullets.map((b) => (
-            <li key={b} className="flex items-start gap-2">
-              <span className={`mt-1.5 w-1 h-1 rounded-full ${s.bg} shrink-0`} />
-              <span>{b}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="mt-6 pt-5 border-t-2 border-slate-100 flex items-center justify-between">
-        <span className="font-mono text-xs uppercase tracking-[0.2em] font-bold text-red-700">
-          {isExternal ? t("Open form →") : t("New entry →")}
-        </span>
-        <ArrowRight className="w-5 h-5 transition-transform duration-150 group-hover:translate-x-1 text-red-700" />
-      </div>
-    </>
-  );
-
-  if (isExternal) {
-    return (
-      <a
-        href={externalTo}
-        className={className}
-        data-testid={`leadership-tile-${form.kind}`}
-      >
-        {inner}
-      </a>
-    );
-  }
-
-  return (
-    <Link
-      to={`/leadership/${form.kind}/new`}
-      className={className}
-      data-testid={`leadership-tile-${form.kind}`}
-    >
-      {inner}
-    </Link>
-  );
+  const f = FIELD_LEADERSHIP_FORMS.find((x) => x.kind === kind);
+  return f ? { ...f, external: false } : null;
 }
 
 export default function FieldLeadershipHub() {
@@ -346,7 +292,7 @@ export default function FieldLeadershipHub() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
-        <div className="mb-10 sm:mb-14">
+        <div className="mb-8 sm:mb-10">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
             {t("Restricted · Crew Documentation")}
           </span>
@@ -362,25 +308,43 @@ export default function FieldLeadershipHub() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mb-10">
-          {FIELD_LEADERSHIP_FORMS.map((form) => (
-            <LeadershipTile
-              key={form.kind}
-              form={form}
-              lang={lang}
-              t={t}
-              locked={form.admin_only && !admin}
+        {GROUPS.map((group) => (
+          <section key={group.kicker} className="mb-2">
+            <SectionHeader
+              kicker={group.kicker}
+              title={t(group.title[lang] || group.title.en)}
+              subtitle={t(group.subtitle[lang] || group.subtitle.en)}
             />
-          ))}
-          <LeadershipTile
-            form={SAFETY_EQUIPMENT_ISSUANCE_LINK}
-            lang={lang}
-            t={t}
-            locked={false}
-            isExternal
-            externalTo={SAFETY_EQUIPMENT_ISSUANCE_LINK.to}
-          />
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {group.kinds.map((kind) => {
+                const form = resolveForm(kind);
+                if (!form) return null;
+                const title = form.title[lang] || form.title.en;
+                const desc = form.desc[lang] || form.desc.en;
+                const bullets = (BULLETS[kind] || {})[lang] || BULLETS[kind]?.en || [];
+                const locked = Boolean(form.admin_only) && !admin;
+                const isExternal = Boolean(form.external);
+                return (
+                  <SectionTile
+                    key={kind}
+                    to={isExternal ? undefined : `/leadership/${kind}/new`}
+                    href={isExternal ? form.to : undefined}
+                    icon={form.icon}
+                    title={title}
+                    desc={desc}
+                    bullets={bullets}
+                    accent={form.accent}
+                    pillLabel={isExternal ? t("Existing Form") : t("Field Leadership")}
+                    ctaLabel={isExternal ? t("Open form") : t("New entry")}
+                    disabled={locked}
+                    disabledLabel={t("Sign in as Admin to unlock")}
+                    testId={`leadership-tile-${kind}`}
+                  />
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </main>
     </div>
   );

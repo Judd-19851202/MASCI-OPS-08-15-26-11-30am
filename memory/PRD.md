@@ -1,5 +1,31 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter107: Field Leadership Tile Uniformity + Grouped Layout
+
+### User ask
+"Field Leadership tiles inside it seem bigger than all others in other tiles? Also we need to arrange field leadership better they seem kinda random all over the place... Suggestions?"
+
+### Shipped
+**Tile size unified** — `FieldLeadershipHub.jsx` now uses the shared `SectionTile` component (same `p-6 sm:p-7` padding + `gap-4 sm:gap-5` grid spacing as Field/Safety/QA-QC/main Hub). The old per-page `LeadershipTile` (which had bigger `p-6 sm:p-8` + `gap-5 sm:gap-6`) was deleted.
+
+**Color palette expanded** — extended `SectionTile.jsx` `ACCENTS` table with `orange`, `yellow`, `lime`, `cyan`, `indigo`, `purple`, `fuchsia` so it can serve every accent FL uses (without colliding with main Hub colors).
+
+**Forms regrouped into 4 logical sections** with `SectionHeader` rows (kicker + dashed rule + h2/subtitle):
+- **01 · Daily Crew Documentation** — Verbal Coaching → Write-Up → Attendance → Recognition
+- **02 · Evaluations & Career Path** — New Employee Eval → Crew Eval → Promotion Recommendation → Training Deficiency
+- **03 · Equipment Accountability** — Checkout → Return → Safety Equipment Issuance (external)
+- **04 · HR Actions** — Time Off Request → Employee Termination
+
+### Files changed
+- `frontend/src/components/SectionTile.jsx` (accent palette expanded)
+- `frontend/src/pages/FieldLeadershipHub.jsx` (full rewrite — 230 lines, was 388)
+
+### Verified
+- ESLint clean
+- Live screenshots confirm all 4 groups render uniformly, tile sizes now match the rest of the system
+
+---
+
 ## 2026-05-13 — Iter106: Sub-Hub Tile Uniformity
 
 ### User ask
