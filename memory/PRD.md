@@ -139,6 +139,84 @@ what they are, look clean & professional."
 
 ---
 
+## 2026-05-13 — Iter79: Weekly Backup Verification Cron
+
+### User ask
+Weekly automated email confirming R2 archives are healthy + lists what
+was backed up. Peace-of-mind insurance vs. the existing watchdog (which
+only fires when something breaks).
+
+### What shipped
+**Backend (`/app/backend/backup_verification.py` — new isolated module):**
+- `list_r2_backup_archives()` — paginated R2 `list_objects_v2` over
+  `backups/` prefix; handles >1000 objects.
+- `build_verification_report(db)` — assembles full health report:
+  R2 archive count + size + age, cross-checked against the local
+  `backup_health` ledger, plus per-collection MongoDB record counts.
+  Verdict: pass/warn/fail.
+- `render_verification_email_html(report)` + `render_verification_subject(report)` —
+  brand-matched HTML email + mobile-friendly subject (`[MASCI] Weekly
+  Backup Verification ✓ · N archives healthy` for pass; `🚨 BACKUP
+  VERIFICATION FAILED · check immediately` for fail).
+- `send_verification_email(db)` — wraps build + Resend send. Falls
+  through recipient resolution: `BACKUP_VERIFICATION_TO` →
+  `BACKUP_EMAIL_TO` → `SAFETY_EMAIL_TO`.
+- `verification_scheduler_loop(db)` — long-running asyncio cron.
+  Default schedule **Mon 14:00 UTC** (10 AM ET Mon). Uses a
+  `backup_health._verification_last_run` marker so it survives
+  restarts — fires catch-up at boot if past-due.
+
+**Backend (`/app/backend/routes/backup_verification_routes.py` — new):**
+- `GET /api/admin/backup-verification/preview` — build report,
+  no email (admin-strict)
+- `POST /api/admin/backup-verification/run-now` — build + email
+  immediately, optional `{recipients: [...]}` override (admin-strict)
+- `GET /api/admin/backup-verification/state` — last/next fire,
+  recipients, threshold (admin-strict)
+
+**Backend (`server.py`):**
+- Router mounted alongside signature-migration router.
+- `_start_backup_verification_cron` startup hook spawns the
+  scheduler as its own asyncio task — isolated from the main backup
+  scheduler so a crash here can't disturb backups.
+
+**Frontend (`AdminBackupVerificationPanel.jsx` — new):**
+- Mounted in `AdminHub.jsx` System Recovery section, right between
+  Cloud Archives and Signature Migration panels.
+- Shows: schedule (day/hour/next-fire), recipients, last-run age.
+- `Preview Report` button — runs the verification, shows verdict +
+  R2 archive count + ledger status + record count inline.
+- `Send Verification Now` button — confirm dialog → fires the
+  email immediately. Returns toast with success or error.
+
+**Env knobs** (all optional with sensible defaults):
+- `BACKUP_VERIFICATION_ENABLED` (default true)
+- `BACKUP_VERIFICATION_DAY` (0–6, Mon=0; default 0)
+- `BACKUP_VERIFICATION_HOUR_UTC` (0–23; default 14)
+- `BACKUP_VERIFICATION_TO` (CSV emails; falls through to
+  `BACKUP_EMAIL_TO`/`SAFETY_EMAIL_TO`)
+- `BACKUP_VERIFICATION_MAX_AGE_HOURS` (default 36)
+
+### Verification (live preview test)
+- Boot log: `[verify] weekly cron started — fires weekly on day-of-week=0 at 14:00 UTC`.
+- Catch-up fire at boot succeeded: sent to `jaymn.judd@mascigc.com`,
+  verdict **pass**, 50 R2 archives, 1.4 GB total, newest 3.0h ago.
+- All 3 admin endpoints respond correctly (preview, run-now, state).
+- Email renders cleanly — full HTML reviewed via Playwright
+  screenshot.
+- Admin panel verified at `/admin` — schedule/recipients/last-run
+  card + preview card all render correctly.
+
+### Files touched
+- `/app/backend/backup_verification.py` (NEW)
+- `/app/backend/routes/backup_verification_routes.py` (NEW)
+- `/app/backend/server.py` (mount + startup hook)
+- `/app/frontend/src/components/AdminBackupVerificationPanel.jsx` (NEW)
+- `/app/frontend/src/pages/AdminHub.jsx` (import + render)
+
+---
+
+
 ## 2026-05-13 — Iter78e: CompanyInfoDialog Two-Tier + Hub Header Cleanup
 
 ### User feedback

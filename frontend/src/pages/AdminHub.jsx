@@ -31,6 +31,7 @@ import BackupHeroPanel from "@/components/BackupHeroPanel";
 import StoredBackupsPanel from "@/components/StoredBackupsPanel";
 import CloudArchivesPanel from "@/components/CloudArchivesPanel";
 import AdminSignatureMigrationPanel from "@/components/AdminSignatureMigrationPanel";
+import AdminBackupVerificationPanel from "@/components/AdminBackupVerificationPanel";
 import AdminBannersPanel from "@/components/AdminBannersPanel";
 import RestoreBackupPanel from "@/components/RestoreBackupPanel";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
@@ -555,6 +556,7 @@ export default function AdminHub() {
           </div>
           <StoredBackupsPanel />
           <CloudArchivesPanel />
+          <AdminBackupVerificationPanel />
           <AdminSignatureMigrationPanel />
 
           {/* 3 · RESTORE FROM BACKUP — merge (safe) or replace (wipes) */}

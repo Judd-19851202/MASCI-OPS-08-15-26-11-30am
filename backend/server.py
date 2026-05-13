@@ -8119,6 +8119,31 @@ _sig_mig_router = _sig_mig_module.build_signature_migration_router(db, require_a
 app.include_router(_sig_mig_router)
 
 
+# ─── Backup verification (iter79 — weekly R2 health email) ──────────
+from routes.backup_verification_routes import build_backup_verification_router  # noqa: E402
+from backup_verification import verification_scheduler_loop  # noqa: E402
+
+_backup_verify_router = build_backup_verification_router(db, require_admin_strict)
+app.include_router(_backup_verify_router)
+
+_backup_verify_task: Optional[asyncio.Task] = None
+
+
+@app.on_event("startup")
+async def _start_backup_verification_cron():
+    """Long-running weekly cron that sends a backup verification email
+    every Mon 14:00 UTC by default. Kept on its own asyncio.Task so a
+    crash in this loop never disturbs the actual backup scheduler."""
+    global _backup_verify_task
+    try:
+        _backup_verify_task = asyncio.create_task(verification_scheduler_loop(db))
+        logging.getLogger(__name__).info(
+            "[verify] weekly cron started"
+        )
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).exception(f"[verify] failed to start: {e}")
+
+
 # Weekly variance email cron (Sunday 18:00 UTC by default).
 _PAYROLL_EMAIL_HOUR = int(os.environ.get("PAYROLL_VARIANCE_EMAIL_HOUR_UTC", "18") or "18")
 _PAYROLL_EMAIL_DOW = int(os.environ.get("PAYROLL_VARIANCE_EMAIL_DOW", "6") or "6")  # 0=Mon, 6=Sun
