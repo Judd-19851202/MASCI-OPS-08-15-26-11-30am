@@ -1,5 +1,52 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter100: Hours Typo Catcher Flags
+
+### User ask
+"yes add" (typo-catcher flags on Daily Report + HR Time Verification)
+
+### What shipped
+New `HoursSanityFlag.jsx` with two exported helpers:
+
+**1. `<DailyHoursFlag hours={n} />`** — Lights up when ANY single-day
+crew entry exceeds 16 hrs:
+- 16-24 hrs → amber chip "CHECK HRS (Xh)"
+- >24 hrs → red chip
+- Tooltip explains: "almost certainly a typo (60 ≠ 6.0, 120 ≠ 12.0)"
+
+**2. `<WeeklyHoursFlag totalHours={n} />`** — Lights up when an
+employee's weekly total exceeds 80 hrs:
+- 80-120 hrs → amber chip "VERIFY WEEK (Xh)"
+- >120 hrs → red chip
+- Tooltip shows the averaged hrs/day so HR can spot impossibles
+
+### Mount points
+- **NewDailyReport.jsx** — `<DailyHoursFlag />` rendered under each
+  crew member's auto-computed hours preview. Foreman sees it
+  immediately as a sanity-check while filling the form.
+- **HrTimeVerification.jsx · Weekly Rollup table** — `<WeeklyHoursFlag />`
+  added to the existing "Flags" column alongside the "No Lunch"
+  indicator. HR sees it before approving payroll.
+- **HrTimeVerification.jsx · Per-Day Detail table** — `<DailyHoursFlag />`
+  added next to the Total Hours column. Same chip the foreman saw,
+  carries forward to HR review.
+
+Both flags are visual-only and DON'T block submission (humans validate;
+they don't get gatekept by a tool).
+
+### Verified
+- Lint clean (JS + Python)
+- HR Time Verification page renders correctly on current empty week
+- Daily Report form still submits normally
+
+### Files touched
+- `/app/frontend/src/components/HoursSanityFlag.jsx` (NEW)
+- `/app/frontend/src/pages/NewDailyReport.jsx`
+- `/app/frontend/src/pages/HrTimeVerification.jsx`
+
+---
+
+
 ## 2026-05-13 — Iter99: Weekly Overtime Calculation (CRITICAL PAYROLL FIX)
 
 ### User clarification

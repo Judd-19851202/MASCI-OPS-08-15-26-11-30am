@@ -21,6 +21,7 @@ import HrPageShell from "@/components/HrPageShell";
 import { getHrToken } from "@/lib/hrAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { WeeklyHoursFlag, DailyHoursFlag } from "@/components/HoursSanityFlag";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-purple-600";
 
@@ -219,11 +220,18 @@ function WeeklyTable({ rows }) {
               <td className="px-3 py-2 text-right font-mono text-slate-500">{fmtHours(r.lunch_hours)}</td>
               <td className="px-3 py-2 text-right font-mono font-bold">{fmtHours(r.total_hours)}</td>
               <td className="px-3 py-2 text-center">
-                {r.missing_lunch && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-bold" title={t("6+ hour day with no lunch")}>
-                    <AlertCircle className="w-3 h-3" /> {t("No Lunch")}
-                  </span>
-                )}
+                <div className="inline-flex items-center gap-1.5 flex-wrap justify-center">
+                  {r.missing_lunch && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-bold" title={t("6+ hour day with no lunch")}>
+                      <AlertCircle className="w-3 h-3" /> {t("No Lunch")}
+                    </span>
+                  )}
+                  {/* iter100 — weekly typo catcher: flag totals > 80 hrs */}
+                  <WeeklyHoursFlag
+                    totalHours={r.total_hours}
+                    testId={`weekly-flag-${r.employee_name.replace(/\s/g, "-").toLowerCase()}`}
+                  />
+                </div>
               </td>
             </tr>
           ))}
@@ -277,7 +285,12 @@ function DailyTable({ rows }) {
               <td className="px-3 py-2 text-right font-mono">{fmtHours(r.regular_hours)}</td>
               <td className={`px-3 py-2 text-right font-mono ${r.overtime_hours > 0 ? "text-amber-700 font-bold" : ""}`}>{fmtHours(r.overtime_hours)}</td>
               <td className="px-3 py-2 text-right font-mono text-slate-500">{fmtHours(r.lunch_hours)}</td>
-              <td className="px-3 py-2 text-right font-mono font-bold">{fmtHours(r.total_hours)}</td>
+              <td className="px-3 py-2 text-right font-mono font-bold">
+                <div className="inline-flex items-center gap-1.5 justify-end flex-wrap">
+                  {fmtHours(r.total_hours)}
+                  <DailyHoursFlag hours={r.total_hours} testId={`tv-daily-flag-${i}`} />
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>

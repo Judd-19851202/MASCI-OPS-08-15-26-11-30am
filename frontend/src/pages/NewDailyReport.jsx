@@ -26,6 +26,7 @@ import { DistributionList } from "@/components/DistributionList";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { SupplierCombo } from "@/components/SupplierCombo";
+import { DailyHoursFlag } from "@/components/HoursSanityFlag";
 import { useT, getLang } from "@/lib/i18n";
 import { formatApiError } from "@/lib/apiErrors";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
@@ -974,6 +975,10 @@ export default function NewDailyReport({ publicMode = false }) {
                         placeholder="0.00"
                         data-testid={`crew-hours-${i}`}
                       />
+                      {/* iter100 — typo catcher: flag any single-day entry > 16 hrs */}
+                      <div className="mt-1">
+                        <DailyHoursFlag hours={row.hours} testId={`crew-hours-flag-${i}`} />
+                      </div>
                     </div>
                     <div>
                       <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
