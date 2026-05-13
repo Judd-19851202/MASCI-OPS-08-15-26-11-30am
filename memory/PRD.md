@@ -1,167 +1,149 @@
 # MASCI Safety Hub — PRD
 
-## 2026-05-12 — Iter71: HR Portal (full stack)
+## 2026-05-13 — Iter72: HR Payroll Variance + Training Updates (Phase A & B)
 
 ### User ask
-"Carry on with P0 & Admin HR Users panel (admin can add/reset HR
-passwords — backend exists, no UI yet)" — completing the HR Portal
-work that was 80% done at the iter71 handoff.
+"Now that HR has read-only payroll cross-check, the natural next move
+is a paste-Exact-CSV payroll diff... Do this. Also a whole weekly
+employee export email option whatever you think is best. We need to
+update all guides/cheat sheets on HR Hub & make a training section
+so HR can be trained. Update admin training on all new admin sections
+too. (Phase C/D — tile layout + verbiage — deferred to next round.)"
 
-### What shipped (frontend completion)
+### What shipped — Phase A (Payroll Variance)
+- **Backend** `/app/backend/routes/payroll_variance.py`:
+  - `parse_exact_csv()` — flexible parser w/ column auto-detection
+    (Employee Name + Reg-or-Total Hours required; OT, ID, Week
+    Ending optional; comma/tab/pipe delimited).
+  - `build_variance_rows()` — matches each Exact row to a
+    masci_crews weekly aggregate by `last:first-initial` name key;
+    produces flagged rows (match · minor · flag · unmatched ·
+    missing_from_payroll).
+  - Endpoints (all X-HR-Token gated):
+    - `POST /api/hr/payroll-variance/upload`
+    - `GET  /api/hr/payroll-variance/recent`
+    - `GET  /api/hr/payroll-variance/{batch_id}`
+    - `POST /api/hr/payroll-variance/{batch_id}/decision`
+    - `GET  /api/hr/payroll-variance/{batch_id}.csv`
+  - Weekly email cron (server.py background loop): Sunday 18:00 UTC
+    default. Recipients = `PAYROLL_VARIANCE_EMAIL_TO` env or
+    `hrmanager@mascigc.com,jaymn.judd@mascigc.com`. Skipped when
+    `AUTO_EMAIL_REPORTS=false` or `RESEND_API_KEY` unset.
 
-**HR auth + chrome**
-- `RequireHr.jsx` — gates `/hr/*` routes (admin token does NOT satisfy).
-- `EnforcePortalScope` extended to clear `masci.hr.token` on
-  navigation outside `/hr/*` (mirrors PM/Shop/Admin isolation).
-- `tokenValidation.js` calls `/api/hr/me` so a rotated password drops
-  the stale HR token on next page load.
-- `HrPageShell.jsx` shared header + sign-out + back-link chrome.
+- **Frontend** `/app/frontend/src/pages/HrPayrollVariance.jsx`:
+  - Paste-CSV textarea + week-ending date + threshold (min) input.
+  - "Run Variance" → batch card with stats strip + colour-coded
+    rows (🟢 match · 🟡 minor · 🔴 flag · 🟥 missing-in-payroll).
+  - Per-row Approve / Dispute buttons persist immediately.
+  - Recent Variance Batches table (re-loadable).
+  - "Download CSV" button on the batch card.
+  - New HR Hub tile (red accent, 5th tile).
 
-**HR pages**
-- `HrLogin.jsx`, `HrChangePassword.jsx`, `HrResetPassword.jsx`,
-  `HrForgotPassword.jsx` — full self-service auth lifecycle.
-- `HrHub.jsx` — 4 fully-clickable tile cards (post-iter71 fix):
-  Field Leadership Records · Employee Accountability ·
-  Time Verification · Training Records.
-- `HrTimeVerification.jsx` — weekly cross-check view. Filters
-  (week_ending, employee, project_number, supervisor) + stats strip
-  (employees, total hours, regular, overtime — overtime row turns
-  amber). Toggle Weekly Rollup ↔ Per-Day Detail. CSV export.
-- `HrFieldLeadership.jsx` — read-only list with kind filter + search.
-  Per-row View drawer (renders all detail fields) + PDF download.
-- `HrEmployeeAccountability.jsx` — search by name → consolidated
-  counts (FL records · active write-ups · outstanding equipment ·
-  trainings) + by-kind chip strip + outstanding-equipment table
-  (red-bordered "must be recovered before offboarding") + FL records
-  + training records tables.
-- `HrTrainingRecords.jsx` — training compliance roster with empty
-  state since `training_track_records` is empty in preview.
+- **Bug found & fixed during test agent run**: FastAPI route shadowing
+  — `/{batch_id}.csv` was registered AFTER `/{batch_id}`, so the
+  dynamic param captured the `.csv` suffix and returned 404. Fix:
+  re-order routes so the `.csv` endpoint comes first.
 
-**Admin HR Users management**
-- `AdminHRUsersPanel.jsx` mounted in `/admin` between Shop Console
-  and Auto-Email Routing. Add user · edit · disable · delete · issue
-  password (Show on Screen / Email to User / Custom). Uses purple
-  accent to match HR scope. Always-email default sends Resend welcome
-  with login URL + temp password.
+### What shipped — Phase B (Training Updates)
+- **HR track** added (`audience: "hr"`, purple accent, 8 lessons):
+  - hr-01 Portal overview
+  - hr-02 Field Leadership Records (read-only)
+  - hr-03 Employee Accountability (offboarding clearance)
+  - hr-04 Time Verification
+  - hr-05 Payroll Variance (Exact CSV diff)
+  - hr-06 Training Records
+  - hr-07 End-to-end Offboarding Workflow
+  - hr-08 Your Account & Password
+  All bilingual EN+ES. PDF packets work via existing
+  `/api/training/packets/hr.pdf` route since `training_pdf.py` now
+  registers `TRACKS["hr"]` and appends `HR_LESSONS` to LESSONS.
 
-**Public Hub**
-- `Hub.jsx` now exposes an "HR Portal" section card linking to
-  `/hr/login` so HR managers can self-discover the portal.
+- **Admin lessons 11-14** added (all bilingual):
+  - admin-11 HR Users & Logins
+  - admin-12 Employee Terminations Dashboard
+  - admin-13 Hub Banner Messaging System
+  - admin-14 Cloud Archives (Cloudflare R2)
 
-### Backend (already shipped, verified again this iter)
-- `/api/hr/login` · `/api/hr/me` · `/api/hr/change-password` ·
-  `/api/hr/forgot-password` · `/api/hr/reset/{token}`
-- `/api/hr/field-leadership` (+ `/{id}` + `/{id}/pdf`)
-- `/api/hr/employee-accountability`
-- `/api/hr/time-verification` (+ `.csv`)
-- `/api/hr/training-records`
-- `/api/admin/hr-users` full CRUD (admin-strict)
-- Seeded HR Manager (`hrmanager@mascigc.com`) — admin issued
-  `HRrocks2026!` temp → user rotated to `HRPortal2026!` during this
-  iter's smoke test.
+- **TrainingHub.jsx**: `trackUnlocked()` + `loginPathFor()` + tile
+  preview now handle `audience === "hr"` (login redirect → /hr/login,
+  unlock requires `isHr()`).
 
-### Verified end-to-end
-- 21/21 iter71 pytest cases pass (`test_hr_portal_iter71.py`).
-- Frontend Playwright (testing agent v3 + main agent smoke):
-  - Sign-in → must-change-password gate → HR Hub renders all 4
-    tiles → tile cards are fully clickable (post-fix).
-  - Time Verification renders filters + stats + toggle + empty
-    state correctly when no DR rows in window.
-  - Field Leadership Records returns 5+ items from seed data.
-  - Employee Accountability returns counts + by-kind + outstanding
-    equipment for a known seed name.
-  - Training Records empty state renders cleanly.
-  - RequireHr redirects unauthenticated `/hr` → `/hr/login`.
-  - EnforcePortalScope wipes HR token when navigating to `/`.
-  - AdminHRUsersPanel mounted between Shop Users and Auto-Email
-    Routing with full Add → Edit → Reset password → Delete lifecycle.
+### Verified
+- Backend pytest iter72: 21/21 ✓ (parse + threshold + lifecycle +
+  CSV + auth + cron-safe no-op).
+- Iter71 regression: 21/21 ✓.
+- Playwright (testing agent + main agent smoke): 5-tile HR Hub
+  renders, paste-CSV → batch with 2 rows → Approve persists,
+  Recent batches table populated, Open reload works.
 
 ### Files added
-- `/app/frontend/src/components/RequireHr.jsx`
-- `/app/frontend/src/components/HrPageShell.jsx`
-- `/app/frontend/src/components/AdminHRUsersPanel.jsx`
-- `/app/frontend/src/pages/HrChangePassword.jsx`
-- `/app/frontend/src/pages/HrResetPassword.jsx`
-- `/app/frontend/src/pages/HrForgotPassword.jsx`
-- `/app/frontend/src/pages/HrTimeVerification.jsx`
-- `/app/frontend/src/pages/HrFieldLeadership.jsx`
-- `/app/frontend/src/pages/HrEmployeeAccountability.jsx`
-- `/app/frontend/src/pages/HrTrainingRecords.jsx`
-- `/app/backend/tests/test_hr_portal_iter71.py`
+- `/app/backend/routes/payroll_variance.py`
+- `/app/frontend/src/pages/HrPayrollVariance.jsx`
+- `/app/backend/tests/test_payroll_variance_iter72.py`
 
 ### Files modified
-- `/app/frontend/src/App.js` (HR routes + RequireHr import)
-- `/app/frontend/src/lib/tokenValidation.js` (HR `/me` check)
-- `/app/frontend/src/components/EnforcePortalScope.jsx` (HR scope)
-- `/app/frontend/src/pages/AdminHub.jsx` (mount AdminHRUsersPanel)
-- `/app/frontend/src/pages/Hub.jsx` (HR Portal section card)
-- `/app/frontend/src/pages/HrHub.jsx` (post-test fix: tiles are
-  now full `<Link>` cards, not divs with an inner Open anchor)
-- `/app/memory/test_credentials.md` (HR Portal section added)
-
-### Production deploy
-"Save to GitHub → Deploy". After deploy, the HR Manager logs in at
-`mascidocs.com/hr/login` with `hrmanager@mascigc.com` /
-`HRPortal2026!`, lands on the HR Hub, and can immediately cross-check
-the current week's payroll against supervisor-reported Daily Report
-hours. Admins manage HR rosters from `/admin → HR Users & Logins`.
+- `/app/backend/server.py` (variance router mount + weekly cron hook)
+- `/app/frontend/src/App.js` (HR variance route)
+- `/app/frontend/src/pages/HrHub.jsx` (5th tile)
+- `/app/frontend/src/data/training.js` (HR track + 8 HR_LESSONS + 4 admin)
+- `/app/frontend/src/data/training_es.js` (Spanish mirrors)
+- `/app/frontend/src/pages/TrainingHub.jsx` (HR audience routing)
+- `/app/backend/training_pdf.py` (HR track + HR_LESSONS + admin 11-14)
+- `/app/memory/PRD.md`
 
 ---
 
-## Previous iterations
-- iter70: Field Leadership Employee Termination form + Admin
-  Terminations dashboard. Supervisor Notes tile removed.
-- iter69: Shop Portal "View inspection does nothing" 404 fix
-  (`compute_pm_scope` honors `_actor_kind=shop_user`).
+## 2026-05-12 — Iter71: HR Portal (full stack)
+
+See previous notes. Summary: HR auth + chrome (RequireHr,
+EnforcePortalScope, tokenValidation), 4 HR sub-pages, AdminHRUsersPanel
+in /admin, Public Hub HR Portal section card.
+
+---
+
+## Earlier iterations
+- iter70: Field Leadership Employee Termination form + Admin Terminations dashboard.
+- iter69: Shop Portal "View inspection does nothing" 404 fix.
 - iter68: Full Enterprise Deployment-Readiness Audit (scored 9.4/10).
 - iter67: Banner Audit PDF/CSV/Clone/Archive toggle.
-- iter66: Banner Audit Trail (per-ack/dismiss IP+UA log).
-- iter65: Hub Banner Messaging System (9 templates, ack-gate,
-  auto-Spanish via Claude Haiku 4.5).
-- iter64: R2 photo migration GO-LIVE + Cloud Archives admin panel +
-  complete-system nightly archive to R2 + blank-photo regression
-  fix on every View page.
-- iter63: Backup hardening (preflight, watchdog, supervisor task).
-- iter62: Backup resiliency (lite mode escape hatch).
-- iter61: Training docs full sweep (iter48–60 features).
-- iter60: Admin Email Routing console (DB-backed overrides).
-- iter59: Job Photos thumbnail concurrency + auto-warm scheduler.
+- iter66: Banner Audit Trail.
+- iter65: Hub Banner Messaging System.
+- iter64: R2 photo migration + Cloud Archives panel + nightly archive.
+- iter63: Backup hardening.
+- iter62: Backup resiliency.
+- iter61: Training docs sweep.
+- iter60: Admin Email Routing.
+- iter59: Job Photos performance.
 - iter58: System Audit log + Doc ID search.
-- earlier: see legacy PRD entries.
 
 ---
 
 ## Prioritized backlog (next tasks)
 
+### P0 — pending user decision
+- **Phase C — Public Hub tile layout** (4 options presented).
+- **Phase D — Tile verbiage tone** (3 options + visibility scoping).
+
 ### P1
-- **Admin HR Users panel — Email-on-create + welcome HTML**: currently
-  the panel always sends Resend welcome on Add. Double-check copy +
-  add a "Copy join link" affordance.
-- **Migrate remaining signatures to R2** (write_up, recognition, etc.
-  still store base64 sig images in Mongo — large rows).
-- **Backup verification cron** — weekly check that the previous 7
-  nightly R2 archives exist + are openable; alarm email if not.
-- **IT server dump endpoints** — `GET /api/admin/server-dump/list`
-  and `latest` so IT can pull a complete-system zip without going
-  through Cloudflare R2.
-- **Employee Login Gate** — wrap the entire site in a login gate with
-  bulk employee import, termination, and usage tracking.
-- **Photo-First Daily Report** — AI drafts a report based on the
-  gallery photos for the job.
-- **Motive (Fleet) integration** — Pre-Op autofill from Motive odometer
-  + GPS verification of supervisor location.
+- Migrate remaining base64 signatures to R2 (write_up, recognition).
+- Backup verification cron (weekly R2 archive integrity check + email).
+- IT server-dump endpoints (`/api/admin/server-dump/list|latest`).
+- Employee Login Gate (bulk import + termination + usage).
+- Photo-First Daily Report (AI drafted from gallery photos).
+- Motive (Fleet) integration (Pre-Op autofill, GPS verification).
+- Optional refactor: extract parse_exact_csv + build_variance_rows
+  to a `services/` module (iter72 reviewer suggestion).
+- Strengthen `_name_key` matcher with `employee_id` fallback for
+  common-surname collisions.
 
 ### P2
-- "Restore from R2" admin button (manual pick of any archive zip)
-- "Forward to IT" share button on a backup row (presigned URL +
-  email composer)
-- HR — payroll variance ingestion: paste Exact CSV → diff vs.
-  supervisor-reported hours, surface variance % flags.
+- "Restore from R2" admin button (manual archive pick).
+- "Forward to IT" share button on backup rows.
 
 ---
 
 ## Test credentials
-See `/app/memory/test_credentials.md` for the full list. Quick refs:
+See `/app/memory/test_credentials.md`. Quick refs:
 - Admin: `MASCI1982!`
 - HR Manager: `hrmanager@mascigc.com` / `HRPortal2026!`
 - Shop: `testmech@mascigc.com` / `ResetWorks2026!`

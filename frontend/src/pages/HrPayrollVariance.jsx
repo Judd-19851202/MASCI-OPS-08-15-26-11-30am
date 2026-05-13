@@ -241,8 +241,8 @@ export default function HrPayrollVariance() {
               <div className="font-display text-lg font-black">{batch.week_ending}</div>
             </div>
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" onClick={downloadCsv} className="bg-white" data-testid="hr-pv-batch-csv">
-                <FileDown className="w-4 h-4 mr-1" /> {t("CSV")}
+              <Button size="sm" variant="outline" onClick={downloadCsv} className="bg-white" data-testid="variance-csv-download">
+                <FileDown className="w-4 h-4 mr-1" /> {t("Download CSV")}
               </Button>
             </div>
           </div>
