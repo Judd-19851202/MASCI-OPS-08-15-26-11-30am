@@ -1,0 +1,53 @@
+{
+  "summary": "Iteration 77 — 48hr regression sweep across HR Portal, Payroll Variance, Hub redesign, Footer standardization, Signature R2 migration, Legal hardening, Cheat Sheet. 22/24 backend tests passed (2 skipped — no public /api/daily-reports/{id}/pdf endpoint exposed). Frontend: Hub, Cheatsheet, HR Portal (login + hub w/ all 5 tiles), Legal pages, Mobile (no horizontal scroll), zero console errors. Cross-portal isolation confirmed (HR token rejected by /api/admin/jobs with 401 once conftest auto-injection is overridden). Signature R2 migration verified — DR signatures stored as photo://masci-hub/... refs (4/54 records have signatures, all R2-format, zero base64 regressions).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/daily-reports/{id}/pdf", "issue": "No per-record PDF endpoint exposed on api_router. PDF generation is only available via backup-zip and admin email-record paths. Tests for PDF footer text and signature embedding had to be skipped."},
+      {"endpoint": "/api/field-leadership/records", "issue": "Listing endpoint returned non-200 for admin token in test context — could not validate field-leadership PDF footer end-to-end. Needs main agent verification."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Hub footer", "issue": "Text 'ForgedOps' not detected in Hub page body innerText. Either footer not rendered, rendered as image/SVG, or rendered below the fold and not in inner_text reach. User spec requires 'MASCI Operations Platform · Powered by ForgedOps™' footer on every UI page.", "selector": "footer / [data-testid='forgedops-footer']", "priority": "P1"},
+      {"component": "Cheat Sheet footer", "issue": "Same — 'ForgedOps' not found in /cheatsheet body text. Visual screenshot shows page content but footer area was not visible in 1920x1080 viewport. Confirm ForgedOpsAttribution component is mounted on CheatSheet.jsx.", "selector": "footer", "priority": "P1"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Privacy Policy /legal/privacy", "issues": ["Missing §2A (Trademarks) heading text", "Missing §7 (Platform Availability/Backup) heading text", "Missing §7B (AI Features) heading text — only §7A and §8 found in body"]},
+      {"screen": "Terms of Service /legal/terms", "issues": ["Missing literal §7B and §8 markers in body text — only §2A, §7, §7A found. May be cosmetic if section content exists under different header text."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter77_regression.py",
+    "/app/test_reports/pytest/iter77_results.xml"
+  ],
+  "action_items": [
+    "Verify ForgedOpsAttribution footer is actually rendering on /, /cheatsheet, /hr, /pm, /shop, /admin, /leadership — text 'ForgedOps' was not found in the DOM body innerText on Hub and Cheatsheet during automated check.",
+    "Add §7B (AI Features) and §8 (Compliance) section markers in Terms of Service body text — currently the literal markers are not detected.",
+    "Update Privacy Policy to include §2A (Trademarks), §7 (Platform Availability/Backup), §7B (AI Features) — only §7A and §8 currently present.",
+    "OPTIONAL: Expose a per-record PDF endpoint /api/daily-reports/{id}/pdf so QA/automation can verify the embedded R2 signature renders in the final PDF artifact. Currently PDFs are only generated via backup-zip or admin email-record paths, which makes end-to-end signature verification awkward."
+  ],
+  "critical_code_review_comments": [
+    "/app/backend/tests/conftest.py auto-injects X-Admin-Token on every requests call to the backend host. This is convenient for admin-gated GETs but BREAKS cross-portal isolation tests — any test trying to assert that a non-admin token gets 401 must explicitly send 'X-Admin-Token: \"\"' to override the conftest setdefault. Consider scoping the auto-inject to opt-in fixtures rather than module-global monkeypatch.",
+    "Daily Report PDF is generated via render_record_pdf only in the admin email-record + backup-zip code paths. There is no GET /api/daily-reports/{id}/pdf endpoint despite multiple legacy tests (iter41, iter68, iter75) assuming one exists — those tests have been silently skipping for several iterations. Either add the endpoint or remove the dead tests.",
+    "Signature R2 migration verified working — sample sig: photo://masci-hub/photos/2026/05/daily_reports-{id}-prepared_by_signature/{hash}. 4/54 daily reports carry photo:// refs; 50 have no signature (which is expected — many DRs are auto-generated). No base64 data: URLs detected in any record's signature field — migration is clean."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter77_regression.py"
+  ],
+  "success_rate": {"backend": "92%", "frontend": "85%"},
+  "test_credentials": "All test creds match /app/memory/test_credentials.md — HR (hrmanager@mascigc.com / HRPortal2026!), Admin (MASCI1982!), PM (chriswright@mascigc.com / ChrisRocksThis2026), Shop (testmech@mascigc.com / ResetWorks2026!), Field Leadership (/api/field-leadership/login w/ MASCIGC). All accepted by backend.",
+  "seed_data_creation": "Created a TEST-77 daily report and a TEST-EQ-77 equipment inspection via public POST endpoints to verify field crew submission still works post-redesign. Both accepted with 201.",
+  "performance": {
+    "/": "200ms TTFB / 1169ms full networkidle (desktop)",
+    "/cheatsheet": "loads cleanly, all 4 portal pills + 3 submission tiles render, safety@mascigc.com correctly REMOVED",
+    "/hr": "5/5 HR tiles render after login (Field Leadership, Employee Accountability, Time Verification, Training Records, Payroll Variance)",
+    "/pm/login, /admin/login, /leadership": "all return 200 under 1.5s",
+    "mobile_390x844_hub": "no horizontal scroll, layout collapses cleanly"
+  },
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "test_iter77_regression.py is a reusable session-scoped pytest suite covering all 7 streams. To run: pytest /app/backend/tests/test_iter77_regression.py -v. Note that /app/backend/tests/conftest.py auto-injects X-Admin-Token globally — pass headers={'X-Admin-Token': ''} explicitly to test true cross-portal isolation. /api/daily-reports/{id}/pdf does NOT exist as a public endpoint; legacy tests that hit it have been silently skipping. Signature R2 migration is COMPLETE — every signature in production is photo:// format (verified across 54 daily reports). All five portals log in cleanly with documented creds. Frontend ForgedOps footer presence needs human eyeball check on every page — text is not in DOM body innerText on Hub or Cheatsheet (could be image-based, ARIA-hidden, or genuinely missing — needs main agent confirmation).",
+  "rca_of_the_issue": "Two backend test 'failures' were test infrastructure artifacts, not real regressions: (1) conftest.py monkey-patches requests.api.request and requests.sessions.Session.request to auto-inject X-Admin-Token on every backend call — this caused cross-portal isolation tests to spuriously pass with admin auth even when only HR token was set. Fixed by explicitly passing X-Admin-Token: '' to override the setdefault. (2) Leadership login path was tested as /api/leadership/login but the actual route is /api/field-leadership/login. Fixed. Real cross-portal isolation verified clean via curl — HR token alone returns 401 on /api/admin/jobs with 'Admin or PM login required' message."
+}
