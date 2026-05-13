@@ -1,5 +1,73 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter89: THE Multi-Portal Bug (root cause finally identified)
+
+### User report (4th time)
+"still doesnt work!!!!!!!!!!!!!!"
+
+### THE actual root cause (after 3 wrong guesses)
+Every login page (`AdminLogin`, `PmLogin`, `ShopLogin`, `HrLogin`, `SignIn`)
+had a `useEffect(() => { clearAllTokens(); }, [])` that nuked the entire
+session the moment the page mounted. So the failure mode was:
+
+  1. User signs in at /sign-in → all 4 tokens + directory session set ✅
+  2. User navigates to /admin → RequireAdmin guard transiently sees
+     "no admin token" for one render cycle (race during initial mount,
+     stale bundle, etc.)
+  3. Guard bounces to /admin/login → AdminLogin mounts → useEffect
+     wipes all 4 tokens AND directory session ❌
+  4. Now the user actually IS logged out everywhere. Hydration can't
+     rescue because the directory session token is also gone.
+
+This is why my iter87 + iter88 fixes (EnforcePortalScope multi-portal
+awareness, MultiPortalHydrator, usePortalHydration hook with loader)
+all looked correct in code review BUT couldn't actually rescue: by the
+time hydration ran, the login page had already nuked the directory
+session out from under it.
+
+### Bonus blocker discovered
+After iter88's file rewrite, the frontend bundle had compile errors
+("Can't resolve PortalHydratingLoader") for several seconds. The user
+may have caught the broken bundle and held it in cache before the
+fix landed.
+
+### What shipped (iter89)
+Removed the `clearAllTokens()` mount-time effect from every login page:
+- `AdminLogin.jsx`
+- `PmLogin.jsx` (mount + onSubmit pre-wipe)
+- `ShopLogin.jsx` (mount + onSubmit pre-wipe)
+- `HrLogin.jsx` (mount + onSubmit pre-wipe)
+- `SignIn.jsx`
+
+Login pages no longer wipe anything on arrival. Tokens are only cleared
+when the user explicitly signs out, or when the response from a fresh
+login atomically replaces them via `setX(...)`.
+
+### End-to-end verified (NO damage simulation, just natural flow)
+1. Clear all cookies, localStorage, sessionStorage
+2. Sign in at /sign-in → land on Hub ✅
+3. Visit /admin → renders ✅
+4. Visit /pm → renders ✅
+5. Visit /hr → renders ✅
+6. Visit /shop → renders ✅
+7. Back to /admin, click SWITCH PORTAL → HR → lands on /hr ✅
+
+### Files touched
+- `/app/frontend/src/pages/AdminLogin.jsx`
+- `/app/frontend/src/pages/PmLogin.jsx`
+- `/app/frontend/src/pages/ShopLogin.jsx`
+- `/app/frontend/src/pages/HrLogin.jsx`
+- `/app/frontend/src/pages/SignIn.jsx`
+
+### Apology
+Took 4 iterations to find this. Lesson: when "the test passes but the
+user says it's broken", the test isn't reproducing the user's flow.
+Should have stress-tested by deliberately triggering a guard bounce on
+day 1 instead of just verifying the happy path.
+
+---
+
+
 ## 2026-05-13 — Iter88: Multi-Portal Bulletproofing (3rd attempt — SELF-HEALING)
 
 ### User report (3rd time)

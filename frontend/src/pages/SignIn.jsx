@@ -38,12 +38,10 @@ export default function SignIn() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // Drop every per-portal token on arrival — clean slate so multi-login
-    // is the authoritative session.
-    clearAdminToken();
-    clearPmToken();
-    clearHrToken();
-    clearShopToken();
+    // Iter88 — Removed mount-time token wipe. See AdminLogin.jsx rationale.
+    // The multi-login response below atomically sets all 4 portal tokens,
+    // so there's no need to nuke prior state. Reaching /sign-in with a
+    // live session is a no-op until the user submits a fresh password.
   }, []);
 
   const onSubmit = async (e) => {

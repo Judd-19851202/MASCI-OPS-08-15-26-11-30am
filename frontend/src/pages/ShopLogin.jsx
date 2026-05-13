@@ -35,11 +35,7 @@ export default function ShopLogin() {
   const [forgotBusy, setForgotBusy] = useState(false);
 
   useEffect(() => {
-    // Clear every tier's token on arrival so a shop user never inherits
-    // a ghost Admin/PM session from a previously logged-in teammate.
-    clearShopToken();
-    clearAdminToken();
-    clearPmToken();
+    // Iter88 — Removed mount-time token wipe. See AdminLogin.jsx rationale.
   }, []);
 
   const submitForgot = async () => {
@@ -81,9 +77,8 @@ export default function ShopLogin() {
       return;
     }
     setSubmitting(true);
-    clearShopToken();
-    clearAdminToken();
-    clearPmToken();
+    // Iter88 — Removed pre-submit token wipe. setShopToken below replaces
+    // the shop slot atomically; other portal tokens are left intact.
     try {
       const payload = { email: cleanEmail, password, _t: Date.now() };
       const res = await api.post("/shop/login", payload, {

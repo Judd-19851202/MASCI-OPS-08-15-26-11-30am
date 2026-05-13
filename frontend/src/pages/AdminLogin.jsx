@@ -36,13 +36,20 @@ export default function AdminLogin() {
   const [rememberMe, setRememberMe] = useState(true);
 
   useEffect(() => {
-    // Landing here means any prior session is over. Wipe every tier's
-    // token so a bad token can't poison the next call and so an admin
-    // never inherits a ghost PM/Shop/HR session.
-    clearAdminToken();
-    clearPmToken();
-    clearShopToken();
-    clearHrToken();
+    // Iter88 — DO NOT wipe tokens on mount.
+    //
+    // Previous behavior cleared every portal token here so a stale
+    // session couldn't poison the next login. That was hostile to
+    // multi-portal users: if a route-guard race transiently bounced
+    // them to this page, the mount wipe killed their entire session,
+    // making the bounce permanent.
+    //
+    // Tokens are now cleared ONLY on:
+    //   • Explicit "Sign Out" (handled elsewhere)
+    //   • Right before a successful login response is applied (the new
+    //     bundle overwrites the old tokens via setX(), no clear needed)
+    // Reaching this page with a live multi-portal session is a transient
+    // hiccup — the page-guards' hydration hook will rescue it.
   }, []);
 
   const onSubmit = async (e) => {

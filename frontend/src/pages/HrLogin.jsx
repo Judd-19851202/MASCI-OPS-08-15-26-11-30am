@@ -49,12 +49,7 @@ export default function HrLogin() {
   const [forgotBusy, setForgotBusy] = useState(false);
 
   useEffect(() => {
-    // Drop every other portal's token on arrival so HR never inherits
-    // a ghost Admin/PM/Shop session from whoever used this browser before.
-    clearHrToken();
-    clearAdminToken();
-    clearPmToken();
-    clearShopToken();
+    // Iter88 — Removed mount-time token wipe. See AdminLogin.jsx rationale.
   }, []);
 
   const submitForgot = async () => {
@@ -91,10 +86,8 @@ export default function HrLogin() {
       return;
     }
     setSubmitting(true);
-    clearHrToken();
-    clearAdminToken();
-    clearPmToken();
-    clearShopToken();
+    // Iter88 — Removed pre-submit token wipe. setHrToken replaces the HR
+    // slot below; other portal tokens left intact.
     try {
       const res = await api.post(
         "/hr/login",

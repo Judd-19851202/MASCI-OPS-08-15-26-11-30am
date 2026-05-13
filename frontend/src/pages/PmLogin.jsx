@@ -36,11 +36,10 @@ export default function PmLogin() {
   const [forgotBusy, setForgotBusy] = useState(false);
 
   useEffect(() => {
-    // Clear every tier's token on arrival so a PM never inherits a ghost
-    // Admin/Shop session from whoever used this browser before them.
-    clearPmToken();
-    clearAdminToken();
-    clearShopToken();
+    // Iter88 — DO NOT wipe tokens on mount.
+    // Previously cleared all 3 tokens here; killed multi-portal sessions
+    // when this page was reached transiently. See AdminLogin.jsx for the
+    // full rationale.
   }, []);
 
   const submitForgot = async () => {
@@ -79,9 +78,9 @@ export default function PmLogin() {
       return;
     }
     setSubmitting(true);
-    clearPmToken();
-    clearAdminToken();
-    clearShopToken();
+    // Iter88 — DO NOT pre-wipe tokens here either. setPmToken below
+    // overwrites the PM slot; leaving admin/shop tokens alone preserves
+    // multi-portal sessions for legacy single-portal direct logins.
     try {
       const res = await api.post(
         "/pm/login",
