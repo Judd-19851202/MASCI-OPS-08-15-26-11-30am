@@ -1,5 +1,79 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter95: KPI Tile Route Mismatches (P0 post-deploy)
+
+### User report (post-production-deploy)
+"oh boy lots of issues after deploy.... in admin field leadership tile
+takes you to field leadership doesn't show forms submitted that's what
+admin want to see is forms submitted see what's going on, click on
+photos tile blank nothing happens..."
+
+### Root cause
+iter91-92 KPI tiles pointed at routes that either didn't exist in
+App.js or led to the WRONG page for an admin (forms-entry hub instead
+of admin records list). Specifically:
+- `/leadership` → password-gated supervisor form-entry hub (correct for
+  supervisors entering NEW forms; WRONG for admins who want to view
+  submitted records)
+- `/job-photos` → ROUTE DID NOT EXIST → blank page
+- `/daily-reports`, `/equipment-inspections`, `/job-hazard-plans`,
+  `/qaqc-inspections`, `/trench-boxes` → all stale public-shape paths,
+  not the actual admin record-list routes
+
+The iter94 audit didn't catch these because the test agent verified
+endpoints return 200, not that the FRONTEND ROUTE TABLE includes the
+destinations the new tiles point at. New test layer needed.
+
+### What shipped (iter95)
+**App.js** — added an explicit alias route so the EquipmentDashboard
+(historical inspection list) is reachable independently of the
+AdminEquipment section page (status board + master + parts):
+- NEW `/admin/equipment-inspections` → `EquipmentDashboard`
+  (previously `/admin/equipment` had double-registration — first match
+  wins so the inspection LIST was unreachable from /admin/equipment.
+  Now both views are available: status board at /admin/equipment,
+  inspection list at /admin/equipment-inspections.)
+
+**AdminKpiStrip.jsx** — every tile destination corrected:
+- Daily Reports → `/admin/daily`
+- Site Inspections → `/admin/inspections`
+- Safety Meetings → `/admin/meetings`
+- Incident Reports → `/admin/incidents`
+- Equipment Pre-Op → `/admin/equipment-inspections`
+- Job Hazard Plans → `/admin/jha-plans`
+- Trench Box Data → `/admin/trench-boxes`
+- QA/QC → `/admin/qaqc`
+- Field Leadership → `/leadership/records` (the records-list, not the
+  password-gated form-entry hub)
+- Job Photos → `/admin/photos` (the AdminEquipment-portal-keyed
+  JobPhotosLibrary)
+
+### Verified live
+Browser smoke test clicked every tile target — all 10 land on a
+non-blank, non-bounced page:
+- /admin/daily ✅ (1384 body chars)
+- /admin/inspections ✅
+- /admin/meetings ✅
+- /admin/incidents ✅
+- /admin/equipment-inspections ✅ (1915 chars)
+- /admin/jha-plans ✅ (2332 chars)
+- /admin/trench-boxes ✅
+- /admin/qaqc ✅
+- /leadership/records ✅ (38309 chars — 335 supervisor records)
+- /admin/photos ✅ (Job Photos library renders with 58 photos
+  grouped by project)
+
+### Files touched
+- `/app/frontend/src/components/AdminKpiStrip.jsx`
+- `/app/frontend/src/App.js` (one new route)
+
+### Action for user
+**Production needs a redeploy** to pick up these fixes. After redeploy,
+do a hard refresh on mascidocs.com/admin and click each tile to verify.
+
+---
+
+
 ## 2026-05-13 — Iter93: KPI Strip — Weekly Deltas + Sign-Off Alert Badge
 
 ### User ask

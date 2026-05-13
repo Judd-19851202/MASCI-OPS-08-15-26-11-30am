@@ -26,14 +26,14 @@ import {
 import { api } from "@/lib/api";
 
 const SAFETY_TILES = [
-  ["daily", "Daily Reports", "report on file", "reports on file", "/daily-reports", FileText, "amber"],
-  ["inspections", "Site Inspections", "report on file", "reports on file", "/inspections", ClipboardList, "red"],
-  ["meetings", "Safety Meetings", "meeting logged", "meetings logged", "/meetings", Users, "amber"],
-  ["incidents", "Incident Reports", "report on file", "reports on file", "/incidents", AlertOctagon, "red"],
-  ["equipment", "Equipment Pre-Op", "inspection on file", "inspections on file", "/equipment-inspections", Wrench, "amber"],
-  ["jhaPlans", "Job Hazard Plans", "plan uploaded", "plans uploaded", "/job-hazard-plans", ShieldCheck, "amber"],
-  ["trenchBoxes", "Trench Box Data", "box on file", "boxes on file", "/trench-boxes", Container, "amber"],
-  ["qaqc", "QA/QC", "inspection on file", "inspections on file", "/qaqc-inspections", ClipboardCheck, "amber"],
+  ["daily", "Daily Reports", "report on file", "reports on file", "/admin/daily", FileText, "amber"],
+  ["inspections", "Site Inspections", "report on file", "reports on file", "/admin/inspections", ClipboardList, "red"],
+  ["meetings", "Safety Meetings", "meeting logged", "meetings logged", "/admin/meetings", Users, "amber"],
+  ["incidents", "Incident Reports", "report on file", "reports on file", "/admin/incidents", AlertOctagon, "red"],
+  ["equipment", "Equipment Pre-Op", "inspection on file", "inspections on file", "/admin/equipment-inspections", Wrench, "amber"],
+  ["jhaPlans", "Job Hazard Plans", "plan uploaded", "plans uploaded", "/admin/jha-plans", ShieldCheck, "amber"],
+  ["trenchBoxes", "Trench Box Data", "box on file", "boxes on file", "/admin/trench-boxes", Container, "amber"],
+  ["qaqc", "QA/QC", "inspection on file", "inspections on file", "/admin/qaqc", ClipboardCheck, "amber"],
 ];
 
 const LEADERSHIP_KIND_LABELS = {
@@ -293,7 +293,7 @@ export default function AdminKpiStrip() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
           <Tile
-            to="/leadership"
+            to="/leadership/records"
             icon={UserCog}
             label="Field Leadership"
             num={loading ? "—" : (leadership.count ?? 0)}
@@ -308,7 +308,7 @@ export default function AdminKpiStrip() {
             weeklyDelta={loading ? null : weeklyDelta.leadership}
           />
           <Tile
-            to="/job-photos"
+            to="/admin/photos"
             icon={Camera}
             label="Job Photos"
             num={loading ? "—" : (photos.count ?? 0)}

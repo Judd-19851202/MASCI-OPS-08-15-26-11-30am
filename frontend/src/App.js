@@ -272,6 +272,11 @@ function App() {
             <Route path="/admin/daily/:id" element={AP(<ViewDailyReport />)} />
 
             <Route path="/admin/equipment" element={AP(<EquipmentDashboard />)} />
+            {/* iter95 — /admin/equipment-inspections explicit so the
+                Admin KPI tile lands the user on the inspection LIST
+                (the status board view at /admin/equipment is the
+                "what's broken right now" view, not the historical record list). */}
+            <Route path="/admin/equipment-inspections" element={AP(<EquipmentDashboard />)} />
             <Route path="/admin/equipment/:id" element={AP(<ViewEquipmentInspection context="admin" />)} />
 
             {/* Admin-namespaced aliases for cross-portal record views.
