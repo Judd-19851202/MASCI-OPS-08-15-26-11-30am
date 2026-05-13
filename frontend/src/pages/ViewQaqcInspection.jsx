@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Printer, Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { Printer, Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import BackLink from "@/components/BackLink";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
@@ -63,12 +64,11 @@ export default function ViewQaqcInspection() {
 
       <main className="max-w-3xl mx-auto px-5 sm:px-8 py-6 print:py-0">
         <div className="flex items-center justify-between mb-4 print:hidden">
-          <Link
+          <BackLink
             to={isAdmin() ? "/admin/qaqc" : "/qaqc"}
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-emerald-700 font-bold"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {isAdmin() ? "Admin · QA/QC" : "QA/QC"}
-          </Link>
+            label={isAdmin() ? "Admin · QA/QC" : "QA/QC"}
+            variant="body"
+          />
           <div className="flex gap-2">
             <Button onClick={() => window.print()} variant="outline" size="sm">
               <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}

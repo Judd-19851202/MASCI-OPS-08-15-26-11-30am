@@ -9,7 +9,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft, Search, FileDown, FileText, Trash2, ListChecks,
+  Search, FileDown, FileText, Trash2, ListChecks,
 } from "lucide-react";
 import { api, API } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
+import BackLink from "@/components/BackLink";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600";
 
@@ -34,13 +35,10 @@ export default function FieldLeadershipRecords() {
   const admin = isAdmin();
   const pm = isPm();
 
-  // iter96 — Back-button destination must match the user's role.
-  // Admins land here from /admin Job Photos / Field Leadership tile →
-  // back goes to /admin. PMs land from PmHub → back to /pm. Anyone
-  // else (leadership-token holders entering from the supervisor flow)
-  // goes back to the /leadership form-entry hub. Don't hardcode
-  // /leadership for everyone — it sent admins/PMs into the wrong portal
-  // (the password-gated supervisor entry page).
+  // iter96+97 — Back-button destination + label routed by role.
+  // BackLink auto-computes them, but this page predates the helper
+  // and the labels here are translated via i18n, so we still compute
+  // locally and pass `to` + `label` explicitly.
   const backTo = admin ? "/admin" : pm ? "/pm" : "/leadership";
   const backLabel = admin
     ? t("Admin Console")
@@ -158,13 +156,12 @@ export default function FieldLeadershipRecords() {
 
       <section className="max-w-6xl mx-auto px-5 sm:px-8 pt-6">
         <div className="mb-6">
-          <Link
+          <BackLink
             to={backTo}
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
-            data-testid="leadership-records-back"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {backLabel}
-          </Link>
+            label={backLabel}
+            variant="body"
+            testId="leadership-records-back"
+          />
         </div>
 
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">

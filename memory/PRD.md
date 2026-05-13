@@ -1,5 +1,67 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter97: Uniform Back-Button Component (start of platform-wide migration)
+
+### User asks
+1. Make all back buttons uniform — "we've talked dozens of times about
+   making the system uniform"
+2. PortalSwitcher visibility — should super-admin only / multi-portal
+   only? (Confirmed: already correctly gated. Renders null if user has
+   <2 portals in their directory record. Single-portal direct logins
+   never see it.)
+
+### Root cause of back-button inconsistency
+40+ pages each rolled their own `<Link to=…><ArrowLeft … />` snippet
+with subtly different sizes (`w-3.5` vs `w-4`), spacing (`mr-0` vs
+`mr-1`), color treatments, font sizes, tracking, and capitalization.
+
+### What shipped
+**New blessed component** `BackLink.jsx`:
+- `<BackLink to label variant />` is the ONE way to render any back link.
+- `variant="header"` — sits in dark navy/red header bars, white text.
+- `variant="body"` — sits in content sections on light backgrounds,
+  slate text.
+- Auto-computes destination + label from user's role when `to`/`label`
+  omitted: admin→`/admin`, pm→`/pm`, hr→`/hr`, shop→`/shop`, else `/`.
+- Single typography spec everywhere:
+  `font-mono text-[11px] uppercase tracking-[0.2em] font-bold` +
+  `<ArrowLeft w-3.5 h-3.5 />` + `gap-1.5`.
+
+**Pages migrated this iteration (high-traffic record-view pages first):**
+- `ViewInspection.jsx` (admin click-through from /admin/inspections list)
+- `ViewMeeting.jsx`
+- `ViewIncident.jsx`
+- `ViewEquipmentInspection.jsx`
+- `ViewQaqcInspection.jsx`
+- `FieldLeadershipRecords.jsx` (also fixed in iter96)
+
+### Backlog of pages still using their own back-link snippets
+~30 remaining pages — they all still work (no regression), but they're
+visually inconsistent until migrated. Targets for incremental migration:
+PM Hub, Shop Hub, HR Hub, all Admin sub-routes (AdminEquipment,
+AdminPeople, etc — though AdminShell already has a uniform breadcrumb),
+form submission pages (NewInspection, NewIncident, etc), View*
+detail pages, Reset/Forgot password pages, training pages.
+
+### Verified
+Screenshots confirm uniform styling across:
+- `/admin/inspections` → click record → "← ADMIN" in header (dark)
+- `/leadership/records` → "← ADMIN CONSOLE" at body (light)
+
+Both use identical icon size, typography, spacing — visually consistent.
+
+### Files touched
+- `/app/frontend/src/components/BackLink.jsx` (NEW)
+- `/app/frontend/src/pages/ViewInspection.jsx`
+- `/app/frontend/src/pages/ViewMeeting.jsx`
+- `/app/frontend/src/pages/ViewIncident.jsx`
+- `/app/frontend/src/pages/ViewEquipmentInspection.jsx`
+- `/app/frontend/src/pages/ViewQaqcInspection.jsx`
+- `/app/frontend/src/pages/FieldLeadershipRecords.jsx`
+
+---
+
+
 ## 2026-05-13 — Iter96: Field Leadership Back-Button Role Routing
 
 ### User report

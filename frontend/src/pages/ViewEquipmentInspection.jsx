@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Printer, Loader2, Trash2, Mail, AlertOctagon, AlertTriangle } from "lucide-react";
+import { Printer, Loader2, Trash2, Mail, AlertOctagon, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import BackLink from "@/components/BackLink";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
@@ -126,13 +127,12 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
 
       <header className={`bg-slate-900 border-b-4 ${headerAccent} print:hidden`}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <Link
+          <BackLink
             to={backHref}
-            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="back-link"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {isShopContext ? t("Shop") : t("All Inspections")}
-          </Link>
+            label={isShopContext ? t("Shop") : t("All Inspections")}
+            variant="header"
+            testId="back-link"
+          />
           <MasciLogo variant="mark" size="md" homeLink={isShopContext ? "/shop" : "/admin"} />
           <div className="flex items-center gap-2">
             <Button onClick={() => setEmailOpen(true)} className="h-10 px-3 bg-slate-700 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-xs" data-testid="email-btn">
