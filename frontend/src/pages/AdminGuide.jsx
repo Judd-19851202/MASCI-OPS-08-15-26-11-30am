@@ -3,22 +3,22 @@ import { Link } from "react-router-dom";
 import {
   ArrowLeft, Printer, ClipboardCheck, Users, AlertOctagon, ClipboardList,
   Wrench, Mail, ShieldCheck, HardDrive, QrCode, HelpCircle, Truck,
-  TrendingUp, Building2, ListChecks,
+  TrendingUp, Building2, ListChecks, KeyRound, Cloud, LayoutDashboard,
+  GraduationCap, Rocket,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { Button } from "@/components/ui/button";
 
 /**
  * AdminGuide — plain-English, print-friendly owner's manual for the MASCI
- * Safety Hub. Accessible at /admin/guide. Crews never see this page.
+ * Operations Platform. Accessible at /admin/guide. Crews never see this page.
  *
- * After the MASCI Hub rebrand the structure is now:
- *   🦺 Safety   — inspections, meetings, incidents, JHP, trench box
- *   👷 Field    — daily reports, equipment pre-op
- *   🏗️ Basecamp  — external link to live MASCI Basecamp (project comms)
- *   📍 OnStation — external link to OnStation (field staking)
- *   🗄️ Admin    — this console
- *   🔧 Shop     — mechanic console
+ * Last rebuilt 2026-05-13 (iter85) to reflect:
+ *   - Multi-portal sign-in (/sign-in + per-portal /admin/login, /pm/login, ...)
+ *   - Email + password auth (no shared single-password admin gate in UI)
+ *   - Admin Console sub-routes (/admin/people, /admin/jobs, /admin/system, ...)
+ *   - Pre-Deploy Snapshot panel + hourly R2 auto-snapshots
+ *   - 5-portal Hub (Field/Safety/PM/Shop/HR + Leadership)
  */
 export default function AdminGuide() {
   return (
@@ -31,7 +31,7 @@ export default function AdminGuide() {
             className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide hover:text-red-300"
             data-testid="guide-back-link"
           >
-            <ArrowLeft className="w-4 h-4" /> Admin Hub
+            <ArrowLeft className="w-4 h-4" /> Admin Console
           </Link>
           <MasciLogo variant="lockup" size="md" className="hidden sm:block" homeLink="/admin" />
           <Button
@@ -49,7 +49,7 @@ export default function AdminGuide() {
         <div className="hidden print:block mb-6 pb-3 border-b-2 border-black">
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-black text-lg">MASCI Hub</div>
+              <div className="font-black text-lg">MASCI Operations Platform</div>
               <div className="text-xs uppercase tracking-[0.2em]">Owner's Manual · Print / Tape to wall</div>
             </div>
             <div className="text-xs">mascidocs.com</div>
@@ -66,22 +66,104 @@ export default function AdminGuide() {
           </h1>
           <p className="text-slate-600 mt-3 max-w-2xl text-base">
             One page, plain English. Print it, tape it to the wall, hand it to whoever covers the office
-            when you're out. You do not need to understand any code to run MASCI Hub.
+            when you're out. You do not need to understand any code to run the MASCI Operations Platform.
           </p>
         </div>
 
-        {/* STRUCTURE */}
-        <Section icon={ShieldCheck} title="The MASCI Hub at a glance" color="slate">
-          <p>Open <code>mascidocs.com</code> and you'll see the main tiles. Here's who uses which:</p>
+        {/* THE PLATFORM AT A GLANCE */}
+        <Section icon={ShieldCheck} title="The Hub at a glance" color="slate">
+          <p>Open <code>mascidocs.com</code> and you'll see the main tiles. Five portals plus public submission entry points:</p>
           <ul className="ml-5 list-disc space-y-1 mt-2">
-            <li>🦺 <strong>Safety</strong> — Compliance forms. Inspections · Meetings · Incidents · JHP Plans · Trench Box Data.</li>
-            <li>👷 <strong>Field</strong> — Daily operational logs. Daily Reports · Equipment Pre-Op.</li>
-            <li>🏗️ <strong>Basecamp</strong> — Opens our live Basecamp account in a new tab. Project messages, to-dos, schedules, docs, and hill charts all live in Basecamp now.</li>
-            <li>📍 <strong>OnStation</strong> — Opens OnStation in a new tab for field staking, station mapping, and GPS coordination.</li>
+            <li>🦺 <strong>Safety</strong> — Public submission. Inspections · Meetings · Incidents · JHP Plans · Trench Box Data.</li>
+            <li>👷 <strong>Field</strong> — Public submission. Daily Reports · Equipment Pre-Op · Calculators.</li>
+            <li>🧑‍💼 <strong>PM</strong> — Login required (per-PM email + password). Scoped dashboards for assigned jobs.</li>
+            <li>🔧 <strong>Shop</strong> — Login required (per-mechanic email + password). Pre-Op trends, sign-off.</li>
+            <li>👥 <strong>HR</strong> — Login required (per-HR-user email + password). Time verification, accountability, training records.</li>
+            <li>🛡️ <strong>Field Leadership</strong> — Shared password gate. Write-ups, coaching, crew evaluations.</li>
             <li>🗄️ <strong>Admin</strong> — Office console. Everything in this manual below.</li>
-            <li>🔧 <strong>Shop</strong> — Mechanic console. Equipment list, Pre-Op trends, Sign-off.</li>
+            <li>🏗️ <strong>Basecamp</strong> + 📍 <strong>OnStation</strong> — External tabs for project comms + field staking.</li>
           </ul>
           <p className="mt-3 text-xs text-slate-500"><em>The in-app Crew Hub project workspace was retired on 2026-04-28 — we now use Basecamp for project comms and OnStation for field staking. Both open in a new tab from the Hub home.</em></p>
+        </Section>
+
+        {/* SIGN-IN OPTIONS */}
+        <Section icon={KeyRound} title="How to sign in (3 ways)" color="red">
+          <p>Every office user signs in with their <strong>work email + personal password</strong>. The legacy "single shared admin password" is gone from the human-facing UI (kept only as an API break-glass for IT).</p>
+          <div className="grid sm:grid-cols-3 gap-3 mt-4">
+            <div className="border-2 border-red-700 bg-red-50 rounded-md p-3">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-red-700 font-bold mb-1">
+                One portal only
+              </div>
+              <p className="text-sm m-0">
+                Go to <code>/admin/login</code> (or <code>/pm/login</code>, <code>/shop/login</code>, <code>/hr/login</code>). Email + password. Drops you straight into that portal.
+              </p>
+            </div>
+            <div className="border-2 border-slate-800 bg-slate-50 rounded-md p-3">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-700 font-bold mb-1">
+                Multiple portals
+              </div>
+              <p className="text-sm m-0">
+                Go to <code>/sign-in</code>. Same email + password works as the "master sign-in" — backend issues tokens for every portal you're assigned to in one shot. Switch between them via the <strong>SWITCH PORTAL</strong> dropdown in the header.
+              </p>
+            </div>
+            <div className="border-2 border-amber-600 bg-amber-50 rounded-md p-3">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-700 font-bold mb-1">
+                Field crew
+              </div>
+              <p className="text-sm m-0">
+                <strong>No login.</strong> Field workers open <code>mascidocs.com</code> on their phone and tap a Safety or Field submission tile directly — no password needed for public submissions.
+              </p>
+            </div>
+          </div>
+          <p className="mt-3">
+            <strong>Forgot password?</strong> Each portal's login page has a "Forgot password?" link that emails a 30-minute reset link. Admin can also re-issue any user's temp password from the Access Control panel in under 30 seconds.
+          </p>
+        </Section>
+
+        {/* ADMIN CONSOLE LAYOUT */}
+        <Section icon={LayoutDashboard} title="Admin Console layout (what each section does)" color="slate">
+          <p>The Admin Console at <code>/admin</code> is now organized into <strong>7 sections plus an Overview dashboard</strong>. Sidebar nav on the left (or hamburger on mobile). Every section has a "← Back to Admin Overview" button at the top.</p>
+          <table className="w-full border-collapse text-sm mt-3">
+            <thead>
+              <tr className="bg-slate-100">
+                <th className="text-left p-2 border border-slate-300">Section</th>
+                <th className="text-left p-2 border border-slate-300">Path</th>
+                <th className="text-left p-2 border border-slate-300">What lives there</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td className="p-2 border border-slate-300 font-bold">Overview</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin</td><td className="p-2 border border-slate-300 text-xs">Welcome + Doc-ID record search + section tiles.</td></tr>
+              <tr><td className="p-2 border border-slate-300 font-bold">People &amp; Access</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/people</td><td className="p-2 border border-slate-300 text-xs">PM accounts · Shop users · HR users · Multi-portal directory · Employee master roster.</td></tr>
+              <tr><td className="p-2 border border-slate-300 font-bold">Jobs &amp; Field</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/jobs</td><td className="p-2 border border-slate-300 text-xs">Job master · Site posters · Active banners.</td></tr>
+              <tr><td className="p-2 border border-slate-300 font-bold">Equipment &amp; Suppliers</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/equipment</td><td className="p-2 border border-slate-300 text-xs">Pre-Op status board · Equipment master · Parts catalog · Supplier list.</td></tr>
+              <tr><td className="p-2 border border-slate-300 font-bold">Email &amp; Routing</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/email</td><td className="p-2 border border-slate-300 text-xs">Auto-routing rules · Distribution lists.</td></tr>
+              <tr><td className="p-2 border border-slate-300 font-bold">Training &amp; Forms</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/training</td><td className="p-2 border border-slate-300 text-xs">Field adoption analytics (scans, bilingual, calculator usage) · Training resources · Safety-forms library.</td></tr>
+              <tr><td className="p-2 border border-slate-300 font-bold">Compliance &amp; Audits</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/compliance</td><td className="p-2 border border-slate-300 text-xs">Date-range CSV exports · Document audit.</td></tr>
+              <tr><td className="p-2 border border-slate-300 font-bold">System &amp; Backups</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/system</td><td className="p-2 border border-slate-300 text-xs">Pre-Deploy snapshot panel · Hero backup buttons · Cloud (R2) archives · Verification cron · Restore · Crew recovery.</td></tr>
+            </tbody>
+          </table>
+        </Section>
+
+        {/* PRE-DEPLOY SNAPSHOT */}
+        <Section icon={Rocket} title="⚠ Before any redeploy — the Pre-Deploy Snapshot panel" color="red">
+          <p>Open <code>/admin/system</code>. The very top of that page shows a giant traffic-light panel:</p>
+          <div className="grid sm:grid-cols-3 gap-3 mt-3">
+            <div className="border-2 border-emerald-500 bg-emerald-50 rounded-md p-3">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-emerald-700 font-bold mb-1">🟢 GREEN · &lt; 1 hour old</div>
+              <p className="text-sm m-0">SAFE TO REDEPLOY. The hourly auto-snapshot has you covered.</p>
+            </div>
+            <div className="border-2 border-amber-500 bg-amber-50 rounded-md p-3">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-700 font-bold mb-1">🟡 YELLOW · 1–12 hours</div>
+              <p className="text-sm m-0">Click "Snapshot Now" before redeploying.</p>
+            </div>
+            <div className="border-2 border-red-700 bg-red-50 rounded-md p-3">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-red-700 font-bold mb-1">🔴 RED · &gt; 12 hours</div>
+              <p className="text-sm m-0">Run a snapshot NOW. Wait for it to complete before any redeploy.</p>
+            </div>
+          </div>
+          <p className="mt-3">
+            <strong>Hourly auto-snapshots</strong> run in the background every UTC hour to a Cloudflare R2 archive. <strong>The "Snapshot Now" button</strong> on the panel forces a fresh archive build (30–60 seconds) if you need a closer recovery point. <strong>Nightly verification email</strong> at 14:00 UTC Mondays confirms the archive system is healthy.
+          </p>
         </Section>
 
         {/* EVERY DAY */}
@@ -106,19 +188,21 @@ export default function AdminGuide() {
 
         {/* EVERY WEEK */}
         <Section icon={Users} title="Every week — you, in the office" color="amber">
-          <p>Sign in at <code>mascidocs.com/admin</code> with the Admin password (issued offline by Safety Department leadership — never posted in writing). You'll see:</p>
+          <p>Sign in at <code>mascidocs.com/admin/login</code> with your work email + password. Land on the Admin Overview. Most weekly tasks:</p>
           <ul className="ml-5 list-disc space-y-1 mt-2">
-            <li><strong>6 module tiles</strong> showing how many records are on file. Click any tile to view / print / delete.</li>
-            <li><strong>Auto-Email Routing panel</strong> — confirms which PM gets which job's reports.</li>
-            <li><strong>Equipment Status Board</strong> — every piece of equipment with pass/fail history.</li>
-            <li><strong>Compliance Export</strong> — date-range CSVs per module for OSHA / DOT audits.</li>
+            <li>Use the <strong>Doc-ID search</strong> at top of Overview to jump to any specific record (e.g., <code>DR-2026-00007</code>).</li>
+            <li>Visit <strong>Training &amp; Forms</strong> to see how many scans/calculations your crews logged this week (bilingual breakdown included).</li>
+            <li>Visit <strong>Email &amp; Routing</strong> to confirm which PM gets which job's reports.</li>
+            <li>Visit <strong>Equipment &amp; Suppliers</strong> to see the Pre-Op status board — every piece with pass/fail history.</li>
+            <li>Visit <strong>Compliance &amp; Audits</strong> to pull date-range CSVs for OSHA / DOT.</li>
+            <li>Visit <strong>System &amp; Backups</strong> to glance at the snapshot freshness panel (should always be green).</li>
           </ul>
         </Section>
 
         {/* PROJECT P&L */}
         <Section icon={TrendingUp} title="Project P&L Snapshot — live job-cost dashboard" color="amber">
           <p>
-            On <code>/admin</code> click the <strong>Project P&amp;L Snapshot</strong> tile (top-left) —
+            From the Admin Overview, click <strong>Jobs &amp; Field</strong> → look for <strong>Project P&amp;L Snapshot</strong> —
             or go straight to <code>/admin/pnl</code>. Pick a project, optional date range, your
             labor rate ($/hr), and you get a live snapshot pulled straight from submitted Daily Reports.
           </p>
@@ -137,49 +221,34 @@ export default function AdminGuide() {
         {/* MASTER LISTS */}
         <Section icon={ListChecks} title="Master lists — keeping the dropdowns current" color="slate">
           <p>
-            Three uploadable lists feed every dropdown across the platform. All three live on{" "}
-            <code>/admin</code> right under the Backup panel:
+            Three uploadable lists feed every dropdown across the platform. Find them under{" "}
+            <strong>Equipment &amp; Suppliers</strong> (<code>/admin/equipment</code>) and{" "}
+            <strong>People &amp; Access</strong> (<code>/admin/people</code>):
           </p>
           <ul className="ml-5 list-disc space-y-2 mt-2">
             <li>
               <strong className="flex items-center gap-1.5"><Truck className="w-4 h-4" /> Equipment Master Fleet</strong>
               <br />Upload your master <code>Equipment List.xlsx</code> (Louis sheet). Auto-categorizes by
               prefix (DPT-, EXC-, LDR-, etc.). Feeds Equipment Pre-Op + Daily Report Equipment Log.
-              Today: <strong>589 units</strong>.
             </li>
             <li>
               <strong className="flex items-center gap-1.5"><Users className="w-4 h-4" /> Employee Roster</strong>
               <br />Upload .xlsx or .csv with at least a <code>Name</code> column (extra columns
               like Trade, Crew, Email all welcome but optional). Feeds the searchable employee picker
               in Daily Report Section 04 (Crew on Site), Site Inspection (operator), Incident
-              (witnesses, supervisor), Equipment Pre-Op (operator). Today: <strong>234 names</strong>.
+              (witnesses, supervisor), Equipment Pre-Op (operator).
             </li>
             <li>
               <strong className="flex items-center gap-1.5"><Building2 className="w-4 h-4" /> Supplier &amp; Subcontractor List</strong>
               <br />Upload .xlsx or .csv with company names in the first column. Feeds the searchable
               supplier picker in Daily Report Section 05 (Subcontractors) + Section 08 (Material
-              Deliveries). Today: <strong>145 entries</strong>.
+              Deliveries).
             </li>
           </ul>
           <p className="mt-3">
             <strong>Operators can always type free-text</strong> if a name/equipment/supplier isn't
             in the list yet — nothing blocks them in the field. Then you re-upload the master file
             when convenient.
-          </p>
-        </Section>
-
-        {/* EQUIPMENT FLEET (legacy section — keep for clarity) */}
-        <Section icon={Truck} title="Updating the equipment fleet" color="amber">
-          <p>Every equipment dropdown in the Hub (Pre-Op, Daily Reports, etc.)
-            is fed by a single master list parsed from your <code>Equipment List.xlsx</code>.</p>
-          <ol className="ml-5 list-decimal space-y-1 mt-2">
-            <li>Open <code>/admin</code> and find the <strong>MASCI Equipment Master Fleet</strong> panel near the top.</li>
-            <li>Click <strong>PICK .XLSX</strong> and choose your latest copy.</li>
-            <li>Done — the count + last-updated stamp refresh on screen, and every form picks up the new units instantly.</li>
-          </ol>
-          <p className="mt-3 text-sm">
-            By default the parser reads the <strong>Louis</strong> sheet (the master list).
-            Operators can still type custom equipment that isn't in the file as a fallback.
           </p>
         </Section>
 
@@ -235,37 +304,42 @@ export default function AdminGuide() {
             on <code>/admin/equipment</code> shows everything still pending across the whole fleet.
           </p>
           <div className="mt-4 bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r">
-            <div className="font-bold text-amber-900 uppercase text-sm tracking-wide">Shop Console (separate login)</div>
+            <div className="font-bold text-amber-900 uppercase text-sm tracking-wide">Shop Console (per-user login)</div>
             <p className="text-amber-900 text-sm mt-1">
               Mechanics get their own focused console at <code>/shop</code> — Pre-Op trends, open
-              items, recent inspections, and the full equipment list. Same sign-off endpoint;
-              they don't see incidents / dailies / meetings / inspections / settings.
-              Default password: <strong>(issued offline by Safety Department leadership)</strong> (changeable via <code>SHOP_PASSWORD</code>
-              env var). Admins automatically have shop access through their admin token.
+              items, recent inspections, and the full equipment list. Each mechanic has their own
+              email + password (admin issues a temp pw from <code>/admin/people</code>). Admins
+              automatically have shop access through their admin token.
             </p>
           </div>
         </Section>
 
         {/* BACKUP */}
         <Section icon={HardDrive} title="Backups — how to never lose data" color="slate">
-          <p className="font-bold text-slate-900 mb-2">Good news: a full backup lands in your inbox every night.</p>
-          <p>Each night at 2 AM UTC (10 PM ET), the system builds a complete <code>.zip</code> of everything and emails it to <strong>jaymn.judd@mascigc.com</strong>. Keep those emails. That's your off-site archive.</p>
+          <p className="font-bold text-slate-900 mb-2">Three layers of protection, in order of freshness:</p>
+          <ul className="ml-5 list-disc space-y-1.5 mt-2">
+            <li><strong>Hourly R2 cloud archives</strong> — every UTC hour the system writes a complete archive (DB + every photo inlined) to Cloudflare R2. Maximum data-loss window: ~1 hour. <em>Set</em> <code>BACKUP_R2_HOURLY=true</code> <em>in production env.</em></li>
+            <li><strong>Nightly email backup</strong> — every night at 2 AM UTC a complete <code>.zip</code> emails to <strong>jaymn.judd@mascigc.com</strong>. Keep those emails as a separate off-site copy.</li>
+            <li><strong>Weekly verification email</strong> — every Monday at 14:00 UTC the system emails a health report confirming R2 archives are recent and well-sized. Catches the "backend thinks it backed up but R2 silently rejected" scenario.</li>
+          </ul>
 
           <div className="mt-4 bg-red-50 border-l-4 border-red-700 p-3 rounded-r">
             <div className="font-bold text-red-900 uppercase text-sm tracking-wide">⚠ Before any production redeploy</div>
             <p className="text-red-900 text-sm mt-1">
-              Open <code>/admin</code>, scroll to the <strong>Backup &amp; Restore</strong> box at the top,
-              click the big <strong>BACKUP EVERYTHING</strong> button. Wait 30 seconds. The .zip will email you AND
-              download to your computer simultaneously. Then redeploy.
+              Open <code>/admin/system</code>. Check the <strong>Pre-Deploy Snapshot</strong> panel at the top.
+              If green, redeploy is safe. If yellow or red, click <strong>SNAPSHOT NOW</strong> and wait
+              for the build to complete before deploying. Alternatively use the <strong>BACKUP EVERYTHING</strong>
+              button (downloads + emails + writes to local disk) for a triple-redundancy moment.
             </p>
           </div>
 
           <div className="mt-4 bg-emerald-50 border-l-4 border-emerald-700 p-3 rounded-r">
             <div className="font-bold text-emerald-900 uppercase text-sm tracking-wide">If data is missing after a deploy</div>
             <ol className="text-emerald-900 text-sm mt-1 ml-5 list-decimal space-y-1">
-              <li>Open your inbox → search <em>"MASCI Nightly Backup"</em> → download the most recent .zip.</li>
-              <li>Go to <code>/admin</code> → find the <strong>BACKUP &amp; RESTORE</strong> box → click <strong>RESTORE FROM FILE</strong>.</li>
-              <li>Pick the .zip, confirm. Wait 30 seconds. Done.</li>
+              <li>Open <code>/admin/system</code> → <strong>Restore from Backup</strong> panel.</li>
+              <li>Pick a source: <strong>"From R2 archive"</strong> (dropdown of recent cloud archives) <strong>or</strong> <strong>"Upload .zip"</strong> (your nightly email backup).</li>
+              <li>Pick Merge (safe, default) or Replace (wipes collections first — destructive, requires password re-entry).</li>
+              <li>Confirm. Wait 30–60 seconds. Done.</li>
             </ol>
           </div>
         </Section>
@@ -281,43 +355,59 @@ export default function AdminGuide() {
             <li><code>backup_log.txt</code> — human-readable manifest of how many of each thing was saved</li>
             <li><code>backup_manifest.json</code> — machine-readable version used by Restore</li>
           </ul>
-          <p className="mt-3 text-xs text-slate-500"><em>Older backups (pre-2026-04-28) also contain a <code>crew_hub/</code> folder with the in-app Crew Hub messages, to-dos, schedule, docs, and hill charts. New backups skip that folder since the Crew Hub was retired in favor of Basecamp.</em></p>
           <p className="mt-3 font-semibold">
             The .zip is <strong>not encrypted</strong> — anyone with the file can read it. Treat it like a payroll binder:
-            keep it somewhere only authorized office staff can access.
+            keep it somewhere only authorized office staff can access. Cloudflare R2 presigned URLs are valid 7 days each —
+            safe to forward to IT for off-site copies.
           </p>
         </Section>
 
         {/* PASSWORDS */}
-        <Section icon={ShieldCheck} title="Passwords" color="slate">
+        <Section icon={ShieldCheck} title="Passwords &amp; Access Control" color="slate">
+          <p className="mb-3">Every office user has their own email + password. The legacy single-password admin gate is gone from the UI. Admin manages all accounts from <code>/admin/people</code>.</p>
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="bg-slate-100">
-                <th className="text-left p-2 border border-slate-300">What</th>
-                <th className="text-left p-2 border border-slate-300">Password</th>
-                <th className="text-left p-2 border border-slate-300">Where to change</th>
+                <th className="text-left p-2 border border-slate-300">Portal</th>
+                <th className="text-left p-2 border border-slate-300">How users sign in</th>
+                <th className="text-left p-2 border border-slate-300">How admin manages it</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td className="p-2 border border-slate-300">Admin console <code>/admin</code></td>
-                <td className="p-2 border border-slate-300 font-mono text-xs">— issued offline —</td>
-                <td className="p-2 border border-slate-300 text-xs">Your developer updates <code>ADMIN_PASSWORD</code> in the production deploy env vars</td>
+                <td className="p-2 border border-slate-300 font-bold">Admin <code>/admin/login</code></td>
+                <td className="p-2 border border-slate-300 text-xs">Work email + password (stored in <code>user_directory</code> as bcrypt)</td>
+                <td className="p-2 border border-slate-300 text-xs"><code>/admin/people</code> → Multi-Portal Directory. Add/remove admins, reset passwords, audit log.</td>
               </tr>
               <tr>
-                <td className="p-2 border border-slate-300">Site Inspection form</td>
-                <td className="p-2 border border-slate-300 font-mono text-xs">— field gate code —</td>
-                <td className="p-2 border border-slate-300 text-xs">Hardcoded gate — prevents randos submitting. Code on the field reference card.</td>
+                <td className="p-2 border border-slate-300 font-bold">PM <code>/pm/login</code></td>
+                <td className="p-2 border border-slate-300 text-xs">Work email + password. Forgot? In-page reset link.</td>
+                <td className="p-2 border border-slate-300 text-xs"><code>/admin/people</code> → PM Accounts. Issue temp pw → email welcome PDF.</td>
               </tr>
               <tr>
-                <td className="p-2 border border-slate-300">Shop console <code>/shop</code></td>
-                <td className="p-2 border border-slate-300 font-mono text-xs">— issued offline —</td>
-                <td className="p-2 border border-slate-300 text-xs">Developer updates <code>SHOP_PASSWORD</code> in the production deploy env vars</td>
+                <td className="p-2 border border-slate-300 font-bold">Shop <code>/shop/login</code></td>
+                <td className="p-2 border border-slate-300 text-xs">Work email + password. Forgot? In-page reset link.</td>
+                <td className="p-2 border border-slate-300 text-xs"><code>/admin/people</code> → Shop Users. Same flow as PM.</td>
               </tr>
               <tr>
-                <td className="p-2 border border-slate-300">Basecamp / OnStation</td>
-                <td className="p-2 border border-slate-300 font-mono text-xs">— external —</td>
-                <td className="p-2 border border-slate-300 text-xs">Sign in on the vendor site (basecamp.com / onstation.us). Not managed here.</td>
+                <td className="p-2 border border-slate-300 font-bold">HR <code>/hr/login</code></td>
+                <td className="p-2 border border-slate-300 text-xs">Work email + password. Forgot? In-page reset link.</td>
+                <td className="p-2 border border-slate-300 text-xs"><code>/admin/people</code> → HR Users. Same flow as PM.</td>
+              </tr>
+              <tr>
+                <td className="p-2 border border-slate-300 font-bold">Multi-portal <code>/sign-in</code></td>
+                <td className="p-2 border border-slate-300 text-xs">Same work email + password — backend issues every portal token in one shot.</td>
+                <td className="p-2 border border-slate-300 text-xs"><code>/admin/people</code> → Multi-Portal Directory. Per-user <code>portals: [admin, pm, hr, ...]</code> array.</td>
+              </tr>
+              <tr>
+                <td className="p-2 border border-slate-300 font-bold">Field Leadership <code>/leadership</code></td>
+                <td className="p-2 border border-slate-300 text-xs">Shared password gate (legacy). Admin + PM tokens also work.</td>
+                <td className="p-2 border border-slate-300 text-xs">Rotated via <code>LEADERSHIP_PASSWORD</code> env var.</td>
+              </tr>
+              <tr>
+                <td className="p-2 border border-slate-300 font-bold">Site Inspection (field)</td>
+                <td className="p-2 border border-slate-300 font-mono text-xs">1982 (gate code)</td>
+                <td className="p-2 border border-slate-300 text-xs">Hardcoded gate — prevents randos submitting. On the field reference card.</td>
               </tr>
             </tbody>
           </table>
@@ -331,8 +421,20 @@ export default function AdminGuide() {
             <li><strong>jaymn.judd@mascigc.com</strong> (always)</li>
             <li><strong>safety@mascigc.com</strong> (always)</li>
             <li>For <strong>severe incidents</strong> (medical, lost-time, OSHA-recordable): also blasts the <code>SEVERE_INCIDENT_CC</code> list</li>
+            <li>For <strong>failed Pre-Op</strong> (OOS or Needs Attention): fan-out to every active <code>shop_users</code> account.</li>
           </ul>
-          <p className="mt-3">See the <em>Auto-Email Routing</em> panel on <code>/admin</code> for the full job-to-PM table.</p>
+          <p className="mt-3">See the <em>Auto-Email Routing</em> panel on <code>/admin/email</code> for the full job-to-PM table.</p>
+        </Section>
+
+        {/* TRAINING */}
+        <Section icon={GraduationCap} title="Training Hub &amp; QR posters" color="amber">
+          <p>The <strong>Training Hub</strong> at <code>/training</code> serves four audience tracks: Field (public, no login), Shop, PM, Admin. Each track has bilingual EN/ES lessons + a printable PDF packet.</p>
+          <ul className="ml-5 list-disc space-y-1 mt-2">
+            <li><strong>Trailer QR posters</strong> — tape one in every trailer. Scanning opens the right Field training page in EN or ES, no login. Print all 3 from <code>/admin/jobs</code> → Site Posters.</li>
+            <li><strong>Scan analytics</strong> — <code>/admin/training</code> shows last 7 days scans by track + by language + 14-day trend.</li>
+            <li><strong>Bilingual adoption</strong> — same page shows what % of all field submissions were filed in Spanish (auto-translated to English on the record itself).</li>
+            <li><strong>Calculator usage</strong> — material calculator runs (aggregate, asphalt, concrete, etc.) per EN/ES.</li>
+          </ul>
         </Section>
 
         {/* SHARE FORMS */}
@@ -340,12 +442,13 @@ export default function AdminGuide() {
           <p>Every form has a public submit URL + QR code. From each module dashboard (<code>/admin/inspections</code>, etc.) click the <strong>Share</strong> button to see the QR code.</p>
           <p className="mt-2">There are also <strong>printable wall posters</strong>:</p>
           <ul className="ml-5 list-disc space-y-1 mt-2">
-            <li>Crew Cheat Sheet — tape in every trailer</li>
+            <li>Field Card (Cheat Sheet) — tape in every trailer · prints from <code>/cheatsheet</code></li>
             <li>Job Hazard Plans QR — tape next to the plans binder</li>
             <li>Trench Box QR — tape on the trench box</li>
+            <li>Training Trailer Posters — one per training track, bilingual</li>
           </ul>
           <p className="mt-2">
-            Print all 3 at once from <code>/admin</code> → <strong>Site Posters</strong> panel → <strong>Print All Posters</strong>.
+            Print all posters from <code>/admin/jobs</code> → <strong>Site Posters</strong> panel → <strong>Print All Posters</strong>.
           </p>
         </Section>
 
@@ -353,7 +456,7 @@ export default function AdminGuide() {
         <Section icon={AlertOctagon} title="When something breaks" color="red">
           <ol className="ml-5 list-decimal space-y-2">
             <li>
-              <strong>Don't panic.</strong> Every bit of data is backed up every night.
+              <strong>Don't panic.</strong> The system has hourly cloud archives, nightly email backups, and a weekly health-check email.
             </li>
             <li>
               Screenshot the error. Note what you were doing when it happened.
@@ -363,14 +466,14 @@ export default function AdminGuide() {
               Most bugs are fixed in under an hour.
             </li>
             <li>
-              If you lost data after a redeploy, use the <strong>Restore From File</strong> button
-              with the most recent nightly backup email.
+              If you lost data after a redeploy, go to <code>/admin/system</code> → <strong>Restore from Backup</strong>.
+              Pick "From R2 archive" and select the most recent hourly snapshot — fastest recovery path.
             </li>
           </ol>
         </Section>
 
         <div className="mt-10 pt-6 border-t-2 border-slate-200 text-center text-xs font-mono uppercase tracking-[0.2em] text-slate-500">
-          MASCI · Admin Console
+          MASCI Operations Platform · Admin Console · Powered by ForgedOps™
         </div>
       </main>
 

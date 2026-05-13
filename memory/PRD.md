@@ -1,5 +1,50 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter86: Doc Refresh — AdminGuide + Ops Manual
+
+### User ask
+"Is all training manuals updated with changes, guides, cheat sheets everything
+with any & all changes so they are accurate?" — answer: no, AdminGuide.jsx and
+ops_manual.py were stale. Cheat Sheet + PM Welcome PDF + Training Tracks were
+already current.
+
+### What shipped
+- **AdminGuide.jsx full rewrite** (customer-facing owner's manual at `/admin/guide`):
+  - 5-portal Hub at a glance (Field/Safety/PM/Shop/HR + Field Leadership)
+  - 3-way sign-in explainer (single portal `/admin/login` · multi-portal `/sign-in` · field public)
+  - Full Admin Console layout table covering all 7 sub-routes
+  - New Pre-Deploy Snapshot section with traffic-light explainer
+  - 3-layer backup strategy (hourly R2 + nightly email + weekly verification)
+  - Restore-from-R2 workflow documented
+  - Passwords table reflects per-user accounts (no more "single shared admin password")
+  - Training Hub / QR posters section
+  - Updated branding: "MASCI Operations Platform" + "Powered by ForgedOps™"
+- **ops_manual.py (ForgedOps internal manual)** key sections refreshed:
+  - User Tiers: per-portal accounts (project_managers, shop_users, hr_users, user_directory) — no more ADMIN/PM/SHOP_PASSWORD env-gating language
+  - Key Collections: added user_directory, admin_audit, calculator_runs, backup_health, shop_users, hr_users, project_managers
+  - File Handling: now references Cloudflare R2 (not local disk)
+  - Section 3 (Third-Party): added R2 as HIGH-criticality dependency
+  - Section 5 (Deployment): Pre-Deploy Snapshot panel check is now Step 1; updated env-var list (BACKUP_R2_HOURLY, S3_* credentials, SUPER_ADMIN_*)
+  - Section 6 (Backup & Recovery): full rewrite — three-layer strategy table, on-demand panel docs, R2-first recovery procedures
+  - Section 8 (Security): multi-portal directory authentication; per-user revocation via password_hash[:16] binding; super-admin lockout recovery procedure
+  - Section 9 (Failure Points): R2 outage row added, removed local-disk-fill row, replaced "ADMIN_PASSWORD forgotten" with "super-admin lockout" recovery
+  - Section 10 (Maintenance): daily check of Pre-Deploy Snapshot panel; weekly verification email check; monthly R2 storage review + admin_audit review
+  - Section 11 (V2): updated server.py line count (9k); IT Server Dump endpoint added to roadmap; on-disk scheduler removal path noted
+- **CheatSheet, PM Welcome PDF, Training PDFs** — verified already current (no edits needed)
+
+### Files touched
+- `/app/frontend/src/pages/AdminGuide.jsx` (rewrite)
+- `/app/backend/ops_manual.py` (sections 1, 2, 3, 5, 6, 8, 9, 10, 11 refreshed)
+
+### Verified
+- AdminGuide page renders correctly at /admin/guide ✅
+- ops_manual PDF renders: 73 KB (was 73 KB) ✅
+- ops_manual DOCX renders: 51 KB (was 51 KB) ✅
+- Lint clean (JS + Python) ✅
+
+---
+
+
 ## 2026-05-13 — Iter85: Admin Login Parity + Option C Backup Hardening
 
 ### User asks (two combined)
