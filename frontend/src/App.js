@@ -57,6 +57,7 @@ import ShopHub from "@/pages/ShopHub";
 import ShopChangePassword from "@/pages/ShopChangePassword";
 import ShopResetPassword from "@/pages/ShopResetPassword";
 import HrLogin from "@/pages/HrLogin";
+import SignIn from "@/pages/SignIn";
 import HrHub from "@/pages/HrHub";
 import HrChangePassword from "@/pages/HrChangePassword";
 import HrResetPassword from "@/pages/HrResetPassword";
@@ -318,6 +319,7 @@ function App() {
                 Daily-Report-derived time verification, training records).
                 ============================================================ */}
             <Route path="/hr/login" element={<HrLogin />} />
+            <Route path="/sign-in" element={<SignIn />} />
             <Route path="/hr/forgot" element={<HrForgotPassword />} />
             <Route path="/hr/reset/:token" element={<HrResetPassword />} />
             <Route path="/hr/change-password" element={H(<HrChangePassword />)} />

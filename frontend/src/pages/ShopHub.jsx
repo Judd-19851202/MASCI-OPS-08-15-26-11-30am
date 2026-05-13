@@ -9,6 +9,7 @@ import ShopActivityFeed from "@/components/ShopActivityFeed";
 import PartsCatalog from "@/components/PartsCatalog";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
 import { LangToggle } from "@/components/LangToggle";
+import PortalSwitcher from "@/components/PortalSwitcher";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { clearShopToken } from "@/lib/shopAuth";
@@ -88,6 +89,7 @@ export default function ShopHub() {
           </Link>
           <MasciLogo variant="mark" size="md" homeLink="/" />
           <div className="flex items-center gap-2">
+            <PortalSwitcher current="shop" />
             <LangToggle />
             {me && (
               <Button

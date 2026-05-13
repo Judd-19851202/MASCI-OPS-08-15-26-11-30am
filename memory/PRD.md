@@ -139,6 +139,126 @@ what they are, look clean & professional."
 
 ---
 
+## 2026-05-13 — Iter82: Multi-Portal Access Control Center
+
+### User ask
+"A few people in our org need login across multiple portals — let
+certain people have access to multiple portals with the same login.
+Keep existing passwords intact (no resets). Admin would get email +
+password too. Add a dashboard to see/manage who has what."
+
+### Decisions made (with user "go with your picks")
+- **Seeded super-admin** (not hardcoded backdoor) — bcrypt-stored,
+  rotatable from admin panel, auditable.
+- **bcrypt from day 1** — `Maddix123!` is what bcrypt hashes; no grace
+  period plaintext fallback needed.
+- **Full audit log** — logins (success + failed), portal switches,
+  directory mutations, password resets all recorded.
+- **Launch with just Jaymn** (`jaymn.judd@mascigc.com / Maddix123!`,
+  all 4 portals, super-admin flag).
+
+### What shipped
+**Backend:**
+- `/app/backend/user_directory.py` — Core module: bcrypt-12 password
+  hashing, public_view serializer (no _id / no password_hash leakage),
+  CRUD with super-admin protection (can't delete/disable, admin portal
+  locked on), audit log writer, directory session token store with
+  12h server-side TTL, bootstrap_super_admin (idempotent — runs at
+  startup, top-ups portals if new types added later).
+- `/app/backend/routes/auth_directory_routes.py` — 8 endpoints:
+  - Public: `POST /api/auth/multi-login`, `POST /api/auth/multi-logout`,
+    `GET /api/auth/me-directory`, `POST /api/auth/issue-portal-token`,
+    `POST /api/auth/change-master-password`.
+  - Admin-strict: `GET /api/admin/directory`, `POST /api/admin/directory`,
+    `PATCH /api/admin/directory/{id}`, `DELETE /api/admin/directory/{id}`,
+    `POST /api/admin/directory/{id}/reset-password`, `GET /api/admin/audit`.
+- `server.py` — Wires the router with 4 portal-token minters that
+  bridge directory user → existing per-portal token systems (admin uses
+  env-derived format; pm/shop/hr look up by email in their collections).
+  Mints `None` gracefully when no per-portal record exists.
+- `/app/backend/.env` — Added `SUPER_ADMIN_EMAIL` +
+  `SUPER_ADMIN_BOOTSTRAP_PASSWORD`. Email stays in env for future
+  bootstrap top-ups; password becomes irrelevant after first deploy
+  (the bcrypt hash on the directory row is authoritative).
+
+**Frontend:**
+- `/app/frontend/src/lib/directoryAuth.js` — localStorage helpers +
+  `applyMultiLoginResponse()` that fans out per-portal tokens into the
+  existing admin/pm/hr/shop token stores so all the existing API
+  middleware "just works" with zero changes.
+- `/app/frontend/src/pages/SignIn.jsx` — New `/sign-in` route. Master
+  password sign-in with eye-toggle, Remember Me, 90s timeout, error
+  mapping, MASCI Operations Platform branded chrome, single-portal
+  sign-in links at the bottom for normal employees.
+- `/app/frontend/src/components/PortalSwitcher.jsx` — Dropdown widget
+  that auto-hides when a user has 0 or 1 portals. Shows colored dots
+  per portal, marks the current one as disabled, jumps to the other
+  hub with zero re-auth (existing per-portal tokens still valid).
+- `/app/frontend/src/components/AdminAccessControlPanel.jsx` —
+  Full management table: per-row portal checkboxes (toggle to
+  PATCH directory), super-admin badge + locked admin checkbox, disable
+  toggle, delete button, key-icon reset-password button (generates
+  secure random, auto-copies to clipboard, shows in 30s toast).
+  Includes a "Add user" dialog with portal checkboxes, generate-
+  password button, and `must_change_password=true` enforced for newly
+  created accounts.
+- Mounted PortalSwitcher in `/admin`, `/pm`, `/shop`, `/hr` headers.
+- Mounted AdminAccessControlPanel in `/admin` System Recovery section.
+- Added "Sign in" link to the public Hub header (desktop only).
+
+### Why this design
+- **Additive, not destructive** — every existing per-portal login URL
+  (`/admin/login`, `/pm/login`, `/hr/login`, `/shop/login`) keeps
+  working unchanged. Single-portal employees see zero change. Rollback
+  = delete `user_directory` collection + remove `/sign-in` route.
+- **No password resets** — existing PM/HR/Shop password hashes are
+  untouched. Multi-login bridges into them via per-portal lookups.
+- **No env-stored passwords after bootstrap** — bcrypt hash on the
+  directory row is the source of truth; bootstrap env var only used on
+  the very first deploy. Rotate from `/admin` after that.
+- **Super-admin can never lock itself out** — the directory bootstrap
+  is idempotent and tolerant; the row is protected from delete/disable;
+  and `is_super_admin` flag has admin portal locked on permanently.
+
+### Verification
+- Backend smoke test (curl): multi-login with `Maddix123!` returns
+  `ok=true`, `session_token`, `portal_tokens={admin: <token>, pm: null,
+  shop: null, hr: null}`. Admin token works against `/api/admin/jobs`.
+  Bad password → 401 "Invalid email or password." Unknown email →
+  same 401. Audit log records both successes and failures.
+- E2E Playwright test:
+  - `/sign-in` form renders, eye toggle works, Remember Me styled,
+    ForgedOps™ footer present.
+  - Submit with Maddix123! → lands on `/` (Hub).
+  - `localStorage["masci.directory.token"]` set; `["masci.adminToken"]`
+    set; user payload has all 4 portals.
+  - `/admin` page: PortalSwitcher dropdown trigger visible.
+  - Dropdown opens: shows "SUPER ADMIN · ACCESS" label, Admin Console
+    marked Current (disabled), HR / PM / Shop entries clickable with
+    colored dots.
+  - AdminAccessControlPanel renders: Super Admin row with shield icon,
+    all 4 portal checkboxes checked, admin checkbox locked (disabled).
+
+### Files touched
+- `/app/backend/user_directory.py` (NEW)
+- `/app/backend/routes/auth_directory_routes.py` (NEW)
+- `/app/backend/server.py` (mount + 4 portal-token minters +
+  bootstrap startup hook)
+- `/app/backend/.env` (SUPER_ADMIN_EMAIL + SUPER_ADMIN_BOOTSTRAP_PASSWORD)
+- `/app/frontend/src/lib/directoryAuth.js` (NEW)
+- `/app/frontend/src/pages/SignIn.jsx` (NEW)
+- `/app/frontend/src/components/PortalSwitcher.jsx` (NEW)
+- `/app/frontend/src/components/AdminAccessControlPanel.jsx` (NEW)
+- `/app/frontend/src/App.js` (mount /sign-in route)
+- `/app/frontend/src/pages/Hub.jsx` (Sign in link in header)
+- `/app/frontend/src/pages/AdminHub.jsx` (PortalSwitcher + panel mount)
+- `/app/frontend/src/pages/PmHub.jsx` (PortalSwitcher mount)
+- `/app/frontend/src/pages/ShopHub.jsx` (PortalSwitcher mount)
+- `/app/frontend/src/pages/HrHub.jsx` (PortalSwitcher mount)
+
+---
+
+
 ## 2026-05-13 — Iter81: Cross-Portal Email Chrome Parity (PM + Shop + HR)
 
 ### User ask

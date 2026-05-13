@@ -1,0 +1,97 @@
+// directoryAuth.js — Multi-portal master login client lib (iter82)
+//
+// Stores the directory session token + per-portal tokens issued by
+// /api/auth/multi-login. Mirrors the per-portal auth libs (adminAuth.js,
+// pmAuth.js, hrAuth.js, shopAuth.js) so the rest of the app can keep
+// reading from those — directoryAuth simply WRITES the per-portal token
+// stores after a successful multi-login.
+
+import { setAdminToken } from "./adminAuth";
+import { setPmToken } from "./pmAuth";
+import { setHrToken } from "./hrAuth";
+import { setShopToken } from "./shopAuth";
+
+const DIR_TOKEN_KEY = "masci.directory.token";
+const DIR_USER_KEY = "masci.directory.user";
+
+export function getDirectoryToken() {
+  try {
+    return localStorage.getItem(DIR_TOKEN_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function setDirectoryToken(token) {
+  try {
+    if (token) localStorage.setItem(DIR_TOKEN_KEY, token);
+    else localStorage.removeItem(DIR_TOKEN_KEY);
+  } catch {
+    /* localStorage unavailable — ignore */
+  }
+}
+
+export function getDirectoryUser() {
+  try {
+    const raw = localStorage.getItem(DIR_USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setDirectoryUser(user) {
+  try {
+    if (user) localStorage.setItem(DIR_USER_KEY, JSON.stringify(user));
+    else localStorage.removeItem(DIR_USER_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function clearDirectorySession() {
+  setDirectoryToken("");
+  setDirectoryUser(null);
+}
+
+/**
+ * After a successful /api/auth/multi-login response, fan out the issued
+ * portal tokens into their respective per-portal auth libs so the rest
+ * of the app's existing token-reader middleware "just works" without
+ * any code changes.
+ *
+ * @param {Object} response - the multi-login response body
+ * @param {boolean} rememberMe - persistent vs session storage
+ */
+export function applyMultiLoginResponse(response, rememberMe = true) {
+  if (!response?.ok) return;
+  setDirectoryToken(response.session_token);
+  setDirectoryUser(response.user);
+  const t = response.portal_tokens || {};
+  // The per-portal token setters have inconsistent signatures: PM/Shop/Admin
+  // take an `opts = {}` object while HR takes a plain boolean. Normalize.
+  if (t.admin) setAdminToken(t.admin, { remember: rememberMe });
+  if (t.pm) setPmToken(t.pm, { remember: rememberMe });
+  if (t.shop) setShopToken(t.shop, { remember: rememberMe });
+  if (t.hr) setHrToken(t.hr, rememberMe);
+}
+
+/**
+ * Pick the most useful landing page for a directory user based on the
+ * portals they have. If they have only one portal, go straight there.
+ * If they have multiple, drop them on the Hub so they can pick.
+ */
+export function landingFor(user) {
+  const portals = user?.portals || [];
+  if (portals.length === 1) {
+    return (
+      {
+        admin: "/admin",
+        pm: "/pm",
+        hr: "/hr",
+        shop: "/shop",
+      }[portals[0]] || "/"
+    );
+  }
+  return "/"; // hub
+}

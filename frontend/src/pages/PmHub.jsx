@@ -21,6 +21,7 @@ import {
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
+import PortalSwitcher from "@/components/PortalSwitcher";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
@@ -183,6 +184,7 @@ export default function PmHub() {
           <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/pm" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/pm" />
           <div className="flex items-center gap-2">
+            <PortalSwitcher current="pm" />
             <SystemHealthBadge />
             <CompanyInfoDialog />
             {me && (

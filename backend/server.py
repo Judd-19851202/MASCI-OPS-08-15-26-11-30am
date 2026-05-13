@@ -8101,6 +8101,86 @@ async def _start_backup_verification_cron():
         logging.getLogger(__name__).exception(f"[verify] failed to start: {e}")
 
 
+# ─── Multi-portal Access Control Center (iter82) ────────────────────
+# Bridges the new `user_directory` master account onto the existing
+# per-portal token systems. The minters look up the user by email in
+# each portal's collection; if not found, the directory entry alone is
+# enough proof of access — we issue a token signed against the master
+# password_hash so the portal middleware accepts it.
+import user_directory as _ud  # noqa: E402
+from routes.auth_directory_routes import build_auth_directory_router  # noqa: E402
+
+
+def _directory_admin_token(row: Dict[str, Any]) -> Optional[str]:
+    """Mint an admin token for a directory user. Reuses the env-derived
+    admin token format so all existing /api/admin/* routes accept it
+    unchanged."""
+    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
+    if not expected_pw:
+        return None
+    return _admin_token_for(expected_pw)
+
+
+async def _directory_pm_token(row: Dict[str, Any]) -> Optional[str]:
+    """Mint a PM token for a directory user. Looks up by email in
+    pm_users; if missing, returns None (directory user has 'pm' but no
+    PM record yet — admin needs to create one in the PM panel)."""
+    from pm_auth import find_pm_by_email, make_pm_token
+    try:
+        pm = await find_pm_by_email(db, row["email"])
+    except Exception:  # noqa: BLE001
+        return None
+    if not pm or pm.get("disabled") or not pm.get("password_hash"):
+        return None
+    return make_pm_token(pm["id"], pm["password_hash"])
+
+
+async def _directory_hr_token(row: Dict[str, Any]) -> Optional[str]:
+    """Mint an HR token for a directory user."""
+    from hr_users import find_hr_user_by_email, make_hr_user_token
+    try:
+        hr = await find_hr_user_by_email(db, row["email"])
+    except Exception:  # noqa: BLE001
+        return None
+    if not hr or hr.get("disabled") or not hr.get("password_hash"):
+        return None
+    return make_hr_user_token(hr["id"], hr["password_hash"])
+
+
+async def _directory_shop_token(row: Dict[str, Any]) -> Optional[str]:
+    """Mint a Shop token for a directory user."""
+    from shop_users import find_shop_user_by_email, make_shop_user_token
+    try:
+        shop = await find_shop_user_by_email(db, row["email"])
+    except Exception:  # noqa: BLE001
+        return None
+    if not shop or shop.get("disabled") or not shop.get("password_hash"):
+        return None
+    return make_shop_user_token(shop["id"], shop["password_hash"])
+
+
+_auth_directory_router = build_auth_directory_router(
+    db,
+    require_admin_strict_dep=require_admin_strict,
+    pm_token_minter=_directory_pm_token,
+    hr_token_minter=_directory_hr_token,
+    shop_token_minter=_directory_shop_token,
+    admin_token_minter=_directory_admin_token,
+)
+app.include_router(_auth_directory_router)
+
+
+@app.on_event("startup")
+async def _bootstrap_user_directory():
+    """Seed the super-admin row on first deploy (idempotent — silent if
+    already present). Driven by SUPER_ADMIN_EMAIL / SUPER_ADMIN_BOOTSTRAP_PASSWORD
+    env vars."""
+    try:
+        await _ud.bootstrap_super_admin(db)
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).exception(f"[directory] bootstrap failed: {e}")
+
+
 # Weekly variance email cron (Sunday 18:00 UTC by default).
 _PAYROLL_EMAIL_HOUR = int(os.environ.get("PAYROLL_VARIANCE_EMAIL_HOUR_UTC", "18") or "18")
 _PAYROLL_EMAIL_DOW = int(os.environ.get("PAYROLL_VARIANCE_EMAIL_DOW", "6") or "6")  # 0=Mon, 6=Sun

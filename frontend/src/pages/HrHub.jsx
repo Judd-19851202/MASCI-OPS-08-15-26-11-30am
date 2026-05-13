@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
+import PortalSwitcher from "@/components/PortalSwitcher";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser } from "@/lib/hrAuth";
 
@@ -46,6 +47,7 @@ export default function HrHub() {
           <MasciLogo variant="lockup" size="xl" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <div className="flex items-center gap-2">
+            <PortalSwitcher current="hr" />
             <LangToggle />
             <CompanyInfoDialog />
             <Button variant="outline" size="sm" onClick={signOut} className="text-xs" data-testid="hr-sign-out">

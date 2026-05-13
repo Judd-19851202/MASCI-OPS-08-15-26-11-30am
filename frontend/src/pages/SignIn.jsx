@@ -1,0 +1,222 @@
+// SignIn.jsx — Master multi-portal sign-in page (iter82)
+//
+// Single entry point at /sign-in for users who have access to MORE than
+// one portal (Admin + PM + HR, etc.). They type email + master password
+// once; the backend mints all eligible per-portal tokens and we fan
+// them out via `applyMultiLoginResponse`. Lands the user on either
+// their single portal (if they only have one) or the Hub (so they can
+// pick).
+//
+// All existing per-portal login flows (/pm/login, /hr/login, /shop/login,
+// /admin/login) keep working unchanged for single-portal users.
+
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Loader2, ArrowLeft, Mail, KeyRound, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/PasswordInput";
+import { MasciLogo } from "@/components/MasciLogo";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
+import { LangToggle } from "@/components/LangToggle";
+import { useT } from "@/lib/i18n";
+import { api } from "@/lib/api";
+import { applyMultiLoginResponse, landingFor } from "@/lib/directoryAuth";
+import { clearAdminToken } from "@/lib/adminAuth";
+import { clearPmToken } from "@/lib/pmAuth";
+import { clearHrToken } from "@/lib/hrAuth";
+import { clearShopToken } from "@/lib/shopAuth";
+import { toast } from "sonner";
+
+export default function SignIn() {
+  const { t } = useT();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Drop every per-portal token on arrival — clean slate so multi-login
+    // is the authoritative session.
+    clearAdminToken();
+    clearPmToken();
+    clearHrToken();
+    clearShopToken();
+  }, []);
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    if (!email.trim() || !password) {
+      toast.error(t("Enter your work email and master password"));
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await api.post(
+        "/auth/multi-login",
+        { email: email.trim().toLowerCase(), password },
+        { timeout: 90000 }
+      );
+      if (res?.data?.ok) {
+        applyMultiLoginResponse(res.data, rememberMe);
+        const user = res.data.user;
+        const granted = Object.entries(res.data.portal_tokens || {})
+          .filter(([, v]) => !!v)
+          .map(([k]) => k);
+        toast.success(
+          `${t("Welcome")} ${user?.name || ""} · ${t("Signed in to")}: ${
+            granted.length ? granted.map((p) => p.toUpperCase()).join(" · ") : "—"
+          }`,
+          { duration: 5000 }
+        );
+        navigate(landingFor(user), { replace: true });
+      } else {
+        toast.error(t("Sign-in failed"));
+      }
+    } catch (err) {
+      const status = err?.response?.status;
+      const detail = err?.response?.data?.detail;
+      const msg =
+        typeof detail === "string"
+          ? detail
+          : status === 401
+          ? t("Invalid email or password")
+          : t("Sign-in failed — try again");
+      toast.error(msg, { duration: 6000 });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen blueprint-bg flex flex-col">
+      <div className="caution-stripe" />
+      <header className="bg-slate-900 border-b-4 border-red-700">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+          <Link
+            to="/"
+            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
+            data-testid="sign-in-back"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Hub")}
+          </Link>
+          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
+          <LangToggle />
+        </div>
+      </header>
+
+      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
+        <div className="w-full max-w-md bg-white border-2 border-slate-300 rounded-md p-7 sm:p-9 shadow-xl">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700">
+                {t("Operations Platform")}
+              </div>
+              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
+                {t("Sign In")}
+              </h1>
+            </div>
+          </div>
+          <p className="text-slate-600 text-sm mt-2 mb-6">
+            {t("Multi-portal sign-in for accounts with access to more than one portal. Single-portal employees, use your portal's direct sign-in page (linked below).")}
+          </p>
+
+          <form onSubmit={onSubmit} className="space-y-4" data-testid="signin-form">
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                {t("Work Email")}
+              </Label>
+              <div className="relative mt-2">
+                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoFocus
+                  autoComplete="username"
+                  placeholder="yourname@mascigc.com"
+                  className="h-12 pl-9 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-700"
+                  data-testid="signin-email"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                {t("Master Password")}
+              </Label>
+              <PasswordInput
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-700"
+                data-testid="signin-password"
+                toggleTestId="signin-password-toggle"
+              />
+            </div>
+            <label className="inline-flex items-center gap-2 cursor-pointer select-none -mt-1">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 accent-red-700"
+                data-testid="signin-remember"
+              />
+              <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
+                {t("Remember me on this device")}
+              </span>
+            </label>
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+              data-testid="signin-submit"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Signing in…")}
+                </>
+              ) : (
+                <>
+                  <KeyRound className="w-4 h-4 mr-2" /> {t("Sign In")}
+                </>
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-8 pt-6 border-t border-slate-200">
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-2">
+              {t("Single-Portal Sign-In")}
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <Link to="/pm/login" className="text-red-700 hover:underline" data-testid="signin-pm-link">
+                PM Portal →
+              </Link>
+              <Link to="/shop/login" className="text-orange-700 hover:underline" data-testid="signin-shop-link">
+                Shop Portal →
+              </Link>
+              <Link to="/hr/login" className="text-purple-700 hover:underline" data-testid="signin-hr-link">
+                HR Portal →
+              </Link>
+              <Link to="/admin/login" className="text-slate-900 hover:underline font-bold" data-testid="signin-admin-link">
+                Admin Console →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
+          {t("MASCI Operations Platform · Master Sign-In")}
+        </div>
+        <ForgedOpsAttribution variant="login" />
+      </footer>
+    </div>
+  );
+}

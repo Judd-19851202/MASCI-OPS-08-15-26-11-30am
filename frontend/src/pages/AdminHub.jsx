@@ -32,6 +32,8 @@ import StoredBackupsPanel from "@/components/StoredBackupsPanel";
 import CloudArchivesPanel from "@/components/CloudArchivesPanel";
 import AdminSignatureMigrationPanel from "@/components/AdminSignatureMigrationPanel";
 import AdminBackupVerificationPanel from "@/components/AdminBackupVerificationPanel";
+import AdminAccessControlPanel from "@/components/AdminAccessControlPanel";
+import PortalSwitcher from "@/components/PortalSwitcher";
 import AdminBannersPanel from "@/components/AdminBannersPanel";
 import RestoreBackupPanel from "@/components/RestoreBackupPanel";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
@@ -181,6 +183,7 @@ export default function AdminHub() {
           <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/admin" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/admin" />
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+            <PortalSwitcher current="admin" />
             <SystemHealthBadge />
             <Link
               to="/pm"
@@ -557,6 +560,7 @@ export default function AdminHub() {
           <StoredBackupsPanel />
           <CloudArchivesPanel />
           <AdminBackupVerificationPanel />
+          <AdminAccessControlPanel />
           <AdminSignatureMigrationPanel />
 
           {/* 3 · RESTORE FROM BACKUP — merge (safe) or replace (wipes) */}

@@ -231,6 +231,14 @@ export default function Hub() {
           <MasciLogo variant="lockup" size="4xl" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="lockup" size="xl" className="sm:hidden" homeLink="/" />
           <div className="flex items-center gap-2">
+            <Link
+              to="/sign-in"
+              className="hidden sm:inline-flex items-center h-9 px-3 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wide transition-colors"
+              data-testid="hub-sign-in-link"
+              title="Multi-portal sign-in for managers, admins, and HR with cross-portal access"
+            >
+              Sign in
+            </Link>
             <LangToggle />
           </div>
         </div>
