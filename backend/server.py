@@ -8280,6 +8280,7 @@ from pdf_render import (  # noqa: E402
     render_email_html,
     render_record_pdf,
     KIND_TITLES,
+    build_email_subject,
 )
 from pm_routing import (  # noqa: E402
     ALWAYS_CC,
@@ -8421,25 +8422,20 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
 
         pdf_bytes = await asyncio.to_thread(render_record_pdf, kind, record)
 
-        title = KIND_TITLES.get(kind, "MASCI Hub Record")
-        project = record.get("project_name") or "MASCI"
         pm_name = dist.get("pm_name")
-        pm_tag = f" · PM: {pm_name}" if pm_name else ""
 
-        # Flag equipment failures in the subject so PMs see them at a glance
+        # Flag equipment failures + severe incidents at a glance
         equipment_fail = (
             kind == "equipment-inspection"
             and (record.get("fail_count") or 0) > 0
         )
-        fail_prefix = "EQUIPMENT FAIL · " if equipment_fail else ""
-        # Stamp the human-readable doc_id into the subject so the inbox
-        # becomes a searchable filing cabinet (Cmd-F by doc number)
-        # instead of 50 emails titled "Daily Job Report".
-        doc_id_segment = ""
-        doc_id_val = (record.get("doc_id") or "").strip()
-        if doc_id_val:
-            doc_id_segment = f"{doc_id_val} · "
-        subject = f"[MASCI] {fail_prefix}{doc_id_segment}{title} · {project}{pm_tag}"
+        severe_incident = kind == "incident" and _is_severe_incident(record)
+        subject = build_email_subject(
+            kind,
+            record,
+            equipment_fail=equipment_fail,
+            severe_incident=severe_incident,
+        )
 
         # Note: rendered as plain text by render_email_html (which wraps
         # it in a styled callout). Do NOT embed HTML tags here — they
@@ -8791,7 +8787,6 @@ async def email_report(
         resend.api_key = api_key
 
         pdf_bytes = render_record_pdf(body.kind, record)
-        title = KIND_TITLES.get(body.kind, "MASCI Hub Record")
         project = record.get("project_name") or record.get("project") or "MASCI"
         date_part = (
             record.get("report_date")
@@ -8806,7 +8801,7 @@ async def email_report(
             "--", "-"
         )
 
-        subject = body.subject or f"{title} · {project}".strip(" ·")
+        subject = body.subject or build_email_subject(body.kind, record)
 
         params = {
             "from": f"MASCI HUB Notifications <{sender_email}>",

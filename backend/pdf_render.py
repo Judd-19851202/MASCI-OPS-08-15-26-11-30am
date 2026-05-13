@@ -619,6 +619,106 @@ KIND_TITLES = {
     "qaqc": "QA / QC Inspection",
 }
 
+# Subject-line short titles — mobile-readable, drops "Report" suffix
+# noise. Used by build_email_subject() to fit critical info into the
+# ~50-character preview pane on iOS Mail / Gmail mobile.
+SHORT_KIND_TITLES = {
+    "inspection": "Site Inspection",
+    "meeting": "Safety Meeting",
+    "jha": "JHP",
+    "incident": "Incident",
+    "daily-report": "Daily Report",
+    "equipment-inspection": "Pre-Op",
+    "qaqc": "QA/QC",
+}
+
+
+def _short_project_label(project: str, max_len: int = 32) -> str:
+    """Trim a full project label to a mobile-friendly length.
+
+    Examples:
+      "SJR2C - Loop Trail - Spruce Creek"  → "Spruce Creek"
+      "Daytona Beach Pier Reconstruction"  → "Daytona Beach Pier Recons…"
+      "21-08 Volusia County Phase 2"       → "21-08 Volusia County Phase 2"
+
+    Strategy: if the project name contains " - " or " — " or " · " or " | "
+    separators, take the LAST non-empty segment (which is typically the
+    location). Otherwise, trim with an ellipsis at max_len chars.
+    """
+    if not project:
+        return ""
+    s = str(project).strip()
+    for sep in (" - ", " — ", " · ", " | "):
+        if sep in s:
+            parts = [p.strip() for p in s.split(sep) if p.strip()]
+            if parts:
+                s = parts[-1]
+            break
+    if len(s) > max_len:
+        s = s[: max_len - 1].rstrip() + "…"
+    return s
+
+
+def build_email_subject(
+    kind: str,
+    record: Dict[str, Any],
+    *,
+    equipment_fail: bool = False,
+    severe_incident: bool = False,
+) -> str:
+    """Build a mobile-friendly auto-email subject line.
+
+    Format priority (the most useful info first, so it survives mobile
+    preview truncation at ~50 chars):
+
+    Normal:
+      [MASCI] {project} · {short_title} · {doc_id}
+
+    Equipment fail:
+      ⚠ EQUIPMENT FAIL · {project} · {equipment_unit} · {doc_id}
+
+    Severe incident:
+      🚨 SEVERE INCIDENT · {project} · {doc_id}
+
+    Notes:
+      - PM tag dropped — PM is the recipient, already in the To: field
+      - project_name trimmed to ~32 chars or to the trailing segment
+      - doc_id makes the inbox a Cmd-F-able filing cabinet
+    """
+    project = _short_project_label(
+        record.get("project_name") or record.get("project") or "MASCI",
+        max_len=32,
+    )
+    doc_id = (record.get("doc_id") or "").strip()
+    short_title = SHORT_KIND_TITLES.get(kind, KIND_TITLES.get(kind, "Record"))
+
+    if severe_incident:
+        head = f"🚨 SEVERE INCIDENT · {project}"
+        if doc_id:
+            head += f" · {doc_id}"
+        return head
+
+    if equipment_fail:
+        unit = " ".join(
+            p for p in [
+                str(record.get("equipment_type") or "").strip(),
+                str(record.get("equipment_unit") or "").strip(),
+            ] if p
+        ).strip()
+        bits = ["⚠ EQUIPMENT FAIL", project]
+        if unit:
+            bits.append(unit)
+        if doc_id:
+            bits.append(doc_id)
+        return " · ".join(bits)
+
+    # Normal record — front-load the project (PM mental filter), then
+    # what the record is, then the doc_id for filing.
+    bits = ["[MASCI]", f"{project} · {short_title}"]
+    if doc_id:
+        bits[1] = f"{bits[1]} · {doc_id}"
+    return " ".join(bits)
+
 
 # ────────────────────────────────────────────────────────────────────────
 # QA/QC PDF localization map (EN → ES).
