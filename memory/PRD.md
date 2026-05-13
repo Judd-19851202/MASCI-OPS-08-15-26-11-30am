@@ -1,112 +1,125 @@
 # MASCI Safety Hub — PRD
 
-## 2026-05-13 — Iter73: Public Hub Redesign (Phase C + D)
+## 2026-05-13 — Iter75: Signature → Cloudflare R2 Migration
 
 ### User ask
-"Do what you recommend. I want this to look sharp like a well put
-together system but not over complicated or make anyone nervous to
-use, very user friendly but definitely well put together."
+"What exactly will the R2 work do? What's the issue & what will it fix?"
+After explanation: "Do it."
 
-### What shipped — full Hub rewrite
-- **4 grouped sections with kicker numbers (Phase C)**:
-  - `01 — TODAY IN THE FIELD`: 3 big BigTiles → Field · QA/QC · Safety
-  - `02 — LEADERSHIP TOOLS`: 2 MediumTiles → Field Leadership · Projects (Basecamp + OnStation)
-  - `03 — OFFICE PORTALS`: 4 compact PortalPills → PM · Shop · HR · Admin
-  - `04 — REFERENCE`: 3 ReferenceLinks → Training Hub · Cheat Sheet · Need Help?
-- **Hybrid verbiage scrub (Phase D)**:
-  - Public tiles keep warm descriptive copy + feature bullets.
-  - Restricted PortalPills show only title + 1 neutral sentence + lock icon + "SIGN IN →" CTA. **No feature bullets exposed** to unauthenticated viewers.
-  - When the matching session is active, the lock icon disappears and CTA flips to "OPEN →".
-- **Auto-personalization "Welcome Back" hero strip**:
-  - Reads localStorage synchronously; precedence admin > hr > pm > shop > leadership.
-  - Palette per kind (admin=slate, pm=indigo, shop=orange, hr=purple, leadership=slate).
-  - One-tap "Open" button → /admin | /hr | /pm | /shop | /leadership.
-  - Sign-out clears the strip instantly (state-driven re-render).
-- **Need Help? tile** in the Reference strip opens the existing
-  CompanyInfoDialog (phone, address, after-hours) — surfaces info
-  that was previously buried in the header button.
+### What shipped
+- **Backend migration router** (`/app/backend/routes/signature_migration.py`):
+  - `GET /api/admin/signatures/status` — per-collection scan of 11
+    form collections; returns counts of records with signatures,
+    base64 (still in DB) vs cloud (already R2), bytes recoverable.
+  - `POST /api/admin/signatures/migrate?dry_run=true|false&limit=N&collection=name`
+    — dry-run mode counts only; commit mode uploads each base64
+    blob to R2 via `photo_storage.upload_data_url()`, replaces the
+    field with the returned `photo://` ref atomically per record.
+  - Padding-repair patch on `upload_data_url` — older Mongo records
+    can have base64 padding stripped during JSON round-trips. The
+    helper now pads to a multiple of 4 with `=` before decoding.
+    Caught 2 stub records during preview migration that would have
+    otherwise failed.
 
-### Critical bug fixed during iter73
-- `EnforcePortalScope` was wiping admin/pm/shop/hr tokens the moment
-  the user navigated to `/` — so the Welcome-Back hero would show
-  for a single render and immediately stop working. Fix: added `/`
-  (the Hub) to the inScope exemption list alongside `/training/*`.
-  The Hub is the multi-audience rendezvous point; security sandbox
-  still applies to every other route outside each portal's namespace.
+- **Read-side compatibility shim** — every renderer that previously
+  inlined `<img src="data:...">` now resolves `photo://` refs at
+  print/render time:
+  - `pdf_render._signature()` (cover signatures + 1-pager footer
+    signatures)
+  - `pdf_render._render_subcontractor_inspection_html()` (Sign-Off
+    block)
+  - `pdf_render` attendees/witnesses signature list rows
+  - `field_leadership_pdf._resolve_sig()` + `_signatures_block()`
+  - Frontend `ViewEquipmentInspection`, `ViewMeeting`,
+    `FieldLeadershipView` — all 5 `<img>` sites now wrap the src
+    with `resolvePhotoSrc()` (identical to how job photos already
+    resolve `photo://` refs to `/api/photo-bytes?ref=…`).
+
+- **Admin panel** (`/app/frontend/src/components/AdminSignatureMigrationPanel.jsx`):
+  - Mounted in `/admin` directly below the Cloud Archives panel.
+  - R2 health badge (green when configured, amber when not).
+  - 4-stat summary (records w/ signatures · cloud · base64 in DB · DB bytes recoverable).
+  - Per-collection table.
+  - "Dry Run" + "Migrate Now" buttons; both auto-disabled when
+    `base64 === 0` with a green "All signatures live in R2" badge.
+  - Last-run result panel with per-collection breakdown.
 
 ### Verified
-- 34/34 frontend assertions ✓ (testing_agent_v3_fork iter73).
-- Manual round-trip verification ✓:
-  - Admin login → / shows hero → click Open → /admin → navigate back to / → hero still present.
-  - Sign-out clears the hero instantly.
-  - HR login → / renders purple "WELCOME BACK · HR PORTAL · HR Manager" with one-tap Open.
-- Need Help? opens Company Info dialog ✓.
-- All 12 section testids preserved (iter65-iter71 e2e tests still pass).
+- **Preview migration ran successfully**: 14 base64 signatures → R2
+  (14/14, 0 failed). Status endpoint now reports `grand_total.base64=0`,
+  `cloud=14`.
+- **PDF compatibility verified**: a daily-report and an inspection
+  with migrated `photo://` signatures rendered 1 MB+ PDFs with the
+  signature images inlined correctly.
+- **Testing agent iter75**: 8/8 backend pytest pass, 3 env-skipped,
+  100% frontend assertions pass.
+- **Build-breaker caught by testing agent**: duplicate
+  `import { resolvePhotoSrc }` in ViewMeeting.jsx + FieldLeadershipView.jsx
+  (added by an earlier automated edit). Testing agent removed the
+  duplicates → lint clean, webpack compiles, View pages load.
 
 ### Files added
-- `/app/frontend/src/pages/Hub.jsx` (full rewrite — 4 sub-components + helpers)
+- `/app/backend/routes/signature_migration.py`
+- `/app/backend/scripts/scan_signatures.py` (one-shot diagnostic script)
+- `/app/frontend/src/components/AdminSignatureMigrationPanel.jsx`
+- `/app/backend/tests/test_signature_migration_iter75.py`
 
 ### Files modified
-- `/app/frontend/src/components/EnforcePortalScope.jsx` (Hub-root exemption)
-- `/app/memory/PRD.md`
+- `/app/backend/server.py` (migration router mount)
+- `/app/backend/photo_storage.py` (padding-repair in `upload_data_url`)
+- `/app/backend/pdf_render.py` (3 read-side resolve sites)
+- `/app/backend/field_leadership_pdf.py` (`_resolve_sig` + `_signatures_block`)
+- `/app/frontend/src/pages/ViewEquipmentInspection.jsx`,
+  `ViewMeeting.jsx`, `FieldLeadershipView.jsx` (all 5 sig `<img>`
+  sites wrapped with `resolvePhotoSrc`)
+- `/app/frontend/src/pages/AdminHub.jsx` (mount panel)
 
-### Optional polish (deferred per reviewer notes)
-- Extract `BigTile / MediumTile / PortalPill / WelcomeBackHero` into
-  `/components/hub/` for reuse (Hub.jsx is 530 lines — readable but
-  could be split).
-- Add `window.addEventListener('storage', force)` so multi-tab logout
-  clears the strip live (low priority).
-- Verify Spanish translations exist for "Open Portal" / "Open Console"
-  / "Welcome back" strings.
-
----
-
-## 2026-05-13 — Iter72: HR Payroll Variance + Training Updates (Phase A & B)
-
-(see previous PRD section — full detail preserved in git history)
-
-Highlights:
-- HR Payroll Variance: paste Exact CSV → match by employee+week →
-  flag ≥15 min variances → approve/dispute persistence + CSV export.
-- Weekly auto-email cron (Sun 18:00 UTC).
-- HR training track (8 bilingual lessons) + 4 new admin lessons.
+### Operational notes
+- The migration is **idempotent** — re-runs return `migrated=0,
+  failed=0` when no base64 signatures remain.
+- The 30-day rollback fallback mentioned in the plan is not strictly
+  necessary because the migration is atomic per record and the
+  original base64 is only overwritten AFTER a successful R2 upload.
+  If a future need arises, write a reverse script that downloads each
+  `photo://` ref and writes back a `data:` URL.
 
 ---
 
-## 2026-05-12 — Iter71: HR Portal (full stack)
+## 2026-05-13 — Iter74: ForgedOps™ Standardization
 
-HR auth + chrome, 4 HR sub-pages, AdminHRUsersPanel in /admin, Public Hub HR Portal card.
+PDF renderers + posters + dev portal UI flipped to `ForgedOps™`. LLC
+retained only in legal pages, ownership disclosure, ops manual.
 
----
+## 2026-05-13 — Iter73: Public Hub Redesign (Phase C + D)
 
-## Earlier iterations
-- iter70: Field Leadership Employee Termination + Admin Terminations dashboard.
-- iter69: Shop Portal View 404 fix.
-- iter68: Full Deployment-Readiness Audit (9.4/10).
-- iter65-67: Hub Banner Messaging System + Audit Trail.
-- iter64: R2 photo migration + Cloud Archives.
-- iter58-63: Doc ID search, Email Routing, Job Photos perf, Backups.
+4 grouped sections, welcome-back hero, hybrid verbiage scrub, EnforcePortalScope fix.
+
+## 2026-05-13 — Iter72: HR Payroll Variance + Training Updates
+
+## 2026-05-12 — Iter71: HR Portal full stack
+
+(see git history)
 
 ---
 
 ## Prioritized backlog
 
 ### P1
-- Migrate remaining base64 signatures to R2 (write_up, recognition).
-- Backup verification cron (weekly R2 archive integrity check).
-- IT server-dump endpoints (`/api/admin/server-dump/list|latest`).
-- Employee Login Gate (bulk import + termination + usage).
-- Photo-First Daily Report (AI drafted from gallery photos).
-- Motive (Fleet) integration (Pre-Op autofill, GPS verification).
-- Refactor: extract Hub sub-components to `/components/hub/`.
-- Refactor: extract payroll variance parser to a `services/` module.
-- Strengthen `_name_key` matcher with `employee_id` fallback.
+- **Backup verification cron** — weekly check that the previous 7
+  nightly R2 archives exist + are openable; alarm email if not.
+- **IT server-dump endpoints** — `GET /api/admin/server-dump/list`
+  + `/latest`. Now meaningful since signatures are no longer
+  bloating the DB.
+- **Employee Login Gate** — bulk import + termination + usage.
+- **Photo-First Daily Report** — AI-drafted from gallery photos.
+- **Motive (Fleet) integration** — Pre-Op autofill + GPS verification.
+- **Add `eslint --rule no-duplicate-imports:error`** to catch the
+  class of build-breaker the testing agent fixed this iter.
 
 ### P2
-- Multi-tab live sync for Welcome-Back strip (storage event listener).
-- "Restore from R2" admin button.
+- Auto-cron for signature migration on a schedule (currently manual).
+- "Restore from R2" admin button (manual archive pick).
 - "Forward to IT" share button on backup rows.
-- HR payroll variance — paste-Exact-CSV variance auto-suggestion (LLM).
 
 ---
 
