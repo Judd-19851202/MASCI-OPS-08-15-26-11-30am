@@ -139,6 +139,87 @@ what they are, look clean & professional."
 
 ---
 
+## 2026-05-13 — Iter80: HR Auth Parity (P0 BUG FIX + Visual Standardization)
+
+### User-reported bugs (from production mascidocs.com)
+1. **HR temp-password change-password flow broken** — toast "HR login
+   required" after submitting the form. User stuck.
+2. **HR Login looks different than PM Login** — missing Forgot
+   Password, Remember Me, eye-toggle visibility, helpful copy.
+3. **HR welcome email looks different** than other portal emails.
+
+### Root cause analysis
+- `HrChangePassword.jsx` was reading `must_change_password` from
+  `getHrUser()?.must_change_password` and branching the form to HIDE
+  the "Current password" field on first login. On iOS Safari the
+  navigation race between `setHrToken` → `setHrUser` → `nav()` and
+  the next API call could pre-empt localStorage commit, sending the
+  change-password request with no `X-HR-Token` header → backend
+  returns "HR login required".
+- `HrLogin.jsx` was a stripped-down skeleton — no `PasswordInput`,
+  no inline Forgot dialog, no Remember Me styling, no helpful copy,
+  no ForgedOps™ footer.
+- `_send_welcome_email` and `hr_forgot_password` in
+  `routes/hr_portal.py` were emitting bare HTML (`<p>Hi name,</p>`)
+  with no MASCI Operations Platform chrome — looked like spam next
+  to the iter78-branded daily-report emails.
+
+### What shipped
+**Backend (`/app/backend/routes/hr_portal.py`):**
+- New `_branded_hr_email_html(eyebrow, h1, body_html)` wrapper —
+  produces the standard MASCI Operations Platform red eyebrow + HR
+  Portal purple sub-eyebrow + bold h1 + body content + MASCI General
+  Contractors Inc. line + Powered by ForgedOps™ footer.
+- `_send_welcome_email` rebuilt — now uses branded chrome with a
+  proper table layout (Sign-in URL · Email · Temporary password with
+  dashed border highlight), a big purple **Sign in & set password**
+  CTA button, and a "change password immediately" reminder.
+- Subject standardized: `[MASCI] Your HR Portal account — temporary
+  password inside` (matches iter78 subject grammar).
+- `hr_forgot_password` rebuilt — branded chrome, 30-min link
+  expiration explicit, big purple **Reset password** button, falls
+  through to plain-text URL for accessibility.
+- Subject: `[MASCI] Reset your HR Portal password` (matches PM).
+
+**Frontend (rebuilt to PM parity):**
+- **`pages/HrLogin.jsx`** — full PM mirror w/ purple accent:
+  hub-back link, MASCI logo, EN/ES toggle, Building2 icon eyebrow,
+  Mail-icon email field, `PasswordInput` with eye-toggle, **inline
+  Forgot Password Dialog** (purple/red branded, 30-min expiry copy),
+  styled Remember Me checkbox, helpful bottom copy, 90s timeout,
+  per-status error mapping (401/403/timeout/5xx/cold-start), clears
+  every other portal's token on arrival.
+- **`pages/HrChangePassword.jsx`** — full PM mirror w/ purple accent:
+  fresh `/hr/me` on mount (bounces to /hr/login if token invalid),
+  **always shows Current/Temp password field** (no must_change
+  branching), `PasswordInput` everywhere, 8+ char + match validation,
+  on success swaps token + navigates to `from || /hr`.
+- **`pages/HrResetPassword.jsx`** — PM mirror w/ purple accent for
+  the `/hr/reset/:token` post-email flow.
+- **`pages/HrForgotPassword.jsx`** — deprecated to a redirect to
+  /hr/login (inline dialog now lives there).
+
+### Verification
+- End-to-end backend smoke test: admin create user → email delivered
+  with new chrome → login w/ temp → /hr/me confirms must_change=true
+  → change-password (sends current+new) → 200 OK, must_change flips
+  to false. PASS.
+- Visual screenshots verified: HR Login renders all PM-parity
+  features (eye toggle reveals, Forgot dialog opens with purple/red
+  branding, Remember Me checkbox styled, ForgedOps footer present).
+- Welcome email screenshotted — full MASCI chrome with HR Portal
+  sub-eyebrow + sign-in CTA + Inc. footer.
+
+### Files touched
+- `/app/backend/routes/hr_portal.py` (branded email helper + 2 emails rewritten)
+- `/app/frontend/src/pages/HrLogin.jsx` (full rebuild)
+- `/app/frontend/src/pages/HrChangePassword.jsx` (full rebuild)
+- `/app/frontend/src/pages/HrResetPassword.jsx` (full rebuild)
+- `/app/frontend/src/pages/HrForgotPassword.jsx` (deprecated → redirect)
+
+---
+
+
 ## 2026-05-13 — Iter79: Weekly Backup Verification Cron
 
 ### User ask
