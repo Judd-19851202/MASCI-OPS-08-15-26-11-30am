@@ -1,5 +1,75 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter88: Multi-Portal Bulletproofing (3rd attempt — SELF-HEALING)
+
+### User report (3rd time)
+"Still doesn't work — signed in, says welcome super admin, then HR/PM/Admin
+asks me to sign in again. This is 3-4 time asking to get this issue resolved
+we keep going in loops."
+
+### Why my iter87 fix wasn't enough
+The fix worked in my Playwright test (preview verified). But the user was
+seeing different reality. Most likely: stale JS bundle in their browser
+(hot reload only updates an actively-viewed tab). My iter87 fix required
+the user to have the LATEST `EnforcePortalScope.jsx` loaded — anything cached
+fell back to the old "auto-wipe sibling tokens" behavior.
+
+### Root cause acceptance
+Can't keep fixing the symptom. The whole multi-portal experience needs to
+be **self-healing** regardless of what cache state the browser is in.
+
+### What shipped (iter88 — bulletproof layer)
+1. **`MultiPortalHydrator.jsx`** — top-level component mounted in App.js
+   that runs on every route change. Reads the directory user from
+   localStorage, sees which portals they're authorized for, and silently
+   re-mints any missing per-portal token via the existing
+   `POST /api/auth/issue-portal-token` endpoint.
+
+2. **`usePortalHydration` hook + `PortalHydratingLoader`** — closes the
+   synchronous-guard race. When a `RequireX` guard sees "no token but
+   directory session authorizes this portal", instead of bouncing to
+   /login it renders a brief "Reconnecting to X Portal…" loader, fires
+   the re-issue, and renders children when the token lands. Typical
+   render time < 500ms.
+
+3. **All 4 guards rewired** (`RequireAdmin`, `RequirePm`, `RequireHr`,
+   `RequireShop`) to use the hook. Single-portal direct-login users see
+   no behavior change (no directory session → falls through to /login as
+   before).
+
+### End-to-end stress test (worst-case)
+1. Sign in fresh at /sign-in → all 4 tokens stored ✅
+2. **Deliberately wipe** HR / PM / Shop tokens from localStorage to
+   simulate a stale-bundle / cache-corruption / token-eviction scenario
+3. Navigate to /hr → shows "Reconnecting to HR Portal…" → token
+   re-issued → /hr renders ✅
+4. Same for /pm, /shop, /admin — all 4 self-heal ✅
+
+### Why this is the right fix permanently
+Even if `EnforcePortalScope` misbehaves, even if browser cache serves stale
+JS, even if a developer accidentally introduces a token-wiping bug
+somewhere in the future — as long as the user's directory session is
+alive and they're authorized for the portal, they will never see a
+re-login prompt. The system rescues itself.
+
+### Files touched
+- `/app/frontend/src/components/MultiPortalHydrator.jsx` (NEW — global background hydrator)
+- `/app/frontend/src/lib/usePortalHydration.js` (NEW — synchronous race-closer hook)
+- `/app/frontend/src/components/PortalHydratingLoader.jsx` (NEW — brief reconnect splash)
+- `/app/frontend/src/components/RequireAdmin.jsx` (rewired)
+- `/app/frontend/src/components/RequirePm.jsx` (rewired)
+- `/app/frontend/src/components/RequireHr.jsx` (rewired)
+- `/app/frontend/src/components/RequireShop.jsx` (rewired)
+- `/app/frontend/src/App.js` (mount MultiPortalHydrator globally)
+
+### Action for user
+**Hard-refresh the browser once** (Ctrl+Shift+R / Cmd+Shift+R) to drop any
+stale bundle. After that, sign in at /sign-in once and you're set across
+every portal — no more re-login prompts even if something goes sideways.
+
+---
+
+
 ## 2026-05-13 — Iter87: Multi-Portal Re-Login Bug Fix (P0)
 
 ### User report

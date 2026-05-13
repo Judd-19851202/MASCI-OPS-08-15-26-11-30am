@@ -2,6 +2,8 @@ import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { isAdmin } from "@/lib/adminAuth";
 import { isPm } from "@/lib/pmAuth";
+import { usePortalHydration } from "@/lib/usePortalHydration";
+import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 
 /**
  * Wrap any PM-portal route. Accepts EITHER a valid admin token OR a valid
@@ -9,22 +11,23 @@ import { isPm } from "@/lib/pmAuth";
  * PM portal also needs its own dedicated entry point with the strict-admin
  * controls — backups, restore, force-reseed — hidden from view).
  *
- * If no token is set, the user is redirected to /pm/login with the
- * original path captured so we can bounce them back after a successful
- * login.
+ * Iter88: if neither token is present but the user has a live /sign-in
+ * directory session that authorizes PM access, we silently re-mint the
+ * PM token instead of bouncing to /pm/login.
  */
 export function RequirePm({ children }) {
   const location = useLocation();
-  if (!isPm() && !isAdmin()) {
-    return (
-      <Navigate
-        to="/pm/login"
-        replace
-        state={{ from: location.pathname + location.search }}
-      />
-    );
-  }
-  return children;
+  const hasToken = isPm() || isAdmin();
+  const state = usePortalHydration("pm", hasToken);
+  if (state === "ready") return children;
+  if (state === "hydrating") return <PortalHydratingLoader portal="pm" />;
+  return (
+    <Navigate
+      to="/pm/login"
+      replace
+      state={{ from: location.pathname + location.search }}
+    />
+  );
 }
 
 export default RequirePm;

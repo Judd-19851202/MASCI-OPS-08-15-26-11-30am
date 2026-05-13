@@ -103,6 +103,7 @@ import BackendStatusBanner from "@/components/BackendStatusBanner";
 import BannerStrip from "@/components/BannerStrip";
 import { validateStoredTokens } from "@/lib/tokenValidation";
 import EnforcePortalScope from "@/components/EnforcePortalScope";
+import MultiPortalHydrator from "@/components/MultiPortalHydrator";
 import IdleTimeout from "@/components/IdleTimeout";
 import PosterErrorBoundary from "@/components/PosterErrorBoundary";
 
@@ -155,6 +156,7 @@ function App() {
       <BrowserRouter key={authTick}>
         <ScrollToTop />
         <EnforcePortalScope />
+        <MultiPortalHydrator />
         <IdleTimeout />
         <div className="flex-1 flex flex-col">
           <Routes>
