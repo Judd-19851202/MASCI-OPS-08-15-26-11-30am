@@ -13,7 +13,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Users, Plus, Loader2, ShieldCheck, KeyRound, Trash2,
-  Power, AlertOctagon, Copy, CheckCircle2,
+  Power, AlertOctagon, Copy, CheckCircle2, Mail, MailCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -119,24 +119,53 @@ export default function AdminAccessControlPanel() {
   };
 
   const resetPassword = async (user) => {
-    const temp = genTempPassword();
-    if (!window.confirm(
-      `Reset ${user.email}'s master password to a new one and force them to change it on next sign-in?\n\nThe new password will be shown ONCE. You'll need to deliver it to them outside the app.`
-    )) return;
+    // Iter90: Match the PM/Shop/HR admin flow — admin picks
+    // "email it to the user" or "show on screen so I can deliver it".
+    // The default is email so the experience matches what admins are
+    // already used to in /admin/people for the per-portal user lists.
+    const choice = window.prompt(
+      `Reset master password for ${user.email}?\n\n` +
+      `Type "EMAIL" to email a temporary password to ${user.email}.\n` +
+      `Type "SHOW" to generate one and have it shown to you here so you can deliver it manually.\n` +
+      `Leave blank or cancel to abort.`,
+      "EMAIL"
+    );
+    const decision = (choice || "").trim().toUpperCase();
+    if (!decision || (decision !== "EMAIL" && decision !== "SHOW")) {
+      if (choice !== null) toast.info("Cancelled — type EMAIL or SHOW exactly.");
+      return;
+    }
     try {
-      await api.post(`/admin/directory/${user.id}/reset-password`, {
-        new_password: temp,
+      const r = await api.post(`/admin/directory/${user.id}/reset-password`, {
+        // Backend will generate one for either delivery mode when blank.
+        new_password: "",
         must_change: true,
+        delivery: decision === "EMAIL" ? "email" : "show",
       });
-      // Show the temp password in a copyable toast that lasts long enough to write down
-      toast.success(
-        <div className="space-y-1">
-          <div className="font-bold">Password reset — give to user:</div>
-          <code className="text-base bg-slate-100 px-2 py-0.5 rounded">{temp}</code>
-        </div>,
-        { duration: 30000 }
-      );
-      try { await navigator.clipboard.writeText(temp); } catch { /* ignore */ }
+      if (r.data?.email_sent) {
+        toast.success(
+          <div className="space-y-1">
+            <div className="font-bold flex items-center gap-1.5">
+              <MailCheck className="w-4 h-4" /> Email sent to {user.email}
+            </div>
+            <div className="text-xs">
+              They'll be forced to choose a new password on first sign-in.
+            </div>
+          </div>,
+          { duration: 12000 }
+        );
+      } else if (r.data?.temp_password) {
+        // Email channel unavailable OR admin picked SHOW — surface pw.
+        try { await navigator.clipboard.writeText(r.data.temp_password); } catch { /* ignore */ }
+        toast.success(
+          <div className="space-y-1">
+            <div className="font-bold">Password reset — give to user:</div>
+            <code className="text-base bg-slate-100 px-2 py-0.5 rounded">{r.data.temp_password}</code>
+            <div className="text-[11px] text-slate-500">Copied to clipboard. Deliver it outside the app.</div>
+          </div>,
+          { duration: 45000 }
+        );
+      }
       refresh();
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Reset failed");
@@ -291,12 +320,14 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [portals, setPortals] = useState({ admin: false, pm: false, shop: false, hr: false });
+  const [delivery, setDelivery] = useState("email"); // 'email' | 'show'
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
   const reset = () => {
     setEmail(""); setName("");
     setPortals({ admin: false, pm: false, shop: false, hr: false });
+    setDelivery("email");
     setPassword("");
   };
 
@@ -310,8 +341,11 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
     if (grantedPortals.length === 0) {
       toast.error("Grant at least one portal"); return;
     }
-    if (!password || password.length < 8) {
-      toast.error("Password must be at least 8 characters"); return;
+    // Email delivery: backend will generate if password is blank.
+    // Show delivery: admin must type one (so they can deliver it).
+    if (delivery === "show" && (!password || password.length < 8)) {
+      toast.error("Type or generate a password (min 8 chars) for show-on-screen delivery");
+      return;
     }
     setBusy(true);
     try {
@@ -319,17 +353,36 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
         email: email.trim().toLowerCase(),
         name: name.trim(),
         portals: grantedPortals,
-        password,
+        password: delivery === "email" ? (password || "") : password,
         must_change_password: true,
+        delivery,
       });
-      try { await navigator.clipboard.writeText(password); } catch { /* ignore */ }
-      toast.success(
-        <div className="space-y-1">
-          <div className="font-bold">Created {r.data.user.email}</div>
-          <div className="text-xs">Initial password copied to clipboard. Deliver it outside the app — they'll be forced to change it on first sign-in.</div>
-        </div>,
-        { duration: 20000 }
-      );
+      const view = r.data?.user;
+      if (r.data?.email_sent) {
+        toast.success(
+          <div className="space-y-1">
+            <div className="font-bold flex items-center gap-1.5">
+              <MailCheck className="w-4 h-4" /> Welcome email sent to {view.email}
+            </div>
+            <div className="text-xs">
+              They'll be asked to choose their own password on first sign-in.
+            </div>
+          </div>,
+          { duration: 12000 }
+        );
+      } else if (r.data?.temp_password) {
+        try { await navigator.clipboard.writeText(r.data.temp_password); } catch { /* ignore */ }
+        toast.success(
+          <div className="space-y-1">
+            <div className="font-bold">Created {view.email}</div>
+            <div className="text-xs">Initial password copied to clipboard — deliver it outside the app.</div>
+            <code className="text-sm bg-slate-100 px-2 py-0.5 rounded inline-block">{r.data.temp_password}</code>
+          </div>,
+          { duration: 45000 }
+        );
+      } else {
+        toast.success(`Created ${view.email}`);
+      }
       reset();
       onOpenChange(false);
       onCreated?.();
@@ -402,15 +455,66 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
               ))}
             </div>
           </div>
+          {/* Delivery toggle — matches PM/Shop/HR admin UX */}
           <div>
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
-              Initial Master Password
+              How should they receive their password?
+            </Label>
+            <div className="grid grid-cols-2 gap-2 mt-1.5">
+              <label
+                className={`flex items-start gap-2 cursor-pointer p-2.5 rounded border-2 ${
+                  delivery === "email" ? "border-red-700 bg-red-50" : "border-slate-200 hover:border-slate-400"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="delivery"
+                  value="email"
+                  checked={delivery === "email"}
+                  onChange={() => setDelivery("email")}
+                  className="w-4 h-4 accent-red-700 mt-0.5"
+                  data-testid="acc-delivery-email"
+                />
+                <div>
+                  <div className="text-sm font-bold flex items-center gap-1"><Mail className="w-3.5 h-3.5" /> Email it (recommended)</div>
+                  <div className="text-[11px] text-slate-500 leading-tight">
+                    Sends a welcome email with a temp password + sign-in link.
+                  </div>
+                </div>
+              </label>
+              <label
+                className={`flex items-start gap-2 cursor-pointer p-2.5 rounded border-2 ${
+                  delivery === "show" ? "border-amber-600 bg-amber-50" : "border-slate-200 hover:border-slate-400"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="delivery"
+                  value="show"
+                  checked={delivery === "show"}
+                  onChange={() => setDelivery("show")}
+                  className="w-4 h-4 accent-amber-600 mt-0.5"
+                  data-testid="acc-delivery-show"
+                />
+                <div>
+                  <div className="text-sm font-bold flex items-center gap-1"><Copy className="w-3.5 h-3.5" /> Show me</div>
+                  <div className="text-[11px] text-slate-500 leading-tight">
+                    Shown on-screen + copied to clipboard for manual delivery.
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+          {/* Password field — required only for "show", optional for "email" */}
+          <div>
+            <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
+              {delivery === "email" ? "Custom password (optional)" : "Initial password"}
             </Label>
             <div className="flex gap-2 mt-1.5">
               <Input
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 chars"
+                placeholder={delivery === "email" ? "Leave blank to auto-generate" : "At least 8 chars"}
                 className="h-11 font-mono"
                 data-testid="acc-create-password"
               />
@@ -425,7 +529,9 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
               </Button>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              They will be forced to change this on first sign-in.
+              {delivery === "email"
+                ? "If left blank, the backend generates a secure temp password and emails it. They'll be forced to change it on first sign-in."
+                : "You'll see this password once after submit — copy it and deliver it outside the app."}
             </p>
           </div>
         </div>

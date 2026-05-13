@@ -8214,6 +8214,29 @@ async def _directory_shop_token(row: Dict[str, Any]) -> Optional[str]:
     return make_shop_user_token(shop["id"], shop["password_hash"])
 
 
+async def _directory_send_email(to: str, subject: str, html: str) -> None:
+    """Iter90 — Resend wrapper used by Access Control Center welcome /
+    password-reset notifications. Same envelope as the per-portal welcome
+    emails (PM/Shop/HR). Silent no-op if AUTO_EMAIL_REPORTS is off or
+    RESEND_API_KEY is missing — caller falls back to 'show password to
+    admin' in that case."""
+    if (os.environ.get("AUTO_EMAIL_REPORTS") or "").strip().lower() not in ("true", "1", "yes"):
+        raise RuntimeError("AUTO_EMAIL_REPORTS disabled")
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        raise RuntimeError("RESEND_API_KEY missing")
+    import resend as _resend  # noqa: PLC0415
+    _resend.api_key = api_key
+    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    params = {
+        "from": f"MASCI Operations <{sender}>",
+        "to": [to],
+        "subject": subject,
+        "html": html,
+    }
+    await asyncio.to_thread(_resend.Emails.send, params)
+
+
 _auth_directory_router = build_auth_directory_router(
     db,
     require_admin_strict_dep=require_admin_strict,
@@ -8221,6 +8244,8 @@ _auth_directory_router = build_auth_directory_router(
     hr_token_minter=_directory_hr_token,
     shop_token_minter=_directory_shop_token,
     admin_token_minter=_directory_admin_token,
+    send_email_fn=_directory_send_email,
+    render_portal_email_fn=render_portal_email,
 )
 app.include_router(_auth_directory_router)
 

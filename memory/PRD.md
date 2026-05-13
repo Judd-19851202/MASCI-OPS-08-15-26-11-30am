@@ -1,5 +1,85 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter90: Access Control Center — Email Delivery Parity
+
+### User report
+"Access Control Center doesn't give me option to email out password
+like others do for PM, Shop.... I asked for this?"
+
+### Confirmed gap
+The Multi-Portal Access Control panel ("Add user" + "Reset password")
+only ever copied the password to clipboard and told admin to "deliver
+it outside the app." The per-portal admin panels for PM / Shop / HR
+ALL have a clean **Email it / Show me** delivery toggle that sends a
+branded welcome email with a sign-in link + temp password. The
+directory panel was the odd one out.
+
+### What shipped
+**Backend** (`auth_directory_routes.py`):
+- New `_send_directory_welcome(...)` helper using the shared
+  `branded_portal_emails.render_portal_email` chrome (same wrapper as
+  PM/HR/Shop welcomes) — sends a styled email with sign-in URL, temp
+  password block, and a CTA button.
+- `POST /admin/directory` now accepts `delivery: "email" | "show"`. If
+  `delivery=email`, backend auto-generates a temp password (if not
+  provided), creates the user, fires the welcome email, and returns
+  `email_sent: true`. If `delivery=show`, returns the temp password
+  for the admin UI to surface on-screen.
+- `POST /admin/directory/{id}/reset-password` accepts the same `delivery`
+  field — works identically to the create flow.
+- Multi-portal users link to `/sign-in`; single-portal users (rare
+  through this panel but possible) link to the specific `/x/login`.
+- Audit log captures `delivery` mode + `email_sent` outcome.
+
+**Backend** (`server.py`):
+- New `_directory_send_email(to, subject, html)` Resend wrapper.
+- `build_auth_directory_router(...)` now takes `send_email_fn` +
+  `render_portal_email_fn` so the route factory is decoupled from the
+  Resend/branding modules.
+
+**Frontend** (`AdminAccessControlPanel.jsx`):
+- "Add multi-portal user" dialog: new "How should they receive their
+  password?" radio block (Email it ✉ / Show me 📋) — visually styled
+  like the per-portal dialogs. Password field is now optional when
+  emailing (auto-generates server-side). Inline explainer text changes
+  based on selection.
+- "Reset password" action: window.prompt asks `EMAIL` or `SHOW`. Success
+  toast adapts based on outcome:
+  - `email_sent: true` → "✉ Email sent to …" toast (12s)
+  - `email_sent: false` → falls back to copy-to-clipboard + on-screen
+    password toast (45s) — preview/dev path still works.
+
+### Behavior matrix
+| Delivery | Password provided? | Email channel up? | Result |
+|---|---|---|---|
+| email | yes | yes | Email sent with provided pw |
+| email | no  | yes | Email sent with auto-gen pw |
+| email | yes | no  | Falls back to show-on-screen + clipboard |
+| email | no  | no  | Falls back to show-on-screen + clipboard |
+| show  | yes | n/a | Always show-on-screen + clipboard |
+| show  | no  | n/a | 400 — password required |
+
+### Verified
+- `curl POST /admin/directory delivery=email` creates user, falls back
+  to `temp_password` in response when preview's
+  `AUTO_EMAIL_REPORTS=false` ✅
+- `curl DELETE /admin/directory/{id}` cleanup works ✅
+- Frontend dialog screenshot shows new delivery toggle + helpful copy ✅
+
+### Files touched
+- `/app/backend/routes/auth_directory_routes.py`
+- `/app/backend/server.py`
+- `/app/frontend/src/components/AdminAccessControlPanel.jsx`
+
+### Production action
+The preview has `AUTO_EMAIL_REPORTS` disabled so emails fall back to
+on-screen delivery for testing. Production already has the env var ON;
+once the user redeploys, the welcome emails will fire automatically
+when "Email it" is selected.
+
+---
+
+
 ## 2026-05-13 — Iter89: THE Multi-Portal Bug (root cause finally identified)
 
 ### User report (4th time)

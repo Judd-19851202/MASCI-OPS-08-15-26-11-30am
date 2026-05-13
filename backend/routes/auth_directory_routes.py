@@ -49,8 +49,9 @@ class CreateDirectoryUserBody(BaseModel):
     email: str
     name: str = ""
     portals: List[str] = Field(default_factory=list)
-    password: str
+    password: str = ""  # empty → backend generates if delivery=email
     must_change_password: bool = False
+    delivery: str = "email"  # "email" (welcome email) | "show" (admin sees + copies)
 
 
 class UpdateDirectoryUserBody(BaseModel):
@@ -60,8 +61,9 @@ class UpdateDirectoryUserBody(BaseModel):
 
 
 class AdminResetPasswordBody(BaseModel):
-    new_password: str
+    new_password: str = ""  # empty → backend generates if delivery=email
     must_change: bool = True
+    delivery: str = "email"  # "email" | "show"
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -75,8 +77,94 @@ def build_auth_directory_router(
     hr_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
     shop_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
     admin_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
+    send_email_fn: Optional[Callable] = None,
+    render_portal_email_fn: Optional[Callable] = None,
 ) -> APIRouter:
     router = APIRouter(tags=["auth-directory"])
+
+    # ────────────────────────────────────────────────────────────────
+    # Welcome / reset-password email — iter90
+    # Mirrors the PM/HR/Shop welcome-email pattern (work email + signed-in
+    # URL + temp password block + sign-in button). Uses the shared
+    # branded_portal_emails wrapper so chrome matches every other portal.
+    # ────────────────────────────────────────────────────────────────
+    import os
+    import secrets
+    import string
+
+    def _generate_temp_password(n: int = 12) -> str:
+        alphabet = string.ascii_letters + string.digits
+        return "".join(secrets.choice(alphabet) for _ in range(n)) + "!"
+
+    async def _send_directory_welcome(
+        user_email: str,
+        name: str,
+        temp_password: str,
+        portals: List[str],
+        is_reset: bool,
+    ) -> bool:
+        """Returns True if email was sent, False if email channel not
+        available (caller must fall back to 'show password to admin')."""
+        if not send_email_fn or not render_portal_email_fn:
+            logger.info(f"[directory welcome] email channel unavailable; password for {user_email} = {temp_password}")
+            return False
+        base = os.environ.get("PUBLIC_APP_URL", "https://mascidocs.com").rstrip("/")
+        # Multi-portal users sign in at /sign-in; single-portal users get
+        # the appropriate per-portal login URL.
+        if len(portals) == 1:
+            single_portal = portals[0]
+            login_url = f"{base}/{single_portal}/login"
+            portal_label = single_portal.upper()
+            access_text = f"the <strong>{portal_label} Portal</strong>"
+        else:
+            login_url = f"{base}/sign-in"
+            portal_label = ", ".join(p.upper() for p in sorted(portals))
+            access_text = f"the following portals: <strong>{portal_label}</strong>"
+        display_name = name or user_email.split("@")[0]
+        intro_para = (
+            f"<p style='margin:0 0 12px'>Hi {display_name},</p>"
+            f"<p style='margin:0 0 12px'>"
+            f"{'Your MASCI master password has been reset' if is_reset else 'Your MASCI access account has been created'}. "
+            f"This account gives you access to {access_text}. "
+            f"Sign in at the link below with your work email and the temporary password — "
+            f"<strong>you'll be asked to choose your own password on first sign-in.</strong>"
+            f"</p>"
+        )
+        body_html = (
+            intro_para
+            + "<table style='margin:14px 0;border-collapse:collapse;width:100%;'>"
+            f"  <tr><td style='padding:6px 0;font-family:Courier New,monospace;text-transform:uppercase;letter-spacing:0.18em;font-size:10px;color:#475569;font-weight:bold;width:42%'>Sign-in URL</td>"
+            f"      <td style='padding:6px 0;font-size:13px;'><a href='{login_url}' style='color:#b91c1c;font-weight:600'>{login_url}</a></td></tr>"
+            f"  <tr><td style='padding:6px 0;font-family:Courier New,monospace;text-transform:uppercase;letter-spacing:0.18em;font-size:10px;color:#475569;font-weight:bold;'>Email</td>"
+            f"      <td style='padding:6px 0;font-family:Courier New,monospace;font-size:13px;color:#0f172a'>{user_email}</td></tr>"
+            f"  <tr><td style='padding:6px 0;font-family:Courier New,monospace;text-transform:uppercase;letter-spacing:0.18em;font-size:10px;color:#475569;font-weight:bold;'>Temporary password</td>"
+            f"      <td style='padding:6px 0;font-family:Courier New,monospace;font-size:14px;color:#0f172a;background:#f8fafc;border:1px dashed #94a3b8;padding:6px 8px;border-radius:4px'><strong>{temp_password}</strong></td></tr>"
+            f"</table>"
+            f"<p style='margin:14px 0 6px'>"
+            f"<a href='{login_url}' style='display:inline-block;padding:11px 22px;background:#b91c1c;color:#fff;text-decoration:none;font-weight:700;border-radius:4px;font-size:13px'>Sign in &amp; set password</a>"
+            f"</p>"
+            f"<p style='margin:18px 0 0;font-size:12px;color:#94a3b8'>For security, please change your password immediately after signing in.</p>"
+        )
+        try:
+            html = render_portal_email_fn(
+                portal="Operations" if len(portals) > 1 else portals[0].upper(),
+                headline=(
+                    "Your MASCI master password was reset"
+                    if is_reset
+                    else "Welcome to MASCI Operations"
+                ),
+                body_inner_html=body_html,
+            )
+            subject_action = "master password reset" if is_reset else "account created"
+            await send_email_fn(
+                user_email,
+                f"[MASCI] Your access account — {subject_action} (temporary password inside)",
+                html,
+            )
+            return True
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[directory welcome] email send failed for {user_email}: {e}")
+            return False
 
     # ────────────────────────────────────────────────────────────────
     # Helper — mint all eligible portal tokens for a directory user
@@ -223,26 +311,57 @@ def build_auth_directory_router(
 
     @router.post("/api/admin/directory", dependencies=[Depends(require_admin_strict_dep)])
     async def create_user(body: CreateDirectoryUserBody, request: Request):
+        delivery = (body.delivery or "email").lower()
+        # If admin chose email delivery and didn't pass a password, generate one.
+        password = body.password.strip() if body.password else ""
+        if not password:
+            if delivery == "email":
+                password = _generate_temp_password()
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Password is required when delivery is not email.",
+                )
         try:
             view = await ud.create_directory_user(
                 db,
                 email=body.email,
                 name=body.name,
                 portals=body.portals,
-                password=body.password,
+                password=password,
                 must_change_password=body.must_change_password,
             )
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
+        email_sent = False
+        if delivery == "email":
+            email_sent = await _send_directory_welcome(
+                view["email"], view.get("name") or "", password, view["portals"], is_reset=False
+            )
         await ud.write_audit(
             db,
             actor_email=_audit_actor(request),
             action="directory_create",
             target_email=view["email"],
-            diff={"portals": view["portals"], "must_change_password": body.must_change_password},
+            diff={
+                "portals": view["portals"],
+                "must_change_password": body.must_change_password,
+                "delivery": delivery,
+                "email_sent": email_sent,
+            },
             ip=_client_ip(request),
         )
-        return {"ok": True, "user": view}
+        return {
+            "ok": True,
+            "user": view,
+            # If email delivery succeeded, don't return the password —
+            # forces the admin UI to show "Email sent" instead of leaking.
+            # If email failed or delivery=show, return it so the admin
+            # can copy it out manually.
+            "temp_password": None if (delivery == "email" and email_sent) else password,
+            "email_sent": email_sent,
+            "delivery": delivery,
+        }
 
     @router.patch(
         "/api/admin/directory/{user_id}",
@@ -306,24 +425,53 @@ def build_auth_directory_router(
         existing = await ud.find_by_id(db, user_id)
         if not existing:
             raise HTTPException(status_code=404, detail="User not found.")
+        delivery = (body.delivery or "email").lower()
+        new_pw = body.new_password.strip() if body.new_password else ""
+        if not new_pw:
+            if delivery == "email":
+                new_pw = _generate_temp_password()
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail="new_password is required when delivery is not email.",
+                )
         try:
             view = await ud.rotate_master_password(
                 db,
                 user_id=user_id,
-                new_password=body.new_password,
+                new_password=new_pw,
                 must_change=body.must_change,
             )
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
+        email_sent = False
+        if delivery == "email":
+            email_sent = await _send_directory_welcome(
+                existing["email"],
+                existing.get("name") or "",
+                new_pw,
+                existing.get("portals") or [],
+                is_reset=True,
+            )
         await ud.write_audit(
             db,
             actor_email=_audit_actor(request),
             action="directory_password_reset",
             target_email=existing.get("email"),
-            diff={"must_change": bool(body.must_change)},
+            diff={
+                "must_change": bool(body.must_change),
+                "delivery": delivery,
+                "email_sent": email_sent,
+            },
             ip=_client_ip(request),
         )
-        return {"ok": True, "user": view}
+        return {
+            "ok": True,
+            "user": view,
+            "temp_password": None if (delivery == "email" and email_sent) else new_pw,
+            "email_sent": email_sent,
+            "delivery": delivery,
+        }
 
     @router.get("/api/admin/audit", dependencies=[Depends(require_admin_strict_dep)])
     async def list_audit_log(
