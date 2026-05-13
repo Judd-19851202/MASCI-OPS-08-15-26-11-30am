@@ -1,0 +1,45 @@
+{
+  "summary": "Iter79 pre-deploy regression sweep — APPROVED for redeploy. 17/17 backend tests passed covering the new Backup Verification Cron (state/preview/run-now + auth gates), cross-portal isolation, all 5 portal logins (Admin, HR, PM, Shop, Field Leadership), public form submissions (daily-reports + equipment-inspections), the iter78c email subject helper (project-first ordering verified), and iter78d index branding. Frontend verified: Hub header has logo + EN/ES toggle ONLY (no Info button), 3 reference tiles render in correct LEFT→RIGHT order (need-help, training, cheatsheet), public Need Help dialog shows read-only InfoRow card (no banner, no Save button, only Close), browser tab title = 'MASCI Operations Platform'. AdminBackupVerificationPanel renders correctly inside /admin — preview button fetched the verification report end-to-end and rendered verdict='HEALTHY' with R2 (51 archives · 1.4 GB · 0.1h ago), Ledger (Ok · 13m ago), Records (87 total · 6 collections). Schedule card shows Mon at 14:00 UTC. Zero console errors across /, /cheatsheet, /hr/login, /pm/login, /admin/login, /leadership, /legal/terms, /legal/privacy, /admin (post-login). All TTFB < 500ms. Mobile 390x844 has no horizontal scroll on / or /cheatsheet. Did NOT click 'Send Verification Now' as instructed to avoid spamming jaymn.judd@mascigc.com. NO P0/P1 issues — safe to redeploy to mascidocs.com.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter79_regression.py",
+    "/app/test_reports/pytest/iter79_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backup Verification Cron router is wired correctly (server.py mounts build_backup_verification_router) and all 3 endpoints honor X-Admin-Token via require_admin_strict_dep. Public + cross-portal (HR token) requests all correctly return 401/403.",
+    "build_email_subject() in pdf_render.py correctly front-loads the trimmed project label before the doc_id — verified output: '[MASCI] Hwy 45 Reconstruction Pha… · Daily Report · DR-2026-0001'. _short_project_label() trims at 32 chars with ellipsis, drops trailing segments after ' - ' / ' — ' / ' · ' / ' | '. Subject ordering matches iter78c spec.",
+    "AdminBackupVerificationPanel preview button does a real GET /api/admin/backup-verification/preview, renders the verdict pill (HEALTHY in green) plus 3 stat cards (R2, Ledger, Records). bv-report-preview testid present after click. No console errors, no flash of unstyled content.",
+    "Hub (/) header confirmed clean per iter78e/f: only the MASCI logo (left/center) + lang toggle (right). The Info button has been correctly removed and reference tiles moved to the bottom-of-Hub section in spec order.",
+    "Public-mode CompanyInfoDialog (iter78e two-tier) correctly hides the editable form when no admin token — ci-readonly-card renders, ci-readonly-banner is absent, no Save button. Admin mode (would show editable form) was not exercised in detail because the public path is the critical regression — full admin-mode dialog is covered by the existing iter78 tests and the schema is unchanged."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter79_regression.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "All creds match /app/memory/test_credentials.md — verified by automated tests: Admin (MASCI1982!), HR (hrmanager@mascigc.com / HRPortal2026!), PM (chriswright@mascigc.com / ChrisRocksThis2026), Shop (testmech@mascigc.com / ResetWorks2026!), Field Leadership (MASCIGC at /api/field-leadership/login).",
+  "seed_data_creation": "Created 2 TEST_79-prefixed records to validate public submission flow still works post-iter79: 1 daily report + 1 equipment pre-op inspection. Both accepted 200. Records should be cleaned up by next admin DB sweep — TEST_ prefix makes them identifiable.",
+  "performance": {
+    "/": "200 in 480ms",
+    "/cheatsheet": "200 in 452ms",
+    "/hr/login": "200 in 333ms",
+    "/pm/login": "200 in 471ms",
+    "/admin/login": "200 in 440ms",
+    "/leadership": "200 in 332ms",
+    "/legal/terms": "200 in 324ms",
+    "/legal/privacy": "200 in 312ms",
+    "all_under_1500ms_threshold": true
+  },
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "test_iter79_regression.py is a 17-case session-scoped pytest suite. Run: `pytest /app/backend/tests/test_iter79_regression.py -v`. ALL 17 PASS. Covers: 6 Backup Verification Cron cases (state, preview, run-now auth-gate, HR-token rejection on state), 2 cross-portal isolation cases, 5 portal logins, 2 public submission flows (daily-reports + equipment-inspections with full required-field payloads), 1 build_email_subject helper case (kind='daily-report' NOT 'daily_report' — note the hyphen, KIND_TITLES uses hyphenated keys), 1 index branding check. Frontend: Hub layout (logo + EN/ES + 3 tiles in correct order), public Need Help dialog (readonly), /admin AdminBackupVerificationPanel (preview button hits real endpoint and renders verdict). Email send-now path was NOT exercised end-to-end per instructions — the run-now endpoint is wired correctly per code review and rejects unauthenticated requests, but verifying actual Resend send + DB marker write would require either a junk-recipient override or accepting one spam mail to jaymn.judd@mascigc.com. RECOMMEND main agent or user run one manual 'Send Verification Now' click after deploy to confirm the cron's email path against production Resend. Conftest auto-injects X-Admin-Token globally — pass headers=NO_ADMIN={'X-Admin-Token':''} explicitly when asserting unauth-rejection (already done throughout test_iter79_regression.py).",
+  "rca_of_the_issue": "N/A — no failures. The 3 initial test failures during authoring (DR/eq-insp 422s + build_email_subject TypeError) were test-script defects on my end (wrong payload field names, wrong kind key 'daily_report' instead of 'daily-report'), not real product bugs. Fixed in the test file before final run."
+}
