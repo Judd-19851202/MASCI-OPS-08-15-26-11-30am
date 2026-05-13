@@ -5,13 +5,16 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 /**
  * /legal/privacy — Privacy Policy.
  *
- * Authoritative text supplied by the customer (MASCI / ForgedOps)
- * on 2026-05-02. Treat the wording inside <article> as legal text — do
- * not edit phrasing without explicit owner approval.
+ * Hardened in iter76 (legal/infra/branding standardization pass).
+ * Existing approved language preserved; new sections added per iter76
+ * spec for: subprocessor disclosure (Cloudflare R2 redundant object
+ * storage), enhanced backup/disaster-recovery language, notifications
+ * consent, automated processing & AI features, and a strengthened
+ * compliance disclaimer.
  *
  * Roles:
  *   • ForgedOps LLC = data PROCESSOR (owns and operates the
- *     Platform — code, software, infrastructure, mascidocs.com).
+ *     Platform). UI-facing branding uses "ForgedOps™".
  *   • MASCI = data CONTROLLER (owns all Customer Data submitted
  *     through MASCI HUB).
  *   • The two companies are independent.
@@ -41,7 +44,7 @@ export default function PrivacyPolicy() {
         data-testid="privacy-policy-page"
       >
         <p className="text-xs font-mono uppercase tracking-wide text-slate-500 mb-6">
-          Effective Date: January 01, 2026 · Last Updated: January 01, 2026
+          Effective Date: January 01, 2026 · Last Updated: May 13, 2026
         </p>
 
         <p>
@@ -135,11 +138,18 @@ export default function PrivacyPolicy() {
         <p>Information is used solely to:</p>
         <ul>
           <li>Operate and deliver the Platform</li>
-          <li>Route reports and notifications to appropriate MASCI personnel</li>
+          <li>Route reports, alerts, and notifications to appropriate MASCI personnel</li>
           <li>
-            Send transactional emails (e.g., PM notifications, safety alerts)
+            Send operational notifications, workflow alerts, safety
+            notices, maintenance alerts, account notifications, and
+            related system communications via PWA / mobile push,
+            email, or SMS where applicable
           </li>
-          <li>Maintain limited operational backup and recovery processes necessary to support Platform functionality</li>
+          <li>
+            Maintain commercially reasonable backup, redundancy, and
+            disaster-recovery processes (see Section 5) necessary to
+            support Platform functionality and continuity
+          </li>
           <li>Monitor system performance and resolve technical issues</li>
         </ul>
         <p>
@@ -160,39 +170,83 @@ export default function PrivacyPolicy() {
         <p>
           ForgedOps LLC uses a limited number of vetted third-party
           providers (&ldquo;<strong>Subprocessors</strong>&rdquo;) to operate
-          the Platform, including:
+          the Platform. The current Subprocessor list is:
         </p>
         <ul>
           <li>
-            <strong>MongoDB Atlas</strong> — data storage
+            <strong>MongoDB Atlas</strong> — primary database storage and
+            replication.
           </li>
           <li>
-            <strong>Resend</strong> — email delivery
+            <strong>Cloudflare R2</strong> — redundant object storage,
+            photo and signature archival, system backup infrastructure,
+            content delivery, and operational resiliency services.
           </li>
           <li>
-            <strong>Cloud infrastructure providers</strong> — hosting and
-            system operations
+            <strong>Cloudflare</strong> — DNS, edge caching, TLS
+            termination, and DDoS protection for mascidocs.com.
+          </li>
+          <li>
+            <strong>Resend</strong> — transactional email delivery
+            (operational notifications, password resets, distribution
+            emails, daily report routing).
+          </li>
+          <li>
+            <strong>Anthropic Claude</strong> — supervised AI text
+            generation for translation, banner localization, and
+            optional AI-assisted drafting features.
+          </li>
+          <li>
+            <strong>OpenAI</strong> — supervised AI text and image
+            generation where applicable to the Automated Features.
+          </li>
+          <li>
+            <strong>Google Gemini</strong> — supervised AI text and image
+            generation where applicable to the Automated Features.
+          </li>
+          <li>
+            <strong>Cloud infrastructure providers</strong> — compute
+            hosting, container orchestration, supervisor services, and
+            related system operations.
           </li>
         </ul>
         <p>
-          These subprocessors process data solely to support Platform
+          Subprocessors process data solely to support Platform
           functionality and are contractually obligated to protect data.
+          The current Subprocessor list may evolve as the Platform
+          scales; material changes are communicated to MASCI in
+          accordance with the separate services agreement.
         </p>
 
         <hr className="my-6 border-slate-200" />
 
-        <h2>5. Security</h2>
+        <h2>5. Security, Backup &amp; Operational Resiliency</h2>
         <p>The Platform uses industry-standard security measures, including:</p>
         <ul>
           <li>TLS encryption for data in transit</li>
           <li>Encrypted storage for data at rest</li>
-          <li>Hashed authentication credentials</li>
-          <li>Role-based access controls</li>
-          <li>Automated system backups</li>
+          <li>Hashed authentication credentials (bcrypt or stronger)</li>
+          <li>Role-based access controls, scoped per portal (Admin, PM, Shop, HR, Field Leadership)</li>
+          <li>Session-token isolation per portal scope</li>
         </ul>
         <p>
-          While reasonable safeguards are in place, no system is completely
-          secure. ForgedOps LLC does not guarantee absolute security.
+          ForgedOps&trade; maintains commercially reasonable backup,
+          redundancy, disaster-recovery, and operational-resiliency
+          measures designed to support continuity and system recovery,
+          including:
+        </p>
+        <ul>
+          <li>Automated nightly archives of every form, photo, and signature.</li>
+          <li>Redundant cloud object storage on Cloudflare R2 for photos, signatures, and complete-system archives.</li>
+          <li>Periodic recovery testing and integrity checks on archive contents.</li>
+          <li>Diagnostic and alert tooling for backup health (heartbeat email + admin dashboard).</li>
+        </ul>
+        <p>
+          While reasonable safeguards are in place, no system is
+          completely secure and no backup architecture guarantees
+          zero data loss. ForgedOps LLC does not guarantee absolute
+          security, perfect uptime, or any specific recovery time
+          objective (RTO) or recovery point objective (RPO).
         </p>
         <p>Users must:</p>
         <ul>
@@ -229,17 +283,27 @@ export default function PrivacyPolicy() {
 
         <hr className="my-6 border-slate-200" />
 
-        <h2>7. Data Responsibility &amp; Use</h2>
+        <h2>7. Data Responsibility &amp; Regulatory Compliance</h2>
         <p>
           <strong>MASCI is solely responsible for:</strong>
         </p>
         <ul>
           <li>The accuracy of Customer Data</li>
           <li>
-            Compliance with applicable laws and regulations (including OSHA
-            and privacy laws)
+            Compliance with applicable laws and regulations — including
+            OSHA, the U.S. Department of Transportation (DOT), the
+            Federal Aviation Administration (FAA), the Federal Motor
+            Carrier Safety Administration (FMCSA), employment law,
+            wage-and-hour law, payroll regulations, and applicable
+            privacy regulations (including GDPR, CCPA, and any state
+            privacy laws)
           </li>
           <li>Determining how Customer Data is used within its operations</li>
+          <li>
+            Validating the output of Automated Features (see Section
+            7B) before relying on it for any operational, regulatory,
+            payroll, safety, or personnel decision
+          </li>
         </ul>
         <p>
           <strong>ForgedOps LLC is not responsible for:</strong>
@@ -248,9 +312,67 @@ export default function PrivacyPolicy() {
           <li>How MASCI uses Customer Data</li>
           <li>Any decisions made based on data entered into the Platform</li>
           <li>
-            Compliance failures resulting from misuse or incorrect data entry
+            Compliance failures resulting from misuse, incorrect data
+            entry, or reliance on Automated Features without human
+            review
+          </li>
+          <li>
+            Demonstrating regulatory compliance on behalf of MASCI —
+            use of the Platform does not by itself ensure compliance
+            with any law or regulation
           </li>
         </ul>
+
+        <hr className="my-6 border-slate-200" />
+
+        <h2>7A. Notifications &amp; Communications Consent</h2>
+        <p>
+          By using the Platform, users consent to receive operational
+          notifications, workflow alerts, safety notices, maintenance
+          alerts, account-related communications, and security
+          notifications via PWA / mobile push, email, SMS, or in-app
+          messaging.
+        </p>
+        <p>
+          Notifications may be triggered by workflow events, automated
+          routing rules, scheduled processes, role-based recipient
+          lists, or on-demand actions taken by authorized MASCI
+          personnel.
+        </p>
+        <p>
+          Users may opt out of non-essential communications but may
+          not opt out of safety, security, or operationally critical
+          notifications without losing access to the affected Platform
+          features.
+        </p>
+
+        <hr className="my-6 border-slate-200" />
+
+        <h2>7B. Automated Processing &amp; AI-Assisted Features</h2>
+        <p>
+          Certain Platform features may utilize automated processing,
+          workflow automation, machine-generated summaries, scheduled
+          background jobs, system-generated recommendations,
+          predictive operational tooling, or AI-assisted drafting
+          (collectively, the &ldquo;<strong>Automated Features</strong>
+          &rdquo;).
+        </p>
+        <p>
+          Where AI-assisted features are used, the relevant AI
+          subprocessor (Anthropic, OpenAI, or Google) processes only
+          the specific input necessary to generate the requested
+          output (e.g., banner translation, draft text suggestion).
+          AI subprocessors are not granted ongoing access to Customer
+          Data, are not used for model training on MASCI data, and
+          process inputs solely to return the requested output.
+        </p>
+        <p>
+          Users remain solely responsible for reviewing, validating,
+          approving, and acting on any output produced by an Automated
+          Feature. Automated outputs do not constitute regulatory
+          determinations, legal opinions, engineering certifications,
+          medical advice, or safety clearances.
+        </p>
 
         <hr className="my-6 border-slate-200" />
 

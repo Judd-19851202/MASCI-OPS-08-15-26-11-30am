@@ -5,13 +5,17 @@ import { ArrowLeft, Scale } from "lucide-react";
 /**
  * /legal/terms — Terms of Service.
  *
- * Authoritative text supplied by the customer (MASCI / ForgedOps)
- * on 2026-05-02. Treat the wording inside <article> as legal text — do
- * not edit phrasing without explicit owner approval.
+ * Hardened in iter76 (legal/infra/branding standardization pass).
+ * Existing approved language preserved verbatim; new sections added
+ * per the iter76 spec for: trademark protection, enterprise backup &
+ * disaster recovery, automation/AI future-proofing, notifications,
+ * and regulatory compliance hardening.
  *
  * Relationship model:
  *   • ForgedOps LLC owns the Platform (code, software,
- *     infrastructure, mascidocs.com domain).
+ *     infrastructure, mascidocs.com domain). User-facing branding
+ *     uses "ForgedOps™" (trademark glyph). "LLC" reserved for legal
+ *     references like this one.
  *   • MASCI is the customer that licenses the Platform and owns all
  *     Customer Data submitted through it.
  *   • The two companies are independent. No subsidiary, affiliate,
@@ -42,7 +46,7 @@ export default function TermsOfService() {
         data-testid="terms-of-service-page"
       >
         <p className="text-xs font-mono uppercase tracking-wide text-slate-500 mb-6">
-          Effective Date: January 01, 2026 · Last Updated: January 01, 2026
+          Effective Date: January 01, 2026 · Last Updated: May 13, 2026
         </p>
 
         <p>
@@ -100,6 +104,39 @@ export default function TermsOfService() {
           MASCI&rsquo;s use of the Platform is limited to the rights expressly
           granted in MASCI&rsquo;s separate written services agreement with
           ForgedOps LLC.
+        </p>
+
+        <hr className="my-6 border-slate-200" />
+
+        <h2>2A. Trademarks, Branding &amp; Trade Dress</h2>
+        <p>
+          ForgedOps&trade;, MASCI HUB&trade;, the ForgedOps logo, the MASCI
+          HUB lockup, and related platform names, logos, workflows,
+          interfaces, screen layouts, branding elements, color systems, and
+          operational system designs (collectively, the &ldquo;
+          <strong>Marks &amp; Trade Dress</strong>&rdquo;) are proprietary
+          trademarks, service marks, trade dress, or intellectual property
+          of ForgedOps LLC, whether registered or unregistered.
+        </p>
+        <p>
+          Unauthorized use, reproduction, misrepresentation, reverse
+          engineering, imitation, derivative branding, or any attempt to
+          create a confusingly similar product, interface, workflow, or
+          operational system is strictly prohibited.
+        </p>
+        <p>
+          MASCI is granted no license to use the Marks &amp; Trade Dress
+          except as strictly necessary to identify the Platform within
+          MASCI&rsquo;s internal operations. All other uses (including
+          marketing, public-facing materials, or third-party
+          communications) require ForgedOps LLC&rsquo;s prior written
+          consent.
+        </p>
+        <p>
+          Users agree not to remove, alter, obscure, or replicate any
+          ForgedOps&trade; or MASCI HUB&trade; marks, footers, copyright
+          notices, or attribution language appearing in the Platform, its
+          exports, generated PDFs, or printed materials.
         </p>
 
         <hr className="my-6 border-slate-200" />
@@ -200,22 +237,85 @@ export default function TermsOfService() {
 
         <hr className="my-6 border-slate-200" />
 
-        <h2>7. Platform Availability &amp; Services</h2>
+        <h2>7. Platform Availability, Backup &amp; Operational Resiliency</h2>
         <p>
           Access to the Platform is dependent on systems, infrastructure, and
           services controlled by ForgedOps LLC.
+        </p>
+        <p>
+          ForgedOps&trade; maintains commercially reasonable backup,
+          redundancy, disaster-recovery, and operational-resiliency measures
+          designed to support continuity and system recovery. These measures
+          include — without limitation — automated nightly archives,
+          redundant cloud object storage (including Cloudflare R2 backup and
+          redundancy services), encrypted at-rest storage, periodic recovery
+          testing, and infrastructure-level fail-over capabilities at the
+          discretion of ForgedOps LLC.
         </p>
         <p>
           ForgedOps LLC reserves the right to modify, suspend, or
           discontinue any portion of the Platform at its sole discretion.
         </p>
         <p>
-          ForgedOps LLC does not guarantee uninterrupted access, uptime,
-          or availability.
+          ForgedOps LLC does not guarantee uninterrupted access, perfect
+          uptime, perfect data recovery, zero data loss, or availability
+          during force-majeure or third-party outage events. Backup and
+          disaster-recovery capabilities are commercially reasonable
+          operational measures, not warranties of any specific recovery time
+          objective (RTO) or recovery point objective (RPO).
         </p>
         <p>
-          Support, maintenance, and updates may be provided at the discretion
-          of ForgedOps LLC or under separate agreement.
+          Support, maintenance, and updates may be provided at the
+          discretion of ForgedOps LLC or under a separate written agreement.
+        </p>
+
+        <hr className="my-6 border-slate-200" />
+
+        <h2>7A. Notifications &amp; Operational Communications</h2>
+        <p>
+          By using the Platform, MASCI authorizes ForgedOps&trade; to
+          deliver — and Users consent to receive — operational
+          notifications, workflow alerts, safety notices, maintenance
+          alerts, account notifications, security-related communications,
+          PWA / mobile push notifications, email alerts, SMS alerts, and
+          related system communications reasonably necessary to operate the
+          Platform.
+        </p>
+        <p>
+          Notifications may be triggered by workflow events, automated
+          routing rules, scheduled processes, role-based recipient lists, or
+          on-demand actions taken by authorized MASCI personnel.
+        </p>
+        <p>
+          Users may opt out of non-essential marketing communications but
+          may not opt out of safety, security, or operationally critical
+          notifications without losing access to the affected Platform
+          features.
+        </p>
+
+        <hr className="my-6 border-slate-200" />
+
+        <h2>7B. Automated Processing &amp; AI-Assisted Features</h2>
+        <p>
+          Certain Platform features may utilize automated processing,
+          workflow automation, machine-generated summaries, scheduled
+          background jobs, system-generated recommendations, predictive
+          operational tooling, or AI-assisted drafting (collectively, the
+          &ldquo;<strong>Automated Features</strong>&rdquo;). The Automated
+          Features are intended to assist — not replace — human review,
+          decision-making, or signature authority.
+        </p>
+        <p>
+          Users remain solely responsible for reviewing, validating,
+          approving, and acting on any output produced by an Automated
+          Feature. Outputs from automated systems do not constitute
+          regulatory determinations, legal opinions, engineering
+          certifications, medical advice, or safety clearances.
+        </p>
+        <p>
+          ForgedOps&trade; may add, remove, or modify the Automated Features
+          at its discretion. Where third-party AI subprocessors are used,
+          they are disclosed in the Privacy Policy.
         </p>
 
         <hr className="my-6 border-slate-200" />
@@ -233,8 +333,19 @@ export default function TermsOfService() {
           safety programs, supervisors, and competent personnel.
         </p>
         <p>
-          Users remain fully responsible for compliance with all applicable
-          laws, OSHA regulations, and company policies.
+          Use of the Platform does not by itself ensure compliance with
+          OSHA, the U.S. Department of Transportation (DOT), the Federal
+          Aviation Administration (FAA), the Federal Motor Carrier Safety
+          Administration (FMCSA), employment laws, wage-and-hour laws,
+          payroll regulations, privacy regulations (including the GDPR,
+          CCPA, and any applicable state privacy laws), or any other
+          regulatory requirement.
+        </p>
+        <p>
+          MASCI remains solely responsible for operational and regulatory
+          compliance, the accuracy of inputs into the Platform, the
+          assignment of trained and competent personnel, and the operational
+          decisions made based on Platform outputs.
         </p>
 
         <hr className="my-6 border-slate-200" />

@@ -243,7 +243,7 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
                 ["JWT_SECRET leak", "Rotate JWT_SECRET + redeploy. All tokens instantly invalid."],
                 ["Public endpoint abuse", "Rate limiting already on. Cloudflare adds DDoS absorption."],
                 ["Atlas credentials leak", "Atlas IP allowlist + rotate DB user password."],
-                ["Lost admin password", "Recoverable via deploy env vars — only ForgedOps LLC has access to those."],
+                ["Lost admin password", "Recoverable via deploy env vars — only ForgedOps™ vendor staff have access to those."],
             ]),
     ]),
 
@@ -304,7 +304,7 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
         ("list", [
             "the hosting platform lock-in — DR plan mitigates this but worth decoupling if MASCI ever grows to multiple customers.",
             "WeasyPrint — stable but requires GTK system libs; could be replaced with a headless Chrome PDF service (Gotenberg, Browserless) for better CSS support.",
-            "Custom-asset CDN for training videos — moving to a dedicated S3 + CloudFront bucket gives ForgedOps LLC direct ownership of video storage."
+            "Custom-asset CDN for training videos — moving to a dedicated S3 + CloudFront bucket gives ForgedOps™ direct ownership of video storage."
         ]),
         ("h3", "Long-Term SaaS Recommendations"),
         ("list", [
@@ -316,7 +316,7 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
     ]),
 
     ("12. Owner Notes", [
-        "This section is intentionally blank — ForgedOps LLC should use this space for ongoing observations, custom changes, and future-improvement ideas as they come up during daily operation of MASCI HUB.",
+        "This section is intentionally blank — ForgedOps™ staff should use this space for ongoing observations, custom changes, and future-improvement ideas as they come up during daily operation of MASCI HUB.",
         ("h3", "Custom Notes"),
         "—",
         ("h3", "Future Improvements"),

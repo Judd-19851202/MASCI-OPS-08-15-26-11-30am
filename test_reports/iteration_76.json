@@ -1,0 +1,25 @@
+{
+  "summary": "Iter76 legal/branding/policy hardening — frontend-only Playwright regression against the preview URL. 59/59 spec checks pass (57 direct + 2 case-insensitive re-verifications for the 'Last Updated: May 13, 2026' line, which renders uppercase via CSS text-transform). All required new section markers are rendered correctly on /legal/terms (Section 2A Trademarks with ForgedOps™ + MASCI HUB™ + 'registered or unregistered' + reproduction/imitation/reverse-engineering prohibitions; Section 7 'Platform Availability, Backup & Operational Resiliency' with 'commercially reasonable backup, redundancy, disaster-recovery' + Cloudflare R2; Section 7A 'Notifications & Operational Communications' covering push/PWA/email/SMS; Section 7B 'Automated Processing & AI-Assisted Features' with the 'reviewing, validating, approving' responsibility language; Section 8 hardened with OSHA + DOT + FAA + FMCSA + GDPR + CCPA + 'does not by itself ensure compliance'). /legal/privacy renders all six required subprocessors (MongoDB Atlas, Cloudflare R2, Cloudflare DNS/edge/TLS/DDoS, Resend, Anthropic Claude, OpenAI, Google Gemini, Cloud infrastructure providers), Section 5 contains 'commercially reasonable' + nightly archives + Cloudflare R2 + RTO/RPO disclaimer, Section 7 includes OSHA/DOT/FAA/FMCSA/GDPR/CCPA/state privacy laws, Section 7A consent language for push/PWA/email/SMS, Section 7B AI subprocessor data-flow disclosure (Anthropic/OpenAI/Google, no model training on MASCI data). Global Hub footer renders the exact 3-line stack: 'MASCI Operations Platform' / 'Powered by ForgedOps™' / 'Terms · Privacy · v2026.05.12-e94a8d9' — Terms and Privacy links both navigate correctly, and the regression-banned strings 'Built and maintained in-house by MASCI' and 'Powered by ForgedOps LLC' are NOT present in the UI footer. All four login pages (/admin, /pm, /shop, /hr) render 'Powered by ForgedOps™' below the form with no 'ForgedOps LLC' wording leaking into UI chrome.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ForgedOpsAttribution.jsx is a clean three-variant component with proper data-testids for each variant (global/login/admin) and a build-version stamp with both display + title-attribute (ISO timestamp). No issues.",
+    "Legal pages use semantic <h2> per section so screen readers and automated regression tooling can find each section by heading text — appreciated.",
+    "The 'Last Updated' line uses CSS text-transform:uppercase. Source-code stamps remain mixed-case ('May 13, 2026'); rendered DOM via innerText surfaces UPPERCASE. Future automated checks should use case-insensitive matching — this is a UI/QA tooling note, not a bug.",
+    "ops_manual.py / training_pdf.py were out of frontend test scope this iter; their 'LLC' usage is intentional per spec (legal ownership disclosures + classification stamps). PDF footer check is mentioned in the request but cannot be exercised through frontend-only testing — main agent's separate verification of PDF generation in iter74 still holds (footer reads 'Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™')."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only iteration)", "frontend": "100% (59/59 spec assertions, including the two case-insensitive re-verifications)"},
+  "test_credentials": "Admin: MASCI1982! (not exercised — frontend-only spec checks did not require auth)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iter76 legal/branding hardening is fully landed in preview. All 12 spec-required section markers across /legal/terms and /legal/privacy render cleanly, the global footer is correct on the Hub, all four portal login pages show 'Powered by ForgedOps™'. PDF footer regression (training packet) was not exercised here (frontend-only scope) — exercise it by generating a training packet PDF if you need to re-confirm 'Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™'. The 'Last Updated' line is CSS-uppercased; use case-insensitive matchers in future scripts.",
+  "rca of the issue": "No bugs found. Two initial test-script failures ('Last Updated May 13, 2026' on both legal pages) were false negatives caused by case-sensitive substring matching on innerText that surfaces the CSS text-transform:uppercase rendered value. Re-verified with a regex on the rendered text — both pages emit 'EFFECTIVE DATE: JANUARY 01, 2026 · LAST UPDATED: MAY 13, 2026' as required by spec."
+}
