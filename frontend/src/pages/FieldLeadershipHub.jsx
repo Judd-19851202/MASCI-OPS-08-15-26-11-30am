@@ -77,6 +77,8 @@ const BULLETS = {
                       es: ["Registro interno de liderazgo", "Visible para administradores, PMs y liderazgo de campo"] },
   employee_termination: { en: ["Document separation, resignation, or termination", "Termination documentation · resignation tracking · policy enforcement"],
                           es: ["Documente separación, renuncia o terminación", "Documentación de terminación · seguimiento de renuncias · cumplimiento de políticas"] },
+  time_off_request: { en: ["Vacation · Sick · Medical · Family · Bereavement · Personal", "HR auto-notified · they approve/deny in the HR Portal"],
+                      es: ["Vacaciones · Enfermedad · Médico · Familiar · Duelo · Personal", "RRHH se notifica automáticamente · aprueban/niegan en el Portal"] },
 };
 
 function PasswordGate({ onAuthed }) {

@@ -74,6 +74,8 @@ import HrFieldLeadership from "@/pages/HrFieldLeadership";
 import HrEmployeeAccountability from "@/pages/HrEmployeeAccountability";
 import HrTrainingRecords from "@/pages/HrTrainingRecords";
 import HrPayrollVariance from "@/pages/HrPayrollVariance";
+import HrTimeOff from "@/pages/HrTimeOff";
+import PublicTimeOff from "@/pages/PublicTimeOff";
 import TrainingHub from "@/pages/TrainingHub";
 import TrainingTrack from "@/pages/TrainingTrack";
 import TrainingQrPoster from "@/pages/TrainingQrPoster";
@@ -348,8 +350,10 @@ function App() {
             <Route path="/hr/field-leadership" element={H(<HrFieldLeadership />)} />
             <Route path="/hr/employee-accountability" element={H(<HrEmployeeAccountability />)} />
             <Route path="/hr/time-verification" element={H(<HrTimeVerification />)} />
+            <Route path="/hr/time-off" element={H(<HrTimeOff />)} />
             <Route path="/hr/payroll-variance" element={H(<HrPayrollVariance />)} />
             <Route path="/hr/training-records" element={H(<HrTrainingRecords />)} />
+            <Route path="/time-off/public/:token" element={<PublicTimeOff />} />
 
             {/* ============================================================
                 Training Hub — landing is public, tracks gate per audience

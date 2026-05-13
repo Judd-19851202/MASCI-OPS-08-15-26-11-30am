@@ -21,7 +21,7 @@
 import {
   AlertTriangle, MessageCircle, Clock, Award, Wrench, UserCheck,
   Users, TrendingUp, GraduationCap, FileText, ShieldCheck, Undo2,
-  UserX,
+  UserX, CalendarOff,
 } from "lucide-react";
 
 const RATING_OPTIONS = [
@@ -501,6 +501,54 @@ export const FIELD_LEADERSHIP_FORMS = [
       ],
     },
     fields: [],
+  },
+  // iter101 — Time Off Request: supervisor pre-approves on submit;
+  // HR reviews via the HR Portal "Time Off" dashboard. Public-link
+  // variant available so HR can invite office staff without logins.
+  {
+    kind: "time_off_request",
+    icon: CalendarOff,
+    accent: "cyan",
+    title: { en: "Time Off Request", es: "Solicitud de Tiempo Libre" },
+    desc: {
+      en: "Request vacation, sick, medical, or family-emergency leave on behalf of a crew member. HR auto-cc on submit; HR approves/denies from the HR Portal.",
+      es: "Solicite vacaciones, enfermedad, médico o emergencia familiar para un miembro de la cuadrilla. RRHH se entera al instante; RRHH aprueba/niega desde el Portal de RRHH.",
+    },
+    needs_signatures: true,
+    allow_refusal: false,
+    allows_photos: false,
+    employee_signature_optional: true,
+    fields: [
+      { name: "reason", label: { en: "Reason", es: "Motivo" }, type: "select", required: true,
+        options: [
+          { en: "Vacation", es: "Vacaciones" },
+          { en: "Sick Leave", es: "Licencia por Enfermedad" },
+          { en: "Medical Appointment", es: "Cita Médica" },
+          { en: "Family Emergency", es: "Emergencia Familiar" },
+          { en: "Bereavement", es: "Duelo" },
+          { en: "Jury Duty", es: "Servicio de Jurado" },
+          { en: "Military Leave", es: "Servicio Militar" },
+          { en: "Personal", es: "Personal" },
+          { en: "Other", es: "Otro" },
+        ] },
+      { name: "reason_other", label: { en: "If Other, please explain", es: "Si seleccionó Otro, explique" },
+        type: "text", required: true, visible_if: { field: "reason", equals: "Other" } },
+      { name: "pay_type", label: { en: "Pay Type", es: "Tipo de Pago" }, type: "select", required: true,
+        options: [
+          { en: "Paid", es: "Pagado" },
+          { en: "Unpaid", es: "Sin Paga" },
+        ] },
+      { name: "start_date", label: { en: "Start Date", es: "Fecha de Inicio" }, type: "date", required: true },
+      { name: "end_date", label: { en: "End Date", es: "Fecha de Fin" }, type: "date", required: true },
+      { name: "half_day_start", label: { en: "Half day on start date?", es: "¿Medio día el día de inicio?" }, type: "yesno" },
+      { name: "half_day_end", label: { en: "Half day on end date?", es: "¿Medio día el día final?" }, type: "yesno" },
+      { name: "total_days", label: { en: "Total Days Requested", es: "Total de Días Solicitados" }, type: "number", required: true,
+        help: { en: "Auto-calc from dates above; override if needed.", es: "Auto-calculado de las fechas; ajuste si necesario." } },
+      { name: "return_to_work_date", label: { en: "Return to Work Date", es: "Fecha de Retorno al Trabajo" }, type: "date" },
+      { name: "contact_phone", label: { en: "Contact Phone During Leave", es: "Teléfono Durante la Ausencia" }, type: "text" },
+      { name: "coverage_plan", label: { en: "Coverage Plan / Who's Covering", es: "Plan de Cobertura / Quién Cubre" }, type: "textarea", rows: 3 },
+      { name: "notes", label: { en: "Notes / Additional Detail", es: "Notas / Detalle Adicional" }, type: "textarea", rows: 4 },
+    ],
   },
 ];
 

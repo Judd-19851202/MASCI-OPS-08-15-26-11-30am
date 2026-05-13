@@ -51,6 +51,20 @@ function FieldRenderer({ field, value, onChange, lang, t }) {
       />
     );
   }
+  if (field.type === "number") {
+    return (
+      <Input
+        type="number"
+        step={field.step || "0.5"}
+        min={field.min}
+        max={field.max}
+        value={value === undefined || value === null ? "" : value}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputCls}
+        data-testid={`field-${field.name}`}
+      />
+    );
+  }
   if (field.type === "textarea") {
     return (
       <Textarea

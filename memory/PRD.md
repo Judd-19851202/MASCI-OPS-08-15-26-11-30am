@@ -1,5 +1,58 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter102: Field Leadership Time Off Request + HR Review Workflow
+
+### User ask
+"inside field leadership need to have a time off request form... needs to be sent to all hr for review & show on hr dashboard.... HR should also be able to send out this form to other employees in maybe the office that dont have access to platform"
+
+### Decisions locked
+1a. Supervisor files on behalf of crew · 2a. Days only (whole + half) · 3b. PTO balance tracking (HR will import via CSV — accrual deferred until list lands) · 4b. Two-step approval (supervisor pre-approves on submit → HR final-approves) · 5a. HR generates one-time public URL for office staff (token-gated, 7-day expiry)
+
+### What shipped
+
+**Backend** — All routes wired and tested end-to-end with curl:
+- New FL kind `time_off_request` with Doc ID prefix `TOR-YYYY-NNNNN`
+- `GET /api/field-leadership/time-off` — HR list (status / employee filters)
+- `GET /api/field-leadership/time-off/stats` — counts by status for KPI tile / HR badge
+- `POST /api/field-leadership/time-off/{id}/decide` — HR approve / deny / need_info → auto-emails employee + supervisor + PM
+- `POST /api/field-leadership/time-off/public-link` — HR generates token-gated public URL (7-day expiry, single-use) + emails employee
+- `GET /api/field-leadership/time-off/public-links` — audit of issued links
+- `GET /api/public/time-off/{token}` — public load (no auth)
+- `POST /api/public/time-off/{token}/submit` — public submit (no auth) → routes through standard FL email pipeline to HR
+- HR-users auto-CC on submit (parity with Termination, iter98)
+- Pydantic v2.12 fix: hoisted models to module-level to resolve `class-not-fully-defined` closure issue
+- FastAPI route precedence fix: time-off routes bound to `app` directly (not router) to bypass `/{rec_id}` shadow
+
+**Frontend**:
+- `fieldLeadershipSchemas.js` — new `time_off_request` schema (cyan accent, CalendarOff icon, 11 fields incl. half-day flags + auto-calc days)
+- `FieldLeadershipFormPage.jsx` — added `number` field type for total_days
+- `FieldLeadershipHub.jsx` — new tile bullets
+- `HrHub.jsx` — new "Time Off Requests" tile with pending count badge
+- `HrTimeOff.jsx` (new, 360 lines) — dashboard with stats strip, filters, review dialog (approve/deny/need_info + pay code + HR notes + PDF download), public-link generator dialog with copy-to-clipboard
+- `PublicTimeOff.jsx` (new, 230 lines) — token-gated public form, auto-calc total days w/ half-day flags, signature pad, success screen
+- App.js routes wired: `/hr/time-off`, `/time-off/public/:token`
+
+**Verified end-to-end via curl**:
+- Created public link → loaded form → submitted → got TOR-2026-00001 → listed in HR dashboard → approved with VAC pay code → stats updated to `approved: 1, last_7d: 1` → PDF downloaded (269 KB valid PDF)
+
+### Files touched
+- `/app/backend/routes/field_leadership.py` (+360 lines)
+- `/app/backend/doc_ids.py` (+1 line — TOR prefix)
+- `/app/frontend/src/lib/fieldLeadershipSchemas.js` (+50 lines)
+- `/app/frontend/src/pages/FieldLeadershipFormPage.jsx` (+15 lines — number field type)
+- `/app/frontend/src/pages/FieldLeadershipHub.jsx` (+2 lines — tile bullets)
+- `/app/frontend/src/pages/HrHub.jsx` (rewritten with badge support)
+- `/app/frontend/src/pages/HrTimeOff.jsx` (new file)
+- `/app/frontend/src/pages/PublicTimeOff.jsx` (new file)
+- `/app/frontend/src/App.js` (+3 routes/imports)
+
+### Deferred (per user "we can figure out tracking later")
+- PTO accrual rules / tiers / cron — waiting for HR's PTO import CSV format
+- PTO balance dashboard / decrement-on-approval — same dependency
+- Training lesson (will add once HR confirms workflow)
+
+---
+
 ## 2026-05-13 — Iter101: Documentation Audit & Sync (Guides · Cheat Sheets · Training)
 
 ### User ask

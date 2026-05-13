@@ -25,10 +25,42 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
+
+
+# --- iter101 — Time Off Request payload models (module-level so Pydantic v2
+# can fully resolve them; closure-scoped BaseModel subclasses hit
+# `class-not-fully-defined` under Pydantic 2.12+).
+class TimeOffDecisionBody(BaseModel):
+    status: str  # approved | denied | need_info | pending
+    notes: Optional[str] = ""
+    pay_code: Optional[str] = ""
+
+
+class TimeOffPublicLinkBody(BaseModel):
+    employee_name: str
+    employee_email: Optional[str] = ""
+    employee_position: Optional[str] = ""
+    department: Optional[str] = ""
+    note: Optional[str] = ""
+
+
+class PublicTimeOffSubmit(BaseModel):
+    reason: str
+    pay_type: Optional[str] = "Paid"
+    start_date: str
+    end_date: str
+    half_day_start: bool = False
+    half_day_end: bool = False
+    total_days: float = 0
+    return_to_work_date: Optional[str] = ""
+    contact_phone: Optional[str] = ""
+    coverage_plan: Optional[str] = ""
+    notes: Optional[str] = ""
+    employee_signature: Optional[str] = ""
 
 # ----------------------------------------------------------------------
 # Form schemas — drives BOTH backend validation AND PDF rendering.
@@ -120,6 +152,16 @@ FIELD_LEADERSHIP_KINDS: Dict[str, Dict[str, Any]] = {
         "needs_signatures": True,
         "allow_refusal": True,
         "allows_photos": False,
+    },
+    # iter101 — Time Off Request: supervisor files on behalf of crew (pre-approves),
+    # HR reviews and approves/denies. Public-link variant for office staff.
+    "time_off_request": {
+        "title_en": "Time Off Request",
+        "title_es": "Solicitud de Tiempo Libre",
+        "needs_signatures": True,
+        "allow_refusal": False,
+        "allows_photos": False,
+        "employee_signature_optional": True,
     },
 }
 
@@ -488,9 +530,11 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
         # Iter98 — Employee Termination must reach every active HR
         # manager so termination/offboarding paperwork doesn't get
-        # missed. We pull `hr_users` (the per-user HR portal accounts)
-        # and add every non-disabled email to the recipient list.
-        if rec.get("kind") == "employee_termination":
+        # missed. Iter101 — same auto-CC for Time Off Requests so HR
+        # sees them the moment a supervisor files. We pull `hr_users`
+        # (the per-user HR portal accounts) and add every non-disabled
+        # email to the recipient list.
+        if rec.get("kind") in ("employee_termination", "time_off_request"):
             try:
                 hr_cursor = db.hr_users.find(
                     {"disabled": {"$ne": True}},
@@ -501,7 +545,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
                     if e:
                         recipients.append(e)
             except Exception as e:  # noqa: BLE001
-                logger.warning(f"[FL] failed to enumerate hr_users for termination: {e}")
+                logger.warning(f"[FL] failed to enumerate hr_users for {rec.get('kind')}: {e}")
 
         # De-dupe + drop empties
         seen = set()
@@ -671,7 +715,8 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
     # are actually their own endpoints. Keep this in sync if more routes
     # are added below.
     _RESERVED_REC_IDS = {"equipment-catalog", "equipment-makes", "equipment-checkout-lookup",
-                         "admin", "export", "login", "check", "jobs", "employees"}
+                         "admin", "export", "login", "check", "jobs", "employees",
+                         "time-off"}
 
     # ----- Equipment Catalog + Manufacturers (public read) ----------
     # MUST be declared before /{rec_id} to win route matching.
@@ -1017,6 +1062,289 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
                 "Content-Disposition": 'attachment; filename="equipment_checkout_export.csv"',
             },
         )
+
+    # ----------------------------------------------------------------------
+    # iter101 — Time Off Request: HR-side review + public-link flow
+    # ----------------------------------------------------------------------
+    # NOTE: These are bound to `app` directly (NOT the `router`) because the
+    # router-level `/{rec_id}` route on line ~787 would otherwise shadow
+    # `/time-off` requests. Adding "time-off" to _RESERVED_REC_IDS only 404s
+    # the rec_id handler — it doesn't fall through to a later /time-off
+    # route on the same router. Binding to `app` with a full /api prefix
+    # bypasses the router precedence entirely.
+    #
+    # Architecture notes:
+    #   - The request itself is just a field_leadership_records row with
+    #     kind="time_off_request". Storage, PDF, email, and records dashboard
+    #     all reuse the existing FL infrastructure.
+    #   - HR REVIEW state lives on `details.hr_decision` so the original
+    #     supervisor submission stays immutable for audit purposes.
+    #   - PUBLIC LINKS are tokens in `time_off_public_links` collection
+    #     that HR generates for office staff who don't have a platform login.
+    #     The token expires after 7 days OR after first successful submit.
+
+    async def _hr_token_valid(tok: str) -> Optional[Dict[str, Any]]:
+        try:
+            from hr_users import is_valid_hr_user_token_async  # type: ignore  # noqa: WPS433
+            return await is_valid_hr_user_token_async(db, tok)
+        except Exception:
+            return None
+
+    async def _is_hr_authed(
+        x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    ) -> Dict[str, Any]:
+        if x_hr_token:
+            hr = await _hr_token_valid(x_hr_token)
+            if hr:
+                return {"role": "hr", "user": hr}
+        if x_admin_token and await _admin_token_valid(x_admin_token):
+            return {"role": "admin"}
+        raise HTTPException(status_code=401, detail="HR or Admin access required")
+
+    @app.get("/api/field-leadership/time-off")
+    async def hr_list_time_off(
+        status: Optional[str] = Query(default=None),
+        employee: Optional[str] = Query(default=None),
+        auth: Dict[str, Any] = Depends(_is_hr_authed),
+    ):
+        """List every time-off request. HR + Admin only."""
+        q: Dict[str, Any] = {"kind": "time_off_request", "deleted_at": None}
+        if employee:
+            q["employee_name"] = {"$regex": employee.strip(), "$options": "i"}
+        cursor = db.field_leadership_records.find(q, {"_id": 0}).sort("created_at", -1)
+        items = await cursor.to_list(2000)
+        # Surface the HR decision status on the row for fast filtering
+        def _status_of(r: Dict[str, Any]) -> str:
+            d = (r.get("details") or {}).get("hr_decision") or {}
+            return (d.get("status") or "pending").lower()
+        if status and status.lower() != "all":
+            items = [r for r in items if _status_of(r) == status.lower()]
+        # Stamp `status` at the top level for the frontend's convenience
+        for r in items:
+            r["status"] = _status_of(r)
+        return {"items": items, "count": len(items)}
+
+    @app.get("/api/field-leadership/time-off/stats")
+    async def hr_time_off_stats(auth: Dict[str, Any] = Depends(_is_hr_authed)):
+        """Counts by status — drives the HR Hub badge and Admin KPI tile."""
+        q = {"kind": "time_off_request", "deleted_at": None}
+        cursor = db.field_leadership_records.find(q, {"_id": 0, "details": 1, "created_at": 1})
+        pending = approved = denied = need_info = 0
+        last_7d = 0
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        async for r in cursor:
+            d = (r.get("details") or {}).get("hr_decision") or {}
+            s = (d.get("status") or "pending").lower()
+            if s == "approved":
+                approved += 1
+            elif s == "denied":
+                denied += 1
+            elif s == "need_info":
+                need_info += 1
+            else:
+                pending += 1
+            if (r.get("created_at") or "") >= cutoff:
+                last_7d += 1
+        return {
+            "pending": pending, "approved": approved, "denied": denied,
+            "need_info": need_info, "total": pending + approved + denied + need_info,
+            "submitted_last_7d": last_7d,
+        }
+
+    @app.post("/api/field-leadership/time-off/{rec_id}/decide")
+    async def hr_decide_time_off(
+        rec_id: str,
+        payload: TimeOffDecisionBody = Body(...),
+        auth: Dict[str, Any] = Depends(_is_hr_authed),
+    ):
+        """HR final approval / denial / request-more-info on a time-off request.
+        The supervisor's submission stays immutable — we only set the
+        `details.hr_decision` block. Sends a notification email to the
+        employee (if email known), the supervisor, and the assigned PM."""
+        valid = ("approved", "denied", "need_info", "pending")
+        if payload.status not in valid:
+            raise HTTPException(status_code=400, detail=f"status must be one of {valid}")
+        rec = await db.field_leadership_records.find_one(
+            {"id": rec_id, "kind": "time_off_request"}, {"_id": 0},
+        )
+        if not rec:
+            raise HTTPException(status_code=404, detail="Time off request not found")
+        actor_name = (
+            (auth.get("user") or {}).get("name")
+            or (auth.get("user") or {}).get("email")
+            or "Admin"
+        )
+        actor_email = (auth.get("user") or {}).get("email") or ""
+        now_iso = datetime.now(timezone.utc).isoformat()
+        decision = {
+            "status": payload.status,
+            "notes": (payload.notes or "").strip(),
+            "pay_code": (payload.pay_code or "").strip(),
+            "decided_by": actor_name,
+            "decided_by_email": actor_email,
+            "decided_at": now_iso,
+        }
+        details = rec.get("details") or {}
+        details["hr_decision"] = decision
+        await db.field_leadership_records.update_one(
+            {"id": rec_id},
+            {"$set": {"details": details, "updated_at": now_iso}},
+        )
+
+        # Best-effort notification email — employee + supervisor + PM
+        try:
+            to: List[str] = []
+            emp_email = (rec.get("employee_email") or "").strip()
+            sup_email = (rec.get("supervisor_email") or "").strip()
+            pm_email = (rec.get("assigned_pm_email") or "").strip()
+            for e in (emp_email, sup_email, pm_email):
+                if e and e not in to:
+                    to.append(e)
+            if to:
+                doc_id_val = (rec.get("doc_id") or "").strip()
+                doc_seg = f"{doc_id_val} — " if doc_id_val else ""
+                status_label = payload.status.replace("_", " ").upper()
+                subj = f"[MASCI] {doc_seg}Time Off Request {status_label} — {rec.get('employee_name') or ''}"
+                body_html = (
+                    f"<p>Your Time Off Request has been <strong>{status_label}</strong> by {actor_name}.</p>"
+                    f"<p><strong>Employee:</strong> {rec.get('employee_name') or '—'}<br>"
+                    f"<strong>Dates:</strong> {(details.get('start_date') or '—')} → {(details.get('end_date') or '—')}<br>"
+                    f"<strong>Reason:</strong> {(details.get('reason') or '—')}</p>"
+                    + (f"<p><strong>HR Notes:</strong> {decision['notes']}</p>" if decision['notes'] else "")
+                    + (f"<p><strong>Pay Code:</strong> {decision['pay_code']}</p>" if decision['pay_code'] else "")
+                )
+                await send_email_async(to, subj, body_html, [])
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[FL] time-off decision email failed: {e}")
+
+        rec["details"] = details
+        rec["updated_at"] = now_iso
+        rec["status"] = payload.status
+        return {"ok": True, "id": rec_id, "decision": decision}
+
+    # ---- Public-link flow (HR sends a token-gated URL to office staff) ----
+
+    @app.post("/api/field-leadership/time-off/public-link")
+    async def hr_create_public_link(
+        payload: TimeOffPublicLinkBody = Body(...),
+        auth: Dict[str, Any] = Depends(_is_hr_authed),
+    ):
+        """HR generates a one-time public URL for an office employee who
+        doesn't have a platform login. Token is valid 7 days OR until used."""
+        if not (payload.employee_name or "").strip():
+            raise HTTPException(status_code=400, detail="employee_name is required")
+        token = uuid.uuid4().hex + uuid.uuid4().hex[:16]
+        expires_at = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+        actor_email = (auth.get("user") or {}).get("email") or "admin"
+        link_doc = {
+            "id": str(uuid.uuid4()),
+            "token": token,
+            "employee_name": payload.employee_name.strip(),
+            "employee_email": (payload.employee_email or "").strip(),
+            "employee_position": (payload.employee_position or "").strip(),
+            "department": (payload.department or "").strip(),
+            "note": (payload.note or "").strip(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_by": actor_email,
+            "expires_at": expires_at,
+            "used_at": None,
+            "used_record_id": None,
+        }
+        await db.time_off_public_links.insert_one(dict(link_doc))
+        # Fire-and-forget email to the employee with the link
+        if link_doc["employee_email"]:
+            try:
+                origin = os.environ.get("PUBLIC_BASE_URL", "https://mascidocs.com")
+                public_url = f"{origin}/time-off/public/{token}"
+                subj = "[MASCI] Time Off Request — please complete"
+                body_html = (
+                    f"<p>Hello {link_doc['employee_name']},</p>"
+                    f"<p>HR has invited you to submit a Time Off Request. The form is open at the link below — no login required. The link is valid for 7 days.</p>"
+                    f'<p><a href="{public_url}" style="display:inline-block;padding:10px 16px;background:#b91c1c;color:#fff;border-radius:6px;text-decoration:none;font-weight:700">Open Time Off Request →</a></p>'
+                    f"<p><small>If the button doesn't work, copy this URL into your browser:<br>{public_url}</small></p>"
+                )
+                await send_email_async([link_doc["employee_email"]], subj, body_html, [])
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[FL] public time-off link email failed: {e}")
+        link_doc.pop("_id", None)
+        return {"ok": True, "link": link_doc, "url_path": f"/time-off/public/{token}"}
+
+    @app.get("/api/field-leadership/time-off/public-links")
+    async def hr_list_public_links(auth: Dict[str, Any] = Depends(_is_hr_authed)):
+        cursor = db.time_off_public_links.find({}, {"_id": 0}).sort("created_at", -1).limit(200)
+        items = await cursor.to_list(200)
+        return {"items": items, "count": len(items)}
+
+    # Public endpoints — NO AUTH (just the token in the URL)
+    @app.get("/api/public/time-off/{token}")
+    async def public_time_off_load(token: str):
+        link = await db.time_off_public_links.find_one({"token": token}, {"_id": 0})
+        if not link:
+            raise HTTPException(status_code=404, detail="Link not found or expired")
+        if link.get("used_at"):
+            raise HTTPException(status_code=410, detail="This request was already submitted")
+        if (link.get("expires_at") or "") < datetime.now(timezone.utc).isoformat():
+            raise HTTPException(status_code=410, detail="This link has expired")
+        return {
+            "ok": True,
+            "employee_name": link.get("employee_name") or "",
+            "employee_email": link.get("employee_email") or "",
+            "employee_position": link.get("employee_position") or "",
+            "department": link.get("department") or "",
+            "note": link.get("note") or "",
+        }
+
+    @app.post("/api/public/time-off/{token}/submit")
+    async def public_time_off_submit(token: str, payload: PublicTimeOffSubmit = Body(...)):
+        link = await db.time_off_public_links.find_one({"token": token}, {"_id": 0})
+        if not link:
+            raise HTTPException(status_code=404, detail="Link not found")
+        if link.get("used_at"):
+            raise HTTPException(status_code=410, detail="Already submitted")
+        if (link.get("expires_at") or "") < datetime.now(timezone.utc).isoformat():
+            raise HTTPException(status_code=410, detail="Link expired")
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+        rec_id = str(uuid.uuid4())
+        details = payload.model_dump()
+        details["submitted_via"] = "public_link"
+        rec = {
+            "id": rec_id,
+            "kind": "time_off_request",
+            "employee_name": link.get("employee_name") or "",
+            "employee_email": link.get("employee_email") or "",
+            "employee_position": link.get("employee_position") or "",
+            "supervisor_name": "(filed by employee via HR-issued public link)",
+            "supervisor_email": link.get("created_by") or "",
+            "occurred_at": now_iso,
+            "details": details,
+            "photos": [],
+            "supervisor_signature": "",
+            "employee_signature": payload.employee_signature or "",
+            "employee_refused": False,
+            "employee_not_present": False,
+            "witness_name": "",
+            "witness_signature": "",
+            "language": "en",
+            "created_at": now_iso,
+            "updated_at": now_iso,
+            "deleted_at": None,
+            "submitted_via_role": "public_link",
+        }
+        from doc_ids import ensure_doc_id, _field_leadership_prefix
+        await ensure_doc_id(db, rec, _field_leadership_prefix, when=now_iso)
+        await db.field_leadership_records.insert_one(dict(rec))
+        await db.time_off_public_links.update_one(
+            {"token": token},
+            {"$set": {"used_at": now_iso, "used_record_id": rec_id}},
+        )
+        # Auto-email HR same as supervisor-filed
+        try:
+            await _send_submit_email(rec)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[FL] public time-off submit email failed: {e}")
+        return {"ok": True, "id": rec_id, "doc_id": rec.get("doc_id")}
 
     app.include_router(router)
     return router

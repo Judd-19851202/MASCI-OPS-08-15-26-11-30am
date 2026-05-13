@@ -76,6 +76,7 @@ def _field_leadership_prefix(rec: Dict[str, Any]) -> str:
         "promotion_recommendation":   "FLP",  # promotion
         "training_deficiency":        "FLT",  # training gap
         "supervisor_notes":           "FLN",  # supervisor notes
+        "time_off_request":           "TOR",  # iter101 — time-off request
     }.get(kind, "FL")
 
 
