@@ -626,7 +626,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 <!doctype html><html><body style='font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#0f172a;background:#f1f5f9;padding:16px'>
 <div style='max-width:680px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden'>
   <div style='background:#0f172a;color:#fff;padding:18px 22px'>
-    <div style='font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#cbd5e1'>MASCI HUB · FIELD LEADERSHIP</div>
+    <div style='font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#cbd5e1'>MASCI Operations Platform · Field Leadership</div>
     <div style='font-size:22px;font-weight:800;margin-top:4px'>{kind_label}</div>
   </div>
   <div style='padding:18px 22px'>

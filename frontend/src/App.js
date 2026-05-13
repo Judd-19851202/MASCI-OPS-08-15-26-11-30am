@@ -51,6 +51,10 @@ import PmLogin from "@/pages/PmLogin";
 import PmChangePassword from "@/pages/PmChangePassword";
 import PmResetPassword from "@/pages/PmResetPassword";
 import PmHub from "@/pages/PmHub";
+import PmFieldLeadership from "@/pages/PmFieldLeadership";
+import {
+  PmJobs, PmFleet, PmPeople, PmSuppliers, PmPosters, PmRouting, PmComplianceExport,
+} from "@/pages/pm/PmSections";
 import PmQaqcList from "@/pages/PmQaqcList";
 import ShopLogin from "@/pages/ShopLogin";
 import ShopHub from "@/pages/ShopHub";
@@ -301,6 +305,15 @@ function App() {
             <Route path="/pm/reset/:token" element={<PmResetPassword />} />
             <Route path="/pm/change-password" element={P(<PmChangePassword />)} />
             <Route path="/pm" element={P(<PmHub />)} />
+            {/* iter105 — PM Console sub-routes (mirrors AdminConsole layout) */}
+            <Route path="/pm/jobs"               element={P(<PmJobs />)} />
+            <Route path="/pm/field-leadership"   element={P(<PmFieldLeadership />)} />
+            <Route path="/pm/fleet"              element={P(<PmFleet />)} />
+            <Route path="/pm/people"             element={P(<PmPeople />)} />
+            <Route path="/pm/suppliers"          element={P(<PmSuppliers />)} />
+            <Route path="/pm/posters"            element={P(<PmPosters />)} />
+            <Route path="/pm/routing"            element={P(<PmRouting />)} />
+            <Route path="/pm/compliance-export"  element={P(<PmComplianceExport />)} />
             <Route path="/pm/qaqc" element={P(<PmQaqcList />)} />
             <Route path="/pm/photos" element={P(<JobPhotosLibrary portalKey="pm" />)} />
 

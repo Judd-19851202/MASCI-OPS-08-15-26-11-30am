@@ -1,5 +1,59 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter105: PM Portal Cleanup + FL Routing Bug Fix + Footer Triple-Check
+
+### User ask
+"PM Portal looks kinda crazy all over the place like admin was before we cleaned it up.... lets clean up PM portal a little too similarly as we did admin..... Leave all tiles on main screen with work flows below it with sidebar like admin. Also when in PM portal i click on field leadership tile takes me to forms submitted but then trs to take me to field leadership portal too & says i need to log in something is broken PM just needs to seen field leadership forms submitted for jobs for that pm has only like all there tiles... Fix that routing & any others that may be that way. Also triple check all footers read GENERATED THROUGH MASCI OPERATIONS PLATFORM — POWERED BY FORGEDOPS™ | © 2026 FORGEDOPS™"
+
+### Shipped
+
+**1. FL routing bug fixed** — root cause: PM "Field Leadership" tile pointed to `/leadership/records` (the password-gated Field Leadership SPA). New `PmFieldLeadership.jsx` page at `/pm/field-leadership` calls the existing PM-scoped `/api/field-leadership` endpoint with `X-PM-Token` — backend already filters records to the PM's assigned jobs server-side. No more re-login prompt, no more confusion.
+
+**2. PM Portal redesign (mirrors AdminConsole architecture):**
+- New `PmShell.jsx` component — amber-600 portal accent (vs admin's red), sticky header w/ M-mark + breadcrumb + portal switcher + health badge + sign-out, collapsible mobile sheet sidebar, 9-section nav menu, intro card area, back-to-overview chip on every sub-page
+- `PmHub.jsx` completely rewritten — KPI tile grid only (10 form tiles with live counts via `Promise.all` to existing list endpoints), TrainingStatsStripe at top, intro card explaining the portal — no more buried master panels
+- New `pages/pm/PmSections.jsx` — 7 sub-pages wrapping the previously buried panels in the new shell:
+  - `/pm/jobs` → AdminJobMasterPanel
+  - `/pm/fleet` → EquipmentStatusBoard + EquipmentMasterPanel + EquipmentPartsPanel
+  - `/pm/people` → EmployeeMasterPanel
+  - `/pm/suppliers` → SupplierMasterPanel
+  - `/pm/posters` → SitePostersPanel
+  - `/pm/routing` → AutoEmailRoutingPanel
+  - `/pm/compliance-export` → ComplianceExportPanel (`hideBackupTools` prop — PMs never get backup/restore access)
+- All 8 new routes wired in `App.js`
+
+**3. Footer triple-check audit — full sweep purge:**
+- Identified 5 remaining drift spots beyond iter104 in **outgoing emails**:
+  - `routes/job_photos.py:1009` — "Sent from MASCI HUB" → "Sent from MASCI Operations Platform"
+  - `routes/safety_forms.py:759` — From-name: `MASCI HUB Notifications` → `MASCI Operations Platform`
+  - `routes/safety_forms.py:767` — Email body: `MASCI Hub · Safety Forms · Auto-email` → `MASCI Operations Platform · Safety Forms · Auto-email`
+  - `routes/shop_parts.py:321` — From-name: `MASCI HUB Notifications` → `MASCI Operations Platform`
+  - `routes/field_leadership.py:629` — Email body header band: `MASCI HUB · FIELD LEADERSHIP` → `MASCI Operations Platform · Field Leadership`
+- Final PDF auto-check confirms **3/3 pass**:
+  - ✅ FULL footer present: `Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™`
+  - ✅ No short-form drift (no `MASCI Operations Platform · Powered`)
+  - ✅ No `MASCI HUB` or `MASCI Hub` text in PDF body
+- Internal-only `MASCI HUB` references intentionally preserved: ops_manual.py, photo_storage.py docstring, outage_alerts.py (ForgedOps staff), server.py admin-backup email subjects, code comments
+
+### Files added/changed
+**New files:**
+- `frontend/src/components/PmShell.jsx` (210 lines — mirrors AdminShell)
+- `frontend/src/pages/PmFieldLeadership.jsx` (220 lines — fixes the bug)
+- `frontend/src/pages/pm/PmSections.jsx` (70 lines — 7 thin wrappers)
+
+**Changed:**
+- `frontend/src/pages/PmHub.jsx` (rewritten — 100 lines, was 374)
+- `frontend/src/App.js` (8 new routes, 3 new imports)
+- `backend/routes/job_photos.py`, `safety_forms.py` (×2), `shop_parts.py`, `field_leadership.py` (email rebrand)
+
+### Verified
+- ESLint clean on all 5 new/changed frontend files
+- Ruff clean on 3 changed backend files (1 pre-existing E701 in job_photos:800, not from this work)
+- PDF triple-check passes 3/3
+- Live screenshots confirm PM Overview + PM Field Leadership both render cleanly with sidebar nav, no login prompt, full amber accent, M-mark only
+
+---
+
 ## 2026-05-13 — Iter104: Brand Recalibration — M-Mark Only on Forms/Reports
 
 ### User ask

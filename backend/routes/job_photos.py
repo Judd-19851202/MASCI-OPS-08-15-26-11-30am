@@ -1006,7 +1006,7 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         subject = body.subject or f"MASCI Photos — {included} photo(s)"
         body_text = (body.note or "") + (
             f"\n\n— {included} photos attached ({total_bytes/1024/1024:.1f} MB). "
-            f"{skipped_for_size} skipped for size. Sent from MASCI HUB."
+            f"{skipped_for_size} skipped for size. Sent from MASCI Operations Platform."
         )
         try:
             await send_email_fn(

@@ -318,7 +318,7 @@ def register_shop_parts_routes(api_router: APIRouter, db, require_admin, require
             resend.api_key = api_key
             sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
             params = {
-                "from": f"MASCI HUB Notifications <{sender_email}>",
+                "from": f"MASCI Operations Platform <{sender_email}>",
                 "to": payload.send_to,
                 "subject": f"[MASCI] Parts Order · {payload.unit_number} · {len(payload.items)} item(s)",
                 "html": html,

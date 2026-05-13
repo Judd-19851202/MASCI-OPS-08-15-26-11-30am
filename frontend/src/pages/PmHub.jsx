@@ -1,131 +1,78 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  ClipboardCheck,
-  Users,
-  AlertOctagon,
-  ClipboardList,
-  Wrench,
-  Box,
-  FileText,
-  ArrowRight,
-  Loader2,
-  LogOut,
-  Home,
-  Briefcase,
-  ShieldCheck,
-  Image as ImageIcon,
-  UserCheck,
-  KeyRound,
-} from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
-import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
-import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
-import PortalSwitcher from "@/components/PortalSwitcher";
-import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
-import EquipmentStatusBoard from "@/components/EquipmentStatusBoard";
-import ComplianceExportPanel from "@/components/ComplianceExportPanel";
-import SystemHealthBadge from "@/components/SystemHealthBadge";
-import AdminJobMasterPanel from "@/components/AdminJobMasterPanel";
-// AdminPMPanel intentionally NOT imported here — PM roster is admin-only as of 2026-05-05.
-import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
-import EquipmentPartsPanel from "@/components/EquipmentPartsPanel";
-import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
-import SupplierMasterPanel from "@/components/SupplierMasterPanel";
-import TrainingStatsStripe from "@/components/TrainingStatsStripe";
-import SitePostersPanel from "@/components/SitePostersPanel";
-import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
-import { clearPmToken } from "@/lib/pmAuth";
-import { clearAdminToken } from "@/lib/adminAuth";
-import { clearShopToken } from "@/lib/shopAuth";
-import { toast } from "sonner";
+// PmHub — /pm Overview (iter105 redesign)
+//
+// Mirrors AdminHub: KPI tiles + Active Jobs status banner. Every panel
+// that used to live on this scroll has been moved to a /pm/{section}
+// sub-route reachable from the PmShell sidebar — same architecture as
+// the Admin Console.
 
-const PmTile = ({ to, icon: Icon, title, count, sub, accent = "amber", testId }) => {
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ClipboardCheck, Users, AlertOctagon, ClipboardList, Wrench, Box,
+  FileText, ArrowRight, Loader2, ShieldCheck, Image as ImageIcon,
+  UserCheck, Briefcase,
+} from "lucide-react";
+import PmShell from "@/components/PmShell";
+import TrainingStatsStripe from "@/components/TrainingStatsStripe";
+import { api } from "@/lib/api";
+
+const FORM_TILES = [
+  { to: "/pm/daily",          icon: ClipboardList, title: "Daily Reports",       countKey: "daily",      sub: "reports on file",    accent: "red" },
+  { to: "/pm/inspections",    icon: ClipboardCheck, title: "Site Inspections",    countKey: "inspections", sub: "reports on file",   accent: "red" },
+  { to: "/pm/meetings",       icon: Users,         title: "Safety Meetings",     countKey: "meetings",   sub: "meetings logged",    accent: "slate" },
+  { to: "/pm/jha-plans",      icon: FileText,      title: "Job Hazard Plans",    countKey: "jhaPlans",   sub: "plans uploaded",     accent: "amber" },
+  { to: "/pm/trench-boxes",   icon: Box,           title: "Trench Box Data",     countKey: "trenchBoxes", sub: "boxes on file",     accent: "slate" },
+  { to: "/pm/incidents",      icon: AlertOctagon,  title: "Incident Reports",    countKey: "incidents",  sub: "reports on file",    accent: "redDeep" },
+  { to: "/pm/equipment",      icon: Wrench,        title: "Equipment Pre-Op",    countKey: "equipment",  sub: "inspections on file", accent: "slate" },
+  { to: "/pm/qaqc",           icon: ShieldCheck,   title: "QA / QC Inspections", countKey: "qaqc",       sub: "Records on your jobs", accent: "amber" },
+  { to: "/pm/photos",         icon: ImageIcon,     title: "Job Photos",          countKey: null,         sub: "All photos by job & week", accent: "rose" },
+  { to: "/pm/field-leadership", icon: UserCheck,   title: "Field Leadership",    countKey: null,         sub: "Crew docs · my jobs only", accent: "amber" },
+];
+
+function PmTile({ to, icon: Icon, title, count, sub, accent, testId }) {
   const accentCls =
-    accent === "red"
-      ? "border-red-700 bg-red-700"
-      : accent === "amber"
-      ? "border-amber-600 bg-amber-600"
-      : accent === "redDeep"
-      ? "border-red-900 bg-red-900"
-      : "border-slate-800 bg-slate-800";
+    accent === "red"     ? "border-red-700 bg-red-700"
+    : accent === "amber" ? "border-amber-600 bg-amber-600"
+    : accent === "redDeep" ? "border-red-900 bg-red-900"
+    : accent === "rose"  ? "border-rose-700 bg-rose-700"
+    : "border-slate-800 bg-slate-800";
   return (
     <Link
       to={to}
-      className="group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-7 hover:border-amber-600 hover:-translate-y-0.5 transition-all duration-150 flex flex-col"
+      className="group relative bg-white border-2 border-slate-200 hover:border-amber-600 hover:shadow-lg rounded-md p-4 sm:p-5 transition-all duration-150 hover:-translate-y-0.5 flex flex-col"
       data-testid={testId}
     >
-      <div
-        className={`inline-flex items-center justify-center w-12 h-12 rounded-md ${accentCls} text-white mb-4`}
-      >
-        <Icon className="w-6 h-6" />
+      <div className={`inline-flex items-center justify-center w-10 h-10 rounded-md ${accentCls} text-white mb-3`}>
+        <Icon className="w-5 h-5" />
       </div>
-      <h3 className="font-display text-xl font-black tracking-tight text-slate-900">
-        {title}
-      </h3>
-      <div className="mt-4 pt-3 border-t-2 border-slate-100 flex items-end justify-between">
+      <h3 className="font-display text-base sm:text-lg font-black tracking-tight text-slate-900">{title}</h3>
+      <div className="mt-3 pt-2 border-t border-slate-100 flex items-end justify-between">
         <div>
-          <div className="font-display text-3xl font-black text-slate-900 leading-none">
+          <div className="font-display text-2xl font-black text-slate-900 leading-none">
             {count == null ? "—" : count}
           </div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">
-            {sub}
-          </div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 mt-1">{sub}</div>
         </div>
-        <div className="font-mono text-xs uppercase tracking-[0.2em] text-amber-700 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
-          Open <ArrowRight className="w-3.5 h-3.5" />
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-700 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
+          Open <ArrowRight className="w-3 h-3" />
         </div>
       </div>
     </Link>
   );
-};
+}
 
 export default function PmHub() {
-  const navigate = useNavigate();
-  const [counts, setCounts] = useState({
-    inspections: null,
-    meetings: null,
-    jhaPlans: null,
-    trenchBoxes: null,
-    incidents: null,
-    daily: null,
-    equipment: null,
-    qaqc: null,
-  });
+  const [counts, setCounts] = useState({});
   const [loading, setLoading] = useState(true);
-  const [me, setMe] = useState(null); // per-PM identity, null for admin/legacy
-
-  // Always start at the top of the page after login, regardless of any
-  // scroll position React Router may have preserved from the login screen.
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   useEffect(() => {
-    let alive = true;
     (async () => {
       try {
-        const r = await api.get("/pm/me");
-        if (!alive) return;
-        // /pm/me returns {pm: {...}} for per-PM tokens, {is_admin_or_legacy: true}
-        // for admin or shared-PM bypass. Only show the change-pw button for
-        // real PMs — admins use /admin reset flow, legacy bypass has no record.
-        if (r.data?.pm?.id && !r.data?.is_admin_or_legacy) {
-          setMe(r.data.pm);
-        }
-      } catch {
-        /* non-fatal — just hide the button */
-      }
-    })();
-    return () => { alive = false; };
-  }, []);
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const [insp, mtgs, jhaPlans, trench, incs, daily, eq, qaqc] = await Promise.all([
+        // Mirror the per-resource fetch the old PmHub used — every list
+        // route already filters by PM scope server-side, so .length is the
+        // count for tiles. Failed calls fall back to 0 so the page never
+        // dies on a partial outage.
+        const [insp, mtg, jha, tb, inc, dr, eq, qa] = await Promise.all([
           api.get("/inspections").catch(() => ({ data: [] })),
           api.get("/meetings").catch(() => ({ data: [] })),
           api.get("/job-hazard-plans").catch(() => ({ data: [] })),
@@ -135,239 +82,58 @@ export default function PmHub() {
           api.get("/equipment-inspections").catch(() => ({ data: [] })),
           api.get("/qaqc-inspections").catch(() => ({ data: [] })),
         ]);
-        if (!alive) return;
+        const len = (x) => (Array.isArray(x?.data) ? x.data.length : 0);
         setCounts({
-          inspections: insp.data?.length || 0,
-          meetings: mtgs.data?.length || 0,
-          jhaPlans: jhaPlans.data?.length || 0,
-          trenchBoxes: trench.data?.length || 0,
-          incidents: incs.data?.length || 0,
-          daily: daily.data?.length || 0,
-          equipment: eq.data?.length || 0,
-          qaqc: qaqc.data?.length || 0,
+          inspections: len(insp), meetings: len(mtg), jhaPlans: len(jha),
+          trenchBoxes: len(tb), incidents: len(inc), daily: len(dr),
+          equipment: len(eq), qaqc: len(qa),
         });
-      } catch {
-        /* noop */
-      } finally {
-        if (alive) setLoading(false);
-      }
+      } catch { /* tiles still render with em-dash */ }
+      setLoading(false);
     })();
-    return () => {
-      alive = false;
-    };
   }, []);
 
-  const signOut = () => {
-    // Wipe every tier on sign-out so a shared device can't leak an
-    // identity to the next user.
-    clearPmToken();
-    clearAdminToken();
-    clearShopToken();
-    toast.success("Signed out");
-    navigate("/", { replace: true });
-  };
-
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-amber-500">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/"
-              className="inline-flex items-center text-white hover:text-amber-300 text-xs font-bold uppercase tracking-wide"
-              data-testid="pm-hub-public"
-            >
-              <Home className="w-4 h-4 mr-1" /> MASCI Hub
-            </Link>
-          </div>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/pm" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/pm" />
-          <div className="flex items-center gap-2">
-            <PortalSwitcher current="pm" />
-            <SystemHealthBadge />
-            <CompanyInfoDialog />
-            {me && (
-              <Button
-                onClick={() => navigate("/pm/change-password")}
-                variant="outline"
-                className="h-9 border-2 border-slate-600 bg-slate-800 text-white hover:border-amber-500 hover:text-amber-300 text-xs font-bold uppercase tracking-wide hidden sm:inline-flex"
-                title={`Signed in as ${me.email}`}
-                data-testid="pm-change-pw-link"
-              >
-                <KeyRound className="w-3.5 h-3.5 mr-1" /> Change password
-              </Button>
-            )}
-            <Button
-              onClick={signOut}
-              variant="outline"
-              className="h-9 border-2 border-slate-600 bg-slate-800 text-white hover:border-amber-500 hover:text-amber-300 text-xs font-bold uppercase tracking-wide"
-              data-testid="pm-signout-btn"
-            >
-              <LogOut className="w-3.5 h-3.5 mr-1" /> Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
-        {/* Banner — make it visually obvious this is the PM portal */}
-        <div
-          className="bg-amber-50 border-2 border-amber-400 rounded-md p-4 sm:p-5 mb-8 flex items-start gap-3"
-          data-testid="pm-portal-banner"
-        >
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-500 text-white shrink-0">
+    <PmShell
+      title="Overview"
+      section="overview"
+      intro={
+        <div className="flex items-start gap-3">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-600 text-white shrink-0">
             <Briefcase className="w-5 h-5" />
           </div>
-          <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-800 font-black">
-              Project Management Portal
-            </div>
-            <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 leading-tight mt-0.5">
-              Records &amp; Forms — every job in one place.
-            </h1>
-            <p className="text-slate-700 text-sm mt-1.5">
-              Same workspace as Admin for the day-to-day office work.
-              System-recovery tools live in the Admin Console only.
-            </p>
+          <div className="text-sm text-slate-700 leading-relaxed">
+            Welcome to the PM Portal. The forms below cover the day-to-day — Daily Reports,
+            Inspections, Incidents, Photos, Field Leadership records, and more — scoped to
+            jobs assigned to you. Use the sidebar (left, or hamburger on mobile) to dig into
+            Active Jobs, Equipment Fleet, People, Suppliers, Posters, Email Routing, and
+            Compliance Exports. System recovery and access-control tools remain Admin-only.
           </div>
         </div>
+      }
+    >
+      <TrainingStatsStripe />
 
-        {/* 1 · Records & Forms — start screen */}
-        {loading ? (
-          <div className="py-16 flex items-center justify-center text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
-          </div>
-        ) : (
-          <>
-            <TrainingStatsStripe />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
-            <PmTile
-              to="/pm/daily"
-              icon={ClipboardList}
-              title="Daily Reports"
-              count={counts.daily}
-              sub={counts.daily === 1 ? "report on file" : "reports on file"}
-              accent="red"
-              testId="pm-tile-daily"
-            />
-            <PmTile
-              to="/pm/inspections"
-              icon={ClipboardCheck}
-              title="Site Inspections"
-              count={counts.inspections}
-              sub={counts.inspections === 1 ? "report on file" : "reports on file"}
-              accent="red"
-              testId="pm-tile-inspections"
-            />
-            <PmTile
-              to="/pm/meetings"
-              icon={Users}
-              title="Safety Meetings"
-              count={counts.meetings}
-              sub={counts.meetings === 1 ? "meeting logged" : "meetings logged"}
-              accent="slate"
-              testId="pm-tile-meetings"
-            />
-            <PmTile
-              to="/pm/jha-plans"
-              icon={FileText}
-              title="Job Hazard Plans"
-              count={counts.jhaPlans}
-              sub={counts.jhaPlans === 1 ? "plan uploaded" : "plans uploaded"}
-              accent="amber"
-              testId="pm-tile-jha-plans"
-            />
-            <PmTile
-              to="/pm/trench-boxes"
-              icon={Box}
-              title="Trench Box Data"
-              count={counts.trenchBoxes}
-              sub={counts.trenchBoxes === 1 ? "box on file" : "boxes on file"}
-              accent="slate"
-              testId="pm-tile-trench-boxes"
-            />
-            <PmTile
-              to="/pm/incidents"
-              icon={AlertOctagon}
-              title="Incident Reports"
-              count={counts.incidents}
-              sub={counts.incidents === 1 ? "report on file" : "reports on file"}
-              accent="redDeep"
-              testId="pm-tile-incidents"
-            />
-            <PmTile
-              to="/pm/equipment"
-              icon={Wrench}
-              title="Equipment Pre-Op"
-              count={counts.equipment}
-              sub={counts.equipment === 1 ? "inspection on file" : "inspections on file"}
-              accent="slate"
-              testId="pm-tile-equipment"
-            />
-            <PmTile
-              to="/pm/qaqc"
-              icon={ShieldCheck}
-              title="QA / QC Inspections"
-              count={counts.qaqc}
-              sub="Records on your jobs"
-              accent="amber"
-              testId="pm-tile-qaqc"
-            />
-            <PmTile
-              to="/pm/photos"
-              icon={ImageIcon}
-              title="Job Photos"
-              count={null}
-              sub="All photos by job & week"
-              accent="rose"
-              testId="pm-tile-photos"
-            />
-            <PmTile
-              to="/leadership/records"
-              icon={UserCheck}
-              title="Field Leadership"
-              count={null}
-              sub="Crew docs · my jobs only"
-              accent="indigo"
-              testId="pm-tile-leadership"
-            />
-            </div>
-          </>
-        )}
-
-        {/* 2 · Compliance Export — PM portal NEVER sees backup tools, even
-            if an admin token is also present in localStorage. */}
-        <ComplianceExportPanel hideBackupTools />
-
-        {/* 3 · Active Jobs */}
-        <AdminJobMasterPanel />
-
-        {/* 4 · Email Routing — Project Manager roster is admin-only as of
-            2026-05-05. PMs no longer see/edit each other's accounts; the
-            auto-routing summary stays so a PM can sanity-check who an
-            email goes to. */}
-        <AutoEmailRoutingPanel />
-
-        {/* 5 · Site Posters */}
-        <SitePostersPanel />
-
-        {/* 6 · Equipment Status Board */}
-        <EquipmentStatusBoard />
-
-        {/* 7 · Master Lists — equipment fleet, parts, employees, suppliers */}
-        <EquipmentMasterPanel />
-        <EquipmentPartsPanel />
-        <EmployeeMasterPanel />
-        <SupplierMasterPanel />
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 flex flex-col items-center gap-5 border-t border-slate-200">
-        <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-          MASCI · Project Management Portal
+      {loading ? (
+        <div className="py-16 flex items-center justify-center text-slate-500">
+          <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
         </div>
-        <ForgedOpsAttribution variant="admin" />
-      </footer>
-    </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-5" data-testid="pm-tile-grid">
+          {FORM_TILES.map((t) => (
+            <PmTile
+              key={t.to}
+              to={t.to}
+              icon={t.icon}
+              title={t.title}
+              count={t.countKey ? counts[t.countKey] : null}
+              sub={t.sub}
+              accent={t.accent}
+              testId={`pm-tile-${t.to.split("/").pop()}`}
+            />
+          ))}
+        </div>
+      )}
+    </PmShell>
   );
 }

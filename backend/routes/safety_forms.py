@@ -756,7 +756,7 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
             extra_html = ""
 
         params = {
-            "from": f"MASCI HUB Notifications <{sender}>",
+            "from": f"MASCI Operations Platform <{sender}>",
             "to": recipients,
             "subject": subject,
             "html": (
@@ -764,7 +764,7 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
                 f"<b>{who}</b>.</p>"
                 + extra_html
                 + "<p>PDF attached.</p>"
-                + "<p style='color:#94a3b8;font-size:11px'>MASCI Hub · Safety Forms · Auto-email</p>"
+                + "<p style='color:#94a3b8;font-size:11px'>MASCI Operations Platform · Safety Forms · Auto-email</p>"
             ),
             "attachments": [
                 {"filename": fname, "content": base64.b64encode(pdf_bytes).decode()}
