@@ -1,5 +1,51 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter93: KPI Strip — Weekly Deltas + Sign-Off Alert Badge
+
+### User ask
+"yes" to both: 📈 +X this week chip under each tile + ⚠ N awaiting
+sign-off badge on Equipment Pre-Op.
+
+### What shipped
+Two enhancements to `AdminKpiStrip.jsx` — no new endpoints, both
+computed from the data already in flight.
+
+**1. "+N 7d" green delta chip** — Shown next to the sub-label on every
+tile that has at least one record from the last 7 days. Visual: small
+emerald-tinted chip with a trending-up icon. Tile date-fields used:
+- Daily: `report_date` → `created_at`
+- Inspections / QA/QC / Equipment Pre-Op: `inspection_date` → `created_at`
+- Meetings: `meeting_date` → `created_at`
+- Incidents: `incident_date` → `created_at`
+- JHA plans: `created_at` / `upload_date`
+- Trench boxes: `created_at`
+- Leadership: `occurred_at` → `created_at`
+- Photos: `record_date` → `created_at`
+
+Computed client-side from the already-loaded lists — no extra API calls.
+
+**2. Top-right red alert badge** on the Equipment Pre-Op tile counting
+inspections that have at least one FAIL line (`fail_count > 0`) AND are
+NOT yet cleared by the shop (`cleared !== true`). Backend already
+serves both fields in the inspection summary, so no schema or endpoint
+work needed.
+
+Visual: 22px circular red badge with white border, "99+" overflow,
+tooltip "N awaiting sign-off — click tile to review". Designed to be
+generic (the `Tile` component accepts `alertBadge`) so other tiles can
+adopt it later (e.g., "N unresolved incidents", "N stale daily reports").
+
+### Verified
+Screenshot shows: Daily Reports **+44 7d**, Equipment Pre-Op **+11 7d**
+with a **⚠ 4** alert badge, Field Leadership **+335 7d**. Tiles with
+no recent activity correctly omit the chip.
+
+### Files touched
+- `/app/frontend/src/components/AdminKpiStrip.jsx`
+
+---
+
+
 ## 2026-05-13 — Iter92: Admin KPI Strip — Whole-Platform Visibility
 
 ### User report
