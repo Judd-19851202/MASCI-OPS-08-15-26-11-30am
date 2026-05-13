@@ -139,6 +139,54 @@ what they are, look clean & professional."
 
 ---
 
+## 2026-05-13 — Iter78c+d: Email Subject Redesign + Long-Form Brand Strings
+
+### What shipped
+**Email subject line redesign:**
+- New helper `pdf_render.build_email_subject()` — project-first,
+  mobile-truncation-friendly, status-aware.
+  - Normal: `[MASCI] Spruce Creek · Daily Report · DR-2026-00638`
+  - Equipment fail: `⚠ EQUIPMENT FAIL · Spruce Creek · CAT 320 · EQ-2026-00042`
+  - Severe incident: `🚨 SEVERE INCIDENT · Daytona Beach Pier · IR-2026-00007`
+- Smart project trim: extracts trailing location segment for
+  separator-style names (` - ` / ` — ` / ` · ` / ` | `), or ellipsis-
+  trims to 32 chars otherwise.
+- Short kind titles: Daily Report (not Daily Job Report), Pre-Op (not
+  Equipment Pre-Op Inspection), QA/QC (not QA / QC Inspection), etc.
+- Dropped `· PM: Name` tail (PM already in To: field).
+- Kept `[MASCI]` prefix for filter-rule continuity.
+- Both subject construction call sites updated: auto-route
+  (`server.py:8442`) and admin email-record (`server.py:8804`).
+
+**Long-form brand string updates (option "a"):**
+- Browser tab title: `MASCI Hub — Safety · Field · Projects · Admin`
+  → **`MASCI Operations Platform`**
+- Meta description: `MASCI Hub — Safety, Field, Projects, Admin...`
+  → **`MASCI Operations Platform. The single system for daily field
+  reports, QA/QC, safety, equipment, and payroll — at every MASCI job.`**
+- PWA description: → **`MASCI Operations Platform. Field Reports ·
+  Equipment · Safety · QA/QC · Payroll — every job, every detail.`**
+- **Unchanged (by design)**: PWA `short_name` (`MASCI`), iOS home-
+  screen title (`MASCI Hub`), OG/Twitter share titles (`MASCI Hub`),
+  and the iconic tagline `No Guesswork. No Missed Steps. No Excuses.`
+  — short-form touchpoints stay branded as MASCI Hub.
+
+### Files touched
+- `/app/backend/pdf_render.py` (build_email_subject, SHORT_KIND_TITLES,
+  _short_project_label)
+- `/app/backend/server.py` (both subject call sites)
+- `/app/frontend/public/index.html` (title + meta description)
+- `/app/frontend/public/site.webmanifest` (description)
+
+### Verification
+- 10-sample subject test PASS across all 7 record types + edge cases
+  (long names, no doc_id, severe incident, equipment fail).
+- Live curl confirmed tab title + meta description + manifest
+  description all updated correctly post-frontend-restart.
+
+---
+
+
 ## 2026-05-13 — Iter78b: PDF Chrome Standardization + "Inc." Closure
 
 ### User ask

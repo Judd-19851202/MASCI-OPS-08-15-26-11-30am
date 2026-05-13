@@ -1,7 +1,7 @@
 {
   "name": "MASCI Hub",
   "short_name": "MASCI",
-  "description": "MASCI Hub \u2014 Safety, Field, Projects, Admin. One place for every MASCI job.",
+  "description": "MASCI Operations Platform. Field Reports \u00b7 Equipment \u00b7 Safety \u00b7 QA/QC \u00b7 Payroll \u2014 every job, every detail.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
