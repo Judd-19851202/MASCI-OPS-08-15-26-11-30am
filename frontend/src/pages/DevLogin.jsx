@@ -9,7 +9,7 @@ import { setDevToken, clearDevToken } from "@/lib/devAuth";
 import { toast } from "sonner";
 
 /**
- * Developer portal login — vendor-only entry point (ForgedOps LLC).
+ * Developer portal login — vendor-only entry point (ForgedOps™).
  *
  * Deliberately plain, not branded to MASCI. Reached via a tiny
  * "Developer" link in the Hub footer so MASCI staff and field crews

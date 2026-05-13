@@ -30,10 +30,10 @@ SHOP_PASSWORD = "Nothappy123!"
 DEV_PASSWORD = "Maddix8530!"
 
 # Footer text expected on every non-cover page of the training packet
-FOOTER_EN = "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC"
+FOOTER_EN = "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™"
 FOOTER_ES_FRAGMENT_VARIANTS = [
-    "Generado a través de MASCI HUB — Desarrollado por ForgedOps LLC | © 2026 ForgedOps LLC",
-    "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC",  # bilingual may include EN too
+    "Generado a través de MASCI HUB — Desarrollado por ForgedOps™ | © 2026 ForgedOps™",
+    "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™",  # bilingual may include EN too
 ]
 
 

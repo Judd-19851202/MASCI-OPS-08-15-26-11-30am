@@ -1,4 +1,4 @@
-// Developer (ForgedOps LLC / vendor) portal token storage.
+// Developer (ForgedOps™ / vendor) portal token storage.
 // Token is sent on every request via the X-Dev-Token header.
 // Backend's `require_dev` accepts ONLY this token — admin and PM tokens
 // are explicitly rejected so vendor-internal surfaces (Ops Manual,

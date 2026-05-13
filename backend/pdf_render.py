@@ -1021,7 +1021,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
 <style>
   @page {{ size: Letter; margin: 0.5in 0.5in 0.85in 0.5in;
            @bottom-left {{
-             content: "Generated through MASCI HUB — Powered by ForgedOps LLC | \u00A9 2026 ForgedOps LLC";
+             content: "Generated through MASCI HUB — Powered by ForgedOps™ | \u00A9 2026 ForgedOps™";
              font-family: 'Courier New', monospace; font-size: 7pt;
              letter-spacing: 0.16em; text-transform: uppercase;
              color: #334155; font-weight: bold;

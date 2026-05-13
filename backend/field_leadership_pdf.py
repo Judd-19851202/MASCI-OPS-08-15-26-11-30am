@@ -5,7 +5,7 @@ Produces a clean MASCI-styled PDF (WeasyPrint) for any of the 10 Field
 Leadership form kinds. Schema-driven — the renderer reads `details` and
 fans every key/value pair out into a printable section.
 
-Footer: "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC"
+Footer: "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™"
 (matches the rest of the system per the 2026-05-07 ForgedOps rebrand.)
 """
 
@@ -540,7 +540,7 @@ def render_field_leadership_pdf(rec: Dict[str, Any]) -> bytes:
   size: Letter;
   margin: 18mm 14mm 22mm 14mm;
   @bottom-center {{
-    content: "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC";
+    content: "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™";
     font-family: -apple-system, sans-serif;
     font-size: 8pt;
     color: #475569;

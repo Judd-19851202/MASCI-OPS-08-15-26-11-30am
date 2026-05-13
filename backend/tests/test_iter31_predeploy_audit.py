@@ -187,11 +187,11 @@ class TestTrainingVideos:
 
 # ---------- SECTION 4 — PDF footer audit ----------
 @pytest.mark.parametrize("track,lang,expected_phrase", [
-    ("field", "en", "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC"),
-    ("field", "es", "Generado a través de MASCI HUB — Desarrollado por ForgedOps LLC | © 2026 ForgedOps LLC"),
-    ("shop", "en", "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC"),
-    ("pm", "en", "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC"),
-    ("admin", "en", "Generated through MASCI HUB — Powered by ForgedOps LLC | © 2026 ForgedOps LLC"),
+    ("field", "en", "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™"),
+    ("field", "es", "Generado a través de MASCI HUB — Desarrollado por ForgedOps™ | © 2026 ForgedOps™"),
+    ("shop", "en", "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™"),
+    ("pm", "en", "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™"),
+    ("admin", "en", "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™"),
 ])
 def test_pdf_footer_no_duplication(track, lang, expected_phrase, admin_token):
     headers = {"X-Admin-Token": admin_token}
@@ -213,7 +213,8 @@ def test_pdf_footer_no_duplication(track, lang, expected_phrase, admin_token):
 
 
 def test_pdf_no_old_powered_by_wording(admin_token):
-    """Forbidden old wording 'Powered by ForgedOps LLC' must not appear."""
+    """Forbidden old wording 'Powered by ForgedOps LLC' must not appear (legacy
+    pre-rebrand wording). Iter74 standardized everything to 'ForgedOps™'."""
     r = requests.get(f"{API}/training/packet.pdf?track=field&lang=en", timeout=60)
     reader = PdfReader(io.BytesIO(r.content))
     full = ""

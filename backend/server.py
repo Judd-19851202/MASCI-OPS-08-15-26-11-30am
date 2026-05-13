@@ -664,7 +664,7 @@ def _build_source_bundle() -> bytes:
             f"Commit: {os.environ.get('GIT_COMMIT', 'unknown')}",
             f"Built at: {os.environ.get('BUILT_AT', 'unknown')}",
             "",
-            "Classification: CONFIDENTIAL — ForgedOps LLC",
+            "Classification: CONFIDENTIAL — ForgedOps\u2122",
             "Excluded: /backups, /storage, node_modules, build, .env, .git, *.pyc, *.bak.json",
             "",
         ]
