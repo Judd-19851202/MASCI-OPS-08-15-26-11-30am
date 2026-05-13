@@ -118,8 +118,22 @@ export default function AdminShell({ title, section, children, intro }) {
           <MasciLogo variant="mark" size="sm" className="sm:hidden" homeLink="/" />
 
           <div className="flex-1 min-w-0">
-            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-300 font-bold">
-              Admin Console
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-300 font-bold flex items-center gap-1.5">
+              {section !== "overview" ? (
+                <>
+                  <Link
+                    to="/admin"
+                    className="hover:text-white hover:underline underline-offset-2 transition-colors"
+                    data-testid="admin-breadcrumb-home"
+                  >
+                    Admin Console
+                  </Link>
+                  <span className="text-red-500 opacity-60">›</span>
+                  <span className="text-red-200">{title}</span>
+                </>
+              ) : (
+                <span>Admin Console</span>
+              )}
             </div>
             <div
               className="font-display text-base sm:text-lg font-black text-white truncate leading-tight"
@@ -171,6 +185,21 @@ export default function AdminShell({ title, section, children, intro }) {
 
         {/* Body content */}
         <main className="flex-1 min-w-0" data-testid="admin-section-body">
+          {section !== "overview" && (
+            <div className="mb-3 flex items-center gap-2 flex-wrap">
+              <Link
+                to="/admin"
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-white border-2 border-slate-300 hover:border-red-700 hover:text-red-700 text-slate-700 text-xs font-bold uppercase tracking-wide transition-colors"
+                data-testid="admin-back-to-overview"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                ← Back to Admin Overview
+              </Link>
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400">
+                or use the menu at top-left
+              </span>
+            </div>
+          )}
           {intro && (
             <div className="mb-5 p-4 sm:p-5 rounded-md bg-white border-2 border-slate-200 shadow-sm">
               {intro}
