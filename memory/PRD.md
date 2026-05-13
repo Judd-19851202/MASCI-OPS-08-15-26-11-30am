@@ -1,5 +1,58 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter87: Multi-Portal Re-Login Bug Fix (P0)
+
+### User report
+"Once I log in via /sign-in, it says I'm logged in — but going to /admin, /pm,
+/hr, /shop makes me re-log into each. Thought we had this worked out?"
+
+### Two root causes — both fixed
+
+**1. Per-portal minters returned null for directory users (backend)**
+`_directory_pm_token`, `_directory_hr_token`, `_directory_shop_token` all
+required a pre-existing record in `project_managers` / `hr_users` /
+`shop_users`. The super admin lived only in `user_directory`, so PM/HR/Shop
+tokens came back as `null` in the multi-login response.
+
+**Fix**: New helper `_ensure_portal_shadow(db, collection, row)` in `server.py`.
+On every multi-login, if a directory user authorized for PM/HR/Shop doesn't
+have a per-portal record, auto-provision a "shadow" record using the
+directory user's id + bcrypt password_hash directly. Subsequent logins
+sync the hash so master-pw rotations propagate. Token minters now succeed
+for every portal in the user's directory `portals` array.
+
+**2. EnforcePortalScope auto-wiped sibling tokens (frontend)**
+Designed before multi-login existed. The moment a user with all 4 tokens
+navigated to `/admin`, the PM/HR/Shop tokens were stripped from localStorage
+because `/admin` was "out of scope" for those portals. By the time they
+visited `/hr`, that token was already gone → bounced to /hr/login.
+
+**Fix**: `EnforcePortalScope.jsx` now reads `masci.directory.user.portals`.
+Tokens for portals listed in the directory's portals array are NEVER auto-wiped
+during navigation. Single-portal direct-login sessions retain the original
+sandbox behavior (no behavior change for that path).
+
+### Verified
+- `curl /api/auth/multi-login` returns all 4 portal tokens for super admin ✅
+- Each token validates against its respective `/me` endpoint ✅
+- Browser test: sign in once at `/sign-in`, visit `/admin`, `/pm`, `/hr`, `/shop` in
+  sequence — all 4 stay logged in, none bounce to a login page ✅
+- "SWITCH PORTAL" dropdown shows "ALL OK" green chip ✅
+
+### Files touched
+- `/app/backend/server.py` — `_ensure_portal_shadow` helper + rewired the 3 minters
+- `/app/frontend/src/components/EnforcePortalScope.jsx` — multi-portal aware
+
+### Side benefit (free)
+Adding an admin to user_directory with `portals: ["admin", "pm", "shop", "hr"]`
+now auto-creates their PM/HR/Shop records on first multi-login — admin no
+longer has to manually add them in 4 different panels. The shadow records are
+flagged `linked_to_directory: true` + `source: "directory-shadow"` so the
+admin UI can show "linked from directory" in the per-portal panels later.
+
+---
+
+
 ## 2026-05-13 — Iter86: Doc Refresh — AdminGuide + Ops Manual
 
 ### User ask

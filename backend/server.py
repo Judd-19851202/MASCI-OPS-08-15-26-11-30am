@@ -8129,39 +8129,86 @@ def _directory_admin_token(row: Dict[str, Any]) -> Optional[str]:
     return _admin_token_for(expected_pw)
 
 
-async def _directory_pm_token(row: Dict[str, Any]) -> Optional[str]:
-    """Mint a PM token for a directory user. Looks up by email in
-    pm_users; if missing, returns None (directory user has 'pm' but no
-    PM record yet — admin needs to create one in the PM panel)."""
-    from pm_auth import find_pm_by_email, make_pm_token
-    try:
-        pm = await find_pm_by_email(db, row["email"])
-    except Exception:  # noqa: BLE001
+async def _ensure_portal_shadow(
+    db,
+    collection: str,
+    row: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    """Iter86 — Auto-provision a per-portal "shadow" record (in
+    project_managers / hr_users / shop_users) for a directory user that
+    is authorized for that portal but doesn't yet have a native per-portal
+    record. The shadow record uses the directory user's id + bcrypt hash
+    directly so:
+      • Tokens mint correctly (HMAC binds to password_hash[:16])
+      • Master-password rotations cascade: the shadow's password_hash is
+        re-synced on every multi-login, so a directory pw change instantly
+        invalidates every per-portal token too.
+    Returns the up-to-date per-portal doc, or None if the directory entry
+    is incomplete."""
+    if not row or not row.get("email") or not row.get("password_hash") or not row.get("id"):
         return None
+    coll = db[collection]
+    existing = await coll.find_one({"email": row["email"].lower()}, {"_id": 0})
+    desired_hash = row["password_hash"]
+    desired_id = row["id"]
+    now = datetime.now(timezone.utc).isoformat()
+    if existing:
+        # Sync the password_hash on every login so master-pw rotations
+        # propagate. Don't touch disabled (admin may have disabled at
+        # the per-portal level intentionally), just refresh the hash.
+        if existing.get("password_hash") != desired_hash:
+            await coll.update_one(
+                {"id": existing["id"]},
+                {"$set": {
+                    "password_hash": desired_hash,
+                    "updated_at": now,
+                    "linked_to_directory": True,
+                }},
+            )
+            existing["password_hash"] = desired_hash
+        return existing
+    # Create a fresh shadow record. Keep it minimal — admin can flesh
+    # out per-portal-specific fields (assigned jobs for PM, role for
+    # shop, etc.) from the corresponding admin panel later.
+    shadow = {
+        "id": desired_id,
+        "email": row["email"].lower(),
+        "name": row.get("name") or row["email"].split("@")[0],
+        "password_hash": desired_hash,
+        "disabled": False,
+        "must_change_password": False,
+        "created_at": now,
+        "updated_at": now,
+        "linked_to_directory": True,
+        "source": "directory-shadow",
+    }
+    await coll.insert_one(dict(shadow))
+    return shadow
+
+
+async def _directory_pm_token(row: Dict[str, Any]) -> Optional[str]:
+    """Mint a PM token for a directory user. Auto-provisions a shadow
+    `project_managers` record on first multi-login if missing (iter86)."""
+    from pm_auth import make_pm_token
+    pm = await _ensure_portal_shadow(db, "project_managers", row)
     if not pm or pm.get("disabled") or not pm.get("password_hash"):
         return None
     return make_pm_token(pm["id"], pm["password_hash"])
 
 
 async def _directory_hr_token(row: Dict[str, Any]) -> Optional[str]:
-    """Mint an HR token for a directory user."""
-    from hr_users import find_hr_user_by_email, make_hr_user_token
-    try:
-        hr = await find_hr_user_by_email(db, row["email"])
-    except Exception:  # noqa: BLE001
-        return None
+    """Mint an HR token for a directory user. Auto-provisions shadow."""
+    from hr_users import make_hr_user_token
+    hr = await _ensure_portal_shadow(db, "hr_users", row)
     if not hr or hr.get("disabled") or not hr.get("password_hash"):
         return None
     return make_hr_user_token(hr["id"], hr["password_hash"])
 
 
 async def _directory_shop_token(row: Dict[str, Any]) -> Optional[str]:
-    """Mint a Shop token for a directory user."""
-    from shop_users import find_shop_user_by_email, make_shop_user_token
-    try:
-        shop = await find_shop_user_by_email(db, row["email"])
-    except Exception:  # noqa: BLE001
-        return None
+    """Mint a Shop token for a directory user. Auto-provisions shadow."""
+    from shop_users import make_shop_user_token
+    shop = await _ensure_portal_shadow(db, "shop_users", row)
     if not shop or shop.get("disabled") or not shop.get("password_hash"):
         return None
     return make_shop_user_token(shop["id"], shop["password_hash"])
