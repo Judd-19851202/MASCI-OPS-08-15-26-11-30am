@@ -1,5 +1,48 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter91: Admin Overview — KPI Strip Restored
+
+### User report
+"What happened to all tiles for reports & everything on admin screens????
+KPIs if you will?"
+
+### Confirmed gap
+The iter83/84 reorganization stripped the Admin Overview down to "welcome
+text + Doc-ID search + 7 section tiles" but never replaced the at-a-glance
+count tiles. Admin reported losing the at-a-glance visibility that the
+old single-page admin had.
+
+### What shipped
+New `AdminKpiStrip.jsx` mounted at the top of the Admin Overview, above
+the Doc-ID search. Compact 4×2 grid (responsive: 2 cols on mobile,
+3 on tablets, 4 on desktop) showing each module's records-on-file count
+with a click-through to the module's record list:
+
+- 📋 Daily Reports → `/daily-reports`
+- 📑 Site Inspections → `/inspections`  (red accent)
+- 👥 Safety Meetings → `/meetings`
+- ⚠ Incident Reports → `/incidents`  (red accent)
+- 🔧 Equipment Pre-Op → `/equipment-inspections`
+- 🛡 Job Hazard Plans → `/job-hazard-plans`
+- 📦 Trench Box Data → `/trench-boxes`
+- ✓ QA/QC → `/qaqc-inspections`
+
+Each tile shows the live count, the form name, and "reports on file" /
+"plans uploaded" / "boxes on file" sub-label. Hover effect changes the
+border + adds an "OPEN →" hint, matching the PmHub tile interaction.
+Loading state shows "—" until counts land.
+
+### Verified
+Screenshot of `/admin` shows the strip rendering correctly with live
+numbers (56 / 7 / 1 / 4 / 18 / 0 / 0 / 0) and full responsive layout.
+
+### Files touched
+- `/app/frontend/src/components/AdminKpiStrip.jsx` (NEW)
+- `/app/frontend/src/pages/AdminHub.jsx` (mount above Doc-ID search)
+
+---
+
+
 ## 2026-05-13 — Iter90: Access Control Center — Email Delivery Parity
 
 ### User report

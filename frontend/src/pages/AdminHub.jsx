@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import AdminShell, { SECTIONS } from "@/components/AdminShell";
 import AdminDocIdSearch from "@/components/AdminDocIdSearch";
+import AdminKpiStrip from "@/components/AdminKpiStrip";
 
 function SectionTile({ to, icon: Icon, label, desc, testId }) {
   return (
@@ -49,6 +50,9 @@ export default function AdminHub() {
       }
     >
       <div className="space-y-5">
+        {/* Records-on-file count strip — at-a-glance KPIs */}
+        <AdminKpiStrip />
+
         {/* Frequently-used: Doc-ID search */}
         <AdminDocIdSearch />
 
