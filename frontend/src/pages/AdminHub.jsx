@@ -9,11 +9,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import AdminShell, { SECTIONS } from "@/components/AdminShell";
-import TrainingStatsStripe from "@/components/TrainingStatsStripe";
-import BilingualAdoptionCard from "@/components/BilingualAdoptionCard";
-import CalculatorUsageCard from "@/components/CalculatorUsageCard";
 import AdminDocIdSearch from "@/components/AdminDocIdSearch";
-import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
 
 function SectionTile({ to, icon: Icon, label, desc, testId }) {
   return (
@@ -53,16 +49,6 @@ export default function AdminHub() {
       }
     >
       <div className="space-y-5">
-        {/* Persistence banner — only renders if there's something to surface */}
-        <PersistenceHealthBanner />
-
-        {/* KPI / stats strip — wide, scannable */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <TrainingStatsStripe />
-          <BilingualAdoptionCard />
-          <CalculatorUsageCard />
-        </div>
-
         {/* Frequently-used: Doc-ID search */}
         <AdminDocIdSearch />
 

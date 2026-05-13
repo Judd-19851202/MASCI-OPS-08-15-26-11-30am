@@ -1,5 +1,69 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter84: Admin Console Re-shuffle + Backup System Audit
+
+### User ask
+"Is this banner system needed still — let's look at how our backup system has
+grown, what's really needed & what if anything doesn't fit for where we're
+going? … On admin console I don't want that big red thing at the top — maybe
+it's going away, but if not put it with other backup things. Training scans
+and bilingual adoptions and calculator need to go with other training stuff
+or somewhere else they fit better."
+
+### Audit verdict
+Backup surface area had grown to 7 separate UI panels + 2 backend schedulers +
+3 storage tiers (local disk, R2, email). The real direction is **Atlas Mongo +
+R2 archives + verification email** — once Atlas lands, the local-disk path
+becomes obsolete. UI consolidation done in this pass; backend disk-backup
+trim deferred until Atlas migration is confirmed.
+
+### What shipped (UI reorganization)
+- **PersistenceHealthBanner relocated** — moved from Admin Overview top to top
+  of `/admin/system` panel list. Auto-renders only when Mongo is ephemeral;
+  goes green on Atlas. (`AdminHub.jsx`, `AdminSystem.jsx`)
+- **3 analytics cards relocated** — `TrainingStatsStripe`,
+  `BilingualAdoptionCard`, `CalculatorUsageCard` moved off Admin Overview and
+  grouped under a new "Field adoption" sub-header on `/admin/training`.
+  Configuration panels (resources, forms) live below under their own header.
+  (`AdminTraining.jsx`)
+- **/admin/system panel list slimmed from 7 → 5**: dropped
+  `StoredBackupsPanel` (on-disk library — superseded by R2) and
+  `AdminSignatureMigrationPanel` (one-time DB→R2 migration, complete). Files
+  remain in the repo, just unmounted from the section.
+- **Restore-from-R2 added**: `RestoreBackupPanel` got a Source toggle —
+  "Upload .zip" (legacy) or "From R2 archive". Picking a cloud archive
+  streams the presigned URL → blob → re-uploads through the same
+  `/exports/restore` endpoint. No new backend route needed.
+- **Admin Overview** now reads as a true glance: welcome text + Doc-ID search
+  + 7 section tiles.
+
+### Daily-workflow guarantees (verified)
+| Workflow | Status after iter84 |
+|---|---|
+| Nightly email with backup link | ✅ unchanged (BACKUP_EMAIL_TO flow intact) |
+| Admin downloads a backup | ✅ Cloud Archives panel (R2 presigned URLs) |
+| Admin uploads .zip to restore | ✅ Restore panel · Source = "Upload .zip" |
+| Admin restores from R2 directly | ✅ NEW · Restore panel · Source = "From R2 archive" |
+| Dump to MASCI office server | ✅ same R2 presigned link, IT-shareable |
+
+### Files touched
+- `/app/frontend/src/pages/AdminHub.jsx` (removed 3 cards + banner)
+- `/app/frontend/src/pages/admin/AdminTraining.jsx` (mounted 3 cards under
+  Field adoption section)
+- `/app/frontend/src/pages/admin/AdminSystem.jsx` (banner moved here,
+  stored/migration panels dropped)
+- `/app/frontend/src/components/RestoreBackupPanel.jsx` (R2 source toggle +
+  archive picker)
+
+### Backend deferred (Phase 2, post-Atlas migration)
+- Remove on-disk backup scheduler + emergency disk-prune logic
+- Drop mid-day disk backup (BACKUP_HOURS_UTC=2,18 → R2-nightly only)
+- Re-point nightly email to use R2 build instead of disk build
+- Delete `/api/admin/backups` listing endpoints
+
+---
+
+
 ## 2026-05-13 — Iter77: Crew Cheat Sheet → "Field Card" Redesign
 
 ### User ask

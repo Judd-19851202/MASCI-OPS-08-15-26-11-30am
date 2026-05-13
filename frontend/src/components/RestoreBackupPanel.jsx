@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { Upload, Loader2, ShieldAlert, CheckCircle2 } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Upload, Loader2, ShieldAlert, CheckCircle2, Cloud, CloudDownload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -11,23 +11,48 @@ import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
 
 /**
  * RestoreBackupPanel — pair to the "Download Full Backup" button.
- * Uploads a MASCI full-backup .zip to POST /api/exports/restore.
+ * Two sources:
+ *   1. SOURCE = "file"  → uploads a MASCI full-backup .zip from disk
+ *   2. SOURCE = "r2"    → picks a cloud archive from the R2 library,
+ *                         streams it down via its presigned URL, then
+ *                         re-uploads the same blob to /exports/restore.
+ *                         No new backend endpoint needed.
  *
- * MERGE: upsert rows by id — new rows added, existing rows overwritten,
- * untouched collections untouched. Safe default.
- *
- * REPLACE: wipe each collection found in the ZIP, then reinsert. Destructive.
- * Guarded by a confirmation dialog + typing "REPLACE" to confirm.
+ * Two modes:
+ *   MERGE   — upsert rows by id (safe default)
+ *   REPLACE — wipe collections in the .zip first, then reinsert. Destructive.
  */
 export default function RestoreBackupPanel() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
   const [mode, setMode] = useState("merge"); // 'merge' | 'replace'
+  const [source, setSource] = useState("file"); // 'file' | 'r2'
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [pendingFile, setPendingFile] = useState(null);
   const [passwordOpen, setPasswordOpen] = useState(false);
+  const [archives, setArchives] = useState(null);
+  const [pickedKey, setPickedKey] = useState("");
+  const [fetchingR2, setFetchingR2] = useState(false);
   const fileRef = useRef(null);
+
+  // Lazy-load R2 archives when admin switches to that source
+  useEffect(() => {
+    if (source !== "r2" || archives !== null) return;
+    (async () => {
+      try {
+        const r = await api.get("/admin/backups-list-r2", { params: { limit: 50 } });
+        setArchives(r.data);
+      } catch (e) {
+        if (e?.response?.status === 400) {
+          setArchives({ configured: false, count: 0, backups: [] });
+        } else {
+          toast.error("Failed to load R2 archives");
+          setArchives({ configured: true, count: 0, backups: [] });
+        }
+      }
+    })();
+  }, [source, archives]);
 
   const onPick = (e) => {
     const f = e.target.files?.[0];
@@ -95,6 +120,43 @@ export default function RestoreBackupPanel() {
     await runRestore(pendingFile, false);
   };
 
+  // R2 source: download the presigned URL to a Blob, wrap it as a File,
+  // then funnel through the same flow as a local file pick. This reuses
+  // every guard (size, mode toggle, password gate) without a new
+  // backend endpoint.
+  const restoreFromR2 = async () => {
+    if (!pickedKey || fetchingR2) return;
+    const picked = (archives?.backups || []).find((b) => b.key === pickedKey);
+    if (!picked?.download_url) {
+      toast.error("Archive has no presigned URL — refresh and try again");
+      return;
+    }
+    setFetchingR2(true);
+    toast.info(`Fetching ${picked.filename} from R2…`);
+    try {
+      const res = await fetch(picked.download_url);
+      if (!res.ok) throw new Error(`R2 fetch returned HTTP ${res.status}`);
+      const blob = await res.blob();
+      const file = new File([blob], picked.filename, { type: "application/zip" });
+      if (file.size > 500 * 1024 * 1024) {
+        toast.error("Archive exceeds 500 MB — restore via direct R2 stream not yet supported");
+        return;
+      }
+      if (mode === "replace") {
+        setPendingFile(file);
+        setConfirmText("");
+        setConfirmOpen(true);
+      } else {
+        await runRestore(file, true);
+      }
+    } catch (e) {
+      toast.error(e?.message || "R2 fetch failed");
+      console.error(e);
+    } finally {
+      setFetchingR2(false);
+    }
+  };
+
   return (
     <section
       className="mt-6 pt-5 border-t-2 border-slate-200"
@@ -116,8 +178,37 @@ export default function RestoreBackupPanel() {
         </div>
       </div>
 
-      {/* Mode toggle */}
+      {/* Source toggle */}
       <div className="mt-4 flex items-center gap-2 flex-wrap">
+        <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
+          Source:
+        </Label>
+        <div className="inline-flex rounded-md border-2 border-slate-200 overflow-hidden" data-testid="restore-source-toggle">
+          <button
+            type="button"
+            onClick={() => setSource("file")}
+            className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wide ${
+              source === "file" ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+            data-testid="restore-source-file"
+          >
+            <Upload className="w-3 h-3 inline mr-1" /> Upload .zip
+          </button>
+          <button
+            type="button"
+            onClick={() => setSource("r2")}
+            className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wide ${
+              source === "r2" ? "bg-orange-600 text-white" : "bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+            data-testid="restore-source-r2"
+          >
+            <Cloud className="w-3 h-3 inline mr-1" /> From R2 archive
+          </button>
+        </div>
+      </div>
+
+      {/* Mode toggle */}
+      <div className="mt-3 flex items-center gap-2 flex-wrap">
         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
           Mode:
         </Label>
@@ -145,36 +236,97 @@ export default function RestoreBackupPanel() {
         </div>
       </div>
 
-      {/* File input */}
-      <div className="mt-4 flex items-center gap-3 flex-wrap">
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".zip,application/zip"
-          onChange={onPick}
-          className="hidden"
-          data-testid="restore-file-input"
-        />
-        <Button
-          onClick={() => fileRef.current?.click()}
-          disabled={busy}
-          className={`h-10 px-4 font-bold uppercase tracking-wide text-xs disabled:bg-slate-400 ${
-            mode === "replace"
-              ? "bg-red-700 hover:bg-red-800 text-white"
-              : "bg-emerald-600 hover:bg-emerald-700 text-white"
-          }`}
-          data-testid="restore-choose-file-btn"
-        >
-          {busy ? (
-            <><Loader2 className="w-4 h-4 animate-spin mr-1" /> Restoring…</>
-          ) : (
-            <><Upload className="w-4 h-4 mr-1" /> Pick backup .zip</>
+      {/* File input (source=file) */}
+      {source === "file" && (
+        <div className="mt-4 flex items-center gap-3 flex-wrap">
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".zip,application/zip"
+            onChange={onPick}
+            className="hidden"
+            data-testid="restore-file-input"
+          />
+          <Button
+            onClick={() => fileRef.current?.click()}
+            disabled={busy}
+            className={`h-10 px-4 font-bold uppercase tracking-wide text-xs disabled:bg-slate-400 ${
+              mode === "replace"
+                ? "bg-red-700 hover:bg-red-800 text-white"
+                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+            }`}
+            data-testid="restore-choose-file-btn"
+          >
+            {busy ? (
+              <><Loader2 className="w-4 h-4 animate-spin mr-1" /> Restoring…</>
+            ) : (
+              <><Upload className="w-4 h-4 mr-1" /> Pick backup .zip</>
+            )}
+          </Button>
+          <span className="text-xs text-slate-500">
+            ≤ 500 MB · must be a backup produced by "Download Full Backup"
+          </span>
+        </div>
+      )}
+
+      {/* R2 picker (source=r2) */}
+      {source === "r2" && (
+        <div className="mt-4" data-testid="restore-r2-picker">
+          {archives === null && (
+            <div className="flex items-center gap-2 text-xs text-slate-500 py-3">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading R2 archives…
+            </div>
           )}
-        </Button>
-        <span className="text-xs text-slate-500">
-          ≤ 500 MB · must be a backup produced by "Download Full Backup"
-        </span>
-      </div>
+          {archives && archives.configured === false && (
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-md p-3 text-xs text-amber-900">
+              R2 not configured on this deploy. Cloud archive restore is unavailable.
+            </div>
+          )}
+          {archives && archives.configured !== false && (archives.backups || []).length === 0 && (
+            <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-md p-3 text-xs text-slate-600">
+              No archives in R2 yet. Trigger one from the Cloud Archives panel above first.
+            </div>
+          )}
+          {archives && (archives.backups || []).length > 0 && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <select
+                value={pickedKey}
+                onChange={(e) => setPickedKey(e.target.value)}
+                className="h-10 px-3 border-2 border-slate-300 rounded font-mono text-xs bg-white max-w-full"
+                data-testid="restore-r2-select"
+              >
+                <option value="">— Pick a cloud archive —</option>
+                {archives.backups.map((b) => (
+                  <option key={b.key} value={b.key}>
+                    {b.filename} · {new Date(b.last_modified).toLocaleDateString()}
+                  </option>
+                ))}
+              </select>
+              <Button
+                onClick={restoreFromR2}
+                disabled={!pickedKey || fetchingR2 || busy}
+                className={`h-10 px-4 font-bold uppercase tracking-wide text-xs disabled:bg-slate-400 ${
+                  mode === "replace"
+                    ? "bg-red-700 hover:bg-red-800 text-white"
+                    : "bg-orange-600 hover:bg-orange-700 text-white"
+                }`}
+                data-testid="restore-r2-go-btn"
+              >
+                {fetchingR2 ? (
+                  <><Loader2 className="w-4 h-4 animate-spin mr-1" /> Fetching…</>
+                ) : busy ? (
+                  <><Loader2 className="w-4 h-4 animate-spin mr-1" /> Restoring…</>
+                ) : (
+                  <><CloudDownload className="w-4 h-4 mr-1" /> Restore from R2</>
+                )}
+              </Button>
+              <span className="text-xs text-slate-500">
+                Streams the archive from Cloudflare → applies via the same restore pipeline
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Helper text per mode */}
       <div
