@@ -46,6 +46,13 @@ function inScope(pathname, prefix) {
   if (pathname === prefix || pathname.startsWith(`${prefix}/`)) return true;
   // Multi-audience training surface — never wipes any portal token.
   if (pathname === "/training" || pathname.startsWith("/training/")) return true;
+  // The Hub at `/` is the multi-audience rendezvous point — visiting
+  // it must NOT wipe an active portal token, otherwise the Welcome-
+  // Back hero strip on the Hub becomes useless (the user lands on
+  // the Hub right after login and the token gets wiped before they
+  // can act on the strip). Per-portal scope is still enforced for
+  // every OTHER route outside the portal's own namespace.
+  if (pathname === "/") return true;
   return false;
 }
 
