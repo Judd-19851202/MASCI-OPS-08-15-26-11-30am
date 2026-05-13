@@ -13,7 +13,6 @@ import {
   UserCheck, Briefcase,
 } from "lucide-react";
 import PmShell from "@/components/PmShell";
-import TrainingStatsStripe from "@/components/TrainingStatsStripe";
 import { api } from "@/lib/api";
 
 const FORM_TILES = [
@@ -112,8 +111,6 @@ export default function PmHub() {
         </div>
       }
     >
-      <TrainingStatsStripe />
-
       {loading ? (
         <div className="py-16 flex items-center justify-center text-slate-500">
           <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…

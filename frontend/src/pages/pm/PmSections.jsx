@@ -11,6 +11,7 @@ import EquipmentPartsPanel from "@/components/EquipmentPartsPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 import SupplierMasterPanel from "@/components/SupplierMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
+import TrainingStatsStripe from "@/components/TrainingStatsStripe";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
 
@@ -59,8 +60,11 @@ export function PmSuppliers() {
 export function PmPosters() {
   return (
     <PmShell title="Site Posters" section="posters"
-      intro={<p className="text-sm text-slate-700">Generate printable posters for the site trailer — JHP cover sheet, Trench Box data, Inspection-QR for field crews.</p>}>
+      intro={<p className="text-sm text-slate-700">Generate printable posters for the site trailer — JHP cover sheet, Trench Box data, Inspection-QR for field crews. Training QR scan analytics live here too, so you can see at-a-glance how the posted QR codes are being used.</p>}>
       <SitePostersPanel />
+      <div className="mt-6">
+        <TrainingStatsStripe />
+      </div>
     </PmShell>
   );
 }
