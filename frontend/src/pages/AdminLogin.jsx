@@ -1,6 +1,18 @@
+// AdminLogin.jsx — iter85 rewrite
+//
+// Parity with PM/Shop/HR login pages: email + password fields, "Forgot
+// password?" link, "Remember me on this device" checkbox. Authenticates
+// via the unified `/api/auth/multi-login` directory endpoint (same one
+// /sign-in uses), so an admin's user_directory record drives the
+// session.
+//
+// The legacy single-password `POST /api/admin/login` endpoint is left
+// intact server-side as an API-only break-glass path (callable via
+// curl / scripts) but the human-facing UI now matches every other
+// portal's sign-in chrome.
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Lock, Loader2, ArrowLeft } from "lucide-react";
+import { ShieldAlert, Loader2, ArrowLeft, Mail, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,59 +20,75 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { api } from "@/lib/api";
-import { setAdminToken, clearAdminToken } from "@/lib/adminAuth";
+import { applyMultiLoginResponse, landingFor } from "@/lib/directoryAuth";
+import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearShopToken } from "@/lib/shopAuth";
+import { clearHrToken } from "@/lib/hrAuth";
 import { toast } from "sonner";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
-  // Landing on /admin/login means any prior session is over.
-  // Wipe every tier's token so a bad token can't poison the next call
-  // and so an admin never inherits a ghost PM/Shop session.
   useEffect(() => {
+    // Landing here means any prior session is over. Wipe every tier's
+    // token so a bad token can't poison the next call and so an admin
+    // never inherits a ghost PM/Shop/HR session.
     clearAdminToken();
     clearPmToken();
     clearShopToken();
+    clearHrToken();
   }, []);
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (!password) {
-      toast.error("Enter the admin password");
+    if (!email.trim() || !password) {
+      toast.error("Enter your work email and admin password");
       return;
     }
     setSubmitting(true);
-    // Defensive: clear every tier's token immediately before the POST so
-    // the request interceptor doesn't attach a stale X-*-Token header
-    // and so an admin login can't piggyback on a PM/Shop identity.
-    clearAdminToken();
-    clearPmToken();
-    clearShopToken();
     try {
-      const res = await api.post("/admin/login", { password, _t: Date.now() }, {
-        timeout: 90000, // backend cold-start on Atlas can take up to 60s
-      });
-      if (res?.data?.ok && res?.data?.token) {
-        setAdminToken(res.data.token, { remember: rememberMe });
-        toast.success("Welcome back, admin");
+      const res = await api.post(
+        "/auth/multi-login",
+        { email: email.trim().toLowerCase(), password },
+        { timeout: 90000 } // backend cold-start can take ~60s
+      );
+      if (res?.data?.ok) {
+        applyMultiLoginResponse(res.data, rememberMe);
+        const user = res.data.user;
+        const portals = user?.portals || [];
+        if (!portals.includes("admin")) {
+          // Authenticated, but this directory user doesn't have admin scope.
+          // Redirect them to whatever portal they DO have access to.
+          toast.warning(
+            `Welcome ${user?.name || ""} — this account doesn't have Admin access. Routing you to ${portals[0]?.toUpperCase() || "the Hub"}.`,
+            { duration: 6000 }
+          );
+          navigate(landingFor(user), { replace: true });
+          return;
+        }
+        toast.success(`Welcome back, ${user?.name || "admin"}`);
         const from = location.state?.from || "/admin";
         navigate(from, { replace: true });
       } else {
-        toast.error("Login failed — server didn't return a token");
+        toast.error("Sign-in failed — server did not return a session");
       }
     } catch (err) {
       const status = err?.response?.status;
+      const detail = err?.response?.data?.detail;
       let msg;
       if (status === 401) {
-        msg = "Wrong password";
+        msg = "Wrong email or password";
+      } else if (status === 423) {
+        msg = "Account is locked — call the office";
+      } else if (status === 429) {
+        msg = detail || "Too many attempts — wait a minute and try again";
       } else if (status === 520 || status === 521 || status === 522 || status === 523 || status === 524) {
-        // Cloudflare-edge errors → backend cold-booting on Atlas.
         msg = "Server is waking up — give it ~60 seconds and try again";
       } else if (status >= 500 && status < 600) {
         msg = `Server error (${status}) — try again in a moment`;
@@ -69,7 +97,7 @@ export default function AdminLogin() {
       } else if (!err?.response) {
         msg = "Can't reach server — check your internet";
       } else {
-        msg = `Login failed (${status || "unknown"})`;
+        msg = typeof detail === "string" ? detail : `Sign-in failed (${status || "unknown"})`;
       }
       toast.error(msg, { duration: 6000 });
     } finally {
@@ -89,8 +117,8 @@ export default function AdminLogin() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Hub
           </Link>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/admin" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/admin" />
+          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <span className="hidden sm:inline-block w-20" />
         </div>
       </header>
@@ -98,11 +126,11 @@ export default function AdminLogin() {
       <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
         <div className="w-full max-w-md bg-white border-2 border-slate-300 rounded-md p-7 sm:p-9 shadow-xl">
           <div className="flex items-center gap-3 mb-2">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-900 text-white">
-              <Lock className="w-6 h-6" />
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white">
+              <ShieldAlert className="w-6 h-6" />
             </div>
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
                 Restricted Area
               </div>
               <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
@@ -121,33 +149,62 @@ export default function AdminLogin() {
           </p>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="admin-login-form">
+            {/* Email */}
             <div>
-              <Label htmlFor="admin-password" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                Admin Password
+              <Label htmlFor="admin-email" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                Work Email
+              </Label>
+              <div className="relative mt-2">
+                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <Input
+                  id="admin-email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="username"
+                  autoFocus
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@mascigc.com"
+                  className="h-12 pl-9 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600"
+                  data-testid="admin-email-input"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <Label htmlFor="admin-password" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 flex items-center gap-1">
+                <KeyRound className="w-3 h-3" /> Password
               </Label>
               <PasswordInput
                 id="admin-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoFocus
                 autoComplete="current-password"
                 className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600"
                 data-testid="admin-password-input"
                 toggleTestId="admin-password-toggle"
               />
             </div>
-            <label className="inline-flex items-center gap-2 cursor-pointer select-none -mt-1">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 accent-red-700"
-                data-testid="admin-remember-me"
-              />
-              <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
-                Remember me on this device
+
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 accent-red-700"
+                  data-testid="admin-remember-me"
+                />
+                <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
+                  Remember me on this device
+                </span>
+              </label>
+              <span className="text-[11px] text-slate-500">
+                Forgot password? Call the office.
               </span>
-            </label>
+            </div>
+
             <Button
               type="submit"
               disabled={submitting}
@@ -163,6 +220,14 @@ export default function AdminLogin() {
               )}
             </Button>
           </form>
+
+          <p className="mt-5 pt-4 border-t border-slate-200 text-[11px] text-slate-500 leading-relaxed text-center">
+            Access multiple portals?{" "}
+            <Link to="/sign-in" className="text-slate-900 font-bold hover:underline" data-testid="admin-login-master-link">
+              Use the master sign-in
+            </Link>{" "}
+            to land on any portal in one step.
+          </p>
         </div>
       </main>
 

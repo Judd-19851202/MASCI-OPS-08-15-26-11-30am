@@ -1,5 +1,42 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter85: Admin Login Parity + Option C Backup Hardening
+
+### User asks (two combined)
+1. "Admin login still has single-password — make it email + password like the rest."
+2. "Once you click an admin tile, hard to get back without signing out — wasn't thought out very good."
+3. Approved Option C: hourly auto R2 snapshot + smart "Snapshot before redeploy" button with freshness indicator.
+
+### What shipped
+- **AdminLogin.jsx rewritten** — now has Email + Password fields, "Remember me" toggle, and routes through `/api/auth/multi-login` (the same unified directory auth `/sign-in` uses). Matching visual chrome to `PmLogin.jsx` / `HrLogin.jsx` / `ShopLogin.jsx`. Footer link directs multi-portal admins to `/sign-in`. Legacy `POST /api/admin/login` (single-password) stays intact server-side as an API-only break-glass path.
+- **AdminShell breadcrumb + back button** — fixed the "can't escape a tile" issue. Red header bar now shows `ADMIN CONSOLE › SECTION NAME` (the first segment is a link back to `/admin`), AND every non-Overview section page renders a prominent "← Back to Admin Overview" button above the intro card. Critical on mobile where the sidebar is collapsed behind a hamburger.
+- **Hourly auto R2 snapshot** — added `BACKUP_R2_HOURLY=true` env flag (now ON in preview). The backup scheduler fires a complete archive build → R2 every UTC hour instead of only at 3am. Closes the maximum data-loss window from 24h → 1h. Falls back to the nightly schedule if the env is `false`.
+- **PreDeploySnapshotPanel.jsx (NEW)** — mounted at the top of `/admin/system`. Color-coded freshness:
+  - 🟢 GREEN < 1h old · "SAFE TO REDEPLOY"
+  - 🟡 YELLOW 1-12h · "SNAPSHOT IS STALE"
+  - 🔴 RED > 12h · "ARCHIVE IS DANGEROUSLY OLD"
+  - 🔵 BLUE while a build is in flight
+  - Big "Snapshot Now" button kicks `/api/admin/backups/run-complete-now` with poll-to-completion + toast
+  - Footer line confirms hourly-auto status + nightly fallback time
+  - Auto-refreshes every 30s while the page is open
+
+### Files touched
+- `/app/frontend/src/pages/AdminLogin.jsx` (rewrite — email+pass parity)
+- `/app/frontend/src/components/AdminShell.jsx` (breadcrumb + back-button)
+- `/app/frontend/src/components/PreDeploySnapshotPanel.jsx` (NEW)
+- `/app/frontend/src/pages/admin/AdminSystem.jsx` (mount new panel at top)
+- `/app/backend/server.py` (hourly R2 gate + state endpoint flag)
+- `/app/backend/.env` (`BACKUP_R2_HOURLY=true`)
+
+### Verified
+- Hourly cron fired immediately on backend restart (logs show `firing complete-archive → R2 (hourly) bucket=2026-05-13T11` → uploaded successfully)
+- Admin login page renders email+password fields like PM/HR
+- `/admin/system` shows 🟢 GREEN "SAFE TO REDEPLOY" panel at top
+- Breadcrumb + back button render on every section page
+
+---
+
+
 ## 2026-05-13 — Iter84: Admin Console Re-shuffle + Backup System Audit
 
 ### User ask

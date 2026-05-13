@@ -13,6 +13,7 @@
 import React from "react";
 import AdminShell from "@/components/AdminShell";
 import PersistenceHealthBanner from "@/components/PersistenceHealthBanner";
+import PreDeploySnapshotPanel from "@/components/PreDeploySnapshotPanel";
 import BackupHeroPanel from "@/components/BackupHeroPanel";
 import CloudArchivesPanel from "@/components/CloudArchivesPanel";
 import AdminBackupVerificationPanel from "@/components/AdminBackupVerificationPanel";
@@ -34,6 +35,8 @@ export default function AdminSystem() {
       }
     >
       <div className="space-y-4">
+        {/* Pre-deploy snapshot freshness — top priority */}
+        <PreDeploySnapshotPanel />
         {/* Persistence banner — auto-renders only on ephemeral Mongo */}
         <PersistenceHealthBanner />
         <BackupHeroPanel />

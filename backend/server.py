@@ -6179,26 +6179,32 @@ async def _backup_scheduler_loop(db) -> None:
             logger.exception(f"[scheduled-backup] loop tick error: {e}")
             _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = f"EXCEPTION: {e!r}"
 
-        # ── Iter64 Phase 2c — Nightly complete archive to R2 ─────────
-        # Once per UTC day, build a full standalone zip (Mongo +
-        # inlined photo bytes from R2) and stream-upload it to
-        # ``r2://<bucket>/backups/``. Runs independently of the
-        # lite-mode email schedule so the user gets BOTH a heartbeat
-        # email twice a day AND a complete archive in R2 nightly.
-        # The hour is configurable via BACKUP_R2_FULL_HOUR_UTC (default 3).
+        # ── Iter64 Phase 2c + iter85 — Hourly/Nightly complete archive to R2 ─
+        # When ``BACKUP_R2_HOURLY=true`` (iter85) the complete archive fires
+        # at the top of every UTC hour, capping the maximum data-loss
+        # window on a sudden redeploy to ~60 minutes. Otherwise it falls
+        # back to the legacy once-per-day schedule at
+        # ``BACKUP_R2_FULL_HOUR_UTC`` (default 03:00 UTC).
         try:
             r2_hour = int(os.environ.get("BACKUP_R2_FULL_HOUR_UTC", "3") or "3")
         except ValueError:
             r2_hour = 3
-        if (
-            now.hour >= r2_hour
-            and _BACKUP_SCHEDULER_STATE.get("last_r2_complete_date") != str(today)
-        ):
+        r2_hourly = (os.environ.get("BACKUP_R2_HOURLY", "false") or "false").lower() in ("1", "true", "yes")
+        hour_bucket = now.strftime("%Y-%m-%dT%H")
+        if r2_hourly:
+            should_fire_r2 = _BACKUP_SCHEDULER_STATE.get("last_r2_complete_hour") != hour_bucket
+        else:
+            should_fire_r2 = (
+                now.hour >= r2_hour
+                and _BACKUP_SCHEDULER_STATE.get("last_r2_complete_date") != str(today)
+            )
+        if should_fire_r2:
             try:
-                logger.info(f"[scheduled-backup] firing nightly complete-archive → R2 for {today}")
+                logger.info(f"[scheduled-backup] firing complete-archive → R2 ({'hourly' if r2_hourly else 'nightly'}) bucket={hour_bucket}")
                 r2_res = await _run_complete_archive_to_r2(db)
                 if r2_res:
                     _BACKUP_SCHEDULER_STATE["last_r2_complete_date"] = str(today)
+                    _BACKUP_SCHEDULER_STATE["last_r2_complete_hour"] = hour_bucket
                     _BACKUP_SCHEDULER_STATE["last_r2_complete"] = {
                         "filename": r2_res.get("filename"),
                         "size_bytes": r2_res.get("size_bytes"),
@@ -6489,7 +6495,9 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
         "last": dict(_COMPLETE_R2_LAST),
         "nightly_last": _BACKUP_SCHEDULER_STATE.get("last_r2_complete"),
         "nightly_last_date": _BACKUP_SCHEDULER_STATE.get("last_r2_complete_date"),
+        "nightly_last_hour": _BACKUP_SCHEDULER_STATE.get("last_r2_complete_hour"),
         "r2_full_hour_utc": int(os.environ.get("BACKUP_R2_FULL_HOUR_UTC", "3") or "3"),
+        "r2_hourly": (os.environ.get("BACKUP_R2_HOURLY", "false") or "false").lower() in ("1", "true", "yes"),
     }
 
 
