@@ -636,7 +636,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
     <p style='margin-top:18px;font-size:12px;color:#475569'>The full PDF is attached. Reply to this email if anything looks off.</p>
   </div>
   <div style='padding:14px 22px;background:#f8fafc;border-top:1px solid #e2e8f0;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#64748b'>
-    Generated through MASCI Operations Platform · Powered by ForgedOps™
+    Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™
   </div>
 </div>
 </body></html>"""

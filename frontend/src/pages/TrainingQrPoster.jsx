@@ -221,7 +221,7 @@ export default function TrainingQrPoster() {
             </div>
           </footer>
           <div className="qp-legal">
-            Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™ · Post inside
+            Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™ · Post inside
             every site trailer / Pegue dentro de cada tráiler
           </div>
         </div>

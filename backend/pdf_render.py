@@ -1154,7 +1154,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
 <style>
   @page {{ size: Letter; margin: 0.5in 0.5in 0.85in 0.5in;
            @bottom-left {{
-             content: "MASCI Operations Platform · Powered by ForgedOps\u2122";
+             content: "Generated through MASCI Operations Platform \u2014 Powered by ForgedOps\u2122 | \u00A9 2026 ForgedOps\u2122";
              font-family: 'Courier New', monospace; font-size: 7pt;
              letter-spacing: 0.16em; text-transform: uppercase;
              color: #334155; font-weight: bold;
@@ -1237,7 +1237,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
   </div>
   {body}
   <div class="ftr">
-    <span>MASCI Operations Platform · Powered by ForgedOps&trade;</span>
+    <span>Generated through MASCI Operations Platform &mdash; Powered by ForgedOps&trade; | &copy; 2026 ForgedOps&trade;</span>
   </div>
   <!-- Last-page only: safety disclaimer + ownership clarification.
        Renders after all body content, so it naturally lands on the
@@ -1328,7 +1328,7 @@ def render_email_html(
         MASCI General Contractors Inc. · 386-322-4500 · mascidocs.com
       </div>
       <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#94a3b8;font-weight:normal;margin-top:6px;">
-        Powered by ForgedOps&trade;
+        Generated through MASCI Operations Platform &mdash; Powered by ForgedOps&trade; | &copy; 2026 ForgedOps&trade;
       </div>
     </td></tr>
   </table>

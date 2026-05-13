@@ -286,7 +286,7 @@ function PublicShell({ children }) {
       </header>
       <main className="max-w-2xl mx-auto px-5 py-6">{children}</main>
       <footer className="text-center font-mono text-[10px] uppercase tracking-widest text-slate-500 mt-8">
-        MASCI Operations Platform · Powered by ForgedOps™
+        Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™
       </footer>
     </div>
   );

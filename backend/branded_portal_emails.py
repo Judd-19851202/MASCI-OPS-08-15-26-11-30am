@@ -72,7 +72,7 @@ def render_portal_email(*, portal: str, headline: str, body_inner_html: str) -> 
         MASCI General Contractors Inc. · 386-322-4500 · mascidocs.com
       </div>
       <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#94a3b8;font-weight:normal;margin-top:6px;">
-        Powered by ForgedOps&trade;
+        Generated through MASCI Operations Platform &mdash; Powered by ForgedOps&trade; | &copy; 2026 ForgedOps&trade;
       </div>
     </td></tr>
   </table>

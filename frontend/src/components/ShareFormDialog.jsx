@@ -81,7 +81,7 @@ export const ShareFormDialog = ({
   <div class="qr">${document.getElementById("masci-share-qr")?.outerHTML || ""}</div>
   <div class="url">${publicUrl}</div>
   <div class="tag">POST IN TRAILER · TOOL BOX · TRUCK CAB</div>
-  <div class="foot">MASCI Operations Platform · Powered by ForgedOps&trade;</div>
+  <div class="foot">Generated through MASCI Operations Platform &mdash; Powered by ForgedOps&trade; | &copy; 2026 ForgedOps&trade;</div>
   <div class="stripe" style="margin-top:24px"></div>
 </body></html>`);
     w.document.close();
