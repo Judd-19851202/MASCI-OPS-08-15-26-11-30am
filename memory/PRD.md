@@ -5,10 +5,12 @@
 ### User ask
 "Field Leadership tiles inside it seem bigger than all others in other tiles? Also we need to arrange field leadership better they seem kinda random all over the place... Suggestions?"
 
-### Shipped
-**Tile size unified** — `FieldLeadershipHub.jsx` now uses the shared `SectionTile` component (same `p-6 sm:p-7` padding + `gap-4 sm:gap-5` grid spacing as Field/Safety/QA-QC/main Hub). The old per-page `LeadershipTile` (which had bigger `p-6 sm:p-8` + `gap-5 sm:gap-6`) was deleted.
+Follow-up: "Tiles in field leadership still look bigger than tiles inside say field or QC???"
 
-**Color palette expanded** — extended `SectionTile.jsx` `ACCENTS` table with `orange`, `yellow`, `lime`, `cyan`, `indigo`, `purple`, `fuchsia` so it can serve every accent FL uses (without colliding with main Hub colors).
+### Shipped
+**Tile size unified (round 2)** — first pass swapped padding via the shared `SectionTile`, but FL tiles were still ~80px taller because they had extra content (`pillLabel` + 2-item `bullets` list). Both removed. FL tiles now have the exact same anatomy as Field/QA-QC/Safety sub-hub tiles: `icon + title + desc + CTA`.
+
+**Color palette expanded** — extended `SectionTile.jsx` `ACCENTS` table with `orange`, `yellow`, `lime`, `cyan`, `indigo`, `purple`, `fuchsia` so it can serve every accent FL uses.
 
 **Forms regrouped into 4 logical sections** with `SectionHeader` rows (kicker + dashed rule + h2/subtitle):
 - **01 · Daily Crew Documentation** — Verbal Coaching → Write-Up → Attendance → Recognition
@@ -18,11 +20,11 @@
 
 ### Files changed
 - `frontend/src/components/SectionTile.jsx` (accent palette expanded)
-- `frontend/src/pages/FieldLeadershipHub.jsx` (full rewrite — 230 lines, was 388)
+- `frontend/src/pages/FieldLeadershipHub.jsx` (full rewrite — 195 lines, was 388 — pill + bullets removed in follow-up)
 
 ### Verified
 - ESLint clean
-- Live screenshots confirm all 4 groups render uniformly, tile sizes now match the rest of the system
+- Live screenshots confirm tile dimensions identical to Field/QA-QC/Safety
 
 ---
 

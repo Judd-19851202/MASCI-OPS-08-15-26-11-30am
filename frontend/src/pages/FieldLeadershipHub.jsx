@@ -41,37 +41,6 @@ import {
   SAFETY_EQUIPMENT_ISSUANCE_LINK,
 } from "@/lib/fieldLeadershipSchemas";
 
-// Bullet content per form — keeps each tile's body grounded and skim-able,
-// matching the rest of the Hub which always shows 2 bullets per tile.
-const BULLETS = {
-  write_up: { en: ["Disciplinary or corrective action", "Written/Verbal/Final · refusal-to-sign supported"],
-              es: ["Acción disciplinaria o correctiva", "Verbal/Escrita/Final · admite negativa a firmar"] },
-  verbal_coaching: { en: ["Coaching conversation, not a write-up", "Track follow-up date if needed"],
-                     es: ["Conversación de asesoramiento, no es amonestación", "Registra fecha de seguimiento"] },
-  attendance: { en: ["Late arrival · Left early · No-show", "Scheduled vs. actual times captured"],
-                es: ["Llegada tardía · Salida temprana · No se presentó", "Hora programada vs. real registrada"] },
-  recognition: { en: ["Safety leadership · Quality · Teamwork", "Builds positive crew culture"],
-                 es: ["Liderazgo en seguridad · Calidad · Equipo", "Cultiva cultura positiva en cuadrilla"] },
-  equipment_checkout: { en: ["Asset ID + 2 photos required per item", "Auto-totals replacement value"],
-                        es: ["ID de activo + 2 fotos por artículo", "Calcula valor total de reemplazo"] },
-  equipment_return: { en: ["Look up by serial · auto-fills checkout", "Auto-flags damage / loss vs. replacement value"],
-                      es: ["Buscar por serie · autocompleta entrega", "Marca daños / pérdidas vs. valor de reemplazo"] },
-  new_employee_eval: { en: ["30 / 60 / 90-day evaluation", "Ratings + recommended action"],
-                       es: ["Evaluación de 30 / 60 / 90 días", "Calificaciones + acción recomendada"] },
-  crew_eval: { en: ["Safety · Production · Quality · Communication", "Captures issues + positive observations"],
-               es: ["Seguridad · Producción · Calidad · Comunicación", "Registra problemas y observaciones positivas"] },
-  promotion_recommendation: { en: ["Promotion · Raise · Leadership development", "Strengths, leadership, safety record"],
-                              es: ["Ascenso · Aumento · Desarrollo de liderazgo", "Fortalezas, liderazgo, seguridad"] },
-  training_deficiency: { en: ["Document deficiency + assigned retraining", "Track due date + completion status"],
-                         es: ["Documente deficiencia + reentrenamiento", "Registre fecha límite y estado"] },
-  employee_termination: { en: ["Document separation, resignation, or termination", "Termination · resignation tracking · policy enforcement"],
-                          es: ["Documente separación, renuncia o terminación", "Terminación · seguimiento de renuncias · cumplimiento"] },
-  time_off_request: { en: ["Vacation · Sick · Medical · Family · Bereavement · Personal", "HR auto-notified · approved/denied in the HR Portal"],
-                      es: ["Vacaciones · Enfermedad · Médico · Familiar · Duelo · Personal", "RRHH se notifica · aprueban/niegan en el Portal"] },
-  safety_equipment_issuance: { en: ["PPE + safety-equipment accountability", "Records shared with the Safety section"],
-                               es: ["Responsabilidad de EPP y equipo de seguridad", "Registros compartidos con la sección de Seguridad"] },
-};
-
 // 4 logical groups — ordered most-used → least-used.
 // `kinds` is a list of form `kind` keys; tiles render in this exact order.
 const GROUPS = [
@@ -321,7 +290,6 @@ export default function FieldLeadershipHub() {
                 if (!form) return null;
                 const title = form.title[lang] || form.title.en;
                 const desc = form.desc[lang] || form.desc.en;
-                const bullets = (BULLETS[kind] || {})[lang] || BULLETS[kind]?.en || [];
                 const locked = Boolean(form.admin_only) && !admin;
                 const isExternal = Boolean(form.external);
                 return (
@@ -332,9 +300,7 @@ export default function FieldLeadershipHub() {
                     icon={form.icon}
                     title={title}
                     desc={desc}
-                    bullets={bullets}
                     accent={form.accent}
-                    pillLabel={isExternal ? t("Existing Form") : t("Field Leadership")}
                     ctaLabel={isExternal ? t("Open form") : t("New entry")}
                     disabled={locked}
                     disabledLabel={t("Sign in as Admin to unlock")}
