@@ -1,5 +1,50 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter101: Documentation Audit & Sync (Guides · Cheat Sheets · Training)
+
+### User ask
+"need to verify all guides, cheat sheets & training match all changes made & explain everything clearly to those that will need to use them"
+
+### What shipped — comprehensive doc refresh covering iter91–iter100 architectural shifts
+
+**P0 — Correctness fixes (payroll-critical):**
+- HR Lesson 4 (Time Verification) — fixed obsolete `>8 hr/day = OT` description to current FLSA `>40 hr/week` standard. Added Hours Sanity Flags walkthrough (>16h/day, >80h/week). Both EN + ES translations updated.
+- Field Lesson 2 (Daily Report) — added tip + cheat-sheet line explaining the on-row typo-catcher chip (`60 ≠ 6.0`). EN + ES.
+
+**P1 — Admin onboarding (training.js):**
+- Rebuilt **Admin Lesson 1 (Platform Overview)** — replaced obsolete "3 password tiers" model with current 5-portal architecture, multi-portal `/sign-in`, Admin Console 7 sub-routes, KPI Strip mention, MongoDB Atlas.
+- Rebuilt **Admin Lesson 2 (Backup Architecture)** — replaced "02:00 + 18:00 UTC" model with hourly R2 + nightly email + weekly verification three-layer architecture. Added Pre-Deploy Snapshot panel traffic-light flow.
+- Rebuilt **Admin Lesson 3 (Restore)** — added "From R2 archive" as primary path; .zip upload as fallback. Added MERGE vs REPLACE mode distinction.
+- Rebuilt **Admin Lesson 6 (Deploy/Redeploy)** — replaced env-var list with current iter85 set (ADMIN_HMAC_SECRET, SUPER_ADMIN_*, BACKUP_R2_HOURLY, S3_*, etc.). Added Pre-Deploy Snapshot check as Step 1.
+- Rebuilt **Admin Lesson 7 (Auth & Tokens)** — replaced shared-password model with `user_directory` master collection, multi-portal sign-in, Access Control email parity (iter90), Disable/Re-enable flow, ADMIN_SESSION_EPOCH nuclear option.
+- Added **Admin Lesson 15 (KPI Strip)** — new lesson covering weekly deltas, trend arrows, red alert badges, click-through to filtered modules.
+
+**P1 — Static docs:**
+- **AdminGuide.jsx** — added 4 new sections after Passwords:
+  - Access Control · Email Delivery Parity (iter90)
+  - Admin KPI Strip · weekly deltas + alert badges (iter91-93)
+  - Payroll math · FLSA Weekly OT + Hours Sanity Flags (iter99-100)
+  - Employee Termination · auto-email routing parity (iter98)
+- **ops_manual.py** — added Section 12 (`Recent Updates iter91–iter100`) capturing all architectural changes with files-of-reference list. Renumbered Owner Notes to Section 13. PDF (79.8 KB) + DOCX (52.8 KB) both render cleanly.
+
+**P2 — Field Leadership:**
+- Added **Leadership Lesson 4 (Termination & Auto-Email Routing)** — explains the full PDF auto-CC loop (PM + HR + Admin + Safety), Law Enforcement escalation flag, refusal-to-sign / not-present witness flow, where the record appears in 3 portals. EN + ES.
+
+### Verified
+- ESLint clean (training.js, training_es.js, AdminGuide.jsx)
+- Ruff clean (ops_manual.py)
+- ops_manual PDF + DOCX render (regression test passing)
+- Training Hub page renders (smoke screenshot)
+- 9/9 logic tests pass on HoursSanityFlag thresholds
+
+### Files touched
+- `/app/frontend/src/data/training.js` (admin & leadership lessons rebuilt; HR L4 fixed)
+- `/app/frontend/src/data/training_es.js` (Spanish mirror for all above)
+- `/app/frontend/src/pages/AdminGuide.jsx` (4 new sections)
+- `/app/backend/ops_manual.py` (new Section 12 + Section 13 renumber)
+
+---
+
 ## 2026-05-13 — Iter100: Hours Typo Catcher Flags
 
 ### User ask

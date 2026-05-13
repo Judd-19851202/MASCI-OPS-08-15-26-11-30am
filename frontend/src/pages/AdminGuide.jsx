@@ -413,6 +413,100 @@ export default function AdminGuide() {
           </table>
         </Section>
 
+        {/* ACCESS CONTROL — Email Delivery Parity (iter90) */}
+        <Section icon={Mail} title="Access Control — every action emails the user automatically" color="slate">
+          <p>
+            As of iter90, every action you take in the Access Control panel auto-fires a Resend email to the user — no manual copy-paste of temp passwords:
+          </p>
+          <ul className="ml-5 list-disc space-y-1 mt-2">
+            <li><strong>Add User</strong> → welcome email with temp password + sign-in URL for the right portal.</li>
+            <li><strong>Reset Password</strong> → choose <em>Email to User</em> (Resend welcome HTML, recommended) or <em>Show on Screen</em>.</li>
+            <li><strong>Disable</strong> → notification email confirming account locked.</li>
+            <li><strong>Re-enable</strong> → notification email with sign-in URL.</li>
+          </ul>
+          <p className="mt-3">
+            All four flows are wired identically across PM Accounts, Shop Users, HR Users, and the Multi-Portal Directory. If <code>RESEND_API_KEY</code> is missing or <code>AUTO_EMAIL_REPORTS=false</code>, the email content is logged to backend logs instead of sending — useful in preview env but never the case in production.
+          </p>
+          <p className="mt-3">
+            <strong>Every action is also written to <code>admin_audit</code></strong> with the actor, target, diff, and timestamp — your forensic trail if you ever need to prove who reset whose password.
+          </p>
+        </Section>
+
+        {/* KPI STRIP (iter91-93) */}
+        <Section icon={TrendingUp} title="Admin KPI Strip — weekly deltas + alert badges" color="amber">
+          <p>
+            The top of <code>/admin</code> (Overview) leads with the <strong>KPI Strip</strong> (iter91-93). Horizontal row of tiles — each shows lifetime count of a record type PLUS a weekly trend arrow PLUS an optional red alert badge when something needs attention.
+          </p>
+          <ul className="ml-5 list-disc space-y-1 mt-2">
+            <li><strong>Modules covered:</strong> Daily Reports · Pre-Op Inspections · Safety Inspections · Safety Meetings · Incidents · QA/QC · Field Leadership Records · Job Photos · Employees · Equipment.</li>
+            <li><strong>Weekly delta math:</strong> records created in last 7 days minus records created in the previous 7 days. Updated on every page load.</li>
+            <li><strong>Trend arrows:</strong> ▲ green = trending up · ▼ red = trending down · → grey = flat.</li>
+            <li><strong>Red alert badges</strong> fire when:</li>
+            <li className="ml-6">Pre-Op — FAIL items still pending Shop sign-off.</li>
+            <li className="ml-6">Incidents — unread severe incidents.</li>
+            <li className="ml-6">Field Leadership — terminations with outstanding equipment.</li>
+            <li className="ml-6">Daily Reports — flagged by Hours Sanity Flags (see next section).</li>
+            <li>Click any tile → routes you straight to that module's admin dashboard with the matching filter applied.</li>
+          </ul>
+          <p className="mt-3 text-xs text-slate-500">
+            Designed for the 7am coffee check — eyes-up, what-needs-attention briefing in 5 seconds.
+          </p>
+        </Section>
+
+        {/* FLSA OT + HOURS SANITY FLAGS (iter99-100) */}
+        <Section icon={ClipboardCheck} title="Payroll math — FLSA Weekly OT + Hours Sanity Flags" color="red">
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r mb-3">
+            <div className="font-bold text-amber-900 uppercase text-sm tracking-wide">FLSA Weekly OT (iter99)</div>
+            <p className="text-amber-900 text-sm mt-1">
+              HR Time Verification calculates overtime at the <strong>weekly</strong> level using the FLSA federal standard:
+              any hours over <strong>40 in a Mon–Sun week</strong> are overtime. Daily totals are NEVER split into reg/OT — the
+              split only resolves on the Weekly Rollup view. This matches Florida construction payroll.
+            </p>
+            <p className="text-amber-900 text-xs mt-1 font-mono">
+              Regular = min(weekly_total, 40) · OT = max(0, weekly_total − 40)
+            </p>
+          </div>
+          <div className="bg-red-50 border-l-4 border-red-700 p-3 rounded-r">
+            <div className="font-bold text-red-900 uppercase text-sm tracking-wide">Hours Sanity Flags (iter100)</div>
+            <p className="text-red-900 text-sm mt-1">
+              Two advisory chips catch payroll typos before HR signs off — they don't block submission, they just light up
+              when numbers look impossible:
+            </p>
+            <ul className="ml-5 list-disc space-y-1 mt-2 text-red-900 text-sm">
+              <li><strong>Daily Flag</strong> — single-day entry &gt; 16 hrs. Amber 16.1–24h, red &gt;24h. Almost always a missing decimal: 60 entered when 6.0 was intended.</li>
+              <li><strong>Weekly Flag</strong> — weekly rollup &gt; 80 hrs. Amber 80–120h, red &gt;120h. 80 hrs/week averages 16 hrs/day — verify with the foreman.</li>
+            </ul>
+            <p className="text-red-900 text-sm mt-2">
+              Where they appear: <code>NewDailyReport</code> (per crew row, foreman sees it as they type) AND <code>HrTimeVerification</code> (both Weekly Rollup and Per-Day Detail views — HR sees it during payroll cross-check).
+            </p>
+          </div>
+        </Section>
+
+        {/* TERMINATION EMAIL ROUTING (iter98) */}
+        <Section icon={Mail} title="Employee Termination — auto-email routing parity" color="red">
+          <p>
+            When a supervisor files an <strong>Employee Termination</strong> in Field Leadership, the PDF auto-CCs the full
+            offboarding loop in one shot — no manual forwarding:
+          </p>
+          <ul className="ml-5 list-disc space-y-1 mt-2">
+            <li><strong>Assigned PM</strong> (per project routing table)</li>
+            <li><strong>HR distribution list</strong> (configurable in Email & Routing)</li>
+            <li><strong>jaymn.judd@mascigc.com</strong></li>
+            <li><strong>safety@mascigc.com</strong></li>
+            <li>If <em>Law Enforcement Flag</em> is checked: also escalation contacts in <code>SEVERE_INCIDENT_CC</code>.</li>
+          </ul>
+          <p className="mt-3">
+            Subject line is prefixed <code>TERMINATION · &lt;Employee&gt; · &lt;Date&gt;</code> so it's hard to miss in a busy inbox.
+            The PDF styling matches every other Field Leadership form (iter98 parity) — same black/red letterhead, same MASCI
+            Operations Platform footer with ForgedOps™ attribution.
+          </p>
+          <p className="mt-3">
+            <strong>Where the record appears:</strong> (1) Field Leadership → Records, (2) Admin → Employee Terminations
+            dashboard at <code>/admin/terminations</code>, (3) HR Hub → Field Leadership Records (kind = Termination). HR's
+            offboarding clock starts the moment the supervisor hits Submit.
+          </p>
+        </Section>
+
         {/* WHO GETS WHAT */}
         <Section icon={Mail} title="Auto-email routing" color="amber">
           <p>When a crew submits a form, the PDF auto-emails to:</p>

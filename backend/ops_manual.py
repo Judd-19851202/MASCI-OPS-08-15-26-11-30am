@@ -332,7 +332,36 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
         ]),
     ]),
 
-    ("12. Owner Notes", [
+    ("12. Recent Updates (iter91–iter100, May 2026)", [
+        "This section captures architectural and behavioral changes shipped in the latest iteration window. Future iterations should append a new dated subsection rather than overwriting these notes.",
+        ("h3", "Admin KPI Strip (iter91–iter93)"),
+        "The Admin Console Overview (/admin) leads with a horizontal KPI Strip of 8–10 tiles — each showing lifetime count of a record type plus a 7-day weekly delta arrow plus an optional red alert badge when a queue needs attention. Modules covered: Daily Reports, Pre-Op Inspections, Safety Inspections, Safety Meetings, Incidents, QA/QC, Field Leadership Records, Job Photos, Employees, Equipment. Red badges fire on: Pre-Op FAIL items pending Shop sign-off, unread severe incidents, terminations with outstanding equipment, daily reports flagged by Hours Sanity Flags. Trend math: created_in_last_7_days minus created_in_previous_7_days, recomputed on every page load (no cache).",
+        ("h3", "Access Control — Email Delivery Parity (iter90)"),
+        "Every action in the Access Control panel (Add User / Reset Password / Disable / Re-enable) now auto-fires a Resend email to the user. Wired identically across PM Accounts, Shop Users, HR Users, and the Multi-Portal Directory. Falls back to backend logs when RESEND_API_KEY is missing or AUTO_EMAIL_REPORTS=false (preview env only). Every action is also written to admin_audit with actor/target/diff/timestamp.",
+        ("h3", "Multi-Portal Token Hydration (iter87–iter89)"),
+        "Resolved a class of bugs where logging into one portal would silently wipe tokens for other portals on page mount. Three fixes: (1) /api/auth/multi-login provisions shadow records in portal-specific collections (pm_users, shop_users, hr_users) when a user_directory record has portals on it, (2) the frontend token hydrator reconciles localStorage on every route change, (3) the legacy clearToken() calls on login-page mount hooks were removed. Multi-portal users at /sign-in now stay signed in across every entitled portal without re-auth.",
+        ("h3", "Uniform Back Buttons (iter96–iter97)"),
+        "All `Back to ...` controls across the platform now use a single `<BackLink>` component (/app/frontend/src/components/BackLink.jsx). Role-aware destination (admin → /admin, FL → /leadership, etc.) with consistent visual treatment. Eliminates a long tail of bespoke back-link styles.",
+        ("h3", "Termination Email Routing Parity (iter98)"),
+        "Employee Termination form (Field Leadership) now auto-CCs the full offboarding loop on submit: assigned PM, HR distribution list, jaymn.judd@mascigc.com, safety@mascigc.com. Subject prefixed `TERMINATION · <Employee> · <Date>`. Law Enforcement flag adds SEVERE_INCIDENT_CC escalation contacts. PDF styling now matches every other Field Leadership form (same letterhead, same `MASCI Operations Platform · Powered by ForgedOps™` footer).",
+        ("h3", "FLSA Weekly OT Calculation (iter99)"),
+        "HR Time Verification overtime split was reworked to the federal FLSA standard: any hours over 40 in a Mon–Sun week count as overtime. Daily totals are never split into reg/OT — the resolution only happens on the Weekly Rollup view. Regular = min(weekly_total, 40); OT = max(0, weekly_total − 40). Matches Florida construction payroll. Test suite at /app/backend/tests/test_iter99_weekly_ot.py.",
+        ("h3", "Hours Sanity Flags (iter100)"),
+        "Advisory typo-catcher chips added to NewDailyReport.jsx (per crew row) and HrTimeVerification.jsx (both Weekly Rollup and Per-Day Detail views). Component at /app/frontend/src/components/HoursSanityFlag.jsx. Thresholds: DailyHoursFlag fires on single-day entries > 16h (amber 16.1–24h, red > 24h — catches missing decimals like 60 ≠ 6.0); WeeklyHoursFlag fires on weekly rollups > 80h (amber 80–120h, red > 120h). Flags do NOT block submission — they're advisory chips so foremen catch typos at entry time and HR catches them before payroll cross-check.",
+        ("h3", "Files of reference"),
+        ("list", [
+            "/app/backend/routes/auth_directory_routes.py — Unified Auth Logic (multi-portal)",
+            "/app/frontend/src/components/AdminKpiStrip.jsx — Admin KPI Dashboard",
+            "/app/frontend/src/components/BackLink.jsx — Uniform Back Button",
+            "/app/frontend/src/components/HoursSanityFlag.jsx — Hours typo catcher",
+            "/app/frontend/src/pages/NewDailyReport.jsx — Hours entry (with sanity flag)",
+            "/app/frontend/src/pages/HrTimeVerification.jsx — FLSA weekly OT + sanity flags",
+            "/app/backend/field_leadership_pdf.py — Standardized FL PDF rendering",
+            "/app/backend/routes/hr_portal.py — Weekly OT rollup logic",
+        ]),
+    ]),
+
+    ("13. Owner Notes", [
         "This section is intentionally blank — ForgedOps™ staff should use this space for ongoing observations, custom changes, and future-improvement ideas as they come up during daily operation of MASCI HUB.",
         ("h3", "Custom Notes"),
         "—",
