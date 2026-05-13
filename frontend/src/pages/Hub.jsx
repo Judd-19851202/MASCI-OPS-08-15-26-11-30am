@@ -402,15 +402,6 @@ export default function Hub() {
           />
         </div>
       </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 border-t-2 border-slate-200">
-        <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-          {t("MASCI · Operations Platform")}
-        </span>
-        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400">
-          {t("Built and maintained in-house by MASCI.")}
-        </span>
-      </footer>
     </div>
   );
 }

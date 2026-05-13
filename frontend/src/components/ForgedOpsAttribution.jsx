@@ -7,25 +7,26 @@ import { BUILD_VERSION, BUILT_AT_ISO } from "@/buildVersion.generated";
  * ForgedOpsAttribution — platform-owner branding line, three render modes.
  *
  * mascidocs.com is a customer-branded deployment of an enterprise
- * operational platform developed and maintained by ForgedOps LLC. MASCI
- * is the operational brand the field crews interact with every day;
- * ForgedOps is the platform-technology owner — present subtly so
- * ownership is clear without overpowering MASCI's identity.
+ * operations platform. The branding standard is:
+ *
+ *   MASCI     = operational environment / client platform
+ *   ForgedOps = underlying operations technology platform
+ *
+ * UI surfaces use "ForgedOps™" (trademark, no "LLC"). The "LLC" legal
+ * name is reserved for terms, privacy, contracts, and other legal
+ * documents — never for UI chrome.
  *
  * Variants:
- *   • global — every-page footer. Two-row layout:
- *              ┌───────────────────────────────────────────────────────┐
- *              │ POWERED BY FORGEDOPS LLC ·                           │
- *              │ BUILDING SAFER JOBS | POWERING PERFORMANCE           │  (dominant)
- *              │ Terms · Privacy · v2026.MM.DD-hash                   │  (subtle)
- *              └───────────────────────────────────────────────────────┘
- *   • login  — subtle "Powered by ForgedOps LLC" line beneath the
- *              login form, with the ForgedOps mark.
- *   • admin  — slightly stronger "Platform developed & maintained by
- *              ForgedOps LLC" — admin-area only.
- *
- * Per owner brand guidelines: MASCI HUB branding remains dominant;
- * ForgedOps attribution is present but professional and subtle.
+ *   • global — every-page footer. Single clean stack:
+ *              ┌─────────────────────────────────────┐
+ *              │  MASCI Operations Platform          │  primary
+ *              │  Powered by ForgedOps™              │  secondary
+ *              │  Terms · Privacy · vYYYY.MM.DD-hash │  legal/version
+ *              └─────────────────────────────────────┘
+ *   • login  — subtle "Powered by ForgedOps™" line beneath the login
+ *              form, with the small ForgedOps mark.
+ *   • admin  — slightly stronger "MASCI Operations Platform · Powered
+ *              by ForgedOps™" for admin chrome.
  */
 
 export function ForgedOpsAttribution({ variant = "global", className = "" }) {
@@ -40,7 +41,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
           alt="ForgedOps"
           className="h-5 w-auto opacity-80"
         />
-        <span>Powered by ForgedOps LLC</span>
+        <span>Powered by ForgedOps™</span>
       </div>
     );
   }
@@ -57,25 +58,33 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
           className="h-7 w-auto opacity-90"
         />
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-600 font-bold">
-          Platform developed &amp; maintained by ForgedOps LLC
+          MASCI Operations Platform{" "}
+          <span className="text-slate-400 font-normal mx-1.5">·</span>{" "}
+          Powered by ForgedOps™
         </div>
       </div>
     );
   }
 
-  // global — every-page footer. Two-row: dominant brand stamp + subtle utility line.
+  // global — every-page footer.
   return (
     <div
       className={`text-center ${className}`}
       data-testid="forgedops-attr-global"
     >
-      <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-slate-700 font-bold leading-relaxed px-2 break-words">
-        Powered by ForgedOps LLC{" "}
-        <span className="text-slate-400 font-normal mx-1">·</span>{" "}
-        Building Safer Jobs <span className="text-slate-400 mx-1">|</span>{" "}
-        Powering Performance
+      <div
+        className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.25em] text-slate-800 font-bold"
+        data-testid="footer-primary"
+      >
+        MASCI Operations Platform
       </div>
-      <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.2em] text-slate-400">
+      <div
+        className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500"
+        data-testid="footer-secondary"
+      >
+        Powered by ForgedOps™
+      </div>
+      <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-slate-400">
         <Link
           to="/legal/terms"
           className="hover:text-slate-700 underline-offset-2 hover:underline"

@@ -75,7 +75,7 @@ export default function DevLogin() {
             <ArrowLeft className="w-3 h-3 mr-1" /> Home
           </Link>
           <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500">
-            ForgedOps LLC
+            ForgedOps™
           </span>
         </div>
       </header>
@@ -96,7 +96,7 @@ export default function DevLogin() {
             </div>
           </div>
           <p className="text-slate-500 text-xs font-mono mb-6">
-            Restricted. For ForgedOps LLC use only.
+            Restricted. For ForgedOps™ use only.
           </p>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="dev-login-form">
@@ -138,7 +138,7 @@ export default function DevLogin() {
 
       <footer className="max-w-3xl mx-auto px-5 sm:px-8 py-5 text-center">
         <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-600">
-          Confidential · ForgedOps LLC
+          Confidential · ForgedOps™
         </span>
       </footer>
     </div>

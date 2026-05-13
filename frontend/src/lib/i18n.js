@@ -146,7 +146,7 @@ const ES = {
     "Protegido con contraseña · ver / imprimir / eliminar registros",
   "Backup · Restore · Auto-email routing · Posters":
     "Respaldo · Restaurar · Ruteo de correos · Carteles",
-  "MASCI · Operations Platform": "MASCI · Plataforma de Operaciones",
+  "MASCI Operations Platform": "MASCI · Plataforma de Operaciones",
   "MASCI · Safety · No Shortcuts · No Exceptions":
     "MASCI · Seguridad · Sin Atajos · Sin Excepciones",
   "MASCI · Field · No Shortcuts · No Exceptions":
