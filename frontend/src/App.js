@@ -58,6 +58,13 @@ import ShopChangePassword from "@/pages/ShopChangePassword";
 import ShopResetPassword from "@/pages/ShopResetPassword";
 import HrLogin from "@/pages/HrLogin";
 import SignIn from "@/pages/SignIn";
+import AdminPeople from "@/pages/admin/AdminPeople";
+import AdminJobs from "@/pages/admin/AdminJobs";
+import AdminEquipment from "@/pages/admin/AdminEquipment";
+import AdminEmail from "@/pages/admin/AdminEmail";
+import AdminTraining from "@/pages/admin/AdminTraining";
+import AdminCompliance from "@/pages/admin/AdminCompliance";
+import AdminSystem from "@/pages/admin/AdminSystem";
 import HrHub from "@/pages/HrHub";
 import HrChangePassword from "@/pages/HrChangePassword";
 import HrResetPassword from "@/pages/HrResetPassword";
@@ -227,6 +234,13 @@ function App() {
                 ============================================================ */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={A(<AdminHub />)} />
+            <Route path="/admin/people" element={A(<AdminPeople />)} />
+            <Route path="/admin/jobs" element={A(<AdminJobs />)} />
+            <Route path="/admin/equipment" element={A(<AdminEquipment />)} />
+            <Route path="/admin/email" element={A(<AdminEmail />)} />
+            <Route path="/admin/training" element={A(<AdminTraining />)} />
+            <Route path="/admin/compliance" element={A(<AdminCompliance />)} />
+            <Route path="/admin/system" element={A(<AdminSystem />)} />
             <Route path="/admin/leadership-equipment" element={A(<AdminLeadershipEquipment />)} />
             <Route path="/admin/terminations" element={A(<AdminTerminations />)} />
             <Route path="/admin/guide" element={A(<AdminGuide />)} />

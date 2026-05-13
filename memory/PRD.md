@@ -139,6 +139,111 @@ what they are, look clean & professional."
 
 ---
 
+## 2026-05-13 — Iter83: Admin Console Section-Based Restructure
+
+### User ask
+"Admin console has grown into a huge thing it's like one long
+scrolling web of everything. I do NOT want to remove anything but it
+needs to be more organized & look better. Tiles inside it... backup
+system tile, password tile, jobs tile..."
+
+### Decision: Option B (sub-routes + persistent side nav)
+- 24 admin panels split into 8 sections, each at its own URL
+- Persistent left nav (desktop) / hamburger drawer (mobile) showing
+  all sections with icons + descriptions
+- Overview at `/admin` is the new landing: KPI strip + Doc-ID search
+  + 7 navigation tiles + persistence banner
+
+### Section map (zero panels removed)
+- `/admin` Overview — Training stats · Bilingual adoption ·
+  Calculator usage · Doc-ID search · 7 navigation tiles
+- `/admin/people` — Access Control Center · PM users · Shop users ·
+  HR users · Employee Master
+- `/admin/jobs` — Job Master · Site Posters · Hub Banners
+- `/admin/equipment` — Status Board · Equipment Master · Parts ·
+  Suppliers
+- `/admin/email` — Auto-Routing · Email Distribution Lists
+- `/admin/training` — Training Resources · Safety Forms
+- `/admin/compliance` — Compliance Export · Date Audit
+- `/admin/system` — Backup Hero · Stored Backups · Cloud Archives ·
+  Backup Verification · Signature Migration · Restore · Crew Recovery
+
+### What shipped
+**New shared chrome**:
+- `/app/frontend/src/components/AdminShell.jsx` — Wraps every admin
+  page with: sticky red top bar (MASCI logo, ADMIN CONSOLE eyebrow,
+  section title, PortalSwitcher, SystemHealthBadge, Home link, Sign
+  out), persistent left side nav (desktop) / `<Sheet>` drawer
+  (mobile via hamburger), body slot with optional intro card,
+  ForgedOps™ footer. Exports `SECTIONS` array so all section pages
+  + the Overview tile grid use one source of truth.
+
+**Section pages (NEW)**:
+- `/app/frontend/src/pages/admin/AdminPeople.jsx`
+- `/app/frontend/src/pages/admin/AdminJobs.jsx`
+- `/app/frontend/src/pages/admin/AdminEquipment.jsx`
+- `/app/frontend/src/pages/admin/AdminEmail.jsx`
+- `/app/frontend/src/pages/admin/AdminTraining.jsx`
+- `/app/frontend/src/pages/admin/AdminCompliance.jsx`
+- `/app/frontend/src/pages/admin/AdminSystem.jsx`
+
+Each is ~25 lines — just imports the panels and wraps them in
+`AdminShell` with a section-specific intro paragraph.
+
+**Overview rewrite**:
+- `/app/frontend/src/pages/AdminHub.jsx` — Was 600 lines of
+  procedural-scroll panel mounting. Now 80 lines: stats strip, Doc-ID
+  search, 7 tile-grid. All previous content is preserved at its
+  destination section pages.
+
+**Routes**:
+- `/app/frontend/src/App.js` — 7 new sub-routes mounted with the
+  existing `A(...)` admin-required guard wrapper.
+
+### Why this design wins
+- **Each page is short and focused** → faster TTFB, less mobile data,
+  zero scroll fatigue.
+- **URL says where you are** → deep-link bookmarks work
+  (`/admin/system` → directly to disaster-recovery toolkit).
+- **Browser back/forward works correctly** (especially on iOS Safari
+  where state-only tabs are flaky).
+- **Persistent side nav** → one click to jump between sections from
+  anywhere, just like Stripe / GitHub / Vercel admin consoles.
+- **Mobile drawer** → hamburger → full nav slides in from left, same
+  click behavior, no horizontal scroll.
+- **Zero panels removed** → every single feature still exists, just
+  organized by mental category.
+
+### Verification
+- Lint clean across all 10 changed/new files.
+- Visual smoke test at desktop + mobile widths:
+  - Overview at `/admin`: header sticky, dark left nav with 8 sections
+    (Overview row highlighted red), KPI strip + Doc-ID search + 7
+    tiles render.
+  - Click "People & Access" tile → URL becomes `/admin/people`, title
+    in header updates, AccessControlCenter renders at top of body
+    with Super Admin row + email routing roster below.
+  - Side-nav click "System & Backups" → URL becomes `/admin/system`,
+    Backup Hero + Stored Backups + Cloud Archives + Backup
+    Verification render.
+  - Mobile hamburger trigger present.
+- All 24 panels preserved at their destination section pages.
+
+### Files touched
+- `/app/frontend/src/components/AdminShell.jsx` (NEW)
+- `/app/frontend/src/pages/admin/AdminPeople.jsx` (NEW)
+- `/app/frontend/src/pages/admin/AdminJobs.jsx` (NEW)
+- `/app/frontend/src/pages/admin/AdminEquipment.jsx` (NEW)
+- `/app/frontend/src/pages/admin/AdminEmail.jsx` (NEW)
+- `/app/frontend/src/pages/admin/AdminTraining.jsx` (NEW)
+- `/app/frontend/src/pages/admin/AdminCompliance.jsx` (NEW)
+- `/app/frontend/src/pages/admin/AdminSystem.jsx` (NEW)
+- `/app/frontend/src/pages/AdminHub.jsx` (REWRITE: 600 → 80 lines)
+- `/app/frontend/src/App.js` (7 new routes mounted)
+
+---
+
+
 ## 2026-05-13 — Iter82: Multi-Portal Access Control Center
 
 ### User ask
