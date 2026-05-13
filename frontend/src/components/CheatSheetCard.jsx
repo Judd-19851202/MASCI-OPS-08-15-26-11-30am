@@ -127,7 +127,7 @@ export default function CheatSheetCard() {
           </h1>
           <p className="text-slate-700 text-base mt-3 leading-relaxed">
             {t(
-              "Open your camera, point it at the QR code, tap the link. The MASCI Hub opens in your browser. No login for field forms. No app to install. Add it to your home screen and you're set.",
+              "Open your camera, point it at the QR code, tap the link. MASCI Operations Platform opens in your browser. No login for field forms. No app to install. Add it to your home screen and you're set.",
             )}
           </p>
         </div>

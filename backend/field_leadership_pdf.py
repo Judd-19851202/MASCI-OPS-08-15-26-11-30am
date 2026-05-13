@@ -12,6 +12,7 @@ Footer: "MASCI Operations Platform · Powered by ForgedOps™"
 from __future__ import annotations
 
 import html
+import os
 from typing import Any, Dict, List
 
 from weasyprint import HTML
@@ -44,6 +45,24 @@ _KIND_META: Dict[str, Dict[str, Any]] = {
 
 def _h(s: Any) -> str:
     return html.escape("" if s is None else str(s))
+
+
+def _m_mark_data_uri() -> str:
+    """Return the MASCI M-mark logo as a data URI (cached).
+
+    Forms and reports use the M-mark ONLY (per iter104 brand guidance from
+    the owner). The full MASCI HUB lockup is INTERNAL product branding and
+    must not appear on anything that goes to employees, HR, third parties,
+    or any printable / emailable artifact.
+    """
+    if not hasattr(_m_mark_data_uri, "_cache"):
+        try:
+            here = os.path.dirname(os.path.abspath(__file__))
+            with open(os.path.join(here, "static", "masci-mark.b64"), "r") as f:
+                _m_mark_data_uri._cache = "data:image/png;base64," + f.read().strip()
+        except Exception:
+            _m_mark_data_uri._cache = ""
+    return _m_mark_data_uri._cache
 
 
 def _fmt_date(iso: str) -> str:
@@ -571,7 +590,10 @@ def render_field_leadership_pdf(rec: Dict[str, Any]) -> bytes:
 }}
 * {{ box-sizing: border-box; }}
 body {{ font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color:#0f172a; font-size:10pt; line-height:1.45; margin:0; }}
-.header {{ border-bottom:3px solid #b91c1c; padding-bottom:10pt; margin-bottom:18pt; display:flex; justify-content:space-between; align-items:flex-end; }}
+.header {{ border-bottom:3px solid #b91c1c; padding-bottom:10pt; margin-bottom:18pt; display:flex; justify-content:space-between; align-items:flex-end; gap:14pt; }}
+.header-id {{ display:flex; align-items:flex-end; gap:14pt; flex:1; }}
+.m-mark {{ width:54pt; height:54pt; flex-shrink:0; }}
+.brand-block {{ flex:1; }}
 .brand {{ font-family: ui-monospace, monospace; font-size:9pt; letter-spacing:.22em; text-transform:uppercase; color:#64748b; }}
 .title {{ font-size:22pt; font-weight:900; color:#0f172a; margin-top:4pt; line-height:1.05; }}
 .kicker {{ font-family: ui-monospace, monospace; font-size:8pt; letter-spacing:.18em; text-transform:uppercase; color:#b91c1c; font-weight:700; }}
@@ -629,10 +651,13 @@ table.lines td.ret-neutral {{ color:#92400e; font-weight:700; }}
 .delta-callout .delta-amt {{ font-size:14pt; font-weight:900; color:#b91c1c; font-variant-numeric: tabular-nums; }}
 </style></head><body>
   <div class='header'>
-    <div>
-      <div class='brand'>MASCI Operations Platform · Field Leadership</div>
-      <div class='title'>{_h(title)}</div>
-      <div class='kicker'>{_h(rec.get('project_number') or '')} · {_h(rec.get('project_name') or '')}</div>
+    <div class='header-id'>
+      <img class='m-mark' src='{_m_mark_data_uri()}' alt='MASCI' />
+      <div class='brand-block'>
+        <div class='brand'>MASCI Operations Platform · Field Leadership</div>
+        <div class='title'>{_h(title)}</div>
+        <div class='kicker'>{_h(rec.get('project_number') or '')} · {_h(rec.get('project_name') or '')}</div>
+      </div>
     </div>
     <div style='text-align:right;font-size:9pt;color:#64748b'>
       <div style='font-family:ui-monospace,monospace;font-size:11pt;font-weight:800;color:#b91c1c;letter-spacing:.05em;margin-bottom:2pt'>{_h(rec.get('doc_id') or '')}</div>

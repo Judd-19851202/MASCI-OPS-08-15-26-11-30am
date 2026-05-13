@@ -73,7 +73,7 @@ export default class PosterErrorBoundary extends React.Component {
             <p className="text-slate-700 leading-relaxed">
               The page hit an error before it could render. The team can fix
               this fast — please send a screenshot of this card to the
-              MASCI Hub admin so they have the message below to chase down.
+              MASCI Operations Platform admin so they have the message below to chase down.
             </p>
             <pre
               className="bg-slate-900 text-amber-300 text-xs font-mono leading-snug px-3 py-2 rounded overflow-x-auto whitespace-pre-wrap break-all"

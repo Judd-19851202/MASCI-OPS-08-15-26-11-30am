@@ -63,7 +63,7 @@ export const ShareFormDialog = ({
       return;
     }
     w.document.write(`<!doctype html>
-<html><head><title>MASCI Hub — Inspection QR</title>
+<html><head><title>MASCI Operations Platform — Inspection QR</title>
 <style>
   @page { size: Letter portrait; margin: 0.5in; }
   body { font-family: 'Chivo', Arial, sans-serif; text-align: center; padding: 24px; color: #000; }

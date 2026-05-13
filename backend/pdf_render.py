@@ -27,7 +27,8 @@ except Exception:  # noqa: BLE001
         return ref or ""
 
 ROOT = Path(__file__).parent
-LOGO_PATH = ROOT.parent / "frontend" / "public" / "masci-full-lockup-onlight.png"
+# iter104 brand: forms/reports use the M-mark ONLY (not the MASCI HUB lockup).
+LOGO_PATH = ROOT.parent / "frontend" / "public" / "masci-mark-onlight.png"
 WATERMARK_PATH = ROOT.parent / "frontend" / "public" / "masci-mark.png"
 
 
@@ -1119,7 +1120,7 @@ def _render_qaqc(d: Dict[str, Any]) -> str:
 
 
 def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
-    title = KIND_TITLES.get(kind, "MASCI Hub Record")
+    title = KIND_TITLES.get(kind, "MASCI Operations Platform Record")
     # When QA/QC was submitted in Spanish, localize the page title too so
     # the entire PDF matches the submit language end-to-end.
     if kind == "qaqc" and (record.get("submit_language") or "").lower() == "es":
@@ -1263,7 +1264,7 @@ def render_email_html(
     kind: str, record: Dict[str, Any], note: str = ""
 ) -> str:
     """Compact HTML email body that points at the attached PDF."""
-    title = KIND_TITLES.get(kind, "MASCI Hub Record")
+    title = KIND_TITLES.get(kind, "MASCI Operations Platform Record")
     project = record.get("project_name") or record.get("project") or ""
     date_str = _fmt_date(
         record.get("report_date") or record.get("date") or record.get("incident_date")
@@ -1320,7 +1321,7 @@ def render_email_html(
         The full {escape(title)} is attached as a PDF.
       </p>
       <p style="margin:0 0 18px;font-size:13px;color:#475569;">
-        Filed via the MASCI Hub at mascidocs.com.
+        Filed via MASCI Operations Platform at mascidocs.com.
       </p>
       <hr style="border:0;border-top:1px solid #e2e8f0;margin:18px 0;" />
       <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#475569;font-weight:bold;">

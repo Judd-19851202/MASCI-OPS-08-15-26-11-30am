@@ -1,5 +1,74 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter104: Brand Recalibration — M-Mark Only on Forms/Reports
+
+### User ask
+"on all forms/reports I want M Logo as Main & Only logo on them NO MASCI HUB LOGOS on any forms or reference to MASCI HUB on the form MASCI Operations Platform in place of any MASCI HUB verbiage...... MASCI HUB is internal name for the system not what we want all over everything."
+
+### Brand rule locked
+- **M-mark only** (bold red M on white) on every form, report, PDF, public-facing page, and printable poster.
+- **No** "MASCI HUB" lockup on those surfaces.
+- **No** "MASCI HUB" or "MASCI Hub" text in form/report copy — replaced with `MASCI Operations Platform`.
+- "MASCI HUB" is reserved for INTERNAL surfaces only (ops_manual.py, ForgedOps staff alerts, backend docstrings, code comments).
+
+### Shipped
+**1. New M-mark image installed** — user-uploaded 1024×1024 bold red M:
+- `/app/frontend/public/masci-mark.png`
+- `/app/frontend/public/masci-mark-onlight.png`
+- `/app/backend/static/masci-mark.png`
+- `/app/backend/static/masci-mark.b64` (base64, used by WeasyPrint for embedding)
+
+**2. PDF letterheads — M-mark embedded:**
+- `field_leadership_pdf.py` — added `_m_mark_data_uri()` helper, 54pt M-mark image now sits left of brand kicker on every FL PDF (Write-Ups, Coaching, Recognition, Attendance, Evaluations, Termination, Time Off, Equipment Checkout/Return, Supervisor Notes — 11 form kinds total).
+- `pdf_render.py` — `LOGO_PATH` switched from `masci-full-lockup-onlight.png` → `masci-mark-onlight.png`. Affects every safety-form PDF (Daily Report, Pre-Op, Site Inspection, Safety Meeting, JHP, Trench Box, Incident, QA/QC, Photo album, etc.).
+- `pm_welcome_pdf.py` — PM welcome onboarding letter now uses M-mark instead of MASCI HUB lockup. `alt="MASCI Hub"` → `alt="MASCI"`.
+
+**3. "MASCI Hub" text scrub on user-facing surfaces:**
+- `pdf_render.py` — "MASCI Hub Record" → "MASCI Operations Platform Record" (×2) · "Filed via the MASCI Hub" → "Filed via MASCI Operations Platform"
+- `training_pdf.py` — Lesson 1 title + Lesson 1 body (×2) + `header_brand` + bilingual eyebrow all rebranded
+- `CheatSheetCard.jsx` — laminated cheat-sheet copy
+- `ShareFormDialog.jsx` — printable QR poster title tag
+- `CloudArchivesPanel.jsx`, `BackupHeroPanel.jsx`, `PosterErrorBoundary.jsx` — Admin UI copy
+- `QaqcSection.jsx` — back-link label ("MASCI Hub" → "Hub")
+
+**4. Form input pages — lockup → M-mark:**
+- `FieldLeadershipFormPage.jsx` — every FL form input page (10 kinds)
+- `NewDailyReport.jsx` — public + authenticated header variants
+- `PublicTimeOff.jsx` — public time-off form
+
+**5. Items intentionally LEFT WITH "MASCI HUB" verbiage** (per user's "internal name"):
+- `ops_manual.py` — Internal System Operations Manual (cover, title, footer, body)
+- `outage_alerts.py` — ForgedOps staff outage emails
+- `doc_ids.py`, `photo_storage.py`, `pdf_render.py` line 1 — code docstrings/comments
+- `server.py` — internal backup email subject lines + crew-hub deprecation note + admin-console email-test subject
+- `MasciLogo.jsx` — still ships `lockup` variant (used by portal hubs themselves, NOT forms)
+
+### Verified
+- PDF auto-check passes 4/4: `MASCI Operations Platform` footer ✓ · `Powered by ForgedOps` ✓ · TOR Doc ID ✓ · ZERO `MASCI HUB` / `MASCI Hub` drift ✓
+- PDF size grew 269 KB → 1.47 MB (M-mark image embedded as base64)
+- ESLint clean (4 files) · Ruff clean (3 files)
+- Mobile screenshot of public form confirms M-only header chrome
+- PDF letterhead screenshot confirms bold red M + clean brand kicker + Doc ID
+
+### Files touched
+**Backend:**
+- `field_leadership_pdf.py` (+25 lines — helper + image embed + CSS)
+- `pdf_render.py` (logo path + 3 text rewrites)
+- `pm_welcome_pdf.py` (logo swap + alt text)
+- `training_pdf.py` (4 text rewrites)
+
+**Frontend:**
+- `pages/FieldLeadershipFormPage.jsx` (logo swap)
+- `pages/NewDailyReport.jsx` (logo swap)
+- `pages/PublicTimeOff.jsx` (logo swap)
+- `components/CheatSheetCard.jsx`, `ShareFormDialog.jsx`, `CloudArchivesPanel.jsx`, `BackupHeroPanel.jsx`, `PosterErrorBoundary.jsx`, `pages/QaqcSection.jsx` (text rewrites)
+
+**Assets:**
+- `frontend/public/masci-mark.png` + `masci-mark-onlight.png` (replaced with new 2026 user-supplied art)
+- `backend/static/masci-mark.png` + `.b64` (new)
+
+---
+
 ## 2026-05-13 — Iter103: Mobile-First + PDF/Print Uniformity Audit
 
 ### User ask

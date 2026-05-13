@@ -278,7 +278,7 @@ function PublicShell({ children }) {
     <div className="min-h-screen bg-slate-50 pb-16">
       <header className="bg-slate-900 border-b-4 border-cyan-700">
         <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
-          <MasciLogo variant="lockup" size="md" homeLink="/" />
+          <MasciLogo variant="mark" size="md" homeLink="/" />
           <span className="font-mono text-[10px] uppercase tracking-widest text-cyan-300">
             Public Form
           </span>

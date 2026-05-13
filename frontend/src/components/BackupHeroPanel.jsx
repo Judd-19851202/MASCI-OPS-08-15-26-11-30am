@@ -116,7 +116,7 @@ export default function BackupHeroPanel() {
             {t("Backup & Restore Everything")}
           </h2>
           <p className="text-sm text-slate-600">
-            {t("Two buttons. Your whole MASCI Hub — every safety form, every photo, every PDF.")}
+            {t("Two buttons. Your whole MASCI Operations Platform — every safety form, every photo, every PDF.")}
           </p>
         </div>
       </div>

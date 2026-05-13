@@ -455,7 +455,7 @@ export default function NewDailyReport({ publicMode = false }) {
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           {publicMode ? (
-            <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+            <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           ) : (
             <Link
               to="/"

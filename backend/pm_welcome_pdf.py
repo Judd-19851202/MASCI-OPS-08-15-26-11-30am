@@ -60,7 +60,7 @@ def render_pm_welcome_pdf(
     portal = (portal_url or os.environ.get("PORTAL_URL", "https://mascidocs.com")).rstrip("/")
     today = _today_iso()
 
-    full_lockup = _b64_data_uri("masci-full-lockup.png")
+    m_mark = _b64_data_uri("masci-mark.png")
     mark = _b64_data_uri("masci-mark.png")
 
     # If no temp password is provided (e.g. admin reusing this PDF),
@@ -162,7 +162,7 @@ def render_pm_welcome_pdf(
 <body>
 
   <div class="header">
-    <img class="lockup" src="{full_lockup}" alt="MASCI Hub" />
+    <img class="lockup" src="{m_mark}" alt="MASCI" style="width: 64px; height: auto;" />
     <div class="header-meta">
       <div class="tag">PM Portal · Welcome</div>
       <div>Issued: {today}</div>

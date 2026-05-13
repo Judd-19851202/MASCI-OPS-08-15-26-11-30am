@@ -79,12 +79,12 @@ FIELD_LESSONS = [
     {
         "slug": "field-01-hub-navigation",
         "order": 1,
-        "title": "Lesson 1 — Navigating the MASCI Hub",
+        "title": "Lesson 1 — Navigating MASCI Operations Platform",
         "title_es": "Lección 1 — Navegando el Hub MASCI",
         "why": "Everything starts here. If you can find the Hub on your phone, you can file any form the company needs in under 2 minutes.",
         "why_es": "Todo empieza aquí. Si encuentra el Hub en su teléfono, puede llenar cualquier formulario que la compañía necesite en menos de 2 minutos.",
         "steps": [
-            "Point your phone camera at the QR code posted inside the site trailer — the MASCI Hub opens in your browser automatically. No app to install, no login for Field forms.",
+            "Point your phone camera at the QR code posted inside the site trailer — MASCI Operations Platform opens in your browser automatically. No app to install, no login for Field forms.",
             "On the Hub home page you'll see 8 tiles: Field, QA/QC, Safety, Projects, PM Portal, Shop, Training Hub, and Admin. Field, QA/QC, and Safety are the three you'll use every day.",
             "Tap the language toggle in the top-right to switch between EN and ES — your choice is remembered on this phone.",
             "Tap 'Company Info' in the top-right to see MASCI's office address and phone numbers if you need to call HQ from the field.",
@@ -1459,7 +1459,7 @@ def _lessons_for(track: str) -> list:
 
 _STRINGS = {
     "en": {
-        "header_brand": "MASCI Hub Training",
+        "header_brand": "MASCI Operations Platform · Training",
         "packet": "Training Packet",
         "cover_subtitle": "Step-by-step walk-throughs, printable cheat sheets, and\u00a0reference\u00a0guides for every role.",
         "toc": "Contents",
@@ -1661,7 +1661,7 @@ def _render_bilingual(track: str, meta: dict, lessons: list) -> bytes:
     parts.append("<div class='stripe'></div>")
     if logo:
         parts.append(f"<img src='{logo}' style='height:40pt; margin-bottom:22pt;' alt='MASCI'/>")
-    parts.append("<div class='eyebrow'>MASCI Hub Training \u00b7 Bilingual Packet / Paquete Bilingüe</div>")
+    parts.append("<div class='eyebrow'>MASCI Operations Platform · Training \u00b7 Bilingual Packet / Paquete Bilingüe</div>")
     parts.append(f"<h1>{escape(meta['title'])}<br/><span style='color:{accent};font-size:28pt'>{escape(meta['title_es'])}</span></h1>")
     parts.append("<div class='blurb'>")
     parts.append(f"<strong>EN:</strong> {escape(meta['blurb'])}<br/>")
