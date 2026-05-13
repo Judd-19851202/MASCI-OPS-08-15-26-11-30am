@@ -1,5 +1,34 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter106: Sub-Hub Tile Uniformity
+
+### User ask
+"Make the tiles inside Field, Safety, and QA/QC look the same as the main Hub — flow & look the same all over."
+
+### Shipped
+- Wired up the previously-created `SectionTile.jsx` shared component into all three sub-hub landing pages:
+  - `pages/FieldSection.jsx` — 3 tiles (Daily Reports, Equipment Pre-Op, Material Calculators)
+  - `pages/SafetySection.jsx` — 7 tiles (Site Inspections, Safety Meetings, Incidents, JHPs, Trench Boxes, Field Cards, Safety Forms)
+  - `pages/QaqcSection.jsx` — 3 tiles (Concrete Form, Rebar, Subcontractor) driven by `QAQC_KINDS`
+- Deleted the per-page `FormTile` components — single source of truth now.
+- Each tile now has the same anatomy as the main `Hub.jsx` BigTile:
+  - top accent bar in the per-tile color
+  - 14×14 icon chip top-left
+  - font-display 3xl/4xl black title
+  - slate-600 description
+  - bottom CTA row with mono uppercase label + ArrowRight icon
+
+### Verified
+- ESLint clean on all 3 changed files
+- Live screenshots confirm `/field`, `/safety`, `/qaqc` all share the main-Hub tile rhythm
+
+### Files changed
+- `frontend/src/pages/FieldSection.jsx`
+- `frontend/src/pages/SafetySection.jsx`
+- `frontend/src/pages/QaqcSection.jsx`
+
+---
+
 ## 2026-05-13 — Iter105: PM Portal Cleanup + FL Routing Bug Fix + Footer Triple-Check
 
 ### User ask

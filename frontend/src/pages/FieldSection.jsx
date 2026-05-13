@@ -1,37 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ClipboardList, Wrench, Plus, ArrowLeft, HardHat, Calculator,
+  ClipboardList, Wrench, ArrowLeft, HardHat, Calculator,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
+import { SectionTile } from "@/components/SectionTile";
 import { useT } from "@/lib/i18n";
-
-const FormTile = ({ to, icon: Icon, title, desc, accent = "red", testId }) => {
-  const accentCls =
-    accent === "red"     ? "border-red-700 bg-red-700"
-    : accent === "amber" ? "border-amber-600 bg-amber-600"
-    : "border-slate-800 bg-slate-800";
-  return (
-    <Link
-      to={to}
-      className="group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 hover:border-amber-600 hover:-translate-y-0.5 transition-all duration-150 flex flex-col"
-      data-testid={testId}
-    >
-      <div className={`inline-flex items-center justify-center w-14 h-14 rounded-md ${accentCls} text-white mb-4`}>
-        <Icon className="w-7 h-7" />
-      </div>
-      <h3 className="font-display text-2xl font-black tracking-tight text-slate-900">{title}</h3>
-      <p className="text-slate-600 text-sm mt-2 flex-1 leading-relaxed">{desc}</p>
-      <div className="mt-5 pt-4 border-t-2 border-slate-100 flex items-center justify-end">
-        <div className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-amber-700 font-bold group-hover:gap-3 transition-all">
-          <Plus className="w-4 h-4" /> Start Form
-        </div>
-      </div>
-    </Link>
-  );
-};
 
 /**
  * FieldSection — landing for the /field sub-hub. Daily operational logs
@@ -82,29 +58,32 @@ export default function FieldSection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-12">
-          <FormTile
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
+          <SectionTile
             to="/daily/submit"
             icon={ClipboardList}
             title={t("Daily Reports")}
             desc={t("End-of-day site log: crews, subs, visitors, equipment, materials, weather, photos. Replaces Fieldwire.")}
             accent="red"
+            ctaLabel={t("Start Form")}
             testId="field-tile-daily"
           />
-          <FormTile
+          <SectionTile
             to="/equipment/submit"
             icon={Wrench}
             title={t("Equipment Pre-Op")}
             desc={t("Daily OSHA walk-around inspections for Heavy Equipment. PASS / FAIL each item — fail tags the unit out of service.")}
             accent="slate"
+            ctaLabel={t("Start Form")}
             testId="field-tile-equipment"
           />
-          <FormTile
+          <SectionTile
             to="/field/calculators"
             icon={Calculator}
             title={t("Material Calculators")}
             desc={t("Quickly estimate aggregate, asphalt, concrete, truck loads, yield, waste, and tons-to-cubic-yard conversions from the field.")}
             accent="amber"
+            ctaLabel={t("Open Tools")}
             testId="field-tile-calculators"
           />
         </div>

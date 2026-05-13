@@ -1,11 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft, Plus, ClipboardCheck, Layers, Hammer, HardHat,
+  ArrowLeft, ClipboardCheck, Layers, Hammer, HardHat,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
+import { SectionTile } from "@/components/SectionTile";
 import { useT } from "@/lib/i18n";
 import { QAQC_KINDS } from "@/lib/qaqcSchema";
 
@@ -13,42 +14,6 @@ const ICONS = {
   "concrete-form": Layers,
   rebar: Hammer,
   "subcontractor-work": HardHat,
-};
-
-// White-card FormTile pattern shared with FieldSection/SafetySection so QA/QC
-// flows visually with the rest of the system. Per-kind accent tints the icon
-// chip + the hover border; the card body itself stays clean white.
-const FormTile = ({ to, icon: Icon, title, desc, accent = "blue", testId }) => {
-  const accentCls =
-    accent === "blue"   ? "bg-blue-600"
-    : accent === "amber" ? "bg-amber-600"
-    : "bg-slate-700";
-  const hoverCls =
-    accent === "blue"   ? "hover:border-blue-600"
-    : accent === "amber" ? "hover:border-amber-600"
-    : "hover:border-slate-700";
-  const ctaCls =
-    accent === "blue"   ? "text-blue-700"
-    : accent === "amber" ? "text-amber-700"
-    : "text-slate-700";
-  return (
-    <Link
-      to={to}
-      className={`group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 ${hoverCls} hover:-translate-y-0.5 transition-all duration-150 flex flex-col`}
-      data-testid={testId}
-    >
-      <div className={`inline-flex items-center justify-center w-14 h-14 rounded-md ${accentCls} text-white mb-4`}>
-        <Icon className="w-7 h-7" />
-      </div>
-      <h3 className="font-display text-2xl font-black tracking-tight text-slate-900">{title}</h3>
-      <p className="text-slate-600 text-sm mt-2 flex-1 leading-relaxed">{desc}</p>
-      <div className="mt-5 pt-4 border-t-2 border-slate-100 flex items-center justify-end">
-        <div className={`inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] font-bold group-hover:gap-3 transition-all ${ctaCls}`}>
-          <Plus className="w-4 h-4" /> Start Form
-        </div>
-      </div>
-    </Link>
-  );
 };
 
 /**
@@ -107,13 +72,14 @@ export default function QaqcSection() {
           {QAQC_KINDS.map((kind) => {
             const Icon = ICONS[kind.slug] || ClipboardCheck;
             return (
-              <FormTile
+              <SectionTile
                 key={kind.slug}
                 to={`/qaqc/${kind.slug}/new`}
                 icon={Icon}
                 title={lang === "es" ? kind.title_es : kind.title}
                 desc={lang === "es" ? kind.blurb_es : kind.blurb}
                 accent={kind.accent}
+                ctaLabel={t("Start Form")}
                 testId={`qaqc-tile-${kind.slug}`}
               />
             );

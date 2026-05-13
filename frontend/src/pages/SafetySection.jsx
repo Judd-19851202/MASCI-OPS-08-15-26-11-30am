@@ -1,49 +1,18 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ClipboardCheck, Users, AlertOctagon, FileText, Box, Plus, ArrowLeft, ArrowRight, BookOpen, Shield, ShieldCheck, IdCard,
+  ClipboardCheck, Users, AlertOctagon, FileText, Box, ArrowLeft, Shield, ShieldCheck, IdCard,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
+import { SectionTile } from "@/components/SectionTile";
 import { useT } from "@/lib/i18n";
 
-// `kind="form"` → "+ Start Form" (red accent) — opens a fillable form.
-// `kind="library"` → "Open Library" (slate) — opens a document/reference
-// page. Three Safety tiles point at libraries (JHP plans, Trench-box
-// tabulated data, Field Safety Cards) — they don't kick off a form, so
-// the old "+ Start Form" CTA was misleading.
-const FormTile = ({ to, icon: Icon, title, desc, accent = "red", kind = "form", ctaLabel, testId }) => {
-  const accentCls =
-    accent === "red"     ? "border-red-700 bg-red-700"
-    : accent === "amber" ? "border-amber-600 bg-amber-600"
-    : accent === "redDeep" ? "border-red-900 bg-red-900"
-    : "border-slate-800 bg-slate-800";
-  const isLibrary = kind === "library";
-  const CtaIcon = isLibrary ? BookOpen : Plus;
-  const ctaCls = isLibrary
-    ? "text-slate-700 group-hover:text-red-700"
-    : "text-red-700";
-  return (
-    <Link
-      to={to}
-      className="group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 hover:border-red-700 hover:-translate-y-0.5 transition-all duration-150 flex flex-col"
-      data-testid={testId}
-    >
-      <div className={`inline-flex items-center justify-center w-14 h-14 rounded-md ${accentCls} text-white mb-4`}>
-        <Icon className="w-7 h-7" />
-      </div>
-      <h3 className="font-display text-2xl font-black tracking-tight text-slate-900">{title}</h3>
-      <p className="text-slate-600 text-sm mt-2 flex-1 leading-relaxed">{desc}</p>
-      <div className="mt-5 pt-4 border-t-2 border-slate-100 flex items-center justify-end">
-        <div className={`inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] font-bold group-hover:gap-3 transition-all ${ctaCls}`}>
-          <CtaIcon className="w-4 h-4" /> {ctaLabel}
-          {isLibrary && <ArrowRight className="w-3.5 h-3.5" />}
-        </div>
-      </div>
-    </Link>
-  );
-};
+// All Safety tiles use the unified `SectionTile` so they match the main
+// Hub tiles exactly. CTA labels differentiate forms vs. libraries:
+//   forms     → "Start Form"
+//   libraries → "Open Plans" / "Open Library" / "Open Cards"
 
 /**
  * SafetySection — landing for the /safety sub-hub. Compliance-first forms
@@ -95,73 +64,66 @@ export default function SafetySection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
-          <FormTile
+          <SectionTile
             to="/inspections/submit"
             icon={ClipboardCheck}
             title={t("Site Inspections")}
             desc={t("Daily and weekly job-site safety inspections. PPE, MOT, fall protection, electrical, and more — graded automatically.")}
             accent="red"
-            kind="form"
             ctaLabel={t("Start Form")}
             testId="safety-tile-inspections"
           />
-          <FormTile
+          <SectionTile
             to="/meetings/submit"
             icon={Users}
             title={t("Safety Meetings")}
             desc={t("Toolbox talks and daily huddles. 80+ heavy-civil topics with prefilled hazards — every crew member signs in.")}
             accent="slate"
-            kind="form"
             ctaLabel={t("Start Form")}
             testId="safety-tile-meetings"
           />
-          <FormTile
+          <SectionTile
             to="/incidents/submit"
             icon={AlertOctagon}
             title={t("Incident Reports")}
             desc={t("Document near misses, injuries, and damage. Severity tiers, root cause, witnesses, and follow-up — all in one record.")}
             accent="redDeep"
-            kind="form"
             ctaLabel={t("Start Form")}
             testId="safety-tile-incidents"
           />
-          <FormTile
+          <SectionTile
             to="/jha"
             icon={FileText}
             title={t("Job Hazard Plans")}
             desc={t("Read your job's Hazard Plan PDF before crew breaks ground. One plan per active MASCI job — uploaded by the office.")}
             accent="amber"
-            kind="library"
             ctaLabel={t("Open Plans")}
             testId="safety-tile-jha"
           />
-          <FormTile
+          <SectionTile
             to="/trench-boxes"
             icon={Box}
             title={t("Trench Box Tabulated Data")}
             desc={t("Learn what tabulated data is, why it keeps you alive, and pull the exact manufacturer data sheet for every shield in the MASCI fleet — bilingual.")}
             accent="slate"
-            kind="library"
             ctaLabel={t("Open Library")}
             testId="safety-tile-trench"
           />
-          <FormTile
+          <SectionTile
             to="/safety/cards"
             icon={IdCard}
             title={t("Field Safety Cards")}
             desc={t("Bilingual wallet-sized safety cards — English and Español, front and back. Print on letter paper or email the PDF straight to the crew.")}
             accent="redDeep"
-            kind="library"
             ctaLabel={t("Open Cards")}
             testId="safety-tile-cards"
           />
-          <FormTile
+          <SectionTile
             to="/safety/forms"
             icon={ShieldCheck}
             title={t("Safety Forms")}
             desc={t("Equipment Issuance & Accountability + Use & Care Training documentation — password-gated for the Safety Department.")}
             accent="redDeep"
-            kind="form"
             ctaLabel={t("Open Forms")}
             testId="safety-tile-forms"
           />
