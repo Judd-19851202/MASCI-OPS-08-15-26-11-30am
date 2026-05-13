@@ -8441,29 +8441,34 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             doc_id_segment = f"{doc_id_val} · "
         subject = f"[MASCI] {fail_prefix}{doc_id_segment}{title} · {project}{pm_tag}"
 
+        # Note: rendered as plain text by render_email_html (which wraps
+        # it in a styled callout). Do NOT embed HTML tags here — they
+        # will be HTML-escaped and shown to the reader as literal text.
         note = ""
         if kind == "incident" and _is_severe_incident(record):
-            note = (
-                "<p style='color:#C8102E;font-weight:700'>"
-                "SEVERE INCIDENT — please review immediately."
-                "</p>"
-            )
+            note = "SEVERE INCIDENT — please review immediately."
         elif equipment_fail:
+            unit_label = " ".join(
+                p for p in [
+                    str(record.get("equipment_type") or "").strip(),
+                    str(record.get("equipment_unit") or "").strip(),
+                ] if p
+            ).strip()
+            unit_suffix = f" {unit_label} tagged OUT OF SERVICE." if unit_label else " Unit tagged OUT OF SERVICE."
             note = (
-                "<p style='color:#C8102E;font-weight:700'>"
-                f"⚠ EQUIPMENT FAIL — {record.get('fail_count')} item(s) failed inspection. "
-                f"{record.get('equipment_type', '')} {record.get('equipment_unit', '')} "
-                "tagged OUT OF SERVICE."
-                "</p>"
+                f"EQUIPMENT FAIL — {record.get('fail_count')} item(s) "
+                f"failed inspection.{unit_suffix}"
             )
         elif pm_name:
-            note = f"<p>Auto-routed to <b>{pm_name}</b> based on project number "\
-                   f"<b>{record.get('project_number') or '—'}</b>.</p>"
+            note = (
+                f"Auto-routed to {pm_name} based on project number "
+                f"{record.get('project_number') or '—'}."
+            )
         else:
             note = (
-                "<p><i>No Project Manager could be auto-resolved from the project number "
-                f"<b>{record.get('project_number') or '—'}</b>. Sent to office distribution "
-                "only — please assign a PM in the office.</i></p>"
+                "No Project Manager could be auto-resolved from project "
+                f"number {record.get('project_number') or '—'}. Sent to "
+                "office distribution only — please assign a PM in the office."
             )
 
         params = {

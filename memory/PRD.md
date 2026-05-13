@@ -89,6 +89,56 @@ issues. Needs to work on all computers & browsers, all mobile devices."
 
 ---
 
+## 2026-05-13 — Iter78: Email Chrome Cleanup ("Daily Report ≠ Safety Record")
+
+### User ask
+Photo of a Daily Report email showed three issues:
+1. Body eyebrow read "MASCI · SAFETY RECORD" — wrong for a Daily Report.
+2. Raw HTML leaking as literal text: `<p>Auto-routed to <b>Ramon</b>...</p>`.
+3. Hardcoded `safety@mascigc.com` in visible footer chrome.
+"Platform has grown beyond a safety only thing. Emails should state
+what they are, look clean & professional."
+
+### What shipped
+- **`pdf_render.py · render_email_html`** rewritten chrome:
+  - Eyebrow: `MASCI · Safety Record` → **`MASCI Operations Platform`**
+    (record-type-agnostic; the H1 below already names the kind).
+  - Body line: "The full safety record is attached as a PDF." →
+    **`The full {KIND_TITLES[kind]} is attached as a PDF.`** —
+    record-aware ("Daily Job Report" / "QA / QC Inspection" /
+    "Equipment Pre-Op Inspection" / "Accident / Incident Report" /
+    "Site Inspection Report" / "Site Safety Meeting" / "Job Hazard Plan").
+  - Footer: dropped visible `safety@mascigc.com` → now
+    **`MASCI General Contractors · 386-322-4500 · mascidocs.com`**
+    with a second line **`Powered by ForgedOps™`** matching the
+    iter74/77 brand standard.
+  - Auto-detects WARN tone (notes starting with SEVERE / EQUIPMENT
+    FAIL / WARN / ⚠) and switches the callout box from neutral slate
+    to **red on red-50** with bold weight.
+- **`server.py` auto-route note constructor** rewritten — all four
+  branches (severe incident, equipment fail, PM-resolved, no-PM) now
+  build the note as **plain text** instead of HTML strings. Combined
+  with the existing `escape(note)` in render_email_html, the result
+  is clean readable text in every email client. No more leaking
+  `<p>` / `<b>` tags.
+- **Distribution routing unchanged**: emails still get sent to
+  `safety@mascigc.com` per `email_routing.py` (that's a real inbox,
+  not visual chrome). Only the visible body chrome was cleaned up.
+
+### Verification
+- 13 backend assertions PASS (no safety email in chrome, MASCI Operations
+  Platform eyebrow, record-aware body line, ForgedOps footer, no
+  literal HTML in note, warn-tone red bg on EQUIPMENT FAIL/SEVERE,
+  qaqc title swap renders correctly).
+- Two sample HTML emails rendered + screenshotted via Playwright —
+  both render clean, professional, mobile-readable.
+
+### Files touched
+- `/app/backend/pdf_render.py` — `render_email_html()`
+- `/app/backend/server.py` — auto-email note constructor (line 8444)
+
+---
+
 ## 2026-05-13 — Iter76: Legal / Infrastructure / Branding Hardening
 
 ### User ask

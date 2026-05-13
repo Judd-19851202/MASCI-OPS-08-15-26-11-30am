@@ -1168,9 +1168,26 @@ def render_email_html(
     date_str = _fmt_date(
         record.get("report_date") or record.get("date") or record.get("incident_date")
     )
+    # Warning-tone callout when the note starts with one of our
+    # critical prefixes — picks up red background + heavier border.
+    _note_is_warn = bool(note) and any(
+        note.upper().startswith(p)
+        for p in ("SEVERE", "EQUIPMENT FAIL", "WARN", "⚠")
+    )
+    if _note_is_warn:
+        _note_box_bg = "#fef2f2"
+        _note_box_border = "#c8102e"
+        _note_color = "#991b1b"
+        _note_weight = "700"
+    else:
+        _note_box_bg = "#f1f5f9"
+        _note_box_border = "#c8102e"
+        _note_color = "#0f172a"
+        _note_weight = "500"
     note_html = (
-        f'<p style="margin:18px 0;padding:12px 14px;background:#f1f5f9;'
-        f'border-left:3px solid #c8102e;color:#0f172a;font-size:14px;">'
+        f'<p style="margin:18px 0;padding:12px 14px;background:{_note_box_bg};'
+        f'border-left:3px solid {_note_box_border};color:{_note_color};'
+        f'font-size:14px;font-weight:{_note_weight};line-height:1.5;">'
         f"{escape(note)}</p>"
         if note
         else ""
@@ -1193,21 +1210,24 @@ def render_email_html(
   <table style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:24px;">
     <tr><td>
       {mark_html}
-      <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#c8102e;font-weight:700;">MASCI · Safety Record</div>
+      <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#c8102e;font-weight:700;">MASCI Operations Platform</div>
       <h1 style="margin:8px 0 4px;font-size:24px;font-weight:900;letter-spacing:-0.02em;">{escape(title)}</h1>
       <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#475569;">
         {('Project: ' + escape(project)) if project else ''}{(' · Date: ' + escape(date_str)) if date_str else ''}
       </div>
       {note_html}
       <p style="margin:18px 0 4px;font-size:14px;line-height:1.5;">
-        The full safety record is attached as a PDF.
+        The full {escape(title)} is attached as a PDF.
       </p>
       <p style="margin:0 0 18px;font-size:13px;color:#475569;">
         Filed via the MASCI Hub at mascidocs.com.
       </p>
       <hr style="border:0;border-top:1px solid #e2e8f0;margin:18px 0;" />
       <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#475569;font-weight:bold;">
-        MASCI General Contractors · 386-322-4500 · safety@mascigc.com
+        MASCI General Contractors · 386-322-4500 · mascidocs.com
+      </div>
+      <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#94a3b8;font-weight:normal;margin-top:6px;">
+        Powered by ForgedOps&trade;
       </div>
     </td></tr>
   </table>
