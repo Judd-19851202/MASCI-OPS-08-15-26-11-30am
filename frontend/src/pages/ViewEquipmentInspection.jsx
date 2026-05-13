@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
@@ -16,7 +17,6 @@ import ShopSignoffCard from "@/components/ShopSignoffCard";
 import { itemSeverity } from "@/lib/equipmentSeverity";
 import { isAdmin } from "@/lib/adminAuth";
 import { useT } from "@/lib/i18n";
-import { resolvePhotoSrc } from "@/lib/photoSrc";
 
 const KV = ({ label, value, full = false }) => (
   <div className={full ? "sm:col-span-2" : ""}>
@@ -342,7 +342,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
           <div className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
             <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Sign-Off</h2>
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">Operator: {data.operator_name}</div>
-            <img src={data.operator_signature} alt="Operator signature" className="max-h-32 border-b-2 border-slate-300" />
+            <img src={resolvePhotoSrc(data.operator_signature)} alt="Operator signature" className="max-h-32 border-b-2 border-slate-300" />
           </div>
         )}
       </main>

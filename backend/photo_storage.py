@@ -250,12 +250,21 @@ async def upload_photo_bytes(
 
 async def upload_data_url(data_url: str, source_id: str = "unknown") -> str:
     """Upload a base64 ``data:image/...`` URL (the format every existing
-    record uses) directly to S3. Returns a ``photo://`` reference."""
+    record uses) directly to S3. Returns a ``photo://`` reference.
+
+    Tolerant of missing base64 padding — many older Mongo records had
+    their padding stripped during JSON round-trips and would otherwise
+    fail `Incorrect padding`. We pad to a multiple of 4 before decode.
+    """
     try:
         head, b64 = data_url.split(",", 1)
     except ValueError as e:
         raise ValueError("Not a valid base64 data URL") from e
-    raw = base64.b64decode(b64)
+    # Repair missing padding — `==` worst-case.
+    pad = (-len(b64)) % 4
+    if pad:
+        b64 = b64 + ("=" * pad)
+    raw = base64.b64decode(b64, validate=False)
     ext = _ext_from_data_url(data_url)
     content_type = None
     try:

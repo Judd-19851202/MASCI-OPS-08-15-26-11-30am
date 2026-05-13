@@ -427,10 +427,23 @@ def _equipment_return_ack_block(language: str) -> str:
     )
 
 
+def _resolve_sig(raw):
+    """Convert a signature reference to an inline data URL for PDF embedding."""
+    if not raw or not isinstance(raw, str):
+        return raw or ""
+    if raw.startswith("photo://"):
+        try:
+            from photo_storage import resolve_to_data_url_sync as _r2d
+            return _r2d(raw) or ""
+        except Exception:  # noqa: BLE001
+            return ""
+    return raw
+
+
 def _signatures_block(rec: Dict[str, Any]) -> str:
     """Renders supervisor + employee (or refusal-with-witness) signatures."""
     parts: List[str] = []
-    sup = rec.get("supervisor_signature") or ""
+    sup = _resolve_sig(rec.get("supervisor_signature") or "")
     if sup:
         parts.append(
             f"<div class='sig-card'><div class='sig-label'>Supervisor Signature</div>"
@@ -442,17 +455,19 @@ def _signatures_block(rec: Dict[str, Any]) -> str:
             "<div class='sig-card refused'><div class='sig-label'>Employee Refused to Sign</div>"
             f"<div class='sig-name'>{_h(rec.get('employee_name') or '')}</div></div>"
         )
-        wsig = rec.get("witness_signature") or ""
+        wsig = _resolve_sig(rec.get("witness_signature") or "")
         if wsig:
             parts.append(
                 f"<div class='sig-card'><div class='sig-label'>Witness Signature</div>"
                 f"<img src='{_h(wsig)}' /><div class='sig-name'>{_h(rec.get('witness_name') or '')}</div></div>"
             )
-    elif rec.get("employee_signature"):
-        parts.append(
-            f"<div class='sig-card'><div class='sig-label'>Employee Signature</div>"
-            f"<img src='{_h(rec['employee_signature'])}' /><div class='sig-name'>{_h(rec.get('employee_name') or '')}</div></div>"
-        )
+    else:
+        emp = _resolve_sig(rec.get("employee_signature") or "")
+        if emp:
+            parts.append(
+                f"<div class='sig-card'><div class='sig-label'>Employee Signature</div>"
+                f"<img src='{_h(emp)}' /><div class='sig-name'>{_h(rec.get('employee_name') or '')}</div></div>"
+            )
 
     if not parts:
         return ""

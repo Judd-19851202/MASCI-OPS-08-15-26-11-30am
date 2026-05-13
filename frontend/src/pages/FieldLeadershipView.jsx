@@ -13,12 +13,12 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
 import { getPmToken } from "@/lib/pmAuth";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
-import { resolvePhotoSrc } from "@/lib/photoSrc";
 
 export default function FieldLeadershipView() {
   const { t, lang } = useT();
@@ -196,7 +196,7 @@ export default function FieldLeadershipView() {
               {rec.supervisor_signature && (
                 <div className="border-2 border-slate-200 rounded p-3 bg-white">
                   <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Supervisor")}</div>
-                  <img src={rec.supervisor_signature} alt="sig" className="max-h-20 mt-1" />
+                  <img src={resolvePhotoSrc(rec.supervisor_signature)} alt="sig" className="max-h-20 mt-1" />
                   <div className="font-bold mt-1 text-sm">{rec.supervisor_name}</div>
                 </div>
               )}
@@ -208,14 +208,14 @@ export default function FieldLeadershipView() {
               ) : rec.employee_signature && (
                 <div className="border-2 border-slate-200 rounded p-3 bg-white">
                   <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Employee")}</div>
-                  <img src={rec.employee_signature} alt="sig" className="max-h-20 mt-1" />
+                  <img src={resolvePhotoSrc(rec.employee_signature)} alt="sig" className="max-h-20 mt-1" />
                   <div className="font-bold mt-1 text-sm">{rec.employee_name}</div>
                 </div>
               )}
               {rec.witness_signature && (
                 <div className="border-2 border-slate-200 rounded p-3 bg-white">
                   <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Witness")}</div>
-                  <img src={rec.witness_signature} alt="sig" className="max-h-20 mt-1" />
+                  <img src={resolvePhotoSrc(rec.witness_signature)} alt="sig" className="max-h-20 mt-1" />
                   <div className="font-bold mt-1 text-sm">{rec.witness_name}</div>
                 </div>
               )}

@@ -8112,6 +8112,13 @@ _pv_router = _pv_module.build_payroll_variance_router(db, _require_hr_user)
 app.include_router(_pv_router)
 
 
+# ─── Signature migration (iter75 — base64 → R2) ─────────────────────
+from routes import signature_migration as _sig_mig_module  # noqa: E402
+
+_sig_mig_router = _sig_mig_module.build_signature_migration_router(db, require_admin)
+app.include_router(_sig_mig_router)
+
+
 # Weekly variance email cron (Sunday 18:00 UTC by default).
 _PAYROLL_EMAIL_HOUR = int(os.environ.get("PAYROLL_VARIANCE_EMAIL_HOUR_UTC", "18") or "18")
 _PAYROLL_EMAIL_DOW = int(os.environ.get("PAYROLL_VARIANCE_EMAIL_DOW", "6") or "6")  # 0=Mon, 6=Sun

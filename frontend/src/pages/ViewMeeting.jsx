@@ -8,13 +8,13 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
 import { getCompanyInfo } from "@/lib/companyInfo";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
 import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
-import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { BilingualConsent } from "@/components/BilingualConsent";
@@ -299,7 +299,7 @@ export default function ViewMeeting() {
           <BilingualConsent variant="meeting" />
           <div className="border-2 border-slate-300 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center max-w-md mt-3">
             {data.conductor_signature ? (
-              <img src={data.conductor_signature} alt="Conductor signature" className="max-h-[120px]" />
+              <img src={resolvePhotoSrc(data.conductor_signature)} alt="Conductor signature" className="max-h-[120px]" />
             ) : (
               <span className="text-slate-400 text-sm">No signature</span>
             )}

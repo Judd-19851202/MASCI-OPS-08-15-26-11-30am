@@ -181,9 +181,21 @@ def _photos_block(photos: Optional[List[str]]) -> str:
 def _signature(label: str, sig: Optional[str], name: str = "") -> str:
     if not sig:
         return ""
+    # Resolve photo:// refs to inline base64 data URLs at print time so
+    # WeasyPrint can embed the bytes directly. Legacy data: URLs are
+    # passed through unchanged. iter75: signature → R2 migration.
+    src = sig
+    if isinstance(sig, str) and sig.startswith("photo://"):
+        try:
+            from photo_storage import resolve_to_data_url_sync as _r2d
+            src = _r2d(sig) or ""
+        except Exception:  # noqa: BLE001
+            src = ""
+        if not src:
+            return ""
     return (
         f'<div class="sig">'
-        f'<div class="sig-img"><img src="{sig}" /></div>'
+        f'<div class="sig-img"><img src="{src}" /></div>'
         f'<div class="sig-meta"><span class="sig-label">{escape(label)}</span>'
         f"{(' · ' + escape(name)) if name else ''}</div>"
         "</div>"
@@ -491,6 +503,13 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
             name = entry.get("name") or entry.get("witness_name") or "—"
             company = entry.get("company") or entry.get("trade") or ""
             sig = entry.get("signature") or entry.get("sig") or ""
+            # iter75: resolve photo:// to inline data URL for embedding.
+            if isinstance(sig, str) and sig.startswith("photo://"):
+                try:
+                    from photo_storage import resolve_to_data_url_sync as _r2d
+                    sig = _r2d(sig) or ""
+                except Exception:  # noqa: BLE001
+                    sig = ""
             sig_cell = (
                 f'<img src="{sig}" style="max-height:38px;max-width:140px;'
                 'border-bottom:1px solid #94a3b8;display:block;" />'
@@ -964,18 +983,31 @@ def _render_qaqc(d: Dict[str, Any]) -> str:
 
     # Sign-off
     sig = ""
-    if d.get("inspector_signature"):
+
+    def _resolve_sig(raw):
+        if not raw:
+            return ""
+        if isinstance(raw, str) and raw.startswith("photo://"):
+            try:
+                from photo_storage import resolve_to_data_url_sync as _r2d
+                return _r2d(raw) or ""
+            except Exception:  # noqa: BLE001
+                return ""
+        return raw
+    insp_sig = _resolve_sig(d.get("inspector_signature"))
+    sub_sig = _resolve_sig(d.get("sub_rep_signature"))
+    if insp_sig:
         sig += (
             f"<div class='sig'><div class='sig-img'>"
-            f"<img src='{escape(d.get('inspector_signature'))}'/></div>"
+            f"<img src='{escape(insp_sig)}'/></div>"
             f"<div class='sig-meta'>"
             f"<span class='sig-label'>{L('Inspector')}</span> · {escape(d.get('inspector_name', ''))}"
             f"</div></div>"
         )
-    if d.get("sub_rep_signature"):
+    if sub_sig:
         sig += (
             f"<div class='sig'><div class='sig-img'>"
-            f"<img src='{escape(d.get('sub_rep_signature'))}'/></div>"
+            f"<img src='{escape(sub_sig)}'/></div>"
             f"<div class='sig-meta'>"
             f"<span class='sig-label'>{L('Subcontractor Rep')}</span> · {escape(d.get('sub_rep_name', ''))}"
             f"</div></div>"
