@@ -659,7 +659,7 @@ def _build_source_bundle() -> bytes:
     buf = _src_io.BytesIO()
     with _src_zip.ZipFile(buf, "w", _src_zip.ZIP_DEFLATED, compresslevel=6) as zf:
         manifest_lines = [
-            "MASCI HUB — Source Bundle",
+            "MASCI Operations Platform — Source Bundle",
             f"Generated: {datetime.now(timezone.utc).isoformat()}",
             f"Source hash: {_SOURCE_HASH}",
             f"Commit: {os.environ.get('GIT_COMMIT', 'unknown')}",
@@ -1436,7 +1436,7 @@ async def shop_forgot_password(body: ShopForgotPasswordBody, request: Request):
         resend.api_key = api_key
         sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
         params = {
-            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "from": f"MASCI Operations Platform <{sender_email}>",
             "to": [email],
             "subject": "[MASCI] Reset your Shop Portal password",
             "html": html_body,
@@ -1694,7 +1694,7 @@ async def pm_forgot_password(body: PMForgotPasswordBody, request: Request):
         resend.api_key = api_key
         sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
         params = {
-            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "from": f"MASCI Operations Platform <{sender_email}>",
             "to": [email],
             "subject": "[MASCI] Reset your PM Portal password",
             "html": html_body,
@@ -2018,7 +2018,7 @@ async def admin_pm_email_welcome(
     fname = f"MASCI_PM_Welcome_{safe_name}.pdf"
 
     params = {
-        "from": f"MASCI HUB Notifications <{sender_email}>",
+        "from": f"MASCI Operations Platform <{sender_email}>",
         "to": [pm_email],
         "subject": f"[MASCI] {headline}",
         "html": html_body,
@@ -3162,7 +3162,7 @@ async def admin_shop_user_email_welcome(
     sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
     reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
     params = {
-        "from": f"MASCI HUB Notifications <{sender_email}>",
+        "from": f"MASCI Operations Platform <{sender_email}>",
         "to": [user_email],
         "subject": f"[MASCI] {headline}",
         "html": html_body,
@@ -5336,7 +5336,7 @@ async def _send_watchdog_alarm(db, *, hours_silent: float, latest: dict) -> bool
             "</div>"
         )
         params = {
-            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "from": f"MASCI Operations Platform <{sender_email}>",
             "to": [t.strip() for t in to.split(",") if t.strip()],
             "subject": f"[MASCI ALARM] Backup silent for {hours_silent:.0f}h — action needed",
             "html": html,
@@ -5959,7 +5959,7 @@ async def _send_backup_email(
         import resend  # noqa: E402
         resend.api_key = api_key
         params: Dict[str, Any] = {
-            "from": f"MASCI HUB Notifications <{sender}>",
+            "from": f"MASCI Operations Platform <{sender}>",
             "to": [to],
             "subject": f"MASCI Nightly Backup · {stamp} · {total_records} records",
             "html": html,
@@ -7932,7 +7932,7 @@ async def _job_photos_send_email(*, to: str, subject: str, text: str, attachment
     _resend.api_key = api_key
     sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
     params: dict = {
-        "from": f"MASCI HUB Notifications <{sender}>",
+        "from": f"MASCI Operations Platform <{sender}>",
         "to": [to],
         "subject": subject,
         "text": text or " ",
@@ -7972,7 +7972,7 @@ async def _field_leadership_send_email(recipients, subject, html_body, attachmen
     _resend.api_key = api_key
     sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
     params: dict = {
-        "from": f"MASCI HUB Notifications <{sender}>",
+        "from": f"MASCI Operations Platform <{sender}>",
         "to": list(recipients),
         "subject": subject,
         "html": html_body,
@@ -8610,7 +8610,7 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             )
 
         params = {
-            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "from": f"MASCI Operations Platform <{sender_email}>",
             "to": recipients,
             "subject": subject,
             "html": render_email_html(kind, record, note),
@@ -8817,7 +8817,7 @@ async def admin_email_routing_test(
     )
     try:
         params = {
-            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "from": f"MASCI Operations Platform <{sender_email}>",
             "to": [target],
             "subject": subject,
             "html": html,
@@ -8946,7 +8946,7 @@ async def email_report(
         subject = body.subject or build_email_subject(body.kind, record)
 
         params = {
-            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "from": f"MASCI Operations Platform <{sender_email}>",
             "to": [r for r in body.recipients if r and r.strip()],
             "subject": subject,
             "html": render_email_html(body.kind, record, body.note or ""),
@@ -9064,7 +9064,7 @@ async def email_safety_card(body: SafetyCardEmailRequest):
         )
 
         params = {
-            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "from": f"MASCI Operations Platform <{sender_email}>",
             "to": valid_recipients,
             "subject": body.subject.strip() if body.subject else default_subject,
             "html": html,
@@ -9150,7 +9150,7 @@ async def email_all_safety_cards(body: SafetyCardEmailAllRequest):
         )
 
         params = {
-            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "from": f"MASCI Operations Platform <{sender_email}>",
             "to": valid_recipients,
             "subject": body.subject.strip() if body.subject else "MASCI Field Safety Cards — Full Bilingual Set",
             "html": html,

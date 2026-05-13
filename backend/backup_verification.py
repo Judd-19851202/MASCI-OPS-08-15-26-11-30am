@@ -493,7 +493,7 @@ async def send_verification_email(db, *, force_recipients: Optional[List[str]] =
         resend.api_key = api_key
         sender_email = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
         params = {
-            "from": f"MASCI HUB Notifications <{sender_email}>",
+            "from": f"MASCI Operations Platform <{sender_email}>",
             "to": recipients,
             "subject": render_verification_subject(report),
             "html": render_verification_email_html(report),

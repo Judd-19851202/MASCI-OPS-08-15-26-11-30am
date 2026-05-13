@@ -198,7 +198,7 @@ export default function TrenchBoxPosterCard() {
 
       {/* Vendor attribution */}
       <div className="mt-3 text-center font-mono text-[9px] uppercase tracking-[0.3em] text-slate-400">
-        Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™
+        Generated through MASCI Operations Platform · Powered by ForgedOps™
       </div>
     </div>
   );

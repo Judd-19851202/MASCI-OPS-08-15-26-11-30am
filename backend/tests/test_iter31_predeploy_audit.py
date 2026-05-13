@@ -187,11 +187,11 @@ class TestTrainingVideos:
 
 # ---------- SECTION 4 — PDF footer audit ----------
 @pytest.mark.parametrize("track,lang,expected_phrase", [
-    ("field", "en", "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™"),
-    ("field", "es", "Generado a través de MASCI HUB — Desarrollado por ForgedOps™ | © 2026 ForgedOps™"),
-    ("shop", "en", "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™"),
-    ("pm", "en", "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™"),
-    ("admin", "en", "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™"),
+    ("field", "en", "MASCI Operations Platform · Powered by ForgedOps™"),
+    ("field", "es", "MASCI Operations Platform · Desarrollado por ForgedOps™"),
+    ("shop", "en", "MASCI Operations Platform · Powered by ForgedOps™"),
+    ("pm", "en", "MASCI Operations Platform · Powered by ForgedOps™"),
+    ("admin", "en", "MASCI Operations Platform · Powered by ForgedOps™"),
 ])
 def test_pdf_footer_no_duplication(track, lang, expected_phrase, admin_token):
     headers = {"X-Admin-Token": admin_token}

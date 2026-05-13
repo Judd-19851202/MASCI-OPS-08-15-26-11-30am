@@ -158,28 +158,28 @@ export default function PublicTimeOff() {
   return (
     <PublicShell>
       <div className="mb-4">
-        <div className="font-mono text-xs uppercase tracking-[0.2em] text-cyan-700 font-bold">
+        <div className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] text-cyan-700 font-bold">
           <CalendarOff className="w-3.5 h-3.5 inline mr-1" /> MASCI · Time Off Request
         </div>
-        <h1 className="font-display text-3xl font-black mt-1">Hello, {meta.employee_name}.</h1>
-        <p className="text-slate-600 mt-2">
+        <h1 className="font-display text-2xl sm:text-3xl font-black mt-1">Hello, {meta.employee_name}.</h1>
+        <p className="text-slate-600 mt-2 text-sm sm:text-base">
           {meta.note || "Fill out this form to request time off. HR will review and email you a decision."}
         </p>
       </div>
 
-      <Card className="p-5 space-y-4" data-testid="public-time-off-form">
+      <Card className="p-4 sm:p-5 space-y-4 pb-24 sm:pb-5" data-testid="public-time-off-form">
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="Position">
-            <Input value={meta.employee_position || ""} disabled className="bg-slate-100" />
+            <Input value={meta.employee_position || ""} disabled className="bg-slate-100 h-12" />
           </Field>
           <Field label="Department">
-            <Input value={meta.department || ""} disabled className="bg-slate-100" />
+            <Input value={meta.department || ""} disabled className="bg-slate-100 h-12" />
           </Field>
         </div>
 
         <Field label="Reason *">
           <Select value={reason} onValueChange={setReason}>
-            <SelectTrigger data-testid="public-reason"><SelectValue placeholder="Pick a reason…" /></SelectTrigger>
+            <SelectTrigger className="h-12" data-testid="public-reason"><SelectValue placeholder="Pick a reason…" /></SelectTrigger>
             <SelectContent>
               {REASONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
             </SelectContent>
@@ -187,13 +187,13 @@ export default function PublicTimeOff() {
         </Field>
         {reason === "Other" && (
           <Field label="If Other, please explain *">
-            <Input value={reasonOther} onChange={(e) => setReasonOther(e.target.value)} />
+            <Input value={reasonOther} onChange={(e) => setReasonOther(e.target.value)} className="h-12" />
           </Field>
         )}
 
         <Field label="Pay Type">
           <Select value={payType} onValueChange={setPayType}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="Paid">Paid</SelectItem>
               <SelectItem value="Unpaid">Unpaid</SelectItem>
@@ -203,52 +203,63 @@ export default function PublicTimeOff() {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="Start Date *">
-            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} data-testid="public-start-date" />
+            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-12" data-testid="public-start-date" />
           </Field>
           <Field label="End Date *">
-            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} data-testid="public-end-date" />
+            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-12" data-testid="public-end-date" />
           </Field>
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={halfStart} onChange={(e) => setHalfStart(e.target.checked)} />
+          <label className="flex items-center gap-2 text-sm py-2 px-1 cursor-pointer min-h-11">
+            <input type="checkbox" checked={halfStart} onChange={(e) => setHalfStart(e.target.checked)} className="w-5 h-5" />
             Half day on start
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={halfEnd} onChange={(e) => setHalfEnd(e.target.checked)} />
+          <label className="flex items-center gap-2 text-sm py-2 px-1 cursor-pointer min-h-11">
+            <input type="checkbox" checked={halfEnd} onChange={(e) => setHalfEnd(e.target.checked)} className="w-5 h-5" />
             Half day on end
           </label>
         </div>
 
         <div className="bg-cyan-50 border border-cyan-200 rounded p-3 font-mono text-sm">
-          Total Days Requested: <span className="font-bold text-cyan-900">{totalDays}</span>
+          Total Days Requested: <span className="font-bold text-cyan-900 text-lg">{totalDays}</span>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="Return to Work Date">
-            <Input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} />
+            <Input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="h-12" />
           </Field>
           <Field label="Contact Phone During Leave">
-            <Input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
+            <Input type="tel" inputMode="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="h-12" />
           </Field>
         </div>
 
         <Field label="Coverage Plan / Who's Covering">
-          <Textarea rows={2} value={coverage} onChange={(e) => setCoverage(e.target.value)} />
+          <Textarea rows={2} value={coverage} onChange={(e) => setCoverage(e.target.value)} className="text-base" />
         </Field>
         <Field label="Notes / Additional Detail">
-          <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+          <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} className="text-base" />
         </Field>
 
         <div>
-          <Label className="font-mono text-xs uppercase mb-1 block">Employee Signature</Label>
+          <Label className="font-mono text-[10px] sm:text-xs uppercase mb-1 block">Employee Signature</Label>
           <SignaturePad value={signature} onChange={setSignature} />
         </div>
 
-        <Button onClick={submit} disabled={busy} className="w-full h-12 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-wide" data-testid="public-submit">
+        {/* Desktop submit (hidden on mobile — replaced by sticky bar below) */}
+        <Button onClick={submit} disabled={busy} className="hidden sm:flex w-full h-12 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-wide" data-testid="public-submit">
           {busy ? "Submitting…" : "Submit Time Off Request"}
         </Button>
       </Card>
+
+      {/* Mobile-only sticky submit bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-cyan-700 px-3 py-3 shadow-lg z-50" style={{paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))'}}>
+        <Button onClick={submit} disabled={busy}
+          className="w-full h-14 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-wide text-base"
+          data-testid="public-submit-mobile"
+        >
+          {busy ? "Submitting…" : "Submit Time Off Request"}
+        </Button>
+      </div>
     </PublicShell>
   );
 }

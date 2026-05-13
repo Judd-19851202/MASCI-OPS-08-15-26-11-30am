@@ -5,8 +5,8 @@ Produces a clean MASCI-styled PDF (WeasyPrint) for any of the 10 Field
 Leadership form kinds. Schema-driven — the renderer reads `details` and
 fans every key/value pair out into a printable section.
 
-Footer: "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™"
-(matches the rest of the system per the 2026-05-07 ForgedOps rebrand.)
+Footer: "MASCI Operations Platform · Powered by ForgedOps™"
+(matches the rest of the system per the 2026-05-13 iter103 uniformity audit.)
 """
 
 from __future__ import annotations
@@ -38,6 +38,7 @@ _KIND_META: Dict[str, Dict[str, Any]] = {
     "training_deficiency":       {"title_en": "Training Deficiency / Retraining", "title_es": "Deficiencia de Capacitación / Reentrenamiento"},
     "supervisor_notes":          {"title_en": "Supervisor Notes Log",             "title_es": "Registro de Notas del Supervisor"},
     "employee_termination":      {"title_en": "Employee Termination",             "title_es": "Terminación de Empleo"},
+    "time_off_request":          {"title_en": "Time Off Request",                 "title_es": "Solicitud de Tiempo Libre"},
 }
 
 
@@ -549,13 +550,13 @@ def render_field_leadership_pdf(rec: Dict[str, Any]) -> bytes:
         )
 
     doc_html = f"""<!doctype html><html><head><meta charset='utf-8'>
-<title>{_h(title)} — MASCI HUB</title>
+<title>{_h(title)} — MASCI Operations Platform</title>
 <style>
 @page {{
   size: Letter;
   margin: 18mm 14mm 22mm 14mm;
   @bottom-center {{
-    content: "Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™";
+    content: "MASCI Operations Platform · Powered by ForgedOps™";
     font-family: -apple-system, sans-serif;
     font-size: 8pt;
     color: #475569;
@@ -629,7 +630,7 @@ table.lines td.ret-neutral {{ color:#92400e; font-weight:700; }}
 </style></head><body>
   <div class='header'>
     <div>
-      <div class='brand'>MASCI HUB · Field Leadership</div>
+      <div class='brand'>MASCI Operations Platform · Field Leadership</div>
       <div class='title'>{_h(title)}</div>
       <div class='kicker'>{_h(rec.get('project_number') or '')} · {_h(rec.get('project_name') or '')}</div>
     </div>

@@ -223,6 +223,11 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         query: Dict[str, Any] = {}
         if kind:
             query["kind"] = kind
+        else:
+            # Iter103 — Time Off Requests have their own dedicated dashboard at
+            # /hr/time-off. Exclude them from the generic FL records list so
+            # they don't appear in two places.
+            query["kind"] = {"$ne": "time_off_request"}
         if project_number:
             query["project_number"] = project_number
         if q:

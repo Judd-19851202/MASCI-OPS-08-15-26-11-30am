@@ -1,5 +1,62 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter103: Mobile-First + PDF/Print Uniformity Audit
+
+### User ask
+"ABSOLUTELY what part of this system isn't 100% mobile friendly???? Also need to make sure all PDF, Print screens everything matches all across the entire system uniformity as we have had to fix several times including today... check all new forms/systems & upgrades!"
+
+### Mobile audit — fixes shipped
+- **`HrTimeOff.jsx`** retuned for phones:
+  - Mobile-only stacked card list (`sm:hidden`); desktop table preserved (`hidden sm:block`)
+  - All filter chips bumped to h-11 (44px Apple HIG tap-target minimum) — was h-9 (36px)
+  - Header stacks at narrow widths so title doesn't get cramped
+  - Stats strip already 2-col-mobile / 5-col-desktop responsive
+- **`PublicTimeOff.jsx`** — mobile-first overhaul:
+  - **Sticky submit bar at bottom of viewport** on mobile (`sm:hidden fixed bottom-0`) — h-14 with `env(safe-area-inset-bottom)` for iPhone notch
+  - All inputs bumped to h-12 (48px); checkboxes 5x5 with min-h-11 hit area
+  - Total Days display enlarged on the math callout (text-lg)
+  - Contact phone field set to `type=tel inputMode=tel` for proper mobile keyboard
+  - Bottom padding (`pb-24`) so sticky bar doesn't cover content
+- Verified at iPhone 12 Pro viewport (414×896) — screenshot confirms clean rendering
+
+### PDF / Print uniformity — drift purged
+Standardized everywhere: `MASCI Operations Platform · Powered by ForgedOps™` (en) / `MASCI Operations Platform · Desarrollado por ForgedOps™` (es). Old `Generated through MASCI HUB — Powered by ForgedOps™ | © 2026 ForgedOps™` removed across:
+- `field_leadership_pdf.py` — footer, title tag, brand line, kind-meta now includes `time_off_request`
+- `pdf_render.py` — second training-packet footer variant
+- `training_pdf.py` — EN + ES footer strings (both `footer_legal` dict entry AND `footer_en/es` variables)
+- `routes/field_leadership.py` — email-body footer block
+- `server.py` — email `from` header (`MASCI HUB Notifications` → `MASCI Operations Platform`) across all 8 sender lines + Source Bundle subject
+- `backup_verification.py` — same email-sender update
+- `TrenchBoxPosterCard.jsx` — printable poster footer
+- Test assertions in `test_iter29_predeploy.py` and `test_iter31_predeploy_audit.py` updated to expect the new footer (5 parametrized rows)
+
+### Cross-system audit — additional fixes
+- `time_off_request` added to `_KIND_META` in `field_leadership_pdf.py` (was rendering with empty title)
+- `/api/hr/field-leadership` list now excludes `kind=time_off_request` by default — time-off requests appear ONLY in `/hr/time-off`, avoiding duplication
+- HR Field Leadership records filter dropdown unchanged (time-off intentionally not in the filter — has its own dashboard)
+
+### Verified
+- PDF auto-check passes 4/4: `MASCI Operations Platform` footer · `Powered by ForgedOps` · title in body · zero stale `MASCI HUB` strings
+- HR FL list endpoint confirmed: 0 time_off_request rows in generic list
+- ESLint + Ruff clean
+- Mobile screenshots captured at iPhone 12 Pro size showing sticky submit bar + 48px input rhythm
+
+### Files touched
+- `/app/backend/field_leadership_pdf.py` (footer, title, brand, kind-meta)
+- `/app/backend/pdf_render.py` (footer)
+- `/app/backend/training_pdf.py` (en + es footers)
+- `/app/backend/routes/field_leadership.py` (email footer)
+- `/app/backend/routes/hr_portal.py` (FL list time_off exclusion)
+- `/app/backend/server.py` (8x from-name + source-bundle subject)
+- `/app/backend/backup_verification.py` (from-name)
+- `/app/backend/tests/test_iter29_predeploy.py` (assertion update)
+- `/app/backend/tests/test_iter31_predeploy_audit.py` (5 parametrize rows)
+- `/app/frontend/src/pages/HrTimeOff.jsx` (mobile card list + 44px tap targets)
+- `/app/frontend/src/pages/PublicTimeOff.jsx` (sticky submit bar + 48px inputs)
+- `/app/frontend/src/components/TrenchBoxPosterCard.jsx` (footer)
+
+---
+
 ## 2026-05-13 — Iter102: Field Leadership Time Off Request + HR Review Workflow
 
 ### User ask

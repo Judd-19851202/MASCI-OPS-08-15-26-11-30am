@@ -84,13 +84,13 @@ export default function HrTimeOff() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-5 sm:px-8 py-6">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <div className="font-mono text-xs uppercase tracking-[0.2em] text-cyan-700 font-bold">
+      <main className="max-w-7xl mx-auto px-3 sm:px-8 py-4 sm:py-6">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="min-w-0">
+            <div className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] text-cyan-700 font-bold">
               <CalendarOff className="w-3.5 h-3.5 inline mr-1" /> {t("HR · Time Off Requests")}
             </div>
-            <h1 className="font-display text-3xl sm:text-4xl font-black mt-1">
+            <h1 className="font-display text-2xl sm:text-4xl font-black mt-1">
               {t("Time Off Requests")}
             </h1>
           </div>
@@ -99,21 +99,22 @@ export default function HrTimeOff() {
 
         <StatsStrip stats={stats} t={t} />
 
-        <Card className="p-4 mt-6">
+        <Card className="p-3 sm:p-4 mt-5 sm:mt-6">
           <div className="flex flex-wrap items-end gap-3">
-            <div className="flex-1 min-w-[160px]">
-              <Label className="font-mono text-xs uppercase tracking-wider">{t("Search Employee")}</Label>
+            <div className="flex-1 min-w-[140px]">
+              <Label className="font-mono text-[10px] sm:text-xs uppercase tracking-wider">{t("Search Employee")}</Label>
               <Input value={employee} onChange={(e) => setEmployee(e.target.value)}
                 placeholder={t("Name contains…")}
+                className="h-11"
                 data-testid="time-off-search-employee" />
             </div>
-            <div>
-              <Label className="font-mono text-xs uppercase tracking-wider">{t("Status")}</Label>
+            <div className="w-full sm:w-auto">
+              <Label className="font-mono text-[10px] sm:text-xs uppercase tracking-wider">{t("Status")}</Label>
               <div className="flex gap-1.5 flex-wrap">
                 {["all", "pending", "approved", "denied", "need_info"].map((s) => (
                   <button key={s}
                     onClick={() => setStatusFilter(s)}
-                    className={`h-9 px-3 rounded-md text-xs font-bold uppercase tracking-wide border-2 ${
+                    className={`h-11 px-3 rounded-md text-xs font-bold uppercase tracking-wide border-2 ${
                       statusFilter === s
                         ? "bg-slate-900 text-white border-slate-900"
                         : "bg-white text-slate-700 border-slate-300 hover:border-slate-500"
@@ -125,13 +126,45 @@ export default function HrTimeOff() {
                 ))}
               </div>
             </div>
-            <Button onClick={refresh} disabled={busy} className="h-9 bg-cyan-700 hover:bg-cyan-800 text-white">
+            <Button onClick={refresh} disabled={busy} className="h-11 bg-cyan-700 hover:bg-cyan-800 text-white">
               <Filter className="w-4 h-4 mr-1.5" /> {t("Apply")}
             </Button>
           </div>
         </Card>
 
-        <Card className="mt-4 overflow-x-auto" data-testid="time-off-table">
+        {/* MOBILE: stacked cards (sm:hidden). DESKTOP: data table (hidden sm:block). */}
+        <div className="sm:hidden space-y-2 mt-4" data-testid="time-off-mobile-list">
+          {rows.length === 0 ? (
+            <Card className="p-8 text-center text-slate-500">
+              <CalendarOff className="w-8 h-8 mx-auto mb-2 text-slate-400" />
+              {busy ? t("Loading…") : t("No time off requests in this view yet.")}
+            </Card>
+          ) : rows.map((r) => {
+            const d = r.details || {};
+            const st = STATUS_STYLES[r.status || "pending"] || STATUS_STYLES.pending;
+            return (
+              <Card key={r.id} className="p-3" data-testid={`time-off-mob-${r.id}`}>
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <div className="font-display text-lg font-black truncate">{r.employee_name || "—"}</div>
+                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap ${st.bg}`}>
+                    {st.label}
+                  </span>
+                </div>
+                <div className="font-mono text-[10px] text-slate-500">{r.doc_id || "—"} · {(r.created_at || "").slice(0,10)}</div>
+                <div className="text-sm mt-2">{d.reason || "—"} <span className="text-slate-400">· {d.pay_type || "—"}</span></div>
+                <div className="text-xs font-mono text-slate-600 mt-1">
+                  {(d.start_date || "—")} → {(d.end_date || "—")} · <span className="font-bold">{d.total_days || 0} {t("days")}</span>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => setActive(r)}
+                  className="w-full mt-3 h-11" data-testid={`time-off-review-mob-${r.id}`}>
+                  <FileText className="w-3.5 h-3.5 mr-1" /> {t("Review")}
+                </Button>
+              </Card>
+            );
+          })}
+        </div>
+
+        <Card className="mt-4 overflow-x-auto hidden sm:block" data-testid="time-off-table">
           {rows.length === 0 ? (
             <div className="p-12 text-center text-slate-500">
               <CalendarOff className="w-8 h-8 mx-auto mb-2 text-slate-400" />
