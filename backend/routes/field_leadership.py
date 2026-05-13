@@ -19,6 +19,7 @@ from __future__ import annotations
 import csv
 import hmac
 import io
+import logging
 import os
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -26,6 +27,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 # ----------------------------------------------------------------------
 # Form schemas — drives BOTH backend validation AND PDF rendering.
@@ -456,7 +459,8 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         rec["details"] = details
 
     async def _send_submit_email(rec: Dict[str, Any]) -> None:
-        """Email the assigned PM + jaymn + safety with the record summary."""
+        """Email the assigned PM + jaymn + safety + (for employee_termination
+        kind) every active HR manager — with the record summary + PDF."""
         recipients: List[str] = []
         # Live admin override (DB-backed). Falls back to env defaults
         # when no override has been set.
@@ -481,6 +485,23 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
             recipients.insert(0, pm_email)
         else:
             no_pm_warning = "<p style='color:#b91c1c;font-weight:600'>⚠ No assigned PM found for this job.</p>"
+
+        # Iter98 — Employee Termination must reach every active HR
+        # manager so termination/offboarding paperwork doesn't get
+        # missed. We pull `hr_users` (the per-user HR portal accounts)
+        # and add every non-disabled email to the recipient list.
+        if rec.get("kind") == "employee_termination":
+            try:
+                hr_cursor = db.hr_users.find(
+                    {"disabled": {"$ne": True}},
+                    {"_id": 0, "email": 1, "name": 1},
+                )
+                async for hr_user in hr_cursor:
+                    e = (hr_user.get("email") or "").strip().lower()
+                    if e:
+                        recipients.append(e)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[FL] failed to enumerate hr_users for termination: {e}")
 
         # De-dupe + drop empties
         seen = set()

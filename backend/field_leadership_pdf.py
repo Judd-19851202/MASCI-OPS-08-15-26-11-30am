@@ -575,7 +575,11 @@ body {{ font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color:#0f172
 .title {{ font-size:22pt; font-weight:900; color:#0f172a; margin-top:4pt; line-height:1.05; }}
 .kicker {{ font-family: ui-monospace, monospace; font-size:8pt; letter-spacing:.18em; text-transform:uppercase; color:#b91c1c; font-weight:700; }}
 section {{ margin:14pt 0; page-break-inside: avoid; }}
-section h3 {{ font-size:11pt; text-transform:uppercase; letter-spacing:.18em; color:#0f172a; border-bottom:1px solid #e2e8f0; padding-bottom:4pt; margin-bottom:8pt; }}
+section h3 {{ font-size:11pt; text-transform:uppercase; letter-spacing:.18em; color:#0f172a; border-bottom:1px solid #e2e8f0; padding-bottom:4pt; margin-bottom:8pt; display:flex; align-items:center; gap:8pt; }}
+section h3::before {{ content: counter(fl-section, decimal-leading-zero); counter-increment: fl-section; display:inline-block; padding:2pt 7pt; background:#b91c1c; color:#fff; font-family: ui-monospace, monospace; font-size:8.5pt; font-weight:900; border-radius:3pt; letter-spacing:.05em; }}
+body {{ counter-reset: fl-section 1; }}
+.intro-section .sec-num {{ font-size:11pt; text-transform:uppercase; letter-spacing:.18em; color:#0f172a; border-bottom:1px solid #e2e8f0; padding-bottom:4pt; margin-bottom:10pt; display:flex; align-items:center; gap:8pt; font-weight:700; }}
+.intro-section .sec-num-badge {{ display:inline-block; padding:2pt 7pt; background:#b91c1c; color:#fff; font-family: ui-monospace, monospace; font-size:8.5pt; font-weight:900; border-radius:3pt; letter-spacing:.05em; }}
 section h4 {{ font-size:9pt; text-transform:uppercase; letter-spacing:.12em; color:#475569; margin:10pt 0 4pt; }}
 .three-col {{ display:flex; gap:12pt; }}
 .three-col > div {{ flex:1; }}
@@ -636,7 +640,8 @@ table.lines td.ret-neutral {{ color:#92400e; font-weight:700; }}
     </div>
   </div>
 
-  <section>
+  <section class='intro-section'>
+    <div class='sec-num'><span class='sec-num-badge'>01</span> Submission Overview</div>
     <div class='three-col'>
       <div><h4>Job Information</h4>{job_block}</div>
       <div><h4>Employee</h4>{employee_block}</div>

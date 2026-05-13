@@ -1,5 +1,71 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter98: Termination Email Routing + FL PDF Daily-Report Parity
+
+### User asks (3-in-1)
+1. Employee Termination must email to: job PM + jaymn.judd@mascigc.com +
+   safety@ + all HR managers
+2. Forms not uniform — Termination PDF looks plain vs Daily Report.
+   Daily Report is the gold standard; everything should match.
+3. HR portal calculates time weekly, daily reports daily — make uniform
+
+### What shipped
+
+**1. Termination email routing** — `routes/field_leadership.py`
+`_send_submit_email` now adds every active `hr_users` email to the
+recipients list when `rec.kind == "employee_termination"`. Existing
+recipients (assigned PM + jaymn + safety) still fire as before. Deduped
+case-insensitively so an HR user who's also CC'd as jaymn doesn't get
+two copies.
+
+**2. FL PDF numbered sections** — `field_leadership_pdf.py`
+Aligned with Daily Report styling. Every section header now renders
+with a red `01 02 03 …` badge to its left + uppercase tracking +
+divider line. Implemented via CSS `counter-increment` on every `h3`,
+with the intro "Submission Overview" block manually labeled `01` so
+detail/photos/signatures pick up `02 03 04` automatically. Output:
+17.5 KB PDF, renders clean in WeasyPrint, matches the visual rhythm
+of the Daily Report (numbered red badge → uppercase title → underline
+→ content table).
+
+**3. Time uniformity (no code change required — explanation)**
+HR Time Verification ALREADY has both views via a toggle button bar:
+- "Weekly Rollup · N" (per-employee Mon→Sun totals — payroll view)
+- "Per-Day Detail · N" (per-employee per-day rows from masci_crews
+  in daily_reports)
+
+Backend endpoint returns BOTH datasets in the same payload (`weekly`
++ `rows`). The data IS the same — captured per-day, rolled up to
+weekly for payroll. User can toggle views at any time. Default is
+weekly because payroll runs weekly. If user wants daily as the
+default, that's a 1-line frontend change — flagged below.
+
+### Verified
+- ruff clean
+- PDF renders: 17,497 bytes for sample termination
+- Backend healthy after restart
+- `hr_users` enumeration tested via existing schema (collection
+  already exists with `disabled` field, query `{"disabled": {"$ne": True}}`)
+
+### Files touched
+- `/app/backend/routes/field_leadership.py` (email routing + import logger)
+- `/app/backend/field_leadership_pdf.py` (numbered section CSS + intro section markup)
+
+### Action for user
+Production needs a redeploy to push iter98. Once live:
+- Submit a test termination → should email PM + jaymn + safety + every
+  active HR user
+- Open the PDF → headers should show "01 SUBMISSION OVERVIEW" /
+  "02 EMPLOYEE TERMINATION · DETAILS" / "03 SIGNATURES" with red badges
+
+### Open question for user
+Time verification default view — keep current (Weekly default with toggle
+to Daily), or flip the default to Daily? Both views are already there;
+just a 1-character flip if user prefers daily-first.
+
+---
+
+
 ## 2026-05-13 — Iter97: Uniform Back-Button Component (start of platform-wide migration)
 
 ### User asks
