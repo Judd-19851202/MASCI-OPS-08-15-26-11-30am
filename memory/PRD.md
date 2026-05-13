@@ -1,5 +1,23 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter108: Main Hub Tile Headlines Only
+
+### User ask
+"Want me to apply the same 'no bullets' treatment to the main MASCI Hub big tiles… yes"
+
+### Shipped
+- Removed the 2-bullet lists under the main Hub `BigTile`s for Field, QA/QC, and Safety. Each tile now shows only icon + title + desc + CTA.
+- Establishes a clear visual hierarchy: **main hub = headlines only**, **sub-hubs = detail**.
+
+### Files changed
+- `frontend/src/pages/Hub.jsx`
+
+### Verified
+- ESLint clean
+- Live screenshot confirms the 3 BigTiles are now shorter and visually consistent with the rest of the system
+
+---
+
 ## 2026-05-13 — Iter107: Field Leadership Tile Uniformity + Grouped Layout
 
 ### User ask

@@ -280,10 +280,6 @@ export default function Hub() {
             icon={HardHat}
             title={t("Field")}
             desc={t("End-of-day reports and equipment walk-arounds for the crew on the ground.")}
-            bullets={[
-              t("Daily Reports — what the crew did today"),
-              t("Equipment Pre-Op — OSHA walk-around"),
-            ]}
             accent="amber"
             testId="hub-section-field"
           />
@@ -292,9 +288,6 @@ export default function Hub() {
             icon={ClipboardCheck}
             title={t("QA / QC")}
             desc={t("Quality inspections for concrete, rebar, and subcontractor work — documented, signed, photographed, routed, and stored.")}
-            bullets={[
-              t("Concrete Form · Rebar · Subcontractor Inspection"),
-            ]}
             accent="emerald"
             testId="hub-section-qc"
           />
@@ -303,10 +296,6 @@ export default function Hub() {
             icon={Shield}
             title={t("Safety")}
             desc={t("Inspections, toolbox talks, incident reports, JHPs, and trench-box guidance — if safety is on your mind, it lives here.")}
-            bullets={[
-              t("Site Inspections · Toolbox Talks · Incidents"),
-              t("Job Hazard Plans · Trench Box Reference"),
-            ]}
             accent="red"
             testId="hub-section-safety"
           />
