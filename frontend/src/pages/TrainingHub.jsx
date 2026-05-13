@@ -22,6 +22,7 @@ import { isAdmin } from "@/lib/adminAuth";
 import { isPm } from "@/lib/pmAuth";
 import { isShop } from "@/lib/shopAuth";
 import { isLeadershipAuthed } from "@/lib/leadershipAuth";
+import { isHr } from "@/lib/hrAuth";
 
 const ICONS = { HardHat, Wrench, Briefcase, ShieldCheck };
 
@@ -48,6 +49,7 @@ function trackUnlocked(track) {
   if (track.audience === "pm") return isPm();
   if (track.audience === "shop") return isShop() || isPm();
   if (track.audience === "leadership") return isLeadershipAuthed();
+  if (track.audience === "hr") return isHr();
   return false;
 }
 
@@ -56,12 +58,13 @@ function loginPathFor(audience) {
   if (audience === "pm") return "/pm/login";
   if (audience === "shop") return "/shop/login";
   if (audience === "leadership") return "/leadership";
+  if (audience === "hr") return "/hr/login";
   return "/";
 }
 
 function loginLabelFor(audience, lang) {
-  const en = { admin: "Admin", pm: "Project Manager", shop: "Shop", leadership: "Field Leadership" };
-  const es = { admin: "Administrador", pm: "Gerente de Proyecto", shop: "Taller", leadership: "Liderazgo de Campo" };
+  const en = { admin: "Admin", pm: "Project Manager", shop: "Shop", leadership: "Field Leadership", hr: "HR Manager" };
+  const es = { admin: "Administrador", pm: "Gerente de Proyecto", shop: "Taller", leadership: "Liderazgo de Campo", hr: "Gerente RRHH" };
   return (lang === "es" ? es : en)[audience] || audience;
 }
 

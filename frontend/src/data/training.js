@@ -69,6 +69,16 @@ export const TRACKS = {
     audience: "leadership",
     icon: "ShieldCheck",
   },
+  hr: {
+    slug: "hr",
+    title: "HR Portal Training",
+    title_es: "Capacitación del Portal de RRHH",
+    blurb: "Read-only HR access — Field Leadership records, employee accountability, payroll-time verification, Exact CSV variance, training compliance. For HR managers and payroll specialists.",
+    blurb_es: "Acceso de RRHH de solo lectura — registros de Liderazgo de Campo, responsabilidad del empleado, verificación de tiempo, variación de nómina Exact, cumplimiento de capacitación.",
+    accent: "purple",
+    audience: "hr",
+    icon: "Users",
+  },
 };
 
 // ============================================================
@@ -922,6 +932,112 @@ const ADMIN_LESSONS = [
       "Render concurrency capped at 2 (semaphore). Frontend capped at 6 in-flight tiles.",
     ],
   },
+  {
+    slug: "admin-11-hr-users",
+    track: "admin",
+    order: 11,
+    title: "Lesson 11 — HR Users & Logins",
+    why: "Admin owns the HR roster. You add/remove HR personnel, issue temp passwords, disable accounts. HR users only see HR-scoped data — no PM/financial surfaces.",
+    duration: "~4 min",
+    steps: [
+      "Admin Console → scroll to 'HR Users & Logins' (purple icon, between Shop Users and Auto-Email Routing).",
+      "Add User: name + email + phone + role (HR Manager / HR Coordinator / Payroll Specialist). Click Add User — a Resend welcome email goes out with a temp password.",
+      "Issue / Reset Password: click the key icon on any row. Two choices: 'Email to User' (Resend welcome HTML) or 'Show on Screen' (reveal dialog). Optional custom password field forces a specific value instead of an auto-generated one.",
+      "Disable / Re-enable: click the active/disabled badge to toggle. Disabled accounts can't log in and existing tokens stop working immediately.",
+      "Edit: click the pencil icon to rename / reroute / re-role a user. Email changes are validated (no duplicates).",
+      "Delete: red trash icon. Confirmation prompt before deletion.",
+    ],
+    tips: [
+      "When you reset a password, the previous token is invalidated automatically (the HMAC includes the password hash prefix). HR users on other devices are forced to re-sign-in.",
+      "If RESEND_API_KEY isn't configured or AUTO_EMAIL_REPORTS=false, the welcome email logs to backend logs instead of sending. Useful for preview env.",
+      "Seeded HR Manager (`hrmanager@mascigc.com`) exists out of the box. Issue them a password from this panel before they can sign in.",
+    ],
+    cheatSheet: [
+      "Add User · Reset Password (Email / Show / Custom) · Disable · Delete.",
+      "Password rotation invalidates all old tokens.",
+      "Seed user: hrmanager@mascigc.com — needs a password issued.",
+    ],
+  },
+  {
+    slug: "admin-12-terminations",
+    track: "admin",
+    order: 12,
+    title: "Lesson 12 — Employee Terminations Dashboard",
+    why: "Replaces the old Supervisor Notes Log tile. Dedicated HR dashboard with rehire-eligibility filters, outstanding-equipment status, law-enforcement flags, and refusal-to-sign / not-present audit trail. Same records also appear in the standard Field Leadership list.",
+    duration: "~5 min",
+    steps: [
+      "Admin Console → Employee Terminations tile (red callout box below Field Leadership Equipment Catalog) → or directly at /admin/terminations.",
+      "5-stat strip at the top: Total · Rehire Yes · Rehire No · Outstanding Equipment · Law Enforcement.",
+      "Search box + 4 rehire-eligibility filter chips: All / Yes / No / Conditional.",
+      "Table columns: Date · Employee · Supervisor · Job · Separation Type · Rehire chip · Flags (🔧 outstanding count, ✓ all-returned, 🛡️ law-enforcement, ⚠ refused-to-sign, ABS not-present) · View.",
+      "View action → full Field Leadership record drawer with PDF download.",
+      "When a new termination is filed, the supervisor's email and Admin's distribution list are auto-CCed.",
+    ],
+    tips: [
+      "The dashboard is admin-only by design — HR sees terminations as part of their FL records list (HR Hub → Field Leadership Records, kind = Termination).",
+      "Outstanding equipment count on the row chip pulls live from the equipment_checkout collection — re-run an Equipment Return in Field Leadership and the chip turns to ✓.",
+      "Rehire-eligibility column is the supervisor's stated answer at termination. Conditional means 'rehire only if X' — open the record to see what X was.",
+    ],
+    cheatSheet: [
+      "/admin/terminations — dedicated HR dashboard.",
+      "Filters: rehire-eligibility chips. Flags: outstanding · law · refused · absent.",
+      "View opens the full FL record drawer + PDF.",
+    ],
+  },
+  {
+    slug: "admin-13-hub-banners",
+    track: "admin",
+    order: 13,
+    title: "Lesson 13 — Hub Banner Messaging System",
+    why: "Site-wide alerts with 9 preloaded templates (Heat, Hurricane, OSHA visit, Stand-down, etc.), 4 severity tiers, optional acknowledgment hard-gate, auto-Spanish translation, audit trail, PDF/CSV export, clone/re-broadcast, and archive toggle.",
+    duration: "~6 min",
+    steps: [
+      "Admin Console → 'Hub Banner Messages' panel (right below Compliance Export). Template chips on top + compose form below.",
+      "Pick a template chip to auto-fill title + body + severity. Or skip and write from scratch.",
+      "Severity: INFO (blue) · NOTICE (amber) · WARNING (orange) · CRITICAL (red). Critical banners hard-gate the page until acknowledged.",
+      "Optional Expiration datetime — banner auto-disappears after that timestamp. Show Archived toggle reveals expired banners.",
+      "Require Acknowledgment checkbox: when ON, every device sees a full-screen modal until they click 'I Acknowledge'.",
+      "Auto-Spanish: hit 'Preview Spanish' before posting. Claude Haiku 4.5 translates title + body. Both versions stored — site renders the right one based on the user's lang toggle.",
+      "After posting: 4 row-icons. Clock = Audit Trail (every ack/dismiss with IP, UA, page). Copy = Clone (re-broadcast with same content, fresh acks). Pencil = Edit. Trash = Delete.",
+      "Audit dialog → Export PDF (MASCI-letterhead, 1-page, deterministic) or Export CSV (raw pivot for Excel).",
+    ],
+    tips: [
+      "OSHA visits / safety stand-downs — use Require Acknowledgment so every device in the field MUST tap acknowledge. Pull the audit PDF afterwards as legal cover.",
+      "Banners poll every 60 sec, so a banner posted at 10:00 will appear on every active phone by 10:01 without a reload.",
+      "Clone preserves the body but creates a brand-new banner — useful for repeating weekly heat advisories without re-typing.",
+    ],
+    cheatSheet: [
+      "9 templates · 4 severity tiers · auto-Spanish.",
+      "Require Acknowledgment = full-screen modal until tapped.",
+      "Clock icon = audit trail · PDF/CSV export · Clone re-broadcasts.",
+    ],
+  },
+  {
+    slug: "admin-14-cloud-archives",
+    track: "admin",
+    order: 14,
+    title: "Lesson 14 — Cloud Archives (Cloudflare R2)",
+    why: "Complete-system nightly archives upload to Cloudflare R2 at 03:00 UTC. Includes every record from EXPORTABLE_KINDS + inlined photo bytes. A single standalone zip — restore the whole Hub even if R2 becomes unreachable.",
+    duration: "~5 min",
+    steps: [
+      "Admin Console → 'Cloud Archives · Cloudflare R2' panel (below Stored Backups). Orange header.",
+      "'Build complete archive now' button → fires the manual trigger. Polls every 4 sec while in-flight. Builds usually finish in ~40 sec for a typical dataset.",
+      "Nightly schedule strip shows the next nightly hour (default 03:00 UTC) and the last successful nightly date.",
+      "Archive list: newest first, with click-to-download anchors pointing at 7-day Cloudflare presigned URLs. Anchors are admin-safe to share with IT (no auth headers needed).",
+      "Email heartbeats embed the latest R2 presigned link automatically — your daily email arrives with a one-click download to last night's complete archive.",
+      "When R2 isn't configured (S3_ENDPOINT_URL etc. unset), the panel renders an amber notice explaining which env vars are missing instead of erroring.",
+    ],
+    tips: [
+      "R2 cost: ~$0.015/GB-month × 0.6 GB ≈ <$0.01/month. Egress within Cloudflare network is free.",
+      "Per UTC day at BACKUP_R2_FULL_HOUR_UTC (default 3) the scheduler runs `_run_complete_archive_to_r2(db)`. Tracks last_r2_complete_date so it only runs once per day.",
+      "IT pull options: Either (a) pull via /api/admin/backups-list-r2 + presigned URL, OR (b) issue IT a Cloudflare R2 read-only API token to pull directly from the bucket.",
+    ],
+    cheatSheet: [
+      "Build complete archive now → R2 zip ready in ~40 sec.",
+      "Nightly 03:00 UTC default. Heartbeat email embeds latest link.",
+      "7-day presigned URLs · admin-safe to share with IT.",
+    ],
+  },
 ];
 
 // ============================================================
@@ -1009,12 +1125,218 @@ const LEADERSHIP_LESSONS = [
   },
 ];
 
+// ============================================================
+// HR LESSONS (8) — HR managers, payroll specialists. Read-only.
+// ============================================================
+const HR_LESSONS = [
+  {
+    slug: "hr-01-portal-intro",
+    track: "hr",
+    order: 1,
+    title: "Lesson 1 — HR Portal Overview",
+    why: "The HR Portal is an isolated, read-only scope. HR sees employee records and payroll data — never PM/financial surfaces. Admin tokens do NOT satisfy HR routes; HR users log in with their own email + password.",
+    duration: "~4 min",
+    steps: [
+      "Open https://mascidocs.com/hr/login (or click the HR Portal card on the public MASCI Hub).",
+      "Sign in with your email + password. First-time accounts land on Change Password.",
+      "HR Hub shows 5 tiles: Field Leadership Records · Employee Accountability · Time Verification · Payroll Variance · Training Records.",
+      "Click your name area (top right) to sign out at any time. Sessions auto-clear when you navigate away from /hr.",
+      "Use the EN/ES toggle in the header to switch languages.",
+    ],
+    tips: [
+      "If you forget your password, click 'Forgot password?' on the login page — a reset email arrives within seconds.",
+      "Your HR token is wiped the moment you navigate off /hr/* — this is intentional. Re-sign-in to come back.",
+    ],
+    cheatSheet: [
+      "Sign in at /hr/login · 5 tiles on the HR Hub.",
+      "HR is read-only · no PM / financial surfaces.",
+      "Sessions clear on /hr/* exit.",
+    ],
+  },
+  {
+    slug: "hr-02-field-leadership-records",
+    track: "hr",
+    order: 2,
+    title: "Lesson 2 — Field Leadership Records (Read-Only)",
+    why: "Every write-up, coaching, recognition, evaluation, termination, and equipment checkout filed by supervisors is visible here. Used for offboarding clearance, dispute resolution, and historical research.",
+    duration: "~4 min",
+    steps: [
+      "HR Hub → Field Leadership Records tile.",
+      "Search box: type employee, supervisor, project number, or project name. Press Apply.",
+      "Form Kind dropdown filters to one form type (Write-Up, Termination, Equipment Checkout, etc.).",
+      "Click the eye icon to open the detail drawer — every field on the original record is visible.",
+      "Click the PDF icon to download a copy of the official MASCI PDF (same as the supervisor signs).",
+    ],
+    tips: [
+      "Terminations have their own dedicated Admin dashboard with rehire-eligibility filters — ask Admin for the consolidated view.",
+      "Photos attached to a record stream from the R2 archive — they will not be cached on your device.",
+    ],
+    cheatSheet: [
+      "Search by name/supervisor/project · filter by form kind.",
+      "Eye icon = detail drawer · PDF icon = download.",
+    ],
+  },
+  {
+    slug: "hr-03-employee-accountability",
+    track: "hr",
+    order: 3,
+    title: "Lesson 3 — Employee Accountability (Offboarding Clearance)",
+    why: "Before approving an offboarding you must know what equipment is still in the employee's possession, their active write-ups, and their training record. This page gives the consolidated answer in one search.",
+    duration: "~5 min",
+    steps: [
+      "HR Hub → Employee Accountability.",
+      "Type ≥2 characters of the employee's name → Search.",
+      "Stats strip shows: FL records · Active write-ups · Outstanding equipment · Trainings completed.",
+      "If 'TERMINATED' badge appears — the employee already has a termination record on file. Show this to the supervisor/PM before reissuing equipment.",
+      "Outstanding Equipment table (red header) — every checkout line still unreturned. Each row shows item, serial, qty, date checked out, project. These items MUST be recovered before offboarding clearance.",
+      "Field Leadership Records table — every write-up / coaching / recognition / equipment record for the employee, newest first.",
+      "Training Records table — completed training tracks (when populated).",
+    ],
+    tips: [
+      "Use the by-kind chip strip to triage at a glance — high write-up counts deserve a closer read before discipline.",
+      "Outstanding Equipment is computed live against the equipment_checkout collection — any return filed in the Field Leadership Hub clears the row automatically.",
+    ],
+    cheatSheet: [
+      "Search by name → counts + 3 tables.",
+      "RED outstanding equipment table = must be recovered before offboarding.",
+      "TERMINATED badge = check the existing termination record first.",
+    ],
+  },
+  {
+    slug: "hr-04-time-verification",
+    track: "hr",
+    order: 4,
+    title: "Lesson 4 — Time Verification",
+    why: "Supervisors submit Daily Reports with MASCI crew hours every shift. This view rolls those hours up by employee and by week so HR can cross-check Exact payroll without opening 60 individual daily reports.",
+    duration: "~4 min",
+    steps: [
+      "HR Hub → Time Verification.",
+      "Week Ending defaults to today (Mon–Sun window ending on that date). Pick any Sunday to scroll backwards.",
+      "Filters: Employee (name contains), Project #, Supervisor (name contains). Apply.",
+      "Stats strip: Total Employees · Total Hours · Regular · Overtime. OT > 0 turns amber.",
+      "Toggle 'Weekly Rollup' (per-employee totals) vs. 'Per-Day Detail' (every crew row for the window).",
+      "Red 'No Lunch' flag on the rollup = any day with ≥6 worked hours and no recorded lunch — investigate with the supervisor.",
+      "Click the FileDown icon next to Apply to export a payroll-review CSV for the current filters.",
+    ],
+    tips: [
+      "Regular vs. OT split is the Florida construction standard (>8 hr/day = OT). If your jurisdiction differs, Admin can change the rule.",
+      "Notes, photos, materials, equipment from the Daily Report are intentionally stripped — only payroll-relevant fields are shown.",
+    ],
+    cheatSheet: [
+      "Week ending = Sunday. Mon–Sun rolls up.",
+      "Weekly vs. Per-Day toggle. CSV export ready for Exact paste.",
+      "No-Lunch flag = 6+ hr day with no break recorded.",
+    ],
+  },
+  {
+    slug: "hr-05-payroll-variance",
+    track: "hr",
+    order: 5,
+    title: "Lesson 5 — Payroll Variance (Exact CSV Diff)",
+    why: "Bridges the gap between Time Verification and the Exact payroll system. Paste the Exact export, the platform matches each row to the supervisor-reported hours and flags every variance ≥ 15 minutes. Approve or dispute each row.",
+    duration: "~7 min",
+    steps: [
+      "HR Hub → Payroll Variance.",
+      "Set Week Ending. Optionally raise/lower the Threshold (minutes) — 15 is the default flag line.",
+      "Paste your Exact CSV into the textarea. Accepted columns: Employee Name (required), Regular Hours OR Total Hours (required), Overtime Hours, Employee ID, Week Ending.",
+      "Click 'Run Variance'. The platform parses the CSV, matches by last-name + first-initial against MASCI weekly hours, and creates a variance batch.",
+      "Variance table appears below: Employee · Exact Reg / OT / Total · MASCI Total · Diff (Hrs + Min) · Flag · Decision.",
+      "Flag colors: GREEN = match (≤1 min) · AMBER = minor (1 min – threshold) · RED = flag (≥ threshold) · ROSE = missing from payroll (MASCI hours but no Exact row).",
+      "Per-row Approve / Dispute buttons persist immediately. Use Dispute when you'll send the row back to the supervisor for correction.",
+      "CSV button (top right of the batch) downloads the full variance with decisions for Exact reimport or sharing with finance.",
+    ],
+    tips: [
+      "Name matching uses 'last:first-initial' (e.g., 'Smith, John' = 'smith:j'). If a name is spelled differently in Exact vs. the field, it shows as Unmatched — you must fix it manually in one of the systems.",
+      "Rose 'Missing in Payroll' rows = the employee was paid by MASCI in the field but didn't show up in Exact. Usually a missing employee ID or a not-yet-onboarded new hire.",
+      "A Weekly Variance Email goes out every Sunday at 18:00 UTC to hrmanager@ + jaymn.judd@ with the latest batch and CSV attached. If no batch exists for the week, the email is skipped.",
+      "Past batches are listed under Recent Variance Batches — click Open to reload any of them.",
+    ],
+    cheatSheet: [
+      "Paste Exact CSV → Run Variance → Approve / Dispute each flagged row.",
+      "Threshold default 15 min. GREEN ≤1 · AMBER <thr · RED ≥thr · ROSE missing.",
+      "Sunday 18:00 UTC auto-email to HR distribution.",
+    ],
+  },
+  {
+    slug: "hr-06-training-records",
+    track: "hr",
+    order: 6,
+    title: "Lesson 6 — Training Records",
+    why: "Tracks completed Training Hub lessons per employee. Required for OSHA recordkeeping and for proving competency before assigning new equipment. Read-only — completions are recorded automatically by the Training Hub.",
+    duration: "~3 min",
+    steps: [
+      "HR Hub → Training Records.",
+      "Filter by Employee (name contains). Apply.",
+      "Columns: Employee · Track · Completed · Score.",
+      "When the collection is empty (preview/new install) the page shows a friendly empty state — completions populate the table automatically once supervisors finish tracks.",
+      "Use the export buttons (when present) to share completion rosters with insurance carriers or the safety officer.",
+    ],
+    tips: [
+      "If an employee shows zero training but you know they completed, ask Admin to check whether the Training Hub recorder was active on the lesson at the time.",
+    ],
+    cheatSheet: [
+      "Read-only roster. Filter by employee.",
+      "Completions = automatic from Training Hub.",
+    ],
+  },
+  {
+    slug: "hr-07-offboarding-workflow",
+    track: "hr",
+    order: 7,
+    title: "Lesson 7 — End-to-End Offboarding Workflow",
+    why: "Walks the exact sequence HR follows when an employee leaves — from the moment supervisor files the termination to the final payroll cutoff. Hits four HR pages in order.",
+    duration: "~6 min",
+    steps: [
+      "Step 1 — When a supervisor files an Employee Termination (Field Leadership form), Admin gets an email AND the record appears in `/admin/terminations`. HR can also see it in HR Hub → Field Leadership Records, kind = Termination.",
+      "Step 2 — HR Hub → Employee Accountability → Search the employee's name. Review counts, by-kind chip strip, and the Outstanding Equipment table.",
+      "Step 3 — If Outstanding Equipment exists: contact the supervisor to file an Equipment Return (in the Field Leadership Hub) for each missing item. Damaged/Missing/Lost items will be auto-flagged against the original replacement value. Re-run the accountability search until the table clears.",
+      "Step 4 — HR Hub → Time Verification → narrow to the final week. Confirm the supervisor's last reported hours. Cross-check against the upcoming Exact payroll run.",
+      "Step 5 — HR Hub → Payroll Variance → upload the Exact CSV for that week. Approve the matching rows, dispute any variance. Last-paycheck flow is now defensible end-to-end.",
+      "Step 6 — Archive the Termination PDF (HR Hub → Field Leadership → row PDF icon) into the employee's personnel file.",
+    ],
+    tips: [
+      "Never skip Step 3. Outstanding equipment is the #1 source of post-offboarding disputes. The form-flag-then-recover-or-write-off loop closes the case before HR cuts the final check.",
+      "If the employee refuses to sign the termination, the supervisor used 'Refused to Sign' or 'Employee Not Present' — both are valid and legally defensible because of the witness fields.",
+    ],
+    cheatSheet: [
+      "1. Termination filed → 2. Accountability search → 3. Close out equipment → 4. Verify hours → 5. Variance run → 6. Archive PDF.",
+    ],
+  },
+  {
+    slug: "hr-08-your-account",
+    track: "hr",
+    order: 8,
+    title: "Lesson 8 — Your HR Account & Password",
+    why: "How your HR account works, how to change your password, how to recover it if you forget, and what Admin does on your behalf if needed.",
+    duration: "~3 min",
+    steps: [
+      "Your account is created by Admin (Admin Console → HR Users & Logins). You get a welcome email with a temp password.",
+      "First login auto-redirects you to Change Password — pick a new 8+ char password.",
+      "Change Password manually at any time: go to /hr/change-password. Old password + new password required.",
+      "Forgot password? Click 'Forgot password?' on /hr/login → enter your email → 30-minute reset link arrives. Click → set new password → you're signed in.",
+      "Disabled / locked out? Contact Admin. They can re-enable your account or issue a fresh temp password from the HR Users panel.",
+    ],
+    tips: [
+      "Tokens auto-invalidate the moment you reset your password — every other browser/device is signed out. Sign back in there to continue.",
+      "Use a long memorable phrase, not 'Password1!'. The platform supports up to 128 characters.",
+    ],
+    cheatSheet: [
+      "Welcome email → Change Password → in.",
+      "Forgot? Self-service reset email, 30 min TTL.",
+      "Locked out? Admin re-enables.",
+    ],
+  },
+];
+
+
+
 export const LESSONS = [
   ...FIELD_LESSONS,
   ...SHOP_LESSONS,
   ...PM_LESSONS,
   ...ADMIN_LESSONS,
   ...LEADERSHIP_LESSONS,
+  ...HR_LESSONS,
 ].map((l) => {
   const es = LESSON_TRANSLATIONS_ES[l.slug];
   return es ? { ...l, ...es } : l;

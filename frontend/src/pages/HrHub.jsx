@@ -2,7 +2,7 @@
 // Employee Accountability · Time Verification · Training Records.
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck } from "lucide-react";
+import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -20,6 +20,9 @@ const TILES = [
   { to: "/hr/time-verification", icon: Clock, label: "Time Verification",
     desc: "Daily Report labor hours · lunch tracking · payroll cross-check (Exact-ready)",
     accent: "border-emerald-500 bg-emerald-50", btn: "bg-emerald-700 hover:bg-emerald-800" },
+  { to: "/hr/payroll-variance", icon: Calculator, label: "Payroll Variance",
+    desc: "Paste Exact payroll CSV · auto-match to MASCI hours · approve / dispute each variance · weekly email summary",
+    accent: "border-red-500 bg-red-50", btn: "bg-red-700 hover:bg-red-800" },
   { to: "/hr/training-records", icon: GraduationCap, label: "Training Records",
     desc: "Completed tracks · certifications · training compliance roster",
     accent: "border-purple-500 bg-purple-50", btn: "bg-purple-700 hover:bg-purple-800" },

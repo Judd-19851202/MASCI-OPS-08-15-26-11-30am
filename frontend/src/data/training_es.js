@@ -720,4 +720,254 @@ export const LESSON_TRANSLATIONS_ES = {
       "Concurrencia de render topada en 2 (semáforo). Frontend topado en 6 mosaicos en vuelo.",
     ],
   },
+
+  // ============================================================
+  // ADMIN (new lessons 11-14)
+  // ============================================================
+  "admin-11-hr-users": {
+    title_es: "Lección 11 — Usuarios y Accesos de RRHH",
+    why_es: "Admin gestiona el roster de RRHH. Agrega/quita personal, emite contraseñas temporales, deshabilita cuentas. Los usuarios de RRHH solo ven datos con alcance HR — sin superficies PM ni financieras.",
+    steps_es: [
+      "Consola Admin → 'Usuarios y Accesos de RRHH' (icono morado, entre Usuarios de Taller y Auto-Ruteo de Correo).",
+      "Agregar Usuario: nombre + email + teléfono + rol. Clic en Agregar — un correo de bienvenida sale por Resend con contraseña temporal.",
+      "Emitir / Resetear contraseña: clic en el icono de llave. Dos opciones: 'Email al Usuario' o 'Mostrar en pantalla'. Campo opcional de contraseña personalizada.",
+      "Deshabilitar / habilitar: clic en la insignia activo/deshabilitado para alternar.",
+      "Editar y borrar: iconos lápiz y basurero. Borrar requiere confirmación.",
+    ],
+    tips_es: [
+      "Al resetear contraseña el token anterior queda inválido automáticamente.",
+      "Si RESEND_API_KEY no está configurado, el correo de bienvenida se registra en logs en vez de enviarse.",
+    ],
+    cheatSheet_es: [
+      "Agregar · Resetear contraseña · Deshabilitar · Borrar.",
+      "Rotación de contraseña invalida tokens viejos.",
+    ],
+  },
+  "admin-12-terminations": {
+    title_es: "Lección 12 — Tablero de Terminaciones de Empleados",
+    why_es: "Reemplaza el viejo registro de Notas del Supervisor. Tablero HR dedicado con filtros de elegibilidad de recontratación, estado de equipo pendiente, banderas de policía y trazabilidad de rechazo/no-presente.",
+    steps_es: [
+      "Consola Admin → mosaico Terminaciones (caja roja) — o directamente en /admin/terminations.",
+      "Tira de 5 estadísticas: Total · Recontratar Sí · Recontratar No · Equipo Pendiente · Policía.",
+      "Búsqueda + 4 chips de filtro de recontratación: Todas / Sí / No / Condicional.",
+      "Columnas: Fecha · Empleado · Supervisor · Trabajo · Tipo · Recontratar · Banderas · Ver.",
+      "Acción Ver → cajón completo de Liderazgo de Campo + descarga PDF.",
+    ],
+    tips_es: [
+      "El tablero es solo-admin por diseño — HR ve las terminaciones en su lista de registros de Liderazgo de Campo.",
+      "El conteo de equipo pendiente se actualiza en vivo al filar un Retorno de Equipo.",
+    ],
+    cheatSheet_es: [
+      "/admin/terminations — tablero HR dedicado.",
+      "Filtros: chips de recontratación. Banderas: pendiente · policía · rechazó · ausente.",
+    ],
+  },
+  "admin-13-hub-banners": {
+    title_es: "Lección 13 — Sistema de Banners del Hub",
+    why_es: "Alertas a nivel sitio con 9 plantillas precargadas, 4 niveles de severidad, reconocimiento obligatorio opcional, auto-traducción al español, trazabilidad, exportación PDF/CSV, clonar/rebroadcast y archivo.",
+    steps_es: [
+      "Consola Admin → panel 'Mensajes de Banner del Hub'. Chips de plantilla arriba + formulario abajo.",
+      "Elija plantilla → autocompleta título + cuerpo + severidad. O escriba desde cero.",
+      "Severidad: INFO (azul) · AVISO (ámbar) · ADVERTENCIA (naranja) · CRÍTICO (rojo). Críticos bloquean la página hasta reconocer.",
+      "Expiración opcional. Reconocimiento Obligatorio: modal de pantalla completa hasta tocar 'Reconozco'.",
+      "Auto-Español: 'Vista previa en español' antes de publicar. Traduce con Claude Haiku 4.5.",
+      "Después de publicar: 4 iconos. Reloj = trazabilidad · Copiar = clonar · Lápiz = editar · Basurero = borrar.",
+    ],
+    tips_es: [
+      "Visitas OSHA / paros de seguridad — use Reconocimiento Obligatorio. Saque el PDF de trazabilidad como respaldo legal.",
+      "Los banners se actualizan cada 60 seg — un banner publicado a las 10:00 aparece en cada teléfono para las 10:01 sin recargar.",
+    ],
+    cheatSheet_es: [
+      "9 plantillas · 4 severidades · auto-español.",
+      "Reconocimiento Obligatorio = modal hasta tocar.",
+      "Reloj = trazabilidad · PDF/CSV · Clonar rebroadcast.",
+    ],
+  },
+  "admin-14-cloud-archives": {
+    title_es: "Lección 14 — Archivos en la Nube (Cloudflare R2)",
+    why_es: "Archivos completos del sistema suben a Cloudflare R2 cada noche a las 03:00 UTC. Incluye cada registro + fotos. Un solo zip autónomo — restaura todo el Hub aún si R2 fuera inalcanzable.",
+    steps_es: [
+      "Consola Admin → panel 'Archivos en la Nube · Cloudflare R2' (debajo de Respaldos Almacenados).",
+      "Botón 'Construir archivo completo ahora' → dispara la construcción. Polling cada 4 seg. Termina en ~40 seg típico.",
+      "Tira de horario nocturno muestra la próxima hora (default 03:00 UTC) y la última fecha exitosa.",
+      "Lista de archivos: más nuevos primero, anchors clic-para-descargar con URLs presignadas Cloudflare a 7 días.",
+      "Correos de heartbeat embeben el último link R2 — su correo diario llega con descarga de un clic.",
+    ],
+    tips_es: [
+      "Costo R2: ~$0.015/GB-mes × 0.6 GB ≈ <$0.01/mes. Egress dentro de Cloudflare es gratis.",
+      "Opciones de pull para IT: vía /api/admin/backups-list-r2 + URL presignada, o token R2 read-only directo al bucket.",
+    ],
+    cheatSheet_es: [
+      "Construir archivo ahora → zip R2 listo en ~40 seg.",
+      "Nocturno 03:00 UTC. Correo heartbeat embebe el último link.",
+      "URLs presignadas 7 días · seguro para compartir con IT.",
+    ],
+  },
+
+  // ============================================================
+  // HR (8 lessons) — concise EN→ES mirror
+  // ============================================================
+  "hr-01-portal-intro": {
+    title_es: "Lección 1 — Resumen del Portal de RRHH",
+    why_es: "El Portal de RRHH es un alcance aislado y de solo lectura. RRHH ve registros de empleado y datos de nómina — nunca superficies PM/financieras. Tokens admin NO funcionan en rutas HR; los usuarios HR ingresan con su propio correo + contraseña.",
+    steps_es: [
+      "Abra https://mascidocs.com/hr/login (o haga clic en la tarjeta de Portal de RRHH del Hub público).",
+      "Ingrese con correo + contraseña. Cuentas nuevas son redirigidas a Cambiar Contraseña.",
+      "El Hub RRHH muestra 5 mosaicos: Registros de Liderazgo · Responsabilidad del Empleado · Verificación de Tiempo · Variación de Nómina · Registros de Capacitación.",
+      "Use el botón Salir (arriba derecha) en cualquier momento. Las sesiones se limpian al navegar fuera de /hr.",
+      "Use el botón EN/ES en el encabezado para cambiar idioma.",
+    ],
+    tips_es: [
+      "¿Olvidó la contraseña? Clic en 'Olvidó contraseña?' — un correo de reseteo llega en segundos.",
+      "Su token HR se borra el momento que sale de /hr/* — esto es intencional. Vuelva a ingresar para regresar.",
+    ],
+    cheatSheet_es: [
+      "Ingrese en /hr/login · 5 mosaicos.",
+      "RRHH es solo lectura · sin PM / financieras.",
+      "Sesiones se borran al salir de /hr/*.",
+    ],
+  },
+  "hr-02-field-leadership-records": {
+    title_es: "Lección 2 — Registros de Liderazgo de Campo (Solo Lectura)",
+    why_es: "Cada amonestación, coaching, reconocimiento, evaluación, terminación y entrega de equipo presentada por supervisores es visible aquí. Usado para limpieza de salida, resolución de disputas e investigación histórica.",
+    steps_es: [
+      "Hub RRHH → Registros de Liderazgo de Campo.",
+      "Búsqueda: tipo empleado, supervisor, número de proyecto, o nombre del proyecto. Apply.",
+      "Dropdown Tipo de Formulario filtra a un tipo (Amonestación, Terminación, Entrega de Equipo, etc.).",
+      "Icono ojo → cajón de detalle con cada campo del registro original.",
+      "Icono PDF → descarga del PDF oficial MASCI.",
+    ],
+    tips_es: [
+      "Las terminaciones tienen su propio tablero Admin con filtros de recontratación.",
+      "Las fotos se transmiten desde el archivo R2 — no se guardan en su dispositivo.",
+    ],
+    cheatSheet_es: [
+      "Buscar por nombre/supervisor/proyecto · filtrar por tipo.",
+      "Ojo = detalle · PDF = descargar.",
+    ],
+  },
+  "hr-03-employee-accountability": {
+    title_es: "Lección 3 — Responsabilidad del Empleado (Limpieza de Salida)",
+    why_es: "Antes de aprobar una salida debe saber qué equipo sigue en posesión del empleado, sus amonestaciones activas, y su historial de capacitación. Esta página da la respuesta consolidada en una búsqueda.",
+    steps_es: [
+      "Hub RRHH → Responsabilidad del Empleado.",
+      "Escriba ≥2 caracteres del nombre → Buscar.",
+      "Tira de estadísticas: registros LC · amonestaciones activas · equipo pendiente · capacitaciones.",
+      "Si aparece la insignia 'TERMINATED' — ya hay terminación en archivo.",
+      "Tabla Equipo Pendiente (encabezado rojo) — cada línea sin devolver. DEBE recuperarse antes de la limpieza de salida.",
+      "Tabla Registros LC — cada registro para el empleado, más nuevos primero.",
+      "Tabla Capacitación — tracks completados.",
+    ],
+    tips_es: [
+      "Use la tira de chips por-tipo para triaje rápido.",
+      "Equipo Pendiente se calcula en vivo — un Retorno presentado lo limpia automáticamente.",
+    ],
+    cheatSheet_es: [
+      "Buscar nombre → conteos + 3 tablas.",
+      "Tabla ROJA de equipo = recuperar antes de salida.",
+      "Insignia TERMINATED = revisar terminación existente primero.",
+    ],
+  },
+  "hr-04-time-verification": {
+    title_es: "Lección 4 — Verificación de Tiempo",
+    why_es: "Supervisores envían Reportes Diarios con horas de cuadrilla MASCI cada turno. Esta vista las consolida por empleado y por semana para que RRHH pueda cruzar con la nómina Exact sin abrir 60 reportes individuales.",
+    steps_es: [
+      "Hub RRHH → Verificación de Tiempo.",
+      "Fin de Semana default hoy (ventana Lun–Dom).",
+      "Filtros: Empleado, Proyecto #, Supervisor. Apply.",
+      "Tira: Total Empleados · Horas Totales · Regular · Sobretiempo. OT > 0 se vuelve ámbar.",
+      "Alterne 'Consolidado Semanal' vs. 'Detalle por Día'.",
+      "Bandera roja 'Sin Almuerzo' = día ≥6 hrs sin almuerzo registrado.",
+      "Icono descarga junto a Apply → CSV listo para revisión de nómina.",
+    ],
+    tips_es: [
+      "División Regular vs. OT es estándar Florida (>8 hr/día = OT).",
+      "Notas, fotos, materiales del Reporte Diario se omiten — solo campos de nómina.",
+    ],
+    cheatSheet_es: [
+      "Fin de semana = Domingo. Lun–Dom se consolida.",
+      "Semanal vs. Por-Día. CSV listo para pegar en Exact.",
+      "Bandera Sin-Almuerzo = 6+ hr sin descanso.",
+    ],
+  },
+  "hr-05-payroll-variance": {
+    title_es: "Lección 5 — Variación de Nómina (Diff CSV Exact)",
+    why_es: "Cierra la brecha entre Verificación de Tiempo y el sistema de nómina Exact. Pegue el export de Exact, la plataforma empareja cada fila con las horas reportadas por el supervisor y marca cada variación ≥ 15 minutos.",
+    steps_es: [
+      "Hub RRHH → Variación de Nómina.",
+      "Fije Fin de Semana. Opcionalmente ajuste el Umbral (minutos) — 15 default.",
+      "Pegue su CSV Exact en el área de texto. Columnas: Nombre Empleado (requerido), Horas Regulares O Horas Totales (requerido), Sobretiempo, ID Empleado, Fin Semana.",
+      "Clic 'Ejecutar Variación'. Crea un lote.",
+      "Tabla: Empleado · Exact Reg/OT/Total · MASCI Total · Diff · Bandera · Decisión.",
+      "Colores: VERDE = match (≤1 min) · ÁMBAR = menor · ROJO = marcado · ROSA = falta en nómina.",
+      "Botones Aprobar / Disputar persisten al instante.",
+      "Botón CSV (arriba) descarga la variación completa con decisiones.",
+    ],
+    tips_es: [
+      "Emparejamiento usa 'apellido:inicial-nombre'. Si difiere entre Exact y campo aparece como No-Emparejado.",
+      "Filas ROSA = empleado en campo pero no en Exact. ID faltante o nuevo no onboardeado.",
+      "Correo semanal cada domingo 18:00 UTC al distro HR con CSV adjunto.",
+    ],
+    cheatSheet_es: [
+      "Pegar CSV → Ejecutar → Aprobar/Disputar.",
+      "Umbral 15 min default. VERDE/ÁMBAR/ROJO/ROSA.",
+      "Auto-correo domingo 18:00 UTC.",
+    ],
+  },
+  "hr-06-training-records": {
+    title_es: "Lección 6 — Registros de Capacitación",
+    why_es: "Sigue las lecciones del Hub de Capacitación completadas por empleado. Requerido para OSHA y para probar competencia antes de asignar equipo nuevo. Solo lectura — completaciones se registran automáticamente.",
+    steps_es: [
+      "Hub RRHH → Registros de Capacitación.",
+      "Filtre por Empleado. Apply.",
+      "Columnas: Empleado · Track · Completado · Puntaje.",
+      "Si está vacío (preview/instalación nueva) muestra estado amable — se llena automáticamente.",
+    ],
+    tips_es: [
+      "Si un empleado muestra cero pero sabe completó, pida a Admin revisar el grabador del Hub.",
+    ],
+    cheatSheet_es: [
+      "Roster solo-lectura. Filtre por empleado.",
+      "Completaciones = automático desde Hub.",
+    ],
+  },
+  "hr-07-offboarding-workflow": {
+    title_es: "Lección 7 — Flujo End-to-End de Limpieza de Salida",
+    why_es: "Camina la secuencia exacta que RRHH sigue cuando un empleado se va — desde que el supervisor presenta la terminación hasta el corte final de nómina.",
+    steps_es: [
+      "Paso 1 — Supervisor presenta Terminación → Admin recibe correo Y aparece en /admin/terminations. RRHH también la ve en Hub → Registros LC.",
+      "Paso 2 — Hub RRHH → Responsabilidad → buscar el nombre. Revise conteos y tabla de Equipo Pendiente.",
+      "Paso 3 — Si hay Equipo Pendiente: pida al supervisor presentar un Retorno de Equipo por cada item. Equipo Dañado/Faltante/Perdido se marca automáticamente contra el valor de reemplazo. Repita la búsqueda hasta que la tabla esté limpia.",
+      "Paso 4 — Hub RRHH → Verificación de Tiempo → estrechar a la última semana. Confirme horas finales del supervisor.",
+      "Paso 5 — Hub RRHH → Variación de Nómina → suba el CSV Exact. Apruebe/dispute. Flujo de último cheque defendible end-to-end.",
+      "Paso 6 — Archive el PDF de Terminación (Hub → Liderazgo → icono PDF) en el archivo del empleado.",
+    ],
+    tips_es: [
+      "Nunca omita Paso 3. Equipo pendiente es la fuente #1 de disputas post-salida.",
+      "Si el empleado rehúsa firmar, el supervisor usó 'Rehusó Firmar' o 'No Presente' — válidas legalmente por los campos de testigo.",
+    ],
+    cheatSheet_es: [
+      "1. Terminación → 2. Responsabilidad → 3. Cerrar equipo → 4. Verificar horas → 5. Variación → 6. Archivar PDF.",
+    ],
+  },
+  "hr-08-your-account": {
+    title_es: "Lección 8 — Su Cuenta y Contraseña de RRHH",
+    why_es: "Cómo funciona su cuenta HR, cómo cambiar la contraseña, cómo recuperarla, y qué hace Admin por usted si es necesario.",
+    steps_es: [
+      "Su cuenta es creada por Admin. Recibe correo de bienvenida con contraseña temporal.",
+      "Primer ingreso lo redirige a Cambiar Contraseña — elija 8+ caracteres.",
+      "Cambie manualmente en cualquier momento: /hr/change-password.",
+      "¿Olvidó? Clic 'Olvidó contraseña?' → email → link de reseteo a 30 min.",
+      "¿Bloqueado? Contacte Admin — puede re-habilitar o emitir nueva contraseña temporal.",
+    ],
+    tips_es: [
+      "Tokens se invalidan al cambiar contraseña — todo otro dispositivo cierra sesión.",
+      "Use una frase memorable larga, no 'Password1!'.",
+    ],
+    cheatSheet_es: [
+      "Correo bienvenida → Cambiar Contraseña → adentro.",
+      "¿Olvidó? Reseteo self-service, 30 min TTL.",
+      "¿Bloqueado? Admin re-habilita.",
+    ],
+  },
 };

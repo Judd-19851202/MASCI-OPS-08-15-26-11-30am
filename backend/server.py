@@ -6266,6 +6266,11 @@ async def _backup_scheduler_loop(db) -> None:
                 _BACKUP_SCHEDULER_STATE["last_watchdog"] = watchdog_result
         except Exception as e:  # noqa: BLE001
             logger.warning(f"[backup-watchdog] tick failed: {e}")
+        # Weekly payroll-variance email (Sunday 18:00 UTC by default)
+        try:
+            await _maybe_send_weekly_variance_email()
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[payroll-variance-cron] tick failed: {e}")
         await asyncio.sleep(300)  # 5 min ticks — low overhead, catches missed slots
 
 
@@ -8085,6 +8090,96 @@ async def _hr_send_email(to_email: str, subject: str, html: str):
 
 _hr_portal_router = build_hr_portal_router(db, require_admin, _hr_send_email)
 app.include_router(_hr_portal_router)
+
+
+# ─── HR Payroll Variance (iter72) ────────────────────────────────────
+from routes import payroll_variance as _pv_module  # noqa: E402
+
+# Reuse the HR-token dependency by extracting it from hr_users helpers.
+async def _require_hr_user(
+    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+):
+    from hr_users import is_valid_hr_user_token_async
+    if not x_hr_token:
+        raise HTTPException(401, "HR login required")
+    user = await is_valid_hr_user_token_async(db, x_hr_token)
+    if not user:
+        raise HTTPException(401, "HR session expired or invalid")
+    return {**user, "_actor_kind": "hr_user"}
+
+
+_pv_router = _pv_module.build_payroll_variance_router(db, _require_hr_user)
+app.include_router(_pv_router)
+
+
+# Weekly variance email cron (Sunday 18:00 UTC by default).
+_PAYROLL_EMAIL_HOUR = int(os.environ.get("PAYROLL_VARIANCE_EMAIL_HOUR_UTC", "18") or "18")
+_PAYROLL_EMAIL_DOW = int(os.environ.get("PAYROLL_VARIANCE_EMAIL_DOW", "6") or "6")  # 0=Mon, 6=Sun
+_PAYROLL_VARIANCE_STATE: Dict[str, Any] = {"last_sent_date": None}
+
+
+def _payroll_recipients() -> List[str]:
+    raw = (os.environ.get("PAYROLL_VARIANCE_EMAIL_TO") or
+           "hrmanager@mascigc.com,jaymn.judd@mascigc.com")
+    return [r.strip() for r in raw.split(",") if r.strip()]
+
+
+async def _maybe_send_weekly_variance_email():
+    """Called from the existing background_indexer tick; only sends once
+    per UTC day matching _PAYROLL_EMAIL_DOW @ _PAYROLL_EMAIL_HOUR."""
+    now = datetime.now(timezone.utc)
+    if now.weekday() != _PAYROLL_EMAIL_DOW or now.hour < _PAYROLL_EMAIL_HOUR:
+        return
+    today_iso = now.date().isoformat()
+    if _PAYROLL_VARIANCE_STATE.get("last_sent_date") == today_iso:
+        return
+    try:
+        batch = await db.payroll_variance_batches.find_one(
+            {}, {"_id": 0}, sort=[("created_at", -1)]
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[payroll-variance] cron lookup failed: {e}")
+        return
+    if not batch:
+        # Mark as "sent" for today so we don't re-check every 10 min.
+        _PAYROLL_VARIANCE_STATE["last_sent_date"] = today_iso
+        logger.info("[payroll-variance] no batch this week — cron skipped")
+        return
+
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    auto = (os.environ.get("AUTO_EMAIL_REPORTS") or "").strip().lower() in ("true", "1", "yes")
+    if not api_key or not auto:
+        logger.info("[payroll-variance] email disabled (no RESEND_API_KEY or AUTO_EMAIL_REPORTS off) — marking sent")
+        _PAYROLL_VARIANCE_STATE["last_sent_date"] = today_iso
+        return
+
+    recipients = _payroll_recipients()
+    if not recipients:
+        _PAYROLL_VARIANCE_STATE["last_sent_date"] = today_iso
+        return
+
+    html = _pv_module._render_variance_email_html(batch)
+    csv_bytes = _pv_module.render_variance_csv_bytes(batch)
+    import base64 as _b64
+    import resend as _resend  # noqa: PLC0415
+    _resend.api_key = api_key
+    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    params = {
+        "from": f"MASCI HR · Payroll Variance <{sender}>",
+        "to": recipients,
+        "subject": f"MASCI Payroll Variance — Week Ending {batch.get('week_ending')}",
+        "html": html,
+        "attachments": [{
+            "filename": f"MASCI_payroll_variance_{batch.get('week_ending')}.csv",
+            "content": _b64.b64encode(csv_bytes).decode(),
+        }],
+    }
+    try:
+        await asyncio.to_thread(_resend.Emails.send, params)
+        _PAYROLL_VARIANCE_STATE["last_sent_date"] = today_iso
+        logger.info(f"[payroll-variance] weekly email sent → {recipients}")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[payroll-variance] weekly email failed: {e}")
 
 
 @app.on_event("startup")
