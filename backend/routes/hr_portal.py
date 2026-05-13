@@ -411,10 +411,19 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                     hours = float(hours) if hours not in (None, "") else 0.0
                 except (TypeError, ValueError):
                     hours = 0.0
-                # Regular vs Overtime: anything > 8 in a day is OT.
-                # Florida construction standard; HR can override later.
-                regular = min(hours, 8.0)
-                overtime = max(hours - 8.0, 0.0)
+                # Iter99 — Weekly OT, NOT daily OT.
+                # Per FLSA + MASCI payroll policy: overtime is anything
+                # over 40 hrs IN THE WEEK, regardless of how the hours
+                # were distributed across days. So a guy who works
+                # 12/10/14/4/10 = 50 hrs gets 40 reg + 10 OT (not the
+                # 12 daily-OT figure the old code produced).
+                #
+                # We therefore DON'T split reg/OT at the per-day row
+                # here; we carry total_hours through and split at the
+                # weekly rollup stage below. Per-day rows show 0 reg
+                # / 0 OT and the full `total_hours` so HR can verify
+                # the source data. The weekly rollup is what payroll
+                # actually uses.
                 lunch_min = c.get("lunch_minutes")
                 try:
                     lunch_hrs = round(float(lunch_min) / 60.0, 2) if lunch_min not in (None, "") else 0.0
@@ -429,8 +438,11 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                     "supervisor": supe,
                     "start_time": c.get("start_time") or "",
                     "stop_time": c.get("stop_time") or "",
-                    "regular_hours": round(regular, 2),
-                    "overtime_hours": round(overtime, 2),
+                    # Daily reg/OT both render as 0; payroll uses the
+                    # weekly figures only. Kept as columns so existing
+                    # CSV consumers don't break.
+                    "regular_hours": 0.0,
+                    "overtime_hours": 0.0,
                     "lunch_hours": lunch_hrs,
                     "total_hours": round(hours, 2),
                     "daily_report_id": d.get("id"),
@@ -460,17 +472,31 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                     "date": day, "job": job, "job_number": job_num,
                     "supervisor": supe, "hours": round(hours, 2),
                     "lunch_hours": lunch_hrs,
-                    "regular_hours": round(regular, 2),
-                    "overtime_hours": round(overtime, 2),
+                    # Same reasoning: daily reg/OT are 0 — see note above.
+                    "regular_hours": 0.0,
+                    "overtime_hours": 0.0,
                 })
-                w["regular_hours"] += regular
-                w["overtime_hours"] += overtime
                 w["lunch_hours"] += lunch_hrs
                 w["total_hours"] += hours
                 if job_num:
                     w["jobs"].add(job_num)
                 if supe:
                     w["supervisors"].add(supe)
+
+        # Iter99 — Weekly OT split happens HERE, once per employee, at
+        # the end of the week. anything over 40 hrs in the week = OT,
+        # remainder = regular. Threshold env-overridable so a different
+        # state/contract can be applied later.
+        try:
+            ot_threshold = float(os.environ.get("OT_WEEKLY_THRESHOLD", "40") or 40)
+        except (TypeError, ValueError):
+            ot_threshold = 40.0
+        for w in weekly.values():
+            total = float(w["total_hours"] or 0.0)
+            ot = max(total - ot_threshold, 0.0)
+            reg = total - ot
+            w["regular_hours"] = reg
+            w["overtime_hours"] = ot
 
         # JSON-safe: sets → lists, round floats.
         weekly_list = []

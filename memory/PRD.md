@@ -1,5 +1,63 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter99: Weekly Overtime Calculation (CRITICAL PAYROLL FIX)
+
+### User clarification
+"We pay overtime on a weekly pay basis. Employee gets 50 hours in one
+week → we pay 40 reg + 10 OT. Doesn't matter if he works 12 Mon, 10 Tue,
+14 Wed, 4 Thu, 10 Fri — still only 10 hrs OT."
+
+### Bug (FLSA non-compliance + payroll inflation)
+`backend/routes/hr_portal.py` line 414-417 was splitting reg/OT
+**per-day** at the >8 hrs/day threshold. For the user's scenario:
+- Mon 12 = 8 reg + 4 OT
+- Tue 10 = 8 reg + 2 OT
+- Wed 14 = 8 reg + 6 OT
+- Thu 4  = 4 reg + 0 OT
+- Fri 10 = 8 reg + 2 OT
+- **Total: 36 reg + 14 OT** ← WRONG. Inflates OT by 4 hrs every
+  high-hours week.
+
+Florida and federal FLSA both calculate OT **weekly** (>40 hrs/week),
+not daily. Only a handful of states (CA, AK, NV) use daily OT.
+
+### What shipped
+- Per-day rows now report `regular_hours = 0`, `overtime_hours = 0` and
+  carry the full `total_hours`. Reg/OT split happens **once** at the
+  weekly rollup stage.
+- New threshold: `total > 40 → 40 reg + (total-40) OT`. Threshold is
+  env-overridable via `OT_WEEKLY_THRESHOLD=40` (default 40) for future
+  contract flexibility.
+- Backward compatible: existing per-row CSV columns (`regular_hours`,
+  `overtime_hours`) still exist, just always 0 at the row level —
+  consumers reading the `weekly` rollup get the corrected values.
+
+### Verified end-to-end
+Inserted 5 daily_reports with the user's exact scenario via Motor,
+hit `/api/hr/time-verification`, got:
+- total_hours = 50.0 ✅
+- regular_hours = 40.0 ✅
+- overtime_hours = 10.0 ✅
+
+Two additional sanity checks passed:
+- 4 days × 9 hrs = 36 total → 36 reg + 0 OT (no daily-OT inflation)
+- 5 days × 8 hrs = 40 total → 40 reg + 0 OT (exact threshold)
+- 6 days × 12 hrs = 72 total → 40 reg + 32 OT (heavy OT week)
+
+### Files touched
+- `/app/backend/routes/hr_portal.py` (lines 414-473 region rewritten)
+
+### Action for user
+- 🔴 Redeploy to prod — payroll will use the corrected math next pay run
+- 🟢 Bundle in this iter99 with the still-pending iter95/96/97/98 redeploy
+- 🟡 Audit any past CSV exports if they were used for OT pay — the OLD
+  exports are 25-40% high on weeks with daily 10+ hr shifts. After
+  redeploy, re-run the same week's CSV from /api/hr/time-verification.csv
+  to get the corrected numbers.
+
+---
+
+
 ## 2026-05-13 — Iter98: Termination Email Routing + FL PDF Daily-Report Parity
 
 ### User asks (3-in-1)
