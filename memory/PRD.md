@@ -1,5 +1,48 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter96: Field Leadership Back-Button Role Routing
+
+### User report
+"in admin i click on field leadership shows all forms filled out as it
+should but then has back button that takes back to field leadership not
+admin console.... you are slipping a lot"
+
+### Root cause
+`/leadership/records` and `/leadership/records/:id` both hardcoded their
+"back" link to `/leadership` (the password-gated supervisor form-entry
+hub). When admins navigated in from the Admin Overview KPI tile (iter95)
+or PMs from PmHub, clicking back dropped them on a page they have no
+business being on instead of their home portal.
+
+### What shipped
+Both pages now compute the back destination dynamically from the user's
+token:
+- **isAdmin()** → `/admin` ("← ADMIN CONSOLE")
+- **isPm() / getPmToken()** → `/pm` ("← PM HUB")
+- otherwise → `/leadership` ("← FIELD LEADERSHIP") (legacy supervisor
+  flow unchanged)
+
+Applied to:
+- `FieldLeadershipRecords.jsx` — primary back link in the records list
+- `FieldLeadershipView.jsx` — the secondary "← Field Leadership" link
+  next to "← Records" in the detail view header
+
+### Verified live
+Signed in as super admin → navigated to `/leadership/records`:
+- Back button now reads **"← ADMIN CONSOLE"**
+- Click lands on `/admin` ✅
+- Screenshot confirms the new label.
+
+### Files touched
+- `/app/frontend/src/pages/FieldLeadershipRecords.jsx`
+- `/app/frontend/src/pages/FieldLeadershipView.jsx`
+
+### Action for user
+Production needs a redeploy (bundled with iter95's tile-route fixes).
+
+---
+
+
 ## 2026-05-13 — Iter95: KPI Tile Route Mismatches (P0 post-deploy)
 
 ### User report (post-production-deploy)

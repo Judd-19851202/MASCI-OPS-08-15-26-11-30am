@@ -97,6 +97,8 @@ export default function FieldLeadershipView() {
 
       <section className="max-w-3xl mx-auto px-5 sm:px-8 pt-6">
         <div className="mb-6 flex items-center gap-4">
+          {/* iter96 — secondary back goes to the user's home portal,
+              not the supervisor form-entry hub. */}
           <Link
             to="/leadership/records"
             className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
@@ -106,11 +108,12 @@ export default function FieldLeadershipView() {
           </Link>
           <span className="text-slate-300">·</span>
           <Link
-            to="/leadership"
+            to={isAdmin() ? "/admin" : getPmToken() ? "/pm" : "/leadership"}
             className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
             data-testid="leadership-view-back-hub"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Field Leadership")}
+            <ArrowLeft className="w-3.5 h-3.5" />{" "}
+            {isAdmin() ? t("Admin Console") : getPmToken() ? t("PM Hub") : t("Field Leadership")}
           </Link>
         </div>
 

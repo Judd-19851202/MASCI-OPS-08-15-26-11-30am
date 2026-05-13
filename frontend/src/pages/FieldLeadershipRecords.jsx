@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
+import { isPm } from "@/lib/pmAuth";
 import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -31,6 +32,21 @@ const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 fo
 export default function FieldLeadershipRecords() {
   const { t, lang } = useT();
   const admin = isAdmin();
+  const pm = isPm();
+
+  // iter96 — Back-button destination must match the user's role.
+  // Admins land here from /admin Job Photos / Field Leadership tile →
+  // back goes to /admin. PMs land from PmHub → back to /pm. Anyone
+  // else (leadership-token holders entering from the supervisor flow)
+  // goes back to the /leadership form-entry hub. Don't hardcode
+  // /leadership for everyone — it sent admins/PMs into the wrong portal
+  // (the password-gated supervisor entry page).
+  const backTo = admin ? "/admin" : pm ? "/pm" : "/leadership";
+  const backLabel = admin
+    ? t("Admin Console")
+    : pm
+    ? t("PM Hub")
+    : t("Field Leadership");
 
   // Auth is enforced by the backend (admin / PM / leadership token all
   // accepted). If the call returns 401, the API interceptor clears the
@@ -143,11 +159,11 @@ export default function FieldLeadershipRecords() {
       <section className="max-w-6xl mx-auto px-5 sm:px-8 pt-6">
         <div className="mb-6">
           <Link
-            to="/leadership"
+            to={backTo}
             className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
             data-testid="leadership-records-back"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Field Leadership")}
+            <ArrowLeft className="w-3.5 h-3.5" /> {backLabel}
           </Link>
         </div>
 
