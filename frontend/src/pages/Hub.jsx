@@ -367,20 +367,6 @@ export default function Hub() {
         {/* SECTION 4 — Reference strip */}
         <SectionHeader kicker="04" title={t("Reference")} subtitle={t("Always available — no sign-in needed.")} />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
-          <ReferenceLink
-            to="/training"
-            icon={GraduationCap}
-            title={t("Training Hub")}
-            desc={t("Short bilingual lessons for every role.")}
-            testId="hub-section-training"
-          />
-          <ReferenceLink
-            to="/cheatsheet"
-            icon={BookOpen}
-            title={t("Cheat Sheet")}
-            desc={t("The one-pager pinned in every site trailer.")}
-            testId="hub-cheatsheet-link"
-          />
           <CompanyInfoDialog
             trigger={(
               <button
@@ -398,6 +384,20 @@ export default function Hub() {
                 <ArrowRight className="w-5 h-5 mt-2 text-slate-700 group-hover:translate-x-1 transition-transform shrink-0" />
               </button>
             )}
+          />
+          <ReferenceLink
+            to="/training"
+            icon={GraduationCap}
+            title={t("Training Hub")}
+            desc={t("Short bilingual lessons for every role.")}
+            testId="hub-section-training"
+          />
+          <ReferenceLink
+            to="/cheatsheet"
+            icon={BookOpen}
+            title={t("Cheat Sheet")}
+            desc={t("The one-pager pinned in every site trailer.")}
+            testId="hub-cheatsheet-link"
           />
         </div>
       </main>
