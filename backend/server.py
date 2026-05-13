@@ -20,6 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone, timedelta
+from branded_portal_emails import render_portal_email
 
 
 ROOT_DIR = Path(__file__).parent
@@ -1402,17 +1403,7 @@ async def shop_forgot_password(body: ShopForgotPasswordBody, request: Request):
     token = make_shop_reset_token(user["id"], pwh)
     reset_link = f"{portal_url}/shop/reset/{token}"
     user_name = (user.get("name") or "").strip() or "Mechanic"
-    html_body = f"""\
-<!DOCTYPE html>
-<html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1e293b;background:#f8fafc;margin:0;padding:0">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;color:#fff;padding:18px 24px">
-    <tr><td>
-      <div style="font-family:Courier New,monospace;font-size:11px;letter-spacing:0.22em;color:#fbbf24;text-transform:uppercase;font-weight:700">MASCI Hub · Shop Portal</div>
-      <div style="font-size:22px;font-weight:900;margin-top:4px">Reset your password</div>
-    </td></tr>
-  </table>
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;padding:24px">
-    <tr><td>
+    body_inner = f"""
       <p style="margin:0 0 14px;font-size:15px;line-height:1.5">Hi {user_name},</p>
       <p style="margin:0 0 14px;font-size:14px;line-height:1.55;color:#334155">
         Someone (hopefully you) requested a password reset for the MASCI Shop Portal account
@@ -1433,12 +1424,12 @@ async def shop_forgot_password(body: ShopForgotPasswordBody, request: Request):
       <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;line-height:1.55">
         Direct link: <span style="font-family:Courier New,monospace;font-size:10px;word-break:break-all;color:#475569">{reset_link}</span>
       </p>
-    </td></tr>
-  </table>
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:14px 24px;color:#94a3b8;font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;text-transform:uppercase">
-    <tr><td>MASCI · Shop Portal · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}</td></tr>
-  </table>
-</body></html>"""
+    """
+    html_body = render_portal_email(
+        portal="Shop",
+        headline="Reset your password",
+        body_inner_html=body_inner,
+    )
 
     try:
         import resend
@@ -1670,17 +1661,7 @@ async def pm_forgot_password(body: PMForgotPasswordBody, request: Request):
     token = make_reset_token(pm["id"], pwh)
     reset_link = f"{portal_url}/pm/reset/{token}"
     pm_name = (pm.get("name") or "").strip() or "Project Manager"
-    html_body = f"""\
-<!DOCTYPE html>
-<html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1e293b;background:#f8fafc;margin:0;padding:0">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;color:#fff;padding:18px 24px">
-    <tr><td>
-      <div style="font-family:Courier New,monospace;font-size:11px;letter-spacing:0.22em;color:#fbbf24;text-transform:uppercase;font-weight:700">MASCI Hub · PM Portal</div>
-      <div style="font-size:22px;font-weight:900;margin-top:4px">Reset your password</div>
-    </td></tr>
-  </table>
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;padding:24px">
-    <tr><td>
+    body_inner = f"""
       <p style="margin:0 0 14px;font-size:15px;line-height:1.5">Hi {pm_name},</p>
       <p style="margin:0 0 14px;font-size:14px;line-height:1.55;color:#334155">
         Someone (hopefully you) requested a password reset for the MASCI PM Portal account
@@ -1701,12 +1682,12 @@ async def pm_forgot_password(body: PMForgotPasswordBody, request: Request):
       <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;line-height:1.55">
         Direct link: <span style="font-family:Courier New,monospace;font-size:10px;word-break:break-all;color:#475569">{reset_link}</span>
       </p>
-    </td></tr>
-  </table>
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:14px 24px;color:#94a3b8;font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;text-transform:uppercase">
-    <tr><td>MASCI · PM Portal · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}</td></tr>
-  </table>
-</body></html>"""
+    """
+    html_body = render_portal_email(
+        portal="PM",
+        headline="Reset your password",
+        body_inner_html=body_inner,
+    )
 
     try:
         import resend
@@ -1993,23 +1974,9 @@ async def admin_pm_email_welcome(
         portal_url=portal_url,
     )
 
-    # ── Email body ────────────────────────────────────────────────────
-    # Plain HTML, MASCI red branding, no inline images other than the
-    # red-M data URI already used by render_email_html. Keep it short:
-    # the PDF attachment carries the full onboarding instructions.
     is_reset = bool(pm.get("password_hash"))  # was True before this rotation
     headline = "Your password has been reset" if is_reset else "Welcome to the MASCI PM Portal"
-    html_body = f"""\
-<!DOCTYPE html>
-<html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1e293b;background:#f8fafc;margin:0;padding:0">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;color:#fff;padding:18px 24px">
-    <tr><td>
-      <div style="font-family:Courier New,monospace;font-size:11px;letter-spacing:0.22em;color:#fbbf24;text-transform:uppercase;font-weight:700">MASCI Hub · PM Portal</div>
-      <div style="font-size:22px;font-weight:900;margin-top:4px">{headline}</div>
-    </td></tr>
-  </table>
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;padding:24px">
-    <tr><td>
+    body_inner = f"""
       <p style="margin:0 0 12px;font-size:15px;line-height:1.5">Hi {pm_name},</p>
       <p style="margin:0 0 12px;font-size:14px;line-height:1.55;color:#334155">
         {'Your MASCI PM Portal password has been reset. Use the temporary password below to sign in — you will be forced to choose your own on first login.' if is_reset else 'You have a new account on the MASCI PM Portal at <a href="' + portal_url + '/pm/login" style="color:#b91c1c;font-weight:700">' + portal_url + '/pm/login</a>. Use the temporary password below to sign in — you will be forced to choose your own on first login.'}
@@ -2035,12 +2002,12 @@ async def admin_pm_email_welcome(
       <p style="margin:14px 0 0;font-size:13px;color:#64748b;line-height:1.55">
         The attached PDF has the full walkthrough. If you forget your password, just call the office — admin can issue a new temp pw in 30 seconds.
       </p>
-    </td></tr>
-  </table>
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:14px 24px;color:#94a3b8;font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;text-transform:uppercase">
-    <tr><td>MASCI · PM Portal · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}</td></tr>
-  </table>
-</body></html>"""
+    """
+    html_body = render_portal_email(
+        portal="PM",
+        headline=headline,
+        body_inner_html=body_inner,
+    )
 
     import resend  # noqa: E402
 
@@ -3158,17 +3125,7 @@ async def admin_shop_user_email_welcome(
         f'<a href="{portal_url}/shop/login" style="color:#b91c1c;font-weight:700">{portal_url}/shop/login</a>. '
         "Use the temporary password below to sign in — you will be forced to choose your own on first login."
     )
-    html_body = f"""\
-<!DOCTYPE html>
-<html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1e293b;background:#f8fafc;margin:0;padding:0">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;color:#fff;padding:18px 24px">
-    <tr><td>
-      <div style="font-family:Courier New,monospace;font-size:11px;letter-spacing:0.22em;color:#fbbf24;text-transform:uppercase;font-weight:700">MASCI Hub · Shop Portal</div>
-      <div style="font-size:22px;font-weight:900;margin-top:4px">{headline}</div>
-    </td></tr>
-  </table>
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;padding:24px">
-    <tr><td>
+    body_inner = f"""
       <p style="margin:0 0 12px;font-size:15px;line-height:1.5">Hi {user_name},</p>
       <p style="margin:0 0 12px;font-size:14px;line-height:1.55;color:#334155">{intro}</p>
 
@@ -3192,12 +3149,12 @@ async def admin_shop_user_email_welcome(
       <p style="margin:14px 0 0;font-size:13px;color:#64748b;line-height:1.55">
         If you forget your password, ask the admin to issue a new temp pw — it takes 30 seconds.
       </p>
-    </td></tr>
-  </table>
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:14px 24px;color:#94a3b8;font-family:Courier New,monospace;font-size:9px;letter-spacing:0.22em;text-transform:uppercase">
-    <tr><td>MASCI · Shop Portal · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}</td></tr>
-  </table>
-</body></html>"""
+    """
+    html_body = render_portal_email(
+        portal="Shop",
+        headline=headline,
+        body_inner_html=body_inner,
+    )
 
     import resend  # noqa: E402
 

@@ -139,6 +139,59 @@ what they are, look clean & professional."
 
 ---
 
+## 2026-05-13 — Iter81: Cross-Portal Email Chrome Parity (PM + Shop + HR)
+
+### User ask
+"Make everything the same" — PM + Shop welcome/reset emails were using
+the older bare-HTML chrome (dark navy header bar, "MASCI Hub · PM
+Portal" eyebrow, grey footer line). Bring them up to the iter78/80
+standard the rest of the platform uses.
+
+### What shipped
+**New shared module** — `/app/backend/branded_portal_emails.py`:
+- `render_portal_email(portal, headline, body_inner_html)` — wraps
+  any portal onboarding/reset body in the standard chrome:
+  - Eyebrow: **MASCI Operations Platform** (red)
+  - Sub-eyebrow: per-portal label + color (PM=red · Shop=amber · HR=purple)
+  - H1: bold headline
+  - Body: caller-supplied HTML (greeting + credentials block + steps)
+  - Divider + standard footer: **MASCI General Contractors Inc. ·
+    386-322-4500 · mascidocs.com** + **Powered by ForgedOps™**
+
+**Refactored 4 email bodies in server.py**:
+- PM welcome (`_email_pm_welcome`) — was inline 40-line HTML block
+- PM forgot/reset (`pm_forgot_password`) — was inline 35-line HTML block
+- Shop welcome (`set_password_for_shop_user` admin trigger) — was inline 40 lines
+- Shop forgot/reset (`shop_forgot_password`) — was inline 35 lines
+- All four now build the inner-body HTML string and call
+  `render_portal_email(portal=..., headline=..., body_inner_html=...)`.
+  Net code reduction: ~150 lines of duplicate HTML chrome eliminated.
+
+**Refactored HR emails in routes/hr_portal.py**:
+- Removed the duplicate `_branded_hr_email_html` helper (was iter80
+  HR-only) — now reuses the shared `render_portal_email(portal="HR", ...)`.
+
+### Verification (21 assertions all PASS)
+For each portal (PM, Shop, HR):
+- MASCI Operations Platform eyebrow present ✅
+- Per-portal sub-eyebrow present ✅
+- Headline rendered ✅
+- Per-portal accent color present (#c8102e / #ea580c / #7e22ce) ✅
+- MASCI General Contractors Inc. footer ✅
+- Powered by ForgedOps™ footer ✅
+- Old "MASCI Hub · PM Portal" style eyebrow ABSENT ✅
+
+Three sample emails rendered + screenshotted side-by-side — visual
+parity confirmed.
+
+### Files touched
+- `/app/backend/branded_portal_emails.py` (NEW)
+- `/app/backend/server.py` (4 email-body sites refactored + import)
+- `/app/backend/routes/hr_portal.py` (drop duplicate helper, use shared)
+
+---
+
+
 ## 2026-05-13 — Iter80: HR Auth Parity (P0 BUG FIX + Visual Standardization)
 
 ### User-reported bugs (from production mascidocs.com)

@@ -41,6 +41,7 @@ from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, Requ
 from pydantic import BaseModel, Field
 
 import hr_users
+from branded_portal_emails import render_portal_email
 from hr_users import (
     add_hr_user, delete_hr_user, find_hr_user_by_email,
     generate_temp_password, hash_password, is_valid_hr_user_token_async,
@@ -100,33 +101,6 @@ def _client_ip(req: Request) -> str:
         return req.client.host if req.client else ""
     except Exception:
         return ""
-
-
-def _branded_hr_email_html(*, eyebrow: str, h1: str, body_html: str) -> str:
-    """Wrap HR email content in the standard MASCI Operations Platform
-    chrome (matches pdf_render.render_email_html iter78 spec — eyebrow,
-    bold h1, body content, ForgedOps™ footer, MASCI General Contractors
-    Inc. line). Keeps HR welcome/reset emails visually identical to
-    daily-report / equipment-fail emails."""
-    from html import escape as _esc
-    return f"""<!doctype html>
-<html><body style="margin:0;padding:24px;background:#f8fafc;font-family:Helvetica,Arial,sans-serif;color:#0f172a;">
-  <table style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:24px;">
-    <tr><td>
-      <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#c8102e;font-weight:700;">MASCI Operations Platform</div>
-      <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#7e22ce;font-weight:600;margin-top:4px;">{_esc(eyebrow)}</div>
-      <h1 style="margin:8px 0 14px;font-size:22px;font-weight:900;letter-spacing:-0.02em;line-height:1.15;">{_esc(h1)}</h1>
-      <div style="font-size:14px;line-height:1.55;color:#0f172a;">{body_html}</div>
-      <hr style="border:0;border-top:1px solid #e2e8f0;margin:22px 0 16px 0" />
-      <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#475569;font-weight:bold;">
-        MASCI General Contractors Inc. · 386-322-4500 · mascidocs.com
-      </div>
-      <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#94a3b8;font-weight:normal;margin-top:6px;">
-        Powered by ForgedOps&trade;
-      </div>
-    </td></tr>
-  </table>
-</body></html>"""
 
 
 def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optional[Callable] = None) -> APIRouter:
@@ -208,10 +182,10 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                             f"<p style='margin:4px 0 0;font-family:Courier New,monospace;font-size:11px;color:#475569;word-break:break-all'>{reset_url}</p>"
                             f"<p style='margin:18px 0 0;font-size:12px;color:#94a3b8'>If you didn't request this, you can safely ignore this email.</p>"
                         )
-                        html = _branded_hr_email_html(
-                            eyebrow="HR Portal · Password Reset",
-                            h1="Reset your password",
-                            body_html=body_html,
+                        html = render_portal_email(
+                            portal="HR",
+                            headline="Reset your password",
+                            body_inner_html=body_html,
                         )
                         await send_email_fn(user["email"], "[MASCI] Reset your HR Portal password", html)
                     except Exception as e:  # noqa: BLE001
@@ -609,10 +583,10 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             f"</p>"
             f"<p style='margin:18px 0 0;font-size:12px;color:#94a3b8'>For security, please change your password immediately after signing in.</p>"
         )
-        html = _branded_hr_email_html(
-            eyebrow="HR Portal · Account Created",
-            h1="Your MASCI HR Portal account",
-            body_html=body_html,
+        html = render_portal_email(
+            portal="HR",
+            headline="Your MASCI HR Portal account",
+            body_inner_html=body_html,
         )
         try:
             await send_email_fn(user_email, "[MASCI] Your HR Portal account — temporary password inside", html)
