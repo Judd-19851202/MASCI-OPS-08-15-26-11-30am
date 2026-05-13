@@ -193,7 +193,7 @@ export function fmtMoney(v) {
   });
 }
 
-export const ISSUANCE_LEGAL = `I acknowledge that all issued equipment remains the property of MASCI General Contractors. I agree to use all equipment in accordance with manufacturer guidelines, company policy, and applicable OSHA safety requirements.`;
+export const ISSUANCE_LEGAL = `I acknowledge that all issued equipment remains the property of MASCI General Contractors Inc. I agree to use all equipment in accordance with manufacturer guidelines, company policy, and applicable OSHA safety requirements.`;
 
 export const ISSUANCE_RESPONSIBILITY = `I understand that I am responsible for the proper use, care, maintenance, and return of all issued equipment. I further understand that I am responsible for promptly reporting any loss, damage, or malfunction.
 

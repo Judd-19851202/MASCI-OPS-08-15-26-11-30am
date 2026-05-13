@@ -186,13 +186,13 @@ export const FIELD_LEADERSHIP_FORMS = [
     custom_renderer: "equipment_lines",
     acknowledgement: {
       en: [
-        "I acknowledge receipt of the company equipment, tools, and/or property listed above. I understand that this equipment remains the property of MASCI General Contractors and is issued to me for company business purposes only.",
+        "I acknowledge receipt of the company equipment, tools, and/or property listed above. I understand that this equipment remains the property of MASCI General Contractors Inc. and is issued to me for company business purposes only.",
         "I agree to use, secure, care for, maintain, and return all issued equipment in accordance with company policy, manufacturer instructions, and applicable safety requirements.",
         "I understand that loss, theft, damage, misuse, neglect, abuse, unauthorized use, or failure to return company equipment may result in disciplinary action and may result in financial responsibility for repair or replacement costs, only to the extent permitted by applicable federal law, Florida law, and company policy. Any payroll deduction or reimbursement will be handled only where legally permitted and with any required authorization.",
         "My signature acknowledges receipt of the listed equipment and this responsibility notice.",
       ],
       es: [
-        "Reconozco haber recibido el equipo, herramientas y/o propiedad de la empresa que se enumeran arriba. Entiendo que este equipo sigue siendo propiedad de MASCI General Contractors y se me entrega únicamente para fines comerciales de la empresa.",
+        "Reconozco haber recibido el equipo, herramientas y/o propiedad de la empresa que se enumeran arriba. Entiendo que este equipo sigue siendo propiedad de MASCI General Contractors Inc. y se me entrega únicamente para fines comerciales de la empresa.",
         "Acepto usar, asegurar, cuidar, mantener y devolver todo el equipo entregado conforme a la política de la empresa, las instrucciones del fabricante y los requisitos de seguridad aplicables.",
         "Entiendo que la pérdida, robo, daño, uso indebido, negligencia, abuso, uso no autorizado o falta de devolución del equipo de la empresa puede resultar en acción disciplinaria y puede generar responsabilidad económica por costos de reparación o reemplazo, únicamente en la medida permitida por la ley federal aplicable, la ley de Florida y la política de la empresa. Cualquier deducción de nómina o reembolso se realizará solo donde sea legalmente permitido y con cualquier autorización requerida.",
         "Mi firma reconoce la recepción del equipo enumerado y este aviso de responsabilidad.",
@@ -490,12 +490,12 @@ export const FIELD_LEADERSHIP_FORMS = [
     custom_renderer: "equipment_return_lines",
     acknowledgement: {
       en: [
-        "I acknowledge that the equipment listed above has been returned to MASCI General Contractors in the condition documented on this form, with photographs and notes attached as evidence.",
+        "I acknowledge that the equipment listed above has been returned to MASCI General Contractors Inc. in the condition documented on this form, with photographs and notes attached as evidence.",
         "I understand that any equipment listed as DAMAGED, MISSING, or LOST may result in financial responsibility for repair or replacement costs, only to the extent permitted by applicable federal law, Florida law, and company policy. Any payroll deduction or reimbursement will be handled only where legally permitted and with any required authorization.",
         "My signature confirms the return condition recorded above is accurate to the best of my knowledge.",
       ],
       es: [
-        "Reconozco que el equipo enumerado arriba ha sido devuelto a MASCI General Contractors en la condición documentada en este formulario, con fotografías y notas adjuntas como evidencia.",
+        "Reconozco que el equipo enumerado arriba ha sido devuelto a MASCI General Contractors Inc. en la condición documentada en este formulario, con fotografías y notas adjuntas como evidencia.",
         "Entiendo que cualquier equipo registrado como DAÑADO, FALTANTE o PERDIDO puede generar responsabilidad económica por costos de reparación o reemplazo, únicamente en la medida permitida por la ley federal aplicable, la ley de Florida y la política de la empresa. Cualquier deducción de nómina o reembolso se realizará solo donde sea legalmente permitido y con cualquier autorización requerida.",
         "Mi firma confirma que la condición de devolución registrada arriba es precisa al mejor de mi conocimiento.",
       ],

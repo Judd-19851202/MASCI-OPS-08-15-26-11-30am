@@ -398,7 +398,7 @@ def render_issuance_pdf(rec: Dict[str, Any]) -> bytes:
         </div>
       </div>
 
-      <div class='foot'>MASCI General Contractors · Generated {_safe(rec.get('created_at') or '')} · Confidential</div>
+      <div class='foot'>MASCI General Contractors Inc. · Generated {_safe(rec.get('created_at') or '')} · Confidential</div>
     </body></html>"""
     return HTML(string=html_doc).write_pdf()
 
@@ -556,7 +556,7 @@ def render_return_pdf(issuance: Dict[str, Any], ret: Dict[str, Any]) -> bytes:
         </div>
       </div>
 
-      <div class='foot'>MASCI General Contractors · Generated {_safe(ret.get('created_at') or '')} · Confidential</div>
+      <div class='foot'>MASCI General Contractors Inc. · Generated {_safe(ret.get('created_at') or '')} · Confidential</div>
     </body></html>"""
     return HTML(string=html_doc).write_pdf()
 
@@ -653,7 +653,7 @@ def render_training_pdf(rec: Dict[str, Any]) -> bytes:
         </div>
       </div>
 
-      <div class='foot'>MASCI General Contractors · Generated {_safe(rec.get('created_at') or '')} · Confidential</div>
+      <div class='foot'>MASCI General Contractors Inc. · Generated {_safe(rec.get('created_at') or '')} · Confidential</div>
     </body></html>"""
     return HTML(string=html_doc).write_pdf()
 

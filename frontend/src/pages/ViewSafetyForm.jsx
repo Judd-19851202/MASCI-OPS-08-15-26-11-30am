@@ -418,7 +418,7 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
 
           <p className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em] text-center mt-8 pt-4 border-t border-slate-100">
             {t("Generated")} {doc.created_at ? new Date(doc.created_at).toLocaleString() : ""} ·
-            {" "}MASCI General Contractors · {t("Confidential")}
+            {" "}MASCI General Contractors Inc. · {t("Confidential")}
           </p>
         </div>
       </main>

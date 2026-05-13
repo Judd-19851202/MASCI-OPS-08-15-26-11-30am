@@ -1125,7 +1125,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     <img src="{logo_uri}" alt="MASCI" />
     <div class="hdr-r">
       <div class="hdr-title">{escape(title)}</div>
-      <div class="hdr-kicker">Field Safety Reporting Portal</div>
+      <div class="hdr-kicker">MASCI Operations Platform</div>
       {('<div class="hdr-docid" style="font-family:Courier New,monospace;font-size:11pt;font-weight:900;color:#c8102e;letter-spacing:0.05em;margin-top:6px">' + escape(doc_id) + '</div>') if doc_id else ''}
     </div>
   </header>
@@ -1136,7 +1136,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
   </div>
   {body}
   <div class="ftr">
-    <span>MASCI · Field Safety Reporting Portal</span>
+    <span>MASCI Operations Platform · Powered by ForgedOps&trade;</span>
   </div>
   <!-- Last-page only: safety disclaimer + ownership clarification.
        Renders after all body content, so it naturally lands on the
@@ -1224,7 +1224,7 @@ def render_email_html(
       </p>
       <hr style="border:0;border-top:1px solid #e2e8f0;margin:18px 0;" />
       <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#475569;font-weight:bold;">
-        MASCI General Contractors · 386-322-4500 · mascidocs.com
+        MASCI General Contractors Inc. · 386-322-4500 · mascidocs.com
       </div>
       <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#94a3b8;font-weight:normal;margin-top:6px;">
         Powered by ForgedOps&trade;

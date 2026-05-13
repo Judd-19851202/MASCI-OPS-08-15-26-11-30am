@@ -139,6 +139,46 @@ what they are, look clean & professional."
 
 ---
 
+## 2026-05-13 — Iter78b: PDF Chrome Standardization + "Inc." Closure
+
+### User ask
+- Update PDF header/footer to match iter78 email cleanup
+- Standardize "MASCI General Contractors" → "MASCI General Contractors Inc."
+  everywhere as visible chrome
+
+### What shipped
+- **`pdf_render.py` PDF chrome**:
+  - Header kicker: `Field Safety Reporting Portal` →
+    **`MASCI Operations Platform`**
+  - Footer: `MASCI · Field Safety Reporting Portal` →
+    **`MASCI Operations Platform · Powered by ForgedOps™`**
+- **`Inc.` standardization** (visible chrome only — backend +
+  frontend acknowledgments, footers, and legal text). Distribution
+  routing emails to `safety@mascigc.com` unchanged.
+- **"Field Safety Reporting Portal" → "MASCI Operations Platform"**
+  also applied to `ShareFormDialog.jsx` QR-poster print footer and
+  `Dashboard.jsx` inspections-page eyebrow.
+
+### Verification
+- 11 backend assertions PASS. Real PDF rendered (939 KB).
+- Email screenshot confirms footer:
+  "MASCI GENERAL CONTRACTORS INC. · 386-322-4500 · MASCIDOCS.COM"
+  with "POWERED BY FORGEDOPS™" underneath.
+
+### Files touched
+- `pdf_render.py`, `field_leadership_pdf.py`, `hub_banners_pdf.py`,
+  `routes/safety_forms.py`, `fieldLeadershipSchemas.js`,
+  `safetyFormsSchema.js`, `i18n.js`, `ViewSafetyForm.jsx`,
+  `Dashboard.jsx`, `ShareFormDialog.jsx`
+
+### Pending decision
+- Email subject line redesign — three options presented; awaiting
+  user pick on `[MASCI]` prefix, emoji warnings, and project-name
+  source (short location vs. full project label).
+
+---
+
+
 ## 2026-05-13 — Iter76: Legal / Infrastructure / Branding Hardening
 
 ### User ask

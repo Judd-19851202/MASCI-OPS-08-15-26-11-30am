@@ -193,7 +193,7 @@ def render_banner_audit_pdf(banner: Dict[str, Any], audit: List[Dict[str, Any]])
   <img src="{logo}" alt="MASCI"/>
   <div class="title">
     <h1>Banner Audit Trail</h1>
-    <div class="sub">Confidential · MASCI General Contractors</div>
+    <div class="sub">Confidential · MASCI General Contractors Inc.</div>
   </div>
 </div>
 

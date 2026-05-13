@@ -105,7 +105,7 @@ export default function Dashboard() {
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         <div className="mb-10 sm:mb-14">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-slate-500">
-            Field Safety Reporting Portal
+            MASCI Operations Platform
           </span>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">
             Inspection Reports

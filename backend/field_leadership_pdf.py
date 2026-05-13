@@ -264,7 +264,7 @@ def _equipment_lines_block(details: Dict[str, Any]) -> str:
 EQUIPMENT_ACK_EN = (
     "I acknowledge receipt of the company equipment, tools, and/or property "
     "listed above. I understand that this equipment remains the property of "
-    "MASCI General Contractors and is issued to me for company business "
+    "MASCI General Contractors Inc. and is issued to me for company business "
     "purposes only.\n\n"
     "I agree to use, secure, care for, maintain, and return all issued "
     "equipment in accordance with company policy, manufacturer instructions, "
@@ -283,7 +283,7 @@ EQUIPMENT_ACK_EN = (
 EQUIPMENT_ACK_ES = (
     "Reconozco haber recibido el equipo, herramientas y/o propiedad de la "
     "empresa que se enumeran arriba. Entiendo que este equipo sigue siendo "
-    "propiedad de MASCI General Contractors y se me entrega únicamente "
+    "propiedad de MASCI General Contractors Inc. y se me entrega únicamente "
     "para fines comerciales de la empresa.\n\n"
     "Acepto usar, asegurar, cuidar, mantener y devolver todo el equipo "
     "entregado conforme a la política de la empresa, las instrucciones del "
@@ -390,7 +390,7 @@ def _equipment_return_block(details: Dict[str, Any]) -> str:
 
 EQUIPMENT_RETURN_ACK_EN = (
     "I acknowledge that the equipment listed above has been returned to "
-    "MASCI General Contractors in the condition documented on this form, "
+    "MASCI General Contractors Inc. in the condition documented on this form, "
     "with photographs and notes attached as evidence.\n\n"
     "I understand that any equipment listed as DAMAGED, MISSING, or LOST "
     "may result in financial responsibility for repair or replacement "
@@ -404,7 +404,7 @@ EQUIPMENT_RETURN_ACK_EN = (
 
 EQUIPMENT_RETURN_ACK_ES = (
     "Reconozco que el equipo enumerado arriba ha sido devuelto a "
-    "MASCI General Contractors en la condición documentada en este "
+    "MASCI General Contractors Inc. en la condición documentada en este "
     "formulario, con fotografías y notas adjuntas como evidencia.\n\n"
     "Entiendo que cualquier equipo registrado como DAÑADO, FALTANTE o "
     "PERDIDO puede generar responsabilidad económica por costos de "
