@@ -107,6 +107,7 @@ import { FormPasswordGate } from "@/components/FormPasswordGate";
 import GlobalKeepalive from "@/components/GlobalKeepalive";
 import BackendStatusBanner from "@/components/BackendStatusBanner";
 import BannerStrip from "@/components/BannerStrip";
+import SplashOverlay from "@/components/SplashOverlay";
 import { validateStoredTokens } from "@/lib/tokenValidation";
 import EnforcePortalScope from "@/components/EnforcePortalScope";
 import MultiPortalHydrator from "@/components/MultiPortalHydrator";
@@ -155,6 +156,7 @@ function App() {
 
   return (
     <div className="App min-h-screen flex flex-col">
+      <SplashOverlay />
       <Toaster position="top-center" richColors closeButton />
       <GlobalKeepalive />
       <BackendStatusBanner />

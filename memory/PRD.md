@@ -6,6 +6,55 @@
 
 ---
 
+## 2026-05-14 — Iter116: PWA splash screens (iOS native + animated overlay)
+
+### User ask
+Build PWA splash screens (iOS + Android) at the 10 required Apple sizes.
+
+### Reality check delivered to user
+iOS native splash = STATIC images only (no OS-level animation). Built two layers instead:
+1. **Static iOS splash PNGs** (10 sizes) shown by Safari/PWA during cold boot
+2. **In-app animated overlay** that runs once per session after React mounts (~1.7s — not 5s; 5s feels broken)
+
+### Shipped
+
+**Layer 1 — Static iOS splash screens**
+- New script: `backend/scripts/generate_ios_splash.py`
+- Composes (no AI) the master M-mark icon + wordmark + tagline + ForgedOps attribution + caution stripe onto 10 portrait resolutions:
+  - iPhone 15/14 Pro Max (1290×2796)
+  - iPhone 15/14 Pro (1179×2556)
+  - iPhone 13/14/15 (1170×2532)
+  - iPhone 12/13 Pro Max (1284×2778)
+  - iPhone X/XS/11 Pro (1125×2436)
+  - iPhone 13 mini (1080×2340)
+  - iPhone XR/11 (828×1792)
+  - iPhone 8/SE (750×1334)
+  - iPad Pro 12.9" (2048×2732)
+  - iPad Pro 11"/Air (1668×2388)
+- 10 `<link rel="apple-touch-startup-image">` tags wired into `public/index.html` with proper device-width/height/pixel-ratio media queries
+
+**Layer 2 — Animated React splash overlay**
+- New component: `frontend/src/components/SplashOverlay.jsx`
+- Mounted at the top of `App.js` before Toaster
+- Timeline (~1.7s): M-mark scales in (0–0.55s, ease-out w/ slight overshoot to 1.04 then settle to 1.0) → caution stripe slides in from left (0.4–0.85s) → wordmark + tagline fade in with upward translate (0.55–1.05s) → overlay opacity fades to 0 (1.3–1.7s) → unmount
+- One-time per session via `sessionStorage` (`masci.splash.seen.2026`) — never plays twice in a row
+- Subtle blueprint grid background overlay for engineering aesthetic
+- ARIA `aria-hidden="true"` so screen readers skip the decorative animation
+
+### Files changed
+- `frontend/public/index.html` (10 splash link tags)
+- `frontend/public/splash-*.png` (10 new images)
+- `frontend/src/components/SplashOverlay.jsx` (new)
+- `frontend/src/App.js` (mount SplashOverlay above Toaster)
+- `backend/scripts/generate_ios_splash.py` (new — reusable composer)
+
+### Verified
+- ESLint clean
+- Live screenshot of the splash mid-animation confirms M + wordmark + tagline + caution stripe + blueprint grid all rendering correctly
+- After 2.3s, overlay correctly unmounts and underlying app renders
+
+---
+
 ## 2026-05-14 — Iter115: Back-link "Hub" → "Home" sweep + Full favicon/touch-icon refresh
 
 ### User asks
