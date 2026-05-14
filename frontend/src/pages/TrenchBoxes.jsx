@@ -16,7 +16,7 @@ export default function TrenchBoxes() {
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <Link to="/" className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide" data-testid="back-link">
-            <ArrowLeft className="w-4 h-4 mr-1" /> Hub
+            <ArrowLeft className="w-4 h-4 mr-1" /> Home
           </Link>
           <MasciLogo variant="mark" size="md" homeLink="/" />
           <LangToggle />

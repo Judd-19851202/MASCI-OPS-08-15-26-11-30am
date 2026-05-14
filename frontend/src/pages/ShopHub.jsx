@@ -85,7 +85,7 @@ export default function ShopHub() {
       <header className="bg-slate-900 border-b-4 border-amber-500">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
           <Link to="/" className="inline-flex items-center text-white hover:text-amber-300 text-sm font-bold uppercase tracking-wide" data-testid="shop-back-hub">
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Hub")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
           <MasciLogo variant="mark" size="md" homeLink="/" />
           <div className="flex items-center gap-2">

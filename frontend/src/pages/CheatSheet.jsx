@@ -31,7 +31,7 @@ export default function CheatSheet() {
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="cheatsheet-back"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Hub")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
           <div className="hidden sm:block font-mono text-xs uppercase tracking-[0.25em] text-red-400">
             {t("Crew Cheat Sheet")}

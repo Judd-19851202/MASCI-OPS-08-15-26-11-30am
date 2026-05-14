@@ -138,7 +138,7 @@ export default function PmLogin() {
             className="inline-flex items-center text-white hover:text-amber-300 text-sm font-bold uppercase tracking-wide"
             data-testid="pm-login-back"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Hub")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
           <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />

@@ -60,7 +60,7 @@ export default function JhaPlansHub() {
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="back-link"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Hub
+            <ArrowLeft className="w-4 h-4 mr-1" /> Home
           </Link>
           <MasciLogo variant="mark" size="md" homeLink="/" />
           <LangToggle />

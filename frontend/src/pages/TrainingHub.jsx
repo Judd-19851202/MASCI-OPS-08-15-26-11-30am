@@ -81,7 +81,7 @@ export default function TrainingHub() {
             className="inline-flex items-center text-white hover:text-red-400 text-sm font-bold uppercase tracking-wide"
             data-testid="training-back-hub"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Hub")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
           <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />

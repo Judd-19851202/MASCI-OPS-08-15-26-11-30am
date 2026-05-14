@@ -31,7 +31,7 @@ export default function JhaPlansPoster() {
             className="inline-flex items-center text-white hover:text-amber-300 text-sm font-bold uppercase tracking-wide"
             data-testid="jha-poster-back"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Hub")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
           <div className="hidden sm:block font-mono text-xs uppercase tracking-[0.25em] text-amber-400">
             {t("Job Hazard Plans QR Poster")}
