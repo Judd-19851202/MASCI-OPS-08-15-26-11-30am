@@ -1,0 +1,35 @@
+{
+  "summary": "iter121 Safety Portal package refactor + R2 document storage migration — ALL backend tests pass (51/51 across iter119 + iter120 + iter121). The new iter121 suite has 21 tests covering: module layout sanity (10 expected files in routes/safety_portal/, no stray top-level safety_portal.py, server.py imports unchanged, inline-fallback code path present), R2 round-trip (upload → response storage_backend='r2', list shows r2 backend, download bytes byte-identical to upload, DELETE removes record + R2 object), legacy inline-base64 backward-compat (legacy doc f7dea529 still downloads its 26 bytes correctly), multi-role read gate (HR + Admin can GET docs/training but CANNOT POST), and dependency-factory wiring (overview returns expected fields, digest preview returns payload, digest send reports sent:false in preview env — confirms iter120 bug is now FIXED). Cron line '[safety-digest] weekly cron started' present in supervisor logs.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "iter120 test_safety_portal_iter120.py", "issue": "Test file uses session-scoped fixture with hardcoded password 'Safety123!' — when run AFTER iter119 (which rotates to SafetyTest2026!), all iter120 tests silently SKIP instead of failing. Recommend converting the safety_token fixture in iter120 to admin-reset-then-change-password pattern (same as iter119) so the suites are order-independent. Not a refactor regression — pre-existing fragility surfaced because iter119 + iter120 + iter121 now have overlapping safety-user state."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_safety_portal_iter121.py",
+    "/app/test_reports/pytest/iter121.xml",
+    "/app/test_reports/pytest/iter121_regression.xml",
+    "/app/test_reports/pytest/iter121_full.xml"
+  ],
+  "action_items": [
+    "OPTIONAL — refactor iter120 safety_token fixture to do admin-reset-then-change-password (mirroring iter119) so the suites are order-independent. Current behavior masks failures as SKIPs when the persistent safety password drifts.",
+    "OPTIONAL — clarify the digest /preview response schema in API docs (currently returns dict with payload + html; tests rely on dict shape only)."
+  ],
+  "critical_code_review_comments": [
+    "Refactor is CLEAN: routes/safety_portal/ has all 10 expected modules averaging ~100-200 lines each (well below the 700-line guideline). No stray top-level safety_portal.py.",
+    "Dependency factory pattern in _deps.py is correct — db + is_valid_admin_token are bound at construction, returned closures are valid FastAPI deps. Both single-role and multi-role gates verified end-to-end via tests.",
+    "safety_doc_storage.py mirrors photo_storage.py contract correctly. is_configured() short-circuits gracefully, doc:// reference scheme is well-defined, base64 backward-compat handled in read_doc_bytes(). The base64 padding fix-up (lines 145-147) is a nice touch.",
+    "documents.py upload path correctly does try/except around R2 upload and falls back to inline base64 on failure — verified by code inspection (test_documents_fallback_code_path_exists). The list endpoint correctly projects file_data OUT so inline records don't blow up list payloads.",
+    "delete_safety_document does best-effort R2 delete BEFORE Mongo delete and won't fail the request if R2 cleanup errors — correct semantics (DB is authoritative)."
+  ],
+  "updated_files": ["/app/backend/tests/test_safety_portal_iter121.py (new)"],
+  "success_rate": {"backend": "100%", "frontend": "n/a (backend-only run)"},
+  "test_credentials": "Safety: safety@mascigc.com / Safety123! (reset by this run, must_change cleared). Admin: jaymn.judd@mascigc.com / Maddix123!. HR manager: hrmanager@mascigc.com / HRTesting2026! (still works).",
+  "seed_data_creation": "TestR2RoundTrip creates a unique TEST_iter121 document, verifies round-trip via R2, then deletes it within the same test class. Net DB delta = 0. Note: TestMultiRoleReadGate may briefly create a one-byte 'nope' doc through the 401 rejection path but the requests are rejected before the DB write — verified.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "iter121 refactor is fully green. R2 round-trip works (upload lands in masci-hub/safety-docs/<YYYY>/<MM>/<doc-id>/<uuid>-<filename>, response carries storage_backend='r2', download returns exact bytes, delete cleans both Mongo + R2). Legacy inline-base64 doc f7dea529 still works through the unified read path. Multi-role read gate intact (HR + Admin read, only Safety writes). Dependency factories (_deps.py) wire correctly. Digest sent:false in preview env (iter120 bug stayed fixed). One pre-existing test-hygiene issue: iter120 silently SKIPs when run after iter119 because it doesn't reset its own safety password — to run BOTH iter119 + iter120 + iter121 together cleanly, just reset safety password to Safety123! between iter119 and iter120 (or convert iter120 fixture to mirror iter119). The conftest.py at /app/backend/tests/conftest.py auto-injects X-Admin-Token on every requests call — keep that in mind when writing 'no-auth' tests against multi-role-gate endpoints; they'll see the admin fallback and 200.",
+  "rca of the issue": "n/a — no bugs found in this iteration. The refactor + R2 migration are working correctly per spec."
+}
