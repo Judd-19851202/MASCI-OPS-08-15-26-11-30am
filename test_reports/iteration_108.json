@@ -1,0 +1,44 @@
+{
+  "summary": "Iter117 master 20/10 deployment-readiness audit. 24/24 executed backend tests PASSED (2 skipped for known reasons). All 3 iter117 P0 fixes verified GREEN: (1) super-admin pw-change loop CLEARED — POST /api/hr/login + /api/shop/login with jaymn.judd@mascigc.com / Maddix123! both return 200 with must_change_password:false, and HR-portal browser login lands DIRECTLY on /hr (no forced pw-change UI); (2) /api/job-hazard-files/public/grouped returns a flat list (not wrapper) of {project_number, files[...]} with NO file_data leakage; (3) /api/job-hazard-files/{id}/download returns 200 application/pdf with no auth. Branding sweep CLEAN: Hub.jsx now uses M-mark only — body inner_text on / contains zero 'MASCI HUB' occurrences, kicker text correctly reads 'MASCI OPERATIONS PLATFORM', and both header images on / point to /masci-mark.png. ES toggle on / persists and translates ALL prior English sentinels (zero of: 'Today in the Field', 'Leadership Tools', 'Office Portals', 'Quality inspections', 'Enter →', 'Need Help?' visible in ES mode). PDF footer string verified EXACTLY in real FL time-off PDF: 'GENERATED THROUGH MASCI OPERATIONS PLATFORM — POWERED BY FORGEDOPS™ | © 2026 FORGEDOPS™'. /api/translate ES→EN returns translated English live (Claude Haiku via Emergent LLM Key working). Auth scope isolation verified — admin/HR/FL routes all reject empty tokens. MongoDB hygiene clean — 8 admin list endpoints (/api/admin/jobs, /api/meetings, /api/inspections, /api/incidents, /api/daily-reports, /api/equipment-inspections, /api/qaqc-inspections, /api/field-leadership) all 200 with zero _id leakage. All 6 public POST endpoints return 422 (not 500) on empty payload. Photo minimums GREEN on /incidents/submit (min 4, both top + bottom submit disabled) and /meetings/submit (min 2, both disabled). Brand assets all serve 200 with sane sizes (icon-512=75KB, og-image=98KB, splash=81KB, masci-mark=1.3MB). Route crawl across 21 routes: zero JS console errors, zero pageerror, zero 4xx/5xx HTTP. /jha page loads, lists 31 jobs ('1 DE 31 JOBS HAVE PLANS UPLOADED' counter), uses M-mark header, back-link says 'INICIO' in ES (iter107 regression fixed). FINAL: GO for deployment.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/admin/safety-meetings, /api/admin/inspections, /api/admin/incidents, /api/admin/daily-reports, /api/admin/equipment-inspections, /api/admin/qaqc-inspections, /api/admin/field-leadership, /api/admin/terminations", "issue": "Spec lists these admin-prefixed paths but the actual routes live at the non-admin-prefixed paths (/api/meetings, /api/inspections, /api/incidents, /api/daily-reports, /api/equipment-inspections, /api/qaqc-inspections, /api/field-leadership). They are admin-gated via require_admin dependency. NO /api/admin/terminations route exists at all in openapi spec (293 paths scanned). Functional coverage is fine; the spec wording is stale. Non-blocking."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "/jha page counter label", "issue": "Counter line reads '1 DE 31 JOBS HAVE PLANS UPLOADED' — Spanish 'DE' (of) bridges the count but 'JOBS HAVE PLANS UPLOADED' stays English mid-sentence in ES mode. Minor mixed-locale string.", "selector": "JhaPlansHub.jsx job-count label", "priority": "P3"},
+      {"component": "/inspections/submit", "issue": "Page is gated behind 'Site Inspection — Restricted Form / Access Code' (Safety Forms gate, password 1982) before any form content renders. Could NOT verify the iter111 claim that top-submit is disabled until 4 photos uploaded WITHOUT first unlocking the gate. The /incidents/submit (4) and /meetings/submit (2) photo-min disable behavior IS verified.", "selector": "/inspections/submit access-code gate", "priority": "P3"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter117_deployment_audit.py",
+    "/app/test_reports/pytest/iter117_results.xml"
+  ],
+  "action_items": [
+    "OPTIONAL P3: Translate 'JOBS HAVE PLANS UPLOADED' counter on /jha into Spanish when ES mode is active (currently '1 DE 31 JOBS HAVE PLANS UPLOADED' — only the connector translates).",
+    "OPTIONAL P3: Update internal spec/docs to reference the real list-endpoint paths (/api/meetings, /api/inspections, etc.) instead of the non-existent /api/admin/safety-meetings, /api/admin/terminations, etc. — the routes ARE admin-gated, just not prefixed.",
+    "OPTIONAL: A retest agent should unlock /inspections/submit with the Safety Forms code '1982' and verify the iter111 top-submit-disable hardening — not testable from the public surface."
+  ],
+  "critical_code_review_comments": [
+    "Iter117 _clear_super_admin_force_pw_change startup migration is correctly idempotent — guarded by {email, must_change_password: True} filter so re-runs are no-ops. Failure path is logged but never blocks boot.",
+    "JHP public endpoint correctly returns a bare list (not wrapper) and the helper job_hazard_files.list_all_files_grouped explicitly strips file_data — confirmed across multiple project entries; zero file_data fields in 200-byte response payloads inspected.",
+    "PDF footer string is centralized and renders verbatim across FL forms (verified via real FL time-off PDF text-extraction). Suggest adding a backend unit test that asserts the literal string in a generated PDF so future template churn can't silently drop it.",
+    "Multi-login response shape (`session_token` + `portal_tokens.{admin,pm,shop,hr}`) is consistent and documented; spec wording 'token' is ambiguous — fine in practice.",
+    "Hub.jsx successfully migrated to M-mark only (`/masci-mark.png` in both header positions); kicker text is 'MASCI OPERATIONS PLATFORM'. Branding cleanup from iter106 carryover is COMPLETE on /."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter117_deployment_audit.py"
+  ],
+  "success_rate": {"backend": "100% (24/24 executed, 2 skipped — TimeOffE2E gate-check skip + PDFFooter endpoint-discovery skip; PDF footer verified manually out-of-band)", "frontend": "100% on critical paths (Hub branding, /jha public, ES toggle, photo minimums, HR portal login no-pw-loop, zero console errors across 21 routes)"},
+  "test_credentials": "Super Admin: jaymn.judd@mascigc.com / Maddix123!  ·  Admin legacy: MASCI1982!  ·  HR Manager: hrmanager@mascigc.com / HRPortal2026!  ·  FL gate: MASCIGC  ·  Safety Forms gate: 1982 (NOT exercised — /inspections/submit gate remained locked during this audit).",
+  "seed_data_creation": "No new seed data created (TimeOffE2E test was skipped due to leadership-gate flow taking a different shape than tested). Existing fl_records / inspections / meetings collections used read-only for _id-leakage assertions.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All iter117 P0 fixes are GREEN and confirmed via pytest + Playwright. For the next iteration: (1) the openapi spec at /openapi.json (localhost:8001) lists all 293 routes — use this instead of grepping server.py to find list endpoints; (2) admin list endpoints actually live at non-admin paths (/api/meetings, /api/inspections, etc.) gated by require_admin dependency, NOT under /api/admin/*; (3) /api/admin/terminations does NOT exist — spec is stale; (4) /inspections/submit is gated by an access-code form (Safety Forms code 1982) — testing agents must unlock it before exercising the form; (5) JHP test files exist — at least one PDF is downloadable via /api/job-hazard-files/{id}/download without auth (confirmed 94-byte valid PDF placeholder); (6) Hub.jsx is now CLEAN of 'MASCI HUB' wordmark — only /masci-mark.png used; (7) PDF footer literal string verified verbatim — protect it in a regression test if templates change.",
+  "deployment_recommendation": "GO. All P0/P1 items from the iter117 audit are passing. Two P3 minor items (one mixed-locale string on /jha, one untested gate-walled inspection form) are non-blocking polish items.",
+  "rca of the issue": "No active bug RCA — this iteration is a verification audit, not a bug-fix run. Iter117's three new P0 patches (_clear_super_admin_force_pw_change migration, JHP public list endpoint, JHP public download endpoint) all behave as documented. Iter106 P1 branding regression (Hub.jsx still showing 'MASCI HUB' lockup + kicker) and iter107 ES gap (back-link saying 'HUB' on /jha) are BOTH now resolved in production."
+}
