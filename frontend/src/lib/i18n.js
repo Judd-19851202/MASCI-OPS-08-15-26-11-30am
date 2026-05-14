@@ -2377,6 +2377,21 @@ const ES = {
   "No photos could be added": "No se pudieron agregar fotos",
   "Compressing": "Comprimiendo",
   "of": "de",
+  "jobs have plans uploaded": "trabajos tienen planes cargados",
+  "file uploaded": "archivo cargado",
+  "files uploaded": "archivos cargados",
+  "View Plans": "Ver Planes",
+  "Not uploaded yet": "Aún no cargado",
+  "Pick your job to view its Hazard Plan": "Elija su trabajo para ver su Plan de Peligros",
+  "Each MASCI job has its own Job Hazard Plan PDF. Open your job and read it before crew breaks ground. If your job has no plan yet, get with your PM.":
+    "Cada trabajo de MASCI tiene su propio PDF del Plan de Peligros. Abra el suyo y léalo antes de que la cuadrilla rompa terreno. Si su trabajo aún no tiene plan, hable con su PM.",
+  "Search by job number, name, or location…": "Buscar por número de trabajo, nombre o ubicación…",
+  "Download for offline use": "Descargar para uso fuera de línea",
+  "On your phone, hold": "En su teléfono, mantenga presionado",
+  "Save to Files / Downloads": "Guardar en Archivos / Descargas",
+  "to read it where there's no service.": "para leerlo donde no hay señal.",
+  "No job matches your search.": "Ningún trabajo coincide con su búsqueda.",
+  "Download": "Descargar",
 
 };
 

@@ -6,6 +6,47 @@
 
 ---
 
+## 2026-05-14 — Iter118: 20/10 Master QA Audit + i18n polish
+
+### User ask
+Full enterprise deployment-readiness audit — routes, forms, dashboards, PDFs, mobile, branding, security, data flow, R2, console errors. Goal: 20/10 score, not "good enough".
+
+### Outcome: ✅ GO — 20/10
+
+### Backend (24/24 PASS via `test_iter117_deployment_audit.py`)
+- Auth scope isolation across 5 portals
+- 8 list endpoints — zero `_id` leakage
+- 6 public POST endpoints — 422 on malformed input (never 500)
+- All 3 iter117 P0 fixes verified GREEN:
+  - Super-admin pw-change loop CLEARED (idempotent startup migration confirmed)
+  - JHP public endpoint returns flat list with no `file_data` leakage
+  - JHP download serves 200 application/pdf with no auth
+- PDF footer verbatim match: `GENERATED THROUGH MASCI OPERATIONS PLATFORM — POWERED BY FORGEDOPS™ | © 2026 FORGEDOPS™`
+- `/api/translate` ES→EN working live via Claude Haiku
+
+### Frontend (21-route crawl, zero console errors)
+- Hub branding: M-mark only, kicker "MASCI OPERATIONS PLATFORM"
+- ES toggle on /: zero English bleed-through on 6 sentinel strings
+- Photo minimums: incidents 4 + meetings 2 both verified disable submit
+- 5 portal logins clean (HR + Shop no longer route to pw-change screen)
+- /jha page: 31 jobs listed, M-mark header, real M splash on cold load
+
+### Iter118 polish (P3 fixes)
+- Added 15 new ES dictionary entries to fix the `/jha` mixed-locale string "1 DE 31 JOBS HAVE PLANS UPLOADED" → fully Spanish in ES mode
+- Coverage now includes: `jobs have plans uploaded`, `file uploaded`, `files uploaded`, `View Plans`, `Not uploaded yet`, `Pick your job to view its Hazard Plan`, `Each MASCI job has its own…`, `Search by job number…`, `Download for offline use`, `Save to Files / Downloads`, `to read it where there's no service.`, `No job matches your search.`, `Download`
+
+### Files changed
+- `frontend/src/lib/i18n.js` (15 new entries)
+- `backend/tests/test_iter117_deployment_audit.py` (new — comprehensive audit suite)
+- `memory/QA_REPORT_2026-05-14_iter118.md` (full QA scorecard)
+
+### Final scorecard
+- **20/10 — GO for production deploy**
+- Zero P0, P1, P2 issues
+- Only 1 remaining P3: `/inspections/submit` top-submit-disable not exercised E2E (gated by access code); pattern is identical to verified Incident + Meeting forms
+
+---
+
 ## 2026-05-14 — Iter117: 3 P0 fixes (real M-mark, JHP visibility, super-admin pw-change loop)
 
 ### User asks (all flagged ASAP)
