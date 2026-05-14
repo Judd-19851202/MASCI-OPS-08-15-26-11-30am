@@ -165,6 +165,14 @@ export default function NewMeeting({ publicMode = false }) {
       toast.error("Add at least one attendee");
       return false;
     }
+    // Photos required — toolbox-talk photos confirm the meeting actually
+    // happened (group shot + topic board). 2-photo minimum.
+    if ((data.photos || []).length < 2) {
+      toast.error(
+        `${t("Minimum 2 photos required.")} (${(data.photos || []).length}/2)`
+      );
+      return false;
+    }
     return true;
   };
 
@@ -245,7 +253,7 @@ export default function NewMeeting({ publicMode = false }) {
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           {publicMode ? (
-            <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+            <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           ) : (
             <Link
               to="/"
@@ -260,8 +268,8 @@ export default function NewMeeting({ publicMode = false }) {
             <LangToggle />
             <Button
               onClick={submit}
-              disabled={saving}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+              disabled={saving || (data.photos || []).length < 2}
+              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
               data-testid="submit-top-btn"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
@@ -553,6 +561,20 @@ export default function NewMeeting({ publicMode = false }) {
         </Section>
 
         <Section number="04" title={t("Photos")}>
+          <p className="text-xs text-slate-600 -mt-2 mb-2">
+            {t("Photos: ")}
+            <span
+              className={
+                (data.photos || []).length >= 2
+                  ? "text-emerald-700 font-bold"
+                  : "text-red-700 font-bold"
+              }
+              data-testid="meeting-photo-count"
+            >
+              {(data.photos || []).length}
+            </span>{" "}
+            / <span className="font-mono">{t("min 2 required")}</span>
+          </p>
           <PhotoUpload
             photos={data.photos}
             onChange={(photos) => set("photos", photos)}
@@ -584,10 +606,15 @@ export default function NewMeeting({ publicMode = false }) {
         </Section>
 
         <div className="pt-4">
+          {(data.photos || []).length < 2 && (
+            <p className="text-xs text-red-700 font-bold text-center mb-2 font-mono uppercase tracking-[0.15em]">
+              {t("Need")} {2 - (data.photos || []).length} {t("more photo(s) before you can submit")}
+            </p>
+          )}
           <Button
             onClick={submit}
-            disabled={saving}
-            className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900"
+            disabled={saving || (data.photos || []).length < 2}
+            className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900 disabled:opacity-60"
             data-testid="submit-bottom-btn"
           >
             {saving ? (

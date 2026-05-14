@@ -162,7 +162,7 @@ export default function ReturnEquipment() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back")}
           </button>
-          <MasciLogo variant="lockup" size="md" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="sm" className="sm:hidden" homeLink="/" />
           <LangToggle />
         </div>

@@ -210,7 +210,7 @@ export default function NewQaqcInspection() {
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-emerald-600">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <LangToggle />
         </div>

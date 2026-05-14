@@ -2367,6 +2367,15 @@ const ES = {
   "Messages, to-dos, schedules, docs, and field staking.":
     "Mensajes, tareas, horarios, documentos y replanteo en campo.",
 
+  // ---- Photo upload (iter111) ------------------------------------------
+  "Minimum 2 photos required.": "Mínimo 2 fotos requeridas.",
+  "Minimum 4 photos required.": "Mínimo 4 fotos requeridas.",
+  "Photos: ": "Fotos: ",
+  "min 2 required": "mín 2 requeridas",
+  "more photo(s) before you can submit": "foto(s) más antes de enviar",
+  "photos added": "fotos agregadas",
+  "No photos could be added": "No se pudieron agregar fotos",
+
 };
 
 const DICTS = { es: ES, en: {} };

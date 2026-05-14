@@ -147,7 +147,7 @@ export default function ViewMeeting() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
         <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
-            <MasciLogo variant="lockup" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink={hubHome} />
+            <MasciLogo variant="mark" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink={hubHome} />
             <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
               Site Safety Meeting Record

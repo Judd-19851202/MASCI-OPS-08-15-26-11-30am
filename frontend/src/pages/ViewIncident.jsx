@@ -159,7 +159,7 @@ export default function ViewIncident() {
         <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
             <MasciLogo
-              variant="lockup"
+              variant="mark"
               size="2xl"
               className="hidden sm:block max-w-[420px]"
               onLight

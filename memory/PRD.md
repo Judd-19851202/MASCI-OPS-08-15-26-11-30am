@@ -6,6 +6,62 @@
 
 ---
 
+## 2026-05-14 — Iter111: Photo-upload bug fix + hard photo-minimum enforcement + form-page rebrand sweep
+
+### User asks
+1. "When I went to select multiple pictures out of my gallery it would only upload 1 at a time even though I selected 5… needs fixed everywhere."
+2. "Incident reports min of 4 photos."
+3. "Safety meetings min of 2 photos."
+4. "All forms requiring pictures cannot submit form until they meet min pics required."
+
+### Shipped
+
+**1. Multi-photo upload bug (iOS Safari race condition) — fixed system-wide**
+- Root cause: `PhotoUpload.handleFiles` is `async` but the input's `onChange` cleared `e.target.value = ""` synchronously *after* calling it. The live `FileList` was invalidated by the reset *before* the loop got past file #1, so iOS Safari dropped files #2–N silently.
+- Fix: snapshot `Array.from(e.target.files)` **before** resetting the input value. Now multi-select of 5 photos uploads all 5 in one tap.
+- Bonus: added toast feedback `"5 photos added"` when N > 1, and `"No photos could be added"` if compression failed.
+
+**2. Hard photo minimums (submit-disabled UI)**
+- `NewIncident.jsx` — now requires 4 photos. Photo counter at top of section, red warning above submit, top + bottom submit buttons disabled until met.
+- `NewMeeting.jsx` — now requires 2 photos. Same pattern.
+- `NewInspection.jsx` — already had soft minimum; hardened top submit to also disable.
+- `NewDailyReport.jsx`, `NewQaqcInspection.jsx`, `NewSafetyEquipmentIssuance.jsx`, `NewEquipmentInspection.jsx` (per-FAIL), FL `EquipmentLines`, FL `EquipmentReturnLines` — already enforced; no change.
+
+**3. P1 branding regression sweep**
+- 18 user-facing form/view pages had carried over the legacy "MASCI HUB" lockup logo: NewIncident, NewMeeting, NewInspection, NewQaqcInspection, NewEquipmentInspection, NewSafetyEquipmentIssuance, NewSafetyEquipmentTraining, ReturnEquipment, MaterialCalculators, FieldSafetyCards, ThankYou, ViewIncident, ViewMeeting, ViewInspection, ViewDailyReport, ViewQaqcInspection, ViewSafetyForm, FieldLeadershipView.
+- Swept all with `sed 's/variant="lockup"/variant="mark"/g'` — verified zero "MASCI HUB" text remaining on user-facing form pages.
+
+### Files changed
+- `frontend/src/components/PhotoUpload.jsx` (snapshot fix + feedback toasts)
+- `frontend/src/pages/NewIncident.jsx` (4-photo min + counter + submit-disable)
+- `frontend/src/pages/NewMeeting.jsx` (2-photo min + counter + submit-disable)
+- `frontend/src/pages/NewInspection.jsx` (top-submit disabled until 4 photos)
+- 18 user-facing pages — lockup → mark logo swap
+- `frontend/src/lib/i18n.js` (8 new ES entries)
+
+### Photo requirement table (current state)
+
+| Form | Min | Hard-disable submit? |
+|---|---|---|
+| Daily Report | 6 (per-job configurable) | ✅ |
+| Site Inspection | 4 | ✅ |
+| QA/QC Inspection | 4 | ✅ |
+| **Incident Report** | **4** (new) | ✅ (new) |
+| **Safety Meeting** | **2** (new) | ✅ (new) |
+| Safety Equipment Issuance | 1 | ✅ |
+| Equipment Pre-Op | 1 per FAIL item | ✅ |
+| FL Equipment Checkout | 2 per item | ✅ |
+| FL Equipment Return | 2 return photos per item | ✅ |
+| All other FL forms | none (HR-style docs) | — |
+| Public Time Off | none | — |
+
+### Verified
+- ESLint clean on all changed files
+- Live screenshot of `/incidents/submit` confirms "Photos: 0 / min 4 required" badge + both submit buttons disabled
+- `/incidents/submit` body text scan: zero "MASCI HUB" occurrences
+
+---
+
 ## 2026-05-13 — Iter110: Bilingual Coverage Audit (EN↔ES + ES→EN on submit)
 
 ### User ask

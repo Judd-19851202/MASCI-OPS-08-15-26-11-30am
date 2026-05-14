@@ -184,7 +184,7 @@ export default function NewInspection({ publicMode = false }) {
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           {publicMode ? (
-            <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+            <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           ) : (
             <Link
               to="/"
@@ -199,8 +199,8 @@ export default function NewInspection({ publicMode = false }) {
             <LangToggle />
             <Button
               onClick={submit}
-              disabled={saving}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+              disabled={saving || (data.photos || []).length < 4}
+              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
               data-testid="submit-top-btn"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}

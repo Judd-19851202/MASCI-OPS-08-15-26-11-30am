@@ -122,7 +122,7 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back")}
           </Link>
-          <MasciLogo variant="lockup" size="md" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="sm" className="sm:hidden" homeLink="/" />
           <LangToggle />
         </div>

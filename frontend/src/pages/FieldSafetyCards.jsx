@@ -285,7 +285,7 @@ export default function FieldSafetyCards() {
       <div className="caution-stripe no-print" />
       <header className="bg-slate-900 border-b-4 border-red-700 no-print">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="lockup" size="xl" className="hidden sm:block" homeLink="/safety" />
+          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/safety" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/safety" />
           <div className="flex items-center gap-2">
             <LangToggle />

@@ -29,17 +29,28 @@ export const PhotoUpload = ({
 
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
+    // `files` is already a snapshot Array (see input onChange handlers below) —
+    // critical on iOS Safari where the live FileList gets invalidated as
+    // soon as `e.target.value = ""` runs, dropping every file after #1.
     const next = [...photos];
+    let failed = 0;
     for (const file of files) {
-      if (!file.type.startsWith("image/")) continue;
+      if (!file || !file.type || !file.type.startsWith("image/")) continue;
       try {
         const dataUrl = await compressImage(file, 1280, 0.78);
         next.push(dataUrl);
       } catch {
-        toast.error(`Could not process ${file.name}`);
+        failed += 1;
+        toast.error(`Could not process ${file.name || "photo"}`);
       }
     }
     onChange?.(next);
+    const added = next.length - photos.length;
+    if (added > 1) {
+      toast.success(`${added} ${t("photos added")}`);
+    } else if (added === 0 && failed > 0) {
+      toast.error(t("No photos could be added"));
+    }
   };
 
   const removeAt = (idx) => {
@@ -105,8 +116,13 @@ export const PhotoUpload = ({
         multiple
         className="hidden"
         onChange={(e) => {
-          handleFiles(e.target.files);
+          // Snapshot the FileList into a real Array BEFORE we reset the
+          // input value — without this, iOS Safari drops files #2-N when
+          // the live FileList is invalidated by `value = ""` (the
+          // "only-one-photo-uploaded" bug).
+          const snapshot = Array.from(e.target.files || []);
           e.target.value = "";
+          handleFiles(snapshot);
         }}
         data-testid={`${testIdBase}-input-gallery`}
       />
@@ -118,8 +134,9 @@ export const PhotoUpload = ({
         multiple
         className="hidden"
         onChange={(e) => {
-          handleFiles(e.target.files);
+          const snapshot = Array.from(e.target.files || []);
           e.target.value = "";
+          handleFiles(snapshot);
         }}
         data-testid={`${testIdBase}-input-camera`}
       />

@@ -143,6 +143,15 @@ export default function NewIncident({ publicMode = false }) {
       toast.error("Reporter signature is required");
       return false;
     }
+    // Photos required — incidents are documentation-heavy by nature
+    // (OSHA, insurance, root-cause). 4-photo minimum mirrors site
+    // inspections.
+    if ((data.photos || []).length < 4) {
+      toast.error(
+        `${t("Minimum 4 photos required.")} (${(data.photos || []).length}/4)`
+      );
+      return false;
+    }
     return true;
   };
 
@@ -192,7 +201,7 @@ export default function NewIncident({ publicMode = false }) {
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           {publicMode ? (
-            <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+            <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           ) : (
             <Link
               to="/"
@@ -211,8 +220,8 @@ export default function NewIncident({ publicMode = false }) {
             <LangToggle />
             <Button
               onClick={submit}
-              disabled={saving}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+              disabled={saving || (data.photos || []).length < 4}
+              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
               data-testid="submit-top-btn"
             >
               {saving ? (
@@ -880,6 +889,20 @@ export default function NewIncident({ publicMode = false }) {
         </Section>
 
         <Section number="09" title={t("Photos / Evidence")}>
+          <p className="text-xs text-slate-600 -mt-2 mb-2">
+            {t("Photos: ")}
+            <span
+              className={
+                (data.photos || []).length >= 4
+                  ? "text-emerald-700 font-bold"
+                  : "text-red-700 font-bold"
+              }
+              data-testid="incident-photo-count"
+            >
+              {(data.photos || []).length}
+            </span>{" "}
+            / <span className="font-mono">{t("min 4 required")}</span>
+          </p>
           <PhotoUpload
             photos={data.photos}
             onChange={(photos) => set("photos", photos)}
@@ -912,10 +935,15 @@ export default function NewIncident({ publicMode = false }) {
         </Section>
 
         <div className="pt-4">
+          {(data.photos || []).length < 4 && (
+            <p className="text-xs text-red-700 font-bold text-center mb-2 font-mono uppercase tracking-[0.15em]">
+              {t("Need")} {4 - (data.photos || []).length} {t("more photo(s) before you can submit")}
+            </p>
+          )}
           <Button
             onClick={submit}
-            disabled={saving}
-            className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900"
+            disabled={saving || (data.photos || []).length < 4}
+            className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900 disabled:opacity-60"
             data-testid="submit-bottom-btn"
           >
             {saving ? (
