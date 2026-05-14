@@ -5,6 +5,53 @@
 - **Design tokens consolidation** — once production is live on `mascidocs.com`, draft `/app/frontend/src/styles/tokens.css` with proposed token names (`--brand-primary`, `--brand-accent`, per-portal accents, etc.) for user review BEFORE swapping anywhere. Then do the focused 80% pass (SectionTile + Hub + sub-hubs + portal accents). Zero visual change. ~30 min once approved.
 
 ---
+## 2026-05-14 — Iter122: Motive + MaintainX Integration Framework (SHIPPED)
+
+### User ask
+"MASCI OPERATIONS PLATFORM — MOTIVE + MAINTAINX INTEGRATION-READY FRAMEWORK BUILD." Stand up the architectural foundation + stubs (NO live API calls yet) for future Motive (telematics) and MaintainX (work-order) integrations. Slate accent. Master mappings tied to existing `db.equipment_master` and `db.employees`. Demo toggle for screenshots. CSV import/export fallback now.
+
+### Outcome: ✅ Shipped · 23/23 backend tests pass · frontend smoke verified across Admin, Safety, Shop, HR hubs
+
+### Backend
+- New package `/app/backend/routes/integrations/` with 6 sub-modules:
+  - `_storage.py` — provider seed + index ensure + demo-record fixtures (3 motive events · 3 maintainx WOs)
+  - `_deps.py` — `make_require_any_portal_token` accepts Admin · Safety · HR · Shop · PM tokens
+  - `config.py` — admin overview / settings / test-connection / public health card
+  - `mappings.py` — asset + employee mapping CRUD tied to `db.equipment_master` / `db.employees`
+  - `events.py` — Motive driver-safety events + MaintainX work-orders (demo-mode stitches in seed rows)
+  - `logs.py` — sync logs + error logs
+  - `webhooks.py` — Motive + MaintainX webhook receivers (signature-gated stubs)
+  - `imports_exports.py` — CSV import + 4 CSV exports (asset mappings · employee mappings · unmapped equipment · unmapped employees)
+- New service stubs at `/app/backend/services/{motive_service,maintainx_service}.py` (NO outbound HTTP — `test_connection()` returns stub message)
+- `server.py` wires `build_integrations_router(db, require_admin, _is_valid_admin_token)` + `ensure_integrations_indexes_and_seed` on startup
+- Route-ordering fix (caught by testing agent): mappings/logs/imports_exports register BEFORE config so the literal paths win over `/admin/integrations/{provider}` parametric route
+
+### Frontend
+- New `/app/frontend/src/pages/admin/AdminIntegrationCenter.jsx` — 8 tabs: Overview · Motive · MaintainX · Asset Mapping · Employee Mapping · Sync Logs · Error Logs · CSV Import/Export
+- New shared `/app/frontend/src/components/IntegrationHealthCard.jsx` — provider-status card accepts any portal token
+- New shared `/app/frontend/src/components/IntegrationEventsCard.jsx` — populated/empty-state cards for motive events + maintainx work-orders
+- AdminShell sidebar gets an **Integrations** nav (`admin-nav-integrations`)
+- `App.js` route `/admin/integrations` wired (`A(<AdminIntegrationCenter />)`)
+- Cross-portal mounts:
+  - AdminHub — IntegrationHealthCard
+  - SafetyHub — IntegrationHealthCard + IntegrationEventsCard(motive) cyan accent
+  - ShopHub — new Integrations tab with IntegrationHealthCard + IntegrationEventsCard(maintainx) orange accent
+  - HrHub — IntegrationHealthCard + IntegrationEventsCard(motive HR-review) purple accent
+
+### Demo toggle (for screenshots)
+- Per-provider toggle (`ic-motive-demo` · `ic-maintainx-demo`) in `AdminIntegrationCenter`
+- When ON, GET endpoints stitch in 3 hard-coded demo rows ahead of real records — flip OFF for clean empty state
+- Both seeded ON at boot so first run shows populated UI
+
+### Verified end-to-end
+- 23/23 backend tests pass: auth gate · overview · demo toggle round-trip · events demo-mode · empty-state · mappings CRUD · sync/error logs · CSV import (motive_vehicles) · 4 CSV exports
+- AdminHub + AdminIntegrationCenter + HrHub + ShopHub all confirmed via testing-agent automation
+- SafetyHub mount confirmed via screenshot — shows IntegrationHealthCard + Motive Driver Safety Events with 3 demo rows + DEMO / DISABLED pills
+
+### Critical constraint honored
+- **NO LIVE API CALLS** — Motive + MaintainX service stubs return "ready for credentials" placeholders; webhooks reject all unsigned deliveries; events list reads only the `motive_events` / `maintainx_work_orders` placeholder collections (empty until live API or demo toggle on)
+
+---
 ## 2026-05-14 — Iter121: Safety Portal package refactor + R2 document storage migration
 
 ### User ask
