@@ -79,7 +79,7 @@ export default function HrTimeOff() {
       <header className="bg-slate-900 border-b-4 border-cyan-700">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
           <BackLink to="/hr" label={t("HR Hub")} testId="time-off-back" />
-          <MasciLogo variant="lockup" size="md" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
           <LangToggle />
         </div>
       </header>

@@ -87,7 +87,7 @@ export default function CheatSheetCard() {
       {/* Top banner */}
       <div className="flex items-start justify-between gap-6 pb-6 border-b-4 border-red-700">
         <div className="flex-1">
-          <MasciLogo variant="lockup" size="2xl" onLight homeLink="/" />
+          <MasciLogo variant="mark" size="2xl" onLight homeLink="/" />
           <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.3em] text-red-700 font-bold">
             {t("MASCI Operations Platform · Field Card")}
           </div>

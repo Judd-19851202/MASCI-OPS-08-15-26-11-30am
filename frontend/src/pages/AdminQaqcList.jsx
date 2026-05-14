@@ -66,7 +66,7 @@ export default function AdminQaqcList() {
     <div className="min-h-screen blueprint-bg">
       <header className="bg-slate-900 border-b-4 border-emerald-600">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="lockup" size="lg" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" homeLink="/" />
           <LangToggle />
         </div>
       </header>

@@ -6,6 +6,36 @@
 
 ---
 
+## 2026-05-14 — Iter114: Portal Shell Logo Sweep (caught in production)
+
+### User ask
+"When inside admin or hr portal in live site old MASCI HUB logo is at the top — have we fixed this issue?"
+
+### Honest answer
+No — iter111's sweep deliberately only touched user-facing form/view pages. Portal shells (Admin Console, HR Hub, login pages, etc.) were left alone. **Fixed now.**
+
+### Shipped
+- Mass-swept ALL remaining `variant="lockup"` occurrences in `/app/frontend/src` (30 files: AdminShell, HrPageShell, FormPasswordGate, AdminLogin, HrLogin, PmLogin, ShopLogin, HrHub, SafetyFormsHub, FieldLeadershipRecords, AdminGuide, AdminTrainingVideos, AdminTerminations, AdminLeadershipEquipment, AdminQaqcList, PmQaqcList, HrTimeOff, ShopChangePassword, HrChangePassword, PmChangePassword, ShopResetPassword, HrResetPassword, PmResetPassword, SafetyFormsLogin, TrainingHub, TrainingTrack, SignIn, JhaPlansPosterCard, CheatSheetCard, TrenchBoxPosterCard) → all now use `variant="mark"`.
+- Verified zero "MASCI HUB" lockups in JSX anywhere in `/app/frontend/src`.
+- Live screenshot of `/admin/login` and `/hr/login` confirms M-mark only in headers.
+
+### Files changed
+- 30 files via `sed 's/variant="lockup"/variant="mark"/g'`
+
+### Verified
+- `grep -rln 'variant="lockup"' /app/frontend/src` → 0 hits
+- `/hr/login` body scan: "MASCI HUB" not present
+- `/admin/login` body scan: "MASCI HUB" not present
+- Visual screenshots confirm M-mark renders cleanly in all portal headers
+
+### Left intentionally (not touched)
+- `legal/TermsOfService.jsx` + `legal/PrivacyPolicy.jsx` — references "MASCI HUB™" as a registered trademark (legal text)
+- `MasciLogo.jsx:88` — alt text on the lockup variant (variant unused now)
+- Back-link text "Hub" in ~18 pages — separate concern, can sweep on request
+- `i18n.js` + `training.js` references — internal training copy, lower priority
+
+---
+
 ## 2026-05-14 — Iter113: Premium OG image (Gemini Nano Banana)
 
 ### User ask

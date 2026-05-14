@@ -50,7 +50,7 @@ export function FormPasswordGate({
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-center">
-          <MasciLogo variant="lockup" size="xl" className="hidden sm:block" />
+          <MasciLogo variant="mark" size="xl" className="hidden sm:block" />
           <MasciLogo variant="mark" size="lg" className="sm:hidden" />
         </div>
       </header>

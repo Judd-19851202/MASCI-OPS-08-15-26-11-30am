@@ -157,7 +157,7 @@ export default function HrLogin() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Hub")}
           </Link>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <LangToggle />
         </div>

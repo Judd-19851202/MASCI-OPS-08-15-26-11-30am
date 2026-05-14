@@ -70,7 +70,7 @@ export default function AdminTrainingVideos() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Admin
           </Link>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <span className="w-20" />
         </div>

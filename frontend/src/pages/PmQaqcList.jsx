@@ -94,7 +94,7 @@ export default function PmQaqcList() {
     <div className="min-h-screen blueprint-bg">
       <header className="bg-slate-900 border-b-4 border-amber-500">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="lockup" size="lg" homeLink="/pm" />
+          <MasciLogo variant="mark" size="lg" homeLink="/pm" />
           <LangToggle />
         </div>
       </header>

@@ -114,7 +114,7 @@ export default function AdminShell({ title, section, children, intro }) {
             </SheetContent>
           </Sheet>
 
-          <MasciLogo variant="lockup" size="md" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="sm" className="sm:hidden" homeLink="/" />
 
           <div className="flex-1 min-w-0">

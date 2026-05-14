@@ -66,7 +66,7 @@ export default function SafetyFormsLogin() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Safety")}
           </Link>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <LangToggle />
         </div>

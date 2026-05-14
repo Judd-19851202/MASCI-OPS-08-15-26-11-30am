@@ -115,7 +115,7 @@ export default function HrChangePassword() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("HR Portal")}
           </Link>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/hr" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/hr" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/hr" />
           <LangToggle />
         </div>

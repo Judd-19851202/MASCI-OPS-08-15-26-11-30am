@@ -33,7 +33,7 @@ export default function AdminGuide() {
           >
             <ArrowLeft className="w-4 h-4" /> Admin Console
           </Link>
-          <MasciLogo variant="lockup" size="md" className="hidden sm:block" homeLink="/admin" />
+          <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/admin" />
           <Button
             onClick={() => window.print()}
             className="h-9 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"

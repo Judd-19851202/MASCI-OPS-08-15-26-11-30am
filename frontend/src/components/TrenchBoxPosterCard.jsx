@@ -53,7 +53,7 @@ export default function TrenchBoxPosterCard() {
       {/* Top banner */}
       <div className="flex items-start justify-between gap-6 pb-5 border-b-4 border-red-700">
         <div className="flex-1">
-          <MasciLogo variant="lockup" size="2xl" onLight homeLink={hubHome} />
+          <MasciLogo variant="mark" size="2xl" onLight homeLink={hubHome} />
           <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.3em] text-red-700 font-bold">
             {t("OSHA 1926 Subpart P · Excavations")}
           </div>

@@ -124,7 +124,7 @@ export default function AdminLogin() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Hub
           </Link>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <span className="hidden sm:inline-block w-20" />
         </div>

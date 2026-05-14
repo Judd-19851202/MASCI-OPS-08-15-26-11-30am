@@ -109,7 +109,7 @@ export default function PmChangePassword() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("PM Portal")}
           </Link>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/pm" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/pm" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/pm" />
           <LangToggle />
         </div>

@@ -71,7 +71,7 @@ export default function SafetyFormsHub() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Safety")}
           </Link>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <div className="flex items-center gap-2">
             <LangToggle />
