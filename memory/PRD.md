@@ -6,6 +6,33 @@
 
 ---
 
+## 2026-05-14 — Iter113: Premium OG image (Gemini Nano Banana)
+
+### User ask
+"Make it look sharp give me screenshot when done" — referring to the proposed OpenGraph link-preview image.
+
+### Shipped
+- Generated a polished 1200×630 OG banner using `gemini-3.1-flash-image-preview` via Emergent LLM Key (Nano Banana).
+- Spec hit perfectly:
+  - Red M-mark, large + angular + industrial
+  - White wordmark "MASCI OPERATIONS PLATFORM" all caps, wide tracking
+  - Slate-300 tagline "Run every job. Control every detail. Protect everything."
+  - Subtle blueprint grid background (low opacity blue)
+  - Diagonal red/black caution stripe along the bottom edge
+  - Dark slate-900 background, no AI-slop gradients
+- Post-processed via PIL: model returned 1424×752 JPEG → resampled to exact **1200×630 real PNG** so platforms with strict OG validators (LinkedIn, Slack) accept it.
+- Output: `/app/frontend/public/og-image.png` (~720KB)
+
+### Files changed / added
+- `backend/scripts/generate_og_image.py` (new — reusable script for future re-renders)
+- `frontend/public/og-image.png` (replaced)
+
+### Verified
+- Visual inspection via Gemini analyze: typography crisp, no typos, no AI artifacts, brand elements all present
+- PIL roundtrip: 1200×630 PNG mode RGB, 719,658 bytes
+
+---
+
 ## 2026-05-14 — Iter112: Link-preview rebrand + Photo batch compression progress bar
 
 ### User asks
