@@ -28,6 +28,7 @@ import { EquipmentLines } from "@/components/EquipmentLines";
 import { EquipmentReturnLines } from "@/components/EquipmentReturnLines";
 import { OutstandingEquipmentLookup } from "@/components/OutstandingEquipmentLookup";
 import { getFormByKind } from "@/lib/fieldLeadershipSchemas";
+import { translateUserInput } from "@/lib/translateOnSubmit";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
@@ -514,7 +515,12 @@ export default function FieldLeadershipFormPage() {
         witness_signature: empRefused ? witnessSig : "",
         language: lang,
       };
-      const r = await api.post("/field-leadership", payload);
+      // Auto-translate any Spanish freeform text → English so HR/PM/Admin
+      // always see a legible English copy of the record. `submit_language`
+      // is stamped on the saved payload so admin views can see what was
+      // originally typed in Spanish.
+      const finalPayload = await translateUserInput(payload, lang);
+      const r = await api.post("/field-leadership", finalPayload);
       toast.success(t("Submitted — assigned PM, jaymn, and safety have been notified."));
       navigate(`/leadership/records/${r.data.id}`);
     } catch (err) {

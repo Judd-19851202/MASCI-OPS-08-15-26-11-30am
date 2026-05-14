@@ -2293,6 +2293,52 @@ const ES = {
   "Sign In": "Iniciar Sesión",
   "MASCI · Field Leadership · Restricted": "MASCI · Liderazgo de Campo · Restringido",
 
+  // ---- Sub-hub + Field Leadership tile CTAs (iter106–iter108) ----------
+  "Home": "Inicio",
+  "New entry": "Nueva entrada",
+  "Open form": "Abrir formulario",
+  "Open Tools": "Abrir Herramientas",
+
+  // ---- Public Time Off form (iter102 + iter110 bilingual) --------------
+  "Public Form": "Formulario Público",
+  "Link unavailable": "Enlace no disponible",
+  "Contact HR for a fresh link.": "Contacte a RRHH para un nuevo enlace.",
+  "Loading form…": "Cargando formulario…",
+  "Submitted!": "¡Enviado!",
+  "HR has been notified. You'll get an email when your request is reviewed.":
+    "Se notificó a RRHH. Recibirá un correo cuando su solicitud sea revisada.",
+  "Reference:": "Referencia:",
+  "MASCI · Time Off Request": "MASCI · Solicitud de Tiempo Libre",
+  "Hello,": "Hola,",
+  "Fill out this form to request time off. HR will review and email you a decision.":
+    "Llene este formulario para solicitar tiempo libre. RRHH lo revisará y le enviará una decisión por correo.",
+  "Position": "Puesto",
+  "Department": "Departamento",
+  "Reason *": "Motivo *",
+  "Pick a reason…": "Elija un motivo…",
+  "If Other, please explain *": "Si es Otro, por favor explique *",
+  "Pay Type": "Tipo de Pago",
+  "Paid": "Pagado",
+  "Unpaid": "Sin Pago",
+  "Half day on start": "Medio día al inicio",
+  "Half day on end": "Medio día al final",
+  "Total Days Requested:": "Días Totales Solicitados:",
+  "Contact Phone During Leave": "Teléfono de Contacto Durante la Ausencia",
+  "Coverage Plan / Who's Covering": "Plan de Cobertura / Quién Cubre",
+  "Employee Signature": "Firma del Empleado",
+  "Submit Time Off Request": "Enviar Solicitud de Tiempo Libre",
+  "Submitting…": "Enviando…",
+  // Time Off reason options
+  "Vacation": "Vacaciones",
+  "Sick Leave": "Permiso por Enfermedad",
+  "Medical Appointment": "Cita Médica",
+  "Family Emergency": "Emergencia Familiar",
+  "Bereavement": "Duelo",
+  "Jury Duty": "Jurado",
+  "Military Leave": "Permiso Militar",
+  "Personal": "Personal",
+  "Other": "Otro",
+
 };
 
 const DICTS = { es: ES, en: {} };

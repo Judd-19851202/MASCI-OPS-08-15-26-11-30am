@@ -19,6 +19,9 @@ import {
 import { toast } from "sonner";
 import { SignaturePad } from "@/components/SignaturePad";
 import { MasciLogo } from "@/components/MasciLogo";
+import { LangToggle } from "@/components/LangToggle";
+import { useT } from "@/lib/i18n";
+import { translateUserInput } from "@/lib/translateOnSubmit";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -28,6 +31,7 @@ const REASONS = [
 ];
 
 export default function PublicTimeOff() {
+  const { t, lang } = useT();
   const { token } = useParams();
   const [meta, setMeta] = React.useState(null);
   const [loadErr, setLoadErr] = React.useState("");
@@ -84,11 +88,21 @@ export default function PublicTimeOff() {
     if (new Date(endDate) < new Date(startDate)) { toast.error("End date is before start date"); return; }
     setBusy(true);
     try {
+      // Build the user-typed payload (only freeform fields go through the
+      // ES→EN translator — dates, numbers, signatures, enum values are
+      // skipped by translateOnSubmit's SKIP_KEY_RE).
+      const userPayload = {
+        reason: reason === "Other" ? `Other: ${reasonOther.trim()}` : reason,
+        reason_other: reasonOther.trim(),
+        coverage_plan: coverage,
+        notes,
+      };
+      const translated = await translateUserInput(userPayload, lang);
       const resp = await fetch(`${API}/public/time-off/${token}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          reason: reason === "Other" ? `Other: ${reasonOther.trim()}` : reason,
+          reason: translated.reason,
           pay_type: payType,
           start_date: startDate,
           end_date: endDate,
@@ -97,9 +111,10 @@ export default function PublicTimeOff() {
           total_days: totalDays,
           return_to_work_date: returnDate,
           contact_phone: contactPhone,
-          coverage_plan: coverage,
-          notes,
+          coverage_plan: translated.coverage_plan,
+          notes: translated.notes,
           employee_signature: signature,
+          submit_language: lang,
         }),
       });
       if (!resp.ok) {
@@ -117,12 +132,12 @@ export default function PublicTimeOff() {
 
   if (loadErr) {
     return (
-      <PublicShell>
+      <PublicShell t={t}>
         <Card className="p-8 text-center border-red-300">
           <AlertTriangle className="w-12 h-12 mx-auto text-red-600 mb-3" />
-          <h1 className="font-display text-2xl font-black">Link unavailable</h1>
+          <h1 className="font-display text-2xl font-black">{t("Link unavailable")}</h1>
           <p className="text-slate-600 mt-2">{loadErr}</p>
-          <p className="text-slate-500 text-sm mt-3">Contact HR for a fresh link.</p>
+          <p className="text-slate-500 text-sm mt-3">{t("Contact HR for a fresh link.")}</p>
         </Card>
       </PublicShell>
     );
@@ -130,9 +145,9 @@ export default function PublicTimeOff() {
 
   if (!meta) {
     return (
-      <PublicShell>
+      <PublicShell t={t}>
         <div className="text-center py-12 text-slate-500">
-          <Loader2 className="w-8 h-8 mx-auto animate-spin mb-2" /> Loading form…
+          <Loader2 className="w-8 h-8 mx-auto animate-spin mb-2" /> {t("Loading form…")}
         </div>
       </PublicShell>
     );
@@ -140,15 +155,15 @@ export default function PublicTimeOff() {
 
   if (submitted) {
     return (
-      <PublicShell>
+      <PublicShell t={t}>
         <Card className="p-8 text-center border-emerald-300 bg-emerald-50">
           <CheckCircle2 className="w-12 h-12 mx-auto text-emerald-700 mb-3" />
-          <h1 className="font-display text-2xl font-black">Submitted!</h1>
+          <h1 className="font-display text-2xl font-black">{t("Submitted!")}</h1>
           <p className="text-slate-700 mt-2">
-            HR has been notified. You'll get an email when your request is reviewed.
+            {t("HR has been notified. You'll get an email when your request is reviewed.")}
           </p>
           {submitted.doc_id && (
-            <p className="font-mono text-sm text-slate-500 mt-3">Reference: {submitted.doc_id}</p>
+            <p className="font-mono text-sm text-slate-500 mt-3">{t("Reference:")} {submitted.doc_id}</p>
           )}
         </Card>
       </PublicShell>
@@ -156,98 +171,98 @@ export default function PublicTimeOff() {
   }
 
   return (
-    <PublicShell>
+    <PublicShell t={t}>
       <div className="mb-4">
         <div className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] text-cyan-700 font-bold">
-          <CalendarOff className="w-3.5 h-3.5 inline mr-1" /> MASCI · Time Off Request
+          <CalendarOff className="w-3.5 h-3.5 inline mr-1" /> {t("MASCI · Time Off Request")}
         </div>
-        <h1 className="font-display text-2xl sm:text-3xl font-black mt-1">Hello, {meta.employee_name}.</h1>
+        <h1 className="font-display text-2xl sm:text-3xl font-black mt-1">{t("Hello,")} {meta.employee_name}.</h1>
         <p className="text-slate-600 mt-2 text-sm sm:text-base">
-          {meta.note || "Fill out this form to request time off. HR will review and email you a decision."}
+          {meta.note || t("Fill out this form to request time off. HR will review and email you a decision.")}
         </p>
       </div>
 
       <Card className="p-4 sm:p-5 space-y-4 pb-24 sm:pb-5" data-testid="public-time-off-form">
         <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Position">
+          <Field label={t("Position")}>
             <Input value={meta.employee_position || ""} disabled className="bg-slate-100 h-12" />
           </Field>
-          <Field label="Department">
+          <Field label={t("Department")}>
             <Input value={meta.department || ""} disabled className="bg-slate-100 h-12" />
           </Field>
         </div>
 
-        <Field label="Reason *">
+        <Field label={t("Reason *")}>
           <Select value={reason} onValueChange={setReason}>
-            <SelectTrigger className="h-12" data-testid="public-reason"><SelectValue placeholder="Pick a reason…" /></SelectTrigger>
+            <SelectTrigger className="h-12" data-testid="public-reason"><SelectValue placeholder={t("Pick a reason…")} /></SelectTrigger>
             <SelectContent>
-              {REASONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              {REASONS.map((r) => <SelectItem key={r} value={r}>{t(r)}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
         {reason === "Other" && (
-          <Field label="If Other, please explain *">
+          <Field label={t("If Other, please explain *")}>
             <Input value={reasonOther} onChange={(e) => setReasonOther(e.target.value)} className="h-12" />
           </Field>
         )}
 
-        <Field label="Pay Type">
+        <Field label={t("Pay Type")}>
           <Select value={payType} onValueChange={setPayType}>
             <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="Paid">Paid</SelectItem>
-              <SelectItem value="Unpaid">Unpaid</SelectItem>
+              <SelectItem value="Paid">{t("Paid")}</SelectItem>
+              <SelectItem value="Unpaid">{t("Unpaid")}</SelectItem>
             </SelectContent>
           </Select>
         </Field>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Start Date *">
+          <Field label={t("Start Date *")}>
             <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-12" data-testid="public-start-date" />
           </Field>
-          <Field label="End Date *">
+          <Field label={t("End Date *")}>
             <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-12" data-testid="public-end-date" />
           </Field>
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="flex items-center gap-2 text-sm py-2 px-1 cursor-pointer min-h-11">
             <input type="checkbox" checked={halfStart} onChange={(e) => setHalfStart(e.target.checked)} className="w-5 h-5" />
-            Half day on start
+            {t("Half day on start")}
           </label>
           <label className="flex items-center gap-2 text-sm py-2 px-1 cursor-pointer min-h-11">
             <input type="checkbox" checked={halfEnd} onChange={(e) => setHalfEnd(e.target.checked)} className="w-5 h-5" />
-            Half day on end
+            {t("Half day on end")}
           </label>
         </div>
 
         <div className="bg-cyan-50 border border-cyan-200 rounded p-3 font-mono text-sm">
-          Total Days Requested: <span className="font-bold text-cyan-900 text-lg">{totalDays}</span>
+          {t("Total Days Requested:")} <span className="font-bold text-cyan-900 text-lg">{totalDays}</span>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Return to Work Date">
+          <Field label={t("Return to Work Date")}>
             <Input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="h-12" />
           </Field>
-          <Field label="Contact Phone During Leave">
+          <Field label={t("Contact Phone During Leave")}>
             <Input type="tel" inputMode="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="h-12" />
           </Field>
         </div>
 
-        <Field label="Coverage Plan / Who's Covering">
+        <Field label={t("Coverage Plan / Who's Covering")}>
           <Textarea rows={2} value={coverage} onChange={(e) => setCoverage(e.target.value)} className="text-base" />
         </Field>
-        <Field label="Notes / Additional Detail">
+        <Field label={t("Notes / Additional Detail")}>
           <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} className="text-base" />
         </Field>
 
         <div>
-          <Label className="font-mono text-[10px] sm:text-xs uppercase mb-1 block">Employee Signature</Label>
+          <Label className="font-mono text-[10px] sm:text-xs uppercase mb-1 block">{t("Employee Signature")}</Label>
           <SignaturePad value={signature} onChange={setSignature} />
         </div>
 
         {/* Desktop submit (hidden on mobile — replaced by sticky bar below) */}
         <Button onClick={submit} disabled={busy} className="hidden sm:flex w-full h-12 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-wide" data-testid="public-submit">
-          {busy ? "Submitting…" : "Submit Time Off Request"}
+          {busy ? t("Submitting…") : t("Submit Time Off Request")}
         </Button>
       </Card>
 
@@ -257,7 +272,7 @@ export default function PublicTimeOff() {
           className="w-full h-14 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-wide text-base"
           data-testid="public-submit-mobile"
         >
-          {busy ? "Submitting…" : "Submit Time Off Request"}
+          {busy ? t("Submitting…") : t("Submit Time Off Request")}
         </Button>
       </div>
     </PublicShell>
@@ -273,15 +288,18 @@ function Field({ label, children }) {
   );
 }
 
-function PublicShell({ children }) {
+function PublicShell({ children, t }) {
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
       <header className="bg-slate-900 border-b-4 border-cyan-700">
-        <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between gap-3">
           <MasciLogo variant="mark" size="md" homeLink="/" />
-          <span className="font-mono text-[10px] uppercase tracking-widest text-cyan-300">
-            Public Form
-          </span>
+          <div className="flex items-center gap-2">
+            <LangToggle />
+            <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-widest text-cyan-300">
+              {t ? t("Public Form") : "Public Form"}
+            </span>
+          </div>
         </div>
       </header>
       <main className="max-w-2xl mx-auto px-5 py-6">{children}</main>
