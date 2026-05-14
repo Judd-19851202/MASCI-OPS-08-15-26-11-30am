@@ -8142,6 +8142,28 @@ _safety_router = build_safety_router(
 app.include_router(_safety_router)
 
 
+# ─── Integration Center (Motive + MaintainX framework — iter122) ───
+from routes.integrations import (  # noqa: E402
+    build_integrations_router,
+    ensure_integrations_indexes_and_seed,
+)
+from routes.safety_portal._deps import make_require_safety_or_hr_or_admin  # noqa: E402
+
+_integration_safety_or_hr_or_admin = make_require_safety_or_hr_or_admin(
+    db, is_valid_admin_token=_is_valid_admin_token,
+)
+_integrations_router = build_integrations_router(
+    db, require_admin, _integration_safety_or_hr_or_admin,
+)
+app.include_router(_integrations_router)
+
+
+@app.on_event("startup")
+async def _bootstrap_integrations():
+    await ensure_integrations_indexes_and_seed(db)
+    logger.info("[integrations] indexes + seed settings ready")
+
+
 @app.on_event("startup")
 async def _seed_safety_users():
     await seed_safety_users(db)
