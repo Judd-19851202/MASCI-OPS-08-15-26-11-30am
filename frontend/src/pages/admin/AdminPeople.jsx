@@ -4,6 +4,7 @@ import AdminShell from "@/components/AdminShell";
 import AdminPMPanel from "@/components/AdminPMPanel";
 import AdminShopUsersPanel from "@/components/AdminShopUsersPanel";
 import AdminHRUsersPanel from "@/components/AdminHRUsersPanel";
+import AdminSafetyUsersPanel from "@/components/AdminSafetyUsersPanel";
 import AdminAccessControlPanel from "@/components/AdminAccessControlPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 
@@ -25,6 +26,7 @@ export default function AdminPeople() {
         <AdminPMPanel />
         <AdminShopUsersPanel />
         <AdminHRUsersPanel />
+        <AdminSafetyUsersPanel />
         <EmployeeMasterPanel />
       </div>
     </AdminShell>

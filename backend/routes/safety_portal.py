@@ -159,8 +159,14 @@ def build_safety_router(db, require_admin) -> APIRouter:
         pwh = user.get("password_hash") or ""
         if not verify_password(body.current_password, pwh):
             raise HTTPException(status_code=401, detail="Current password is incorrect")
-        await set_safety_user_password(db, user["id"], body.new_password, must_change=False)
-        return {"ok": True}
+        updated = await set_safety_user_password(db, user["id"], body.new_password, must_change=False)
+        if not updated:
+            raise HTTPException(status_code=404, detail="user not found")
+        # Token is bound to the bcrypt hash prefix → old token is now
+        # invalid. Mint and return a fresh one so the client can keep
+        # the session alive without bouncing through /login.
+        new_token = make_safety_user_token(updated["id"], updated["password_hash"])
+        return {"ok": True, "token": new_token, "user": public_safety_user_view(updated)}
 
     # ---------- Forgot password ----------
     @api_router.post("/safety/forgot-password")
@@ -182,8 +188,11 @@ def build_safety_router(db, require_admin) -> APIRouter:
             raise HTTPException(status_code=400, detail="Reset link is invalid or expired")
         if not body.new_password or len(body.new_password) < 8:
             raise HTTPException(status_code=400, detail="New password must be at least 8 characters")
-        await set_safety_user_password(db, user["id"], body.new_password, must_change=False)
-        return {"ok": True}
+        updated = await set_safety_user_password(db, user["id"], body.new_password, must_change=False)
+        if not updated:
+            raise HTTPException(status_code=404, detail="user not found")
+        new_token = make_safety_user_token(updated["id"], updated["password_hash"])
+        return {"ok": True, "token": new_token, "user": public_safety_user_view(updated)}
 
     # ---------- Overview KPIs (read-only roll-up of existing records) ----------
     @api_router.get("/safety/overview")

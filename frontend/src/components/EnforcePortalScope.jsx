@@ -4,6 +4,7 @@ import { clearAdminToken, getAdminToken } from "@/lib/adminAuth";
 import { clearPmToken, getPmToken } from "@/lib/pmAuth";
 import { clearShopToken, getShopToken } from "@/lib/shopAuth";
 import { clearHrToken, getHrToken } from "@/lib/hrAuth";
+import { clearSafetyToken, getSafetyToken } from "@/lib/safetyAuth";
 import { getDirectoryUser } from "@/lib/directoryAuth";
 
 /**
@@ -67,6 +68,9 @@ export default function EnforcePortalScope() {
     }
     if (getHrToken() && !inScope(pathname, "/hr") && !dirHas("hr")) {
       clearHrToken();
+    }
+    if (getSafetyToken() && !inScope(pathname, "/safety-portal") && !dirHas("safety")) {
+      clearSafetyToken();
     }
   }, [pathname]);
 

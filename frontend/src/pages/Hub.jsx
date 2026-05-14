@@ -22,7 +22,7 @@ import { Link } from "react-router-dom";
 import {
   HardHat, ClipboardList, Building2, Shield, Wrench, ClipboardCheck,
   GraduationCap, UserCheck, Users, ArrowRight, MapPin, Lock, Phone,
-  BookOpen, LogOut,
+  BookOpen, LogOut, ShieldAlert,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -32,6 +32,7 @@ import { getAdminToken, clearAdminToken } from "@/lib/adminAuth";
 import { getPmToken, clearPmToken } from "@/lib/pmAuth";
 import { getShopToken, clearShopToken } from "@/lib/shopAuth";
 import { getHrToken, getHrUser, clearHrToken } from "@/lib/hrAuth";
+import { getSafetyToken, getSafetyUser, clearSafetyToken } from "@/lib/safetyAuth";
 import { isLeadershipAuthed, clearLeadershipToken } from "@/lib/leadershipAuth";
 
 // ─── Shared tile component ──────────────────────────────────────────────
@@ -125,6 +126,7 @@ const PortalPill = ({ to, icon: Icon, title, desc, accent, testId, signedIn, sig
     purple: { bg: "bg-purple-700", border: "border-purple-200", cta: "text-purple-700" },
     orange: { bg: "bg-orange-600", border: "border-orange-200", cta: "text-orange-700" },
     indigo: { bg: "bg-indigo-700", border: "border-indigo-200", cta: "text-indigo-700" },
+    cyan:   { bg: "bg-cyan-700",   border: "border-cyan-200",   cta: "text-cyan-700" },
     slate:  { bg: "bg-slate-900",  border: "border-slate-200",  cta: "text-slate-800" },
   }[accent] || { bg: "bg-slate-900", border: "border-slate-200", cta: "text-slate-800" };
 
@@ -169,6 +171,7 @@ function WelcomeBackHero({ session }) {
     pm:     { bg: "bg-indigo-700", text: "text-indigo-50", btn: "bg-white text-indigo-700 hover:bg-indigo-50" },
     shop:   { bg: "bg-orange-700", text: "text-orange-50", btn: "bg-white text-orange-700 hover:bg-orange-50" },
     hr:     { bg: "bg-purple-700", text: "text-purple-50", btn: "bg-white text-purple-700 hover:bg-purple-50" },
+    safety: { bg: "bg-cyan-700",   text: "text-cyan-50",   btn: "bg-white text-cyan-700 hover:bg-cyan-50" },
     leadership: { bg: "bg-slate-700", text: "text-slate-100", btn: "bg-white text-slate-900 hover:bg-slate-100" },
   }[session.kind];
   return (
@@ -317,8 +320,8 @@ export default function Hub() {
         </div>
 
         {/* SECTION 3 — Office Portals (compact, sign-in required) */}
-        <SectionHeader kicker="03" title={t("Office Portals")} subtitle={t("Sign-in required. For office staff, mechanics, and HR.")} />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-10">
+        <SectionHeader kicker="03" title={t("Office Portals")} subtitle={t("Sign-in required. For office staff, mechanics, HR, and Safety.")} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-10">
           <PortalPill
             to="/pm/login"
             icon={ClipboardList}
@@ -347,6 +350,16 @@ export default function Hub() {
             accent="purple"
             testId="hub-section-hr"
             signedIn={session?.kind === "hr"}
+            signedInLabel={t("Open Portal")}
+          />
+          <PortalPill
+            to={session?.kind === "safety" ? "/safety-portal" : "/safety-portal/login"}
+            icon={ShieldAlert}
+            title={t("Safety Portal")}
+            desc={t("Safety command center — incidents, audits, corrective actions, training.")}
+            accent="cyan"
+            testId="hub-section-safety-portal"
+            signedIn={session?.kind === "safety"}
             signedInLabel={t("Open Portal")}
           />
           <PortalPill
@@ -455,6 +468,11 @@ function detectActiveSession(t, rerender) {
     const u = getHrUser() || {};
     return { kind: "hr", scopeLabel: "HR Portal", name: u.name || u.email || "HR", to: "/hr",
              signOut: onSignOut(clearHrToken) };
+  }
+  if (getSafetyToken()) {
+    const u = getSafetyUser() || {};
+    return { kind: "safety", scopeLabel: "Safety Portal", name: u.name || u.email || "Safety", to: "/safety-portal",
+             signOut: onSignOut(clearSafetyToken) };
   }
   if (getPmToken()) {
     return { kind: "pm", scopeLabel: "PM Portal", name: "Project Manager", to: "/pm",

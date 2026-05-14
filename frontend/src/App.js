@@ -80,6 +80,12 @@ import HrTrainingRecords from "@/pages/HrTrainingRecords";
 import HrPayrollVariance from "@/pages/HrPayrollVariance";
 import HrTimeOff from "@/pages/HrTimeOff";
 import PublicTimeOff from "@/pages/PublicTimeOff";
+import SafetyLogin from "@/pages/SafetyLogin";
+import SafetyHub from "@/pages/SafetyHub";
+import SafetyChangePassword from "@/pages/SafetyChangePassword";
+import SafetyForgotPassword from "@/pages/SafetyForgotPassword";
+import SafetyResetPassword from "@/pages/SafetyResetPassword";
+import SafetyCorrectiveActions from "@/pages/SafetyCorrectiveActions";
 import TrainingHub from "@/pages/TrainingHub";
 import TrainingTrack from "@/pages/TrainingTrack";
 import TrainingQrPoster from "@/pages/TrainingQrPoster";
@@ -102,6 +108,7 @@ import { RequireAdminOrPm } from "@/components/RequireAdminOrPm";
 import { RequirePm } from "@/components/RequirePm";
 import { RequireShop } from "@/components/RequireShop";
 import { RequireHr } from "@/components/RequireHr";
+import { RequireSafety } from "@/components/RequireSafety";
 import { RequireDev } from "@/components/RequireDev";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 import GlobalKeepalive from "@/components/GlobalKeepalive";
@@ -133,6 +140,7 @@ const AP = (el) => <RequireAdminOrPm>{el}</RequireAdminOrPm>;
 const P = (el) => <RequirePm>{el}</RequirePm>;
 const S = (el) => <RequireShop>{el}</RequireShop>;
 const H = (el) => <RequireHr>{el}</RequireHr>;
+const SF = (el) => <RequireSafety>{el}</RequireSafety>;
 const D = (el) => <RequireDev>{el}</RequireDev>;
 
 function App() {
@@ -369,6 +377,21 @@ function App() {
             <Route path="/hr/payroll-variance" element={H(<HrPayrollVariance />)} />
             <Route path="/hr/training-records" element={H(<HrTrainingRecords />)} />
             <Route path="/time-off/public/:token" element={<PublicTimeOff />} />
+
+            {/* ============================================================
+                Safety Portal — isolated cyan-700 scope for Safety
+                Manager / Coordinator / Officer. Independent JWT (X-Safety-Token);
+                admin tokens do NOT satisfy these routes. Phase 1 ships
+                overview KPIs (pulled from existing incident/inspection/
+                meeting/leadership collections — no duplicate forms) and
+                a corrective-action CRUD pipeline.
+                ============================================================ */}
+            <Route path="/safety-portal/login" element={<SafetyLogin />} />
+            <Route path="/safety-portal/forgot-password" element={<SafetyForgotPassword />} />
+            <Route path="/safety-portal/reset/:token" element={<SafetyResetPassword />} />
+            <Route path="/safety-portal/change-password" element={SF(<SafetyChangePassword />)} />
+            <Route path="/safety-portal" element={SF(<SafetyHub />)} />
+            <Route path="/safety-portal/corrective-actions" element={SF(<SafetyCorrectiveActions />)} />
 
             {/* ============================================================
                 Training Hub — landing is public, tracks gate per audience
