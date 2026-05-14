@@ -1,5 +1,11 @@
 # MASCI Safety Hub — PRD
 
+## 🟡 Post-deploy backlog reminder
+
+- **Design tokens consolidation** — once production is live on `mascidocs.com`, draft `/app/frontend/src/styles/tokens.css` with proposed token names (`--brand-primary`, `--brand-accent`, per-portal accents, etc.) for user review BEFORE swapping anywhere. Then do the focused 80% pass (SectionTile + Hub + sub-hubs + portal accents). Zero visual change. ~30 min once approved.
+
+---
+
 ## 2026-05-13 — Iter109: Master Deployment Readiness Audit
 
 ### User ask
