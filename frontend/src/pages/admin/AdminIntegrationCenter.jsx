@@ -11,7 +11,7 @@ import React, { useEffect, useState } from "react";
 import {
   Cable, Plug, Truck, Users, FileText, AlertOctagon, FileUp, FileDown,
   Loader2, RefreshCcw, Save, X, Pencil, Trash2, AlertTriangle,
-  CheckCircle2, ExternalLink, Eye, EyeOff,
+  CheckCircle2, ExternalLink, Eye, EyeOff, Wand2, ChevronRight, Undo2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,6 +75,7 @@ export default function AdminIntegrationCenter() {
           <TabsTrigger value="sync" data-testid="ic-tab-sync"><FileText className="w-3.5 h-3.5 mr-1" /> Sync Logs</TabsTrigger>
           <TabsTrigger value="errors" data-testid="ic-tab-errors"><AlertOctagon className="w-3.5 h-3.5 mr-1" /> Error Logs</TabsTrigger>
           <TabsTrigger value="csv" data-testid="ic-tab-csv"><FileUp className="w-3.5 h-3.5 mr-1" /> CSV Import / Export</TabsTrigger>
+          <TabsTrigger value="wizard" data-testid="ic-tab-wizard"><Wand2 className="w-3.5 h-3.5 mr-1" /> Mappings Wizard</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -85,6 +86,7 @@ export default function AdminIntegrationCenter() {
         <TabsContent value="sync"><SyncLogsTab /></TabsContent>
         <TabsContent value="errors"><ErrorLogsTab /></TabsContent>
         <TabsContent value="csv"><CsvTab /></TabsContent>
+        <TabsContent value="wizard"><WizardTab /></TabsContent>
       </Tabs>
     </AdminShell>
   );
@@ -790,6 +792,402 @@ function CsvTab() {
             </Button>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ──────────────────────────────────────────────────────────────────
+   Mappings Wizard — paste/upload a CSV of provider IDs, match by
+   unit_number, REVIEW EVERY ROW, then commit. Never overwrites
+   existing mappings without explicit force-overwrite per row.
+   ────────────────────────────────────────────────────────────────── */
+const STATUS_PILL = {
+  ready:              { cls: "bg-emerald-100 text-emerald-900 border-emerald-300", label: "Ready" },
+  noop:               { cls: "bg-slate-200 text-slate-700 border-slate-300",       label: "Already linked" },
+  conflict:           { cls: "bg-amber-100 text-amber-900 border-amber-300",       label: "Conflict" },
+  duplicate:          { cls: "bg-violet-100 text-violet-900 border-violet-300",    label: "Duplicate unit" },
+  external_collision: { cls: "bg-red-100 text-red-900 border-red-300",             label: "External collision" },
+  unmatched:          { cls: "bg-slate-100 text-slate-500 border-slate-200",       label: "No match" },
+};
+
+function WizardTab() {
+  const [kind, setKind] = useState("motive_vehicles");
+  const [sourceLabel, setSourceLabel] = useState("paste");
+  const [paste, setPaste] = useState("");
+  const [unitCol, setUnitCol] = useState("unit_number");
+  const [extIdCol, setExtIdCol] = useState("external_id");
+  const [extNameCol, setExtNameCol] = useState("external_name");
+  const [previewing, setPreviewing] = useState(false);
+  const [committing, setCommitting] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const [decisions, setDecisions] = useState({}); // row_index → {action, masci_equipment_id?, force_overwrite?}
+  const [runs, setRuns] = useState([]);
+  const [lastRun, setLastRun] = useState(null);
+
+  const loadRuns = async () => {
+    try { setRuns((await api.get("/admin/integrations/mappings/wizard/runs?limit=10")).data || []); }
+    catch { /* ignore */ }
+  };
+  useEffect(() => { loadRuns(); }, []);
+
+  const parseRows = () => {
+    // Accept CSV or TSV. First line is treated as header IFF it contains
+    // at least one of the named columns; otherwise we fall back to the
+    // first three columns being [unit, ext_id, ext_name].
+    const lines = paste.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0) return [];
+    const sniff = lines[0].includes("\t") ? "\t" : ",";
+    const headerParts = lines[0].split(sniff).map((s) => s.trim().replace(/^"|"$/g, ""));
+    const lower = headerParts.map((h) => h.toLowerCase());
+    const hasHeader = lower.includes(unitCol) || lower.includes(extIdCol) || lower.includes(extNameCol);
+    let dataLines = lines;
+    let cols;
+    if (hasHeader) {
+      cols = {
+        unit: lower.indexOf(unitCol),
+        ext: lower.indexOf(extIdCol),
+        name: lower.indexOf(extNameCol),
+      };
+      dataLines = lines.slice(1);
+    } else {
+      cols = { unit: 0, ext: 1, name: 2 };
+    }
+    return dataLines.map((l) => {
+      const parts = l.split(sniff).map((s) => s.trim().replace(/^"|"$/g, ""));
+      return {
+        unit_number: cols.unit >= 0 ? (parts[cols.unit] || "") : "",
+        external_id: cols.ext >= 0 ? (parts[cols.ext] || "") : "",
+        external_name: cols.name >= 0 ? (parts[cols.name] || "") : "",
+      };
+    });
+  };
+
+  const runPreview = async () => {
+    const rows = parseRows();
+    if (rows.length === 0) { toast.error("Paste at least one row of CSV/TSV data"); return; }
+    setPreviewing(true);
+    setPreview(null);
+    setLastRun(null);
+    setDecisions({});
+    try {
+      const r = await api.post("/admin/integrations/mappings/wizard/preview", { kind, rows });
+      setPreview(r.data);
+      // Seed default per-row decisions: ready → suggested_action;
+      // conflict → skip (force_overwrite off); everything else → skip
+      const seed = {};
+      (r.data.rows || []).forEach((row) => {
+        if (row.status === "ready") {
+          seed[row.row_index] = {
+            action: row.suggested_action || "create",
+            masci_equipment_id: row.matches?.[0]?.masci_equipment_id || null,
+            mapping_id: row.current_mapping_id || null,
+            external_id: row.input_external_id,
+            force_overwrite: false,
+          };
+        } else if (row.status === "conflict") {
+          seed[row.row_index] = {
+            action: "skip",
+            masci_equipment_id: row.matches?.[0]?.masci_equipment_id || null,
+            mapping_id: row.current_mapping_id || null,
+            external_id: row.input_external_id,
+            force_overwrite: false,
+          };
+        } else {
+          seed[row.row_index] = {
+            action: "skip",
+            masci_equipment_id: row.matches?.[0]?.masci_equipment_id || null,
+            external_id: row.input_external_id,
+            force_overwrite: false,
+          };
+        }
+      });
+      setDecisions(seed);
+      toast.success(`Preview ready — ${r.data.totals.ready} ready · ${r.data.totals.conflict} conflict · ${r.data.totals.unmatched} unmatched`);
+    } catch (e) {
+      const d = e?.response?.data?.detail;
+      toast.error(typeof d === "string" ? d : (d ? JSON.stringify(d).slice(0, 200) : "Preview failed"));
+    } finally { setPreviewing(false); }
+  };
+
+  const commit = async () => {
+    if (!preview) return;
+    const decisionList = (preview.rows || []).map((row) => {
+      const d = decisions[row.row_index] || { action: "skip" };
+      return {
+        action: d.action,
+        masci_equipment_id: d.masci_equipment_id || null,
+        mapping_id: d.mapping_id || null,
+        external_id: d.external_id || row.input_external_id || "",
+        external_name: row.input_external_name || "",
+        force_overwrite: !!d.force_overwrite,
+      };
+    });
+    const willWrite = decisionList.filter((d) => d.action !== "skip").length;
+    if (willWrite === 0) {
+      toast.error("All rows are set to Skip — nothing to commit");
+      return;
+    }
+    if (!window.confirm(
+      `Commit ${willWrite} mapping change${willWrite === 1 ? "" : "s"}?\n\n` +
+      "This will write to the asset_mappings collection.\n" +
+      "Master equipment records are NOT touched."
+    )) return;
+    setCommitting(true);
+    try {
+      const r = await api.post("/admin/integrations/mappings/wizard/commit", {
+        kind, source_label: sourceLabel, decisions: decisionList,
+      });
+      setLastRun(r.data);
+      toast.success(`Run complete · ${r.data.totals.created} created · ${r.data.totals.updated} updated · ${r.data.totals.blocked} blocked`);
+      setPreview(null); setDecisions({}); setPaste("");
+      loadRuns();
+    } catch (e) {
+      const d = e?.response?.data?.detail;
+      toast.error(typeof d === "string" ? d : (d ? JSON.stringify(d).slice(0, 200) : "Commit failed"));
+    } finally { setCommitting(false); }
+  };
+
+  const updateDecision = (row_index, patch) => {
+    setDecisions((d) => ({ ...d, [row_index]: { ...(d[row_index] || {}), ...patch } }));
+  };
+
+  const reset = () => {
+    setPreview(null); setDecisions({}); setLastRun(null); setPaste("");
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header / safety banner */}
+      <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+        <div className="flex items-start gap-3">
+          <div className="inline-flex items-center justify-center w-11 h-11 rounded-md bg-slate-900 text-white shrink-0">
+            <Wand2 className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
+              Two-step · review-before-commit
+            </span>
+            <h3 className="font-display text-lg font-black mt-0.5 leading-tight">
+              Mappings Wizard
+            </h3>
+            <p className="text-sm text-slate-600 mt-1">
+              Paste rows from a Motive or MaintainX export, match by MASCI unit number,
+              <strong> review every row</strong>, then commit. Master equipment records are never
+              modified — only the <code className="text-xs">asset_mappings</code> collection is written.
+              Existing mappings will <strong>not</strong> be overwritten unless you explicitly toggle
+              force-overwrite on that row.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Step 1 — pick source kind + column hints + paste */}
+      <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+        <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-3">
+          Step 1 · Configure & paste rows
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Provider</Label>
+            <Select value={kind} onValueChange={setKind}>
+              <SelectTrigger className={`${inputCls} mt-1`} data-testid="ic-wizard-kind"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="motive_vehicles">Motive · Vehicles</SelectItem>
+                <SelectItem value="maintainx_assets">MaintainX · Assets</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Source label (for audit log)</Label>
+            <Input value={sourceLabel} onChange={(e) => setSourceLabel(e.target.value)} className={`${inputCls} mt-1`} placeholder="paste, csv, motive-export-20260514" data-testid="ic-wizard-source" />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Unit col</Label>
+              <Input value={unitCol} onChange={(e) => setUnitCol(e.target.value.toLowerCase())} className={`${inputCls} mt-1`} data-testid="ic-wizard-col-unit" />
+            </div>
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">ID col</Label>
+              <Input value={extIdCol} onChange={(e) => setExtIdCol(e.target.value.toLowerCase())} className={`${inputCls} mt-1`} data-testid="ic-wizard-col-ext" />
+            </div>
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Name col</Label>
+              <Input value={extNameCol} onChange={(e) => setExtNameCol(e.target.value.toLowerCase())} className={`${inputCls} mt-1`} data-testid="ic-wizard-col-name" />
+            </div>
+          </div>
+        </div>
+
+        <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mt-3 block">
+          Paste CSV / TSV (header row optional — falls back to first 3 columns)
+        </Label>
+        <Textarea
+          value={paste}
+          onChange={(e) => setPaste(e.target.value)}
+          rows={8}
+          className="text-xs font-mono border-2 border-slate-300 mt-1"
+          placeholder={`unit_number,external_id,external_name\nEXC-8614,mv-100,Excavator 8614\nBH004-3882,mv-101,Backhoe 3882`}
+          data-testid="ic-wizard-paste"
+        />
+        <div className="flex items-center gap-2 mt-3">
+          <Button onClick={runPreview} disabled={previewing || !paste.trim()} className="bg-slate-900 hover:bg-slate-800 text-white h-10" data-testid="ic-wizard-preview">
+            {previewing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Wand2 className="w-3.5 h-3.5 mr-1" />} Preview matches
+          </Button>
+          {(preview || lastRun) && (
+            <Button onClick={reset} variant="outline" className="h-10" data-testid="ic-wizard-reset">
+              <Undo2 className="w-3.5 h-3.5 mr-1" /> Reset
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Step 2 — review */}
+      {preview && (
+        <div className="bg-white border-2 border-slate-300 rounded-md p-5" data-testid="ic-wizard-preview-panel">
+          <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+            <div>
+              <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">
+                Step 2 · Review every row before committing
+              </h4>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {preview.totals.input_rows} input rows ·
+                <strong className="text-emerald-700"> {preview.totals.ready} ready</strong> ·
+                <strong className="text-amber-700"> {preview.totals.conflict} conflicts</strong> ·
+                <strong className="text-violet-700"> {preview.totals.duplicate} duplicates</strong> ·
+                <strong className="text-red-700"> {preview.totals.external_collision} ID collisions</strong> ·
+                <strong className="text-slate-700"> {preview.totals.unmatched} unmatched</strong> ·
+                <strong className="text-slate-700"> {preview.totals.noop} already linked</strong>
+              </p>
+            </div>
+            <Button onClick={commit} disabled={committing} className="bg-emerald-700 hover:bg-emerald-800 text-white h-10" data-testid="ic-wizard-commit">
+              {committing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Save className="w-3.5 h-3.5 mr-1" />} Commit reviewed rows
+            </Button>
+          </div>
+
+          <div className="overflow-x-auto bg-slate-50 border border-slate-200 rounded-md max-h-[480px]">
+            <table className="w-full text-xs">
+              <thead className="bg-slate-100 text-slate-700 uppercase tracking-[0.15em] font-mono sticky top-0">
+                <tr>
+                  <th className="text-left px-2 py-2">#</th>
+                  <th className="text-left px-2 py-2">Status</th>
+                  <th className="text-left px-2 py-2">Unit</th>
+                  <th className="text-left px-2 py-2">External ID</th>
+                  <th className="text-left px-2 py-2">Matched master</th>
+                  <th className="text-left px-2 py-2">Action</th>
+                  <th className="text-left px-2 py-2">Force</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(preview.rows || []).map((r) => {
+                  const pill = STATUS_PILL[r.status] || STATUS_PILL.unmatched;
+                  const d = decisions[r.row_index] || {};
+                  const isDup = r.status === "duplicate";
+                  const canForce = r.status === "conflict";
+                  return (
+                    <tr key={r.row_index} className="border-t border-slate-100" data-testid={`ic-wizard-row-${r.row_index}`}>
+                      <td className="px-2 py-2 font-mono text-slate-500">{r.row_index + 1}</td>
+                      <td className="px-2 py-2">
+                        <span className={`px-1.5 py-0.5 rounded border text-[9px] font-mono uppercase tracking-[0.15em] font-bold ${pill.cls}`}>{pill.label}</span>
+                        {r.reason && <div className="text-[10px] text-slate-500 mt-1 max-w-xs">{r.reason}</div>}
+                      </td>
+                      <td className="px-2 py-2 font-mono">{r.input_unit_number || <span className="text-slate-400">—</span>}</td>
+                      <td className="px-2 py-2 font-mono">{r.input_external_id || <span className="text-slate-400">—</span>}</td>
+                      <td className="px-2 py-2">
+                        {isDup ? (
+                          <Select
+                            value={d.masci_equipment_id || ""}
+                            onValueChange={(v) => updateDecision(r.row_index, { masci_equipment_id: v })}
+                          >
+                            <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Pick one" /></SelectTrigger>
+                            <SelectContent>
+                              {(r.matches || []).map((m) => (
+                                <SelectItem key={m.masci_equipment_id} value={m.masci_equipment_id}>
+                                  {m.unit_number} · {m.make || ""} {m.model || ""}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : r.matches?.length ? (
+                          <div>
+                            <div className="font-bold">{r.matches[0].unit_number}</div>
+                            <div className="text-[10px] text-slate-500">{r.matches[0].make} {r.matches[0].model}</div>
+                            {r.current_external_id && <div className="text-[10px] text-amber-700 font-mono">current: {r.current_external_id}</div>}
+                          </div>
+                        ) : <span className="text-slate-400">—</span>}
+                      </td>
+                      <td className="px-2 py-2">
+                        <Select
+                          value={d.action || "skip"}
+                          onValueChange={(v) => updateDecision(r.row_index, { action: v })}
+                        >
+                          <SelectTrigger className="h-7 text-xs w-28" data-testid={`ic-wizard-action-${r.row_index}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="skip">Skip</SelectItem>
+                            <SelectItem value="create" disabled={r.status === "unmatched" || r.status === "noop" || (isDup && !d.masci_equipment_id) || r.status === "external_collision" || !!r.current_mapping_id}>Create</SelectItem>
+                            <SelectItem value="update" disabled={!r.current_mapping_id && !(isDup && d.masci_equipment_id) && r.status !== "ready"}>Update</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        {canForce ? (
+                          <Switch
+                            checked={!!d.force_overwrite}
+                            onCheckedChange={(v) => updateDecision(r.row_index, { force_overwrite: v, action: v ? "update" : (d.action || "skip") })}
+                            data-testid={`ic-wizard-force-${r.row_index}`}
+                          />
+                        ) : (
+                          <span className="text-[9px] text-slate-300">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Last run summary */}
+      {lastRun && (
+        <div className="bg-emerald-50 border-2 border-emerald-300 rounded-md p-4" data-testid="ic-wizard-last-run">
+          <div className="flex items-center gap-2 mb-1">
+            <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+            <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-900 font-bold">
+              Run complete
+            </h4>
+          </div>
+          <div className="text-xs text-emerald-900 font-mono">
+            +{lastRun.totals.created} created · ~{lastRun.totals.updated} updated · skipped {lastRun.totals.skipped} · blocked {lastRun.totals.blocked} · errored {lastRun.totals.errored}
+          </div>
+        </div>
+      )}
+
+      {/* Recent runs (audit) */}
+      <div className="bg-white border-2 border-slate-200 rounded-md p-4">
+        <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">
+          Recent wizard runs (audit)
+        </h4>
+        {runs.length === 0 ? (
+          <p className="text-xs text-slate-500 italic">No wizard runs yet.</p>
+        ) : (
+          <ul className="divide-y divide-slate-100" data-testid="ic-wizard-runs-list">
+            {runs.map((r) => (
+              <li key={r.id} className="py-2 text-xs flex items-center gap-3">
+                <span className="font-mono text-slate-500 w-32 shrink-0">{(r.started_at || "").slice(0, 16).replace("T", " ")}</span>
+                <span className="font-mono text-slate-700 w-32 shrink-0">{r.kind}</span>
+                <span className="text-slate-700 w-36 shrink-0 truncate" title={r.actor}>{r.actor}</span>
+                <span className="font-mono text-[10px] text-slate-600">
+                  +{r.totals.created} ~{r.totals.updated} skip {r.totals.skipped} block {r.totals.blocked}
+                </span>
+                <ChevronRight className="w-3 h-3 text-slate-300 ml-auto" />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

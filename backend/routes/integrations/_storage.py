@@ -95,6 +95,8 @@ async def ensure_indexes_and_seed(db) -> None:
             db.integration_error_logs.create_index("integration"),
             db.motive_events.create_index("event_at"),
             db.maintainx_work_orders.create_index("created_at"),
+            db.integration_wizard_runs.create_index("started_at"),
+            db.integration_wizard_runs.create_index("kind"),
         )
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[integrations-index] {e}")
