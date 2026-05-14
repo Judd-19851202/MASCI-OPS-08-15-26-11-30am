@@ -1,5 +1,41 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-13 — Iter109: Master Deployment Readiness Audit
+
+### User ask
+"MASTER SYSTEM VALIDATION & DEPLOYMENT READINESS — verify all training updated, then full enterprise audit covering functional, performance, visual, mobile, PDF, security, workflow, and final GO/NO-GO."
+
+### Shipped
+- **Doc sync** — Added Time Off Request workflow + PM sidebar architecture + brand recalibration + unified tile UI iterations to `ops_manual.py`, `AdminGuide.jsx`, `training.js`, `training_es.js` (Lesson 5 EN + ES).
+- **Backend audit** — 39-test pytest suite (`test_iter106_deployment_audit.py`): 38 pass, 1 skipped. Auth scope isolation, _id hygiene, public POST validation, Time Off public-link end-to-end, PDF footer string all VERIFIED.
+- **Frontend P1 branding regression fix** — main Hub header swapped from "MASCI HUB" lockup to M-mark only; kicker text "MASCI Hub" → "MASCI Operations Platform". Sub-hub headers (Field/Safety/QA-QC/Field Leadership) also swapped to M-mark; back-links "MASCI Hub" → "Home".
+- **Deployment readiness report** at `/app/memory/DEPLOYMENT_READINESS_2026-05-13.md` — overall score **9.6/10 · GO**.
+
+### Files changed
+- `backend/ops_manual.py` (4 new sections added)
+- `frontend/src/pages/AdminGuide.jsx` (new cyan Time Off Requests section + cyan color in Section helper)
+- `frontend/src/data/training.js` (Leadership Lesson 5 EN)
+- `frontend/src/data/training_es.js` (Leadership Lesson 5 ES)
+- `frontend/src/pages/Hub.jsx` (M-mark + kicker rewrite)
+- `frontend/src/pages/FieldSection.jsx`, `SafetySection.jsx`, `QaqcSection.jsx`, `FieldLeadershipHub.jsx` (M-mark headers + back-link text)
+- `backend/tests/test_iter106_deployment_audit.py` (new test suite)
+
+### Verified
+- ESLint + ruff clean
+- Live screenshots confirm M-mark only across all 5 main user-facing surfaces
+- Backend 38/38 pass; zero console errors across portal sweep
+- `/field` body text search for "masci hub" returns 0 hits
+
+### Pre-deployment env-var checklist (must set in production)
+- `AUTO_EMAIL_REPORTS=true`
+- `RATE_LIMITING=on`
+- `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com`
+- Fresh `ADMIN_HMAC_SECRET` (random 64+ char)
+- Production `RESEND_API_KEY` + R2 credentials
+- Bump `ADMIN_SESSION_EPOCH` on first prod deploy
+
+---
+
 ## 2026-05-13 — Iter108: Main Hub Tile Headlines Only
 
 ### User ask

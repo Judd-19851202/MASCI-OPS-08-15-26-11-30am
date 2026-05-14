@@ -228,8 +228,8 @@ export default function Hub() {
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-5 sm:py-7 flex items-center justify-between">
-          <MasciLogo variant="lockup" size="4xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="lockup" size="xl" className="sm:hidden" homeLink="/" />
+          <MasciLogo variant="mark" size="2xl" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
           <div className="flex items-center gap-2">
             <Link
               to="/sign-in"
@@ -249,7 +249,7 @@ export default function Hub() {
         {/* Hero headline */}
         <div className="mb-8 sm:mb-12">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
-            {t("MASCI Hub")}
+            {t("MASCI Operations Platform")}
           </span>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">
             {lang === "es" ? (

@@ -26,7 +26,7 @@ export default function SafetySection() {
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="lockup" size="xl" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <div className="flex items-center gap-2">
             <LangToggle />
@@ -42,7 +42,7 @@ export default function SafetySection() {
             className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
             data-testid="safety-back-link"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> MASCI Hub
+            <ArrowLeft className="w-3.5 h-3.5" /> {t("Home")}
           </Link>
         </div>
 

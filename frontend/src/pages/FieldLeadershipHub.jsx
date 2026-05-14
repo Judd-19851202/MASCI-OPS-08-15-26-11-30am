@@ -232,8 +232,8 @@ export default function FieldLeadershipHub() {
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-5 sm:py-7 flex items-center justify-between">
-          <MasciLogo variant="lockup" size="4xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="lockup" size="xl" className="sm:hidden" homeLink="/" />
+          <MasciLogo variant="mark" size="2xl" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
           <div className="flex items-center gap-2">
             <LangToggle />
             <CompanyInfoDialog />
