@@ -1,0 +1,38 @@
+{
+  "summary": "iter122 — Integration Center backend + frontend end-to-end testing. Found and FIXED a critical FastAPI route-ordering bug in /app/backend/routes/integrations/__init__.py that made Asset Mapping, Employee Mapping, Sync Logs, and Error Logs tabs all 404 ('Unknown provider'). Cause: register_config_routes() was called FIRST, so its parametric '/admin/integrations/{provider}' route swallowed the literal-string paths '/admin/integrations/asset-mappings', '/sync-logs', '/error-logs', and '/employee-mappings' before the more-specific routers got a chance to register. Re-ordered registrations so mappings + logs + imports_exports register BEFORE config. After fix, all 23 backend tests pass (auth gate · overview · demo toggle round-trip · events demo-mode stitching of 3 motive + 3 maintainx rows · empty-state when demo disabled · mappings · sync/error logs · CSV import for motive_vehicles · 4 CSV exports). Frontend smoke confirmed AdminShell sidebar Integrations nav · AdminHub IntegrationHealthCard · all 8 IC tabs load clean (no Unknown provider toasts) · ic-motive-demo toggle · ic-status-motive + ic-status-maintainx cards · HrHub health+events cards · ShopHub new Integrations tab with health+maintainx-events cards. SafetyHub mounts not verified in this run because /safety-portal redirects to safety login when admin token is the only credential present (admin token does not satisfy X-Safety-Token gate, by design); code inspection of SafetyHub.jsx mounts both testids correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_integrations_iter122.py",
+    "/app/test_reports/pytest/iter122_integrations.xml"
+  ],
+  "action_items": [
+    "FIXED by testing agent — please review the route-ordering reshuffle in /app/backend/routes/integrations/__init__.py (register_mapping_routes / register_log_routes / register_import_export_routes now registered BEFORE register_config_routes to prevent the parametric '/admin/integrations/{provider}' route from shadowing literal '/admin/integrations/asset-mappings' etc.).",
+    "Verify SafetyHub IntegrationHealthCard + IntegrationEventsCard-motive renders when signed in with a real X-Safety-Token (could not exercise from admin-only browser session; code mounts both testids in SafetyHub.jsx — main agent can self-verify by signing in as safety@mascigc.com)."
+  ],
+  "critical_code_review_comments": [
+    "CRITICAL (now fixed) — FastAPI parametric route '/admin/integrations/{provider}' must register AFTER any sibling literal-path routes at the same prefix, otherwise the parametric variant silently captures literal segments and returns 404 'Unknown provider'. This bug bricked 4 admin tabs (Asset Mapping, Employee Mapping, Sync Logs, Error Logs) before fix.",
+    "make_require_any_portal_token gate is clean and short-circuits on the first valid token; correctly checks 'in token' before doing pm/shop fan-out to avoid DB hits on garbage strings.",
+    "Demo-mode stitching logic in events.py prepends demo rows AFTER applying the real-row query, so server-side filters (severity/priority/safety_only) apply to both demo and real consistently — good.",
+    "imports_exports.py CSV import correctly normalises dotted-paths into nested dicts before insert, and writes sync_log entries for audit — good. Suggest moving the inline `import uuid` to a module-level import for tidiness.",
+    "_csv_response chunked writer is correct; flushes >32 KB cleanly with seek+truncate and final-flush fallback."
+  ],
+  "updated_files": [
+    "/app/backend/routes/integrations/__init__.py (fixed route-ordering bug)",
+    "/app/backend/tests/test_integrations_iter122.py (new — 23 tests)"
+  ],
+  "success_rate": {"backend": "100% (23/23)", "frontend": "smoke-verified all admin/hr/shop integration mounts; safety mount unverified due to credentials scope"},
+  "test_credentials": "Admin: jaymn.judd@mascigc.com / Maddix123! (also POST /api/admin/login {password: MASCI1982!} works). Safety creds in /app/memory/test_credentials.md may be stale per iter121 notes; main agent should rotate before any safety-portal e2e.",
+  "seed_data_creation": "CSV import test creates a single TEST_VEH_iter122 mapping on the first equipment-master row (idempotent — re-runs update the same row). Demo-mode toggle restored to True for both providers at end of every test that flipped it.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "iter122: route-ordering bug fixed in /app/backend/routes/integrations/__init__.py. If anyone reverts that file, the Asset Mapping / Employee Mapping / Sync Logs / Error Logs tabs go dark with 'Unknown provider' / 'Could not load logs' toasts. The conftest.py auto-injects X-Admin-Token on every requests call — to exercise the multi-portal gate you must pass headers={'X-Admin-Token': ''} explicitly (the conftest patch uses setdefault, so an empty string DOES override it). For SafetyHub mount verification: sign in as safety@mascigc.com (rotate password via admin if needed) and confirm integration-health-card + integration-events-card-motive testids render on /safety-portal home. Demo mode is restored to True for both motive + maintainx at end of run.",
+  "rca of the issue": "Route precedence in FastAPI is strict declaration-order — first match wins. config.py registers GET '/admin/integrations/{provider}' (with str path-param). Calling register_config_routes BEFORE register_mapping_routes/register_log_routes meant the parametric route captured every '/admin/integrations/<anything-without-a-slash>' GET, including the literal-segment paths declared later. The handler then validates `provider not in {'motive','maintainx'}` and raises 404 'Unknown provider'. Frontend rendered the toast verbatim. Fix: register the more-specific routers (mappings, logs, imports_exports) BEFORE the wildcarded config router so FastAPI walks them first. Verified by re-running 23 pytest cases (all green) and clicking through every IC tab in the browser (no error toasts)."
+}

@@ -11,6 +11,8 @@ import { ChevronRight } from "lucide-react";
 import AdminShell, { SECTIONS } from "@/components/AdminShell";
 import AdminDocIdSearch from "@/components/AdminDocIdSearch";
 import AdminKpiStrip from "@/components/AdminKpiStrip";
+import IntegrationHealthCard from "@/components/IntegrationHealthCard";
+import { getAdminToken } from "@/lib/adminAuth";
 
 function SectionTile({ to, icon: Icon, label, desc, testId }) {
   return (
@@ -55,6 +57,13 @@ export default function AdminHub() {
 
         {/* Frequently-used: Doc-ID search */}
         <AdminDocIdSearch />
+
+        {/* Integration framework health (Motive + MaintainX) */}
+        <IntegrationHealthCard
+          tokenHeader={{ "X-Admin-Token": getAdminToken() || "" }}
+          showAdminLink={false}
+          accent="slate"
+        />
 
         {/* Section tiles — 7 entries (Overview itself excluded) */}
         <div>

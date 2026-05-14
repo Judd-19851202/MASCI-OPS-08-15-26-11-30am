@@ -69,6 +69,7 @@ import AdminEmail from "@/pages/admin/AdminEmail";
 import AdminTraining from "@/pages/admin/AdminTraining";
 import AdminCompliance from "@/pages/admin/AdminCompliance";
 import AdminSystem from "@/pages/admin/AdminSystem";
+import AdminIntegrationCenter from "@/pages/admin/AdminIntegrationCenter";
 import HrHub from "@/pages/HrHub";
 import HrChangePassword from "@/pages/HrChangePassword";
 import HrResetPassword from "@/pages/HrResetPassword";
@@ -265,6 +266,7 @@ function App() {
             <Route path="/admin/training" element={A(<AdminTraining />)} />
             <Route path="/admin/compliance" element={A(<AdminCompliance />)} />
             <Route path="/admin/system" element={A(<AdminSystem />)} />
+            <Route path="/admin/integrations" element={A(<AdminIntegrationCenter />)} />
             <Route path="/admin/leadership-equipment" element={A(<AdminLeadershipEquipment />)} />
             <Route path="/admin/terminations" element={A(<AdminTerminations />)} />
             <Route path="/admin/guide" element={A(<AdminGuide />)} />

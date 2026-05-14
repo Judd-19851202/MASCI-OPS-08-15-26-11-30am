@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { SectionTile } from "@/components/SectionTile";
 import SafetyShell from "@/components/SafetyShell";
+import IntegrationHealthCard from "@/components/IntegrationHealthCard";
+import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import { useT } from "@/lib/i18n";
 import { isSafety, getSafetyToken, getSafetyUser } from "@/lib/safetyAuth";
 
@@ -101,6 +103,20 @@ export default function SafetyHub() {
       <h2 className="font-display text-xl sm:text-2xl font-black tracking-tight text-slate-900 mb-3">
         {t("Modules")}
       </h2>
+
+      {/* Integration framework — Motive driver-safety events + health */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <IntegrationHealthCard
+          tokenHeader={{ "X-Safety-Token": getSafetyToken() }}
+          accent="cyan"
+          showAdminLink={false}
+        />
+        <IntegrationEventsCard
+          provider="motive"
+          tokenHeader={{ "X-Safety-Token": getSafetyToken() }}
+          accent="cyan"
+        />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         <SectionTile
           to="/safety-portal/corrective-actions"

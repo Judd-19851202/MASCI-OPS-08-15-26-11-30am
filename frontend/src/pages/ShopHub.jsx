@@ -8,11 +8,13 @@ import OpenItemsPanel from "@/components/OpenItemsPanel";
 import ShopActivityFeed from "@/components/ShopActivityFeed";
 import PartsCatalog from "@/components/PartsCatalog";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
+import IntegrationHealthCard from "@/components/IntegrationHealthCard";
+import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import { LangToggle } from "@/components/LangToggle";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
-import { clearShopToken } from "@/lib/shopAuth";
+import { clearShopToken, getShopToken } from "@/lib/shopAuth";
 import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
@@ -144,6 +146,7 @@ export default function ShopHub() {
             { key: "recent", label: t("Recent Inspections") },
             { key: "equipment", label: t("Equipment List") },
             { key: "parts", label: t("Parts Catalog") },
+            { key: "integrations", label: t("Integrations") },
           ].map((s) => (
             <button
               key={s.key}
@@ -242,6 +245,21 @@ export default function ShopHub() {
         )}
         {tab === "equipment" && <EquipmentMasterPanel />}
         {tab === "parts" && <PartsCatalog />}
+        {tab === "integrations" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" data-testid="shop-integrations-tab">
+            <IntegrationHealthCard
+              tokenHeader={{ "X-Shop-Token": getShopToken() || "" }}
+              accent="orange"
+              showAdminLink={false}
+            />
+            <IntegrationEventsCard
+              provider="maintainx"
+              tokenHeader={{ "X-Shop-Token": getShopToken() || "" }}
+              accent="orange"
+              limit={8}
+            />
+          </div>
+        )}
       </main>
     </div>
   );

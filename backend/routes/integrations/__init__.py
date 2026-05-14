@@ -2,18 +2,21 @@
 MASCI Operations Platform · Integration Center backend.
 
 Public surface (one router):
-  build_integrations_router(db, require_admin, require_safety_or_hr_or_admin)
+  build_integrations_router(db, require_admin, is_valid_admin_token)
   ensure_integrations_indexes_and_seed(db)   ← call from server startup
 
 All third-party-vendor logic flows through this layer. Safety / Shop /
-HR / Admin portals NEVER call Motive / MaintainX directly — they call
-into the routes registered here (or read the placeholder collections
-mapped by this package).
+HR / Admin / PM portals NEVER call Motive / MaintainX directly — they
+call into the routes registered here (or read the placeholder
+collections mapped by this package).
 """
 from __future__ import annotations
+from typing import Callable
+
 from fastapi import APIRouter
 
 from ._storage import ensure_indexes_and_seed
+from ._deps import make_require_any_portal_token
 from .config import register_config_routes
 from .mappings import register_mapping_routes
 from .logs import register_log_routes
@@ -23,18 +26,20 @@ from .imports_exports import register_import_export_routes
 
 
 def build_integrations_router(
-    db, require_admin, require_safety_or_hr_or_admin,
+    db, require_admin, is_valid_admin_token: Callable[[str], bool],
 ) -> APIRouter:
     """Build the Integration Center HTTP router. Caller must
     `app.include_router(...)` the return value AFTER calling this."""
     api_router = APIRouter(prefix="/api", tags=["integrations"])
 
-    register_config_routes(api_router, db, require_admin, require_safety_or_hr_or_admin)
+    require_any_portal = make_require_any_portal_token(db, is_valid_admin_token)
+
     register_mapping_routes(api_router, db, require_admin)
     register_log_routes(api_router, db, require_admin)
-    register_event_routes(api_router, db, require_safety_or_hr_or_admin)
-    register_webhook_routes(api_router, db)
     register_import_export_routes(api_router, db, require_admin)
+    register_config_routes(api_router, db, require_admin, require_any_portal)
+    register_event_routes(api_router, db, require_any_portal)
+    register_webhook_routes(api_router, db)
 
     return api_router
 

@@ -13,7 +13,7 @@ import React, { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Building2, Wrench, Mail, BookOpen, ClipboardCheck,
-  ShieldCheck, LogOut, Menu as MenuIcon, Home,
+  ShieldCheck, LogOut, Menu as MenuIcon, Home, Cable,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -38,6 +38,7 @@ const SECTIONS = [
   { key: "email",      to: "/admin/email",      icon: Mail,            label: "Email & Routing", desc: "Auto-routing · Distribution lists" },
   { key: "training",   to: "/admin/training",   icon: BookOpen,        label: "Training & Forms",desc: "Training resources · Safety forms" },
   { key: "compliance", to: "/admin/compliance", icon: ClipboardCheck,  label: "Compliance & Audits", desc: "Exports · Date audit" },
+  { key: "integrations", to: "/admin/integrations", icon: Cable,       label: "Integrations",    desc: "Motive · MaintainX · CSV import/export" },
   { key: "system",     to: "/admin/system",     icon: ShieldCheck,     label: "System & Backups",desc: "Backups · R2 · Restore · Recovery" },
 ];
 

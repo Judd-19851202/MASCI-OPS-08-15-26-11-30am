@@ -8,6 +8,8 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import PortalSwitcher from "@/components/PortalSwitcher";
+import IntegrationHealthCard from "@/components/IntegrationHealthCard";
+import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
 
@@ -120,6 +122,23 @@ export default function HrHub() {
               </Link>
             );
           })}
+        </div>
+
+        {/* Cross-portal integration strip — Motive driver-safety roll-up
+            for HR review. Empty until Motive credentials land or
+            Admin flips Demo mode. */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+          <IntegrationHealthCard
+            tokenHeader={{ "X-HR-Token": getHrToken() || "" }}
+            accent="purple"
+            showAdminLink={false}
+          />
+          <IntegrationEventsCard
+            provider="motive"
+            title={t("Driver Safety Events (HR Review)")}
+            tokenHeader={{ "X-HR-Token": getHrToken() || "" }}
+            accent="purple"
+          />
         </div>
       </main>
     </div>

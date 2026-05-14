@@ -8147,13 +8147,9 @@ from routes.integrations import (  # noqa: E402
     build_integrations_router,
     ensure_integrations_indexes_and_seed,
 )
-from routes.safety_portal._deps import make_require_safety_or_hr_or_admin  # noqa: E402
 
-_integration_safety_or_hr_or_admin = make_require_safety_or_hr_or_admin(
-    db, is_valid_admin_token=_is_valid_admin_token,
-)
 _integrations_router = build_integrations_router(
-    db, require_admin, _integration_safety_or_hr_or_admin,
+    db, require_admin, _is_valid_admin_token,
 )
 app.include_router(_integrations_router)
 
