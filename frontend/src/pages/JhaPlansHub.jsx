@@ -1,6 +1,14 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FileText, Search, Download, Lock } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  Search,
+  Download,
+  Lock,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
@@ -8,34 +16,45 @@ import { useT } from "@/lib/i18n";
 import { JOB_LIBRARY as JOBS } from "@/lib/jobLibrary";
 import { api } from "@/lib/api";
 
+// JhaPlansHub now reads from the NEW multi-file collection
+// (/api/job-hazard-files, backed by `job_hazard_files`) so the public
+// /jha page surfaces every file an admin uploaded for a job — not just
+// the single-file legacy `job_hazard_plans` doc. Each row expands to
+// list every file; users tap any file to download it.
 const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function JhaPlansHub() {
   const { t } = useT();
-  const [plans, setPlans] = useState([]);
+  // groups: [{ project_number, files: [{id, filename, uploaded_at, size_bytes, notes, uploaded_by}] }]
+  const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [expanded, setExpanded] = useState(() => new Set());
 
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const r = await api.get("/job-hazard-plans");
-        if (alive) setPlans(r.data || []);
+        const r = await api.get("/job-hazard-files/public/grouped");
+        if (alive) setGroups(Array.isArray(r.data) ? r.data : []);
       } catch {
-        if (alive) setPlans([]);
+        if (alive) setGroups([]);
       } finally {
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
-  const planByNumber = useMemo(() => {
+  const filesByProject = useMemo(() => {
     const m = {};
-    for (const p of plans) m[p.project_number] = p;
+    for (const g of groups) {
+      if (g && g.project_number) m[g.project_number] = g.files || [];
+    }
     return m;
-  }, [plans]);
+  }, [groups]);
 
   const filteredJobs = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -48,7 +67,19 @@ export default function JhaPlansHub() {
     );
   }, [q]);
 
-  const uploadedCount = plans.length;
+  const uploadedCount = groups.filter((g) => (g.files || []).length > 0).length;
+
+  const toggleExpand = (pn) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(pn)) next.delete(pn);
+      else next.add(pn);
+      return next;
+    });
+  };
+
+  const fileHref = (fileId) =>
+    `${REACT_APP_BACKEND_URL}/api/job-hazard-files/${fileId}/download`;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -60,7 +91,7 @@ export default function JhaPlansHub() {
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="back-link"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Home
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
           <MasciLogo variant="mark" size="md" homeLink="/" />
           <LangToggle />
@@ -95,51 +126,92 @@ export default function JhaPlansHub() {
 
         {!loading && (
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-3">
-            {uploadedCount} of {JOBS.length} jobs have plans uploaded
+            {uploadedCount} {t("of")} {JOBS.length} {t("jobs have plans uploaded")}
           </p>
         )}
 
         <ul className="bg-white border-2 border-slate-300 rounded-md divide-y-2 divide-slate-100 overflow-hidden">
           {filteredJobs.map((job) => {
-            const plan = planByNumber[job.project_number];
-            const fileUrl = plan
-              ? `${REACT_APP_BACKEND_URL}/api/job-hazard-plans/${encodeURIComponent(job.project_number)}/file`
-              : null;
+            const files = filesByProject[job.project_number] || [];
+            const hasFiles = files.length > 0;
+            const isOpen = expanded.has(job.project_number);
             return (
               <li
                 key={job.project_number}
-                className={`p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 ${
-                  plan ? "" : "bg-slate-50"
-                }`}
+                className={hasFiles ? "" : "bg-slate-50"}
                 data-testid={`jha-row-${job.project_number}`}
               >
-                <div className="flex-1 min-w-0">
-                  <div className="font-display font-bold text-slate-900 truncate">
-                    {job.project_number} · {job.project_name}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-0.5 truncate">
-                    {job.location}
-                  </div>
-                  {plan && (
-                    <div className="text-xs text-slate-500 mt-1 italic">
-                      {t("Uploaded")} {new Date(plan.uploaded_at).toLocaleDateString()} · {plan.filename}
+                <button
+                  type="button"
+                  onClick={() => hasFiles && toggleExpand(job.project_number)}
+                  className="w-full p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 text-left"
+                  disabled={!hasFiles}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="font-display font-bold text-slate-900 truncate">
+                      {job.project_number} · {job.project_name}
                     </div>
+                    <div className="text-xs text-slate-500 mt-0.5 truncate">
+                      {job.location}
+                    </div>
+                    {hasFiles && (
+                      <div className="text-xs text-slate-500 mt-1 italic">
+                        {files.length}{" "}
+                        {files.length === 1
+                          ? t("file uploaded")
+                          : t("files uploaded")}
+                      </div>
+                    )}
+                  </div>
+                  {hasFiles ? (
+                    <span className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-red-700 text-white font-bold text-sm uppercase tracking-wide">
+                      <FileText className="w-4 h-4" />
+                      {t("View Plans")}
+                      {isOpen ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded font-mono text-[10px] uppercase tracking-[0.15em] font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                      <Lock className="w-3 h-3" /> {t("Not uploaded yet")}
+                    </span>
                   )}
-                </div>
-                {plan ? (
-                  <a
-                    href={fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-red-700 hover:bg-red-800 text-white font-bold text-sm uppercase tracking-wide"
-                    data-testid={`view-plan-${job.project_number}`}
-                  >
-                    <FileText className="w-4 h-4 mr-1" /> {t("View Plan")}
-                  </a>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded font-mono text-[10px] uppercase tracking-[0.15em] font-bold bg-amber-50 text-amber-800 border border-amber-300">
-                    <Lock className="w-3 h-3" /> {t("Not uploaded yet")}
-                  </span>
+                </button>
+                {hasFiles && isOpen && (
+                  <ul className="bg-slate-50 border-t-2 border-slate-100 divide-y divide-slate-200">
+                    {files.map((f) => (
+                      <li
+                        key={f.id}
+                        className="px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-3"
+                        data-testid={`jha-file-${f.id}`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="font-mono text-sm text-slate-900 truncate">
+                            {f.filename}
+                          </div>
+                          <div className="text-[11px] text-slate-500 mt-0.5">
+                            {f.uploaded_at
+                              ? new Date(f.uploaded_at).toLocaleDateString()
+                              : ""}
+                            {f.uploaded_by ? ` · ${f.uploaded_by}` : ""}
+                            {f.notes ? ` · ${f.notes}` : ""}
+                          </div>
+                        </div>
+                        <a
+                          href={fileHref(f.id)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
+                          data-testid={`download-${f.id}`}
+                        >
+                          <Download className="w-4 h-4 mr-1" />{" "}
+                          {t("Download")}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </li>
             );
@@ -154,7 +226,10 @@ export default function JhaPlansHub() {
         <div className="mt-8 bg-amber-50 border-2 border-amber-300 rounded-md p-4 text-sm text-amber-900 flex items-start gap-3">
           <Download className="w-5 h-5 shrink-0 mt-0.5" />
           <div>
-            <b>{t("Download for offline use")}.</b> {t("On your phone, hold")} <b>{t("View Plan")}</b> &gt; <b>{t("Save to Files / Downloads")}</b> {t("to read it where there's no service.")}
+            <b>{t("Download for offline use")}.</b>{" "}
+            {t("On your phone, hold")} <b>{t("Download")}</b> &gt;{" "}
+            <b>{t("Save to Files / Downloads")}</b>{" "}
+            {t("to read it where there's no service.")}
           </div>
         </div>
       </main>

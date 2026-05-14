@@ -2353,6 +2353,17 @@ async def list_all_jha_files(_: bool = Depends(require_admin)):
     return {"projects": await list_all_files_grouped(db)}
 
 
+@api_router.get("/job-hazard-files/public/grouped")
+async def list_all_jha_files_public():
+    """Public — every project + its files, grouped. Drives the /jha page
+    in the Safety section so crews can see and download every plan an
+    admin uploaded. Returns the array directly (no wrapper) and never
+    leaks file_data — only filename / size / uploaded_at / uploaded_by /
+    notes per file."""
+    from job_hazard_files import list_all_files_grouped
+    return await list_all_files_grouped(db)
+
+
 @api_router.get("/job-hazard-files/by-project/{project_number}")
 async def list_jha_files_for_project(project_number: str):
     """Public — files for one project. Crews use this to pull JHPs offline."""
@@ -8025,6 +8036,33 @@ async def _seed_shop_users():
 async def _seed_hr_users():
     from hr_users import seed_hr_users
     await seed_hr_users(db)
+
+
+@app.on_event("startup")
+async def _clear_super_admin_force_pw_change():
+    """One-shot idempotent migration (iter117).
+
+    Super admin `jaymn.judd@mascigc.com` has separate per-portal records
+    in `hr_users`, `shop_users`, and `pm_users` because the per-portal
+    seeders ran independently. Some of those seeders set
+    `must_change_password=True` for first-login enforcement — but the
+    super admin authenticates via the multi-portal master login at
+    /sign-in, so the per-portal forced password change is redundant and
+    locks him out of /hr/login + /shop/login.
+
+    This migration clears the flag on the super admin's per-portal rows
+    on every backend start. Idempotent — no-op once flags are False.
+    """
+    SUPER = "jaymn.judd@mascigc.com"
+    try:
+        for coll in ("user_directory", "hr_users", "shop_users", "pm_users"):
+            await db[coll].update_one(
+                {"email": SUPER, "must_change_password": True},
+                {"$set": {"must_change_password": False}},
+            )
+    except Exception as e:  # noqa: BLE001
+        # Migration failures must NEVER block backend boot — log and move on.
+        logger.warning(f"[iter117] super-admin pw-flag clear failed: {e}")
 
 
 # ------------------------- HR Portal (iter71) -------------------------

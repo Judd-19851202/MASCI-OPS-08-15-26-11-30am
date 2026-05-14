@@ -6,6 +6,51 @@
 
 ---
 
+## 2026-05-14 — Iter117: 3 P0 fixes (real M-mark, JHP visibility, super-admin pw-change loop)
+
+### User asks (all flagged ASAP)
+1. "Splash screen isn't our M logo?????" — the AI-generated M didn't match the real `masci-mark.png` brand asset.
+2. "I uploaded files into jobs in JHP section in admin but then I go to safety tile click JHP & says no files available… in admin the files are still there." — disconnected backend collections.
+3. "With my jaymn.judd@mascigc.com password when I go to log into HR or shop portal it lets me in but only to change password screen & wants me to change password." — stale `must_change_password` flag on per-portal records.
+
+### Shipped
+
+**Fix 1 — Real M-mark across all 23 brand assets**
+- Built `backend/scripts/rebuild_brand_assets.py` — pure PIL composition (NO AI) using the authentic `/app/frontend/public/masci-mark.png` as the source.
+- Regenerated every favicon (4), Apple touch icon (4), PWA icon + maskable (4), favicon.ico (3-res), the OG image (1200×630), and all 10 iOS splash screens — same M everywhere.
+- Verified via Gemini analyze: splash screen now shows the angular M with horizontal flanges at top/bottom of strokes (the user's real mark, NOT a generic font M).
+- Replaces the iter113 + iter114 + iter116 AI-generated assets that had drifted.
+
+**Fix 2 — JHP files now visible in /jha**
+- Root cause: Admin uploader writes to NEW `job_hazard_files` collection; public `/jha` page was reading from OLD `job_hazard_plans` collection. Two disconnected stores.
+- Added new public endpoint `GET /api/job-hazard-files/public/grouped` (no auth, never returns `file_data` — only safe metadata: filename/size/uploaded_at/uploaded_by/notes/id).
+- Rewrote `JhaPlansHub.jsx` from scratch (164 → 218 lines):
+  - Reads the new multi-file endpoint
+  - Each job row expands inline to list every file the admin uploaded
+  - Tap any file → downloads via existing public `/api/job-hazard-files/{id}/download` (already worked, no auth)
+  - Shows "N of M jobs have plans uploaded" counter at top
+  - Search box filters by project number / name / location
+- Verified live: `curl /api/job-hazard-files/public/grouped` returns `[{project_number, files: [...]}]` with the file the admin uploaded.
+
+**Fix 3 — Super admin password-change loop**
+- Root cause: `hr_users` and `shop_users` collections had their own seed records for `jaymn.judd@mascigc.com` with `must_change_password=True` from per-portal first-run logic. The user authenticates via the multi-portal master `/sign-in` (using `user_directory`), so the per-portal flag was redundant — but `/hr/login` and `/shop/login` still honored it.
+- Cleared the flag in preview DB (one-shot mongo update — 4 collections checked).
+- Added idempotent startup migration `_clear_super_admin_force_pw_change` in `server.py` — runs on every backend boot, fires `update_one({email: SUPER, must_change_password: True}, {$set: {must_change_password: False}})` on `user_directory`, `hr_users`, `shop_users`, `pm_users`. Idempotent — no-op once flag is clear. **This is what fixes production on next deploy.**
+
+### Files changed
+- `backend/server.py` (new public JHA endpoint, new startup migration)
+- `backend/scripts/rebuild_brand_assets.py` (new — reusable PIL composer using real M)
+- `frontend/src/pages/JhaPlansHub.jsx` (rewritten — multi-file aware)
+- `frontend/public/` — 23 brand assets regenerated from `masci-mark.png`
+
+### Verified
+- Lint clean (ruff + ESLint)
+- New /jha endpoint returns the uploaded test file correctly
+- Splash screen screenshot confirms real angular M renders
+- Backend restarted cleanly with the migration in place
+
+---
+
 ## 2026-05-14 — Iter116: PWA splash screens (iOS native + animated overlay)
 
 ### User ask
