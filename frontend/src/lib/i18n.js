@@ -2375,6 +2375,8 @@ const ES = {
   "more photo(s) before you can submit": "foto(s) más antes de enviar",
   "photos added": "fotos agregadas",
   "No photos could be added": "No se pudieron agregar fotos",
+  "Compressing": "Comprimiendo",
+  "of": "de",
 
 };
 

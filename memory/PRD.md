@@ -6,6 +6,39 @@
 
 ---
 
+## 2026-05-14 — Iter112: Link-preview rebrand + Photo batch compression progress bar
+
+### User asks
+1. iMessage link preview for `mascidocs.com` still says "MASCI Hub" (screenshot)
+2. Add the photo batch compression progress bar
+
+### Shipped
+
+**1. Link preview / OpenGraph rebrand**
+- 6 `<meta>` tags in `public/index.html` were still serving "MASCI Hub" → all swapped to "MASCI Operations Platform"
+  - `apple-mobile-web-app-title`, `application-name`, `og:site_name`, `og:title`, `og:image:alt`, `twitter:title`, `twitter:image:alt`
+- `og:description` / `twitter:description` updated to the live tagline "Run every job. Control every detail. Protect everything."
+- `public/site.webmanifest` "name" field: "MASCI Hub" → "MASCI Operations Platform"
+- Note for user: iMessage caches link previews **24–48 hours** per URL. To force a fresh fetch on a phone that's seen the old card, share `mascidocs.com?v=2` instead.
+
+**2. Photo batch compression progress bar**
+- Added live progress UI to `PhotoUpload.jsx` — appears at the top of any photo section when a batch is being processed.
+- Shows `"Compressing N of TOTAL…"` mono label + percentage + animated blue fill bar.
+- Thumbnails reveal **progressively** as each photo finishes (not all-at-once at the end) — gives users immediate feedback even on slow phones.
+- Bilingual: EN "Compressing" / ES "Comprimiendo", EN "of" / ES "de".
+
+### Files changed
+- `frontend/public/index.html` (6 meta tags rebranded)
+- `frontend/public/site.webmanifest` (name field)
+- `frontend/src/components/PhotoUpload.jsx` (progress state + UI + progressive onChange)
+- `frontend/src/lib/i18n.js` (2 new ES entries)
+
+### Verified
+- ESLint clean
+- Stale "MASCI Hub" text remaining on `public/index.html` + `site.webmanifest`: **0**
+
+---
+
 ## 2026-05-14 — Iter111: Photo-upload bug fix + hard photo-minimum enforcement + form-page rebrand sweep
 
 ### User asks

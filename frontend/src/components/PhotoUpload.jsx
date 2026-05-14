@@ -1,5 +1,5 @@
-import React, { useRef } from "react";
-import { Camera, X, ImageIcon } from "lucide-react";
+import React, { useRef, useState } from "react";
+import { Camera, X, ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { compressImage } from "@/lib/utils";
 import { toast } from "sonner";
@@ -16,6 +16,12 @@ import { resolvePhotoSrc } from "@/lib/photoSrc";
  *   ◦ Take Photo
  *   ◦ Choose File
  * If you want to *force* the camera open, pass `forceCamera`.
+ *
+ * Compression UX: when the user picks N > 1 photos, on-phone compression of
+ * 1280px max-dim JPEGs at q=0.78 takes ~0.3–1.5s per photo. We surface a
+ * live progress bar and reveal thumbnails progressively so the user can
+ * see the work happening (otherwise the UI looks frozen for 10–30s on a
+ * batch of 20+ photos and they spam-tap Submit).
  */
 export const PhotoUpload = ({
   photos = [],
@@ -26,25 +32,41 @@ export const PhotoUpload = ({
   const { t } = useT();
   const galleryRef = useRef(null);
   const cameraRef = useRef(null);
+  const [progress, setProgress] = useState(null); // { current, total } | null
 
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
     // `files` is already a snapshot Array (see input onChange handlers below) —
     // critical on iOS Safari where the live FileList gets invalidated as
     // soon as `e.target.value = ""` runs, dropping every file after #1.
+    const imageFiles = files.filter(
+      (f) => f && f.type && f.type.startsWith("image/")
+    );
+    if (imageFiles.length === 0) return;
+
+    const total = imageFiles.length;
+    setProgress({ current: 0, total });
+
     const next = [...photos];
     let failed = 0;
-    for (const file of files) {
-      if (!file || !file.type || !file.type.startsWith("image/")) continue;
+    for (let i = 0; i < imageFiles.length; i += 1) {
+      const file = imageFiles[i];
+      // Update BEFORE compressing so "Compressing 1 of 20" shows for the
+      // first photo, not after it finishes.
+      setProgress({ current: i + 1, total });
       try {
         const dataUrl = await compressImage(file, 1280, 0.78);
         next.push(dataUrl);
+        // Reveal each thumbnail as it finishes — gives the user immediate
+        // feedback instead of "all 20 appear at once at the very end".
+        onChange?.([...next]);
       } catch {
         failed += 1;
         toast.error(`Could not process ${file.name || "photo"}`);
       }
     }
-    onChange?.(next);
+    setProgress(null);
+
     const added = next.length - photos.length;
     if (added > 1) {
       toast.success(`${added} ${t("photos added")}`);
@@ -63,6 +85,33 @@ export const PhotoUpload = ({
 
   return (
     <div className="space-y-3" data-testid={testIdBase}>
+      {/* Compression progress bar — only shows when a batch is in flight.
+          Always-visible counter + fill so the user can see thumbnails
+          appearing one-by-one underneath while the bar fills. */}
+      {progress && (
+        <div
+          className="bg-blue-50 border-2 border-blue-300 rounded-md p-3"
+          data-testid={`${testIdBase}-progress`}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Loader2 className="w-4 h-4 text-blue-700 animate-spin shrink-0" />
+            <span className="font-mono text-xs uppercase tracking-[0.18em] text-blue-900 font-bold">
+              {t("Compressing")} {progress.current} {t("of")} {progress.total}…
+            </span>
+            <span className="ml-auto font-mono text-[10px] text-blue-700">
+              {Math.round((progress.current / progress.total) * 100)}%
+            </span>
+          </div>
+          <div className="h-2 bg-blue-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-700 transition-all duration-150"
+              style={{ width: `${(progress.current / progress.total) * 100}%` }}
+              data-testid={`${testIdBase}-progress-fill`}
+            />
+          </div>
+        </div>
+      )}
+
       {forceCamera ? (
         <button
           type="button"
