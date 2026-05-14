@@ -482,6 +482,23 @@ export default function AdminGuide() {
           </div>
         </Section>
 
+        {/* TIME OFF REQUEST (iter102) */}
+        <Section icon={Mail} title="Time Off Requests — supervisor & public-link paths" color="cyan">
+          <p>
+            End-to-end employee leave-request system added in iter102. Two submission paths land in the same record store
+            (<code>field_leadership_forms</code> with <code>kind=time_off_request</code>) and feed the HR Portal review panel:
+          </p>
+          <ul className="ml-5 list-disc space-y-1 mt-2">
+            <li><strong>Supervisor-filed</strong> — FL Hub → <em>04 HR Actions</em> section → <em>Time Off Request</em> tile. Foremen file on behalf of a crew member.</li>
+            <li><strong>Public link</strong> — supervisor mints a tokenized URL from the FL hub (<code>POST /api/field-leadership/time-off/public-link</code>). Office staff/PMs open the link on any device and submit at <code>POST /api/field-leadership/time-off/public/&#123;link_id&#125;</code> — no portal login required.</li>
+          </ul>
+          <p className="mt-3">
+            Categories: Vacation · Sick · Medical · Family · Bereavement · Personal. Auto-CCs the assigned PM, HR distribution list, and
+            <code>safety@mascigc.com</code>. PDFs use the standardized M-mark letterhead and full footer string.
+            HR reviews each request in the HR Portal → Time Off Requests dashboard, approves or denies, and the status reflects back on the record.
+          </p>
+        </Section>
+
         {/* TERMINATION EMAIL ROUTING (iter98) */}
         <Section icon={Mail} title="Employee Termination — auto-email routing parity" color="red">
           <p>
@@ -589,6 +606,7 @@ function Section({ icon: Icon, title, color, children }) {
   const colors = {
     red: { border: "border-red-700", bg: "bg-red-700", text: "text-red-900" },
     amber: { border: "border-amber-600", bg: "bg-amber-600", text: "text-amber-900" },
+    cyan: { border: "border-cyan-600", bg: "bg-cyan-600", text: "text-cyan-900" },
     slate: { border: "border-slate-800", bg: "bg-slate-800", text: "text-slate-900" },
   };
   const c = colors[color] || colors.slate;

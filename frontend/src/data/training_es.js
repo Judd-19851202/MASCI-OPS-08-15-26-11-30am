@@ -654,6 +654,28 @@ export const LESSON_TRANSLATIONS_ES = {
       "Registro visible en 3 lugares: FL Records · /admin/terminations · Hub HR → FL Records.",
     ],
   },
+  "leadership-05-time-off-request": {
+    title_es: "Lección 5 — Solicitudes de Tiempo Libre (Supervisor y Enlace Público)",
+    why_es: "Captura solicitudes de vacaciones, enfermedad, médico, familiar, duelo y permiso personal con RRHH auto-notificado al enviar. Dos vías de envío para que el form funcione tanto con personal de campo (supervisor lo presenta) como con personal de oficina (auto-envío vía enlace público).",
+    steps_es: [
+      "Abra Hub Liderazgo → sección '04 Acciones de RRHH' → tarjeta 'Time Off Request' (cyan).",
+      "Vía A (Supervisor envía por un miembro de la cuadrilla): elija al empleado, fije Categoría (Vacaciones / Enfermedad / Médico / Familiar / Duelo / Personal), Fecha de Inicio, Fecha de Fin, Días Totales, Fecha de Retorno, Teléfono de Contacto, Plan de Cobertura, y envíe.",
+      "Vía B (Enlace público para personal de oficina): use 'Generar enlace público' en el hub de FL — el backend genera una URL tokenizada vía POST /api/field-leadership/time-off/public-link. Envíe ese enlace al empleado.",
+      "Vía pública: el empleado abre la URL en cualquier dispositivo, sin inicio de sesión. El form se envía a /api/field-leadership/time-off/public/{link_id} y aterriza en field_leadership_forms con kind=time_off_request.",
+      "Ambas vías auto-CC: Gerente asignado, distribución RRHH, y safety@mascigc.com. El PDF usa el letterhead estandarizado del Marca M.",
+      "RRHH revisa cada solicitud en el Portal HR → tablero Time Off Requests y aprueba o niega. El estado se refleja en el registro.",
+    ],
+    tips_es: [
+      "Use la vía de enlace público para personal de oficina y PMs asalariados — no tienen que aprender un portal, y usted no tiene que llenar papeleo por ellos.",
+      "Las categorías son fijas (6 opciones) por diseño — RRHH necesita cubetas predecibles para llevar el control de acumulación. Si tiene un caso especial, use Personal y agregue detalle en Notas.",
+      "Si la solicitud incluye medio día al inicio o al fin, use los switches 'Half day on start/end date?' — ajustan automáticamente el cálculo de Total de Días.",
+    ],
+    cheatSheet_es: [
+      "Vía supervisor = presentar por · Enlace público = auto-envío para oficina.",
+      "Auto-CCs Gerente asignado + RRHH + Safety en cada envío.",
+      "RRHH aprueba/niega en el Portal HR — el estado se refleja en el registro.",
+    ],
+  },
   "field-08-doc-ids": {
     title_es: "Lección 8 — Doc IDs (número de seguimiento de cada formulario)",
     why_es: "Cada formulario, reporte, inspección y check-in que llena ahora lleva un Doc ID único — como DR-2026-00042 para un Reporte Diario. El número se imprime en el PDF, aparece en pantalla, y va en el asunto del correo. Cuando la oficina llame por 'ese reporte del martes pasado', le darán el Doc ID. Léalo de vuelta, búsquelo, listo — sin escarbar entre 50 reportes.",

@@ -1228,6 +1228,32 @@ const LEADERSHIP_LESSONS = [
       "Record visible in 3 places: FL Records · /admin/terminations · HR Hub → FL Records.",
     ],
   },
+  {
+    slug: "leadership-05-time-off-request",
+    track: "leadership",
+    order: 5,
+    title: "Lesson 5 — Time Off Requests (Supervisor & Public Link)",
+    why: "Captures vacation, sick, medical, family, bereavement, and personal-leave requests with HR auto-notified on submit. Two submission paths so the form works for both crew (supervisor-filed) and office staff (self-submitted via public link).",
+    duration: "~4 min",
+    steps: [
+      "Open Field Leadership Hub → '04 HR Actions' section → 'Time Off Request' tile (cyan).",
+      "Path A (Supervisor submitting for a crew member): pick the employee from the roster, set Category (Vacation / Sick / Medical / Family / Bereavement / Personal), Start Date, End Date, Total Days, Return Date, Contact Phone, Coverage Plan, and submit.",
+      "Path B (Public link for office staff): use the 'Generate public link' button in the FL hub — backend mints a tokenized URL via POST /api/field-leadership/time-off/public-link. Send that link to the employee.",
+      "Public-link path: the employee opens the URL on any device, no portal login required. The form posts to /api/field-leadership/time-off/public/{link_id} and lands in field_leadership_forms with kind=time_off_request.",
+      "Both paths auto-CC: the assigned PM, HR distribution list, and safety@mascigc.com. PDF uses the standardized M-mark letterhead.",
+      "HR reviews each request in the HR Portal → Time Off Requests dashboard and approves or denies. Status is reflected on the record.",
+    ],
+    tips: [
+      "Use the public link path for office staff and salaried PMs — they don't have to learn a portal, and you don't have to file paperwork on their behalf.",
+      "Categories are fixed (6 options) by design — HR needs predictable buckets for accrual tracking. If you have an edge case, file it under Personal and add detail in the Notes field.",
+      "If a request spans a half-day on either end, use the 'Half day on start/end date?' toggles — they auto-adjust the Total Days calc.",
+    ],
+    cheatSheet: [
+      "Supervisor path = file on behalf · Public link = self-submission for office staff.",
+      "Auto-CCs assigned PM + HR + Safety on every submit.",
+      "HR approves/denies in the HR Portal — status reflects back on the record.",
+    ],
+  },
 ];
 
 // ============================================================
