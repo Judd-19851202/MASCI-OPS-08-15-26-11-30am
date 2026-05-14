@@ -5,6 +5,48 @@
 - **Design tokens consolidation** — once production is live on `mascidocs.com`, draft `/app/frontend/src/styles/tokens.css` with proposed token names (`--brand-primary`, `--brand-accent`, per-portal accents, etc.) for user review BEFORE swapping anywhere. Then do the focused 80% pass (SectionTile + Hub + sub-hubs + portal accents). Zero visual change. ~30 min once approved.
 
 ---
+## 2026-05-14 — Iter121: Safety Portal package refactor + R2 document storage migration
+
+### User ask
+"Refactor — split `safety_portal.py` (now ~1020 lines) into `routes/safety_portal/{auth,fire_ext,documents,training,digest,admin}.py`. R2 storage migration for Safety Document Library — currently inline base64 in Mongo."
+
+### Outcome: ✅ Done · 51/51 backend tests pass (zero regressions)
+
+### Refactor — `routes/safety_portal.py` → `routes/safety_portal/` package
+- `__init__.py` — orchestrator. Public surface unchanged: `build_safety_router(...)`, `build_digest_payload(db)`, `render_digest_html(payload)`. `server.py` import line is the same as before.
+- `_models.py` — all Pydantic request/response models hoisted to module scope (Pydantic 2.12 can't fully resolve closure-defined BaseModels)
+- `_deps.py` — `make_require_safety_token(db)` + `make_require_safety_or_hr_or_admin(db, is_valid_admin_token)` dependency factories
+- `auth_users.py` — login flow + admin user management
+- `overview.py` — `/safety/overview` + `/admin/safety/overview` (shared payload builder)
+- `corrective_actions.py` — Phase 2 CRUD
+- `fire_extinguishers.py` — Phase 3 FE + `/inspect`
+- `documents.py` — Phase 3 Doc library (hybrid storage)
+- `training.py` — Phase 4 training + employee safety profile
+- `digest.py` — Phase 5 helpers + endpoints
+
+### R2 storage migration — Safety Document Library
+- New `/app/backend/safety_doc_storage.py` — wraps the shared S3-compatible client (Cloudflare R2) using the same `S3_*` env vars as `photo_storage.py`. Keys land under `safety-docs/<YYYY>/<MM>/<doc_id>/<uuid>-<filename>` and `file_data` records hold a `doc://<bucket>/<key>` reference. Exposed surface: `upload_doc_bytes`, `read_doc_bytes`, `delete_doc`, `is_configured`, `is_storage_ref`.
+- `documents.py` upload now follows a HYBRID strategy:
+  - R2 configured + reachable → store ref + `storage_backend="r2"`
+  - R2 not configured OR upload fails → fall back to inline base64 + `storage_backend="inline"`
+- `read_doc_bytes` handles both schemes (`doc://...` and legacy `data:...`) so every existing record keeps working without migration.
+- Delete cleans up R2 best-effort (and never blocks the DB delete on R2 errors).
+
+### Verified end-to-end (curl + testing agent)
+- R2 upload → `storage_backend:"r2"`, `file_data:"doc://masci-hub/safety-docs/..."`
+- R2 download → bytes byte-identical to upload (52 / 26 byte payloads tested)
+- R2 delete → R2 object removed, Mongo doc removed, subsequent GET returns 404
+- Legacy inline-base64 doc (uploaded pre-iter121) still downloads correctly
+- HR cross-portal read access (via X-HR-Token) unchanged
+- Weekly digest cron still starts ("[safety-digest] weekly cron started")
+
+### Optional follow-ups (testing agent noted, NOT blocking)
+- Refactor `tests/test_safety_portal_iter120.py` fixture to be order-independent (use admin-reset-then-change-password)
+- Document digest /preview response schema in API docs
+
+---
+
+
 ## 2026-05-14 — Iter120: Safety Portal Phase 3 + 4 + 5 (Fire Ext · Docs · Training · Digest)
 
 ### User ask
