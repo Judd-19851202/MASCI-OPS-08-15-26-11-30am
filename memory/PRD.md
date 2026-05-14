@@ -5,6 +5,60 @@
 - **Design tokens consolidation** — once production is live on `mascidocs.com`, draft `/app/frontend/src/styles/tokens.css` with proposed token names (`--brand-primary`, `--brand-accent`, per-portal accents, etc.) for user review BEFORE swapping anywhere. Then do the focused 80% pass (SectionTile + Hub + sub-hubs + portal accents). Zero visual change. ~30 min once approved.
 
 ---
+## 2026-05-14 — Iter120: Safety Portal Phase 3 + 4 + 5 (Fire Ext · Docs · Training · Digest)
+
+### User ask
+"do phase 3, 4 & 5" — ship the remaining three phases in one batch with the architecture decisions confirmed in the planning question.
+
+### User choices captured
+- Fire Extinguishers: one record per unit (unit_id, location_kind/value, type, last/next inspection dates, last_status)
+- Documents: Safety + HR + Admin read access; Safety-only write
+- Training records: tied to existing `db.employees` collection (single source of truth)
+- Expiration alerts → `safety@mascigc.com` only
+- Weekly Monday digest: wired with Resend (preview env logs stub instead of sending)
+
+### Outcome: ✅ Phase 3 + 4 + 5 SHIPPED (29/30 backend · 100% frontend)
+
+### Backend additions to /app/backend/routes/safety_portal.py
+- Multi-role read gate `_require_safety_or_hr_or_admin` (used for doc + training + employee-profile reads)
+- Fire Extinguisher CRUD + `/inspect` endpoint (auto-pushes to `inspections[]`, computes next_due = +30d)
+- Document Library: multipart upload, list (no file_data), PATCH, GET `/download`, DELETE — 15 MB cap, inline base64 (JHA pattern)
+- Training & Certifications: full CRUD on `db.safety_training_records` tied to `db.employees`; filters by `?employee_id=` + `?expiring_within_days=`
+- Employee Safety Profile aggregate (trainings + meetings + incidents + PPE + open CAs)
+- Weekly Digest preview + send endpoints + module-level helpers
+- Admin oversight `/api/admin/safety/overview` extended; `/api/safety/overview` extended
+
+### New backend file
+- `/app/backend/safety_digest.py` — long-running asyncio cron loop, weekday + hour configurable via env, wired into `server.py` startup event
+
+### New / updated frontend pages
+- `SafetyFireExtinguishers.jsx` — full CRUD + log-inspection dialog with auto-stamp next-due, filter tabs
+- `SafetyDocuments.jsx` — multipart upload, category select, tag chips, streamed download
+- `SafetyTrainingRecords.jsx` — employee dropdown (loads from `/api/employees`), expiration status pills, filter tabs
+- `SafetyEmployeeProfiles.jsx` — employee picker + drill-down KPI grid + training table
+- `SafetyDigest.jsx` — preview KPIs (each with `digest-kpi-*` test ID) + manual Send Now (correctly reports `sent:false` in preview env)
+- `HrSafetyRecords.jsx` — HR read-only Tabs view of documents + training (uses `X-HR-Token`)
+- `SafetyHub.jsx` — enabled previously-disabled tiles + new "Weekly Digest" tile
+- `HrHub.jsx` — new "Safety Records" tile (cyan-700)
+
+### Bug fixed during testing
+- `/safety/digest/send` was setting `sent:true` even when Resend was short-circuited in preview env. `_safety_send_email` now returns bool; endpoint keys `sent` off the actual return value. Verified with curl: `{ok:true, sent:false}`.
+
+### Cron
+- Weekly digest cron armed: Monday 14:00 UTC default, env: SAFETY_DIGEST_WEEKDAY, SAFETY_DIGEST_HOUR_UTC, SAFETY_DIGEST_TO_EMAIL, SAFETY_DIGEST_ENABLED, AUTO_EMAIL_REPORTS
+- Will deliver via Resend automatically when `AUTO_EMAIL_REPORTS=true` is set in prod
+
+### Test credentials touched
+- HR Manager (`hrmanager@mascigc.com`) password rotated to `HRTesting2026!` for cross-portal read verification
+
+### Known follow-up nits (deferred)
+- `safety_portal.py` is now ~1020 lines — consider splitting `routes/safety_portal/{auth,fire_ext,documents,training,digest,admin}.py` when there's a quiet moment
+- Document upload uses inline base64 in MongoDB (works for hundreds of docs; migrate to R2/S3 when shop adoption ramps up)
+- Server-side enforcement of CA status transitions still UI-button-gated only
+
+---
+
+
 ## 2026-05-14 — Iter119: Safety Portal Phase 1 + 2 (Foundation + Corrective Actions)
 
 ### User ask

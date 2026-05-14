@@ -8108,15 +8108,19 @@ from safety_users import seed_safety_users  # noqa: E402
 from safety_digest import safety_digest_scheduler_loop  # noqa: E402
 
 
-async def _safety_send_email(to_email: str, subject: str, html: str):
-    """Resend wrapper used by Safety welcome / weekly digest emails."""
+async def _safety_send_email(to_email: str, subject: str, html: str) -> bool:
+    """Resend wrapper used by Safety welcome / weekly digest emails.
+
+    Returns True only when Resend was actually invoked. Returns False
+    when the helper short-circuits (no API key, AUTO_EMAIL_REPORTS off,
+    etc.) so callers can report accurate `sent` status to the UI."""
     api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
     if not api_key:
         logger.info(f"[safety-email-stub] to={to_email} subject={subject}")
-        return
+        return False
     if (os.environ.get("AUTO_EMAIL_REPORTS") or "").strip().lower() not in ("true", "1", "yes"):
         logger.info(f"[safety-email-preview] to={to_email} subject={subject}")
-        return
+        return False
     import resend as _resend  # noqa: PLC0415
     _resend.api_key = api_key
     sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
@@ -8126,7 +8130,8 @@ async def _safety_send_email(to_email: str, subject: str, html: str):
         "subject": subject,
         "html": html,
     }
-    return await asyncio.to_thread(_resend.Emails.send, params)
+    await asyncio.to_thread(_resend.Emails.send, params)
+    return True
 
 
 _safety_router = build_safety_router(

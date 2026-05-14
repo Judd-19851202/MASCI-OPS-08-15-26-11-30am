@@ -1010,8 +1010,11 @@ def build_safety_router(db, require_admin, send_email_fn=None, is_valid_admin_to
         sent = False
         if send_email_fn:
             try:
-                await send_email_fn(recipient, "[MASCI] Weekly Safety Digest", html)
-                sent = True
+                # Wrapper returns True only when Resend was actually
+                # invoked; False when it short-circuits (no API key /
+                # AUTO_EMAIL_REPORTS off / preview env).
+                result = await send_email_fn(recipient, "[MASCI] Weekly Safety Digest", html)
+                sent = bool(result)
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"[safety-digest] send failed: {e}")
         return {"ok": True, "sent": sent, "to": recipient, "payload": payload}

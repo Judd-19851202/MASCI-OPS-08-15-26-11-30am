@@ -93,13 +93,13 @@ export default function SafetyDigest() {
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <KPI label="Open CAs" value={k.open_corrective_actions ?? 0} accent="cyan" />
-            <KPI label="Overdue CAs" value={k.overdue_corrective_actions ?? 0} accent="red" />
-            <KPI label="Incidents · 7d" value={k.incidents_last_7d ?? 0} accent="amber" />
-            <KPI label="Meetings · 7d" value={k.meetings_last_7d ?? 0} accent="emerald" />
-            <KPI label="Fire Ext · Overdue" value={k.fire_extinguishers_overdue ?? 0} accent="red" />
-            <KPI label="Training Expired" value={k.training_expired ?? 0} accent="red" />
-            <KPI label="Expiring 30d" value={k.training_expiring_30d ?? 0} accent="amber" />
+            <KPI testId="digest-kpi-open-cas" label="Open CAs" value={k.open_corrective_actions ?? 0} accent="cyan" />
+            <KPI testId="digest-kpi-overdue-cas" label="Overdue CAs" value={k.overdue_corrective_actions ?? 0} accent="red" />
+            <KPI testId="digest-kpi-incidents-7d" label="Incidents · 7d" value={k.incidents_last_7d ?? 0} accent="amber" />
+            <KPI testId="digest-kpi-meetings-7d" label="Meetings · 7d" value={k.meetings_last_7d ?? 0} accent="emerald" />
+            <KPI testId="digest-kpi-fe-overdue" label="Fire Ext · Overdue" value={k.fire_extinguishers_overdue ?? 0} accent="red" />
+            <KPI testId="digest-kpi-training-expired" label="Training Expired" value={k.training_expired ?? 0} accent="red" />
+            <KPI testId="digest-kpi-training-expiring" label="Expiring 30d" value={k.training_expiring_30d ?? 0} accent="amber" />
           </div>
 
           <h3 className="font-display text-lg font-black mb-2">{t("Top open corrective actions")}</h3>
@@ -142,7 +142,7 @@ export default function SafetyDigest() {
   );
 }
 
-function KPI({ label, value, accent = "cyan" }) {
+function KPI({ label, value, accent = "cyan", testId }) {
   const cls = {
     cyan: "border-cyan-700 text-cyan-900",
     red: "border-red-700 text-red-900",
@@ -150,7 +150,7 @@ function KPI({ label, value, accent = "cyan" }) {
     emerald: "border-emerald-700 text-emerald-900",
   }[accent];
   return (
-    <div className={`bg-white border-2 ${cls} rounded-md p-4`}>
+    <div className={`bg-white border-2 ${cls} rounded-md p-4`} data-testid={testId}>
       <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{label}</div>
       <div className="font-display text-3xl font-black mt-1 leading-none">{value}</div>
     </div>
