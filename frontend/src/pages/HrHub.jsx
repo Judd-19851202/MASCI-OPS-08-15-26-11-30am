@@ -33,6 +33,9 @@ const TILES = [
   { to: "/hr/training-records", icon: GraduationCap, label: "Training Records",
     desc: "Completed tracks · certifications · training compliance roster",
     accent: "border-purple-500 bg-purple-50", btn: "bg-purple-700 hover:bg-purple-800" },
+  { to: "/hr/safety-records", icon: ShieldCheck, label: "Safety Records",
+    desc: "Read-only · safety document library (OSHA, SDS, EAPs) and per-employee training & certifications maintained by Safety",
+    accent: "border-cyan-700 bg-cyan-50", btn: "bg-cyan-700 hover:bg-cyan-800" },
 ];
 
 export default function HrHub() {

@@ -8095,15 +8095,45 @@ _hr_portal_router = build_hr_portal_router(db, require_admin, _hr_send_email)
 app.include_router(_hr_portal_router)
 
 
-# ─── Safety Portal (iter119) ─────────────────────────────────────────
+# ─── Safety Portal (iter119 + iter120 Phase 3/4/5) ───────────────────
 # Mirrors the HR portal pattern exactly so it slots cleanly into the
 # existing auth/router architecture. Reads existing incident/inspection/
-# meeting/FL records for visibility — adds ONE new collection
-# (`corrective_actions`) for the cross-cutting Phase 2 workflow.
-from routes.safety_portal import build_safety_router  # noqa: E402
+# meeting/FL records for visibility — adds new collections:
+#   • corrective_actions    (Phase 2 — iter119)
+#   • fire_extinguishers    (Phase 3 — iter120)
+#   • safety_documents      (Phase 3 — iter120)
+#   • safety_training_records (Phase 4 — iter120)
+from routes.safety_portal import build_safety_router, build_digest_payload, render_digest_html  # noqa: E402
 from safety_users import seed_safety_users  # noqa: E402
+from safety_digest import safety_digest_scheduler_loop  # noqa: E402
 
-_safety_router = build_safety_router(db, require_admin)
+
+async def _safety_send_email(to_email: str, subject: str, html: str):
+    """Resend wrapper used by Safety welcome / weekly digest emails."""
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        logger.info(f"[safety-email-stub] to={to_email} subject={subject}")
+        return
+    if (os.environ.get("AUTO_EMAIL_REPORTS") or "").strip().lower() not in ("true", "1", "yes"):
+        logger.info(f"[safety-email-preview] to={to_email} subject={subject}")
+        return
+    import resend as _resend  # noqa: PLC0415
+    _resend.api_key = api_key
+    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    params = {
+        "from": f"MASCI Safety Portal <{sender}>",
+        "to": [to_email],
+        "subject": subject,
+        "html": html,
+    }
+    return await asyncio.to_thread(_resend.Emails.send, params)
+
+
+_safety_router = build_safety_router(
+    db, require_admin,
+    send_email_fn=_safety_send_email,
+    is_valid_admin_token=_is_valid_admin_token,
+)
 app.include_router(_safety_router)
 
 
@@ -8114,8 +8144,36 @@ async def _seed_safety_users():
         await db.corrective_actions.create_index("status")
         await db.corrective_actions.create_index("due_date")
         await db.corrective_actions.create_index("source_id")
+        await db.fire_extinguishers.create_index("unit_id")
+        await db.fire_extinguishers.create_index("next_due_date")
+        await db.safety_documents.create_index("category")
+        await db.safety_documents.create_index("uploaded_at")
+        await db.safety_training_records.create_index("employee_id")
+        await db.safety_training_records.create_index("expiration_date")
     except Exception as e:  # noqa: BLE001
-        logger.warning(f"corrective_actions index: {e}")
+        logger.warning(f"safety collections index: {e}")
+
+
+_safety_digest_task: Optional[asyncio.Task] = None
+
+
+@app.on_event("startup")
+async def _start_safety_digest_cron():
+    """Long-running weekly cron — Monday 14:00 UTC default. Email goes
+    to SAFETY_DIGEST_TO_EMAIL (default safety@mascigc.com)."""
+    global _safety_digest_task
+    try:
+        _safety_digest_task = asyncio.create_task(
+            safety_digest_scheduler_loop(
+                db,
+                build_payload=lambda: build_digest_payload(db),
+                render_html=render_digest_html,
+                send_email_fn=_safety_send_email,
+            )
+        )
+        logger.info("[safety-digest] weekly cron started")
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"[safety-digest] failed to start: {e}")
 
 
 # ─── HR Payroll Variance (iter72) ────────────────────────────────────

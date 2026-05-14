@@ -86,6 +86,12 @@ import SafetyChangePassword from "@/pages/SafetyChangePassword";
 import SafetyForgotPassword from "@/pages/SafetyForgotPassword";
 import SafetyResetPassword from "@/pages/SafetyResetPassword";
 import SafetyCorrectiveActions from "@/pages/SafetyCorrectiveActions";
+import SafetyFireExtinguishers from "@/pages/SafetyFireExtinguishers";
+import SafetyDocuments from "@/pages/SafetyDocuments";
+import SafetyTrainingRecords from "@/pages/SafetyTrainingRecords";
+import SafetyEmployeeProfiles from "@/pages/SafetyEmployeeProfiles";
+import SafetyDigest from "@/pages/SafetyDigest";
+import HrSafetyRecords from "@/pages/HrSafetyRecords";
 import TrainingHub from "@/pages/TrainingHub";
 import TrainingTrack from "@/pages/TrainingTrack";
 import TrainingQrPoster from "@/pages/TrainingQrPoster";
@@ -392,6 +398,14 @@ function App() {
             <Route path="/safety-portal/change-password" element={SF(<SafetyChangePassword />)} />
             <Route path="/safety-portal" element={SF(<SafetyHub />)} />
             <Route path="/safety-portal/corrective-actions" element={SF(<SafetyCorrectiveActions />)} />
+            <Route path="/safety-portal/fire-extinguishers" element={SF(<SafetyFireExtinguishers />)} />
+            <Route path="/safety-portal/documents" element={SF(<SafetyDocuments />)} />
+            <Route path="/safety-portal/training" element={SF(<SafetyTrainingRecords />)} />
+            <Route path="/safety-portal/employees" element={SF(<SafetyEmployeeProfiles />)} />
+            <Route path="/safety-portal/digest" element={SF(<SafetyDigest />)} />
+
+            {/* HR cross-portal read-only safety view (uses X-HR-Token) */}
+            <Route path="/hr/safety-records" element={H(<HrSafetyRecords />)} />
 
             {/* ============================================================
                 Training Hub — landing is public, tracks gate per audience

@@ -7,7 +7,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   ShieldAlert, AlertOctagon, ClipboardCheck, Users, FileText,
-  Award, Flame, FolderArchive, BarChart3, Loader2,
+  Award, Flame, FolderArchive, BarChart3, Loader2, Mail,
 } from "lucide-react";
 import { SectionTile } from "@/components/SectionTile";
 import SafetyShell from "@/components/SafetyShell";
@@ -139,9 +139,7 @@ export default function SafetyHub() {
           title={t("Training & Certifications")}
           desc={t("Employee certifications, training records, expiration tracking, sign-in sheets, and renewal alerts.")}
           accent="indigo"
-          ctaLabel={t("Coming soon")}
-          disabled
-          disabledLabel={t("Phase 4 — coming after Fire Ext + Docs")}
+          ctaLabel={t("Open")}
           testId="safety-tile-training"
         />
         <SectionTile
@@ -150,9 +148,7 @@ export default function SafetyHub() {
           title={t("Employee Safety Profiles")}
           desc={t("Per-employee roll-up: trainings, certs, meeting attendance, incident involvement, retraining, and PPE issuance.")}
           accent="slate"
-          ctaLabel={t("Coming soon")}
-          disabled
-          disabledLabel={t("Phase 4 — coming after Fire Ext + Docs")}
+          ctaLabel={t("Open")}
           testId="safety-tile-employees"
         />
         <SectionTile
@@ -161,9 +157,7 @@ export default function SafetyHub() {
           title={t("Fire Extinguishers")}
           desc={t("Monthly inspections, due-date tracking, pass/fail records, and unit-level history per truck / job / facility.")}
           accent="redDeep"
-          ctaLabel={t("Coming soon")}
-          disabled
-          disabledLabel={t("Phase 3 — coming after Corrective Actions")}
+          ctaLabel={t("Open")}
           testId="safety-tile-extinguishers"
         />
         <SectionTile
@@ -172,10 +166,17 @@ export default function SafetyHub() {
           title={t("Safety Document Library")}
           desc={t("OSHA records, SDS, emergency action plans, competent-person docs, fall-protection training, sign-in sheets, and more.")}
           accent="cyan"
-          ctaLabel={t("Coming soon")}
-          disabled
-          disabledLabel={t("Phase 3 — coming after Corrective Actions")}
+          ctaLabel={t("Open")}
           testId="safety-tile-docs"
+        />
+        <SectionTile
+          to="/safety-portal/digest"
+          icon={Mail}
+          title={t("Weekly Digest")}
+          desc={t("Monday-morning email digest of open CAs, overdue items, 7-day incidents, and 30-day training expirations. Preview anytime or send on demand.")}
+          accent="emerald"
+          ctaLabel={t("Open")}
+          testId="safety-tile-digest"
         />
         <SectionTile
           to="/safety-portal/reports"
