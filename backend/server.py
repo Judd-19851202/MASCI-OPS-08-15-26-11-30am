@@ -8095,6 +8095,29 @@ _hr_portal_router = build_hr_portal_router(db, require_admin, _hr_send_email)
 app.include_router(_hr_portal_router)
 
 
+# ─── Safety Portal (iter119) ─────────────────────────────────────────
+# Mirrors the HR portal pattern exactly so it slots cleanly into the
+# existing auth/router architecture. Reads existing incident/inspection/
+# meeting/FL records for visibility — adds ONE new collection
+# (`corrective_actions`) for the cross-cutting Phase 2 workflow.
+from routes.safety_portal import build_safety_router  # noqa: E402
+from safety_users import seed_safety_users  # noqa: E402
+
+_safety_router = build_safety_router(db, require_admin)
+app.include_router(_safety_router)
+
+
+@app.on_event("startup")
+async def _seed_safety_users():
+    await seed_safety_users(db)
+    try:
+        await db.corrective_actions.create_index("status")
+        await db.corrective_actions.create_index("due_date")
+        await db.corrective_actions.create_index("source_id")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"corrective_actions index: {e}")
+
+
 # ─── HR Payroll Variance (iter72) ────────────────────────────────────
 from routes import payroll_variance as _pv_module  # noqa: E402
 
