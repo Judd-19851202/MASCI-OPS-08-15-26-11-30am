@@ -4,6 +4,53 @@
 
 - **Design tokens consolidation** — once production is live on `mascidocs.com`, draft `/app/frontend/src/styles/tokens.css` with proposed token names (`--brand-primary`, `--brand-accent`, per-portal accents, etc.) for user review BEFORE swapping anywhere. Then do the focused 80% pass (SectionTile + Hub + sub-hubs + portal accents). Zero visual change. ~30 min once approved.
 
+## 🛡️ Architectural Guardrails (locked 2026-05-14 by user)
+
+Integration framework must remain PASSIVE / OBSERVATIONAL until live API stability is proven. No auto-creating work orders / disciplinary actions / retraining / payroll triggers. All future workflows are EVENT-DRIVEN (failed pre-op → internal event → integration layer → MaintainX/Safety/Asset/notify), never portal-to-portal direct logic. Heavy syncs run BACKGROUND only — never block dashboards / forms / login. Master records (`db.equipment_master`, `db.employees`) are SOURCE-OF-TRUTH — integrations flow through mapping layers, not direct master mutation. CSV imports require preview + rollback + duplicate detection. Integration failures must NEVER crash core platform. Audit/traceability on every mapping/import/setting change.
+
+---
+## 2026-05-14 — Iter123: Mappings Wizard (safe two-step bulk linker)
+
+### User ask
+"Yes, build the small Mappings Wizard. That will save a lot of time once we get the Motive/MaintainX exports, but build it safely."
+
+User-specified safety requirements: match by MASCI unit number first · paste-in CSV/table columns · preview matches before saving · show matched/unmatched/duplicate records · require manual review/approval before commit · do NOT overwrite existing mappings unless admin confirms · create import/mapping log · allow cancel before final save · show mapping confidence · support Motive Vehicle IDs now, extensible to MaintainX Asset IDs later.
+
+### Outcome: ✅ Shipped · 30/30 backend tests pass (7 new + 23 iter122 regression)
+
+### Backend
+- New `/app/backend/routes/integrations/wizard.py` — three endpoints:
+  - `POST /api/admin/integrations/mappings/wizard/preview` — read-only categorisation
+  - `POST /api/admin/integrations/mappings/wizard/commit`  — applies reviewed decisions
+  - `GET  /api/admin/integrations/mappings/wizard/runs`    — audit history
+  - `GET  /api/admin/integrations/mappings/wizard/runs/{id}` — single-run drill-down
+- Status categorisation: `ready` · `noop` · `conflict` · `duplicate` · `external_collision` · `unmatched`
+- Refuse-to-overwrite: existing provider IDs require explicit `force_overwrite=true` per row
+- Audit: every commit appends to `integration_wizard_runs` (actor · source_label · totals · per-row results)
+- Actor capture: `X-Actor-Name` / `X-Admin-Email` / `X-Admin-User` header → falls back to "admin"
+- New collection + indexes: `integration_wizard_runs` (started_at, kind)
+- New models in `_models.py`: `WizardPreviewRow`, `WizardPreviewRequest`, `WizardDecision`, `WizardCommitRequest`
+- **Safety**: `db.equipment_master` and `db.employees` NEVER touched — only `asset_mappings` is written. Verified by pytest snapshot diff.
+
+### Frontend
+- New "Mappings Wizard" tab inside `AdminIntegrationCenter` (`ic-tab-wizard`)
+- Two-step UI: configure & paste (Step 1) → review categorized table (Step 2) → commit-with-confirm dialog
+- Per-row Action dropdown (Skip · Create · Update) — defaults to safe values:
+  - `ready` → suggested action (create or update)
+  - `conflict` → Skip (admin must explicitly toggle Force to enable Update)
+  - `duplicate` / `unmatched` / `external_collision` → Skip
+- Per-row Force-overwrite Switch (visible only on conflict rows)
+- Confirm dialog before commit: "Commit N mapping changes? Master equipment records are NOT touched."
+- Recent runs audit log inline (last 10)
+- Reset button to discard preview before commit
+- Supports Motive Vehicles now; MaintainX Assets dropdown wired for future use (same wizard, same flow)
+
+### Verified
+- 7 new pytest cases at `/app/backend/tests/test_iter123_mappings_wizard.py` (preview categorisation · bad-kind 400 · negative auth · create-then-refuse-overwrite-then-force · skip records audit · audit list · master-never-modified) — 7/7 PASS
+- iter122 regression: 23/23 PASS
+- Frontend lint clean (ESLint), backend lint clean (ruff)
+- Smoke screenshot confirms preview panel renders with correct category counts and per-row action dropdowns
+
 ---
 ## 2026-05-14 — Iter122: Motive + MaintainX Integration Framework (SHIPPED)
 
