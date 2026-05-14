@@ -118,9 +118,9 @@ function PasswordGate({ onAuthed }) {
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="leadership-login-back"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Hub")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
-          <MasciLogo variant="lockup" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <div className="flex items-center gap-2">
             <LangToggle />

@@ -45,7 +45,7 @@ export default function QaqcSection() {
             className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-emerald-700 font-bold"
             data-testid="qaqc-back-home"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Hub
+            <ArrowLeft className="w-3.5 h-3.5" /> {t("Home")}
           </Link>
         </div>
 

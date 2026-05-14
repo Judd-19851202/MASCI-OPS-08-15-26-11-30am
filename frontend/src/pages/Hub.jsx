@@ -237,7 +237,7 @@ export default function Hub() {
               data-testid="hub-sign-in-link"
               title="Multi-portal sign-in for managers, admins, and HR with cross-portal access"
             >
-              Sign in
+              {t("Sign in")}
             </Link>
             <LangToggle />
           </div>

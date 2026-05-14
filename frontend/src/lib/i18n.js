@@ -2339,6 +2339,34 @@ const ES = {
   "Personal": "Personal",
   "Other": "Otro",
 
+  // ---- Hub.jsx section headers + tile descriptions (iter110) ----------
+  "Today in the Field": "Hoy en el Campo",
+  "Submissions every crew on site needs today.": "Envíos que cada cuadrilla en la obra necesita hoy.",
+  "Leadership Tools": "Herramientas de Liderazgo",
+  "For foremen, supervisors, and superintendents in the field.": "Para capataces, supervisores y superintendentes en campo.",
+  "Office Portals": "Portales de Oficina",
+  "Sign-in required. For office staff, mechanics, and HR.": "Inicio de sesión requerido. Para personal de oficina, mecánicos y RRHH.",
+  "Reference": "Referencia",
+  "Always available — no sign-in needed.": "Siempre disponible — sin necesidad de iniciar sesión.",
+  "Enter →": "Entrar →",
+  "The project-management workspace for MASCI office staff.": "El espacio de gestión de proyectos para personal de oficina de MASCI.",
+  "The mechanic's console for the MASCI equipment fleet.": "La consola del mecánico para la flota de equipos de MASCI.",
+  "Employee records and payroll cross-check for MASCI HR.": "Registros de empleados y verificación de nómina para RRHH de MASCI.",
+  "The MASCI office console.": "La consola de oficina de MASCI.",
+  "Need Help?": "¿Necesita Ayuda?",
+  "Office phone, address, and after-hours contact.": "Teléfono de oficina, dirección y contacto fuera de horario.",
+  "Short bilingual lessons for every role.": "Lecciones bilingües cortas para cada rol.",
+  "The one-pager pinned in every site trailer.": "La hoja de referencia colgada en cada remolque de obra.",
+  "Quality inspections for concrete, rebar, and subcontractor work — documented, signed, photographed, routed, and stored.":
+    "Inspecciones de calidad para concreto, varilla y trabajo de subcontratistas — documentadas, firmadas, fotografiadas, enrutadas y archivadas.",
+  "MASCI Field Leadership": "Liderazgo de Campo MASCI",
+  "Crew accountability, employee documentation, equipment responsibility, recognition, and workforce-management forms.":
+    "Responsabilidad de cuadrilla, documentación de empleados, responsabilidad de equipo, reconocimiento y formularios de gestión de personal.",
+  "Project Spaces": "Espacios de Proyecto",
+  "Projects": "Proyectos",
+  "Messages, to-dos, schedules, docs, and field staking.":
+    "Mensajes, tareas, horarios, documentos y replanteo en campo.",
+
 };
 
 const DICTS = { es: ES, en: {} };

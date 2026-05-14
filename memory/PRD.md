@@ -6,6 +6,53 @@
 
 ---
 
+## 2026-05-13 — Iter110: Bilingual Coverage Audit (EN↔ES + ES→EN on submit)
+
+### User ask
+"Check all forms, screens, everything that has option to translate into spanish from english when ES is clicked to make sure everything translates as it should & that all text field that are filled out in spanish on all forms/docs gets translated back into english along with rest of the form once submitted. Check all old & new parts of the system."
+
+### Shipped
+**Two distinct layers audited:**
+1. **UI translation (EN→ES toggle)** — every visible label, heading, button, tile description, CTA, back-link must translate. The dictionary lives in `/app/frontend/src/lib/i18n.js` and now totals **2380+ lines** of EN→ES entries.
+2. **Form payload translation (ES→EN on submit)** — when a user fills a form in Spanish, the freeform fields auto-translate to English so HR/PM/Admin always see legible English. Helper at `/app/frontend/src/lib/translateOnSubmit.js` posts to `/api/translate` (Claude Haiku via Emergent LLM key).
+
+**Backend** — 5/5 tests pass (`/app/backend/tests/test_iter107_bilingual_audit.py`):
+- `/api/translate` works for non-empty strings, short-circuits on empty input, gracefully handles missing LLM key
+- FL `/api/field-leadership` ES round-trip: write_up submitted with Spanish description+corrective_action → persisted as English with `language='es'` audit stamp
+- Public Time Off `/api/public/time-off/{token}/submit` ES round-trip: coverage_plan+notes translated, English persisted
+
+**Frontend wiring gaps fixed:**
+- `FieldLeadershipFormPage.jsx` now calls `translateUserInput(payload, lang)` before posting → all 12 FL form types (Write-Up, Time Off Request, Termination, Crew Eval, Coaching, Recognition, Promotion, Training Deficiency, Attendance, Equipment Checkout/Return, etc.) now auto-translate Spanish narratives
+- `PublicTimeOff.jsx` fully bilingualized — added `useT`, `LangToggle` in header, wrapped all labels (Reason, Pay Type, Coverage Plan, Notes, etc.), wired `translateUserInput` for coverage_plan/notes
+
+**Hub.jsx + back-link bilingual coverage:**
+- Added 18 missing dictionary entries: section headers (Today in the Field, Leadership Tools, Office Portals, Reference), section subtitles, all 4 portal tile descriptions, all 3 reference tile copies, "Enter →" CTA, MASCI Field Leadership pill, Projects copy, QA/QC description
+- Wrapped hardcoded "Sign in" header button in `t()`
+- `QaqcSection.jsx` back-link: "Hub" → `t("Home")`
+- `/leadership` gate page (PasswordGate): "Hub" back-link → `t("Home")`, header logo swapped from `lockup` → `mark` (P1 branding regression carried over from iter106)
+
+**Public Time Off i18n keys added** (40+ entries):
+- Reason options (Vacation, Sick Leave, Medical Appointment, Family Emergency, Bereavement, Jury Duty, Military Leave, Personal, Other)
+- All form labels (Position, Department, Reason *, Pay Type, Half day on start/end, Total Days Requested, Coverage Plan, Notes, Employee Signature, Submit Time Off Request, Submitting…, etc.)
+- All flow strings (Public Form, Link unavailable, Loading form…, Submitted!, HR has been notified…, Reference:)
+
+### Files changed
+- `frontend/src/lib/i18n.js` (60+ new dictionary entries)
+- `frontend/src/lib/translateOnSubmit.js` (used by 2 new callers)
+- `frontend/src/pages/FieldLeadershipFormPage.jsx` (wired translateUserInput on submit)
+- `frontend/src/pages/PublicTimeOff.jsx` (full bilingualization + translate-on-submit)
+- `frontend/src/pages/Hub.jsx` (Sign In button now uses t())
+- `frontend/src/pages/QaqcSection.jsx` (back-link uses t("Home"))
+- `frontend/src/pages/FieldLeadershipHub.jsx` (gate page header swapped to M-mark + t("Home"))
+- `backend/tests/test_iter107_bilingual_audit.py` (new test suite — 5 tests)
+
+### Verified
+- 5/5 backend ES→EN round-trip tests pass
+- Live ES toggle on `/` shows zero English bleed-through (re-screenshotted post-fix)
+- `/leadership` gate now shows M-mark only — "MASCI HUB" text is absent
+
+---
+
 ## 2026-05-13 — Iter109: Master Deployment Readiness Audit
 
 ### User ask
