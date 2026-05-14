@@ -5,6 +5,62 @@
 - **Design tokens consolidation** — once production is live on `mascidocs.com`, draft `/app/frontend/src/styles/tokens.css` with proposed token names (`--brand-primary`, `--brand-accent`, per-portal accents, etc.) for user review BEFORE swapping anywhere. Then do the focused 80% pass (SectionTile + Hub + sub-hubs + portal accents). Zero visual change. ~30 min once approved.
 
 ---
+## 2026-05-14 — Iter119: Safety Portal Phase 1 + 2 (Foundation + Corrective Actions)
+
+### User ask
+"SAFETY PORTAL ARCHITECTURE REVIEW & INTEGRATED BUILD PLAN" — ship a fully integrated cross-portal Safety Command Center (not a duplicated standalone section). User approved Phase 1 (Foundation, Auth, Admin management, Overview KPIs) + Phase 2 (Corrective Action System). Accent color must be `cyan-700`.
+
+### Outcome: ✅ Phase 1 + 2 SHIPPED
+
+### Backend (21/21 pytest pass)
+- New router `/app/backend/routes/safety_portal.py` mounted via `build_safety_router(db, require_admin)` in `server.py`
+- New DB primitives `/app/backend/safety_users.py` (mirrors `hr_users.py`)
+- Endpoints:
+  - `POST /api/safety/login` — bcrypt-bound per-user HMAC token in `X-Safety-Token`
+  - `GET /api/safety/me`, `POST /api/safety/change-password` (returns fresh token), `POST /api/safety/forgot-password`, `POST /api/safety/reset-password`
+  - `GET /api/safety/overview` — read-only KPI roll-up of EXISTING collections (incidents, safety_meetings, inspections, field_leadership_records, corrective_actions). **No duplicate forms.**
+  - Corrective Actions full CRUD: `GET|POST /api/safety/corrective-actions`, `GET|PATCH|DELETE /api/safety/corrective-actions/{id}`
+  - Admin: `GET|POST /api/admin/safety-users`, `PATCH|DELETE /api/admin/safety-users/{id}`, `POST /api/admin/safety-users/{id}/reset-password`
+- Status pipeline: `Open → In Progress → Pending Review → Closed`. Closing a CA auto-stamps `completed_at` + `closed_by_name`.
+
+### Frontend
+- Pages: `SafetyLogin.jsx` · `SafetyHub.jsx` (KPI dashboard + module tiles) · `SafetyCorrectiveActions.jsx` (full CRUD with filter tabs, status pipeline buttons, search, edit dialog) · `SafetyChangePassword.jsx` · `SafetyForgotPassword.jsx` · `SafetyResetPassword.jsx`
+- Components: `SafetyShell.jsx`, `RequireSafety.jsx`, `AdminSafetyUsersPanel.jsx` (mirrors `AdminHRUsersPanel`)
+- `lib/safetyAuth.js` for localStorage helpers (`masci.safety.token`, `masci.safety.user`)
+- Routes wired into `App.js` at `/safety-portal/*`
+- New "Safety Portal" tile added to `Hub.jsx` Office Portals row (cyan-700, 5th column)
+- `AdminSafetyUsersPanel` wired into `/admin/people`
+- `EnforcePortalScope.jsx` updated to protect `/safety-portal/*` scope so X-Safety-Token survives navigation within the portal
+
+### E2E verified (Playwright)
+- Login → must_change_password redirect → /safety-portal/change-password → rotate → /safety-portal hub ✅
+- Hub KPI tiles + Corrective Actions tile render with cyan accent ✅
+- Full CA CRUD: create → list → filter (All / Open / In Progress / Pending Review / Closed / Overdue) → status pipeline (Start → Submit for Review → Close) → edit dialog → delete ✅
+- Hub home "Safety Portal" tile renders in Office Portals row ✅
+
+### Seed credentials
+- `safety@mascigc.com` / `Safety123!` (must be rotated via admin reset on first prod login)
+
+### Files added (this iter)
+- backend/routes/safety_portal.py · backend/safety_users.py
+- frontend/src/lib/safetyAuth.js
+- frontend/src/components/{SafetyShell,RequireSafety,AdminSafetyUsersPanel}.jsx
+- frontend/src/pages/{SafetyLogin,SafetyHub,SafetyCorrectiveActions,SafetyChangePassword,SafetyForgotPassword,SafetyResetPassword}.jsx
+- backend/tests/test_safety_portal_iter119.py (21 tests, all green)
+
+### Files modified
+- frontend/src/App.js (routes), pages/Hub.jsx (tile + welcome-back), pages/admin/AdminPeople.jsx (panel), components/EnforcePortalScope.jsx (scope guard)
+
+### Known follow-ups (deferred to Phase 3+)
+- Wire email delivery to `/api/admin/safety-users/{id}/reset-password` (Resend) — currently shows temp pw on screen only
+- Add `delivery=email|screen|custom` parity with HR admin panel
+- Gate `/api/safety/forgot-password` `token_for_dev` behind an explicit dev/preview flag before prod deploy
+- Add safety token to `lib/tokenValidation.js` startup ping
+- Server-side enforcement of status pipeline transitions (currently UI-button-gated only)
+
+---
+
+
 
 ## 2026-05-14 — Iter118: 20/10 Master QA Audit + i18n polish
 
