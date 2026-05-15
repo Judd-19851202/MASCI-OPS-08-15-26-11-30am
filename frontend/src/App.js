@@ -322,7 +322,6 @@ function App() {
             <Route path="/admin/daily" element={AP(<DailyReportsDashboard />)} />
             <Route path="/admin/daily/:id" element={AP(<ViewDailyReport />)} />
 
-            <Route path="/admin/equipment" element={AP(<EquipmentDashboard />)} />
             {/* iter95 — /admin/equipment-inspections explicit so the
                 Admin KPI tile lands the user on the inspection LIST
                 (the status board view at /admin/equipment is the

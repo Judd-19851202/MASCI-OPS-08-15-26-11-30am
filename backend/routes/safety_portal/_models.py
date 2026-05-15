@@ -54,6 +54,17 @@ class SafetyUserUpdate(BaseModel):
 
 
 # ── Phase 2 — Corrective Actions ─────────────────────────────────────
+class RelatedEntity(BaseModel):
+    """A pointer from a CA to another platform record (incident,
+    failed pre-op, equipment master row, training record, audit, etc.).
+    `kind` is free-form but standardized: incident, equipment_inspection,
+    equipment_master, training_record, audit, safety_document, fire_ext."""
+    kind: str = Field(..., min_length=2, max_length=40)
+    id: str = Field(..., min_length=1, max_length=200)
+    label: Optional[str] = Field(default="", max_length=240)
+    url: Optional[str] = Field(default="", max_length=400)
+
+
 class CorrectiveActionCreate(BaseModel):
     title: str = Field(..., min_length=3)
     description: Optional[str] = ""
@@ -65,6 +76,7 @@ class CorrectiveActionCreate(BaseModel):
     priority: Optional[str] = "Medium"
     due_date: Optional[str] = None
     notes: Optional[str] = ""
+    related_entities: Optional[List[RelatedEntity]] = None
 
 
 class CorrectiveActionUpdate(BaseModel):
@@ -77,6 +89,7 @@ class CorrectiveActionUpdate(BaseModel):
     due_date: Optional[str] = None
     notes: Optional[str] = None
     completion_notes: Optional[str] = None
+    related_entities: Optional[List[RelatedEntity]] = None
 
 
 # ── Phase 3 — Fire Extinguishers ─────────────────────────────────────

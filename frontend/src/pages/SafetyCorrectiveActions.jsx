@@ -27,6 +27,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import SafetyShell from "@/components/SafetyShell";
+import SafetyCaLinksManager from "@/components/SafetyCaLinksManager";
 import { useT } from "@/lib/i18n";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { toast } from "sonner";
@@ -503,6 +504,9 @@ export default function SafetyCorrectiveActions() {
                   data-testid="safety-ca-form-completion"
                 />
               </div>
+            )}
+            {dlg.mode === "edit" && dlg.id && (
+              <SafetyCaLinksManager caId={dlg.id} />
             )}
           </div>
           <DialogFooter className="pt-3 gap-2">

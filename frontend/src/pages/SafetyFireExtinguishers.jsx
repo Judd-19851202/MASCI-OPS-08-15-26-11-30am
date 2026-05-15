@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Flame, Plus, Loader2, ClipboardCheck, AlertTriangle,
-  Pencil, Trash2, Save, X, Upload,
+  Pencil, Trash2, Save, X, Upload, Paperclip,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import SafetyShell from "@/components/SafetyShell";
+import SafetyFireExtManageDialog from "@/components/SafetyFireExtManageDialog";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -68,6 +69,7 @@ export default function SafetyFireExtinguishers() {
   const [search, setSearch] = useState("");
   const [editDlg, setEditDlg] = useState({ open: false, mode: "create", id: null, form: blank() });
   const [inspectDlg, setInspectDlg] = useState({ open: false, fe: null, form: inspectBlank() });
+  const [manageDlg, setManageDlg] = useState({ open: false, fe: null });
   const [saving, setSaving] = useState(false);
 
   const refresh = async () => {
@@ -250,6 +252,12 @@ export default function SafetyFireExtinguishers() {
                       <Button size="sm" variant="outline" onClick={() => openInspect(fe)} className="h-8 border-cyan-300 text-cyan-800" data-testid={`safety-fe-inspect-${fe.id}`} title="Log inspection">
                         <ClipboardCheck className="w-3.5 h-3.5" />
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => setManageDlg({ open: true, fe })} className="h-8 border-slate-300" data-testid={`safety-fe-manage-${fe.id}`} title="Attachments & PDF history">
+                        <Paperclip className="w-3.5 h-3.5" />
+                        {(fe.attachments || []).length > 0 && (
+                          <span className="ml-1 text-[10px] font-bold text-cyan-700">{(fe.attachments || []).length}</span>
+                        )}
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => openEdit(fe)} className="h-8" data-testid={`safety-fe-edit-${fe.id}`}><Pencil className="w-3.5 h-3.5" /></Button>
                       <Button size="sm" variant="outline" onClick={() => removeFe(fe)} className="h-8 border-red-300 text-red-700" data-testid={`safety-fe-delete-${fe.id}`}><Trash2 className="w-3.5 h-3.5" /></Button>
                     </div>
@@ -367,6 +375,16 @@ export default function SafetyFireExtinguishers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Manage (attachments + history PDF) */}
+      <SafetyFireExtManageDialog
+        open={manageDlg.open}
+        fe={manageDlg.fe}
+        onClose={() => setManageDlg({ open: false, fe: null })}
+        onChanged={(updated) => {
+          setItems((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+        }}
+      />
     </SafetyShell>
   );
 }

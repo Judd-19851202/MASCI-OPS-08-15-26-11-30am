@@ -984,6 +984,26 @@ async def admin_check(_: bool = Depends(require_admin)):
     return {"ok": True}
 
 
+@api_router.post("/admin/logout")
+async def admin_logout(request: Request, _: bool = Depends(require_admin)):
+    """Iter135: no-op audit-only logout. Token revocation happens
+    client-side (token cleared from local/sessionStorage); this endpoint
+    just records the event so the Audit Log timeline has a 'signed out'
+    marker. Returns 200 regardless so a stale token still feels clean.
+    """
+    try:
+        await db.audit_events.insert_one({
+            "at": datetime.now(timezone.utc),
+            "kind": "admin_logout",
+            "actor": "admin",
+            "ip": _client_ip(request),
+            "user_agent": (request.headers.get("user-agent") or "")[:240],
+        })
+    except Exception:  # noqa: BLE001
+        pass
+    return {"ok": True}
+
+
 @api_router.post("/admin/auth/verify-password")
 async def admin_verify_password(body: AdminLoginRequest, request: Request):
     """Re-verify the admin password without rotating the stored session
@@ -1810,6 +1830,25 @@ async def pm_change_password(
         "token": make_pm_token(updated["id"], updated["password_hash"]),
         "pm": public_pm_view(updated),
     }
+
+
+@api_router.post("/pm/logout")
+async def pm_logout(request: Request, actor=Depends(require_admin_async)):
+    """Iter135: audit-only PM logout. Token revocation is client-side.
+    Returns 200 regardless so the FE always feels clean."""
+    try:
+        pm_id = (actor.get("id") if isinstance(actor, dict) else "") or ""
+        await db.audit_events.insert_one({
+            "at": datetime.now(timezone.utc),
+            "kind": "pm_logout",
+            "actor": "pm",
+            "pm_id": pm_id,
+            "ip": _client_ip(request),
+            "user_agent": (request.headers.get("user-agent") or "")[:240],
+        })
+    except Exception:  # noqa: BLE001
+        pass
+    return {"ok": True}
 
 
 @api_router.post("/admin/project-managers/{pm_id}/set-password")

@@ -26,6 +26,7 @@ from .auth_users import register_auth_routes
 from .corrective_actions import register_corrective_action_routes
 from .digest import build_digest_payload, register_digest_routes, render_digest_html
 from .documents import register_document_routes
+from .fire_ext_attachments import register_fire_ext_attachment_routes
 from .fire_extinguishers import register_fire_extinguisher_routes
 from .overview import register_overview_routes
 from .training import register_training_routes
@@ -52,6 +53,7 @@ def build_safety_router(
     register_overview_routes(api_router, db, require_admin, require_safety_token)
     register_corrective_action_routes(api_router, db, require_safety_token)
     register_fire_extinguisher_routes(api_router, db, require_safety_token)
+    register_fire_ext_attachment_routes(api_router, db, require_safety_token)
     register_document_routes(
         api_router, db, require_safety_token, require_safety_or_hr_or_admin,
     )

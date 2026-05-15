@@ -31,6 +31,7 @@ def register_corrective_action_routes(
         body: CorrectiveActionCreate, user: dict = Depends(require_safety_token),
     ):
         now = datetime.now(timezone.utc).isoformat()
+        related = [r.model_dump() if hasattr(r, "model_dump") else dict(r) for r in (body.related_entities or [])]
         doc = {
             "id": str(uuid.uuid4()),
             "title": body.title.strip(),
@@ -47,6 +48,7 @@ def register_corrective_action_routes(
             "completion_notes": "",
             "completed_at": None,
             "closed_by_name": "",
+            "related_entities": related,
             "created_by_name": user.get("name") or "",
             "created_by_email": user.get("email") or "",
             "created_at": now,
@@ -68,9 +70,13 @@ def register_corrective_action_routes(
         ca_id: str, body: CorrectiveActionUpdate, user: dict = Depends(require_safety_token),
     ):
         now = datetime.now(timezone.utc).isoformat()
-        update = {"updated_at": now}
-        for k, v in body.dict(exclude_none=True).items():
-            update[k] = v
+        update: dict = {"updated_at": now}
+        for k, v in body.model_dump(exclude_none=True).items():
+            if k == "related_entities" and v is not None:
+                # Normalize: each item may be Pydantic or dict
+                update[k] = [dict(x) for x in v]
+            else:
+                update[k] = v
         if update.get("status") == "Closed":
             update["completed_at"] = now
             update["closed_by_name"] = user.get("name") or ""
@@ -78,6 +84,85 @@ def register_corrective_action_routes(
         if res.matched_count == 0:
             raise HTTPException(404, "Not found")
         return await db.corrective_actions.find_one({"id": ca_id}, {"_id": 0})
+
+    # ── Related-entity link management ─────────────────────────────
+    # Used by the UI's link-picker. POST appends, DELETE removes by composite
+    # (kind, id) so the front-end doesn't need to track per-link UUIDs.
+    @api_router.post("/safety/corrective-actions/{ca_id}/links")
+    async def add_ca_link(
+        ca_id: str, body: dict, _: dict = Depends(require_safety_token),
+    ):
+        kind = (body.get("kind") or "").strip()
+        link_id = str(body.get("id") or "").strip()
+        if not kind or not link_id:
+            raise HTTPException(400, "kind and id are required")
+        label = (body.get("label") or "").strip()[:240]
+        url = (body.get("url") or "").strip()[:400]
+        entry = {"kind": kind, "id": link_id, "label": label, "url": url}
+        # Pull existing (composite-key) then push fresh — keeps it idempotent
+        await db.corrective_actions.update_one(
+            {"id": ca_id},
+            {"$pull": {"related_entities": {"kind": kind, "id": link_id}}},
+        )
+        res = await db.corrective_actions.update_one(
+            {"id": ca_id},
+            {
+                "$push": {"related_entities": entry},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()},
+            },
+        )
+        if res.matched_count == 0:
+            raise HTTPException(404, "Corrective action not found")
+        return entry
+
+    @api_router.delete("/safety/corrective-actions/{ca_id}/links")
+    async def remove_ca_link(
+        ca_id: str, kind: str, id: str,  # noqa: A002 (`id` is a query param)
+        _: dict = Depends(require_safety_token),
+    ):
+        res = await db.corrective_actions.update_one(
+            {"id": ca_id},
+            {
+                "$pull": {"related_entities": {"kind": kind, "id": id}},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()},
+            },
+        )
+        if res.matched_count == 0:
+            raise HTTPException(404, "Corrective action not found")
+        return {"ok": True}
+
+    @api_router.get("/safety/corrective-actions/{ca_id}/related-resolved")
+    async def resolve_ca_links(ca_id: str, _: dict = Depends(require_safety_token)):
+        """Resolve each related entity against its source collection so
+        the UI can display fresh labels even if the underlying record
+        was renamed. Missing records get `exists=false` so the UI can
+        show a 'this link is broken' marker."""
+        ca = await db.corrective_actions.find_one({"id": ca_id}, {"_id": 0, "related_entities": 1})
+        if not ca:
+            raise HTTPException(404, "Corrective action not found")
+        out: list = []
+        for r in (ca.get("related_entities") or []):
+            kind = r.get("kind")
+            rid = r.get("id")
+            resolved = {**r, "exists": False, "summary": ""}
+            coll_map = {
+                "incident": ("incidents", "incident_type"),
+                "equipment_inspection": ("equipment_inspections", "equipment_unit"),
+                "equipment_master": ("equipment_master", "unit_number"),
+                "training_record": ("safety_training_records", "training_name"),
+                "audit": ("inspections", "project_name"),
+                "safety_document": ("safety_documents", "title"),
+                "fire_ext": ("fire_extinguishers", "unit_id"),
+            }
+            target = coll_map.get(kind)
+            if target:
+                coll_name, summary_field = target
+                doc = await db[coll_name].find_one({"id": rid}, {"_id": 0, summary_field: 1})
+                if doc:
+                    resolved["exists"] = True
+                    resolved["summary"] = str(doc.get(summary_field) or "")
+            out.append(resolved)
+        return {"ca_id": ca_id, "related": out}
 
     @api_router.delete("/safety/corrective-actions/{ca_id}")
     async def delete_corrective_action(ca_id: str, _: dict = Depends(require_safety_token)):

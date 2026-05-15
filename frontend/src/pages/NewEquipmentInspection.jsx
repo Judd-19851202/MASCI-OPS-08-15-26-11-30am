@@ -222,22 +222,12 @@ export default function NewEquipmentInspection({ publicMode = false }) {
     })();
   }, []);
 
-  // Load saved units for the chosen equipment type
+  // iter135: removed dead /equipment-units autocomplete fetch (endpoint
+  // was retired in iter22 and the 404 was being silently swallowed). The
+  // saved-units dropdown is now always empty — operator types the unit
+  // number directly. Keeps the network tab clean.
   useEffect(() => {
-    if (!data.equipment_type) {
-      setSavedUnits([]);
-      return;
-    }
-    (async () => {
-      try {
-        const r = await api.get(
-          `/equipment-units?equipment_type=${encodeURIComponent(data.equipment_type)}`
-        );
-        setSavedUnits(r.data || []);
-      } catch {
-        setSavedUnits([]);
-      }
-    })();
+    setSavedUnits([]);
   }, [data.equipment_type]);
 
   const sections = useMemo(() => {
