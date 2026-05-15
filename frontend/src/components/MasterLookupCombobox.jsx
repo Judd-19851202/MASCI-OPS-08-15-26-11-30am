@@ -55,6 +55,26 @@ export default function MasterLookupCombobox({
   // Sync displayValue → q so the user sees what's currently bound
   useEffect(() => { setQ(displayValue || ""); }, [displayValue]);
 
+  // iter139 — when we have a bound id but no displayValue (form
+  // re-opened from server data), resolve the label via /by-id helper.
+  useEffect(() => {
+    if (!value || displayValue) return;
+    let alive = true;
+    (async () => {
+      try {
+        const r = await axios.get(`${API}/master-lookup/${kind}/by-id/${value}`);
+        if (!alive || !r.data?.found) return;
+        const fn = FORMAT[kind] || ((i) => i.id);
+        const label = fn(r.data.item);
+        setQ(label);
+        onPick && onPick({ id: value, label, raw: r.data.item, _silent: true });
+      } catch { /* swallow — orphaned id, leave blank */ }
+    })();
+    return () => { alive = false; };
+    // Only fire when value first appears; we don't want re-resolve loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, kind]);
+
   // Close on outside click
   useEffect(() => {
     const onDoc = (e) => {

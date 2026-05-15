@@ -118,6 +118,35 @@ export default function SafetyFireExtinguishers() {
   const openEdit = (fe) => setEditDlg({ open: true, mode: "edit", id: fe.id, form: { ...blank(), ...fe } });
   const closeEdit = () => setEditDlg((d) => ({ ...d, open: false }));
 
+  // iter139 — auto-suggest equipment_master_id from the truck location field.
+  // Triggers only when (a) location_kind is 'truck', (b) the user typed a
+  // value, (c) no master id is bound yet. Stops if exact unit_number match
+  // not found (no guessing).
+  useEffect(() => {
+    if (!editDlg.open) return;
+    const f = editDlg.form;
+    if (f.equipment_master_id) return;
+    if (f.location_kind !== "truck") return;
+    const v = (f.location_value || "").trim();
+    if (v.length < 2) return;
+    const handle = setTimeout(async () => {
+      try {
+        const r = await axios.get(`${API}/master-lookup/equipment`, { params: { q: v, limit: 5 } });
+        const items = r.data?.items || [];
+        // Only auto-bind if we have an EXACT unit_number match (case-insensitive)
+        const exact = items.find((it) => (it.unit_number || "").trim().toUpperCase() === v.toUpperCase());
+        if (exact) {
+          const label = `${exact.unit_number}${exact.make_model ? ` — ${exact.make_model}` : ""}`;
+          setEditDlg((d) => ({
+            ...d,
+            form: { ...d.form, equipment_master_id: exact.id, equipment_master_label: label },
+          }));
+        }
+      } catch { /* swallow — non-blocking */ }
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [editDlg.open, editDlg.form.location_kind, editDlg.form.location_value, editDlg.form.equipment_master_id]);
+
   const save = async () => {
     const f = editDlg.form;
     if (!f.unit_id.trim()) { toast.error("Unit ID required"); return; }

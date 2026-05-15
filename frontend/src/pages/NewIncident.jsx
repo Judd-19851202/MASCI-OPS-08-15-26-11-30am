@@ -29,6 +29,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { SupplierCombo } from "@/components/SupplierCombo";
+import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
 import { useT, getLang } from "@/lib/i18n";
@@ -166,7 +167,9 @@ export default function NewIncident({ publicMode = false }) {
         const { translateUserInput } = await import("@/lib/translateOnSubmit");
         payload = await translateUserInput(data, "es");
       }
-      payload = { ...payload, submit_language: lang || "en" };
+      // iter139 — strip FE-only display fields; only persist the master IDs
+      const { employee_master_label, equipment_master_label, ...persistPayload } = payload;
+      payload = { ...persistPayload, submit_language: lang || "en" };
       const res = await api.post("/incidents", payload);
       toast.success("Incident report saved");
       if (publicMode || !isAdmin()) {
@@ -508,6 +511,30 @@ export default function NewIncident({ publicMode = false }) {
               </div>
               <div>
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  Link to MASCI Employee (optional)
+                </Label>
+                <div className="mt-1">
+                  <MasterLookupCombobox
+                    kind="employees"
+                    value={data.employee_master_id}
+                    displayValue={data.employee_master_label}
+                    onPick={(item) => {
+                      set("employee_master_id", item.id);
+                      set("employee_master_label", item.label);
+                      // Convenience: if person_name is empty, prefill from master
+                      if (item.id && !data.person_name && item.raw) {
+                        const nm = item.raw.name || `${item.raw.first_name || ""} ${item.raw.last_name || ""}`.trim();
+                        if (nm) set("person_name", nm);
+                      }
+                    }}
+                    onClear={() => { set("employee_master_id", ""); set("employee_master_label", ""); }}
+                    placeholder="Search by name / email / employee ID"
+                    testIdPrefix="input-person-master"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   Role / Trade
                 </Label>
                 <Input
@@ -663,6 +690,26 @@ export default function NewIncident({ publicMode = false }) {
               placeholder="Weather, fatigue, training, equipment condition, schedule pressure..."
               data-testid="input-contributing"
             />
+          </div>
+          {/* iter139 — bind to specific equipment master record if any */}
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              Equipment involved (optional)
+            </Label>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Link to a specific MASCI equipment unit. Improves traceability for the Safety team's corrective-action lookup.
+            </p>
+            <div className="mt-1">
+              <MasterLookupCombobox
+                kind="equipment"
+                value={data.equipment_master_id}
+                displayValue={data.equipment_master_label}
+                onPick={(item) => { set("equipment_master_id", item.id); set("equipment_master_label", item.label); }}
+                onClear={() => { set("equipment_master_id", ""); set("equipment_master_label", ""); }}
+                placeholder="Search by unit number / make / VIN"
+                testIdPrefix="input-equipment-master"
+              />
+            </div>
           </div>
         </Section>
 

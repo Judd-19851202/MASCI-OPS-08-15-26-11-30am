@@ -63,6 +63,19 @@ def build_master_lookup_router(db, require_admin: Callable) -> APIRouter:
         items = [doc async for doc in cursor]
         return {"q": q, "items": items, "count": len(items)}
 
+    # iter139 — lookup-by-id, used by the FE typeahead on re-open to
+    # populate the freetext display when only the master id is stored.
+    @router.get("/equipment/by-id/{master_id}")
+    async def lookup_equipment_by_id(master_id: str):
+        doc = await db.equipment_master.find_one(
+            {"id": master_id},
+            {"_id": 0, "id": 1, "unit_number": 1, "make_model": 1,
+             "category": 1, "vin": 1, "serial_number": 1},
+        )
+        if not doc:
+            return {"id": master_id, "found": False, "item": None}
+        return {"id": master_id, "found": True, "item": doc}
+
     # ── Employee typeahead ───────────────────────────────────────
     @router.get("/employees")
     async def lookup_employees(
@@ -91,6 +104,18 @@ def build_master_lookup_router(db, require_admin: Callable) -> APIRouter:
         ).limit(limit)
         items = [doc async for doc in cursor]
         return {"q": q, "items": items, "count": len(items)}
+
+    # iter139 — employee lookup-by-id helper for typeahead re-open
+    @router.get("/employees/by-id/{master_id}")
+    async def lookup_employee_by_id(master_id: str):
+        doc = await db.employees.find_one(
+            {"id": master_id},
+            {"_id": 0, "id": 1, "first_name": 1, "last_name": 1, "name": 1,
+             "email": 1, "employee_id": 1, "role": 1, "display_name": 1, "trade": 1},
+        )
+        if not doc:
+            return {"id": master_id, "found": False, "item": None}
+        return {"id": master_id, "found": True, "item": doc}
 
     # ── Backfill: equipment ──────────────────────────────────────
     @router.post("/backfill/equipment", dependencies=[Depends(require_admin)])

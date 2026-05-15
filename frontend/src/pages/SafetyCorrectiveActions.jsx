@@ -112,13 +112,21 @@ export default function SafetyCorrectiveActions() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("All");
   const [search, setSearch] = useState("");
+  // iter139 — filter by linked master record
+  const [filterEqId, setFilterEqId] = useState("");
+  const [filterEqLabel, setFilterEqLabel] = useState("");
+  const [filterEmpId, setFilterEmpId] = useState("");
+  const [filterEmpLabel, setFilterEmpLabel] = useState("");
   const [dlg, setDlg] = useState({ open: false, mode: "create", form: blankForm(), id: null });
   const [saving, setSaving] = useState(false);
 
   const refresh = async () => {
     setLoading(true);
     try {
-      const r = await axios.get(`${API}/safety/corrective-actions`, auth());
+      const params = {};
+      if (filterEqId) params.equipment_master_id = filterEqId;
+      if (filterEmpId) params.employee_master_id = filterEmpId;
+      const r = await axios.get(`${API}/safety/corrective-actions`, { ...auth(), params });
       setItems(Array.isArray(r.data) ? r.data : []);
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Could not load corrective actions");
@@ -127,7 +135,7 @@ export default function SafetyCorrectiveActions() {
     }
   };
 
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [filterEqId, filterEmpId]);
 
   const counts = useMemo(() => {
     const c = { All: items.length, Overdue: 0 };
@@ -301,6 +309,38 @@ export default function SafetyCorrectiveActions() {
           className={`${inputCls} max-w-md`}
           data-testid="safety-ca-search"
         />
+      </div>
+
+      {/* iter139 — filter by linked master records */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+        <div>
+          <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Filter by linked equipment")}</Label>
+          <div className="mt-1">
+            <MasterLookupCombobox
+              kind="equipment"
+              value={filterEqId}
+              displayValue={filterEqLabel}
+              onPick={(item) => { setFilterEqId(item.id); setFilterEqLabel(item.label); }}
+              onClear={() => { setFilterEqId(""); setFilterEqLabel(""); }}
+              placeholder={t("Any equipment")}
+              testIdPrefix="safety-ca-filter-equipment"
+            />
+          </div>
+        </div>
+        <div>
+          <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Filter by linked employee")}</Label>
+          <div className="mt-1">
+            <MasterLookupCombobox
+              kind="employees"
+              value={filterEmpId}
+              displayValue={filterEmpLabel}
+              onPick={(item) => { setFilterEmpId(item.id); setFilterEmpLabel(item.label); }}
+              onClear={() => { setFilterEmpId(""); setFilterEmpLabel(""); }}
+              placeholder={t("Any employee")}
+              testIdPrefix="safety-ca-filter-employee"
+            />
+          </div>
+        </div>
       </div>
 
       {/* List */}

@@ -19,11 +19,18 @@ def register_corrective_action_routes(
 ) -> None:
     @api_router.get("/safety/corrective-actions")
     async def list_corrective_actions(
-        status: Optional[str] = None, _: dict = Depends(require_safety_token),
+        status: Optional[str] = None,
+        equipment_master_id: Optional[str] = None,  # iter139 filter
+        employee_master_id: Optional[str] = None,   # iter139 filter
+        _: dict = Depends(require_safety_token),
     ):
         q: dict = {}
         if status:
             q["status"] = status
+        if equipment_master_id:
+            q["equipment_master_id"] = equipment_master_id
+        if employee_master_id:
+            q["employee_master_id"] = employee_master_id
         return await db.corrective_actions.find(q, {"_id": 0}).sort("created_at", -1).to_list(1000)
 
     @api_router.post("/safety/corrective-actions")

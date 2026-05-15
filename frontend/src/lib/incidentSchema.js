@@ -144,6 +144,11 @@ export function buildIncidentDefaults() {
     treatment_provided: "",
     medical_facility: "",
     sent_home: "No",
+    // iter139 — SOT bindings (optional; freetext above still saved)
+    employee_master_id: "",
+    employee_master_label: "",
+    equipment_master_id: "",
+    equipment_master_label: "",
 
     // 04 — Description
     description: "",
