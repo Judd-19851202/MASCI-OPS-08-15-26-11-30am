@@ -1,0 +1,47 @@
+{
+  "summary": "Iter151 Phase 2.5 · Phase B (Document Expiration Engine) tested end-to-end. Backend: 13/13 pytest tests pass — status auto-compute (Current/Expiring Soon/Expired), HR role scoping (only employee/training_cert), Safety role scoping (safety/training_cert/employee), Admin scanner preview is non-mutating, real scan fires 7d threshold for a 5-day doc AND suppresses 14/30/60 to prevent spam, expired (-3d) fires -1 sentinel AND marks all warning thresholds suppressed, scanner idempotency (re-run = 0 new fires), PATCH expiration_date resets fires_at_threshold to [] with status recomputed, DELETE soft-archives, and the cross-system integration creates a task in db.tasks with source_module='documents.expiration' + correct assignee_role mapped from category (safety→safety, employee→hr, equipment→shop). Frontend: /document-expirations renders with [data-testid=document-expirations-page], all 4 summary tiles (current/expiring-soon/expired/archived) present, admin-only buttons [docexp-scan-preview] and [docexp-scan-run] visible to admin session, Add dialog opens via [docexp-add-trigger], submits via [docexp-add-submit], new row appears in table immediately, AdminShell sidebar has 'Document Expirations' link, mobile 375x812 viewport renders without horizontal overflow, 0 console errors. Scanner preview + run buttons trigger toasts successfully.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/document-expirations/summary", "issue": "Summary expiring_30d count uses ISO-string lexicographic compare on expiration_date — works correctly for YYYY-MM-DD format but is fragile if anyone ever stores a different date format. Consider casting to date in aggregation."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/document-expirations table", "issues": ["Many TEST_iter151_* rows from automated cleanup are still visible with status='Archived' because soft-delete doesn't remove them. Recommend adding a 'Hide archived' default toggle or filtering Archived out of the default list view to avoid clutter in production. Currently 26 archived rows visible by default."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter151_document_expirations.py",
+    "/app/test_reports/pytest/iter151.xml"
+  ],
+  "action_items": [
+    "Optional: Hide 'Archived' rows from default list (only show when status filter = Archived) — currently the table is heavy with old TEST_ archived rows.",
+    "Optional: Add cleanup utility or batch DELETE for stale TEST_* records (26 archived rows lingering in db.document_expirations).",
+    "Verify on production-like deploy that the SafetyHub [safety-tile-expirations] AND HrHub tile actually navigate correctly — automated harness could not log in to /safety-portal/login from my script (selectors may differ); main agent should self-verify these two tiles."
+  ],
+  "critical_code_review_comments": [
+    "scan_thresholds() threshold-suppression logic is correct and well-commented: smallest matching threshold fires, larger ones marked already-fired in the same $push. Idempotency contract holds (verified empirically).",
+    "compute_status() uses today_utc — fine for now but if MASCI ever operates across timezones the date math may flip a day. Worth flagging.",
+    "Soft delete via PATCH-to-Archived in DELETE handler is correct, but rows linger forever. Consider adding a hard purge endpoint for >1y archived docs.",
+    "_scope() returns {'_unreachable': True} for roles with no allowed categories — list endpoint correctly short-circuits to empty, but the response shape is {items:[], count:0} which matches normal empty — good.",
+    "Pydantic uses date type for expiration_date; storage is ISO string. Consistent + JSON-safe. _serialize() drops _id correctly.",
+    "category whitelist enforced via @field_validator — good.",
+    "fires_at_threshold reset on PATCH only happens when the new expiration_date != stored value — correct, prevents accidental resets on no-op updates.",
+    "Cross-module integration is fire-and-forget (try/except around task_service.create + notification_service.fanout), so a notification service failure cannot poison scanner state — good defensive pattern.",
+    "AddDialog form fields use empty string defaults and convert '' → null before POST; good for clean Mongo state.",
+    "Frontend listExpirations params correctly omit 'all' filters."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter151_document_expirations.py (NEW — 13 tests, all green)"
+  ],
+  "success_rate": {"backend": "100% (13/13 pytest)", "frontend": "~95% (all admin-side flows verified; Safety/HR portal tile checks not auto-verified due to login form selector mismatch in my harness — flow is wired correctly per code review)"},
+  "test_credentials": "Admin: jaymn.judd@mascigc.com / Maddix123! via /admin/login · HR: hrmanager@mascigc.com / HRTesting2026! · Safety: safety@mascigc.com / SafetyTest2026! · Legacy admin password (X-Admin-Token via /api/admin/login): MASCI1982!",
+  "seed_data_creation": "Created ~12 TEST_iter151_* document_expirations rows during pytest run. Cleanup fixture issued soft-DELETE on all of them so they're now status='Archived'. They're safe to leave or admin can bulk-purge via {document_type: /^TEST_iter151/}.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase B (Document Expirations) is solid and integrated with Phase A's task_service + notification_service correctly. Verified: scanner fires task with source_module='documents.expiration' and category→role mapping (employee/training_cert→hr, safety→safety, equipment→shop, project/company→pm/admin). For Phase C (Employee Lifecycle) and beyond, you can reuse the same scanner idempotency pattern: fires_at_threshold list + smallest-threshold-only + suppress-larger. Backend test file at /app/backend/tests/test_iter151_document_expirations.py can serve as regression coverage. Conftest auto-injects X-Admin-Token; to test non-admin role scoping, hit /api/hr/login or /api/safety/login and pass X-HR-Token/X-Safety-Token with X-Admin-Token='' override.",
+  "rca of the issue": "No functional bugs. Two minor cosmetic improvements suggested: (1) hide Archived rows by default to reduce list clutter, (2) consider native date typing in the Mongo $lte/$gte summary aggregation instead of ISO-string lexicographic compare (currently safe because format is uniform YYYY-MM-DD)."
+}

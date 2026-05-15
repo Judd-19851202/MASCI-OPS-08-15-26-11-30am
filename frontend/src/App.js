@@ -130,6 +130,7 @@ import FieldLeadershipView from "@/pages/FieldLeadershipView";
 import TermsOfService from "@/pages/legal/TermsOfService";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import Tasks from "@/pages/Tasks";
+import DocumentExpirations from "@/pages/DocumentExpirations";
 import AccessDenied from "@/pages/AccessDenied";
 import GlobalFooter from "@/components/GlobalFooter";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -513,6 +514,8 @@ function App() {
                 signed-in portal user; the Tasks page itself shows
                 AccessDenied to fully-anonymous visitors. */}
             <Route path="/tasks" element={<Tasks />} />
+            {/* Document Expirations — Iter151 (Phase 2.5 · Phase B) */}
+            <Route path="/document-expirations" element={<DocumentExpirations />} />
             {/* Fallback — explicit 403 for any path we deliberately
                 want to land on AccessDenied (kept hidden, used by
                 tooling/diagnostics). */}

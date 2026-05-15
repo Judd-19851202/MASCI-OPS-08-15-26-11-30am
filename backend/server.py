@@ -8259,6 +8259,20 @@ _require_any_portal_token = make_require_any_portal_token(db, _is_valid_admin_to
 app.include_router(build_tasks_notifications_router(db, _require_any_portal_token))
 
 
+# ─── Document Expiration Engine (iter151 — Phase 2.5 · Phase B) ─────
+# Central expirations across employee docs, training certs, equipment
+# docs, fire extinguishers (read-through), company compliance.
+# Emits Tasks + Notifications via Phase A shared services.
+from routes.document_expirations import (  # noqa: E402
+    build_document_expirations_router,
+    ensure_document_expirations_indexes,
+)
+
+app.include_router(build_document_expirations_router(
+    db, _require_any_portal_token, require_admin,
+))
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 
@@ -8400,6 +8414,8 @@ async def _bootstrap_integrations():
     logger.info("[usage-analytics] indexes ensured + async sink started")
     await ensure_tasks_notifications_indexes(db)
     logger.info("[tasks-notifications] indexes ensured")
+    await ensure_document_expirations_indexes(db)
+    logger.info("[document-expirations] indexes ensured")
 
 
 @app.on_event("startup")

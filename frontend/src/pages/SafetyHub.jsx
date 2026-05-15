@@ -128,6 +128,15 @@ export default function SafetyHub() {
           testId="safety-tile-tasks"
         />
         <SectionTile
+          to="/document-expirations"
+          icon={ClipboardCheck}
+          title={t("Document Expirations")}
+          desc={t("Training certifications, competent-person docs, fall protection, CPR/First Aid — visibility before they lapse.")}
+          accent="amber"
+          ctaLabel={t("Open")}
+          testId="safety-tile-expirations"
+        />
+        <SectionTile
           to="/safety-portal/corrective-actions"
           icon={AlertOctagon}
           title={t("Corrective Actions")}
