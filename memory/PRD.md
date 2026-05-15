@@ -17,6 +17,38 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter149: Role & Permission Refinement · STABILIZED
+
+### User ask
+Platform-wide pass across ALL portals (Admin, PM, Shop/Fleet, HR, Safety, Dispatch, Field Leadership, Equipment/Assets, Training, Reports/Exports, Integration Center, Daily Reports, Public). BOTH (i) hide tiles/menus the current user cannot use AND (ii) cleanly block/re-route unauthorized URLs. Permission logic must remain simple, predictable, consistent, role-based, scalable. Users should only see what they need.
+
+### Shipped
+- **`lib/permissions.js` NEW** — canonical single source of truth for portal/role logic. Exports `activePortals()`, `authorizedPortals()`, `homePortal()`, `canAccessPortal()`, `isSignedInAnywhere()`, `homePortalUrl()`, plus `PORTAL_LABEL`/`PORTAL_HOME`/`PORTAL_LOGIN` maps. Anchored on the `masci.<portal>.token` localStorage convention + multi-portal directory `user.portals` array. No spaghetti — predictable boolean checks.
+- **`pages/AccessDenied.jsx` NEW** — clean 403 page surfacing: (a) `403 · Access Restricted` kicker, (b) "You don't have access to {portal}" headline, (c) Primary CTA "Back to {homePortal}" (or "Sign in" when fully anonymous), (d) "Public Home" secondary, (e) "Other portals you can access" grid for multi-portal users, (f) Path footer for support escalation. Mobile-safe, accessible, testIds throughout (`[data-testid=access-denied-page|home-portal|home|sign-in|portal-<kind>]`).
+- **Require* guards upgraded** (`RequireSafety`, `RequireHr`, `RequireAdmin`, `RequirePm`, `RequireShop`, `RequireDispatch`, `RequireAdminOrPm`) — when the user is signed into ANY other portal but lacks this one's token, they now see `AccessDenied` instead of being jarringly bounced to a foreign portal's login page. Anonymous users still get the standard `<Navigate to="/{portal}/login">` flow.
+- **`Hub.jsx` Office Portals section** — when a user is signed in, splits into "Your Portals" (full-color pills for authorized portals only) + a small "Other Portals · not in your access set" disclosure (gray chips). Anonymous visitors still see the full 6-pill grid since `/` is the public front door.
+- **`EnforcePortalScope.jsx` rewritten** — old policy cleared a token whenever pathname left that portal's URL namespace, which raced with the new AccessDenied first-paint render and stranded users. New policy: clear a portal token ONLY when pathname EXACTLY matches a DIFFERENT portal's `/login` path (a strong "I'm signing into something else" signal). Cross-portal browsing now preserves tokens so AccessDenied's "Back to your portal" CTA works.
+
+### Verification (`/app/test_reports/iteration_149_retest.json`)
+- **100% — 12/12 test groups PASS**, including:
+  - Anonymous Hub full-6-pill grid intact.
+  - Signed-in Hub renders "Your Portals" + "Other Portals" disclosure correctly.
+  - AccessDenied renders for Safety user visiting /hr, /admin, /pm, /shop, /dispatch-portal — token preserved through every cross-portal visit.
+  - Clicking "Back to Safety Portal" returns to /safety-portal cleanly without re-auth.
+  - HR user same behaviour (symmetric).
+  - Mobile 375x812 AccessDenied — no horizontal overflow.
+  - Anonymous login-bounce flow preserved.
+  - Opposite direction: visiting /hr/login WHILE holding masci.safety.token correctly clears the safety token (intent-to-sign-in-elsewhere).
+- Zero console errors across all flows.
+
+### Bug fixed during stabilization
+- `EnforcePortalScope` token-wipe race with `AccessDenied` first-paint render. Resolved by anchoring clear-events on exact `LOGIN_PATHS` pathname matches instead of namespace-leave events.
+
+### Backlog from this iter
+- LOW: PortalSwitcher renders ONLY when `getDirectoryUser().portals.length >= 2`. Single-portal direct-login sessions get no switcher. Could be enriched to read `authorizedPortals()` from `permissions.js` so single-portal users also see an "open another portal" affordance — deferred to a future small UX polish.
+
+
+---
 ## 2026-05-15 — Iter148 (Families A & B): Workflow Friction Reduction · STABILIZED
 
 ### User ask
