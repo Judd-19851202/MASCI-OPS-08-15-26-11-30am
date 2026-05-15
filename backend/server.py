@@ -8176,7 +8176,21 @@ app.include_router(build_dispatch_router(db, require_admin))
 # operational/compliance-sensitive surfaces stay scoped to admins.
 from routes.admin_ops import build_admin_ops_router  # noqa: E402
 
-app.include_router(build_admin_ops_router(db, require_admin_strict))
+_admin_ops_router = build_admin_ops_router(db, require_admin_strict)
+app.include_router(_admin_ops_router)
+
+
+# ─── Synthetic health monitor (iter132) ─────────────────────────────
+# Polls system_health every 60 s, fires Resend alerts on sustained red.
+from health_monitor import start_health_monitor_loop  # noqa: E402
+
+
+@app.on_event("startup")
+async def _start_health_monitor():
+    try:
+        start_health_monitor_loop(db, _admin_ops_router.compute_system_health)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[health_monitor] failed to arm: {e}")
 
 
 @app.on_event("startup")

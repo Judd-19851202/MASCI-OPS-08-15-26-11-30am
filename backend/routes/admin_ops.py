@@ -41,10 +41,11 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
     router = APIRouter(prefix="/api/admin", tags=["admin-ops"])
 
     # ════════════════════════════════════════════════════════════════
-    #  GET /system-health  — lightweight status panel
+    #  system_health computation — exposed as a reusable coroutine
+    #  so the background health_monitor can call it without paying
+    #  an HTTP round-trip to ourselves.
     # ════════════════════════════════════════════════════════════════
-    @router.get("/system-health", dependencies=[Depends(require_admin)])
-    async def system_health():
+    async def compute_system_health() -> Dict[str, Any]:
         cards: List[Dict[str, Any]] = []
         now = _now()
 
@@ -167,6 +168,28 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
             "cards": cards,
             "checked_at": _iso(now),
         }
+
+    # Expose for the background health monitor (no HTTP round-trip).
+    router.compute_system_health = compute_system_health  # type: ignore[attr-defined]
+
+    # ════════════════════════════════════════════════════════════════
+    #  GET /system-health  — admin-only HTTP endpoint
+    # ════════════════════════════════════════════════════════════════
+    @router.get("/system-health", dependencies=[Depends(require_admin)])
+    async def system_health():
+        return await compute_system_health()
+
+    # ════════════════════════════════════════════════════════════════
+    #  GET /system-health/recent  — last N synthetic monitor results
+    # ════════════════════════════════════════════════════════════════
+    @router.get("/system-health/recent", dependencies=[Depends(require_admin)])
+    async def system_health_recent(limit: int = Query(40, ge=1, le=200)):
+        rows: List[Dict[str, Any]] = []
+        async for r in db.health_monitor_runs.find(
+            {}, {"_id": 0},
+        ).sort("at", -1).limit(limit):
+            rows.append(r)
+        return {"limit": limit, "rows": rows}
 
     # ════════════════════════════════════════════════════════════════
     #  GET /audit-log  — unified merged feed

@@ -9,6 +9,63 @@
 Integration framework must remain PASSIVE / OBSERVATIONAL until live API stability is proven. No auto-creating work orders / disciplinary actions / retraining / payroll triggers. All future workflows are EVENT-DRIVEN (failed pre-op → internal event → integration layer → MaintainX/Safety/Asset/notify), never portal-to-portal direct logic. Heavy syncs run BACKGROUND only — never block dashboards / forms / login. Master records (`db.equipment_master`, `db.employees`) are SOURCE-OF-TRUTH — integrations flow through mapping layers, not direct master mutation. CSV imports require preview + rollback + duplicate detection. Integration failures must NEVER crash core platform. Audit/traceability on every mapping/import/setting change.
 
 ---
+## 2026-05-15 — Iter132: Safety completion + Dispatch integration readiness + nav uniformity + synthetic health monitor
+
+### User ask (4 packages in one)
+1. **Health monitor cron** — 60-second poll of /api/admin/system-health; Resend alert on sustained `overall=="red"`.
+2. **Finish ALL Safety Portal modules** — eliminate every "coming soon" / "Phase 2" / "Phase 5" label. The 3 disabled tiles (Incidents, Audits & Inspections, Reports & Exports) must be live and usable.
+3. **Dispatch Portal Motive + MaintainX readiness visibility** — visible cards inside the portal that show integration status (Live / Demo / Not Connected) + the operational numbers (tracked assets, idle, equipment down, open WOs, etc.). Clean empty state pointing at Admin Integration Center when off.
+4. **Dispatch Portal navigation parity** — Home / Back / PortalSwitcher / Sign-Out to match Admin/PM/Shop/HR/Safety.
+
+### Outcome: ✅ All 4 shipped
+
+### Health monitor (`/app/backend/health_monitor.py` — NEW, 178 lines)
+- 60-second loop · 2-failure debounce (kills single-blip false alerts) · 30-minute per-subsystem cooldown (kills spam during outages).
+- Calls `compute_system_health` directly (no HTTP round-trip to ourselves).
+- Logs every check to `db.health_monitor_runs` (lightweight: `{at, overall, red_keys, alerted}`).
+- Resend alert email includes: timestamp, env label, failed subsystems table, detail, dashboard link.
+- Recipients env-configurable via `HEALTH_ALERT_RECIPIENTS` (comma-separated). Falls back to `BACKUP_EMAIL_TO` then `safety@mascigc.com`.
+- No-ops if `AUTO_EMAIL_REPORTS!=true` or `RESEND_API_KEY` missing — safe to ship without prod keys.
+- New endpoint `GET /api/admin/system-health/recent` (admin-only) exposes last N runs for the dashboard.
+
+### Safety Portal — 3 new pages
+- `/safety-portal/incidents` — read-only roll-up of /api/incidents with severity / status / type / date / search filters. Drills to `/incidents/{id}`. `SafetyIncidents.jsx` (~165 lines).
+- `/safety-portal/audits` — /api/inspections roll-up + 4 summary cards (total, with deficiencies, open defs, pass) + date/status/search filters. Drills to `/inspections/{id}`. `SafetyAudits.jsx` (~200 lines).
+- `/safety-portal/reports` — 10 report tiles (Incidents, CAs, Audits, Training, Expired Training, Fire Ext, Employee Safety, Documents, Project Safety, Executive Summary). Each tile hits its export endpoint; clean "Export pending" toast if any underlying endpoint isn't wired yet. `SafetyReports.jsx` (~225 lines).
+- SafetyHub tiles for these 3 modules un-disabled (no more "Phase 2 — coming next" labels).
+
+### Dispatch Portal
+- `/app/frontend/src/pages/DispatchHub.jsx` — added Home + Back buttons in the header (matching the HR / Shop / Safety chrome), PortalSwitcher with `current="dispatch"`, ForgedOps footer.
+- New tab **Integrations** with `DispatchIntegrationsTab.jsx` — pulls `GET /api/operations/integration-readiness` (cross-portal endpoint accepts admin + dispatch tokens). Renders 2 cards (Motive · MaintainX) with status pill (Live / Demo / Not Connected), per-provider operational counts (Tracked Assets, Last Sync, Idle, Not Reporting, Unmapped External for Motive · Equipment Down, Open WOs, Overdue PMs, Maint Holds, Unmapped External for MaintainX). Clean empty state with link to `/admin/integrations` when off.
+
+### Backend
+- New endpoint `GET /api/operations/integration-readiness` (cross-portal — admin / dispatch / pm / shop / hr / safety tokens accepted via `require_any_portal_token`). Mapping-driven counts only; never calls external Motive/MaintainX APIs.
+- New endpoint `GET /api/admin/system-health/recent` (admin-only) for the health-monitor history.
+
+### Verified locally
+- `ruff check` + `eslint` clean across all changed files
+- Curl: `/operations/integration-readiness` returns correct shape with admin token (200) and dispatch token (200)
+- Curl: `/admin/system-health/recent` returns most recent monitor run after ~18s warm-up
+- Curl: 3 new safety routes return 200 (SPA shell)
+
+### Files added
+- `/app/backend/health_monitor.py`
+- `/app/frontend/src/pages/SafetyIncidents.jsx`
+- `/app/frontend/src/pages/SafetyAudits.jsx`
+- `/app/frontend/src/pages/SafetyReports.jsx`
+- `/app/frontend/src/components/DispatchIntegrationsTab.jsx`
+
+### Files modified
+- `/app/backend/server.py` (wired health_monitor startup hook)
+- `/app/backend/routes/admin_ops.py` (exposed `compute_system_health`, added `/system-health/recent`)
+- `/app/backend/routes/operations.py` (new `/integration-readiness` endpoint)
+- `/app/frontend/src/pages/DispatchHub.jsx` (Home/Back nav + footer + new Integrations tab)
+- `/app/frontend/src/pages/SafetyHub.jsx` (3 tiles un-disabled, no more Phase labels)
+- `/app/frontend/src/App.js` (3 new safety routes wired)
+
+---
+
+---
 ## 2026-05-15 — Iter131: P3 backlog sweep (4-of-4 closed)
 
 ### User ask

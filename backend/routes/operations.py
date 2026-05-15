@@ -857,6 +857,51 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
         rows = await db.transfer_requests.find(q, {"_id": 0}).sort("created_at", -1).to_list(limit)
         return rows
 
+    # ── Integration readiness (iter132) ──────────────────────────────
+    # Cross-portal read; never mutates equipment_master. Renders inside
+    # the Dispatch Portal Integrations tab + Admin Integration Center.
+    @router.get("/integration-readiness", dependencies=[Depends(require_any_portal)])
+    async def integration_readiness():
+        async def _provider(name: str) -> Dict[str, Any]:
+            doc = await db.integration_settings.find_one({"provider": name}, {"_id": 0}) or {}
+            enabled = bool(doc.get("enabled"))
+            demo_mode = bool(doc.get("demo_mode"))
+            # Mapping counts — these never call out to the external API
+            mapped = await db.asset_mappings.count_documents({"provider": name})
+            ext_unmapped = await db.unmapped_external_records.count_documents({"provider": name})
+            return {
+                "provider": name,
+                "enabled": enabled,
+                "demo_mode": demo_mode,
+                "status": doc.get("status") or ("Not Connected"),
+                "last_sync_at": doc.get("last_sync_at"),
+                "tracked_assets": mapped,
+                "unmapped_external": ext_unmapped,
+            }
+
+        motive = await _provider("motive")
+        maintainx = await _provider("maintainx")
+
+        # Motive-specific placeholder rollups derived from internal data
+        # (true Motive idle/not-reporting waits for live API integration)
+        try:
+            motive["idle_count"] = await db.asset_idle_flags.count_documents({"flagged": True})
+        except Exception:  # noqa: BLE001
+            motive["idle_count"] = 0
+        motive["not_reporting"] = 0  # placeholder until Motive webhook fires
+
+        # MaintainX-specific placeholder rollups from internal holds
+        maintainx["equipment_down"] = await db.asset_holds.count_documents(
+            {"active": True, "kind": "maintenance", "severity": {"$in": ["critical", "high"]}}
+        )
+        maintainx["open_work_orders"] = await db.asset_holds.count_documents(
+            {"active": True, "kind": "maintenance"}
+        )
+        maintainx["overdue_pms"] = 0  # placeholder until MaintainX integration
+        maintainx["maintenance_holds"] = maintainx["open_work_orders"]
+
+        return {"motive": motive, "maintainx": maintainx}
+
     # ── Utilization ──────────────────────────────────────────────────
     @router.get("/utilization", dependencies=[Depends(require_any_portal)])
     async def utilization_overview():

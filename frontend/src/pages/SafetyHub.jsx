@@ -133,9 +133,7 @@ export default function SafetyHub() {
           title={t("Incidents & Near Misses")}
           desc={t("Read-only roll-up of every incident report filed from the field. Filter by severity, project, employee, and date.")}
           accent="amber"
-          ctaLabel={t("Coming soon")}
-          disabled
-          disabledLabel={t("Phase 2 visibility — coming next")}
+          ctaLabel={t("Open")}
           testId="safety-tile-incidents"
         />
         <SectionTile
@@ -144,9 +142,7 @@ export default function SafetyHub() {
           title={t("Audits & Inspections")}
           desc={t("Site safety audits and jobsite inspections — same records the field submits, organized for Safety review and close-out.")}
           accent="emerald"
-          ctaLabel={t("Coming soon")}
-          disabled
-          disabledLabel={t("Phase 2 visibility — coming next")}
+          ctaLabel={t("Open")}
           testId="safety-tile-audits"
         />
         <SectionTile
@@ -200,9 +196,7 @@ export default function SafetyHub() {
           title={t("Reports & Exports")}
           desc={t("OSHA 300, insurance summaries, trend reports, executive roll-ups, and project safety flags.")}
           accent="purple"
-          ctaLabel={t("Coming soon")}
-          disabled
-          disabledLabel={t("Phase 5 — coming after Training rollup")}
+          ctaLabel={t("Open")}
           testId="safety-tile-reports"
         />
         <SectionTile
