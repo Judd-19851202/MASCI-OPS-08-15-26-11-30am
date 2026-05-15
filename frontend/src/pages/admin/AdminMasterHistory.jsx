@@ -51,12 +51,30 @@ export default function AdminMasterHistory({ kind }) {
           </Button>
         </Link>
         <div className="flex gap-2">
-          <a href={downloadUrl("csv")} download data-testid="master-history-csv">
+          <a
+            href={downloadUrl("csv")}
+            download
+            data-testid="master-history-csv"
+            onClick={() => {
+              // iter147 — track CSV exports (used by OSHA/insurance audits)
+              import("@/lib/usageTracker").then(({ trackExport }) =>
+                trackExport(`/master-lookup/${kind}/:id/history.csv`, `${kind}-history-csv`)).catch(() => {});
+            }}
+          >
             <Button variant="outline" className="border-2 border-emerald-700 text-emerald-800 hover:bg-emerald-50">
               <FileDown className="w-4 h-4 mr-1" /> Export CSV
             </Button>
           </a>
-          <a href={downloadUrl("pdf")} target="_blank" rel="noreferrer" data-testid="master-history-pdf">
+          <a
+            href={downloadUrl("pdf")}
+            target="_blank"
+            rel="noreferrer"
+            data-testid="master-history-pdf"
+            onClick={() => {
+              import("@/lib/usageTracker").then(({ trackExport }) =>
+                trackExport(`/master-lookup/${kind}/:id/history.pdf`, `${kind}-history-pdf`)).catch(() => {});
+            }}
+          >
             <Button className="bg-red-700 hover:bg-red-800 text-white">
               <Printer className="w-4 h-4 mr-1" /> Export PDF
             </Button>

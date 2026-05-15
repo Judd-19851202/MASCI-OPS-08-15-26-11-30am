@@ -421,6 +421,9 @@ export default function NewDailyReport({ publicMode = false }) {
       payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/daily-reports", payload);
       toast.success("Daily report saved");
+      // iter147 — telemetry on the daily-report flow (heaviest PM form)
+      import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+        trackFormSubmit("/daily-reports", true, "daily-report-new")).catch(() => {});
       if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
           state: {
@@ -436,6 +439,8 @@ export default function NewDailyReport({ publicMode = false }) {
     } catch (e) {
       console.error(e);
       toast.error(formatApiError(e, "Could not save daily report"), { duration: 7000 });
+      import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+        trackFormSubmit("/daily-reports", false, "daily-report-new")).catch(() => {});
     } finally {
       setSaving(false);
     }

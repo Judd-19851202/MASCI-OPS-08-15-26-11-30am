@@ -177,10 +177,15 @@ export default function SafetyFireExtinguishers() {
     try {
       await axios.post(`${API}/safety/fire-extinguishers/${inspectDlg.fe.id}/inspect`, f, auth());
       toast.success(`Inspection logged — next due ${f.next_due_date || "+30d"}`);
+      // iter147 — track the inspection submit; the heaviest fire-ext flow
+      import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+        trackFormSubmit("/safety/fire-extinguishers/inspect", true, "fire-ext-inspect")).catch(() => {});
       closeInspect();
       refresh();
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Inspection failed");
+      import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+        trackFormSubmit("/safety/fire-extinguishers/inspect", false, "fire-ext-inspect")).catch(() => {});
     } finally {
       setSaving(false);
     }

@@ -172,6 +172,9 @@ export default function NewIncident({ publicMode = false }) {
       payload = { ...persistPayload, submit_language: lang || "en" };
       const res = await api.post("/incidents", payload);
       toast.success("Incident report saved");
+      // iter147 — telemetry on the most-used safety form
+      import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+        trackFormSubmit("/incidents", true, "incident-new")).catch(() => {});
       if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
           state: {
@@ -187,6 +190,9 @@ export default function NewIncident({ publicMode = false }) {
     } catch (e) {
       console.error(e);
       toast.error(formatApiError(e, "Could not save incident report"), { duration: 7000 });
+      // iter147 — record the failure for analytics
+      import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+        trackFormSubmit("/incidents", false, "incident-new")).catch(() => {});
     } finally {
       setSaving(false);
     }

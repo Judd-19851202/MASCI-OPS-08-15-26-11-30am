@@ -17,6 +17,35 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter147 (Pre-build): Perf-Audit Harness + Form/Export Tracking Wires
+
+### User ask
+Pre-build the perf-audit harness so 24h of usage_events data has somewhere to land. Wire `trackFormSubmit` / `trackExport` / `trackUploadFailure` into the 5-6 highest-impact forms so the analytics dashboard fills with high-signal data immediately (not just route counts).
+
+### Shipped
+- **`scripts/qa_audit_live.py` NEW** — Live perf audit driven by `db.usage_events` telemetry (iter146 foundation):
+  - Pulls top-30 routes by call count in a configurable window (default 24h).
+  - Flags routes that exceed `max_ms > 1000`, `avg_ms > 250`, or `error_pct > 5%` — but only when count ≥ 10 (below = noise).
+  - Maps known routes to their backing collection with a hint ("hits `incidents` · profile with scripts/qa_audit.py"). NO misleading empty-filter `explain()` — that's the static audit's job.
+  - Optional `--no-live` flag for CI use; live probes hit `LOCAL_API_BASE` (default `http://localhost:8001`) up to 5 routes when enabled.
+  - Writes `/app/QA_PERF_AUDIT_LIVE.md` as the companion to `/app/QA_PERF_AUDIT.md` (iter142 static).
+- **Form tracking wires** — surgical 1-3 line inserts on the platform's highest-volume forms. Every site uses `import("@/lib/usageTracker")` dynamic-import + `.catch(() => {})` silent failure so analytics CAN NEVER block a real submit:
+  - `pages/NewIncident.jsx` — success + error paths.
+  - `pages/NewDailyReport.jsx` — success + error paths.
+  - `pages/SafetyCorrectiveActions.jsx` — create / edit / error (labelled `ca-create`/`ca-edit`).
+  - `pages/SafetyFireExtinguishers.jsx` — inspection submit (success + error).
+  - `pages/SafetyTrainingRecords.jsx` — create / edit / error.
+  - `pages/admin/AdminMasterHistory.jsx` — onClick on both Export CSV and Export PDF buttons (kind = `export`).
+
+### Verification
+- Live audit harness tested end-to-end on real telemetry: surfaces real signals (`/api/auth/issue-portal-token` 100% errors, `/api/auth/multi-login` 41% errors from test traffic), zero false explain warnings post-refactor.
+- Form-submit wires verified by sending 7 simulated events through `/api/usage/track` → all 4 event kinds (page_view, form_submit, export, api_call) appear cleanly on `/admin/analytics`.
+- Lint clean on all 7 modified files.
+
+### What's next (iter147 main phase)
+- ⏳ **Let analytics collect ~24h of real usage data** — once 24-48 hours of production-like traffic accumulates, re-run `scripts/qa_audit_live.py --window-hours 24` and act on the actually-flagged routes (apply targeted indexes, add pagination, memoization, lazy-load). NOT acting now to avoid optimizing on synthetic test traffic.
+
+---
 ## 2026-05-15 — Iter146: Phase 2.5 Kickoff · Usage Analytics & Operational Insight
 
 ### User ask (Option A)

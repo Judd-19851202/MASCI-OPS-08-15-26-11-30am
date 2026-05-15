@@ -143,14 +143,21 @@ export default function SafetyTrainingRecords() {
       if (dlg.mode === "create") {
         await axios.post(`${API}/safety/training-records`, payload, auth());
         toast.success("Training record added");
+        // iter147 — training submit telemetry
+        import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+          trackFormSubmit("/safety/training-records", true, "training-create")).catch(() => {});
       } else {
         await axios.patch(`${API}/safety/training-records/${dlg.id}`, payload, auth());
         toast.success("Training record updated");
+        import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+          trackFormSubmit("/safety/training-records", true, "training-edit")).catch(() => {});
       }
       close();
       refresh();
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Save failed");
+      import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+        trackFormSubmit("/safety/training-records", false, dlg.mode === "create" ? "training-create" : "training-edit")).catch(() => {});
     } finally {
       setSaving(false);
     }

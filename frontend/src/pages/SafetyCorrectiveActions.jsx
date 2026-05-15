@@ -215,6 +215,9 @@ export default function SafetyCorrectiveActions() {
       if (dlg.mode === "create") {
         await axios.post(`${API}/safety/corrective-actions`, payload, auth());
         toast.success("Corrective action created");
+        // iter147 — usage telemetry
+        import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+          trackFormSubmit("/safety/corrective-actions", true, "ca-create")).catch(() => {});
       } else {
         await axios.patch(
           `${API}/safety/corrective-actions/${dlg.id}`,
@@ -222,11 +225,15 @@ export default function SafetyCorrectiveActions() {
           auth(),
         );
         toast.success("Corrective action updated");
+        import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+          trackFormSubmit("/safety/corrective-actions", true, "ca-edit")).catch(() => {});
       }
       closeDlg();
       refresh();
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Save failed");
+      import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
+        trackFormSubmit("/safety/corrective-actions", false, dlg.mode === "create" ? "ca-create" : "ca-edit")).catch(() => {});
     } finally {
       setSaving(false);
     }
