@@ -1,0 +1,158 @@
+/* ============================================================
+ * tokens.css — DRAFT proposal (iter143)
+ * Foundational design tokens for MASCI Operations Platform.
+ *
+ * STATUS: PROPOSAL — NOT YET WIRED into any component.
+ * Awaiting jaymn.judd review before the focused 80% pass
+ * (SectionTile + Hub + sub-hubs + portal accents).
+ *
+ * ─── Hierarchy ──────────────────────────────────────────────
+ *   tokens.css         ← THIS FILE — brand + semantic primitives
+ *     portal-system.css ← per-portal accents (already exists)
+ *       index.css       ← shadcn theme bridge (already exists)
+ *         Tailwind classes ← components consume via @apply or var()
+ *
+ * ─── Rationale ──────────────────────────────────────────────
+ * Today: components hard-code Tailwind colors (red-700, slate-900,
+ * cyan-700, etc.) in 690+, 605+, 105+ places respectively. A future
+ * rebrand or theme switch (light → dark, white-label deploy, etc.)
+ * touches every JSX file.
+ *
+ * After: components reference semantic tokens (--brand-primary,
+ * --ink-strong, --paper) and themes flip by changing this one file.
+ *
+ * Zero visual change on rollout — every token's default value is
+ * exactly the current hard-coded color.
+ * ============================================================ */
+
+:root {
+  /* ── BRAND ─────────────────────────────────────────────────
+   * Top-level identity. Currently: MASCI red + slate ink.
+   * Used for: primary CTA buttons, brand bars, badge primary,
+   * top-nav red stripe, page kickers.
+   */
+  --brand-primary:        #b91c1c;  /* red-700 — MASCI corporate red */
+  --brand-primary-hover:  #991b1b;  /* red-800 */
+  --brand-primary-soft:   #fef2f2;  /* red-50  — tinted backgrounds */
+  --brand-on-primary:     #ffffff;  /* text on top of brand-primary */
+
+  /* ── INK (text on neutral surfaces) ───────────────────────
+   * Three weights — strong (display), regular (body), soft (meta).
+   * "field" variant is darker for outdoor / mobile glare.
+   */
+  --ink-strong:           #0f172a;  /* slate-900 — display + h1 */
+  --ink-regular:          #1e293b;  /* slate-800 — body */
+  --ink-soft:             #64748b;  /* slate-500 — kicker, meta, hint */
+  --ink-faint:            #94a3b8;  /* slate-400 — disabled / muted */
+
+  /* ── PAPER (background surfaces) ──────────────────────────
+   * paper-base = page background
+   * paper-card = elevated card / dialog / panel
+   * paper-rail = navigation sidebar
+   * paper-tinted-* = tonal callouts
+   */
+  --paper-base:           #f8fafc;  /* slate-50 — page bg */
+  --paper-card:           #ffffff;  /* card / dialog */
+  --paper-rail:           #0f172a;  /* slate-900 — admin sidebar */
+  --paper-rail-ink:       #f1f5f9;  /* slate-100 on dark rail */
+  --paper-tinted-success: #ecfdf5;  /* emerald-50 */
+  --paper-tinted-warn:    #fffbeb;  /* amber-50  */
+  --paper-tinted-error:   #fef2f2;  /* red-50    */
+  --paper-tinted-info:    #ecfeff;  /* cyan-50   */
+
+  /* ── BORDER ───────────────────────────────────────────────
+   * Three weights — hairline (default), bold (focus / important),
+   * brand (active state on brand-primary).
+   */
+  --border-hairline:      #e2e8f0;  /* slate-200 */
+  --border-bold:          #cbd5e1;  /* slate-300 — most card borders */
+  --border-strong:        #475569;  /* slate-600 — focus ring inner */
+  --border-brand:         var(--brand-primary);
+
+  /* ── PORTAL ACCENTS (mirrors portal-system.css for parity) ─
+   * These are the SAME values that already live in
+   * portal-system.css. Listed here so a future token-swap doesn't
+   * need to touch two files when adding/changing a portal accent.
+   */
+  --accent-admin:         #b91c1c;  /* red-700  · admin / brand */
+  --accent-safety:        #0e7490;  /* cyan-700 · safety portal */
+  --accent-hr:            #7e22ce;  /* purple-700 · HR */
+  --accent-pm:            #047857;  /* emerald-700 · PM */
+  --accent-shop:          #c2410c;  /* orange-700 · Shop */
+  --accent-dispatch:      #b45309;  /* amber-700 · Dispatch */
+  --accent-training:      #4338ca;  /* indigo-700 · Training Center */
+  --accent-field:         #334155;  /* slate-700 · Field Leadership */
+
+  /* ── STATUS (semantic, NOT brand) ─────────────────────────
+   * Use for PASS/FAIL/WARN chips, severity tags. These are
+   * intentionally NOT mapped to brand or portal accents so a
+   * red status badge stays red even when a portal flips its
+   * accent color.
+   */
+  --status-good:          #047857;  /* emerald-700 — passed / closed */
+  --status-warn:          #b45309;  /* amber-700  — minor / attention */
+  --status-bad:           #b91c1c;  /* red-700    — failed / overdue */
+  --status-muted:         #64748b;  /* slate-500  — info / N/A */
+
+  /* ── TYPOGRAPHY ──────────────────────────────────────────-
+   * Two families: display (poppins-style heavy) + mono (UI chrome).
+   * Body uses system stack (already default — don't override).
+   */
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:    'Courier New', ui-monospace, 'SF Mono', monospace;
+
+  /* Kicker = the small, all-caps, letter-spaced label above any
+   * page title. Used 1659+ times — codify the size + tracking. */
+  --kicker-size:      0.625rem;   /* 10px */
+  --kicker-tracking:  0.18em;
+  --kicker-weight:    700;
+
+  /* ── SPACING SCALE (semantic, not raw px) ─────────────────-
+   * Tied to the existing Tailwind rhythm so today's `p-5` is the
+   * same as today's `var(--pad-card)`. Future tightening flips
+   * here, not in every component.
+   */
+  --pad-tight:        0.75rem;    /* p-3   — dense rows */
+  --pad-card:         1.25rem;    /* p-5   — standard card padding */
+  --pad-section:      2rem;       /* p-8   — section blocks */
+  --gap-grid:         1rem;       /* gap-4 — between cards */
+  --gap-list:         0.5rem;     /* gap-2 — within a list */
+
+  /* ── RADIUS ──────────────────────────────────────────────-
+   * Three steps — chip (full), card (md), modal (lg).
+   */
+  --radius-chip:      999px;
+  --radius-card:      0.375rem;   /* rounded-md */
+  --radius-modal:     0.5rem;     /* rounded-lg */
+
+  /* ── SHADOW ──────────────────────────────────────────────-
+   * Two surfaces — tile-hover (subtle lift) + dialog (deep stack).
+   */
+  --shadow-tile-hover: 0 10px 25px -10px rgba(15, 23, 42, 0.18);
+  --shadow-dialog:     0 25px 50px -12px rgba(15, 23, 42, 0.25);
+
+  /* ── MOTION ──────────────────────────────────────────────-
+   * Single duration + ease for hover / focus transitions so the
+   * whole platform feels uniform.
+   */
+  --motion-duration-hover: 160ms;
+  --motion-duration-modal: 200ms;
+  --motion-ease:           cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+/* ============================================================
+ * THEME SWITCH — DARK MODE (future, optional)
+ * Activating this is a single class flip on <html>: `.theme-dark`.
+ * Today it's a placeholder so token consumers know dark exists.
+ * ============================================================ */
+.theme-dark {
+  --ink-strong:    #f8fafc;
+  --ink-regular:   #e2e8f0;
+  --ink-soft:      #94a3b8;
+  --ink-faint:     #64748b;
+  --paper-base:    #0f172a;
+  --paper-card:    #1e293b;
+  --paper-rail:    #020617;
+  --border-hairline: #334155;
+  --border-bold:     #475569;
+}

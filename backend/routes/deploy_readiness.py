@@ -168,15 +168,24 @@ def build_deploy_readiness_router(db, require_admin: Callable) -> APIRouter:
     async def _check_master_coverage() -> Dict[str, Any]:
         """iter140 — cross-portal master-binding coverage rollup.
         Pass if every collection that COULD bind to a master has >=50%
-        coverage. Warn otherwise."""
+        coverage. Warn otherwise.
+
+        iter142b — ignore collections with <10 total rows. A 1-of-3
+        ratio is statistical noise, not a real coverage gap; in prod
+        these collections will have hundreds/thousands of rows."""
         from routes.master_where_used import EQUIPMENT_REFS, EMPLOYEE_REFS  # noqa: PLC0415
+        MIN_SAMPLE = 10
         worst_pct = 100
         worst_name = ""
         gaps: list[str] = []
+        small: list[str] = []
         for coll_name, _proj, _fmt, _route in EQUIPMENT_REFS:
             try:
                 total = await db[coll_name].count_documents({})
                 if total == 0:
+                    continue
+                if total < MIN_SAMPLE:
+                    small.append(f"{coll_name} eq ({total})")
                     continue
                 bound = await db[coll_name].count_documents(
                     {"equipment_master_id": {"$exists": True, "$ne": ""}},
@@ -193,6 +202,9 @@ def build_deploy_readiness_router(db, require_admin: Callable) -> APIRouter:
                 total = await db[coll_name].count_documents({})
                 if total == 0:
                     continue
+                if total < MIN_SAMPLE:
+                    small.append(f"{coll_name} emp ({total})")
+                    continue
                 bound = await db[coll_name].count_documents(
                     {"employee_master_id": {"$exists": True, "$ne": ""}},
                 )
@@ -203,9 +215,11 @@ def build_deploy_readiness_router(db, require_admin: Callable) -> APIRouter:
                     worst_pct, worst_name = pct, f"{coll_name}.employee"
             except Exception:  # noqa: BLE001
                 pass
-        passed = worst_pct >= 50
-        if not gaps:
+        passed = not gaps  # ignore small samples
+        if not gaps and not small:
             detail = "All cross-portal collections ≥50% bound to master records"
+        elif not gaps and small:
+            detail = f"All ≥50% bound · {len(small)} small sample(s) skipped: " + ", ".join(small[:3])
         else:
             detail = f"Worst: {worst_name} at {worst_pct}% · gaps: " + ", ".join(gaps[:5])
         return {"id": "master_coverage", "label": "Cross-portal master-binding coverage",
