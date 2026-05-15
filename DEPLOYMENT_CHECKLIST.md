@@ -13,10 +13,11 @@ Run through it linearly — every step is intentional. If any check fails, **STO
 - [ ] **Run** `python3 /app/scripts/qa_audit.py` — open `/app/QA_PERF_AUDIT.md`, confirm:
   - 0 rows show `❌ SCAN` in the Query Plan Audit table.
   - 0 rows show `❌` in the TTL Coverage Audit table.
-- [ ] **Login as Super Admin** (`jaymn.judd@mascigc.com`) → `/admin/deploy-recovery`:
+- [ ] **Login as Super Admin** (`jaymn.judd@mascigc.com`) → `/admin/deploy-readiness`:
   - Overall banner must read **READY TO DEPLOY** OR **ATTENTION REQUIRED** (warns only). **`DEPLOY BLOCKED` is a hard stop.**
   - Scroll to **Live Integration Probes** panel — `mongo` and `r2` must be `ok`. `resend` `ok` if you plan to send password-reset emails. `maintainx` and `motive` `disabled` is expected (MOCKED).
   - Click **Re-run + Alert** — note any new rows appear in `/api/admin/integrations/alerts`.
+- [ ] **Last-known-good build** is also surfaced separately at `/admin/deploy-recovery` (rollback playbook page) — distinct from the readiness page.
 
 ---
 

@@ -17,6 +17,25 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter142: Phase-1 Iter D · Integration Health Probes + Perf Audit + TTL Coverage + Deploy Checklist
+
+### User ask
+Final stabilization pillar (Phase 1 Iter D): (1c) unified `/api/admin/integrations/health` endpoint covering R2 + Resend + MaintainX-mock + Motive-mock + Emergent LLM + Mongo, surfaced inside Deploy Readiness; (2c) preventive perf audit + targeted fixes; (3c) TTL coverage + log-only alert hook; (4a) `DEPLOYMENT_CHECKLIST.md`.
+
+### Shipped
+- **Backend** `routes/integration_health.py` NEW — 6 probes (mongo, r2, resend, maintainx, motive, emergent_llm), each wrapped in a 5s timeout via `asyncio.wait_for`. Probes never raise — slow/crashing third parties return `status: "down"` with a clean message. Idempotent alert emission: only writes to `db.alert_events` when status differs from the last stored status for that probe (and `disabled` NEVER triggers an alert — that's intentional config).
+- **Backend** `routes/deploy_readiness.py` — added `_check_integrations_health` to the rollup. Down probes mark the overall as `blocked`; degraded as `attention`.
+- **Backend** `server.py` `_arm_iter142_perf_indexes` startup hook — applies targeted indexes (`incidents.incident_date desc`, `corrective_actions.status+due_date`, `employees.name`, `field_leadership_records.occurred_at desc`, `operations_events.asset_id`, `operations_events.employee_id`, etc.) AND missing TTL indexes (`admin_audit` 365d, `login_attempts` 30d, `integration_error_logs` 90d, `brute_force_blocks` 7d). All idempotent.
+- **Frontend** `components/IntegrationProbesPanel.jsx` NEW — color-coded probe rows with status chips, latency, MOCKED badges, and a "Re-run + Alert" button.
+- **Frontend** `pages/AdminDeployReadiness.jsx` — `IntegrationProbesPanel` mounted below the Detail Checks list at `/admin/deploy-readiness`.
+- **Script** `scripts/qa_audit.py` NEW — read-only perf + TTL sweep. Writes `/app/QA_PERF_AUDIT.md`. After iter142 indexes: **0 COLLSCANs, 0 missing TTL indexes**.
+- **Docs** `/app/DEPLOYMENT_CHECKLIST.md` NEW — 7-section production deploy playbook (pre-flight, env diff, smoke tests, supervisor restart, rollback, post-deploy, known-mocked integrations).
+
+### Testing
+- 6/6 backend pytest + frontend panel verified — zero issues (`/app/test_reports/iteration_142.json`).
+- Deploy readiness now: 0 blockers, 1 warn (data-only `master_coverage` gap), `integrations_health` passing with 6 probes.
+
+---
 ## 2026-05-15 — Iter141: Asset / Employee History Timeline (OSHA / Insurance audit trail)
 
 ### User ask
