@@ -5,6 +5,26 @@ module.exports = {
     "./src/**/*.{js,jsx,ts,tsx}",
     "./public/index.html"
   ],
+    // iter145 — Defensive safelist for the per-portal palette literals
+    // surfaced via `lib/portalPalette.js`. Today these are all
+    // scanned from JSX consumers, but if the palette is ever moved
+    // (e.g. into a shared package) the scanner could miss them and
+    // Tailwind would purge silently. Listing them here hardens the
+    // SOT design-token chain without bloating the bundle materially.
+    safelist: [
+      // hubKickerStatic / hubLinkHover light shades
+      "text-amber-300", "text-cyan-300", "text-indigo-300",
+      "text-orange-300", "text-purple-300", "text-red-300",
+      "hover:text-amber-300", "hover:text-cyan-300", "hover:text-indigo-300",
+      "hover:text-orange-300", "hover:text-purple-300", "hover:text-red-300",
+      "hover:text-slate-400",
+      // hubHeaderBar accent borders used by sub-hub headers
+      "border-amber-500", "border-cyan-700", "border-indigo-700",
+      "border-orange-600", "border-purple-700", "border-red-700",
+      // hubKicker bold-shade accents
+      "text-amber-700", "text-cyan-700", "text-indigo-700",
+      "text-orange-700", "text-purple-700", "text-red-700",
+    ],
   theme: {
   	extend: {
   		borderRadius: {

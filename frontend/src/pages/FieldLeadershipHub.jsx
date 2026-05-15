@@ -27,8 +27,6 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
 import { paletteFor } from "@/lib/portalPalette";
-
-const FL_PAL = paletteFor("leadership");
 import { getPmToken } from "@/lib/pmAuth";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
@@ -43,6 +41,8 @@ import {
   FIELD_LEADERSHIP_FORMS,
   SAFETY_EQUIPMENT_ISSUANCE_LINK,
 } from "@/lib/fieldLeadershipSchemas";
+
+const FL_PAL = paletteFor("leadership");
 
 // 4 logical groups — ordered most-used → least-used.
 // `kinds` is a list of form `kind` keys; tiles render in this exact order.

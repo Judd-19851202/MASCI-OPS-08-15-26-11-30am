@@ -17,6 +17,27 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter145: Final Phase-1 Consolidation (FL nav-parity + hubKickerStatic + safelist hardening)
+
+### User ask (Option C)
+Both backlog items + testing-agent sweep. (1) FieldLeadership nav-parity audit — add Home + Back text-links to `/leadership` home page header for parity with HR / Shop / Dispatch. (2) Add `hubKickerStatic` slot to `portalPalette.js` and migrate DispatchHub's literal `text-orange-300` kicker into the SOT. Plus quick sweep for nav / mobile / color drift / contrast / a11y / overrides.
+
+### Shipped
+- **`portalPalette.js`** — Added `hubKickerStatic` slot to all 8 portals (admin=red-300, pm=indigo-300, shop=amber-300, hr=purple-300, safety=cyan-300, dispatch=orange-300, training=indigo-300, leadership=red-300). Schema docstring updated.
+- **`DispatchHub.jsx`** — Top-left "Dispatch Portal" kicker class migrated from literal `text-orange-300` to `${DISPATCH_PAL.hubKickerStatic}`. Zero pixel change.
+- **`FieldLeadershipHub.jsx`** — Inserted Home + Back text-links before the logo on the main header (using flex-wrap gap-3 layout). Both consume `FL_PAL.hubLinkHover`. Mobile labels collapse to icon-only. Existing 3 outline buttons (Guides / Records / Sign Out) untouched.
+- **Code-review feedback applied** (from testing-agent iter145):
+  - FieldLeadershipHub.jsx imports reordered — all imports grouped at top, `FL_PAL` const moved AFTER all imports.
+  - ShopHub testid renamed `shop-back-hub` → `shop-nav-home` for cross-portal naming parity.
+  - `tailwind.config.js` defensive `safelist` added covering all `hubKickerStatic` / `hubLinkHover` / `hubKicker` / `hubHeaderBar` literals — future-proofs the SOT chain against module relocations.
+
+### Testing
+- testing_agent_v3_fork (frontend only): **100% backend smoke + 100% frontend** — zero defects (`/app/test_reports/iteration_145.json`).
+- Confirmed via DOM probe: all 6 `hubKickerStatic` colors resolve to expected RGB; Tailwind correctly picks them up from `portalPalette.js`.
+- Mobile 390x844: FL header has no horizontal overflow; Home/Back labels collapse to icons; 3 right-side buttons stay accessible.
+- Backend smoke: GET /api/health 200, GET /api/admin/deploy-readiness still `ready · 0/0/12 checks`.
+
+---
 ## 2026-05-15 — Iter144: Phase-1 Design-System Consolidation (Dispatch reconciliation + sub-hub headers)
 
 ### User ask (Option C)

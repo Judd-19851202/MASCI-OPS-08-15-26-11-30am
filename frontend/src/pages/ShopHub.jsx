@@ -89,7 +89,7 @@ export default function ShopHub() {
       <div className="caution-stripe" />
       <header className={`bg-slate-900 border-b-4 ${SHOP_PAL.hubHeaderBar}`}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <Link to="/" className={`inline-flex items-center text-white ${SHOP_PAL.hubLinkHover} text-sm font-bold uppercase tracking-wide`} data-testid="shop-back-hub">
+          <Link to="/" className={`inline-flex items-center text-white ${SHOP_PAL.hubLinkHover} text-sm font-bold uppercase tracking-wide`} data-testid="shop-nav-home">
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
           <MasciLogo variant="mark" size="md" homeLink="/" />
