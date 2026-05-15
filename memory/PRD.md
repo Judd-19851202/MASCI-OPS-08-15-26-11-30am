@@ -16,6 +16,108 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter C — Exports/PDF + Training + Data Relationships**: print stabilization, training-doc refresh, master-collection SOT enforcement.
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
+## 🗺️ Phase 2.5 Roadmap (Operational Maturity)
+- ✅ Iter146 — Usage Analytics & Operational Insight
+- ✅ Iter147 (pre-build) — Perf Audit Harness + Form/Export Tracking
+- ✅ Iter148 — Workflow Friction Reduction (HelpTips, FriendlyErrors, RememberedFilters)
+- ✅ Iter149 — Role & Permission Refinement + AccessDenied
+- ✅ Iter150 — Phase A: Tasks + Notifications Shared Infrastructure
+- ✅ Iter151 — Phase B: Document Expiration Engine
+- ✅ Iter152 — Phase C: Employee Lifecycle + Auto-Offboarding Playbook
+- ✅ Iter153 — Phase D: Operational PO Request & Receipt Tracking
+- ✅ Iter154 — Phase F: Unified Signature Engine
+- ✅ Iter155 — Phase G: Unified Global Search
+- ⏳ Iter156 — Phase H: Project / Job Health Dashboard (P1)
+- ⏳ Iter157 — Phase I: Asset Transfer System (P2)
+- ⏳ Iter158 — Phase J: Low-Connection / Field Resiliency Layer (P2)
+- ⏳ Iter147 main — Perf tuning on real telemetry (P3)
+- ⏳ Iter148 — Bulk Actions (P3, telemetry-driven)
+- ⏳ Iter151 — Motive/MaintainX integration maturity (P3)
+
+---
+## 2026-05-15 — Iter155 (Phase 2.5 · Core Operational Systems · PHASE G): Unified Global Search · STABILIZED
+
+### User ask
+Build Global Search as SHARED INFRASTRUCTURE (not portal-specific). HIGH PRIORITIES: (1) permission-safe results — no leakage through snippets/counts/category labels/previews/deep-links; (2) fast feel (debounce, indexed regex, pagination, grouped results, lightweight payloads, server-side filtering); (3) operational coverage across Employees · Equipment · Projects · Tasks · POs · Safety records · CAs · Incidents · Documents · Notifications; (4) role-aware UX; (5) mobile-first behavior; (6) Cmd+K desktop / search icon mobile / grouped categories / recent searches.
+
+### Shipped
+- **Backend `routes/global_search.py` NEW**:
+  - `GET /api/search` (any-portal-token gate via `make_require_any_portal_token`). Validation: q 2..80 chars, limit 1..15 → 422 otherwise.
+  - **`KIND_VISIBILITY`** — closed-set role → tuple-of-kinds map. Admin sees all 14 kinds; safety 10; hr 7; pm 8; shop 5; dispatch 5; leadership 2. Single dict = single audit point.
+  - **Permission-safety guarantee**: HR explicitly requesting `?kinds=fire_extinguishers,incidents` returns `scope=[]`, `total=0`, `groups=[]`. NO probe is even ATTEMPTED for kinds the actor cannot see. Structural — not a runtime check that could be bypassed.
+  - Per-kind probes (14): `tasks · notifications · employees · equipment · projects · po_requests · incidents · corrective_actions · fire_extinguishers · safety_documents · safety_training · document_expirations · operations_events · field_leadership`. Each probe escapes user input with `re.escape`, indexed regex match, applies its own scope filter (PM project list, leadership own-records), excludes `_id` from projection, catches its own exceptions.
+  - `asyncio.gather()` runs ALL applicable probes in parallel. Each probe limited to `limit * 2` Mongo rows then trimmed to `limit` in the response.
+  - **Lightweight payload**: each row carries ONLY `{kind, id, title, subtitle, url, status, badge}`. NO descriptions / NO body / NO base64 / NO PII / NO master IDs.
+  - Echoes `q`, `role`, `scope[]`, `total` back so the UI footer can confidently render "Scope · safety" without re-asking.
+- **Frontend `lib/searchApi.js` NEW** — axios client; forwards whichever of the 7 portal tokens is live (admin/safety/hr/pm/shop/dispatch/leadership); aborts in-flight calls on subsequent query change.
+- **Frontend `components/GlobalSearch.jsx` NEW** — shared component used IDENTICALLY across all portals.
+  - Trigger button `[data-testid='global-search-trigger']` with kbd hint `⌘K`.
+  - Cmd/Ctrl+K toggle, Esc close, outside-click close.
+  - Debounced 260ms with AbortController so older queries can't overwrite newer results.
+  - Recent searches `[data-testid='global-search-recent-{term}']` keyed per-actor (first 8 chars of whichever portal token is live), saved on row-select, clearable.
+  - Keyboard nav: ArrowDown / ArrowUp moves highlight; Enter opens; per-row `[data-testid='global-search-row-{kind}-{id}']`.
+  - Grouped results `[data-testid='global-search-group-{kind}']` with per-kind tint chip + count.
+  - Mobile-first overlay (full-screen on <sm, centered modal on ≥sm), `inputMode="search"`, autofocus, scrollable result area.
+  - States: `auth-required`, `error`, `recents`, `hint`, `empty`, plus inline spinner. No console errors.
+  - Footer carries scope chip `[data-testid='global-search-scope']` ("Scope · safety" etc.) and keyboard legend.
+- **Wired into 6 shells/hubs** next to NotificationBell:
+  - SafetyShell, PmShell, AdminShell (mobile-only — desktop uses existing AdminGlobalSearch), HrHub, ShopHub, DispatchHub.
+
+### Verification (`/app/test_reports/iteration_155.json`)
+- **Backend**: 15/15 pytest cases pass — anon 401, q-length validation, role-aware visibility for safety/hr/admin/pm, kinds-filter cannot expand scope (HR forcing fire_extinguishers => empty), lightweight payload (rows have NO body/description/signature_image/file_data/image_data/raw), limit respected and bounds enforced, payload echoes q+role+scope.
+- **Frontend**: 100% — Cmd/Ctrl+K toggle, Esc, outside-click, trigger button rendered in all 6 shells/hubs, scope chip reflects active role, grouped results render, ArrowDown navigation works, recents save on row-click + clearable, mobile 375x812 panel zero-overflow, input autofocus, zero console errors.
+
+### Phase F regression check
+- SafetyShell header right-side cluster (NotificationBell + LangToggle + CompanyInfo + Password + Sign out) overflowed by ~7px at 375x812. **FIXED** by changing the cluster from `flex items-center gap-2` to `flex flex-wrap items-center justify-end gap-2 min-w-0`. Confirmed scrollWidth==innerWidth==375, overflow=0 on /safety-portal/* with CA edit dialog open.
+
+### Backlog from this iter
+- LOW (a11y): Radix `DialogTitle` warning surfaced on Safety CA edit dialog. Pre-existing, unrelated to Phase F/G — wrap title in `VisuallyHidden` to silence.
+- OPTIONAL UX: recents currently saved only on row-select. If we ever want closed-without-select queries to be remembered, push on `closeOverlay()` when query is non-empty.
+
+### Ready for Phase H (Project / Job Health Dashboard)
+Aggregates Tasks (Phase A) · Documents (Phase B) · POs (Phase D) · Notifications (Phase A) · Equipment statuses per project. Green/Yellow/Red indicator. Required legal footer: "MASCI Operations Platform · Powered by ForgedOps™ · Operational Health Indicator — not a compliance guarantee."
+
+
+---
+## 2026-05-15 — Iter154 (Phase 2.5 · Core Operational Systems · PHASE F): Unified Signature Engine · STABILIZED
+
+### User ask
+Build a UNIFIED SIGNATURE ENGINE as a reusable shared component. One signature standard across the platform. Used by: safety CAs (employee ack), hr writeups / terminations, safety meetings sign-in, incident reports, audits / inspections, PO approvals (when manual sig required), asset.transfer receiver signature (Phase I), customer acknowledgments, field daily reports, future employee portal sign-offs. AUDIT-SAFE — append-only history with `supersedes` chain; no silent overwrites. Support both signed-image and refusal flows.
+
+### Shipped
+- **Backend `routes/signatures.py` NEW**:
+  - `db.signatures` collection + 5 indexes (id-unique, source_module+source_record_id, signer_employee_id, created_at, supersedes).
+  - `ALLOWED_MODULES` — 21-entry whitelist covering safety.*, hr.*, equipment.*, po.*, customer.acknowledgments, field.daily_reports, admin.manual. Append-only — future phases just append a slug.
+  - `ALLOWED_SIGNATURE_TYPES` — supervisor/employee/witness/approver/receiver/inspector/trainer/trainee/other.
+  - Pydantic validation: `source_module`/`signature_type` enforced via `field_validator`, image `max_length=2_000_000` (returns 422 before service runs).
+  - Service-layer guard: `signature_image` required UNLESS `refusal=true` (then `refusal_reason` required). Approximate runtime size check at 1.8MB binary.
+  - `_SignatureService.capture()` is append-only. When `supersedes` is set, the OLD row is marked `superseded_by` + `superseded_at` (NEVER deleted). New row inserts cleanly with `_id` excluded from response.
+  - **Endpoints**: `GET /api/signatures` (filters: source_module, source_record_id, signer_employee_id, include_superseded) + `POST /api/signatures`. Both gated by `make_require_any_portal_token` (returns 401 anon).
+- **Frontend `components/SignatureCapture.jsx` NEW** — reusable shared component:
+  - Configurable via `testIdPrefix` prop so each portal/module wires with consistent testids.
+  - Canvas signature pad with DPR scaling, mouse + touch handlers, `touch-action:none` for proper mobile drawing.
+  - Signer name input, Clear button, Refusal toggle (with reason textarea), Submit button.
+  - On submit: posts to `/api/signatures`, then re-renders into a "Signed by X at T" block with base64 thumbnail.
+  - Refusal flow: amber callout records refusal with reason.
+- **Wire-in proof**: Safety CA edit dialog now mounts `<SignatureCapture testIdPrefix="safety-ca-sig" sourceModule="safety.corrective_actions" sourceRecordId={ca.id} />`. Validates the engine end-to-end.
+
+### Verification (`/app/test_reports/iteration_154.json`)
+- **Backend**: 12/12 pytest cases pass — capture (with image), refusal valid/invalid, validation 422 (bad source_module/signature_type, oversize image), supersedes chain (append-only with superseded_by/superseded_at + default-list excludes superseded, include_superseded=true returns both), GET filter ordering (most-recent-first) + signer_employee_id filter, 401 auth gate for both POST and GET.
+- **Frontend**: 100% — all 5 sub-testids resolve (name-input, canvas, clear, refusal-toggle, submit), validations fire correct toasts, mouse-stroke signature capture transitions to captured block + thumbnail, refusal flow shows amber callout. Mobile 375x812 canvas `touch-action:none` confirmed.
+
+### Backlog from this iter
+- (Closed in iter155) Minor mobile horizontal overflow on Safety CA edit dialog at 375x812 — root cause was the SafetyShell HEADER right-side cluster (not the signature card itself). Fixed by `flex-wrap justify-end min-w-0` on the cluster.
+
+
+---
+## 2026-05-15 — Iter153 (Phase 2.5 · Core Operational Systems · PHASE D): Operational PO Request & Receipt Tracking · STABILIZED
+
+User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, eliminate dead routes, standardize UX/UI, fix mobile, validate exports, finish training, enforce architecture, validate integrations, performance + health, deployment discipline. Executing in 4 sub-iters:
+- **Iter A — Crawl & Hit-List** (iter135 — DONE): static route+endpoint cross-reference, found+fixed 3 broken FE→BE calls + 1 duplicate route. Report at `/app/QA_REPORT_PHASE1.md`.
+- **Iter B — UX/UI + Mobile**: design system unification, mobile sweep, normalized hub/filter/empty/loading states.
+- **Iter C — Exports/PDF + Training + Data Relationships**: print stabilization, training-doc refresh, master-collection SOT enforcement.
+- **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
+
 ---
 ## 2026-05-15 — Iter153 (Phase 2.5 · Core Operational Systems · PHASE D): Operational PO Request & Receipt Tracking · STABILIZED
 
