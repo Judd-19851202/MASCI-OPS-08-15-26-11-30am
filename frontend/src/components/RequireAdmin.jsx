@@ -3,6 +3,8 @@ import { Navigate, useLocation } from "react-router-dom";
 import { isAdmin } from "@/lib/adminAuth";
 import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
+import { isSignedInAnywhere } from "@/lib/permissions";
+import AccessDenied from "@/pages/AccessDenied";
 
 /**
  * Admin-strict guard. Used on /admin (the hub page itself) and any other
@@ -21,6 +23,9 @@ export function RequireAdmin({ children }) {
   const state = usePortalHydration("admin", hasToken);
   if (state === "ready") return children;
   if (state === "hydrating") return <PortalHydratingLoader portal="admin" />;
+  if (isSignedInAnywhere()) {
+    return <AccessDenied attemptedPortal="admin" />;
+  }
   return (
     <Navigate
       to="/admin/login"

@@ -3,6 +3,8 @@ import { Navigate, useLocation } from "react-router-dom";
 import { isHr } from "@/lib/hrAuth";
 import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
+import { isSignedInAnywhere } from "@/lib/permissions";
+import AccessDenied from "@/pages/AccessDenied";
 
 /**
  * RequireHr — gates every /hr/* page (except /hr/login, /hr/forgot,
@@ -12,6 +14,9 @@ import PortalHydratingLoader from "@/components/PortalHydratingLoader";
  * Iter88: if the HR token is missing but the user has a live /sign-in
  * directory session that authorizes HR access, we silently re-mint the
  * HR token instead of bouncing to /hr/login.
+ *
+ * Iter149: signed-in-elsewhere users see AccessDenied (no jarring
+ * login bounce); anonymous users still get the HR login page.
  */
 export function RequireHr({ children }) {
   const location = useLocation();
@@ -19,6 +24,9 @@ export function RequireHr({ children }) {
   const state = usePortalHydration("hr", hasToken);
   if (state === "ready") return children;
   if (state === "hydrating") return <PortalHydratingLoader portal="hr" />;
+  if (isSignedInAnywhere()) {
+    return <AccessDenied attemptedPortal="hr" />;
+  }
   return (
     <Navigate
       to="/hr/login"

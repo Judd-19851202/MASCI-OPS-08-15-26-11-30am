@@ -36,6 +36,7 @@ import { getHrToken, getHrUser, clearHrToken } from "@/lib/hrAuth";
 import { getSafetyToken, getSafetyUser, clearSafetyToken } from "@/lib/safetyAuth";
 import { isLeadershipAuthed, clearLeadershipToken } from "@/lib/leadershipAuth";
 import { paletteFor, heroPaletteFor } from "@/lib/portalPalette";
+import { authorizedPortals, isSignedInAnywhere } from "@/lib/permissions";
 
 // ─── Shared tile component ──────────────────────────────────────────────
 
@@ -315,69 +316,80 @@ export default function Hub() {
         </div>
 
         {/* SECTION 3 — Office Portals (compact, sign-in required) */}
-        <SectionHeader kicker="03" title={t("Office Portals")} subtitle={t("Sign-in required. For office staff, mechanics, HR, Safety, and Dispatch.")} />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 mb-10">
-          <PortalPill
-            to="/pm/login"
-            icon={ClipboardList}
-            title={t("PM Portal")}
-            desc={t("The project-management workspace for MASCI office staff.")}
-            kind="pm"
-            testId="hub-section-pm"
-            signedIn={session?.kind === "pm"}
-            signedInLabel={t("Open Portal")}
-          />
-          <PortalPill
-            to="/shop/login"
-            icon={Wrench}
-            title={t("Shop")}
-            desc={t("The mechanic's console for the MASCI equipment fleet.")}
-            kind="shop"
-            testId="hub-section-shop"
-            signedIn={session?.kind === "shop"}
-            signedInLabel={t("Open Console")}
-          />
-          <PortalPill
-            to="/hr/login"
-            icon={Users}
-            title={t("HR Portal")}
-            desc={t("Employee records and payroll cross-check for MASCI HR.")}
-            kind="hr"
-            testId="hub-section-hr"
-            signedIn={session?.kind === "hr"}
-            signedInLabel={t("Open Portal")}
-          />
-          <PortalPill
-            to={session?.kind === "safety" ? "/safety-portal" : "/safety-portal/login"}
-            icon={ShieldAlert}
-            title={t("Safety Portal")}
-            desc={t("Safety command center — incidents, audits, corrective actions, training.")}
-            kind="safety"
-            testId="hub-section-safety-portal"
-            signedIn={session?.kind === "safety"}
-            signedInLabel={t("Open Portal")}
-          />
-          <PortalPill
-            to={session?.kind === "dispatch" ? "/dispatch-portal" : "/dispatch-portal/login"}
-            icon={Truck}
-            title={t("Dispatch")}
-            desc={t("Equipment movement, availability, transfers, and utilization.")}
-            kind="dispatch"
-            testId="hub-section-dispatch-portal"
-            signedIn={session?.kind === "dispatch"}
-            signedInLabel={t("Open Portal")}
-          />
-          <PortalPill
-            to="/admin/login"
-            icon={ClipboardList}
-            title={t("Admin")}
-            desc={t("The MASCI office console.")}
-            kind="admin"
-            testId="hub-section-admin"
-            signedIn={session?.kind === "admin"}
-            signedInLabel={t("Open Console")}
-          />
-        </div>
+        {(() => {
+          // Iter149: when a user is signed in, separate the portals they
+          // can actually use from the ones they can't — reduces visual
+          // overwhelm and prevents the "click the locked tile" frustration.
+          // Anonymous visitors keep the full 6-portal grid (it's the
+          // public front door).
+          const authed = isSignedInAnywhere() ? authorizedPortals() : null;
+          const portalDefs = [
+            { kind: "pm", to: "/pm/login", icon: ClipboardList, title: t("PM Portal"),
+              desc: t("The project-management workspace for MASCI office staff."),
+              testId: "hub-section-pm", signedInLabel: t("Open Portal") },
+            { kind: "shop", to: "/shop/login", icon: Wrench, title: t("Shop"),
+              desc: t("The mechanic's console for the MASCI equipment fleet."),
+              testId: "hub-section-shop", signedInLabel: t("Open Console") },
+            { kind: "hr", to: "/hr/login", icon: Users, title: t("HR Portal"),
+              desc: t("Employee records and payroll cross-check for MASCI HR."),
+              testId: "hub-section-hr", signedInLabel: t("Open Portal") },
+            { kind: "safety", to: session?.kind === "safety" ? "/safety-portal" : "/safety-portal/login", icon: ShieldAlert, title: t("Safety Portal"),
+              desc: t("Safety command center — incidents, audits, corrective actions, training."),
+              testId: "hub-section-safety-portal", signedInLabel: t("Open Portal") },
+            { kind: "dispatch", to: session?.kind === "dispatch" ? "/dispatch-portal" : "/dispatch-portal/login", icon: Truck, title: t("Dispatch"),
+              desc: t("Equipment movement, availability, transfers, and utilization."),
+              testId: "hub-section-dispatch-portal", signedInLabel: t("Open Portal") },
+            { kind: "admin", to: "/admin/login", icon: ClipboardList, title: t("Admin"),
+              desc: t("The MASCI office console."),
+              testId: "hub-section-admin", signedInLabel: t("Open Console") },
+          ];
+          const yours = authed ? portalDefs.filter((p) => authed.includes(p.kind)) : portalDefs;
+          const others = authed ? portalDefs.filter((p) => !authed.includes(p.kind)) : [];
+
+          return (
+            <>
+              <SectionHeader
+                kicker="03"
+                title={authed ? t("Your Portals") : t("Office Portals")}
+                subtitle={authed ? t("Sign-in required. Showing portals you're authorized for.") : t("Sign-in required. For office staff, mechanics, HR, Safety, and Dispatch.")}
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 mb-6">
+                {yours.map((p) => (
+                  <PortalPill
+                    key={p.kind}
+                    to={p.to}
+                    icon={p.icon}
+                    title={p.title}
+                    desc={p.desc}
+                    kind={p.kind}
+                    testId={p.testId}
+                    signedIn={session?.kind === p.kind}
+                    signedInLabel={p.signedInLabel}
+                  />
+                ))}
+              </div>
+
+              {others.length > 0 && (
+                <div className="mb-10" data-testid="hub-other-portals">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400 font-bold mb-2.5 flex items-center gap-2">
+                    <Lock className="w-3 h-3" /> {t("Other Portals")} · {t("not in your access set")}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {others.map((p) => (
+                      <span
+                        key={p.kind}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-100 text-slate-500 text-[11px] font-bold uppercase tracking-wide"
+                        data-testid={`hub-other-portal-${p.kind}`}
+                      >
+                        <p.icon className="w-3.5 h-3.5" /> {p.title}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {/* SECTION 4 — Reference strip */}
         <SectionHeader kicker="04" title={t("Reference")} subtitle={t("Always available — no sign-in needed.")} />

@@ -1,0 +1,48 @@
+{
+  "summary": "Iter149 frontend role/permission refinement tested. 6/11 test groups PASS, 4 FAIL due to one critical regression: EnforcePortalScope clears single-portal tokens when URL leaves that portal scope, defeating the new AccessDenied flow. AccessDenied page renders on first cross-portal hit, but the safety/hr token is wiped on the same render cycle (useEffect), so the user becomes anonymous immediately — clicking 'Back to <Home Portal>' routes to that portal's login page instead of the hub, and any further cross-portal navigation falls through to the anonymous login redirect (no AccessDenied).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Cross-portal AccessDenied — Iter149 core flow",
+        "issue": "EnforcePortalScope (/app/frontend/src/components/EnforcePortalScope.jsx) clears the single-portal token (clearSafetyToken / clearHrToken / etc.) on the same render cycle in which RequireHr/RequireSafety/etc. renders AccessDenied. The Require* guard sees isSignedInAnywhere()==true on first paint and renders AccessDenied with 'Back to Safety Portal' button — but EnforcePortalScope's useEffect simultaneously clears the safety token because pathname '/hr' is not inScope('/safety-portal'). Result: by the time the user clicks the CTA, the safety token is gone → Navigate guard on /safety-portal bounces to /safety-portal/login. Every subsequent cross-portal navigation by the same user falls through the anonymous branch (Navigate to login, not AccessDenied).",
+        "affected_selectors": ["[data-testid=access-denied-page]", "[data-testid=access-denied-home-portal]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_results_detail": {
+    "T1_anonymous_hub_full_6_pill_grid": "PASS — Office Portals section shows all 6 portal pills, no hub-other-portals disclosure, no console errors",
+    "T2_safety_login": "PASS — safety@mascigc.com / SafetyTest2026! logs in, lands on /safety-portal",
+    "T3_safety_hub_your_portals": "PASS — Section reads 'Your Portals', only safety pill visible in main grid, remaining 5 portals in [data-testid=hub-other-portals] with correct hub-other-portal-{pm|shop|hr|dispatch|admin} testids and no hub-other-portal-safety",
+    "T4_access_denied_on_hr_first_render": "PASS — 403 kicker, 'You don't have access to HR Portal' headline, 'Back to Safety Portal' primary CTA, 'Public Home' secondary, Path:/hr footer all render correctly on first paint",
+    "T5_click_back_to_safety_portal": "FAIL — Clicking [data-testid=access-denied-home-portal] navigates to /safety-portal/login NOT /safety-portal. Root cause: EnforcePortalScope wiped masci.safety.token during the /hr render, so RequireSafety now treats user as anonymous.",
+    "T6_access_denied_on_admin_pm_shop_dispatch": "FAIL — None of /admin, /pm, /shop, /dispatch-portal renders AccessDenied for the still-supposedly-signed-in Safety user. They all redirect to the respective /login page because masci.safety.token was cleared during the prior /hr visit (test runs sequentially in one tab).",
+    "T7_safety_no_regressions": "FAIL — /safety-portal, /safety-portal/corrective-actions, /safety-portal/fire-extinguishers, /safety-portal/training all redirect to /safety-portal/login. Root cause: same — safety token was cleared by EnforcePortalScope during prior cross-portal nav, so the user can no longer reach their own portal without re-authenticating. This is the most user-hostile symptom.",
+    "T8_anonymous_login_bounce_preserved": "PASS — With cleared storage, /safety-portal /hr /pm /shop /admin /dispatch-portal each redirects to its respective /login page (existing behaviour intact)",
+    "T9_hr_user_hub_and_access_denied": "PASS — hrmanager@mascigc.com lands on /hr, hub shows 'Your Portals' with HR pill highlighted + 5 others in disclosure (including safety). /safety-portal renders AccessDenied with 'Back to HR Portal' button.",
+    "T10_hr_no_regressions": "FAIL — After T9 navigated to /safety-portal (cross-portal), the HR token was cleared by EnforcePortalScope. Subsequently /hr, /hr/training-records, /hr/employee-accountability, /hr/safety-records all redirect to /hr/login. Same root cause as T5/T6/T7.",
+    "T11_mobile_375x812_access_denied": "FAIL (artefact) — AccessDenied did not render at /admin in the mobile test because token had already been cleared by prior tests in the same session. Layout is fine when AD does render (no horizontal overflow, scrollWidth===clientWidth===375). The fail here is a test-ordering side-effect of the root bug, not a separate mobile issue."
+  },
+  "test_report_links": [],
+  "action_items": [
+    "CRITICAL — Fix the EnforcePortalScope vs AccessDenied conflict. Recommended approach: EnforcePortalScope should NOT clear single-portal tokens when the current route belongs to a DIFFERENT portal namespace (i.e. when the user is bouncing through AccessDenied). Concretely, change the rule from 'clear when not inScope(/safety-portal)' to 'clear when pathname is /, /training/*, or belongs to NO known portal namespace' — i.e. only clear on truly-public surfaces, not on other portals' surfaces. Cross-portal navigation should leave existing portal tokens intact so AccessDenied retains its 'Back to <Home Portal>' affordance.",
+    "Alternate fix: have AccessDenied set a one-shot flag (sessionStorage masci.access-denied=1) that EnforcePortalScope skips on. Less clean but localized.",
+    "After fix, re-run T5/T6/T7/T10/T11 — all should turn green without re-logging in between."
+  ],
+  "critical_code_review_comments": [
+    "The Iter149 implementation is solid (clean AccessDenied page, good testids, sensible permissions.js helpers, correct Hub.jsx split). The miss is purely the EnforcePortalScope interaction — that component existed before Iter149 and was not updated to be AccessDenied-aware. The cleanest fix lives in EnforcePortalScope.jsx, not in the Require* guards.",
+    "isSignedInAnywhere() reads from localStorage synchronously, so the first paint of AccessDenied is correct. The bug only manifests on subsequent renders / clicks because EnforcePortalScope's useEffect runs AFTER first paint and silently nukes the token.",
+    "/app/frontend/src/pages/Hub.jsx — 'Your Portals' / 'Other Portals' split is correct and matches spec. Anonymous full-grid path is correct.",
+    "AccessDenied.jsx — clean, accessible, mobile-friendly. No issues."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "55% (6/11 test groups; all 4 failures trace to ONE root cause in EnforcePortalScope)"},
+  "test_credentials": "Safety: safety@mascigc.com / SafetyTest2026! · HR: hrmanager@mascigc.com / HRTesting2026! — both verified working",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The 4 failures (T5/T6/T7/T10) are NOT independent — they all trace to a single fix in /app/frontend/src/components/EnforcePortalScope.jsx. Re-run the same Playwright suite after the fix; expect all 11 to pass. The mobile T11 also clears because it depends on the safety token still being present when /admin is visited. Test in a SINGLE Playwright session to confirm the regression doesn't return.",
+  "rca_of_the_issue": "RACE between RequireHr (renders AccessDenied on first paint when isSignedInAnywhere()) and EnforcePortalScope (useEffect after first paint clears masci.safety.token because pathname /hr is not inScope('/safety-portal')). First paint is correct, but the post-paint effect strands the user. Reproduction: 1) Log into Safety. 2) Visit /hr — see AccessDenied with 'Back to Safety Portal'. 3) Open DevTools → Application → Local Storage — observe masci.safety.token has been removed. 4) Click 'Back to Safety Portal' → land on /safety-portal/login because RequireSafety now sees no token. Mitigation: update EnforcePortalScope inScope() rule to treat ALL portal namespaces ('/admin', '/pm', '/shop', '/hr', '/safety-portal', '/dispatch-portal') as 'in scope' for every portal token — i.e. only clear tokens on truly-public surfaces ('/', '/training/*', '/cheatsheet', '/field', '/qaqc', '/safety', '/sign-in', login pages, etc.). Cross-portal traversal must preserve tokens so AccessDenied works as designed."
+}

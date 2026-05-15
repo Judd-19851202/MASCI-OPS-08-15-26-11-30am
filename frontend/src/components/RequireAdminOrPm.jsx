@@ -2,6 +2,8 @@ import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { isAdmin } from "@/lib/adminAuth";
 import { isPm } from "@/lib/pmAuth";
+import { isSignedInAnywhere } from "@/lib/permissions";
+import AccessDenied from "@/pages/AccessDenied";
 
 /**
  * Shared sub-route guard for pages that EITHER an Admin OR a PM should
@@ -11,10 +13,16 @@ import { isPm } from "@/lib/pmAuth";
  *
  * Falls back to /pm/login if no token is present (PM is the lower-trust
  * persona, so we route uninvited visitors there).
+ *
+ * Iter149: signed-in-elsewhere users see AccessDenied instead of a
+ * jarring redirect to the PM login screen.
  */
 export function RequireAdminOrPm({ children }) {
   const location = useLocation();
   if (!isAdmin() && !isPm()) {
+    if (isSignedInAnywhere()) {
+      return <AccessDenied attemptedPortal="pm" />;
+    }
     return (
       <Navigate
         to="/pm/login"
