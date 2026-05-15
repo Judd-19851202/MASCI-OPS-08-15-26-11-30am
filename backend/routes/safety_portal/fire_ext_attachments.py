@@ -42,8 +42,9 @@ VALID_KINDS = {"paperwork", "photo", "other"}
 
 def _render_history_html(fe: dict) -> str:
     """Printable unit history — header, register info, inspection log,
-    attachment list. Uses the same compact style as the Training Center
-    PDF for consistency."""
+    attachment list. Uses the shared MASCI PDF chrome."""
+    from pdf_branding import wrap_pdf_html  # noqa: PLC0415
+
     inspections = sorted(
         (fe.get("inspections") or []),
         key=lambda x: x.get("inspection_date") or "",
@@ -60,68 +61,43 @@ def _render_history_html(fe: dict) -> str:
             f"<td>{ins.get('notes', '') or '—'}</td></tr>"
         )
     if not rows_html:
-        rows_html = "<tr><td colspan='4' class='empty'>No inspections logged yet.</td></tr>"
+        rows_html = "<tr><td colspan='4' class='muted'>No inspections logged yet.</td></tr>"
 
     atts_html = ""
     for a in (fe.get("attachments") or []):
         size_kb = (a.get("file_size") or 0) / 1024
         atts_html += (
             f"<li><strong>{a.get('filename', '—')}</strong> "
-            f"<span class='att-meta'>· {a.get('kind', 'other')} · {size_kb:.1f} KB · "
+            f"<span class='muted'>· {a.get('kind', 'other')} · {size_kb:.1f} KB · "
             f"{a.get('uploaded_at', '')[:10]}</span></li>"
         )
     if not atts_html:
-        atts_html = "<li class='empty'>No attachments on file.</li>"
+        atts_html = "<li class='muted'>No attachments on file.</li>"
 
-    return f"""
-<!DOCTYPE html>
-<html><head><meta charset="utf-8" />
-<style>
-  @page {{ size: letter; margin: 0.6in; }}
-  body {{ font-family: Helvetica, Arial, sans-serif; color: #0f172a; font-size: 11pt; line-height: 1.45; }}
-  .kicker {{ font-family: 'Courier New', monospace; letter-spacing: 0.18em; font-size: 9pt; color: #be123c; text-transform: uppercase; }}
-  h1 {{ font-size: 22pt; margin: 2pt 0 4pt 0; }}
-  h2 {{ font-size: 13pt; margin: 16pt 0 6pt 0; color: #0c4a6e; border-bottom: 2px solid #e2e8f0; padding-bottom: 3pt; }}
-  .grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 10pt 22pt; margin: 10pt 0 18pt 0; }}
-  .field {{ font-size: 10pt; }}
-  .label {{ font-family: 'Courier New', monospace; font-size: 8pt; letter-spacing: 0.14em; color: #64748b; text-transform: uppercase; }}
-  .value {{ font-weight: 700; color: #0f172a; }}
-  table {{ width: 100%; border-collapse: collapse; font-size: 10pt; }}
-  th {{ background: #f1f5f9; text-align: left; padding: 5pt 7pt; font-family: 'Courier New', monospace; font-size: 8pt; letter-spacing: 0.14em; color: #475569; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; }}
-  td {{ padding: 5pt 7pt; border-bottom: 1px solid #e2e8f0; }}
-  .status-pass {{ color: #047857; font-weight: 700; }}
-  .status-fail {{ color: #b91c1c; font-weight: 700; }}
-  .status-other {{ color: #92400e; font-weight: 700; }}
-  ul {{ padding-left: 18pt; margin: 4pt 0; }}
-  li {{ margin: 2pt 0; }}
-  .att-meta {{ color: #64748b; font-size: 9pt; }}
-  .empty {{ color: #94a3b8; font-style: italic; }}
-  .footer {{ position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 8pt; color: #94a3b8; }}
-</style></head>
-<body>
-  <div class="kicker">MASCI · SAFETY · FIRE EXTINGUISHER RECORD</div>
-  <h1>Unit {fe.get('unit_id', '—')} — Inspection History</h1>
-  <div class="grid">
-    <div class="field"><div class="label">Type / Size</div><div class="value">{fe.get('type', '—')} · {fe.get('size', '—')}</div></div>
-    <div class="field"><div class="label">Serial Number</div><div class="value">{fe.get('serial_number', '—') or '—'}</div></div>
-    <div class="field"><div class="label">Location</div><div class="value">{fe.get('location_value', '—')} <span style="color:#94a3b8;font-weight:400">({fe.get('location_kind', '')})</span></div></div>
-    <div class="field"><div class="label">Assigned Truck / Project</div><div class="value">{fe.get('truck', '') or '—'} · {fe.get('project_number', '') or '—'}</div></div>
-    <div class="field"><div class="label">Last Inspection</div><div class="value">{fe.get('last_inspection_date', '—') or '—'} · {fe.get('last_status', '—')}</div></div>
-    <div class="field"><div class="label">Next Due</div><div class="value">{fe.get('next_due_date', '—') or '—'}</div></div>
-  </div>
+    body = f"""
+<table style="margin: 0 0 16pt 0;">
+  <tr><td style="width:50%;padding:0;border:none;"><div class="muted" style="font-family:'Courier New',monospace;font-size:8pt;letter-spacing:0.14em;text-transform:uppercase;">Type / Size</div><div style="font-weight:700;">{fe.get('type', '—')} · {fe.get('size', '—')}</div></td>
+      <td style="padding:0;border:none;"><div class="muted" style="font-family:'Courier New',monospace;font-size:8pt;letter-spacing:0.14em;text-transform:uppercase;">Serial Number</div><div style="font-weight:700;">{fe.get('serial_number', '—') or '—'}</div></td></tr>
+  <tr><td style="padding:6pt 0 0 0;border:none;"><div class="muted" style="font-family:'Courier New',monospace;font-size:8pt;letter-spacing:0.14em;text-transform:uppercase;">Location</div><div style="font-weight:700;">{fe.get('location_value', '—')} <span class="muted" style="font-weight:400;">({fe.get('location_kind', '')})</span></div></td>
+      <td style="padding:6pt 0 0 0;border:none;"><div class="muted" style="font-family:'Courier New',monospace;font-size:8pt;letter-spacing:0.14em;text-transform:uppercase;">Assigned Truck / Project</div><div style="font-weight:700;">{fe.get('truck', '') or '—'} · {fe.get('project_number', '') or '—'}</div></td></tr>
+  <tr><td style="padding:6pt 0 0 0;border:none;"><div class="muted" style="font-family:'Courier New',monospace;font-size:8pt;letter-spacing:0.14em;text-transform:uppercase;">Last Inspection</div><div style="font-weight:700;">{fe.get('last_inspection_date', '—') or '—'} · {fe.get('last_status', '—')}</div></td>
+      <td style="padding:6pt 0 0 0;border:none;"><div class="muted" style="font-family:'Courier New',monospace;font-size:8pt;letter-spacing:0.14em;text-transform:uppercase;">Next Due</div><div style="font-weight:700;">{fe.get('next_due_date', '—') or '—'}</div></td></tr>
+</table>
 
-  <h2>Inspection Log</h2>
-  <table>
-    <thead><tr><th>Date</th><th>Status</th><th>Inspector</th><th>Notes</th></tr></thead>
-    <tbody>{rows_html}</tbody>
-  </table>
+<h2>Inspection Log</h2>
+<table>
+  <thead><tr><th>Date</th><th>Status</th><th>Inspector</th><th>Notes</th></tr></thead>
+  <tbody>{rows_html}</tbody>
+</table>
 
-  <h2>Attachments on File</h2>
-  <ul>{atts_html}</ul>
-
-  <div class="footer">MASCI Operations Platform · Fire Extinguisher Register · printed {datetime.now(timezone.utc).isoformat()[:19].replace('T', ' ')} UTC</div>
-</body></html>
+<h2>Attachments on File</h2>
+<ul>{atts_html}</ul>
 """
+    return wrap_pdf_html(
+        body,
+        title=f"Unit {fe.get('unit_id', '—')} — Inspection History",
+        kicker="SAFETY · FIRE EXTINGUISHER RECORD",
+    )
 
 
 def register_fire_ext_attachment_routes(

@@ -1,0 +1,119 @@
+/* portal-system.css — Iter136 (Phase-1 Iter B). Cross-portal design
+ * tokens so every portal can reference the same accent, the same spacing,
+ * the same shadow, the same hover treatment, etc. Drop-in: import once
+ * from index.css and use the variable names below instead of hardcoded
+ * tailwind colors when adding NEW surfaces. Existing surfaces will be
+ * converted gradually in Iter B+ — zero visual change today.
+ */
+
+:root {
+  /* ── Per-portal accent triplet (border / fill / muted) ───────── */
+  --portal-admin-700:    #b91c1c;  /* red-700 */
+  --portal-admin-50:     #fef2f2;
+  --portal-safety-700:   #0e7490;  /* cyan-700 */
+  --portal-safety-50:    #ecfeff;
+  --portal-hr-700:       #7e22ce;  /* purple-700 */
+  --portal-hr-50:        #faf5ff;
+  --portal-dispatch-700: #b45309;  /* amber-700 */
+  --portal-dispatch-50:  #fffbeb;
+  --portal-shop-700:     #c2410c;  /* orange-700 */
+  --portal-shop-50:      #fff7ed;
+  --portal-pm-700:       #047857;  /* emerald-700 */
+  --portal-pm-50:        #ecfdf5;
+  --portal-field-700:    #334155;  /* slate-700 */
+  --portal-field-50:     #f8fafc;
+  --portal-training-700: #4338ca;  /* indigo-700 */
+  --portal-training-50:  #eef2ff;
+
+  /* ── Spacing & rhythm ─────────────────────────────────────────── */
+  --pad-card:  1.25rem;   /* p-5 */
+  --pad-tight: 0.75rem;   /* p-3 */
+  --gap-grid:  1rem;      /* gap-4 */
+
+  /* ── Typography ───────────────────────────────────────────────── */
+  --kicker-tracking: 0.18em;
+  --kicker-size:     0.625rem;   /* 10px */
+
+  /* ── Status colors (consistent across all portals) ────────────── */
+  --status-good:   #047857;  /* emerald-700 */
+  --status-warn:   #b45309;  /* amber-700 */
+  --status-bad:    #b91c1c;  /* red-700 */
+  --status-muted:  #64748b;  /* slate-500 */
+
+  /* ── Shadows / radii ─────────────────────────────────────────── */
+  --shadow-tile-hover: 0 10px 25px -10px rgba(15, 23, 42, 0.18);
+  --radius-card: 0.375rem;     /* rounded-md */
+}
+
+/* ─── Empty / Loading / Error state utility classes ─────────────── */
+.ux-empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  background: #fff;
+  border: 2px dashed #cbd5e1;
+  border-radius: var(--radius-card);
+  color: #64748b;
+}
+.ux-empty .ux-empty-icon {
+  margin: 0 auto 0.5rem;
+  color: #94a3b8;
+}
+.ux-empty .ux-empty-title {
+  font-family: var(--font-display, inherit);
+  font-weight: 900;
+  color: #334155;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+}
+.ux-empty .ux-empty-body {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.45;
+}
+
+.ux-loading {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.8125rem;
+}
+
+.ux-error {
+  padding: 1rem;
+  background: #fef2f2;
+  border: 2px solid #fecaca;
+  border-radius: var(--radius-card);
+  color: #991b1b;
+  font-size: 0.875rem;
+}
+
+/* ─── Kicker (uppercase mono eyebrow used on every page) ────────── */
+.ux-kicker {
+  font-family: ui-monospace, "Courier New", monospace;
+  font-size: var(--kicker-size);
+  letter-spacing: var(--kicker-tracking);
+  text-transform: uppercase;
+  color: #475569;
+  font-weight: 700;
+}
+
+/* ─── Mobile-safe table wrapper ─────────────────────────────────── */
+.ux-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.ux-table-wrap table {
+  min-width: 36rem;
+}
+
+/* ─── Mobile-friendly touch targets (44 px iOS guideline) ───────── */
+@media (max-width: 640px) {
+  .ux-touch button,
+  .ux-touch .ux-btn {
+    min-height: 44px;
+  }
+}

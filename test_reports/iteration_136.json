@@ -1,0 +1,34 @@
+{
+  "summary": "iter136 Phase-1 Iter B/C/D validation — 18/18 backend pytest cases pass against the live preview backend. Verified: shared PDF chrome on /api/training-center/guide/safety-fire-ext-bulk-import/pdf (44KB %PDF-) and /api/safety/fire-extinguishers/{id}/history.pdf (requires X-Safety-Token, returns %PDF-); Training Center seed count == 18 across all portals (admin=2, safety=4, hr=1, dispatch=1, shop=1, pm=1, field=1, ops=7 — totals 18); both new guides (safety-fire-ext-attachments=4 sections, safety-corrective-actions-links=5 sections) returned correctly; Deploy Readiness endpoint gates 401 sans token, returns overall_status='ready' with exactly 10 checks {mongo, critical_collections, critical_indexes, ttl_indexes, r2, resend, integration_errors_24h, r2_degraded_24h, training_seed, default_admin} all passed=true, blocker_count=0, warn_count=0; hot-id indexes present on fire_extinguishers, corrective_actions, incidents, inspections, safety_training_records, equipment_master, employees; TTL indexes on system_health_events + audit_events both set to 2592000s (30 days); Safety regression list endpoints (fire-extinguishers, corrective-actions) 200 OK. Frontend Iter B/D source-verified: PortalStates.jsx exports EmptyState/LoadingState/ErrorState; portal-system.css imported via index.css; OpsTrainingCenter.jsx wires <LoadingState>/<EmptyState>; AdminShell.jsx sidebar has 'Deploy Readiness' (ListChecks icon) alongside 'Deploy Recovery' and 'Operator Training'; /admin/deploy-readiness route wired in App.js. Live Playwright run (token-seeded localStorage to bypass any login UI race) confirmed the page renders the green 'READY TO DEPLOY' banner, 10 check rows (data-testid='deploy-readiness-check-<id>'), and the Re-Run button triggers an additional GET /api/admin/deploy-readiness (network fetch count went 2 → 3 on click). Sidebar text content matched all 3 expected entries.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter136_phase1.py",
+    "/app/test_reports/pytest/iter136_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "deploy_readiness.py: check items return field id but the agent-context note in the review request called them 'name' — minor doc drift, code is consistent and self-documenting via 'label'.",
+    "Two Deploy Readiness checks (r2_degraded_24h, integration_errors_24h) are tagged severity='warn' but still passed=true in the current preview env; ensure prod stays at zero so the overall='ready' invariant holds.",
+    "Training Center portal count comes from per-portal 'count' field; if any portal seed list is mutated without bumping the unit total in tests, the regression assertion (18) will need updating in step with the seed.",
+    "FE: AdminDeployReadiness.jsx refresh button uses 'Refreshed' toast — consider showing the new checked_at delta to confirm freshness; current UI only changes the timestamp inline (works fine, just an enhancement).",
+    "Sidebar 'Deploy Readiness' entry sits below the fold on default viewport — fine for desktop, but on the 768-wide AdminShell users may need to scroll within the sidebar to reach it."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter136_phase1.py"
+  ],
+  "success_rate": {"backend": "100% (18/18 pytest)", "frontend": "100% (Deploy Readiness UI verified live; sidebar + states components source-verified)"},
+  "test_credentials": "Legacy admin password MASCI1982! used via POST /api/admin/login for both pytest fixtures and Playwright token-seed. Safety creds safety@mascigc.com/Safety123! used for the history.pdf fixture. All from /app/memory/test_credentials.md.",
+  "seed_data_creation": "No new seed data created by this iteration. Tests rely on pre-existing fire_extinguishers + the auto-seeded Training Center guides.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "test_iter136_phase1.py is the regression suite for Iter B/C/D: shared PDF chrome, Training Center seed (18 guides), Deploy Readiness aggregator (10 checks all ready), hot-id index armament, and audit/system_health TTL. The Playwright pattern that worked here: seed localStorage.masci.admin.token using an in-page fetch to /api/admin/login (sidesteps any login-form race/automation issue), then page.goto the admin route. Use this pattern for any future admin-shell UI verification. Sidebar entry 'Deploy Readiness' is the 15th item — scroll the AdminShell sidebar to see it visually if testing manually.",
+  "rca of the issue": "Initial pytest run had 3 failures from stale assumptions (test BASE_URL env not in shell, fire-ext history requires safety token not admin, deploy-readiness JSON uses {id, passed, severity, label} not {name, status}). Fixed test file to (a) load REACT_APP_BACKEND_URL from /app/frontend/.env directly, (b) use safety_token fixture for the safety/history.pdf endpoint, (c) match the actual deploy-readiness shape (check.id + check.passed + check.severity). All 18 now green. No backend or frontend code changes required."
+}

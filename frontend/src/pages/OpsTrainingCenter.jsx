@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
+import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -169,13 +170,13 @@ export default function OpsTrainingCenter() {
 
         {/* Guide grid */}
         {loading ? (
-          <div className="text-center py-16 text-slate-500">
-            <Loader2 className="w-7 h-7 animate-spin mx-auto" /> {t("Loading guides…")}
-          </div>
+          <LoadingState label={t("Loading guides…")} testId="ops-training-loading" />
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-slate-500 bg-white border-2 border-dashed border-slate-300 rounded-md">
-            {t("No guides match your filter.")}
-          </div>
+          <EmptyState
+            title={t("No guides match your filter")}
+            body={t("Try clearing the search or selecting a different portal. The Training Center is admin-editable — new guides can be added at any time.")}
+            testId="ops-training-empty"
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((g) => {

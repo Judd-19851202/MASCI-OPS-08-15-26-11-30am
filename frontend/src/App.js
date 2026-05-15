@@ -112,6 +112,7 @@ import HrSafetyRecords from "@/pages/HrSafetyRecords";
 import TrainingHub from "@/pages/TrainingHub";
 import OpsTrainingCenter from "@/pages/OpsTrainingCenter";
 import OpsTrainingGuide from "@/pages/OpsTrainingGuide";
+import AdminDeployReadiness from "@/pages/AdminDeployReadiness";
 import TrainingTrack from "@/pages/TrainingTrack";
 import TrainingQrPoster from "@/pages/TrainingQrPoster";
 import TrainingPacketDownload from "@/pages/TrainingPacketDownload";
@@ -460,6 +461,7 @@ function App() {
             <Route path="/training/:track/poster" element={<TrainingQrPoster />} />
             <Route path="/training/:track/packet" element={<TrainingPacketDownload />} />
             <Route path="/admin/training-videos" element={A(<AdminTrainingVideos />)} />
+            <Route path="/admin/deploy-readiness" element={A(<AdminDeployReadiness />)} />
 
             {/* ============================================================
                 Operations Training Center — system-wide operator guides

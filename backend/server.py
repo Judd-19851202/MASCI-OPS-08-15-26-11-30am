@@ -8216,6 +8216,12 @@ from routes.training_center import build_training_center_router  # noqa: E402
 app.include_router(build_training_center_router(db, require_admin))
 
 
+# ─── Deploy Readiness Aggregator (iter136) ──────────────────────────
+from routes.deploy_readiness import build_deploy_readiness_router  # noqa: E402
+
+app.include_router(build_deploy_readiness_router(db, require_admin))
+
+
 # ─── Integration Center (Motive + MaintainX framework — iter122) ───
 from routes.integrations import (  # noqa: E402
     build_integrations_router,
@@ -8297,7 +8303,8 @@ async def _arm_audit_ttl_indexes():
     try:
         days = int(os.environ.get("AUDIT_RETENTION_DAYS", "30"))
         seconds = days * 86400
-        for coll_name in ("r2_degraded_events", "digest_runs", "health_monitor_runs"):
+        for coll_name in ("r2_degraded_events", "digest_runs", "health_monitor_runs",
+                          "system_health_events", "audit_events"):
             coll = db[coll_name]
             try:
                 existing = await coll.index_information()
@@ -8360,6 +8367,21 @@ async def _seed_safety_users():
         await db.safety_training_records.create_index("expiration_date")
     except Exception as e:  # noqa: BLE001
         logger.warning(f"safety collections index: {e}")
+
+
+# ─── Iter136 (Phase-1 Iter D): id-indexes on hot operational
+#     collections so the deploy-readiness probe stops warning. These
+#     are read on essentially every CRUD-by-id path and were previously
+#     defaulting to collection-scan. create_index is idempotent.
+@app.on_event("startup")
+async def _arm_hot_id_indexes():
+    for coll_name in ("fire_extinguishers", "corrective_actions", "incidents",
+                      "inspections", "safety_training_records",
+                      "equipment_master", "employees"):
+        try:
+            await db[coll_name].create_index("id")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[id-index] {coll_name}: {e}")
 
 
 _safety_digest_task: Optional[asyncio.Task] = None

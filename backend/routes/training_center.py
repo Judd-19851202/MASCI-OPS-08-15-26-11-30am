@@ -131,6 +131,41 @@ DEFAULT_GUIDES: List[Dict[str, Any]] = [
             _s("Common Errors", "Bad date formats (use YYYY-MM-DD or MM/DD/YYYY), unknown status strings, or missing both Extinguisher ID and Serial Number on the same row."),
         ],
     ),
+    _g(
+        "safety-fire-ext-attachments", "safety",
+        "Fire Extinguisher Attachments & Printable History",
+        "SAFETY · UNIT RECORDS",
+        "Each extinguisher row supports up to 25 attachments — photos, inspection paperwork, certs — and exports a single PDF combining the register info, the full inspection log, and the attachment manifest.",
+        "Safety Managers, Field Inspectors.",
+        [
+            _s("Where", "Open **Safety → Fire Extinguishers**. Each row has a paperclip button (`📎`) next to the existing inspection / edit / delete actions. Click it to open the Manage dialog."),
+            _s("Uploading Paperwork or Photos", "In the Manage dialog: **Choose File**, pick a category (Paperwork / Photo / Other), and click **Add**. Files up to 10 MB are accepted. JPG, PNG, HEIC, and PDF are supported.", [
+                {"kind": "tip", "text": "Field inspectors photograph the inspection-tag through their phone camera and upload directly — no print-and-scan workflow needed."},
+            ]),
+            _s("Storage", "Attachments go to Cloudflare R2 when configured (your tenant's bucket). If R2 is unreachable at the moment of upload, the file falls back to inline storage and is logged to the degraded-events queue. The attachment list shows **'inline'** on any file that wasn't able to land in R2 — Safety should retry those once R2 is healthy.", [
+                {"kind": "warn", "text": "Inline storage is bounded by document size. R2 is the source of truth. Don't let inline attachments accumulate."},
+            ]),
+            _s("Printable Unit History", "The **Download PDF** button at the top of the Manage dialog generates a single, MASCI-branded PDF with: register info (type, size, serial, location), full chronological inspection log, and the attachment manifest. Use this for OSHA audits, customer requests, or annual review.", [
+                {"kind": "tip", "text": "Filename pattern is `fe_<unit_id>_history.pdf` so it sorts alphabetically when you save many."},
+            ]),
+        ],
+    ),
+    _g(
+        "safety-corrective-actions-links", "safety",
+        "Linking Corrective Actions to Source Records",
+        "SAFETY · TRACEABILITY",
+        "Every CA can be linked to the incident, failed pre-op, equipment unit, training record, audit, document, or fire-extinguisher it stemmed from. Critical for OSHA traceability and insurance audits.",
+        "Safety Managers.",
+        [
+            _s("Why Link", "When OSHA or an insurance auditor asks 'what corrective actions did you take after the dropped-load incident on 2024-03-14?', linked CAs let you answer in seconds with documentary evidence. Unlinked CAs require a manual document search."),
+            _s("Linking Workflow", "Open any CA via **Safety → Corrective Actions**, switch to **Edit**. The **Related Records** section sits below the completion notes. Click **Add Link**, pick a kind, paste the source record ID, optionally add a friendly label, then **Link**."),
+            _s("Supported Kinds", "Incident / Near Miss, Failed Pre-Op, Equipment Master, Training Record, Audit / Inspection, Safety Document, Fire Extinguisher.", [
+                {"kind": "tip", "text": "Several kinds (incident, equipment_inspection, fire_ext) are auto-suggested when the CA is created from those source records — operator just verifies and saves."},
+            ]),
+            _s("Broken Links", "If the underlying source record is later deleted, the link is preserved but shows an **amber 'Source record not found'** marker in the resolved list. This is intentional — the CA's audit history must not break even if the source is purged."),
+            _s("Idempotency", "Re-linking the same kind + record ID does not create duplicate entries. Safe to retry on flaky networks."),
+        ],
+    ),
     # ─── HR ────────────────────────────────────────────────────────
     _g(
         "hr-getting-started", "hr",
@@ -343,6 +378,10 @@ def _md_to_html(text: str) -> str:
 
 
 def _render_guide_html(guide: Dict[str, Any]) -> str:
+    """Render a training guide using the shared MASCI PDF chrome so it
+    matches every other PDF the platform emits."""
+    from pdf_branding import wrap_pdf_html  # noqa: PLC0415
+
     sections_html = []
     for s in guide.get("sections", []):
         callouts_html = ""
@@ -353,32 +392,15 @@ def _render_guide_html(guide: Dict[str, Any]) -> str:
         sections_html.append(
             f'<h2>{s.get("heading", "")}</h2>{_md_to_html(s.get("body_md", ""))}{callouts_html}',
         )
-    return f"""
-<!DOCTYPE html>
-<html><head><meta charset="utf-8" />
-<style>
-  @page {{ size: letter; margin: 0.75in; }}
-  body {{ font-family: 'Helvetica', Arial, sans-serif; color: #0f172a; font-size: 11pt; line-height: 1.5; }}
-  .kicker {{ font-family: 'Courier New', monospace; letter-spacing: 0.18em; font-size: 9pt; color: #475569; text-transform: uppercase; }}
-  h1 {{ font-size: 22pt; margin: 4pt 0 6pt 0; color: #0f172a; }}
-  h2 {{ font-size: 14pt; margin: 18pt 0 4pt 0; color: #0c4a6e; border-bottom: 2px solid #e2e8f0; padding-bottom: 3pt; }}
-  .summary {{ font-style: italic; color: #334155; margin-bottom: 4pt; }}
-  .meta {{ color: #64748b; font-size: 9pt; margin-bottom: 18pt; }}
-  p {{ margin: 6pt 0; }}
-  code {{ background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 9.5pt; }}
-  .callout-tip  {{ background: #ecfeff; border-left: 4px solid #0e7490; padding: 8pt 10pt; margin: 8pt 0; font-size: 10pt; }}
-  .callout-warn {{ background: #fef3c7; border-left: 4px solid #b45309; padding: 8pt 10pt; margin: 8pt 0; font-size: 10pt; }}
-  .footer {{ position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 8pt; color: #94a3b8; }}
-</style></head>
-<body>
-  <div class="kicker">{guide.get("kicker", "")}</div>
-  <h1>{guide.get("title", "")}</h1>
-  <p class="summary">{_md_to_html(guide.get("summary", ""))}</p>
-  <p class="meta">Audience: {guide.get("audience", "—")} &nbsp;·&nbsp; Version {guide.get("version", "1.0")} &nbsp;·&nbsp; Updated {guide.get("updated_at", "")}</p>
-  {''.join(sections_html)}
-  <div class="footer">MASCI Operations Platform · Training Center</div>
-</body></html>
-"""
+    body = (
+        f'<p class="muted" style="font-style:italic;">{_md_to_html(guide.get("summary", ""))}</p>'
+        f'<p class="muted" style="font-size:9pt;border-bottom:1px solid #e2e8f0;padding-bottom:6pt;margin-bottom:14pt;">'
+        f'Audience: <strong>{guide.get("audience", "—") or "—"}</strong> · '
+        f'Version {guide.get("version", "1.0")} · '
+        f'Updated {(guide.get("updated_at") or "")[:10]}</p>'
+        f'{"".join(sections_html)}'
+    )
+    return wrap_pdf_html(body, title=guide.get("title", ""), kicker=guide.get("kicker", ""))
 
 
 # ─── ROUTER ────────────────────────────────────────────────────────
