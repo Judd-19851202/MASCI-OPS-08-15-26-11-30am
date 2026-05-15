@@ -196,6 +196,36 @@ def register_equipment_routes(
             except Exception:
                 pass
         schedule_auto_email("equipment-inspection", doc)
+
+        # ── Failed Pre-Op → Pending Maintenance Hold (iter128) ──
+        # Fire-and-forget. Failure here MUST NOT abort the pre-op save.
+        if (insp.fail_count or 0) > 0 and insp.equipment_unit:
+            try:
+                # Resolve unit_number → equipment_master.id (case-insensitive).
+                eq = await db.equipment_master.find_one(
+                    {"unit_number": {"$regex": f"^{insp.equipment_unit}$", "$options": "i"}},
+                    {"_id": 0, "id": 1},
+                )
+                if eq:
+                    from routes.operations import create_pending_maintenance_hold
+                    fail_summary = (
+                        f"{insp.fail_count} item(s) failed pre-op inspection · "
+                        f"operator: {insp.operator_name or '—'} · doc: {insp.doc_id or insp.id}"
+                    )
+                    await create_pending_maintenance_hold(
+                        db,
+                        asset_id=eq["id"],
+                        reason=f"Failed pre-op inspection ({insp.fail_count} item{'' if insp.fail_count == 1 else 's'})",
+                        severity="high" if insp.fail_count >= 3 else "medium",
+                        notes=fail_summary,
+                        source_module="field",
+                        source_record_id=insp.id,
+                        created_by=insp.operator_name or "field-preop",
+                    )
+            except Exception:
+                # Never break the pre-op flow on hold creation issues
+                pass
+
         return insp
 
     @api_router.get("/equipment-inspections", response_model=List[EquipmentInspectionSummary])

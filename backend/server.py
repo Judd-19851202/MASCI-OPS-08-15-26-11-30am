@@ -8380,6 +8380,24 @@ async def _directory_shop_token(row: Dict[str, Any]) -> Optional[str]:
     return make_shop_user_token(shop["id"], shop["password_hash"])
 
 
+async def _directory_safety_token(row: Dict[str, Any]) -> Optional[str]:
+    """Mint a Safety token for a directory user. Auto-provisions shadow."""
+    from safety_users import make_safety_user_token
+    s = await _ensure_portal_shadow(db, "safety_users", row)
+    if not s or s.get("disabled") or not s.get("password_hash"):
+        return None
+    return make_safety_user_token(s["id"], s["password_hash"])
+
+
+async def _directory_dispatch_token(row: Dict[str, Any]) -> Optional[str]:
+    """Mint a Dispatch token for a directory user. Auto-provisions shadow."""
+    from dispatch_users import make_dispatch_user_token
+    d = await _ensure_portal_shadow(db, "dispatch_users", row)
+    if not d or d.get("disabled") or not d.get("password_hash"):
+        return None
+    return make_dispatch_user_token(d["id"], d["password_hash"])
+
+
 async def _directory_send_email(to: str, subject: str, html: str) -> None:
     """Iter90 — Resend wrapper used by Access Control Center welcome /
     password-reset notifications. Same envelope as the per-portal welcome
@@ -8409,6 +8427,8 @@ _auth_directory_router = build_auth_directory_router(
     pm_token_minter=_directory_pm_token,
     hr_token_minter=_directory_hr_token,
     shop_token_minter=_directory_shop_token,
+    safety_token_minter=_directory_safety_token,
+    dispatch_token_minter=_directory_dispatch_token,
     admin_token_minter=_directory_admin_token,
     send_email_fn=_directory_send_email,
     render_portal_email_fn=render_portal_email,

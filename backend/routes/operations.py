@@ -89,6 +89,16 @@ class EventUpdate(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
 
 
+class HoldDismiss(BaseModel):
+    reason: str = Field(..., min_length=2, description="Required — why the pending hold is being dismissed")
+    dismissed_by: Optional[str] = None
+
+
+class HoldApprove(BaseModel):
+    note: Optional[str] = ""
+    approved_by: Optional[str] = None
+
+
 class HoldCreate(BaseModel):
     asset_id: str = Field(..., min_length=1)
     kind: str = Field(..., description="safety | maintenance")
@@ -216,10 +226,10 @@ async def _compute_current_status(db, asset_id: str) -> Dict[str, Any]:
       Assigned → Available
     """
     holds = await db.asset_holds.find(
-        {"asset_id": asset_id, "active": True}, {"_id": 0},
-    ).to_list(20)
-    safety_hold = any(h["kind"] == "safety" for h in holds)
-    maint_hold = any(h["kind"] == "maintenance" for h in holds)
+        {"asset_id": asset_id, "$or": [{"active": True}, {"status": "pending"}]}, {"_id": 0},
+    ).to_list(50)
+    safety_hold = any(h["kind"] == "safety" and h.get("active") for h in holds)
+    maint_hold = any(h["kind"] == "maintenance" and h.get("active") for h in holds)
 
     pending_transfer = None
     in_transit = None
@@ -263,6 +273,82 @@ async def _compute_current_status(db, asset_id: str) -> Dict[str, Any]:
 # ════════════════════════════════════════════════════════════════════
 # Router builder
 # ════════════════════════════════════════════════════════════════════
+async def create_pending_maintenance_hold(
+    db,
+    *,
+    asset_id: str,
+    reason: str,
+    severity: str = "medium",
+    notes: str = "",
+    source_module: str = "field",
+    source_record_id: Optional[str] = None,
+    linked_event_id: Optional[str] = None,
+    created_by: str = "system",
+) -> Optional[str]:
+    """Fire-and-forget helper to spawn a pending maintenance hold from
+    other modules (e.g. failed pre-op submission). Returns the new hold
+    id on success, ``None`` on failure or skip.
+
+    Skip conditions (idempotency):
+      • asset_id does not match equipment_master
+      • a pending OR active maintenance hold already exists for the asset
+    """
+    try:
+        eq = await db.equipment_master.find_one({"id": asset_id}, {"_id": 0, "id": 1})
+        if not eq:
+            return None
+        existing = await db.asset_holds.find_one(
+            {"asset_id": asset_id, "kind": "maintenance",
+             "$or": [{"active": True}, {"status": "pending"}]},
+            {"_id": 0, "id": 1},
+        )
+        if existing:
+            return None
+        hold_id = str(uuid.uuid4())
+        doc = {
+            "id": hold_id,
+            "asset_id": asset_id,
+            "kind": "maintenance",
+            "reason": reason or "Failed pre-op inspection",
+            "severity": severity,
+            "notes": notes,
+            "active": False,
+            "status": "pending",
+            "created_at": _now_iso(),
+            "created_by": created_by,
+            "approved_at": None,
+            "approved_by": None,
+            "released_at": None,
+            "released_by": None,
+            "resolution": "",
+            "dismissed_at": None,
+            "dismissed_by": None,
+            "dismissal_reason": "",
+            "linked_event_id": linked_event_id,
+            "source_module": source_module,
+            "source_record_id": source_record_id,
+        }
+        await db.asset_holds.insert_one(doc)
+        await write_event(
+            db,
+            event_type="maintenance_hold_requested",
+            event_category="maintenance",
+            event_title=f"Pending maintenance hold requested: {reason or 'failed pre-op'}",
+            event_description=notes or "",
+            severity=severity,
+            source_module=source_module,
+            source_collection="asset_holds",
+            source_record_id=hold_id,
+            asset_id=asset_id,
+            action_required=True,
+            created_by=created_by,
+        )
+        return hold_id
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[ops] create_pending_maintenance_hold failed: {e}")
+        return None
+
+
 def build_operations_router(db, require_admin, is_valid_admin_token=None) -> APIRouter:
     """Build the operations HTTP surface.
 
@@ -356,12 +442,19 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
 
     # ── Holds ────────────────────────────────────────────────────────
     @router.post("/holds", dependencies=[Depends(require_write)])
-    async def create_hold(body: HoldCreate):
+    async def create_hold(body: HoldCreate, pending: bool = False, source_module: str = "dispatch"):
+        """Create a hold. By default `pending=False` → hold is active
+        immediately (admin/dispatch decision). When `pending=True`, the
+        hold is recorded but does NOT block utilization status — it's a
+        request awaiting admin/dispatch approval. This is the entry
+        point used by the Failed Pre-Op → Pending Maintenance Hold
+        workflow."""
         if body.kind not in ("safety", "maintenance"):
             raise HTTPException(400, "kind must be 'safety' or 'maintenance'")
         eq = await db.equipment_master.find_one({"id": body.asset_id}, {"_id": 0, "id": 1, "unit_number": 1})
         if not eq:
             raise HTTPException(404, "asset not found in equipment_master")
+        status = "pending" if pending else "active"
         doc = {
             "id": str(uuid.uuid4()),
             "asset_id": body.asset_id,
@@ -369,31 +462,107 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
             "reason": body.reason,
             "severity": body.severity or "medium",
             "notes": body.notes or "",
-            "active": True,
+            "active": not pending,           # pending holds DO NOT block
+            "status": status,                # "pending" | "active" | "released" | "dismissed"
             "created_at": _now_iso(),
             "created_by": "admin",
+            "approved_at": _now_iso() if not pending else None,
+            "approved_by": "admin" if not pending else None,
             "released_at": None,
             "released_by": None,
             "resolution": "",
+            "dismissed_at": None,
+            "dismissed_by": None,
+            "dismissal_reason": "",
             "linked_event_id": body.linked_event_id,
+            "source_module": source_module,
         }
         await db.asset_holds.insert_one(doc)
         await write_event(
             db,
-            event_type=f"{body.kind}_hold_applied",
+            event_type=f"{body.kind}_hold_{'requested' if pending else 'applied'}",
             event_category=body.kind,
-            event_title=f"{body.kind.title()} hold applied: {body.reason}",
+            event_title=(f"{body.kind.title()} hold "
+                         f"{'requested — awaiting approval' if pending else 'applied'}: {body.reason}"),
             event_description=body.notes or "",
             severity=body.severity or "medium",
-            source_module="dispatch",
+            source_module=source_module,
             source_collection="asset_holds",
             source_record_id=doc["id"],
             asset_id=body.asset_id,
-            action_required=True,
+            action_required=pending,
             created_by="admin",
         )
         doc.pop("_id", None)
         return doc
+
+    @router.post("/holds/{hold_id}/approve", dependencies=[Depends(require_write)])
+    async def approve_hold(hold_id: str, body: HoldApprove):
+        existing = await db.asset_holds.find_one({"id": hold_id}, {"_id": 0})
+        if not existing:
+            raise HTTPException(404, "Hold not found")
+        if existing.get("status") not in ("pending", None):
+            raise HTTPException(409, f"Cannot approve a hold in status {existing.get('status')}")
+        await db.asset_holds.update_one(
+            {"id": hold_id},
+            {"$set": {
+                "active": True,
+                "status": "active",
+                "approved_at": _now_iso(),
+                "approved_by": body.approved_by or "admin",
+                "approval_note": body.note or "",
+            }},
+        )
+        await write_event(
+            db,
+            event_type=f"{existing['kind']}_hold_applied",
+            event_category=existing["kind"],
+            event_title=f"{existing['kind'].title()} hold approved & applied",
+            event_description=body.note or existing.get("reason", ""),
+            severity=existing.get("severity") or "medium",
+            source_module="dispatch",
+            source_collection="asset_holds",
+            source_record_id=hold_id,
+            asset_id=existing["asset_id"],
+            created_by="admin",
+        )
+        return await db.asset_holds.find_one({"id": hold_id}, {"_id": 0})
+
+    @router.post("/holds/{hold_id}/dismiss", dependencies=[Depends(require_write)])
+    async def dismiss_hold(hold_id: str, body: HoldDismiss):
+        """Dismiss a pending hold — requires a reason. Does NOT affect
+        already-active holds (must use /release for those)."""
+        existing = await db.asset_holds.find_one({"id": hold_id}, {"_id": 0})
+        if not existing:
+            raise HTTPException(404, "Hold not found")
+        if existing.get("status") != "pending":
+            raise HTTPException(409, "Only pending holds can be dismissed; use /release for active holds")
+        if not (body.reason or "").strip():
+            raise HTTPException(400, "dismissal reason is required")
+        await db.asset_holds.update_one(
+            {"id": hold_id},
+            {"$set": {
+                "active": False,
+                "status": "dismissed",
+                "dismissed_at": _now_iso(),
+                "dismissed_by": body.dismissed_by or "admin",
+                "dismissal_reason": body.reason,
+            }},
+        )
+        await write_event(
+            db,
+            event_type=f"{existing['kind']}_hold_dismissed",
+            event_category=existing["kind"],
+            event_title=f"Pending {existing['kind']} hold dismissed",
+            event_description=body.reason,
+            severity="info",
+            source_module="dispatch",
+            source_collection="asset_holds",
+            source_record_id=hold_id,
+            asset_id=existing["asset_id"],
+            created_by="admin",
+        )
+        return await db.asset_holds.find_one({"id": hold_id}, {"_id": 0})
 
     @router.post("/holds/{hold_id}/release", dependencies=[Depends(require_write)])
     async def release_hold(hold_id: str, body: HoldRelease):
@@ -428,19 +597,28 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
 
     @router.get("/holds", dependencies=[Depends(require_any_portal)])
     async def list_holds(
-        active_only: bool = True,
+        active_only: bool = False,
+        status: Optional[str] = None,
         kind: Optional[str] = None,
         asset_id: Optional[str] = None,
         limit: int = Query(200, ge=1, le=1000),
     ):
         q: dict = {}
-        if active_only:
+        if status:
+            q["status"] = status
+        elif active_only:
             q["active"] = True
         if kind:
             q["kind"] = kind
         if asset_id:
             q["asset_id"] = asset_id
         rows = await db.asset_holds.find(q, {"_id": 0}).sort("created_at", -1).to_list(limit)
+        # Back-compat: rows created BEFORE iter128 don't have a `status`
+        # field. Default them to "active" if their `active` flag is True
+        # and "released" otherwise.
+        for r in rows:
+            if not r.get("status"):
+                r["status"] = "active" if r.get("active") else "released"
         return rows
 
     # ── Asset Assignments ────────────────────────────────────────────
@@ -885,6 +1063,7 @@ __all__ = [
     "build_operations_router",
     "ensure_operations_indexes",
     "write_event",
+    "create_pending_maintenance_hold",
     "TRANSFER_STATES",
     "ASSET_OP_STATUSES",
     "EVENT_SEVERITIES",

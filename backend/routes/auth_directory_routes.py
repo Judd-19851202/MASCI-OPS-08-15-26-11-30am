@@ -76,6 +76,8 @@ def build_auth_directory_router(
     pm_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
     hr_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
     shop_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
+    safety_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
+    dispatch_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
     admin_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
     send_email_fn: Optional[Callable] = None,
     render_portal_email_fn: Optional[Callable] = None,
@@ -192,6 +194,16 @@ def build_auth_directory_router(
                 tokens["hr"] = await _maybe_await(hr_token_minter(row))
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"[multi-login] hr minter failed: {e}")
+        if "safety" in portals and safety_token_minter:
+            try:
+                tokens["safety"] = await _maybe_await(safety_token_minter(row))
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[multi-login] safety minter failed: {e}")
+        if "dispatch" in portals and dispatch_token_minter:
+            try:
+                tokens["dispatch"] = await _maybe_await(dispatch_token_minter(row))
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[multi-login] dispatch minter failed: {e}")
         return tokens
 
     @router.post("/api/auth/multi-login")
@@ -262,6 +274,8 @@ def build_auth_directory_router(
             "pm": pm_token_minter,
             "shop": shop_token_minter,
             "hr": hr_token_minter,
+            "safety": safety_token_minter,
+            "dispatch": dispatch_token_minter,
         }.get(target)
         if not minter:
             raise HTTPException(status_code=500, detail=f"{target} token minter not configured.")

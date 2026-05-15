@@ -65,7 +65,7 @@ import bcrypt
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_PORTALS = ("admin", "pm", "shop", "hr")
+ALLOWED_PORTALS = ("admin", "pm", "shop", "hr", "safety", "dispatch")
 
 
 # ─────────────────────────────────────────────────────────────────────

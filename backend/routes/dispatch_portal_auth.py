@@ -194,6 +194,38 @@ def build_dispatch_router(db, require_admin) -> APIRouter:
             raise HTTPException(404, "Not found")
         return {"user": public_dispatch_user_view(updated), "temp_password": temp_pw}
 
+    @router.post("/admin/dispatch-users/{user_id}/impersonate", dependencies=[Depends(require_admin)])
+    async def admin_impersonate_dispatch_user(user_id: str):
+        """Mint a short-lived dispatch token for the admin to preview
+        the portal as this dispatcher. Audit-logged.
+        """
+        from dispatch_users import _DISPATCH_USERS_COLLECTION  # noqa: PLC0415,F401
+        u = await db.dispatch_users.find_one({"id": user_id}, {"_id": 0})
+        if not u:
+            raise HTTPException(404, "Not found")
+        if u.get("disabled"):
+            raise HTTPException(409, "User is disabled — enable before impersonating")
+        if not u.get("password_hash"):
+            # Without a password_hash we can't make a token. Bootstrap
+            # one with a random unrecoverable secret so the impersonation
+            # token still works, but mark must_change so the next real
+            # login forces a password set.
+            from secrets import token_urlsafe  # noqa: PLC0415
+            await set_dispatch_user_password(db, user_id, token_urlsafe(24), must_change=True)
+            u = await db.dispatch_users.find_one({"id": user_id}, {"_id": 0})
+        token = make_dispatch_user_token(u["id"], u["password_hash"])
+        # audit event
+        try:
+            await db.audit_events.insert_one({
+                "kind": "admin_impersonate_dispatch",
+                "user_id": user_id,
+                "user_email": u.get("email"),
+                "at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+            })
+        except Exception:
+            pass
+        return {"token": token, "user": public_dispatch_user_view(u)}
+
     @router.delete("/admin/dispatch-users/{user_id}", dependencies=[Depends(require_admin)])
     async def admin_delete_dispatch_user(user_id: str):
         ok = await delete_dispatch_user(db, user_id)

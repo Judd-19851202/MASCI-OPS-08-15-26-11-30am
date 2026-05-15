@@ -415,13 +415,20 @@ function CreateTransferDialog({ open, onClose }) {
 /* ════════════ HOLDS ════════════ */
 export function DispatchHoldsTab() {
   const [list, setList] = useState([]);
+  const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
   const load = async () => {
     setLoading(true);
-    try { setList((await api.get("/operations/holds?active_only=true")).data || []); }
-    finally { setLoading(false); }
+    try {
+      const [active, pend] = await Promise.all([
+        api.get("/operations/holds?active_only=true"),
+        api.get("/operations/holds?status=pending"),
+      ]);
+      setList(active.data || []);
+      setPending(pend.data || []);
+    } finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
 
@@ -431,8 +438,72 @@ export function DispatchHoldsTab() {
     catch (e) { toast.error(e?.response?.data?.detail || "Release failed"); }
   };
 
+  const approve = async (hid) => {
+    if (!window.confirm("Approve this pending hold? The asset will be marked Maintenance/Safety Hold immediately.")) return;
+    try { await api.post(`/operations/holds/${hid}/approve`, { note: "" }); toast.success("Hold approved"); load(); }
+    catch (e) { toast.error(e?.response?.data?.detail || "Approve failed"); }
+  };
+
+  const dismiss = async (hid) => {
+    const reason = window.prompt("Reason for dismissing this pending hold (REQUIRED):");
+    if (!reason || !reason.trim()) { toast.error("Dismissal reason required"); return; }
+    try { await api.post(`/operations/holds/${hid}/dismiss`, { reason }); toast.success("Hold dismissed"); load(); }
+    catch (e) { toast.error(e?.response?.data?.detail || "Dismiss failed"); }
+  };
+
   return (
-    <div className="space-y-3" data-testid="dp-holds">
+    <div className="space-y-4" data-testid="dp-holds">
+      {/* Pending review queue */}
+      {pending.length > 0 && (
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-md p-4" data-testid="dp-pending-holds">
+          <div className="flex items-start gap-3 mb-3">
+            <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-900 font-bold">
+                Pending Maintenance / Safety Holds — admin review required
+              </h3>
+              <p className="text-xs text-amber-900 mt-0.5">
+                These are auto-generated from failed pre-ops or other field signals. Equipment status is <strong>NOT</strong> changed
+                until you approve. Dismissal requires a reason.
+              </p>
+            </div>
+          </div>
+          <table className="w-full text-xs">
+            <thead className="text-amber-900 font-mono uppercase tracking-[0.15em]">
+              <tr>
+                <th className="text-left px-2 py-1">When</th>
+                <th className="text-left px-2 py-1">Asset</th>
+                <th className="text-left px-2 py-1">Kind</th>
+                <th className="text-left px-2 py-1">Reason</th>
+                <th className="text-left px-2 py-1">Source</th>
+                <th className="text-left px-2 py-1">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pending.map((h) => (
+                <tr key={h.id} className="border-t border-amber-200" data-testid={`dp-pending-row-${h.id}`}>
+                  <td className="px-2 py-2 font-mono text-amber-900/70">{(h.created_at || "").slice(0,16).replace("T"," ")}</td>
+                  <td className="px-2 py-2"><Link to={`/admin/assets/${h.asset_id}`} className="font-mono font-bold underline">{h.asset_id?.slice(0,8)}</Link></td>
+                  <td className="px-2 py-2"><span className={`px-1.5 py-0.5 rounded border text-[9px] font-mono uppercase tracking-[0.15em] font-bold ${h.kind === "safety" ? "bg-red-100 text-red-900 border-red-300" : "bg-amber-200 text-amber-900 border-amber-400"}`}>{h.kind}</span></td>
+                  <td className="px-2 py-2">{h.reason}<div className="text-[10px] text-amber-900/70">{h.notes}</div></td>
+                  <td className="px-2 py-2 font-mono text-[10px] text-amber-900/80">{h.source_module || "—"}</td>
+                  <td className="px-2 py-2">
+                    <div className="flex gap-1">
+                      <Button size="sm" className="h-7 bg-emerald-700 hover:bg-emerald-800 text-white" onClick={() => approve(h.id)} data-testid={`dp-pending-approve-${h.id}`}>
+                        <CheckCircle2 className="w-3 h-3 mr-1" />Approve
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-7" onClick={() => dismiss(h.id)} data-testid={`dp-pending-dismiss-${h.id}`}>
+                        <XCircle className="w-3 h-3 mr-1" />Dismiss
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         <Button onClick={() => setCreating(true)} className="bg-slate-900 hover:bg-slate-800 text-white" data-testid="dp-hold-new"><Plus className="w-3.5 h-3.5 mr-1" /> Apply hold</Button>
         <Button onClick={load} variant="outline" size="sm"><RefreshCcw className="w-3.5 h-3.5 mr-1" />Refresh</Button>
