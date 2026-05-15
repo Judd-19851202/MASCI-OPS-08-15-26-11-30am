@@ -45,15 +45,12 @@ const PRIORITY_COLORS = {
   Low: "bg-slate-50 text-slate-500 border-slate-200",
 };
 
-const STATUS_COLORS = {
-  Open: "bg-blue-100 text-blue-800",
-  "In Progress": "bg-indigo-100 text-indigo-800",
-  "Pending Review": "bg-purple-100 text-purple-800",
-  Completed: "bg-emerald-100 text-emerald-800",
-  Closed: "bg-slate-200 text-slate-700",
-  Cancelled: "bg-slate-100 text-slate-500",
-  Overdue: "bg-red-100 text-red-800",
-};
+import StatusBadge from "@/components/StatusBadge";
+import EmptyState from "@/components/EmptyState";
+import GlobalSearch from "@/components/GlobalSearch";
+import { TASK_STATUS_TINTS } from "@/lib/statusBadges";
+
+const STATUS_COLORS = TASK_STATUS_TINTS;
 
 const ALL_STATUSES = [
   "Open", "In Progress", "Pending Review", "Completed", "Closed", "Cancelled",
@@ -125,7 +122,10 @@ export default function Tasks() {
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400 font-bold">Tasks & Actions</div>
             <div className="font-display text-lg sm:text-xl font-black text-white leading-tight">Operational Accountability</div>
           </div>
-          <NotificationBell accent="white" />
+          <div className="flex items-center gap-2 shrink-0">
+            <GlobalSearch accent="dark" />
+            <NotificationBell accent="white" />
+          </div>
         </div>
       </header>
 
@@ -190,10 +190,12 @@ export default function Tasks() {
         {loading ? (
           <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">Loading…</div>
         ) : items.length === 0 ? (
-          <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm" data-testid="tasks-empty">
-            <ClipboardList className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-            No tasks here. {tab === "open" ? "You're all caught up." : "Nothing's been closed yet."}
-          </div>
+          <EmptyState
+            icon={ClipboardList}
+            title="No tasks here"
+            hint={tab === "open" ? "You're all caught up — nice." : "Nothing's been closed yet."}
+            testId="tasks-empty"
+          />
         ) : (
           <ul className="bg-white border-2 border-slate-200 rounded-md divide-y divide-slate-100">
             {items.map((t) => (
@@ -304,9 +306,7 @@ function TaskDrawer({ taskId, onClose }) {
                 <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider border ${PRIORITY_COLORS[task.priority]}`}>
                   {task.priority}
                 </span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider ${STATUS_COLORS[task.status]}`}>
-                  {task.status}
-                </span>
+                <StatusBadge kind="task" value={task.status} size="sm" />
                 {task.assignee_role && (
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-slate-100 text-slate-700">
                     → {task.assignee_role}

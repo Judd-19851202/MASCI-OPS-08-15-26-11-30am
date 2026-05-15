@@ -19,6 +19,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen, Home, Receipt } from "lucide-react";
+import GlobalSearch from "@/components/GlobalSearch";
+import NotificationBell from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -293,6 +295,8 @@ export default function FieldLeadershipHub() {
           <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
           <div className="flex-1" />
           <div className="flex items-center gap-2 flex-wrap">
+            <GlobalSearch accent="dark" />
+            <NotificationBell accent="white" />
             <LangToggle />
             <CompanyInfoDialog />
             <Button

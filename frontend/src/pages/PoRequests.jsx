@@ -46,20 +46,12 @@ import { isPm } from "@/lib/pmAuth";
 import { isLeadershipAuthed } from "@/lib/leadershipAuth";
 import AccessDenied from "@/pages/AccessDenied";
 import { toast } from "sonner";
+import StatusBadge from "@/components/StatusBadge";
+import EmptyState from "@/components/EmptyState";
+import { PO_STATUS_TINTS } from "@/lib/statusBadges";
+import GlobalSearch from "@/components/GlobalSearch";
 
-const STATUS_COLORS = {
-  "Draft":             "bg-slate-100 text-slate-600",
-  "Submitted":         "bg-blue-100 text-blue-800",
-  "Pending Approval":  "bg-blue-100 text-blue-800",
-  "Approved":          "bg-emerald-100 text-emerald-800",
-  "Rejected":          "bg-red-100 text-red-800",
-  "Clarification Needed": "bg-amber-100 text-amber-800",
-  "Pending Receipt":   "bg-indigo-100 text-indigo-800",
-  "Receipt Uploaded":  "bg-cyan-100 text-cyan-800",
-  "Closed":            "bg-slate-200 text-slate-700",
-  "Overdue Receipt":   "bg-rose-100 text-rose-800",
-  "Cancelled":         "bg-slate-100 text-slate-500",
-};
+const STATUS_COLORS = PO_STATUS_TINTS;
 
 export default function PoRequests() {
   const nav = useNavigate();
@@ -140,7 +132,10 @@ export default function PoRequests() {
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400 font-bold">PO Requests · Receipt Tracking</div>
             <div className="font-display text-lg sm:text-xl font-black text-white leading-tight">Operational POs</div>
           </div>
-          <NotificationBell accent="white" />
+          <div className="flex items-center gap-2 shrink-0">
+            <GlobalSearch accent="dark" />
+            <NotificationBell accent="white" />
+          </div>
         </div>
       </header>
 
@@ -281,7 +276,7 @@ export default function PoRequests() {
                 {items.map((p) => (
                   <tr key={p.id} onClick={() => setOpenId(p.id)} className="hover:bg-slate-50 cursor-pointer" data-testid={`po-row-${p.id}`}>
                     <td className="px-4 py-2.5">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider ${STATUS_COLORS[p.status] || ""}`}>{p.status}</span>
+                      <StatusBadge kind="po" value={p.status} size="sm" />
                     </td>
                     <td className="px-4 py-2.5 font-mono text-xs font-bold text-slate-900">{p.po_number || "—"}</td>
                     <td className="px-4 py-2.5 text-slate-800 text-sm">{p.vendor}</td>
@@ -485,7 +480,7 @@ function PoDrawer({ id, canApprove, isAdmin: isAd, onClose }) {
                 {po.po_number || `PO ${po.id.slice(0, 8)}`}
               </SheetTitle>
               <div className="flex items-center gap-2 mt-2 flex-wrap text-xs">
-                <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider ${STATUS_COLORS[po.status]}`}>{po.status}</span>
+                <StatusBadge kind="po" value={po.status} size="md" />
                 <span className="text-slate-600 font-mono">${(po.approved_amount ?? po.estimated_amount).toFixed(2)}</span>
                 <span className="text-slate-500">· {po.urgency}</span>
                 <span className="text-slate-500 font-mono">· {po.project_number}</span>

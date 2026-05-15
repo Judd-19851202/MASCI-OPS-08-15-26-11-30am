@@ -38,14 +38,12 @@ import { friendlyError } from "@/lib/friendlyErrors";
 import { isAdmin } from "@/lib/adminAuth";
 import AccessDenied from "@/pages/AccessDenied";
 import { toast } from "sonner";
+import StatusBadge from "@/components/StatusBadge";
+import EmptyState from "@/components/EmptyState";
+import GlobalSearch from "@/components/GlobalSearch";
+import { DOC_EXP_STATUS_TINTS } from "@/lib/statusBadges";
 
-const STATUS_COLORS = {
-  Current: "bg-emerald-100 text-emerald-800 border-emerald-300",
-  "Expiring Soon": "bg-amber-100 text-amber-800 border-amber-300",
-  Expired: "bg-red-100 text-red-800 border-red-300",
-  Archived: "bg-slate-100 text-slate-500 border-slate-300",
-  "Not Applicable": "bg-slate-50 text-slate-400 border-slate-200",
-};
+const STATUS_COLORS = DOC_EXP_STATUS_TINTS;
 
 const CATEGORIES = [
   { value: "employee", label: "Employee documents" },
@@ -139,7 +137,10 @@ export default function DocumentExpirations() {
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400 font-bold">Document Expirations</div>
             <div className="font-display text-lg sm:text-xl font-black text-white leading-tight">Compliance Tracker</div>
           </div>
-          <NotificationBell accent="white" />
+          <div className="flex items-center gap-2 shrink-0">
+            <GlobalSearch accent="dark" />
+            <NotificationBell accent="white" />
+          </div>
         </div>
       </header>
 
@@ -203,10 +204,12 @@ export default function DocumentExpirations() {
         {loading ? (
           <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">Loading…</div>
         ) : items.length === 0 ? (
-          <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm" data-testid="docexp-empty">
-            <CalendarClock className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-            No expiration records for your scope yet.
-          </div>
+          <EmptyState
+            icon={CalendarClock}
+            title="No expiration records"
+            hint="Documents you upload with an expiration date will appear here. Try clearing filters."
+            testId="docexp-empty"
+          />
         ) : (
           <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
             <table className="w-full text-sm">
@@ -265,9 +268,7 @@ function DocRow({ doc }) {
   return (
     <tr className="hover:bg-slate-50" data-testid={`docexp-row-${doc.id}`}>
       <td className="px-4 py-2.5">
-        <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider border ${STATUS_COLORS[doc.status] || ""}`}>
-          {doc.status}
-        </span>
+        <StatusBadge kind="doc_exp" value={doc.status} size="sm" />
       </td>
       <td className="px-4 py-2.5">
         <div className="font-bold text-slate-900 text-sm">{doc.document_type}</div>

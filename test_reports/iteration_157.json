@@ -1,0 +1,62 @@
+{
+  "summary": "Iter B Phase 1 (P0+P1) validation. Backend 37/37 passing (33 regression: Phase G iter155 12/12 + Phase E iter153E 9/9 + Phase F iter154 12/12 + 4 new iter_B tests covering PM scope on /api/search and lib.audit.append_audit smoke). Frontend: StatusBadge wired correctly on HrEmployees (243 lifecycle badges), DocumentExpirations (doc_exp), and PoRequests (29 po badges). GlobalSearch trigger + NotificationBell verified on all 5 target pages (Tasks, DocExp, PoRequests, HrEmployees, FieldLeadershipHub after MASCIGC password gate). EmptyState testIds present (po-empty hit on Closed tab). GlobalSearch overlay opens and returns results. TWO P1 BUGS FOUND below.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Tasks.jsx — list rows (and drawer priority chip)",
+        "issue": "Tasks list rows STILL use the old inline STATUS_COLORS / PRIORITY_COLORS dicts (lines 210-215). Only the drawer status badge (line 309) was migrated to <StatusBadge>. Audit explicitly required: 'StatusBadge on Tasks page (task + priority domains): renders for both status and priority on every task row + drawer.' Result: 0 status-badge-task-* and 0 status-badge-priority-* testIds in DOM on /tasks. Also TaskDrawer priority chip (line 306) still uses PRIORITY_COLORS. Replace inline <span> with <StatusBadge kind=\"task\" value={t.status} size=\"sm\" /> and <StatusBadge kind=\"priority\" value={t.priority} size=\"sm\" />, then remove STATUS_COLORS/PRIORITY_COLORS constants from Tasks.jsx.",
+        "selector": "[data-testid^='status-badge-task-'], [data-testid^='status-badge-priority-']",
+        "priority": "HIGH"
+      },
+      {
+        "component": "PoRequests.jsx — EmptyState",
+        "issue": "Page imports EmptyState but uses a hand-rolled inline <div data-testid='po-empty'> (lines 256-259) instead of <EmptyState testId='po-empty' />. The data-testid contract is satisfied, but the unification goal is not — the icon+title+hint structure differs from the shared component. Replace with <EmptyState icon={Receipt} title='No PO requests' hint='Nothing in this view yet.' testId='po-empty' />.",
+        "selector": "[data-testid='po-empty']",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Mobile horizontal scroll — /tasks at 375x812",
+        "issue": "document.scrollWidth=570, window.innerWidth=375 — page horizontally overflows by 195px. Offender is the filter row `<div class='flex items-center gap-2'>` inside the white filter bar (line 150 area of Tasks.jsx). That row contains a 200px-wide search input ('tasks-search-input') plus two Select triggers (140px + 180px) plus a Tabs control — total > 375 and does not wrap. Wrap the inner cluster with `flex-wrap` or stack the search input on its own row at <sm breakpoint. Other 3 standalone pages + leadership are clean (sw==iw==375).",
+        "affected_selectors": ["[data-testid='tasks-search-input']", ".bg-white.border-2.border-slate-200.rounded-md.p-3 .flex.items-center.gap-2"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter_B_pm_scope_and_audit.py",
+    "/app/backend/tests/test_iter155_global_search.py",
+    "/app/backend/tests/test_iter153E_phaseE_fanout.py",
+    "/app/backend/tests/test_iter154_signatures.py",
+    "/app/test_reports/pytest/iter_B_regression.xml",
+    "/app/test_reports/pytest/iter_B_pm_scope.xml"
+  ],
+  "action_items": [
+    "FIX P1: Tasks.jsx — migrate list-row priority + status chips (lines 210-215) and drawer priority chip (line 306) to <StatusBadge kind='priority'/> and <StatusBadge kind='task'/>. Then delete the local STATUS_COLORS/PRIORITY_COLORS constants. Validate: status-badge-task-* and status-badge-priority-* testIds present on every row.",
+    "FIX P1: Tasks.jsx mobile filter row — wrap or stack on <sm so /tasks at 375px does not horizontally overflow (currently scrollWidth=570).",
+    "FIX P2: PoRequests.jsx — replace inline po-empty div with <EmptyState testId='po-empty' /> for visual unification (testId already correct).",
+    "Optional: extend conftest.py NO_ADMIN-style helper for PM token usage to make iter_B PM-scope test self-seeding with an IN-scope project too (currently only validates OUT-of-scope leak)."
+  ],
+  "critical_code_review_comments": [
+    "lib/statusBadges.js — clean single-source-of-truth registry; 7 domains; tintFor() fallback to DEFAULT_TINT. LGTM.",
+    "StatusBadge.jsx — auto-generates predictable testIds: `status-badge-{kind}-{value-kebab}`. Confirmed pattern works on HrEmployees (status-badge-lifecycle-active) and DocumentExpirations (status-badge-doc_exp-expiring-soon).",
+    "EmptyState.jsx — clean; PoRequests didn't actually use it (see ui_bugs).",
+    "backend/lib/audit.append_audit — best-effort, swallows db exceptions, returns the entry. Verified via two smoke tests (success path + simulated db error).",
+    "backend/routes/global_search.run_tasks — pm_proj filter correctly applied ONLY when role=='pm' AND pm_proj is not None. PM verified to not see out-of-scope task via /api/search."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter_B_pm_scope_and_audit.py (new — 4 tests, all green)"
+  ],
+  "success_rate": {"backend": "100% (37/37 — 12 iter155 + 9 iter153E + 12 iter154 + 4 iter_B)", "frontend": "70% (StatusBadge migration incomplete on Tasks rows + drawer priority; mobile overflow on /tasks; PoRequests EmptyState not actually using shared component)"},
+  "test_credentials": "Safety/HR/PM creds from review_request worked. FieldLeadershipHub password MASCIGC worked.",
+  "seed_data_creation": "iter_B test plants a single TEST_iterB_* task with linked_project_number=TEST_iterB_<uuid>_NO_PM (guaranteed out of any PM scope) and deletes it in finally. No persistent seed.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "After main agent fixes the 3 frontend items above, retest: (1) /tasks list rows show <StatusBadge> for both kinds (testid count > 0 when items exist), (2) /tasks at 375x812 has scrollWidth==375, (3) /po-requests Closed tab still emits data-testid='po-empty' but now from <EmptyState>. Backend untouched — no regression risk. The conftest.py auto-injects X-Admin-Token; pass NO_ADMIN={'X-Admin-Token':''} to exercise role-specific scoping (see existing test_iter155_global_search.py pattern).",
+  "rca of the issue": "Tasks row bug: developer migrated ONLY the drawer status badge to <StatusBadge> but left the list rendering loop's two inline <span>'s on the original STATUS_COLORS/PRIORITY_COLORS dicts (these constants still imported at top of file). Easy to miss because the drawer was probably edited first and tested in isolation. Mobile overflow: the filter cluster's inner <div class='flex items-center gap-2'> contains three controls totaling ~520px width; the outer card has 'flex-wrap' but the inner cluster does not, so its kids do not wrap. PoRequests EmptyState: developer imported EmptyState but forgot to swap the existing inline empty div."
+}

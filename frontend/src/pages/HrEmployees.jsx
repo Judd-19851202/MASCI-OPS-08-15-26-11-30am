@@ -44,18 +44,12 @@ import { isHr } from "@/lib/hrAuth";
 import { isAdmin } from "@/lib/adminAuth";
 import AccessDenied from "@/pages/AccessDenied";
 import { toast } from "sonner";
+import StatusBadge from "@/components/StatusBadge";
+import EmptyState from "@/components/EmptyState";
+import GlobalSearch from "@/components/GlobalSearch";
+import { LIFECYCLE_STATUS_TINTS } from "@/lib/statusBadges";
 
-const STATUS_COLORS = {
-  "Pending Hire":    "bg-blue-100 text-blue-800",
-  "Active":          "bg-emerald-100 text-emerald-800",
-  "Seasonal":        "bg-cyan-100 text-cyan-800",
-  "Leave of Absence":"bg-amber-100 text-amber-800",
-  "Inactive":        "bg-slate-200 text-slate-700",
-  "Suspended":       "bg-orange-100 text-orange-800",
-  "Terminated":      "bg-red-100 text-red-800",
-  "Resigned":        "bg-rose-100 text-rose-800",
-  "Retired":         "bg-purple-100 text-purple-800",
-};
+const STATUS_COLORS = LIFECYCLE_STATUS_TINTS;
 
 export default function HrEmployees() {
   const nav = useNavigate();
@@ -112,7 +106,10 @@ export default function HrEmployees() {
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400 font-bold">HR · Employee Lifecycle</div>
             <div className="font-display text-lg sm:text-xl font-black text-white leading-tight">Employees</div>
           </div>
-          <NotificationBell accent="white" />
+          <div className="flex items-center gap-2 shrink-0">
+            <GlobalSearch accent="dark" />
+            <NotificationBell accent="white" />
+          </div>
         </div>
       </header>
 
@@ -164,10 +161,12 @@ export default function HrEmployees() {
         {loading ? (
           <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">Loading…</div>
         ) : items.length === 0 ? (
-          <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm" data-testid="hremp-empty">
-            <Users className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-            No employees match the current filter.
-          </div>
+          <EmptyState
+            icon={Users}
+            title="No employees match the current filter"
+            hint="Try clearing the search box, adjusting the status filter, or toggling Show Inactive."
+            testId="hremp-empty"
+          />
         ) : (
           <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
             <table className="w-full text-sm">
@@ -192,9 +191,7 @@ export default function HrEmployees() {
                       data-testid={`hremp-row-${e.id}`}
                     >
                       <td className="px-4 py-2.5">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider ${STATUS_COLORS[status] || ""}`}>
-                          {status}
-                        </span>
+                        <StatusBadge kind="lifecycle" value={status} size="sm" />
                       </td>
                       <td className="px-4 py-2.5 font-bold text-slate-900">{e.name}</td>
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.trade || "—"} {e.role && <span className="text-slate-400">· {e.role}</span>}</td>
@@ -375,9 +372,7 @@ function EmployeeDrawer({ id, onClose }) {
             <SheetHeader className="px-5 pt-5 pb-3 border-b border-slate-200">
               <SheetTitle className="font-display text-base leading-snug">{employee.name}</SheetTitle>
               <div className="flex items-center gap-2 mt-2 flex-wrap text-xs">
-                <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider ${STATUS_COLORS[summary?.lifecycle_status] || ""}`}>
-                  {summary?.lifecycle_status}
-                </span>
+                <StatusBadge kind="lifecycle" value={summary?.lifecycle_status} size="sm" />
                 {employee.trade && <span className="text-slate-600">{employee.trade}</span>}
                 {employee.employee_id && <span className="text-slate-500 font-mono text-[10px]">#{employee.employee_id}</span>}
               </div>

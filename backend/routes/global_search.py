@@ -224,6 +224,11 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                     {"assignee_role": None},
                     {"created_by.role": role},
                 ]})
+            # PM scope: restrict tasks to those linked to PM-scoped projects.
+            # Without this, a PM could see tasks across projects via search.
+            # (P1 audit finding — Iter B fix.)
+            if role == "pm" and pm_proj is not None:
+                scope.append({"linked_project_number": {"$in": pm_proj}})
             q_doc = {"$and": clauses + scope} if scope else clauses[0]
             rows = []
             async for d in db.tasks.find(q_doc, {"_id": 0}).limit(limit * 2):
