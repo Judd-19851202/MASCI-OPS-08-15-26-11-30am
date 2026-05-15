@@ -9,6 +9,31 @@
 Integration framework must remain PASSIVE / OBSERVATIONAL until live API stability is proven. No auto-creating work orders / disciplinary actions / retraining / payroll triggers. All future workflows are EVENT-DRIVEN (failed pre-op → internal event → integration layer → MaintainX/Safety/Asset/notify), never portal-to-portal direct logic. Heavy syncs run BACKGROUND only — never block dashboards / forms / login. Master records (`db.equipment_master`, `db.employees`) are SOURCE-OF-TRUTH — integrations flow through mapping layers, not direct master mutation. CSV imports require preview + rollback + duplicate detection. Integration failures must NEVER crash core platform. Audit/traceability on every mapping/import/setting change.
 
 ---
+## 2026-05-15 — Iter128: Pending Maintenance Holds UI + "View as Dispatcher" impersonation
+
+### User ask
+Close out the last two items of the P1-P4 Enterprise Operations Architecture: (1) UI for approving / dismissing the Pending Maintenance Holds that the pre-op hook creates (failed pre-op never auto-changes equipment status), and (2) "View as Dispatcher" impersonation preview from the Admin Dispatch Users panel so admins can preview the portal as any dispatcher without re-logging in.
+
+### Outcome: ✅ Shipped
+
+### Backend
+- `POST /api/admin/dispatch-users/{id}/impersonate` (admin-gated) returns `{token, user}` — mints a real dispatch session token bound to the user's password_hash so the audit trail looks identical to a normal dispatch login. Audited via `audit_events` insert with `kind="admin_impersonate_dispatch"`. Bug fix: dropped the spurious `from dispatch_users import _DISPATCH_USERS_COLLECTION` import that was raising 500.
+- `POST /api/operations/holds?pending=true` already creates `status="pending", active=false` holds (does NOT count against availability). Approval and dismissal endpoints (`/holds/{id}/approve` and `/dismiss` with required `reason`) flip them into `active`/`dismissed`.
+
+### Frontend
+- `AdminDispatchUsersPanel.jsx`:
+  - Cleaned up sed-mirror leftovers (header now says "Dispatch Portal" / "Dispatch personnel", copy points to `/dispatch-portal/login`, `ROLE_OPTIONS` deduped to `Dispatcher · Dispatch Manager · Operations Coordinator · Other`)
+  - New per-row Eye button `data-testid="admin-dispatch-view-as-{id}"` → confirms → `POST /admin/dispatch-users/{id}/impersonate` → stashes the dispatch token via `setDispatchToken/setDispatchUser` (localStorage) → opens `/dispatch-portal` in a new tab. Admin session in the current tab is untouched.
+- `AdminDispatch.jsx` Holds tab already had the amber "Pending Maintenance / Safety Holds — admin review required" review queue with `Approve` and `Dismiss` (reason required via `window.prompt`) buttons. Verified end-to-end via curl: create pending → list pending → approve → status flips to `active`, `active=true`, `approved_at` stamped.
+
+### Verified
+- Curl smoke: multi-login → `GET /admin/dispatch-users` → `POST /admin/dispatch-users/{id}/impersonate` returns dispatch token → `GET /dispatch/me` with that token returns the impersonated user
+- Curl smoke: create pending hold → appears in `?status=pending` → approve → moves to active
+- Lint clean
+
+---
+
+---
 ## 2026-05-15 — Iter127: Admin Dispatch-Users panel + Dispatch tile in Hub
 
 ### User ask

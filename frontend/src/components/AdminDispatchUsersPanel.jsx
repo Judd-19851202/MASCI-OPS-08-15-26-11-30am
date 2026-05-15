@@ -1,11 +1,10 @@
-// AdminDispatchUsersPanel — manage MASCI Dispatch Portal accounts (Safety
-// Manager, Dispatcher, Dispatcher). Mirrors
-// AdminHRUsersPanel pattern but with the orange-700 accent.
+// AdminDispatchUsersPanel — manage MASCI Dispatch Portal accounts.
+// Mirrors AdminHRUsersPanel pattern with the orange-700 accent.
 //
-// Phase 1 scope: list / add / edit / disable / delete + issue
-// per-user passwords. Welcome email delivery is Phase 5 — for now the
-// password is always revealed on screen for the admin to hand off
-// securely (matches HR "Show on Screen" path).
+// Scope: list / add / edit / disable / delete · issue per-user
+// passwords · "View as Dispatcher" impersonation preview. Welcome
+// email delivery is deferred — passwords are revealed on screen for
+// the admin to hand off securely (matches HR "Show on Screen" path).
 //
 // Backend:
 //   GET    /api/admin/dispatch-users
@@ -13,10 +12,11 @@
 //   PATCH  /api/admin/dispatch-users/:id    (partial)
 //   DELETE /api/admin/dispatch-users/:id
 //   POST   /api/admin/dispatch-users/:id/reset-password
+//   POST   /api/admin/dispatch-users/:id/impersonate
 import React, { useEffect, useState } from "react";
 import {
   Truck, Plus, Trash2, RefreshCcw, Pencil, Save, X, KeyRound, Copy,
-  ShieldOff, ShieldCheck, Loader2, Mail,
+  ShieldOff, ShieldCheck, Loader2, Mail, Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,9 +28,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
+import { setDispatchToken, setDispatchUser } from "@/lib/dispatchAuth";
 import { toast } from "sonner";
 
-const ROLE_OPTIONS = ["Dispatcher", "Dispatcher", "Dispatcher", "Other"];
+const ROLE_OPTIONS = ["Dispatcher", "Dispatch Manager", "Operations Coordinator", "Other"];
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-orange-700";
 
 export default function AdminDispatchUsersPanel() {
@@ -133,6 +134,31 @@ export default function AdminDispatchUsersPanel() {
     }
   };
 
+  const viewAsDispatcher = async (u) => {
+    if (u.disabled) {
+      toast.error("Enable the user first before previewing as them.");
+      return;
+    }
+    if (!window.confirm(
+      `Preview Dispatch Portal as ${u.name}?\n\n` +
+      `A dispatch session will be opened in a NEW TAB scoped to this user. ` +
+      `Your admin session in this tab stays intact. Audit logged.`,
+    )) return;
+    try {
+      const r = await api.post(`/admin/dispatch-users/${u.id}/impersonate`);
+      const token = r.data?.token;
+      const user = r.data?.user;
+      if (!token) throw new Error("No token returned");
+      // Stash the dispatch session so the new tab can read it from localStorage
+      setDispatchToken(token, true);
+      setDispatchUser(user || { id: u.id, email: u.email, name: u.name });
+      toast.success(`Opening dispatch portal as ${u.name}…`);
+      window.open("/dispatch-portal", "_blank", "noopener");
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Could not start impersonation");
+    }
+  };
+
   const copyPw = async () => {
     try {
       await navigator.clipboard.writeText(pwReveal.password);
@@ -151,16 +177,17 @@ export default function AdminDispatchUsersPanel() {
           </div>
           <div>
             <span className="font-mono text-xs uppercase tracking-[0.2em] text-orange-700 font-bold">
-              Safety Portal
+              Dispatch Portal
             </span>
             <h3 className="font-display text-xl sm:text-2xl font-black mt-1 leading-none">
               Dispatch Users & Logins
             </h3>
             <p className="text-sm text-slate-600 mt-1 max-w-xl">
-              Add or remove Safety personnel and issue per-user passwords. Safety
-              users sign in at <strong>/safety-portal/login</strong> and only see
-              Safety-scoped data (overview KPIs, corrective actions, and — in later
-              phases — fire extinguishers, training records, and document library).
+              Add or remove Dispatch personnel and issue per-user passwords. Dispatch
+              users sign in at <strong>/dispatch-portal/login</strong> and see the
+              Operations Event Log, Holds, Transfers, Utilization, Idle Equipment
+              Alerts, and Unified Asset Profiles. Admins can preview the portal as any
+              dispatcher via the <em>View as Dispatcher</em> eye icon.
             </p>
           </div>
         </div>
@@ -266,6 +293,7 @@ export default function AdminDispatchUsersPanel() {
                       <div className="inline-flex gap-1">
                         <Button size="sm" variant="outline" onClick={() => startEdit(u)} className="h-8" title="Edit" data-testid={`admin-safety-edit-${u.id}`}><Pencil className="w-3.5 h-3.5" /></Button>
                         <Button size="sm" variant="outline" onClick={() => issuePassword(u)} className="h-8" title="Issue password" data-testid={`admin-safety-pw-${u.id}`}><KeyRound className="w-3.5 h-3.5" /></Button>
+                        <Button size="sm" variant="outline" onClick={() => viewAsDispatcher(u)} className="h-8 border-orange-300 text-orange-700 hover:bg-orange-50" title="View as Dispatcher (preview)" data-testid={`admin-dispatch-view-as-${u.id}`}><Eye className="w-3.5 h-3.5" /></Button>
                         <Button size="sm" variant="outline" onClick={() => removeUser(u)} className="border-red-300 text-red-700 hover:bg-red-50 h-8" title="Delete" data-testid={`admin-safety-delete-${u.id}`}><Trash2 className="w-3.5 h-3.5" /></Button>
                       </div>
                     )}

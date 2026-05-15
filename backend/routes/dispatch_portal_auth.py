@@ -199,7 +199,6 @@ def build_dispatch_router(db, require_admin) -> APIRouter:
         """Mint a short-lived dispatch token for the admin to preview
         the portal as this dispatcher. Audit-logged.
         """
-        from dispatch_users import _DISPATCH_USERS_COLLECTION  # noqa: PLC0415,F401
         u = await db.dispatch_users.find_one({"id": user_id}, {"_id": 0})
         if not u:
             raise HTTPException(404, "Not found")

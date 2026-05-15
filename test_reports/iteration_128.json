@@ -1,0 +1,34 @@
+{
+  "summary": "iter128 close-out — verified Dispatch User impersonation (admin → mints X-Dispatch-Token without re-login) and Pending Maintenance Hold approval/dismissal workflow end-to-end. 12 new backend tests + 56 regression tests (iter122 + iter123 + iter124 + iter126) → 68/68 PASSED. Frontend verified: /admin/people Dispatch Users panel renders with correct 'Dispatch Portal' / 'Dispatch Users & Logins' headers (no stale 'Safety' wording), ROLE_OPTIONS = ['Dispatcher', 'Dispatch Manager', 'Operations Coordinator', 'Other'] (4 entries, no duplicates), each row has per-user 'View as Dispatcher' eye button (data-testid='admin-dispatch-view-as-{id}'). Clicking it shows a confirm() prompt, stashes the minted dispatch token in localStorage['masci.dispatch.token'] + user, and opens /dispatch-portal in a new tab. /admin/dispatch → Holds tab renders the amber 'Pending Maintenance / Safety Holds — admin review required' card (data-testid='dp-pending-holds') with per-row Approve / Dismiss buttons; approving a pending hold removes it from the pending list and moves it into the active holds table below. No regressions detected.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter128_impersonate_pending_holds.py",
+    "/app/test_reports/pytest/iter128_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "dispatch_portal_auth.py: impersonate endpoint correctly handles the no-password-yet case by bootstrapping a random unrecoverable secret + must_change=True — clean fallback, prevents 500s on users created but never password-issued.",
+    "operations.py: HoldDismiss.reason is min_length=2 → Pydantic returns 422 on missing/short reason, matching review-request spec exactly. The redundant runtime check (`if not body.reason.strip()`) inside dismiss_hold is dead code but harmless.",
+    "operations.py approve_hold treats status=None as 'pending' (legacy holds created before the status field existed will still be approvable). Smart compat handling.",
+    "AdminDispatchUsersPanel.jsx: viewAsDispatcher() uses window.confirm() (blocks UI) — adequate for an admin-only preview action but could be upgraded to a styled modal for parity with other destructive confirms. Low-priority polish.",
+    "Audit event uses __import__('datetime').datetime.now(...) inline — works but ugly; could be hoisted to a module-level _now_iso helper (already exists in operations.py) for consistency. Cosmetic only."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter128_impersonate_pending_holds.py (new — 12 tests)"
+  ],
+  "success_rate": {"backend": "100% (68/68 incl. iter122+123+124+126 regression)", "frontend": "100% (all 4 review-request UI assertions verified)"},
+  "test_credentials": "Super Admin: jaymn.judd@mascigc.com / Maddix123!  ·  Legacy admin: POST /api/admin/login {password: MASCI1982!}  ·  Dispatch: dispatch@mascigc.com (user_id 745237a9-fee8-40e5-b43c-88586986d631, password rotated by iter126 to 'DispatchTest2026!', not used in iter128 — only impersonation token minted)",
+  "seed_data_creation": "Created 7 TEST_-prefixed pending holds during pytest run; cleaned up 5 leftovers via /dismiss (the remaining 2 were consumed by the approve/dismiss tests themselves). No persistent state changes beyond audit_events insertions (kind='admin_impersonate_dispatch') which are append-only and intended.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter128 closes out P1-P4 Enterprise Operations Architecture. Backend: impersonation route at /api/admin/dispatch-users/{id}/impersonate is admin-gated, returns {token,user}, 404 on unknown id, 409 on disabled user, audit-logs to db.audit_events. Pending holds workflow: POST /holds?pending=true → status='pending', active=false; /approve → status='active', active=true, 409 if already active; /dismiss → 422 if no reason (Pydantic min_length=2), else status='dismissed'. Frontend localStorage keys: 'masci.dispatch.token' + 'masci.dispatch.user' set by viewAsDispatcher(). The preview-seeded pending hold (id=233009ed-9341-4575-8fd9-39a1eb6bd625) is still visible in the Holds tab.",
+  "rca of the issue": "N/A — no bugs encountered. One minor test-script self-correction: initial audit-event assertion used motor.AsyncIOMotorClient without an async runner; switched to synchronous pymongo.MongoClient which is sufficient for a one-shot read."
+}
