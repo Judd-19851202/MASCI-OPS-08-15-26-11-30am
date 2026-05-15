@@ -764,6 +764,92 @@ def build_operations_router(db, require_admin) -> APIRouter:
             "events_total_for_asset": await db.operations_events.count_documents({"asset_id": asset_id}),
         }
 
+    # ── Idle Equipment Alerts ───────────────────────────────────────
+    # Read-only visibility layer. Looks at every active assignment and
+    # measures days since the most recent operations event tied to the
+    # asset (preops, transfers, holds, assignments, future Motive
+    # placeholders, etc.). NEVER auto-changes status. NEVER notifies.
+    @router.get("/idle-equipment", dependencies=[Depends(require_admin)])
+    async def idle_equipment(min_days: int = Query(14, ge=1, le=365), limit: int = Query(200, ge=1, le=1000)):
+        from datetime import datetime as _dt, timezone as _tz
+        now = _dt.now(_tz.utc)
+
+        active_assignments = await db.asset_assignments.find(
+            {"active": True}, {"_id": 0},
+        ).to_list(20000)
+        if not active_assignments:
+            return {"min_days": min_days, "now": _now_iso(), "rows": [], "totals": {"d7": 0, "d14": 0, "d30": 0, "matched": 0}}
+
+        asset_ids = [a["asset_id"] for a in active_assignments]
+        # bulk-fetch the most recent event per asset using aggregation
+        pipeline = [
+            {"$match": {"asset_id": {"$in": asset_ids}}},
+            {"$sort": {"created_at": -1}},
+            {"$group": {"_id": "$asset_id",
+                        "last_at": {"$first": "$created_at"},
+                        "last_type": {"$first": "$event_type"},
+                        "last_title": {"$first": "$event_title"}}},
+        ]
+        latest_by_asset: Dict[str, Dict[str, Any]] = {}
+        async for row in db.operations_events.aggregate(pipeline):
+            latest_by_asset[row["_id"]] = {
+                "last_at": row.get("last_at"),
+                "last_type": row.get("last_type"),
+                "last_title": row.get("last_title"),
+            }
+
+        # bulk-fetch unit info from equipment_master so we don't loop
+        eq_cursor = db.equipment_master.find(
+            {"id": {"$in": asset_ids}},
+            {"_id": 0, "id": 1, "unit_number": 1, "name": 1, "equipment_type": 1},
+        )
+        eq_by_id: Dict[str, Dict[str, Any]] = {e["id"]: e async for e in eq_cursor}
+
+        rows: List[Dict[str, Any]] = []
+        d7 = d14 = d30 = 0
+        for a in active_assignments:
+            aid = a["asset_id"]
+            ev = latest_by_asset.get(aid)
+            # fall back to assignment.started_at when there are no events
+            baseline = (ev or {}).get("last_at") or a.get("started_at") or _now_iso()
+            try:
+                last_dt = _dt.fromisoformat(baseline.replace("Z", "+00:00"))
+            except Exception:
+                continue
+            delta_days = (now - last_dt).days
+            if delta_days < min_days:
+                continue
+            eq = eq_by_id.get(aid, {})
+            rows.append({
+                "asset_id": aid,
+                "unit_number": eq.get("unit_number") or a.get("masci_unit_number") or "",
+                "equipment_name": eq.get("name") or "",
+                "equipment_type": eq.get("equipment_type") or "",
+                "project_number": a.get("project_number") or "",
+                "project_name": a.get("project_name") or "",
+                "operator_name": a.get("operator_name") or "",
+                "assigned_at": a.get("started_at"),
+                "last_activity_at": baseline,
+                "last_activity_type": (ev or {}).get("last_type"),
+                "last_activity_title": (ev or {}).get("last_title"),
+                "days_inactive": delta_days,
+                "had_events": bool(ev),
+            })
+            if delta_days >= 7:
+                d7 += 1
+            if delta_days >= 14:
+                d14 += 1
+            if delta_days >= 30:
+                d30 += 1
+
+        rows.sort(key=lambda r: r["days_inactive"], reverse=True)
+        return {
+            "min_days": min_days,
+            "now": _now_iso(),
+            "rows": rows[:limit],
+            "totals": {"d7": d7, "d14": d14, "d30": d30, "matched": len(rows)},
+        }
+
     return router
 
 

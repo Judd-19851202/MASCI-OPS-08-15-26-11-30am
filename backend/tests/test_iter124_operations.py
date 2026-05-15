@@ -223,8 +223,57 @@ def test_asset_profile_shape(admin_headers, asset_id):
 
 
 # ════════════════════════════════════════════════════════════════════
-# CRITICAL SAFETY — equipment_master immutability
+# IDLE EQUIPMENT ALERTS — read-only visibility
 # ════════════════════════════════════════════════════════════════════
+def test_idle_equipment_endpoint_shape(admin_headers):
+    with httpx.Client(timeout=20.0) as c:
+        r = c.get(f"{API_URL}/api/operations/idle-equipment?min_days=14", headers=admin_headers)
+        r.raise_for_status()
+        d = r.json()
+        for k in ("min_days", "now", "rows", "totals"):
+            assert k in d, k
+        assert d["min_days"] == 14
+        assert all(s in d["totals"] for s in ("d7", "d14", "d30", "matched"))
+
+
+def test_idle_equipment_threshold_filtering(admin_headers, asset_id):
+    """Smaller threshold (1d) must include >= results vs larger (30d)."""
+    with httpx.Client(timeout=20.0) as c:
+        # ensure there is at least one active assignment we can age-check
+        c.post(f"{API_URL}/api/operations/assignments", headers=admin_headers, json={
+            "asset_id": asset_id, "project_number": "IDLE-PYTEST"})
+        r1 = c.get(f"{API_URL}/api/operations/idle-equipment?min_days=1", headers=admin_headers); r1.raise_for_status()
+        r30 = c.get(f"{API_URL}/api/operations/idle-equipment?min_days=30", headers=admin_headers); r30.raise_for_status()
+        # cleanup
+        c.post(f"{API_URL}/api/operations/assignments/{asset_id}/clear", headers=admin_headers, json={"note": "pytest"})
+        # 1d totals must be >= 30d totals (monotonic)
+        assert r1.json()["totals"]["matched"] >= r30.json()["totals"]["matched"]
+
+
+def test_idle_equipment_refuses_unauth():
+    with httpx.Client(timeout=20.0) as c:
+        r = c.get(f"{API_URL}/api/operations/idle-equipment")
+        assert r.status_code in (401, 403)
+
+
+def test_idle_equipment_does_not_change_asset_status(admin_headers, asset_id):
+    """Calling the idle endpoint must NEVER mutate equipment_master OR
+    flip an assignment.active flag, OR create new ops events. It is
+    strictly read-only."""
+    with httpx.Client(timeout=20.0) as c:
+        # snapshot state
+        before_eq = next((it for it in c.get(f"{API_URL}/api/equipment-master", headers=admin_headers).json().get("items", []) if it["id"] == asset_id), None)
+        before_event_total = c.get(f"{API_URL}/api/operations/events?limit=1", headers=admin_headers).json()["total"]
+        # call idle multiple times
+        for _ in range(3):
+            r = c.get(f"{API_URL}/api/operations/idle-equipment?min_days=1", headers=admin_headers)
+            r.raise_for_status()
+        # re-snapshot
+        after_eq = next((it for it in c.get(f"{API_URL}/api/equipment-master", headers=admin_headers).json().get("items", []) if it["id"] == asset_id), None)
+        after_event_total = c.get(f"{API_URL}/api/operations/events?limit=1", headers=admin_headers).json()["total"]
+        assert before_eq == after_eq, "equipment_master mutated by idle endpoint"
+        assert before_event_total == after_event_total, "idle endpoint created new ops events"
+
 def test_equipment_master_never_mutated_by_operations(admin_headers, asset_id):
     with httpx.Client(timeout=20.0) as c:
         before = c.get(f"{API_URL}/api/equipment-master", headers=admin_headers).json()

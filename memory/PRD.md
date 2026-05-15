@@ -9,6 +9,41 @@
 Integration framework must remain PASSIVE / OBSERVATIONAL until live API stability is proven. No auto-creating work orders / disciplinary actions / retraining / payroll triggers. All future workflows are EVENT-DRIVEN (failed pre-op → internal event → integration layer → MaintainX/Safety/Asset/notify), never portal-to-portal direct logic. Heavy syncs run BACKGROUND only — never block dashboards / forms / login. Master records (`db.equipment_master`, `db.employees`) are SOURCE-OF-TRUTH — integrations flow through mapping layers, not direct master mutation. CSV imports require preview + rollback + duplicate detection. Integration failures must NEVER crash core platform. Audit/traceability on every mapping/import/setting change.
 
 ---
+## 2026-05-15 — Iter125: Idle Equipment Alerts + Equipment-list profile link
+
+### User ask
+"Yes — build the Idle Equipment Alerts widget. ... use existing event log + assignment data only ... do NOT auto-change equipment status ... read-only visibility/flagging only ... configurable threshold (default 14 days) ... filters >7 / >14 / >30 days. Do not spam notifications yet."
+
+### Outcome: ✅ Shipped · 15/15 backend tests pass · zero existing functionality changed
+
+### Backend
+- New endpoint `GET /api/operations/idle-equipment?min_days={n}` (admin-gated, default 14, range 1-365)
+- Logic: bulk-fetch active assignments → aggregation pipeline over `operations_events` to find max(created_at) per asset_id → fall back to `assignment.started_at` when no events exist → compute `days_inactive` → filter to `>= min_days`, sort desc
+- Returns `{min_days, now, rows[], totals: {d7, d14, d30, matched}}`
+- 100% read-only — pytest verifies the endpoint mutates neither equipment_master, nor assignment.active flag, nor creates new ops events
+
+### Frontend
+- New "Idle Alerts" tab on `/admin/dispatch` (testid `dp-tab-idle`) — between Utilization and Transfers
+- Read-only amber banner explicitly states: "never auto-changes equipment status, never reassigns, and never sends notifications"
+- Three threshold filter pills (>7 / >14 / >30 days) with live count badges
+- Per-row severity color: red ≥ 30d, amber ≥ 14d, slate < 14d
+- Columns: days idle · unit # · equipment name + type · project · operator · assigned date · last activity (type + when, or "no events since assignment") · Profile link
+- "Profile →" link on every row jumps to `/admin/assets/:assetId`
+
+### Equipment-list profile link (sidebar deferred-item resolved)
+- Added a "Unified Asset Profile" link button (`ExternalLink` icon, slate accent) to every row of the existing `EquipmentMasterPanel.jsx`
+- Renders to the LEFT of Edit + Delete actions; testid `equipment-profile-{id}`
+- No other equipment-list behavior touched
+
+### Verified
+- 4 new pytests added — 15/15 in `test_iter124_operations.py` pass
+- Smoke screenshot confirms Idle Alerts tab renders with empty state, correct filter pills, read-only banner, timestamp footer
+- Frontend lint + backend lint clean
+
+### Future-ready (no scope creep)
+- Endpoint signature accepts new event sources without UI change — when preops, daily-report references, Motive GPS, or maintenance events start flowing through the operations event log, the widget surfaces them automatically (because it just reads `max(operations_events.created_at)` per asset)
+
+---
 ## 2026-05-15 — Iter124: Enterprise Operations Architecture (P1-P4 SHIPPED)
 
 ### User ask

@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Truck, Send, AlertTriangle, ShieldAlert, Wrench, Activity, Loader2,
-  CheckCircle2, XCircle, Calendar, RefreshCcw, Plus, Search,
+  CheckCircle2, XCircle, Calendar, RefreshCcw, Plus, Search, Clock,
 } from "lucide-react";
 import AdminShell from "@/components/AdminShell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -73,12 +73,14 @@ export default function AdminDispatch() {
           <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="overview" data-testid="dp-tab-overview"><Activity className="w-3.5 h-3.5 mr-1" /> Overview</TabsTrigger>
             <TabsTrigger value="utilization" data-testid="dp-tab-utilization"><Activity className="w-3.5 h-3.5 mr-1" /> Utilization</TabsTrigger>
+            <TabsTrigger value="idle" data-testid="dp-tab-idle"><Clock className="w-3.5 h-3.5 mr-1" /> Idle Alerts</TabsTrigger>
             <TabsTrigger value="transfers" data-testid="dp-tab-transfers"><Send className="w-3.5 h-3.5 mr-1" /> Transfers</TabsTrigger>
             <TabsTrigger value="holds" data-testid="dp-tab-holds"><ShieldAlert className="w-3.5 h-3.5 mr-1" /> Holds</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview"><OverviewTab /></TabsContent>
           <TabsContent value="utilization"><UtilizationTab /></TabsContent>
+          <TabsContent value="idle"><IdleAlertsTab /></TabsContent>
           <TabsContent value="transfers"><TransfersTab /></TabsContent>
           <TabsContent value="holds"><HoldsTab /></TabsContent>
         </Tabs>
@@ -547,3 +549,130 @@ function CreateHoldDialog({ open, onClose }) {
     </Dialog>
   );
 }
+
+/* ════════════ IDLE EQUIPMENT ALERTS ════════════
+   Read-only visibility layer. NEVER auto-changes status. NEVER notifies.
+   Uses operations_events + asset_assignments only. Future Motive / preop
+   / daily-report / maintenance signals can plug in via the operations
+   event log without changing this UI. */
+function IdleAlertsTab() {
+  const [minDays, setMinDays] = useState(14);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const r = await api.get(`/operations/idle-equipment?min_days=${minDays}&limit=500`);
+      setData(r.data);
+    } catch {
+      setData({ rows: [], totals: { d7: 0, d14: 0, d30: 0, matched: 0 }, min_days: minDays });
+    } finally { setLoading(false); }
+  };
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [minDays]);
+
+  const totals = data?.totals || { d7: 0, d14: 0, d30: 0, matched: 0 };
+  const rows = data?.rows || [];
+
+  return (
+    <div className="space-y-3" data-testid="dp-idle">
+      <div className="bg-amber-50 border-2 border-amber-300 rounded-md p-4 flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+        <div className="text-xs text-amber-900">
+          <strong>Read-only visibility layer.</strong> Idle alerts surface assigned assets that
+          haven&apos;t produced an operations event (preop, transfer, hold change, daily-report
+          reference) within the threshold. <strong>This widget never auto-changes equipment
+          status, never reassigns, and never sends notifications.</strong>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Threshold</span>
+        {[7, 14, 30].map((d) => (
+          <Button
+            key={d} size="sm" variant={minDays === d ? "default" : "outline"}
+            onClick={() => setMinDays(d)} className="h-8"
+            data-testid={`idle-filter-${d}d`}
+          >
+            &gt; {d} days {totals[`d${d}`] ? <span className="ml-1 font-mono text-[10px]">({totals[`d${d}`]})</span> : null}
+          </Button>
+        ))}
+        <Button onClick={load} size="sm" variant="outline" className="h-8 ml-auto"><RefreshCcw className="w-3.5 h-3.5" /></Button>
+      </div>
+
+      <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
+        {loading ? (
+          <div className="text-center py-8 text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
+        ) : rows.length === 0 ? (
+          <p className="p-6 text-sm text-slate-500 italic text-center" data-testid="idle-empty">
+            No assigned assets idle &gt; {minDays} days. Either nothing has been assigned long
+            enough, or every assigned asset has had recent operational activity.
+          </p>
+        ) : (
+          <table className="w-full text-xs" data-testid="idle-table">
+            <thead className="bg-slate-100 text-slate-700 font-mono uppercase tracking-[0.15em]">
+              <tr>
+                <th className="text-left px-3 py-2">Days Idle</th>
+                <th className="text-left px-3 py-2">Unit</th>
+                <th className="text-left px-3 py-2">Equipment</th>
+                <th className="text-left px-3 py-2">Project</th>
+                <th className="text-left px-3 py-2">Operator</th>
+                <th className="text-left px-3 py-2">Assigned</th>
+                <th className="text-left px-3 py-2">Last activity</th>
+                <th className="text-left px-3 py-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => {
+                const sev = r.days_inactive >= 30 ? "bg-red-100 text-red-900 border-red-300"
+                  : r.days_inactive >= 14 ? "bg-amber-100 text-amber-900 border-amber-300"
+                  : "bg-slate-100 text-slate-700 border-slate-300";
+                return (
+                  <tr key={r.asset_id} className="border-t border-slate-100" data-testid={`idle-row-${r.asset_id}`}>
+                    <td className="px-3 py-2">
+                      <span className={`px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-[0.12em] font-bold ${sev}`}>
+                        {r.days_inactive}d
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 font-mono font-bold">{r.unit_number || r.asset_id?.slice(0, 8)}</td>
+                    <td className="px-3 py-2">
+                      <div className="font-bold truncate max-w-xs">{r.equipment_name || "—"}</div>
+                      {r.equipment_type && <div className="text-[10px] text-slate-500">{r.equipment_type}</div>}
+                    </td>
+                    <td className="px-3 py-2">{r.project_number || r.project_name || <span className="text-slate-400">—</span>}</td>
+                    <td className="px-3 py-2">{r.operator_name || <span className="text-slate-400">—</span>}</td>
+                    <td className="px-3 py-2 font-mono text-slate-500 whitespace-nowrap">{(r.assigned_at || "").slice(0, 10)}</td>
+                    <td className="px-3 py-2">
+                      {r.had_events ? (
+                        <>
+                          <div className="font-mono text-slate-700 text-[10px]">{r.last_activity_type}</div>
+                          <div className="text-slate-500 text-[10px]">{(r.last_activity_at || "").slice(0, 16).replace("T", " ")}</div>
+                        </>
+                      ) : (
+                        <span className="text-slate-400 italic text-[10px]">no events since assignment</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      <Link
+                        to={`/admin/assets/${r.asset_id}`}
+                        className="text-slate-700 hover:text-slate-900 font-bold underline whitespace-nowrap"
+                        data-testid={`idle-profile-link-${r.asset_id}`}
+                      >Profile →</Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {data && data.now && (
+        <p className="text-[10px] font-mono text-slate-400 text-right">
+          Computed at {(data.now || "").slice(0, 16).replace("T", " ")} · {totals.matched} match{totals.matched === 1 ? "" : "es"} for &gt; {minDays}d
+        </p>
+      )}
+    </div>
+  );
+}
+

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Truck,
   Plus,
@@ -13,6 +14,7 @@ import {
   Archive,
   RotateCcw,
   Download,
+  ExternalLink,
 } from "lucide-react";
 import {
   Dialog,
@@ -531,6 +533,14 @@ export default function EquipmentMasterPanel() {
                       <td className="px-3 py-2 text-slate-500 text-xs">{u.category || "—"}</td>
                       <td className="px-3 py-2 text-slate-500 text-xs">{u.preop_equipment_type || "—"}</td>
                       <td className="px-3 py-2 text-right whitespace-nowrap">
+                        <Link
+                          to={`/admin/assets/${id}`}
+                          className="inline-flex items-center justify-center h-8 w-8 mr-1 border-2 border-slate-300 rounded-md hover:border-slate-700 hover:text-slate-900 text-slate-700"
+                          title="Unified Asset Profile"
+                          data-testid={`equipment-profile-${id}`}
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
                         <Button
                           size="icon"
                           variant="outline"
