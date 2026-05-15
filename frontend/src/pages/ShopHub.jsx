@@ -14,6 +14,7 @@ import { LangToggle } from "@/components/LangToggle";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import GlobalSearch from "@/components/GlobalSearch";
+import OperationsCenter from "@/components/OperationsCenter";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { clearShopToken, getShopToken } from "@/lib/shopAuth";
@@ -143,6 +144,8 @@ export default function ShopHub() {
             {t("Every Pre-Op inspection. Sign off on Out-of-Service and Needs-Attention items so jobs can keep moving.")}
           </p>
         </div>
+
+        <OperationsCenter compact />
 
         {/* KPI strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="shop-kpi-strip">

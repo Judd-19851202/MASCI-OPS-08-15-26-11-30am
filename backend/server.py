@@ -8342,6 +8342,14 @@ from routes.global_search import build_global_search_router  # noqa: E402
 app.include_router(build_global_search_router(db, _require_any_portal_token))
 
 
+# ─── Operations Center (iter C — Phase 2.5 · stabilization) ────────
+# Thin per-role aggregated visibility layer on TOP of existing shared
+# infrastructure. No new SOT collections. No fake metrics. asyncio.gather
+# parallel probes; lightweight count_documents per card.
+from routes.operations_center import build_operations_center_router  # noqa: E402
+app.include_router(build_operations_center_router(db, _require_any_portal_token))
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 

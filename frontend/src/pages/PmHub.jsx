@@ -13,6 +13,7 @@ import {
   UserCheck, Briefcase, GraduationCap,
 } from "lucide-react";
 import PmShell from "@/components/PmShell";
+import OperationsCenter from "@/components/OperationsCenter";
 import { api } from "@/lib/api";
 
 const FORM_TILES = [
@@ -119,20 +120,23 @@ export default function PmHub() {
           <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-5" data-testid="pm-tile-grid">
-          {FORM_TILES.map((t) => (
-            <PmTile
-              key={t.to}
-              to={t.to}
-              icon={t.icon}
-              title={t.title}
-              count={t.countKey ? counts[t.countKey] : null}
-              sub={t.sub}
-              accent={t.accent}
-              testId={`pm-tile-${t.to.split("/").pop()}`}
-            />
-          ))}
-        </div>
+        <>
+          <OperationsCenter compact className="mt-5" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-5" data-testid="pm-tile-grid">
+            {FORM_TILES.map((t) => (
+              <PmTile
+                key={t.to}
+                to={t.to}
+                icon={t.icon}
+                title={t.title}
+                count={t.countKey ? counts[t.countKey] : null}
+                sub={t.sub}
+                accent={t.accent}
+                testId={`pm-tile-${t.to.split("/").pop()}`}
+              />
+            ))}
+          </div>
+        </>
       )}
     </PmShell>
   );

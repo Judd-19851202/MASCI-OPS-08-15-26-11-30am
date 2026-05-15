@@ -12,6 +12,7 @@ import NotificationBell from "@/components/NotificationBell";
 import GlobalSearch from "@/components/GlobalSearch";
 import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import IntegrationEventsCard from "@/components/IntegrationEventsCard";
+import OperationsCenter from "@/components/OperationsCenter";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
 import { paletteFor } from "@/lib/portalPalette";
@@ -122,6 +123,8 @@ export default function HrHub() {
         <p className="text-slate-600 mt-2 max-w-2xl">
           {t("Read-only HR access · field leadership records · accountability · payroll-time verification · training compliance.")}
         </p>
+
+        <OperationsCenter compact className="mt-6" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
           {TILES.map((tile) => {

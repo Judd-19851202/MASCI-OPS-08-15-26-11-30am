@@ -14,6 +14,7 @@ import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import GlobalSearch from "@/components/GlobalSearch";
+import OperationsCenter from "@/components/OperationsCenter";
 import {
   DispatchOverviewTab, DispatchUtilizationTab, DispatchIdleAlertsTab,
   DispatchTransfersTab, DispatchHoldsTab,
@@ -108,6 +109,8 @@ export default function DispatchHub() {
             </div>
           </div>
         </div>
+
+        <OperationsCenter compact className="mb-4" />
 
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="flex-wrap h-auto">

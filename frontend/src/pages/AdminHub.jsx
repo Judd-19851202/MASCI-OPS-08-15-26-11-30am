@@ -12,6 +12,7 @@ import AdminShell, { SECTIONS } from "@/components/AdminShell";
 import AdminDocIdSearch from "@/components/AdminDocIdSearch";
 import AdminKpiStrip from "@/components/AdminKpiStrip";
 import IntegrationHealthCard from "@/components/IntegrationHealthCard";
+import OperationsCenter from "@/components/OperationsCenter";
 import { getAdminToken } from "@/lib/adminAuth";
 
 function SectionTile({ to, icon: Icon, label, desc, testId }) {
@@ -52,6 +53,9 @@ export default function AdminHub() {
       }
     >
       <div className="space-y-5">
+        {/* Operations Center — real-time aggregated operational visibility */}
+        <OperationsCenter />
+
         {/* Records-on-file count strip — at-a-glance KPIs */}
         <AdminKpiStrip />
 
