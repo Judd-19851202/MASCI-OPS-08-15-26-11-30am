@@ -17,6 +17,36 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter148 (Families A & B): Workflow Friction Reduction · STABILIZED
+
+### User ask
+Reduce operational friction across the 5 highest-volume forms (Corrective Actions, Fire Extinguishers, Training, NewIncident, NewDailyReport) using smart defaults (remembered filters via localStorage), inline HelpTips on confusing field semantics, and friendly error states. No flashy features — operational maturity only. Verify no regressions and no cross-portal localStorage bleed.
+
+### Shipped
+- **`lib/useRememberedFilter.js` NEW** — per-user, per-page filter persistence. Per-user isolation via actor-key hash of the active portal token. Public API: `useRememberedFilter(slot, fallback)`, `useRememberedFormValue(slot, fallback)`, `clearAllRememberedFilters()`. Schema-versioned (`v1`) so future shape changes don't poison old keys.
+- **`components/ui/HelpTip.jsx` NEW** — shadcn-Popover info icon. Click-only on touch, keyboard accessible, max-w-xs to stay mobile-safe.
+- **`lib/friendlyErrors.js` NEW** — `friendlyError(err, fallback)` substring-matches Pydantic/HTTP error details against a curated MAP (validation, auth, domain, files). Never blocks workflow — always returns SOMETHING readable. Companion `friendlyErrorParts()` for support surfaces.
+- **Form wiring** — surgical inserts on 5 forms:
+  - `pages/SafetyCorrectiveActions.jsx` — remembered filters + HelpTips + friendly errors.
+  - `pages/SafetyFireExtinguishers.jsx` — remembered filters + HelpTips + friendly errors.
+  - `pages/SafetyTrainingRecords.jsx` — remembered filters + HelpTips + friendly errors.
+  - `pages/NewIncident.jsx` — HelpTips + friendly errors.
+  - `pages/NewDailyReport.jsx` — `useRememberedFormValue` for last_project_number + friendly errors (no HelpTips needed — fields are self-evident).
+
+### Verification (test_reports/iteration_148_retest.json)
+- **Cross-portal isolation ✅** — Safety actor-hash `tswvrb6` vs HR actor-hash `too7hxx`. Remembered keys correctly namespaced as `masci.ux.remembered.v1.<hash>.<slot>`. HR never reads Safety's remembered values.
+- **Filter persistence across reload ✅** — confirmed on /safety-portal/corrective-actions (search/tab restored after refresh).
+- **Zero non-401 console errors** across all 5 pages on desktop + 375x812 mobile.
+- **Safety credential rotated** to `SafetyTest2026!` (must_change_password=false), recorded in `/app/memory/test_credentials.md`.
+
+### Bug fixed during stabilization
+- `useRememberedFilter.resolveActorKey()` originally looked at stale `safety_token`/`admin_token` localStorage keys. Updated to the canonical `masci.<portal>.token` names (admin/safety/hr/pm/shop/dispatch/leadership/directory). Without this fix every signed-in user fell back to `anon`, breaking cross-portal isolation.
+
+### Backlog item from this iter
+- LOW: Each `lib/<portal>Auth.js` defines its KEY constant locally. Consider exporting them so `useRememberedFilter.js`'s lookup list cannot drift again.
+
+
+---
 ## 2026-05-15 — Iter147 (Pre-build): Perf-Audit Harness + Form/Export Tracking Wires
 
 ### User ask
