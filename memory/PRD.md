@@ -17,6 +17,43 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter138: Typeahead Wired into Create Forms · Visual Unification Long-Tail · 1px Mobile Cleanup
+
+### User ask
+Three Phase-1 follow-ups: (1) wire master-lookup typeahead into incident/CA/fire-ext/training-record create forms so new submissions persist `*_master_id`; (2) apply EmptyState/LoadingState to remaining safety/HR/PM pages; (3) clean up the 1px subpixel overflow on `/safety-portal/fire-extinguishers`.
+
+### Shipped
+
+**🔗 Typeahead wired into 3 create forms (incident is carryover)**
+- `frontend/src/components/MasterLookupCombobox.jsx` NEW — debounced typeahead with green "Linked" badge + freetext fallback ("Use exactly: …" preserves text-only when no master match).
+- **CA edit dialog** now has two combobox blocks (Linked Equipment + Linked Employee) under Notes.
+- **Fire Ext edit dialog** has Linked Equipment (Optional) for truck-mounted units.
+- **Training Record create** keeps the existing employee Select but adds a collapsible typeahead for fast-typing supervisors.
+- Backend `_models.py` updated: `CorrectiveAction{Create,Update}`, `FireExtinguisher{Create,Update}`, `TrainingRecord{Create,Update}` all accept optional `*_master_id` fields. Create handlers persist them.
+- **Live coverage went from 0% → 33%** on corrective_actions after one bound submission. New records bind master IDs at the source — no more post-hoc backfill.
+- Incidents create flow NOT wired (lives in public Safety Forms portal, separate sub-app — flagged as carryover).
+
+**🎨 Visual unification long-tail**
+- Applied `<EmptyState>` / `<LoadingState>` to: SafetyTrainingRecords, SafetyEmployeeProfiles, SafetyDigest, HrSafetyRecords (2 tab empties), PmQaqcList.
+
+**📱 1px subpixel cleanup**
+- Changed `flex gap-2 shrink-0` → `flex flex-wrap gap-2 shrink-0` on the FE register's button group. At iPhone 14 width, Bulk Import + Add Extinguisher now wrap onto two lines; bodyScrollWidth=390 (was 391, now exactly viewport).
+
+### Testing
+- 26/26 backend pytest cases passing (11 new iter138 + 15 iter137 regression).
+- 100% frontend — typeahead fetch works, dropdown renders, pick binds, badge shows, mobile overflow=0.
+- Zero bugs, zero regressions.
+
+### Phase-1 follow-up status
+| Item | Status |
+|---|---|
+| CA / Fire Ext / Training Record typeahead bindings | ✅ DONE |
+| Incident form typeahead binding | 🟡 carryover (separate sub-app) |
+| Visual unification long-tail | ✅ DONE (6 pages) |
+| 1px mobile cleanup | ✅ DONE |
+| Master coverage backfill | ✅ iter137 (legacy data) + ✅ iter138 (new records auto-bind) |
+
+---
 ## 2026-05-15 — Iter137: Phase-1 Carryover — Master SOT + Visual Unification + Mobile Sweep
 
 ### User ask
