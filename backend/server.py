@@ -8222,6 +8222,15 @@ from routes.deploy_readiness import build_deploy_readiness_router  # noqa: E402
 app.include_router(build_deploy_readiness_router(db, require_admin))
 
 
+# ─── Integration Health Probes + Alert Hook (iter142 — Phase-1 Iter D) ─
+from routes.integration_health import (  # noqa: E402
+    build_integration_health_router,
+    ensure_alert_indexes,
+)
+
+app.include_router(build_integration_health_router(db, require_admin))
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 
@@ -8356,6 +8365,8 @@ async def _bootstrap_operations():
 async def _bootstrap_integrations():
     await ensure_integrations_indexes_and_seed(db)
     logger.info("[integrations] indexes + seed settings ready")
+    await ensure_alert_indexes(db)
+    logger.info("[alert-events] indexes ensured")
 
 
 @app.on_event("startup")
@@ -8388,6 +8399,47 @@ async def _arm_hot_id_indexes():
             await db[coll_name].create_index("id")
         except Exception as e:  # noqa: BLE001
             logger.warning(f"[id-index] {coll_name}: {e}")
+
+
+# ─── Iter142 (Phase-1 Iter D): targeted index + TTL fixes surfaced by
+#     scripts/qa_audit.py. All idempotent. Pairs with QA_PERF_AUDIT.md.
+@app.on_event("startup")
+async def _arm_iter142_perf_indexes():
+    # Indexes that resolve the 2 COLLSCANs found by the audit, plus
+    # the index recommendations on hot list endpoints.
+    targeted = [
+        ("incidents",                [("incident_date", -1)]),
+        ("corrective_actions",       [("status", 1), ("due_date", 1)]),
+        ("fire_extinguishers",       [("next_due_date", 1)]),
+        ("equipment_inspections",    [("inspection_date", -1)]),
+        ("safety_training_records",  [("expiration_date", 1)]),
+        ("operations_events",        [("status", 1), ("created_at", -1)]),
+        ("operations_events",        [("asset_id", 1)]),
+        ("operations_events",        [("employee_id", 1)]),
+        ("field_leadership_records", [("occurred_at", -1)]),
+        ("field_leadership_records", [("employee_name", 1)]),
+        ("daily_reports",            [("report_date", -1)]),
+        ("employees",                [("name", 1)]),
+    ]
+    for coll, key_spec in targeted:
+        try:
+            await db[coll].create_index(key_spec)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[perf-index] {coll} {key_spec}: {e}")
+
+    # TTL indexes flagged as missing by the audit (admin_audit kept at
+    # 1 year for compliance, login_attempts/brute_force short-lived).
+    ttl_plan = [
+        ("admin_audit",            "at",  60 * 60 * 24 * 365),
+        ("login_attempts",         "at",  60 * 60 * 24 * 30),
+        ("integration_error_logs", "at",  60 * 60 * 24 * 90),
+        ("brute_force_blocks",     "at",  60 * 60 * 24 * 7),
+    ]
+    for coll, field, secs in ttl_plan:
+        try:
+            await db[coll].create_index([(field, 1)], expireAfterSeconds=secs)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[ttl-index] {coll}.{field}: {e}")
 
 
 _safety_digest_task: Optional[asyncio.Task] = None

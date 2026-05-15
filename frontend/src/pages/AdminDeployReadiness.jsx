@@ -9,6 +9,7 @@ import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
+import IntegrationProbesPanel from "@/components/IntegrationProbesPanel";
 import { toast } from "sonner";
 
 const OVERALL_BAND = {
@@ -118,6 +119,11 @@ export default function AdminDeployReadiness() {
                   );
                 })}
               </ul>
+            </div>
+
+            {/* iter142 — Live integration probe roll-up */}
+            <div className="mt-5">
+              <IntegrationProbesPanel />
             </div>
 
             {/* Help line */}

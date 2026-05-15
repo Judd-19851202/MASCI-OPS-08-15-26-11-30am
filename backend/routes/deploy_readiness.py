@@ -236,6 +236,38 @@ def build_deploy_readiness_router(db, require_admin: Callable) -> APIRouter:
             return {"id": "default_admin", "label": "Default admin password rotated",
                     "severity": "warn", "passed": True, "detail": f"check unavailable: {e}"}
 
+    async def _check_integrations_health() -> Dict[str, Any]:
+        """iter142 — run all integration probes via the unified
+        run_all_probes() helper. Pass = no probes reported `down`.
+        Warn = at least one degraded but no fatal failures."""
+        try:
+            from routes.integration_health import run_all_probes  # noqa: PLC0415
+            payload = await run_all_probes(db)
+            statuses = [p["status"] for p in payload.get("probes", [])]
+            down = [p for p in payload["probes"] if p["status"] == "down"]
+            degraded = [p for p in payload["probes"] if p["status"] == "degraded"]
+            if down:
+                names = ", ".join(p["id"] for p in down)
+                return {"id": "integrations_health",
+                        "label": "Live integration probes",
+                        "severity": "blocker", "passed": False,
+                        "detail": f"DOWN: {names}"}
+            if degraded:
+                names = ", ".join(p["id"] for p in degraded)
+                return {"id": "integrations_health",
+                        "label": "Live integration probes",
+                        "severity": "warn", "passed": False,
+                        "detail": f"Degraded: {names}"}
+            return {"id": "integrations_health",
+                    "label": "Live integration probes",
+                    "severity": "warn", "passed": True,
+                    "detail": f"{len(statuses)} probes all OK or disabled"}
+        except Exception as e:  # noqa: BLE001
+            return {"id": "integrations_health",
+                    "label": "Live integration probes",
+                    "severity": "warn", "passed": False,
+                    "detail": f"probe-runner crashed: {str(e)[:160]}"}
+
     @router.get("/deploy-readiness", dependencies=[Depends(require_admin)])
     async def deploy_readiness():
         checks: List[Dict[str, Any]] = []
@@ -246,6 +278,7 @@ def build_deploy_readiness_router(db, require_admin: Callable) -> APIRouter:
             _check_r2, _check_resend,
             _check_integration_errors, _check_r2_degraded,
             _check_training_seed, _check_master_coverage,
+            _check_integrations_health,
             _check_default_admin,
         ]:
             try:
