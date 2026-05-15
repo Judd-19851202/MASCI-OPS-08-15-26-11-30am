@@ -386,15 +386,19 @@ def build_training_center_router(db, require_admin: Callable) -> APIRouter:
     router = APIRouter(prefix="/api/training-center", tags=["training-center"])
 
     async def _seed_if_empty():
-        count = await db.training_guides.count_documents({})
-        if count > 0:
-            return False
+        """Idempotent seed: upsert any DEFAULT_GUIDES slug that is missing
+        from the collection. Preserves admin-edited content because we use
+        $setOnInsert — existing docs are never overwritten."""
         now = datetime.now(timezone.utc).isoformat()
-        docs = []
-        for g in DEFAULT_GUIDES:
-            docs.append({**g, "updated_at": now, "is_default": True})
-        if docs:
-            await db.training_guides.insert_many(docs)
+        existing_slugs = set()
+        async for d in db.training_guides.find({}, {"_id": 0, "slug": 1}):
+            existing_slugs.add(d.get("slug"))
+        missing = [g for g in DEFAULT_GUIDES if g["slug"] not in existing_slugs]
+        if not missing:
+            return False
+        docs = [{**g, "updated_at": now, "is_default": True} for g in missing]
+        await db.training_guides.insert_many(docs)
+        logger.info("[training-center] seeded %d new default guide(s)", len(docs))
         return True
 
     @router.get("/portals")

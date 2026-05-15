@@ -9,6 +9,47 @@
 Integration framework must remain PASSIVE / OBSERVATIONAL until live API stability is proven. No auto-creating work orders / disciplinary actions / retraining / payroll triggers. All future workflows are EVENT-DRIVEN (failed pre-op → internal event → integration layer → MaintainX/Safety/Asset/notify), never portal-to-portal direct logic. Heavy syncs run BACKGROUND only — never block dashboards / forms / login. Master records (`db.equipment_master`, `db.employees`) are SOURCE-OF-TRUTH — integrations flow through mapping layers, not direct master mutation. CSV imports require preview + rollback + duplicate detection. Integration failures must NEVER crash core platform. Audit/traceability on every mapping/import/setting change.
 
 ---
+## 2026-05-15 — Iter134: P0 Fire Ext Bulk Import UI · Full Training Center & Operator Guides
+
+### User ask
+"Finish P0, P1, then C Full" — complete the in-progress Fire Extinguisher Bulk Import frontend, then build a system-wide Training Center at FULL scope: central Hub + per-portal tiles + downloadable PDF guides + admin-editable content.
+
+### Shipped
+
+**🅿0 — Fire Extinguisher Bulk Import frontend (`/app/frontend/src/pages/SafetyFireExtImport.jsx` NEW)**
+- Two-step wizard: file picker → /preview returns plan → user reviews → /commit applies.
+- Supports `.csv` / `.xlsx` (10 MB cap), template download, row-by-row preview table with action badges (create/update/skip) + match-reason annotations + per-row error lists.
+- "Errors only" filter, reset, post-commit summary card. Wired into `/safety-portal/fire-extinguishers` via a new "Bulk Import" button next to "Add Extinguisher".
+- Route: `/safety-portal/fire-extinguishers/import` (SF-protected).
+
+**🅿0 — System-wide Training Center & Operator Guides (Full scope)**
+- **Backend**: `/app/backend/routes/training_center.py` NEW. Mounted in `server.py:8178-8181`.
+  - Public-read endpoints: `GET /api/training-center/{portals,guides,guide/{slug},guide/{slug}/pdf}`.
+  - Admin-gated (X-Admin-Token): `POST /seed`, `POST /guide`, `PATCH /guide/{slug}`, `DELETE /guide/{slug}`.
+  - **Idempotent self-seed**: on every read, missing default slugs are upserted — new defaults added in code surface automatically (fixed iter134 from testing-agent feedback).
+  - PDF generation via `weasyprint` with embedded markdown subset (**bold**, *italic*, `code`).
+  - Default content: **16 guides across 9 portals** (Admin, Safety, HR, Dispatch, Shop, PM, Field, Integrations, Reliability) — Fire Ext Bulk Import workflow, Motive/MaintainX setup, R2/Resend config, Backups, Deploy Recovery, Incident Response playbook, etc.
+- **Frontend**:
+  - `/app/frontend/src/pages/OpsTrainingCenter.jsx` NEW — filterable hub (`?portal=safety` deep-linkable), search, portal-tinted tile grid.
+  - `/app/frontend/src/pages/OpsTrainingGuide.jsx` NEW — single-guide viewer with sections + callouts (tip/warn) + PDF download (blob, sets `Content-Disposition`).
+  - Routes: `/ops-training` and `/ops-training/:slug` (public; no auth required).
+- **Cross-portal entry points** added:
+  - AdminShell sidebar: new `Operator Training` section linking to `/ops-training`.
+  - SafetyHub: new `Training Center & Guides` tile (indigo accent).
+  - HrHub: new `Training Center & Guides` tile.
+  - PmHub: new `Training & Guides` tile in FORM_TILES.
+  - DispatchHub / ShopHub / FieldLeadershipHub: header "Guides" button.
+
+### Testing
+- Backend: 17/17 pytest cases passing (`/app/backend/tests/test_iter134_training_center.py`) — portals/list/single/PDF/admin-gates/CRUD + Fire-Ext template/preview/commit/history/auth-gates.
+- Frontend: testing agent confirmed 16 tiles + 9 portal filters render, search narrows correctly, single-guide page renders sections + callouts, PDF API returns 16.7 KB valid `%PDF-` bytes.
+- Idempotent seed fix verified manually: delete a default → next `/portals` call re-seeds it.
+
+### Schema additions
+- `db.training_guides` — `{slug, portal, title, kicker, summary, audience, sections[], updated_at, version, is_default}`. Default seed marked `is_default: true`.
+- `db.fire_ext_import_runs` (added iter134 backend) — preview/commit history.
+
+---
 ## 2026-05-15 — Iter133: P1+P3+P4+P5 pre-deploy fixes (Safety exports · R2 degraded mode · Digest config · Nav uniformity)
 
 ### User ask
