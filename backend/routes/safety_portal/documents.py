@@ -77,6 +77,18 @@ def register_document_routes(
                 storage_backend = "r2"
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"[safety-doc] R2 upload failed, falling back to inline: {e}")
+                # Log degraded-storage event (iter133 — surfaces in System Health)
+                try:
+                    await db.r2_degraded_events.insert_one({
+                        "at": datetime.now(timezone.utc).isoformat(),
+                        "module": "safety_documents",
+                        "doc_id": doc_id,
+                        "filename": filename,
+                        "size_bytes": len(raw),
+                        "error": str(e)[:240],
+                    })
+                except Exception:  # noqa: BLE001
+                    pass
                 b64 = base64.b64encode(raw).decode("ascii")
                 file_data = f"data:{content_type};base64,{b64}"
         else:

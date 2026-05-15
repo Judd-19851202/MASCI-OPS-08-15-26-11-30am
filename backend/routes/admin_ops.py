@@ -59,12 +59,31 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                           "detail": f"Ping failed: {e!s}"[:120]})
 
         # 2. R2 / object storage status (from photo_storage helper)
+        # Also check for recent degraded-mode fallbacks (R2 misconfigured
+        # mid-deploy means files are silently going to Mongo as base64
+        # blobs — that's the failure mode P3 wants us to alert on).
         try:
             from photo_storage import is_configured as r2_configured  # noqa: PLC0415
             ok = r2_configured()
-            cards.append({"key": "r2", "label": "Cloudflare R2",
-                          "status": "green" if ok else "yellow",
-                          "detail": "Configured · ready" if ok else "Not configured (inline-only)"})
+            # Count degraded events in last 24h
+            since = (now - timedelta(hours=24)).isoformat()
+            degraded = 0
+            try:
+                degraded = await db.r2_degraded_events.count_documents({"at": {"$gte": since}})
+            except Exception:  # noqa: BLE001
+                pass
+            if not ok:
+                cards.append({"key": "r2", "label": "Cloudflare R2",
+                              "status": "yellow",
+                              "detail": "Not configured (inline-only — large files going to MongoDB)"})
+            elif degraded > 0:
+                cards.append({"key": "r2", "label": "Cloudflare R2",
+                              "status": "red",
+                              "detail": f"DEGRADED — {degraded} uploads fell back to Mongo in last 24h. Check R2 credentials."})
+            else:
+                cards.append({"key": "r2", "label": "Cloudflare R2",
+                              "status": "green",
+                              "detail": "Configured · ready · no degraded events"})
         except Exception as e:  # noqa: BLE001
             cards.append({"key": "r2", "label": "Cloudflare R2", "status": "yellow",
                           "detail": f"Probe error: {e!s}"[:120]})

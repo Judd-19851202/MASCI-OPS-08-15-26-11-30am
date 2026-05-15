@@ -8142,6 +8142,27 @@ _safety_router = build_safety_router(
 app.include_router(_safety_router)
 
 
+# ─── Safety Reports & Exports (iter133) ────────────────────────────
+# Wires the 10 export endpoints SafetyReports.jsx already calls. Safety
+# / HR / Admin tokens accepted via make_require_safety_or_hr_or_admin.
+from routes.safety_exports import build_safety_exports_router  # noqa: E402
+from routes.safety_portal._deps import make_require_safety_or_hr_or_admin  # noqa: E402
+
+_require_safety_hr_admin = make_require_safety_or_hr_or_admin(db, _is_valid_admin_token)
+app.include_router(build_safety_exports_router(db, _require_safety_hr_admin))
+
+
+# ─── Admin Weekly Digest Config (iter133) ──────────────────────────
+from routes.admin_digest_config import build_admin_digest_router  # noqa: E402
+
+app.include_router(build_admin_digest_router(
+    db, require_admin_strict,
+    lambda: build_digest_payload(db),
+    render_digest_html,
+    send_email_fn=_safety_send_email,
+))
+
+
 # ─── Integration Center (Motive + MaintainX framework — iter122) ───
 from routes.integrations import (  # noqa: E402
     build_integrations_router,

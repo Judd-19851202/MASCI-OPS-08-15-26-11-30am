@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Building2, Wrench, Mail, Users, Truck, FileImage,
-  ClipboardCheck, LogOut, Menu as MenuIcon, Home, Briefcase, UserCheck,
+  ClipboardCheck, LogOut, Menu as MenuIcon, Home, Briefcase, UserCheck, KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -149,6 +149,14 @@ export default function PmShell({ title, section, children, intro }) {
               title="Public Hub"
             >
               <Home className="w-3.5 h-3.5" />
+            </Link>
+            <Link
+              to="/pm/change-password"
+              className="inline-flex items-center h-8 px-2.5 rounded-md text-white hover:bg-slate-800 text-xs font-bold uppercase tracking-wide"
+              data-testid="pm-change-password"
+              title="Change My Password"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
             </Link>
             <Button
               variant="ghost"

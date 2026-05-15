@@ -9,6 +9,69 @@
 Integration framework must remain PASSIVE / OBSERVATIONAL until live API stability is proven. No auto-creating work orders / disciplinary actions / retraining / payroll triggers. All future workflows are EVENT-DRIVEN (failed pre-op → internal event → integration layer → MaintainX/Safety/Asset/notify), never portal-to-portal direct logic. Heavy syncs run BACKGROUND only — never block dashboards / forms / login. Master records (`db.equipment_master`, `db.employees`) are SOURCE-OF-TRUTH — integrations flow through mapping layers, not direct master mutation. CSV imports require preview + rollback + duplicate detection. Integration failures must NEVER crash core platform. Audit/traceability on every mapping/import/setting change.
 
 ---
+## 2026-05-15 — Iter133: P1+P3+P4+P5 pre-deploy fixes (Safety exports · R2 degraded mode · Digest config · Nav uniformity)
+
+### User ask
+Eight-priority pre-deploy fix list. This iter executes the most impactful items where the gap is concrete and verifiable.
+
+### Shipped
+**🅿1 — All 10 Safety Reports & Exports backend endpoints (`/app/backend/routes/safety_exports.py` NEW)**
+- `GET /api/safety/exports/{incidents · corrective-actions · inspections · training-records · training-expired · fire-extinguishers · employee-profiles · documents · project-safety · executive}` × CSV + PDF format param
+- CSV streams via StreamingResponse; PDF returns print-friendly HTML (Cmd/Ctrl-P → Save as PDF). No more 404s when SafetyReports.jsx hits these.
+- Gated by `make_require_safety_or_hr_or_admin` — Safety + HR + Admin can pull; Field/PM/Shop cannot.
+
+**🅿3 — R2 degraded-mode tracking + health awareness**
+- Safety document upload fallback now writes a record to `db.r2_degraded_events` when R2 fails and we silently spill to Mongo base64.
+- System Health R2 card upgraded: GREEN if R2 configured + 0 degraded events in 24h, YELLOW if not configured, RED if R2 configured but 1+ degraded events in 24h (the synthetic monitor will Resend-alert on it).
+
+**🅿4 — Weekly Digest admin configuration (`/admin/digest-config`)**
+- New `GET/PATCH /api/admin/digest-settings` + `POST /api/admin/digest-settings/send-now` endpoints (`/app/backend/routes/admin_digest_config.py` NEW).
+- DB doc `db.digest_settings` (key="safety") overrides env defaults. Schema: `{enabled, recipients[], weekday, hour_utc, dashboard_url}`.
+- Every send-now invocation logged to `db.digest_runs` (preserves preview/error history for the "Last run" card).
+- New admin page `AdminDigestConfig.jsx` — enabled toggle · recipients editor · weekday + hour selectors · dashboard URL · preview · manual Send Now button.
+
+**🅿5 — Portal navigation uniformity sweep**
+- HrHub.jsx — added Home / Back / Change Password / Sign Out in the header. Previously only had Logo + PortalSwitcher + Sign Out.
+- SafetyShell.jsx — same treatment. Added Home / Back / Change Password / Sign Out + LangToggle.
+- PmShell.jsx — already had Home + Sign Out; added Change Password.
+- ShopHub.jsx — verified: already has Home + Change Password + Sign Out. No change needed.
+- AdminShell.jsx — verified: Home + Sign Out present. Admin "Change Password" deferred (no admin self-service password endpoint yet — admins rotate via /admin/people).
+- DispatchHub.jsx — iter132 added Home + Back + Sign Out. No Change Password yet (low priority — Admin can rotate via /admin/people Dispatch Users panel).
+
+### Verified locally
+- `ruff` + `eslint` clean across all new files
+- 20 / 20 Safety export endpoints return 200 (10 endpoints × 2 formats). Content sanity-checked:
+  - `incidents?format=csv` returns proper CSV with header row + 251 incident rows
+  - `executive?format=pdf` returns the HTML print-report shell
+  - `training-expired?format=csv` returns header + 0 rows (preview env has no expired training records)
+- `/admin/digest-settings` GET returns merged config with env defaults
+- `/admin/digest-settings/send-now` returns `{ok: true, sent: false}` in preview (AUTO_EMAIL_REPORTS=false guard)
+- System Health R2 card now states "no degraded events"
+
+### Files added
+- `/app/backend/routes/safety_exports.py` (10 export endpoints + CSV/HTML serializers)
+- `/app/backend/routes/admin_digest_config.py` (admin digest config endpoints)
+- `/app/frontend/src/pages/admin/AdminDigestConfig.jsx`
+
+### Files modified
+- `/app/backend/server.py` (wired both new routers)
+- `/app/backend/routes/admin_ops.py` (R2 health card upgraded with degraded events count)
+- `/app/backend/routes/safety_portal/documents.py` (log R2 fallback events to `r2_degraded_events`)
+- `/app/frontend/src/pages/HrHub.jsx` (Home/Back/Change Password header)
+- `/app/frontend/src/components/SafetyShell.jsx` (Home/Back/Change Password header)
+- `/app/frontend/src/components/PmShell.jsx` (Change Password link)
+- `/app/frontend/src/components/AdminShell.jsx` (Weekly Digest nav entry)
+- `/app/frontend/src/App.js` (`/admin/digest-config` route wired)
+
+### Deferred to next iter (transparency)
+- 🅿2 — Fire Extinguisher photo/file attachment upload + inspection-history PDF (the inspect endpoint exists; what's missing is the multipart file upload variant + per-unit history view + per-unit PDF report).
+- 🅿7 — Corrective Actions deeper linking (the `linked_kind` field exists in the schema; the UI doesn't currently expose all linkable kinds — incidents, near misses, audits, inspections, failed pre-ops, Motive safety events, MaintainX work orders).
+- 🅿6 — Already mostly in place from iter132; testing agent will verify.
+- 🅿8 — Full uniformity QA sweep — testing agent's responsibility.
+
+---
+
+---
 ## 2026-05-15 — Iter132: Safety completion + Dispatch integration readiness + nav uniformity + synthetic health monitor
 
 ### User ask (4 packages in one)

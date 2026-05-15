@@ -2,7 +2,7 @@
 // Employee Accountability · Time Verification · Training Records.
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck, Calculator, CalendarOff } from "lucide-react";
+import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck, Calculator, CalendarOff, KeyRound, Home, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -68,15 +68,25 @@ export default function HrHub() {
     <div className="min-h-screen blueprint-bg pb-16">
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-purple-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3 flex-wrap">
+          <Link to="/" className="inline-flex items-center text-white hover:text-purple-300 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="hr-nav-home" title="Home">
+            <Home className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Home</span>
+          </Link>
+          <button onClick={() => nav(-1)} className="inline-flex items-center text-white hover:text-purple-300 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="hr-nav-back" title="Back">
+            <ArrowLeft className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Back</span>
+          </button>
           <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
+          <div className="flex-1" />
           <div className="flex items-center gap-2">
             <PortalSwitcher current="hr" />
             <LangToggle />
             <CompanyInfoDialog />
+            <Button variant="outline" size="sm" onClick={() => nav("/hr/change-password")} className="text-xs bg-transparent text-white border-white/30 hover:bg-white/10" data-testid="hr-change-password">
+              <KeyRound className="w-3.5 h-3.5 sm:mr-1" /><span className="hidden sm:inline">{t("Password")}</span>
+            </Button>
             <Button variant="outline" size="sm" onClick={signOut} className="text-xs" data-testid="hr-sign-out">
-              <LogOut className="w-3.5 h-3.5 mr-1" /> {t("Sign out")}
+              <LogOut className="w-3.5 h-3.5 sm:mr-1" /><span className="hidden sm:inline">{t("Sign out")}</span>
             </Button>
           </div>
         </div>
