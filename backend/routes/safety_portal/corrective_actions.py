@@ -49,6 +49,9 @@ def register_corrective_action_routes(
             "completed_at": None,
             "closed_by_name": "",
             "related_entities": related,
+            # iter138 — SOT bindings (optional)
+            "equipment_master_id": (body.equipment_master_id or "").strip(),
+            "employee_master_id": (body.employee_master_id or "").strip(),
             "created_by_name": user.get("name") or "",
             "created_by_email": user.get("email") or "",
             "created_at": now,

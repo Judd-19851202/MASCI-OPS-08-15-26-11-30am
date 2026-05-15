@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import SafetyShell from "@/components/SafetyShell";
 import SafetyCaLinksManager from "@/components/SafetyCaLinksManager";
+import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { useT } from "@/lib/i18n";
 import { getSafetyToken } from "@/lib/safetyAuth";
@@ -71,6 +72,11 @@ const blankForm = () => ({
   due_date: "",
   notes: "",
   completion_notes: "",
+  // iter138 master-record bindings (kept optional — freetext OK)
+  equipment_master_id: "",
+  equipment_master_label: "",
+  employee_master_id: "",
+  employee_master_label: "",
 });
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-cyan-700";
@@ -162,6 +168,13 @@ export default function SafetyCorrectiveActions() {
         ...blankForm(),
         ...ca,
         due_date: ca.due_date || "",
+        // iter138 — preserve existing bindings; clear labels since we
+        // only persist IDs server-side. The combobox shows "Linked"
+        // badge from the id alone; user can re-search to see the label.
+        equipment_master_id: ca.equipment_master_id || "",
+        equipment_master_label: "",
+        employee_master_id: ca.employee_master_id || "",
+        employee_master_label: "",
       },
     });
   };
@@ -187,6 +200,9 @@ export default function SafetyCorrectiveActions() {
         priority: f.priority || "Medium",
         due_date: f.due_date || null,
         notes: f.notes || "",
+        // iter138 — preserve master bindings on every save (empty = freetext OK)
+        equipment_master_id: f.equipment_master_id || "",
+        employee_master_id: f.employee_master_id || "",
       };
       if (dlg.mode === "create") {
         await axios.post(`${API}/safety/corrective-actions`, payload, auth());
@@ -491,6 +507,49 @@ export default function SafetyCorrectiveActions() {
                 rows={2}
                 data-testid="safety-ca-form-notes"
               />
+            </div>
+            {/* iter138 — master record bindings (optional, freetext OK) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Linked equipment")}</Label>
+                <div className="mt-1">
+                  <MasterLookupCombobox
+                    kind="equipment"
+                    value={dlg.form.equipment_master_id}
+                    displayValue={dlg.form.equipment_master_label}
+                    onPick={(item) => setDlg((d) => ({
+                      ...d,
+                      form: { ...d.form, equipment_master_id: item.id, equipment_master_label: item.label },
+                    }))}
+                    onClear={() => setDlg((d) => ({
+                      ...d,
+                      form: { ...d.form, equipment_master_id: "", equipment_master_label: "" },
+                    }))}
+                    placeholder={t("Search by unit / make / VIN…")}
+                    testIdPrefix="safety-ca-form-equipment"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Linked employee")}</Label>
+                <div className="mt-1">
+                  <MasterLookupCombobox
+                    kind="employees"
+                    value={dlg.form.employee_master_id}
+                    displayValue={dlg.form.employee_master_label}
+                    onPick={(item) => setDlg((d) => ({
+                      ...d,
+                      form: { ...d.form, employee_master_id: item.id, employee_master_label: item.label },
+                    }))}
+                    onClear={() => setDlg((d) => ({
+                      ...d,
+                      form: { ...d.form, employee_master_id: "", employee_master_label: "" },
+                    }))}
+                    placeholder={t("Search by name / email / employee ID…")}
+                    testIdPrefix="safety-ca-form-employee"
+                  />
+                </div>
+              </div>
             </div>
             {dlg.mode === "edit" && (
               <div>

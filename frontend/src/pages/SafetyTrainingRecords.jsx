@@ -17,6 +17,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import SafetyShell from "@/components/SafetyShell";
+import MasterLookupCombobox from "@/components/MasterLookupCombobox";
+import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -41,6 +43,9 @@ const blank = () => ({
   expiration_date: "",
   issued_by: "",
   notes: "",
+  // iter138 — bind to employees master collection
+  employee_master_id: "",
+  employee_master_label: "",
 });
 
 function expStatus(rec) {
@@ -201,13 +206,14 @@ export default function SafetyTrainingRecords() {
       </div>
 
       {loading ? (
-        <div className="text-center text-slate-500 py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
+        <LoadingState label={t("Loading…")} testId="safety-tr-loading" />
       ) : filtered.length === 0 ? (
-        <div className="text-center text-slate-500 py-12 border-2 border-dashed border-slate-200 rounded-md">
-          <Award className="w-8 h-8 mx-auto mb-2 text-slate-400" />
-          <div className="font-display text-lg font-black text-slate-700">{t("No training records")}</div>
-          <p className="text-sm mt-1">{tab === "All" ? t("Add the first one above.") : t("Nothing matches this filter.")}</p>
-        </div>
+        <EmptyState
+          icon={Award}
+          title={t("No training records")}
+          body={tab === "All" ? t("Add the first one above.") : t("Nothing matches this filter.")}
+          testId="safety-tr-empty"
+        />
       ) : (
         <div className="overflow-x-auto" data-testid="safety-tr-list">
           <table className="w-full text-sm">
@@ -266,13 +272,43 @@ export default function SafetyTrainingRecords() {
               <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Employee")} *</Label>
               <Select value={dlg.form.employee_id || ""} onValueChange={(v) => {
                 const emp = employees.find((e) => e.id === v);
-                setDlg((d) => ({ ...d, form: { ...d.form, employee_id: v, employee_name: emp?.name || "" } }));
+                // iter138 — picking from the in-memory list also binds master id
+                setDlg((d) => ({ ...d, form: {
+                  ...d.form, employee_id: v, employee_name: emp?.name || "",
+                  employee_master_id: emp?.id || "", employee_master_label: emp?.name || "",
+                } }));
               }}>
                 <SelectTrigger className={`${inputCls} mt-1`} data-testid="safety-tr-form-employee"><SelectValue placeholder={t("Pick employee")} /></SelectTrigger>
                 <SelectContent className="max-h-72">
                   {employees.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {/* iter138 — for fast-typing supervisors, also offer the typeahead */}
+              <details className="mt-1.5 text-[11px]">
+                <summary className="cursor-pointer text-slate-500 hover:text-slate-700">{t("Or search by name / email / employee ID…")}</summary>
+                <div className="mt-2">
+                  <MasterLookupCombobox
+                    kind="employees"
+                    value={dlg.form.employee_master_id}
+                    displayValue={dlg.form.employee_master_label}
+                    onPick={(item) => setDlg((d) => ({
+                      ...d,
+                      form: {
+                        ...d.form,
+                        employee_id: item.id || d.form.employee_id,
+                        employee_name: item.label || d.form.employee_name,
+                        employee_master_id: item.id,
+                        employee_master_label: item.label,
+                      },
+                    }))}
+                    onClear={() => setDlg((d) => ({
+                      ...d,
+                      form: { ...d.form, employee_master_id: "", employee_master_label: "" },
+                    }))}
+                    testIdPrefix="safety-tr-form-employee-typeahead"
+                  />
+                </div>
+              </details>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>

@@ -54,6 +54,8 @@ def register_training_routes(
             "issued_by": (body.issued_by or "").strip(),
             "notes": (body.notes or "").strip(),
             "certificate_file_id": body.certificate_file_id,
+            # iter138 — bind to employees master collection
+            "employee_master_id": (body.employee_master_id or body.employee_id or "").strip(),
             "created_by_name": user.get("name") or "",
             "created_at": now,
             "updated_at": now,

@@ -77,6 +77,9 @@ class CorrectiveActionCreate(BaseModel):
     due_date: Optional[str] = None
     notes: Optional[str] = ""
     related_entities: Optional[List[RelatedEntity]] = None
+    # iter138 SOT bindings (optional — freetext fallback still allowed)
+    equipment_master_id: Optional[str] = None
+    employee_master_id: Optional[str] = None
 
 
 class CorrectiveActionUpdate(BaseModel):
@@ -90,6 +93,8 @@ class CorrectiveActionUpdate(BaseModel):
     notes: Optional[str] = None
     completion_notes: Optional[str] = None
     related_entities: Optional[List[RelatedEntity]] = None
+    equipment_master_id: Optional[str] = None
+    employee_master_id: Optional[str] = None
 
 
 # ── Phase 3 — Fire Extinguishers ─────────────────────────────────────
@@ -103,6 +108,9 @@ class FireExtinguisherCreate(BaseModel):
     next_due_date: Optional[str] = None
     last_status: Optional[str] = "Pass"
     notes: Optional[str] = ""
+    # iter138: bind to equipment_master if this extinguisher belongs to
+    # a specific vehicle / piece of equipment (truck-mounted units)
+    equipment_master_id: Optional[str] = None
 
 
 class FireExtinguisherUpdate(BaseModel):
@@ -115,6 +123,7 @@ class FireExtinguisherUpdate(BaseModel):
     next_due_date: Optional[str] = None
     last_status: Optional[str] = None
     notes: Optional[str] = None
+    equipment_master_id: Optional[str] = None
 
 
 class FireExtinguisherInspection(BaseModel):
@@ -144,6 +153,7 @@ class TrainingRecordCreate(BaseModel):
     issued_by: Optional[str] = ""
     notes: Optional[str] = ""
     certificate_file_id: Optional[str] = None
+    employee_master_id: Optional[str] = None  # iter138
 
 
 class TrainingRecordUpdate(BaseModel):
@@ -154,3 +164,4 @@ class TrainingRecordUpdate(BaseModel):
     issued_by: Optional[str] = None
     notes: Optional[str] = None
     certificate_file_id: Optional[str] = None
+    employee_master_id: Optional[str] = None  # iter138

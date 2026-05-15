@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import JobFolderList from "@/components/JobFolderList";
+import { EmptyState } from "@/components/ui/PortalStates";
 import { api } from "@/lib/api";
 
 const KIND_LABEL = {
@@ -154,9 +155,11 @@ export default function PmQaqcList() {
         </div>
 
         {!me ? (
-          <div className="bg-white border-2 border-dashed border-slate-300 rounded-md p-10 text-center text-slate-500">
-            Pick your name above to load QA/QC records assigned to you.
-          </div>
+          <EmptyState
+            title="Pick your name to load records"
+            body="Use the dropdown above to load QA/QC records assigned to you."
+            testId="pm-qaqc-pick-me"
+          />
         ) : (
           <>
             <div className="bg-white border-2 border-slate-300 rounded-md p-4 mb-4 flex flex-wrap items-end gap-3">

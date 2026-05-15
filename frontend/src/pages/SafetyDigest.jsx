@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SafetyShell from "@/components/SafetyShell";
+import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -89,7 +90,7 @@ export default function SafetyDigest() {
 
       <h2 className="font-display text-xl font-black mb-3">{t("This week's snapshot")}</h2>
       {loading ? (
-        <div className="text-center text-slate-500 py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
+        <LoadingState label={t("Loading…")} testId="safety-digest-loading" />
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -104,10 +105,12 @@ export default function SafetyDigest() {
 
           <h3 className="font-display text-lg font-black mb-2">{t("Top open corrective actions")}</h3>
           {!preview?.payload?.top_open_corrective_actions?.length ? (
-            <div className="text-center text-slate-500 py-8 border-2 border-dashed border-slate-200 rounded-md">
-              <Mail className="w-6 h-6 mx-auto mb-1 text-slate-400" />
-              {t("Inbox-zero — no open corrective actions right now.")}
-            </div>
+            <EmptyState
+              icon={Mail}
+              title={t("Inbox zero")}
+              body={t("No open corrective actions right now.")}
+              testId="safety-digest-empty"
+            />
           ) : (
             <div className="overflow-x-auto" data-testid="safety-digest-top-list">
               <table className="w-full text-sm">

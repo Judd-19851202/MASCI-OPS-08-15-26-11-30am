@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { Button } from "@/components/ui/button";
 import HrPageShell from "@/components/HrPageShell";
 import { getHrToken } from "@/lib/hrAuth";
@@ -126,7 +127,7 @@ export default function HrSafetyRecords() {
       </div>
 
       {loading ? (
-        <div className="text-center text-slate-500 py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
+        <LoadingState label={t("Loading…")} testId="hr-safety-loading" />
       ) : (
         <Tabs defaultValue="docs">
           <TabsList>
@@ -140,9 +141,12 @@ export default function HrSafetyRecords() {
 
           <TabsContent value="docs">
             {filteredDocs.length === 0 ? (
-              <div className="text-center text-slate-500 py-8 border-2 border-dashed border-slate-200 rounded-md">
-                {t("No documents yet.")}
-              </div>
+              <EmptyState
+                icon={FolderArchive}
+                title={t("No documents yet")}
+                body={t("Documents uploaded by the Safety team appear here.")}
+                testId="hr-safety-docs-empty"
+              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="hr-safety-doc-list">
                 {filteredDocs.map((d) => (
@@ -166,9 +170,12 @@ export default function HrSafetyRecords() {
 
           <TabsContent value="training">
             {filteredTraining.length === 0 ? (
-              <div className="text-center text-slate-500 py-8 border-2 border-dashed border-slate-200 rounded-md">
-                {t("No training records yet.")}
-              </div>
+              <EmptyState
+                icon={Award}
+                title={t("No training records yet")}
+                body={t("Training records appear here as Safety enters them.")}
+                testId="hr-safety-training-empty"
+              />
             ) : (
               <div className="overflow-x-auto" data-testid="hr-safety-training-list">
                 <table className="w-full text-sm">

@@ -53,6 +53,8 @@ def register_fire_extinguisher_routes(
             "last_status": body.last_status or "Pass",
             "last_inspector_name": "",
             "notes": (body.notes or "").strip(),
+            # iter138 — link to equipment_master if specified (truck mount)
+            "equipment_master_id": (body.equipment_master_id or "").strip(),
             "inspections": [],
             "created_by_name": user.get("name") or "",
             "created_at": now,

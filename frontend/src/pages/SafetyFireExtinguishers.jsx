@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import SafetyShell from "@/components/SafetyShell";
 import SafetyFireExtManageDialog from "@/components/SafetyFireExtManageDialog";
+import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
@@ -49,6 +50,8 @@ const blank = () => ({
   type: "ABC", size: "10 lb",
   last_inspection_date: "", next_due_date: "",
   last_status: "Pass", notes: "",
+  // iter138 — link this extinguisher to a specific master equipment unit
+  equipment_master_id: "", equipment_master_label: "",
 });
 
 const inspectBlank = () => ({
@@ -179,7 +182,7 @@ export default function SafetyFireExtinguishers() {
         <p className="text-slate-600 text-sm max-w-2xl leading-relaxed">
           {t("Track every fire extinguisher unit across trucks, jobsites, and facilities. Monthly inspections push status + next-due date + the inspection log automatically.")}
         </p>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex flex-wrap gap-2 shrink-0">
           <Button onClick={() => nav("/safety-portal/fire-extinguishers/import")} variant="outline" className="border-2 border-slate-300 font-bold uppercase tracking-wide h-11" data-testid="safety-fe-bulk-import">
             <Upload className="w-4 h-4 mr-1" /> {t("Bulk Import")}
           </Button>
@@ -325,6 +328,27 @@ export default function SafetyFireExtinguishers() {
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Notes")}</Label>
               <Textarea value={editDlg.form.notes} onChange={(e) => setEditDlg((d) => ({ ...d, form: { ...d.form, notes: e.target.value } }))} className="text-sm border-2 border-slate-300 mt-1" rows={2} />
+            </div>
+            {/* iter138 — link to a specific master equipment unit (truck mount) */}
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Linked equipment (optional)")}</Label>
+              <div className="mt-1">
+                <MasterLookupCombobox
+                  kind="equipment"
+                  value={editDlg.form.equipment_master_id}
+                  displayValue={editDlg.form.equipment_master_label}
+                  onPick={(item) => setEditDlg((d) => ({
+                    ...d,
+                    form: { ...d.form, equipment_master_id: item.id, equipment_master_label: item.label },
+                  }))}
+                  onClear={() => setEditDlg((d) => ({
+                    ...d,
+                    form: { ...d.form, equipment_master_id: "", equipment_master_label: "" },
+                  }))}
+                  placeholder={t("Truck or yard unit this extinguisher is assigned to")}
+                  testIdPrefix="safety-fe-form-equipment"
+                />
+              </div>
             </div>
           </div>
           <DialogFooter className="pt-3 gap-2">
