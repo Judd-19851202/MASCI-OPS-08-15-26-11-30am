@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, ListChecks, Loader2 } from "lucide-react";
+import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -237,6 +237,17 @@ export default function FieldLeadershipHub() {
           <div className="flex items-center gap-2">
             <LangToggle />
             <CompanyInfoDialog />
+            <Button
+              asChild
+              variant="outline"
+              className="h-10 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-indigo-400 hover:text-white text-xs font-bold uppercase tracking-wide"
+              data-testid="leadership-training-link"
+            >
+              <Link to="/ops-training?portal=field">
+                <BookOpen className="w-3.5 h-3.5 mr-1" />
+                {t("Guides")}
+              </Link>
+            </Button>
             <Button
               asChild
               variant="outline"

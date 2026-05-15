@@ -8171,6 +8171,12 @@ _require_safety = make_require_safety_token(db)
 app.include_router(build_fire_import_router(db, _require_safety))
 
 
+# ─── Training Center — system-wide operator guides (iter134) ────────
+from routes.training_center import build_training_center_router  # noqa: E402
+
+app.include_router(build_training_center_router(db, require_admin))
+
+
 # ─── Integration Center (Motive + MaintainX framework — iter122) ───
 from routes.integrations import (  # noqa: E402
     build_integrations_router,

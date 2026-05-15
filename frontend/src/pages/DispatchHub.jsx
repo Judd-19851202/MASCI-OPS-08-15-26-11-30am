@@ -5,7 +5,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
-  Truck, Send, ShieldAlert, Activity, LogOut, Clock, Home, ArrowLeft, Plug,
+  Truck, Send, ShieldAlert, Activity, LogOut, Clock, Home, ArrowLeft, Plug, BookOpen,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,14 @@ export default function DispatchHub() {
             </div>
           </div>
           <PortalSwitcher current="dispatch" />
+          <Link
+            to="/ops-training?portal=dispatch"
+            className="inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
+            data-testid="dispatch-training-link"
+          >
+            <BookOpen className="w-3.5 h-3.5 sm:mr-1" />
+            <span className="hidden sm:inline">Guides</span>
+          </Link>
           <Button
             variant="outline"
             size="sm"

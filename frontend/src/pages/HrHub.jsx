@@ -2,7 +2,7 @@
 // Employee Accountability · Time Verification · Training Records.
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck, Calculator, CalendarOff, KeyRound, Home, ArrowLeft } from "lucide-react";
+import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck, Calculator, CalendarOff, KeyRound, Home, ArrowLeft, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -38,6 +38,9 @@ const TILES = [
   { to: "/hr/safety-records", icon: ShieldCheck, label: "Safety Records",
     desc: "Read-only · safety document library (OSHA, SDS, EAPs) and per-employee training & certifications maintained by Safety",
     accent: "border-cyan-700 bg-cyan-50", btn: "bg-cyan-700 hover:bg-cyan-800" },
+  { to: "/ops-training?portal=hr", icon: BookOpen, label: "Training Center & Guides",
+    desc: "Step-by-step operator guides for the HR Portal · onboarding · payroll · cross-portal safety access · downloadable PDFs",
+    accent: "border-indigo-500 bg-indigo-50", btn: "bg-indigo-700 hover:bg-indigo-800" },
 ];
 
 export default function HrHub() {

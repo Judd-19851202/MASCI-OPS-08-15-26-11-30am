@@ -1,0 +1,54 @@
+{
+  "summary": "Iter134 — Training Center + Fire Ext Bulk Import. Backend: 17/17 pytest cases passing on /app/backend/tests/test_iter134_training_center.py covering Training Center portals/list/single/PDF/admin-gates/CRUD and Fire-Ext Bulk Import template/preview/commit/history/auth-gates. Frontend: /ops-training renders 16 tiles + 9 portal filters + working search ('bulk import' narrows to 1); single guide page /ops-training/safety-fire-ext-bulk-import renders full sections with callouts; PDF API returns valid 16.7KB application/pdf bytes with %PDF magic header. Found one real backend bug: training_center._seed_if_empty() is not idempotent on guide-list expansion.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/training-center/portals (and /guides)",
+        "issue": "_seed_if_empty() only seeds when collection is completely empty. When DEFAULT_GUIDES is expanded post-deploy (e.g., the new safety-fire-ext-bulk-import guide added this iter), the new defaults are NEVER seeded automatically. Production was sitting at 15 guides (missing the bulk-import guide) until I manually called POST /seed?reset=true with admin token. The user-facing PDF download and the link from SafetyFireExtImport will 404 in any environment that was seeded before iter134."
+      },
+      {
+        "endpoint": "POST /api/training-center/guide",
+        "issue": "Pydantic body validation appears to run before/in-parallel-with the require_admin dependency in FastAPI — anonymous POST with an invalid body (e.g., slug pattern mismatch) returns 422 instead of 401. Minor — anonymous POST with a valid body correctly returns 401. Not a security issue."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "/ops-training and /ops-training/:slug",
+        "issues": [
+          "Missing data-testid attributes on guide tiles, portal filter buttons, PDF download button, and search input. Tests had to fall back to text/href selectors. Recommend adding data-testid=\"ops-training-tile-<slug>\", data-testid=\"ops-training-portal-<key>\", data-testid=\"ops-training-search\", data-testid=\"ops-guide-pdf-btn\" for stable future automation."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter134_training_center.py",
+    "/app/test_reports/pytest/iter134_results.xml"
+  ],
+  "action_items": [
+    "FIX (BACKEND): Make /api/training-center _seed_if_empty() idempotent on guide-list expansion. Suggested: iterate DEFAULT_GUIDES and upsert any default slug that is missing from the collection (still preserving any admin-edited content). Alternative: hash DEFAULT_GUIDES slug-set and reseed when hash changes. As-is, every new default guide added in code requires manual POST /api/training-center/seed?reset=true by an admin to surface, which the user/QA can easily miss.",
+    "ADD (FRONTEND): data-testid attributes on /ops-training tiles, portal filter chips, search input, and the PDF download button on /ops-training/:slug — improves test stability and aligns with the rest of the platform's conventions."
+  ],
+  "critical_code_review_comments": [
+    "training_center.py:388 — _seed_if_empty bails on count>0; needs slug-level reconcile, not collection-empty check.",
+    "training_center.py POST /guide — consider moving Pydantic body fields to a Depends() pattern or adding explicit auth check inside the handler so 401 always precedes 422 for unauthenticated callers.",
+    "fire_ext_bulk_import.py preview/commit flow is solid; duplicate-detection by Extinguisher-ID → Serial → Truck+Location works correctly and second-pass preview correctly flags 'update' for already-committed rows."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter134_training_center.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (17/17)",
+    "frontend": "100% (all manual UI checks passed)"
+  },
+  "test_credentials": "Admin: jaymn.judd@mascigc.com / Maddix123! (POST /api/auth/multi-login → portal_tokens.admin). Safety: safety@mascigc.com / Safety123! (POST /api/safety/login → token).",
+  "seed_data_creation": "Test created and removed: training_guides slug 'test-iter134-guide' (admin CRUD cycle). Test fire_extinguishers inserted: 'TEST_FE_iter134_A' and 'TEST_FE_iter134_B' with serials TEST_SER_A/B and trucks TEST_TRUCK_A/B — leftover in db.fire_extinguishers. db.fire_ext_import_runs has TEST run rows from the preview/commit test (run names contain 'iter134' in filename).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Main bug is the non-idempotent training-guide seeder. Once main agent fixes _seed_if_empty (or adds a slug-level reconcile call), simply hitting GET /api/training-center/portals should resurrect any missing default slugs without needing reset=true. Re-run /app/backend/tests/test_iter134_training_center.py to confirm. Conftest auto-attaches X-Admin-Token — see TestTrainingCenterAdminGate._NO_AUTH override pattern for how to test auth-gated endpoints anonymously. Leftover TEST_FE_iter134_* rows can be deleted via the bulk fire-extinguisher delete endpoint or admin tools.",
+  "rca of the issue": "ROOT CAUSE — training_center.py defines DEFAULT_GUIDES (currently 16 entries). build_training_center_router calls _seed_if_empty() which only inserts when count_documents({}) == 0. The first deploy seeded 15 guides; the safety-fire-ext-bulk-import guide was added to DEFAULT_GUIDES afterward, but the seeder never re-fires because the collection is no longer empty. As a result, /api/training-center/guide/safety-fire-ext-bulk-import returns 404, /api/training-center/guide/safety-fire-ext-bulk-import/pdf returns 404, and /ops-training/safety-fire-ext-bulk-import shows 'Guide not found'. Mitigation: rewrite _seed_if_empty to: 1) load all default slugs, 2) query existing slugs, 3) insert (or upsert) the diff. Preserve is_default=True flag and admin-edited overrides. After fix, no admin reset call should be required for new defaults to appear."
+}

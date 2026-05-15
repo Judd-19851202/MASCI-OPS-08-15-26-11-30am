@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Wrench, Eye, AlertOctagon, Loader2, LogOut, Truck, KeyRound } from "lucide-react";
+import { ArrowLeft, Wrench, Eye, AlertOctagon, Loader2, LogOut, Truck, KeyRound, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
@@ -93,6 +93,14 @@ export default function ShopHub() {
           <div className="flex items-center gap-2">
             <PortalSwitcher current="shop" />
             <LangToggle />
+            <Link
+              to="/ops-training?portal=shop"
+              className="inline-flex items-center h-10 px-3 rounded-md border-2 border-amber-400 text-amber-400 hover:bg-amber-500 hover:text-white bg-transparent font-bold uppercase tracking-wide text-xs"
+              data-testid="shop-training-link"
+            >
+              <BookOpen className="w-4 h-4 sm:mr-1" />
+              <span className="hidden sm:inline">{t("Guides")}</span>
+            </Link>
             {me && (
               <Button
                 onClick={() => navigate("/shop/change-password")}

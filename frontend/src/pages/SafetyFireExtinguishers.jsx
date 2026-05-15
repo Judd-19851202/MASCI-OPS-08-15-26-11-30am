@@ -3,10 +3,11 @@
 // inspection POSTs to /inspect which auto-stamps last_inspection_date,
 // last_status, next_due_date, and pushes the entry into inspections[].
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Flame, Plus, Loader2, ClipboardCheck, AlertTriangle,
-  Pencil, Trash2, Save, X,
+  Pencil, Trash2, Save, X, Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +61,7 @@ function isOverdue(fe) {
 
 export default function SafetyFireExtinguishers() {
   const { t } = useT();
+  const nav = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("All");
@@ -174,9 +176,14 @@ export default function SafetyFireExtinguishers() {
         <p className="text-slate-600 text-sm max-w-2xl leading-relaxed">
           {t("Track every fire extinguisher unit across trucks, jobsites, and facilities. Monthly inspections push status + next-due date + the inspection log automatically.")}
         </p>
-        <Button onClick={openCreate} className="bg-cyan-700 hover:bg-cyan-800 text-white border-b-2 border-cyan-900 font-bold uppercase tracking-wide h-11 shrink-0" data-testid="safety-fe-new">
-          <Plus className="w-4 h-4 mr-1" /> {t("Add Extinguisher")}
-        </Button>
+        <div className="flex gap-2 shrink-0">
+          <Button onClick={() => nav("/safety-portal/fire-extinguishers/import")} variant="outline" className="border-2 border-slate-300 font-bold uppercase tracking-wide h-11" data-testid="safety-fe-bulk-import">
+            <Upload className="w-4 h-4 mr-1" /> {t("Bulk Import")}
+          </Button>
+          <Button onClick={openCreate} className="bg-cyan-700 hover:bg-cyan-800 text-white border-b-2 border-cyan-900 font-bold uppercase tracking-wide h-11" data-testid="safety-fe-new">
+            <Plus className="w-4 h-4 mr-1" /> {t("Add Extinguisher")}
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4 border-b-2 border-slate-200 pb-3">

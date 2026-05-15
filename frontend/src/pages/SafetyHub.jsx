@@ -7,7 +7,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   ShieldAlert, AlertOctagon, ClipboardCheck, Users, FileText,
-  Award, Flame, FolderArchive, BarChart3, Loader2, Mail,
+  Award, Flame, FolderArchive, BarChart3, Loader2, Mail, GraduationCap,
 } from "lucide-react";
 import { SectionTile } from "@/components/SectionTile";
 import SafetyShell from "@/components/SafetyShell";
@@ -198,6 +198,15 @@ export default function SafetyHub() {
           accent="purple"
           ctaLabel={t("Open")}
           testId="safety-tile-reports"
+        />
+        <SectionTile
+          to="/ops-training?portal=safety"
+          icon={GraduationCap}
+          title={t("Training Center & Guides")}
+          desc={t("Step-by-step operator guides for Safety Portal workflows — Corrective Actions, Incidents, Fire Extinguisher Bulk Import, Weekly Digest. Download any guide as PDF.")}
+          accent="indigo"
+          ctaLabel={t("Open")}
+          testId="safety-tile-training-center"
         />
         <SectionTile
           to="/safety-portal/change-password"

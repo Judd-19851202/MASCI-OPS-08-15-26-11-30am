@@ -100,6 +100,7 @@ import SafetyForgotPassword from "@/pages/SafetyForgotPassword";
 import SafetyResetPassword from "@/pages/SafetyResetPassword";
 import SafetyCorrectiveActions from "@/pages/SafetyCorrectiveActions";
 import SafetyFireExtinguishers from "@/pages/SafetyFireExtinguishers";
+import SafetyFireExtImport from "@/pages/SafetyFireExtImport";
 import SafetyDocuments from "@/pages/SafetyDocuments";
 import SafetyTrainingRecords from "@/pages/SafetyTrainingRecords";
 import SafetyEmployeeProfiles from "@/pages/SafetyEmployeeProfiles";
@@ -109,6 +110,8 @@ import SafetyAudits from "@/pages/SafetyAudits";
 import SafetyReports from "@/pages/SafetyReports";
 import HrSafetyRecords from "@/pages/HrSafetyRecords";
 import TrainingHub from "@/pages/TrainingHub";
+import OpsTrainingCenter from "@/pages/OpsTrainingCenter";
+import OpsTrainingGuide from "@/pages/OpsTrainingGuide";
 import TrainingTrack from "@/pages/TrainingTrack";
 import TrainingQrPoster from "@/pages/TrainingQrPoster";
 import TrainingPacketDownload from "@/pages/TrainingPacketDownload";
@@ -425,6 +428,7 @@ function App() {
             <Route path="/safety-portal" element={SF(<SafetyHub />)} />
             <Route path="/safety-portal/corrective-actions" element={SF(<SafetyCorrectiveActions />)} />
             <Route path="/safety-portal/fire-extinguishers" element={SF(<SafetyFireExtinguishers />)} />
+            <Route path="/safety-portal/fire-extinguishers/import" element={SF(<SafetyFireExtImport />)} />
             <Route path="/safety-portal/documents" element={SF(<SafetyDocuments />)} />
             <Route path="/safety-portal/training" element={SF(<SafetyTrainingRecords />)} />
             <Route path="/safety-portal/incidents" element={SF(<SafetyIncidents />)} />
@@ -457,6 +461,14 @@ function App() {
             <Route path="/training/:track/poster" element={<TrainingQrPoster />} />
             <Route path="/training/:track/packet" element={<TrainingPacketDownload />} />
             <Route path="/admin/training-videos" element={A(<AdminTrainingVideos />)} />
+
+            {/* ============================================================
+                Operations Training Center — system-wide operator guides
+                (distinct from /training which is field-worker tracks).
+                Public-read so any user in any portal can reach it.
+                ============================================================ */}
+            <Route path="/ops-training" element={<OpsTrainingCenter />} />
+            <Route path="/ops-training/:slug" element={<OpsTrainingGuide />} />
 
             {/* ============================================================
                 Developer Portal — ForgedOps™ vendor-internal only.
