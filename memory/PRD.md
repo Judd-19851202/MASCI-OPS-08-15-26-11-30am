@@ -17,6 +17,36 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter139: Incident Form Typeahead + Label Auto-Resolve + CA Filtering + Fire Ext Auto-Suggest
+
+### User ask
+Four enhancements on the master-lookup foundation: (1) wire typeahead into the public Incident submission form; (2) resolve labels on edit re-open via a new lookup-by-id helper; (3) filter the CA list by linked equipment/employee; (4) auto-suggest master equipment from the Fire Ext truck location field.
+
+### Shipped
+
+**(1) Incident form master bindings**
+- `pages/NewIncident.jsx` — added two `MasterLookupCombobox` blocks: "Link to MASCI Employee" in Section 03 (auto-prefills `person_name` if blank), and "Equipment involved (optional)" after Contributing Factors.
+- `lib/incidentSchema.js` — defaults include `employee_master_id` / `equipment_master_id` (+ display labels).
+- Submit handler strips FE-only `*_label` fields; persists IDs only.
+- **Coverage on incidents jumped 0% → 20%** after one bound submission.
+
+**(2) Label auto-resolve on edit re-open**
+- New backend endpoints: `GET /api/master-lookup/{equipment|employees}/by-id/{id}` — return canonical record (or `{found:false}` for orphans).
+- `MasterLookupCombobox` now fires a one-shot effect when bound `value` exists but `displayValue` is empty, populating the freetext display so users see what's linked when reopening saved records.
+
+**(3) CA list filter by linked master**
+- Backend `GET /api/safety/corrective-actions` accepts `equipment_master_id` + `employee_master_id` query params.
+- `SafetyCorrectiveActions.jsx` — two filter combobox blocks above the existing tabs; changing either triggers a refresh; clear restores all.
+
+**(4) Fire Ext auto-suggest from truck location**
+- `SafetyFireExtinguishers.jsx` — when `location_kind='truck'` and operator types an EXACT `unit_number` match in `equipment_master`, the dialog auto-binds `equipment_master_id` after a 350ms debounce. Partial matches don't bind. Eliminates one click on every new truck-mounted unit.
+
+### Testing
+- 14/14 backend pytest passing; 0 critical, 0 minor issues.
+- Frontend UI inspections confirm typeaheads + filters render and bind correctly.
+- Live curl confirmed: lookup-by-id returns canonical doc; incident POST with master IDs persists them; CA filter returns only the 1 bound record.
+
+---
 ## 2026-05-15 — Iter138: Typeahead Wired into Create Forms · Visual Unification Long-Tail · 1px Mobile Cleanup
 
 ### User ask
