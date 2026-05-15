@@ -39,6 +39,10 @@ def build_master_lookup_router(db, require_admin: Callable) -> APIRouter:
     from routes.master_where_used import register_where_used_routes  # noqa: PLC0415
     register_where_used_routes(router, db)
 
+    # iter141 — chronological history timeline + CSV/PDF export
+    from routes.master_history import register_history_routes  # noqa: PLC0415
+    register_history_routes(router, db)
+
     # ── Equipment typeahead ──────────────────────────────────────
     @router.get("/equipment")
     async def lookup_equipment(

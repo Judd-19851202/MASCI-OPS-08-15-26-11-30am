@@ -37,6 +37,7 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import WhereUsedPanel from "@/components/WhereUsedPanel";
+import AssetHistoryTimeline from "@/components/AssetHistoryTimeline";
 
 /**
  * EquipmentMasterPanel — manage the MASCI equipment fleet.
@@ -714,6 +715,21 @@ export default function EquipmentMasterPanel() {
           {editing?.id && (
             <div className="mt-5 pt-5 border-t-2 border-slate-200">
               <WhereUsedPanel kind="equipment" masterId={editing.id} />
+            </div>
+          )}
+          {/* iter141 — Chronological history timeline (compact) */}
+          {editing?.id && (
+            <div className="mt-4">
+              <div className="flex items-center justify-end mb-2">
+                <Link
+                  to={`/admin/equipment/${editing.id}/history`}
+                  className="text-xs font-mono uppercase tracking-[0.15em] text-cyan-800 hover:underline flex items-center gap-1"
+                  data-testid="eq-history-fullpage-link"
+                >
+                  Open full history <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+              <AssetHistoryTimeline kind="equipment" masterId={editing.id} compact limit={10} />
             </div>
           )}
         </DialogContent>

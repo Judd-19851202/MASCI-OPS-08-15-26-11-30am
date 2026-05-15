@@ -13,6 +13,9 @@ import { Input } from "@/components/ui/input";
 import SafetyShell from "@/components/SafetyShell";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import WhereUsedPanel from "@/components/WhereUsedPanel";
+import AssetHistoryTimeline from "@/components/AssetHistoryTimeline";
+import { Link } from "react-router-dom";
+import { ExternalLink } from "lucide-react";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -153,6 +156,20 @@ export default function SafetyEmployeeProfiles() {
             {/* iter140 — Cross-portal footprint (incidents, CAs, training) */}
             <div className="mt-6">
               <WhereUsedPanel kind="employee" masterId={selected} />
+            </div>
+
+            {/* iter141 — Chronological history timeline (compact) */}
+            <div className="mt-4">
+              <div className="flex items-center justify-end mb-2">
+                <Link
+                  to={`/admin/employees/${selected}/history`}
+                  className="text-xs font-mono uppercase tracking-[0.15em] text-cyan-800 hover:underline flex items-center gap-1"
+                  data-testid="safety-emp-history-fullpage-link"
+                >
+                  {t("Open full history")} <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+              <AssetHistoryTimeline kind="employee" masterId={selected} compact limit={10} />
             </div>
           </>
         )}

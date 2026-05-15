@@ -77,6 +77,7 @@ import AdminDigestConfig from "@/pages/admin/AdminDigestConfig";
 import SystemHealth from "@/pages/admin/SystemHealth";
 import AdminAuditLog from "@/pages/admin/AdminAuditLog";
 import DeployRecovery from "@/pages/admin/DeployRecovery";
+import AdminMasterHistory from "@/pages/admin/AdminMasterHistory";
 import HrHub from "@/pages/HrHub";
 import HrChangePassword from "@/pages/HrChangePassword";
 import HrResetPassword from "@/pages/HrResetPassword";
@@ -295,6 +296,8 @@ function App() {
             <Route path="/admin/audit-log" element={A(<AdminAuditLog />)} />
             <Route path="/admin/deploy-recovery" element={A(<DeployRecovery />)} />
             <Route path="/admin/assets/:assetId" element={A(<AssetProfile />)} />
+            <Route path="/admin/equipment/:id/history" element={A(<AdminMasterHistory kind="equipment" />)} />
+            <Route path="/admin/employees/:id/history" element={A(<AdminMasterHistory kind="employee" />)} />
             <Route path="/admin/leadership-equipment" element={A(<AdminLeadershipEquipment />)} />
             <Route path="/admin/terminations" element={A(<AdminTerminations />)} />
             <Route path="/admin/guide" element={A(<AdminGuide />)} />
