@@ -28,6 +28,11 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
+try:  # Surface missing dep at app start, not at first PDF request.
+    from weasyprint import HTML as _WeasyHTML  # type: ignore
+except ImportError:  # pragma: no cover — handled at endpoint
+    _WeasyHTML = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -451,6 +456,11 @@ def register_history_routes(router: APIRouter, db) -> None:
         )
 
     # ── PDF ───────────────────────────────────────────────────────
+    def _write_pdf(html: str) -> bytes:
+        if _WeasyHTML is None:
+            raise HTTPException(500, "weasyprint not installed")
+        return _WeasyHTML(string=html).write_pdf()
+
     @router.get("/equipment/{master_id}/history.pdf")
     async def equipment_history_pdf(master_id: str):
         master, feed = await _equipment_payload(master_id)
@@ -465,11 +475,7 @@ def register_history_routes(router: APIRouter, db) -> None:
             kicker="SAFETY · ASSET HISTORY",
             title=f"Asset History — {master.get('unit_number') or master_id}",
         )
-        try:
-            from weasyprint import HTML  # noqa: PLC0415
-        except ImportError as e:
-            raise HTTPException(500, f"weasyprint missing: {e}") from e
-        pdf_bytes = HTML(string=html).write_pdf()
+        pdf_bytes = _write_pdf(html)
         fname = f"asset-history-{master.get('unit_number') or master_id}.pdf"
         return StreamingResponse(
             io.BytesIO(pdf_bytes), media_type="application/pdf",
@@ -491,11 +497,7 @@ def register_history_routes(router: APIRouter, db) -> None:
             kicker="HR · EMPLOYEE HISTORY",
             title=f"Employee History — {name}",
         )
-        try:
-            from weasyprint import HTML  # noqa: PLC0415
-        except ImportError as e:
-            raise HTTPException(500, f"weasyprint missing: {e}") from e
-        pdf_bytes = HTML(string=html).write_pdf()
+        pdf_bytes = _write_pdf(html)
         fname = f"employee-history-{(name or 'employee').replace(' ', '_')}.pdf"
         return StreamingResponse(
             io.BytesIO(pdf_bytes), media_type="application/pdf",

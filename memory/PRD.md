@@ -17,6 +17,24 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter141: Asset / Employee History Timeline (OSHA / Insurance audit trail)
+
+### User ask
+P1 next from iter140: chronological merged feed for one master id — inspections + incidents + CAs + fire-ext events + operations events + HR field-leadership records. User-chosen scope: equipment + employee, all sources, both compact + full-page surfaces, CSV + branded PDF export.
+
+### Shipped
+- **Backend** `routes/master_history.py` NEW — JSON / CSV / branded-PDF endpoints at `/api/master-lookup/{equipment|employees}/{id}/history[.csv|.pdf]`. WeasyPrint imported at module scope (fails at app start if missing, not at first download).
+- 7-kind unified event schema with per-kind weights for tie-breaking; flat list sorted newest-first; per-kind summary chips; mocked MaintainX work-order subtitle flag where `operations_events.linked_maintainx_work_order_id` is set.
+- HR field_leadership_records included on the employee feed via case-insensitive `^name$` regex match (best-effort fallback since FL records key by name).
+- **Frontend** `components/AssetHistoryTimeline.jsx` NEW — vertical rail timeline with kind icons, color-coded dots, status / severity chips, deep-link per row, compact + limit props.
+- **Frontend** `pages/admin/AdminMasterHistory.jsx` NEW — single component drives both `kind="equipment"` and `kind="employee"` full-page routes. Routes added at `/admin/equipment/:id/history` and `/admin/employees/:id/history`. Each page has an Export CSV (emerald) and Export PDF (red) button.
+- **Frontend** Equipment Master edit dialog + Safety Employee Profile both render the compact timeline (limit 10) below the iter140 WhereUsedPanel plus an "Open full history" link to the dedicated route.
+
+### Testing
+- 12/12 backend pytest + 4/4 frontend flows — zero issues (`/app/test_reports/iteration_141.json`).
+- WeasyPrint refactor verified post-test: PDF still has `%PDF-1.7` magic bytes; JSON history still serves 3 events for FBT-1476.
+
+---
 ## 2026-05-15 — Iter140: Cross-Portal Footprint UI + Global Search Master Enrichment
 
 ### User ask
