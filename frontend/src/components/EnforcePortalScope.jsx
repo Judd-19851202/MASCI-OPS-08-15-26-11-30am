@@ -9,34 +9,35 @@ import { clearDispatchToken, getDispatchToken } from "@/lib/dispatchAuth";
 import { getDirectoryUser } from "@/lib/directoryAuth";
 
 /**
- * EnforcePortalScope — auto-logout when an authenticated SINGLE-portal
- * user navigates AWAY from their portal's URL namespace.
+ * EnforcePortalScope — controlled token cleanup as the user navigates.
  *
- * Iter86 update — multi-portal awareness:
- *   When the user signed in through /sign-in (the master directory),
- *   their localStorage contains a `masci.directory.user` record with a
- *   `portals` array. Tokens for portals listed in that array are NEVER
- *   wiped while navigating between portals — that's the whole point of
- *   the master sign-in. Only tokens for portals NOT in the directory
- *   portals array (or single-portal direct-login sessions) follow the
- *   original sandbox rule.
+ * Iter149 revision (Phase 2.5 — role/permission refinement):
+ *   The previous policy cleared a portal token the moment the user
+ *   left that portal's URL namespace. That was too aggressive — it
+ *   stranded users on AccessDenied pages (because their "home portal"
+ *   token was wiped during the cross-portal nav). It also made the
+ *   "switch portals" experience hostile.
  *
- * Original sandbox rule (still applies to non-directory sessions):
- *   • Admin token is cleared when pathname leaves `/admin/*`.
- *   • PM token is cleared when pathname leaves `/pm/*`.
- *   • Shop token is cleared when pathname leaves `/shop/*`.
- *   • HR token is cleared when pathname leaves `/hr/*`.
+ *   New policy: clear a portal's token ONLY when the user explicitly
+ *   navigates to a DIFFERENT portal's LOGIN page (a strong signal that
+ *   they intend to sign into something else). Anything else preserves
+ *   the token so:
+ *     • Cross-portal AccessDenied can render with a valid "Back to
+ *       your portal" CTA.
+ *     • The Hub home WelcomeBack strip stays accurate.
+ *     • Refresh / browser back stops randomly logging users out.
  *
- * Multi-audience exemptions (apply regardless of directory status):
- *   • `/training/*` — shared training surface
- *   • `/` — Hub home; serves the WelcomeBack strip
+ *   Multi-portal directory sessions still bypass clearing — same as
+ *   the prior implementation.
  */
-function inScope(pathname, prefix) {
-  if (pathname === prefix || pathname.startsWith(`${prefix}/`)) return true;
-  if (pathname === "/training" || pathname.startsWith("/training/")) return true;
-  if (pathname === "/") return true;
-  return false;
-}
+const LOGIN_PATHS = {
+  admin: "/admin/login",
+  pm: "/pm/login",
+  shop: "/shop/login",
+  hr: "/hr/login",
+  safety: "/safety-portal/login",
+  dispatch: "/dispatch-portal/login",
+};
 
 function authorizedPortals() {
   // Returns the array of portals the master-directory session authorizes,
@@ -58,23 +59,30 @@ export default function EnforcePortalScope() {
     const dirPortals = authorizedPortals();
     const dirHas = (p) => Array.isArray(dirPortals) && dirPortals.includes(p);
 
-    if (getAdminToken() && !inScope(pathname, "/admin") && !dirHas("admin")) {
-      clearAdminToken();
-    }
-    if (getPmToken() && !inScope(pathname, "/pm") && !dirHas("pm")) {
-      clearPmToken();
-    }
-    if (getShopToken() && !inScope(pathname, "/shop") && !dirHas("shop")) {
-      clearShopToken();
-    }
-    if (getHrToken() && !inScope(pathname, "/hr") && !dirHas("hr")) {
-      clearHrToken();
-    }
-    if (getSafetyToken() && !inScope(pathname, "/safety-portal") && !dirHas("safety")) {
-      clearSafetyToken();
-    }
-    if (getDispatchToken() && !inScope(pathname, "/dispatch-portal") && !dirHas("dispatch")) {
-      clearDispatchToken();
+    // Only clear when the user lands on a DIFFERENT portal's login
+    // page — a clean "I'm signing into something else" intent. Any
+    // other navigation (cross-portal browsing, hub home, deep links,
+    // refresh, drilling into shared docs) preserves the existing
+    // portal token so AccessDenied can render the correct "back to
+    // your portal" CTA.
+    const PAIRS = [
+      { has: getAdminToken,    clear: clearAdminToken,    own: "admin"    },
+      { has: getPmToken,       clear: clearPmToken,       own: "pm"       },
+      { has: getShopToken,     clear: clearShopToken,     own: "shop"     },
+      { has: getHrToken,       clear: clearHrToken,       own: "hr"       },
+      { has: getSafetyToken,   clear: clearSafetyToken,   own: "safety"   },
+      { has: getDispatchToken, clear: clearDispatchToken, own: "dispatch" },
+    ];
+
+    for (const { has, clear, own } of PAIRS) {
+      if (!has()) continue;
+      if (dirHas(own)) continue;
+      // Is the current path a login page belonging to a portal OTHER
+      // than `own`? If so, the user is explicitly signing in
+      // somewhere else — clear the old token.
+      const isOtherLogin = Object.entries(LOGIN_PATHS)
+        .some(([portal, path]) => portal !== own && pathname === path);
+      if (isOtherLogin) clear();
     }
   }, [pathname]);
 
