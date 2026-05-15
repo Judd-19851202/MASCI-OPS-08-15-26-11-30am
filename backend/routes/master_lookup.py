@@ -35,6 +35,9 @@ def _safe_regex(q: str) -> Dict[str, Any]:
 
 def build_master_lookup_router(db, require_admin: Callable) -> APIRouter:
     router = APIRouter(prefix="/api/master-lookup", tags=["master-lookup"])
+    # iter140 — where-used aggregator (cross-portal footprint)
+    from routes.master_where_used import register_where_used_routes  # noqa: PLC0415
+    register_where_used_routes(router, db)
 
     # ── Equipment typeahead ──────────────────────────────────────
     @router.get("/equipment")

@@ -165,6 +165,52 @@ def build_deploy_readiness_router(db, require_admin: Callable) -> APIRouter:
                 "severity": "info", "passed": passed,
                 "detail": f"{n} guides in db.training_guides"}
 
+    async def _check_master_coverage() -> Dict[str, Any]:
+        """iter140 — cross-portal master-binding coverage rollup.
+        Pass if every collection that COULD bind to a master has >=50%
+        coverage. Warn otherwise."""
+        from routes.master_where_used import EQUIPMENT_REFS, EMPLOYEE_REFS  # noqa: PLC0415
+        worst_pct = 100
+        worst_name = ""
+        gaps: list[str] = []
+        for coll_name, _proj, _fmt, _route in EQUIPMENT_REFS:
+            try:
+                total = await db[coll_name].count_documents({})
+                if total == 0:
+                    continue
+                bound = await db[coll_name].count_documents(
+                    {"equipment_master_id": {"$exists": True, "$ne": ""}},
+                )
+                pct = int(100 * bound / total)
+                if pct < 50:
+                    gaps.append(f"{coll_name} eq {pct}%")
+                if pct < worst_pct:
+                    worst_pct, worst_name = pct, f"{coll_name}.equipment"
+            except Exception:  # noqa: BLE001
+                pass
+        for coll_name, _proj, _fmt, _route in EMPLOYEE_REFS:
+            try:
+                total = await db[coll_name].count_documents({})
+                if total == 0:
+                    continue
+                bound = await db[coll_name].count_documents(
+                    {"employee_master_id": {"$exists": True, "$ne": ""}},
+                )
+                pct = int(100 * bound / total)
+                if pct < 50:
+                    gaps.append(f"{coll_name} emp {pct}%")
+                if pct < worst_pct:
+                    worst_pct, worst_name = pct, f"{coll_name}.employee"
+            except Exception:  # noqa: BLE001
+                pass
+        passed = worst_pct >= 50
+        if not gaps:
+            detail = "All cross-portal collections ≥50% bound to master records"
+        else:
+            detail = f"Worst: {worst_name} at {worst_pct}% · gaps: " + ", ".join(gaps[:5])
+        return {"id": "master_coverage", "label": "Cross-portal master-binding coverage",
+                "severity": "warn", "passed": passed, "detail": detail}
+
     async def _check_default_admin() -> Dict[str, Any]:
         """If MASCI1982! still works as the admin password in prod, that's
         a deploy blocker. We can't actually test the password from here
@@ -199,7 +245,8 @@ def build_deploy_readiness_router(db, require_admin: Callable) -> APIRouter:
             _check_critical_indexes, _check_ttl_indexes,
             _check_r2, _check_resend,
             _check_integration_errors, _check_r2_degraded,
-            _check_training_seed, _check_default_admin,
+            _check_training_seed, _check_master_coverage,
+            _check_default_admin,
         ]:
             try:
                 checks.append(await c())
