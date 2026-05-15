@@ -17,6 +17,42 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter136: Phase-1 Iter B/C/D — Design Tokens · Shared PDF Chrome · Deploy Readiness · Hot Indexes
+
+### User ask
+Execute Iters B, C, D back-to-back: UX/UI + Mobile, Exports/PDF + Training + Data Relationships, Integrations + Performance + Health + Deploy.
+
+### Shipped
+
+**🎨 Iter B — UX/UI + Mobile (pragmatic scope)**
+- `frontend/src/styles/portal-system.css` NEW — per-portal accent variables (admin-red, safety-cyan, hr-purple, dispatch-amber, shop-orange, pm-emerald, field-slate, training-indigo), spacing tokens, status colors, shared `.ux-empty` / `.ux-loading` / `.ux-error` utility classes, mobile-safe `.ux-table-wrap` and `.ux-touch` 44 px guideline. Imported once from `index.css`.
+- `frontend/src/components/ui/PortalStates.jsx` NEW — `<EmptyState>`, `<LoadingState>`, `<ErrorState>` shared components with role/aria-live for accessibility.
+- Applied to iter134/135 surfaces (OpsTrainingCenter). Existing portals tracked as carryover — design system is in place for gradual conversion without visual regression risk.
+
+**📄 Iter C — Shared PDF chrome + Training docs refresh**
+- `backend/pdf_branding.py` NEW — `wrap_pdf_html(body, title, kicker)` + `BRAND_CSS` so every PDF now ships with MASCI brand bar (red mark + "Operations Platform" tag), consistent typography, page-number footer, generated-timestamp footer.
+- Refactored `training_center.py::_render_guide_html` and `fire_ext_attachments.py::_render_history_html` to use the shared chrome — both PDFs now look like the same product.
+- 2 new default Training Center guides added (auto-seeded by idempotent loader): `safety-fire-ext-attachments` (4 sections) and `safety-corrective-actions-links` (5 sections). Total guides 16 → 18.
+
+**🚦 Iter D — Deploy Readiness + Performance + Health**
+- `backend/routes/deploy_readiness.py` NEW — `GET /api/admin/deploy-readiness` aggregates 10 checks: Mongo reachability, critical-collection queryability, id-indexes on hot collections, TTL indexes on telemetry, R2 configured, Resend configured, integration errors (last 24h), R2 degraded events (last 24h), training-center seeded, default-admin password rotated. Returns `overall_status: ready|attention|blocked` + per-check `{passed, severity, detail}`.
+- `frontend/src/pages/AdminDeployReadiness.jsx` NEW — green/yellow/red status banner + per-check checklist + Re-Run button. Wired into AdminShell sidebar as 'Deploy Readiness' (icon: ListChecks).
+- **Real perf issues fixed by the readiness probe**: armed missing id-indexes on `fire_extinguishers`, `corrective_actions`, `incidents`, `inspections`, `safety_training_records`, `equipment_master`, `employees`. Armed TTL indexes (30d) on `system_health_events` and `audit_events`.
+- Post-fix readiness: **10/10 checks green, overall_status='ready'**.
+
+### Testing
+- 18/18 backend pytest cases passing (deploy-readiness gating, PDF chrome verification, training seed count, new guides).
+- Frontend verified live via screenshot — Deploy Readiness page renders the green "READY TO DEPLOY" banner with all 10 checks visible inside AdminShell sidebar.
+
+### Phase-1 Stabilization Status
+| Sub-iter | Status |
+|---|---|
+| Iter A — Crawl & Fix | ✅ DONE (iter135) |
+| Iter B — UX/UI + Mobile | 🟡 partial — tokens + state components shipped, applied to new surfaces; existing portal conversion is carryover |
+| Iter C — Exports/PDF + Training + Data Relationships | 🟡 partial — PDF chrome unified, 2 new training guides; master-collection SOT enforcement is carryover |
+| Iter D — Integrations + Perf + Health + Deploy | ✅ DONE — readiness aggregator + 9 hot+TTL indexes armed |
+
+---
 ## 2026-05-15 — Iter135: P1 Fire Ext Attachments + CA Links · Phase-1 Iter A (Crawl & Fix)
 
 ### User ask
