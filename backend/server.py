@@ -8231,6 +8231,20 @@ from routes.integration_health import (  # noqa: E402
 app.include_router(build_integration_health_router(db, require_admin))
 
 
+# ─── Usage Analytics (iter146 — Phase 2.5) ──────────────────────────
+# Lightweight async telemetry. NEVER blocks user requests. TTL = 90d.
+# Admin-only read access; no PII; no employee surveillance.
+from routes.usage_analytics import (  # noqa: E402
+    build_usage_routes,
+    ensure_usage_indexes,
+    start_sink,
+    usage_tracking_middleware,
+)
+
+app.include_router(build_usage_routes(db, require_admin))
+app.middleware("http")(usage_tracking_middleware)
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 
@@ -8367,6 +8381,9 @@ async def _bootstrap_integrations():
     logger.info("[integrations] indexes + seed settings ready")
     await ensure_alert_indexes(db)
     logger.info("[alert-events] indexes ensured")
+    await ensure_usage_indexes(db)
+    start_sink(db)
+    logger.info("[usage-analytics] indexes ensured + async sink started")
 
 
 @app.on_event("startup")

@@ -1,0 +1,51 @@
+{
+  "summary": "Iter146 usage-analytics — full backend + frontend regression. 22/22 backend tests passed. Admin analytics dashboard renders correctly with KPIs/chips/portals/top-routes; window selector, refresh, sidebar entry, graceful failure on bad payload, and mobile responsiveness all verified.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_usage_analytics_iter146.py",
+    "/app/test_reports/pytest/iter146_usage_analytics.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "p95_ms field is currently computed as $max in routes aggregation pipeline — this is the route worst latency, not a true p95. UI labels it 'Worst ms', which matches what's stored, but the JSON field name `p95_ms` is misleading. Consider renaming to `max_ms` or implementing a real percentile (e.g. via $percentile when on Mongo 7+).",
+    "ALLOWED_KINDS validation in TrackEvent only happens server-side after Pydantic parsing — a payload {events: [{kind: 'page_view', portal: '<long unbounded string>'}]} is truncated to 24 chars (good), but the model has no max-length validators at the schema level. Acceptable as graceful (no 422) but worth Field(max_length=...) for defense-in-depth.",
+    "Aggregation pipelines iterate the full window with $match on `at`. The {kind,at} index supports the by-kind query but the routes aggregation $match is {at, route ne '', kind='api_call'} — would benefit from a compound index {kind, at} ordered to use the existing one; currently OK but watch growth at 90d × prod traffic.",
+    "`_strip_query` UUID detection treats any path segment of length ≥8 made up of [0-9a-f-] as `:id`. Works for UUIDs and hex hashes; a legitimate route segment like '/api/orders/abcdef12' would also be collapsed. Acceptable tradeoff for privacy bucketing.",
+    "AdminAnalytics swallows all fetch errors silently (catch{}) — friendly for fire-and-forget but if all 4 endpoints 500, the page renders blank with 'No events in window' which is indistinguishable from real empty data. Consider a small inline error chip when summary fetch fails."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_usage_analytics_iter146.py"
+  ],
+  "success_rate": {
+    "backend": "100% (22/22 passed)",
+    "frontend": "100% (9/9 checks passed)"
+  },
+  "test_credentials": "Super Admin jaymn.judd@mascigc.com / Maddix123! works via /api/auth/multi-login. HR creds in the review request (hrmanager@mascigc.com / HRTesting2026!) DO NOT work against /api/auth/multi-login (returns 'Invalid email or password.') but DO work against /api/hr/login. Updated the hr_token fixture accordingly. Main agent may want to verify whether HR users are intended to authenticate via multi-login.",
+  "seed_data_creation": "Tests post a handful of synthetic page_view / form_submit / export events (route prefixed with /seed/iter146 and /test/iter146) plus traffic to /api/banners/active and a synthetic UUID-bearing /api/master-lookup/equipment/<uuid>/where-used. TTL 90d auto-expires them.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test file /app/backend/tests/test_usage_analytics_iter146.py is reusable; covers public ingest validation, admin gate (rejects bogus token, no auth, HR token), aggregation shape & UUID-bucketing, middleware capture, TTL+dimension indexes, and a coarse latency spot-check. NB: conftest.py auto-injects X-Admin-Token for ALL requests to the backend host, so any future 'unauthenticated' test must either explicitly pass an invalid X-Admin-Token (setdefault won't overwrite) or use urllib directly to bypass the patch.",
+  "verified_behaviors": [
+    "POST /api/usage/track accepts batch, returns {ok:true, queued:N}; bogus kinds silently dropped (no 4xx); empty events list returns 200; events>50 capped at 50; label truncated to 48 chars server-side; no auth required.",
+    "Bad payload (events as string) → 422 from Pydantic, never 500.",
+    "Middleware writes api_call events: /api/banners/active appears in /admin/analytics/routes within ~3s with count>=3.",
+    "Admin gate is real: invalid X-Admin-Token and no-auth both return 401; HR token via X-HR-Token returns 401 ('Admin or PM login required').",
+    "TTL index on usage_events.at with expireAfterSeconds=7776000 confirmed via index_information(). Compound indexes (kind, at) (portal, at) (route, at) all present.",
+    "UUID-bearing path /api/master-lookup/equipment/<uuid>/where-used collapses to /api/master-lookup/equipment/:id/where-used in the routes bucket — raw UUID never leaks.",
+    "Portal breakdown correctly buckets admin (X-Admin-Token), anon (no headers), and others. Verified 'admin' bucket present with >100 events.",
+    "Frontend /admin/analytics loads under super admin; 4 KPI cards render with correct testids; by-kind chips for api_call/page_view/form_submit/export; by-viewport desktop chip; by-portal admin tile; top-routes table has 20 rows.",
+    "Window selector (data-testid='analytics-window-select') changes data: 24h Events=390 → 7d Events=397; triggered 4 endpoint refetches.",
+    "Refresh button (data-testid='analytics-refresh') re-fetches all 4 endpoints: summary, routes, portals, health.",
+    "Sidebar nav contains 'Usage Analytics' link via AdminShell.",
+    "Graceful failure: POST /api/usage/track with events=[] returns 200 {ok:true,queued:0} — does NOT break parent page.",
+    "Mobile 390x844: body.scrollWidth == window.innerWidth (390/390), no horizontal overflow; KPIs stack 2x2 via Tailwind sm:grid-cols-4."
+  ]
+}

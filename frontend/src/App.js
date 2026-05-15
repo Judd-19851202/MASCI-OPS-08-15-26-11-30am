@@ -78,6 +78,7 @@ import SystemHealth from "@/pages/admin/SystemHealth";
 import AdminAuditLog from "@/pages/admin/AdminAuditLog";
 import DeployRecovery from "@/pages/admin/DeployRecovery";
 import AdminMasterHistory from "@/pages/admin/AdminMasterHistory";
+import AdminAnalytics from "@/pages/admin/AdminAnalytics";
 import HrHub from "@/pages/HrHub";
 import HrChangePassword from "@/pages/HrChangePassword";
 import HrResetPassword from "@/pages/HrResetPassword";
@@ -186,6 +187,11 @@ function App() {
     validateStoredTokens().then((cleared) => {
       if (mounted && cleared) setAuthTick((t) => t + 1);
     });
+    // iter146 — wire fire-and-forget usage analytics. Safe to call
+    // multiple times (the binder guards itself with a one-shot flag).
+    import("@/lib/usageTracker").then(({ bindRouteChangeTracker }) => {
+      bindRouteChangeTracker();
+    }).catch(() => { /* silent */ });
     return () => {
       mounted = false;
     };
@@ -298,6 +304,7 @@ function App() {
             <Route path="/admin/assets/:assetId" element={A(<AssetProfile />)} />
             <Route path="/admin/equipment/:id/history" element={A(<AdminMasterHistory kind="equipment" />)} />
             <Route path="/admin/employees/:id/history" element={A(<AdminMasterHistory kind="employee" />)} />
+            <Route path="/admin/analytics" element={A(<AdminAnalytics />)} />
             <Route path="/admin/leadership-equipment" element={A(<AdminLeadershipEquipment />)} />
             <Route path="/admin/terminations" element={A(<AdminTerminations />)} />
             <Route path="/admin/guide" element={A(<AdminGuide />)} />
