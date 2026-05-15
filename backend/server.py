@@ -8324,6 +8324,15 @@ app.include_router(build_po_requests_router(
 ))
 
 
+# ─── Unified Signature Engine (iter154 — Phase 2.5 · Phase F) ───────
+# One signature standard across the platform. Append-only history with
+# `supersedes` chain — no silent overwrites.
+from routes.signatures import (  # noqa: E402
+    build_signatures_router, ensure_signatures_indexes,
+)
+app.include_router(build_signatures_router(db, _require_any_portal_token))
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 
@@ -8471,6 +8480,8 @@ async def _bootstrap_integrations():
     logger.info("[employee-lifecycle] indexes ensured")
     await ensure_po_requests_indexes(db)
     logger.info("[po-requests] indexes ensured")
+    await ensure_signatures_indexes(db)
+    logger.info("[signatures] indexes ensured")
 
 
 @app.on_event("startup")

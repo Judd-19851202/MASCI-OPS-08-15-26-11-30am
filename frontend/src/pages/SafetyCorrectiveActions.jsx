@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import SafetyShell from "@/components/SafetyShell";
 import SafetyCaLinksManager from "@/components/SafetyCaLinksManager";
+import SignatureCapture from "@/components/SignatureCapture";
 import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { HelpTip } from "@/components/ui/HelpTip";
@@ -627,6 +628,19 @@ export default function SafetyCorrectiveActions() {
             )}
             {dlg.mode === "edit" && dlg.id && (
               <SafetyCaLinksManager caId={dlg.id} />
+            )}
+            {dlg.mode === "edit" && dlg.id && (
+              <div className="pt-2 border-t border-slate-200">
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">
+                  {t("Employee acknowledgment")}
+                </div>
+                <SignatureCapture
+                  sourceModule="safety.corrective_actions"
+                  sourceRecordId={dlg.id}
+                  signatureType="employee"
+                  testIdPrefix="safety-ca-sig"
+                />
+              </div>
             )}
           </div>
           <DialogFooter className="pt-3 gap-2">
