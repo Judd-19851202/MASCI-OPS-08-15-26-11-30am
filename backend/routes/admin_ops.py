@@ -65,11 +65,18 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
         try:
             from photo_storage import is_configured as r2_configured  # noqa: PLC0415
             ok = r2_configured()
-            # Count degraded events in last 24h
-            since = (now - timedelta(hours=24)).isoformat()
+            # Count degraded events in last 24h — accept both BSON datetime
+            # and legacy ISO string entries so historical records still match.
+            since_dt = now - timedelta(hours=24)
+            since_iso = since_dt.isoformat()
             degraded = 0
             try:
-                degraded = await db.r2_degraded_events.count_documents({"at": {"$gte": since}})
+                degraded = await db.r2_degraded_events.count_documents({
+                    "$or": [
+                        {"at": {"$gte": since_dt}},
+                        {"at": {"$gte": since_iso}},
+                    ],
+                })
             except Exception:  # noqa: BLE001
                 pass
             if not ok:

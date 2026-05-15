@@ -78,9 +78,12 @@ def register_document_routes(
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"[safety-doc] R2 upload failed, falling back to inline: {e}")
                 # Log degraded-storage event (iter133 — surfaces in System Health)
+                # NOTE: store `at` as BSON datetime (not ISO string) so the
+                # System Health 24h-window query stays correct regardless of
+                # downstream logger swaps.
                 try:
                     await db.r2_degraded_events.insert_one({
-                        "at": datetime.now(timezone.utc).isoformat(),
+                        "at": datetime.now(timezone.utc),
                         "module": "safety_documents",
                         "doc_id": doc_id,
                         "filename": filename,
