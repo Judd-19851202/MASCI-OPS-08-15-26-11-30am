@@ -208,6 +208,58 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
         # generic QA/QC PDF and the email subject already reads
         # "[MASCI] QA/QC … · Project … · PM: …".
         schedule_auto_email("qaqc", doc)
+
+        # Phase E · Cross-system fan-out — QA/QC inspections with
+        # fail items spawn a PM-assigned corrective task and notify
+        # safety. Fire-and-forget; QA save never blocks.
+        try:
+            if fs > 0:
+                from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+                priority = "Critical" if fs >= 3 else "High"
+                title = (f"QA/QC deficiencies ({fs}) · "
+                         f"{doc.get('inspection_kind') or 'inspection'} on "
+                         f"{doc.get('project_name') or pn or '—'}")
+                await emit_task_and_notification(
+                    db,
+                    task={
+                        "title": title[:200],
+                        "description": (f"Inspector: {doc.get('inspector_name') or '—'} · "
+                                        f"Foreman: {doc.get('foreman_name') or '—'} · "
+                                        f"Deficiencies: {(doc.get('deficiencies') or '').replace(chr(10), '; ')[:300]}")[:4000],
+                        "source_module": "qaqc.inspections",
+                        "source_record_id": doc.get("id"),
+                        "linked_project_number": pn or None,
+                        "assignee_role": "pm",
+                        "priority": priority,
+                        "created_by": {"role": "system", "via": "qaqc-fanout"},
+                    },
+                    notification={
+                        "type": "qaqc.deficiency",
+                        "title": title[:200],
+                        "message": (f"{fs} fail item(s) · "
+                                    f"{doc.get('inspection_kind') or 'inspection'}")[:200],
+                        "severity": "Critical" if priority == "Critical" else "Warning",
+                        "recipient_role": "pm",
+                        "linked_source_module": "qaqc.inspections",
+                        "linked_source_record_id": doc.get("id"),
+                        "linked_project_number": pn or None,
+                    },
+                )
+                # Safety visibility
+                await emit_notification(db, {
+                    "type": "qaqc.deficiency",
+                    "title": title[:200],
+                    "message": f"{fs} QA/QC fail item(s)",
+                    "severity": "Warning",
+                    "recipient_role": "safety",
+                    "linked_source_module": "qaqc.inspections",
+                    "linked_source_record_id": doc.get("id"),
+                    "linked_project_number": pn or None,
+                })
+        except Exception as e:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).warning("[qaqc-fanout] failed: %s", e)
+
         return rec
 
     @api_router.get("/qaqc-inspections", response_model=List[QaqcInspectionSummary])

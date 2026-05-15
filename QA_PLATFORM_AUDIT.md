@@ -10,6 +10,31 @@ This document is the source-of-truth backlog for Iters B (fixes), C (Operations 
 
 ## EXECUTIVE SUMMARY
 
+### Iter153E PATCH — Phase E completeness pass (2026-05-15)
+
+Five operational modules wired through `task_service.create` +
+`notification_service.fanout` via new `lib/event_fanout.py` helper:
+
+| Module | Trigger | Task assignee | Notif recipients |
+|---|---|---|---|
+| `safety.incidents` | Any new incident | safety (Critical if severity High) | safety + pm |
+| `safety.inspections` | auto-fail / stop-work / hazards | safety (Critical on stop-work) | safety + pm |
+| `qaqc.inspections` | fail_count ≥ 1 | pm | pm + safety |
+| `equipment.preop` | fail_count ≥ 1 | shop (Critical if ≥3) | shop + dispatch |
+| `safety.fire_extinguishers` | inspect status ∈ {Fail, Needs Service, Tag Missing, Damaged} | safety | safety |
+
+Verified by `tests/test_iter153E_phaseE_fanout.py` — 9/9 PASS.
+Idempotency confirmed (re-post produces no duplicate task).
+Clean records (zero fail / no stop-work / Pass status) correctly
+produce NO task and NO notification. Full regression run of
+iters 151/152/153/153B/154/155 + Phase E = 87/88 pass (1 transient
+network timeout, not a regression).
+
+The earlier finding "operational modules NOT wired into task_service /
+notification_service" is now CLOSED.
+
+---
+
 **Platform scale snapshot**
 - 35 backend route files · 486 endpoints · 9,970-line server.py
 - 110 frontend pages · 183 React routes · 111 `/api/*` call patterns

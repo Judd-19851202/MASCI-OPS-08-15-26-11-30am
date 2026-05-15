@@ -226,6 +226,64 @@ def register_equipment_routes(
                 # Never break the pre-op flow on hold creation issues
                 pass
 
+            # Phase E · Cross-system fan-out — failed pre-ops must
+            # spawn a shop equipment-issue task + notifications to
+            # shop and dispatch. Fire-and-forget; never blocks save.
+            try:
+                from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+                fail_n = int(insp.fail_count or 0)
+                priority = "Critical" if fail_n >= 3 else "High"
+                eq_id_for_link = None
+                try:
+                    eq2 = await db.equipment_master.find_one(
+                        {"unit_number": {"$regex": f"^{insp.equipment_unit}$", "$options": "i"}},
+                        {"_id": 0, "id": 1},
+                    )
+                    eq_id_for_link = (eq2 or {}).get("id")
+                except Exception:
+                    eq_id_for_link = None
+                title = f"Failed pre-op — {insp.equipment_unit or '—'} ({fail_n} item{'s' if fail_n != 1 else ''})"
+                await emit_task_and_notification(
+                    db,
+                    task={
+                        "title": title[:200],
+                        "description": (f"Operator: {insp.operator_name or '—'} · "
+                                        f"Doc: {insp.doc_id or insp.id} · "
+                                        f"Equipment: {insp.equipment_make or ''} {insp.equipment_model or ''}".strip())[:4000],
+                        "source_module": "equipment.preop",
+                        "source_record_id": insp.id,
+                        "linked_equipment_id": eq_id_for_link,
+                        "assignee_role": "shop",
+                        "priority": priority,
+                        "created_by": {"role": "system", "via": "preop-fanout"},
+                    },
+                    notification={
+                        "type": "preop.failed",
+                        "title": title[:200],
+                        "message": (f"Operator: {insp.operator_name or '—'} · "
+                                    f"{fail_n} failed item(s)")[:200],
+                        "severity": "Critical" if priority == "Critical" else "Warning",
+                        "recipient_role": "shop",
+                        "linked_source_module": "equipment.preop",
+                        "linked_source_record_id": insp.id,
+                        "linked_equipment_id": eq_id_for_link,
+                    },
+                )
+                # Dispatch visibility — same event, no task assignment
+                await emit_notification(db, {
+                    "type": "preop.failed",
+                    "title": title[:200],
+                    "message": f"{insp.equipment_unit or '—'} flagged from pre-op",
+                    "severity": "Warning",
+                    "recipient_role": "dispatch",
+                    "linked_source_module": "equipment.preop",
+                    "linked_source_record_id": insp.id,
+                    "linked_equipment_id": eq_id_for_link,
+                })
+            except Exception as e:  # noqa: BLE001
+                import logging
+                logging.getLogger(__name__).warning("[preop-fanout] failed: %s", e)
+
         return insp
 
     @api_router.get("/equipment-inspections", response_model=List[EquipmentInspectionSummary])

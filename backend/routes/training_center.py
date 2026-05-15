@@ -329,6 +329,26 @@ DEFAULT_GUIDES: List[Dict[str, Any]] = [
             _s("Communicate", "Post a one-line update to the team chat as soon as you have a hypothesis. Update again on confirmed cause and ETA. Document the full timeline in **Admin → Audit Logs → Manual Entry** after resolution."),
         ],
     ),
+    # ─── PHASE E · CROSS-SYSTEM INTEGRATION (Iter153E) ─────────────
+    _g(
+        "phase-e-cross-system-integration", "reliability",
+        "Cross-System Integration — How Operational Events Fan Out",
+        "PLATFORM · SHARED INFRASTRUCTURE",
+        "Every operational module on the MASCI Operations Platform routes its events through ONE shared task service and ONE shared notification service. This guide explains exactly what fires when, who gets notified, and how to verify integration health.",
+        "Admin, Safety, HR, PM, Shop, Dispatch.",
+        [
+            _s("Why Shared Infrastructure", "Before Phase E, several modules wrote tasks and notifications directly to the database — leading to inconsistent priorities, duplicate task rows, and notification drift. Phase E migrates every operational event source to call `task_service.create()` and `notification_service.fanout()` so the rules live in ONE place."),
+            _s("Modules That Fan Out", "**Incidents** → safety task (Critical if severity High/Critical; otherwise High) + safety + PM notifications. **Inspections** → safety task on auto-fail / stop-work / hazards observed; Critical priority on stop-work. **QA/QC Inspections** → PM task on fail_count ≥ 1 + safety notification. **Equipment Pre-Op** → shop task on fail_count ≥ 1 + shop + dispatch notifications + pending-maintenance-hold (legacy). **Fire Extinguishers** → safety task on Fail / Needs Service / Tag Missing / Damaged. **Document Expirations** → role-routed task + notification on each crossed threshold (60d / 30d / 7d / expired). **PO Requests** → PM/HR approval task on submit; requester task on missing receipt. **Employee Lifecycle** → HR offboarding-playbook tasks on termination. **Corrective Actions** → safety task assigned to responsible party. **Safety Forms** → safety task on issue/return/missing PPE."),
+            _s("Status / Priority Conventions", "Tasks: **Critical** = stop-work / severity-High incident / 3+ failed pre-op items. **High** = standard deficiency / 1-2 failed items. **Medium** = informational follow-up. Notifications mirror priority via `severity` field (Critical / Warning / Info)."),
+            _s("Verifying Integration Health", "Open **/admin/system-health** to see the latest fan-out counts. Open **/tasks** and filter by `source_module` to see what each subsystem has been generating. Open **/api/notifications?limit=50** for a recipient role to confirm fan-out reached the inbox.", [
+                {"kind": "tip", "text": "Every notification carries linked_source_module + linked_source_record_id so you can trace it back to the originating safety form / PO / inspection without guessing."},
+            ]),
+            _s("Anti-Patterns", "Do NOT write to `db.tasks` or `db.notifications` directly from a new module. Import `task_service` and `notification_service` from `routes.tasks_notifications` OR call `lib.event_fanout.emit_task_and_notification(...)` instead. This keeps audit, priority normalization, TTL, and recipient routing in one auditable code path.", [
+                {"kind": "warn", "text": "If you add a new operational module, route its events through these services before the module ships. The platform discipline rule is: 'shared infrastructure or nothing.'"},
+            ]),
+            _s("Operations Center Tie-In (Phase H, upcoming)", "The forthcoming Project / Job Health Dashboard aggregates these tasks + notifications + open POs + expiring documents per project. Once Phase E is fully wired (this iter), Phase H's aggregations have all the data they need — no extra writes required."),
+        ],
+    ),
 ]
 
 

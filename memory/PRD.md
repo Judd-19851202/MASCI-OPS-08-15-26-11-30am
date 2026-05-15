@@ -1,5 +1,33 @@
 # MASCI Safety Hub — PRD
 
+---
+## 2026-05-15 — Iter153E (Phase 2.5 · PHASE E COMPLETENESS) · STABILIZED
+
+### User ask (verbatim)
+Phase E does NOT appear fully completed. Several major operational modules do not appear fully wired into `task_service.create()` and `notification_service.fanout()`. The operational infrastructure layer is incomplete. Required modules: Incidents, Audits/Inspections, Pre-Ops, Fire Extinguishers, Training Deficiencies. No duplicate task/notification logic — all modules MUST reuse the shared services.
+
+### Shipped
+- **New `backend/lib/event_fanout.py`** — single convenience wrapper around `task_service.create()` + `notification_service.fanout()`. Fire-and-forget; never raises; logs warnings. ONE entry point.
+- **`safety.py::create_incident`** — safety task (Critical if severity High/Critical) + safety + PM notifications. `source_module="safety.incidents"`.
+- **`safety.py::create_inspection`** — safety task when `auto_fail_count > 0` OR `stop_work_issued=Yes` OR `hazards_observed=Yes`. Stop-work → Critical. Clean inspections = ZERO tasks (verified).
+- **`qaqc.py::create_qaqc`** — PM task when `fail_count > 0`. Critical if ≥3.
+- **`equipment.py::create_equipment_inspection`** — shop task on `fail_count > 0` + shop + dispatch notifications, alongside existing pending-maintenance-hold creation.
+- **`safety_portal/fire_extinguishers.py::inspect`** — safety task when status ∈ {Fail, Needs Service, Tag Missing, Damaged}. Pass status silent.
+- **Training Center guide** — `phase-e-cross-system-integration` default guide added documenting fan-out behavior, status conventions, anti-patterns.
+
+### Verification (`tests/test_iter153E_phaseE_fanout.py`)
+9/9 PASS — incident/inspection/qaqc/preop/fire-ext fan-out paths verified, idempotency confirmed (no duplicate tasks on re-post), clean records produce no spam. Full regression iters 151/152/153/153B/154/155/153E = 87/88 (1 transient network blip, not regression).
+
+### Closed item
+The earlier observation "operational modules NOT wired into task_service/notification_service" is now resolved. Single audit point: `lib.event_fanout.*` or direct `task_service.create` / `notification_service.fanout`. Direct `db.tasks` / `db.notifications` writes are now an anti-pattern documented in training center.
+
+### Now ready to resume
+- 🟡 Iter B (continued) from `/app/QA_PLATFORM_AUDIT.md` § ITER B EXECUTION PLAN.
+- 🔵 Iter C — Operations Center visibility layer (will aggregate the now-complete task + notification stream).
+- 🟢 Iter D — Final QA + `/app/FINAL_PLATFORM_STABILIZATION_REPORT.md`.
+
+
+---
 ## 🟡 Post-deploy backlog reminder
 
 - **Design tokens consolidation** — once production is live on `mascidocs.com`, draft `/app/frontend/src/styles/tokens.css` with proposed token names (`--brand-primary`, `--brand-accent`, per-portal accents, etc.) for user review BEFORE swapping anywhere. Then do the focused 80% pass (SectionTile + Hub + sub-hubs + portal accents). Zero visual change. ~30 min once approved.

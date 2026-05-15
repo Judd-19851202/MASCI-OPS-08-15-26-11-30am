@@ -110,6 +110,46 @@ def register_fire_extinguisher_routes(
                 "$push": {"inspections": entry},
             },
         )
+
+        # Phase E · Cross-system fan-out — failed/needs-service
+        # inspections trigger a safety corrective task + notification.
+        # Pass status is silent. Fire-and-forget.
+        try:
+            status_lc = (body.status or "").lower()
+            if status_lc in ("fail", "needs service", "needs_service",
+                             "tag missing", "missing", "damaged"):
+                from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+                title = (f"Fire extinguisher {existing.get('unit_id') or fe_id} "
+                         f"flagged {body.status}")
+                await emit_task_and_notification(
+                    db,
+                    task={
+                        "title": title[:200],
+                        "description": (f"Location: "
+                                        f"{existing.get('location_label') or existing.get('location_kind') or '—'} · "
+                                        f"Inspector: {entry['inspector_name'] or '—'} · "
+                                        f"Notes: {entry.get('notes') or '—'}")[:4000],
+                        "source_module": "safety.fire_extinguishers",
+                        "source_record_id": fe_id,
+                        "assignee_role": "safety",
+                        "priority": "High",
+                        "created_by": {"role": "system", "via": "fire-ext-inspection"},
+                    },
+                    notification={
+                        "type": "fire_ext.deficiency",
+                        "title": title[:200],
+                        "message": (f"{existing.get('unit_id') or fe_id} · "
+                                    f"{body.status}")[:200],
+                        "severity": "Warning",
+                        "recipient_role": "safety",
+                        "linked_source_module": "safety.fire_extinguishers",
+                        "linked_source_record_id": fe_id,
+                    },
+                )
+        except Exception as e:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).warning("[fire-ext-fanout] failed: %s", e)
+
         return await db.fire_extinguishers.find_one({"id": fe_id}, {"_id": 0})
 
     @api_router.delete("/safety/fire-extinguishers/{fe_id}")

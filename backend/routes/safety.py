@@ -284,6 +284,71 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         except Exception:
             pass
         schedule_auto_email("inspection", doc)
+
+        # Phase E · Cross-system fan-out — audit deficiencies / auto-fails /
+        # stop-work inspections must trigger corrective tasks routed to
+        # safety + visibility on PM-scoped projects. Fire-and-forget.
+        try:
+            auto_fail = int(doc.get("auto_fail_count") or 0)
+            stop_work_raw = doc.get("stop_work_issued") or "No"
+            stop_work = str(stop_work_raw).strip().lower() in ("yes", "true", "y", "1")
+            hazards_raw = doc.get("hazards_observed") or "No"
+            hazards_seen = str(hazards_raw).strip().lower() in ("yes", "true", "y", "1")
+            needs_task = auto_fail > 0 or stop_work or hazards_seen
+            if needs_task:
+                from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+                priority = "Critical" if stop_work else ("High" if auto_fail > 0 else "Medium")
+                title = ("Stop-work issued · safety inspection follow-up"
+                         if stop_work
+                         else (f"Auto-fail items ({auto_fail}) · safety inspection follow-up"
+                               if auto_fail > 0
+                               else "Safety inspection — hazards observed"))
+                await emit_task_and_notification(
+                    db,
+                    task={
+                        "title": title[:200],
+                        "description": (f"Project: {doc.get('project_name') or '—'} · "
+                                        f"Inspector: {doc.get('inspector_name') or '—'} · "
+                                        f"Foreman: {doc.get('foreman_name') or '—'} · "
+                                        f"Notes: {str(doc.get('corrective_action_notes') or '')[:300]}")[:4000],
+                        "source_module": "safety.inspections",
+                        "source_record_id": doc.get("id"),
+                        "linked_project_number": doc.get("project_number") or None,
+                        "assignee_role": "safety",
+                        "priority": priority,
+                        "created_by": {"role": "system", "via": "inspection-fanout"},
+                    },
+                    notification={
+                        "type": "inspection.deficiency" if not stop_work else "inspection.stop_work",
+                        "title": title[:200],
+                        "message": (f"{doc.get('project_name') or '—'} · "
+                                    f"{doc.get('location') or '—'} · "
+                                    f"{doc.get('inspection_date') or ''}")[:200],
+                        "severity": "Critical" if stop_work else "Warning",
+                        "recipient_role": "safety",
+                        "linked_source_module": "safety.inspections",
+                        "linked_source_record_id": doc.get("id"),
+                        "linked_project_number": doc.get("project_number") or None,
+                    },
+                )
+                # PM-side visibility
+                await emit_notification(db, {
+                    "type": "inspection.deficiency",
+                    "title": (f"Safety inspection deficiency on {doc.get('project_name') or 'your project'}"
+                              if not stop_work else
+                              f"STOP-WORK on {doc.get('project_name') or 'your project'}"),
+                    "message": (f"{auto_fail} auto-fail item(s) · "
+                                f"inspector {doc.get('inspector_name') or '—'}")[:200],
+                    "severity": "Critical" if stop_work else "Warning",
+                    "recipient_role": "pm",
+                    "linked_source_module": "safety.inspections",
+                    "linked_source_record_id": doc.get("id"),
+                    "linked_project_number": doc.get("project_number") or None,
+                })
+        except Exception as e:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).warning("[inspection-fanout] failed: %s", e)
+
         return inspection
 
     @api_router.get("/inspections", response_model=List[InspectionSummary])
@@ -461,6 +526,64 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         await db.incidents.insert_one(doc)
         doc.pop("_id", None)
         schedule_auto_email("incident", doc)
+
+        # Phase E · Cross-system fan-out — incidents must trigger
+        # corrective follow-up tasks + safety notifications. Fire-and-forget;
+        # safety form save NEVER blocks on fan-out failure.
+        try:
+            from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+            severity = (doc.get("severity") or "").lower()
+            priority = "Critical" if severity in ("critical", "high", "serious") else "High"
+            title = (f"Incident follow-up — {doc.get('incident_type') or 'Incident'} "
+                     f"({doc.get('project_name') or 'project'})")
+            await emit_task_and_notification(
+                db,
+                task={
+                    "title": title[:200],
+                    "description": (f"OSHA recordable: {doc.get('osha_recordable')} · "
+                                    f"Person: {doc.get('person_name') or '—'} · "
+                                    f"Location: {doc.get('location') or '—'}")[:4000],
+                    "source_module": "safety.incidents",
+                    "source_record_id": doc.get("id"),
+                    "linked_project_number": doc.get("project_number") or None,
+                    "assignee_role": "safety",
+                    "priority": priority,
+                    "created_by": {"role": "system", "via": "incident-fanout"},
+                },
+                notification={
+                    "type": "incident.created",
+                    "title": f"New incident reported — {doc.get('incident_type') or 'Incident'}",
+                    "message": (f"{doc.get('project_name') or '—'} · "
+                                f"severity {doc.get('severity') or 'Unspecified'} · "
+                                f"reporter {doc.get('reported_by') or '—'}")[:200],
+                    "severity": "Critical" if priority == "Critical" else "Warning",
+                    "recipient_role": "safety",
+                    "linked_source_module": "safety.incidents",
+                    "linked_source_record_id": doc.get("id"),
+                    "linked_project_number": doc.get("project_number") or None,
+                },
+            )
+            # Project Health surfaces — emit a second pm-side notification
+            # so the PM sees their project picked up an incident without
+            # owning the corrective action assignment.
+            from lib.event_fanout import emit_notification  # noqa: PLC0415
+            await emit_notification(db, {
+                "type": "incident.created",
+                "title": f"Incident on {doc.get('project_name') or 'your project'}",
+                "message": (f"{doc.get('incident_type') or 'Incident'} · "
+                            f"severity {doc.get('severity') or '—'}")[:200],
+                "severity": "Warning",
+                "recipient_role": "pm",
+                "linked_source_module": "safety.incidents",
+                "linked_source_record_id": doc.get("id"),
+                "linked_project_number": doc.get("project_number") or None,
+            })
+        except Exception as e:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).warning(
+                "[incident-fanout] failed: %s", e
+            )
+
         return incident
 
     @api_router.get("/incidents", response_model=List[IncidentSummary])
