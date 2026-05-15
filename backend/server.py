@@ -8273,6 +8273,29 @@ app.include_router(build_document_expirations_router(
 ))
 
 
+# ─── Employee Lifecycle Management (iter152 — Phase 2.5 · Phase C) ──
+# Extends db.employees with lifecycle_status + status_history. Wires
+# the auto-offboarding playbook via Phase A task_service. Offboarding
+# Summary aggregates tasks (Phase A) + document expirations (Phase B).
+from routes.employee_lifecycle import (  # noqa: E402
+    build_employee_lifecycle_router,
+    ensure_employee_lifecycle_indexes,
+)
+
+# A best-effort require_hr resolver — uses the existing HR portal auth
+# but lives at the server scope so the lifecycle router can rely on it.
+# (require_admin already exists.)
+async def _require_hr_or_pass(actor=Depends(_require_any_portal_token)):
+    return actor
+
+app.include_router(build_employee_lifecycle_router(
+    db,
+    require_hr=_require_hr_or_pass,
+    require_admin=require_admin,
+    require_any_portal_token=_require_any_portal_token,
+))
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 
@@ -8416,6 +8439,8 @@ async def _bootstrap_integrations():
     logger.info("[tasks-notifications] indexes ensured")
     await ensure_document_expirations_indexes(db)
     logger.info("[document-expirations] indexes ensured")
+    await ensure_employee_lifecycle_indexes(db)
+    logger.info("[employee-lifecycle] indexes ensured")
 
 
 @app.on_event("startup")

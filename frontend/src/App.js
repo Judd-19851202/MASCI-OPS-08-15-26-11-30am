@@ -131,6 +131,7 @@ import TermsOfService from "@/pages/legal/TermsOfService";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import Tasks from "@/pages/Tasks";
 import DocumentExpirations from "@/pages/DocumentExpirations";
+import HrEmployees from "@/pages/HrEmployees";
 import AccessDenied from "@/pages/AccessDenied";
 import GlobalFooter from "@/components/GlobalFooter";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -516,6 +517,8 @@ function App() {
             <Route path="/tasks" element={<Tasks />} />
             {/* Document Expirations — Iter151 (Phase 2.5 · Phase B) */}
             <Route path="/document-expirations" element={<DocumentExpirations />} />
+            {/* HR Employee Lifecycle — Iter152 (Phase 2.5 · Phase C) */}
+            <Route path="/hr/employees" element={<HrEmployees />} />
             {/* Fallback — explicit 403 for any path we deliberately
                 want to land on AccessDenied (kept hidden, used by
                 tooling/diagnostics). */}

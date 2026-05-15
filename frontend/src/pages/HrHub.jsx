@@ -20,6 +20,9 @@ const HR_PAL = paletteFor("hr");
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const TILES = [
+  { to: "/hr/employees", icon: Users, label: "Employee Lifecycle",
+    desc: "Add new employees · status changes · offboarding summary · auto-playbook on termination",
+    accent: "border-emerald-500 bg-emerald-50", btn: "bg-emerald-700 hover:bg-emerald-800" },
   { to: "/tasks", icon: GraduationCap, label: "Tasks & Actions",
     desc: "Cross-portal accountability · employee documentation tasks · offboarding follow-ups",
     accent: "border-amber-500 bg-amber-50", btn: "bg-amber-700 hover:bg-amber-800" },
