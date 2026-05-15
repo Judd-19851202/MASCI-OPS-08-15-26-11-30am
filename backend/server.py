@@ -8172,9 +8172,11 @@ app.include_router(build_dispatch_router(db, require_admin))
 
 # ─── Admin operational infrastructure (iter130) ─────────────────────
 # System Health · Unified Audit Log · Global Search · Deploy Recovery
+# Uses the STRICT admin gate (admin-only — PM tokens NOT accepted) so
+# operational/compliance-sensitive surfaces stay scoped to admins.
 from routes.admin_ops import build_admin_ops_router  # noqa: E402
 
-app.include_router(build_admin_ops_router(db, require_admin))
+app.include_router(build_admin_ops_router(db, require_admin_strict))
 
 
 @app.on_event("startup")
