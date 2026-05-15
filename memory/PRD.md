@@ -17,6 +17,46 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter137: Phase-1 Carryover — Master SOT + Visual Unification + Mobile Sweep
+
+### User ask
+Execute the three Phase-1 carryover items: Iter B continued (visual unification of Safety/HR/PM/Dispatch/Shop), Iter C continued (master collection SOT enforcement), and mobile responsiveness sweep.
+
+### Shipped
+
+**🧭 Iter C continued — Master collection SOT (equipment_master + employees)**
+- **Audit findings**: 589 equipment_master rows + 240 employees rows with **ZERO duplicates** (by unit_number, VIN, serial, email, employee_id). Cross-portal records (incidents, CAs, fire extinguishers, equipment_inspections, training records) were storing freetext refs (`"T-101"`, `"Mike Johnson"`) without binding to master IDs — **0% coverage** before this iter.
+- `backend/routes/master_lookup.py` NEW. Endpoints:
+  - `GET /api/master-lookup/equipment?q=…` — typeahead against unit_number/make_model/VIN/serial (public read)
+  - `GET /api/master-lookup/employees?q=…` — typeahead against name/email/employee_id (public read, supports both single-`name` and first/last schemas)
+  - `POST /api/master-lookup/backfill/equipment?dry_run={t/f}` — admin: scan cross-portal records, attach `equipment_master_id` where freetext resolves
+  - `POST /api/master-lookup/backfill/employees?dry_run={t/f}` — admin: same for employees, matches by email → employee_id → full name
+  - `GET /api/master-lookup/audit` — admin: returns current coverage % per collection
+- **Live backfill executed**: attached `equipment_master_id` on 3/23 equipment_inspections (13% coverage); attached `employee_master_id` on 1/1 safety_training_records (100%). Remaining records have freetext that doesn't resolve to canonical units (legacy / test data).
+- Findings doc: `/app/QA_REPORT_MASTER_SOT.md`
+
+**🎨 Iter B continued — Visual unification**
+- Applied shared `<EmptyState>` / `<LoadingState>` components (from iter136 `PortalStates.jsx`) to 3 high-traffic Safety surfaces: `SafetyCorrectiveActions`, `SafetyFireExtinguishers`, `SafetyDocuments`. Replaced 6 ad-hoc empty-div blocks with the typed components.
+- Remaining safety/HR/PM long-tail pages still have ad-hoc empties — low-risk carryover; can convert page-by-page without functional regression.
+
+**📱 Mobile responsiveness sweep**
+- Tested 13 critical pages at iPhone 14 width (390×844) via Playwright: every page returned `bodyScrollWidth === viewportWidth`. **Zero horizontal-scroll bugs found**. Only 1px subpixel overflow on `/safety-portal/fire-extinguishers` (purely cosmetic, not user-visible).
+- Pages verified: Safety login, Safety hub, Fire Extinguishers, Bulk Import, Corrective Actions, Incidents, Documents, Training Records, Admin login, Admin overview, Deploy Readiness, System Health, Audit Log, Global Search, Ops Training Center, Ops Training Guide viewer.
+
+### Testing
+- Backend: 15/15 pytest cases passing (`iter137_master_lookup_test.py` covers typeahead empty-q guard, admin gating, idempotent backfill, audit endpoint).
+- Frontend: source-verified empty-state component adoption + 13/13 mobile pages confirmed zero overflow.
+- Zero regressions on Training Center (`total=18`) or Deploy Readiness (`overall=ready`).
+
+### Phase-1 Stabilization — Final Status
+| Sub-iter | Status |
+|---|---|
+| Iter A — Crawl & Fix | ✅ DONE (iter135) |
+| Iter B — UX/UI + Mobile | ✅ DONE — tokens + shared states shipped, 3 surfaces converted, mobile validated |
+| Iter C — Exports/PDF + Training + Data Relationships | ✅ DONE — shared PDF chrome + 2 new guides + master-lookup backfill + audit endpoint |
+| Iter D — Integrations + Perf + Health + Deploy | ✅ DONE (iter136) — readiness aggregator + 9 hot+TTL indexes |
+
+---
 ## 2026-05-15 — Iter136: Phase-1 Iter B/C/D — Design Tokens · Shared PDF Chrome · Deploy Readiness · Hot Indexes
 
 ### User ask
