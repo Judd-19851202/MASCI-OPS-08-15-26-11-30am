@@ -9,6 +9,47 @@
 Integration framework must remain PASSIVE / OBSERVATIONAL until live API stability is proven. No auto-creating work orders / disciplinary actions / retraining / payroll triggers. All future workflows are EVENT-DRIVEN (failed pre-op → internal event → integration layer → MaintainX/Safety/Asset/notify), never portal-to-portal direct logic. Heavy syncs run BACKGROUND only — never block dashboards / forms / login. Master records (`db.equipment_master`, `db.employees`) are SOURCE-OF-TRUTH — integrations flow through mapping layers, not direct master mutation. CSV imports require preview + rollback + duplicate detection. Integration failures must NEVER crash core platform. Audit/traceability on every mapping/import/setting change.
 
 ---
+## 2026-05-15 — Iter124: Enterprise Operations Architecture (P1-P4 SHIPPED)
+
+### User ask
+"PRIORITY 1-4 ENTERPRISE OPERATIONS ARCHITECTURE BUILD" — Unified Asset Profile (P1), Operations Event Log (P2), Dispatch Portal (P3), Equipment Utilization Intelligence (P4). Non-negotiables: do NOT break anything; do NOT mutate `db.equipment_master` / `db.employees`; do NOT hardwire live Motive/MaintainX; mobile-ready; enterprise-grade; passive-first.
+
+### Outcome: ✅ Shipped · 41/41 tests pass (11 new iter124 + 7 iter123 + 23 iter122 regression) · zero existing functionality broken
+
+### Backend
+- New `/app/backend/routes/operations.py` (single-file, ~530 lines) wires all four priorities under `/api/operations/*`:
+  - **Event Log** — `POST/GET/PATCH /events`, `GET /events/{id}`, filterable by asset/employee/project/type/severity/status/source/action_required, paginated, indexed
+  - **Holds** — `POST /holds` (kind: safety|maintenance), `POST /holds/{id}/release`, `GET /holds`. Auto-emits Operations Event on apply + release
+  - **Assignments** — `POST /assignments` (closes prior active automatically), `POST /assignments/{asset_id}/clear`. Auto-emits ops events
+  - **Transfers** — `POST /transfers`, `POST /transfers/{id}/decide` with state machine: Submitted → Approved → Scheduled → Completed, plus Denied/Cancelled. Auto-creates destination assignment on Completion. Each state change emits an event
+  - **Utilization** — `GET /utilization` returns roll-up totals across 11 ASSET_OP_STATUSES + per-asset rows with computed status. Status precedence: Safety Hold > Maintenance Hold > In Transit > Pending Transfer > Assigned > Available
+  - **Asset Profile** — `GET /assets/{asset_id}/profile` aggregates equipment_master + active_assignment + active_holds + pending_transfer + in_transit + asset_mappings + recent_preops + safety_corrective_actions + transfers + paginated events
+- `write_event()` helper is fire-and-forget — wraps insert in try/except, logs failures, never re-raises (so event-log failures cannot abort the source workflow)
+- `ensure_operations_indexes()` creates all required indexes on startup (created_at, asset_id, employee_id, project_id, event_type, status, severity, source_module + assignments active + holds active + transfers status)
+- Admin-token gated for now. Dedicated `dispatch_users` portal-auth (mirror of `safety_users.py`) deferred to next iteration — clearly documented
+
+### Frontend
+- New `/admin/assets/:assetId` → `AssetProfile.jsx` — 7 tabs: Overview · Dispatch · Motive (placeholder) · MaintainX (placeholder) · Safety · Field Ops · Events. Hero card with status pill matching ops status precedence
+- New `/admin/dispatch` → `AdminDispatch.jsx` — 4 tabs: Overview (8 KPI cards + recent transfers + active holds), Utilization (filterable + searchable table linking to asset profile), Transfers (list + per-row Approve/Deny/Schedule/Complete/Cancel + create dialog), Holds (list + create + release)
+- New `/admin/operations-events` → `AdminOperationsEvents.jsx` — append-only viewer with type/severity/status/source/asset filters + pagination
+- AdminShell sidebar additions: `Dispatch Portal` (Truck icon) + `Operations Events` (Activity icon) — alongside existing Integrations
+- Motive + MaintainX sections show clean empty states ("Awaiting Motive integration" / "Awaiting MaintainX integration") with future-ready placeholder fields. If a mapping exists in `asset_mappings`, a small green confirmation pill shows the linked external ID
+
+### Verified safety guarantees (most important)
+- ✅ `db.equipment_master` snapshots are byte-identical before/after exercising the full ops surface (hold + assign + transfer cycle)
+- ✅ `db.employees` is never touched by any operations route
+- ✅ Event-log writes are fire-and-forget (a Mongo failure cannot abort a source workflow)
+- ✅ Transfer state machine 409s on invalid transitions
+- ✅ All write routes return 401/403 for unauth requests
+- ✅ Existing routes (equipment_master / integrations / safety / hr / shop) unchanged — regression suite green
+
+### Explicitly DEFERRED (called out so it isn't forgotten)
+- **Dedicated dispatch_users portal-auth surface** mirroring `safety_users.py` — the admin Dispatch Portal page works but only via admin token today. Add `/app/backend/dispatch_users.py` + `/app/backend/routes/dispatch_portal.py` + dispatch login route + `dispatchAuth.js` + `RequireDispatch.jsx` + Hub tile + PortalSwitcher entry
+- **Cross-portal read access** to operations endpoints from Safety/Shop/HR — currently admin only; trivial extension via the existing `make_require_any_portal_token` pattern
+- **Asset profile link** added to existing equipment list pages (currently only reachable from Dispatch utilization table)
+- **Notification triggers** on event creation — future-ready fields exist in event docs (visibility_flags) but no push/email pipeline yet
+
+---
 ## 2026-05-14 — Iter123: Mappings Wizard (safe two-step bulk linker)
 
 ### User ask
