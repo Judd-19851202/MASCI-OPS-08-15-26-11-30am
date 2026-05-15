@@ -17,6 +17,32 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter144: Phase-1 Design-System Consolidation (Dispatch reconciliation + sub-hub headers)
+
+### User ask (Option C)
+Both — (a) reconcile Dispatch palette drift (Hub tile orange-600 → amber-600 to match `portal-system.css` SOT) and (b) extend `paletteFor()` token consumption to sub-hub headers. Run testing-agent sweep for visual regressions, contrast, mobile, layout, and unintended overrides.
+
+### Shipped
+- **`lib/portalPalette.js`** — `dispatch` entry reconciled to amber-700 family (eliminates drift between Hub tile and DispatchShell). Three new optional slots per portal: `hubHeaderBar` (border-b-4 color), `hubKicker` (kicker text color), `hubLinkHover` (hover-state text). Each portal's slots capture its CURRENT shipped values — no pixel changes outside the explicit Dispatch reconciliation. Drift notes documented inline.
+- **`pages/HrHub.jsx`** — header bottom border / Home & Back nav hovers / page kicker now consume `HR_PAL.hub*` slots.
+- **`pages/ShopHub.jsx`** — same migration with `SHOP_PAL`.
+- **`pages/DispatchHub.jsx`** — same migration with `DISPATCH_PAL` (the literal `text-orange-300` kicker stays inline for now — no static-text slot yet by design).
+- **`pages/FieldLeadershipHub.jsx`** — 4 separate header surfaces all migrated to `FL_PAL`.
+- Hub.jsx **unchanged** (iter143 already consumes paletteFor() via PortalPill + WelcomeBackHero).
+- TrainingHub.jsx ACCENTS dict **left alone** — it's per-track-color (non-portal vocabulary), a different DSL.
+
+### Testing
+- testing_agent_v3_fork sweep: **100% backend, ~95% frontend, 0 defects** (`/app/test_reports/iteration_144.json`). The 5% is an observational note that FieldLeadershipHub home page uses button-styled nav vs. text-link nav (pre-existing baseline, no regression).
+- Verified: every header bottom-border + nav-hover + kicker resolves to its expected RGB. Tailwind safelist confirmed — all dynamic class names in `portalPalette.js` resolve to real CSS (no purges).
+- Mobile 390x844 sweep: no horizontal overflow, all sub-hub headers stack cleanly.
+- Deploy readiness: still `overall: ready · 0 blockers · 0 warns · 12 checks`.
+
+### Outcome
+- 11 inline portal-accent literal strings (1 per sub-hub header × 3 surfaces, plus FL's 4) → 1 imported palette table. Future portal-color edits are 1-file changes.
+- Dispatch palette is now SINGLE source of truth across `portal-system.css` + `portalPalette.js` + the DispatchShell.
+- Phase 1 stabilization mandate of "no two places define the same value" advanced significantly.
+
+---
 ## 2026-05-15 — Iter143: Design-Tokens Consolidation Pass (80% scope)
 
 ### User ask (Option A)
