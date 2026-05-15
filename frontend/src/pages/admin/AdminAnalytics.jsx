@@ -56,6 +56,7 @@ const PORTAL_TINT = {
 export default function AdminAnalytics() {
   const [window, setWindow] = useState(24);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [summary, setSummary] = useState(null);
   const [routes, setRoutes] = useState([]);
   const [portals, setPortals] = useState([]);
@@ -63,6 +64,7 @@ export default function AdminAnalytics() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [s, r, p, h] = await Promise.all([
         api.get(`/admin/analytics/summary?window_hours=${window}`),
@@ -74,8 +76,11 @@ export default function AdminAnalytics() {
       setRoutes(r.data?.rows || []);
       setPortals(p.data?.rows || []);
       setHealth(h.data);
-    } catch {
-      // The shell will render with empty arrays — silent on purpose.
+    } catch (e) {
+      // Surface a small inline error chip so the empty-state isn't
+      // mistaken for "no data". Page still renders normally — we
+      // don't want analytics failures to escalate to UI errors.
+      setLoadError(e?.response?.data?.detail || "Failed to load analytics");
     } finally {
       setLoading(false);
     }
@@ -119,6 +124,14 @@ export default function AdminAnalytics() {
           </Button>
         </div>
       </div>
+
+      {/* ── Inline error chip if /admin/analytics/* fetch failed ── */}
+      {loadError && (
+        <div className="mb-4 px-3 py-2 rounded-md border-2 border-amber-300 bg-amber-50 text-amber-900 text-xs flex items-center gap-2" data-testid="analytics-load-error">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span className="font-mono">Analytics load failed: {loadError}. Showing last-known values.</span>
+        </div>
+      )}
 
       {/* ── KPI row ──────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5" data-testid="analytics-kpis">
@@ -213,8 +226,8 @@ export default function AdminAnalytics() {
                     <td className="px-3 py-2 font-mono text-xs break-all">{r.route}</td>
                     <td className="px-3 py-2 text-right font-mono">{r.count.toLocaleString()}</td>
                     <td className="px-3 py-2 text-right font-mono">{r.avg_ms || "—"}</td>
-                    <td className={`px-3 py-2 text-right font-mono ${r.p95_ms > 1000 ? "text-red-700 font-bold" : r.p95_ms > 500 ? "text-amber-700" : ""}`}>
-                      {r.p95_ms || "—"}
+                    <td className={`px-3 py-2 text-right font-mono ${r.max_ms > 1000 ? "text-red-700 font-bold" : r.max_ms > 500 ? "text-amber-700" : ""}`}>
+                      {r.max_ms || "—"}
                     </td>
                     <td className={`px-3 py-2 text-right font-mono ${r.errors > 0 ? "text-red-700 font-bold" : "text-slate-400"}`}>
                       {r.errors || 0}

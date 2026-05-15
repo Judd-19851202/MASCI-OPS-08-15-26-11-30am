@@ -234,14 +234,14 @@ async def usage_tracking_middleware(request: Request, call_next):
 # Public ingest endpoint — frontend page_view / form_submit / export
 # ──────────────────────────────────────────────────────────────────
 class TrackEvent(BaseModel):
-    kind: str
-    route: Optional[str] = None
-    portal: Optional[str] = None
-    viewport: Optional[str] = None  # "mobile" | "tablet" | "desktop"
-    status: Optional[str] = None    # "success" | "error"
-    label: Optional[str] = None     # form id, export type, etc. — bounded
-    latency_ms: Optional[int] = None
-    error_code: Optional[str] = None
+    kind: str = Field(..., max_length=24)
+    route: Optional[str] = Field(default=None, max_length=256)
+    portal: Optional[str] = Field(default=None, max_length=24)
+    viewport: Optional[str] = Field(default=None, max_length=12)  # "mobile" | "tablet" | "desktop"
+    status: Optional[str] = Field(default=None, max_length=12)    # "success" | "error"
+    label: Optional[str] = Field(default=None, max_length=48)     # form id, export type, etc. — bounded
+    latency_ms: Optional[int] = Field(default=None, ge=0, le=600_000)
+    error_code: Optional[str] = Field(default=None, max_length=48)
 
 
 class TrackBatch(BaseModel):
@@ -321,10 +321,14 @@ def build_usage_routes(db, require_admin):
                         "kind": "api_call"}},
             {"$group": {
                 "_id": "$route",
-                "count": {"$sum": 1},
-                "p95":   {"$max": "$latency_ms"},
-                "avg_ms":{"$avg": "$latency_ms"},
-                "errors":{"$sum": {"$cond": [
+                "count":  {"$sum": 1},
+                # `max_ms` is the worst observed latency in the window.
+                # NOT a true p95 — Mongo <7 lacks $percentile. The UI
+                # already labels this as "Worst ms" so the wire field
+                # name reflects the math being done.
+                "max_ms": {"$max": "$latency_ms"},
+                "avg_ms": {"$avg": "$latency_ms"},
+                "errors": {"$sum": {"$cond": [
                     {"$gte": [{"$ifNull": ["$status", 0]}, 400]}, 1, 0,
                 ]}},
             }},
@@ -334,9 +338,9 @@ def build_usage_routes(db, require_admin):
         rows = []
         async for d in cur:
             rows.append({
-                "route": d["_id"],
-                "count": d["count"],
-                "p95_ms": d.get("p95") or 0,
+                "route":  d["_id"],
+                "count":  d["count"],
+                "max_ms": d.get("max_ms") or 0,
                 "avg_ms": int(d.get("avg_ms") or 0),
                 "errors": d.get("errors") or 0,
             })

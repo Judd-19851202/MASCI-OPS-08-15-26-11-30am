@@ -17,6 +17,43 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter146: Phase 2.5 Kickoff · Usage Analytics & Operational Insight
+
+### User ask (Option A)
+Phase 2.5 sequence approved (146 → 147 → 148 → 149 → 150 → 151). Start with **analytics-first** so every later iter targets real measured pain, not assumptions. Constraints: lightweight, zero workflow impact, admin-only visibility, no PII, no surveillance feel.
+
+### Shipped
+- **Backend** `routes/usage_analytics.py` NEW —
+  - `UsageEventSink`: bounded async deque (max 5000) + 2-second batched flush loop. Never blocks user requests.
+  - `usage_tracking_middleware`: captures every `/api/*` route (skips its own paths, /api/health, static). Stores `kind=api_call` with route, method, status, latency_ms, portal (sniffed from token headers).
+  - `POST /api/usage/track` PUBLIC ingest — accepts up to 50 events / batch with Pydantic max-length validation (kind 24, route 256, portal 24, viewport 12, status 12, label 48, error_code 48, latency 0-600000ms).
+  - `GET /api/admin/analytics/{summary,routes,portals,health}` admin-only aggregations. `_strip_query()` collapses UUIDs and digit-only path segments to `:id` so analytics buckets by route, not record ID.
+  - `_hash_actor()` HMAC-hashes any actor hint (per-deploy `ANALYTICS_HMAC_SECRET` or fallback to `ADMIN_HMAC_SECRET`).
+  - `ensure_usage_indexes()` — TTL 90d + 3 dimension indexes ((kind, at), (portal, at), (route, at)).
+  - **Privacy guardrails**: no raw user IDs anywhere, no employee names, no project numbers, no request bodies, no free-text > 48 chars.
+- **Backend** `server.py` — middleware registered, router mounted, `ensure_usage_indexes + start_sink` wired into the `_bootstrap_integrations` startup hook.
+- **Frontend** `lib/usageTracker.js` NEW — fire-and-forget client. Public API: `trackPageView`, `trackFormSubmit`, `trackExport`, `trackUploadFailure`, `bindRouteChangeTracker`. Batches up to 10 events / 5s. `sendBeacon` on `visibilitychange + beforeunload`. `MAX_BUFFER=100` hard cap. Hooks `history.pushState/replaceState/popstate` for auto page_view tracking on SPA navigation. Silent failure on every code path.
+- **Frontend** `App.js` — `bindRouteChangeTracker()` called once via dynamic import inside the existing useEffect.
+- **Frontend** `pages/admin/AdminAnalytics.jsx` NEW — admin dashboard with window selector (1h/24h/7d/30d), 4 KPI cards, by-event-kind chips, by-viewport chips, by-portal tiles, top-routes table (avg/worst ms color-coded at 500ms & 1000ms thresholds), sink-health footer, inline error chip if any of the 4 aggregation endpoints fails.
+- **Frontend** `components/AdminShell.jsx` — `Usage Analytics` entry added to `SECTIONS` array (ChartBar icon).
+
+### Testing
+- testing_agent_v3_fork: **100% backend (22/22) + 100% frontend (9/9) — zero defects** (`/app/test_reports/iteration_146.json`).
+- Reusable pytest suite at `/app/backend/tests/test_usage_analytics_iter146.py`.
+- **Performance non-impact** confirmed: 5 cold + 5 warm spot-checks all <5ms middleware overhead.
+- **Privacy** confirmed: no PII surfaces in any endpoint response, UUIDs collapse to `:id`, label truncated server-side.
+- **Admin gate real**: HR token / invalid token / no-auth all return 401.
+
+### Post-test code-review polish (3 of 5 actionable, 2 noted as acceptable)
+- `p95_ms` field renamed to `max_ms` (it was always `$max`, not a true p95 — Mongo <7 lacks `$percentile`). UI label "Worst ms" unchanged.
+- Pydantic `TrackEvent` model gained `Field(max_length=...)` on every string field — bad payloads now return 422 (verified by curl).
+- AdminAnalytics now surfaces an inline amber error chip (`data-testid='analytics-load-error'`) when any of the 4 aggregation fetches fail — empty-state no longer indistinguishable from a fetch failure.
+
+### Outcome
+- Phase 2.5 has its data foundation. Every subsequent iter (147 perf tuning → 148 workflow optimization → 149 operational intelligence → 150 integration maturity → 151 polish) now has measured usage data to target instead of assumptions.
+- Real telemetry already flowing: ~390 events captured in the first hour of admin/safety navigation. Top routes immediately visible.
+
+---
 ## 2026-05-15 — Iter145: Final Phase-1 Consolidation (FL nav-parity + hubKickerStatic + safelist hardening)
 
 ### User ask (Option C)
