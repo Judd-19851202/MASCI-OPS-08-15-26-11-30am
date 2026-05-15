@@ -33,6 +33,8 @@ import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
 import { useT, getLang } from "@/lib/i18n";
+import { friendlyError } from "@/lib/friendlyErrors";
+import { HelpTip } from "@/components/ui/HelpTip";
 import { formatApiError } from "@/lib/apiErrors";
 import {
   INCIDENT_TYPES,
@@ -189,7 +191,7 @@ export default function NewIncident({ publicMode = false }) {
       }
     } catch (e) {
       console.error(e);
-      toast.error(formatApiError(e, "Could not save incident report"), { duration: 7000 });
+      toast.error(friendlyError(e, formatApiError(e, "Could not save incident report")), { duration: 7000 });
       // iter147 — record the failure for analytics
       import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
         trackFormSubmit("/incidents", false, "incident-new")).catch(() => {});
@@ -401,8 +403,13 @@ export default function NewIncident({ publicMode = false }) {
         {/* Section 02 — Classification & Severity */}
         <Section number="02" title={t("Classification & Severity")}>
           <div>
-            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 flex items-center gap-1.5">
               {t("Incident Type *")}
+              <HelpTip
+                label={t("How do I pick the right incident type?")}
+                body={t("Pick the category that BEST DESCRIBES THE EVENT — not the body part injured. Use Near Miss for events with no actual harm. Property Damage for asset-only impact. Use one type per report; file a second report if multiple distinct events occurred.")}
+                testId="incident-help-type"
+              />
             </Label>
             <Select
               value={data.incident_type}

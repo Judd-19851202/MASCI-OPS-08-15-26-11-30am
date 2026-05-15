@@ -19,6 +19,9 @@ import {
 import SafetyShell from "@/components/SafetyShell";
 import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
+import { HelpTip } from "@/components/ui/HelpTip";
+import { useRememberedFilter, useRememberedFormValue } from "@/lib/useRememberedFilter";
+import { friendlyError } from "@/lib/friendlyErrors";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -69,8 +72,12 @@ export default function SafetyTrainingRecords() {
   const [items, setItems] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("All");
-  const [search, setSearch] = useState("");
+  const [tab, setTab] = useRememberedFilter("safety.training.tab", "All");
+  const [search, setSearch] = useRememberedFilter("safety.training.search", "");
+  // iter148 — pre-fill last cert type on a fresh training record
+  const [lastCertType, rememberLastCertType] = useRememberedFormValue(
+    "safety.training.last-cert-type", "",
+  );
   const [dlg, setDlg] = useState({ open: false, mode: "create", id: null, form: blank() });
   const [saving, setSaving] = useState(false);
 
@@ -116,7 +123,15 @@ export default function SafetyTrainingRecords() {
     return list;
   }, [items, tab, search]);
 
-  const openCreate = () => setDlg({ open: true, mode: "create", id: null, form: blank() });
+  const openCreate = () => setDlg({
+    open: true,
+    mode: "create",
+    id: null,
+    // iter148 — pre-fill certification_type from last submission. The
+    // most-common workflow is logging the same cert type for several
+    // employees in a row (e.g. OSHA-10 onboarding day).
+    form: { ...blank(), certification_type: lastCertType || blank().certification_type },
+  });
   const openEdit = (r) => setDlg({
     open: true, mode: "edit", id: r.id,
     form: {
@@ -146,6 +161,8 @@ export default function SafetyTrainingRecords() {
         // iter147 — training submit telemetry
         import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
           trackFormSubmit("/safety/training-records", true, "training-create")).catch(() => {});
+        // iter148 — remember the cert type for the next entry
+        if (payload.certification_type) rememberLastCertType(payload.certification_type);
       } else {
         await axios.patch(`${API}/safety/training-records/${dlg.id}`, payload, auth());
         toast.success("Training record updated");
@@ -155,7 +172,7 @@ export default function SafetyTrainingRecords() {
       close();
       refresh();
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Save failed");
+      toast.error(friendlyError(err, "Save failed"));
       import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
         trackFormSubmit("/safety/training-records", false, dlg.mode === "create" ? "training-create" : "training-edit")).catch(() => {});
     } finally {
@@ -334,7 +351,14 @@ export default function SafetyTrainingRecords() {
                 <Input type="date" value={dlg.form.completed_date} onChange={(e) => setDlg((d) => ({ ...d, form: { ...d.form, completed_date: e.target.value } }))} className={`${inputCls} mt-1`} data-testid="safety-tr-form-completed" />
               </div>
               <div>
-                <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Expiration date")}</Label>
+                <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold flex items-center gap-1.5">
+                  {t("Expiration date")}
+                  <HelpTip
+                    label={t("When does a training expire?")}
+                    body={t("Leave blank for certifications that don't expire (e.g. orientation). For OSHA-10/30, MSHA, CPR/First Aid, and other annual or biennial certs, set this to the date the credential lapses.")}
+                    testId="training-help-expiration"
+                  />
+                </Label>
                 <Input type="date" value={dlg.form.expiration_date || ""} onChange={(e) => setDlg((d) => ({ ...d, form: { ...d.form, expiration_date: e.target.value } }))} className={`${inputCls} mt-1`} data-testid="safety-tr-form-expiration" />
               </div>
               <div className="sm:col-span-2">

@@ -30,6 +30,10 @@ import SafetyShell from "@/components/SafetyShell";
 import SafetyCaLinksManager from "@/components/SafetyCaLinksManager";
 import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
+import { HelpTip } from "@/components/ui/HelpTip";
+import { useRememberedFilter } from "@/lib/useRememberedFilter";
+import { friendlyError } from "@/lib/friendlyErrors";
+import { Link } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { toast } from "sonner";
@@ -110,8 +114,9 @@ export default function SafetyCorrectiveActions() {
   const { t } = useT();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("All");
-  const [search, setSearch] = useState("");
+  // iter148 — remember the status tab + search per user across visits
+  const [tab, setTab] = useRememberedFilter("safety.ca.status-tab", "All");
+  const [search, setSearch] = useRememberedFilter("safety.ca.search", "");
   // iter139 — filter by linked master record
   const [filterEqId, setFilterEqId] = useState("");
   const [filterEqLabel, setFilterEqLabel] = useState("");
@@ -231,7 +236,7 @@ export default function SafetyCorrectiveActions() {
       closeDlg();
       refresh();
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Save failed");
+      toast.error(friendlyError(err, "Save failed"));
       import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
         trackFormSubmit("/safety/corrective-actions", false, dlg.mode === "create" ? "ca-create" : "ca-edit")).catch(() => {});
     } finally {
@@ -357,7 +362,9 @@ export default function SafetyCorrectiveActions() {
         <EmptyState
           icon={AlertOctagon}
           title={t("No corrective actions")}
-          body={tab === "All" ? t("Create the first one with the button above.") : t("Try a different filter.")}
+          body={tab === "All"
+            ? t("Corrective actions track findings from inspections, incidents, and audits through to closure. Tap the New button above to create your first one.")
+            : t("Nothing matches this filter yet. Try the 'All' tab to see every record.")}
           testId="safety-ca-empty"
         />
       ) : (
@@ -490,7 +497,14 @@ export default function SafetyCorrectiveActions() {
                 />
               </div>
               <div>
-                <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Priority")}</Label>
+                <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold flex items-center gap-1.5">
+                  {t("Priority")}
+                  <HelpTip
+                    label={t("Priority vs. Severity")}
+                    body={t("Priority drives WHEN we act — it controls the Open-queue ordering. Severity (set on the source incident or audit) describes the risk of the underlying finding itself.")}
+                    testId="safety-ca-help-priority"
+                  />
+                </Label>
                 <Select
                   value={dlg.form.priority}
                   onValueChange={(v) => setDlg((d) => ({ ...d, form: { ...d.form, priority: v } }))}

@@ -28,6 +28,8 @@ import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { SupplierCombo } from "@/components/SupplierCombo";
 import { DailyHoursFlag } from "@/components/HoursSanityFlag";
 import { useT, getLang } from "@/lib/i18n";
+import { useRememberedFormValue } from "@/lib/useRememberedFilter";
+import { friendlyError } from "@/lib/friendlyErrors";
 import { formatApiError } from "@/lib/apiErrors";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
@@ -192,7 +194,19 @@ const useList = (data, set, key) => ({
 export default function NewDailyReport({ publicMode = false }) {
   const navigate = useNavigate();
   const { t } = useT();
-  const [data, setData] = useState(buildDailyReportDefaults());
+  // iter148 — pre-fill last project_number from previous submission.
+  // The vast majority of crews file daily reports against the same
+  // project for weeks at a time, so this saves a lookup every day.
+  const [lastProject, rememberLastProject] = useRememberedFormValue(
+    "pm.dailyreport.last-project-number", "",
+  );
+  const [data, setData] = useState(() => {
+    const defaults = buildDailyReportDefaults();
+    if (lastProject && !defaults.project_number) {
+      defaults.project_number = lastProject;
+    }
+    return defaults;
+  });
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [fetchingWeather, setFetchingWeather] = useState(false);
@@ -421,6 +435,8 @@ export default function NewDailyReport({ publicMode = false }) {
       payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/daily-reports", payload);
       toast.success("Daily report saved");
+      // iter148 — remember this project for the next visit
+      if (payload.project_number) rememberLastProject(String(payload.project_number));
       // iter147 — telemetry on the daily-report flow (heaviest PM form)
       import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
         trackFormSubmit("/daily-reports", true, "daily-report-new")).catch(() => {});
@@ -438,7 +454,7 @@ export default function NewDailyReport({ publicMode = false }) {
       }
     } catch (e) {
       console.error(e);
-      toast.error(formatApiError(e, "Could not save daily report"), { duration: 7000 });
+      toast.error(friendlyError(e, formatApiError(e, "Could not save daily report")), { duration: 7000 });
       import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
         trackFormSubmit("/daily-reports", false, "daily-report-new")).catch(() => {});
     } finally {

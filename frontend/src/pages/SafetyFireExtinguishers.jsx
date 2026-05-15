@@ -23,6 +23,9 @@ import SafetyShell from "@/components/SafetyShell";
 import SafetyFireExtManageDialog from "@/components/SafetyFireExtManageDialog";
 import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
+import { HelpTip } from "@/components/ui/HelpTip";
+import { useRememberedFilter, useRememberedFormValue } from "@/lib/useRememberedFilter";
+import { friendlyError } from "@/lib/friendlyErrors";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -70,7 +73,14 @@ export default function SafetyFireExtinguishers() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("All");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useRememberedFilter("safety.fireext.search", "");
+  // iter148 — pre-fill last inspector & last status on next inspection open
+  const [lastInspector, rememberLastInspector] = useRememberedFormValue(
+    "safety.fireext.last-inspector", "",
+  );
+  const [lastStatus, rememberLastStatus] = useRememberedFormValue(
+    "safety.fireext.last-status", "Pass",
+  );
   const [editDlg, setEditDlg] = useState({ open: false, mode: "create", id: null, form: blank() });
   const [inspectDlg, setInspectDlg] = useState({ open: false, fe: null, form: inspectBlank() });
   const [manageDlg, setManageDlg] = useState({ open: false, fe: null });
@@ -168,7 +178,17 @@ export default function SafetyFireExtinguishers() {
     }
   };
 
-  const openInspect = (fe) => setInspectDlg({ open: true, fe, form: inspectBlank() });
+  const openInspect = (fe) => setInspectDlg({
+    open: true,
+    fe,
+    // iter148 — auto-fill inspector + last status from previous inspection
+    // submitted by the same user. User can still edit anything.
+    form: {
+      ...inspectBlank(),
+      inspector_name: lastInspector || inspectBlank().inspector_name,
+      status: lastStatus || inspectBlank().status,
+    },
+  });
   const closeInspect = () => setInspectDlg((d) => ({ ...d, open: false }));
   const submitInspect = async () => {
     const f = inspectDlg.form;
@@ -177,13 +197,16 @@ export default function SafetyFireExtinguishers() {
     try {
       await axios.post(`${API}/safety/fire-extinguishers/${inspectDlg.fe.id}/inspect`, f, auth());
       toast.success(`Inspection logged — next due ${f.next_due_date || "+30d"}`);
+      // iter148 — remember inspector + status for the next visit
+      rememberLastInspector(f.inspector_name || "");
+      rememberLastStatus(f.status || "Pass");
       // iter147 — track the inspection submit; the heaviest fire-ext flow
       import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
         trackFormSubmit("/safety/fire-extinguishers/inspect", true, "fire-ext-inspect")).catch(() => {});
       closeInspect();
       refresh();
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Inspection failed");
+      toast.error(friendlyError(err, "Inspection failed"));
       import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
         trackFormSubmit("/safety/fire-extinguishers/inspect", false, "fire-ext-inspect")).catch(() => {});
     } finally {
@@ -418,7 +441,14 @@ export default function SafetyFireExtinguishers() {
               <Input value={inspectDlg.form.inspector_name} onChange={(e) => setInspectDlg((d) => ({ ...d, form: { ...d.form, inspector_name: e.target.value } }))} className={`${inputCls} mt-1`} placeholder={t("Defaults to signed-in safety user")} />
             </div>
             <div>
-              <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Next due date (optional)")}</Label>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold flex items-center gap-1.5">
+                {t("Next due date (optional)")}
+                <HelpTip
+                  label={t("How is next-due calculated?")}
+                  body={t("Leave blank and the system auto-sets +30 days from today (monthly cadence per NFPA 10). Override only when the unit is on a custom inspection interval (e.g. quarterly).")}
+                  testId="fire-ext-help-next-due"
+                />
+              </Label>
               <Input type="date" value={inspectDlg.form.next_due_date} onChange={(e) => setInspectDlg((d) => ({ ...d, form: { ...d.form, next_due_date: e.target.value } }))} className={`${inputCls} mt-1`} />
               <div className="text-[11px] text-slate-500 mt-1">{t("Leave blank to auto-set +30 days.")}</div>
             </div>
