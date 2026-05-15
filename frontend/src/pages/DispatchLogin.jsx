@@ -1,7 +1,7 @@
-// Dispatch Portal sign-in. Mirrors HrLogin / ShopLogin chrome. Cyan
-// accent. Posts to /api/dispatch/login and stores the token via
-// dispatchAuth.setDispatchToken so the rest of the portal can hit
-// /api/dispatch/* with `X-Safety-Token` headers.
+// Dispatch Portal sign-in. Mirrors HrLogin / ShopLogin / SafetyLogin
+// chrome. Orange-700 accent. Posts to /api/dispatch/login and stores
+// the token via dispatchAuth.setDispatchToken so the rest of the
+// portal can hit /api/dispatch/* with X-Dispatch-Token headers.
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Loader2, Truck, ArrowLeft } from "lucide-react";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { LangToggle } from "@/components/LangToggle";
 import { toast } from "sonner";
 import axios from "axios";
@@ -40,7 +41,7 @@ export default function DispatchLogin() {
     setBusy(true);
     try {
       const r = await axios.post(`${API}/dispatch/login`, {
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password,
       });
       setDispatchToken(r.data.token, remember);
@@ -67,11 +68,12 @@ export default function DispatchLogin() {
           <Link
             to="/"
             className="inline-flex items-center text-white hover:text-orange-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="safety-login-back"
+            data-testid="dispatch-login-back"
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
-          <MasciLogo variant="mark" size="lg" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <LangToggle />
         </div>
       </header>
@@ -83,7 +85,7 @@ export default function DispatchLogin() {
               <Truck className="w-6 h-6" />
             </div>
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-orange-700">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-orange-700 font-bold">
                 {t("Operations · Fleet Movement")}
               </div>
               <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
@@ -92,15 +94,13 @@ export default function DispatchLogin() {
             </div>
           </div>
           <p className="text-slate-600 text-sm mt-3 mb-6">
-            {t(
-              "Dispatcher access. Use the credentials issued by Admin."
-            )}
+            {t("Dispatcher access. Use the credentials issued by Admin.")}
           </p>
 
-          <form onSubmit={submit} className="space-y-4" data-testid="safety-login-form">
+          <form onSubmit={submit} className="space-y-4" data-testid="dispatch-login-form">
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                {t("Email")}
+                {t("Work Email")}
               </Label>
               <Input
                 type="email"
@@ -108,8 +108,9 @@ export default function DispatchLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 autoFocus
                 autoComplete="username"
+                placeholder="yourname@mascigc.com"
                 className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-orange-600"
-                data-testid="safety-login-email"
+                data-testid="dispatch-email-input"
               />
             </div>
             <div>
@@ -121,23 +122,36 @@ export default function DispatchLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-orange-600"
-                data-testid="safety-login-password"
+                data-testid="dispatch-password-input"
+                toggleTestId="dispatch-password-toggle"
               />
             </div>
-            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-400"
-              />
-              {t("Keep me signed in on this device")}
-            </label>
+            <div className="flex items-center justify-between gap-3 -mt-1">
+              <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="w-4 h-4 accent-orange-700"
+                  data-testid="dispatch-remember-me"
+                />
+                <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
+                  {t("Remember me on this device")}
+                </span>
+              </label>
+              <Link
+                to="/dispatch-portal/forgot-password"
+                className="text-xs font-bold text-orange-700 hover:text-orange-900 underline-offset-2 hover:underline"
+                data-testid="dispatch-forgot-password-link"
+              >
+                {t("Forgot password?")}
+              </Link>
+            </div>
             <Button
               type="submit"
               disabled={busy || !email.trim() || !password}
               className="w-full h-12 bg-orange-700 hover:bg-orange-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-orange-900 disabled:opacity-60"
-              data-testid="safety-login-submit"
+              data-testid="dispatch-login-submit"
             >
               {busy ? (
                 <>
@@ -147,18 +161,16 @@ export default function DispatchLogin() {
                 <>{t("Sign In")}</>
               )}
             </Button>
-            <div className="text-center">
-              <Link
-                to="/dispatch-portal/forgot-password"
-                className="text-xs font-mono uppercase tracking-[0.18em] text-orange-700 hover:underline"
-                data-testid="safety-forgot-link"
-              >
-                {t("Forgot password?")}
-              </Link>
-            </div>
           </form>
         </div>
       </main>
+
+      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
+          {t("MASCI · Dispatch Portal")}
+        </div>
+        <ForgedOpsAttribution variant="login" />
+      </footer>
     </div>
   );
 }

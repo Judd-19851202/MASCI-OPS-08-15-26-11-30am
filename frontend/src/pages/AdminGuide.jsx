@@ -4,7 +4,7 @@ import {
   ArrowLeft, Printer, ClipboardCheck, Users, AlertOctagon, ClipboardList,
   Wrench, Mail, ShieldCheck, HardDrive, QrCode, HelpCircle, Truck,
   TrendingUp, Building2, ListChecks, KeyRound, Cloud, LayoutDashboard,
-  GraduationCap, Rocket,
+  GraduationCap, Rocket, Activity, Layers, Eye, AlertTriangle, Plug,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { Button } from "@/components/ui/button";
@@ -561,6 +561,120 @@ export default function AdminGuide() {
           <p className="mt-2">
             Print all posters from <code>/admin/jobs</code> → <strong>Site Posters</strong> panel → <strong>Print All Posters</strong>.
           </p>
+        </Section>
+
+        {/* ════════════════════════════════════════════════════════════════
+            ITER128 — NEW OPERATIONS ARCHITECTURE TRAINING (iter122-128 features)
+            ════════════════════════════════════════════════════════════════ */}
+
+        <Section icon={Truck} title="Dispatch Portal — fleet movement command center" color="amber">
+          <p className="mb-2">
+            New dedicated portal at <code>/dispatch-portal/login</code> for the
+            people who move iron between jobs. Mirrors HR / Shop / Safety
+            chrome — orange accent.
+          </p>
+          <p className="mb-2"><strong>What dispatchers can do:</strong></p>
+          <ul className="ml-5 list-disc space-y-1">
+            <li><strong>Utilization tab</strong> — every active asset with its current status (Available · Assigned · In Transit · Pending Transfer · Safety Hold · Maintenance Hold).</li>
+            <li><strong>Transfers</strong> — submit, approve, deny, schedule, complete. State machine prevents bad transitions.</li>
+            <li><strong>Holds</strong> — apply safety/maintenance holds and release them. Approve or dismiss pending holds spawned by failed pre-ops (see next section).</li>
+            <li><strong>Idle Alerts</strong> — flags assigned equipment that hasn't moved in &gt; 7/14/30 days. Read-only — never auto-changes status.</li>
+            <li><strong>Asset Profile</strong> — click any unit number to drill into its unified profile (next section).</li>
+          </ul>
+          <p className="mt-2"><strong>Admin management:</strong> add/remove dispatchers at <code>/admin/people</code> → Dispatch Users panel. Each dispatcher gets their own login and password rotation flow.</p>
+        </Section>
+
+        <Section icon={AlertTriangle} title="Failed Pre-Op → Pending Maintenance Hold (approval-based)" color="red">
+          <p className="mb-2">
+            <strong>Critical safety guardrail:</strong> when a crew submits a
+            pre-op with FAIL items or "Out of Service", the platform creates
+            a <em>pending</em> maintenance hold — it does <strong>NOT</strong>
+            auto-change the equipment's global status. Admin or Dispatch
+            must explicitly approve.
+          </p>
+          <ol className="ml-5 list-decimal space-y-1">
+            <li>Field submits a failed pre-op → backend writes a pending hold (status="pending", active=false).</li>
+            <li>Pending hold shows up in <strong>Dispatch Portal → Holds tab → amber "Admin Review Required" card</strong>.</li>
+            <li>Reviewer either <strong>Approves</strong> (status flips to active, asset goes Maintenance Hold) or <strong>Dismisses</strong> with a required reason (e.g. "false alarm — equipment fine").</li>
+            <li>Every state change is logged to the Operations Event Log.</li>
+          </ol>
+          <p className="mt-2 text-sm">Why this matters: prevents accidental field-triggered status changes. A new operator hitting "FAIL" by mistake will never strand a $400k asset without a human reviewing first.</p>
+        </Section>
+
+        <Section icon={Layers} title="Unified Asset Profile — every asset, one screen" color="slate">
+          <p className="mb-2">
+            <code>/admin/assets/:assetId</code> aggregates everything we know about a single piece of equipment. 7 tabs:
+          </p>
+          <ol className="ml-5 list-decimal space-y-1">
+            <li><strong>Overview</strong> — hero card with current ops status (precedence: Safety Hold &gt; Maintenance Hold &gt; In Transit &gt; Pending Transfer &gt; Assigned &gt; Available).</li>
+            <li><strong>Dispatch</strong> — active assignment, recent transfers.</li>
+            <li><strong>Motive</strong> — telematics placeholder (live API integration deferred).</li>
+            <li><strong>MaintainX</strong> — work-order placeholder (live API integration deferred).</li>
+            <li><strong>Safety</strong> — corrective actions touching this asset.</li>
+            <li><strong>Field Ops</strong> — last 10 pre-ops + daily-report references.</li>
+            <li><strong>Events</strong> — full paginated operations event log filtered to this asset.</li>
+          </ol>
+          <p className="mt-2">Reachable from: Equipment Master list (every row has a "Profile" link), Dispatch Utilization table, and Idle Alerts table.</p>
+        </Section>
+
+        <Section icon={Activity} title="Operations Event Log — passive system of record" color="slate">
+          <p className="mb-2">
+            <code>/admin/operations-events</code> — append-only ledger of every operational event that touches an asset or employee. Every hold, assignment, transfer, approval, dismissal, pre-op fail, and integration-sync writes a row here.
+          </p>
+          <p className="mb-2"><strong>How to use:</strong></p>
+          <ul className="ml-5 list-disc space-y-1">
+            <li>Filter by event type · severity · status · source · asset · employee · project.</li>
+            <li>Drill into any row for the full payload.</li>
+            <li>Use for compliance audits, incident reconstruction, or just "what happened to unit 14-12 last month?".</li>
+          </ul>
+          <p className="mt-2 text-sm">Cross-portal: Safety / HR / Shop / PM / Dispatch tokens can all <em>read</em> events (`make_require_any_portal_token`). Only Admin or Dispatch can <em>write</em>.</p>
+        </Section>
+
+        <Section icon={Plug} title="Integration Center — Motive + MaintainX (passive stubs for now)" color="amber">
+          <p className="mb-2">
+            <code>/admin/integrations</code> houses the framework that will eventually plug Motive (telematics) and MaintainX (work-orders) into the platform.
+          </p>
+          <p className="mb-2"><strong>Tabs:</strong></p>
+          <ul className="ml-5 list-disc space-y-1">
+            <li><strong>Overview</strong> — provider health cards.</li>
+            <li><strong>Motive / MaintainX</strong> — per-provider settings; "test connection" today returns a stub message because no live API keys are wired yet.</li>
+            <li><strong>Asset Mapping / Employee Mapping</strong> — CRUD layer that ties MASCI master IDs to Motive/MaintainX external IDs. Master collections (`equipment_master`, `employees`) are NEVER mutated.</li>
+            <li><strong>Mappings Wizard</strong> — two-step preview-then-commit bulk linker. Paste CSV from a Motive export, see what'll match/conflict/duplicate, then approve. Refuses to overwrite existing mappings unless admin toggles "force overwrite" on each row.</li>
+            <li><strong>Sync Logs / Error Logs</strong> — append-only audit.</li>
+            <li><strong>CSV Import / Export</strong> — fallback before live APIs ship.</li>
+          </ul>
+          <p className="mt-2 text-sm"><strong>Architectural guardrail:</strong> NO live API calls today. Integration framework is passive-observational until live keys are issued and stability is proven.</p>
+        </Section>
+
+        <Section icon={ShieldCheck} title="Safety Portal — separate scope, own login" color="cyan">
+          <p className="mb-2">
+            <code>/safety-portal/login</code>. Cyan accent. Safety has its own bcrypt-bound login (mirrors HR/Shop), its own user directory at <code>/admin/people</code> → Safety Users panel, and own admin gate.
+          </p>
+          <p className="mb-2"><strong>Tabs on the Safety Hub:</strong></p>
+          <ul className="ml-5 list-disc space-y-1">
+            <li>Overview KPIs (incidents, meetings, inspections, open corrective actions).</li>
+            <li>Corrective Actions — full CRUD + status pipeline (Open → In Progress → Pending Review → Closed).</li>
+            <li>Fire Extinguishers — one record per unit, inspection history.</li>
+            <li>Document Library — multipart upload, R2-backed when configured.</li>
+            <li>Training & Certifications — tied to `db.employees`.</li>
+            <li>Employee Safety Profile — drill-down KPI grid per employee.</li>
+            <li>Weekly Digest — Monday 14:00 UTC cron → safety@mascigc.com.</li>
+          </ul>
+          <p className="mt-2">HR cross-portal view at <code>/hr/safety-records</code> uses the HR token (no Safety credentials required).</p>
+        </Section>
+
+        <Section icon={Eye} title="View as Dispatcher — admin impersonation preview" color="red">
+          <p className="mb-2">
+            On <code>/admin/people</code> → Dispatch Users panel, every row has an Eye button. Click it →
+          </p>
+          <ol className="ml-5 list-decimal space-y-1">
+            <li>Confirmation dialog ("Preview Dispatch Portal as X?").</li>
+            <li>Backend mints a real dispatch session token bound to that user's password.</li>
+            <li>Token is stashed in localStorage; <code>/dispatch-portal</code> opens in a new tab.</li>
+            <li>Your admin session in the current tab stays intact — close the impersonation tab when done.</li>
+            <li>Action is audit-logged to <code>db.audit_events</code> with kind="admin_impersonate_dispatch".</li>
+          </ol>
+          <p className="mt-2 text-sm">Use this to debug "why can't this dispatcher see this hold?" without asking them for their password.</p>
         </Section>
 
         {/* WHEN THINGS BREAK */}

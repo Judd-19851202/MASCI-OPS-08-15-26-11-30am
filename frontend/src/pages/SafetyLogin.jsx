@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { LangToggle } from "@/components/LangToggle";
 import { toast } from "sonner";
 import axios from "axios";
@@ -71,7 +72,8 @@ export default function SafetyLogin() {
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
-          <MasciLogo variant="mark" size="lg" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <LangToggle />
         </div>
       </header>
@@ -83,7 +85,7 @@ export default function SafetyLogin() {
               <ShieldAlert className="w-6 h-6" />
             </div>
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-700">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-700 font-bold">
                 {t("Safety Operations")}
               </div>
               <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
@@ -100,7 +102,7 @@ export default function SafetyLogin() {
           <form onSubmit={submit} className="space-y-4" data-testid="safety-login-form">
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                {t("Email")}
+                {t("Work Email")}
               </Label>
               <Input
                 type="email"
@@ -108,6 +110,7 @@ export default function SafetyLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 autoFocus
                 autoComplete="username"
+                placeholder="yourname@mascigc.com"
                 className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-cyan-600"
                 data-testid="safety-login-email"
               />
@@ -122,17 +125,30 @@ export default function SafetyLogin() {
                 autoComplete="current-password"
                 className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-cyan-600"
                 data-testid="safety-login-password"
+                toggleTestId="safety-password-toggle"
               />
             </div>
-            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-400"
-              />
-              {t("Keep me signed in on this device")}
-            </label>
+            <div className="flex items-center justify-between gap-3 -mt-1">
+              <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="w-4 h-4 accent-cyan-700"
+                  data-testid="safety-remember-me"
+                />
+                <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
+                  {t("Remember me on this device")}
+                </span>
+              </label>
+              <Link
+                to="/safety-portal/forgot-password"
+                className="text-xs font-bold text-cyan-700 hover:text-cyan-900 underline-offset-2 hover:underline"
+                data-testid="safety-forgot-link"
+              >
+                {t("Forgot password?")}
+              </Link>
+            </div>
             <Button
               type="submit"
               disabled={busy || !email.trim() || !password}
@@ -147,18 +163,16 @@ export default function SafetyLogin() {
                 <>{t("Sign In")}</>
               )}
             </Button>
-            <div className="text-center">
-              <Link
-                to="/safety-portal/forgot-password"
-                className="text-xs font-mono uppercase tracking-[0.18em] text-cyan-700 hover:underline"
-                data-testid="safety-forgot-link"
-              >
-                {t("Forgot password?")}
-              </Link>
-            </div>
           </form>
         </div>
       </main>
+
+      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
+          {t("MASCI · Safety Portal")}
+        </div>
+        <ForgedOpsAttribution variant="login" />
+      </footer>
     </div>
   );
 }

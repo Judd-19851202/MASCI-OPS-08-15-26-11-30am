@@ -88,6 +88,8 @@ import SafetyLogin from "@/pages/SafetyLogin";
 import DispatchLogin from "@/pages/DispatchLogin";
 import DispatchHub from "@/pages/DispatchHub";
 import DispatchChangePassword from "@/pages/DispatchChangePassword";
+import DispatchForgotPassword from "@/pages/DispatchForgotPassword";
+import DispatchResetPassword from "@/pages/DispatchResetPassword";
 import SafetyHub from "@/pages/SafetyHub";
 import SafetyChangePassword from "@/pages/SafetyChangePassword";
 import SafetyForgotPassword from "@/pages/SafetyForgotPassword";
@@ -425,6 +427,8 @@ function App() {
                 Mirrors Safety/HR/Shop/PM portal pattern.
                 ============================================================ */}
             <Route path="/dispatch-portal/login" element={<DispatchLogin />} />
+            <Route path="/dispatch-portal/forgot-password" element={<DispatchForgotPassword />} />
+            <Route path="/dispatch-portal/reset/:token" element={<DispatchResetPassword />} />
             <Route path="/dispatch-portal/change-password" element={DP(<DispatchChangePassword />)} />
             <Route path="/dispatch-portal" element={DP(<DispatchHub />)} />
 
