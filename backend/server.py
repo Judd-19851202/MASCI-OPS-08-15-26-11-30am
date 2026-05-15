@@ -8154,6 +8154,21 @@ _integrations_router = build_integrations_router(
 app.include_router(_integrations_router)
 
 
+# ─── Operations layer (Asset Profile · Event Log · Dispatch · Utilization · iter124) ─
+from routes.operations import (  # noqa: E402
+    build_operations_router,
+    ensure_operations_indexes,
+)
+
+app.include_router(build_operations_router(db, require_admin))
+
+
+@app.on_event("startup")
+async def _bootstrap_operations():
+    await ensure_operations_indexes(db)
+    logger.info("[operations] indexes ensured")
+
+
 @app.on_event("startup")
 async def _bootstrap_integrations():
     await ensure_integrations_indexes_and_seed(db)

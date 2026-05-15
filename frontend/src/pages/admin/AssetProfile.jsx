@@ -1,0 +1,328 @@
+// Unified Asset Profile — read-only aggregator across MASCI master,
+// integrations, dispatch, safety, and operations event log.
+import React, { useEffect, useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft, Truck, MapPin, Wrench, ShieldAlert, Activity, Clipboard,
+  AlertTriangle, CheckCircle2, Loader2, RefreshCcw,
+} from "lucide-react";
+import AdminShell from "@/components/AdminShell";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
+
+const STATUS_PILL = {
+  Available:         "bg-emerald-100 text-emerald-900 border-emerald-300",
+  Assigned:          "bg-blue-100 text-blue-900 border-blue-300",
+  "In Transit":      "bg-violet-100 text-violet-900 border-violet-300",
+  "Pending Transfer":"bg-cyan-100 text-cyan-900 border-cyan-300",
+  "Safety Hold":     "bg-red-100 text-red-900 border-red-300",
+  "Maintenance Hold":"bg-amber-100 text-amber-900 border-amber-300",
+  Down:              "bg-slate-300 text-slate-900 border-slate-400",
+  Unknown:           "bg-slate-200 text-slate-700 border-slate-300",
+};
+
+export default function AssetProfile() {
+  const { assetId } = useParams();
+  const nav = useNavigate();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState("overview");
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const r = await api.get(`/operations/assets/${assetId}/profile`);
+      setData(r.data);
+    } catch (e) {
+      setData({ error: e?.response?.data?.detail || "Failed to load asset" });
+    } finally { setLoading(false); }
+  };
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [assetId]);
+
+  if (loading) return (
+    <AdminShell title="Asset Profile">
+      <div className="text-center text-slate-500 py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
+    </AdminShell>
+  );
+  if (!data || data.error) return (
+    <AdminShell title="Asset Profile">
+      <div className="text-center text-red-700 py-12">{data?.error || "Asset not found"}</div>
+    </AdminShell>
+  );
+
+  const overview = data.overview || {};
+  const statusCls = STATUS_PILL[data.current_status] || STATUS_PILL.Unknown;
+
+  return (
+    <AdminShell title="Asset Profile">
+      <div className="max-w-6xl mx-auto" data-testid="asset-profile-page">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <Button variant="outline" size="sm" onClick={() => nav(-1)} data-testid="asset-profile-back">
+            <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back
+          </Button>
+          <Button variant="outline" size="sm" onClick={load}>
+            <RefreshCcw className="w-3.5 h-3.5 mr-1" /> Refresh
+          </Button>
+        </div>
+
+        {/* Hero */}
+        <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4">
+          <div className="flex items-start gap-4 flex-wrap">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-slate-900 text-white shrink-0">
+              <Truck className="w-7 h-7" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
+                Unified asset profile · iter124
+              </span>
+              <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight" data-testid="asset-profile-name">
+                {overview.unit_number || "—"} <span className="text-slate-500 font-normal">— {overview.name || "(unnamed)"}</span>
+              </h1>
+              <div className="text-sm text-slate-700 mt-1">
+                {overview.equipment_type || "—"} · {overview.make || ""} {overview.model || ""}{overview.year ? ` · ${overview.year}` : ""}
+              </div>
+            </div>
+            <span
+              className={`px-3 py-1.5 rounded-md border-2 font-mono text-xs uppercase tracking-[0.18em] font-bold ${statusCls}`}
+              data-testid="asset-profile-status"
+            >
+              {data.current_status}
+            </span>
+          </div>
+        </div>
+
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList className="flex-wrap h-auto">
+            <TabsTrigger value="overview" data-testid="ap-tab-overview"><Clipboard className="w-3.5 h-3.5 mr-1" /> Overview</TabsTrigger>
+            <TabsTrigger value="dispatch" data-testid="ap-tab-dispatch"><Truck className="w-3.5 h-3.5 mr-1" /> Dispatch</TabsTrigger>
+            <TabsTrigger value="motive" data-testid="ap-tab-motive"><MapPin className="w-3.5 h-3.5 mr-1" /> Motive</TabsTrigger>
+            <TabsTrigger value="maintainx" data-testid="ap-tab-maintainx"><Wrench className="w-3.5 h-3.5 mr-1" /> MaintainX</TabsTrigger>
+            <TabsTrigger value="safety" data-testid="ap-tab-safety"><ShieldAlert className="w-3.5 h-3.5 mr-1" /> Safety</TabsTrigger>
+            <TabsTrigger value="field" data-testid="ap-tab-field"><Clipboard className="w-3.5 h-3.5 mr-1" /> Field Ops</TabsTrigger>
+            <TabsTrigger value="events" data-testid="ap-tab-events"><Activity className="w-3.5 h-3.5 mr-1" /> Events</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview"><OverviewSection overview={overview} /></TabsContent>
+          <TabsContent value="dispatch"><DispatchSection data={data} /></TabsContent>
+          <TabsContent value="motive"><MotivePlaceholder mapping={data.mapping} /></TabsContent>
+          <TabsContent value="maintainx"><MaintainXPlaceholder mapping={data.mapping} /></TabsContent>
+          <TabsContent value="safety"><SafetySection data={data} /></TabsContent>
+          <TabsContent value="field"><FieldOpsSection data={data} /></TabsContent>
+          <TabsContent value="events"><EventsSection data={data} /></TabsContent>
+        </Tabs>
+      </div>
+    </AdminShell>
+  );
+}
+
+function Field({ label, value }) {
+  return (
+    <div>
+      <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold">{label}</div>
+      <div className="text-sm font-bold text-slate-900 mt-0.5 break-words">{value || <span className="text-slate-400 font-normal">—</span>}</div>
+    </div>
+  );
+}
+
+function OverviewSection({ overview }) {
+  return (
+    <div className="bg-white border-2 border-slate-200 rounded-md p-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="ap-overview">
+      <Field label="MASCI ID"      value={overview.id} />
+      <Field label="Unit #"        value={overview.unit_number} />
+      <Field label="Name"          value={overview.name} />
+      <Field label="Type"          value={overview.equipment_type} />
+      <Field label="Make"          value={overview.make} />
+      <Field label="Model"         value={overview.model} />
+      <Field label="Year"          value={overview.year} />
+      <Field label="VIN"           value={overview.vin} />
+      <Field label="Serial #"      value={overview.serial_number} />
+      <Field label="License Plate" value={overview.license_plate} />
+      <Field label="Department"    value={overview.department} />
+      <Field label="Active"        value={overview.active === false ? "No" : "Yes"} />
+    </div>
+  );
+}
+
+function DispatchSection({ data }) {
+  const a = data.active_assignment;
+  const p = data.pending_transfer;
+  const t = data.in_transit;
+  const transfers = data.transfers || [];
+  return (
+    <div className="space-y-4" data-testid="ap-dispatch">
+      <div className="bg-white border-2 border-slate-200 rounded-md p-5">
+        <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Current Assignment</h3>
+        {a ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Field label="Project #"        value={a.project_number} />
+            <Field label="Project Name"     value={a.project_name} />
+            <Field label="Operator"         value={a.operator_name} />
+            <Field label="Started"          value={(a.started_at || "").slice(0,16).replace("T"," ")} />
+            <Field label="Expected return"  value={a.expected_return_date} />
+            <Field label="Notes"            value={a.dispatch_notes} />
+          </div>
+        ) : <p className="text-sm text-slate-500 italic">No active assignment.</p>}
+      </div>
+      {(p || t) && (
+        <div className="bg-cyan-50 border-2 border-cyan-300 rounded-md p-5">
+          <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-900 font-bold mb-2">{t ? "In Transit" : "Pending Transfer"}</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Field label="From" value={(t || p).from_project_number} />
+            <Field label="To"   value={(t || p).to_project_number} />
+            <Field label="Need" value={(t || p).need_date} />
+            <Field label="Status" value={(t || p).status} />
+          </div>
+        </div>
+      )}
+      <div className="bg-white border-2 border-slate-200 rounded-md p-5">
+        <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Transfer history</h3>
+        {transfers.length === 0 ? <p className="text-sm text-slate-500 italic">No transfers recorded.</p> : (
+          <ul className="divide-y divide-slate-100 text-xs" data-testid="ap-transfer-history">
+            {transfers.map((x) => (
+              <li key={x.id} className="py-2 flex items-center gap-3 flex-wrap">
+                <span className="font-mono text-slate-500 w-32 shrink-0">{(x.created_at || "").slice(0,16).replace("T"," ")}</span>
+                <span className="font-mono text-slate-700 w-24 shrink-0">{x.status}</span>
+                <span className="text-slate-700">{x.from_project_number || "—"} → {x.to_project_number || "—"}</span>
+                <span className="text-slate-500 ml-auto truncate max-w-xs">{x.reason || ""}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PlaceholderCard({ icon: Icon, title, sub, fields }) {
+  return (
+    <div className="bg-white border-2 border-dashed border-slate-300 rounded-md p-5">
+      <div className="flex items-start gap-3 mb-3">
+        <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-200 text-slate-700 shrink-0">
+          <Icon className="w-5 h-5" />
+        </div>
+        <div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">{sub}</div>
+          <h3 className="font-display text-lg font-black mt-0.5 leading-tight">{title}</h3>
+          <p className="text-xs text-slate-500 mt-1 max-w-md">
+            Awaiting integration. This section will populate once Admin connects the provider in the Integration Center.
+          </p>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+        {fields.map((f) => (<div key={f}><div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-400 font-bold">{f}</div><div className="text-slate-400 italic">—</div></div>))}
+      </div>
+    </div>
+  );
+}
+
+function MotivePlaceholder({ mapping }) {
+  const ext = mapping?.motive?.vehicle_id;
+  return (
+    <div className="space-y-3" data-testid="ap-motive">
+      {ext && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-md p-3 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+          <span className="font-mono">Mapped to Motive Vehicle ID: <strong>{ext}</strong></span>
+        </div>
+      )}
+      <PlaceholderCard
+        icon={MapPin}
+        sub="Motive · Telematics & telemetry"
+        title="Awaiting Motive integration"
+        fields={["Vehicle ID", "Last GPS", "Last seen", "Driver", "Ignition", "Idle time", "Movement", "Odometer", "Engine hours"]}
+      />
+    </div>
+  );
+}
+
+function MaintainXPlaceholder({ mapping }) {
+  const ext = mapping?.maintainx?.asset_id;
+  return (
+    <div className="space-y-3" data-testid="ap-maintainx">
+      {ext && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-md p-3 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+          <span className="font-mono">Mapped to MaintainX Asset ID: <strong>{ext}</strong></span>
+        </div>
+      )}
+      <PlaceholderCard
+        icon={Wrench}
+        sub="MaintainX · Maintenance & repairs"
+        title="Awaiting MaintainX integration"
+        fields={["Asset ID", "Open WOs", "Closed WOs", "PM schedule", "Overdue PMs", "Technician", "Repair notes", "Downtime", "Status"]}
+      />
+    </div>
+  );
+}
+
+function SafetySection({ data }) {
+  const holds = (data.active_holds || []).filter((h) => h.kind === "safety");
+  const cas = data.safety_corrective_actions || [];
+  return (
+    <div className="space-y-4" data-testid="ap-safety">
+      <div className="bg-white border-2 border-slate-200 rounded-md p-5">
+        <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Active safety holds</h3>
+        {holds.length === 0 ? <p className="text-sm text-slate-500 italic">No active safety holds.</p> : (
+          <ul className="divide-y divide-slate-100 text-xs">
+            {holds.map((h) => (
+              <li key={h.id} className="py-2"><strong>{h.reason}</strong> <span className="text-slate-500">· {(h.created_at || "").slice(0,10)} · severity {h.severity}</span></li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <div className="bg-white border-2 border-slate-200 rounded-md p-5">
+        <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Linked corrective actions</h3>
+        {cas.length === 0 ? <p className="text-sm text-slate-500 italic">No corrective actions linked to this asset.</p> : (
+          <ul className="divide-y divide-slate-100 text-xs">
+            {cas.map((c) => (<li key={c.id || c.action_id} className="py-2">{c.title || c.summary || c.id}</li>))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FieldOpsSection({ data }) {
+  const preops = data.recent_preops || [];
+  return (
+    <div className="bg-white border-2 border-slate-200 rounded-md p-5" data-testid="ap-field">
+      <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Recent pre-ops / inspections</h3>
+      {preops.length === 0 ? <p className="text-sm text-slate-500 italic">No pre-op records linked.</p> : (
+        <ul className="divide-y divide-slate-100 text-xs">
+          {preops.map((p, i) => (
+            <li key={p.id || i} className="py-2 flex items-center gap-3 flex-wrap">
+              <span className="font-mono text-slate-500 w-32 shrink-0">{(p.created_at || p.date || "").slice(0,16).replace("T"," ")}</span>
+              <span className="text-slate-700">{p.status || p.result || "—"}</span>
+              <span className="text-slate-500 truncate max-w-xs">{p.notes || ""}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function EventsSection({ data }) {
+  const events = data.events || [];
+  return (
+    <div className="bg-white border-2 border-slate-200 rounded-md p-5" data-testid="ap-events">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Operations event history</h3>
+        <span className="text-xs text-slate-500">Showing {events.length} of {data.events_total_for_asset}</span>
+      </div>
+      {events.length === 0 ? <p className="text-sm text-slate-500 italic">No events recorded for this asset.</p> : (
+        <ul className="divide-y divide-slate-100 text-xs">
+          {events.map((e) => (
+            <li key={e.id} className="py-2 flex items-start gap-3" data-testid={`ap-event-row-${e.id}`}>
+              <span className="font-mono text-slate-500 w-32 shrink-0">{(e.created_at || "").slice(0,16).replace("T"," ")}</span>
+              <span className="font-mono text-slate-700 w-44 shrink-0 truncate">{e.event_type}</span>
+              <span className="font-bold text-slate-900 truncate">{e.event_title}</span>
+              <span className="ml-auto text-[9px] uppercase tracking-[0.15em] font-mono font-bold text-slate-500">{e.severity} · {e.status}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
