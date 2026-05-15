@@ -17,6 +17,48 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter152 (Phase 2.5 · Core Operational Systems · PHASE C): Employee Lifecycle Management + Auto-Offboarding Playbook · STABILIZED
+
+### User ask
+Extend existing `db.employees` with lifecycle statuses (Pending Hire / Active / Inactive / Suspended / Terminated / Resigned / Retired / Seasonal / Leave of Absence). HR Add/Edit/Status/Reactivate UI. "Show inactive employees" toggle on every employee dropdown. Offboarding Summary aggregating Tasks (Phase A) + Documents (Phase B) + Equipment Issuances. PLUS: auto-offboarding playbook that fan-outs a pre-canned task checklist when an HR manager flips an employee to Terminated/Resigned/Retired — "transforms offboarding from a process people have to remember into a process the platform enforces."
+
+### Shipped
+- **Backend `routes/employee_lifecycle.py` NEW**:
+  - Extends `db.employees` (NO duplicate collection). New fields per row: `lifecycle_status` (9-value whitelist) · `status_history` (append-only audit list with `at/by/from/to/reason`) · `supervisor` · `department` · `default_project_number` · `hire_date`. `is_active` boolean kept in sync with `{Active, Pending Hire, Seasonal, Leave of Absence}` cohort so legacy `/api/employees` dropdowns continue to filter out terminated folks.
+  - **`_OFFBOARDING_PLAYBOOK`** — 8-task canned checklist (hr×2: paycheck/benefits + collect badges; shop×2: recover equipment + reassign; admin×2: disable directory login + disable Motive; safety×1: close open safety items; pm×1: backfill projects).
+  - **Replay-guard**: playbook fires ONLY on first transition into `{Terminated, Resigned, Retired}` — re-terminating or moving Terminated→Resigned is suppressed.
+  - **Endpoints**: GET `/api/hr/employees` (with `show_inactive`, `lifecycle_status`, `q` filters), POST `/api/hr/employees`, PATCH `/api/hr/employees/{id}`, POST `/api/hr/employees/{id}/status` (returns `playbook_fired`, `tasks_created`, `task_ids`), GET `/api/hr/employees/{id}/offboarding-summary` (aggregates open tasks + document expirations + equipment issuances + open corrective actions + last status change).
+  - **Auth gate**: HR or Admin only for all endpoints (PM/Safety/Shop/Dispatch → 403, anonymous → 401).
+- **Frontend `pages/HrEmployees.jsx` NEW** at `/hr/employees`:
+  - 3 summary tiles, "Show inactive employees" Switch, status filter, search, refresh, Add Employee dialog.
+  - Drawer with 3 tabs: Details (inline editable fields), Status (with [hremp-playbook-warning] amber callout when offboarding will fire), Offboarding Summary (3 MiniStat cards + task/doc/equipment lists).
+  - Comprehensive `data-testid` coverage; mobile-responsive.
+- **Hub tile** added to HrHub (`Employee Lifecycle`, emerald accent).
+
+### Verification (`/app/test_reports/iteration_152.json`)
+- **Backend**: **15/15 pytest pass** — auth gating (HR/Admin only), idempotent name match, lifecycle filtering, PATCH, status fanout (8 tasks with correct role mix hr×2+shop×2+admin×2+safety×1+pm×1 + source_module='hr.offboarding' + linked_employee_id), is_active sync, status_history audit, no-op same-status, non-offboarding transition does NOT fire, replay-guard, offboarding-summary cross-module aggregation.
+- **Frontend**: 100% functional — all required data-testids resolve; 248 legacy employees list with default Active status; Add dialog persists; drawer tabs work; show_inactive toggle flips totals (248→260 in test env); mobile clean; zero functional issues. 2 minor a11y `DialogTitle` console warnings noted (non-functional).
+- **Cleanup**: 25 TEST_iter152_* employees + 88 hr.offboarding tasks purged post-test.
+
+### Phase A + Phase B + Phase C integration confirmed
+- `task_service.create(source_module='hr.offboarding')` × 8 from playbook fan-out — verified in `db.tasks`.
+- Offboarding Summary correctly joins `db.document_expirations` (Phase B) by `linked_employee_id`.
+- `is_active` boolean keeps legacy `/api/employees` dropdown semantics intact — no breakage to Daily Reports / Crews etc.
+
+### Bug fixed during stabilization
+- Initial HrEmployees.jsx render crashed with "useMemo is called conditionally" — `if (!allowed) return AccessDenied` was placed BEFORE the `counts` useMemo. Resolved by moving the guard to after ALL hooks.
+- App.js import for `HrEmployees` was initially missing (search_replace pattern mismatch); fixed in a follow-up edit.
+- `/app/memory/test_credentials.md` HR password updated from stale `HRPortal2026!` → current `HRTesting2026!`.
+
+### Backlog from this iter
+- LOW: 2 Radix a11y `DialogTitle` console warnings — wrap titles in `VisuallyHidden` for screen-reader contract.
+- LOW: `_OFFBOARDING_PLAYBOOK` is module-scope — easy to lift to `db.settings` if MASCI ever wants per-company customization.
+
+### Ready for Phase D (PO Requests + Receipt Tracking)
+Phase D will use the same patterns: `task_service.create(source_module='po.requests'|'po.receipts')` for missing-receipt accountability, `MASCI-PO-YYYY-####` globally unique numbering, R2 receipt uploads.
+
+
+---
 ## 2026-05-15 — Iter151 (Phase 2.5 · Core Operational Systems · PHASE B): Document Expiration Engine · STABILIZED
 
 ### User ask
