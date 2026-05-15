@@ -26,6 +26,9 @@ import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
+import { paletteFor } from "@/lib/portalPalette";
+
+const FL_PAL = paletteFor("leadership");
 import { getPmToken } from "@/lib/pmAuth";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
@@ -77,7 +80,7 @@ const GROUPS = [
 function SectionHeader({ kicker, title, subtitle }) {
   return (
     <div className="flex items-baseline gap-3 mb-4 sm:mb-5 mt-10 sm:mt-12 first:mt-0">
-      <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-red-700 font-black">{kicker}</span>
+      <span className={`font-mono text-[11px] uppercase tracking-[0.3em] ${FL_PAL.hubKicker} font-black`}>{kicker}</span>
       <span className="h-px flex-1 bg-slate-300 max-w-6" />
       <div className="flex-1 min-w-0">
         <h2 className="font-display text-lg sm:text-xl font-black tracking-tight text-slate-900">{title}</h2>
@@ -111,11 +114,11 @@ function PasswordGate({ onAuthed }) {
   return (
     <div className="min-h-screen blueprint-bg flex flex-col">
       <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
+      <header className={`bg-slate-900 border-b-4 ${FL_PAL.hubHeaderBar}`}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
           <Link
             to="/"
-            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
+            className={`inline-flex items-center text-white ${FL_PAL.hubLinkHover} text-sm font-bold uppercase tracking-wide`}
             data-testid="leadership-login-back"
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
@@ -136,7 +139,7 @@ function PasswordGate({ onAuthed }) {
               <Lock className="w-6 h-6" />
             </div>
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700">
+              <div className={`font-mono text-[10px] uppercase tracking-[0.25em] ${FL_PAL.hubKicker}`}>
                 {t("Restricted Area")}
               </div>
               <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
@@ -230,7 +233,7 @@ export default function FieldLeadershipHub() {
   return (
     <div className="min-h-screen blueprint-bg">
       <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
+      <header className={`bg-slate-900 border-b-4 ${FL_PAL.hubHeaderBar}`}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-5 sm:py-7 flex items-center justify-between">
           <MasciLogo variant="mark" size="2xl" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
@@ -273,7 +276,7 @@ export default function FieldLeadershipHub() {
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         <div className="mb-8 sm:mb-10">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
+          <span className={`font-mono text-xs uppercase tracking-[0.25em] ${FL_PAL.hubKicker} font-bold`}>
             {t("Restricted · Crew Documentation")}
           </span>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">

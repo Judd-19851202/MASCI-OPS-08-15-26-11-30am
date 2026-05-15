@@ -19,6 +19,9 @@ import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { paletteFor } from "@/lib/portalPalette";
+
+const SHOP_PAL = paletteFor("shop");
 
 /**
  * Shop / mechanic console — a focused subset of the admin equipment
@@ -84,9 +87,9 @@ export default function ShopHub() {
   return (
     <div className="min-h-screen blueprint-bg">
       <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-amber-500">
+      <header className={`bg-slate-900 border-b-4 ${SHOP_PAL.hubHeaderBar}`}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <Link to="/" className="inline-flex items-center text-white hover:text-amber-300 text-sm font-bold uppercase tracking-wide" data-testid="shop-back-hub">
+          <Link to="/" className={`inline-flex items-center text-white ${SHOP_PAL.hubLinkHover} text-sm font-bold uppercase tracking-wide`} data-testid="shop-back-hub">
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
           <MasciLogo variant="mark" size="md" homeLink="/" />
@@ -126,7 +129,7 @@ export default function ShopHub() {
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12 space-y-6">
         <div>
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-amber-700 font-bold">
+          <span className={`font-mono text-xs uppercase tracking-[0.25em] ${SHOP_PAL.hubKicker} font-bold`}>
             {t("Shop Console")}
           </span>
           <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2">

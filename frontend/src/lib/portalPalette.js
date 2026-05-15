@@ -33,10 +33,29 @@
 //   heroBg:         (optional override),
 //   heroOnColor:    (optional override),
 //   heroBtnInverse: (optional override),
+//   // Hub-header surface slots (iter144). The sub-hub pages each
+//   // ship a dark header bar with a thick colored bottom border, a
+//   // kicker pill, and white nav links that lighten on hover. These
+//   // historically used per-portal Tailwind literals — now centralized.
+//   // hubHeaderBar:  border-b-4 color used under the dark header
+//   // hubKicker:     text color for the small "PORTAL · …" kicker
+//   // hubLinkHover:  text-color used by `hover:text-…` on nav links
+//   hubHeaderBar:   (e.g., "border-purple-700"),
+//   hubKicker:      (e.g., "text-purple-700"),
+//   hubLinkHover:   (e.g., "hover:text-purple-300"),
 // }
 //
 // Add a portal by extending PORTAL_PALETTE — every Hub consumer
 // picks it up automatically.
+//
+// ─── Known drifts (iter144, documented for future reconciliation) ─
+// * ShopHub header uses amber-500 / amber-700 / amber-300 (preserved
+//   in hub*) while the canonical Shop tile palette is orange-600/700.
+// * PmHub tile-CTA uses amber-600 hover + amber-700 text while the
+//   canonical PM palette is indigo. PmHub TILES array is per-tile,
+//   not portal-keyed, so it's left literal.
+// * FieldLeadershipHub uses red-700 — this matches the brand red and
+//   the leadership portal is intentionally brand-colored. No drift.
 
 export const PORTAL_PALETTE = {
   admin: {
@@ -49,6 +68,9 @@ export const PORTAL_PALETTE = {
     onColor:    "text-slate-100",
     softBg:     "bg-slate-100",
     btnInverse: "bg-white text-slate-900 hover:bg-slate-100",
+    hubHeaderBar:  "border-red-700",
+    hubKicker:     "text-red-700",
+    hubLinkHover:  "hover:text-red-300",
   },
   pm: {
     bg:         "bg-indigo-700",
@@ -60,6 +82,9 @@ export const PORTAL_PALETTE = {
     onColor:    "text-indigo-50",
     softBg:     "bg-indigo-50",
     btnInverse: "bg-white text-indigo-700 hover:bg-indigo-50",
+    hubHeaderBar:  "border-indigo-700",
+    hubKicker:     "text-indigo-700",
+    hubLinkHover:  "hover:text-indigo-300",
   },
   shop: {
     bg:         "bg-orange-600",
@@ -75,6 +100,10 @@ export const PORTAL_PALETTE = {
     // dominant variant). Preserve for zero-visual-change.
     heroBg:         "bg-orange-700",
     heroBtnInverse: "bg-white text-orange-700 hover:bg-orange-50",
+    // ShopHub header shipped with amber accents — see drift note.
+    hubHeaderBar:  "border-amber-500",
+    hubKicker:     "text-amber-700",
+    hubLinkHover:  "hover:text-amber-300",
   },
   hr: {
     bg:         "bg-purple-700",
@@ -86,6 +115,9 @@ export const PORTAL_PALETTE = {
     onColor:    "text-purple-50",
     softBg:     "bg-purple-50",
     btnInverse: "bg-white text-purple-700 hover:bg-purple-50",
+    hubHeaderBar:  "border-purple-700",
+    hubKicker:     "text-purple-700",
+    hubLinkHover:  "hover:text-purple-300",
   },
   safety: {
     bg:         "bg-cyan-700",
@@ -97,24 +129,16 @@ export const PORTAL_PALETTE = {
     onColor:    "text-cyan-50",
     softBg:     "bg-cyan-50",
     btnInverse: "bg-white text-cyan-700 hover:bg-cyan-50",
+    hubHeaderBar:  "border-cyan-700",
+    hubKicker:     "text-cyan-700",
+    hubLinkHover:  "hover:text-cyan-300",
   },
   dispatch: {
-    // NOTE: portal-system.css uses amber-700 for the Dispatch portal,
-    // but the Hub landing tile shipped with orange-600 from day one.
-    // To preserve the existing Hub visual we keep orange here. The
-    // amber variant is exposed below as `dispatchAmber` for callers
-    // that explicitly want the portal-system color.
-    bg:         "bg-orange-600",
-    bar:        "bg-orange-600",
-    pill:       "text-orange-700 bg-orange-100",
-    cta:        "text-orange-700",
-    border:     "border-orange-200",
-    ring:       "hover:border-orange-600",
-    onColor:    "text-orange-50",
-    softBg:     "bg-orange-50",
-    btnInverse: "bg-white text-orange-700 hover:bg-orange-50",
-  },
-  dispatchAmber: {
+    // iter144 — Reconciled to amber-700 family. Previously the Hub
+    // tile shipped at orange-600 while portal-system.css and the
+    // DispatchShell used amber-700; that drift is now eliminated.
+    // The Hub Dispatch tile shifts from orange-600 → amber-600 as
+    // a deliberate consistency fix per Phase 1 SOT mandate.
     bg:         "bg-amber-600",
     bar:        "bg-amber-600",
     pill:       "text-amber-700 bg-amber-100",
@@ -124,6 +148,11 @@ export const PORTAL_PALETTE = {
     onColor:    "text-amber-50",
     softBg:     "bg-amber-50",
     btnInverse: "bg-white text-amber-700 hover:bg-amber-50",
+    // DispatchHub header historically shipped at orange-600 — drift
+    // documented in the file header.
+    hubHeaderBar:  "border-orange-600",
+    hubKicker:     "text-orange-700",
+    hubLinkHover:  "hover:text-orange-300",
   },
   training: {
     bg:         "bg-indigo-700",
@@ -135,6 +164,9 @@ export const PORTAL_PALETTE = {
     onColor:    "text-indigo-50",
     softBg:     "bg-indigo-50",
     btnInverse: "bg-white text-indigo-700 hover:bg-indigo-50",
+    hubHeaderBar:  "border-indigo-700",
+    hubKicker:     "text-indigo-700",
+    hubLinkHover:  "hover:text-indigo-300",
   },
   leadership: {
     bg:         "bg-slate-700",
@@ -146,6 +178,11 @@ export const PORTAL_PALETTE = {
     onColor:    "text-slate-100",
     softBg:     "bg-slate-100",
     btnInverse: "bg-white text-slate-900 hover:bg-slate-100",
+    // FieldLeadershipHub intentionally uses brand red (matches the
+    // admin / brand red — leadership is a brand-aligned surface).
+    hubHeaderBar:  "border-red-700",
+    hubKicker:     "text-red-700",
+    hubLinkHover:  "hover:text-red-300",
   },
 };
 

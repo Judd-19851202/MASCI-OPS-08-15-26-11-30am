@@ -12,6 +12,9 @@ import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
+import { paletteFor } from "@/lib/portalPalette";
+
+const HR_PAL = paletteFor("hr");
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -70,12 +73,12 @@ export default function HrHub() {
   return (
     <div className="min-h-screen blueprint-bg pb-16">
       <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-purple-700">
+      <header className={`bg-slate-900 border-b-4 ${HR_PAL.hubHeaderBar}`}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3 flex-wrap">
-          <Link to="/" className="inline-flex items-center text-white hover:text-purple-300 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="hr-nav-home" title="Home">
+          <Link to="/" className={`inline-flex items-center text-white ${HR_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`} data-testid="hr-nav-home" title="Home">
             <Home className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Home</span>
           </Link>
-          <button onClick={() => nav(-1)} className="inline-flex items-center text-white hover:text-purple-300 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="hr-nav-back" title="Back">
+          <button onClick={() => nav(-1)} className={`inline-flex items-center text-white ${HR_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`} data-testid="hr-nav-back" title="Back">
             <ArrowLeft className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Back</span>
           </button>
           <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
@@ -96,7 +99,7 @@ export default function HrHub() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
-        <div className="font-mono text-xs uppercase tracking-[0.2em] text-purple-700">
+        <div className={`font-mono text-xs uppercase tracking-[0.2em] ${HR_PAL.hubKicker}`}>
           <ShieldCheck className="w-3.5 h-3.5 inline mr-1" /> {t("HR Portal")} · {user?.name || ""}
         </div>
         <h1 className="font-display text-3xl sm:text-4xl font-black mt-1">{t("Employee Records & Accountability")}</h1>

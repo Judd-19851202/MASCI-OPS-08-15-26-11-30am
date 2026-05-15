@@ -18,6 +18,9 @@ import {
 } from "@/pages/admin/AdminDispatch";
 import DispatchIntegrationsTab from "@/components/DispatchIntegrationsTab";
 import { clearDispatchToken, getDispatchUser } from "@/lib/dispatchAuth";
+import { paletteFor } from "@/lib/portalPalette";
+
+const DISPATCH_PAL = paletteFor("dispatch");
 
 export default function DispatchHub() {
   const nav = useNavigate();
@@ -31,11 +34,11 @@ export default function DispatchHub() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col" data-testid="dispatch-hub">
-      <header className="bg-slate-950 text-white border-b-4 border-orange-600">
+      <header className={`bg-slate-950 text-white border-b-4 ${DISPATCH_PAL.hubHeaderBar}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 flex-wrap">
           <Link
             to="/"
-            className="inline-flex items-center text-white hover:text-orange-300 text-xs sm:text-sm font-bold uppercase tracking-wide"
+            className={`inline-flex items-center text-white ${DISPATCH_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`}
             data-testid="dispatch-nav-home"
             title="Public Hub"
           >
@@ -44,7 +47,7 @@ export default function DispatchHub() {
           </Link>
           <button
             onClick={() => nav(-1)}
-            className="inline-flex items-center text-white hover:text-orange-300 text-xs sm:text-sm font-bold uppercase tracking-wide"
+            className={`inline-flex items-center text-white ${DISPATCH_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`}
             data-testid="dispatch-nav-back"
             title="Back"
           >
