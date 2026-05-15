@@ -9,6 +9,51 @@
 Integration framework must remain PASSIVE / OBSERVATIONAL until live API stability is proven. No auto-creating work orders / disciplinary actions / retraining / payroll triggers. All future workflows are EVENT-DRIVEN (failed pre-op → internal event → integration layer → MaintainX/Safety/Asset/notify), never portal-to-portal direct logic. Heavy syncs run BACKGROUND only — never block dashboards / forms / login. Master records (`db.equipment_master`, `db.employees`) are SOURCE-OF-TRUTH — integrations flow through mapping layers, not direct master mutation. CSV imports require preview + rollback + duplicate detection. Integration failures must NEVER crash core platform. Audit/traceability on every mapping/import/setting change.
 
 ---
+## 2026-05-15 — Iter131: P3 backlog sweep (4-of-4 closed)
+
+### User ask
+Clear the four P3 backlog items left over from iter130's GO recommendation:
+1. Refactor `test_safety_portal_iter120.py` brittle class-shared fixtures
+2. Redirect super-admin `/sign-in` landing to `/admin` directly
+3. Wrap the 7 `search_collection()` calls in `asyncio.gather()` for parallel speedup
+4. Fix pre-existing `routes/job_photos.py:800-807` E701 lint flags
+
+### Outcome: ✅ All 4 shipped + verified locally
+
+### 1. test_safety_portal_iter120.py — isolation-safe rewrite
+- Replaced 3 mutable class globals (`TestFireExtinguishers.fe_id`, `TestDocuments.doc_id`, `TestTraining.rec_id`) with proper `@pytest.fixture(scope="class")` fixtures (`fe_record`, `doc_record`, `training_record`) that create + yield + clean up.
+- Replaced hard-coded `SEED_EMPLOYEE_ID = "fc753817-..."` with a session-scoped `seed_employee_id` fixture that resolves any active employee from the preview DB on the fly.
+- HR password candidate list now leads with `HRTesting2026!` (iter129 canonical), and the admin-id lookup for password reset is dynamic (no more `152a7be6-...` hardcoded id).
+- Verified: 27 / 27 tests pass in 6.02 s. Suite is now re-runnable in any order.
+
+### 2. SignIn landing — super-admin → /admin
+- `frontend/src/lib/directoryAuth.js#landingFor()`: super-admins (`portals.includes("admin")`) now route directly to `/admin` instead of the public hub. Added safety + dispatch portals to the single-portal route table for completeness.
+
+### 3. Global search — asyncio.gather() parallelization
+- `backend/routes/admin_ops.py` — rewrote `global_search` to issue all 7 collection probes concurrently via `asyncio.gather()`. Code path is now cleaner (returns from `probe()` instead of mutating outer list).
+- Preview-env latency dominated (≈125-140 ms total) so the speedup won't show at this scale, but at production load each probe is parallel rather than serial.
+
+### 4. job_photos.py E701 — multi-statement-on-one-line cleanup
+- Lines 800-807: 6 one-liners (`if x: q["k"] = x`) split into proper multi-line `if x:` + indented assignment. Lint clean.
+
+### Verified
+- `ruff check` on `admin_ops.py`, `job_photos.py`, `test_safety_portal_iter120.py` — all pass
+- `pytest test_safety_portal_iter120.py` — 27/27 pass
+- All 4 new admin-ops endpoints still return 200 + correct shape post-restart
+- Global search still 125-140ms (network-bound at preview scale; parallel speedup will manifest in prod)
+
+### Files changed
+- `/app/backend/routes/admin_ops.py` (asyncio.gather rewrite)
+- `/app/backend/routes/job_photos.py` (E701 cleanup, lines 800-807)
+- `/app/backend/tests/test_safety_portal_iter120.py` (full rewrite — fixtures, no mutable class state)
+- `/app/frontend/src/lib/directoryAuth.js` (super-admin lands on /admin)
+
+### Status
+Pre-deploy GO recommendation from iter130 stands · 4-of-4 P3 backlog cleared · zero open P0/P1/P2 issues.
+
+---
+
+---
 ## 2026-05-15 — Iter130: Admin Operational Infrastructure (Deploy Recovery · System Health · Audit Log · Global Search)
 
 ### User ask

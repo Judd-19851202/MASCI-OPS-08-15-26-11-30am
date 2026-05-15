@@ -797,14 +797,20 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         """
         scope = await compute_pm_scope(db, actor)
         q: Dict[str, Any] = {}
-        if source: q["source"] = source
-        if project_number: q["project_number"] = project_number
-        if week_of: q["week_of"] = week_of
-        if submitter: q["submitter"] = submitter
+        if source:
+            q["source"] = source
+        if project_number:
+            q["project_number"] = project_number
+        if week_of:
+            q["week_of"] = week_of
+        if submitter:
+            q["submitter"] = submitter
         if date_from or date_to:
             rng: Dict[str, str] = {}
-            if date_from: rng["$gte"] = date_from
-            if date_to: rng["$lte"] = date_to
+            if date_from:
+                rng["$gte"] = date_from
+            if date_to:
+                rng["$lte"] = date_to
             q["record_date"] = rng
         q = scope.filter(q)
         cursor = db.job_photos.find(q, {"_id": 0}).sort("record_date", -1).limit(5000)

@@ -78,18 +78,27 @@ export function applyMultiLoginResponse(response, rememberMe = true) {
 
 /**
  * Pick the most useful landing page for a directory user based on the
- * portals they have. If they have only one portal, go straight there.
- * If they have multiple, drop them on the Hub so they can pick.
+ * portals they have.
+ *
+ * Iter131: super-admins (anyone holding the admin portal) go straight
+ * to /admin — the Hub is a public landing surface, not the workbench.
+ * Anyone with exactly one portal lands on that portal. Anyone with
+ * multiple non-admin portals lands on the Hub so they can pick.
  */
 export function landingFor(user) {
   const portals = user?.portals || [];
+  // Super admins → admin console (skip the public hub)
+  if (portals.includes("admin")) {
+    return "/admin";
+  }
   if (portals.length === 1) {
     return (
       {
-        admin: "/admin",
         pm: "/pm",
         hr: "/hr",
         shop: "/shop",
+        safety: "/safety-portal",
+        dispatch: "/dispatch-portal",
       }[portals[0]] || "/"
     );
   }
