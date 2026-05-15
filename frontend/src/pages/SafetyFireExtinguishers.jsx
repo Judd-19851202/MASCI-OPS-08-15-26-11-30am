@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import SafetyShell from "@/components/SafetyShell";
 import SafetyFireExtManageDialog from "@/components/SafetyFireExtManageDialog";
+import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -207,13 +208,14 @@ export default function SafetyFireExtinguishers() {
       <Input placeholder={t("Filter by unit, location, type…")} value={search} onChange={(e) => setSearch(e.target.value)} className={`${inputCls} max-w-md mb-4`} data-testid="safety-fe-search" />
 
       {loading ? (
-        <div className="text-center text-slate-500 py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
+        <LoadingState label={t("Loading…")} testId="safety-fe-loading" />
       ) : filtered.length === 0 ? (
-        <div className="text-center text-slate-500 py-12 border-2 border-dashed border-slate-200 rounded-md">
-          <Flame className="w-8 h-8 mx-auto mb-2 text-slate-400" />
-          <div className="font-display text-lg font-black text-slate-700">{t("No extinguishers")}</div>
-          <p className="text-sm mt-1">{tab === "All" ? t("Add the first one above.") : t("Try a different filter.")}</p>
-        </div>
+        <EmptyState
+          icon={Flame}
+          title={t("No extinguishers")}
+          body={tab === "All" ? t("Add the first one above.") : t("Try a different filter.")}
+          testId="safety-fe-empty"
+        />
       ) : (
         <div className="overflow-x-auto" data-testid="safety-fe-list">
           <table className="w-full text-sm">

@@ -1,0 +1,41 @@
+{
+  "summary": "iter137 Master Lookup SOT + Iter B-continued + mobile sweep validation. 15/15 backend pytest cases pass. All master-lookup endpoints verified end-to-end: equipment & employee typeahead (T-1 returns >=1 result with id+unit_number, 'jay' returns >=1 employee with id+name fields), empty-q guard (q='' and q='&limit=1' both return items=[] without DB scan), admin gating on /audit (invalid token => 401, valid token returns equipment_master_total+employees_total+coverage maps for equipment_inspections/fire_extinguishers/incidents/corrective_actions and employee coverage for incidents/corrective_actions/safety_training_records), equipment backfill dry-run does NOT mutate coverage (pre/post audit snapshots identical), equipment backfill real-run attaches matches and is IDEMPOTENT (2nd run attached=0 across all collections), employee backfill real-run executes without error. Regression: training-center portals sum to 18 (admin=2,safety=4,hr=1,dispatch=1,shop=1,pm=1,field=1,ops=7); deploy-readiness overall='ready'; safety/corrective-actions + safety/fire-extinguishers list endpoints respond. Frontend Iter B-continued source-verified: SafetyCorrectiveActions.jsx (line 31 import, lines 292/298 testids 'safety-ca-loading'/'safety-ca-empty'), SafetyFireExtinguishers.jsx (line 24 import, lines 211/217 testids 'safety-fe-loading'/'safety-fe-empty'), SafetyDocuments.jsx (line 21 import, lines 159/165 testids 'safety-doc-loading'/'safety-doc-empty') all correctly wire <EmptyState>/<LoadingState> from @/components/ui/PortalStates. Live Playwright run with safety token from API confirmed all 3 pages render without errors at desktop and 390x844; empty-state testids are NOT in DOM at runtime because the collections contain data (cannot force empty state without UI filter manipulation; source wiring is correct). Mobile overflow sweep at 390x844 across 9 critical pages (/safety-portal/login, /admin/login, /ops-training, /safety-portal, /safety-portal/corrective-actions, /safety-portal/fire-extinguishers, /safety-portal/documents, /safety-portal/incidents, /safety-portal/training-records): 8 pages = delta 0, 1 page (/safety-portal/fire-extinguishers) = delta 1px (subpixel rounding from a 1px border, not user-visible scroll).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/safety-portal/fire-extinguishers @ 390x844", "issues": ["1px horizontal overflow (scrollWidth=391, clientWidth=390). Almost certainly a 1px border/divider; not user-visible but worth a w-full/box-border audit if pixel-perfect is desired."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter137_master_lookup.py",
+    "/app/test_reports/pytest/iter137_results.xml"
+  ],
+  "action_items": [
+    "(Optional, low pri) Investigate the 1px horizontal-overflow on /safety-portal/fire-extinguishers at 390x844 — likely a 1px border on a w-screen element; switch to w-full or box-border to nuke the subpixel.",
+    "(Carryover) Wire the new typeahead endpoints (/api/master-lookup/equipment & /employees) into the incident / CA / FE creation forms so new records persist equipment_master_id + employee_master_id from the start, not via post-hoc backfill.",
+    "(Carryover) Continue visual unification of the long tail of safety/HR/PM pages — only CA, FE, Docs converted this round."
+  ],
+  "critical_code_review_comments": [
+    "master_lookup.py /equipment typeahead uses 4-field $or on regex (unit_number/make_model/vin/serial_number) without text index — fine for the current 50-item master fleet, but if equipment_master grows past ~5k docs add a compound text index or restrict to unit_number/make_model.",
+    "Backfill /equipment matches by uppercased unit_number ONLY. Records that store 'truck' or 'equipment_unit' free-text in formats other than unit_number (e.g. 'CAT 320', 'Bobcat #5') will end up in unresolved without a fallback strategy. Consider a 2nd pass matching make_model substring.",
+    "Backfill /employees resolution order is email → employee_id → full-name. Full-name match is case-insensitive but exact-match only; 'Mike Johnson' won't match 'Michael Johnson' or 'Johnson, Mike'. Acceptable for now; flag if unresolved counts stay high.",
+    "/audit endpoint computes coverage by counting docs with equipment_master_id existing AND non-empty — note the {'$ne': ''} catches empty strings but not nulls explicitly; if any record sets the field to null the count will be off. Current code is correct for the current data shape; just a defensive note.",
+    "All 4 master-lookup endpoints are mounted directly with prefix='/api/master-lookup' instead of going through the canonical /api router in server.py — works fine (FastAPI lets routers stack) but inconsistent with the rest of the codebase where routes/* files use a relative prefix and server.py prepends /api. Minor consistency nit.",
+    "PortalStates EmptyState wiring on the 3 safety pages is identical pattern (icon + title + body + testId) — good DRY. Consider extracting a SafetyListPage<T> shell once 5+ safety list pages share the loading/empty/error triad."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter137_master_lookup.py"
+  ],
+  "success_rate": {"backend": "100% (15/15 pytest)", "frontend": "95% (3/3 empty-state testids source-verified; 8/9 mobile pages overflow=0, 1 page has 1px subpixel)"},
+  "test_credentials": "Legacy admin POST /api/admin/login with MASCI1982! (via conftest auto-attach). Safety portal seeded with safety@mascigc.com/Safety123!. Both pulled from /app/memory/test_credentials.md.",
+  "seed_data_creation": "No new seed data. Backfill operated on existing equipment_inspections + training records (per agent context: 3 equipment_inspections + 1 training already attached to master in prior live run; 2nd run idempotent => 0 new attachments).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "test_iter137_master_lookup.py is the regression suite for Iter C-continued (Master SOT). It covers typeahead (with the agent-noted T-1 and 'jay' fixtures), empty-q guard, admin gating, dry-run no-mutation invariant, real-run idempotency, employee backfill, and 4 regression checks (training-center=18, deploy-readiness=ready, 2 safety lists). conftest.py auto-attaches admin token, so the 'no auth' test for typeahead uses an explicit invalid X-Admin-Token header to override; the 'admin required' test for /audit also uses an invalid token header (not absence). When testing the FE empty states for safety pages, the testids only render when the filtered list is empty — either delete all rows in the collection OR enter a no-match filter string in the UI to force them. Source-grep verified the testids are wired correctly in all 3 pages.",
+  "rca of the issue": "One failing assertion on first run: /api/training-center/portals does NOT return a top-level 'total' field — it returns portals[] with per-portal 'count' fields. Fixed the test to sum portal counts when 'total' is missing. All 15 now pass. No backend or frontend code changes required."
+}

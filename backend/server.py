@@ -8222,6 +8222,12 @@ from routes.deploy_readiness import build_deploy_readiness_router  # noqa: E402
 app.include_router(build_deploy_readiness_router(db, require_admin))
 
 
+# ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
+from routes.master_lookup import build_master_lookup_router  # noqa: E402
+
+app.include_router(build_master_lookup_router(db, require_admin))
+
+
 # ─── Integration Center (Motive + MaintainX framework — iter122) ───
 from routes.integrations import (  # noqa: E402
     build_integrations_router,

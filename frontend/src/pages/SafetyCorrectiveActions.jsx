@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import SafetyShell from "@/components/SafetyShell";
 import SafetyCaLinksManager from "@/components/SafetyCaLinksManager";
+import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { useT } from "@/lib/i18n";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { toast } from "sonner";
@@ -288,15 +289,14 @@ export default function SafetyCorrectiveActions() {
 
       {/* List */}
       {loading ? (
-        <div className="text-center text-slate-500 py-12">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" /> {t("Loading…")}
-        </div>
+        <LoadingState label={t("Loading…")} testId="safety-ca-loading" />
       ) : filtered.length === 0 ? (
-        <div className="text-center text-slate-500 py-12 border-2 border-dashed border-slate-200 rounded-md">
-          <AlertOctagon className="w-8 h-8 mx-auto mb-2 text-slate-400" />
-          <div className="font-display text-lg font-black text-slate-700">{t("No corrective actions")}</div>
-          <p className="text-sm mt-1">{tab === "All" ? t("Create the first one with the button above.") : t("Try a different filter.")}</p>
-        </div>
+        <EmptyState
+          icon={AlertOctagon}
+          title={t("No corrective actions")}
+          body={tab === "All" ? t("Create the first one with the button above.") : t("Try a different filter.")}
+          testId="safety-ca-empty"
+        />
       ) : (
         <div className="space-y-3" data-testid="safety-ca-list">
           {filtered.map((ca) => (

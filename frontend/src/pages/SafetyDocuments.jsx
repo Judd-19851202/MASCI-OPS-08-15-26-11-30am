@@ -18,6 +18,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import SafetyShell from "@/components/SafetyShell";
+import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -155,13 +156,14 @@ export default function SafetyDocuments() {
       </div>
 
       {loading ? (
-        <div className="text-center text-slate-500 py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
+        <LoadingState label={t("Loading…")} testId="safety-doc-loading" />
       ) : filtered.length === 0 ? (
-        <div className="text-center text-slate-500 py-12 border-2 border-dashed border-slate-200 rounded-md">
-          <FolderArchive className="w-8 h-8 mx-auto mb-2 text-slate-400" />
-          <div className="font-display text-lg font-black text-slate-700">{t("No documents")}</div>
-          <p className="text-sm mt-1">{t("Upload one with the button above.")}</p>
-        </div>
+        <EmptyState
+          icon={FolderArchive}
+          title={t("No documents")}
+          body={t("Upload one with the button above.")}
+          testId="safety-doc-empty"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="safety-doc-list">
           {filtered.map((doc) => (
