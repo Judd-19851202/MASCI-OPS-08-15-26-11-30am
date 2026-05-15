@@ -22,7 +22,7 @@ import { Link } from "react-router-dom";
 import {
   HardHat, ClipboardList, Building2, Shield, Wrench, ClipboardCheck,
   GraduationCap, UserCheck, Users, ArrowRight, MapPin, Lock, Phone,
-  BookOpen, LogOut, ShieldAlert,
+  BookOpen, LogOut, ShieldAlert, Truck,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -31,6 +31,7 @@ import { useT } from "@/lib/i18n";
 import { getAdminToken, clearAdminToken } from "@/lib/adminAuth";
 import { getPmToken, clearPmToken } from "@/lib/pmAuth";
 import { getShopToken, clearShopToken } from "@/lib/shopAuth";
+import { getDispatchToken, clearDispatchToken, getDispatchUser } from "@/lib/dispatchAuth";
 import { getHrToken, getHrUser, clearHrToken } from "@/lib/hrAuth";
 import { getSafetyToken, getSafetyUser, clearSafetyToken } from "@/lib/safetyAuth";
 import { isLeadershipAuthed, clearLeadershipToken } from "@/lib/leadershipAuth";
@@ -320,8 +321,8 @@ export default function Hub() {
         </div>
 
         {/* SECTION 3 — Office Portals (compact, sign-in required) */}
-        <SectionHeader kicker="03" title={t("Office Portals")} subtitle={t("Sign-in required. For office staff, mechanics, HR, and Safety.")} />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-10">
+        <SectionHeader kicker="03" title={t("Office Portals")} subtitle={t("Sign-in required. For office staff, mechanics, HR, Safety, and Dispatch.")} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 mb-10">
           <PortalPill
             to="/pm/login"
             icon={ClipboardList}
@@ -360,6 +361,16 @@ export default function Hub() {
             accent="cyan"
             testId="hub-section-safety-portal"
             signedIn={session?.kind === "safety"}
+            signedInLabel={t("Open Portal")}
+          />
+          <PortalPill
+            to={session?.kind === "dispatch" ? "/dispatch-portal" : "/dispatch-portal/login"}
+            icon={Truck}
+            title={t("Dispatch")}
+            desc={t("Equipment movement, availability, transfers, and utilization.")}
+            accent="orange"
+            testId="hub-section-dispatch-portal"
+            signedIn={session?.kind === "dispatch"}
             signedInLabel={t("Open Portal")}
           />
           <PortalPill
@@ -481,6 +492,11 @@ function detectActiveSession(t, rerender) {
   if (getShopToken()) {
     return { kind: "shop", scopeLabel: "Shop Console", name: "Shop", to: "/shop",
              signOut: onSignOut(clearShopToken) };
+  }
+  if (getDispatchToken()) {
+    const u = getDispatchUser() || {};
+    return { kind: "dispatch", scopeLabel: "Dispatch Portal", name: u.name || u.email || "Dispatcher", to: "/dispatch-portal",
+             signOut: onSignOut(clearDispatchToken) };
   }
   if (isLeadershipAuthed()) {
     return { kind: "leadership", scopeLabel: "Field Leadership", name: "Field Leadership", to: "/leadership",

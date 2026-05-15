@@ -9,6 +9,28 @@
 Integration framework must remain PASSIVE / OBSERVATIONAL until live API stability is proven. No auto-creating work orders / disciplinary actions / retraining / payroll triggers. All future workflows are EVENT-DRIVEN (failed pre-op → internal event → integration layer → MaintainX/Safety/Asset/notify), never portal-to-portal direct logic. Heavy syncs run BACKGROUND only — never block dashboards / forms / login. Master records (`db.equipment_master`, `db.employees`) are SOURCE-OF-TRUTH — integrations flow through mapping layers, not direct master mutation. CSV imports require preview + rollback + duplicate detection. Integration failures must NEVER crash core platform. Audit/traceability on every mapping/import/setting change.
 
 ---
+## 2026-05-15 — Iter127: Admin Dispatch-Users panel + Dispatch tile in Hub
+
+### User ask
+"Admin Dispatch-Users management UI — list/create/edit panel mirroring AdminSafetyUsers (admin can create dispatchers from the console rather than via curl). Dispatch in Hub.jsx tile grid — add a Dispatch Portal tile next to Safety/HR/Shop/PM so the multi-portal user-directory can launch it."
+
+### Outcome: ✅ Shipped · 26/26 backend regression tests pass · Hub + Admin People both render correctly
+
+### Frontend
+- New `/app/frontend/src/components/AdminDispatchUsersPanel.jsx` (315 lines, sed-mirror of `AdminSafetyUsersPanel.jsx`) — full Add / Edit / Reset-Password / Delete UI with role select (Dispatcher), active toggle, temp-password reveal, audit-friendly empty state
+- Mounted on `/admin/people` (`AdminPeople.jsx`) directly below the Safety Users panel
+- Verified end-to-end via curl: list / create / patch / delete all work against `/api/admin/dispatch-users/*`
+- New Dispatch Portal tile in `Hub.jsx` Office Portals grid (now 5 tiles: PM · Shop · HR · Safety · Dispatch); icon `Truck`, orange accent, testid `hub-section-dispatch-portal`
+- `Hub.jsx` session detection now recognises Dispatch sign-in via `getDispatchToken()` + `getDispatchUser()` — top-right "SIGN OUT" + "OPEN PORTAL" CTA work consistently for dispatch sessions
+
+### Verified
+- Lint clean (frontend + backend)
+- 26/26 regression tests still pass (iter124 + iter126 suites)
+- Hub screenshot confirms 5-tile Office Portals row with the new Dispatch tile
+- Admin People screenshot confirms `Dispatch Portal` sidebar nav + the new panel below the Safety/Shop/HR user panels
+- CRUD smoke (curl): create test dispatcher → patch rename → delete → all 200s
+
+---
 ## 2026-05-15 — Iter126: Dispatch Portal portal-auth + Cross-portal /api/operations/* reads
 
 ### User ask
