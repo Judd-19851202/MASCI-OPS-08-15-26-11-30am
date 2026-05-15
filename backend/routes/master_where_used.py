@@ -26,23 +26,24 @@ logger = logging.getLogger(__name__)
 
 # Each entry: (collection, projection_fields, display_field, route_template).
 # route_template is FE-side router path the UI deep-links to.
+# {id} is interpolated to the record id so consumers can scroll/highlight.
 EQUIPMENT_REFS = [
     ("equipment_inspections",
      {"id": 1, "equipment_unit": 1, "inspection_date": 1, "passed": 1, "submitted_by": 1},
      lambda d: f"Inspection on {d.get('inspection_date', '—')} · {('PASS' if d.get('passed') else 'FAIL') if 'passed' in d else '—'}",
-     "/admin/equipment-inspections"),
+     "/admin/equipment-inspections?id={id}"),
     ("fire_extinguishers",
      {"id": 1, "unit_id": 1, "location_value": 1, "last_status": 1, "next_due_date": 1},
      lambda d: f"Extinguisher {d.get('unit_id', '—')} ({d.get('last_status', '—')})",
-     "/safety-portal/fire-extinguishers"),
+     "/safety-portal/fire-extinguishers?id={id}"),
     ("incidents",
      {"id": 1, "incident_type": 1, "incident_date": 1, "severity": 1, "location": 1},
      lambda d: f"{d.get('incident_type', 'Incident')} on {d.get('incident_date', '—')} · {d.get('severity', '—')}",
-     "/safety-portal/incidents"),
+     "/safety-portal/incidents?id={id}"),
     ("corrective_actions",
      {"id": 1, "title": 1, "status": 1, "priority": 1, "due_date": 1},
      lambda d: f"{d.get('title', 'CA')} · {d.get('status', '—')}",
-     "/safety-portal/corrective-actions"),
+     "/safety-portal/corrective-actions?id={id}"),
 ]
 
 EMPLOYEE_REFS = [
@@ -50,35 +51,35 @@ EMPLOYEE_REFS = [
      {"id": 1, "incident_type": 1, "incident_date": 1, "severity": 1,
       "person_name": 1, "location": 1},
      lambda d: f"{d.get('incident_type', 'Incident')} on {d.get('incident_date', '—')} · {d.get('person_name', '—')}",
-     "/safety-portal/incidents"),
+     "/safety-portal/incidents?id={id}"),
     ("corrective_actions",
      {"id": 1, "title": 1, "status": 1, "assigned_to_name": 1, "due_date": 1},
      lambda d: f"{d.get('title', 'CA')} · {d.get('status', '—')}",
-     "/safety-portal/corrective-actions"),
+     "/safety-portal/corrective-actions?id={id}"),
     ("safety_training_records",
      {"id": 1, "training_name": 1, "certification_type": 1,
       "completed_date": 1, "expiration_date": 1},
      lambda d: f"{d.get('training_name', '—')} · expires {d.get('expiration_date', '—') or 'N/A'}",
-     "/safety-portal/training-records"),
+     "/safety-portal/training?id={id}"),
 ]
 
 
-async def _gather(db, master_id: str, refs) -> Dict[str, Any]:
+async def _gather(db, master_id: str, refs, field: str) -> Dict[str, Any]:
     out: Dict[str, List[Dict[str, Any]]] = {}
     totals: Dict[str, int] = {}
     for coll_name, projection, formatter, route_tmpl in refs:
         items: List[Dict[str, Any]] = []
         try:
-            field = "equipment_master_id" if refs is EQUIPMENT_REFS else "employee_master_id"
             cursor = db[coll_name].find(
                 {field: master_id},
                 {"_id": 0, **projection},
             ).sort("created_at", -1).limit(100)
             async for d in cursor:
+                rec_id = d.get("id")
                 items.append({
-                    "id": d.get("id"),
+                    "id": rec_id,
                     "label": formatter(d),
-                    "route": route_tmpl,
+                    "route": route_tmpl.format(id=rec_id or ""),
                     "raw": d,
                 })
         except Exception as e:  # noqa: BLE001
@@ -101,7 +102,7 @@ def register_where_used_routes(router: APIRouter, db) -> None:
         )
         if not master:
             raise HTTPException(404, "Equipment master record not found")
-        data = await _gather(db, master_id, EQUIPMENT_REFS)
+        data = await _gather(db, master_id, EQUIPMENT_REFS, "equipment_master_id")
         return {"master": master, **data}
 
     @router.get("/employees/{master_id}/where-used")
@@ -113,7 +114,7 @@ def register_where_used_routes(router: APIRouter, db) -> None:
         )
         if not master:
             raise HTTPException(404, "Employee master record not found")
-        data = await _gather(db, master_id, EMPLOYEE_REFS)
+        data = await _gather(db, master_id, EMPLOYEE_REFS, "employee_master_id")
         return {"master": master, **data}
 
 

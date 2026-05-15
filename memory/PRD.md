@@ -17,6 +17,25 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter140: Cross-Portal Footprint UI + Global Search Master Enrichment
+
+### User ask
+Four master-binding visual enhancements: (1) aggregate cross-portal coverage rollup in Deploy Readiness, (2) enrich Admin Global Search with canonical Equipment/Employee labels, (3) surface "Where Used" footprint on HR/Safety Employee detail, (4) surface "Where Used" footprint on Equipment Master detail.
+
+### Shipped
+- **Backend** `routes/master_where_used.py` — public aggregators `GET /api/master-lookup/{equipment|employees}/{id}/where-used`. Route templates now interpolate `?id={id}` for deep-linking. `_gather()` now takes the master field name explicitly (no implicit identity check).
+- **Backend** `routes/admin_ops.py` global_search — collects every `equipment_master_id`/`employee_master_id` surfaced across all probes in a single pass, bulk-fetches canonical labels from `equipment_master`/`employees`, and stamps `linked_equipment_label` + `linked_employee_label` on each row.
+- **Backend** `routes/deploy_readiness.py` — added cross-portal coverage rollup using same EQUIPMENT_REFS / EMPLOYEE_REFS metadata (iter139).
+- **Frontend** `components/WhereUsedPanel.jsx` NEW — reusable card with collection-grouped chips (Incidents red, CAs amber, Inspections cyan, Fire Ext orange, Training blue), per-row deep-link, empty/loading states. Props: `kind="equipment"|"employee"`, `masterId`, optional `compact`.
+- **Frontend** `pages/SafetyEmployeeProfiles.jsx` — `<WhereUsedPanel kind="employee" masterId={selected} />` mounted at bottom of detail view.
+- **Frontend** `components/EquipmentMasterPanel.jsx` — `<WhereUsedPanel kind="equipment" masterId={editing.id} />` mounted at bottom of edit dialog (only when editing existing unit). Dialog now scrollable (`max-h-[90vh]`).
+- **Frontend** `components/AdminGlobalSearch.jsx` — renders `linked_equipment_label` / `linked_employee_label` as small EQ/EMP chips under each result subtitle.
+
+### Testing
+- 8/8 backend pytest + 3/3 frontend flows verified in `/app/test_reports/iteration_140.json`. Zero issues.
+- `master_where_used.py` field-name extraction is now explicit (resolves a minor code review note).
+
+---
 ## 2026-05-15 — Iter139: Incident Form Typeahead + Label Auto-Resolve + CA Filtering + Fire Ext Auto-Suggest
 
 ### User ask
