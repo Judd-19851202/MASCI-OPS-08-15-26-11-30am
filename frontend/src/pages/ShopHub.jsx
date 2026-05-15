@@ -13,6 +13,7 @@ import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import { LangToggle } from "@/components/LangToggle";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
+import GlobalSearch from "@/components/GlobalSearch";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { clearShopToken, getShopToken } from "@/lib/shopAuth";
@@ -96,6 +97,7 @@ export default function ShopHub() {
           <MasciLogo variant="mark" size="md" homeLink="/" />
           <div className="flex items-center gap-2">
             <PortalSwitcher current="shop" />
+            <GlobalSearch accent="dark" />
             <NotificationBell accent="white" />
             <LangToggle />
             <Link

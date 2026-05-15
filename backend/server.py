@@ -8333,6 +8333,15 @@ from routes.signatures import (  # noqa: E402
 app.include_router(build_signatures_router(db, _require_any_portal_token))
 
 
+# ─── Global Search (iter155 — Phase 2.5 · Phase G) ──────────────────
+# Permission-safe, role-aware, lightweight cross-collection typeahead.
+# Reuses _require_any_portal_token and applies per-role visibility +
+# PM project scope. NEVER leaks results from kinds the caller can't
+# access.
+from routes.global_search import build_global_search_router  # noqa: E402
+app.include_router(build_global_search_router(db, _require_any_portal_token))
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 

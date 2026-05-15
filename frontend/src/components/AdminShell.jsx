@@ -23,6 +23,7 @@ import { BackendVersionBadge } from "@/components/BackendVersionBadge";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
+import GlobalSearch from "@/components/GlobalSearch";
 import AdminGlobalSearch from "@/components/AdminGlobalSearch";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
@@ -164,6 +165,7 @@ export default function AdminShell({ title, section, children, intro }) {
               <AdminGlobalSearch />
             </div>
             <PortalSwitcher current="admin" />
+            <div className="md:hidden"><GlobalSearch accent="dark" /></div>
             <NotificationBell accent="white" />
             <SystemHealthBadge />
             <Link

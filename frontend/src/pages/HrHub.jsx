@@ -9,6 +9,7 @@ import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
+import GlobalSearch from "@/components/GlobalSearch";
 import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import { useT } from "@/lib/i18n";
@@ -96,6 +97,7 @@ export default function HrHub() {
           <div className="flex-1" />
           <div className="flex items-center gap-2">
             <PortalSwitcher current="hr" />
+            <GlobalSearch accent="dark" />
             <NotificationBell accent="white" />
             <LangToggle />
             <CompanyInfoDialog />

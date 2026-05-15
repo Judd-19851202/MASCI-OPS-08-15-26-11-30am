@@ -1,0 +1,42 @@
+{
+  "summary": "Iter155 · Phase G · UNIFIED GLOBAL SEARCH — Tested backend (15 pytest cases incl. anon 401, q-length, role-aware visibility for safety/hr/admin/pm, kinds-filter cannot expand scope, lightweight payload — no body/description/signature_image/file_data/image_data/raw, limit respected and bounds, payload echoes q+role+scope) and frontend (Cmd/Ctrl+K toggle, Esc, outside-click, click trigger, scope chip 'Scope · safety', grouped results with data-testids, ArrowDown nav, recents save after row-click and clear, mobile 375x812 panel no-overflow, input auto-focus, anonymous case unreachable in practice). Phase F SafetyShell mobile-overflow regression on CA edit dialog at 375x812 is CONFIRMED FIXED (scrollWidth==innerWidth==375, overflow=0).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Edit Corrective Action dialog (mobile, /safety-portal/corrective-actions)", "issues": ["Radix Dialog console warning: 'DialogContent requires a DialogTitle for screen reader users.' Wrap title in VisuallyHidden or supply DialogTitle. Non-blocking but accessibility regression."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter155_global_search.py",
+    "/app/backend/tests/test_iter155_admin_pm.py",
+    "/app/test_reports/pytest/iter155_results.xml",
+    "/app/test_reports/pytest/iter155_admin_pm.xml"
+  ],
+  "action_items": [
+    "(Low) Add DialogTitle (or VisuallyHidden wrapper) to the edit-corrective-action dialog in SafetyCorrectiveActions to silence Radix a11y warning.",
+    "(Optional UX) GlobalSearch recents are only written on row-click (selectRow → pushRecent). Closing via Esc/X without selecting a row does NOT save the query. If spec intended ANY closed search to be a recent, push on closeOverlay() when q.trim().length>=2 — but current behavior (selection-only) is a reasonable choice."
+  ],
+  "critical_code_review_comments": [
+    "global_search.py is clean, well-bounded, asyncio.gather'd, escapes user input with re.escape (no regex injection), excludes _id via {'_id':0} projection, and uses KIND_VISIBILITY map so scope leakage is structurally impossible — even forced ?kinds=fire_extinguishers for HR returns scope=[] total=0. Excellent permission-safe design.",
+    "GlobalSearch.jsx is well-scoped (debounce 260ms with AbortController, keyboard nav, recents keyed per-actor token, mobile-first layout). The trigger button always rendered (no hidden md:inline gating on the button itself) so mobile shells get it correctly.",
+    "Minor: KIND_TINT.document_expirations uses 'amber-50/900' while document_expirations also defaults to amber via notifications — visually similar but distinguishable by status text."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter155_admin_pm.py (new — admin/PM coverage)"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 — 14 passed, 1 skipped by design when PM has no scoped project list)",
+    "frontend": "100% (all critical flows: Cmd+K, Esc, outside-click, trigger button, scope chip, grouped results, row navigation, recents save/clear, mobile no-overflow, no console errors)"
+  },
+  "test_credentials": "Used safety@mascigc.com / SafetyTest2026!, hrmanager@mascigc.com / HRTesting2026!, chriswright@mascigc.com / ChrisRocksThis2026 — all working. Admin via /api/auth/multi-login with jaymn.judd@mascigc.com / Maddix123! returned a token; admin role mapped to all 14 ALL_KINDS.",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iter155 GlobalSearch is production-ready. Backend tests live at /app/backend/tests/test_iter155_global_search.py (12) and /app/backend/tests/test_iter155_admin_pm.py (3). Trigger rendered in: SafetyShell, PmShell, AdminShell (mobile-only), HrHub, ShopHub, DispatchHub headers. The only open low-pri item is a Radix DialogTitle a11y warning in the Safety CA edit dialog (independent of Phase G).",
+  "rca of the issue": "N/A — no functional bugs found this iteration. The Radix warning is a pre-existing a11y nit unrelated to Phase F/G. Phase F mobile overflow regression (was 7px at 375x812 on /safety-portal/* with edit dialog open) is confirmed RESOLVED by the flex-wrap justify-end min-w-0 fix on the SafetyShell header right-side cluster: measured scrollWidth=375, innerWidth=375, overflow=0."
+}

@@ -13,6 +13,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
+import GlobalSearch from "@/components/GlobalSearch";
 import {
   DispatchOverviewTab, DispatchUtilizationTab, DispatchIdleAlertsTab,
   DispatchTransfersTab, DispatchHoldsTab,
@@ -65,6 +66,7 @@ export default function DispatchHub() {
             </div>
           </div>
           <PortalSwitcher current="dispatch" />
+          <GlobalSearch accent="dark" />
           <NotificationBell accent="white" />
           <Link
             to="/ops-training?portal=dispatch"
