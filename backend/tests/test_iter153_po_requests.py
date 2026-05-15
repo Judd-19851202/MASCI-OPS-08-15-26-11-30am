@@ -160,13 +160,14 @@ def test_approve_with_manual_po_number_override(admin_token, leadership_token):
     po_id = r.json()["id"]
 
     r2 = requests.post(f"{BASE_URL}/api/po-requests/{po_id}/approve",
-                       json={"action": "approve", "po_number_manual": "MASCI-9999",
+                       json={"action": "approve",
+                             "po_number_manual": f"MASCI-9999-{uuid.uuid4().hex[:6]}",
                              "approved_amount": 30.0},
                        headers=_adm_headers(admin_token), timeout=20)
     assert r2.status_code == 200, r2.text
     body = r2.json()
     assert body["status"] == "Approved"
-    assert body["po_number"] == "MASCI-9999"
+    assert body["po_number"].startswith("MASCI-9999-")
     assert body["po_number_source"] == "manual"
     assert body["approved_amount"] == 30.0
 
