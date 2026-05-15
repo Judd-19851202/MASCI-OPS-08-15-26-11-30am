@@ -38,19 +38,9 @@ const TAB_TO_STATUSES = {
   closed: ["Completed", "Closed", "Cancelled"],
 };
 
-const PRIORITY_COLORS = {
-  Critical: "bg-red-100 text-red-800 border-red-300",
-  High: "bg-amber-100 text-amber-800 border-amber-300",
-  Medium: "bg-slate-100 text-slate-700 border-slate-300",
-  Low: "bg-slate-50 text-slate-500 border-slate-200",
-};
-
 import StatusBadge from "@/components/StatusBadge";
 import EmptyState from "@/components/EmptyState";
 import GlobalSearch from "@/components/GlobalSearch";
-import { TASK_STATUS_TINTS } from "@/lib/statusBadges";
-
-const STATUS_COLORS = TASK_STATUS_TINTS;
 
 const ALL_STATUSES = [
   "Open", "In Progress", "Pending Review", "Completed", "Closed", "Cancelled",
@@ -147,7 +137,7 @@ export default function Tasks() {
             </TabsList>
           </Tabs>
           <div className="flex-1" />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <Select value={priority} onValueChange={setPriority}>
               <SelectTrigger className="w-[140px] h-9 text-xs" data-testid="tasks-priority-filter">
                 <SelectValue placeholder="Priority" />
@@ -173,13 +163,13 @@ export default function Tasks() {
                 </SelectContent>
               </Select>
             )}
-            <div className="relative">
+            <div className="relative flex-1 min-w-[160px]">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search title…"
-                className="pl-8 h-9 text-xs w-[200px]"
+                className="pl-8 h-9 text-xs w-full"
                 data-testid="tasks-search-input"
               />
             </div>
@@ -207,12 +197,8 @@ export default function Tasks() {
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider border ${PRIORITY_COLORS[t.priority] || PRIORITY_COLORS.Medium}`}>
-                      {t.priority}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider ${STATUS_COLORS[t.status] || STATUS_COLORS.Open}`}>
-                      {t.status}
-                    </span>
+                    <StatusBadge kind="priority" value={t.priority || "Medium"} size="sm" />
+                    <StatusBadge kind="task" value={t.status || "Open"} size="sm" />
                     {t.assignee_role && (
                       <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-slate-100 text-slate-700">
                         → {t.assignee_role}
@@ -303,9 +289,7 @@ function TaskDrawer({ taskId, onClose }) {
             <SheetHeader className="px-5 pt-5 pb-3 border-b border-slate-200">
               <SheetTitle className="font-display text-base leading-snug">{task.title}</SheetTitle>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider border ${PRIORITY_COLORS[task.priority]}`}>
-                  {task.priority}
-                </span>
+                <StatusBadge kind="priority" value={task.priority || "Medium"} size="sm" />
                 <StatusBadge kind="task" value={task.status} size="sm" />
                 {task.assignee_role && (
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-slate-100 text-slate-700">

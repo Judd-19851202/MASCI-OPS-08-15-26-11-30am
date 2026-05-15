@@ -10,6 +10,25 @@ This document is the source-of-truth backlog for Iters B (fixes), C (Operations 
 
 ## EXECUTIVE SUMMARY
 
+### Iter B PATCH — P0 + P1 stabilization fixes (2026-05-15)
+
+| Item | Status | Verification |
+|---|---|---|
+| **P0** Status badge unification (`lib/statusBadges.js` + `<StatusBadge />`) | ✅ DONE | 7 status domains (po/task/priority/doc_exp/lifecycle/ca/severity). Migrated PoRequests, Tasks (rows + drawer + priority), DocumentExpirations, HrEmployees. 52 task-status + 52 priority + 29 po + 243 lifecycle badges rendering at runtime. SafetyCorrectiveActions deferred (custom dot+pill UX). |
+| **P0** `<EmptyState />` component | ✅ DONE | Applied to Tasks (`tasks-empty`), DocumentExpirations (`docexp-empty`), PoRequests (`po-empty`), HrEmployees (`hremp-empty`). Verified `border-dashed` shared style in DOM. |
+| **P0** GlobalSearch on standalone pages + FieldLeadership | ✅ DONE | Tasks, DocumentExpirations, PoRequests, HrEmployees standalone pages now mount `[data-testid='global-search-trigger']` in header. FieldLeadershipHub mounts both GlobalSearch + NotificationBell after password gate. |
+| **P0** NotificationBell on FieldLeadership | ✅ DONE | Mounted alongside GlobalSearch. |
+| **P0** Mobile overflow sweep (Tasks/PoRequests/DocExp/HrEmp/FL) | ✅ DONE | All 5 pages at 375x812: scrollWidth==innerWidth==375. Earlier Tasks overflow (sw=570) fixed by wrapping the filter cluster with `flex-wrap` + `flex-1 min-w-[160px]` on the search input. |
+| **P1** PM scope filter in `global_search.run_tasks` | ✅ DONE | Probe now applies `linked_project_number ∈ pm_proj` when `role==pm` AND `pm_proj is not None`. Verified by testing agent's new `test_iter_B_pm_scope_and_audit.py` (4/4 pass). |
+| **P1** Audit-log helper `backend/lib/audit.py::append_audit` | ✅ DONE | Single canonical entry point. Best-effort, swallows DB errors. Verified by testing agent's smoke tests (4/4 pass). Existing module migrations are incremental. |
+
+**Backend regression**: 37/37 pass (12 iter155 + 9 iter153E + 12 iter154 + 4 new iter_B).
+**Frontend regression**: 100% post-fix per testing agent's retest probes (52 task badges, 52 priority badges, 1 po-empty using shared EmptyState, sw=375 on Tasks mobile).
+
+Items 8–13 of `ITER B BACKLOG` (orphan component cleanup, SectionTile normalization, pagination caps, training docs) remain for a future Iter B Phase 2 if user wants — they are P1/P2 polish, not blockers for Iter C.
+
+---
+
 ### Iter153E PATCH — Phase E completeness pass (2026-05-15)
 
 Five operational modules wired through `task_service.create` +

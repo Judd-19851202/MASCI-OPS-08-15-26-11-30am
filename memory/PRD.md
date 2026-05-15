@@ -1,6 +1,37 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-15 — Iter B (Phase 2.5 · Platform Stabilization · P0+P1) · STABILIZED
+
+### Shipped
+- **`frontend/src/lib/statusBadges.js`** (new) — single source of truth for 7 status domains (po, task, priority, doc_exp, lifecycle, ca, severity). Eliminates the 5 duplicate `STATUS_COLORS` maps flagged by audit.
+- **`frontend/src/components/StatusBadge.jsx`** (new) — `<StatusBadge kind value size testId />`. Auto-generates `status-badge-{kind}-{value-kebab}` testIds.
+- **`frontend/src/components/EmptyState.jsx`** (new) — `<EmptyState icon title hint action testId />`. `border-dashed` shared style.
+- **Migrated 4 list pages**: Tasks, DocumentExpirations, PoRequests, HrEmployees — all use StatusBadge + EmptyState now. Confirmed at runtime: 52 task-status + 52 priority + 29 po + 243 lifecycle badges rendering.
+- **GlobalSearch + NotificationBell** added to: FieldLeadershipHub (after password gate), Tasks, DocumentExpirations, PoRequests, HrEmployees standalone pages.
+- **Mobile 375x812**: Tasks filter cluster wrapped with `flex-wrap` + `flex-1 min-w-[160px]` on search input — was overflowing to sw=570, now clean sw=375. PoRequests + DocExp + HrEmp + FL Hub all clean.
+- **Backend `lib/audit.py::append_audit(...)`** (new) — single canonical audit log helper. Best-effort (never raises). Modules migrate incrementally.
+- **Backend `routes/global_search.py::run_tasks`** — PM scope filter added (`linked_project_number ∈ pm_proj` when role==pm). Was unscoped — could leak tasks across projects.
+
+### Verification (`/app/test_reports/iteration_157.json`)
+- **Backend**: 37/37 pass (12 iter155 + 9 iter153E + 12 iter154 + 4 new iter_B for PM scope + audit). PM verified NOT to see out-of-scope tasks via `/api/search?kinds=tasks`. `append_audit` swallows DB errors gracefully.
+- **Frontend**: 3 testing-agent flags from initial pass resolved in retest probe: (a) Tasks rows + drawer migrated fully to StatusBadge — 52 task + 52 priority testIds present, (b) Tasks mobile sw==iw==375 after filter cluster wrap, (c) PoRequests EmptyState uses shared component (`border-dashed` class confirmed).
+- **Lint**: all 10 changed files pass.
+
+### Iter B items deferred to next pass (not blocking Iter C)
+- LOW · 3 orphan components removal (`ActivityFeed`, `AdminSignatureMigrationPanel`, `MentionTextarea`)
+- LOW · `SectionTile` normalization across Hub/Pm/Shop/Dispatch/Training hubs
+- LOW · List pagination defaults verification (doc_exp, employees, hr_portal)
+- LOW · Training docs for Tasks/Notifications/PO/Lifecycle/Search/Signatures/DocExp (Phase E training guide already added in iter153E)
+- LOW · Migrate SafetyCorrectiveActions to StatusBadge (custom dot+pill UX — leave for now)
+- LOW · Hub.jsx (root /) anon-user GlobalSearch policy
+
+### Next Action Items
+- 🔵 **Iter C — Operations Center visibility layer** (per-role aggregated dashboards on top of now-stable shared infrastructure; real data only)
+- 🟢 **Iter D — Final QA + `/app/FINAL_PLATFORM_STABILIZATION_REPORT.md`**
+
+
+---
 ## 2026-05-15 — Iter153E (Phase 2.5 · PHASE E COMPLETENESS) · STABILIZED
 
 ### User ask (verbatim)

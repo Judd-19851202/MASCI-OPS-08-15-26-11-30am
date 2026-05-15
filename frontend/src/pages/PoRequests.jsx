@@ -253,10 +253,14 @@ export default function PoRequests() {
         {loading ? (
           <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">Loading…</div>
         ) : items.length === 0 ? (
-          <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm" data-testid="po-empty">
-            <Receipt className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-            No PO requests in this view.
-          </div>
+          <EmptyState
+            icon={Receipt}
+            title="No PO requests in this view"
+            hint={tab === "open"
+              ? "Try the Closed tab, clear filters, or submit a new PO."
+              : "Closed / Cancelled / Rejected POs will appear here."}
+            testId="po-empty"
+          />
         ) : (
           <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
             <table className="w-full text-sm">
