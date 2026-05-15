@@ -1,0 +1,36 @@
+{
+  "summary": "Iter148 RETEST — Both critical fixes from iteration_148 VERIFIED. (1) resolveActorKey() now correctly hashes the real masci.<portal>.token names — Safety actor-hash resolved to 'tswvrb6' (NOT 'anon'); remembered keys correctly written as 'masci.ux.remembered.v1.tswvrb6.safety.ca.status-tab' and '...safety.ca.search'. (2) Cross-portal isolation works — Safety hash 'tswvrb6' vs HR hash 'too7hxx' are distinct; after HR login HR sees zero HR-owned remembered keys (falls back to defaults as required). (3) Safety credential safety@mascigc.com / SafetyTest2026! works end-to-end (token len=101). Filter persistence across reload: PASS (search 'foo' preserved). Zero non-401 console errors observed. Two MINOR concerns surfaced: (a) the HR credential in the REVIEW REQUEST itself is wrong — 'HRPortal2026!' failed; only 'HRTesting2026!' (per /app/memory/test_credentials.md line 51) worked. (b) NewDailyReport.jsx has NO HelpTip imports/usages despite the review request line-item asking for HelpTip popovers there. HelpTip components on the other 4 pages live inside their 'New' dialogs and use custom testIds (e.g. 'safety-ca-help-priority', 'incident-help-type') — not the default 'help-tip' — so a generic [data-testid=help-tip] sweep returns 0; not a bug, but worth noting for next agent.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "NewDailyReport HelpTip coverage",
+        "issue": "/app/frontend/src/pages/NewDailyReport.jsx does NOT import or render HelpTip at all (grep -c HelpTip = 0). Review request line-item said 'Navigate /daily/new — HelpTip popovers' which cannot be true with current code. Either the file needs a HelpTip added, or the review checklist needs to be corrected. useRememberedFormValue prefilled the last project_number correctly per static read (uses useRememberedFilter which is now namespaced).",
+        "affected_selectors": ["/app/frontend/src/pages/NewDailyReport.jsx"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "MINOR: NewDailyReport.jsx is missing HelpTip — add one if the iter148 spec requires it on /daily/new, otherwise remove the line-item from the review checklist.",
+    "Update review request template: HR credential should be 'HRTesting2026!' (matches /app/memory/test_credentials.md line 51), NOT 'HRPortal2026!'. The HRPortal2026! string appears nowhere on the seeded HR account in preview.",
+    "OPTIONAL: Consider exporting each portal-auth KEY from its lib/<portal>Auth.js and importing in useRememberedFilter.js so the canonical token-key list cannot drift again (root-cause fix vs the band-aid duplicate list)."
+  ],
+  "critical_code_review_comments": [
+    "resolveActorKey() fix is correct — all 8 canonical token keys present and hashed identically to the rest of the codebase. The duplicate-string-list risk remains (E1 fixed it once; will drift again if another portal is added without updating this file). Future-proof by exporting KEY from each portal auth module.",
+    "Filter persistence across reload uses the slot+hash namespace correctly. Verified by reloading /safety-portal/corrective-actions and observing search='foo' preserved.",
+    "Cross-portal isolation verified by direct hash inspection: Safety='tswvrb6' vs HR='too7hxx'. Safety-owned keys remain in localStorage (by design) but HR's resolver won't read them. Correct.",
+    "Zero non-401 console errors across all 5 pages tested (CA, FireExt, Training, NewIncident, NewDailyReport).",
+    "NewDailyReport.jsx lacks HelpTip imports — scope gap vs review request line-item."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only request)", "frontend": "95% — both primary fixes verified; minor scope gap on NewDailyReport HelpTip; HelpTip popover open/dismiss visual verification deferred because each HelpTip uses a custom testId and lives inside per-form New dialogs (out-of-scope for retest — primary mandate was actor-key + cross-portal isolation, both pass)"},
+  "test_credentials": "Safety: safety@mascigc.com / SafetyTest2026! ✅ works. HR: hrmanager@mascigc.com / HRTesting2026! ✅ works (review request said HRPortal2026! — INCORRECT, that password does not authenticate).",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "BOTH iter148 fixes verified. Safety actor-key 'tswvrb6' (NOT anon); HR actor-key 'too7hxx'; remembered keys correctly namespaced as 'masci.ux.remembered.v1.<hash>.<slot>'. Cross-portal isolation guaranteed. Safety creds rotated to SafetyTest2026! and work. The review request incorrectly cited 'HRPortal2026!' for HR — actual working pw is 'HRTesting2026!' (see /app/memory/test_credentials.md line 51). NewDailyReport.jsx has 0 HelpTip refs (gap vs review checklist). HelpTips on the other 4 pages use CUSTOM testIds — for retest, use ['safety-ca-help-priority','incident-help-type','safety-fe-help-*','safety-tr-help-*'] not the default 'help-tip'.",
+  "rca of the issue": "Original actor-key bug (iter148 first run) was caused by duplicated token-key-name string list drifting from the canonical 'masci.<portal>.token' naming. E1 fixed by replacing the hard-coded list with the real names. Verified by direct repro: signed in as Safety, set tab=Open + search='foo', observed localStorage write at 'masci.ux.remembered.v1.tswvrb6.safety.ca.search' (hash matches Math.abs(JSHash(masci.safety.token)).toString(36) prefixed with 't'). Then logged out, signed in as HR, observed HR's hash differs and HR sees no Safety values via the resolver path. Recommended long-term mitigation: export KEY constants from each lib/<portal>Auth.js so the lookup list has a single source of truth."
+}

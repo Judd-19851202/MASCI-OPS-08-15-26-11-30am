@@ -35,9 +35,18 @@ function resolveActorKey() {
   // Fall back to "anon" so the cache still works pre-login.
   try {
     if (typeof window === "undefined") return "anon";
+    // Canonical localStorage token-key names used across the app.
+    // These MUST match the per-portal auth modules' KEY constants
+    // (e.g. lib/safetyAuth.js stores at 'masci.safety.token').
     const keys = [
-      "admin_token", "safety_token", "hr_token",
-      "pm_token", "shop_token", "dispatch_token", "leadership_token",
+      "masci.directory.token",
+      "masci.admin.token",
+      "masci.safety.token",
+      "masci.hr.token",
+      "masci.pm.token",
+      "masci.shop.token",
+      "masci.dispatch.token",
+      "masci.leadership.token",
     ];
     for (const k of keys) {
       const v = localStorage.getItem(k);
