@@ -9,6 +9,42 @@
 Integration framework must remain PASSIVE / OBSERVATIONAL until live API stability is proven. No auto-creating work orders / disciplinary actions / retraining / payroll triggers. All future workflows are EVENT-DRIVEN (failed pre-op → internal event → integration layer → MaintainX/Safety/Asset/notify), never portal-to-portal direct logic. Heavy syncs run BACKGROUND only — never block dashboards / forms / login. Master records (`db.equipment_master`, `db.employees`) are SOURCE-OF-TRUTH — integrations flow through mapping layers, not direct master mutation. CSV imports require preview + rollback + duplicate detection. Integration failures must NEVER crash core platform. Audit/traceability on every mapping/import/setting change.
 
 ---
+## 2026-05-15 — Iter126: Dispatch Portal portal-auth + Cross-portal /api/operations/* reads
+
+### User ask
+Two deferred items from iter124/125: (1) Dispatch Portal portal-auth — dedicated `dispatch_users.py` mirroring `safety_users.py` so dispatch users log in directly without an admin token. (2) Cross-portal read access for `/api/operations/*` using `make_require_any_portal_token` so Safety/Shop/HR/PM portals can show holds & events without admin escalation.
+
+### Outcome: ✅ Shipped · 56/56 tests pass (11 new iter126 + 45 regression)
+
+### Backend
+- New `/app/backend/dispatch_users.py` — 1:1 sed-mirror of `safety_users.py` (token primitives, password hashing, reset tokens, seed loader, public view). Lint clean
+- New `/app/backend/routes/dispatch_portal_auth.py`:
+  - `POST /api/dispatch/login`, `GET /api/dispatch/me`, `POST /api/dispatch/change-password`, `POST /api/dispatch/forgot-password`, `POST /api/dispatch/reset-password`
+  - `GET / POST / PATCH / DELETE /api/admin/dispatch-users` + `POST /api/admin/dispatch-users/{id}/reset-password` (admin-gated)
+- Seeded user `dispatch@mascigc.com` (Dispatcher) on startup — temp password issued via admin reset-password endpoint
+- Extended `make_require_any_portal_token` (in `routes/integrations/_deps.py`) to recognise `X-Dispatch-Token`
+- Operations router (`routes/operations.py`) now signature: `build_operations_router(db, require_admin, is_valid_admin_token)`:
+  - READ endpoints (`GET /events`, `GET /events/{id}`, `GET /holds`, `GET /transfers`, `GET /utilization`, `GET /idle-equipment`, `GET /assets/{id}/profile`) gated by `require_any_portal` — accepts admin · safety · hr · shop · pm · dispatch tokens
+  - WRITE endpoints (`POST/PATCH events`, `POST holds`, `POST holds/{id}/release`, `POST assignments`, `POST assignments/{id}/clear`, `POST transfers`, `POST transfers/{id}/decide`) gated by `require_admin_or_dispatch` — REJECTS safety/hr/shop/pm tokens (401)
+
+### Frontend
+- New `/app/frontend/src/lib/dispatchAuth.js` — token helpers (localStorage)
+- New `/app/frontend/src/components/RequireDispatch.jsx` — route guard (redirects to `/dispatch-portal/login`)
+- New `/app/frontend/src/pages/DispatchLogin.jsx` — orange-themed sign-in form (Truck icon, "OPERATIONS · FLEET MOVEMENT" badge)
+- New `/app/frontend/src/pages/DispatchChangePassword.jsx` — must-change-password flow
+- New `/app/frontend/src/pages/DispatchHub.jsx` — dedicated hub. Reuses exported tab components (`DispatchOverviewTab`, `DispatchUtilizationTab`, `DispatchIdleAlertsTab`, `DispatchTransfersTab`, `DispatchHoldsTab`) from `AdminDispatch.jsx` so admin + dispatch see identical data
+- `lib/api.js` axios interceptor now sends `X-Safety-Token` and `X-Dispatch-Token` alongside the existing HR token
+- `PortalSwitcher.jsx` extended with `dispatch` entry (label/home/dot color)
+- Routes in `App.js`: `/dispatch-portal/login`, `/dispatch-portal/change-password` (guarded), `/dispatch-portal` (guarded)
+
+### Verified E2E
+- Admin → reset dispatch pw → dispatch login → must_change redirect → change pw → land on `/dispatch-portal` → 5-tab UI loads with live data
+- Cross-portal: dispatch token reads ALL operations endpoints; safety token reads ok but is correctly 401'd on writes
+- Unauthenticated `/dispatch-portal` redirects to login
+- 11 new pytests + 45 regression tests all pass (test_iter126_dispatch_auth.py)
+- /app/memory/test_credentials.md updated with the new Dispatch Portal section
+
+---
 ## 2026-05-15 — Iter125: Idle Equipment Alerts + Equipment-list profile link
 
 ### User ask
