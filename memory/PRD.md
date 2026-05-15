@@ -17,6 +17,51 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter150 (Phase 2.5 · Core Operational Systems · PHASE A): Tasks + Notifications SHARED INFRASTRUCTURE · STABILIZED
+
+### User ask
+Build CORE shared platform services (NOT another portal-specific feature). 5-phase sequence: A=Tasks+Notifications, B=Doc Expirations, C=Employee Lifecycle, D=PO Requests, E=Cross-system integration + Training updates. Phase A FIRST because B/C/D all consume the task_service / notification_service APIs. Lightweight, role-aware, auditable, future-ready for employee logins + push notifications. NO ERP bloat.
+
+### Shipped (Phase A only)
+- **Backend `routes/tasks_notifications.py` NEW** — single file housing:
+  - `db.tasks` + `db.notifications` collections with TTL (closed_at: 365d / expires_at: 60d) and 8 supporting indexes.
+  - **Internal services**: `task_service.create()`, `task_service.update()`, `task_service.append_comment()`, `notification_service.fanout()` — callable from any backend module. ALWAYS fire-and-forget where invoked from a transactional path so analytics-style failures NEVER block a real submit.
+  - **API endpoints** (any portal token via `make_require_any_portal_token`): `GET/POST /api/tasks`, `GET /api/tasks/{id}`, `PATCH /api/tasks/{id}`, `POST /api/tasks/{id}/comment`, `GET /api/tasks/summary`, `GET/POST /api/notifications`, `GET /api/notifications/unread-count`, `POST /api/notifications/{id}/read`, `POST /api/notifications/read-all`, `POST /api/notifications/{id}/acknowledge`.
+  - **Role-aware filter**: Admin sees all; portal users see tasks where `assignee_role == their_role` OR `assignee_role IS NULL` OR `created_by.role == their_role`.
+  - **Closed enums** for status (Open/In Progress/Pending Review/Completed/Closed/Cancelled/Overdue), priority (Low/Medium/High/Critical), severity (Info/Warning/Critical), and an `ALLOWED_SOURCE_MODULES` set that pre-lists future-phase slugs so Phase B/C/D wiring just plugs in.
+  - **Indexes + startup bootstrap** wired in `server.py` via `ensure_tasks_notifications_indexes()`.
+
+- **Proof wire — Safety Corrective Actions → Task**: `routes/safety_portal/corrective_actions.py` now auto-emits a Task on CA create (priority + due_at echoed, source_module='safety.corrective_actions') and the task service in turn emits a `task.assigned` notification to the safety role. Wrapped in try/except so the legacy CA workflow can NEVER regress.
+
+- **Frontend `lib/tasksApi.js` NEW** — thin axios client; forwards whichever of the 6 portal tokens is live (admin/safety/hr/pm/shop/dispatch).
+
+- **Frontend `components/NotificationBell.jsx` NEW** — global bell + drawer. Polls `/api/notifications/unread-count` every 60s (only when tab visible). Badge with unread count; click → side drawer with up to 30 latest notifications; per-item mark-read on click; "Mark all read" bulk action; deep links to /tasks. Renders nothing when fully signed-out.
+
+- **Frontend `pages/Tasks.jsx` NEW** — universal task list at `/tasks`:
+  - 4 summary tiles (Open / Overdue / In Progress / Completed)
+  - Tabs (Open / Closed)
+  - Filters: priority, source module, free-text title search (persisted via `useRememberedFilter`)
+  - Task drawer: description, source module, due/created timestamps, status switcher (6 buttons), comments composer, audit history
+  - AccessDenied when fully anonymous
+
+- **Bell wiring**: `NotificationBell` injected into headers of AdminShell, PmShell, SafetyShell, HrHub, ShopHub, DispatchHub.
+- **Tasks tile**: Added to SafetyHub, HrHub, PmHub, and the AdminShell sidebar (between Compliance and Dispatch).
+
+### Verification (`/app/test_reports/iteration_150.json`)
+- **Backend**: **12/12 pytest tests pass** — smoke endpoints, CA auto-emit (task + notification + unread-count increment), role scoping (HR doesn't see safety-assigned tasks; Admin sees all), 401 without portal token.
+- **Frontend** (Playwright + main-agent self-test): /tasks renders cleanly; auto-emitted CA task visible; summary tiles show 1 Open immediately after CA create; bell badge polls + updates; drawer opens with task list, Mark-all-read works; first item testid resolvable. NotificationBell testids verified present in DOM (`notification-bell`, `notification-bell-badge`, `notification-drawer`, `notification-mark-all-read`, `notification-item-{id}`, `notification-empty`, `notification-tasks-link`).
+- Zero console errors. Zero functional bugs.
+
+### Open backlog (cosmetic, NOT blocking next phase)
+- `notifications/unread-count` iterates docs in Python; switch to a Mongo `count_documents({read_by: {$not: {$elemMatch: {role: …}}}})` when collection grows past ~1k per role.
+- Optional Radix `DialogTitle` a11y warning — wrap titles in `VisuallyHidden` for screen-reader nicety.
+- `_scope_filter` has cosmetic redundancy in `assignee_role` clauses.
+
+### Ready for Phase B (Document Expirations)
+Phase B will reuse `task_service.create(db, {source_module: 'documents.expiration', ...})` and `notification_service.fanout(db, {type: 'document.expiring', ...})` — both entry points are already lit and verified.
+
+
+---
 ## 2026-05-15 — Iter149: Role & Permission Refinement · STABILIZED
 
 ### User ask
