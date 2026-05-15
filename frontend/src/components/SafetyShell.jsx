@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
+import NotificationBell from "@/components/NotificationBell";
 import { useT } from "@/lib/i18n";
 import { clearSafetyToken, getSafetyUser } from "@/lib/safetyAuth";
 
@@ -36,6 +37,7 @@ export default function SafetyShell({ title, kicker, children }) {
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <div className="flex-1" />
           <div className="flex items-center gap-2">
+            <NotificationBell accent="white" />
             <LangToggle />
             <CompanyInfoDialog />
             <Button

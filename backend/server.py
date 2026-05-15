@@ -8245,6 +8245,20 @@ app.include_router(build_usage_routes(db, require_admin))
 app.middleware("http")(usage_tracking_middleware)
 
 
+# ─── Tasks + Notifications (iter150 — Phase 2.5 · Phase A) ──────────
+# Shared operational accountability + awareness infrastructure used by
+# every other module. NEVER blocks user requests. TTL on closed tasks
+# (365d) + notifications (60d auto).
+from routes.tasks_notifications import (  # noqa: E402
+    build_tasks_notifications_router,
+    ensure_tasks_notifications_indexes,
+)
+from routes.integrations._deps import make_require_any_portal_token  # noqa: E402
+
+_require_any_portal_token = make_require_any_portal_token(db, _is_valid_admin_token)
+app.include_router(build_tasks_notifications_router(db, _require_any_portal_token))
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 
@@ -8384,6 +8398,8 @@ async def _bootstrap_integrations():
     await ensure_usage_indexes(db)
     start_sink(db)
     logger.info("[usage-analytics] indexes ensured + async sink started")
+    await ensure_tasks_notifications_indexes(db)
+    logger.info("[tasks-notifications] indexes ensured")
 
 
 @app.on_event("startup")

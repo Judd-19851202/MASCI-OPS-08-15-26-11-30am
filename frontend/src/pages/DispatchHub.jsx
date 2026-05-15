@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import PortalSwitcher from "@/components/PortalSwitcher";
+import NotificationBell from "@/components/NotificationBell";
 import {
   DispatchOverviewTab, DispatchUtilizationTab, DispatchIdleAlertsTab,
   DispatchTransfersTab, DispatchHoldsTab,
@@ -64,6 +65,7 @@ export default function DispatchHub() {
             </div>
           </div>
           <PortalSwitcher current="dispatch" />
+          <NotificationBell accent="white" />
           <Link
             to="/ops-training?portal=dispatch"
             className="inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"

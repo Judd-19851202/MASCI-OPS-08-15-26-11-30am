@@ -22,6 +22,7 @@ import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { BackendVersionBadge } from "@/components/BackendVersionBadge";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import PortalSwitcher from "@/components/PortalSwitcher";
+import NotificationBell from "@/components/NotificationBell";
 import AdminGlobalSearch from "@/components/AdminGlobalSearch";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
@@ -40,6 +41,7 @@ const SECTIONS = [
   { key: "email",      to: "/admin/email",      icon: Mail,            label: "Email & Routing", desc: "Auto-routing · Distribution lists" },
   { key: "training",   to: "/admin/training",   icon: BookOpen,        label: "Training & Forms",desc: "Training resources · Safety forms" },
   { key: "compliance", to: "/admin/compliance", icon: ClipboardCheck,  label: "Compliance & Audits", desc: "Exports · Date audit" },
+  { key: "tasks",      to: "/tasks",            icon: ClipboardCheck,  label: "Tasks & Actions", desc: "Cross-portal accountability · Open · Overdue · Completed" },
   { key: "dispatch",   to: "/admin/dispatch",   icon: Truck,           label: "Dispatch Portal", desc: "Transfers · Holds · Utilization" },
   { key: "events",     to: "/admin/operations-events", icon: Activity, label: "Operations Events", desc: "Append-only log · platform history" },
   { key: "integrations", to: "/admin/integrations", icon: Cable,       label: "Integrations",    desc: "Motive · MaintainX · CSV import/export" },
@@ -160,6 +162,7 @@ export default function AdminShell({ title, section, children, intro }) {
               <AdminGlobalSearch />
             </div>
             <PortalSwitcher current="admin" />
+            <NotificationBell accent="white" />
             <SystemHealthBadge />
             <Link
               to="/"

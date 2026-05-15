@@ -8,6 +8,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import PortalSwitcher from "@/components/PortalSwitcher";
+import NotificationBell from "@/components/NotificationBell";
 import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import { useT } from "@/lib/i18n";
@@ -19,6 +20,9 @@ const HR_PAL = paletteFor("hr");
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const TILES = [
+  { to: "/tasks", icon: GraduationCap, label: "Tasks & Actions",
+    desc: "Cross-portal accountability · employee documentation tasks · offboarding follow-ups",
+    accent: "border-amber-500 bg-amber-50", btn: "bg-amber-700 hover:bg-amber-800" },
   { to: "/hr/field-leadership", icon: Users, label: "Field Leadership Records",
     desc: "Write-ups · coaching · attendance · recognition · evaluations · terminations · equipment checkout",
     accent: "border-blue-500 bg-blue-50", btn: "bg-blue-700 hover:bg-blue-800" },
@@ -86,6 +90,7 @@ export default function HrHub() {
           <div className="flex-1" />
           <div className="flex items-center gap-2">
             <PortalSwitcher current="hr" />
+            <NotificationBell accent="white" />
             <LangToggle />
             <CompanyInfoDialog />
             <Button variant="outline" size="sm" onClick={() => nav("/hr/change-password")} className="text-xs bg-transparent text-white border-white/30 hover:bg-white/10" data-testid="hr-change-password">

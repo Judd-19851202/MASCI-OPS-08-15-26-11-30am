@@ -119,6 +119,15 @@ export default function SafetyHub() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         <SectionTile
+          to="/tasks"
+          icon={ClipboardCheck}
+          title={t("Tasks & Actions")}
+          desc={t("Cross-portal accountability engine. Track corrective actions, follow-ups, deficiencies, and approvals to closure.")}
+          accent="amber"
+          ctaLabel={t("Open")}
+          testId="safety-tile-tasks"
+        />
+        <SectionTile
           to="/safety-portal/corrective-actions"
           icon={AlertOctagon}
           title={t("Corrective Actions")}

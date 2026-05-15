@@ -20,6 +20,7 @@ import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { BackendVersionBadge } from "@/components/BackendVersionBadge";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import PortalSwitcher from "@/components/PortalSwitcher";
+import NotificationBell from "@/components/NotificationBell";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
@@ -141,6 +142,7 @@ export default function PmShell({ title, section, children, intro }) {
 
           <div className="flex items-center gap-1.5 shrink-0">
             <PortalSwitcher current="pm" />
+            <NotificationBell accent="white" />
             <SystemHealthBadge />
             <Link
               to="/"

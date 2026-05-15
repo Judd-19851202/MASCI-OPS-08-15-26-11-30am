@@ -66,6 +66,38 @@ def register_corrective_action_routes(
         }
         await db.corrective_actions.insert_one(doc)
         doc.pop("_id", None)
+
+        # Iter150 — emit a unified task for accountability tracking.
+        # Fire-and-forget; analytics-style safety so a failure NEVER
+        # blocks the actual CA write.
+        try:
+            from routes.tasks_notifications import task_service  # noqa: PLC0415
+            from datetime import datetime as _dt  # noqa: PLC0415
+            due_at = None
+            if doc.get("due_date"):
+                try:
+                    due_at = _dt.fromisoformat(str(doc["due_date"]))
+                except Exception:
+                    due_at = None
+            await task_service.create(db, {
+                "title": f"Corrective Action: {doc['title'][:140]}",
+                "description": doc.get("description") or "",
+                "source_module": "safety.corrective_actions",
+                "source_record_id": doc["id"],
+                "linked_employee_id": doc.get("employee_master_id") or None,
+                "linked_equipment_id": doc.get("equipment_master_id") or None,
+                "linked_project_number": doc.get("project_number") or None,
+                "assignee_role": "safety",
+                "priority": doc.get("priority") or "Medium",
+                "due_at": due_at,
+                "created_by": {
+                    "role": "safety",
+                    "name": user.get("name") or user.get("email"),
+                },
+            })
+        except Exception:
+            pass
+
         return doc
 
     @api_router.get("/safety/corrective-actions/{ca_id}")

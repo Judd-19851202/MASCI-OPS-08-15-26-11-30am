@@ -129,6 +129,8 @@ import FieldLeadershipRecords from "@/pages/FieldLeadershipRecords";
 import FieldLeadershipView from "@/pages/FieldLeadershipView";
 import TermsOfService from "@/pages/legal/TermsOfService";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
+import Tasks from "@/pages/Tasks";
+import AccessDenied from "@/pages/AccessDenied";
 import GlobalFooter from "@/components/GlobalFooter";
 import ScrollToTop from "@/components/ScrollToTop";
 import { RequireAdmin } from "@/components/RequireAdmin";
@@ -505,6 +507,16 @@ function App() {
             {/* Legal */}
             <Route path="/legal/terms" element={<TermsOfService />} />
             <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+
+            {/* Tasks & Actions — Iter150 (Phase 2.5 · Phase A) ──────
+                Shared accountability engine. Route is open to any
+                signed-in portal user; the Tasks page itself shows
+                AccessDenied to fully-anonymous visitors. */}
+            <Route path="/tasks" element={<Tasks />} />
+            {/* Fallback — explicit 403 for any path we deliberately
+                want to land on AccessDenied (kept hidden, used by
+                tooling/diagnostics). */}
+            <Route path="/access-denied" element={<AccessDenied />} />
           </Routes>
           <GlobalFooter />
         </div>
