@@ -14,7 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Receipt, Plus, Search, ArrowLeft, Home, ChevronRight,
   Camera, CheckCircle2, XCircle, MessageSquare, RefreshCw,
-  ClipboardCheck, AlertTriangle, FileText,
+  ClipboardCheck, AlertTriangle, FileText, Download, User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,8 @@ import { MasciLogo } from "@/components/MasciLogo";
 import NotificationBell from "@/components/NotificationBell";
 import {
   listPos, poSummary, getPo, submitPo, approvePo, uploadReceipt,
-  closePo, cancelPo, PO_CATEGORIES, PO_URGENCY,
+  closePo, cancelPo, respondClarification, downloadPoExportCsv,
+  PO_CATEGORIES, PO_URGENCY,
 } from "@/lib/poApi";
 import { isSignedInAnywhere } from "@/lib/permissions";
 import { useRememberedFilter } from "@/lib/useRememberedFilter";
@@ -67,6 +68,10 @@ export default function PoRequests() {
 
   const [tab, setTab] = useRememberedFilter("po.tab", "open");
   const [statusFilter, setStatusFilter] = useRememberedFilter("po.status", "all");
+  const [quickFilter, setQuickFilter] = useRememberedFilter("po.quick", "all");
+  const [vendorFilter, setVendorFilter] = useRememberedFilter("po.vendor", "");
+  const [supervisorFilter, setSupervisorFilter] = useRememberedFilter("po.supervisor", "");
+  const [projectFilter, setProjectFilter] = useRememberedFilter("po.project", "");
   const [q, setQ] = useState("");
   const [items, setItems] = useState([]);
   const [summary, setSummary] = useState({});
@@ -74,15 +79,34 @@ export default function PoRequests() {
   const [openId, setOpenId] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
 
+  // Quick-filter chips translate to query params. Each chip is a
+  // server-side filter — keeps payload small and aligns with the
+  // role-aware backend scoping.
+  const QUICK_FILTERS = [
+    { key: "all",          label: "All",            color: "bg-slate-100 text-slate-700" },
+    { key: "pending_approval", label: "Pending Approval", color: "bg-blue-100 text-blue-800" },
+    { key: "pending_receipt",  label: "Pending Receipt",  color: "bg-indigo-100 text-indigo-800" },
+    { key: "overdue",      label: "Overdue Receipt", color: "bg-rose-100 text-rose-800" },
+    { key: "clarification",label: "Needs Clarification", color: "bg-amber-100 text-amber-800" },
+    { key: "mine",         label: "Mine",           color: "bg-emerald-100 text-emerald-800" },
+  ];
+
   const fetchAll = useCallback(async () => {
     if (!signedIn) { setLoading(false); return; }
     setLoading(true);
     try {
-      const r = await listPos({
-        limit: 200,
-        ...(statusFilter !== "all" ? { status: statusFilter } : {}),
-        ...(q ? { q } : {}),
-      });
+      const params = { limit: 200 };
+      if (statusFilter !== "all") params.status = statusFilter;
+      if (q) params.q = q;
+      if (vendorFilter) params.vendor = vendorFilter;
+      if (supervisorFilter) params.requested_by_name = supervisorFilter;
+      if (projectFilter) params.project_number = projectFilter;
+      if (quickFilter === "pending_approval") params.status = "Pending Approval";
+      else if (quickFilter === "pending_receipt") params.missing_receipt_only = true;
+      else if (quickFilter === "overdue") params.status = "Overdue Receipt";
+      else if (quickFilter === "clarification") params.status = "Clarification Needed";
+      else if (quickFilter === "mine") params.mine_only = true;
+      const r = await listPos(params);
       const allItems = r.items || [];
       const filtered = allItems.filter((p) => {
         if (tab === "open") return !["Closed", "Cancelled", "Rejected"].includes(p.status);
@@ -95,7 +119,7 @@ export default function PoRequests() {
     } catch (e) {
       toast.error(friendlyError(e, "Could not load PO requests"));
     } finally { setLoading(false); }
-  }, [signedIn, statusFilter, q, tab]);
+  }, [signedIn, statusFilter, q, tab, quickFilter, vendorFilter, supervisorFilter, projectFilter]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -128,28 +152,107 @@ export default function PoRequests() {
           <SummaryTile label="Closed"           value={summary.by_status?.Closed ?? 0} icon={CheckCircle2}  accent="emerald" />
         </div>
 
-        <div className="bg-white border-2 border-slate-200 rounded-md p-3 sm:p-4 mb-4 flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center bg-slate-100 rounded-md p-0.5">
-            <button onClick={() => setTab("open")} className={`px-3 py-1.5 rounded text-xs font-bold ${tab === "open" ? "bg-white shadow-sm" : "text-slate-600"}`} data-testid="po-tab-open">Open</button>
-            <button onClick={() => setTab("closed")} className={`px-3 py-1.5 rounded text-xs font-bold ${tab === "closed" ? "bg-white shadow-sm" : "text-slate-600"}`} data-testid="po-tab-closed">Closed</button>
+        <div className="bg-white border-2 border-slate-200 rounded-md p-3 sm:p-4 mb-4 space-y-3">
+          {/* Quick-filter chips */}
+          <div className="flex flex-wrap items-center gap-1.5" data-testid="po-quick-filters">
+            {QUICK_FILTERS.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setQuickFilter(f.key)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${
+                  quickFilter === f.key
+                    ? `${f.color} border-current shadow-sm`
+                    : "bg-white text-slate-500 border-slate-300 hover:bg-slate-50"
+                }`}
+                data-testid={`po-quick-${f.key}`}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px] h-9 text-xs" data-testid="po-status-filter">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {Object.keys(STATUS_COLORS).map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
-            </SelectContent>
-          </Select>
-          <div className="relative flex-1 min-w-[180px]">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search PO #, vendor, description…" className="pl-8 h-9 text-xs" data-testid="po-search-input" />
+
+          {/* Main row: tabs / status / search / actions */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex items-center bg-slate-100 rounded-md p-0.5">
+              <button onClick={() => setTab("open")} className={`px-3 py-1.5 rounded text-xs font-bold ${tab === "open" ? "bg-white shadow-sm" : "text-slate-600"}`} data-testid="po-tab-open">Open</button>
+              <button onClick={() => setTab("closed")} className={`px-3 py-1.5 rounded text-xs font-bold ${tab === "closed" ? "bg-white shadow-sm" : "text-slate-600"}`} data-testid="po-tab-closed">Closed</button>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[160px] h-9 text-xs" data-testid="po-status-filter">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {Object.keys(STATUS_COLORS).map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+              </SelectContent>
+            </Select>
+            <div className="relative flex-1 min-w-[160px]">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="PO # · vendor · description" className="pl-8 h-9 text-xs" data-testid="po-search-input" />
+            </div>
+            <Button variant="outline" size="sm" onClick={fetchAll} className="text-xs" data-testid="po-refresh" title="Refresh">
+              <RefreshCw className="w-3.5 h-3.5" />
+            </Button>
+            {canApprove && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    await downloadPoExportCsv({
+                      ...(statusFilter !== "all" ? { status: statusFilter } : {}),
+                      ...(vendorFilter ? { vendor: vendorFilter } : {}),
+                      ...(supervisorFilter ? { requested_by_name: supervisorFilter } : {}),
+                      ...(projectFilter ? { project_number: projectFilter } : {}),
+                      ...(quickFilter === "pending_receipt" ? { missing_receipt_only: true } : {}),
+                    });
+                    toast.success("Export downloaded");
+                  } catch (e) { toast.error(friendlyError(e, "Export failed")); }
+                }}
+                className="text-xs"
+                data-testid="po-export-csv"
+                title="Export current view as CSV"
+              >
+                <Download className="w-3.5 h-3.5 sm:mr-1" />
+                <span className="hidden sm:inline">CSV</span>
+              </Button>
+            )}
+            <AddDialog open={addOpen} setOpen={setAddOpen} onSaved={() => { setAddOpen(false); fetchAll(); }} />
           </div>
-          <Button variant="outline" size="sm" onClick={fetchAll} className="text-xs" data-testid="po-refresh">
-            <RefreshCw className="w-3.5 h-3.5" />
-          </Button>
-          <AddDialog open={addOpen} setOpen={setAddOpen} onSaved={() => { setAddOpen(false); fetchAll(); }} />
+
+          {/* Advanced filters — supervisor, vendor, project (collapsed on mobile) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="relative">
+              <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              <Input
+                value={supervisorFilter}
+                onChange={(e) => setSupervisorFilter(e.target.value)}
+                placeholder="Filter by supervisor / requester"
+                className="pl-8 h-9 text-xs"
+                data-testid="po-supervisor-filter"
+              />
+            </div>
+            <div className="relative">
+              <Receipt className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              <Input
+                value={vendorFilter}
+                onChange={(e) => setVendorFilter(e.target.value)}
+                placeholder="Filter by vendor"
+                className="pl-8 h-9 text-xs"
+                data-testid="po-vendor-filter"
+              />
+            </div>
+            <div className="relative">
+              <FileText className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              <Input
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+                placeholder="Filter by project / job #"
+                className="pl-8 h-9 text-xs"
+                data-testid="po-project-filter"
+              />
+            </div>
+          </div>
         </div>
 
         {loading ? (
@@ -312,6 +415,7 @@ function PoDrawer({ id, canApprove, isAdmin: isAd, onClose }) {
   const [approvedAmount, setApprovedAmount] = useState("");
   const [receiptAmount, setReceiptAmount] = useState("");
   const [receiptNotes, setReceiptNotes] = useState("");
+  const [clarifyResp, setClarifyResp] = useState("");
 
   useEffect(() => {
     if (!id) { setPo(null); return; }
@@ -324,7 +428,20 @@ function PoDrawer({ id, canApprove, isAdmin: isAd, onClose }) {
     upload: po && ["Approved", "Pending Receipt", "Overdue Receipt"].includes(po?.status),
     close: isAd && ["Receipt Uploaded", "Approved", "Pending Receipt", "Overdue Receipt"].includes(po?.status),
     cancel: isAd && !["Closed", "Cancelled", "Rejected"].includes(po?.status),
+    respondClarification: po?.status === "Clarification Needed",
   }), [po, canApprove, isAd]);
+
+  const doRespondClarification = async () => {
+    if (!clarifyResp.trim()) { toast.error("Response is required"); return; }
+    setSaving(true);
+    try {
+      const r = await respondClarification(po.id, clarifyResp.trim());
+      setPo(r);
+      toast.success("Response sent — PO returned to Pending Approval");
+      setClarifyResp("");
+    } catch (e) { toast.error(friendlyError(e, "Could not send response")); }
+    finally { setSaving(false); }
+  };
 
   const doAction = async (action) => {
     setSaving(true);
@@ -409,6 +526,38 @@ function PoDrawer({ id, canApprove, isAdmin: isAd, onClose }) {
                   </div>
                   <Button type="submit" size="sm" disabled={saving} data-testid="po-receipt-submit">{saving ? "Uploading…" : "Upload"}</Button>
                 </form>
+              )}
+
+              {/* Clarification response block — visible when status is "Clarification Needed". 
+                  Original requester or same-role teammates can respond. */}
+              {can.respondClarification && (
+                <div className="bg-amber-50 border-2 border-amber-300 rounded-md p-3 space-y-2" data-testid="po-clarification-response-block">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-800 font-bold flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5" /> Clarification requested by approver
+                  </div>
+                  {po.rejection_reason && (
+                    <div className="text-xs text-amber-900 bg-white border border-amber-200 rounded p-2">
+                      {po.rejection_reason}
+                    </div>
+                  )}
+                  <Textarea
+                    rows={3}
+                    value={clarifyResp}
+                    onChange={(e) => setClarifyResp(e.target.value)}
+                    placeholder="Your response — provides the missing info / corrected amount / etc."
+                    className="text-xs"
+                    data-testid="po-clarification-response-input"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={doRespondClarification}
+                    disabled={saving || !clarifyResp.trim()}
+                    className="bg-amber-700 hover:bg-amber-800 text-white text-xs"
+                    data-testid="po-clarification-response-submit"
+                  >
+                    Send response · back to Pending Approval
+                  </Button>
+                </div>
               )}
 
               {/* Approval block */}

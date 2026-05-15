@@ -92,6 +92,21 @@ class PoApprovalAction(BaseModel):
     notes: Optional[str] = Field(default=None, max_length=2000)
 
 
+class PoClarificationResponse(BaseModel):
+    response: str = Field(..., min_length=1, max_length=2000)
+
+
+def _iso(dt) -> str:
+    if not dt:
+        return ""
+    if isinstance(dt, str):
+        return dt
+    try:
+        return dt.replace(microsecond=0).isoformat()
+    except Exception:
+        return str(dt)
+
+
 # ──────────────────────────────────────────────────────────────────
 # Helpers
 # ──────────────────────────────────────────────────────────────────
@@ -287,7 +302,14 @@ def build_po_requests_router(
         actor: Dict[str, Any] = Depends(require_any_portal_token),
         status: Optional[str] = Query(default=None),
         project_number: Optional[str] = Query(default=None),
+        vendor: Optional[str] = Query(default=None, max_length=120),
+        requested_by_user_id: Optional[str] = Query(default=None),
+        requested_by_name: Optional[str] = Query(default=None, max_length=120),
         requested_by_employee_id: Optional[str] = Query(default=None),
+        mine_only: bool = Query(default=False,
+            description="Only POs submitted by the current actor."),
+        missing_receipt_only: bool = Query(default=False,
+            description="Approved/Pending-Receipt/Overdue without a receipt."),
         q: Optional[str] = Query(default=None, max_length=80),
         limit: int = Query(default=200, ge=1, le=500),
     ) -> Dict[str, Any]:
@@ -299,8 +321,24 @@ def build_po_requests_router(
             clauses.append({"status": status})
         if project_number:
             clauses.append({"project_number": project_number})
+        if vendor:
+            clauses.append({"vendor": {"$regex": re.escape(vendor),
+                                        "$options": "i"}})
+        if requested_by_user_id:
+            clauses.append({"requested_by_user_id": requested_by_user_id})
+        if requested_by_name:
+            clauses.append({"requested_by_name": {
+                "$regex": re.escape(requested_by_name), "$options": "i"}})
         if requested_by_employee_id:
             clauses.append({"requested_by_employee_id": requested_by_employee_id})
+        if mine_only and actor.get("id"):
+            clauses.append({"requested_by_user_id": actor.get("id")})
+        if missing_receipt_only:
+            clauses.append({
+                "status": {"$in": ["Approved", "Pending Receipt",
+                                    "Overdue Receipt"]},
+                "receipt_url": None,
+            })
         if q:
             clauses.append({"$or": [
                 {"po_number": {"$regex": q, "$options": "i"}},
@@ -330,6 +368,93 @@ def build_po_requests_router(
             "pending_receipt": pending_receipt,
             "overdue_receipt": overdue_receipt,
         }
+
+    # NOTE: /export.csv MUST be declared BEFORE the /{po_id} variable
+    # route below or FastAPI will try to resolve "export.csv" as a
+    # po_id and return 404 from get_po.
+    @router.get("/api/po-requests/export.csv")
+    async def export_csv(
+        actor: Dict[str, Any] = Depends(require_any_portal_token),
+        status: Optional[str] = Query(default=None),
+        project_number: Optional[str] = Query(default=None),
+        vendor: Optional[str] = Query(default=None, max_length=120),
+        requested_by_name: Optional[str] = Query(default=None, max_length=120),
+        missing_receipt_only: bool = Query(default=False),
+    ):
+        """CSV export — Admin/PM/HR/Leadership. Scope is respected:
+        Field Leadership only exports their own POs. Includes all
+        operational columns needed for accounting/audit handoff."""
+        import csv as _csv
+        import io as _io
+        from fastapi.responses import StreamingResponse  # noqa: PLC0415
+
+        clauses: List[Dict[str, Any]] = []
+        scope = _scope_filter(actor)
+        if scope:
+            clauses.append(scope)
+        if status:
+            clauses.append({"status": status})
+        if project_number:
+            clauses.append({"project_number": project_number})
+        if vendor:
+            clauses.append({"vendor": {"$regex": re.escape(vendor),
+                                        "$options": "i"}})
+        if requested_by_name:
+            clauses.append({"requested_by_name": {
+                "$regex": re.escape(requested_by_name), "$options": "i"}})
+        if missing_receipt_only:
+            clauses.append({
+                "status": {"$in": ["Approved", "Pending Receipt",
+                                    "Overdue Receipt"]},
+                "receipt_url": None,
+            })
+        final = {"$and": clauses} if clauses else {}
+
+        buf = _io.StringIO()
+        w = _csv.writer(buf)
+        w.writerow([
+            "PO Number", "Status", "Project", "Vendor", "Description",
+            "Category", "Urgency", "Estimated Amount", "Approved Amount",
+            "Receipt Amount", "Requested By", "Requested Role",
+            "Submitted", "Approved By", "Approved At",
+            "Receipt Filename", "Receipt Uploaded At", "Needed By",
+            "Notes",
+        ])
+        cur = db.po_requests.find(final, {"_id": 0}).sort("created_at", -1)
+        async for d in cur:
+            w.writerow([
+                d.get("po_number") or "",
+                d.get("status") or "",
+                d.get("project_number") or "",
+                d.get("vendor") or "",
+                (d.get("description") or "")[:300],
+                d.get("category") or "",
+                d.get("urgency") or "",
+                f"{d.get('estimated_amount') or 0:.2f}",
+                (f"{d.get('approved_amount'):.2f}"
+                 if d.get("approved_amount") is not None else ""),
+                (f"{d.get('receipt_amount'):.2f}"
+                 if d.get("receipt_amount") is not None else ""),
+                d.get("requested_by_name") or "",
+                d.get("requested_by_role") or "",
+                _iso(d.get("created_at")),
+                (d.get("approved_by") or {}).get("name", ""),
+                _iso(d.get("approved_at")),
+                d.get("receipt_filename") or "",
+                _iso(d.get("receipt_uploaded_at")),
+                d.get("needed_by_date") or "",
+                (d.get("notes") or "")[:300],
+            ])
+        buf.seek(0)
+        filename = f"masci-po-requests-{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
+        return StreamingResponse(
+            iter([buf.getvalue()]),
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
 
     @router.get("/api/po-requests/{po_id}")
     async def get_po(po_id: str, actor: Dict[str, Any] = Depends(require_any_portal_token)) -> Dict[str, Any]:
@@ -504,6 +629,43 @@ def build_po_requests_router(
         await db.po_requests.update_one({"id": po_id}, {"$set": update})
         await _audit_push(db, po_id, "receipt_uploaded", actor,
                            {"filename": file.filename})
+        return await get_po(po_id, actor=actor)
+
+    @router.post("/api/po-requests/{po_id}/respond-clarification")
+    async def respond_clarification(
+        po_id: str,
+        body: PoClarificationResponse,
+        actor: Dict[str, Any] = Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        """Original requester (or any actor with the same role) responds
+        to a clarification request — moves the PO back to Pending
+        Approval and appends the response to the audit history.
+        Re-fans a new approval task so approvers see it again."""
+        existing = await db.po_requests.find_one({"id": po_id}, {"_id": 0})
+        if not existing:
+            raise HTTPException(404, "PO not found")
+        if existing["status"] != "Clarification Needed":
+            raise HTTPException(409,
+                "PO is not awaiting clarification")
+        # Allow the original requester OR a teammate in the same role
+        # (so multiple supervisors can collaborate on a job's POs).
+        actor_role = _actor_role(actor)
+        actor_id = actor.get("id")
+        if not (actor_role == "admin"
+                or actor_role == existing.get("requested_by_role")
+                or actor_id == existing.get("requested_by_user_id")):
+            raise HTTPException(403,
+                "Only the requester can respond to clarification")
+        now = datetime.now(timezone.utc)
+        await db.po_requests.update_one({"id": po_id}, {"$set": {
+            "status": "Pending Approval",
+            "updated_at": now,
+        }})
+        await _audit_push(db, po_id, "clarification_response", actor,
+                          {"response": body.response})
+        # Re-fan an approval task for PM
+        await _fan_out_task(db, existing, "approval_needed",
+                            priority="High", assignee_role="pm")
         return await get_po(po_id, actor=actor)
 
     @router.post("/api/po-requests/{po_id}/close")

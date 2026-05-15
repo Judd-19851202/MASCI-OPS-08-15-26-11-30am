@@ -2,7 +2,7 @@
 // Employee Accountability · Time Verification · Training Records.
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck, Calculator, CalendarOff, KeyRound, Home, ArrowLeft, BookOpen } from "lucide-react";
+import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck, Calculator, CalendarOff, KeyRound, Home, ArrowLeft, BookOpen, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -30,6 +30,9 @@ const TILES = [
   { to: "/document-expirations", icon: GraduationCap, label: "Document Expirations",
     desc: "OSHA · TWIC · CDL · Driver License · Training Certifications — expiring soon & overdue.",
     accent: "border-rose-500 bg-rose-50", btn: "bg-rose-700 hover:bg-rose-800" },
+  { to: "/po-requests", icon: Receipt, label: "PO Requests & Receipts",
+    desc: "Approve / reject / clarify PO requests · assign PO numbers · track missing receipts · employee-linked spending visibility · CSV export",
+    accent: "border-indigo-500 bg-indigo-50", btn: "bg-indigo-700 hover:bg-indigo-800" },
   { to: "/hr/field-leadership", icon: Users, label: "Field Leadership Records",
     desc: "Write-ups · coaching · attendance · recognition · evaluations · terminations · equipment checkout",
     accent: "border-blue-500 bg-blue-50", btn: "bg-blue-700 hover:bg-blue-800" },

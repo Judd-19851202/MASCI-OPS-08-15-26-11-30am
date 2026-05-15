@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen, Home } from "lucide-react";
+import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen, Home, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -43,6 +43,26 @@ import {
 } from "@/lib/fieldLeadershipSchemas";
 
 const FL_PAL = paletteFor("leadership");
+
+// Tiles that link to other in-app surfaces (not "/leadership/{kind}/new"
+// forms). Currently only PO Requests — but the structure scales to any
+// future cross-portal operational tile we want surfaced in FL.
+const FL_EXTERNAL_TILES = {
+  po_requests: {
+    kind: "po_requests",
+    to: "/po-requests",
+    icon: Receipt,
+    accent: "amber",
+    title: {
+      en: "PO Requests & Receipts",
+      es: "Solicitudes y Recibos de OC",
+    },
+    desc: {
+      en: "Submit purchase orders from the field, track approvals, upload receipts (camera supported), and respond to clarification requests.",
+      es: "Envía órdenes de compra desde el campo, sigue aprobaciones, sube recibos (con cámara) y responde aclaraciones.",
+    },
+  },
+};
 
 // 4 logical groups — ordered most-used → least-used.
 // `kinds` is a list of form `kind` keys; tiles render in this exact order.
@@ -74,6 +94,13 @@ const GROUPS = [
     subtitle: { en: "Routes straight to the HR Portal for approval or final processing.",
                 es: "Se enrutan al Portal de RRHH para aprobación o procesamiento final." },
     kinds: ["time_off_request", "employee_termination"],
+  },
+  {
+    kicker: "05",
+    title: { en: "Operations & Spending", es: "Operaciones y Gastos" },
+    subtitle: { en: "Submit PO requests, upload receipts, respond to clarifications, and track spending tied to your jobs.",
+                es: "Envía solicitudes de orden de compra, sube recibos, responde aclaraciones y haz seguimiento de gastos." },
+    kinds: ["po_requests"],
   },
 ];
 
@@ -204,6 +231,11 @@ function resolveForm(kind) {
   if (kind === SAFETY_EQUIPMENT_ISSUANCE_LINK.kind) {
     return { ...SAFETY_EQUIPMENT_ISSUANCE_LINK, external: true };
   }
+  if (FL_EXTERNAL_TILES[kind]) {
+    // Internal-app tile (e.g., /po-requests). Uses `to` (Link route),
+    // NOT `href` (which would mark it external/new-tab).
+    return { ...FL_EXTERNAL_TILES[kind], internalRoute: true };
+  }
   const f = FIELD_LEADERSHIP_FORMS.find((x) => x.kind === kind);
   return f ? { ...f, external: false } : null;
 }
@@ -329,16 +361,21 @@ export default function FieldLeadershipHub() {
                 const desc = form.desc[lang] || form.desc.en;
                 const locked = Boolean(form.admin_only) && !admin;
                 const isExternal = Boolean(form.external);
+                const isInternalRoute = Boolean(form.internalRoute);
                 return (
                   <SectionTile
                     key={kind}
-                    to={isExternal ? undefined : `/leadership/${kind}/new`}
+                    to={isExternal
+                      ? undefined
+                      : (isInternalRoute ? form.to : `/leadership/${kind}/new`)}
                     href={isExternal ? form.to : undefined}
                     icon={form.icon}
                     title={title}
                     desc={desc}
                     accent={form.accent}
-                    ctaLabel={isExternal ? t("Open form") : t("New entry")}
+                    ctaLabel={isExternal
+                      ? t("Open form")
+                      : (isInternalRoute ? t("Open") : t("New entry"))}
                     disabled={locked}
                     disabledLabel={t("Sign in as Admin to unlock")}
                     testId={`leadership-tile-${kind}`}

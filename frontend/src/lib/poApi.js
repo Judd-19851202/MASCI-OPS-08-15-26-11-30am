@@ -67,3 +67,27 @@ export async function cancelPo(id) {
   const r = await axios.post(`${API}/po-requests/${id}/cancel`, {}, { headers: authHeaders() });
   return r.data;
 }
+export async function respondClarification(id, response) {
+  const r = await axios.post(`${API}/po-requests/${id}/respond-clarification`,
+    { response }, { headers: authHeaders() });
+  return r.data;
+}
+export function poExportCsvUrl(params = {}) {
+  const qp = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "" && v !== false) qp.set(k, String(v));
+  });
+  return `${API}/po-requests/export.csv${qp.toString() ? "?" + qp.toString() : ""}`;
+}
+export async function downloadPoExportCsv(params = {}) {
+  // Streams the CSV with auth headers (anchor download can't carry headers).
+  const r = await axios.get(`${API}/po-requests/export.csv`, {
+    headers: authHeaders(), params, responseType: "blob",
+  });
+  const url = URL.createObjectURL(r.data);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `masci-po-requests-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+}
