@@ -22,7 +22,7 @@ def make_require_any_portal_token(
     """Factory — returns a FastAPI dependency that resolves any of the
     platform portal tokens to a generic actor dict.
 
-    Returns: ``{"_actor": "admin"|"safety"|"hr"|"shop"|"pm", "name": str, ...}``
+    Returns: ``{"_actor": "admin"|"safety"|"hr"|"shop"|"pm"|"dispatch", "name": str, ...}``
     Raises:  HTTP 401 if none of the headers carry a valid token.
     """
 
@@ -32,6 +32,7 @@ def make_require_any_portal_token(
         x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
         x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
         x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
+        x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
     ) -> dict:
         if x_admin_token and is_valid_admin_token(x_admin_token):
             return {"_actor": "admin", "name": "Admin"}
@@ -53,6 +54,11 @@ def make_require_any_portal_token(
             u = await is_valid_pm_user_token_async(db, x_pm_token)
             if u:
                 return {**u, "_actor": "pm"}
+        if x_dispatch_token and "." in x_dispatch_token:
+            from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
+            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+            if u:
+                return {**u, "_actor": "dispatch"}
         raise HTTPException(401, "Portal authentication required")
 
     return _require_any_portal_token

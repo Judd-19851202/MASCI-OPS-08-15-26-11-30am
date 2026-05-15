@@ -26,6 +26,8 @@ const PORTAL_LABEL = {
   pm: "PM Portal",
   shop: "Shop Portal",
   hr: "HR Portal",
+  safety: "Safety Portal",
+  dispatch: "Dispatch Portal",
 };
 
 const PORTAL_HOME = {
@@ -33,6 +35,8 @@ const PORTAL_HOME = {
   pm: "/pm",
   shop: "/shop",
   hr: "/hr",
+  safety: "/safety-portal",
+  dispatch: "/dispatch-portal",
 };
 
 const PORTAL_DOT_COLOR = {
@@ -40,6 +44,8 @@ const PORTAL_DOT_COLOR = {
   pm: "bg-red-600",
   shop: "bg-orange-600",
   hr: "bg-purple-700",
+  safety: "bg-cyan-700",
+  dispatch: "bg-orange-700",
 };
 
 /**

@@ -8160,13 +8160,22 @@ from routes.operations import (  # noqa: E402
     ensure_operations_indexes,
 )
 
-app.include_router(build_operations_router(db, require_admin))
+app.include_router(build_operations_router(db, require_admin, _is_valid_admin_token))
+
+
+# ─── Dispatch Portal portal-auth (iter126) ──────────────────────────
+from routes.dispatch_portal_auth import build_dispatch_router  # noqa: E402
+from dispatch_users import seed_dispatch_users  # noqa: E402
+
+app.include_router(build_dispatch_router(db, require_admin))
 
 
 @app.on_event("startup")
 async def _bootstrap_operations():
     await ensure_operations_indexes(db)
     logger.info("[operations] indexes ensured")
+    await seed_dispatch_users(db)
+    logger.info("[dispatch-users] seed ready")
 
 
 @app.on_event("startup")

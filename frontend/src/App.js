@@ -85,6 +85,9 @@ import HrPayrollVariance from "@/pages/HrPayrollVariance";
 import HrTimeOff from "@/pages/HrTimeOff";
 import PublicTimeOff from "@/pages/PublicTimeOff";
 import SafetyLogin from "@/pages/SafetyLogin";
+import DispatchLogin from "@/pages/DispatchLogin";
+import DispatchHub from "@/pages/DispatchHub";
+import DispatchChangePassword from "@/pages/DispatchChangePassword";
 import SafetyHub from "@/pages/SafetyHub";
 import SafetyChangePassword from "@/pages/SafetyChangePassword";
 import SafetyForgotPassword from "@/pages/SafetyForgotPassword";
@@ -119,6 +122,7 @@ import { RequirePm } from "@/components/RequirePm";
 import { RequireShop } from "@/components/RequireShop";
 import { RequireHr } from "@/components/RequireHr";
 import { RequireSafety } from "@/components/RequireSafety";
+import { RequireDispatch } from "@/components/RequireDispatch";
 import { RequireDev } from "@/components/RequireDev";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 import GlobalKeepalive from "@/components/GlobalKeepalive";
@@ -151,6 +155,7 @@ const P = (el) => <RequirePm>{el}</RequirePm>;
 const S = (el) => <RequireShop>{el}</RequireShop>;
 const H = (el) => <RequireHr>{el}</RequireHr>;
 const SF = (el) => <RequireSafety>{el}</RequireSafety>;
+const DP = (el) => <RequireDispatch>{el}</RequireDispatch>;
 const D = (el) => <RequireDev>{el}</RequireDev>;
 
 function App() {
@@ -414,6 +419,14 @@ function App() {
 
             {/* HR cross-portal read-only safety view (uses X-HR-Token) */}
             <Route path="/hr/safety-records" element={H(<HrSafetyRecords />)} />
+
+            {/* ============================================================
+                Dispatch Portal — equipment movement command center.
+                Mirrors Safety/HR/Shop/PM portal pattern.
+                ============================================================ */}
+            <Route path="/dispatch-portal/login" element={<DispatchLogin />} />
+            <Route path="/dispatch-portal/change-password" element={DP(<DispatchChangePassword />)} />
+            <Route path="/dispatch-portal" element={DP(<DispatchHub />)} />
 
             {/* ============================================================
                 Training Hub — landing is public, tracks gate per audience

@@ -1,0 +1,207 @@
+"""
+Dispatch Portal · auth + admin user management.
+
+Mirrors `routes/safety_portal/auth_users.py` exactly. Endpoints:
+
+  POST   /api/dispatch/login                   → token + user
+  GET    /api/dispatch/me                      → current user
+  POST   /api/dispatch/change-password
+  POST   /api/dispatch/forgot-password
+  POST   /api/dispatch/reset-password
+
+  GET    /api/admin/dispatch-users             (admin)
+  POST   /api/admin/dispatch-users             (admin)
+  PATCH  /api/admin/dispatch-users/{id}        (admin)
+  POST   /api/admin/dispatch-users/{id}/reset-password  (admin)
+  DELETE /api/admin/dispatch-users/{id}        (admin)
+"""
+from __future__ import annotations
+
+import logging
+from typing import Callable, Optional
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from pydantic import BaseModel, EmailStr
+
+from dispatch_users import (
+    add_dispatch_user,
+    consume_dispatch_reset_token,
+    delete_dispatch_user,
+    find_dispatch_user_by_email,
+    generate_temp_password,
+    is_valid_dispatch_user_token_async,
+    list_dispatch_users,
+    make_dispatch_reset_token,
+    make_dispatch_user_token,
+    public_dispatch_user_view,
+    set_dispatch_user_password,
+    stamp_dispatch_login,
+    update_dispatch_user,
+    verify_password,
+)
+
+logger = logging.getLogger(__name__)
+
+
+class DispatchLoginBody(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class DispatchLoginResponse(BaseModel):
+    token: str
+    user: dict
+    must_change_password: bool
+
+
+class PasswordChangeBody(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class ForgotPasswordBody(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordBody(BaseModel):
+    token: str
+    new_password: str
+
+
+class DispatchUserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    phone: Optional[str] = ""
+    role: Optional[str] = "Dispatcher"
+    is_active: Optional[bool] = True
+
+
+class DispatchUserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
+    disabled: Optional[bool] = None
+
+
+def make_require_dispatch_token(db) -> Callable[..., dict]:
+    """FastAPI dependency: resolve `X-Dispatch-Token` to a user."""
+    async def _require_dispatch_token(
+        x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+    ) -> dict:
+        if not x_dispatch_token:
+            raise HTTPException(401, "Dispatch token required")
+        user = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+        if not user:
+            raise HTTPException(401, "Invalid Dispatch token")
+        return user
+    return _require_dispatch_token
+
+
+def build_dispatch_router(db, require_admin) -> APIRouter:
+    """Build the /api/dispatch/* + /api/admin/dispatch-users/* router."""
+    router = APIRouter(prefix="/api", tags=["dispatch-portal"])
+    require_dispatch_token = make_require_dispatch_token(db)
+
+    # ═══ Login ═══
+    @router.post("/dispatch/login", response_model=DispatchLoginResponse)
+    async def dispatch_login(body: DispatchLoginBody, request: Request):
+        user = await find_dispatch_user_by_email(db, body.email)
+        if not user or user.get("disabled"):
+            raise HTTPException(401, "Invalid email or password")
+        pwh = user.get("password_hash") or ""
+        if not pwh or not verify_password(body.password, pwh):
+            raise HTTPException(401, "Invalid email or password")
+        token = make_dispatch_user_token(user["id"], pwh)
+        await stamp_dispatch_login(db, user["id"], (request.client.host if request.client else ""))
+        return DispatchLoginResponse(
+            token=token,
+            user=public_dispatch_user_view(user),
+            must_change_password=bool(user.get("must_change_password")),
+        )
+
+    @router.get("/dispatch/me")
+    async def dispatch_me(user: dict = Depends(require_dispatch_token)):
+        return {"user": public_dispatch_user_view(user)}
+
+    @router.post("/dispatch/change-password")
+    async def dispatch_change_password(body: PasswordChangeBody, user: dict = Depends(require_dispatch_token)):
+        if not body.new_password or len(body.new_password) < 8:
+            raise HTTPException(400, "New password must be at least 8 characters")
+        pwh = user.get("password_hash") or ""
+        if not verify_password(body.current_password, pwh):
+            raise HTTPException(401, "Current password is incorrect")
+        updated = await set_dispatch_user_password(db, user["id"], body.new_password, must_change=False)
+        if not updated:
+            raise HTTPException(404, "user not found")
+        new_token = make_dispatch_user_token(updated["id"], updated["password_hash"])
+        return {"ok": True, "token": new_token, "user": public_dispatch_user_view(updated)}
+
+    @router.post("/dispatch/forgot-password")
+    async def dispatch_forgot_password(body: ForgotPasswordBody):
+        user = await find_dispatch_user_by_email(db, body.email)
+        if not user or user.get("disabled") or not user.get("password_hash"):
+            return {"ok": True, "sent": False}
+        token = make_dispatch_reset_token(user["id"], user["password_hash"])
+        logger.info(f"[dispatch reset] token issued for {user['email']}")
+        return {"ok": True, "sent": True, "token_for_dev": token}
+
+    @router.post("/dispatch/reset-password")
+    async def dispatch_reset_password(body: ResetPasswordBody):
+        user = await consume_dispatch_reset_token(db, body.token)
+        if not user:
+            raise HTTPException(400, "Reset link is invalid or expired")
+        if not body.new_password or len(body.new_password) < 8:
+            raise HTTPException(400, "New password must be at least 8 characters")
+        updated = await set_dispatch_user_password(db, user["id"], body.new_password, must_change=False)
+        if not updated:
+            raise HTTPException(404, "user not found")
+        new_token = make_dispatch_user_token(updated["id"], updated["password_hash"])
+        return {"ok": True, "token": new_token, "user": public_dispatch_user_view(updated)}
+
+    # ═══ Admin user management ═══
+    @router.get("/admin/dispatch-users", dependencies=[Depends(require_admin)])
+    async def admin_list_dispatch_users():
+        users = await list_dispatch_users(db)
+        return [public_dispatch_user_view(u) for u in users]
+
+    @router.post("/admin/dispatch-users", dependencies=[Depends(require_admin)])
+    async def admin_create_dispatch_user(body: DispatchUserCreate):
+        try:
+            user = await add_dispatch_user(db, body.dict())
+        except ValueError as e:
+            raise HTTPException(400, str(e)) from e
+        temp_pw = generate_temp_password()
+        await set_dispatch_user_password(db, user["id"], temp_pw, must_change=True)
+        return {"user": public_dispatch_user_view(user), "temp_password": temp_pw}
+
+    @router.patch("/admin/dispatch-users/{user_id}", dependencies=[Depends(require_admin)])
+    async def admin_update_dispatch_user(user_id: str, body: DispatchUserUpdate):
+        try:
+            updated = await update_dispatch_user(db, user_id, body.dict(exclude_none=True))
+        except ValueError as e:
+            raise HTTPException(400, str(e)) from e
+        if not updated:
+            raise HTTPException(404, "Not found")
+        return public_dispatch_user_view(updated)
+
+    @router.post("/admin/dispatch-users/{user_id}/reset-password", dependencies=[Depends(require_admin)])
+    async def admin_reset_dispatch_password(user_id: str):
+        temp_pw = generate_temp_password()
+        updated = await set_dispatch_user_password(db, user_id, temp_pw, must_change=True)
+        if not updated:
+            raise HTTPException(404, "Not found")
+        return {"user": public_dispatch_user_view(updated), "temp_password": temp_pw}
+
+    @router.delete("/admin/dispatch-users/{user_id}", dependencies=[Depends(require_admin)])
+    async def admin_delete_dispatch_user(user_id: str):
+        ok = await delete_dispatch_user(db, user_id)
+        if not ok:
+            raise HTTPException(404, "Not found")
+        return {"ok": True}
+
+    return router
+
+
+__all__ = ["build_dispatch_router", "make_require_dispatch_token"]

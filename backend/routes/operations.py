@@ -26,7 +26,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -263,16 +263,44 @@ async def _compute_current_status(db, asset_id: str) -> Dict[str, Any]:
 # ════════════════════════════════════════════════════════════════════
 # Router builder
 # ════════════════════════════════════════════════════════════════════
-def build_operations_router(db, require_admin) -> APIRouter:
-    """Build the operations HTTP surface. All write routes are admin-
-    gated for now. Read endpoints accept admin; the cross-portal read
-    paths (asset profile etc.) are admin-only initially with a clear
-    expansion point for dispatch/shop/safety/HR tokens later."""
+def build_operations_router(db, require_admin, is_valid_admin_token=None) -> APIRouter:
+    """Build the operations HTTP surface.
 
+    READ endpoints accept any portal token (admin · safety · hr · shop ·
+    pm · dispatch) so every authorized user can see holds, events, and
+    utilization from their own portal without admin escalation.
+    WRITE endpoints stay admin- or dispatch-gated.
+    """
     router = APIRouter(prefix="/api/operations", tags=["operations"])
 
+    # Cross-portal read gate. Falls back to admin-only if the caller did
+    # not pass a working is_valid_admin_token resolver (back-compat).
+    if is_valid_admin_token is not None:
+        from routes.integrations._deps import make_require_any_portal_token  # noqa: PLC0415
+        from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
+
+        require_any_portal = make_require_any_portal_token(db, is_valid_admin_token)
+
+        async def _require_admin_or_dispatch(
+            x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+            x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+        ) -> dict:
+            if x_admin_token and is_valid_admin_token(x_admin_token):
+                return {"_actor": "admin", "name": "Admin"}
+            if x_dispatch_token and "." in x_dispatch_token:
+                u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+                if u:
+                    return {**u, "_actor": "dispatch"}
+            raise HTTPException(401, "Admin or Dispatch authentication required")
+
+        require_write = _require_admin_or_dispatch
+    else:
+        # Back-compat — admin-only everywhere
+        require_any_portal = require_admin
+        require_write = require_admin
+
     # ── Operations Event Log ────────────────────────────────────────
-    @router.post("/events", dependencies=[Depends(require_admin)])
+    @router.post("/events", dependencies=[Depends(require_write)])
     async def create_event(body: EventCreate):
         eid = await write_event(db, **body.model_dump(), created_by="admin")
         if not eid:
@@ -280,7 +308,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
         doc = await db.operations_events.find_one({"id": eid}, {"_id": 0})
         return doc
 
-    @router.get("/events", dependencies=[Depends(require_admin)])
+    @router.get("/events", dependencies=[Depends(require_any_portal)])
     async def list_events(
         asset_id: Optional[str] = None,
         employee_id: Optional[str] = None,
@@ -307,14 +335,14 @@ def build_operations_router(db, require_admin) -> APIRouter:
         rows = await db.operations_events.find(q, {"_id": 0}).sort("created_at", -1).skip(offset).limit(limit).to_list(limit)
         return {"total": total, "limit": limit, "offset": offset, "rows": rows}
 
-    @router.get("/events/{event_id}", dependencies=[Depends(require_admin)])
+    @router.get("/events/{event_id}", dependencies=[Depends(require_any_portal)])
     async def get_event(event_id: str):
         doc = await db.operations_events.find_one({"id": event_id}, {"_id": 0})
         if not doc:
             raise HTTPException(404, "Event not found")
         return doc
 
-    @router.patch("/events/{event_id}", dependencies=[Depends(require_admin)])
+    @router.patch("/events/{event_id}", dependencies=[Depends(require_write)])
     async def update_event(event_id: str, body: EventUpdate):
         existing = await db.operations_events.find_one({"id": event_id}, {"_id": 0})
         if not existing:
@@ -327,7 +355,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
         return await db.operations_events.find_one({"id": event_id}, {"_id": 0})
 
     # ── Holds ────────────────────────────────────────────────────────
-    @router.post("/holds", dependencies=[Depends(require_admin)])
+    @router.post("/holds", dependencies=[Depends(require_write)])
     async def create_hold(body: HoldCreate):
         if body.kind not in ("safety", "maintenance"):
             raise HTTPException(400, "kind must be 'safety' or 'maintenance'")
@@ -367,7 +395,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
         doc.pop("_id", None)
         return doc
 
-    @router.post("/holds/{hold_id}/release", dependencies=[Depends(require_admin)])
+    @router.post("/holds/{hold_id}/release", dependencies=[Depends(require_write)])
     async def release_hold(hold_id: str, body: HoldRelease):
         existing = await db.asset_holds.find_one({"id": hold_id}, {"_id": 0})
         if not existing:
@@ -398,7 +426,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
         )
         return await db.asset_holds.find_one({"id": hold_id}, {"_id": 0})
 
-    @router.get("/holds", dependencies=[Depends(require_admin)])
+    @router.get("/holds", dependencies=[Depends(require_any_portal)])
     async def list_holds(
         active_only: bool = True,
         kind: Optional[str] = None,
@@ -416,7 +444,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
         return rows
 
     # ── Asset Assignments ────────────────────────────────────────────
-    @router.post("/assignments", dependencies=[Depends(require_admin)])
+    @router.post("/assignments", dependencies=[Depends(require_write)])
     async def upsert_assignment(body: AssignmentUpsert):
         eq = await db.equipment_master.find_one({"id": body.asset_id}, {"_id": 0, "id": 1, "unit_number": 1, "name": 1})
         if not eq:
@@ -461,7 +489,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
         doc.pop("_id", None)
         return doc
 
-    @router.post("/assignments/{asset_id}/clear", dependencies=[Depends(require_admin)])
+    @router.post("/assignments/{asset_id}/clear", dependencies=[Depends(require_write)])
     async def clear_assignment(asset_id: str, body: AssignmentClear):
         res = await db.asset_assignments.update_many(
             {"asset_id": asset_id, "active": True},
@@ -483,7 +511,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
         return {"ok": True, "cleared": res.modified_count}
 
     # ── Transfer Requests ────────────────────────────────────────────
-    @router.post("/transfers", dependencies=[Depends(require_admin)])
+    @router.post("/transfers", dependencies=[Depends(require_write)])
     async def create_transfer(body: TransferCreate):
         eq = await db.equipment_master.find_one({"id": body.asset_id}, {"_id": 0, "id": 1, "unit_number": 1})
         if not eq:
@@ -531,7 +559,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
         doc.pop("_id", None)
         return doc
 
-    @router.post("/transfers/{xid}/decide", dependencies=[Depends(require_admin)])
+    @router.post("/transfers/{xid}/decide", dependencies=[Depends(require_write)])
     async def decide_transfer(xid: str, body: TransferDecision):
         existing = await db.transfer_requests.find_one({"id": xid}, {"_id": 0})
         if not existing:
@@ -637,7 +665,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
 
         return await db.transfer_requests.find_one({"id": xid}, {"_id": 0})
 
-    @router.get("/transfers", dependencies=[Depends(require_admin)])
+    @router.get("/transfers", dependencies=[Depends(require_any_portal)])
     async def list_transfers(
         status: Optional[str] = None,
         asset_id: Optional[str] = None,
@@ -652,7 +680,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
         return rows
 
     # ── Utilization ──────────────────────────────────────────────────
-    @router.get("/utilization", dependencies=[Depends(require_admin)])
+    @router.get("/utilization", dependencies=[Depends(require_any_portal)])
     async def utilization_overview():
         """Lightweight roll-up using internal records only. Motive-
         powered idle/underutilized values stay as placeholder counts
@@ -705,7 +733,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
         return {"totals": buckets, "fleet_size": len(equipment), "rows": rows}
 
     # ── Unified Asset Profile (read-only aggregator) ─────────────────
-    @router.get("/assets/{asset_id}/profile", dependencies=[Depends(require_admin)])
+    @router.get("/assets/{asset_id}/profile", dependencies=[Depends(require_any_portal)])
     async def asset_profile(asset_id: str, events_limit: int = Query(25, ge=1, le=200)):
         eq = await db.equipment_master.find_one({"id": asset_id}, {"_id": 0})
         if not eq:
@@ -769,7 +797,7 @@ def build_operations_router(db, require_admin) -> APIRouter:
     # measures days since the most recent operations event tied to the
     # asset (preops, transfers, holds, assignments, future Motive
     # placeholders, etc.). NEVER auto-changes status. NEVER notifies.
-    @router.get("/idle-equipment", dependencies=[Depends(require_admin)])
+    @router.get("/idle-equipment", dependencies=[Depends(require_any_portal)])
     async def idle_equipment(min_days: int = Query(14, ge=1, le=365), limit: int = Query(200, ge=1, le=1000)):
         from datetime import datetime as _dt, timezone as _tz
         now = _dt.now(_tz.utc)

@@ -1,0 +1,41 @@
+{
+  "summary": "iter126 Dispatch Portal portal-auth + cross-portal /api/operations/* read access verified end-to-end. All 11 new iter126 pytests pass; regression of iter122 (integrations, 23 tests), iter123 (mappings wizard, 7 tests), iter124 (operations, 15 tests) — 56/56 passed. Frontend E2E flow validated: dispatch login → must_change_password redirect → change-password → /dispatch-portal hub (testid present) → all 5 tabs render with live data. RequireDispatch guard redirects unauthenticated users to /dispatch-portal/login. Cross-portal observations: dispatch token reads & writes /api/operations/*; safety token reads only and is correctly rejected (401/403) on writes; admin token unchanged.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "DispatchHub header",
+        "issue": "PRD says hub should expose a 'Switch Portal' button alongside 'Sign out'. Only 'Sign out' is rendered. The PortalSwitcher map was updated (per files_of_reference) but the button is not actually mounted in DispatchHub.jsx header.",
+        "selector": "header / dispatch-hub top bar",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter126_dispatch_auth.py",
+    "/app/test_reports/pytest/iter126_results.xml"
+  ],
+  "action_items": [
+    "(Optional/low priority) Add a 'Switch Portal' button to DispatchHub header — PortalSwitcher map already includes dispatch, just need to mount the switcher control next to 'Sign out'."
+  ],
+  "critical_code_review_comments": [
+    "Backend: dispatch_users.py mirrors safety_users.py cleanly; bcrypt-bound HMAC token rotation pattern preserved (resetting password invalidates old tokens). Good.",
+    "Backend: make_require_any_portal_token in _deps.py correctly accepts X-Dispatch-Token; write endpoints use a dedicated admin-or-dispatch helper — split-gate works exactly as documented.",
+    "Frontend: api.js now fans X-Dispatch-Token + X-Safety-Token + X-HR-Token + X-PM-Token + X-Shop-Token + X-Admin-Token on every request. This is fine because each backend gate is header-specific (verified), but be aware that any FUTURE route that does generic 'first non-empty header wins' would break scope isolation. Recommend an explicit comment in api.js warning against that pattern.",
+    "Frontend: AdminDispatch.jsx tab components are now exported and reused in DispatchHub.jsx — good DRY win.",
+    "test_credentials.md: dispatch section accurately documents the temp-password-only design."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (56/56 incl. regression)", "frontend": "95% (1 minor UI gap)"},
+  "test_credentials": "Admin: POST /api/admin/login {password: MASCI1982!}. Dispatch: dispatch@mascigc.com — password rotated to 'DispatchTest2026!' during this test run (was reset to a temp via admin endpoint, then changed via /api/dispatch/change-password). Safety: safety@mascigc.com / Safety123!",
+  "seed_data_creation": "No persistent seed data created. Two ephemeral pytest dispatch users were created and deleted within their own tests. One smoke event with event_type='dispatch_smoke' was inserted by the WRITE-gate test (negligible).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter126 is complete. dispatch@mascigc.com password is now 'DispatchTest2026!' (must_change_password=false). If you need to re-test the must-change flow, hit POST /api/admin/dispatch-users/{id}/reset-password with the admin token first — that flips must_change_password back to true and returns a fresh temp_password. Backend tests live at /app/backend/tests/test_iter126_dispatch_auth.py. The api.js axios interceptor sends ALL portal tokens on every request — this is intentional but every new portal-scoped route MUST validate its specific header, NOT 'any portal token wins'.",
+  "rca of the issue": "Initial Playwright run timed out on networkidle (long-polling/keepalives kept connections open). Fixed by switching to specific selectors + page.expect_response(...) for the actual /api/dispatch/login + /api/dispatch/change-password calls. Underlying app functionality was never broken — only the wait strategy."
+}

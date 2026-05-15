@@ -78,11 +78,11 @@ export default function AdminDispatch() {
             <TabsTrigger value="holds" data-testid="dp-tab-holds"><ShieldAlert className="w-3.5 h-3.5 mr-1" /> Holds</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview"><OverviewTab /></TabsContent>
-          <TabsContent value="utilization"><UtilizationTab /></TabsContent>
-          <TabsContent value="idle"><IdleAlertsTab /></TabsContent>
-          <TabsContent value="transfers"><TransfersTab /></TabsContent>
-          <TabsContent value="holds"><HoldsTab /></TabsContent>
+          <TabsContent value="overview"><DispatchOverviewTab /></TabsContent>
+          <TabsContent value="utilization"><DispatchUtilizationTab /></TabsContent>
+          <TabsContent value="idle"><DispatchIdleAlertsTab /></TabsContent>
+          <TabsContent value="transfers"><DispatchTransfersTab /></TabsContent>
+          <TabsContent value="holds"><DispatchHoldsTab /></TabsContent>
         </Tabs>
       </div>
     </AdminShell>
@@ -90,7 +90,7 @@ export default function AdminDispatch() {
 }
 
 /* ════════════ OVERVIEW ════════════ */
-function OverviewTab() {
+export function DispatchOverviewTab() {
   const [util, setUtil] = useState(null);
   const [xfers, setXfers] = useState([]);
   const [holds, setHolds] = useState([]);
@@ -168,7 +168,7 @@ function OverviewTab() {
 }
 
 /* ════════════ UTILIZATION ════════════ */
-function UtilizationTab() {
+export function DispatchUtilizationTab() {
   const [util, setUtil] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
@@ -247,7 +247,7 @@ function UtilizationTab() {
 }
 
 /* ════════════ TRANSFERS ════════════ */
-function TransfersTab() {
+export function DispatchTransfersTab() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -413,7 +413,7 @@ function CreateTransferDialog({ open, onClose }) {
 }
 
 /* ════════════ HOLDS ════════════ */
-function HoldsTab() {
+export function DispatchHoldsTab() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -555,7 +555,7 @@ function CreateHoldDialog({ open, onClose }) {
    Uses operations_events + asset_assignments only. Future Motive / preop
    / daily-report / maintenance signals can plug in via the operations
    event log without changing this UI. */
-function IdleAlertsTab() {
+export function DispatchIdleAlertsTab() {
   const [minDays, setMinDays] = useState(14);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
