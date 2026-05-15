@@ -1,0 +1,69 @@
+{
+  "summary": "Iter145 frontend consistency pass verified end-to-end. FieldLeadership Home+Back nav-link parity confirmed (both testids render, navigate correctly, hover-red class applied, mobile labels collapse). DispatchHub 'Dispatch Portal' kicker now sourced from DISPATCH_PAL.hubKickerStatic and renders identical rgb(253,186,116) = text-orange-300 — zero visual regression. Tailwind correctly resolves all 6 hubKickerStatic color literals. Backend smoke green (health 200, deploy-readiness ready 0/0/12).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "tests_executed": {
+    "fl_nav_parity": {
+      "home_link_present": true,
+      "back_link_present": true,
+      "home_href": "/",
+      "home_hover_red": true,
+      "back_is_button": true,
+      "back_hover_red": true,
+      "home_navigates_to_root": true,
+      "right_side_buttons_intact": "Guides + Records present (Sign Out shown in screenshot)"
+    },
+    "tailwind_safelist_probe": {
+      "text-orange-300": "rgb(253, 186, 116) OK",
+      "text-purple-300": "rgb(216, 180, 254) OK",
+      "text-amber-300":  "rgb(252, 211, 77) OK",
+      "text-red-300":    "rgb(252, 165, 165) OK",
+      "text-cyan-300":   "rgb(103, 232, 249) OK",
+      "text-indigo-300": "rgb(165, 180, 252) OK"
+    },
+    "mobile_390x844": {
+      "home_label_hidden_on_sm": true,
+      "header_horizontal_overflow": false,
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "dispatch_kicker": {
+      "found": true,
+      "color": "rgb(253, 186, 116)",
+      "has_orange300_class": true,
+      "classes": "font-mono text-[10px] uppercase tracking-[0.2em] text-orange-300 font-bold",
+      "note": "Class string now comes from DISPATCH_PAL.hubKickerStatic — zero pixel change vs iter144"
+    },
+    "sub_hub_header_parity": {
+      "/leadership": "leadership-nav-home + leadership-nav-back present",
+      "/hr":         "hr-nav-home + hr-nav-back present (HrHub.jsx lines 78,81)",
+      "/dispatch-portal": "dispatch-nav-home + dispatch-nav-back present (DispatchHub.jsx lines 42,51)",
+      "/shop":       "shop-back-hub single link (Home-only). Back is OPTIONAL per scope — acceptable"
+    },
+    "backend_smoke": {
+      "GET /api/health": "200 ok",
+      "GET /api/admin/deploy-readiness (admin token)": "200 ready 0 blockers / 0 warnings / 12 checks"
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "FieldLeadershipHub.jsx imports paletteFor and immediately uses FL_PAL on line 31 BEFORE the remaining imports finish (lines 32-45). It works because ES module imports are hoisted at parse time, but mixing a top-level non-import statement between import lines is a style/lint smell — recommend moving the FL_PAL declaration to AFTER all imports for readability.",
+    "ShopHub only has a single back-to-hub link (`shop-back-hub`) while HR/Dispatch/FL all use a paired `*-nav-home` + `*-nav-back` pattern. Naming is inconsistent across the platform. Consider renaming ShopHub's link to `shop-nav-home` for testid parity even if Back stays optional.",
+    "tailwind.config.js has NO explicit safelist. The new `hubKickerStatic` literals work today only because portalPalette.js is in the `src/**` content glob. If the file is ever moved (e.g. to `shared/` or a workspace package) the classes will purge silently. Recommend adding a safelist entry for the 6 kicker colors to harden against future refactors."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (2/2 smoke)", "frontend": "100% (all iter145 acceptance checks pass)"},
+  "test_credentials": "Field Leadership gate MASCIGC works; Dispatch dispatch@mascigc.com/DispatchTest2026! works via /dispatch-portal/login. NOTE: /sign-in (multi-portal master) returned 401 for dispatch user — dispatch users seem only registered against the per-portal directory, not the multi-portal directory. Not in scope for iter145 but worth flagging.",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iter145 scope (FL Home+Back nav-parity + DispatchHub kicker routed through DISPATCH_PAL.hubKickerStatic) is COMPLETE and verified. All 6 hubKickerStatic colors are produced by Tailwind in the running bundle (DOM-probe confirmed). Mobile 390x844 has no overflow. FL Home navigates to /. Back uses navigate(-1). Three critical code-review notes left for E1 (palette-import ordering, shop testid naming, missing safelist). No retest required."
+}

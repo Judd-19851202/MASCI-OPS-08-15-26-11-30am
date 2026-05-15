@@ -56,7 +56,7 @@ export default function DispatchHub() {
           </button>
           <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
           <div className="flex-1 min-w-0">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-orange-300 font-bold">
+            <div className={`font-mono text-[10px] uppercase tracking-[0.2em] ${DISPATCH_PAL.hubKickerStatic} font-bold`}>
               Dispatch Portal
             </div>
             <div className="font-display text-lg sm:text-xl font-black leading-tight truncate">

@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen } from "lucide-react";
+import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -234,10 +234,33 @@ export default function FieldLeadershipHub() {
     <div className="min-h-screen blueprint-bg">
       <div className="caution-stripe" />
       <header className={`bg-slate-900 border-b-4 ${FL_PAL.hubHeaderBar}`}>
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-5 sm:py-7 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-5 sm:py-7 flex items-center gap-3 flex-wrap">
+          {/* iter145 — Home + Back text-links for parity with HR / Shop /
+              Dispatch sub-hub headers. On small screens the labels
+              collapse and only the icons render so the right-hand
+              action button row keeps room. */}
+          <Link
+            to="/"
+            className={`inline-flex items-center text-white ${FL_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`}
+            data-testid="leadership-nav-home"
+            title="Home"
+          >
+            <Home className="w-4 h-4 sm:mr-1" />
+            <span className="hidden sm:inline">{t("Home")}</span>
+          </Link>
+          <button
+            onClick={() => navigate(-1)}
+            className={`inline-flex items-center text-white ${FL_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`}
+            data-testid="leadership-nav-back"
+            title="Back"
+          >
+            <ArrowLeft className="w-4 h-4 sm:mr-1" />
+            <span className="hidden sm:inline">{t("Back")}</span>
+          </button>
           <MasciLogo variant="mark" size="2xl" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
+          <div className="flex-1" />
+          <div className="flex items-center gap-2 flex-wrap">
             <LangToggle />
             <CompanyInfoDialog />
             <Button

@@ -42,6 +42,7 @@
 //   // hubLinkHover:  text-color used by `hover:text-…` on nav links
 //   hubHeaderBar:   (e.g., "border-purple-700"),
 //   hubKicker:      (e.g., "text-purple-700"),
+//   hubKickerStatic:(e.g., "text-purple-300"),
 //   hubLinkHover:   (e.g., "hover:text-purple-300"),
 // }
 //
@@ -70,6 +71,7 @@ export const PORTAL_PALETTE = {
     btnInverse: "bg-white text-slate-900 hover:bg-slate-100",
     hubHeaderBar:  "border-red-700",
     hubKicker:     "text-red-700",
+    hubKickerStatic: "text-red-300",
     hubLinkHover:  "hover:text-red-300",
   },
   pm: {
@@ -84,6 +86,7 @@ export const PORTAL_PALETTE = {
     btnInverse: "bg-white text-indigo-700 hover:bg-indigo-50",
     hubHeaderBar:  "border-indigo-700",
     hubKicker:     "text-indigo-700",
+    hubKickerStatic: "text-indigo-300",
     hubLinkHover:  "hover:text-indigo-300",
   },
   shop: {
@@ -103,6 +106,7 @@ export const PORTAL_PALETTE = {
     // ShopHub header shipped with amber accents — see drift note.
     hubHeaderBar:  "border-amber-500",
     hubKicker:     "text-amber-700",
+    hubKickerStatic: "text-amber-300",
     hubLinkHover:  "hover:text-amber-300",
   },
   hr: {
@@ -117,6 +121,7 @@ export const PORTAL_PALETTE = {
     btnInverse: "bg-white text-purple-700 hover:bg-purple-50",
     hubHeaderBar:  "border-purple-700",
     hubKicker:     "text-purple-700",
+    hubKickerStatic: "text-purple-300",
     hubLinkHover:  "hover:text-purple-300",
   },
   safety: {
@@ -131,6 +136,7 @@ export const PORTAL_PALETTE = {
     btnInverse: "bg-white text-cyan-700 hover:bg-cyan-50",
     hubHeaderBar:  "border-cyan-700",
     hubKicker:     "text-cyan-700",
+    hubKickerStatic: "text-cyan-300",
     hubLinkHover:  "hover:text-cyan-300",
   },
   dispatch: {
@@ -152,6 +158,7 @@ export const PORTAL_PALETTE = {
     // documented in the file header.
     hubHeaderBar:  "border-orange-600",
     hubKicker:     "text-orange-700",
+    hubKickerStatic: "text-orange-300",
     hubLinkHover:  "hover:text-orange-300",
   },
   training: {
@@ -166,6 +173,7 @@ export const PORTAL_PALETTE = {
     btnInverse: "bg-white text-indigo-700 hover:bg-indigo-50",
     hubHeaderBar:  "border-indigo-700",
     hubKicker:     "text-indigo-700",
+    hubKickerStatic: "text-indigo-300",
     hubLinkHover:  "hover:text-indigo-300",
   },
   leadership: {
@@ -182,6 +190,7 @@ export const PORTAL_PALETTE = {
     // admin / brand red — leadership is a brand-aligned surface).
     hubHeaderBar:  "border-red-700",
     hubKicker:     "text-red-700",
+    hubKickerStatic: "text-red-300",
     hubLinkHover:  "hover:text-red-300",
   },
 };
