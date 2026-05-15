@@ -501,6 +501,22 @@ function EmployeeDrawer({ id, onClose }) {
                       </ul>
                     )}
                   </Section>
+                  <Section title={`Open POs (${summary?.open_pos_count ?? 0})`}>
+                    {(summary?.open_pos || []).length === 0 ? (
+                      <Empty msg="No open PO requests." accent="emerald" />
+                    ) : (
+                      <ul className="space-y-1.5">
+                        {summary.open_pos.slice(0, 20).map((p) => (
+                          <li key={p.id} className="bg-slate-50 rounded-md px-3 py-2">
+                            <Link to={`/po-requests?id=${p.id}`} className="text-xs font-bold text-slate-900 hover:text-red-700 font-mono" data-testid={`hremp-open-po-${p.id}`}>
+                              {p.po_number || p.id.slice(0, 8)}
+                            </Link>
+                            <div className="font-mono text-[10px] text-slate-500">{p.vendor} · {p.status} · ${(p.approved_amount ?? p.estimated_amount ?? 0).toFixed(2)}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </Section>
                 </TabsContent>
               </div>
             </Tabs>

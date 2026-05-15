@@ -33,6 +33,7 @@ def make_require_any_portal_token(
         x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
         x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
         x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+        x_leadership_token: Optional[str] = Header(default=None, alias="X-Leadership-Token"),
     ) -> dict:
         if x_admin_token and is_valid_admin_token(x_admin_token):
             return {"_actor": "admin", "name": "Admin"}
@@ -59,6 +60,15 @@ def make_require_any_portal_token(
             u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
             if u:
                 return {**u, "_actor": "dispatch"}
+        if x_leadership_token:
+            # Field Leadership uses an in-memory shared-password token
+            # (no user record). Validate via the field_leadership module.
+            try:
+                from routes.field_leadership import _check_leadership_token  # noqa: PLC0415
+                if _check_leadership_token(x_leadership_token):
+                    return {"_actor": "leadership", "name": "Field Leadership"}
+            except Exception:
+                pass
         raise HTTPException(401, "Portal authentication required")
 
     return _require_any_portal_token

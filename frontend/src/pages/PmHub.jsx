@@ -17,6 +17,7 @@ import { api } from "@/lib/api";
 
 const FORM_TILES = [
   { to: "/tasks",             icon: ClipboardCheck, title: "Tasks & Actions",     countKey: null,         sub: "Open · overdue · cross-portal", accent: "amber" },
+  { to: "/po-requests",       icon: ClipboardCheck, title: "PO Requests",         countKey: null,         sub: "Approvals · receipts · spend",  accent: "indigo" },
   { to: "/pm/daily",          icon: ClipboardList, title: "Daily Reports",       countKey: "daily",      sub: "reports on file",    accent: "red" },
   { to: "/pm/inspections",    icon: ClipboardCheck, title: "Site Inspections",    countKey: "inspections", sub: "reports on file",   accent: "red" },
   { to: "/pm/meetings",       icon: Users,         title: "Safety Meetings",     countKey: "meetings",   sub: "meetings logged",    accent: "slate" },

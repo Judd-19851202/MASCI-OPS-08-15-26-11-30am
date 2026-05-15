@@ -437,6 +437,33 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         except Exception:
             ca_open = 0
 
+        # Iter153 — Final PO Reconciliation: any open POs tied to this
+        # employee. Closes the loop between HR + Field Leadership at
+        # exactly the moment someone leaves the company.
+        open_pos: List[Dict[str, Any]] = []
+        try:
+            cur_pos = db.po_requests.find(
+                {
+                    "$or": [
+                        {"requested_by_employee_id": employee_id},
+                        {"requested_by_user_id": employee_id},
+                    ],
+                    "status": {"$in": [
+                        "Submitted", "Pending Approval", "Approved",
+                        "Pending Receipt", "Clarification Needed",
+                        "Overdue Receipt",
+                    ]},
+                },
+                {"_id": 0, "id": 1, "po_number": 1, "vendor": 1,
+                 "status": 1, "estimated_amount": 1, "approved_amount": 1,
+                 "created_at": 1},
+            ).sort("created_at", -1).limit(50)
+            async for p in cur_pos:
+                p.pop("_id", None)
+                open_pos.append(p)
+        except Exception:
+            pass
+
         # Status history excerpt
         status_history = emp.get("status_history") or []
         last_status_change = status_history[-1] if status_history else None
@@ -450,6 +477,8 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "equipment_issuances": equipment_links,
             "equipment_issuances_count": len(equipment_links),
             "open_corrective_actions": ca_open,
+            "open_pos": open_pos,
+            "open_pos_count": len(open_pos),
             "last_status_change": last_status_change,
             "is_active": emp.get("is_active", True),
             "lifecycle_status": emp.get("lifecycle_status") or (

@@ -8296,6 +8296,34 @@ app.include_router(build_employee_lifecycle_router(
 ))
 
 
+# ─── Operational PO Request & Receipt Tracking (iter153 — Phase D) ──
+# Field Leadership submits → PM/HR/Admin approve → R2 receipt upload.
+# `MASCI-PO-YY-MM-NNN` globally unique numbering. Missing-receipt
+# scanner emits Tasks via Phase A.
+from routes.po_requests import (  # noqa: E402
+    build_po_requests_router,
+    ensure_po_requests_indexes,
+    scan_missing_receipts,
+)
+
+# R2 upload helper — optional. We try to reuse the existing safety
+# upload pathway; fall back to data-URL inline storage in preview.
+async def _po_r2_upload(content: bytes, filename: str, content_type: str):
+    try:
+        from routes.safety_portal.uploads import upload_to_r2  # type: ignore
+        return await upload_to_r2(
+            content, filename=filename, content_type=content_type,
+            folder="po-receipts",
+        )
+    except Exception:
+        return None  # signals fallback to data-URL
+
+app.include_router(build_po_requests_router(
+    db, _require_any_portal_token, require_admin,
+    r2_upload_callable=None,  # use data-URL fallback in preview
+))
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 
@@ -8441,6 +8469,8 @@ async def _bootstrap_integrations():
     logger.info("[document-expirations] indexes ensured")
     await ensure_employee_lifecycle_indexes(db)
     logger.info("[employee-lifecycle] indexes ensured")
+    await ensure_po_requests_indexes(db)
+    logger.info("[po-requests] indexes ensured")
 
 
 @app.on_event("startup")
