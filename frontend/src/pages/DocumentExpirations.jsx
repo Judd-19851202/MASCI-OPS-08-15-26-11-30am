@@ -78,7 +78,13 @@ export default function DocumentExpirations() {
         ...(category !== "all" ? { category } : {}),
         ...(q ? { q } : {}),
       });
-      setItems(r.items || []);
+      let visible = r.items || [];
+      // Default view hides Archived rows — they're noisy and rarely actionable.
+      // Only show them when the user explicitly filters status='Archived'.
+      if (status !== "Archived") {
+        visible = visible.filter((d) => d.status !== "Archived");
+      }
+      setItems(visible);
       const s = await summary().catch(() => ({}));
       setSumm(s);
     } catch (e) {

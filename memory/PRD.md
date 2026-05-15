@@ -17,6 +17,45 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter151 (Phase 2.5 · Core Operational Systems · PHASE B): Document Expiration Engine · STABILIZED
+
+### User ask
+Centralize document expiration tracking across employee docs (OSHA/TWIC/CDL/DL/operator certs), safety (competent person, fall protection, CPR/First Aid), equipment (registrations, annual inspections, insurance, calibration), and company compliance (insurance certs, licenses, permits). MUST NOT duplicate existing safety_training_records or fire_extinguishers. Threshold scanner at 60/30/14/7d + expired. Emit Tasks via Phase A `task_service` + Notifications via Phase A `notification_service` — no duplicate plumbing. Role-aware views.
+
+### Shipped
+- **Backend `routes/document_expirations.py` NEW**:
+  - `db.document_expirations` with indexes on id/category/status/expiration_date + linked_employee/equipment/project.
+  - Closed-set enums: `ALLOWED_CATEGORIES` (employee, safety, equipment, company, training_cert, project) and `ALLOWED_STATUSES` (Current, Expiring Soon, Expired, Archived, Not Applicable).
+  - `WARN_THRESHOLDS = [60, 30, 14, 7]` days + `-1` sentinel for already-expired.
+  - **`scan_thresholds(db, dry_run=False)`** — idempotent scanner. Smallest-applicable-threshold-fires + larger-suppressed pattern so a doc jumping 65d→5d in a single scan emits exactly ONE "7d warning" instead of four noisy events. Expired (-1) suppresses all warnings. Emits Tasks + Notifications via Phase A services (fire-and-forget try/except).
+  - Category → assignee_role map: employee/training_cert→hr, safety→safety, equipment→shop, project→pm, company→admin.
+  - **Endpoints**: GET/POST `/api/document-expirations`, GET `/api/document-expirations/summary`, PATCH `/api/document-expirations/{id}` (auto-resets fires_at_threshold when expiration_date changes), DELETE = soft-archive, `POST /api/admin/document-expirations/scan` (admin-only, real), `GET /api/admin/document-expirations/scan/preview` (admin-only, dry-run).
+  - Server bootstrap wires `ensure_document_expirations_indexes()` at startup.
+- **Frontend**:
+  - `lib/docExpirationsApi.js` NEW — thin axios client.
+  - `pages/DocumentExpirations.jsx` NEW at `/document-expirations` — 4 summary tiles (Current / Expiring Soon / Expired / Archived), filter row (status, category, search, remembered via `useRememberedFilter`), admin-only `Preview Scan` + `Run Scan`, Add Dialog with full field set, traffic-light status badges, days-until-expiration column with red/amber color coding, `AccessDenied` for anonymous, mobile-responsive table with horizontal scroll.
+  - Archived rows hidden from default view (only shown when user explicitly filters status='Archived').
+- **Nav wiring**: AdminShell sidebar entry, HrHub tile, SafetyHub tile (`safety-tile-expirations`).
+- **Scope filtering**: HR sees `[employee, training_cert]`; Safety sees `[safety, training_cert, employee]`; Shop sees `[equipment]`; Admin sees all.
+
+### Verification (`/app/test_reports/iteration_151.json`)
+- **Backend**: **13/13 pytest pass** — status auto-compute, role scoping, scanner preview (non-mutating), real scan fires correct threshold (7d for 5-day doc; -1 for expired) and suppresses larger thresholds, idempotency (2nd scan = 0 new fires), PATCH date-change resets fires, DELETE soft-archives, cross-system task emission with correct category→role mapping.
+- **Frontend**: ~95% — page renders, summary tiles, filters, admin-only buttons gated, Add dialog persists, scanner toasts fire, AdminShell sidebar link present, mobile clean, zero console errors.
+- **Post-test cleanup**: 27 TEST_iter151_* rows purged from `db.document_expirations`.
+
+### Phase A + Phase B integration verified
+- Scanning a near-expiry doc creates a task in `db.tasks` with `source_module='documents.expiration'` and the corresponding notification with `type='document.expiring'` / `'document.expired'`. Notification bell badge updates within the next 60s poll. The same `task_service.create()` / `notification_service.fanout()` entry points used by Phase A's Safety CA wiring — proving the shared-infrastructure design.
+
+### Backlog from this iter
+- LOW: Summary `expiring_30d` uses ISO-string lexicographic compare on `expiration_date`. Safe today (uniform YYYY-MM-DD) but consider native date typing if a different format ever sneaks in.
+- LOW: Add admin batch-purge for `>1y` archived docs.
+- LOW: `compute_status()` uses today_utc — flag if MASCI ever operates across timezones.
+
+### Ready for Phase C (Employee Lifecycle Management)
+Phase C will extend `db.employees` with status states (Pending Hire / Active / Inactive / Suspended / Terminated / Resigned / Retired / Seasonal / Leave of Absence). Offboarding Summary will query both `db.tasks` (Phase A) and `db.document_expirations` (Phase B) to surface outstanding items. Future PO requests (Phase D) will plug into the same accountability tracks.
+
+
+---
 ## 2026-05-15 — Iter150 (Phase 2.5 · Core Operational Systems · PHASE A): Tasks + Notifications SHARED INFRASTRUCTURE · STABILIZED
 
 ### User ask
