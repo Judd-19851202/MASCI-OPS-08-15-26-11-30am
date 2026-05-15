@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SafetyShell from "@/components/SafetyShell";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
+import WhereUsedPanel from "@/components/WhereUsedPanel";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -148,6 +149,11 @@ export default function SafetyEmployeeProfiles() {
                 </table>
               </div>
             )}
+
+            {/* iter140 — Cross-portal footprint (incidents, CAs, training) */}
+            <div className="mt-6">
+              <WhereUsedPanel kind="employee" masterId={selected} />
+            </div>
           </>
         )}
       </SafetyShell>

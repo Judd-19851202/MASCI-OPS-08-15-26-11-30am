@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import WhereUsedPanel from "@/components/WhereUsedPanel";
 
 /**
  * EquipmentMasterPanel — manage the MASCI equipment fleet.
@@ -576,7 +577,7 @@ export default function EquipmentMasterPanel() {
 
       {/* Add / Edit modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display font-black text-xl">
               {editing ? `Edit Unit · ${editing.unit_number}` : "Add a Unit to the Fleet"}
@@ -709,6 +710,12 @@ export default function EquipmentMasterPanel() {
               </Button>
             </DialogFooter>
           </form>
+          {/* iter140 — Cross-portal footprint for the unit being edited */}
+          {editing?.id && (
+            <div className="mt-5 pt-5 border-t-2 border-slate-200">
+              <WhereUsedPanel kind="equipment" masterId={editing.id} />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

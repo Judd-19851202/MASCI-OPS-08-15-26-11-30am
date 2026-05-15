@@ -103,6 +103,22 @@ export default function AdminGlobalSearch() {
                             {r.subtitle && (
                               <div className="text-[11px] text-slate-500 truncate font-mono">{r.subtitle}</div>
                             )}
+                            {(r.linked_equipment_label || r.linked_employee_label) && (
+                              <div className="flex flex-wrap gap-1 mt-1" data-testid={`admin-search-links-${r.id}`}>
+                                {r.linked_equipment_label && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-cyan-50 border border-cyan-300 text-cyan-900 text-[10px] font-mono">
+                                    <span className="font-bold tracking-wider">EQ</span>
+                                    <span className="truncate max-w-[10rem]">{r.linked_equipment_label}</span>
+                                  </span>
+                                )}
+                                {r.linked_employee_label && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-50 border border-purple-300 text-purple-900 text-[10px] font-mono">
+                                    <span className="font-bold tracking-wider">EMP</span>
+                                    <span className="truncate max-w-[10rem]">{r.linked_employee_label}</span>
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                           {r.status && (
                             <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[9px] font-mono uppercase tracking-[0.15em]">

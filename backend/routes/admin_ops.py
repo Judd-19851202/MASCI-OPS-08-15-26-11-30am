@@ -362,6 +362,10 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                         )[:140],
                         "status": (r.get(status_field) if status_field else None),
                         "link": link_template.format(id=r.get("id") or ""),
+                        # iter140 — carry master IDs so we can enrich with
+                        # canonical labels after all probes resolve.
+                        "_equipment_master_id": r.get("equipment_master_id"),
+                        "_employee_master_id": r.get("employee_master_id"),
                     })
                 if rows:
                     return {"label": label, "rows": rows, "count": len(rows)}
@@ -379,6 +383,47 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
             probe(db.projects,            ["project_number", "name", "location"],           "Jobs / Projects",     "/admin/jobs?id={id}"),
         )
         groups = [r for r in results if r]
+
+        # ── iter140 — Master Label Enrichment ─────────────────────
+        # Collect every equipment_master_id / employee_master_id surfaced
+        # across all result groups, then do ONE bulk lookup per master
+        # collection and stamp canonical labels back onto each row.
+        eq_ids = {row["_equipment_master_id"] for g in groups for row in g["rows"]
+                  if row.get("_equipment_master_id")}
+        emp_ids = {row["_employee_master_id"] for g in groups for row in g["rows"]
+                   if row.get("_employee_master_id")}
+
+        eq_map: Dict[str, str] = {}
+        emp_map: Dict[str, str] = {}
+        try:
+            if eq_ids:
+                async for d in db.equipment_master.find(
+                    {"id": {"$in": list(eq_ids)}},
+                    {"_id": 0, "id": 1, "unit_number": 1, "make_model": 1},
+                ):
+                    parts = [d.get("unit_number"), d.get("make_model")]
+                    eq_map[d["id"]] = " · ".join(p for p in parts if p) or d["id"]
+            if emp_ids:
+                async for d in db.employees.find(
+                    {"id": {"$in": list(emp_ids)}},
+                    {"_id": 0, "id": 1, "name": 1, "first_name": 1,
+                     "last_name": 1, "employee_id": 1},
+                ):
+                    full = d.get("name") or " ".join(
+                        p for p in [d.get("first_name"), d.get("last_name")] if p
+                    )
+                    emp_map[d["id"]] = full or d.get("employee_id") or d["id"]
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[search] master-label enrichment failed: {e}")
+
+        for g in groups:
+            for row in g["rows"]:
+                eq_label = eq_map.get(row.pop("_equipment_master_id", None) or "")
+                emp_label = emp_map.get(row.pop("_employee_master_id", None) or "")
+                if eq_label:
+                    row["linked_equipment_label"] = eq_label
+                if emp_label:
+                    row["linked_employee_label"] = emp_label
 
         return {
             "q": q,
