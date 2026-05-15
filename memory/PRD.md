@@ -17,6 +17,52 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter153 (Phase 2.5 · Core Operational Systems · PHASE D): Operational PO Request & Receipt Tracking · STABILIZED
+
+### User ask
+Field Leadership submits PO requests → PM/HR/Admin approve / reject / clarify → supervisor uploads receipt → missing receipts after 7-day grace window auto-create Tasks via Phase A `task_service`. Globally unique numbering `MASCI-PO-YY-MM-NNN`. NOT accounting software / NOT ERP — operational accountability only. PLUS: offboarding-summary (Phase C) now surfaces open POs tied to the departing employee — closing the loop between HR and Field Leadership.
+
+### Shipped
+- **Backend `routes/po_requests.py` NEW**:
+  - `db.po_requests` collection + `db.system_counters` for atomic per-YY-MM sequence (`find_one_and_update` + `$inc` + `upsert=True` + `return_document`).
+  - Numbering: `MASCI-PO-YY-MM-NNN` (e.g. `MASCI-PO-26-05-001`); manual override via `po_number_manual` records `po_number_source='manual'` for audit.
+  - Status machine: Draft → Submitted → Pending Approval → Approved/Rejected/Clarification Needed → Pending Receipt → Receipt Uploaded → Closed → Overdue Receipt → Cancelled.
+  - Receipt upload: 12MB cap, image+PDF accepted; R2 callable optional (data-URL fallback in preview — MOCKED, must be wired in prod via `r2_upload_callable` parameter).
+  - `scan_missing_receipts(db, dry_run)` admin-only — flips POs older than `PO_RECEIPT_GRACE_DAYS` (env, default 7) without receipts to `Overdue Receipt` and emits a `po.receipts` task. Idempotent via `missing_receipt_flagged`.
+  - **Endpoints**: GET/POST `/api/po-requests`, GET `/api/po-requests/summary`, GET `/api/po-requests/{id}`, POST `/api/po-requests/{id}/approve` (action ∈ approve|reject|clarify), POST `/api/po-requests/{id}/receipt` (multipart), POST `/api/po-requests/{id}/close` (admin), POST `/api/po-requests/{id}/cancel`, admin scan + scan-preview.
+  - **Auto-task emission**: PO submit → `po.requests` task to `pm`; clarify → task back to requester role; missing receipt → high-priority `po.receipts` task to `leadership`.
+- **Backend `routes/integrations/_deps.py`**: `require_any_portal_token` now also accepts `X-Leadership-Token` (validated via `field_leadership._check_leadership_token`) — enables Field Leadership to submit POs.
+- **Backend `routes/employee_lifecycle.py`**: `offboarding-summary` now returns `open_pos[]` + `open_pos_count` (joins `db.po_requests` by `requested_by_employee_id` OR `requested_by_user_id`).
+- **Frontend `pages/PoRequests.jsx` NEW** at `/po-requests`:
+  - 4 summary tiles (Pending Approval / Pending Receipt / Overdue Receipt / Closed).
+  - Tabs Open/Closed, status filter, search, refresh, Submit PO dialog.
+  - Drawer with role-aware action blocks: approval (PM/HR/Admin) with manual-PO + approved-amount; receipt upload (form with mobile camera capture via `accept=image/*,application/pdf capture=environment`); admin close/cancel; audit history.
+- **Frontend nav**: AdminShell sidebar entry, PmHub tile. HrEmployees Offboarding tab now has a new "Open POs" section.
+- **App.js**: `/po-requests` route + import.
+
+### Verification (`/app/test_reports/iteration_153.json`)
+- **Backend**: **18/18 pytest pass** after a CRITICAL index repair — submit + sequence numbering atomicity (2 successive approvals = N, N+1), urgency→priority echo, approve/reject/clarify, manual-PO override, receipt upload + 13MB → 413, 409 on receipt-when-not-approved, role scoping (leadership only sees their own), summary counts, admin-only scanner, idempotency, close/cancel, offboarding-summary integration with `open_pos[]`.
+- **Frontend**: **100% functional** — all required testids resolve, mobile no overflow, seed PO `MASCI-PO-26-05-001` visible after one main-agent smoke. 2 minor Radix DialogContent a11y warnings (non-functional, backlogged).
+
+### CRITICAL bug fixed
+- `ensure_po_requests_indexes()` originally used `create_index("po_number", unique=True, sparse=True)`. MongoDB sparse indexes still index `null` values, so the second PO submitted (which legitimately stores `po_number=null` until approval) raised `DuplicateKeyError`. Replaced with `partialFilterExpression={"po_number": {"$type": "string"}}` — enforces uniqueness ONLY on assigned string PO numbers. Verified live index now reports `partialFilterExpression: SON([('po_number', SON([('$type', 'string')]))])`. Code-level fix committed so re-bootstraps stay safe.
+
+### Phase A + B + C + D integration confirmed
+- PO submit → task in `db.tasks` (source_module='po.requests', assignee_role='pm') ✅
+- Missing-receipt scan → task (source_module='po.receipts', priority='High') ✅
+- Offboarding-summary returns `open_pos[]` joined by employee ID ✅
+
+### Backlog from this iter
+- **MEDIUM (prod)**: wire `r2_upload_callable` parameter in `build_po_requests_router()` to the real R2 SDK before MASCI accountants need to download receipts. Currently MOCKED in preview as data-URL inline storage.
+- **LOW (a11y)**: add `<DialogDescription>` (or `<VisuallyHidden>`) inside Submit PO dialog + PO Drawer to clear 2 Radix console warnings.
+- **LOW (scoping)**: current leadership filter is `requested_by_role='leadership' OR requested_by_user_id=actor.id` — broad. If MASCI wants strict per-supervisor visibility, tighten to user-id-only.
+- **LOW (security)**: receipt upload reads the full body before size-checking. Acceptable for an internal portal; consider Content-Length pre-check in prod.
+
+### Ready for Phase E (Cross-System Integration Pass + Training Updates)
+All 4 shared infrastructure pieces (Tasks · Notifications · Document Expirations · Employee Lifecycle · PO Requests) are live. Phase E will wire the remaining workflow modules (Incidents, Audits, Pre-Ops, Fire Ext, Training deficiencies) into `task_service.create()` + `notification_service.fanout()` and refresh the Training Center.
+
+
+---
 ## 2026-05-15 — Iter152 (Phase 2.5 · Core Operational Systems · PHASE C): Employee Lifecycle Management + Auto-Offboarding Playbook · STABILIZED
 
 ### User ask

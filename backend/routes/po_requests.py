@@ -222,7 +222,14 @@ async def scan_missing_receipts(db, dry_run: bool = False) -> Dict[str, Any]:
 async def ensure_po_requests_indexes(db) -> None:
     try:
         await db.po_requests.create_index("id", unique=True)
-        await db.po_requests.create_index("po_number", unique=True, sparse=True)
+        # po_number is null between submission and approval — sparse
+        # alone won't help because Mongo treats `null` as an indexed
+        # value. partialFilterExpression skips both missing and null,
+        # enforcing uniqueness ONLY on assigned string PO numbers.
+        await db.po_requests.create_index(
+            "po_number", unique=True,
+            partialFilterExpression={"po_number": {"$type": "string"}},
+        )
         await db.po_requests.create_index("status")
         await db.po_requests.create_index("project_number")
         await db.po_requests.create_index("requested_by_employee_id")
