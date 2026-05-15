@@ -8,6 +8,54 @@
 
 Integration framework must remain PASSIVE / OBSERVATIONAL until live API stability is proven. No auto-creating work orders / disciplinary actions / retraining / payroll triggers. All future workflows are EVENT-DRIVEN (failed pre-op → internal event → integration layer → MaintainX/Safety/Asset/notify), never portal-to-portal direct logic. Heavy syncs run BACKGROUND only — never block dashboards / forms / login. Master records (`db.equipment_master`, `db.employees`) are SOURCE-OF-TRUTH — integrations flow through mapping layers, not direct master mutation. CSV imports require preview + rollback + duplicate detection. Integration failures must NEVER crash core platform. Audit/traceability on every mapping/import/setting change.
 
+## 🚦 Phase 1 Stabilization Plan (kicked off iter135 — see /app/QA_REPORT_PHASE1.md)
+
+User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, eliminate dead routes, standardize UX/UI, fix mobile, validate exports, finish training, enforce architecture, validate integrations, performance + health, deployment discipline. Executing in 4 sub-iters:
+- **Iter A — Crawl & Hit-List** (iter135 — DONE): static route+endpoint cross-reference, found+fixed 3 broken FE→BE calls + 1 duplicate route. Report at `/app/QA_REPORT_PHASE1.md`.
+- **Iter B — UX/UI + Mobile**: design system unification, mobile sweep, normalized hub/filter/empty/loading states.
+- **Iter C — Exports/PDF + Training + Data Relationships**: print stabilization, training-doc refresh, master-collection SOT enforcement.
+- **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
+
+---
+## 2026-05-15 — Iter135: P1 Fire Ext Attachments + CA Links · Phase-1 Iter A (Crawl & Fix)
+
+### User ask
+"P1 Fire Ext attachments + Strengthen CA links" first, then begin Phase-1 Stabilization Iter A: static-then-live route/endpoint crawl with targeted fixes.
+
+### Shipped
+
+**🅿1 — Fire Extinguisher attachments + printable unit history**
+- `routes/safety_portal/fire_ext_attachments.py` NEW. Endpoints:
+  - `POST /api/safety/fire-extinguishers/{fe_id}/attachments` — multipart upload, kind=paperwork|photo|other, 10 MB cap, 25 attachments/unit cap, R2 (with inline base64 fallback + degraded-event logging)
+  - `GET  /api/safety/fire-extinguishers/{fe_id}/attachments/{att_id}` — streams bytes back
+  - `DELETE /api/safety/fire-extinguishers/{fe_id}/attachments/{att_id}` — pulls from R2 + array
+  - `GET /api/safety/fire-extinguishers/{fe_id}/history.pdf` — weasyprint-rendered printable history (register info + inspection log + attachment list) with MASCI-branded header/footer
+- Schema addition: `db.fire_extinguishers.attachments[]` (id, filename, content_type, file_size, file_data, storage_backend, kind, uploaded_*).
+- Frontend: `components/SafetyFireExtManageDialog.jsx` NEW — accessed via new Paperclip button per row on `/safety-portal/fire-extinguishers`. Shows PDF download, file picker + kind dropdown, attachment list with download/delete actions.
+
+**🅿1 — Corrective Actions: linked records**
+- Backend: `routes/safety_portal/corrective_actions.py` extended with:
+  - `POST /api/safety/corrective-actions/{ca_id}/links` — idempotent add (composite kind+id key)
+  - `DELETE /api/safety/corrective-actions/{ca_id}/links?kind=&id=` — remove
+  - `GET  /api/safety/corrective-actions/{ca_id}/related-resolved` — resolves each link against its source collection; returns `exists: true|false` + `summary` so the UI can show broken-link markers and fresh labels
+- Models: `_models.py` adds `RelatedEntity`; `CorrectiveActionCreate`/`Update` accept optional `related_entities[]`.
+- Supported kinds: `incident`, `equipment_inspection` (failed pre-ops), `equipment_master`, `training_record`, `audit`, `safety_document`, `fire_ext`.
+- Frontend: `components/SafetyCaLinksManager.jsx` NEW — mounted inside the CA edit dialog, lists resolved related records (with broken-link amber marker for missing sources) and an Add Link inline form.
+
+**🧹 Phase-1 Iter A — Crawl & Fix**
+- Built static crawler that resolves APIRouter prefixes and maps 175 FE routes × 356 BE endpoints × 362 axios calls.
+- **3 real bugs found + fixed**:
+  1. Duplicate `<Route path="/admin/equipment">` in App.js — second declaration (EquipmentDashboard) was dead code, removed.
+  2. `POST /api/admin/logout` → 404. Added audit-only endpoint to `server.py` (writes `audit_events {kind:'admin_logout'}`).
+  3. `POST /api/pm/logout` → 404. Added audit-only endpoint (writes `kind:'pm_logout'`).
+  4. Dead `/api/equipment-units` axios call in `NewEquipmentInspection.jsx` (endpoint retired iter22). Removed — UI was already gracefully handling the 404.
+- 6 other "unmatched" endpoints were crawler false-positives (verified 200 via curl); documented in QA report.
+
+### Testing
+- Backend: 20/20 pytest cases passing for all new endpoints (attachments upload/download/delete, history PDF, CA links add/remove/resolve, admin/pm logout).
+- Frontend: manual screenshot verified login flow + Manage dialog renders with PDF button + upload form + attachments list at preview URL.
+- QA report: `/app/QA_REPORT_PHASE1.md` (input for Iter B/C/D).
+
 ---
 ## 2026-05-15 — Iter134: P0 Fire Ext Bulk Import UI · Full Training Center & Operator Guides
 
