@@ -35,6 +35,7 @@ import { getDispatchToken, clearDispatchToken, getDispatchUser } from "@/lib/dis
 import { getHrToken, getHrUser, clearHrToken } from "@/lib/hrAuth";
 import { getSafetyToken, getSafetyUser, clearSafetyToken } from "@/lib/safetyAuth";
 import { isLeadershipAuthed, clearLeadershipToken } from "@/lib/leadershipAuth";
+import { paletteFor, heroPaletteFor } from "@/lib/portalPalette";
 
 // ─── Shared tile component ──────────────────────────────────────────────
 
@@ -120,16 +121,14 @@ const MediumTile = ({ to, icon: Icon, title, desc, accent, testId, kicker }) => 
  * PortalPill — compact card used in OFFICE PORTALS row. No feature
  * bullets — just title, one neutral sentence, sign-in CTA, lock icon.
  * Reinforces "restricted area" without being cold.
+ *
+ * iter143 — `kind` accepts a portal name ("pm"/"hr"/"safety"/…) and
+ * the palette is resolved from the shared portalPalette table. No
+ * visual change vs. the previous inline color tables.
  */
-const PortalPill = ({ to, icon: Icon, title, desc, accent, testId, signedIn, signedInLabel, external }) => {
+const PortalPill = ({ to, icon: Icon, title, desc, kind, testId, signedIn, signedInLabel, external }) => {
   const { t } = useT();
-  const palette = {
-    purple: { bg: "bg-purple-700", border: "border-purple-200", cta: "text-purple-700" },
-    orange: { bg: "bg-orange-600", border: "border-orange-200", cta: "text-orange-700" },
-    indigo: { bg: "bg-indigo-700", border: "border-indigo-200", cta: "text-indigo-700" },
-    cyan:   { bg: "bg-cyan-700",   border: "border-cyan-200",   cta: "text-cyan-700" },
-    slate:  { bg: "bg-slate-900",  border: "border-slate-200",  cta: "text-slate-800" },
-  }[accent] || { bg: "bg-slate-900", border: "border-slate-200", cta: "text-slate-800" };
+  const palette = paletteFor(kind);
 
   const inner = (
     <>
@@ -164,20 +163,15 @@ const PortalPill = ({ to, icon: Icon, title, desc, accent, testId, signedIn, sig
  * WelcomeBackHero — promoted card at the very top when an active
  * session is detected. Lets a returning user one-tap back into their
  * home portal, and gives a friendly sign-out link for shared devices.
+ *
+ * iter143 — palette resolved from `session.kind` via portalPalette.
  */
 function WelcomeBackHero({ session }) {
   const { t } = useT();
-  const palette = {
-    admin:  { bg: "bg-slate-900",  text: "text-slate-100", btn: "bg-white text-slate-900 hover:bg-slate-100" },
-    pm:     { bg: "bg-indigo-700", text: "text-indigo-50", btn: "bg-white text-indigo-700 hover:bg-indigo-50" },
-    shop:   { bg: "bg-orange-700", text: "text-orange-50", btn: "bg-white text-orange-700 hover:bg-orange-50" },
-    hr:     { bg: "bg-purple-700", text: "text-purple-50", btn: "bg-white text-purple-700 hover:bg-purple-50" },
-    safety: { bg: "bg-cyan-700",   text: "text-cyan-50",   btn: "bg-white text-cyan-700 hover:bg-cyan-50" },
-    leadership: { bg: "bg-slate-700", text: "text-slate-100", btn: "bg-white text-slate-900 hover:bg-slate-100" },
-  }[session.kind];
+  const palette = heroPaletteFor(session.kind);
   return (
     <div
-      className={`relative ${palette.bg} ${palette.text} rounded-md p-5 sm:p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4`}
+      className={`relative ${palette.bg} ${palette.onColor} rounded-md p-5 sm:p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4`}
       data-testid="hub-welcome-back"
     >
       <div className="flex-1 min-w-0">
@@ -194,7 +188,7 @@ function WelcomeBackHero({ session }) {
       <div className="flex items-center gap-2 self-stretch sm:self-auto">
         <Link
           to={session.to}
-          className={`inline-flex items-center gap-2 h-10 px-4 rounded-md font-bold uppercase tracking-wide text-xs ${palette.btn}`}
+          className={`inline-flex items-center gap-2 h-10 px-4 rounded-md font-bold uppercase tracking-wide text-xs ${palette.btnInverse}`}
           data-testid="hub-welcome-back-open"
         >
           {t("Open")} <ArrowRight className="w-4 h-4" />
@@ -328,7 +322,7 @@ export default function Hub() {
             icon={ClipboardList}
             title={t("PM Portal")}
             desc={t("The project-management workspace for MASCI office staff.")}
-            accent="indigo"
+            kind="pm"
             testId="hub-section-pm"
             signedIn={session?.kind === "pm"}
             signedInLabel={t("Open Portal")}
@@ -338,7 +332,7 @@ export default function Hub() {
             icon={Wrench}
             title={t("Shop")}
             desc={t("The mechanic's console for the MASCI equipment fleet.")}
-            accent="orange"
+            kind="shop"
             testId="hub-section-shop"
             signedIn={session?.kind === "shop"}
             signedInLabel={t("Open Console")}
@@ -348,7 +342,7 @@ export default function Hub() {
             icon={Users}
             title={t("HR Portal")}
             desc={t("Employee records and payroll cross-check for MASCI HR.")}
-            accent="purple"
+            kind="hr"
             testId="hub-section-hr"
             signedIn={session?.kind === "hr"}
             signedInLabel={t("Open Portal")}
@@ -358,7 +352,7 @@ export default function Hub() {
             icon={ShieldAlert}
             title={t("Safety Portal")}
             desc={t("Safety command center — incidents, audits, corrective actions, training.")}
-            accent="cyan"
+            kind="safety"
             testId="hub-section-safety-portal"
             signedIn={session?.kind === "safety"}
             signedInLabel={t("Open Portal")}
@@ -368,7 +362,7 @@ export default function Hub() {
             icon={Truck}
             title={t("Dispatch")}
             desc={t("Equipment movement, availability, transfers, and utilization.")}
-            accent="orange"
+            kind="dispatch"
             testId="hub-section-dispatch-portal"
             signedIn={session?.kind === "dispatch"}
             signedInLabel={t("Open Portal")}
@@ -378,7 +372,7 @@ export default function Hub() {
             icon={ClipboardList}
             title={t("Admin")}
             desc={t("The MASCI office console.")}
-            accent="slate"
+            kind="admin"
             testId="hub-section-admin"
             signedIn={session?.kind === "admin"}
             signedInLabel={t("Open Console")}

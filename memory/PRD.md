@@ -17,6 +17,23 @@ User-defined stabilization sweep: stop feature sprawl, fix inconsistencies, elim
 - **Iter D — Integrations + Performance + Health + Deploy**: integration failure modes, query perf audit, health/TTL coverage, staging-deploy discipline.
 
 ---
+## 2026-05-15 — Iter143: Design-Tokens Consolidation Pass (80% scope)
+
+### User ask (Option A)
+Wire the drafted `tokens.css` in. Focused 80% pass on `SectionTile + Hub + sub-hubs + portal accents only`. **Zero visual change**, no redesign, no dark-mode activation. Keep `.theme-dark` block as placeholder.
+
+### Shipped
+- **`/app/frontend/src/styles/tokens.css`** — 7 token families (brand · ink · paper · border · accent · status · spacing/typography/radius/shadow/motion). All defaults match current hard-coded values exactly. Hooked into `index.css` cascade ABOVE `portal-system.css`.
+- **`/app/frontend/src/lib/portalPalette.js` NEW** — single source of truth for per-portal Tailwind palettes (`PORTAL_PALETTE`, `paletteFor()`, `heroPaletteFor()`, `paletteSlot()`, `tileAccentFor()`). Covers admin · pm · shop · hr · safety · dispatch · training · leadership. Hero-variant slots (`heroBg` / `heroOnColor` / `heroBtnInverse`) preserve the original Shop hero card's `orange-700` shade vs. its tile `orange-600` — explicit zero-visual-change guard.
+- **`pages/Hub.jsx`** — PortalPill API changed `accent` → `kind` (semantic, portal-named). WelcomeBackHero consumes `heroPaletteFor()`. The two inline palette dicts (5+6 entries) collapse to a single import. BigTile + MediumTile + ReferenceLink left untouched (non-portal accents — different surface DSL).
+- **`.theme-dark`** scaffold sits in `tokens.css` but NEVER activates (no class flip on `<html>`). Future opt-in dark mode is one line away.
+
+### Outcome
+- **Hard-coded portal palette references**: 11 inline-dict entries → 1 imported map. Future portal accent edits = 1 file, no drift risk.
+- **Visual diff**: zero. Smoke screenshots confirm all 12 hub sections, hero stripe, portal pills, and reference strip render identically pre- vs. post-refactor.
+- **Drift surfaced** (not changed): `portal-system.css` defines Dispatch as `amber-700`, but the Hub's Dispatch tile shipped as `orange-600`. Documented in `portalPalette.js` with a `dispatchAmber` variant kept available for future reconciliation.
+
+---
 ## 2026-05-15 — Iter142: Phase-1 Iter D · Integration Health Probes + Perf Audit + TTL Coverage + Deploy Checklist
 
 ### User ask
