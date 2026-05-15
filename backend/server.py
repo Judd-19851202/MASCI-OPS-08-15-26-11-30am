@@ -8189,6 +8189,13 @@ from health_monitor import start_health_monitor_loop  # noqa: E402
 async def _start_health_monitor():
     try:
         start_health_monitor_loop(db, _admin_ops_router.compute_system_health)
+        # Pre-warm the health_monitor_runs collection so the first call
+        # to /admin/system-health/recent doesn't pay a 36 s cold-start
+        # cost (motor lazy-allocates collections on first use).
+        try:
+            await db.health_monitor_runs.create_index("at")
+        except Exception:  # noqa: BLE001
+            pass
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[health_monitor] failed to arm: {e}")
 
