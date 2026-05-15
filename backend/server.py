@@ -8163,6 +8163,14 @@ app.include_router(build_admin_digest_router(
 ))
 
 
+# ─── Fire Extinguisher Bulk Import (iter134) ────────────────────────
+from routes.fire_ext_bulk_import import build_fire_import_router  # noqa: E402
+from routes.safety_portal._deps import make_require_safety_token  # noqa: E402
+
+_require_safety = make_require_safety_token(db)
+app.include_router(build_fire_import_router(db, _require_safety))
+
+
 # ─── Integration Center (Motive + MaintainX framework — iter122) ───
 from routes.integrations import (  # noqa: E402
     build_integrations_router,
@@ -8219,6 +8227,63 @@ async def _start_health_monitor():
             pass
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[health_monitor] failed to arm: {e}")
+
+
+# ─── Iter134: TTL indexes on audit/log/event collections ────────────
+# These three collections are append-only AUDIT HISTORY (not operational
+# records). After 30 days the rows are no longer actionable for incident
+# triage or trend analysis, so MongoDB auto-deletes them via TTL.
+#
+# - r2_degraded_events: R2 storage fallback events (System Health & alerts)
+# - digest_runs:        weekly digest send-history (preview + actual)
+# - health_monitor_runs: synthetic monitor poll history (60-s cadence)
+#
+# Operational records (equipment, employees, incidents, holds, transfers,
+# corrective actions, training, fire extinguishers, safety documents,
+# inspections, projects, etc.) are NEVER touched by TTL — those are
+# permanent and only purged via explicit admin delete.
+#
+# Retention is configurable via AUDIT_RETENTION_DAYS env (default 30).
+# Changing the value requires dropping + recreating the index — handled
+# safely below by detecting any existing TTL index and only mutating
+# when the configured value drifts.
+@app.on_event("startup")
+async def _arm_audit_ttl_indexes():
+    try:
+        days = int(os.environ.get("AUDIT_RETENTION_DAYS", "30"))
+        seconds = days * 86400
+        for coll_name in ("r2_degraded_events", "digest_runs", "health_monitor_runs"):
+            coll = db[coll_name]
+            try:
+                existing = await coll.index_information()
+                # Drop any legacy plain-`at` index that conflicts with our TTL.
+                for name, spec in list(existing.items()):
+                    if name == "at_1" and spec.get("expireAfterSeconds") is None:
+                        try:
+                            await coll.drop_index(name)
+                        except Exception:  # noqa: BLE001
+                            pass
+                idx_name = "at_ttl"
+                # Re-read since we may have dropped one
+                existing = await coll.index_information()
+                if idx_name in existing:
+                    current = existing[idx_name].get("expireAfterSeconds")
+                    if current == seconds:
+                        continue
+                    try:
+                        await coll.drop_index(idx_name)
+                    except Exception:  # noqa: BLE001
+                        pass
+                await coll.create_index(
+                    "at",
+                    name=idx_name,
+                    expireAfterSeconds=seconds,
+                )
+                logger.info(f"[audit-ttl] {coll_name}.at TTL armed at {days}d")
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[audit-ttl] failed to arm {coll_name}: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[audit-ttl] startup hook failed: {e}")
 
 
 @app.on_event("startup")

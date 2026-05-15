@@ -146,10 +146,14 @@ def start_health_monitor_loop(
                 red_cards = [c for c in cards if c.get("status") == "red"]
                 red_keys: Set[str] = {c.get("key") or c.get("label") or "?" for c in red_cards}
 
-                # Log every run (lightweight)
+                # Log every run (lightweight). `at` is a BSON datetime so the
+                # 30-day TTL index in server.py actually fires; iso_at preserves
+                # a human-readable copy for /admin/system-health/recent.
                 try:
+                    now_dt = _now()
                     await db.health_monitor_runs.insert_one({
-                        "at": _iso(_now()),
+                        "at": now_dt,
+                        "iso_at": _iso(now_dt),
                         "overall": overall,
                         "red_keys": list(red_keys),
                         "alerted": False,

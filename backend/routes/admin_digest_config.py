@@ -116,8 +116,11 @@ def build_admin_digest_router(
         else:
             # Preview-only mode in environments without Resend
             sent_to = []
+        # `at` is BSON datetime so the 30-day TTL index fires.
+        now_dt = datetime.now(timezone.utc).replace(microsecond=0)
         run = {
-            "at": _now_iso(),
+            "at": now_dt,
+            "iso_at": now_dt.isoformat(),
             "kind": "manual",
             "recipients": cfg.get("recipients") or [],
             "sent_to": sent_to,
