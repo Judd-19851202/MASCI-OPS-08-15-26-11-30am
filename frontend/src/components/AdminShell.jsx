@@ -14,6 +14,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Building2, Wrench, Mail, BookOpen, ClipboardCheck,
   ShieldCheck, LogOut, Menu as MenuIcon, Home, Cable, Truck, Activity,
+  Rocket, History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -21,6 +22,7 @@ import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { BackendVersionBadge } from "@/components/BackendVersionBadge";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import PortalSwitcher from "@/components/PortalSwitcher";
+import AdminGlobalSearch from "@/components/AdminGlobalSearch";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
@@ -42,6 +44,9 @@ const SECTIONS = [
   { key: "events",     to: "/admin/operations-events", icon: Activity, label: "Operations Events", desc: "Append-only log · platform history" },
   { key: "integrations", to: "/admin/integrations", icon: Cable,       label: "Integrations",    desc: "Motive · MaintainX · CSV import/export" },
   { key: "system",     to: "/admin/system",     icon: ShieldCheck,     label: "System & Backups",desc: "Backups · R2 · Restore · Recovery" },
+  { key: "system-health", to: "/admin/system-health", icon: Activity,  label: "System Health",   desc: "Green/yellow/red operational probe" },
+  { key: "audit-log",  to: "/admin/audit-log",  icon: History,         label: "Audit Log",       desc: "Unified merged timeline" },
+  { key: "deploy-recovery", to: "/admin/deploy-recovery", icon: Rocket, label: "Deploy Recovery", desc: "Rollback playbook · backup chain" },
 ];
 
 export { SECTIONS };
@@ -147,6 +152,9 @@ export default function AdminShell({ title, section, children, intro }) {
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
+            <div className="hidden md:block w-72">
+              <AdminGlobalSearch />
+            </div>
             <PortalSwitcher current="admin" />
             <SystemHealthBadge />
             <Link

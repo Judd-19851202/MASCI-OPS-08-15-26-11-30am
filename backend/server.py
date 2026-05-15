@@ -8170,6 +8170,13 @@ from dispatch_users import seed_dispatch_users  # noqa: E402
 app.include_router(build_dispatch_router(db, require_admin))
 
 
+# ─── Admin operational infrastructure (iter130) ─────────────────────
+# System Health · Unified Audit Log · Global Search · Deploy Recovery
+from routes.admin_ops import build_admin_ops_router  # noqa: E402
+
+app.include_router(build_admin_ops_router(db, require_admin))
+
+
 @app.on_event("startup")
 async def _bootstrap_operations():
     await ensure_operations_indexes(db)
