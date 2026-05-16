@@ -8835,6 +8835,20 @@ _auth_directory_router = build_auth_directory_router(
 app.include_router(_auth_directory_router)
 
 
+# Phase K4a (iter176) — Unified Directory read-only surface. Surfaces
+# the K1-mirrored unified `user_directory` (with mirrored/managed
+# classification + K1 metadata) and the K3 role-template catalog to
+# the admin UI. No mutations exposed here; existing
+# /api/admin/directory routes remain the only write path.
+from routes.admin_directory_k4 import build_admin_directory_k4_router  # noqa: E402
+
+_admin_directory_k4_router = build_admin_directory_k4_router(
+    db,
+    require_admin_strict_dep=require_admin_strict,
+)
+app.include_router(_admin_directory_k4_router)
+
+
 @app.on_event("startup")
 async def _bootstrap_user_directory():
     """Seed the super-admin row on first deploy (idempotent — silent if

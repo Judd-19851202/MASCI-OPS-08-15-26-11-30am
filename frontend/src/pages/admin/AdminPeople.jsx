@@ -7,6 +7,7 @@ import AdminHRUsersPanel from "@/components/AdminHRUsersPanel";
 import AdminSafetyUsersPanel from "@/components/AdminSafetyUsersPanel";
 import AdminDispatchUsersPanel from "@/components/AdminDispatchUsersPanel";
 import AdminAccessControlPanel from "@/components/AdminAccessControlPanel";
+import AdminUnifiedDirectoryPanel from "@/components/AdminUnifiedDirectoryPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 
 export default function AdminPeople() {
@@ -24,6 +25,7 @@ export default function AdminPeople() {
     >
       <div className="space-y-4">
         <AdminAccessControlPanel />
+        <AdminUnifiedDirectoryPanel />
         <AdminPMPanel />
         <AdminShopUsersPanel />
         <AdminHRUsersPanel />
