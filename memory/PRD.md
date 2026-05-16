@@ -1,6 +1,80 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter164 · Phase I · Asset Transfer System · STABILIZED (P2 closed)
+
+### Outcome
+Asset Transfer lifecycle event system shipped. **Thin event collection** (`db.asset_transfers`) — equipment_master remains the single asset SOT. Reuses Tasks · Notifications · Signatures · Audit · PM scope. NO duplicate ownership ledger. NO standalone notification path. NO new audit table. Tied cleanly into Dispatch and Project Health.
+
+### Lifecycle (closed enum + validated state machine)
+`Draft → Requested → Approved → In Transit → Received → Closed`
+Terminal exits: `Rejected` · `Cancelled`. Invalid transitions → 422. Idempotent re-clicks on same target state return existing doc with NO double fan-out.
+
+### Shipped
+- **Backend `routes/asset_transfers.py`** (new):
+  - 9 endpoints: list (with status/equipment/project filters) · detail · create · approve · reject · in-transit · receive · cancel · close
+  - State machine: `TRANSITIONS` + `TRANSITION_ROLES` enforce closed enum + role gates
+  - `_transition(...)` helper returns `(doc, transitioned: bool)` — endpoints only fire fan-out when an actual transition happened (idempotency guarantee)
+  - Receive REQUIRES signature image OR refusal flag (422 if neither) — protects against silent receipt
+  - Equipment_master location mutated ONLY on Received, atomically (`current_project_number` + `location` updated together)
+  - PM scope filter on list + detail (PM gets 403 on transfers outside their project scope)
+  - Audit via canonical `lib/audit.py::append_audit` (collection="asset_transfers", record_id, action, actor, details)
+  - Fan-out via `lib/event_fanout.py::emit_task_and_notification` / `emit_notification` — on Requested · Approved · In Transit · Received · Rejected. Same single fan-out path everything else uses.
+  - Receiving signature captured via unified `signatures.signature_service.capture()` with `source_module="equipment.transfer"` (already in `ALLOWED_MODULES`)
+- **Backend `server.py`** — mounted with `_require_any_portal_token`.
+- **Frontend `pages/AssetTransfers.jsx`** (new):
+  - List view at `/asset-transfers` with 8 status chip filters · per-status counts
+  - Sortable table: status badge · equipment (unit_id + label) · from → to · requested by · created
+  - Request Transfer dialog: equipment_id · destination project · destination location (opt) · reason (opt)
+  - Detail drawer with KV summary · state-machine next-action buttons (only valid transitions shown, gated by status) · full audit trail
+  - `InlineSigPad` — minimal DPR-aware canvas signature pad (~80 lines) inside the drawer. `touch-action:none`. Mobile-ready. Outputs base64 PNG dataURL to the receive endpoint. Drop-in replacement for SignatureCapture's self-submit (we wanted server-side capture in the same request as the state transition).
+  - Receive flow: signer name + signature pad OR refusal toggle + refusal reason
+  - Reject inline reason capture (required)
+- **Navigation wired**:
+  - AdminShell sidebar (admin section, `Truck` icon)
+  - PmHub form-tile grid (`Truck` icon)
+  - DispatchHub header button (`Truck` icon) — quick-access from dispatch portal
+- **Tests** — `test_iter164_phase_i_asset_transfers.py`: 13 tests covering anon-401 · admin list 200 · full lifecycle (Requested→Approved→In-Transit→Received→Closed with signature) · invalid transition 422 · two-state regression (Requested→Closed, Received→Approved) · idempotent re-click no double fan-out (task count ≤2 for Requested+Approved) · reject requires reason · receive requires signature or refusal · audit trail records each transition · fan-out fires task+notification on Requested · discipline guard (no duplicate `current_location` field on transfer doc) · PM scope 403 on out-of-scope · cancel from Requested allowed.
+
+### Verification
+- **Backend**: 13/13 pytest PASS + total suite 66/66 PASS (iter160 + iter161 + iter163 + iter164 + iterC) — zero regression.
+- **Live UI** (`/asset-transfers`): page renders empty-state cleanly. All 8 status chips present. Request Transfer modal opens with 4 required/optional fields. Submit Request CTA gated by required-field validation. Zero console errors.
+- **Equipment location atomicity**: live integration test confirmed `equipment_master.current_project_number` stays at source until Received, then atomically flips to destination + location updated.
+- **Idempotency**: repeated approve calls return existing doc, no extra task/notification rows in db (≤2 tasks per Requested+Approved lifecycle).
+- **PM scope**: PM token → 403 on transfers outside their project_numbers.
+
+### Bug fixed during implementation
+- `_transition()` originally did fan-out at the endpoint level unconditionally — repeated `/approve` calls created duplicate tasks. Refactored to return `(doc, transitioned: bool)` so endpoints `if did: _fan(...)` only on actual state change. (Discovered via the iter164 idempotency test.)
+- Initial `_audit()` call passed positional args; corrected to use `append_audit(db, collection=..., record_id=..., action=..., actor=...)` kwargs as the canonical helper requires.
+- Initial use of `<SignatureCapture>` was wrong fit — that component self-submits to `/api/signatures`. Replaced with lightweight `InlineSigPad` since the `/receive` endpoint captures the signature inline via `signature_service.capture()`.
+
+### Discipline guards honored
+- ✅ Thin event collection · equipment_master = single asset SOT
+- ✅ NO duplicate `current_location` field on transfer doc (test guard enforced)
+- ✅ NO standalone notification table · all via `db.notifications` + `event_fanout`
+- ✅ NO new audit collection · audit[] on the transfer doc via canonical `append_audit`
+- ✅ NO new signature engine · unified `signature_service` with `source_module="equipment.transfer"`
+- ✅ NO new permissions module · `compute_pm_scope` reused
+- ✅ Equipment location mutated ONLY on Received (atomically) — preserved in tests
+- ✅ Idempotency: re-clicking same action → silent (no double fan-out) — preserved in tests
+- ✅ Receive requires signature OR refusal (no silent receipts)
+- ✅ Reject requires reason (no silent rejections)
+- ✅ Plain operational language · no compliance/legal implications
+
+### Operational principle held
+Asset Transfers track *operational equipment movement* — they do NOT track ownership, accounting, depreciation, or compliance. The transfer record is a lifecycle event tied to the SOT (`equipment_master`), not a parallel asset ledger. All side effects (tasks, notifications, signatures, audit) flow through the same shared infrastructure pipes as every other operational module.
+
+### Next Action Items (in user-stated priority order)
+1. 🟢 **Phase J** — Low-Connection / Field Resiliency Layer (P2): autosave drafts · upload retries · duplicate-submit prevention. Probably the highest real-world operational impact of any remaining phase.
+2. 🟡 Post-deploy: design tokens 80% pass (cosmetic).
+3. 🔵 Post-30d telemetry review: revisit deferred signal candidates (CA trend · training trend · doc surge · pre-op trend) once real data accumulates.
+4. 🟡 **Optional Phase I follow-on** (only if production traffic shows demand): equipment search-by-unit-id autocomplete in the Create Transfer dialog (currently free-text). Watch usage before adding.
+
+### Observation phase reminder
+Continue protecting the discipline lock: **NO more new signal cards**, **NO trend arrows** on Project Health, **NO additional telemetry surfaces** until production users have lived with iter160-164 for several weeks.
+
+
+---
 ## 2026-05-16 — Iter163 · Phase H · Project / Job Health Dashboard · STABILIZED (P2 closed)
 
 ### Outcome

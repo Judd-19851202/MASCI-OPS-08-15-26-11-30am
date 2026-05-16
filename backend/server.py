@@ -8368,6 +8368,14 @@ from routes.project_health import build_project_health_router  # noqa: E402
 app.include_router(build_project_health_router(db, _require_any_portal_token))
 
 
+# ─── Asset Transfers (Phase I) ─────────────────────────────────────────
+# Thin event collection (db.asset_transfers) tracking equipment movement
+# lifecycle. equipment_master remains the asset SOT. Reuses Tasks +
+# Notifications + Signatures + Audit + PM scope — NO duplicate systems.
+from routes.asset_transfers import build_asset_transfers_router  # noqa: E402
+app.include_router(build_asset_transfers_router(db, _require_any_portal_token))
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 

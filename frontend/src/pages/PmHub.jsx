@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import {
   ClipboardCheck, Users, AlertOctagon, ClipboardList, Wrench, Box,
   FileText, ArrowRight, Loader2, ShieldCheck, Image as ImageIcon,
-  UserCheck, Briefcase, GraduationCap, Activity,
+  UserCheck, Briefcase, GraduationCap, Activity, Truck,
 } from "lucide-react";
 import PmShell from "@/components/PmShell";
 import OperationsCenter from "@/components/OperationsCenter";
@@ -20,6 +20,7 @@ const FORM_TILES = [
   { to: "/tasks",             icon: ClipboardCheck, title: "Tasks & Actions",     countKey: null,         sub: "Open · overdue · cross-portal", accent: "amber" },
   { to: "/po-requests",       icon: ClipboardCheck, title: "PO Requests",         countKey: null,         sub: "Approvals · receipts · spend",  accent: "indigo" },
   { to: "/project-health",    icon: Activity,      title: "Project Health",      countKey: null,         sub: "Operational friction by job",   accent: "emerald" },
+  { to: "/asset-transfers",   icon: Truck,         title: "Asset Transfers",     countKey: null,         sub: "Equipment movement · lifecycle", accent: "amber" },
   { to: "/pm/daily",          icon: ClipboardList, title: "Daily Reports",       countKey: "daily",      sub: "reports on file",    accent: "red" },
   { to: "/pm/inspections",    icon: ClipboardCheck, title: "Site Inspections",    countKey: "inspections", sub: "reports on file",   accent: "red" },
   { to: "/pm/meetings",       icon: Users,         title: "Safety Meetings",     countKey: "meetings",   sub: "meetings logged",    accent: "slate" },

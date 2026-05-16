@@ -70,6 +70,14 @@ export default function DispatchHub() {
           <GlobalSearch accent="dark" />
           <NotificationBell accent="white" />
           <Link
+            to="/asset-transfers"
+            className="inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
+            data-testid="dispatch-asset-transfers-link"
+          >
+            <Truck className="w-3.5 h-3.5 sm:mr-1" />
+            <span className="hidden sm:inline">Transfers</span>
+          </Link>
+          <Link
             to="/ops-training?portal=dispatch"
             className="inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
             data-testid="dispatch-training-link"
