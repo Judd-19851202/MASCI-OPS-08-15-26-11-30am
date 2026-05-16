@@ -97,8 +97,9 @@ export default function HrTimeVerification() {
   const stats = useMemo(() => ([
     { label: t("Total Employees"), value: summary.total_employees || 0 },
     { label: t("Total Hours"), value: fmtHours(summary.total_hours) },
-    { label: t("Regular"), value: fmtHours(summary.total_regular) },
-    { label: t("Overtime"), value: fmtHours(summary.total_overtime), highlight: (summary.total_overtime || 0) > 0 },
+    { label: t("Regular Hours"), value: fmtHours(summary.total_regular) },
+    { label: t("Overtime Hours"), value: fmtHours(summary.total_overtime), highlight: (summary.total_overtime || 0) > 0 },
+    { label: t("Lunch Hours"), value: fmtHours(summary.total_lunch) },
   ]), [summary, t]);
 
   return (
@@ -141,9 +142,9 @@ export default function HrTimeVerification() {
       </Card>
 
       {/* Stats strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5" data-testid="hr-tv-stats-strip">
         {stats.map((s) => (
-          <Card key={s.label} className={`p-4 ${s.highlight ? "border-2 border-amber-500 bg-amber-50" : "border-2 border-slate-200"}`}>
+          <Card key={s.label} className={`p-4 ${s.highlight ? "border-2 border-amber-500 bg-amber-50" : "border-2 border-slate-200"}`} data-testid={`hr-tv-stat-${s.label.toLowerCase().replace(/\s+/g, "-")}`}>
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">{s.label}</div>
             <div className="font-display text-2xl font-black mt-1">{s.value}</div>
           </Card>

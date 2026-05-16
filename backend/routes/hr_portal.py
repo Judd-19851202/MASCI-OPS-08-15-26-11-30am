@@ -525,12 +525,25 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             "week_end": end.isoformat(),
             "rows": rows,
             "weekly": weekly_list,
+            # iter178 fix: summary cards must sum the WEEKLY rollup, not
+            # the per-day rows. Per-day rows intentionally carry
+            # regular_hours=0 / overtime_hours=0 because OT is split at
+            # the weekly stage per FLSA + MASCI policy (see comments
+            # ~line 420). Summing those zeros produced the 0.00 Reg/OT
+            # bug HR caught while cross-checking payroll. Total Hours
+            # is also computed off the same weekly rollup so the
+            # invariant Total Hours == Regular + Overtime holds
+            # exactly (it would have held before too, since per-day
+            # total_hours sum equals weekly total_hours sum — but
+            # sourcing both from the same place removes any drift
+            # risk if rounding ever changes).
             "summary": {
                 "total_rows": len(rows),
                 "total_employees": len(weekly_list),
-                "total_hours": round(sum(r["total_hours"] for r in rows), 2),
-                "total_regular": round(sum(r["regular_hours"] for r in rows), 2),
-                "total_overtime": round(sum(r["overtime_hours"] for r in rows), 2),
+                "total_hours": round(sum(w["total_hours"] for w in weekly_list), 2),
+                "total_regular": round(sum(w["regular_hours"] for w in weekly_list), 2),
+                "total_overtime": round(sum(w["overtime_hours"] for w in weekly_list), 2),
+                "total_lunch": round(sum(w["lunch_hours"] for w in weekly_list), 2),
             },
         }
 
@@ -563,6 +576,34 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                 r["lunch_hours"], r["regular_hours"], r["overtime_hours"],
                 r["total_hours"], r["submitted_at"], r["daily_report_id"],
             ])
+        # iter178 — append per-employee weekly rollup so HR's payroll
+        # cross-check sees the FLSA-split Reg/OT figures. The per-day
+        # rows above intentionally carry Reg/OT=0 because the split
+        # happens once per week (see comments in hr_time_verification).
+        # Without this section the CSV would show every Reg/OT cell as
+        # 0 even though the week has overtime — same root cause as the
+        # summary-card bug.
+        w.writerow([])
+        w.writerow(["WEEKLY ROLLUP (FLSA-split, payroll-ready)"])
+        w.writerow([
+            "Employee", "Jobs", "Supervisor(s)",
+            "Regular Hrs", "Overtime Hrs", "Lunch Hrs", "Total Hrs",
+        ])
+        for wk in data["weekly"]:
+            w.writerow([
+                wk["employee_name"],
+                "; ".join(wk.get("jobs") or []),
+                "; ".join(wk.get("supervisors") or []),
+                wk["regular_hours"], wk["overtime_hours"],
+                wk["lunch_hours"], wk["total_hours"],
+            ])
+        s = data.get("summary") or {}
+        w.writerow([])
+        w.writerow([
+            "TOTALS", "", "",
+            s.get("total_regular", 0), s.get("total_overtime", 0),
+            s.get("total_lunch", 0), s.get("total_hours", 0),
+        ])
         filename = f"MASCI_time_verification_{data['week_start']}_to_{data['week_end']}.csv"
         return Response(content=buf.getvalue().encode("utf-8"), media_type="text/csv",
                         headers={"Content-Disposition": f'attachment; filename="{filename}"'})
