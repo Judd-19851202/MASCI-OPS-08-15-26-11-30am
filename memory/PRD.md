@@ -1,6 +1,68 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter166 · Phase J · Low-Connection / Field Resiliency Layer · STABILIZED (P2 closed)
+
+### Outcome
+Field workers no longer lose data in low-connectivity environments. Three priority forms (Safety Incidents, Field Leadership, Daily Reports) now autosave drafts to IndexedDB, recover on reload, mint Idempotency-Keys for every POST, and fall back to a foreground retry queue when the network drops. Backend idempotency middleware (Iter165) deduplicates retried submissions server-side. NO Service Workers, NO Background Sync API — foreground-only, iOS-safe, WebView-safe.
+
+### Shipped (frontend resiliency module)
+- **`frontend/src/lib/resiliency/`** — single shared module reused by every form:
+  - `draftStore.js` — IndexedDB CRUD via `idb-keyval`. Drafts namespaced by actorId+formKey. Auto-purge >14d.
+  - `idempotency.js` — `mintIdempotencyKey()` UUID v4 (crypto.randomUUID + RFC4122 fallback).
+  - `resiliencyQueue.js` — in-memory + IndexedDB-persisted upload retry queue. Foreground retry with exponential backoff (1s · 2s · 4s · 8s · 16s · 5 tries max). Auto-drain on `online` + `focus` events. `enqueueUpload(item)` returns `{ok, data}` on first-attempt success OR `{ok: false, queued: true}` on network failure.
+  - `useDraftSync.js` — non-invasive autosave companion hook (does NOT own state). Used by all 3 priority forms that retain their existing useState architecture. Observes a snapshot object, debounces 800ms, persists, and offers recovery via `onRecover(draft)` callback.
+  - `useDraft.js` — owned-state hook (for future forms built fresh).
+  - `useOnlineStatus.js` — tracks `navigator.onLine` + window online/offline events.
+  - `OfflineIndicator.jsx` — small amber pill in shell headers when offline.
+  - `DraftStatusPill.jsx` — subtle "Saving draft…" / "Saved as draft" inline pill (10px slate/emerald, renders nothing in idle).
+  - `actorId.js` — derives a per-device stable namespace from the first present portal token (first 16 chars).
+  - `index.js` — single barrel export.
+- **`App.js`** — boot-time `purgeStaleDrafts()` fires once on app load (fire-and-forget). Verified live: 20-day-old IndexedDB entry confirmed purged.
+- **`NotificationBell.jsx`** — REPAIRED (was broken in the source repo: referenced undefined `queueDepth` + duplicate JSX tail). Now subscribes to `onQueueChange()`, renders subtle amber upload badge underneath the bell when queue depth > 0.
+- **OfflineIndicator mounted in all 7 shells**: AdminShell, SafetyShell, PmShell, HrHub, ShopHub, DispatchHub, FieldLeadershipHub. Sits next to NotificationBell.
+
+### Shipped (3 priority forms wired)
+- **`NewIncident.jsx`** — `useDraftSync('incident-new')` + `enqueueUpload('/incidents')` + `DraftStatusPill` (`data-testid='incident-draft-pill'`). Recovery toast with Discard action.
+- **`NewDailyReport.jsx`** — `useDraftSync('daily-report-new')` + `enqueueUpload('/daily-reports')` + `DraftStatusPill` (`data-testid='daily-report-draft-pill'`).
+- **`FieldLeadershipFormPage.jsx`** — composite snapshot of 16 useState fields (jobId, employeeId, details, photos, signatures, refusal flags, witness, etc.) gathered into a single object for `useDraftSync(\`fl-${kind}-new\`)`. On recovery, splatted back to all setters. `enqueueUpload('/field-leadership')` + `DraftStatusPill` (`data-testid='fl-draft-pill'`).
+
+### Verification (`/app/test_reports/iteration_165.json`)
+- **Backend**: 8/8 `test_iter165_phase_j_idempotency.py` PASS (TTL index, library caches response, same-key→same-response, different-key→fresh, scoped per path, etc.) — unchanged this iter, regression-clean.
+- **Frontend (live)**:
+  - `incident-draft-pill` cycle: idle → Saved as draft → idle ✅
+  - Reload `/incidents/new` with a draft → field value auto-restored + toast "Draft recovered — Your unsent incident report was restored" + Discard action ✅
+  - `daily-report-draft-pill` + `fl-draft-pill` flip to Saved as draft after debounce ✅
+  - `offline-indicator`: hidden when navigator.onLine; appears on `window.dispatchEvent(new Event('offline'))`; disappears on `online` ✅
+  - `purgeStaleDrafts()`: 20-day-old IndexedDB entry confirmed purged after App boot reload ✅
+  - Zero console errors / zero React pageerror events across all flows ✅
+- **Idempotency-Key header on the wire**: implicit via `enqueueUpload` → axios `Idempotency-Key` config header. Backend tests confirm dedup behavior end-to-end. Live network-intercept of the form's POST was inconclusive (form-validation gating, not a code bug).
+
+### Bugs fixed during this iter
+- `NotificationBell.jsx` was corrupted in source: undefined `queueDepth` variable AND duplicate JSX tail (lines 205-215). Repaired with proper `useState(0)` + `onQueueChange()` subscription + clean closing tags.
+- Accidental clobber of `<SystemHealthBadge />` in AdminShell during a search-replace was caught and reverted in the same pass.
+- Stray duplicate `<Link>` tail in DispatchHub created during search-replace was caught + cleaned.
+
+### Discipline guards honored
+- ✅ NO Service Workers · NO Background Sync API (per explicit user mandate)
+- ✅ Foreground-only retry queue — iOS-safe, WebView-safe
+- ✅ Subtle UI: 10px pill, small amber offline indicator, small queue badge — NO banners, NO toasts beyond Draft Recovered, NO sounds
+- ✅ Idempotency-Key wire to existing backend middleware (no new endpoint)
+- ✅ Shared resiliency layer — same imports across all 3 forms, NO per-form draft systems
+- ✅ Stale draft auto-purge (14d) on app boot
+- ✅ Actor-namespaced drafts (per-device, per-token-actor)
+
+### Operational principle held
+Phase J answers: *"Will the worker lose the report if the network drops at the moment of submit?"* — NO. Either the queue holds the payload until reconnect (with idempotency dedup on retry) OR the draft persists in IndexedDB across reloads. The platform now matches the realities of field connectivity without piling on UI urgency theater.
+
+### Next Action Items (per user observation-phase mandate)
+1. 🟢 **Phase J observation window (P1)**: User explicitly mandated *"observe production behavior before adding more visibility/telemetry layers."* Do NOT add new telemetry/AI/score features. Watch real-world adoption + retry-success rate before any further resiliency surface.
+2. 🔵 **Backlog (awaiting user lead)**: Phases H/I/J are the last major roadmap items. Follow user direction for the next strategic phase.
+3. 🟡 Post-deploy: design tokens 80% pass (cosmetic).
+4. 🔵 Post-30d telemetry review: revisit deferred signal candidates (CA trend · training trend · doc surge · pre-op trend).
+
+
+---
 ## 2026-05-16 — Iter164 · Phase I · Asset Transfer System · STABILIZED (P2 closed)
 
 ### Outcome
