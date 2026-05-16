@@ -1,6 +1,83 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter174 · Phase K2 · Centralized RBAC Service Layer · ✅ COMPLETE (non-enforcing)
+
+### Outcome
+Phase K2 (centralized permission brain) shipped to preview. **Non-enforcing — the new module is a library that nothing yet depends on.** Phase K6 (deferred, requires explicit user approval) will incrementally swap the existing scattered `role == "..."` checks for `require(actor, "...")` calls.
+
+### What shipped (1 file + tests)
+**`/app/backend/lib/rbac.py`** (~280 lines):
+- **77-action catalog** (`KNOWN_ACTIONS` set) covering all 7 portals + cross-cutting platform actions, all in `portal.module.verb` dot notation
+- **Subject helpers** (`actor_portal`, `actor_role`, `actor_email`, `actor_id`, `is_super_admin`)
+- **Core decision API** (`can(actor, action, ctx=None) → bool`)
+- **Enforcement primitive** (`require(actor, action, ctx=None)` → raises `HTTPException(403)`)
+- **Capability introspection** (`actions_for_actor(actor) → set[str]`) for future frontend hinting
+- **Diagnostic** (`explain(actor, action) → dict`) for debugging + future `/api/admin/rbac/explain` (K4 UI)
+- **Fail-closed semantics**: missing/empty actor, malformed action, unknown action all return False
+- **Super admin bypass**: admin portal token OR `is_super_admin=True` flag OR `SUPER_ADMIN_EMAIL` env match — but STILL fails on action typos (forces catalog discipline)
+- **Cross-portal grants** explicitly listed in one dict (HR can approve PM POs, PM can view safety incidents, etc.) — exactly captures today's enforcement; ready to be replaced by role-template lookups in K3
+
+**`/app/backend/tests/test_iter174_phase_k2_rbac_service.py`** (~340 lines, 46 tests):
+- Fail-closed on missing/empty/malformed input
+- Super admin bypass for every known action
+- Per-portal namespace access (parameterized across all 6 named portals + leadership)
+- Documented cross-portal grants
+- Platform-level universal actions
+- `actions_for_actor` introspection
+- `require()` enforcement primitive (passes when allowed, raises 403 when denied)
+- Subject extraction helpers
+- `explain()` diagnostic
+- Catalog sanity (dot notation, every portal covered, no duplicates)
+
+### Live verification snapshot
+```
+KNOWN_ACTIONS catalog size: 77
+
+admin → admin.users.manage:     True
+pm    → admin.users.manage:     False
+hr    → pm.po_requests.approve: True   ← documented cross-grant
+pm    → pm.po_requests.approve: True
+hr    → shop.users.manage:      False  ← no cross-grant
+anon  → platform.search.use:    False  ← fail-closed
+
+PM capability count:           21
+HR capability count:           24
+Super-admin capability count: 77
+```
+
+### Tests
+- **46/46 PASS** Phase K2 RBAC tests
+- **96/96 PASS** including K1 + Phase H + I + J + Operations Center regression — zero side-effects
+
+### Discipline held
+- ✅ Zero enforcement wired anywhere (nothing in `routes/*` currently imports `lib.rbac`)
+- ✅ Zero new HTTP endpoints exposed
+- ✅ Zero UX changes
+- ✅ Zero auth-flow changes
+- ✅ Fail-closed semantics (unknown action / anon / typo → False)
+- ✅ Super admin always passes catalog actions (break-glass)
+- ✅ Backend still healthy, all existing routes unchanged
+
+### What this enables (K3-K9, all deferred)
+- **K3** — Role templates collection + seed (HR Manager, Mechanic, Foreman, etc.). Replaces the per-portal "everyone gets the whole namespace" simplification in K2's cross-grants dict.
+- **K4** — Admin User Management UI surfacing the unified directory.
+- **K5** — Temp password / first-login reset / lockout standardization. **Will require `integration_playbook_expert_v2` call per system rules.**
+- **K6** — Incremental enforcement cutover: swap scattered `role == "..."` checks (25 sites identified) for `require(actor, "...")`.
+- **K7** — Field Leadership named-user transition (from shared MASCIGC).
+- **K8** — Per-portal enforcement cutover with observation window between portals.
+- **K9** — Decommission legacy auth paths.
+
+### Observation window status
+🟢 **REMAINS OPEN.** K2 is non-enforcing foundation work. K3 next on approval — no user action required to retain current behavior.
+
+### Next Action Items
+- 🟢 USER: When ready, redeploy to push K2 to production (silent — no production behavior change because nothing enforces it yet)
+- 🟢 USER: confirm whether to proceed to K3 (Role Templates) or pause for observation
+- 🟢 AGENT: standby — will not start K3 until explicit user direction
+
+
+---
 ## 2026-05-16 (4th redeploy) — Iter173 · Phase K1 Production Verification · 🟢 ALL CLEAN
 
 ### Outcome
