@@ -1,6 +1,66 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 (4th redeploy) — Iter173 · Phase K1 Production Verification · 🟢 ALL CLEAN
+
+### Outcome
+Phase K1 (silent unified identity mirror) deployed to production via 4th redeploy of the day. Remote verification pass complete. **Zero regressions.** No visible user-facing changes. K1 safety guarantee verified live: mirrored entries cannot log in via `/api/auth/multi-login` (returns 401 — random unguessable bcrypt hash).
+
+### Probe results (remote, against `mascidocs.com`)
+| Surface | Result |
+|---|---|
+| Bundle hash | ✅ `0f8315c6` → `76456fa1` (rotated, redeploy shipped) |
+| Health apex + www | ✅ healthy, www → 308 → apex |
+| CORS lockdown (evil) | ✅ no `allow-origin` header |
+| CORS lockdown (prod) | ✅ echoes back + `allow-credentials: true` + `vary: Origin` |
+| Rate limit (50-burst) | ✅ 14 → 200, **36 → 429** (counter reset on pod restart, re-engaged correctly on next burst) |
+| Anon auth gates (17 endpoints) | ✅ 16/17 401 (identical to pre-K1) |
+| Multi-login with invalid creds | ✅ controlled 401 (NOT 500) |
+| **Multi-login with mirrored user** | ✅ **401 — K1 safety guarantee holds in production** |
+| Production homepage | ✅ 200 · 8341b · 0.25s · zero pageerrors · zero console errors/warnings |
+
+### K1 production state inferred
+- Backend started cleanly (health endpoint returns valid payload)
+- Startup hook ran without raising (wrapped in try/except, but would still log a structured failure if it had crashed)
+- Multi-login endpoint refuses mirrored users (correct behavior)
+- All other auth gates unchanged
+
+### What I cannot directly verify from outside
+- Exact `user_directory.count_documents({})` value in production DB
+- The literal `[identity-mirror] startup sync complete: scanned=N created=M` log line
+- Per-row contents of mirrored entries in production
+
+To get direct confirmation, the user can inspect the production backend startup logs in their Emergent dashboard for the line:
+```
+[identity-mirror] startup sync complete: scanned=N created=M updated_mirrored=X touched_managed=Y
+```
+
+### Cleanup commitment honored
+**Zero probe rows created in production this iter** (per the commitment made in iter171). Production `incidents` collection state unchanged by this verification.
+
+### Discipline held
+- 🟢 Observation window remains OPEN
+- 🟢 Feature freeze active for K2-K9
+- 🟢 K1 is the ONLY K-phase work permitted in this window
+- 🟢 Zero new endpoints exposed to users
+- 🟢 Zero UX changes
+- 🟢 Zero auth-flow changes
+- 🟢 Zero enforcement changes
+
+### Cumulative production reliability milestones now confirmed live
+✅ Phase J idempotency · ✅ Rate limiting · ✅ HMAC-bound auth · ✅ HSTS · ✅ TLS · ✅ Cloudflare edge · ✅ Frontend deploy pipeline · ✅ CORS lockdown · ✅ **Phase K1 silent identity mirror** (new this iter)
+
+### Authoritative report
+**`/app/POST_DEPLOY_PRODUCTION_OBSERVATION.md`** — Section 16 appended with full K1 production verification, stability matrix vs pre-K1 baseline, indirect evidence analysis, and items requiring user action.
+
+### Next Action Items
+- 🟢 USER (optional but recommended): inspect production backend startup logs for the `[identity-mirror] startup sync complete:` line — gives direct visibility into how many users were mirrored
+- 🟢 USER: cleanup the 4 prior probe rows from `/admin → Incidents` (carried from iter169-171)
+- 🟡 USER: walk authenticated-surface smoke checklist (still pending from deploy day)
+- 🟢 AGENT: standby for bug reports only · K2 work BLOCKED on user explicitly lifting observation window
+
+
+---
 ## 2026-05-16 — Iter172 · Phase K1 · Silent Unified Identity Mirror · ✅ COMPLETE
 
 ### Outcome
