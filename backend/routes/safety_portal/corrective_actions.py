@@ -98,6 +98,17 @@ def register_corrective_action_routes(
         except Exception:
             pass
 
+        # Iter160 · Operational signal — CA created throughput.
+        try:
+            from lib.operational_signals import record_signal  # noqa: PLC0415
+            await record_signal(
+                db, signal="ca.created", module="safety.corrective_actions",
+                dims={"priority": (doc.get("priority") or "Medium")[:24],
+                      "source_kind": (doc.get("source_kind") or "")[:24]},
+            )
+        except Exception:
+            pass
+
         return doc
 
     @api_router.get("/safety/corrective-actions/{ca_id}")
@@ -125,7 +136,23 @@ def register_corrective_action_routes(
         res = await db.corrective_actions.update_one({"id": ca_id}, {"$set": update})
         if res.matched_count == 0:
             raise HTTPException(404, "Not found")
-        return await db.corrective_actions.find_one({"id": ca_id}, {"_id": 0})
+        updated = await db.corrective_actions.find_one({"id": ca_id}, {"_id": 0})
+
+        # Iter160 · Operational signal — CA closed cycle time.
+        if update.get("status") == "Closed" and updated:
+            try:
+                from lib.operational_signals import record_signal, elapsed_ms_between  # noqa: PLC0415
+                ems = elapsed_ms_between(updated.get("created_at"),
+                                         updated.get("completed_at"))
+                await record_signal(
+                    db, signal="ca.closed",
+                    module="safety.corrective_actions",
+                    elapsed_ms=ems,
+                    dims={"priority": (updated.get("priority") or "")[:24]},
+                )
+            except Exception:
+                pass
+        return updated
 
     # ── Related-entity link management ─────────────────────────────
     # Used by the UI's link-picker. POST appends, DELETE removes by composite

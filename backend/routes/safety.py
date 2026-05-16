@@ -345,6 +345,18 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                     "linked_source_record_id": doc.get("id"),
                     "linked_project_number": doc.get("project_number") or None,
                 })
+                # Iter160 · Operational signal
+                try:
+                    from lib.operational_signals import record_signal  # noqa: PLC0415
+                    await record_signal(
+                        db, signal="inspection.deficiency",
+                        module="safety.inspections",
+                        dims={"priority": priority,
+                              "stop_work": bool(stop_work),
+                              "auto_fail": int(auto_fail)},
+                    )
+                except Exception:
+                    pass
         except Exception as e:  # noqa: BLE001
             import logging
             logging.getLogger(__name__).warning("[inspection-fanout] failed: %s", e)
@@ -578,6 +590,16 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                 "linked_source_record_id": doc.get("id"),
                 "linked_project_number": doc.get("project_number") or None,
             })
+            # Iter160 · Operational signal — passive throughput observation.
+            try:
+                from lib.operational_signals import record_signal  # noqa: PLC0415
+                await record_signal(
+                    db, signal="incident.created", module="safety.incidents",
+                    dims={"severity": (doc.get("severity") or "")[:24],
+                          "priority": priority},
+                )
+            except Exception:
+                pass
         except Exception as e:  # noqa: BLE001
             import logging
             logging.getLogger(__name__).warning(

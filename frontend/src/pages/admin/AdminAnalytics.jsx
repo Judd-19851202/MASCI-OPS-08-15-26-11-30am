@@ -17,6 +17,7 @@ import {
   Loader2, RefreshCw, Database, Eye,
 } from "lucide-react";
 import AdminShell from "@/components/AdminShell";
+import OperationalSignalsPanel from "@/components/admin/OperationalSignalsPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 
@@ -248,6 +249,9 @@ export default function AdminAnalytics() {
           {" "}{health.total_stored_events?.toLocaleString?.() || 0} events stored · {health.retention_days}-day retention
         </div>
       )}
+
+      {/* ── Operational Signals (Iter160) ───────────────────── */}
+      <OperationalSignalsPanel />
     </AdminShell>
   );
 }

@@ -1,6 +1,57 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter160 · Operational Signal Density · STABILIZED (Phase 2.5 · P1 enhancement)
+
+### Outcome
+Passive, lightweight operational telemetry now flows from all key fan-out tap points into a dedicated admin-only `/admin/analytics` "Operational Signals" section. Sibling discipline to `lib/event_fanout.py` — fire-and-forget, never raises, reuses `db.usage_events` (no new collection, no new schema, no new portal). 18 closed-set signals capturing real operational facts only: incident throughput, CA cycle time, PO turnaround across 5 states, equipment fail frequency, fire-ext pass/fail, doc threshold fires, training deficiencies, offboarding starts.
+
+### Shipped
+- **NEW `backend/lib/operational_signals.py`** — single `record_signal()` helper. Closed `ALLOWED_SIGNALS` (18 entries). Bounded `dims` sanitizer (≤6 keys · k:24/v:48 char truncation · non-scalars dropped). `elapsed_ms_between()` for cycle-time signals. Never raises.
+- **NEW `backend/routes/operational_signals.py`** — `GET /api/admin/operational-signals?window_days=N` (clamped 1..180). Returns `{throughput, cycle_time_ms, equipment_top_failing, doc_threshold_breakdown, deltas}`. Throughput by-day rollup; cycle-time avg/p50/p90 computed in Python (Mongo <7 lacks `$percentile`); deltas compare current vs previous window. Admin-only.
+- **14 tap points wired** at the existing fan-out sites (each one ~5 lines, fire-and-forget try/except):
+  - `safety.py` — `incident.created` after incident insert; `inspection.deficiency` when needs_task fires
+  - `qaqc.py` — `qaqc.deficiency` when fail_count > 0
+  - `equipment.py` — `equipment.fail` (with equipment_id dim) when fail_n > 0
+  - `safety_portal/fire_extinguishers.py` — `fire_ext.fail` OR `fire_ext.pass` on every inspection
+  - `safety_portal/corrective_actions.py` — `ca.created` on insert; `ca.closed` with `elapsed_ms` on status→Closed
+  - `po_requests.py` — `po.submit` · `po.approve` (elapsed_ms from submitted) · `po.reject` · `po.clarify` · `po.receipt` (elapsed from approved) · `po.close` (full lifecycle elapsed) · `po.cancel`
+  - `document_expirations.py` — `doc.threshold_fired` (threshold + category dims) inside scanner
+  - `employee_lifecycle.py` — `hr.offboarding_started` after playbook fan-out
+  - `field_leadership.py` — `training.deficiency` when record kind == training_deficiency
+- **NEW `frontend/components/admin/OperationalSignalsPanel.jsx`** — compact admin-only panel mounted at the bottom of `/admin/analytics`. 8 throughput tiles with 30-day delta arrows + deep links to underlying records. Cycle-time table (n/avg/p90 formatted in human time). Top-failing-equipment list + doc-threshold-breakdown list. Empty states use `border-dashed`. Window selector (7d/30d/90d). No charts, no marketing tiles, no AI/predictive scoring.
+- **NEW `backend/tests/test_iter160_operational_signals.py`** — 16 tests covering: recorder persistence, fire-and-forget guarantee, unknown-signal drop, dims sanitization, admin-gating, endpoint contract, throughput aggregation correctness, cycle-time correctness, equipment top-failing rollup, doc threshold breakdown, existing analytics isolation, window clamping, TTL preservation, PII truncation, CA create→close cycle-time integration. **16/16 PASS.**
+
+### Verification
+- **Backend**: 16/16 new pytest + regression-clean (iter150 12/12 after pre-existing test-pollution cleanup).
+- **Frontend (live)**: panel renders with REAL telemetry — 8 tiles populated (Incidents=2, CAs=8, Equipment Fails=1, Fire-ext Fails=1, Doc Threshold=11, Offboardings=5), 4 cycle-time rows (PO approval avg 5s · p90 25s, PO receipt avg 3s · p90 3s), 8-row doc threshold breakdown across (employee/safety/equipment/company) × (7d/60d/expired). Zero console errors.
+- **Endpoint contract**: anon → 401, admin → 200 with full payload, window clamping 1..180 verified.
+- **Permission**: admin-only via `require_admin` dependency.
+
+### Guardrails honored
+- ✅ No new collections (reuses `db.usage_events`)
+- ✅ No new portal, no new dashboard, no flashy charts
+- ✅ Recorder NEVER raises — workflow protected
+- ✅ TTL 90d intact (operational_signal rows inherit usage_events TTL)
+- ✅ No PII (48-char string bound, non-scalar dims dropped)
+- ✅ Existing `/admin/analytics/routes` aggregations unaffected (filters by `kind='api_call'`, our rows are `kind='operational_signal'`)
+- ✅ Closed signal vocabulary — no accidental scope creep
+
+### Bug fixed during stabilization
+- Initial implementation used `int(window_days or 30)` which folded `window_days=0` back to 30. Fixed via try/except + explicit `max(1, min(wd_raw, 180))` clamp.
+- `api.get('/api/admin/operational-signals')` resulted in `/api/api/...` double-prefix 404. Fixed to `api.get('/admin/operational-signals')` since `api` axios instance already has `baseURL=${BACKEND_URL}/api`.
+
+### Next Action Items
+- 🔵 **Phase H — Project / Job Health Dashboard (P2)**: Aggregate Tasks · Documents · POs · Notifications · Equipment by project. Green/Yellow/Red traffic light. Legal footer "Operational Health Indicator — not a compliance guarantee."
+- 🟢 **Phase I — Asset Transfer System (P2)**: Formal tracking tied to Dispatch + equipment_master + Tasks + Notifications.
+- 🟢 **Phase J — Low-Connection / Field Resiliency Layer (P2)**: autosave drafts, upload retries, duplicate-submit prevention.
+- 🟡 Post-deploy: design tokens 80% pass (cosmetic, zero visual change).
+
+### Telemetry maturity note
+Operational Signals now collects in real-time. After 30 days of production use, deltas + cycle-time p90 will surface true operational bottlenecks (slow PO turnaround, repeat equipment offenders, training cadence). The data path is established — it observes, it does NOT prescribe. Future iters can act on the signal density that accumulates.
+
+
+---
 ## 2026-05-16 — Iter D · Final QA + Deployment Readiness Gate · STABILIZED ✅ READY FOR DEPLOYMENT
 
 ### Outcome

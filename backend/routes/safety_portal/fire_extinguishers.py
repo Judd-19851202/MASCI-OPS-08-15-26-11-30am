@@ -116,8 +116,9 @@ def register_fire_extinguisher_routes(
         # Pass status is silent. Fire-and-forget.
         try:
             status_lc = (body.status or "").lower()
-            if status_lc in ("fail", "needs service", "needs_service",
-                             "tag missing", "missing", "damaged"):
+            is_fail = status_lc in ("fail", "needs service", "needs_service",
+                                    "tag missing", "missing", "damaged")
+            if is_fail:
                 from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
                 title = (f"Fire extinguisher {existing.get('unit_id') or fe_id} "
                          f"flagged {body.status}")
@@ -146,6 +147,16 @@ def register_fire_extinguisher_routes(
                         "linked_source_record_id": fe_id,
                     },
                 )
+            # Iter160 · Operational signal — record pass AND fail outcomes.
+            try:
+                from lib.operational_signals import record_signal  # noqa: PLC0415
+                sig = "fire_ext.fail" if is_fail else "fire_ext.pass"
+                await record_signal(
+                    db, signal=sig, module="safety.fire_extinguishers",
+                    dims={"status": (body.status or "")[:24]},
+                )
+            except Exception:
+                pass
         except Exception as e:  # noqa: BLE001
             import logging
             logging.getLogger(__name__).warning("[fire-ext-fanout] failed: %s", e)

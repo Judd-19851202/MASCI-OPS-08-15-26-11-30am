@@ -237,6 +237,17 @@ async def scan_thresholds(db, dry_run: bool = False) -> Dict[str, Any]:
                     await notification_service.fanout(db, payload_notif)
                 except Exception as e:  # pragma: no cover
                     logger.warning("expiration notification failed: %s", e)
+                # Iter160 · Operational signal — doc threshold fire.
+                try:
+                    from lib.operational_signals import record_signal  # noqa: PLC0415
+                    await record_signal(
+                        db, signal="doc.threshold_fired",
+                        module="documents.expiration",
+                        dims={"threshold": int(thr),
+                              "category": (d.get("category") or "")[:24]},
+                    )
+                except Exception:
+                    pass
                 # Mark threshold fired
                 await db.document_expirations.update_one(
                     {"id": d["id"]},

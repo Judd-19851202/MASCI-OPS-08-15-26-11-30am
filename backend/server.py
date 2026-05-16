@@ -8350,6 +8350,14 @@ from routes.operations_center import build_operations_center_router  # noqa: E40
 app.include_router(build_operations_center_router(db, _require_any_portal_token))
 
 
+# ─── Operational Signals (iter160 — Phase 2.5 · Operational Signal Density) ──
+# Admin-only aggregation of operational events recorded at fan-out tap points.
+# Reuses db.usage_events collection (kind='operational_signal'). No new
+# data model. Passive observability — workflow-impact-free by design.
+from routes.operational_signals import build_operational_signals_router  # noqa: E402
+app.include_router(build_operational_signals_router(db, require_admin))
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 

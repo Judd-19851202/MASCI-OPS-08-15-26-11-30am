@@ -208,6 +208,16 @@ async def _fan_out_offboarding_playbook(
                 created.append(task_id)
         except Exception as e:  # pragma: no cover
             logger.warning("offboarding playbook task failed: %s", e)
+    # Iter160 · Operational signal — offboarding started.
+    try:
+        from lib.operational_signals import record_signal  # noqa: PLC0415
+        await record_signal(
+            db, signal="hr.offboarding_started", module="hr.offboarding",
+            dims={"new_status": (new_status or "")[:24],
+                  "tasks_created": len(created)},
+        )
+    except Exception:
+        pass
     return created
 
 

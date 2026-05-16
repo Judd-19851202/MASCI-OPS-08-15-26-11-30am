@@ -570,6 +570,24 @@ def build_po_requests_router(
         await db.po_requests.update_one({"id": po_id}, {"$set": update})
         await _audit_push(db, po_id, audit_action, actor,
                            {"notes": body.notes})
+
+        # Iter160 · Operational signal — PO state transition with cycle time.
+        try:
+            from lib.operational_signals import record_signal, elapsed_ms_between  # noqa: PLC0415
+            sig_map = {"approve": "po.approve",
+                       "reject": "po.reject",
+                       "clarify": "po.clarify"}
+            sig = sig_map.get(action)
+            if sig:
+                ems = (elapsed_ms_between(existing.get("created_at"), now)
+                       if action == "approve" else None)
+                await record_signal(
+                    db, signal=sig, module="po.requests",
+                    elapsed_ms=ems,
+                    dims={"urgency": (existing.get("urgency") or "")[:24]},
+                )
+        except Exception:
+            pass
         return await get_po(po_id, actor=actor)
 
     @router.post("/api/po-requests/{po_id}/receipt")
@@ -629,6 +647,18 @@ def build_po_requests_router(
         await db.po_requests.update_one({"id": po_id}, {"$set": update})
         await _audit_push(db, po_id, "receipt_uploaded", actor,
                            {"filename": file.filename})
+
+        # Iter160 · Operational signal — PO receipt cycle (approved → receipt).
+        try:
+            from lib.operational_signals import record_signal, elapsed_ms_between  # noqa: PLC0415
+            ems = elapsed_ms_between(existing.get("approved_at"), now)
+            await record_signal(
+                db, signal="po.receipt", module="po.requests",
+                elapsed_ms=ems,
+                dims={"urgency": (existing.get("urgency") or "")[:24]},
+            )
+        except Exception:
+            pass
         return await get_po(po_id, actor=actor)
 
     @router.post("/api/po-requests/{po_id}/respond-clarification")
@@ -675,11 +705,25 @@ def build_po_requests_router(
     ) -> Dict[str, Any]:
         if not _can_approve(actor):
             raise HTTPException(403, "Not authorized to close POs")
+        existing = await db.po_requests.find_one({"id": po_id}, {"_id": 0})
+        now = datetime.now(timezone.utc)
         await db.po_requests.update_one({"id": po_id}, {"$set": {
             "status": "Closed",
-            "updated_at": datetime.now(timezone.utc),
+            "updated_at": now,
         }})
         await _audit_push(db, po_id, "closed", actor)
+
+        # Iter160 · Operational signal — PO close full lifecycle cycle time.
+        try:
+            from lib.operational_signals import record_signal, elapsed_ms_between  # noqa: PLC0415
+            ems = elapsed_ms_between((existing or {}).get("created_at"), now)
+            await record_signal(
+                db, signal="po.close", module="po.requests",
+                elapsed_ms=ems,
+                dims={"urgency": ((existing or {}).get("urgency") or "")[:24]},
+            )
+        except Exception:
+            pass
         return await get_po(po_id, actor=actor)
 
     @router.post("/api/po-requests/{po_id}/cancel")
@@ -692,6 +736,16 @@ def build_po_requests_router(
             "updated_at": datetime.now(timezone.utc),
         }})
         await _audit_push(db, po_id, "cancelled", actor)
+
+        # Iter160 · Operational signal — PO cancel.
+        try:
+            from lib.operational_signals import record_signal  # noqa: PLC0415
+            await record_signal(
+                db, signal="po.cancel", module="po.requests",
+                dims={},
+            )
+        except Exception:
+            pass
         return await get_po(po_id, actor=actor)
 
     # Admin-only scanner

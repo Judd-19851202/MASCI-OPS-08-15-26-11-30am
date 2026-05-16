@@ -426,6 +426,18 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
         await db.field_leadership_records.insert_one(dict(rec))
 
+        # Iter160 · Operational signal — training deficiency throughput.
+        try:
+            if (rec.get("kind") or "") == "training_deficiency":
+                from lib.operational_signals import record_signal  # noqa: PLC0415
+                await record_signal(
+                    db, signal="training.deficiency",
+                    module="field_leadership.records",
+                    dims={"kind": "training_deficiency"},
+                )
+        except Exception:
+            pass
+
         # Best-effort email + photo indexer (fire-and-forget)
         try:
             await _send_submit_email(rec)

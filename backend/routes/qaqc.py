@@ -256,6 +256,15 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
                     "linked_source_record_id": doc.get("id"),
                     "linked_project_number": pn or None,
                 })
+                # Iter160 · Operational signal
+                try:
+                    from lib.operational_signals import record_signal  # noqa: PLC0415
+                    await record_signal(
+                        db, signal="qaqc.deficiency", module="qaqc.inspections",
+                        dims={"priority": priority, "fail_count": int(fs)},
+                    )
+                except Exception:
+                    pass
         except Exception as e:  # noqa: BLE001
             import logging
             logging.getLogger(__name__).warning("[qaqc-fanout] failed: %s", e)

@@ -280,6 +280,19 @@ def register_equipment_routes(
                     "linked_source_record_id": insp.id,
                     "linked_equipment_id": eq_id_for_link,
                 })
+                # Iter160 · Operational signal — equipment fail throughput
+                try:
+                    from lib.operational_signals import record_signal  # noqa: PLC0415
+                    await record_signal(
+                        db, signal="equipment.fail", module="equipment.preop",
+                        dims={
+                            "priority": priority,
+                            "fail_count": int(fail_n),
+                            "equipment_id": (eq_id_for_link or "")[:48],
+                        },
+                    )
+                except Exception:
+                    pass
             except Exception as e:  # noqa: BLE001
                 import logging
                 logging.getLogger(__name__).warning("[preop-fanout] failed: %s", e)
