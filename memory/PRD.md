@@ -1,6 +1,77 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter180 · PM-Token Admin-Namespace Lockdown · ✅ FIXED (production redeploy pending)
+
+### User mandate (follow-up to iter179 testing-agent finding)
+> "Tighten it. PM should NOT unlock Admin read endpoints. PM users are not Admin users and should not have access to /api/admin/* unless a specific endpoint is intentionally exposed through a separate PM-safe API."
+
+### Root cause (semi-admin legacy design)
+`require_admin` and `require_shop_or_admin` both accepted PM tokens. PMs got 200 on `/api/admin/check`, `/api/admin/deploy-readiness`, `/api/admin/integrations/health`, `/api/admin/analytics/summary`, `/api/admin/operational-signals`, `/api/admin/hr-users`, `/api/admin/shop-users`, `/api/admin/dispatch-users`, `/api/admin/equipment-master/archive` and many more. Error responses literally said "Admin or PM login required" — by-design but never re-evaluated.
+
+### Fix (iter180 — single-point gate hardening)
+Modified `require_admin`, `require_admin_async`, and `require_shop_or_admin` in `/app/backend/server.py` so that:
+- If `request.scope["path"]` starts with `/api/admin/`, **PM tokens (and Shop tokens for require_shop_or_admin) are rejected outright**
+- Admin tokens continue to unlock unchanged
+- Non-`/api/admin/*` routes (jobs, equipment, safety, inspections, …) remain PM-readable for project-scoped business data
+- Error message on admin-namespace failures is now "Admin login required" (was "Admin or PM login required") — honest about the gate
+
+**One-point change, zero per-route edits.** ~200 routes that depend on these gates are tightened in one commit.
+
+### Regression tests (`test_iter180_pm_token_admin_namespace_lockdown.py` — 8/8 ✅)
+- PM token → 401 on 22 sampled `/api/admin/*` GETs
+- PM token → 401 on `POST /api/admin/logout`
+- PM token → 401 on K4b mutation endpoints
+- PM token → 200 on `/api/pm/me`, `/api/jobs`, `/api/inspections`, `/api/job-hazard-plans`, `/api/trench-boxes` (sanity — no over-tightening)
+- Admin token → 200 on every sampled admin endpoint (gate not over-strict)
+- Anon → still blocked (iter179 carry-through)
+- Error message no longer mentions "PM" on admin-namespace failures
+
+### Live preview probe (proves the lockdown end-to-end)
+```
+== iter180 PM-token-on-admin matrix ==
+/api/admin/check                   PM=401
+/api/admin/deploy-readiness        PM=401
+/api/admin/integrations/health     PM=401
+/api/admin/analytics/summary       PM=401
+/api/admin/operational-signals     PM=401
+/api/admin/hr-users                PM=401
+/api/admin/shop-users              PM=401
+/api/admin/dispatch-users          PM=401
+/api/admin/directory               PM=401
+/api/admin/audit                   PM=401
+/api/admin/equipment-master/archive PM=401
+/api/admin/banners                 PM=401
+/api/admin/training/stats          PM=401
+== Sanity: PM still works on legitimate non-admin endpoints ==
+/api/pm/me, /api/jobs, /api/inspections — all 200
+```
+
+### Cumulative regression
+**164/164 PASS** — K1 + K2 + K3 + K4a + K4b + iter178 + iter179 + iter180 + login. Pre-existing failures in test_iter137 (deploy-readiness `attention` vs `ready`) and test_iter140 are environment-data drift, not gate regressions (confirmed by `git stash` re-run).
+
+### Audit of similar "semi-admin" exceptions (per user mandate)
+Scanned every protected dep across `/app/backend`. Result:
+- **Tightened**: `require_admin`, `require_admin_async`, `require_shop_or_admin` (all server.py)
+- **Already strict**: `require_admin_strict`, `require_admin_strict_dep`
+- **By-design cross-portal reads** (NOT tightened — these accept multiple portal tokens by intentional design for cross-portal data viewing): `make_require_any_portal_token` on `/api/operations/*` READS. These are correctly scoped non-admin endpoints (Safety/HR/Shop/PM/Dispatch can read operational events) and do NOT route under `/api/admin/*`.
+- **By-design**: `require_admin_or_dispatch` on `/api/operations/*` WRITES.
+
+### Production status
+- ✅ iter179 + iter180 both committed to preview
+- 🟡 Production (`mascidocs.com`) still vulnerable until next redeploy. Both should ship together.
+
+### Next Action Items
+- 🔴 USER: redeploy iter179 + iter180 to production (single deploy — both are interlocked)
+- 🔴 USER: live-verify on mascidocs.com:
+  1. Super admin → sign out → HR login → confirm no Admin button on HR hub
+  2. Direct nav to `/admin` as HR-only → "403 · Access Restricted"
+  3. Log in as PM (`chriswright@mascigc.com`) → call any `/api/admin/*` from devtools → confirm 401
+  4. PM portal (`/pm`) still loads jobs / inspections normally
+- ⏸ K4b frontend, K5 — paused until P0 verified in production
+
+
+---
 ## 2026-05-16 — Iter179 · P0 Access-Control Hardening · ✅ FIXED (production redeploy required)
 
 ### Bug as reported

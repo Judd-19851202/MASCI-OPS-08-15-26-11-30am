@@ -227,20 +227,32 @@ def require_dev(x_dev_token: Optional[str] = Header(default=None)):
 
 
 async def require_admin(
+    request: Request,
     x_admin_token: Optional[str] = Header(default=None),
     x_pm_token: Optional[str] = Header(default=None),
 ):
-    """FastAPI dependency. Accepts an Admin OR a Project-Manager token.
+    """FastAPI dependency. Accepts an Admin OR a Project-Manager token —
+    EXCEPT on routes whose path starts with ``/api/admin/``, where PM
+    tokens are rejected and only Admin tokens unlock.
 
-    PMs need access to the same day-to-day office surface (jobs, equipment,
-    employees, safety records, posters, compliance exports). Backup &
-    recovery routes use ``require_admin_strict`` instead so a fired PM
-    cannot exfiltrate or wipe the system on the way out.
+    PMs need access to the same day-to-day office surface (jobs,
+    equipment, employees, safety records, posters, compliance exports)
+    that lives under non-``/admin/*`` paths. Backup & recovery routes
+    use ``require_admin_strict`` instead so a fired PM cannot
+    exfiltrate or wipe the system on the way out.
+
+    Iter180 P0 follow-up (2026-05-16) — per user mandate, every
+    ``/api/admin/*`` route must be strict-admin. Previously this gate
+    silently accepted PM tokens against admin namespace routes
+    (legacy semi-admin design), which the testing agent flagged
+    during the iter179 access-control sweep. This change closes the
+    surface without touching the 200+ non-``/admin/*`` PM-readable
+    routes that legitimately rely on this dep for project scoping.
 
     Async because per-PM tokens (introduced 2026-05-05) require a DB
-    lookup on ``project_managers`` to match the stored bcrypt-hash prefix
-    embedded in the token. Legacy shared-PM tokens and admin tokens
-    validate without DB I/O.
+    lookup on ``project_managers`` to match the stored bcrypt-hash
+    prefix embedded in the token. Legacy shared-PM tokens and admin
+    tokens validate without DB I/O.
     """
     expected_pw = os.environ.get("ADMIN_PASSWORD", "")
     pm_pw = os.environ.get("PM_PASSWORD", "")
@@ -248,40 +260,57 @@ async def require_admin(
         return True
     if x_admin_token and _is_valid_admin_token(x_admin_token):
         return True
-    if x_pm_token:
+
+    # Iter180: PM tokens are NOT accepted on the admin namespace.
+    # request.scope["path"] is the path AFTER FastAPI routing, which
+    # for our setup is "/api/admin/..." for every admin endpoint.
+    path = (request.scope.get("path") or request.url.path or "").lower()
+    admin_namespace = path.startswith("/api/admin/") or path == "/api/admin"
+    if x_pm_token and not admin_namespace:
         # New per-PM token → has a `.` between pm_id and the HMAC.
         if "." in x_pm_token:
             from pm_auth import is_valid_pm_user_token_async
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
             if pm_doc:
-                # Return the PM doc (not just True) so list endpoints can
-                # apply per-PM data scoping. Existing callers that ignore
-                # the value (``_: bool = Depends(require_admin)``) keep
-                # working since a non-empty dict is truthy.
+                # Return the PM doc (not just True) so list endpoints
+                # can apply per-PM data scoping. Existing callers that
+                # ignore the value (``_: bool = Depends(require_admin)``)
+                # keep working since a non-empty dict is truthy.
                 return pm_doc
         # Legacy shared-PM token (env-flag bypass).
         elif _is_valid_pm_token(x_pm_token):
             return True
     if not x_admin_token and not x_pm_token:
+        # On admin namespace routes, the error message is admin-only
+        # so PM users get a precise signal instead of "Admin or PM".
+        if admin_namespace:
+            raise HTTPException(status_code=401, detail="Admin login required")
         raise HTTPException(status_code=401, detail="Admin or PM login required")
+    if admin_namespace:
+        raise HTTPException(status_code=401, detail="Invalid admin token")
     raise HTTPException(status_code=401, detail="Invalid admin/PM token")
 
 
 async def require_admin_async(
+    request: Request,
     x_admin_token: Optional[str] = Header(default=None),
     x_pm_token: Optional[str] = Header(default=None),
 ):
     """Variant of ``require_admin`` that returns the PM doc (instead of
     just True) when a per-PM token authenticates the request. Used by
     routes that need to identify which PM is logged in (``/pm/me``,
-    ``/pm/change-password``)."""
+    ``/pm/change-password``). Iter180: PM tokens are still rejected on
+    any ``/api/admin/*`` route — the same namespace lockdown as the
+    primary ``require_admin`` gate."""
     expected_pw = os.environ.get("ADMIN_PASSWORD", "")
     pm_pw = os.environ.get("PM_PASSWORD", "")
     if not expected_pw and not pm_pw:
         return True
     if x_admin_token and _is_valid_admin_token(x_admin_token):
         return True
-    if x_pm_token:
+    path = (request.scope.get("path") or request.url.path or "").lower()
+    admin_namespace = path.startswith("/api/admin/") or path == "/api/admin"
+    if x_pm_token and not admin_namespace:
         if "." in x_pm_token:
             from pm_auth import is_valid_pm_user_token_async
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
@@ -289,6 +318,10 @@ async def require_admin_async(
                 return pm_doc
         elif _is_valid_pm_token(x_pm_token):
             return True
+    if admin_namespace:
+        if not x_admin_token:
+            raise HTTPException(status_code=401, detail="Admin login required")
+        raise HTTPException(status_code=401, detail="Invalid admin token")
     raise HTTPException(status_code=401, detail="Admin or PM login required")
 
 
@@ -311,15 +344,26 @@ def _shop_token_for(password: str) -> str:
 
 
 async def require_shop_or_admin(
+    request: Request,
     x_admin_token: Optional[str] = Header(default=None),
     x_shop_token: Optional[str] = Header(default=None),
     x_pm_token: Optional[str] = Header(default=None),
 ):
-    """Accepts an Admin, PM, or Shop token.
+    """Accepts an Admin, PM, or Shop token — EXCEPT on routes under
+    ``/api/admin/``, where PM and Shop tokens are rejected and only
+    Admin tokens unlock.
 
-    Used on equipment master / equipment-parts / inspection-signoff routes
-    that any of the three personas can legitimately touch. Backup &
-    recovery routes still use ``require_admin_strict``.
+    Used on equipment master / equipment-parts / inspection-signoff
+    routes that any of the three personas can legitimately touch.
+    Backup & recovery routes still use ``require_admin_strict``.
+
+    Iter180 P0 follow-up (2026-05-16) — per user mandate, every
+    ``/api/admin/*`` route must be strict-admin. The
+    ``require_shop_or_admin`` gate previously leaked Shop and PM
+    tokens onto admin-namespace routes (notably
+    ``/api/admin/equipment-master/archive``). This change closes that
+    surface without touching non-``/admin/*`` routes (equipment lists,
+    inspections, etc.) that all three personas legitimately read.
 
     Returns ``True`` for admin / shop / legacy-shared-PM, returns the
     PM doc for per-PM tokens (so list endpoints can apply data
@@ -333,6 +377,15 @@ async def require_shop_or_admin(
         return True  # all gates disabled
     if x_admin_token and _is_valid_admin_token(x_admin_token):
         return True
+
+    # Iter180: Shop + PM tokens are NOT accepted on the admin namespace.
+    path = (request.scope.get("path") or request.url.path or "").lower()
+    admin_namespace = path.startswith("/api/admin/") or path == "/api/admin"
+    if admin_namespace:
+        if not x_admin_token:
+            raise HTTPException(status_code=401, detail="Admin login required")
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+
     if x_pm_token:
         if "." in x_pm_token:
             from pm_auth import is_valid_pm_user_token_async
