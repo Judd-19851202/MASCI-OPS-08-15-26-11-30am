@@ -8853,6 +8853,15 @@ async def _bootstrap_user_directory():
         await run_startup_mirror(db)
     except Exception as e:  # noqa: BLE001
         logging.getLogger(__name__).exception(f"[identity-mirror] startup hook failed: {e}")
+    # Phase K3 (iter175) — non-enforcing role-template seed. Populates
+    # role_templates collection with built-in templates per portal.
+    # Nothing yet reads from this collection (K6 wiring is deferred).
+    # Idempotent. Failures logged, never block startup.
+    try:
+        from lib.role_templates import run_startup_seed
+        await run_startup_seed(db)
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).exception(f"[role-templates] startup hook failed: {e}")
 
 
 # Weekly variance email cron (Sunday 18:00 UTC by default).

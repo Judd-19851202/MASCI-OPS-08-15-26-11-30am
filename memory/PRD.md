@@ -1,6 +1,87 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter175 · Phase K3 · Role Template System · ✅ COMPLETE (non-enforcing)
+
+### Outcome
+Phase K3 (role-template inheritance foundation) shipped to preview. **Non-enforcing — nothing in `routes/*` reads `role_templates` yet.** Foundation for K4 (user-management UI surfacing templates) and K6 (enforcement cutover that swaps `role == "..."` for template-driven `can()` calls).
+
+### What shipped
+**`/app/backend/lib/role_templates.py`** (~550 lines):
+- **31 built-in role templates** spanning all 7 portals
+- `SEED_TEMPLATES` constant — single source of truth for the built-in catalog
+- `seed_role_templates(db)` — idempotent backfill, refreshes system rows, never touches custom (`system != True`) rows
+- `_validate_one(t)` — schema check (id/portal/name required, id must start with `rt-`, portal in `PORTALS`, no self-inheritance, every action MUST be in `rbac.KNOWN_ACTIONS`, non-list rejected)
+- `_detect_cycles(by_id)` — Tarjan-style DFS, fatal at seed time
+- `_resolve_in_memory(template_id, by_id)` — fast resolver, **fails closed on cycles + missing parents + unknown actions** (returns narrower set, never broader)
+- `resolve_actions(db, template_id)` — async DB-backed resolver
+- `ensure_indexes(db)` — `id_unique`, `portal_idx`, `active_idx`
+- `run_startup_seed(db)` — FastAPI startup hook, fire-and-forget, never raises
+
+**`/app/backend/server.py`** — extended startup event to call `run_startup_seed(db)` after K1 mirror.
+
+**`/app/backend/tests/test_iter175_phase_k3_role_templates.py`** — **43 tests**.
+
+### Live verification (preview)
+```
+role_templates count: 31
+indexes: ['_id_', 'active_idx', 'id_unique', 'portal_idx']
+
+Startup logs:
+  [role-templates] startup seed complete: valid=31 inserted=31 updated=0 cyclic_skipped=0   ← first boot
+  [role-templates] startup seed complete: valid=31 inserted=0 updated=31 cyclic_skipped=0   ← second boot (idempotent ✅)
+
+Hierarchies:
+  pm:         PM Read Only → Coordinator → Engineer → Assistant PM → Project Manager
+  hr:         HR Read Only → Coordinator → HR Manager (diamond: also inherits from Payroll Specialist)
+  shop:       Shop Read Only → Mechanic / Service Writer / Parts Coordinator → Shop Manager (3-way union)
+  safety:     Safety Read Only → Coordinator → Director
+  dispatch:   Dispatch Read Only → Dispatcher → Fleet Coordinator → Manager
+  leadership: Foreman → Superintendent → Senior Superintendent
+  admin:      System Admin (empty actions — gates via is_super_admin) + Executive Viewer (read-only)
+  every portal also has an "Other" escape-hatch template with zero actions
+```
+
+### Existing logins verified post-K3
+- ✅ HR login works
+- ✅ Shop login works
+- ✅ Admin login works
+- ✅ Multi-login super admin grants all 6 portals
+- ✅ 5/5 anon gate matrix 401 (no regressions)
+
+### Tests
+- **43/43 PASS** Phase K3 role-template tests
+- **139/139 PASS** including K1 + K2 + K3 + Phase H + I + J + Operations Center cumulative regression — **zero side-effects**
+
+### Discipline held
+- ✅ Zero enforcement wired (no `routes/*` reads `role_templates`)
+- ✅ Zero new HTTP endpoints
+- ✅ Zero UX changes
+- ✅ Zero auth-flow changes
+- ✅ Catalog alignment with K2 (every seed action validated against `rbac.KNOWN_ACTIONS`)
+- ✅ Fail-closed semantics across validation + cycle detection + resolver
+- ✅ Custom (non-system) rows protected from seed clobbering
+- ✅ Super admin remains universal via `rbac.is_super_admin` (K3 template has empty actions — admin gates above the template layer)
+- ✅ Field Leadership hierarchy architecturally supported (Foreman ⊆ Superintendent ⊆ Senior Sup) WITHOUT touching shared MASCIGC access — that's still K7 work
+
+### What this enables (K4-K9, all deferred)
+- **K4** — Admin User Management UI surfacing the directory + assigning role templates to users (no enforcement yet)
+- **K5** — Temp password / first-login reset / lockout flow (**will trigger `integration_playbook_expert_v2` call** for auth logic)
+- **K6** — Enforcement cutover: swap scattered `role == "..."` checks for `require(actor, "...")` and start consulting per-user role template assignments
+- **K7** — Field Leadership named-user transition (from shared MASCIGC). Hierarchy is already modeled — only need to flip the auth path.
+- **K8** — Per-portal enforcement cutover with observation window between portals
+- **K9** — Decommission legacy auth paths
+
+### Observation window status
+🟢 **REMAINS OPEN.** K3 is non-enforcing foundation work consistent with the window's allowances. K4 next on approval — no user action required to retain current behavior.
+
+### Next Action Items
+- 🟢 USER: When ready, redeploy to push K3 to production (silent — nothing reads `role_templates` yet)
+- 🟢 USER: confirm whether to proceed to **K4 (User Management UI)** in the next iteration or pause for production observation
+- 🟢 AGENT: standby — K4 BLOCKED on explicit user direction
+
+
+---
 ## 2026-05-16 — Iter174 · Phase K2 · Centralized RBAC Service Layer · ✅ COMPLETE (non-enforcing)
 
 ### Outcome
