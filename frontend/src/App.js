@@ -133,6 +133,7 @@ import Tasks from "@/pages/Tasks";
 import DocumentExpirations from "@/pages/DocumentExpirations";
 import HrEmployees from "@/pages/HrEmployees";
 import PoRequests from "@/pages/PoRequests";
+import ProjectHealth from "@/pages/ProjectHealth";
 import AccessDenied from "@/pages/AccessDenied";
 import GlobalFooter from "@/components/GlobalFooter";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -522,6 +523,9 @@ function App() {
             <Route path="/hr/employees" element={<HrEmployees />} />
             {/* PO Requests — Iter153 (Phase 2.5 · Phase D) */}
             <Route path="/po-requests" element={<PoRequests />} />
+            {/* Project Health — Phase H · per-project friction view.
+                Server-side role gate (403 for HR/Shop/Dispatch/FL). */}
+            <Route path="/project-health" element={<ProjectHealth />} />
             {/* Fallback — explicit 403 for any path we deliberately
                 want to land on AccessDenied (kept hidden, used by
                 tooling/diagnostics). */}

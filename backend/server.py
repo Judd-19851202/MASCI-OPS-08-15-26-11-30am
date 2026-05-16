@@ -8358,6 +8358,16 @@ from routes.operational_signals import build_operational_signals_router  # noqa:
 app.include_router(build_operational_signals_router(db, require_admin))
 
 
+# ─── Project Health Dashboard (Phase H) ──────────────────────────────
+# Per-project operational friction summary. Aggregates the SAME shared
+# infrastructure streams Operations Center uses (tasks · POs · docs ·
+# incidents · CAs), keyed on project_number. NO new collection, NO
+# duplicate SOT. Role-scoped: admin/exec/safety see all · PM scope-
+# filtered · HR/Shop/Dispatch/FL get 403 (not their primary lens).
+from routes.project_health import build_project_health_router  # noqa: E402
+app.include_router(build_project_health_router(db, _require_any_portal_token))
+
+
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 

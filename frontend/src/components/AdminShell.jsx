@@ -45,6 +45,7 @@ const SECTIONS = [
   { key: "tasks",      to: "/tasks",            icon: ClipboardCheck,  label: "Tasks & Actions", desc: "Cross-portal accountability · Open · Overdue · Completed" },
   { key: "expirations", to: "/document-expirations", icon: ClipboardCheck, label: "Document Expirations", desc: "OSHA · TWIC · CDL · Registrations · Inspections" },
   { key: "po",         to: "/po-requests",       icon: ClipboardCheck,  label: "PO Requests",     desc: "Field POs · approvals · receipt tracking" },
+  { key: "project-health", to: "/project-health", icon: Activity,        label: "Project Health",  desc: "Operational friction by job · per-project status" },
   { key: "dispatch",   to: "/admin/dispatch",   icon: Truck,           label: "Dispatch Portal", desc: "Transfers · Holds · Utilization" },
   { key: "events",     to: "/admin/operations-events", icon: Activity, label: "Operations Events", desc: "Append-only log · platform history" },
   { key: "integrations", to: "/admin/integrations", icon: Cable,       label: "Integrations",    desc: "Motive · MaintainX · CSV import/export" },

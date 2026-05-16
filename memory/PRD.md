@@ -1,6 +1,55 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter163 · Phase H · Project / Job Health Dashboard · STABILIZED (P2 closed)
+
+### Outcome
+Per-project operational friction map. Reuses the SAME shared infrastructure streams that drive Operations Center (tasks · POs · documents · incidents · corrective actions), keyed on `project_number` instead of role. NO new collection, NO duplicate source-of-truth, NO scoring engine, NO AI. Sortable table with deterministic Green/Amber/Red ladder + mandatory legal footer.
+
+### Shipped
+- **Backend `routes/project_health.py`** (new) — `GET /api/project-health`. Bulk-aggregated probes for 8 indicators (tasks_overdue · pos_pending_approval · pos_missing_receipt · pos_overdue_receipt · docs_expiring (14d) · docs_expired · incidents_open · ca_overdue) + auxiliary high-severity-incident probe for the red rule. Single aggregation per indicator across all visible projects (`$match` with `$in: pnums`, `$group` by project_number) — N projects + 9 aggregations in parallel via `asyncio.gather`. Status ladder is deterministic + simple + explainable.
+- **Backend role gate** — `ALLOWED_ROLES = {admin, executive, safety, pm}`. HR/Shop/Dispatch/FL → 403. PM scoped via `compute_pm_scope` from `pm_auth`.
+- **Frontend `pages/ProjectHealth.jsx`** (new) — sortable table at `/project-health`. Summary strip (Red/Amber/Green/Total) doubles as click-to-filter. Filter chips + sort dropdown. Each row: status badge (dot + label) · project_number + name · 8 indicator counts (clickable deep-link when non-zero, em-dash when zero). Mandatory legal disclaimer footer.
+- **Navigation** — mounted in AdminShell sidebar (admin section) and PmHub form-tile grid. Both use `Activity` lucide icon.
+- **App.js** — added `<Route path="/project-health">`.
+- **Tests** — `test_iter163_phase_h_project_health.py`: 14 tests covering anon-401, HR/Dispatch 403, admin+safety 200, response contract, default sort worst-first, status ladder (green/amber/red trigger conditions all hit), PM scope filter, discipline guard (no new SOT collection).
+
+### Status ladder (per user spec — locked, explainable, configurable)
+- 🔴 **Red** = ≥1 doc EXPIRED · ≥1 PO Overdue-Receipt · ≥1 incident open with severity High/Critical/Severe · ≥3 tasks overdue · ≥3 CAs overdue
+- 🟡 **Amber** = ≥1 task overdue · ≥1 PO missing receipt · ≥1 doc expiring within 14d · ≥1 CA overdue (and not red)
+- 🟢 **Green** = no friction
+
+### Verification
+- **Backend**: 14/14 pytest PASS · ruff clean.
+- **Live data**: 29 active projects from `db.jobs_master` — all currently Green (clean state, no friction). Summary strip shows Red 0 · Amber 0 · Green 29 · Total 29. Sort default = worst-first. Table renders cleanly with em-dash placeholders for zero counts.
+- **Mandatory disclaimer footer** confirmed live with EXACT user-required wording: *"Operational Health Indicator — based on live operational signals, not a compliance guarantee. Project status is informational; consult HR / Safety / PM for binding determinations."*
+- **Role gating** verified: admin 200 · safety 200 · HR 403 · dispatch 403 · PM scope-filtered.
+- **Mobile-safe**: table wraps in `overflow-x-auto`, summary collapses to 2-col on small screens, filter chips + header use `flex-wrap`.
+
+### Bug fixed during implementation
+- Initial implementation read from `db.projects` (empty) — corrected to `db.jobs_master` (29 active rows). Project name field is `project_name` (not `name`).
+
+### Guardrails honored
+- ✅ NO new collection · NO duplicate source-of-truth
+- ✅ NO charts · NO BI dashboard theater · NO compliance certification language
+- ✅ NO AI · NO risk score · NO predictive language
+- ✅ Real-data-only · counts directly from live collections
+- ✅ Deterministic, explainable thresholds in code (configurable later)
+- ✅ Project-centric (`project_number` as primary axis)
+- ✅ Role-scoped: PM/Admin/Safety/Exec only (project-centric portals)
+- ✅ Mandatory legal/operational disclaimer present and correct
+
+### Operational principle held
+Project Health answers: *"What operational friction exists on this job?"* — NOT *"Is this project magically healthy?"* The Red/Amber/Green is informational, anchored to real countable events, with a disclaimer that explicitly disclaims compliance/legal/safety determinations.
+
+### Next Action Items (in user-stated priority order)
+1. 🟢 **Phase I** — Asset Transfer System (P2): formal tracking tied to Dispatch · equipment_master · Tasks · Notifications.
+2. 🟢 **Phase J** — Low-Connection / Field Resiliency Layer (P2): autosave drafts · upload retries · duplicate-submit prevention.
+3. 🟡 Post-deploy: design tokens 80% pass (cosmetic).
+4. 🔵 Post-30d telemetry review: revisit deferred signal candidates (CA trend · training trend · doc surge · pre-op trend) once real data accumulates.
+
+
+---
 ## 2026-05-16 — Iter162 · Operations Center "Newly Escalated" Pulse Dot · STABILIZED (Phase 2.5 · UX nudge · narrow scope)
 
 ### Outcome
