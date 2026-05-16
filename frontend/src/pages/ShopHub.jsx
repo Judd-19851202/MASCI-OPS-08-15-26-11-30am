@@ -21,6 +21,7 @@ import { formatDateLong } from "@/lib/utils";
 import { clearShopToken, getShopToken } from "@/lib/shopAuth";
 import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
+import { clearAllSessions } from "@/lib/sessionReset";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { paletteFor } from "@/lib/portalPalette";
@@ -79,12 +80,11 @@ export default function ShopHub() {
   const failCount = items.filter((i) => (i.fail_count || 0) > 0).length;
   const totalSigned = items.reduce((acc, i) => acc + (i.signoff_count ?? (i.shop_signoffs || []).length), 0);
 
-  const onLogout = () => {
-    // Wipe every tier on sign-out so a shared trailer phone can't leak
-    // an identity to the next user.
-    clearShopToken();
-    clearAdminToken();
-    clearPmToken();
+  const onLogout = async () => {
+    // P0 (iter179): centralized wipe — covers shop/admin/pm/hr/safety/
+    // dispatch tokens + directory session + per-portal user objects so
+    // a shared trailer phone never leaks identity to the next user.
+    await clearAllSessions();
     navigate("/");
   };
 

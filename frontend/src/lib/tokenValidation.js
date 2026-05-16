@@ -18,6 +18,9 @@ import { getPmToken, clearPmToken } from "./pmAuth";
 import { getShopToken, clearShopToken } from "./shopAuth";
 import { getDevToken, clearDevToken } from "./devAuth";
 import { getHrToken, clearHrToken } from "./hrAuth";
+import { getSafetyToken, clearSafetyToken } from "./safetyAuth";
+import { getDispatchToken, clearDispatchToken } from "./dispatchAuth";
+import { getDirectoryToken, clearDirectorySession } from "./directoryAuth";
 
 const API = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
 
@@ -62,6 +65,23 @@ export async function validateStoredTokens() {
       kind: "hr",
       valid: v,
     })),
+    accepts("/api/safety/me", "X-Safety-Token", getSafetyToken()).then((v) => ({
+      kind: "safety",
+      valid: v,
+    })),
+    accepts("/api/dispatch/me", "X-Dispatch-Token", getDispatchToken()).then((v) => ({
+      kind: "dispatch",
+      valid: v,
+    })),
+    // P0 (iter179) — also validate the multi-portal directory session.
+    // If the backend rejects the directory token, clear the directory
+    // session entirely (token + cached user) so PortalSwitcher can't
+    // render a stale portals list inside a freshly-logged-in user's
+    // per-portal session.
+    accepts("/api/auth/me-directory", "X-Directory-Token", getDirectoryToken()).then((v) => ({
+      kind: "directory",
+      valid: v,
+    })),
   ]);
 
   let cleared = false;
@@ -72,6 +92,9 @@ export async function validateStoredTokens() {
     else if (r.kind === "shop") clearShopToken();
     else if (r.kind === "dev") clearDevToken();
     else if (r.kind === "hr") clearHrToken();
+    else if (r.kind === "safety") clearSafetyToken();
+    else if (r.kind === "dispatch") clearDispatchToken();
+    else if (r.kind === "directory") clearDirectorySession();
     cleared = true;
   }
   return cleared;

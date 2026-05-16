@@ -10,14 +10,16 @@ import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser } from "@/lib/hrAuth";
+import { clearAllSessions } from "@/lib/sessionReset";
 
 export default function HrPageShell({ title, kicker, children }) {
   const { t } = useT();
   const nav = useNavigate();
   const user = getHrUser();
 
-  const signOut = () => {
-    clearHrToken();
+  const signOut = async () => {
+    // P0 (iter179): wipe every auth artifact, not just HR.
+    await clearAllSessions();
     nav("/hr/login");
   };
 

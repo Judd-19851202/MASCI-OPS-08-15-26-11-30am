@@ -13,14 +13,16 @@ import { OfflineIndicator } from "@/lib/resiliency";
 import GlobalSearch from "@/components/GlobalSearch";
 import { useT } from "@/lib/i18n";
 import { clearSafetyToken, getSafetyUser } from "@/lib/safetyAuth";
+import { clearAllSessions } from "@/lib/sessionReset";
 
 export default function SafetyShell({ title, kicker, children }) {
   const { t } = useT();
   const nav = useNavigate();
   const user = getSafetyUser();
 
-  const signOut = () => {
-    clearSafetyToken();
+  const signOut = async () => {
+    // P0 (iter179): wipe every auth artifact, not just Safety.
+    await clearAllSessions();
     nav("/safety-portal/login");
   };
 

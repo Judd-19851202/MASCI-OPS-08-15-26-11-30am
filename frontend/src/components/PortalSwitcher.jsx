@@ -5,12 +5,23 @@
 // directory user from localStorage; if the user only has one portal (or
 // none — anonymous), the widget renders nothing.
 //
+// Iter179 P0 access-control hardening: previously the widget rendered
+// from any non-empty directory user, even if a stale super-admin
+// session was sitting in localStorage from a prior multi-login that
+// was never cleaned up. We now ALSO require that the currently-active
+// portal's user identity matches the directory user — otherwise the
+// switcher refuses to render and (defensively) clears the stale
+// directory session.
+//
 // Drop into any portal hub/header with:
 //   <PortalSwitcher current="admin" />
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { getDirectoryUser } from "@/lib/directoryAuth";
+import { getDirectoryUser, clearDirectorySession } from "@/lib/directoryAuth";
+import { getHrUser } from "@/lib/hrAuth";
+import { getSafetyUser } from "@/lib/safetyAuth";
+import { getDispatchUser } from "@/lib/dispatchAuth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,9 +59,26 @@ const PORTAL_DOT_COLOR = {
   dispatch: "bg-orange-700",
 };
 
+// Map "current portal" → loader for the per-portal user object that
+// the per-portal login wrote into localStorage. Used to confirm the
+// directory user object actually belongs to the human running this
+// session (defends against stale cross-session leakage). Portals
+// that don't persist a user object (PM, Shop) get a null loader,
+// in which case the email-match guard is skipped — the portals-list
+// guard above still applies.
+const PORTAL_USER_LOADER = {
+  hr: getHrUser,
+  safety: getSafetyUser,
+  dispatch: getDispatchUser,
+};
+
+function _emailOf(user) {
+  return (user?.email || "").toString().trim().toLowerCase();
+}
+
 /**
  * @param {Object} props
- * @param {"admin"|"pm"|"shop"|"hr"|undefined} props.current — current portal name
+ * @param {"admin"|"pm"|"shop"|"hr"|"safety"|"dispatch"|undefined} props.current
  * @param {string} props.className — wrapper class overrides
  */
 export default function PortalSwitcher({ current, className = "" }) {
@@ -58,6 +86,31 @@ export default function PortalSwitcher({ current, className = "" }) {
   if (!user || !Array.isArray(user.portals) || user.portals.length < 2) {
     return null;
   }
+
+  // Iter179 P0 hardening — the directory user must (a) own the
+  // current portal AND (b) match the per-portal user object on
+  // record. If either check fails the directory session is stale
+  // from a prior login that wasn't fully cleared. Clear it now and
+  // render nothing.
+  if (current && !user.portals.includes(current)) {
+    try { clearDirectorySession(); } catch { /* ignore */ }
+    return null;
+  }
+  if (current && PORTAL_USER_LOADER[current]) {
+    let portalUser = null;
+    try { portalUser = PORTAL_USER_LOADER[current](); } catch { portalUser = null; }
+    const portalEmail = _emailOf(portalUser);
+    const dirEmail = _emailOf(user);
+    if (portalEmail && dirEmail && portalEmail !== dirEmail) {
+      // The stored multi-portal directory user is a DIFFERENT human
+      // from the one currently signed into this portal — i.e. stale
+      // state. Refuse to render and defensively wipe the directory
+      // session so the next render is clean.
+      try { clearDirectorySession(); } catch { /* ignore */ }
+      return null;
+    }
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

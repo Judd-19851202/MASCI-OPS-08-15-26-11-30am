@@ -33,6 +33,7 @@ import { api } from "@/lib/api";
 import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearShopToken } from "@/lib/shopAuth";
+import { clearAllSessions } from "@/lib/sessionReset";
 import { toast } from "sonner";
 
 const SECTIONS = [
@@ -100,9 +101,10 @@ export default function AdminShell({ title, section, children, intro }) {
 
   const signOut = async () => {
     try { await api.post("/admin/logout"); } catch { /* ignore */ }
-    clearAdminToken();
-    clearPmToken();
-    clearShopToken();
+    // P0 access-control hardening (iter179): wipe EVERY auth artifact,
+    // not just the admin tokens. Prevents stale cross-portal sessions
+    // from inheriting across browser-sharing sign-in/out cycles.
+    await clearAllSessions();
     toast.success("Signed out");
     navigate("/", { replace: true });
   };

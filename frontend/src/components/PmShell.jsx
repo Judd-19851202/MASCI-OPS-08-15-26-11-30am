@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/sheet";
 import { api } from "@/lib/api";
 import { clearPmToken } from "@/lib/pmAuth";
+import { clearAllSessions } from "@/lib/sessionReset";
 import { toast } from "sonner";
 
 const SECTIONS = [
@@ -81,7 +82,8 @@ export default function PmShell({ title, section, children, intro }) {
 
   const signOut = async () => {
     try { await api.post("/pm/logout"); } catch { /* ignore */ }
-    clearPmToken();
+    // P0 (iter179): wipe every auth artifact, not just PM.
+    await clearAllSessions();
     toast.success("Signed out");
     navigate("/pm/login", { replace: true });
   };

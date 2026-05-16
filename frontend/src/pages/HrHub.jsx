@@ -16,6 +16,7 @@ import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import OperationsCenter from "@/components/OperationsCenter";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
+import { clearAllSessions } from "@/lib/sessionReset";
 import { paletteFor } from "@/lib/portalPalette";
 
 const HR_PAL = paletteFor("hr");
@@ -81,8 +82,9 @@ export default function HrHub() {
     })();
   }, []);
 
-  const signOut = () => {
-    clearHrToken();
+  const signOut = async () => {
+    // P0 (iter179): wipe every auth artifact, not just HR.
+    await clearAllSessions();
     nav("/hr/login");
   };
 

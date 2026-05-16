@@ -22,6 +22,7 @@ import {
 } from "@/pages/admin/AdminDispatch";
 import DispatchIntegrationsTab from "@/components/DispatchIntegrationsTab";
 import { clearDispatchToken, getDispatchUser } from "@/lib/dispatchAuth";
+import { clearAllSessions } from "@/lib/sessionReset";
 import { paletteFor } from "@/lib/portalPalette";
 
 const DISPATCH_PAL = paletteFor("dispatch");
@@ -31,8 +32,9 @@ export default function DispatchHub() {
   const [tab, setTab] = useState("overview");
   const user = getDispatchUser() || {};
 
-  const logout = () => {
-    clearDispatchToken();
+  const logout = async () => {
+    // P0 (iter179): wipe every auth artifact, not just Dispatch.
+    await clearAllSessions();
     nav("/dispatch-portal/login", { replace: true });
   };
 
