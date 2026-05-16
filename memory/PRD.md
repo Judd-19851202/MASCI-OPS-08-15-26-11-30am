@@ -1,6 +1,58 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter162 · Operations Center "Newly Escalated" Pulse Dot · STABILIZED (Phase 2.5 · UX nudge · narrow scope)
+
+### Outcome
+Subtle UX nudge layered on top of Iter161 signal cards: a small pulse dot quietly appears on **compact-mode** Operations Center cards when a card transitions from a calmer severity to a higher one since the user's last visit. Disappears silently after 24h or on click. No new endpoint, no new collection, no backend writes — pure localStorage-based per-device awareness.
+
+### Behavior
+- **Fires ONLY on severity escalation**: Info→Warning · Info→Critical · Warning→Critical
+- **Silent on**: same severity · de-escalation (Critical→Warning, etc.) · first-ever visit (unknown prev)
+- **TTL**: 24 hours from first detection — auto-clears
+- **Click-to-clear**: clicking a pulsing card immediately removes the dot (deep-link nav implies acknowledgement)
+- **Scope**: per (role, card_key) — per-device only, no cross-device sync, no backend state
+- **Compact-only**: the full grid view never pulses (`/admin` full Operations Center stays calm)
+- **Visual**: 8px amber dot with `animate-ping` at 60% opacity. No banner, no toast, no sound, no email.
+
+### Implementation
+- **NEW `frontend/lib/opsCenterEscalations.js`** — pure functions: `isEscalation()`, `reconcileEscalations(role, cards, nowMs)`, `clearEscalation(role, cardKey)`. localStorage keys: `masci.ops_escalations.v1` (escalation entries with TTL) and `masci.ops_severity.v1` (last-known severity baseline).
+- **`OperationsCenter.jsx`**:
+  - Hook reconciles escalations on every fetch when `compact={true}`. `pulseSet` state holds card keys to pulse.
+  - `<PulseDot />` element rendered conditionally inside each CardTile's button (added `relative` positioning to wrapper, dot is absolute top-1.5 right-1.5).
+  - Click handler calls `clearEscalation()` BEFORE navigating — pulse vanishes instantly.
+- **NEW `frontend/lib/test_opsCenterEscalations.cjs`** — pure Node test harness with in-memory localStorage shim. 15 unit tests covering: `isEscalation` truth table (escalation vs same vs de-escalation vs first-visit), `reconcileEscalations` orchestration (first visit silent · escalation detected · same severity silent · de-escalation silent · 24h TTL · persistence within window · click-to-clear · per-role scoping · null/invalid input handling).
+
+### Verification
+- **Logic**: 15/15 pure-function unit tests PASS (`node test_opsCenterEscalations.cjs`).
+- **Live UI** (PmHub `/pm`): pulse dots rendered on 4 escalated cards (Overdue Tasks, Overdue PO Receipts, Incidents Open, Corrective Actions Overdue) — small, quiet, top-right corner, amber with subtle ping animation. localStorage correctly persisted `{prev: "Info", curr: "Critical|Warning", at: <ms>}` entries per role.
+- **Backend regression**: 39/39 PASS (iter160 16 + iter161 15 + iterC 8 — no backend changes in this iter).
+- **No console errors** during render.
+- **Discipline**: full-mode AdminHub Operations Center confirmed UNCHANGED — no pulse, no nudge, stays calm.
+
+### Guardrails honored
+- ✅ NO toast / banner / sound / email / push notification
+- ✅ NO aggressive animation (no bounce, no flash) — subtle ping at 60% opacity
+- ✅ NO backend writes / new endpoint / new collection
+- ✅ Only fires on actual escalation (Info→Warning+, Warning→Critical) — never on first visit, never on de-escalation
+- ✅ Auto-disappears after 24h OR on click — no permanent badges
+- ✅ Compact-mode only (Hub headers) — full grid view stays clean
+- ✅ Per-device only (localStorage) — no cross-device noise
+
+### Operational principle held
+The pulse dot is a *whisper*, not an *alarm*. It guides attention to newly-emerged operational friction without creating urgency theater. Disappears the moment it's been acknowledged. Aligns with "calm operational awareness" — not "constant alert overload."
+
+### Discipline lock
+**Per user instruction: STOP adding signal enhancements.** The next several weeks are an observation phase for: usefulness · signal quality · noise level · adoption · readability. Re-evaluate before adding any of the 4 deferred candidate signals (CA trend · training trend · doc surge · repeated pre-op trend).
+
+### Next Action Items (in user-stated priority order)
+1. 🔵 **Phase H** — Project / Job Health Dashboard (P2): aggregate Tasks · Documents · POs · Notifications · Equipment by project. Green/Yellow/Red traffic light + legal footer.
+2. 🟢 **Phase I** — Asset Transfer System (P2): formal tracking tied to Dispatch · equipment_master · Tasks · Notifications.
+3. 🟢 **Phase J** — Low-Connection / Field Resiliency Layer (P2): autosave drafts · upload retries · duplicate-submit prevention.
+4. 🟡 Post-deploy: design tokens 80% pass (cosmetic).
+
+
+---
 ## 2026-05-16 — Iter161 · Operations Center Signal Integration · STABILIZED (Phase 2.5 · P1 enhancement · narrow scope)
 
 ### Outcome

@@ -1,9 +1,13 @@
-// OperationsCenter.jsx — Iter C.
+// OperationsCenter.jsx — Iter C + Iter161 + Iter162.
 //
 // Thin per-role aggregated operational visibility surface. Each card
 // is one real upstream count (or compact dict). Every card deep-links
 // to the underlying list. NO fake metrics. NO duplicate Project
 // Health logic. Renderable inline (Hub headers) or as a full page.
+//
+// Iter162: compact-mode-only "newly escalated" pulse dot — fires when
+// a card transitions Info→Warning, Info→Critical, or Warning→Critical
+// since the user's last view. TTL 24h. Click clears. localStorage only.
 //
 // Usage:
 //   <OperationsCenter compact />     ← Hub header strip (top 3-4 cards)
@@ -15,6 +19,9 @@ import {
 } from "lucide-react";
 import { fetchOperationsCenter } from "@/lib/operationsCenterApi";
 import { tintFor } from "@/lib/statusBadges";
+import {
+  reconcileEscalations, clearEscalation,
+} from "@/lib/opsCenterEscalations";
 
 const SEV_RING = {
   Critical: "border-rose-300 bg-rose-50",
@@ -27,9 +34,21 @@ const SEV_TEXT = {
   Info:     "text-slate-700",
 };
 
-function CardTile({ card, onOpen }) {
+function CardTile({ card, onOpen, pulse = false }) {
   const sev = card.severity || "Info";
   const isCount = "count" in card;
+  // PulseDot — subtle, only when prop is true (compact-mode only).
+  const PulseDot = pulse ? (
+    <span
+      className="absolute top-1.5 right-1.5 inline-flex h-2 w-2"
+      aria-label="Newly escalated"
+      data-testid={`ops-card-pulse-${card.key}`}
+    >
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60" />
+      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+    </span>
+  ) : null;
+  const wrapClass = `relative text-left rounded-md border-2 ${SEV_RING[sev]} p-3 hover:shadow-sm transition-shadow w-full`;
   // value cards (integration_health / audit_coverage) render as compact strips
   if (!isCount && card.key === "integration_health") {
     const v = card.value || {};
@@ -37,9 +56,10 @@ function CardTile({ card, onOpen }) {
       <button
         type="button"
         onClick={onOpen}
-        className={`text-left rounded-md border-2 ${SEV_RING[sev]} p-3 hover:shadow-sm transition-shadow w-full`}
+        className={wrapClass}
         data-testid={`ops-card-${card.key}`}
       >
+        {PulseDot}
         <div className="flex items-center justify-between mb-1">
           <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[sev]}`}>{card.label}</div>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
@@ -57,10 +77,11 @@ function CardTile({ card, onOpen }) {
       <button
         type="button"
         onClick={onOpen}
-        className={`text-left rounded-md border-2 ${SEV_RING[sev]} p-3 hover:shadow-sm transition-shadow w-full`}
+        className={wrapClass}
         data-testid={`ops-card-${card.key}`}
         id="audit-coverage"
       >
+        {PulseDot}
         <div className="flex items-center justify-between mb-1">
           <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[sev]}`}>{card.label}</div>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
@@ -96,9 +117,10 @@ function CardTile({ card, onOpen }) {
       <button
         type="button"
         onClick={onOpen}
-        className={`text-left rounded-md border-2 ${SEV_RING[sev]} p-3 hover:shadow-sm transition-shadow w-full`}
+        className={wrapClass}
         data-testid={`ops-card-${card.key}`}
       >
+        {PulseDot}
         <div className="flex items-center justify-between mb-1">
           <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[sev]}`}>{card.label}</div>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
@@ -118,9 +140,10 @@ function CardTile({ card, onOpen }) {
     <button
       type="button"
       onClick={onOpen}
-      className={`text-left rounded-md border-2 ${SEV_RING[sev]} p-3 hover:shadow-sm transition-shadow w-full`}
+      className={wrapClass}
       data-testid={`ops-card-${card.key}`}
     >
+      {PulseDot}
       <div className="flex items-center justify-between mb-1">
         <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[sev]}`}>{card.label}</div>
         <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
@@ -139,6 +162,9 @@ export default function OperationsCenter({ compact = false, className = "" }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
+  // Iter162: pulse-set is COMPUTED only when compact=true. The full
+  // grid view never pulses — discipline guard against alert overload.
+  const [pulseSet, setPulseSet] = useState(() => new Set());
   const navigate = useNavigate();
 
   const load = async () => {
@@ -147,6 +173,13 @@ export default function OperationsCenter({ compact = false, className = "" }) {
     try {
       const d = await fetchOperationsCenter();
       setData(d);
+      if (compact && d?.role && Array.isArray(d.cards)) {
+        // Reconcile escalations against last-known severities (per-role,
+        // per-card). Returns the set of card_keys to pulse.
+        setPulseSet(reconcileEscalations(d.role, d.cards));
+      } else {
+        setPulseSet(new Set());
+      }
     } catch (e) {
       const code = e?.response?.status;
       setErr(code === 401 ? "AUTH_REQUIRED" : "FAIL");
@@ -220,7 +253,20 @@ export default function OperationsCenter({ compact = false, className = "" }) {
           <CardTile
             key={c.key}
             card={c}
-            onOpen={() => c.url && navigate(c.url)}
+            pulse={pulseSet.has(c.key)}
+            onOpen={() => {
+              // Click clears the pulse immediately (acknowledgement).
+              if (compact && data?.role) {
+                clearEscalation(data.role, c.key);
+                setPulseSet((prev) => {
+                  if (!prev.has(c.key)) return prev;
+                  const next = new Set(prev);
+                  next.delete(c.key);
+                  return next;
+                });
+              }
+              if (c.url) navigate(c.url);
+            }}
           />
         ))}
       </div>
