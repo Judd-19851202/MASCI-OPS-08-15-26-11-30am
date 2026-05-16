@@ -1,6 +1,66 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter168 · LIVE PRODUCTION · OBSERVATION WINDOW OPEN 🟢
+
+### Status
+**DEPLOYED TO PRODUCTION.** Live at https://mascidocs.com + https://www.mascidocs.com. Feature freeze in effect.
+
+### Live production smoke (remote probes — public/anon-only)
+| Probe | Result |
+|---|---|
+| `GET https://mascidocs.com/` | ✅ 200 · `<title>MASCI Operations Platform</title>` · bundle `main.80740398.js` |
+| `GET https://www.mascidocs.com/` | ✅ 200 |
+| SSL/TLS both domains | ✅ HTTP/2 + Cloudflare edge |
+| `GET /api/health` apex + www | ✅ `{ok:true, service:"masci-hub"}` |
+| Anon → `/api/admin/deploy-readiness` | ✅ 401 |
+| Anon → `/api/operations-center` | ✅ 401 |
+| Anon → `/api/project-health` | ✅ 401 |
+| Anon → `/api/asset-transfers` | ✅ 401 |
+| Anon → `/api/po-requests` | ✅ 401 |
+| Anon → `/api/search?q=test` | ✅ 401 |
+| Anon → `/api/notifications/unread-count` | ✅ 401 |
+| Anon → `/api/jhas` | ✅ 401 (portal-gated) |
+| Anon → `POST /api/incidents` empty | ✅ 422 (validation gate — intentional public submit) |
+| `/api/banner` (probe for leaked dev endpoints) | ✅ 404, no stack trace |
+
+All auth gates holding. Zero unauthorized data exposure on any anon surface.
+
+### ⚠️ One item flagged for user confirmation
+OPTIONS preflight returned `access-control-allow-origin: *` from both prod-domain origins AND from `https://evil.example.com`. This may be the Cloudflare edge returning a static preflight before FastAPI sees the request, OR `CORS_ORIGINS` may still be wildcard in the production env. **User action: confirm production `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com`** in the Emergent deploy dashboard. Not an auth-bypass risk (tokens are HMAC-bound), but a defense-in-depth and CSRF-surface hardening item.
+
+### Authoritative report
+**`/app/POST_DEPLOY_PRODUCTION_OBSERVATION.md`** — contains:
+- Full remote-probe results (this entry's table)
+- ✋ Authenticated-surface smoke checklist (USER walks from a signed-in admin browser within 10 min of cutover)
+- First-72h monitoring surfaces (deploy-readiness · integrations health · audit · operational signals · backups · Resend · Cloudflare R2)
+- Observation window discipline (allowed vs not allowed)
+- Production telemetry plan (30-day window before acting on signals)
+- Production security checklist (env-vars to confirm in deploy dashboard)
+- Future development discipline LOCK (12-item completion checklist for every new feature)
+- Production issues log (currently empty, updated as window progresses)
+- Remaining risks & known acceptable backlog
+
+### Frozen — no new features for several weeks minimum
+Per user mandate. Allowed in window: bug fixes · perf fixes · mobile fixes · security fixes · permission fixes · operational polish · telemetry analysis. NOT allowed: new portals · new architecture · new major systems · experimental integrations · redesigns · feature creep · workflow overhauls · new signal cards · new analytics surfaces.
+
+### Two-environment mode now active
+- **PREVIEW** (this env, `safety-audit-mobile-1.preview.emergentagent.com`) — agent has full access, used for fixes/iteration
+- **PRODUCTION** (`mascidocs.com`, `www.mascidocs.com`) — agent has NO direct access, only public probes via curl; fixes ship via redeploy after preview verification
+
+For any future user-reported issue, agent will FIRST clarify: "preview or production?" — then act accordingly (fix in preview directly; production-env-only issues route to Emergent Support).
+
+### Next Action Items (USER)
+1. 🔴 **Confirm `CORS_ORIGINS` is locked** to prod domains in Emergent deploy dashboard (Section 1.3 of the report)
+2. 🟡 **Walk the authenticated-surface smoke checklist** within 10 min of cutover (Section 1.4)
+3. 🟢 **Watch the first-72h monitoring surfaces** (Section 2)
+4. 🟢 **Enter observation window** — no new development for several weeks
+
+### Next Action Items (AGENT)
+- **Standby.** No new features. Bug fixes only when user reports. Telemetry review after ≥30 days of real production data.
+
+
+---
 ## 2026-05-16 — Iter167 · FINAL DEPLOYMENT READINESS LOCK · ✅ READY TO DEPLOY
 
 ### Outcome
