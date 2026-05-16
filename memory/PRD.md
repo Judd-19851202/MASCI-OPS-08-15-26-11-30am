@@ -1,6 +1,74 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter179 · P0 Access-Control Hardening · ✅ FIXED (production redeploy required)
+
+### Bug as reported
+HR-only user (`hrmanager@mascigc.com`) signed into HR Portal → header near MASCI logo showed an "Admin" button → clicking it routed into the full Admin Console.
+
+### Root cause (purely frontend UX failure)
+Stale `masci.directory.user` from a prior super-admin multi-login was never cleared by per-portal sign-out or per-portal login. `PortalSwitcher` read it and rendered an Admin Console link inside HR/Shop/PM. The backend admin gate was already correctly rejecting non-admin tokens — the leak was a frontend gate failure exposing an attack-surface button. Stale `masci.admin.token` from the prior session then permitted the click to load the full Admin Console UI.
+
+### Fix (iter179)
+- **NEW** `/app/frontend/src/lib/sessionReset.js` — `clearAllSessions()` wipes every auth/identity artifact + best-effort `POST /api/auth/multi-logout`
+- **REWRITTEN** `/app/frontend/src/components/EnforcePortalScope.jsx` — landing on ANY login page (`/sign-in`, every `/<portal>/login`, `/dev/login`, `/safety/forms/login`) now wipes all prior cross-portal state before login submission
+- **REWRITTEN** `/app/frontend/src/components/PortalSwitcher.jsx` — refuses to render unless (a) directory user's `portals` include the current portal AND (b) the per-portal user object's email matches the directory user's email; defensively clears the directory session on mismatch
+- **Sign out helpers updated** in AdminShell / HrPageShell / SafetyShell / PmShell / HrHub / ShopHub / DispatchHub
+- **`validateStoredTokens()`** extended to also validate the directory session + Safety + Dispatch tokens
+
+### Backend regression tests (`test_iter179_admin_access_control_gate.py` — 10/10 ✅)
+- Anon → blocked on every sampled admin endpoint (GET + POST)
+- HR / Shop / Safety / Dispatch tokens → blocked on every sampled admin endpoint
+- Admin token → still unlocks (sanity)
+- K4b mutation endpoints reject non-admin tokens
+- Cross-portal `/me` isolation enforced
+- `/api/auth/multi-logout` actually invalidates the directory session server-side
+
+### End-to-end verification on preview (testing agent + manual repro)
+- Exact bug reproduction → ✅ no Admin button anywhere on HR/Shop/PM hubs
+- localStorage post-sign-out → ✅ empty of all auth keys
+- Direct nav to `/admin` as HR-only user → ✅ "403 · Access Restricted" page (NOT Admin Console)
+- Browser-back from previously-loaded admin page after sign-out → ✅ no cached admin data exposed
+- PortalSwitcher does not render in HR/Shop/PM portals after the repro flow
+
+### Cumulative regression
+**156/156 PASS** — K1 + K2 + K3 + K4a + K4b + iter178 + iter179 + login.
+
+### ⚠️ Follow-up flagged (NOT in iter179 P0 scope)
+**PM tokens (`X-PM-Token`) unlock several `/api/admin/*` read endpoints server-side** (`/check`, `/deploy-readiness`, `/integrations/health`, `/analytics/summary`, `/operational-signals`, `/hr-users`, `/shop-users`, `/dispatch-users`). Error responses explicitly read "Admin or PM login required" — appears intentional (legacy PM-as-semi-admin design). Frontend P0 not impacted (PortalSwitcher identity-match gate prevents PM users from seeing the Admin button). **Awaiting product decision** on whether to tighten this surface.
+
+### Production status
+- ✅ Fix committed to preview
+- 🟡 Production (`mascidocs.com`) still vulnerable until next redeploy
+
+### Next Action Items
+- 🔴 USER: redeploy to push iter179 fix to production (P0 priority)
+- 🟡 USER: confirm whether PM-token-on-admin-reads is intentional or should be tightened (separate P1 ticket)
+- ⏸ K4b frontend, K5 — paused (iter179 took priority)
+
+
+---
+## 2026-05-16 — Iter178 · HR Time Verification Summary Cards · ✅ COMPLETE (production redeploy approved)
+
+### Bug
+Time Verification top summary cards showed Regular 0.00 / Overtime 0.00 while table rows displayed correct FLSA-split values. Total Hours card was populated correctly.
+
+### Root cause
+Backend summed `regular_hours` / `overtime_hours` from per-day rows, but those are always `0.0` because the FLSA Reg/OT split happens at the weekly rollup stage (intentional per existing payroll policy). Total Hours summed `total_hours` which is non-zero, hence only Reg/OT looked broken.
+
+### Fix
+- `/app/backend/routes/hr_portal.py` — summary now sums `weekly_list` (the FLSA-split source), added `total_lunch`
+- `/app/frontend/src/pages/HrTimeVerification.jsx` — 5-card grid: Total Employees / Total Hours / Regular Hours / Overtime Hours / Lunch Hours; relabeled per user spec; data-testids added
+- CSV export now appends a "WEEKLY ROLLUP" section + "TOTALS" footer so payroll cross-check sees the FLSA-split figures
+
+### Validation
+- 4/4 iter178 tests pass (zero-summary, filtered summary, invariant `Total = Reg + OT`, CSV footer)
+- Live preview: seeded 50hr week → cards show 1/50.00/40.00/10.00/1.50 ✅
+- No PDF export exists for this view (verified via grep)
+- **Paid hours rule**: `Total Hours = Regular + Overtime` invariant holds exactly; Lunch is tracked separately and is NOT included in Total Hours
+
+
+---
 ## 2026-05-16 — Iter176 · Phase K4a · Unified User Management UI · ✅ COMPLETE (read-only, non-enforcing)
 
 ### Outcome
