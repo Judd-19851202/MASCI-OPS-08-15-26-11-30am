@@ -1,6 +1,65 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter D · Final QA + Deployment Readiness Gate · STABILIZED ✅ READY FOR DEPLOYMENT
+
+### Outcome
+**Phase 2.5 Operational Maturity & Real-World Refinement is CLOSED.** Platform certified deployment-ready. Authoritative report at `/app/FINAL_PLATFORM_STABILIZATION_REPORT.md` (deployment readiness verdict: **READY** — no P0/P1 blockers).
+
+### Verification (`/app/test_reports/iteration_159.json`)
+- **Backend**: 37/37 new Iter D end-to-end + 29/29 regression (iter_C 8 + iter153E 9 + iter155 12) = **66/66 PASS** across all 7 portals (Admin/HR/PM/Safety/Shop/Dispatch/Leadership).
+- **Mobile 375x812**: 6/6 critical pages verified ZERO horizontal overflow (scrollWidth==innerWidth==375), ZERO console errors — AdminHub, /tasks, /po-requests, /document-expirations, HrHub, /leadership.
+- **Permission-safety**: HR + `?kinds=fire_extinguishers,incidents` → `scope=[] total=0` (no leak); non-admin `role_override` silently ignored; anon → 401; HR → 403 on `/admin/audit`.
+- **Operations Center real-data**: `audit_coverage = {coverage_pct: 21, covered: 71, total: 341}` (po_requests 100%, employees/incidents 0% — honest data-only backlog, not a defect).
+- **Integration health**: 6 probes (4 live · 2 mocked MaintainX/Motive documented).
+- **Deploy readiness**: `ready · 0 blockers · 1 warn (data-only master_coverage) · 12 checks`.
+
+### Findings
+- No code changes required. One docs-only typo flagged: review request listed PO export at `/api/po-requests/export/csv` but actual + frontend path is `/api/po-requests/export.csv` (correct). Verified frontend `lib/poApi.js:80,84` calls correct path.
+- Testing-agent caveat: `tests/conftest.py` auto-injects `X-Admin-Token` — non-admin/anon tests MUST explicitly clear it (documented in `test_iter_D_final_qa.py`).
+
+### Acceptable backlog (NOT deployment blockers)
+- `append_audit()` rollout to employees + incidents (data-only — surfaced honestly on audit_coverage card)
+- MaintainX + Motive integration probes mocked (intentional preview mock — flip when integrations mature)
+- R2 fallback to data-URL in preview env (production has live R2 binding)
+- 3 orphan components (`ActivityFeed`, `AdminSignatureMigrationPanel`, `MentionTextarea`) — safe to delete in future sweep
+- 2 Radix `DialogTitle` a11y warnings (PO drawer + Submit dialog) — wrap in `VisuallyHidden`
+- `SectionTile` normalization · `SafetyCorrectiveActions` migration to StatusBadge
+
+### Phase 3 unlocked (resumable in user-stated order)
+- 🟢 Operational Signal Density — usage_event telemetry in `event_fanout.py` (P1, was deferred)
+- 🔵 Phase H — Project / Job Health Dashboard (P2)
+- 🟢 Phase I — Asset Transfer System (P2)
+- 🟢 Phase J — Low-Connection / Field Resiliency Layer (P2)
+- 🟡 Design tokens consolidation — `tokens.css` 80% pass (cosmetic, post-deploy)
+
+### Pre-deploy checklist (production cutover to mascidocs.com)
+1. Rotate `ADMIN_PASSWORD`, `ADMIN_HMAC_SECRET`, bump `ADMIN_SESSION_EPOCH`.
+2. Set `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com`, `RATE_LIMITING=on`, `AUTO_EMAIL_REPORTS=true`.
+3. Confirm `RESEND_API_KEY`, `R2_*` keys present.
+4. Run `scripts/qa_audit.py` — confirm 0 COLLSCANs, 0 missing TTLs.
+5. Smoke `/api/health` · `/api/admin/deploy-readiness` · `/api/admin/integrations/health` post-deploy.
+
+
+---
+## 2026-05-16 — Iter C · Operations Center Visibility Layer · STABILIZED
+
+### Shipped
+- **Backend `routes/operations_center.py`** (new) — `GET /api/operations-center` role-aware aggregation endpoint. 14 cards driven by live collections (`tasks`, `po_requests`, `document_expirations`, `incidents`, `corrective_actions`, `equipment_master`, `signatures`/audit arrays). `asyncio.gather` parallel probes. NO new data models. NO mocked/placeholder counts.
+- **Frontend `components/OperationsCenter.jsx`** (new) + `lib/operationsCenterApi.js` — compact (≤4 cards) + full (14 cards) modes. Cards carry key/label/severity/url + count|value. Click deep-links to filtered list pages. `tintFor()` color helper. 208 lines.
+- **Hub injection** — mounted in AdminHub (full mode), HrHub/PmHub/ShopHub/DispatchHub (compact), FieldLeadershipHub (compact 2 cards).
+- **`audit_coverage` card** — aggregates `audit[]` markers across po_requests/employees/incidents; returns `{coverage_pct, covered, total, modules[]}`. Surfaces honest migration state (currently 21% — po_requests at 100%, employees/incidents at 0%).
+- **`role_override`** — admin-gated server-side (line 127). Non-admin override silently ignored; no privilege escalation.
+
+### Verification (`/app/test_reports/iteration_158.json`)
+- **Backend**: 8/8 pytest pass — anon 401, admin full 14 cards, safety/HR/PM scoped subsets, card-shape contract, audit_coverage non-zero, admin role_override works, non-admin override ignored.
+- **Frontend**: 5/5 hubs render OperationsCenter cleanly. Testing agent fixed 2 hookup misses (HrHub missing import, DispatchHub missing JSX). Mobile 375x812 AdminHub: 14 cards stacked 1-column, zero overflow.
+- **Regression**: iter153E (9), iter155 (12), iter153B (10) all PASS.
+
+### Next Action Items
+- 🟢 Iter D — Final QA + Deployment Readiness Gate
+
+---
 ## 2026-05-15 — Iter B (Phase 2.5 · Platform Stabilization · P0+P1) · STABILIZED
 
 ### Shipped
