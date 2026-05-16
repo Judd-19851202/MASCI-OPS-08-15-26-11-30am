@@ -8844,6 +8844,15 @@ async def _bootstrap_user_directory():
         await _ud.bootstrap_super_admin(db)
     except Exception as e:  # noqa: BLE001
         logging.getLogger(__name__).exception(f"[directory] bootstrap failed: {e}")
+    # Phase K1 (iter172) — silent unified-identity mirror. Backfills the
+    # user_directory collection from per-portal user collections. NEVER
+    # touches login flows. Idempotent on every restart. Failures are
+    # logged but never block startup.
+    try:
+        from lib.identity_mirror import run_startup_mirror
+        await run_startup_mirror(db)
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).exception(f"[identity-mirror] startup hook failed: {e}")
 
 
 # Weekly variance email cron (Sunday 18:00 UTC by default).

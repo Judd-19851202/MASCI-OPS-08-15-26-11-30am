@@ -1,6 +1,87 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter172 · Phase K1 · Silent Unified Identity Mirror · ✅ COMPLETE
+
+### Outcome
+Phase K1 (foundation layer for unified RBAC) is shipped to preview. **Pure foundation work — zero UX change, zero auth-flow change, zero enforcement change.** Existing per-portal logins continue working exactly as before. Mirrored entries cannot log in via `/api/auth/multi-login` because their bcrypt hash is a random 48-byte token (cryptographically impossible to brute force).
+
+### Important architectural finding
+The platform already had a unified identity layer (`user_directory` collection + `/api/auth/multi-login` endpoint) since **iter82**. K1 simply backfills that existing collection from the per-portal user collections — no new identity store, no parallel system, no architectural divergence.
+
+### What shipped
+**`/app/backend/lib/identity_mirror.py`** — single file, ~210 lines:
+- `backfill_mirror(db)` — idempotent scan of `admin_users`/`hr_users`/`pm_users`/`shop_users`/`safety_users`/`dispatch_users` collections; creates one `user_directory` row per real email
+- `ensure_indexes(db)` — creates `email_unique`, `id_unique`, `mirrored_flag`, `portals_arr` (idempotent, dedups any existing duplicates first)
+- `run_startup_mirror(db)` — wired into FastAPI startup event right after `bootstrap_super_admin`; never raises, always logs result
+
+**`/app/backend/server.py:8839`** — extended startup hook to call `run_startup_mirror(db)` after super-admin bootstrap.
+
+**`/app/backend/tests/test_iter172_phase_k1_identity_mirror.py`** — 11 tests covering all properties.
+
+### Key design properties
+| Property | Status |
+|---|---|
+| Existing per-portal logins unchanged | ✅ HR / Shop / Admin verified working post-startup |
+| Multi-login rejects mirrored entries | ✅ 401 confirmed (random bcrypt hash, unguessable) |
+| Multi-login still works for managed accounts | ✅ super admin grants all 6 portals |
+| Mirrored rows tagged `mirrored=True` | ✅ visible flag for cutover work |
+| Managed rows (real master pw) untouched | ✅ portals + password preserved; only `mirror_sources` refreshed |
+| Idempotent across restarts | ✅ second startup updates 0 new rows, refreshes 5 existing |
+| Unique email index | ✅ `email_unique` enforced at DB level |
+| Employee linkage scaffold | ✅ `employee_id` field present (currently NULL — populated when portal records have it) |
+| `mirror_sources` traceability | ✅ records which portal record fed which mirror entry (for K8 cutover) |
+| Field Leadership intentionally excluded | ✅ shared MASCIGC password stays unchanged until K7 |
+
+### Live preview state after K1
+```
+user_directory count: 6
+  mirrored=True:        5
+  is_super_admin:       1  (jaymn.judd@mascigc.com)
+  with mirror_sources:  6  (every row traceable to source portal records)
+
+  jaymn.judd@mascigc.com   portals=[admin,pm,shop,hr,safety,dispatch]  managed
+  hrmanager@mascigc.com    portals=[hr]                                mirrored
+  shopmanager@mascigc.com  portals=[shop]                              mirrored
+  testmech@mascigc.com     portals=[shop]                              mirrored
+  safety@mascigc.com       portals=[safety]                            mirrored
+  dispatch@mascigc.com     portals=[dispatch]                          mirrored
+```
+
+### Tests
+- **11/11 PASS** on `test_iter172_phase_k1_identity_mirror.py`
+- **80/80 PASS** including Phase H + I + J + Operations Center + Operational Signals regression (zero side-effects)
+
+### What this enables (deferred — out of K1 scope)
+- **K2** — Centralized `can(user, "portal.module.action")` RBAC service layer (next quarter, telemetry-driven)
+- **K3** — Role templates data model + seed
+- **K4** — Admin User Management UI
+- **K5** — Unified login endpoint (will call `integration_playbook_expert_v2`)
+- **K6** — Temp password / first-login reset / lockout flow
+- **K7** — Field Leadership named-user accounts (transition from `MASCIGC`)
+- **K8** — Per-portal RBAC enforcement cutover
+- **K9** — Decommission legacy auth paths
+
+Each K-phase will be ≥1-2 weeks of work + verification + observation per the user mandate. K1 is the **only** phase greenlit in the current observation window.
+
+### Production safety
+K1 is preview-only right now. Before user redeploys to production:
+1. Mirror startup hook will run automatically on first prod boot
+2. Will create 1 mirrored row per real production portal user
+3. Will leave super admin row exactly as-is
+4. Zero impact on production logins
+5. Cleanup `_id` exclusion / TTL exclusion: not needed (collection has no TTL, all queries explicitly project `{_id: 0}`)
+
+### Observation window status
+🟢 **REMAINS OPEN.** Feature freeze remains active for K2-K9. K1 is the only zero-risk foundation-laying work permitted.
+
+### Next Action Items
+- 🟢 USER: When ready, redeploy to push K1 to production (will silently populate prod `user_directory` on first boot)
+- 🟢 USER: cleanup the 4 prior probe rows from `/admin → Incidents` (carried from iter169-171)
+- 🟢 AGENT: standby — no further K-phase work until user explicitly lifts observation window for K2+
+
+
+---
 ## 2026-05-16 (iter171) — Production CORS Hardening · 🟢 COMPLETE · 6/6 probes pass
 
 ### Outcome
