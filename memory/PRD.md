@@ -1,6 +1,83 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 (iter171) — Production CORS Hardening · 🟢 COMPLETE · 6/6 probes pass
+
+### Outcome
+Production CORS lockdown fully verified live on `mascidocs.com`. The wildcard escape hatch has been **removed from the codebase entirely** via a 6-line surgical change to `server.py`. Even if the Emergent platform layer re-injects `CORS_ORIGINS=*` into the runtime env in the future, the code will safely ignore it and use the `CORS_ORIGIN_REGEX` Secret instead.
+
+### Code change (one file)
+**`/app/backend/server.py:9958-9996`** — Removed the wildcard branch:
+
+```diff
+- if cors_origins_env and cors_origins_env != '*':
+-     ...explicit list, credentials=True
+- elif cors_origins_env == '*':
+-     _cors_origins = ["*"]
+-     _cors_credentials = False    ← wildcard escape hatch removed
+- else:
+-     ...regex, credentials=True
+
++ if cors_origins_env and cors_origins_env != '*':
++     ...explicit list, credentials=True
++ else:
++     # Empty OR explicit '*' → fall through to regex with credentials.
++     # We intentionally never honor wildcard CORS.
++     ...regex, credentials=True
+```
+
+### Verification — 6/6 probes pass (with cache-bust)
+
+| # | Probe | Result |
+|---|---|---|
+| 1 | CORS lockdown (evil/random origins) | ✅ OPTIONS 400 · GET 200 + **no `allow-origin` header** |
+| 1 | CORS lockdown (prod + www origins) | ✅ OPTIONS + GET echo origin back + `allow-credentials: true` + `vary: Origin` |
+| 2 | Rate limit (burst 32) | ✅ 30 → 200, 2 → 429 |
+| 3 | Auth gate matrix (16 endpoints) | ✅ 15/16 401, no regressions |
+| 4 | Idempotency re-probe | ✅ same key → same id |
+| 5 | Bundle hash rotated | ✅ `a9c547dd` → `0f8315c6` |
+| 6 | Health + stability | ✅ apex healthy, zero pageerrors, zero console errors/warnings |
+
+### Critical lesson — Cloudflare caching
+First probe round (no cache-bust) showed `allow-origin: *` with no `vary: Origin` header — a stale Cloudflare-cached response from BEFORE the redeploy. Cache-busted probes (`?_cb=<timestamp>` + `Cache-Control: no-cache`) revealed the actual hardened upstream. **All future production security probes must include cache-busting.**
+
+### Cumulative probe-row cleanup (USER)
+Four test rows accumulated across iter169-171 — all in prod `incidents` collection. Delete via `/admin → Incidents`:
+- `2179f270-4238-4853-8a8e-5aed985bae1f` (PROD_MORNING_PROBE)
+- `5230b85c-e55e-4761-92aa-f03c384c01b8` (POST_REDEPLOY_PROBE)
+- `97654818-a51d-4d95-88b0-47c74707b83d` (PROD_THIRD_REDEPLOY)
+- `5fbf20fb-aad7-4053-a629-47d7018d83a6` (PROD_ITER171_PROBE)
+
+Going forward agent will not create more probe rows in production — hardening is verified and probe-based assurance is no longer needed.
+
+### Cumulative production reliability milestones (now all confirmed live)
+✅ Phase J idempotency · ✅ Rate limiting · ✅ HMAC-bound auth · ✅ HSTS · ✅ TLS · ✅ Cloudflare edge · ✅ Frontend deploy pipeline · ✅ **CORS lockdown** (new this iter)
+
+### Updated risk matrix
+| Item | Status |
+|---|---|
+| CORS wildcard | 🟢 **CLOSED** |
+| Rate limiting | 🟢 working |
+| Idempotency | 🟢 working |
+| Auth gates | 🟢 holding |
+| HSTS · HTTPS · TLS | 🟢 holding |
+| `www.` canonical 308 → apex | 🟢 intentional |
+| Cloudflare cache awareness | 🟡 documented |
+| Authenticated-surface smoke checklist | ❌ still pending USER walkthrough |
+
+### Authoritative report
+**`/app/POST_DEPLOY_PRODUCTION_OBSERVATION.md`** — Section 15 appended with full iter171 verification, code change description, cache-busting lesson, cumulative cleanup list, and updated risk matrix.
+
+### Observation window
+🟢 **REMAINS OPEN.** Feature freeze in effect. Production hardening is now complete — no more env-var changes needed, no more code changes needed for security baseline. Agent on standby for any user-reported issue.
+
+### Next Action Items
+1. 🟢 USER: delete the 4 probe incident rows from `/admin → Incidents`
+2. 🟡 USER: walk authenticated-surface smoke checklist (still pending from deploy day — Section 1.4 of report)
+3. 🟢 AGENT: standby for bug reports only · telemetry review after ≥30 days of real production data
+
+
+---
 ## 2026-05-16 (afternoon) — Iter170 · Post-Redeploy Verification · ✅ 5/6 PASS · 🔴 CORS root-caused (env-var ordering)
 
 ### Outcome

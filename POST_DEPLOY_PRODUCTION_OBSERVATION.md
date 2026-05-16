@@ -404,6 +404,70 @@ Both can be deleted from `/admin → Incidents`. Going forward, I will avoid cre
 | `www.` canonical | ✅ now 308 → apex (new, intentional, no app impact) |
 | Authenticated-surface smoke checklist | ❌ still pending USER walkthrough from a signed-in admin browser |
 
+---
+
+## SECTION 15 — Iter171 Post-Redeploy Verification (2026-05-16, third redeploy) · 🟢 6/6 PASS
+
+**Critical context:** The first round of probes appeared to show CORS still wildcard. **This was a Cloudflare-cached stale response.** Cache-busted requests (`?_cb=<timestamp>` + `Cache-Control: no-cache` header) revealed the true upstream behavior — fully hardened.
+
+### Code-side fix that shipped
+`server.py:9958-9996` — removed the `CORS_ORIGINS=*` wildcard branch entirely. The code now treats `*` as equivalent to "unset" and falls through to regex mode with credentials enabled. This means:
+- The wildcard is impossible to activate even if the platform re-injects `CORS_ORIGINS=*` into the runtime env
+- The `CORS_ORIGIN_REGEX` Secret is now the authoritative source of truth for production
+- Preview keeps working because the default regex covers preview domains
+
+### Probes (with cache-bust)
+
+| # | Probe | Result |
+|---|---|---|
+| 1 | **CORS lockdown (evil origin)** | ✅ OPTIONS 400 + no `allow-origin` · GET 200 + no `allow-origin` |
+| 1 | **CORS lockdown (mascidocs.com origin)** | ✅ OPTIONS 200 + `allow-origin: https://mascidocs.com` · GET echoes back |
+| 1 | **CORS lockdown (www.mascidocs.com origin)** | ✅ OPTIONS 200 + `allow-origin: https://www.mascidocs.com` · GET echoes back |
+| 1 | **CORS lockdown (random.attacker.io)** | ✅ GET 200 + no `allow-origin` |
+| 1 | `vary: Origin` header present | ✅ confirms FastAPI CORSMiddleware is handling, not Cloudflare |
+| 1 | `access-control-allow-credentials: true` | ✅ correctly present for matched origins |
+| 2 | Rate limit (burst 32) | ✅ 30 → 200, 2 → 429 |
+| 3 | Anon auth gate matrix (16 endpoints) | ✅ 15/16 401 (`/api/equipment-master` intentionally public per Iter153) |
+| 4 | Idempotency re-probe | ✅ same key → same id `5fbf20fb-aad7-4053-a629-47d7018d83a6` (NEW probe row — cleanup needed) |
+| 5 | Bundle hash rotated | ✅ `a9c547dd` → `0f8315c6` |
+| 6 | Health (apex) | ✅ `{ok:true, service:"masci-hub"}` |
+| 6 | Production homepage render | ✅ HTTP 200, 8341 bytes, 0.23s, title correct, zero pageerrors, zero console errors/warnings |
+
+### Cache-busting lesson
+The first probe round (without cache-bust) returned `access-control-allow-origin: *` AND was missing `vary: Origin` — both signatures of a Cloudflare-cached response from BEFORE the redeploy. Adding `?_cb=<timestamp>` + `Cache-Control: no-cache` forced upstream fetches and revealed the real hardened behavior.
+
+**Going forward:** All CORS probes against production should include cache-busting to avoid false alarms.
+
+### Cleanup items (USER) — cumulative list
+| ID | Project | Where | Status |
+|---|---|---|---|
+| `2179f270-4238-4853-8a8e-5aed985bae1f` | PROD_MORNING_PROBE | prod `incidents` | ❌ pending |
+| `5230b85c-e55e-4761-92aa-f03c384c01b8` | POST_REDEPLOY_PROBE | prod `incidents` | ❌ pending |
+| `97654818-a51d-4d95-88b0-47c74707b83d` | PROD_THIRD_REDEPLOY | prod `incidents` | ❌ pending |
+| `5fbf20fb-aad7-4053-a629-47d7018d83a6` | PROD_ITER171_PROBE | prod `incidents` | ❌ pending (new this iter) |
+
+All deletable from `/admin → Incidents`. Going forward agent will NOT create more probe rows in production — the lockdown is verified and probe-based assurance is no longer needed.
+
+### Updated risk matrix
+
+| Item | Status |
+|---|---|
+| **CORS wildcard** | 🟢 **CLOSED** — code-side fix shipped, regex-only mode enforced, verified via cache-busted probes |
+| Rate limiting | 🟢 confirmed working |
+| Idempotency | 🟢 confirmed working |
+| Auth gates | 🟢 no regressions across 3 redeploys |
+| HSTS · HTTPS · TLS | 🟢 holding |
+| `www.` canonical 308 → apex | 🟢 intentional, no app impact |
+| Cloudflare cache awareness | 🟡 documented (use cache-bust for future security probes) |
+| Authenticated-surface smoke checklist | ❌ still pending USER walkthrough |
+
+### Cumulative reliability milestones confirmed live in production
+✅ Phase J idempotency · ✅ Rate limiting · ✅ HMAC-bound auth · ✅ HSTS · ✅ TLS · ✅ Cloudflare edge · ✅ Frontend deploy pipeline · ✅ **CORS lockdown** (new this iter)
+
+### Observation window
+🟢 **REMAINS OPEN.** Feature freeze in effect. Agent on standby. No new probe iterations needed — production hardening is complete.
+
+
 **Production: LIVE.** Public surface healthy. Auth gates holding. SSL valid on both apex and www. Health endpoint returning correctly. Frontend bundle deployed (`main.80740398.js`).
 
 **Observation window: OPEN.** Feature freeze in effect for several weeks minimum.
