@@ -9958,11 +9958,17 @@ async def _start_backup_scheduler():
 cors_origins_env = os.environ.get('CORS_ORIGINS', '').strip()
 cors_origin_regex = (os.environ.get('CORS_ORIGIN_REGEX', '') or '').strip() or None
 
-# Default safe regex when no env vars are set: allow MASCI's prod domain plus
-# any Emergent preview pod. Browsers reject `Access-Control-Allow-Origin: *`
-# combined with credentialed requests (and the frontend sends credentials),
-# so a regex / explicit list is required for the prod app to actually work
-# in iOS Safari + Cloudflare.
+# Default safe regex when no explicit list is configured: allow MASCI's prod
+# domain plus any Emergent preview pod. Browsers reject
+# `Access-Control-Allow-Origin: *` combined with credentialed requests, so a
+# regex / explicit list is required for the prod app to work in iOS Safari +
+# Cloudflare.
+#
+# Iter171 hardening: `CORS_ORIGINS=*` is now treated as "unset" and falls
+# through to regex mode with credentials enabled. This removes the wildcard
+# escape hatch entirely — even if a platform layer re-injects `*` into the
+# runtime env, the regex authoritatively wins. Preview keeps working because
+# the default regex below covers all Emergent preview domains.
 _DEFAULT_CORS_REGEX = (
     r"^https://("
     r"(www\.)?mascidocs\.com"
@@ -9973,15 +9979,14 @@ _DEFAULT_CORS_REGEX = (
 )
 
 if cors_origins_env and cors_origins_env != '*':
+    # Explicit allow-list (preferred for production hardening).
     _cors_origins = [o.strip() for o in cors_origins_env.split(',') if o.strip()]
     _cors_credentials = True
-elif cors_origins_env == '*':
-    # Explicitly opted into wildcard — credentials must be off per CORS spec.
-    _cors_origins: List[str] = ["*"]
-    _cors_credentials = False
 else:
-    # No env var set → use the safe default regex with credentials enabled.
-    _cors_origins = []
+    # Empty OR explicit '*' → fall through to regex with credentials.
+    # We intentionally never honor wildcard CORS — it disables credentialed
+    # cross-origin requests AND broadens the CSRF surface.
+    _cors_origins: List[str] = []
     _cors_credentials = True
     if not cors_origin_regex:
         cors_origin_regex = _DEFAULT_CORS_REGEX
