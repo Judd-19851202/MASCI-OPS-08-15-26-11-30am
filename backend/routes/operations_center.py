@@ -44,10 +44,11 @@ ROLE_VISIBILITY: Dict[str, tuple] = {
     "admin": (
         "tasks_overdue", "tasks_open",
         "po_pending_approval", "po_missing_receipt", "po_overdue_receipt",
+        "po_approval_p90",
         "doc_exp_expiring", "doc_exp_expired",
         "incidents_open", "ca_overdue",
         "equipment_down", "equipment_holds",
-        "preop_failed_recent",
+        "preop_failed_recent", "repeat_equipment_failures",
         "integration_health", "audit_coverage",
     ),
     "executive": (
@@ -57,6 +58,7 @@ ROLE_VISIBILITY: Dict[str, tuple] = {
     ),
     "pm": (
         "tasks_overdue", "po_pending_approval", "po_overdue_receipt",
+        "po_approval_p90",
         "incidents_open", "ca_overdue", "doc_exp_expiring",
     ),
     "hr": (
@@ -66,11 +68,11 @@ ROLE_VISIBILITY: Dict[str, tuple] = {
     ),
     "shop": (
         "tasks_overdue", "equipment_down", "equipment_holds",
-        "preop_failed_recent",
+        "preop_failed_recent", "repeat_equipment_failures",
     ),
     "dispatch": (
         "tasks_overdue", "equipment_down", "equipment_holds",
-        "preop_failed_recent",
+        "preop_failed_recent", "repeat_equipment_failures",
     ),
     "safety": (
         "tasks_overdue", "incidents_open", "ca_overdue",
@@ -84,6 +86,7 @@ CARD_META: Dict[str, Dict[str, str]] = {
     "po_pending_approval":        {"label": "Pending PO approvals", "url": "/po-requests?status=Pending Approval", "severity": "Warning"},
     "po_missing_receipt":         {"label": "POs missing receipt",  "url": "/po-requests?quick=pending_receipt",   "severity": "Warning"},
     "po_overdue_receipt":         {"label": "Overdue PO receipts",  "url": "/po-requests?status=Overdue Receipt",  "severity": "Critical"},
+    "po_approval_p90":            {"label": "PO Approval Time",     "url": "/po-requests?status=Pending Approval", "severity": "Info"},
     "doc_exp_expiring":           {"label": "Docs expiring soon",   "url": "/document-expirations?status=Expiring Soon", "severity": "Warning"},
     "doc_exp_expired":            {"label": "Docs expired",         "url": "/document-expirations?status=Expired", "severity": "Critical"},
     "incidents_open":             {"label": "Incidents open",       "url": "/incidents",                            "severity": "Critical"},
@@ -91,6 +94,7 @@ CARD_META: Dict[str, Dict[str, str]] = {
     "equipment_down":             {"label": "Equipment out of service", "url": "/admin/assets?status=Out of Service", "severity": "Critical"},
     "equipment_holds":            {"label": "Active maintenance holds", "url": "/admin/operations-events?type=maintenance_hold", "severity": "Warning"},
     "preop_failed_recent":        {"label": "Failed pre-ops (7d)",  "url": "/admin/operations-events?type=preop_failed", "severity": "Warning"},
+    "repeat_equipment_failures":  {"label": "Repeat Equipment Failures", "url": "/admin/assets", "severity": "Info"},
     "lifecycle_pending_offboarding": {"label": "Pending offboarding", "url": "/hr/employees?status=Pending Offboarding", "severity": "Warning"},
     "integration_health":         {"label": "Integration health",   "url": "/admin/system-health",                 "severity": "Info"},
     "audit_coverage":             {"label": "Audit-log coverage",   "url": "/admin/system-health#audit-coverage",  "severity": "Info"},
@@ -263,6 +267,104 @@ def build_operations_center_router(db, require_any_portal_token) -> APIRouter:
                 logger.warning("[ops-center] audit_coverage failed: %s", e)
                 return {"modules": [], "covered": 0, "total": 0, "coverage_pct": 0}
 
+        # ── Iter161 · Signal-derived operational indicators ────────
+        # Two restrained additions per user instruction (Iter160 +
+        # Operations Center integration). Each card pulls its number
+        # from the `operational_signal` rollup, applies a SIMPLE static
+        # threshold, and returns an explicit severity. NO predictive
+        # scoring. NO AI. NO charts. NO new collection.
+        async def p_po_approval_p90() -> Dict[str, Any]:
+            """30-day p90 of PO submit→approved cycle time. Threshold:
+            ≤48h Info · ≤120h Warning · >120h Critical. Empty state =
+            neutral 'No signal yet'."""
+            try:
+                since30 = now - timedelta(days=30)
+                cur = db.usage_events.find(
+                    {"kind": "operational_signal", "signal": "po.approve",
+                     "at": {"$gte": since30},
+                     "elapsed_ms": {"$exists": True, "$gte": 0}},
+                    {"_id": 0, "elapsed_ms": 1},
+                )
+                values: List[int] = []
+                async for row in cur:
+                    v = row.get("elapsed_ms")
+                    if isinstance(v, int):
+                        values.append(v)
+                if not values:
+                    return {"display": "No signal yet", "p90_ms": 0,
+                            "count": 0, "severity": "Info"}
+                values.sort()
+                n = len(values)
+                # p90 — small n: last value; larger n: index ceil(.9*n)-1
+                if n < 10:
+                    p90 = values[-1]
+                else:
+                    p90 = values[min(n - 1, max(0, int(round(n * 0.9)) - 1))]
+                s = p90 / 1000.0
+                if s < 60:
+                    display = f"{int(s)}s"
+                elif s < 3600:
+                    display = f"{int(s / 60)}m"
+                elif s < 86400:
+                    display = f"{s / 3600:.1f}h"
+                else:
+                    display = f"{s / 86400:.1f}d"
+                h = s / 3600.0
+                if h <= 48:
+                    sev = "Info"
+                elif h <= 120:
+                    sev = "Warning"
+                else:
+                    sev = "Critical"
+                return {"display": display, "p90_ms": int(p90),
+                        "count": n, "severity": sev}
+            except Exception as e:  # noqa: BLE001
+                logger.warning("[ops-center] po_approval_p90 failed: %s", e)
+                return {"display": "No signal yet", "p90_ms": 0,
+                        "count": 0, "severity": "Info"}
+
+        async def p_repeat_equipment_failures() -> Dict[str, Any]:
+            """Equipment IDs with ≥3 fails in last 30 days. Threshold:
+            0 = Info · ≥1 = Warning · ≥3 = Critical. Returns top 5
+            offenders for deep-link convenience."""
+            try:
+                since30 = now - timedelta(days=30)
+                cur = db.usage_events.aggregate([
+                    {"$match": {
+                        "kind": "operational_signal",
+                        "signal": "equipment.fail",
+                        "at": {"$gte": since30},
+                        "dims.equipment_id": {"$exists": True, "$ne": ""},
+                    }},
+                    {"$group": {
+                        "_id": "$dims.equipment_id",
+                        "count": {"$sum": 1},
+                    }},
+                    {"$match": {"count": {"$gte": 3}}},
+                    {"$sort": {"count": -1}},
+                    {"$limit": 5},
+                ])
+                top: List[Dict[str, Any]] = []
+                async for row in cur:
+                    top.append({"equipment_id": row["_id"],
+                                "count": row["count"]})
+                n = len(top)
+                if n == 0:
+                    sev = "Info"
+                    display = "No signal yet"
+                elif n < 3:
+                    sev = "Warning"
+                    display = f"{n} repeat offender{'s' if n != 1 else ''}"
+                else:
+                    sev = "Critical"
+                    display = f"{n} repeat offenders"
+                return {"display": display, "count": n, "top": top,
+                        "severity": sev}
+            except Exception as e:  # noqa: BLE001
+                logger.warning("[ops-center] repeat_equipment_failures failed: %s", e)
+                return {"display": "No signal yet", "count": 0,
+                        "top": [], "severity": "Info"}
+
         # ── Probe dispatch table ──────────────────────────────────
         PROBES: Dict[str, Callable[[], Awaitable[Any]]] = {
             "tasks_overdue": p_tasks_overdue,
@@ -270,6 +372,7 @@ def build_operations_center_router(db, require_any_portal_token) -> APIRouter:
             "po_pending_approval": lambda: p_po("Pending Approval"),
             "po_missing_receipt": p_po_missing_receipt,
             "po_overdue_receipt": lambda: p_po("Overdue Receipt"),
+            "po_approval_p90": p_po_approval_p90,
             "doc_exp_expiring": lambda: p_doc_exp("Expiring Soon"),
             "doc_exp_expired": lambda: p_doc_exp("Expired"),
             "incidents_open": p_incidents_open,
@@ -277,6 +380,7 @@ def build_operations_center_router(db, require_any_portal_token) -> APIRouter:
             "equipment_down": p_equipment_down,
             "equipment_holds": p_equipment_holds,
             "preop_failed_recent": p_preop_failed_recent,
+            "repeat_equipment_failures": p_repeat_equipment_failures,
             "lifecycle_pending_offboarding": p_lifecycle_pending_offboarding,
             "integration_health": p_integration_health,
             "audit_coverage": p_audit_coverage,
@@ -298,12 +402,20 @@ def build_operations_center_router(db, require_any_portal_token) -> APIRouter:
         for key, value in results:
             meta = CARD_META.get(key, {})
             if isinstance(value, dict):
+                # Signal-derived cards may carry a dynamic `severity`
+                # in the payload — honor it; otherwise fall back to the
+                # static CARD_META severity. The severity field is
+                # promoted to the card and stripped from the payload to
+                # keep the contract clean (severity always lives on the
+                # card, never inside `value`).
+                dyn_sev = value.get("severity")
+                clean_value = {k: v for k, v in value.items() if k != "severity"}
                 cards.append({
                     "key": key,
                     "label": meta.get("label", key),
-                    "severity": meta.get("severity", "Info"),
+                    "severity": dyn_sev or meta.get("severity", "Info"),
                     "url": meta.get("url"),
-                    "value": value,
+                    "value": clean_value,
                 })
             else:
                 cards.append({

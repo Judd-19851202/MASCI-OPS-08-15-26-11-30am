@@ -1,6 +1,55 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter161 · Operations Center Signal Integration · STABILIZED (Phase 2.5 · P1 enhancement · narrow scope)
+
+### Outcome
+Two restrained signal-derived indicator cards now mounted into the existing Operations Center surface — closing the loop from Iter160 telemetry capture → operational visibility. No new endpoint, no new collection, no new portal, no charts.
+
+### Cards shipped
+- **`po_approval_p90`** — 30-day p90 of PO submit→approved cycle time. Threshold ladder: ≤48h Info · ≤120h Warning · >120h Critical. Visible to admin + PM. Deep-links to `/po-requests?status=Pending Approval`. Empty state = "No signal yet" neutral Info tile.
+- **`repeat_equipment_failures`** — count of equipment IDs with ≥3 fails in last 30 days. Threshold ladder: 0 Info · 1–2 Warning · ≥3 Critical. Visible to admin + shop + dispatch. Returns `top[]` (5 max) for future deep-link. Deep-links to `/admin/assets`. Empty state = "No signal yet".
+
+### Implementation
+- **Backend** (`routes/operations_center.py`):
+  - Added 2 new probes (`p_po_approval_p90`, `p_repeat_equipment_failures`). Each computes from `db.usage_events` `kind='operational_signal'` rows with 30-day window. Python-side p90 (fewer than 10 values → last value; otherwise index ceil(0.9·n)-1). Aggregation pipeline for equipment uses indexed match on `kind` + `signal` + `at`.
+  - Probes return dynamic `severity` in the response payload. Card-build loop honors probe-supplied severity, strips it from the payload to keep contract clean (severity always lives ON the card).
+  - Extended `ROLE_VISIBILITY` minimally — only the 2 cards added to the appropriate roles.
+  - Extended `CARD_META` with the 2 new keys.
+- **Frontend** (`components/OperationsCenter.jsx`):
+  - Added one branch in `CardTile` for both new keys. Renders `value.display` as primary stat + subtitle line + watch/needs-attention chip when severity ≠ Info.
+  - Existing `tintFor(severity)` color helper drives the badge color automatically based on backend-supplied severity. No frontend threshold logic.
+- **Tests** (`test_iter161_ops_center_signal_cards.py`): 15 tests. Includes per-role visibility, severity threshold ladder verification (Info/Warning/Critical at each band), empty-state neutrality, card-shape contract (severity on card not value), URL deep-link present, existing-card regression.
+
+### Verification
+- **Backend**: 15/15 new pytest + 16/16 iter160 + 8/8 iterC regression = 39/39 PASS.
+- **Frontend** (live screenshot on AdminHub `/admin`): Both cards render in their correct slots within the 16-card OperationsCenter grid. Empty state shows "No signal yet" in neutral white tile · subtitle "30-day p90 · submit → approved" / "30 days · ≥3 fails per unit". Mobile-clean.
+- **Permission**: PM role sees `po_approval_p90` but NOT `repeat_equipment_failures` (verified). Shop & Dispatch see `repeat_equipment_failures` but NOT `po_approval_p90` (verified). Admin sees both.
+
+### Guardrails honored
+- ✅ No charts, no marketing tiles, no AI/predictive language
+- ✅ Thresholds are SIMPLE static numbers in code (not ML/dynamic)
+- ✅ Empty state = neutral Info "No signal yet" (no alarming red/amber when no data)
+- ✅ Cards mounted INTO existing list — no new panel, no new page
+- ✅ NO new endpoint (extended `/api/operations-center`)
+- ✅ NO new collection (reuses `db.usage_events`)
+- ✅ Card language is plain operational ("PO Approval Time" / "Repeat Equipment Failures")
+- ✅ Deep-links to underlying records pages (PO list / equipment list)
+
+### Operational principle held
+Cards answer: "Where is operational friction increasing?" — NOT "What is the platform trying to guess?" Pure observability of facts already happening in the system, with a small static threshold that can be tuned later if needed.
+
+### Next Action Items (in user-stated priority order)
+1. 🔵 **Phase H** — Project / Job Health Dashboard (P2): aggregate Tasks · Documents · POs · Notifications · Equipment by project. Green/Yellow/Red traffic light + legal footer.
+2. 🟢 **Phase I** — Asset Transfer System (P2): formal tracking tied to Dispatch · equipment_master · Tasks · Notifications.
+3. 🟢 **Phase J** — Low-Connection / Field Resiliency Layer (P2): autosave drafts · upload retries · duplicate-submit prevention.
+4. 🟡 Post-deploy: design tokens 80% pass (cosmetic, zero visual change).
+
+### Observe-first window
+The two new signal cards now collect REAL telemetry. After ~30 days of production traffic both will move out of empty-state. At that point we can review usefulness/readability/noise before adding the remaining 4 candidate signals (CA trend, training trend, document surge, repeated pre-op trend). This is the disciplined observation phase before further signal cards are minted.
+
+
+---
 ## 2026-05-16 — Iter160 · Operational Signal Density · STABILIZED (Phase 2.5 · P1 enhancement)
 
 ### Outcome

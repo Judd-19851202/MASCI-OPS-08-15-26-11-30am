@@ -86,6 +86,33 @@ function CardTile({ card, onOpen }) {
       </button>
     );
   }
+  // Iter161 · Signal-derived indicators — compact display string card.
+  if (!isCount && (card.key === "po_approval_p90" || card.key === "repeat_equipment_failures")) {
+    const v = card.value || {};
+    const subtitle = card.key === "po_approval_p90"
+      ? "30-day p90 · submit → approved"
+      : "30 days · ≥3 fails per unit";
+    return (
+      <button
+        type="button"
+        onClick={onOpen}
+        className={`text-left rounded-md border-2 ${SEV_RING[sev]} p-3 hover:shadow-sm transition-shadow w-full`}
+        data-testid={`ops-card-${card.key}`}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[sev]}`}>{card.label}</div>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+        </div>
+        <div className="text-2xl font-bold leading-tight text-slate-900">{v.display || "No signal yet"}</div>
+        <div className="text-[10px] font-mono text-slate-500 mt-0.5">{subtitle}</div>
+        {sev !== "Info" && (
+          <div className={`text-[10px] font-mono mt-1.5 inline-block px-1.5 py-0.5 rounded border ${tintFor("severity", sev)}`}>
+            {sev === "Critical" ? "Needs attention" : "Watch"}
+          </div>
+        )}
+      </button>
+    );
+  }
   // count card
   return (
     <button
