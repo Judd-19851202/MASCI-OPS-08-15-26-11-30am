@@ -1,6 +1,66 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 (afternoon) — Iter170 · Post-Redeploy Verification · ✅ 5/6 PASS · 🔴 CORS root-caused (env-var ordering)
+
+### Outcome
+User actioned production hardening redeploy with `RATE_LIMITING=on` + `CORS_ORIGIN_REGEX=^https:\/\/(www\.)?mascidocs\.com$`. **5 of 6 probes passed. CORS still wildcard, but root cause identified — no code change needed, just one env-var to unset.**
+
+### Probe results
+| # | Probe | Result |
+|---|---|---|
+| 1 | CORS lockdown | 🔴 STILL WILDCARD — `CORS_ORIGINS=*` overrides `CORS_ORIGIN_REGEX` per `server.py:9975-9987`. Fix: unset `CORS_ORIGINS` env var entirely. |
+| 2 | Rate limit (burst 35 anon POSTs) | ✅ First 30 → 200, last 5 → 429. `RATE_LIMITING=on` confirmed working. |
+| 3 | Anon auth gate matrix (18 endpoints) | ✅ 17/18 401 — identical to pre-redeploy. No regressions. |
+| 4 | Idempotency re-probe | ✅ Same key → same id `5230b85c-…` on replay. Phase J middleware healthy. |
+| 5 | Bundle hash | ✅ `main.80740398.js` → `main.1c733c67.js` — redeploy shipped. |
+| 6 | Health + stability | ✅ apex healthy, zero pageerrors, zero console errors/warnings. ℹ️ `www.` now 308 → apex (new Cloudflare canonical redirect, intentional, no app impact). |
+
+### CORS root cause (exact)
+Backend code (`server.py:9975-9987`):
+```
+if cors_origins_env and cors_origins_env != '*':       → use explicit list ✅
+elif cors_origins_env == '*':                            → wildcard, IGNORES regex ❌  ← we're here
+else: (unset)                                            → fall through to regex ✅
+```
+
+`CORS_ORIGINS=*` is still present in production env from the original deploy. The new `CORS_ORIGIN_REGEX` never gets a chance to fire because branch 2 wins. **No code change needed** — purely env-var ordering.
+
+### Exact fix (USER)
+**Option A (recommended):** In the Emergent deploy dashboard, **delete the `CORS_ORIGINS` env var entirely** (not empty string — remove it). Keep `CORS_ORIGIN_REGEX` as-is. Redeploy. Code falls into branch 3 (regex + credentials).
+
+**Option B:** Set `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com`. Code falls into branch 1 (explicit list + credentials). `CORS_ORIGIN_REGEX` becomes redundant.
+
+### Cleanup items (USER)
+| ID | Project | Where |
+|---|---|---|
+| `2179f270-4238-4853-8a8e-5aed985bae1f` | PROD_MORNING_PROBE | prod `incidents` |
+| `5230b85c-e55e-4761-92aa-f03c384c01b8` | POST_REDEPLOY_PROBE | prod `incidents` |
+
+Both delete via `/admin → Incidents`. Going forward, agent will not create more probe rows in production until cleanup is confirmed.
+
+### Authoritative report
+**`/app/POST_DEPLOY_PRODUCTION_OBSERVATION.md`** — Sections 10-14 appended with full post-redeploy findings, CORS root cause + exact fix, side-effect notes, cleanup tracking, and current risk matrix.
+
+### Observation window status
+🟢 **OPEN** · feature freeze in effect · agent on standby.
+
+### Critical reliability milestones confirmed live in production
+- ✅ Phase J idempotency · duplicate-submit protection
+- ✅ Rate limiting · brute-force/abuse protection
+- ✅ HMAC-bound token auth · 17/18 anon gate matrix holding
+- ✅ HSTS · TLS · Cloudflare edge
+- ✅ Frontend deploy pipeline (bundle hash rotation)
+- 🔴 CORS lockdown — one final env-var change away
+
+### Next Action Items
+- 🔴 USER: action the single env-var fix (delete `CORS_ORIGINS=*` from prod env) + redeploy
+- 🟢 USER: delete the two probe incident rows
+- 🟡 USER: walk the authenticated-surface smoke checklist (still pending from deploy day)
+- 🟢 AGENT: re-run CORS probe after the next redeploy and confirm lockdown
+
+
+---
 ## 2026-05-16 (morning) — Iter169 · Live Production Health Pass · ✅ HEALTHY · 🟡 2 ACTION ITEMS
 
 ### Outcome

@@ -292,7 +292,117 @@ The platform's shared infrastructure layers — `event_fanout`, `audit`, `signat
 
 ---
 
-## Final state
+## SECTION 10 — Post-Redeploy Verification (2026-05-16 afternoon) · ✅ 4/6 PASS · 🔴 1 CORS ROOT-CAUSED · ℹ️ 1 SIDE-EFFECT NOTED
+
+User actioned the hardening redeploy with `RATE_LIMITING=on` + `CORS_ORIGIN_REGEX=^https:\/\/(www\.)?mascidocs\.com$`.
+
+### Probe results
+
+| # | Probe | Result | Notes |
+|---|---|---|---|
+| 1 | **CORS lockdown** | 🔴 **STILL WILDCARD** | `access-control-allow-origin: *` still returned on actual GETs from `https://evil.example.com`. **Root cause identified** — see Section 11. |
+| 2 | **Rate limit (burst 35)** | ✅ **WORKING** | First 30 → 200, last 5 → 429. Matches `PUBLIC_POST_LIMIT_PER_HOUR=30` default. Throttling kicks in exactly at threshold. |
+| 3 | **Anon auth gate matrix** (18 endpoints) | ✅ **NO REGRESSIONS** | 17/18 401 identical to pre-redeploy. `/api/equipment-master` correctly 200 (intentional public per Iter153). |
+| 4 | **Idempotency re-probe** | ✅ **WORKING** | Same `Idempotency-Key` returned same id `5230b85c-e55e-4761-92aa-f03c384c01b8` on replay. **USER CLEANUP: delete this incident row.** |
+| 5 | **Bundle hash** | ✅ **REDEPLOY SHIPPED** | `main.80740398.js` → `main.1c733c67.js`. |
+| 6 | **Health endpoint** | ✅ apex healthy · ℹ️ www now 308 → apex | See Section 12 side-effect. |
+| 7 | **Live production stability** | ✅ **CLEAN** | Production homepage renders: zero pageerrors, zero console errors, zero console warnings. HSTS still present. Title correct. |
+
+---
+
+## SECTION 11 — CORS root cause (and exact fix)
+
+The redeploy DID ship and DID pick up new env vars (rate-limit confirms this), but CORS still returns wildcard. The reason is in `backend/server.py:9975-9987`:
+
+```python
+cors_origins_env = os.environ.get('CORS_ORIGINS', '').strip()
+cors_origin_regex = (os.environ.get('CORS_ORIGIN_REGEX', '') or '').strip() or None
+
+if cors_origins_env and cors_origins_env != '*':
+    _cors_origins = [o.strip() for o in cors_origins_env.split(',') if o.strip()]
+    _cors_credentials = True
+elif cors_origins_env == '*':
+    # Explicitly opted into wildcard — credentials must be off per CORS spec.
+    _cors_origins = ["*"]
+    _cors_credentials = False
+    # ⚠️ NOTE: CORS_ORIGIN_REGEX is NOT consulted on this branch.
+else:
+    # No env var set → safe default regex with credentials enabled.
+    _cors_origins = []
+    _cors_credentials = True
+    if not cors_origin_regex:
+        cors_origin_regex = _DEFAULT_CORS_REGEX
+```
+
+**Branch 2 (`CORS_ORIGINS=*`) wins** and ignores `CORS_ORIGIN_REGEX` entirely. So the regex you set is correct, but it never gets a chance to fire because `CORS_ORIGINS=*` is still present in the production env.
+
+### Exact fix — pick ONE of the two options:
+
+**Option A (recommended — minimal change):**
+- **Unset / delete** the `CORS_ORIGINS` env var entirely in the Emergent deploy dashboard (don't set it to empty string — actually remove it).
+- Keep `CORS_ORIGIN_REGEX=^https:\/\/(www\.)?mascidocs\.com$` as-is.
+- Redeploy.
+- The code falls into branch 3 → uses your regex → credentials enabled.
+
+**Option B (explicit list):**
+- Set `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com`.
+- `CORS_ORIGIN_REGEX` becomes redundant (can be unset).
+- Redeploy.
+- Code falls into branch 1 → uses explicit list → credentials enabled.
+
+Both are correct. Option A is closer to what you already configured.
+
+**No code change required — this is purely an env-var ordering issue.**
+
+After your next redeploy with the fix, I will re-run probe #1 (CORS lockdown) and confirm the wildcard is gone.
+
+---
+
+## SECTION 12 — Side-effect noted from this redeploy: `www.` is now 308-redirected to apex
+
+The redeploy introduced a **new Cloudflare-level canonical-URL redirect**:
+
+```
+GET https://www.mascidocs.com/api/health
+  → HTTP/2 308 Permanent Redirect
+  → location: https://mascidocs.com/api/health
+```
+
+Yesterday `www.` returned direct 200. Today it 308s to apex. This is good behavior — single canonical domain — but it's new since yesterday and worth flagging for awareness.
+
+**Implications:**
+- Anyone hard-coded against `www.mascidocs.com` will follow the redirect transparently (browsers + curl auto-follow with `-L`)
+- The frontend uses `REACT_APP_BACKEND_URL` which presumably points to `https://mascidocs.com` directly (apex), so no impact on the app itself
+- SEO/canonical signals improve
+- The `CORS_ORIGIN_REGEX` you set correctly anticipates `www.` so once the wildcard is removed (Section 11) this will work correctly for any `www.` traffic that still hits the API before redirect
+
+**No action required.** Just a documented observation.
+
+---
+
+## SECTION 13 — Cleanup items (USER)
+
+| ID | Created by | Where | Status |
+|---|---|---|---|
+| `2179f270-4238-4853-8a8e-5aed985bae1f` | morning probe (iter169) | prod `incidents` collection (project=PROD_MORNING_PROBE) | ❌ pending delete |
+| `5230b85c-e55e-4761-92aa-f03c384c01b8` | post-redeploy probe (iter170) | prod `incidents` collection (project=POST_REDEPLOY_PROBE) | ❌ pending delete |
+
+Both can be deleted from `/admin → Incidents`. Going forward, I will avoid creating any more probe rows in production until you've confirmed cleanup is working, so this list won't grow.
+
+---
+
+## SECTION 14 — Remaining production risks
+
+| Item | Status |
+|---|---|
+| CORS wildcard | 🔴 open · root-caused · exact fix in Section 11 |
+| Rate limiting | ✅ confirmed working in production |
+| Idempotency | ✅ confirmed working in production |
+| Auth gates | ✅ no regressions from redeploy |
+| HSTS | ✅ enabled |
+| Bundle deploy pipeline | ✅ confirmed working (hash changed correctly) |
+| `www.` canonical | ✅ now 308 → apex (new, intentional, no app impact) |
+| Authenticated-surface smoke checklist | ❌ still pending USER walkthrough from a signed-in admin browser |
 
 **Production: LIVE.** Public surface healthy. Auth gates holding. SSL valid on both apex and www. Health endpoint returning correctly. Frontend bundle deployed (`main.80740398.js`).
 
