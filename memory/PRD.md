@@ -1,6 +1,73 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter167 · FINAL DEPLOYMENT READINESS LOCK · ✅ READY TO DEPLOY
+
+### Outcome
+Platform cleared the full pre-deployment verification gate. Zero blockers. One non-blocking data-only warn (cross-portal master-binding coverage backlog — honest migration surfacing, not a defect). Feature development is **FROZEN** pending production observation per explicit user mandate.
+
+Authoritative report: **`/app/FINAL_DEPLOYMENT_READINESS_LOCK.md`**.
+
+### Verification snapshot
+- **Frontend lint**: `/app/frontend/src` — clean across full tree
+- **Backend lint**: `/app/backend/routes` · `/app/backend/lib` · `/app/backend/server.py` — all clean
+- **Production build**: `yarn build` → 810 kB gzipped main · 21.77s · build folder deploy-ready
+- **Backend regression**: **124/124 PASS** across iter153/153E/154/155/iter_C/160/161/163/164/165 (80.08s)
+- **Live `/api/admin/deploy-readiness`**: `attention` · 0 blockers · 1 warn (data-only) · 12 checks
+- **Live operational endpoints**: Ops Center 16 cards · Project Health 29 projects (all Green) · Asset Transfers empty · Search 14 kinds 44 hits on "test"
+- **Permission gates**: anon→401, HR→401 on /admin/audit, HR cannot leak fire_extinguishers via search (scope=[]), PM scope holding
+- **Idempotency live probe**: `POST /api/incidents` with same `Idempotency-Key` → same id returned, no duplicate row (✅ IDEMPOTENT verified end-to-end)
+- **Phase J resiliency**: draft autosave · recovery toast · 14d purge · queue · offline indicator · idempotency — all verified live (iter166)
+- **No corruption**: zero `console.log`/`debugger` in served paths · zero stray TODO/HACK in served paths · zero placeholder data shown to users
+- **Intentional integration stubs**: Motive (3×) and MaintainX (1×) TODO markers — documented as mocked until external API matures (per architectural guardrail)
+
+### Production cutover checklist (Emergent deploy dashboard)
+1. 🔴 Rotate `ADMIN_PASSWORD` (>16 chars, strong)
+2. 🔴 Rotate `ADMIN_HMAC_SECRET` via `python3 -c "import secrets; print(secrets.token_urlsafe(64))"`
+3. 🔴 Bump `ADMIN_SESSION_EPOCH` to 2 (invalidates all stale tokens platform-wide)
+4. 🔴 Lock `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com`
+5. 🔴 Enable `RATE_LIMITING=on`
+6. 🟡 Enable `AUTO_EMAIL_REPORTS=true` (if production emails should fire day-one)
+7. 🟢 Verify `RESEND_API_KEY` + `S3_*` R2 keys present
+8. 🟢 Smoke `/api/health`, `/api/admin/deploy-readiness`, `/api/admin/integrations/health` post-deploy
+9. 🟢 Smoke a PO request, incident, asset transfer end-to-end · confirm fan-out
+
+### Frozen — observation window engaged
+Per user mandate, the following are explicitly **deferred** post-deploy until real production data accumulates:
+- Resiliency Health card (queued uploads / retry-success rate / draft counts)
+- CA trend · Training trend · Doc surge · Pre-op trend signal candidates
+- Design tokens 80% pass (cosmetic only)
+- MaintainX + Motive integration deepening
+- Bulk actions (telemetry-driven)
+- Additional Operations Center signal cards
+
+The platform must run **clean and quiet for several weeks** before any new feature surface is added.
+
+### Observation criteria (per user mandate)
+Watch for: PM behavior · superintendent behavior · dispatch behavior · HR behavior · safety behavior · field crew adoption · retry success rate (Phase J) · draft recovery frequency · duplicate-submit prevention effectiveness · upload stability under real-world cellular signal · operational friction surfaced by Project Health / Ops Center · Operational Signals telemetry maturity (deltas + cycle-time p90).
+
+### Discipline lock held
+- ✅ NO new dashboards · NO new telemetry surfaces · NO new analytics
+- ✅ NO experimental features · NO placeholder/mock data in user-facing UI
+- ✅ Real-data-only across every visibility layer (Ops Center, Project Health, Signals, Search)
+- ✅ Subtle UX tone (whisper not alarm) preserved across pulse dots, offline indicator, draft pill, queue badge
+- ✅ Server-side idempotency holding (idempotency_keys collection with TTL)
+- ✅ Permission gates holding (PM scope, anon rejection, cross-portal isolation)
+- ✅ Mobile compliance holding (Iter D + Iter166 verification)
+- ✅ Backup discipline holding (R2 hourly · 0 degraded events in 24h)
+
+### Final verdict
+**🟢 DEPLOY.** The platform is calm, operational, stable, reliable, consistent, trustworthy, mobile-safe, field-ready, audit-ready, and professionally deployable.
+
+### Next Action Items
+1. 🟢 **User: action production-cutover checklist in Emergent deploy dashboard**
+2. 🟢 **User: cut over to mascidocs.com**
+3. 🟢 **User: run post-deploy smoke checklist within 10 min of cutover**
+4. 🔵 **Both: enter observation window** — no new features for several weeks
+5. 🟡 **Future: review observation data** before considering any deferred items
+
+
+---
 ## 2026-05-16 — Iter166 · Phase J · Low-Connection / Field Resiliency Layer · STABILIZED (P2 closed)
 
 ### Outcome
