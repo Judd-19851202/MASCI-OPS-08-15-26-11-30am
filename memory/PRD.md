@@ -1,6 +1,75 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 — Iter176 · Phase K4a · Unified User Management UI · ✅ COMPLETE (read-only, non-enforcing)
+
+### Outcome
+Phase K4a (Unified Directory read-only surface) shipped to preview. **Strictly read-only — zero new mutations exposed.** User explicitly scoped the first slice to "read-only listing first, no mutations" and chose to fold the panel into `/admin → People & Access` directly beneath the existing Access Control Center, matching the existing `/admin/people` style. Convert-mirrored→managed and role-template assignment defer to K4b.
+
+### What shipped
+**`/app/backend/routes/admin_directory_k4.py`** (~210 lines, new):
+- 4 admin-strict GET endpoints — `/api/admin/directory/k4/{users,users/{id},stats,role-templates}`
+- `_directory_full_view(row)` — read-only public projection that surfaces K1 metadata (`mirrored`, `mirror_sources`, `employee_id`) + K3 wiring slot (`role_template_id`) + derived `source` classification. **Hard-strips `_id` and `password_hash` on every row.**
+- Server-side filters: `q` (case-insensitive email/name regex), `portal`, `source` (mirrored | managed | all), `disabled`. Unknown portal/source → 400.
+- Stats endpoint returns `total / mirrored / managed / disabled / with_role_template` plus `by_portal{}` for all 6 portals.
+- Role-templates endpoint is a defensive passthrough to `lib/role_templates.list_templates` with portal filter.
+- Detail endpoint best-effort joins recent `admin_audit` rows by email.
+
+**`/app/backend/server.py`** — wires `build_admin_directory_k4_router(db, require_admin_strict_dep=require_admin_strict)` directly after the existing auth-directory router. K1 + K3 startup hooks untouched.
+
+**`/app/frontend/src/components/AdminUnifiedDirectoryPanel.jsx`** (~340 lines, new):
+- Header with "Phase K4a · Read-only" pill and plain-English description of the K1 mirror.
+- 8-tile stats strip (Total / Managed / Mirrored / Disabled / With Template / Admin / PM / Shop).
+- Filter bar: search input (Enter submits), Portal dropdown, Source dropdown.
+- Dense table: portal chips, Mirrored/Managed source badge with "from: <portals>" attribution, role-template name+id when assigned (em-dash otherwise), employee_id, last sign-in, Active/Disabled status.
+- **Zero mutation controls** — testing agent confirmed only one button (search submit) inside the panel.
+- Disclaimer footer making the K4a→K4b boundary explicit.
+
+**`/app/frontend/src/pages/admin/AdminPeople.jsx`** — mounts the new panel right after `AdminAccessControlPanel`.
+
+**`/app/backend/tests/test_iter176_phase_k4a_directory_read.py`** — 19 tests.
+**`/app/backend/tests/test_iter176_login_regression.py`** — added by testing agent (login + anon-gate regression).
+
+### Live verification (preview)
+```
+Stats:    total=6  mirrored=5  managed=1  disabled=0  with_role_template=0
+By portal: admin=1 pm=1 shop=3 hr=2 safety=2 dispatch=2
+Role templates passthrough: 31 (K3 seed intact)
+```
+
+### Tests
+- **19/19 PASS** Phase K4a read-only tests
+- **100/100 PASS** K1 + K2 + K3 cumulative regression — zero side-effects on prior phases
+- **5/5 PASS** Login + anon-gate regression (HR / Shop / Admin / Multi-login / anon)
+- **Testing agent (iter176): 100% backend + 100% frontend.** Zero issues, zero mutation leaks, no retest needed.
+
+### Discipline held
+- ✅ Zero new mutations on K4a surface (POST/PATCH/DELETE on `/k4/*` return 404/405)
+- ✅ `_id` and `password_hash` scrubbed on every K4 response (explicit leak-guard tests)
+- ✅ Existing Access Control Center mutations untouched — still the only write path
+- ✅ Per-portal logins unchanged (HR / Shop / multi-login all verified)
+- ✅ Anon gate matrix unchanged
+- ✅ K1 + K3 startup hooks untouched
+- ✅ Observation window respected — additive read-only surface only
+
+### What this enables (K4b–K9, all deferred)
+- **K4b** — Wire mutations on the new panel: assign role template, convert mirrored→managed (admin-only manual password entry per user choice), per-user audit drawer, enable/disable
+- **K5** — Temp password / first-login reset / lockout flow — **will call `integration_playbook_expert_v2`** when greenlit
+- **K6** — Incremental enforcement cutover (swap `role == "..."` for `require(actor, "...")`, consult per-user role-template assignments)
+- **K7** — Field Leadership named-user transition from shared MASCIGC
+- **K8** — Per-portal enforcement cutover with observation window between portals
+- **K9** — Decommission legacy auth paths
+
+### Observation window status
+🟢 **REMAINS OPEN.** K4a is non-enforcing read-only surface — exactly the kind of additive work permitted in the window.
+
+### Next Action Items
+- 🟢 USER: confirm whether to proceed to **K4b** (wire mutations on the new panel) or pause for observation
+- 🟢 USER: when ready, redeploy to push K4a to production (silent — read-only admin surface, no UX behavior change)
+- 🟢 AGENT: standby — K4b BLOCKED on explicit user direction
+
+
+---
 ## 2026-05-16 — Iter175 · Phase K3 · Role Template System · ✅ COMPLETE (non-enforcing)
 
 ### Outcome
