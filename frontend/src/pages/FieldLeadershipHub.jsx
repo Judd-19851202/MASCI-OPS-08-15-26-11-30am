@@ -21,6 +21,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen, Home, Receipt } from "lucide-react";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
+import { OfflineIndicator } from "@/lib/resiliency";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -297,6 +298,7 @@ export default function FieldLeadershipHub() {
           <div className="flex items-center gap-2 flex-wrap">
             <GlobalSearch accent="dark" />
             <NotificationBell accent="white" />
+            <OfflineIndicator />
             <LangToggle />
             <CompanyInfoDialog />
             <Button

@@ -21,6 +21,7 @@ import { BackendVersionBadge } from "@/components/BackendVersionBadge";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
+import { OfflineIndicator } from "@/lib/resiliency";
 import GlobalSearch from "@/components/GlobalSearch";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
@@ -145,6 +146,7 @@ export default function PmShell({ title, section, children, intro }) {
             <PortalSwitcher current="pm" />
             <GlobalSearch accent="dark" />
             <NotificationBell accent="white" />
+            <OfflineIndicator />
             <SystemHealthBadge />
             <Link
               to="/"

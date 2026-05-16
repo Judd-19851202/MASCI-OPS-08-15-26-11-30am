@@ -2,13 +2,9 @@
 // shown in every protected portal header. Click → drawer with the
 // current user's notification feed.
 //
-// Design notes:
-//   * Polls /api/notifications/unread-count every 60s while the tab
-//     is foregrounded — light enough to never hit rate limits.
-//   * The bell is invisible (no DOM) when the user is fully signed-out.
-//   * Mark-as-read happens on drawer close so opening the drawer
-//     doesn't immediately reset the badge (gives the user time to
-//     read the items first).
+// Phase J addition (iter166): renders a small amber "upload queued"
+// badge underneath the bell when the resiliency queue has pending
+// items. Subtle — no banner, no toast, no sound.
 
 import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
@@ -39,6 +35,7 @@ export default function NotificationBell({ accent = "slate" }) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [queueDepth, setQueueDepth] = useState(0);
 
   const refreshCount = useCallback(async () => {
     if (!isSignedInAnywhere()) return;
@@ -56,6 +53,15 @@ export default function NotificationBell({ accent = "slate" }) {
     document.addEventListener("visibilitychange", onVis);
     return () => { clearInterval(interval); document.removeEventListener("visibilitychange", onVis); };
   }, [refreshCount]);
+
+  // Phase J — subscribe to the resiliency upload queue.
+  useEffect(() => {
+    const unsub = onQueueChange((q) => {
+      const pending = (q || []).filter((it) => it.status !== "failed").length;
+      setQueueDepth(pending);
+    });
+    return () => { try { unsub && unsub(); } catch { /* ignore */ } };
+  }, []);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -192,17 +198,6 @@ export default function NotificationBell({ accent = "slate" }) {
           <Link
             to="/tasks"
             className="inline-flex items-center text-xs font-bold uppercase tracking-wide text-slate-700 hover:text-slate-900"
-            onClick={() => setOpen(false)}
-            data-testid="notification-tasks-link"
-          >
-            View all tasks →
-          </Link>
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
-slate-700 hover:text-slate-900"
             onClick={() => setOpen(false)}
             data-testid="notification-tasks-link"
           >

@@ -23,6 +23,7 @@ import { BackendVersionBadge } from "@/components/BackendVersionBadge";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
+import { OfflineIndicator } from "@/lib/resiliency";
 import GlobalSearch from "@/components/GlobalSearch";
 import AdminGlobalSearch from "@/components/AdminGlobalSearch";
 import {
@@ -169,6 +170,7 @@ export default function AdminShell({ title, section, children, intro }) {
             <PortalSwitcher current="admin" />
             <div className="md:hidden"><GlobalSearch accent="dark" /></div>
             <NotificationBell accent="white" />
+            <OfflineIndicator />
             <SystemHealthBadge />
             <Link
               to="/"

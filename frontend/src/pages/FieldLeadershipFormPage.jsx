@@ -32,6 +32,10 @@ import { translateUserInput } from "@/lib/translateOnSubmit";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
+import {
+  useDraftSync, getActorId, mintIdempotencyKey, enqueueUpload,
+  DraftStatusPill,
+} from "@/lib/resiliency";
 
 const inputCls =
   "h-11 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600";
@@ -240,6 +244,46 @@ export default function FieldLeadershipFormPage() {
   const [witnessName, setWitnessName] = useState("");
   const [witnessSig, setWitnessSig] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const idempotencyKeyRef = React.useRef(null);
+
+  // Phase J — composite snapshot of all user-edited fields for autosave.
+  const snapshot = useMemo(() => ({
+    jobId, employeeId, empSearch, employeeNameOverride, employeePosition,
+    supervisorName, occurredAt, workArea, details, photos,
+    supSig, empSig, empRefused, empNotPresent, witnessName, witnessSig,
+  }), [
+    jobId, employeeId, empSearch, employeeNameOverride, employeePosition,
+    supervisorName, occurredAt, workArea, details, photos,
+    supSig, empSig, empRefused, empNotPresent, witnessName, witnessSig,
+  ]);
+  const actorId = useMemo(() => getActorId(), []);
+  const { draftStatus, discard, commit } = useDraftSync(
+    `fl-${kind}-new`, snapshot, actorId,
+    (draft) => {
+      try {
+        if (draft.jobId !== undefined) setJobId(draft.jobId || "");
+        if (draft.employeeId !== undefined) setEmployeeId(draft.employeeId || "");
+        if (draft.empSearch !== undefined) setEmpSearch(draft.empSearch || "");
+        if (draft.employeeNameOverride !== undefined) setEmployeeNameOverride(draft.employeeNameOverride || "");
+        if (draft.employeePosition !== undefined) setEmployeePosition(draft.employeePosition || "");
+        if (draft.supervisorName !== undefined) setSupervisorName(draft.supervisorName || "");
+        if (draft.occurredAt !== undefined) setOccurredAt(draft.occurredAt || "");
+        if (draft.workArea !== undefined) setWorkArea(draft.workArea || "");
+        if (draft.details !== undefined) setDetails(draft.details || {});
+        if (draft.photos !== undefined) setPhotos(draft.photos || []);
+        if (draft.supSig !== undefined) setSupSig(draft.supSig || "");
+        if (draft.empSig !== undefined) setEmpSig(draft.empSig || "");
+        if (draft.empRefused !== undefined) setEmpRefused(!!draft.empRefused);
+        if (draft.empNotPresent !== undefined) setEmpNotPresent(!!draft.empNotPresent);
+        if (draft.witnessName !== undefined) setWitnessName(draft.witnessName || "");
+        if (draft.witnessSig !== undefined) setWitnessSig(draft.witnessSig || "");
+        toast.message("Draft recovered", {
+          description: "Your unsent field leadership entry was restored.",
+          duration: 6000,
+        });
+      } catch { /* ignore */ }
+    },
+  );
 
   useEffect(() => {
     api.get("/field-leadership/jobs").then((r) => setJobs(r.data?.items || [])).catch(() => {});
@@ -520,8 +564,30 @@ export default function FieldLeadershipFormPage() {
       // is stamped on the saved payload so admin views can see what was
       // originally typed in Spanish.
       const finalPayload = await translateUserInput(payload, lang);
-      const r = await api.post("/field-leadership", finalPayload);
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current = mintIdempotencyKey();
+      }
+      const up = await enqueueUpload({
+        method: "POST",
+        url: "/field-leadership",
+        body: finalPayload,
+        idempotencyKey: idempotencyKeyRef.current,
+        formKey: `fl-${kind}-new`,
+      });
+      if (!up.ok && up.queued) {
+        toast.message(t("Saved · will upload when reconnected"), {
+          description: t("Your entry is queued and will send automatically."),
+          duration: 6000,
+        });
+        await commit();
+        idempotencyKeyRef.current = null;
+        navigate("/leadership");
+        return;
+      }
+      const r = { data: up.data };
       toast.success(t("Submitted — assigned PM, jaymn, and safety have been notified."));
+      await commit();
+      idempotencyKeyRef.current = null;
       navigate(`/leadership/records/${r.data.id}`);
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("Submit failed"));
@@ -543,6 +609,7 @@ export default function FieldLeadershipFormPage() {
           <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <div className="flex items-center gap-2">
+            <DraftStatusPill status={draftStatus} testId="fl-draft-pill" />
             <LangToggle />
             <CompanyInfoDialog />
           </div>

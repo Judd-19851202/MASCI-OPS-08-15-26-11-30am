@@ -10,9 +10,12 @@ export {
   clearAllDraftsForActor,
 } from "./draftStore";
 export { useDraft } from "./useDraft";
+export { useDraftSync } from "./useDraftSync";
 export { useOnlineStatus } from "./useOnlineStatus";
 export {
   enqueueUpload, getQueueDepth, getQueueItems,
   onQueueChange, drainQueue,
 } from "./resiliencyQueue";
 export { default as OfflineIndicator } from "./OfflineIndicator";
+export { default as DraftStatusPill } from "./DraftStatusPill";
+export { getActorId } from "./actorId";

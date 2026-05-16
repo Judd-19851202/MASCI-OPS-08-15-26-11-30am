@@ -10,6 +10,7 @@ import { LangToggle } from "@/components/LangToggle";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import GlobalSearch from "@/components/GlobalSearch";
+import { OfflineIndicator } from "@/lib/resiliency";
 import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import OperationsCenter from "@/components/OperationsCenter";
@@ -103,6 +104,7 @@ export default function HrHub() {
             <PortalSwitcher current="hr" />
             <GlobalSearch accent="dark" />
             <NotificationBell accent="white" />
+            <OfflineIndicator />
             <LangToggle />
             <CompanyInfoDialog />
             <Button variant="outline" size="sm" onClick={() => nav("/hr/change-password")} className="text-xs bg-transparent text-white border-white/30 hover:bg-white/10" data-testid="hr-change-password">

@@ -14,6 +14,7 @@ import { LangToggle } from "@/components/LangToggle";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import GlobalSearch from "@/components/GlobalSearch";
+import { OfflineIndicator } from "@/lib/resiliency";
 import OperationsCenter from "@/components/OperationsCenter";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
@@ -100,6 +101,7 @@ export default function ShopHub() {
             <PortalSwitcher current="shop" />
             <GlobalSearch accent="dark" />
             <NotificationBell accent="white" />
+            <OfflineIndicator />
             <LangToggle />
             <Link
               to="/ops-training?portal=shop"

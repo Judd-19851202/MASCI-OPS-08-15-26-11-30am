@@ -42,6 +42,10 @@ import {
   reverseGeocode,
   formatCoords,
 } from "@/lib/geolocation";
+import {
+  useDraftSync, getActorId, mintIdempotencyKey, enqueueUpload,
+  DraftStatusPill,
+} from "@/lib/resiliency";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2";
@@ -210,6 +214,27 @@ export default function NewDailyReport({ publicMode = false }) {
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [fetchingWeather, setFetchingWeather] = useState(false);
+  const idempotencyKeyRef = React.useRef(null);
+
+  // Phase J — autosave + draft recovery (non-invasive).
+  const actorId = React.useMemo(() => getActorId(), []);
+  const { draftStatus, discard, commit } = useDraftSync(
+    "daily-report-new", data, actorId,
+    (draft) => {
+      setData(draft);
+      toast.message("Draft recovered", {
+        description: "Your unsent daily report was restored.",
+        action: {
+          label: "Discard",
+          onClick: () => {
+            setData(buildDailyReportDefaults());
+            discard();
+          },
+        },
+        duration: 6000,
+      });
+    },
+  );
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
 
@@ -433,8 +458,42 @@ export default function NewDailyReport({ publicMode = false }) {
         payload = await translateUserInput(data, "es");
       }
       payload = { ...payload, submit_language: lang || "en" };
-      const res = await api.post("/daily-reports", payload);
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current = mintIdempotencyKey();
+      }
+      const r = await enqueueUpload({
+        method: "POST",
+        url: "/daily-reports",
+        body: payload,
+        idempotencyKey: idempotencyKeyRef.current,
+        formKey: "daily-report-new",
+      });
+      if (!r.ok && r.queued) {
+        toast.message("Saved · will upload when reconnected", {
+          description: "Your daily report is queued and will send automatically.",
+          duration: 6000,
+        });
+        await commit();
+        idempotencyKeyRef.current = null;
+        if (payload.project_number) rememberLastProject(String(payload.project_number));
+        if (publicMode || !isAdmin()) {
+          navigate("/thank-you", {
+            state: {
+              projectName: payload.project_name,
+              formType: "Daily Report",
+              returnTo: "/daily/submit",
+            },
+            replace: true,
+          });
+        } else {
+          navigate(`/daily`);
+        }
+        return;
+      }
+      const res = { data: r.data };
       toast.success("Daily report saved");
+      await commit();
+      idempotencyKeyRef.current = null;
       // iter148 — remember this project for the next visit
       if (payload.project_number) rememberLastProject(String(payload.project_number));
       // iter147 — telemetry on the daily-report flow (heaviest PM form)
@@ -492,6 +551,7 @@ export default function NewDailyReport({ publicMode = false }) {
             className={publicMode ? "sm:hidden" : ""}
           homeLink="/" />
           <div className="flex items-center gap-2">
+            <DraftStatusPill status={draftStatus} testId="daily-report-draft-pill" />
             <LangToggle />
             <Button
               onClick={submit}

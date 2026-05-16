@@ -199,6 +199,11 @@ function App() {
     import("@/lib/usageTracker").then(({ bindRouteChangeTracker }) => {
       bindRouteChangeTracker();
     }).catch(() => { /* silent */ });
+    // iter166 — Phase J · purge stale (>14d) IndexedDB drafts on boot.
+    // Fire-and-forget, never blocks app render.
+    import("@/lib/resiliency").then(({ purgeStaleDrafts }) => {
+      purgeStaleDrafts();
+    }).catch(() => { /* silent */ });
     return () => {
       mounted = false;
     };

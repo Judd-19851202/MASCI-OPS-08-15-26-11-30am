@@ -9,6 +9,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import NotificationBell from "@/components/NotificationBell";
+import { OfflineIndicator } from "@/lib/resiliency";
 import GlobalSearch from "@/components/GlobalSearch";
 import { useT } from "@/lib/i18n";
 import { clearSafetyToken, getSafetyUser } from "@/lib/safetyAuth";
@@ -40,6 +41,7 @@ export default function SafetyShell({ title, kicker, children }) {
           <div className="flex flex-wrap items-center justify-end gap-2 min-w-0">
             <GlobalSearch accent="dark" />
             <NotificationBell accent="white" />
+            <OfflineIndicator />
             <LangToggle />
             <CompanyInfoDialog />
             <Button

@@ -14,6 +14,7 @@ import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import GlobalSearch from "@/components/GlobalSearch";
+import { OfflineIndicator } from "@/lib/resiliency";
 import OperationsCenter from "@/components/OperationsCenter";
 import {
   DispatchOverviewTab, DispatchUtilizationTab, DispatchIdleAlertsTab,
@@ -69,6 +70,7 @@ export default function DispatchHub() {
           <PortalSwitcher current="dispatch" />
           <GlobalSearch accent="dark" />
           <NotificationBell accent="white" />
+          <OfflineIndicator />
           <Link
             to="/asset-transfers"
             className="inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"

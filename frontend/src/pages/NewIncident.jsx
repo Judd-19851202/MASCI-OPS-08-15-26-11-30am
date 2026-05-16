@@ -53,6 +53,10 @@ import {
   formatCoords,
 } from "@/lib/geolocation";
 import { cn } from "@/lib/utils";
+import {
+  useDraftSync, getActorId, mintIdempotencyKey, enqueueUpload,
+  DraftStatusPill,
+} from "@/lib/resiliency";
 
 const inputCls =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
@@ -63,6 +67,28 @@ export default function NewIncident({ publicMode = false }) {
   const [data, setData] = useState(buildIncidentDefaults());
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
+  const idempotencyKeyRef = React.useRef(null);
+
+  // Phase J — autosave + draft recovery. Non-invasive (does not own
+  // state). On mount we offer recovery via a toast.
+  const actorId = React.useMemo(() => getActorId(), []);
+  const { draftStatus, hasDraft, discard, commit } = useDraftSync(
+    "incident-new", data, actorId,
+    (draft) => {
+      setData(draft);
+      toast.message("Draft recovered", {
+        description: "Your unsent incident report was restored.",
+        action: {
+          label: "Discard",
+          onClick: () => {
+            setData(buildIncidentDefaults());
+            discard();
+          },
+        },
+        duration: 6000,
+      });
+    },
+  );
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
   const setMap = (mapKey, key, value) =>
@@ -172,8 +198,44 @@ export default function NewIncident({ publicMode = false }) {
       // iter139 — strip FE-only display fields; only persist the master IDs
       const { employee_master_label, equipment_master_label, ...persistPayload } = payload;
       payload = { ...persistPayload, submit_language: lang || "en" };
-      const res = await api.post("/incidents", payload);
+      // Phase J — single idempotency key per "session" attempt: a fresh
+      // one per submit click, but persisted across in-form retries via
+      // the queue so the server treats them as the same logical write.
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current = mintIdempotencyKey();
+      }
+      const r = await enqueueUpload({
+        method: "POST",
+        url: "/incidents",
+        body: payload,
+        idempotencyKey: idempotencyKeyRef.current,
+        formKey: "incident-new",
+      });
+      if (!r.ok && r.queued) {
+        toast.message("Saved · will upload when reconnected", {
+          description: "Your incident report is queued and will send automatically.",
+          duration: 6000,
+        });
+        await commit();
+        idempotencyKeyRef.current = null;
+        if (publicMode || !isAdmin()) {
+          navigate("/thank-you", {
+            state: {
+              projectName: payload.project_name,
+              formType: "Incident Report",
+              returnTo: "/incidents/submit",
+            },
+            replace: true,
+          });
+        } else {
+          navigate(`/incidents`);
+        }
+        return;
+      }
+      const res = { data: r.data };
       toast.success("Incident report saved");
+      await commit();
+      idempotencyKeyRef.current = null;
       // iter147 — telemetry on the most-used safety form
       import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
         trackFormSubmit("/incidents", true, "incident-new")).catch(() => {});
@@ -228,6 +290,7 @@ export default function NewIncident({ publicMode = false }) {
             className={publicMode ? "sm:hidden" : ""}
           homeLink="/" />
           <div className="flex items-center gap-2">
+            <DraftStatusPill status={draftStatus} testId="incident-draft-pill" />
             <LangToggle />
             <Button
               onClick={submit}
