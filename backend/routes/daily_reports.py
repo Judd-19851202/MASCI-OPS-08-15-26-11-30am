@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from pm_auth import compute_pm_scope
@@ -82,24 +82,32 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
     """Attach Daily Report endpoints to the shared router."""
 
     @api_router.post("/daily-reports", response_model=DailyReport, dependencies=[Depends(rate_limit_public_post)])
-    async def create_daily_report(payload: DailyReportCreate):
-        report = DailyReport(**payload.model_dump())
-        doc = report.model_dump()
-        # Stamp human-readable doc ID (DR-2026-00001) so the form, the PDF,
-        # and the admin search bar can all reference the same number.
-        from doc_ids import ensure_doc_id  # local import to keep startup fast
-        await ensure_doc_id(db, doc, "DR", when=doc.get("report_date") or doc.get("created_at"))
-        report.doc_id = doc["doc_id"]
-        await db.daily_reports.insert_one(doc)
-        doc.pop("_id", None)
-        # Mirror photos into the Job Photos library (Phase 1 read-only).
-        try:
-            from routes.job_photos import index_record_photos
-            await index_record_photos(db, "daily_report", doc)
-        except Exception:
-            pass  # never block a submit on indexing
-        schedule_auto_email("daily-report", doc)
-        return report
+    async def create_daily_report(payload: DailyReportCreate, request: Request):
+        # Phase J · Field Resiliency — idempotent submit. Re-POSTs with
+        # the same Idempotency-Key header return the cached response.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            report = DailyReport(**payload.model_dump())
+            doc = report.model_dump()
+            # Stamp human-readable doc ID (DR-2026-00001) so the form, the PDF,
+            # and the admin search bar can all reference the same number.
+            from doc_ids import ensure_doc_id  # local import to keep startup fast
+            await ensure_doc_id(db, doc, "DR", when=doc.get("report_date") or doc.get("created_at"))
+            report.doc_id = doc["doc_id"]
+            await db.daily_reports.insert_one(doc)
+            doc.pop("_id", None)
+            # Mirror photos into the Job Photos library (Phase 1 read-only).
+            try:
+                from routes.job_photos import index_record_photos
+                await index_record_photos(db, "daily_report", doc)
+            except Exception:
+                pass  # never block a submit on indexing
+            schedule_auto_email("daily-report", doc)
+            return report
+
+        return await with_idempotency(db, key, {"role": "public"}, _do_create)
 
     @api_router.get("/daily-reports", response_model=List[DailyReportSummary])
     async def list_daily_reports(actor=Depends(require_admin)):

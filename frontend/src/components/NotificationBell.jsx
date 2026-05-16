@@ -12,7 +12,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Bell, CheckCheck, ExternalLink, AlertOctagon, Info, AlertTriangle } from "lucide-react";
+import { Bell, CheckCheck, ExternalLink, AlertOctagon, Info, AlertTriangle, Upload } from "lucide-react";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
@@ -21,6 +21,7 @@ import {
   listNotifications, markRead, markAllRead, getUnreadCount,
 } from "@/lib/tasksApi";
 import { isSignedInAnywhere } from "@/lib/permissions";
+import { onQueueChange } from "@/lib/resiliency";
 
 const SEV_ICON = {
   Info: Info,
@@ -106,6 +107,15 @@ export default function NotificationBell({ accent = "slate" }) {
               {unread > 99 ? "99+" : unread}
             </span>
           )}
+          {queueDepth > 0 && (
+            <span
+              className="absolute -bottom-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-black border-2 border-white"
+              data-testid="notification-bell-queue-badge"
+              title={`${queueDepth} upload${queueDepth === 1 ? "" : "s"} queued`}
+            >
+              <Upload className="w-2.5 h-2.5" />
+            </span>
+          )}
         </button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col" data-testid="notification-drawer">
@@ -182,6 +192,17 @@ export default function NotificationBell({ accent = "slate" }) {
           <Link
             to="/tasks"
             className="inline-flex items-center text-xs font-bold uppercase tracking-wide text-slate-700 hover:text-slate-900"
+            onClick={() => setOpen(false)}
+            data-testid="notification-tasks-link"
+          >
+            View all tasks →
+          </Link>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+slate-700 hover:text-slate-900"
             onClick={() => setOpen(false)}
             data-testid="notification-tasks-link"
           >

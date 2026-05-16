@@ -408,49 +408,58 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         request: Request,
         auth: Dict[str, Any] = Depends(_is_authed),
     ):
-        rec = _normalize_record(payload)
-        # Stamp who submitted (best-effort — leadership-only doesn't have a user id)
-        rec["submitted_via_role"] = auth["role"]
+        # Phase J · Field Resiliency — idempotent submit. Re-POSTs
+        # with the same Idempotency-Key header return the cached
+        # response without re-running fan-out or creating duplicates.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
 
-        # Equipment_return: compute deltas vs the original checkout value
-        # and mark the matched checkout lines as returned.
-        if rec.get("kind") == "equipment_return":
-            await _process_equipment_return(rec)
+        async def _do_create():
+            rec = _normalize_record(payload)
+            # Stamp who submitted (best-effort — leadership-only doesn't have a user id)
+            rec["submitted_via_role"] = auth["role"]
 
-        # Stamp human-readable doc ID (EQC/EQR/FL prefix per kind).
-        from doc_ids import ensure_doc_id, _field_leadership_prefix
-        await ensure_doc_id(
-            db, rec, _field_leadership_prefix,
-            when=rec.get("occurred_at") or rec.get("created_at"),
-        )
+            # Equipment_return: compute deltas vs the original checkout value
+            # and mark the matched checkout lines as returned.
+            if rec.get("kind") == "equipment_return":
+                await _process_equipment_return(rec)
 
-        await db.field_leadership_records.insert_one(dict(rec))
+            # Stamp human-readable doc ID (EQC/EQR/FL prefix per kind).
+            from doc_ids import ensure_doc_id, _field_leadership_prefix
+            await ensure_doc_id(
+                db, rec, _field_leadership_prefix,
+                when=rec.get("occurred_at") or rec.get("created_at"),
+            )
 
-        # Iter160 · Operational signal — training deficiency throughput.
-        try:
-            if (rec.get("kind") or "") == "training_deficiency":
-                from lib.operational_signals import record_signal  # noqa: PLC0415
-                await record_signal(
-                    db, signal="training.deficiency",
-                    module="field_leadership.records",
-                    dims={"kind": "training_deficiency"},
-                )
-        except Exception:
-            pass
+            await db.field_leadership_records.insert_one(dict(rec))
 
-        # Best-effort email + photo indexer (fire-and-forget)
-        try:
-            await _send_submit_email(rec)
-        except Exception as exc:  # noqa: BLE001
-            # Log but never fail the submit
+            # Iter160 · Operational signal — training deficiency throughput.
             try:
-                from server import logger  # type: ignore  # noqa: WPS433
-                logger.warning(f"Field Leadership email failed: {exc}")
+                if (rec.get("kind") or "") == "training_deficiency":
+                    from lib.operational_signals import record_signal  # noqa: PLC0415
+                    await record_signal(
+                        db, signal="training.deficiency",
+                        module="field_leadership.records",
+                        dims={"kind": "training_deficiency"},
+                    )
             except Exception:
                 pass
 
-        rec.pop("_id", None)
-        return {"ok": True, "id": rec["id"], "record": rec}
+            # Best-effort email + photo indexer (fire-and-forget)
+            try:
+                await _send_submit_email(rec)
+            except Exception as exc:  # noqa: BLE001
+                # Log but never fail the submit
+                try:
+                    from server import logger  # type: ignore  # noqa: WPS433
+                    logger.warning(f"Field Leadership email failed: {exc}")
+                except Exception:
+                    pass
+
+            rec.pop("_id", None)
+            return {"ok": True, "id": rec["id"], "record": rec}
+
+        return await with_idempotency(db, key, auth, _do_create)
 
     async def _process_equipment_return(rec: Dict[str, Any]) -> None:
         """For each return line that references a checkout (via checkout_id +

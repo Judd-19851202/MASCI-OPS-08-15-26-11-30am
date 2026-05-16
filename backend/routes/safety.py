@@ -17,7 +17,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from pm_auth import compute_pm_scope
@@ -529,84 +529,93 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
 
     # ---------- Incidents ----------
     @api_router.post("/incidents", response_model=Incident, dependencies=[Depends(rate_limit_public_post)])
-    async def create_incident(payload: IncidentCreate):
-        incident = Incident(**payload.model_dump())
-        doc = incident.model_dump()
-        from doc_ids import ensure_doc_id
-        await ensure_doc_id(db, doc, "INC", when=doc.get("incident_date") or doc.get("created_at"))
-        incident.doc_id = doc["doc_id"]
-        await db.incidents.insert_one(doc)
-        doc.pop("_id", None)
-        schedule_auto_email("incident", doc)
+    async def create_incident(payload: IncidentCreate, request: Request):
+        # Phase J · Field Resiliency — idempotent submit. Re-POSTs
+        # with the same Idempotency-Key header return the cached
+        # response without re-running fan-out or creating duplicates.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
 
-        # Phase E · Cross-system fan-out — incidents must trigger
-        # corrective follow-up tasks + safety notifications. Fire-and-forget;
-        # safety form save NEVER blocks on fan-out failure.
-        try:
-            from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
-            severity = (doc.get("severity") or "").lower()
-            priority = "Critical" if severity in ("critical", "high", "serious") else "High"
-            title = (f"Incident follow-up — {doc.get('incident_type') or 'Incident'} "
-                     f"({doc.get('project_name') or 'project'})")
-            await emit_task_and_notification(
-                db,
-                task={
-                    "title": title[:200],
-                    "description": (f"OSHA recordable: {doc.get('osha_recordable')} · "
-                                    f"Person: {doc.get('person_name') or '—'} · "
-                                    f"Location: {doc.get('location') or '—'}")[:4000],
-                    "source_module": "safety.incidents",
-                    "source_record_id": doc.get("id"),
-                    "linked_project_number": doc.get("project_number") or None,
-                    "assignee_role": "safety",
-                    "priority": priority,
-                    "created_by": {"role": "system", "via": "incident-fanout"},
-                },
-                notification={
+        async def _do_create():
+            incident = Incident(**payload.model_dump())
+            doc = incident.model_dump()
+            from doc_ids import ensure_doc_id
+            await ensure_doc_id(db, doc, "INC", when=doc.get("incident_date") or doc.get("created_at"))
+            incident.doc_id = doc["doc_id"]
+            await db.incidents.insert_one(doc)
+            doc.pop("_id", None)
+            schedule_auto_email("incident", doc)
+
+            # Phase E · Cross-system fan-out — incidents must trigger
+            # corrective follow-up tasks + safety notifications. Fire-and-forget;
+            # safety form save NEVER blocks on fan-out failure.
+            try:
+                from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+                severity = (doc.get("severity") or "").lower()
+                priority = "Critical" if severity in ("critical", "high", "serious") else "High"
+                title = (f"Incident follow-up — {doc.get('incident_type') or 'Incident'} "
+                         f"({doc.get('project_name') or 'project'})")
+                await emit_task_and_notification(
+                    db,
+                    task={
+                        "title": title[:200],
+                        "description": (f"OSHA recordable: {doc.get('osha_recordable')} · "
+                                        f"Person: {doc.get('person_name') or '—'} · "
+                                        f"Location: {doc.get('location') or '—'}")[:4000],
+                        "source_module": "safety.incidents",
+                        "source_record_id": doc.get("id"),
+                        "linked_project_number": doc.get("project_number") or None,
+                        "assignee_role": "safety",
+                        "priority": priority,
+                        "created_by": {"role": "system", "via": "incident-fanout"},
+                    },
+                    notification={
+                        "type": "incident.created",
+                        "title": f"New incident reported — {doc.get('incident_type') or 'Incident'}",
+                        "message": (f"{doc.get('project_name') or '—'} · "
+                                    f"severity {doc.get('severity') or 'Unspecified'} · "
+                                    f"reporter {doc.get('reported_by') or '—'}")[:200],
+                        "severity": "Critical" if priority == "Critical" else "Warning",
+                        "recipient_role": "safety",
+                        "linked_source_module": "safety.incidents",
+                        "linked_source_record_id": doc.get("id"),
+                        "linked_project_number": doc.get("project_number") or None,
+                    },
+                )
+                # Project Health surfaces — emit a second pm-side notification
+                # so the PM sees their project picked up an incident without
+                # owning the corrective action assignment.
+                from lib.event_fanout import emit_notification  # noqa: PLC0415
+                await emit_notification(db, {
                     "type": "incident.created",
-                    "title": f"New incident reported — {doc.get('incident_type') or 'Incident'}",
-                    "message": (f"{doc.get('project_name') or '—'} · "
-                                f"severity {doc.get('severity') or 'Unspecified'} · "
-                                f"reporter {doc.get('reported_by') or '—'}")[:200],
-                    "severity": "Critical" if priority == "Critical" else "Warning",
-                    "recipient_role": "safety",
+                    "title": f"Incident on {doc.get('project_name') or 'your project'}",
+                    "message": (f"{doc.get('incident_type') or 'Incident'} · "
+                                f"severity {doc.get('severity') or '—'}")[:200],
+                    "severity": "Warning",
+                    "recipient_role": "pm",
                     "linked_source_module": "safety.incidents",
                     "linked_source_record_id": doc.get("id"),
                     "linked_project_number": doc.get("project_number") or None,
-                },
-            )
-            # Project Health surfaces — emit a second pm-side notification
-            # so the PM sees their project picked up an incident without
-            # owning the corrective action assignment.
-            from lib.event_fanout import emit_notification  # noqa: PLC0415
-            await emit_notification(db, {
-                "type": "incident.created",
-                "title": f"Incident on {doc.get('project_name') or 'your project'}",
-                "message": (f"{doc.get('incident_type') or 'Incident'} · "
-                            f"severity {doc.get('severity') or '—'}")[:200],
-                "severity": "Warning",
-                "recipient_role": "pm",
-                "linked_source_module": "safety.incidents",
-                "linked_source_record_id": doc.get("id"),
-                "linked_project_number": doc.get("project_number") or None,
-            })
-            # Iter160 · Operational signal — passive throughput observation.
-            try:
-                from lib.operational_signals import record_signal  # noqa: PLC0415
-                await record_signal(
-                    db, signal="incident.created", module="safety.incidents",
-                    dims={"severity": (doc.get("severity") or "")[:24],
-                          "priority": priority},
+                })
+                # Iter160 · Operational signal — passive throughput observation.
+                try:
+                    from lib.operational_signals import record_signal  # noqa: PLC0415
+                    await record_signal(
+                        db, signal="incident.created", module="safety.incidents",
+                        dims={"severity": (doc.get("severity") or "")[:24],
+                              "priority": priority},
+                    )
+                except Exception:
+                    pass
+            except Exception as e:  # noqa: BLE001
+                import logging
+                logging.getLogger(__name__).warning(
+                    "[incident-fanout] failed: %s", e
                 )
-            except Exception:
-                pass
-        except Exception as e:  # noqa: BLE001
-            import logging
-            logging.getLogger(__name__).warning(
-                "[incident-fanout] failed: %s", e
-            )
 
-        return incident
+            return incident
+
+        return await with_idempotency(db, key, {"role": "public"}, _do_create)
 
     @api_router.get("/incidents", response_model=List[IncidentSummary])
     async def list_incidents(actor=Depends(require_admin)):
