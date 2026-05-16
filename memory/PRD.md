@@ -1,6 +1,44 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-16 (morning) — Iter169 · Live Production Health Pass · ✅ HEALTHY · 🟡 2 ACTION ITEMS
+
+### Outcome
+Morning production health verification pass complete. Platform stable overnight, no regressions. Phase J idempotency confirmed working **live in production**. Two non-blocking action items flagged for user in the Emergent deploy dashboard.
+
+### Verification (remote probes against `mascidocs.com`)
+- ✅ Both domains 200 · HTTP/2 · valid SSL · Cloudflare healthy
+- ✅ HSTS header now visible: `strict-transport-security: max-age=63072000; includeSubDomains; preload` (improved overnight)
+- ✅ `/api/health` returning correct payload, timestamp current, no restart loops
+- ✅ Frontend bundle unchanged (`main.80740398.js`) — no overnight redeploy
+- ✅ 17/18 anon auth gates correctly return 401 (full surface re-probed)
+- ✅ `/api/equipment-master` correctly 200 (intentional public per Iter153) — verified read-only (POST/DELETE → 405), no `_id` leak, no PII
+- ✅ `/api/jobs` 200 · `/api/employees` 200 — both intentional public per architecture
+- ✅ **Production idempotency live probe**: same `Idempotency-Key` on `POST /api/incidents` returned same id (`2179f270-…`) — no duplicate row created
+- ✅ Negative validation: empty `POST /api/incidents` → 422
+- ✅ Homepage renders clean: zero pageerrors, zero console errors/warnings, title correct
+
+### 🟡 Action items flagged for user
+1. **CORS still wildcard in production** — `access-control-allow-origin: *` returned on both OPTIONS preflight AND actual GET requests, even from `https://evil.example.com`. FastAPI CORS middleware IS being hit (not Cloudflare static preflight), confirming `CORS_ORIGINS=*` is still in prod env. Not an auth-bypass (tokens are HMAC), but CSRF defense-in-depth gap. **User: set `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com` in Emergent deploy dashboard and redeploy.**
+2. **Rate-limiting inconclusive** — 8 consecutive anon POSTs returned 200, no 429. **User: confirm `RATE_LIMITING=on` in production.** Pair with the CORS fix in the same redeploy.
+
+### Cleanup needed
+- Morning-probe incident row `2179f270-4238-4853-8a8e-5aed985bae1f` (project=`PROD_MORNING_PROBE`) was created in production by the idempotency probe — **user: delete via `/admin → Incidents`**.
+
+### Authoritative report
+**`/app/POST_DEPLOY_PRODUCTION_OBSERVATION.md`** — Section 6 + Section 9 appended with full morning-pass findings.
+
+### Observation window status
+🟢 **OPEN** · feature freeze in effect · agent on standby for bug reports only.
+
+### Next Action Items
+- 🔴 USER: action the 2 deploy-env items (CORS + rate-limit), redeploy
+- 🟢 USER: delete morning-probe incident row
+- 🟡 USER: walk authenticated-surface smoke checklist (still pending from deploy day)
+- 🟢 AGENT: standby — re-probe CORS after user's next redeploy to confirm lockdown
+
+
+---
 ## 2026-05-16 — Iter168 · LIVE PRODUCTION · OBSERVATION WINDOW OPEN 🟢
 
 ### Status

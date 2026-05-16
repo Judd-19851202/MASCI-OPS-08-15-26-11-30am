@@ -212,10 +212,48 @@ Available at `GET /api/admin/operational-signals?window_days=N` (admin-only, cla
 
 ## SECTION 6 — Production issues discovered & fixes applied
 
-_None yet. Update this section as the observation window progresses._
+### 2026-05-16 morning verification pass
 
-| Date | Severity | Component | Issue | Fix | Verified |
-|---|---|---|---|---|---|
+| Severity | Component | Finding | Required action | Verified |
+|---|---|---|---|---|
+| 🟡 MEDIUM | CORS / Production env | `access-control-allow-origin: *` returned on both OPTIONS preflight AND actual `GET /api/health` requests, including from `https://evil.example.com`. FastAPI's CORS middleware IS being hit (not just Cloudflare static preflight). Confirms `CORS_ORIGINS=*` is still set in production. **Not a token-auth-bypass** (tokens are HMAC-bound and validated on every request), but a CSRF defense-in-depth gap. | USER: Set `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com` in Emergent deploy dashboard. Optionally also tighten `CORS_ORIGIN_REGEX` if used. Redeploy to apply. | ❌ open |
+| 🟡 LOW | Rate limiting | 8 consecutive anon `POST /api/translate` returned all 200 (no 429). Inconclusive — could mean `RATE_LIMITING=off` OR threshold (`PUBLIC_POST_LIMIT_PER_HOUR=30`) not yet hit by 8 calls. | USER: Confirm `RATE_LIMITING=on` in Emergent deploy dashboard. (Should pair with the CORS fix in the same redeploy.) | ❌ open |
+| 🟢 INFO | Test data | Idempotency probe left one row in production `incidents` collection: `id=2179f270-4238-4853-8a8e-5aed985bae1f` (project_name=`PROD_MORNING_PROBE`, description=`morning verification — please delete`). | USER: Delete via `/admin → Incidents` list. | ❌ open |
+| 🟢 INFO | Validation surface | `POST /api/incidents` with `incident_type="NOT_A_VALID_TYPE"` returned 200 (accepted). The `incident_type` field is declared free-form string in the schema, not Enum-validated. The frontend dropdown gates this on the form, but the API is permissive. This matches the historic design — flagging for awareness, not a regression. | None for now. Future hardening if MASCI wants the API to enforce the enum at the server. | n/a |
+
+### Morning verification pass (2026-05-16) · ✅ HEALTHY
+
+| Surface | Yesterday | Today (morning) | Notes |
+|---|---|---|---|
+| `mascidocs.com` 200 | ✅ | ✅ | HTTP/2 via Cloudflare |
+| `www.mascidocs.com` 200 | ✅ | ✅ | HTTP/2 via Cloudflare |
+| `/api/health` apex+www | ✅ | ✅ `{ok:true,service:"masci-hub"}` | timestamp current |
+| Frontend bundle hash | `main.80740398.js` | `main.80740398.js` | unchanged (no overnight redeploy) |
+| SSL / TLS | valid | valid | + `strict-transport-security: max-age=63072000; includeSubDomains; preload` visible today |
+| `x-content-type-options: nosniff` | ✅ | ✅ | |
+| Anon auth gates (18 endpoints probed) | 17/18 401 | 17/18 401 | Same surface as yesterday. `/api/equipment-master` correctly 200 (intentional public read for JobPicker/PreOp forms) — verified read-only (POST/DELETE → 405), no `_id` leak, no PII. |
+| Public reads | n/a | `/api/jobs` 200 · `/api/employees` 200 | per Iter153 public scope (JobPicker/form autocomplete) |
+| Production idempotency live probe | passed in regression | ✅ same key → same id `2179f270-…` | Phase J middleware running in production |
+| Negative validation | n/a | `POST /api/incidents` empty → 422 (correct) | |
+| Production page render | clean | ✅ zero pageerrors, zero console errors/warnings, title correct | |
+
+**What changed overnight**
+- HSTS header now visible (`max-age=63072000; includeSubDomains; preload`) — security posture improved ✅
+- No bundle hash change → no overnight redeploy fired
+- No new issues beyond the CORS finding above
+
+**Restart loops · API spikes · failures**
+- Health timestamps current and progressing normally
+- No 5xx on any probed endpoint
+- Cloudflare `cf-ray` headers present and unique per request — edge healthy
+
+**Items requiring user action before next pass**
+1. 🔴 Lock `CORS_ORIGINS` in production env (Section 6 row 1)
+2. 🟡 Confirm `RATE_LIMITING=on` (Section 6 row 2)
+3. 🟢 Delete morning-probe incident row `2179f270-4238-4853-8a8e-5aed985bae1f`
+4. 🟡 Walk the authenticated-surface smoke checklist from Section 1.4 (still pending from deploy day)
+
+Once 1 + 2 are actioned and the redeploy ships, agent will re-run the CORS probe to confirm lockdown.
 
 ---
 
