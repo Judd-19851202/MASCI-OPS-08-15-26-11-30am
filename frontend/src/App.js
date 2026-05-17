@@ -76,6 +76,7 @@ import AdminOperationsEvents from "@/pages/admin/AdminOperationsEvents";
 import AdminDigestConfig from "@/pages/admin/AdminDigestConfig";
 import SystemHealth from "@/pages/admin/SystemHealth";
 import AdminAuditLog from "@/pages/admin/AdminAuditLog";
+import AdminSessions from "@/pages/admin/AdminSessions";
 import DeployRecovery from "@/pages/admin/DeployRecovery";
 import AdminMasterHistory from "@/pages/admin/AdminMasterHistory";
 import AdminAnalytics from "@/pages/admin/AdminAnalytics";
@@ -313,6 +314,7 @@ function App() {
             <Route path="/admin/digest-config" element={A(<AdminDigestConfig />)} />
             <Route path="/admin/system-health" element={A(<SystemHealth />)} />
             <Route path="/admin/audit-log" element={A(<AdminAuditLog />)} />
+            <Route path="/admin/sessions" element={A(<AdminSessions />)} />
             <Route path="/admin/deploy-recovery" element={A(<DeployRecovery />)} />
             <Route path="/admin/assets/:assetId" element={A(<AssetProfile />)} />
             <Route path="/admin/equipment/:id/history" element={A(<AdminMasterHistory kind="equipment" />)} />

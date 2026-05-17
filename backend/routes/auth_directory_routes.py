@@ -235,9 +235,18 @@ def build_auth_directory_router(
                 "pm": "OPERATIONS", "shop": "OPERATIONS",
                 "safety": "OPERATIONS", "dispatch": "OPERATIONS",
             }
+            _ua = request.headers.get("user-agent") or ""
+            _ip = _client_ip(request)
             for _portal, _tok in (portal_tokens or {}).items():
                 if _tok:
-                    await reset_session_activity(db, _tok, _portal_tier.get(_portal, "OPERATIONS"))
+                    await reset_session_activity(
+                        db, _tok, _portal_tier.get(_portal, "OPERATIONS"),
+                        user_id=row.get("id"),
+                        email=row.get("email"),
+                        actor_label=_portal,
+                        ip=_ip,
+                        user_agent=_ua,
+                    )
         except Exception:  # noqa: BLE001
             pass
         await ud.write_audit(
@@ -273,6 +282,7 @@ def build_auth_directory_router(
     @router.post("/api/auth/issue-portal-token")
     async def issue_portal_token(
         body: Dict[str, str] = Body(...),
+        request: Request = None,
         x_directory_token: Optional[str] = Header(default=None),
     ):
         """Re-issue a single portal token (used by the switcher when a
@@ -309,7 +319,14 @@ def build_auth_directory_router(
                 "pm": "OPERATIONS", "shop": "OPERATIONS",
                 "safety": "OPERATIONS", "dispatch": "OPERATIONS",
             }.get(target, "OPERATIONS")
-            await reset_session_activity(db, tok, _tier)
+            await reset_session_activity(
+                db, tok, _tier,
+                user_id=row.get("id"),
+                email=row.get("email"),
+                actor_label=target,
+                ip=(_client_ip(request) if request else None),
+                user_agent=(request.headers.get("user-agent") if request else "") or "",
+            )
         except Exception:  # noqa: BLE001
             pass
         return {"ok": True, "portal": target, "token": tok}

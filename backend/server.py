@@ -1170,7 +1170,12 @@ async def admin_login(body: AdminLoginRequest, request: Request):
     # session_activity row keyed by sha256(token) survives across
     # logouts. Reset it on every successful login so a re-login after
     # idle never fails the middleware's idle check against a stale row.
-    await _reset_session_activity(db, token, "ADMIN_HR")
+    await _reset_session_activity(
+        db, token, "ADMIN_HR",
+        actor_label="admin",
+        ip=ip,
+        user_agent=request.headers.get("user-agent") or "",
+    )
     return {"ok": True, "token": token}
 
 
@@ -1475,7 +1480,14 @@ async def shop_login(body: AdminLoginRequest, request: Request):
         _reset_login_fails(ip)
         await stamp_shop_login(db, user["id"], ip=ip)
         token = make_shop_user_token(user["id"], pwh)
-        await _reset_session_activity(db, token, "OPERATIONS")
+        await _reset_session_activity(
+            db, token, "OPERATIONS",
+            user_id=user.get("id"),
+            email=user.get("email"),
+            actor_label="shop",
+            ip=ip,
+            user_agent=request.headers.get("user-agent") or "",
+        )
         return {
             "ok": True,
             "token": token,
@@ -1492,7 +1504,12 @@ async def shop_login(body: AdminLoginRequest, request: Request):
         raise HTTPException(status_code=401, detail="Wrong password")
     _reset_login_fails(ip)
     token = _shop_token_for(expected_pw)
-    await _reset_session_activity(db, token, "OPERATIONS")
+    await _reset_session_activity(
+        db, token, "OPERATIONS",
+        actor_label="shop-shared",
+        ip=ip,
+        user_agent=request.headers.get("user-agent") or "",
+    )
     return {"ok": True, "token": token}
 
 
@@ -1803,7 +1820,14 @@ async def pm_login(body: PMLoginBody, request: Request):
         await stamp_login(db, pm["id"], ip=ip)
         token = make_pm_token(pm["id"], pwh)
         # Initiative 4 fix — reset session_activity (see admin_login).
-        await _reset_session_activity(db, token, "OPERATIONS")
+        await _reset_session_activity(
+            db, token, "OPERATIONS",
+            user_id=pm.get("id"),
+            email=pm.get("email"),
+            actor_label="pm",
+            ip=ip,
+            user_agent=request.headers.get("user-agent") or "",
+        )
         return {
             "ok": True,
             "token": token,
@@ -1826,7 +1850,12 @@ async def pm_login(body: PMLoginBody, request: Request):
     _reset_login_fails(ip)
     token = _pm_token_for(expected_pw)
     # Initiative 4 fix — shared-password PM token is deterministic too.
-    await _reset_session_activity(db, token, "OPERATIONS")
+    await _reset_session_activity(
+        db, token, "OPERATIONS",
+        actor_label="pm-shared",
+        ip=ip,
+        user_agent=request.headers.get("user-agent") or "",
+    )
     return {
         "ok": True,
         "token": token,
@@ -6996,6 +7025,91 @@ async def admin_list_r2_backups(
             "download_url": url,
         })
     return {"count": len(out), "backups": out}
+
+@api_router.get("/admin/sessions/recent")
+async def admin_recent_sessions(
+    request: Request,
+    limit: int = 50,
+    _: bool = Depends(require_admin_strict),
+):
+    """Operational visibility into the live `session_activity` table.
+
+    Returns the N most-recent sessions (default 50, max 200) with
+    identity, tier, login timestamp, last-activity timestamp, idle/abs
+    expiry classification, IP, and user-agent. Read-only — no kill
+    surface, no filtering beyond the limit. Audit-logged on every hit
+    so the panel itself leaves a forensic trail.
+    """
+    from session_timeout import tier_ttl_seconds, describe_config
+
+    safe_limit = max(1, min(int(limit or 50), 200))
+
+    # Audit BEFORE reading so we always log the access, even if mongo
+    # is slow / fails after.
+    await _record_admin_action(
+        db, "admin_sessions_panel_viewed", request, limit=safe_limit,
+    )
+
+    cursor = db.session_activity.find(
+        {}, {"_id": 0, "token_hash": 0}
+    ).sort("last_seen_at", -1).limit(safe_limit)
+    rows = await cursor.to_list(safe_limit)
+
+    now = datetime.now(timezone.utc)
+    cfg = describe_config()
+    enabled = bool(cfg.get("enabled"))
+
+    sessions_out = []
+    for r in rows:
+        tier = r.get("tier") or "UNKNOWN"
+        first_seen = r.get("first_seen_at")
+        last_seen = r.get("last_seen_at")
+        if first_seen and getattr(first_seen, "tzinfo", None) is None:
+            first_seen = first_seen.replace(tzinfo=timezone.utc)
+        if last_seen and getattr(last_seen, "tzinfo", None) is None:
+            last_seen = last_seen.replace(tzinfo=timezone.utc)
+        idle_s_lim, abs_s_lim = tier_ttl_seconds(tier)
+        idle_age = (now - last_seen).total_seconds() if last_seen else None
+        abs_age = (now - first_seen).total_seconds() if first_seen else None
+        if not enabled:
+            status = "enforcement_off"
+        elif abs_age is not None and abs_s_lim and abs_age > abs_s_lim:
+            status = "expired_absolute"
+        elif idle_age is not None and idle_s_lim and idle_age > idle_s_lim:
+            status = "expired_idle"
+        else:
+            status = "active"
+        duration_s = None
+        if first_seen and last_seen:
+            duration_s = int((last_seen - first_seen).total_seconds())
+        sessions_out.append({
+            "tier": tier,
+            "email": r.get("email") or None,
+            "actor_label": r.get("actor_label") or None,
+            "user_id": r.get("user_id") or None,
+            "login_at": first_seen.isoformat() if first_seen else None,
+            "last_activity_at": last_seen.isoformat() if last_seen else None,
+            "idle_seconds": int(idle_age) if idle_age is not None else None,
+            "absolute_seconds": int(abs_age) if abs_age is not None else None,
+            "idle_limit_seconds": idle_s_lim or None,
+            "absolute_limit_seconds": abs_s_lim or None,
+            "status": status,
+            "ip": r.get("last_login_ip") or None,
+            "user_agent": r.get("last_user_agent") or None,
+            "session_duration_s": duration_s,
+        })
+
+    return {
+        "ok": True,
+        "timeouts_enabled": enabled,
+        "tiers": cfg.get("tiers", {}),
+        "server_now": now.isoformat(),
+        "count": len(sessions_out),
+        "limit": safe_limit,
+        "sessions": sessions_out,
+    }
+
+
 
 
 @api_router.get("/admin/backups-scheduler-state")

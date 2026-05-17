@@ -56,6 +56,7 @@ const SECTIONS = [
   { key: "system-health", to: "/admin/system-health", icon: Activity,  label: "System Health",   desc: "Green/yellow/red operational probe" },
   { key: "digest-config", to: "/admin/digest-config", icon: Mail,      label: "Weekly Digest",   desc: "Recipients · schedule · preview · send" },
   { key: "audit-log",  to: "/admin/audit-log",  icon: History,         label: "Audit Log",       desc: "Unified merged timeline" },
+  { key: "sessions",   to: "/admin/sessions",   icon: Activity,        label: "Sessions",        desc: "Last 50 portal sessions · idle/abs status · forensic only" },
   { key: "deploy-recovery", to: "/admin/deploy-recovery", icon: Rocket, label: "Deploy Recovery", desc: "Rollback playbook · backup chain" },
   { key: "deploy-readiness", to: "/admin/deploy-readiness", icon: ListChecks, label: "Deploy Readiness", desc: "Pre-deploy QA · Mongo · indexes · R2 · integrations" },
   { key: "analytics", to: "/admin/analytics", icon: ChartBar, label: "Usage Analytics", desc: "Operational insight · routes · portals · friction" },

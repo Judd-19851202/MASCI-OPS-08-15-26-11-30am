@@ -142,7 +142,14 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         # post-idle re-login doesn't inherit a stale row.
         try:
             from session_timeout import reset_session_activity
-            await reset_session_activity(db, token, "ADMIN_HR")
+            await reset_session_activity(
+                db, token, "ADMIN_HR",
+                user_id=user.get("id"),
+                email=user.get("email"),
+                actor_label="hr",
+                ip=_client_ip(request),
+                user_agent=request.headers.get("user-agent") or "",
+            )
         except Exception:  # noqa: BLE001
             pass
         return {

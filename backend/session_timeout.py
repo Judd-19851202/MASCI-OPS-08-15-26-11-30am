@@ -245,27 +245,53 @@ def install_session_timeout_middleware(app: FastAPI, db) -> None:
 #
 # Calls are non-blocking from the caller's perspective — any Mongo
 # error is swallowed and logged so an infra hiccup never blocks login.
-async def reset_session_activity(db, token: str, tier: str) -> None:
+async def reset_session_activity(
+    db,
+    token: str,
+    tier: str,
+    *,
+    user_id: Optional[str] = None,
+    email: Optional[str] = None,
+    actor_label: Optional[str] = None,
+    ip: Optional[str] = None,
+    user_agent: Optional[str] = None,
+) -> None:
     """Upsert session_activity for ``token`` setting both
     ``first_seen_at`` and ``last_seen_at`` to now. Safe for every
     login route; cheap no-op if timeouts are disabled (the next
     request's middleware will skip the check anyway, but we still
     keep the row tidy so flipping the flag on later starts clean).
+
+    Optional identity metadata (``user_id``, ``email``, ``actor_label``,
+    ``ip``, ``user_agent``) is stored on the row so the Admin "Last 5
+    Sessions" visibility panel can report who is signed in where,
+    without needing to cross-reference six different login-stamp
+    collections. The metadata is BEST-EFFORT — anything the caller
+    doesn't have is simply not persisted.
     """
     if not token or not tier:
         return
     try:
         now = datetime.now(timezone.utc)
         th = _hash_token(token)
+        doc: dict = {
+            "token_hash": th,
+            "tier": tier,
+            "first_seen_at": now,
+            "last_seen_at": now,
+        }
+        if user_id:
+            doc["user_id"] = user_id
+        if email:
+            doc["email"] = email.strip().lower()
+        if actor_label:
+            doc["actor_label"] = actor_label
+        if ip:
+            doc["last_login_ip"] = ip
+        if user_agent:
+            doc["last_user_agent"] = user_agent[:240]
         await db.session_activity.update_one(
-            {"token_hash": th},
-            {"$set": {
-                "token_hash": th,
-                "tier": tier,
-                "first_seen_at": now,
-                "last_seen_at": now,
-            }},
-            upsert=True,
+            {"token_hash": th}, {"$set": doc}, upsert=True,
         )
     except Exception as e:  # noqa: BLE001
         logger.warning("[session-timeout] reset_session_activity failed: %s", e)
@@ -298,3 +324,12 @@ def describe_config() -> dict:
             for t in _TIER_DEFAULTS
         },
     }
+
+
+def tier_ttl_seconds(tier: str) -> Tuple[int, int]:
+    """Public wrapper around the (idle_seconds, abs_seconds) tuple
+    for a tier. Used by the Admin sessions panel to compute live
+    expiry status against any session_activity row."""
+    if tier not in _TIER_DEFAULTS:
+        return 0, 0
+    return _tier_ttl(tier)

@@ -118,7 +118,14 @@ def build_dispatch_router(db, require_admin) -> APIRouter:
         # Initiative 4 fix — reset session_activity for deterministic token.
         try:
             from session_timeout import reset_session_activity
-            await reset_session_activity(db, token, "OPERATIONS")
+            await reset_session_activity(
+                db, token, "OPERATIONS",
+                user_id=user.get("id"),
+                email=user.get("email"),
+                actor_label="dispatch",
+                ip=(request.client.host if request.client else ""),
+                user_agent=request.headers.get("user-agent") or "",
+            )
         except Exception:  # noqa: BLE001
             pass
         return DispatchLoginResponse(

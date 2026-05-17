@@ -71,7 +71,14 @@ def register_auth_routes(
         # deterministic safety token (see admin_login).
         try:
             from session_timeout import reset_session_activity
-            await reset_session_activity(db, token, "OPERATIONS")
+            await reset_session_activity(
+                db, token, "OPERATIONS",
+                user_id=user.get("id"),
+                email=user.get("email"),
+                actor_label="safety",
+                ip=(request.client.host if request.client else ""),
+                user_agent=request.headers.get("user-agent") or "",
+            )
         except Exception:  # noqa: BLE001
             pass
         return SafetyLoginResponse(
