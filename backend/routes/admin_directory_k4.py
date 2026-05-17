@@ -85,8 +85,18 @@ def build_admin_directory_k4_router(
     db,
     *,
     require_admin_strict_dep: Callable,
+    require_step_up: Optional[Callable] = None,
 ) -> APIRouter:
     router = APIRouter(tags=["admin-directory-k4"])
+
+    # Phase 2 Initiative 5b-full — optional step-up gate on K4 mutations.
+    # If require_step_up is None or step-up is env-disabled, this resolves
+    # to a no-op dependency so behavior is unchanged. Routes that match
+    # the "super-sensitive" classification in AUTHORIZATION_MATRIX.md
+    # add this to their `dependencies=[...]` list.
+    async def _step_up_noop():
+        return True
+    _step_up_dep = require_step_up or _step_up_noop
 
     @router.get(
         "/api/admin/directory/k4/users",
@@ -242,7 +252,7 @@ def build_admin_directory_k4_router(
 
     @router.post(
         "/api/admin/directory/k4/users/{user_id}/role-template",
-        dependencies=[Depends(require_admin_strict_dep)],
+        dependencies=[Depends(require_admin_strict_dep), Depends(_step_up_dep)],
     )
     async def assign_role_template(
         user_id: str,
@@ -293,7 +303,7 @@ def build_admin_directory_k4_router(
 
     @router.post(
         "/api/admin/directory/k4/users/{user_id}/convert-to-managed",
-        dependencies=[Depends(require_admin_strict_dep)],
+        dependencies=[Depends(require_admin_strict_dep), Depends(_step_up_dep)],
     )
     async def convert_to_managed(
         user_id: str,
@@ -353,7 +363,7 @@ def build_admin_directory_k4_router(
 
     @router.post(
         "/api/admin/directory/k4/users/{user_id}/revert-to-mirrored",
-        dependencies=[Depends(require_admin_strict_dep)],
+        dependencies=[Depends(require_admin_strict_dep), Depends(_step_up_dep)],
     )
     async def revert_to_mirrored(
         user_id: str,
@@ -410,7 +420,7 @@ def build_admin_directory_k4_router(
 
     @router.post(
         "/api/admin/directory/k4/users/{user_id}/set-disabled",
-        dependencies=[Depends(require_admin_strict_dep)],
+        dependencies=[Depends(require_admin_strict_dep), Depends(_step_up_dep)],
     )
     async def set_disabled(
         user_id: str,

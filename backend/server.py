@@ -55,6 +55,17 @@ from session_timeout import (  # noqa: E402
 )
 install_session_timeout_middleware(app, db)
 
+# Phase 2 Initiative 5b — Admin hardening helpers (denied-access audit,
+# step-up re-auth, bulk-delete confirmation, backup-download audit).
+from admin_hardening import (  # noqa: E402
+    record_access_denial as _record_access_denial,
+    record_admin_action as _record_admin_action,
+    record_step_up as _record_admin_step_up,
+    require_recent_step_up_raise as _require_recent_step_up,
+    ensure_indexes as ensure_admin_hardening_indexes,
+    step_up_enabled as _admin_step_up_enabled,
+)
+
 
 
 # ------------------------- Rate limiting (in-memory, single-instance) -------------------------
@@ -306,9 +317,14 @@ async def require_admin(
         # On admin namespace routes, the error message is admin-only
         # so PM users get a precise signal instead of "Admin or PM".
         if admin_namespace:
+            # Phase 2 Initiative 5b-minimal — log denied attempts.
+            await _record_access_denial(db, request, namespace="admin",
+                                        reason="no_token")
             raise HTTPException(status_code=401, detail="Admin login required")
         raise HTTPException(status_code=401, detail="Admin or PM login required")
     if admin_namespace:
+        await _record_access_denial(db, request, namespace="admin",
+                                    reason="invalid_token")
         raise HTTPException(status_code=401, detail="Invalid admin token")
     raise HTTPException(status_code=401, detail="Invalid admin/PM token")
 
@@ -347,15 +363,24 @@ async def require_admin_async(
     raise HTTPException(status_code=401, detail="Admin or PM login required")
 
 
-def require_admin_strict(x_admin_token: Optional[str] = Header(default=None)):
+async def require_admin_strict(
+    request: Request,
+    x_admin_token: Optional[str] = Header(default=None),
+):
     """Admin-only gate — used on backup & recovery endpoints. PM tokens are
     rejected here so a project manager cannot download or restore backups."""
     expected_pw = os.environ.get("ADMIN_PASSWORD", "")
     if not expected_pw:
         return True
     if not x_admin_token:
+        # Phase 2 Initiative 5b-minimal — log denied attempts on the
+        # highest-risk gate too.
+        await _record_access_denial(db, request, namespace="admin",
+                                    reason="no_token_strict")
         raise HTTPException(status_code=401, detail="Admin login required")
     if not _is_valid_admin_token(x_admin_token):
+        await _record_access_denial(db, request, namespace="admin",
+                                    reason="invalid_token_strict")
         raise HTTPException(status_code=401, detail="Invalid admin token")
     return True
 
@@ -1187,6 +1212,13 @@ async def admin_verify_password(body: AdminLoginRequest, request: Request):
         _record_login_fail(ip)
         raise HTTPException(status_code=401, detail="Wrong password")
     _reset_login_fails(ip)
+    # Phase 2 Initiative 5b-full — stamp step-up so the next sensitive
+    # action within the configured window passes the require_recent
+    # gate. The admin token comes via header; if missing, the step-up
+    # record is keyed by an empty token-hash (effectively a no-op).
+    x_admin_token = request.headers.get("x-admin-token") or ""
+    await _record_admin_step_up(db, x_admin_token)
+    await _record_admin_action(db, "admin_step_up_verified", request)
     return {"ok": True}
 
 
@@ -6673,7 +6705,9 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
 
 @api_router.get("/admin/backups/{filename}")
 async def admin_download_stored_backup(
-    filename: str, _: bool = Depends(require_admin_strict)
+    filename: str,
+    request: Request,
+    _: bool = Depends(require_admin_strict),
 ):
     """Download a specific stored backup by filename."""
     # Strict filename validation — only our own backup files.
@@ -6686,6 +6720,12 @@ async def admin_download_stored_backup(
         data = path.read_bytes()
     except Exception as e:
         raise HTTPException(500, f"Could not read backup: {e}")
+    # Phase 2 Initiative 5b-broader — chain-of-custody log row for every
+    # backup download. Never blocks the download itself.
+    await _record_admin_action(
+        db, "backup_downloaded", request,
+        filename=filename, size_bytes=len(data),
+    )
     return Response(
         content=data,
         media_type="application/zip",
@@ -6698,10 +6738,29 @@ async def admin_download_stored_backup(
 
 @api_router.delete("/admin/backups/{filename}")
 async def admin_delete_stored_backup(
-    filename: str, _: bool = Depends(require_admin_strict)
+    filename: str,
+    request: Request,
+    confirm: Optional[str] = None,
+    _: bool = Depends(require_admin_strict),
 ):
     if not re.fullmatch(r"MASCI_full_backup_[0-9A-Za-z_\-]+\.zip", filename):
         raise HTTPException(400, "Invalid backup filename")
+    # Phase 2 Initiative 5b-broader — destructive bulk-delete guard.
+    # Caller MUST pass ?confirm=<filename> matching the path. Prevents
+    # accidental deletes from misclicks / replayed URLs.
+    if confirm != filename:
+        await _record_access_denial(
+            db, request, namespace="admin",
+            reason="bulk_delete_missing_confirm", target=filename,
+        )
+        raise HTTPException(
+            400,
+            "Confirmation required — pass ?confirm=<filename> matching the path.",
+        )
+    # Phase 2 Initiative 5b-full — step-up re-auth gate.
+    if _admin_step_up_enabled():
+        x_admin_token = request.headers.get("x-admin-token") or ""
+        await _require_recent_step_up(db, x_admin_token, request, max_age_min=5)
     path = BACKUPS_DIR / filename
     if not path.exists():
         raise HTTPException(404, "Backup not found")
@@ -6709,6 +6768,8 @@ async def admin_delete_stored_backup(
         path.unlink()
     except Exception as e:
         raise HTTPException(500, f"Could not delete: {e}")
+    await _record_admin_action(db, "backup_deleted", request,
+                               filename=filename)
     return {"ok": True, "filename": filename}
 
 
@@ -8843,6 +8904,9 @@ async def _bootstrap_integrations():
     # Phase 2 Initiative 4 — session_activity indexes (TTL + uniqueness)
     await ensure_session_timeout_indexes(db)
     logger.info("[session-timeout] indexes ensured")
+    # Phase 2 Initiative 5b — admin hardening indexes (admin_step_ups TTL).
+    await ensure_admin_hardening_indexes(db)
+    logger.info("[admin-hardening] indexes ensured")
     # Phase 2 Initiative 1 — Sentry init AFTER _SOURCE_HASH is computed so
     # the Sentry release identifier matches /api/version's source_hash.
     try:
@@ -9167,9 +9231,20 @@ app.include_router(_auth_directory_router)
 # /api/admin/directory routes remain the only write path.
 from routes.admin_directory_k4 import build_admin_directory_k4_router  # noqa: E402
 
+
+async def _k4_step_up_dep(request: Request):
+    """Phase 2 Initiative 5b-full — step-up dependency wired into K4
+    mutation routes. Pass-through when ADMIN_STEP_UP_ENABLED is unset,
+    otherwise raises 403 if no recent admin re-auth."""
+    x_admin_token = request.headers.get("x-admin-token") or ""
+    await _require_recent_step_up(db, x_admin_token, request, max_age_min=5)
+    return True
+
+
 _admin_directory_k4_router = build_admin_directory_k4_router(
     db,
     require_admin_strict_dep=require_admin_strict,
+    require_step_up=_k4_step_up_dep,
 )
 app.include_router(_admin_directory_k4_router)
 
