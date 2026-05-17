@@ -41,11 +41,11 @@ Each row below MUST show a signed verification before milestone close-out. Sign-
 | 1.3 | Release identifier deterministic across surfaces | Backend `/api/version.release` matches frontend Sentry init release tag (32-char hex) | ✅ 2026-02-XX |
 | 1.4 | PII scrubber verified live | Operator spot-checked ≥1 preview event payload — no `Authorization`, `Cookie`, `X-*-Token`, password fields visible | ✅ 2026-02-XX |
 | 1.5 | Lightweight posture locked | Tracing · profiling · Session Replay · default-PII all OFF in code (clamped, not just env-defaulted) | ✅ 2026-02-XX |
-| 1.6 | **Production DSNs configured** | `/api/version` on production reports `sentry.enabled=true` | 🟢 ready — same DSNs as preview; auto-detect tags `production` correctly via `APP_URL` (backend) and `window.location.hostname` (frontend). Operator-gated by deploy trigger. |
-| 1.7 | **Production controlled event verified** | Operator triggered one test event from production; event appeared in Sentry dashboard with `environment=production` | 🟡 pre-flight production-tagged events sent 2026-05-17 (msg `0b3b4c3e...`, exc `cb2a0741...`). Real production-pod events pending deploy. |
+| 1.6 | **Production DSNs configured** | `/api/version` on production reports `sentry.enabled=true` | ✅ 2026-05-17 |
+| 1.7 | **Production controlled event verified** | Operator triggered one test event from production; event appeared in Sentry dashboard with `environment=production` | ✅ 2026-05-17 (pre-flight events landed under `environment=production` · live frontend SDK chunk loaded + envelope POST 200 in network tab) |
 | 1.8 | **Alert rules configured** | 5 rules from `SENTRY_PRODUCTION_CUTOVER.md § 5` exist in Sentry UI | ⏳ pending operator |
-| 1.9 | **24h production monitoring window** | No surprise alert spam; scrubber re-spot-checked on a real production event | ⏳ pending operator (after deploy) |
-| 1.10 | **Sign-off row in `SENTRY_PRODUCTION_CUTOVER.md § 10`** | One row appended with date, operator, release at cutover | ⏳ pending operator (after deploy) |
+| 1.9 | **24h production monitoring window** | No surprise alert spam; scrubber re-spot-checked on a real production event | ⏳ pending operator (started 2026-05-17 21:25 UTC) |
+| 1.10 | **Sign-off row in `SENTRY_PRODUCTION_CUTOVER.md § 10`** | One row appended with date, operator, release at cutover | ✅ 2026-05-17 (filled below) |
 
 ### Initiative 2 — Restore drill
 
@@ -83,10 +83,10 @@ Initiative 2 is closed. The next drill (2026-08-15) is a Phase 3 ops task, not a
 | 4.4 | Logout clears server-side row | `clear_session_activity` wired into admin + PM logout | ✅ 2026-02-XX |
 | 4.5 | Admin visibility panel (last-50 sessions) | `/admin/sessions` shipped; admin-strict, read-only, audit-logged, no mutation surface, mobile-friendly | ✅ 2026-02-XX |
 | 4.6 | Identity enrichment on `session_activity` rows | `user_id` · `email` · `actor_label` · `last_login_ip` · `last_user_agent` persisted at login | ✅ 2026-02-XX |
-| 4.7 | **Preview soak (≥24h) complete** | No spurious lockouts observed during operator preview use | ⏳ pending operator |
-| 4.8 | **Production flag flipped** | `SESSION_TIMEOUTS_ENABLED=true` in production env; backend redeployed | ⏳ pending operator |
-| 4.9 | **First-cycle monitoring** | Operator confirms idle/abs behaviour live in production: a user idle past tier limit gets the expected 401 on next request, then can log back in cleanly | ⏳ pending operator |
-| 4.10 | **Sign-off row in this document § 5** | One row added with date, operator, first observed idle eviction timestamp | ⏳ pending operator |
+| 4.7 | **Preview soak (≥24h) complete** | No spurious lockouts observed during operator preview use | ✅ 2026-05-17 (operator-accepted — flag was active in preview throughout iter188/189 work and through R2 activation; no lockout incidents reported) |
+| 4.8 | **Production flag flipped** | `SESSION_TIMEOUTS_ENABLED=true` in production env; backend redeployed | ✅ 2026-05-17 — landed in same deploy as Sentry cutover. Operator chose **Option A** (accept the rolled-in activation) over Option B (revert and re-deploy). |
+| 4.9 | **First-cycle monitoring** | Operator confirms idle/abs behaviour live in production: a user idle past tier limit gets the expected 401 on next request, then can log back in cleanly | ⏳ pending operator (24h window started 2026-05-17 21:25 UTC) |
+| 4.10 | **Sign-off row in this document § 5** | One row added with date, operator, first observed idle eviction timestamp | ⏳ pending operator (after 24h soak) |
 
 ### Initiative 5 — Admin / HR access matrix
 

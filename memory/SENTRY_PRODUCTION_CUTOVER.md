@@ -217,6 +217,6 @@ When you have completed Steps 1–4 and the 24h monitoring window in Step 5 has 
 
 | Date | Operator | Production release at cutover | Verification notes |
 |---|---|---|---|
-| _pending_ | _pending_ | _pending_ | _pending_ |
+| 2026-05-17 | Operator (Jaymn) | `39ed7cf313e808e76a450ffe99e1c683` | `/api/version` on mascidocs.com confirms `sentry.enabled=true`. Frontend SDK chunk `sentry.b4a74d69.chunk.js` loaded (200, 157 KB); live event envelope POST to `ingest.us.sentry.io` returned 200. Pre-flight production-tagged events landed in `masci-backend-python` Sentry project under `environment=production` with full stack trace, deterministic release tag, and clean payload (no `Authorization` / `Cookie` / `X-*-Token` / passwords). 24h monitoring window started 21:25 UTC. Alert rules still pending operator configuration in Sentry UI. |
 
 A row in this table is the canonical record that production Sentry is live. Until it appears, treat production as Sentry-uninstrumented.
