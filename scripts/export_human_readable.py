@@ -4,7 +4,7 @@ non-technical, audit-friendly, customer-deliverable archive.
 
 See /app/memory/DATA_PORTABILITY.md for the surrounding strategy.
 
-This is Stage A:
+Stage A — DONE:
     • CSV per collection
     • Photo extraction grouped by module + record
     • EXPORT_INDEX.csv + DATA_DICTIONARY.csv + MANIFEST.json
@@ -12,7 +12,19 @@ This is Stage A:
     • RAW_JSON/ mirror preserved for technical recovery
     • Sensitive fields redacted in the human-readable layer
 
-Stage B (TODO) will add per-record PDFs.
+Stage B — DONE (this file):
+    • Per-record PDFs via HYBRID strategy:
+        - Platform-native templates (pdf_render.render_record_pdf,
+          field_leadership_pdf.render_field_leadership_pdf) where they
+          exist — those PDFs look exactly like what the live system prints.
+        - Standardized fallback PDF (export_pdf_fallback.render_fallback_pdf)
+          for every other record type.
+    • Photo refs (photo://) inside records are pre-resolved to local
+      data: URLs from the extracted backup so PDFs render correctly even
+      when R2 is offline or the operator is on a plane.
+    • PDF rendering failures NEVER crash the export — they log a WARN
+      and continue.
+
 Stage C (TODO) will add an Admin UI button.
 
 STORAGE-ARCHITECTURE NEUTRALITY (intentional)
@@ -44,6 +56,7 @@ Usage:
     python3 scripts/export_human_readable.py --backup b.zip --out ./exp --dry-run
     python3 scripts/export_human_readable.py --backup b.zip --out ./exp --modules SAFETY,HR
     python3 scripts/export_human_readable.py --backup b.zip --out ./exp --no-zip
+    python3 scripts/export_human_readable.py --backup b.zip --out ./exp --no-pdf  (fast)
 
 Env vars:
     EXPORT_COMPANY_NAME    Defaults to "MASCI". Drives the output archive name.
@@ -371,6 +384,163 @@ PHOTO_KEY_RX = re.compile(
 )
 
 
+# Platform-native PDF kinds — map collection name to the `kind` argument
+# accepted by /app/backend/pdf_render.py::render_record_pdf. Anything not
+# in this map falls back to the standardized layout in
+# /app/backend/export_pdf_fallback.py::render_fallback_pdf.
+PLATFORM_PDF_KINDS = {
+    "daily_reports": "daily-report",
+    "inspections": "inspection",
+    "meetings": "meeting",
+    "jhas": "jha",
+    "incidents": "incident",
+    "equipment_inspections": "equipment-inspection",
+    "qaqc_inspections": "qaqc",
+}
+
+# Collections that have their own dedicated renderer.
+USE_FIELD_LEADERSHIP_RENDERER = {"field_leadership_records"}
+
+# Lazy-imported render functions. Backend package must be on sys.path; we
+# add /app/backend at module load so the script works from /app/scripts/.
+_BACKEND_DIR = Path("/app/backend")
+if _BACKEND_DIR.is_dir() and str(_BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(_BACKEND_DIR))
+
+
+_PHOTO_REF_RX = re.compile(r"^photo://([^/]+)/(.+)$")
+
+
+def _localize_photo_refs(value: Any, photos_root: Path,
+                         hit_counter: Dict[str, int]) -> Any:
+    """Walk ``value`` recursively. Any string of the form
+    ``photo://<bucket>/<key>`` that resolves to a file in ``photos_root``
+    is replaced with a base64 ``data:image/...`` URL so weasyprint can
+    embed the photo without network access. Refs that don't resolve are
+    left unchanged so the renderer's own fallback (or the fallback PDF's
+    "[photo not embedded]" placeholder) handles them.
+
+    ``hit_counter`` is mutated: keys 'resolved' / 'missing' / 'skipped'."""
+    if isinstance(value, str) and value.startswith("photo://"):
+        m = _PHOTO_REF_RX.match(value)
+        if not m:
+            hit_counter["skipped"] = hit_counter.get("skipped", 0) + 1
+            return value
+        key = m.group(2)
+        local = photos_root / key
+        if not local.is_file():
+            hit_counter["missing"] = hit_counter.get("missing", 0) + 1
+            return value
+        try:
+            import base64
+            raw = local.read_bytes()
+            ext = local.suffix.lstrip(".").lower() or "jpg"
+            ct = {
+                "png": "image/png", "webp": "image/webp", "avif": "image/avif",
+                "heic": "image/heic", "heif": "image/heif", "gif": "image/gif",
+            }.get(ext, "image/jpeg")
+            hit_counter["resolved"] = hit_counter.get("resolved", 0) + 1
+            return f"data:{ct};base64,{base64.b64encode(raw).decode('ascii')}"
+        except Exception:
+            hit_counter["missing"] = hit_counter.get("missing", 0) + 1
+            return value
+    if isinstance(value, dict):
+        return {k: _localize_photo_refs(v, photos_root, hit_counter) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_localize_photo_refs(v, photos_root, hit_counter) for v in value]
+    return value
+
+
+def _render_pdf_for_record(
+    coll_name: str, record: Dict[str, Any], cfg: Dict[str, Any],
+    photos_root: Optional[Path], errors: "ExportErrors",
+    timeout_s: int = 20,
+) -> Tuple[Optional[bytes], str]:
+    """Return (pdf_bytes, strategy) where strategy is one of:
+        'platform' | 'field_leadership' | 'fallback' | 'failed'
+    Always returns; never raises. (pdf_bytes is None on failed.)
+
+    Defensive timeout (signal.SIGALRM, Unix only): legacy records that
+    embedded multi-megabyte base64 photos before iter64 occasionally
+    take 30s+ to render. Cap at ``timeout_s`` and fall through to the
+    standardized fallback when the platform renderer hangs.
+    """
+    import signal
+
+    class _RenderTimeout(Exception):
+        pass
+
+    def _alarm_handler(signum, frame):  # noqa: ARG001
+        raise _RenderTimeout()
+
+    def _run(fn, *args, **kw):
+        """Run fn with a SIGALRM-based timeout. Returns the result or
+        raises _RenderTimeout / whatever fn raised."""
+        if not hasattr(signal, "SIGALRM"):
+            return fn(*args, **kw)
+        prev = signal.signal(signal.SIGALRM, _alarm_handler)
+        signal.alarm(timeout_s)
+        try:
+            return fn(*args, **kw)
+        finally:
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, prev)
+
+    # Localize photos so we can embed them into the PDF deterministically.
+    hit = {}
+    if photos_root and photos_root.is_dir():
+        rec_for_pdf = _localize_photo_refs(record, photos_root, hit)
+    else:
+        rec_for_pdf = record
+
+    # 1. Platform-native renderer (pdf_render.py)?
+    if coll_name in PLATFORM_PDF_KINDS:
+        try:
+            import pdf_render  # type: ignore[import-not-found]
+            pdf = _run(pdf_render.render_record_pdf, PLATFORM_PDF_KINDS[coll_name], rec_for_pdf)
+            if pdf and pdf[:5] == b"%PDF-":
+                return pdf, "platform"
+            errors.add("WARN", "pdf_platform_invalid", coll_name, "non-PDF bytes returned")
+        except _RenderTimeout:
+            errors.add("WARN", "pdf_platform_timeout", coll_name,
+                       f"exceeded {timeout_s}s — using fallback")
+        except Exception as e:  # noqa: BLE001
+            errors.add("WARN", "pdf_platform_failed", coll_name, repr(e)[:300])
+
+    # 2. Field-leadership-specific renderer
+    if coll_name in USE_FIELD_LEADERSHIP_RENDERER:
+        try:
+            import field_leadership_pdf  # type: ignore[import-not-found]
+            pdf = _run(field_leadership_pdf.render_field_leadership_pdf, rec_for_pdf)
+            if pdf and pdf[:5] == b"%PDF-":
+                return pdf, "field_leadership"
+            errors.add("WARN", "pdf_fl_invalid", coll_name, "non-PDF bytes returned")
+        except _RenderTimeout:
+            errors.add("WARN", "pdf_fl_timeout", coll_name,
+                       f"exceeded {timeout_s}s — using fallback")
+        except Exception as e:  # noqa: BLE001
+            errors.add("WARN", "pdf_fl_failed", coll_name, repr(e)[:300])
+
+    # 3. Standardized fallback
+    try:
+        from export_pdf_fallback import render_fallback_pdf  # type: ignore[import-not-found]
+        # Build a friendly title from the title_template the index uses.
+        title = _format_title(cfg.get("title_template", "{id}"), record)
+        kind_label = cfg.get("label", coll_name)
+        pdf = _run(render_fallback_pdf, rec_for_pdf,
+                   kind_label=kind_label, record_title=title)
+        if pdf and pdf[:5] == b"%PDF-":
+            return pdf, "fallback"
+        errors.add("WARN", "pdf_fallback_invalid", coll_name, "non-PDF bytes returned")
+    except _RenderTimeout:
+        errors.add("WARN", "pdf_fallback_timeout", coll_name,
+                   f"exceeded {timeout_s}s — skipping PDF")
+    except Exception as e:  # noqa: BLE001
+        errors.add("WARN", "pdf_fallback_failed", coll_name, repr(e)[:300])
+
+    return None, "failed"
+
+
 # ═════════════════════════════════════════════════════════════════════════════
 # Errors / counters
 # ═════════════════════════════════════════════════════════════════════════════
@@ -501,6 +671,7 @@ class Exporter:
         modules: Optional[List[str]] = None,
         dry_run: bool = False,
         source_label: str = "",
+        render_pdfs: bool = True,
     ):
         self.source_dir = source_dir
         self.out_dir = out_dir
@@ -509,6 +680,7 @@ class Exporter:
         self.dry_run = dry_run
         self.source_label = source_label or source_dir.name
         self.errors = ExportErrors()
+        self.render_pdfs = render_pdfs
 
         # Bookkeeping
         self.records_seen: Dict[str, int] = defaultdict(int)
@@ -517,6 +689,10 @@ class Exporter:
         self.photos_total = 0
         self.photos_associated = 0
         self.photos_orphaned = 0
+        self.pdfs_platform = 0
+        self.pdfs_field_leadership = 0
+        self.pdfs_fallback = 0
+        self.pdfs_failed = 0
         self.unmapped_collections: List[str] = []
         self.index_rows: List[Dict[str, str]] = []
         self.started_at = datetime.now(timezone.utc)
@@ -612,6 +788,7 @@ class Exporter:
 
             # Per-record JSON path
             out_path = records_dir / f"{_safe_segment(title, 120)}.json"
+            pdf_rel_path = ""
             if not self.dry_run:
                 # If a name collision occurs (same title, different record),
                 # suffix with a short hash.
@@ -619,6 +796,36 @@ class Exporter:
                     h = hashlib.md5(rec_id.encode()).hexdigest()[:8]
                     out_path = records_dir / f"{_safe_segment(title, 110)}__{h}.json"
                 out_path.write_text(json.dumps(redacted, indent=2, default=str), encoding="utf-8")
+
+                # Stage B — per-record PDF (hybrid). Render the ORIGINAL
+                # (un-redacted) record so the PDF matches what users would
+                # have printed live — passwords/tokens are stripped by the
+                # platform's own templates already; the fallback renderer
+                # has its own _HIDDEN_FIELDS set as belt-and-braces.
+                # PDF render failures NEVER crash the export.
+                if self.render_pdfs:
+                    photos_root = self.source_dir / "photos"
+                    pdf_bytes, strategy = _render_pdf_for_record(
+                        coll_name, doc, cfg,
+                        photos_root if photos_root.exists() else None,
+                        self.errors,
+                    )
+                    if pdf_bytes is not None:
+                        pdf_path = out_path.with_suffix(".pdf")
+                        try:
+                            pdf_path.write_bytes(pdf_bytes)
+                            pdf_rel_path = str(pdf_path.relative_to(self.out_dir))
+                        except Exception as e:  # noqa: BLE001
+                            self.errors.add("WARN", "pdf_write", coll_name, str(e))
+                            strategy = "failed"
+                    if strategy == "platform":
+                        self.pdfs_platform += 1
+                    elif strategy == "field_leadership":
+                        self.pdfs_field_leadership += 1
+                    elif strategy == "fallback":
+                        self.pdfs_fallback += 1
+                    else:
+                        self.pdfs_failed += 1
 
             # CSV row (flat)
             flat = _flatten_for_csv(redacted)
@@ -640,6 +847,7 @@ class Exporter:
                 "group": _safe_segment(group_val, 60) if group_val else "",
                 "title": title,
                 "json_path": str(out_path.relative_to(self.out_dir)) if not self.dry_run else "",
+                "pdf_path": pdf_rel_path,
                 "raw_json_path": f"RAW_JSON/{coll_name}/{fp.name}",
                 "csv_path": f"{module}/CSV/{coll_name}.csv",
                 "photo_paths": "",  # filled in stage 2
@@ -767,8 +975,8 @@ class Exporter:
             return
         path = self.out_dir / "EXPORT_INDEX.csv"
         cols = ["module", "collection", "record_type", "record_id",
-                "date", "group", "title", "json_path", "raw_json_path",
-                "csv_path", "photo_paths"]
+                "date", "group", "title", "json_path", "pdf_path",
+                "raw_json_path", "csv_path", "photo_paths"]
         with path.open("w", newline="", encoding="utf-8") as f:
             w = csv.DictWriter(f, fieldnames=cols)
             w.writeheader()
@@ -911,6 +1119,10 @@ POWERED BY FORGEDOPS™
                 "photos_total": self.photos_total,
                 "photos_associated": self.photos_associated,
                 "photos_orphaned": self.photos_orphaned,
+                "pdfs_platform": self.pdfs_platform,
+                "pdfs_field_leadership": self.pdfs_field_leadership,
+                "pdfs_fallback": self.pdfs_fallback,
+                "pdfs_failed": self.pdfs_failed,
                 "errors": self.errors.count("ERROR"),
                 "warnings": self.errors.count("WARN"),
             },
@@ -948,6 +1160,11 @@ POWERED BY FORGEDOPS™
             f"PHOTOS TOTAL:          {self.photos_total}",
             f"  associated:          {self.photos_associated}",
             f"  orphaned:            {self.photos_orphaned}",
+            f"PDFS RENDERED:         {self.pdfs_platform + self.pdfs_field_leadership + self.pdfs_fallback}",
+            f"  platform-template:   {self.pdfs_platform}",
+            f"  field-leadership:    {self.pdfs_field_leadership}",
+            f"  standardized:        {self.pdfs_fallback}",
+            f"  failed:              {self.pdfs_failed}",
             f"ERRORS:                {self.errors.count('ERROR')}",
             f"WARNINGS:              {self.errors.count('WARN')}",
             "",
@@ -1028,6 +1245,10 @@ POWERED BY FORGEDOPS™
             "photos_total": self.photos_total,
             "photos_associated": self.photos_associated,
             "photos_orphaned": self.photos_orphaned,
+            "pdfs_platform": self.pdfs_platform,
+            "pdfs_field_leadership": self.pdfs_field_leadership,
+            "pdfs_fallback": self.pdfs_fallback,
+            "pdfs_failed": self.pdfs_failed,
             "errors": self.errors.count("ERROR"),
             "warnings": self.errors.count("WARN"),
             "unmapped_collections": sorted(set(self.unmapped_collections)),
@@ -1058,6 +1279,8 @@ def main() -> int:
                     help="Comma-separated module filter (e.g. SAFETY,HR). Default: all")
     ap.add_argument("--no-zip", action="store_true",
                     help="Leave the output as a folder; do not zip")
+    ap.add_argument("--no-pdf", action="store_true",
+                    help="Skip per-record PDF generation (Stage B). Faster.")
     ap.add_argument("--dry-run", action="store_true",
                     help="Count records and write Verification_Report.txt only")
     args = ap.parse_args()
@@ -1103,6 +1326,7 @@ def main() -> int:
             modules=modules,
             dry_run=args.dry_run,
             source_label=source_label,
+            render_pdfs=not args.no_pdf,
         )
         result = exp.run(source_hash=source_hash)
 
@@ -1115,6 +1339,11 @@ def main() -> int:
     print(f"    associated        : {result['photos_associated']}")
     print(f"    orphaned          : {result['photos_orphaned']}")
     print(f"  errors / warnings   : {result['errors']} / {result['warnings']}")
+    print(f"  PDFs                 : {result['pdfs_platform']+result['pdfs_field_leadership']+result['pdfs_fallback']} "
+          f"(platform={result['pdfs_platform']}, "
+          f"field-leadership={result['pdfs_field_leadership']}, "
+          f"fallback={result['pdfs_fallback']}, "
+          f"failed={result['pdfs_failed']})")
     if result["unmapped_collections"]:
         print(f"  unmapped_collections: {', '.join(result['unmapped_collections'])}")
     print("─" * 78)

@@ -141,24 +141,30 @@ MASCI_HUMAN_READABLE_EXPORT_2026-02-15_120000Z.zip
     └── Verification_Report.txt
 ```
 
-### What's portable today (Stage A)
+### What's portable today (Stage A + Stage B)
 
 ✅ Photos and attachments grouped by record type, with an orphan bucket
 ✅ CSV per collection — opens cleanly in Excel / Google Sheets / Power BI
 ✅ JSON per record, organized by date / project / unit (whichever is most useful)
-✅ Master index (`EXPORT_INDEX.csv`) — every record in the archive with paths
+✅ **Per-record PDF — hybrid strategy** (Stage B):
+   - Platform-native templates for Daily Reports, JHAs, Incidents, Safety Inspections, Safety Meetings, Equipment Inspections, QA/QC Inspections, Field Leadership records (write-ups, coaching, recognition, terminations, equipment checkout/return, etc.). These PDFs look identical to what the live platform prints today.
+   - Standardized fallback PDF for every other record type (fire extinguishers, asset transfers, training records, audit logs, etc.) — clean two-column field table with MASCI / Powered by ForgedOps™ branding.
+✅ Photos resolved offline — `photo://` references inside records are pre-resolved to local data: URLs from the extracted backup, so PDFs render correctly even without R2 access.
+✅ Defensive timeout — pathological legacy records (pre-iter64 with multi-MB embedded base64 photos) that hang the renderer are capped at 20 seconds and fall through to the standardized layout. NEVER crashes the export.
+✅ Master index (`EXPORT_INDEX.csv`) — every record in the archive with title, date, project, JSON path, **PDF path**, and photo paths
 ✅ Data dictionary — what each field means
 ✅ Raw JSON preserved for technical recovery (`RAW_JSON/`)
-✅ Verification report — counts, errors, warnings, source backup hash
+✅ Verification report — counts (records, photos, PDFs by strategy, failures), errors, warnings, source backup hash
 ✅ Bad records skipped gracefully (logged, never crash the whole export)
-✅ Sensitive fields (passwords, secrets, API keys, tokens) redacted
+✅ Sensitive fields (passwords, secrets, API keys, tokens) redacted in module folders; preserved in RAW_JSON for IT only
 
-### What's coming next (Stage B)
+### What's coming next (Stage B.1)
 
-⏳ One PDF per record in the printable format users see in the app today
-   (Daily Report PDF, JHA PDF, Inspection PDF, etc.). Reuses existing
-   templates where they exist; falls back to a clean standardized layout
-   where they don't.
+⏳ Owner Snapshot PDF — a single ~10-page "company-at-a-glance" summary
+   at the root of the archive (active employees, projects, last 30 days
+   of incidents, last 90 days of training compliance, equipment fleet
+   roster, audit-log highlights). Built after core Stage B PDFs are
+   verified in production use.
 
 ### What's coming after that (Stage C)
 
@@ -275,8 +281,9 @@ Collections excluded from human-readable folders entirely (still in `RAW_JSON/`)
 
 | Stage | Status | Description |
 |---|---|---|
-| A — Foundation | ✅ This build | Doc + CSV per module + photo extraction + index + verification report + tests + storage-target-neutral exporter |
-| B — PDF rendering | ⏳ Next | Per-record PDFs using existing templates (Daily Report, JHA, Inspection, etc.) with standardized fallback for record types without a template |
+| A — Foundation | ✅ Done | Doc + CSV per module + photo extraction + index + verification report + tests + storage-target-neutral exporter |
+| B — PDF rendering | ✅ Done (this build) | Per-record PDFs · hybrid strategy (platform templates + standardized fallback) · offline photo resolution · 20s per-record render watchdog · failure-tolerant |
+| B.1 — Owner Snapshot PDF | ⏳ Next | One ~10-page summary at the archive root: active employees, projects, last 30 days of incidents, last 90 days of training compliance, equipment fleet roster, audit-log highlights |
 | C — Admin UI | ⏳ Later | Admin → Data Portability page: button, scope/date selector, async generation, audit log, expiring download link (writes to a tmpdir, reaped after delivery) |
 | D — Tenant-aware (SaaS) | Future | `EXPORT_COMPANY_NAME` env hook already in place; will be `{tenant}_HUMAN_READABLE_EXPORT_…` when multi-tenant lands |
 | E — MASCI-server delivery | Future | Nightly/weekly export generated from latest R2 backup → pushed to customer-owned archive server → local tmpdir reaped. Exporter unchanged; thin upload wrapper added separately. |

@@ -144,7 +144,7 @@ def _make_fixture_backup(tmp: Path) -> Path:
     return zip_path
 
 
-def _run(*args: str, env_extra: dict = None) -> subprocess.CompletedProcess:
+def _run(*args: str, env_extra: dict = None, timeout_override: int = 120) -> subprocess.CompletedProcess:
     env = dict(os.environ)
     if env_extra:
         env.update(env_extra)
@@ -153,7 +153,7 @@ def _run(*args: str, env_extra: dict = None) -> subprocess.CompletedProcess:
         env=env,
         capture_output=True,
         text=True,
-        timeout=120,
+        timeout=timeout_override,
     )
 
 
@@ -374,6 +374,177 @@ def test_from_source_folder(fixture_backup_and_out):
     assert r.returncode == 0, r.stderr
     exp = next(p for p in out.iterdir() if p.is_dir() and "HUMAN_READABLE" in p.name)
     assert (exp / "EXPORT_INDEX.csv").exists()
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Stage B — per-record PDFs (hybrid: platform templates + standardized fallback)
+# ═════════════════════════════════════════════════════════════════════════════
+def test_stageB_pdfs_generated_for_each_record(fixture_backup_and_out):
+    """End-to-end: every exported record must have a sibling .pdf file."""
+    zp, out = fixture_backup_and_out
+    r = _run("--backup", str(zp), "--out", str(out), "--no-zip")
+    assert r.returncode == 0, r.stderr
+    exp = next(p for p in out.iterdir() if p.is_dir())
+
+    # Find every record JSON under module folders (skip RAW_JSON & ORPHANED)
+    skip_dirs = {"RAW_JSON", "SYSTEM", "PHOTOS_AND_ATTACHMENTS"}
+    record_jsons = []
+    for module_dir in exp.iterdir():
+        if not module_dir.is_dir() or module_dir.name in skip_dirs:
+            continue
+        for sub in module_dir.iterdir():
+            if sub.is_dir() and sub.name != "CSV":
+                record_jsons.extend(sub.glob("*.json"))
+
+    assert len(record_jsons) > 0, "no record JSONs were written"
+
+    missing_pdfs = []
+    bad_pdfs = []
+    for j in record_jsons:
+        pdf = j.with_suffix(".pdf")
+        if not pdf.exists():
+            missing_pdfs.append(str(pdf))
+            continue
+        # Each PDF must start with %PDF- and be non-trivial in size
+        head = pdf.read_bytes()[:5]
+        if head != b"%PDF-":
+            bad_pdfs.append((str(pdf), head))
+        if pdf.stat().st_size < 200:
+            bad_pdfs.append((str(pdf), f"size={pdf.stat().st_size}"))
+
+    assert not missing_pdfs, f"missing PDFs for: {missing_pdfs}"
+    assert not bad_pdfs, f"invalid PDFs: {bad_pdfs}"
+
+
+def test_stageB_platform_vs_fallback_counted(fixture_backup_and_out):
+    """daily_reports / jhas / incidents should use the platform-native
+    renderer; field_leadership_records should use the field-leadership
+    renderer; future_unknown_collection (mapped to OTHER) should use the
+    standardized fallback. All four counts must be > 0 and reported in
+    Verification_Report.txt."""
+    zp, out = fixture_backup_and_out
+    r = _run("--backup", str(zp), "--out", str(out), "--no-zip")
+    assert r.returncode == 0, r.stderr
+    exp = next(p for p in out.iterdir() if p.is_dir())
+    ver = (exp / "SYSTEM" / "Verification_Report.txt").read_text()
+    assert "PDFS RENDERED:" in ver, ver
+    # Numbers
+    assert "platform-template:" in ver
+    assert "field-leadership:" in ver
+    assert "standardized:" in ver
+    # Manifest also reports the same breakdown
+    man = json.loads((exp / "MANIFEST.json").read_text())
+    totals = man["totals"]
+    assert totals["pdfs_platform"] >= 3, totals   # DR, JHA, INC
+    assert totals["pdfs_field_leadership"] >= 1, totals  # FL-001
+    assert totals["pdfs_fallback"] >= 1, totals   # X-1 (unknown collection)
+    assert totals["pdfs_failed"] == 0, totals
+
+
+def test_stageB_no_pdf_flag(fixture_backup_and_out):
+    """--no-pdf must skip PDF generation; no .pdf files anywhere."""
+    zp, out = fixture_backup_and_out
+    r = _run("--backup", str(zp), "--out", str(out), "--no-zip", "--no-pdf")
+    assert r.returncode == 0, r.stderr
+    exp = next(p for p in out.iterdir() if p.is_dir())
+    pdfs = list(exp.rglob("*.pdf"))
+    assert not pdfs, f"--no-pdf should skip PDFs; found: {pdfs}"
+    # And the manifest must reflect zero counts
+    man = json.loads((exp / "MANIFEST.json").read_text())
+    t = man["totals"]
+    assert t["pdfs_platform"] == 0
+    assert t["pdfs_field_leadership"] == 0
+    assert t["pdfs_fallback"] == 0
+
+
+def test_stageB_export_index_has_pdf_column(fixture_backup_and_out):
+    """EXPORT_INDEX.csv must include a 'pdf_path' column populated for
+    each record that has a PDF."""
+    zp, out = fixture_backup_and_out
+    r = _run("--backup", str(zp), "--out", str(out), "--no-zip")
+    assert r.returncode == 0
+    exp = next(p for p in out.iterdir() if p.is_dir())
+    with (exp / "EXPORT_INDEX.csv").open() as f:
+        rows = list(csv.DictReader(f))
+    assert all("pdf_path" in r for r in rows)
+    # At least the DR/JHA/INC/FL records should have pdf_path populated
+    pop = [r for r in rows if r["pdf_path"]]
+    assert len(pop) >= 4, f"expected ≥4 PDFs in index, got {pop}"
+
+
+def test_stageB_index_pdf_paths_resolve(fixture_backup_and_out):
+    """Every pdf_path in EXPORT_INDEX.csv must resolve to a real file
+    relative to the export root."""
+    zp, out = fixture_backup_and_out
+    r = _run("--backup", str(zp), "--out", str(out), "--no-zip")
+    assert r.returncode == 0
+    exp = next(p for p in out.iterdir() if p.is_dir())
+    with (exp / "EXPORT_INDEX.csv").open() as f:
+        rows = list(csv.DictReader(f))
+    for row in rows:
+        if row["pdf_path"]:
+            full = exp / row["pdf_path"]
+            assert full.exists(), f"index pdf_path doesn't resolve: {row['pdf_path']}"
+
+
+def test_stageB_bad_record_does_not_break_pdf_pipeline(fixture_backup_and_out):
+    """The fixture's malformed BAD.json should not produce a PDF and
+    must NOT stop the rest of the export from producing theirs."""
+    zp, out = fixture_backup_and_out
+    r = _run("--backup", str(zp), "--out", str(out), "--no-zip")
+    assert r.returncode == 0, r.stderr
+    exp = next(p for p in out.iterdir() if p.is_dir())
+    # Other records' PDFs still produced
+    assert list(exp.rglob("*DR-001*.pdf"))
+    assert list(exp.rglob("*JHA-001*.pdf"))
+    assert list(exp.rglob("*INC-001*.pdf"))
+
+
+def test_stageB_real_r2_backup_smoke(tmp_path):
+    """Optional — gated on RUN_REAL_R2_TEST=1. Fetch newest R2 backup,
+    run the exporter WITH PDF generation, and assert most records got
+    PDFs. Different gate than the Stage A real-R2 test so they can be
+    run independently."""
+    if os.environ.get("RUN_REAL_R2_TEST", "") != "1":
+        pytest.skip("set RUN_REAL_R2_TEST=1 to run")
+    import boto3
+    from botocore.config import Config
+
+    env = {}
+    for line in Path("/app/backend/.env").read_text().splitlines():
+        if "=" in line and not line.strip().startswith("#"):
+            k, v = line.split("=", 1)
+            env[k.strip()] = v.strip().strip('"')
+
+    s3 = boto3.client(
+        "s3", endpoint_url=env["S3_ENDPOINT_URL"],
+        aws_access_key_id=env["S3_ACCESS_KEY"],
+        aws_secret_access_key=env["S3_SECRET_KEY"],
+        region_name=env.get("S3_REGION") or "auto",
+        config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
+    )
+    # Prefer auto-90d (modern lite backups; fast).
+    objs = []
+    for p in s3.get_paginator("list_objects_v2").paginate(
+            Bucket=env["S3_BUCKET"], Prefix="backups/auto-90d/"):
+        objs += [o for o in p.get("Contents", []) if o["Key"].endswith(".zip")]
+    assert objs, "no auto-90d backups"
+    objs.sort(key=lambda o: o["LastModified"], reverse=True)
+    target = tmp_path / Path(objs[0]["Key"]).name
+    s3.download_file(env["S3_BUCKET"], objs[0]["Key"], str(target))
+
+    out = tmp_path / "out"
+    out.mkdir()
+    r = _run("--backup", str(target), "--out", str(out), "--no-zip",
+             timeout_override=600)
+    assert r.returncode == 0, r.stderr
+    exp = next(p for p in out.iterdir() if p.is_dir() and "HUMAN_READABLE" in p.name)
+    man = json.loads((exp / "MANIFEST.json").read_text())
+    t = man["totals"]
+    pdf_total = t["pdfs_platform"] + t["pdfs_field_leadership"] + t["pdfs_fallback"]
+    assert pdf_total > 0, f"no PDFs rendered: {t}"
+    assert t["pdfs_failed"] <= 0.1 * t["records_written"], \
+        f"too many PDF failures: {t}"
 
 
 # ═════════════════════════════════════════════════════════════════════════════

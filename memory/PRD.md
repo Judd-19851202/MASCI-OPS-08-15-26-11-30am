@@ -1,6 +1,53 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 2 · Human-Readable Export · Stage B (Per-Record PDFs) · ✅ COMPLETE
+
+User greenlit Stage B with hybrid strategy: reuse platform PDF templates where they exist, standardized fallback elsewhere. Owner Snapshot PDF deferred to Stage B.1.
+
+### Delivered
+- **NEW** `/app/backend/export_pdf_fallback.py` — standardized weasyprint-based fallback renderer for any record type without a platform-native template. Two-column field table, MASCI / Powered by ForgedOps™ branding (red bottom-rule, M-mark, page footer fingerprint). Returns None on any failure (never raises).
+- **Updated** `/app/scripts/export_human_readable.py`:
+  - Hybrid PDF dispatcher `_render_pdf_for_record()` — tries platform `pdf_render.render_record_pdf` (daily_reports, inspections, meetings, jhas, incidents, equipment_inspections, qaqc_inspections) → `field_leadership_pdf.render_field_leadership_pdf` (field_leadership_records) → standardized fallback. Strategy reported per record.
+  - Photo `photo://` refs pre-resolved to local data: URLs from the extracted backup so PDFs render correctly offline (no R2 dependency at export time).
+  - 20-second per-record SIGALRM watchdog — pathological legacy records (multi-MB embedded base64 photos pre-iter64) fall through to fallback instead of hanging the export.
+  - New `--no-pdf` CLI flag for fast iteration.
+  - `EXPORT_INDEX.csv` now has a `pdf_path` column populated per record.
+  - `Verification_Report.txt` + `MANIFEST.json` totals add `pdfs_platform`, `pdfs_field_leadership`, `pdfs_fallback`, `pdfs_failed` counters.
+
+### Tests
+- 6 new Stage B tests in `test_iter185_human_readable_export.py`:
+  - End-to-end: every exported record has a sibling .pdf starting with `%PDF-`
+  - Strategy counts: platform / field-leadership / fallback / failed all populated correctly
+  - `--no-pdf` flag suppresses all PDFs and zeroes the counters
+  - `EXPORT_INDEX.csv` has a `pdf_path` column; every populated path resolves to a real file
+  - Bad/malformed records don't break the PDF pipeline; other records' PDFs still render
+  - Stage B real-R2 smoke test (gated by `RUN_REAL_R2_TEST=1`): downloaded the newest preview backup, exporter ran end-to-end in **2:27 with 160/160 PDFs rendered, 0 errors, 0 warnings**
+- **Total suite: 19 passed / 2 skipped (real-R2 gated). All clean.**
+
+### Held / deferred (per user mandate)
+- ⏸ Stage B.1: Owner Snapshot PDF — approved conceptually; build after core Stage B is verified in production
+- ⏸ Stage C: Admin UI button
+- ⏸ Future Stage D/E: multi-tenant + MASCI-server delivery wrapper
+- ⏸ K4b frontend mutations, K5 temp password, K6-K9, Sentry, restore drill execution, R2 token rotation + lifecycle apply
+
+### Acceptance criteria verified
+- ✅ Bad records don't crash the export
+- ✅ Missing PDF template falls back cleanly to standardized layout
+- ✅ Photos/attachments referenced correctly (pre-resolved offline)
+- ✅ PDFs open normally (all start with `%PDF-`, non-trivial size)
+- ✅ Stage A behavior preserved (CSV / JSON / photo structure unchanged)
+- ✅ Technical backup pipeline NOT touched
+- ✅ All tests pass
+
+### Next Action Items
+- 🟢 **You**: greenlight Stage B.1 (Owner Snapshot PDF) when ready, OR Stage C (Admin UI) — both blocked on your sequencing
+- 🟡 R2 token rotation + lifecycle apply (Round 2) still pending
+- 🟡 First restore drill within 14 days
+
+---
+
+---
 ## 2026-02-XX — Phase 2 · Human-Readable Export · Stage A · ✅ COMPLETE
 
 User mandated a critical enterprise-grade data portability system: if MASCI (or any future customer) leaves the platform, they must be able to open, search, and use their records without a developer. Plus an architectural clarification: human-readable exports are **storage-target-neutral** and intended for the customer-owned MASCI server (future), NOT permanent R2 storage.
