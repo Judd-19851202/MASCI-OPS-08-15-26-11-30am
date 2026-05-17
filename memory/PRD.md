@@ -1,6 +1,85 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 3 · Operational Guidance · Phase B Iteration 2 (Safety + Shop/Fleet) · ✅ COMPLETE (preview only)
+
+Operator green-lit iter 2 with directive: "Safety should become one of the deepest and strongest operational guidance areas in the platform." Cross-portal lifecycle articles (Shop↔Dispatch, full equipment lifecycle) explicitly requested as top teaching opportunity. Search-zero-results logging approved BUT deferred until Phase B content saturation is complete.
+
+### What landed (iter192)
+
+**Backend — `/app/backend/guidance/content.py` content expansion**
+
+**8 Safety articles** (Safety is the operator-mandated "deepest" portal):
+- `safety-incident-investigation` (portals · safety/admin) — investigation workflow, root cause, witness statements
+- `safety-corrective-actions-workflow` (portals · safety/admin) — owner, deadline, follow-up, closure, verification
+- `safety-audits-workflow` (portals · safety/admin) — cadence, scope, findings, follow-up
+- `safety-fire-extinguishers` (portals · safety/admin) — inspection cadence, unit history, replacement
+- `safety-training-compliance` (portals · safety/admin) — competency tracking, expirations, training-to-equipment cross-check
+- `safety-near-miss-importance` (knowledge · field/leadership/safety/admin) — "cheapest lessons" framing
+- `safety-escalation-chain` (knowledge · field/leadership/safety/admin) — routine → significant → severe → catastrophic
+- `safety-photo-quality` (knowledge · field/leadership/safety/shop/admin) — what makes a photograph evidence vs noise
+
+**7 Shop/Fleet articles**:
+- `shop-preop-deep` (portals · shop/admin) — Pre-Op deep dive with mistakes + next blocks
+- `shop-failed-preop-workflow` (portals · shop/admin) — failed pre-op → Shop → Dispatch handoff
+- `shop-damage-reporting` (portals · shop/admin) — damage report → repair/insurance/accountability
+- `shop-maintenance-coordination` (portals · shop/admin) — scheduled service + Dispatch handoff
+- `shop-equipment-return` (portals · shop/admin) — return inspection + reconciliation
+- `shop-operator-responsibilities` (knowledge · field/leadership/shop/admin) — operator vs Shop ownership
+- `shop-downtime-logic` (knowledge · shop/dispatch/admin) — when downtime becomes escalation
+
+**2 cross-workflow connection articles** (operator-emphasized):
+- `connect-shop-to-dispatch` (knowledge · shop/dispatch/leadership/pm/admin) — Failed Pre-Op → Shop → Dispatch hold → Field availability sync
+- `connect-equipment-lifecycle` (knowledge · shop/dispatch/hr/leadership/admin) — Issuance → Use → Damage → Return → Offboarding
+
+**Cross-links updated**: `role-safety`, `role-shop`, `role-dispatch`, `portal-safety`, `portal-shop` now reference the new deep content.
+
+### Test coverage (iter192)
+- **NEW** `tests/test_iter192_guidance_phaseb_safety_shop.py` — 58 tests:
+  - Safety/Shop article visibility for Safety/Shop/Admin
+  - Cross-portal isolation: HR doesn't see Safety/Shop-only; Safety doesn't see Shop-only
+  - Cross-scope correctness: `safety-photo-quality` reachable via authenticated `field` scope by any portal user (intentional)
+  - Cross-workflow articles respect multi-scope grants (Shop↔Dispatch visible to leadership/PM; equipment-lifecycle visible to HR but NOT to Safety)
+  - Search RBAC-aware: `extinguisher` / `failed pre-op` / `near-miss` keyword tests
+  - Section counts: portals 14 → ≥24, knowledge 13 → ≥20
+  - Content quality: every deep portal article has WHY + (NEXT or MISTAKES) blocks (operator-required)
+- **Self-bootstrap fixture** for safety_token (resets via admin endpoint if seed stale — mirrors iter179 dispatch pattern; updated `test_credentials.md`)
+- **Combined guidance suite**: 124/124 ✅ (iter190 + iter191 + iter192)
+- **Full hardening regression sweep**: 346/346 ✅ (excluded iter187 ordering flakiness)
+
+### Portal coverage matrix (post-iter192)
+
+| Portal | Roles | Quick-Start | Deep Articles | Cross-Workflow |
+|---|---|---|---|---|
+| HR | ✅ | ✅ | ✅ 6 deep | ✅ field→payroll |
+| Field Leadership | ✅ | ✅ | ✅ 6 deep | ✅ field→payroll · incident→audit |
+| **Safety** | ✅ | ✅ | ✅ **8 deep** | ✅ incident→audit · photo-quality |
+| **Shop/Fleet** | ✅ | ✅ | ✅ **7 deep** | ✅ shop↔dispatch · equipment-lifecycle |
+| Dispatch | ✅ | ⏳ Iter 3 | partial (downtime, shop↔dispatch) | partial |
+| PM | ✅ | ⏳ Iter 3 | ⏳ Iter 3 | partial (connect articles cover) |
+| Admin | ✅ | ✅ | ⏳ Iter 3 | partial |
+
+**Total articles**: 31 (Phase A) → 46 (iter191) → **63 (iter192)**
+
+### Production posture
+- 🛑 NOT deployed to production — Phase B preview-only per operator directive
+- 🟢 Live in preview at `/guidance` · UI rendering verified
+- 🟢 Legacy routes preserved
+
+### Held / waiting on operator
+- 🟢 Operator review of Safety + Shop content in preview
+- 🟢 If approved, queue Phase B Iter 3: Dispatch + PM + Admin saturation
+- 🟢 Phase B post-saturation: implement search-zero-results logging (operator-approved, scope: query text + timestamp + scope context only, NO sensitive payload, NO user surveillance)
+- 🟡 Phase 2 close-out (R2 48h re-verify, Sentry/timeout soak sign-off)
+
+### Next Action Items
+- 🟢 Operator reviews iter192 Safety + Shop content
+- 🟢 Phase B Iter 3: Dispatch (equipment movement, holds/transfers, coordination) + PM (project oversight, review patterns) + Admin (user mgmt, audit forensics, backup posture, role templates)
+- 🟢 Phase B post-saturation: Search-zero-results gap-intelligence logging
+- 🟢 Phase C: Contextual help embeds at form-field level
+
+---
+
 ## 2026-02-XX — Phase 3 · Operational Guidance · Phase B Iteration 1 (HR + Field Leadership) · ✅ COMPLETE (preview only)
 
 Operator green-lit Phase B (Portal-Content Saturation) starting with HR + Field Leadership. Operator emphasized: (a) every operational portal must be represented before Phase B is mature (Safety/Dispatch can NOT be optional); (b) HOW + WHY + WHAT HAPPENS NEXT in every major article; (c) field-friendly tone, no corporate/LMS drift; (d) strict RBAC across search, retrieval, related, troubleshooting; (e) cross-workflow relationship guidance as a top-value teaching opportunity.

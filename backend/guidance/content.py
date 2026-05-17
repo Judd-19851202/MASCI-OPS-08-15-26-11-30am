@@ -190,7 +190,11 @@ _ARTICLES: list[dict] = [
                 "Training Records",
             ]},
         ],
-        "related": ["why-incidents", "why-corrective-actions", "task-submit-incident"],
+        "related": ["why-incidents", "why-corrective-actions", "task-submit-incident",
+                    "safety-incident-investigation", "safety-corrective-actions-workflow",
+                    "safety-audits-workflow", "safety-fire-extinguishers",
+                    "safety-training-compliance", "safety-near-miss-importance",
+                    "safety-escalation-chain"],
     },
     {
         "id": "role-shop",
@@ -214,7 +218,11 @@ _ARTICLES: list[dict] = [
                 "Equipment Accountability",
             ]},
         ],
-        "related": ["why-equipment-accountability", "tshoot-equipment-not-found"],
+        "related": ["why-equipment-accountability", "tshoot-equipment-not-found",
+                    "shop-preop-deep", "shop-failed-preop-workflow", "shop-damage-reporting",
+                    "shop-maintenance-coordination", "shop-equipment-return",
+                    "shop-operator-responsibilities", "shop-downtime-logic",
+                    "connect-shop-to-dispatch"],
     },
     {
         "id": "role-dispatch",
@@ -396,7 +404,9 @@ _ARTICLES: list[dict] = [
                 "The Safety portal is where incidents, near-misses, corrective actions, "
                 "fire extinguisher records, and audit work happen."},
         ],
-        "related": ["role-safety"],
+        "related": ["role-safety", "safety-incident-investigation",
+                    "safety-corrective-actions-workflow", "safety-audits-workflow",
+                    "safety-fire-extinguishers", "safety-training-compliance"],
     },
     {
         "id": "portal-shop",
@@ -407,7 +417,10 @@ _ARTICLES: list[dict] = [
         "tags": ["shop portal", "fleet"],
         "body": [{"type": "p", "text":
             "The Shop portal owns equipment health and maintenance coordination."}],
-        "related": ["role-shop"],
+        "related": ["role-shop", "shop-preop-deep", "shop-failed-preop-workflow",
+                    "shop-damage-reporting", "shop-maintenance-coordination",
+                    "shop-equipment-return", "connect-shop-to-dispatch",
+                    "connect-equipment-lifecycle"],
     },
     {
         "id": "portal-admin",
@@ -1190,6 +1203,587 @@ _ARTICLES: list[dict] = [
                 "and nobody can say what was done about it last time."},
         ],
         "related": ["why-incidents", "why-corrective-actions", "field-incident-escalation", "role-safety"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PHASE B ITER 2 · SAFETY PORTAL DEEP CONTENT (iter192 · preview only)
+    # Operator directive: "Safety should become one of the deepest and
+    # strongest operational guidance areas in the platform."
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "safety-incident-investigation",
+        "section": "portals",
+        "title": "Safety · Investigating an Incident After Submission",
+        "summary": "Triage, root-cause, photographic evidence, witness statements.",
+        "scopes": ["safety", "admin"],
+        "tags": ["safety", "incident", "investigation", "root cause", "evidence"],
+        "body": [
+            {"type": "p", "text":
+                "Once a field incident is submitted, Safety owns the investigation. The "
+                "investigation's job is not to assign blame — it is to reconstruct what "
+                "happened factually enough that the same event can be prevented next time."},
+            {"type": "steps", "items": [
+                "Read the field report in full — do not skim",
+                "Verify scene was made safe (the report should say so explicitly)",
+                "Review every photo; request additional photos if the scene wasn't captured",
+                "Collect statements from witnesses while memory is fresh — within 24h ideally",
+                "Identify contributing factors (equipment, training, procedure, environment)",
+                "Decide whether a Corrective Action is warranted",
+                "Document the investigation findings in the incident record",
+            ]},
+            {"type": "why", "text":
+                "A thorough investigation protects everyone — the injured party, witnesses, "
+                "supervisor, and the company. A rushed or skipped investigation creates a "
+                "record that proves nothing, which is worse than no record at all."},
+            {"type": "mistakes", "items": [
+                "Speculating about cause before facts are in",
+                "Letting investigation drift past 72h (memory degrades fast)",
+                "Closing without a written finding — even 'no further action needed' is a finding",
+                "Skipping the witness interview because 'it seems minor'",
+            ]},
+            {"type": "next", "items": [
+                "Corrective Action opened (if warranted) — see safety-corrective-actions-workflow",
+                "Severe incidents escalate to Admin + insurance review",
+                "Audit trail records every step of the investigation",
+                "Patterns surface in monthly Safety review (multiple similar incidents = systemic)",
+            ]},
+        ],
+        "related": ["safety-corrective-actions-workflow", "safety-near-miss-importance",
+                    "connect-incident-to-audit", "safety-photo-quality", "role-safety"],
+    },
+    {
+        "id": "safety-corrective-actions-workflow",
+        "section": "portals",
+        "title": "Safety · Corrective Actions Deep Workflow",
+        "summary": "Owner, deadline, follow-up, closure, verification.",
+        "scopes": ["safety", "admin"],
+        "tags": ["safety", "corrective action", "follow-up", "closure", "workflow"],
+        "body": [
+            {"type": "p", "text":
+                "A Corrective Action is a tracked follow-up to an incident, audit finding, "
+                "or near-miss. Its job is to make sure the issue was actually fixed — not "
+                "just discussed."},
+            {"type": "steps", "items": [
+                "Open the Corrective Action from the source record (incident, audit, or near-miss)",
+                "Assign an owner — must be a specific person, not a department",
+                "Set a deadline — short enough to keep momentum, realistic enough to honor",
+                "Define what 'done' looks like (training completed, equipment replaced, procedure updated, etc.)",
+                "Owner executes and records what changed (photos, signed acknowledgements, training records)",
+                "Safety verifies and closes — never close without verifying",
+            ]},
+            {"type": "why", "text":
+                "Without Corrective Actions, the same problem happens again and nobody can "
+                "say what was done last time. Corrective Actions are the difference between "
+                "documenting failure and documenting improvement."},
+            {"type": "mistakes", "items": [
+                "Assigning to a department ('Shop will handle it') — assign to a person",
+                "Vague 'done' criteria ('improve training') — be specific",
+                "Closing on the owner's word alone — verify with the artifact",
+                "Letting actions age past deadline without re-engaging the owner",
+            ]},
+            {"type": "next", "items": [
+                "Closed action shows in the audit trail of the source incident",
+                "Open actions surface in Safety's weekly digest",
+                "Repeated actions for the same root cause flag a systemic issue",
+            ]},
+        ],
+        "related": ["safety-incident-investigation", "why-corrective-actions",
+                    "connect-incident-to-audit", "role-safety"],
+    },
+    {
+        "id": "safety-audits-workflow",
+        "section": "portals",
+        "title": "Safety · Conducting an Audit",
+        "summary": "Cadence, scope, findings, corrective actions, documentation.",
+        "scopes": ["safety", "admin"],
+        "tags": ["safety", "audit", "findings", "compliance"],
+        "body": [
+            {"type": "p", "text":
+                "Safety audits are scheduled, scope-limited reviews of an area, crew, or "
+                "process. The output is a list of findings — each becomes either a closed "
+                "observation or an open Corrective Action."},
+            {"type": "bullets", "items": [
+                "Scope: project, crew, equipment class, or process",
+                "Cadence: as established by Safety leadership — typically monthly per active project",
+                "Output: findings list with severity, owner, and follow-up",
+                "Follow-up: each non-trivial finding becomes a Corrective Action",
+            ]},
+            {"type": "why", "text":
+                "Audits catch issues before they become incidents. A clean audit is not the "
+                "goal — a thorough audit is. Findings are the audit's value, not its failure."},
+            {"type": "mistakes", "items": [
+                "Auditing only when something is wrong — the cadence is the point",
+                "Listing findings without owners or deadlines",
+                "Recording 'all clear' without describing what was actually inspected",
+            ]},
+            {"type": "next", "items": [
+                "Findings flow into Corrective Actions when warranted",
+                "Audit history is searchable by project, crew, and date",
+                "Audit patterns inform safety training priorities",
+            ]},
+        ],
+        "related": ["safety-corrective-actions-workflow", "safety-near-miss-importance", "role-safety"],
+    },
+    {
+        "id": "safety-fire-extinguishers",
+        "section": "portals",
+        "title": "Safety · Fire Extinguisher Inspections",
+        "summary": "Monthly inspection cadence, unit history, deficiencies, replacement.",
+        "scopes": ["safety", "admin"],
+        "tags": ["safety", "fire extinguisher", "inspection", "compliance"],
+        "body": [
+            {"type": "p", "text":
+                "Fire extinguishers carry an explicit inspection cadence — by code and by "
+                "company policy. Each unit has a history: inspections, deficiencies, "
+                "recharges, replacements."},
+            {"type": "steps", "items": [
+                "Open Safety → Fire Extinguishers",
+                "Pick the unit (by serial or tag)",
+                "Record inspection: pressure / seal / pin / hose / signage / clearance",
+                "Note any deficiencies — open a follow-up for repair or replacement",
+                "Submit — the unit's history updates with the timestamp + inspector",
+            ]},
+            {"type": "why", "text":
+                "Extinguisher records are inspected by code authorities and insurers. A "
+                "missing month is a finding; a missing year is a problem. The history is "
+                "the unit's defense."},
+            {"type": "warn", "text":
+                "A failed extinguisher is out of service until replaced — do not return "
+                "it to its mount with a deficiency open."},
+            {"type": "next", "items": [
+                "Unit history is searchable by serial / project / inspector",
+                "Deficient units flagged on the Safety dashboard until resolved",
+                "Annual recharge / replacement cycles tracked from the same record",
+            ]},
+        ],
+        "related": ["safety-audits-workflow", "role-safety"],
+    },
+    {
+        "id": "safety-training-compliance",
+        "section": "portals",
+        "title": "Safety · Training & Compliance Tracking",
+        "summary": "Who is trained on what, when it expires, what to do when it does.",
+        "scopes": ["safety", "admin"],
+        "tags": ["safety", "training", "compliance", "expiration"],
+        "body": [
+            {"type": "p", "text":
+                "Training records prove who is qualified to operate what. They are also "
+                "what protects the company when a question arises about whether someone "
+                "should have been operating equipment they weren't trained on."},
+            {"type": "bullets", "items": [
+                "Each training record ties to an employee + a competency + a date",
+                "Competencies with expirations carry a renewal date",
+                "Equipment Issuance can be cross-checked against training records",
+                "Expired or missing training surfaces in the Safety dashboard",
+            ]},
+            {"type": "why", "text":
+                "Training records are the documented answer to 'should they have been "
+                "doing that?'. Untracked training is undefendable training."},
+            {"type": "mistakes", "items": [
+                "Issuing equipment to someone whose training expired",
+                "Filing training certificates outside the platform ('I'll add it later')",
+                "Treating renewal dates as suggestions",
+            ]},
+            {"type": "next", "items": [
+                "Records flow into HR's employee accountability view",
+                "Expiring training surfaces in the weekly digest",
+                "Audit trail records who entered the training and when",
+            ]},
+        ],
+        "related": ["safety-audits-workflow", "hr-onboarding-new-hire", "role-safety"],
+    },
+    {
+        "id": "safety-near-miss-importance",
+        "section": "knowledge",
+        "title": "Safety · Why Near-Misses Are the Cheapest Lessons",
+        "summary": "What a near-miss is, why it matters more than people think.",
+        "scopes": ["field", "leadership", "safety", "admin"],
+        "tags": ["safety", "near miss", "why", "documentation"],
+        "body": [
+            {"type": "p", "text":
+                "A near-miss is an event that could have caused harm but didn't — the trip "
+                "that didn't become a fall, the swing that didn't connect, the loose chain "
+                "that was caught in time. Most companies under-document near-misses because "
+                "'nothing happened.' That's exactly backwards."},
+            {"type": "why", "text":
+                "Near-misses are the cheapest possible lessons. They tell you about a risk "
+                "without the cost of an injury. A field that documents near-misses well "
+                "produces fewer real incidents over time — because the contributing factors "
+                "were caught early."},
+            {"type": "bullets", "items": [
+                "Document factually — what almost happened, what stopped it",
+                "Photograph the setup if it still exists",
+                "Submit through the same incident form (mark as near-miss)",
+                "Safety reviews like any other incident",
+            ]},
+            {"type": "tip", "text":
+                "Crews that submit near-misses are not bad crews — they are honest crews. "
+                "Crews that submit zero near-misses for a year are not safer; they're "
+                "quieter. Treat near-miss volume as a signal, not a stigma."},
+        ],
+        "related": ["safety-incident-investigation", "why-incidents",
+                    "connect-incident-to-audit", "role-safety"],
+    },
+    {
+        "id": "safety-escalation-chain",
+        "section": "knowledge",
+        "title": "Safety · Escalation Chain & Who Sees What",
+        "summary": "Field → Safety → Admin → Insurance: when each step engages.",
+        "scopes": ["field", "leadership", "safety", "admin"],
+        "tags": ["safety", "escalation", "chain", "workflow"],
+        "body": [
+            {"type": "p", "text":
+                "Different severities trigger different responses. Knowing which level "
+                "engages when prevents either over-escalation (everyone called for a paper "
+                "cut) or under-escalation (admin learns about a serious event from rumor)."},
+            {"type": "bullets", "items": [
+                "Routine — Safety reviews and closes through normal cadence",
+                "Significant — Safety + assigned PM are notified; Corrective Action likely",
+                "Severe (injury, property damage, public exposure) — Admin + Safety + PM same-day",
+                "Catastrophic — Admin + insurance carrier engagement; legal-hold posture",
+            ]},
+            {"type": "warn", "text":
+                "When in doubt, escalate. The cost of over-engaging Admin once is much "
+                "lower than the cost of under-engaging them when it mattered."},
+            {"type": "why", "text":
+                "The chain protects everyone: the injured party gets prompt response, "
+                "the supervisor isn't left holding a serious decision alone, and Admin "
+                "has the context to engage insurance / legal when actually needed."},
+        ],
+        "related": ["field-incident-escalation", "safety-incident-investigation", "role-safety"],
+    },
+    {
+        "id": "safety-photo-quality",
+        "section": "knowledge",
+        "title": "Safety · Photo & Documentation Quality Standards",
+        "summary": "What makes a photograph evidence vs noise.",
+        "scopes": ["field", "leadership", "safety", "shop", "admin"],
+        "tags": ["safety", "photo", "documentation", "quality", "evidence"],
+        "body": [
+            {"type": "p", "text":
+                "A photo turns a note into evidence. A bad photo turns it back into a note. "
+                "The difference is what's in the frame, what's in focus, and whether "
+                "anyone six months later can tell what they're looking at."},
+            {"type": "bullets", "items": [
+                "Capture context first (wide shot showing the surroundings)",
+                "Then capture the detail (close-up of the specific item / damage / hazard)",
+                "Include a size reference where it matters (a hand, a tape, anything known)",
+                "Avoid blur — re-take if motion or focus is off",
+                "Take more than you think you need; deleting is cheap, re-visiting the scene isn't",
+            ]},
+            {"type": "why", "text":
+                "Photos are the first thing reviewers reach for. They survive memory, "
+                "personnel changes, and disputes. A clear photo set is worth more than a "
+                "long written description."},
+            {"type": "mistakes", "items": [
+                "Only one photo of a complex scene",
+                "Close-up with no context (where is this?)",
+                "Wide shot with no detail (what's the issue?)",
+                "Forgetting to photograph the surroundings (witnesses, equipment, conditions)",
+            ]},
+        ],
+        "related": ["why-photos", "task-upload-photos", "safety-incident-investigation"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PHASE B ITER 2 · SHOP / FLEET DEEP CONTENT (iter192 · preview only)
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "shop-preop-deep",
+        "section": "portals",
+        "title": "Shop · Pre-Op Inspections Deep Dive",
+        "summary": "What every pre-op should catch, what 'pass' really means.",
+        "scopes": ["shop", "admin"],
+        "tags": ["shop", "pre-op", "inspection", "equipment", "operator"],
+        "body": [
+            {"type": "p", "text":
+                "A Pre-Op is the operator's check before using equipment. It's a daily "
+                "promise that the equipment is safe to run — and a daily protection if it "
+                "turns out it wasn't."},
+            {"type": "bullets", "items": [
+                "Fluids — engine, hydraulic, coolant levels and leaks",
+                "Tires / tracks — pressure, wear, damage",
+                "Lights & signals — turn / brake / backup / strobe",
+                "Safety devices — seatbelt, horn, alarms, guards",
+                "Operating controls — full range, no binding",
+                "Visible damage — frame cracks, bent components, missing bolts",
+            ]},
+            {"type": "why", "text":
+                "Pre-Op records protect the operator from being blamed for a defect that "
+                "was there before they started, and protect the company from running "
+                "equipment that should have been pulled. A signed Pre-Op is a record of "
+                "operational accountability."},
+            {"type": "warn", "text":
+                "Pre-Op is not paperwork. If you skip the inspection and 'just check the "
+                "box,' you have signed a document saying the equipment was safe when you "
+                "didn't actually look."},
+            {"type": "mistakes", "items": [
+                "Box-ticking without walking the asset",
+                "Missing the underside / blind sides (where most damage hides)",
+                "Skipping the brakes / safety devices because 'they worked yesterday'",
+                "Recording 'pass' on an issue you mean to flag verbally",
+            ]},
+            {"type": "next", "items": [
+                "Submitted Pre-Op becomes part of the asset's daily record",
+                "Failed Pre-Op kicks the failed-pre-op workflow (Shop + Dispatch alerted)",
+                "Pattern of failures on the same asset surfaces in Shop trends",
+            ]},
+        ],
+        "related": ["shop-failed-preop-workflow", "shop-operator-responsibilities",
+                    "shop-damage-reporting", "role-shop"],
+    },
+    {
+        "id": "shop-failed-preop-workflow",
+        "section": "portals",
+        "title": "Shop · Failed Pre-Op Workflow",
+        "summary": "What happens after a pre-op fails — and who's involved.",
+        "scopes": ["shop", "admin"],
+        "tags": ["shop", "failed pre-op", "out of service", "workflow"],
+        "body": [
+            {"type": "p", "text":
+                "When a Pre-Op fails — or the operator flags an Out-of-Service condition — "
+                "a defined chain kicks in. The asset is tagged, Shop is notified, Dispatch "
+                "knows it's unavailable, and the field has documented why."},
+            {"type": "steps", "items": [
+                "Operator marks the Pre-Op as failed (or out-of-service) and documents what",
+                "Auto-email fans out to every active Shop user + the supervisor",
+                "Shop reviews, schedules repair, or pulls the asset",
+                "Dispatch is updated — the asset stops appearing as available",
+                "When repaired, Shop signs off — the asset re-enters availability",
+            ]},
+            {"type": "why", "text":
+                "Without this chain, a failed asset can keep getting handed to the next "
+                "operator. The failure record + the dispatch hold are the two things that "
+                "stop the loop. Both need to land or the system breaks."},
+            {"type": "mistakes", "items": [
+                "Marking 'fail' without describing the failure",
+                "Verbal handoff to Shop without filing the form (no record exists)",
+                "Returning to service without a Shop sign-off",
+                "Skipping the Dispatch update — asset shows available but isn't",
+            ]},
+            {"type": "next", "items": [
+                "Shop receives the alert email and opens the inspection record",
+                "Dispatch sees the asset on the Out-of-Service list",
+                "Shop sign-off closes the loop and clears the asset",
+                "Audit trail preserves the full lifecycle of the failure",
+            ]},
+        ],
+        "related": ["shop-preop-deep", "shop-damage-reporting", "connect-shop-to-dispatch",
+                    "role-shop", "role-dispatch"],
+    },
+    {
+        "id": "shop-damage-reporting",
+        "section": "portals",
+        "title": "Shop · Damage Reporting",
+        "summary": "From discovery to cost recovery — the full damage paper trail.",
+        "scopes": ["shop", "admin"],
+        "tags": ["shop", "damage", "equipment", "reporting"],
+        "body": [
+            {"type": "p", "text":
+                "Damage reports document equipment damage with enough detail to support "
+                "repair planning, warranty / insurance claims, and (if applicable) operator "
+                "accountability conversations."},
+            {"type": "steps", "items": [
+                "Photograph the damage — wide shot for context, close-ups for detail",
+                "Record the asset (serial / tag), the date, the discovering party",
+                "Describe what happened factually — when known, by whom; when not, say so",
+                "Tie to the operator's name if the damage is associated with a specific use",
+                "Submit — Shop, Admin, and (where applicable) HR can review",
+            ]},
+            {"type": "why", "text":
+                "Damage records support three downstream conversations: how much to "
+                "repair / replace, whether insurance or warranty applies, and whether the "
+                "damage points to a training or process problem."},
+            {"type": "warn", "text":
+                "Damage reports are factual records, not blame attributions. Describe what "
+                "you observed; let HR / Safety handle accountability discussions separately."},
+            {"type": "next", "items": [
+                "Shop schedules repair or write-off",
+                "If associated with an operator, the record is visible to HR for review",
+                "Asset history grows — patterns surface (some assets / operators repeat)",
+            ]},
+        ],
+        "related": ["shop-preop-deep", "field-equipment-checkout",
+                    "connect-equipment-lifecycle", "role-shop"],
+    },
+    {
+        "id": "shop-maintenance-coordination",
+        "section": "portals",
+        "title": "Shop · Maintenance Coordination",
+        "summary": "Scheduled service, asset history, and the Dispatch handoff.",
+        "scopes": ["shop", "admin"],
+        "tags": ["shop", "maintenance", "service", "scheduled"],
+        "body": [
+            {"type": "p", "text":
+                "Maintenance work — scheduled or reactive — flows through Shop. The point "
+                "is to keep equipment running while preserving a clean per-asset service "
+                "history."},
+            {"type": "bullets", "items": [
+                "Scheduled service: based on hours / mileage / calendar per asset",
+                "Reactive service: from a failed Pre-Op, damage report, or operator note",
+                "Service record: what was done, by whom, parts used, time on asset",
+                "Dispatch handoff: asset is unavailable during service, available again after sign-off",
+            ]},
+            {"type": "why", "text":
+                "A clean maintenance history reduces unexpected downtime, supports "
+                "warranty / resale value, and answers questions when an asset fails ('was "
+                "it serviced on schedule?')."},
+            {"type": "next", "items": [
+                "Service log is searchable per asset",
+                "Dispatch updated when asset enters / leaves service",
+                "Recurring service patterns flag candidates for replacement",
+            ]},
+        ],
+        "related": ["shop-failed-preop-workflow", "shop-downtime-logic",
+                    "connect-shop-to-dispatch", "role-shop"],
+    },
+    {
+        "id": "shop-equipment-return",
+        "section": "portals",
+        "title": "Shop · Equipment Return & Reconciliation",
+        "summary": "Receiving equipment back — condition check, history, accountability.",
+        "scopes": ["shop", "admin"],
+        "tags": ["shop", "return", "reconciliation", "accountability"],
+        "body": [
+            {"type": "p", "text":
+                "Equipment returns are where accountability lands. Whether the return is "
+                "routine (end-of-job) or part of an offboarding, Shop's job is to verify "
+                "what came back, in what condition, with what history."},
+            {"type": "steps", "items": [
+                "Inspect on return — photograph condition (matches checkout photos if available)",
+                "Note any damage discovered at return that wasn't recorded earlier",
+                "Update the asset's status: available / in-service / damaged / lost",
+                "Tie back to the Field Leadership checkout record if applicable",
+                "If associated with an offboarding, confirm HR sees the asset as returned",
+            ]},
+            {"type": "why", "text":
+                "Returns close the accountability loop opened at checkout. Without a clean "
+                "return record, an asset can be 'returned' verbally but still flagged as "
+                "assigned in the system — the kind of mismatch that surfaces only at year-end."},
+            {"type": "mistakes", "items": [
+                "Accepting a return without inspecting condition",
+                "Skipping the photo at return ('it looks fine')",
+                "Not updating the asset status — record shows it still assigned",
+                "Returning offboarded equipment without notifying HR",
+            ]},
+        ],
+        "related": ["field-equipment-checkout", "hr-offboarding",
+                    "connect-equipment-lifecycle", "role-shop"],
+    },
+    {
+        "id": "shop-operator-responsibilities",
+        "section": "knowledge",
+        "title": "Shop · Operator Responsibilities",
+        "summary": "What the operator owns — and what Shop owns.",
+        "scopes": ["field", "leadership", "shop", "admin"],
+        "tags": ["shop", "operator", "responsibility", "field"],
+        "body": [
+            {"type": "p", "text":
+                "The operator and Shop split equipment responsibility. Understanding the "
+                "split prevents the most common conflict ('Shop should have caught that' / "
+                "'the operator should have flagged it')."},
+            {"type": "bullets", "items": [
+                "Operator owns: daily Pre-Op, in-shift checks, immediate damage / failure reporting, end-of-shift condition note",
+                "Shop owns: scheduled service, repair after a documented failure, fleet condition over time, sign-off on return-to-service",
+                "Shared: damage discovery (whoever finds it documents it), training compliance (operator's record but Shop verifies before issuing)",
+            ]},
+            {"type": "why", "text":
+                "Clear ownership prevents the gap where 'someone else was supposed to "
+                "catch that.' Both halves carry weight — the system only works when both "
+                "sides own their half."},
+        ],
+        "related": ["shop-preop-deep", "field-equipment-checkout", "role-shop"],
+    },
+    {
+        "id": "shop-downtime-logic",
+        "section": "knowledge",
+        "title": "Shop · Downtime & Escalation Logic",
+        "summary": "When downtime becomes an escalation, not just a repair.",
+        "scopes": ["shop", "dispatch", "admin"],
+        "tags": ["shop", "downtime", "escalation", "dispatch"],
+        "body": [
+            {"type": "p", "text":
+                "Not every repair is an escalation. But certain downtime patterns are — and "
+                "they need to engage Dispatch, PM, and sometimes Admin so the field doesn't "
+                "find out about availability gaps the day they need the asset."},
+            {"type": "bullets", "items": [
+                "Routine — same-day or next-day repair, no field impact",
+                "Significant — multi-day repair OR critical asset; Dispatch must know",
+                "Escalation — repair pulls a project-critical asset; PM + Dispatch + Admin engage",
+                "Replacement decision — repeat failures or repair-cost threshold; Admin decision required",
+            ]},
+            {"type": "why", "text":
+                "The field can absorb a routine repair without warning. It cannot absorb a "
+                "project-critical asset disappearing without coordination. The escalation "
+                "rules are not bureaucracy — they are how Dispatch / PM / Admin get the "
+                "context they need to keep the field running."},
+        ],
+        "related": ["shop-maintenance-coordination", "shop-failed-preop-workflow",
+                    "connect-shop-to-dispatch", "role-shop", "role-dispatch"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PHASE B ITER 2 · CROSS-WORKFLOW CONNECTIONS (iter192)
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "connect-shop-to-dispatch",
+        "section": "knowledge",
+        "title": "How Shop & Dispatch Stay in Sync",
+        "summary": "Failed Pre-Op → Shop → Dispatch hold → Field availability.",
+        "scopes": ["shop", "dispatch", "leadership", "pm", "admin"],
+        "tags": ["workflow", "shop", "dispatch", "equipment", "connection"],
+        "body": [
+            {"type": "p", "text":
+                "Equipment availability is a Dispatch concern. Equipment health is a Shop "
+                "concern. They have to stay in sync or the field gets handed assets that "
+                "shouldn't be in service — or can't find assets that actually are."},
+            {"type": "steps", "items": [
+                "Pre-Op failure / damage / scheduled service kicks an asset out of service",
+                "Shop records the status — that update flows to Dispatch's view of availability",
+                "Dispatch holds the asset; it stops appearing in field-assignment lists",
+                "Shop completes the work and signs off — Dispatch picks up the new status",
+                "Asset is back in field rotation — with a clean record of the gap",
+            ]},
+            {"type": "why", "text":
+                "When this loop is clean, the field sees only assets that are actually "
+                "ready. When it breaks, supervisors waste a morning chasing equipment that "
+                "isn't where the system says it is. The integrity of every asset list "
+                "downstream rides on this loop."},
+            {"type": "tip", "text":
+                "If Dispatch sees an asset listed as available but Shop has it on the bench, "
+                "that's a sync bug — usually a missing status update. Flag it; don't work around it."},
+        ],
+        "related": ["shop-failed-preop-workflow", "shop-maintenance-coordination",
+                    "shop-downtime-logic", "role-shop", "role-dispatch"],
+    },
+    {
+        "id": "connect-equipment-lifecycle",
+        "section": "knowledge",
+        "title": "Equipment Lifecycle — End to End",
+        "summary": "Issuance → Use → Damage → Return → Offboarding.",
+        "scopes": ["shop", "dispatch", "hr", "leadership", "admin"],
+        "tags": ["workflow", "equipment", "lifecycle", "shop", "hr", "connection"],
+        "body": [
+            {"type": "p", "text":
+                "An asset's life in the system spans multiple portals. Knowing the "
+                "lifecycle helps every portal recognize their piece — and helps everyone "
+                "spot where a record is missing."},
+            {"type": "steps", "items": [
+                "Asset created / received — Shop or Admin records the master record",
+                "Issued to an employee — Field Leadership or Safety Forms equipment-issuance form",
+                "In use — daily Pre-Op, in-shift checks, end-of-shift condition note",
+                "Damage / failure (if any) — operator or Shop records",
+                "Returned — Shop inspects, updates status, ties to checkout record",
+                "Offboarding (when applicable) — HR confirms each assigned asset is back, transferred, or written off",
+                "Retired / sold — Admin records final disposition",
+            ]},
+            {"type": "why", "text":
+                "Every gap in this chain is a future dispute waiting to happen — 'was "
+                "this returned?', 'who damaged it?', 'why is HR's list different from "
+                "Shop's list?'. The lifecycle view is the answer key."},
+        ],
+        "related": ["field-equipment-checkout", "shop-equipment-return", "shop-damage-reporting",
+                    "hr-offboarding", "why-equipment-accountability"],
     },
 ]
 
