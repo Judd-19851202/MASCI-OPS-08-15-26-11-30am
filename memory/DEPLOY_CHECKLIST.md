@@ -13,7 +13,36 @@ even if the build was urgent and "looked fine."
 
 ---
 
-## 1. Pre-deploy gate (preview environment)
+## 0. CI vs Deploy — discipline boundary
+
+**Read this first.** GitHub Actions (`/.github/workflows/ci.yml`) and
+Emergent Deploy are two different things and protect against two
+different classes of failure. Do not confuse them.
+
+| Surface | What it does | What it does NOT do |
+|---|---|---|
+| GitHub Actions CI | Static gate on every push/PR: Python syntax compile + ruff errors + frontend lint + frontend production build | Run live backend tests · validate auth/RBAC behaviour · check scheduler/R2/backup health · trigger a deploy |
+| `bash scripts/pre_deploy_check.sh` (preview env) | **Operational deploy gate** — runs the full backend pytest suite (incl. auth + RBAC critical paths) against a live preview backend + Mongo | Touch production · push code · invoke deployment |
+| Emergent Deploy button | Pushes preview to production (`mascidocs.com`) | Read GitHub Actions status · read CI exit codes · enforce any external gate |
+
+**Discipline:**
+
+- **GitHub Actions passing is necessary, but not sufficient.** A green CI
+  badge does not prove auth, RBAC, scheduler, or backup behaviour. It
+  only proves the code compiles and the frontend builds.
+- **`pre_deploy_check.sh` is the binding gate for production deploys.**
+  It must exit 0 in the preview environment before the Emergent Deploy
+  button is clicked.
+- **A human approves every production deploy.** Emergent Deploy does not
+  read CI status, does not run pre-deploy checks, and does not run
+  post-deploy smoke tests on its own. All three are operator
+  responsibilities, enforced by this checklist.
+- **CI alone never protects production.** Do not describe it that way in
+  documentation, ticket descriptions, or status reports.
+
+---
+
+
 
 Run, in this order, from `/app`:
 
@@ -87,10 +116,9 @@ python3 /app/scripts/post_deploy_check.py --base https://mascidocs.com
 
 ## 6. R2 (object storage) verification
 
-- ✅ R2 bucket size below 50 GB alert threshold
-       (`python3 scripts/r2_usage_check.py` once implemented)
-- ✅ Lifecycle policy present (90-day expiration on future objects)
-       — see `/app/memory/R2_RETENTION_AUDIT.md`
+- ✅ R2 bucket size below 50 GB alert threshold —
+       `python3 /app/scripts/r2_usage_check.py` (thresholds: 45 GB warn / 50 GB alert; overridable via `R2_USAGE_WARN_GB` / `R2_USAGE_ALERT_GB`)
+- ⏳ Lifecycle policy present (90-day expiration on `backups/auto-90d/`) — **NOT yet active in production.** Apply with `python3 /app/scripts/r2_lifecycle_apply.py` once the R2 token has `Workers R2 Storage = Edit`. See `/app/memory/R2_RETENTION_AUDIT.md`.
 
 ---
 
@@ -106,11 +134,19 @@ Within 10 minutes of clicking Deploy:
 
 ---
 
-## 8. Sentry verification (once active)
+## 8. Sentry verification (once DSNs configured)
 
-- ✅ Sentry dashboard receiving frontend errors with `env=production`
-- ✅ Sentry dashboard receiving backend exceptions with `env=production`
-- ✅ No PII / tokens in any Sentry event (spot-check 5 latest events)
+Sentry is scaffolded but **inactive in production today** — no DSN is
+set, so the SDK is a silent no-op. The verifications below apply only
+once DSNs are added and the backend/frontend are redeployed:
+
+- ⏳ Sentry dashboard receiving frontend errors with `env=production`
+- ⏳ Sentry dashboard receiving backend exceptions with `env=production`
+- ⏳ No PII / tokens in any Sentry event (spot-check 5 latest events)
+
+If `SENTRY_DSN` is unset, this section is informational only — do not
+treat its checks as required for a production deploy until Sentry is
+turned on.
 
 ---
 

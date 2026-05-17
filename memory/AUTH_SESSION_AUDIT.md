@@ -99,9 +99,116 @@ The frontend already handles 401 by clearing the session and routing to the logi
 | Unauthorized portal buttons don't appear after stale session | ✅ Fixed iter179 |
 | Direct unauthorized route blocked server-side | ✅ Existing `require_*` gates |
 | Logout fully clears effective access | ✅ Fixed iter179 |
-| **Idle/absolute timeout behavior tested & documented** | ✅ This audit doc + implementation + tests this turn |
-| Role-change cannot leave old elevated sessions lingering | ⚠️ Listed for Initiative 5b (after timeouts land) |
-| No regressions to valid user flows | Verified by full test sweep this turn |
+| Idle/absolute timeout behavior implemented | ✅ Middleware + tests landed |
+| Idle/absolute timeout behavior **proven correct end-to-end** | ⚠️ **GAP — see § 9a below** |
+| Role-change cannot leave old elevated sessions lingering | ⏸ Listed for Initiative 5c (after deterministic-token defect resolved) |
+| No regressions to valid user flows | ⚠️ See § 9a — **regression observed in preview** |
+
+---
+
+## 9a. Operational defect discovered during 2026-02-XX reconciliation pass
+
+**Severity: HIGH (preview), HIGH-if-promoted-to-production**
+
+### Symptom
+With `SESSION_TIMEOUTS_ENABLED=true` in the preview environment, a
+fresh admin login (`POST /api/admin/login`) returns a valid token, but
+the **very next request** with that token (e.g. `GET /api/admin/check`)
+returns 401 with `detail=session_idle_timeout`.
+
+Reproduced 2026-02-XX:
+
+```
+POST /api/admin/login          → 200, token returned (64-char HMAC)
+GET  /api/admin/check (same)   → 401 {"detail":"session_idle_timeout",
+                                       "tier":"ADMIN_HR"}
+```
+
+The `session_activity` row for the hashed token shows:
+- `first_seen_at`: ~hour earlier (from a prior login that used the same
+  deterministic token)
+- `last_seen_at`: ~hour earlier (also stale)
+
+### Root cause
+Stateless HMAC tokens are **deterministic** —
+`HMAC(secret, "epoch=<E>|admin:" + password)` produces the same token
+on every successful login. The session_activity row is keyed by
+`sha256(token)`, which is therefore identical across logins.
+
+The login endpoint is on the middleware's exempt list (correctly — a
+login request itself shouldn't be evaluated against idle/abs limits).
+But the login endpoint **does not reset** the corresponding
+`session_activity` row. So after any user has been idle longer than
+their tier's idle limit, every future login is immediately rejected by
+the middleware as `session_idle_timeout` against the stale
+`last_seen_at`.
+
+This affects all deterministic-token portals: Admin, PM (shared
+password mode), and any HR/Shop/Dispatch/Safety user whose token is
+re-issued identically.
+
+### Why tests did not catch this
+- `test_iter186b_session_timeout_middleware.py` tests the middleware
+  in isolation with synthetic tokens and a fresh Mongo state per test.
+- `test_iter187_admin_hardening_5b.py` calls real admin endpoints with
+  a real login — and **3 tests are currently failing in preview**
+  (2026-02-XX) because of exactly this defect. The handoff summary's
+  claim of "192/192 passing" predates the activation of
+  `SESSION_TIMEOUTS_ENABLED=true` in preview.
+
+### Operational impact
+- **Preview environment:** an admin/HR user idle >15 minutes (or
+  PM/Shop/Dispatch idle >30 min) cannot log back in. Effectively
+  locks them out until their tier's absolute window also expires —
+  at which point the row would still report `expired_absolute`.
+  Only ageing past the **TTL index** (30 days) lets them back in.
+- **Production:** `SESSION_TIMEOUTS_ENABLED` is currently unset in
+  production. **Do NOT flip it on without the fix below.** Doing so
+  would cascade-lock every existing logged-in operator the moment
+  their tier's idle window elapsed.
+
+### Recommended fix (NOT applied this turn — operator hold per
+"documentation reconciliation only" mandate)
+The login endpoints (`/api/admin/login`, `/api/hr/login`,
+`/api/pm/login`, `/api/shop/login`, `/api/dispatch/login`,
+`/api/safety/login`) must, on successful authentication, reset the
+caller's `session_activity` row:
+
+```python
+# pseudocode
+await db.session_activity.update_one(
+    {"token_hash": sha256(token).hexdigest()},
+    {"$set": {
+        "token_hash": ..., "tier": ...,
+        "first_seen_at": now, "last_seen_at": now,
+    }},
+    upsert=True,
+)
+```
+
+This makes login a deliberate "session reset" event — independent of
+whether the token was previously seen.
+
+A test must accompany the fix:
+
+```
+1. login → token A (deterministic)
+2. simulate idle past tier limit (force-update session_activity to old timestamp)
+3. login again → same token A
+4. authenticated request → 200, not 401
+```
+
+### Workaround until fixed
+Set `SESSION_TIMEOUTS_ENABLED=false` in `/app/backend/.env` and
+restart backend. This is the documented rollback (§ 8 above). The
+flag should remain OFF in production until the login-reset fix lands
+and is verified.
+
+### Triage classification
+This is the kind of defect that only surfaces under live use — exactly
+what end-to-end verification by the operator was supposed to catch.
+It is honestly a hardening-initiative regression, not a hardening
+success. The doc has been corrected accordingly.
 
 ## 10. Open questions deferred to next iteration
 

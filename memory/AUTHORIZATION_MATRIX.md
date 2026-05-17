@@ -137,10 +137,16 @@ Already captured in `admin_audit` collection:
 | No stale nav leakage | ✅ Fixed iter179 |
 | No regressions in permitted workflows | ✅ Verified preview |
 
-## 9. Open question for next iteration
+## 9. Status of identified gaps (post-5b-broader implementation)
 
-Choose between:
-- **5b-minimal**: log denied-access events (§ 7.1). Low risk, high ops value.
-- **5b-full**: also add step-up re-auth (§ 7.2) for the 7 super-sensitive routes. Higher risk (touches auth surface) — keep behind a `ADMIN_STEP_UP_ENABLED` env flag.
+Per operator directive, **5b-broader** was implemented in iter187:
 
-Both blocked on your sign-off; this doc is read-only audit per your "5a — matrix only" directive.
+| Gap (from § 7) | Status |
+|---|---|
+| 1. Denied-access audit gap | ✅ Implemented — `record_access_denial` writes to `audit_events` for both `require_admin` and `require_admin_strict`. |
+| 2. Step-up re-auth | ✅ Code wired into 7 super-sensitive K4 mutation routes via `require_recent_step_up_raise`. Currently a **pass-through no-op** in both preview and production because the master switch `ADMIN_STEP_UP_ENABLED` is unset. Flip on to enforce. |
+| 3. Role-change-induced session invalidation | ⏸ Deferred to Initiative 5c — depends on Initiative 4 (session activity collection) being active. |
+| 4. Bulk-delete confirmation | ✅ Implemented — `DELETE /api/admin/backups/{filename}` now requires `?confirm=<filename>` matching the path. |
+| 5. Backup download chain-of-custody | ✅ Implemented — `GET /api/admin/backups/{filename}` writes a `backup_downloaded` audit row. |
+
+Tests: `/app/backend/tests/test_iter187_admin_hardening_5b.py`.

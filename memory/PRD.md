@@ -1,6 +1,44 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 2 · Documentation Reconciliation & Truthfulness Sweep · ✅ COMPLETE (review-only)
+
+Operator-requested stabilization pass between Phase 2 hardening and any further feature work (K4b / K5 / Stage B.1). **Zero code changes; documentation only.** Surfaced one HIGH-severity defect that was hidden behind a too-optimistic "192/192 passing" claim in the prior handoff.
+
+### Reconciled docs
+- **`RESTORE_DRILL.md`** — removed contradictory "DRAFT — pending first execution" header. Restructured around the 2026-05-17 PASS result with explicit date, source, side-DB target, verification steps, success criteria, known limitations (lite-only source · no R2 restore · no RTO target proven), next-drill cadence (2026-08-15), and an honest "what this drill does NOT prove" section.
+- **`DATA_PORTABILITY.md`** — fixed header (Stage B was marked "will add" but is in fact complete). Tightened Stage B claims: distinguished **bespoke layouts** (daily reports, equipment inspections, QA/QC, field leadership) from **generic platform layout** (inspections, meetings, JHAs, incidents share `_render_generic`) from **standardized fallback** (everything else). Section 10 limitations rewritten to call out hybrid honesty + R2 lifecycle still not active. Removed "without needing a developer" framing (Admin UI is Stage C, not live).
+- **`DEPLOY_CHECKLIST.md`** — added Section 0: CI vs Deploy discipline boundary. Clarifies GitHub Actions = static gate, `pre_deploy_check.sh` = operational gate, Emergent Deploy = manual human action. Fixed "r2_usage_check.py once implemented" overstatement (the script exists). Sentry section now correctly marked "once DSNs configured" instead of pretending it's active.
+- **`PHASE2_HARDENING_RUNBOOK.md`** — Initiative 4 status updated to active-in-preview with discovered-defect callout. Initiative 5 updated to reflect 5b-broader is implemented (denial logging, chain-of-custody, bulk-delete confirmation, step-up scaffold) with the step-up env-flag still off. Test counts replaced with explicit "trust the live gate, not the doc" note.
+- **`AUTHORIZATION_MATRIX.md`** — section 9 rewritten to reflect 5b-broader landed; remaining gap (role-change session invalidation) is now Initiative 5c and depends on the deterministic-token defect being resolved first.
+- **`AUTH_SESSION_AUDIT.md`** — added § 9a with full root-cause analysis of the deterministic-HMAC + session_activity defect; recommended fix written but **not applied** per operator hold.
+
+### New deliverable
+- **NEW** `/app/memory/ROUTING_ARCHITECTURE_REVIEW.md` — read-only architectural assessment of `App.js` (575 lines, 190 routes, 8 auth-wrappers). Documents the cross-portal alias rationale, the 5 wrapper-less routes, the cognitive-load risks, and the proposed (but explicitly deferred) portal-modularization strategy. **No refactor proposed.** Recommendation: defer until SaaS multi-tenant work begins or mobile bundle becomes a measured complaint.
+
+### High-severity finding (NOT fixed this turn — operator hold)
+**Session timeout middleware breaks deterministic-token logins.** With `SESSION_TIMEOUTS_ENABLED=true` in preview, an admin idle >15 min cannot log back in — the freshly issued (deterministic) HMAC token hashes to the same `session_activity` row, whose `last_seen_at` is stale, so the middleware 401s the first authenticated request. Affects Admin, PM (shared), and any portal whose token is re-issued identically.
+
+- Reproduced live: `POST /api/admin/login` → 200; immediate `GET /api/admin/check` → 401 `session_idle_timeout`.
+- Symptom in test suite: 3 tests in `test_iter187_admin_hardening_5b.py` now fail (the handoff's 192/192 claim was prior to flag activation).
+- Recommended fix: every login endpoint should `$set` the caller's `session_activity` row to `first_seen_at=last_seen_at=now`. Pair with a regression test for the post-idle re-login path.
+- **Workaround until fixed:** set `SESSION_TIMEOUTS_ENABLED=false` in `/app/backend/.env` and restart backend. The flag is the documented rollback switch.
+
+### Discipline reminders surfaced
+- GitHub Actions ≠ Emergent Deploy. CI alone never protects production.
+- `pre_deploy_check.sh` is the operational gate; a human approves every production deploy.
+- Doc-as-marketing is forbidden going forward — Phase B is "complete (CLI, hybrid)", not "complete (without needing a developer)".
+
+### Held / waiting on operator
+- 🛑 Decision on session-timeout flag in preview — flip OFF until login-reset fix lands, or accept the lockout and proceed with caution
+- 🛑 Authorization to apply the login-reset fix (out of scope for this reconciliation pass)
+- 🟡 Sentry DSNs (Initiative 1) — unchanged from prior status
+- 🟡 R2 token rotation (Initiative 3) — unchanged from prior status
+- 🟡 K4b / K5 / Stage B.1 / refactor — still held per prior operator directive
+
+---
+
+---
 ## 2026-05-17 — Phase 2 Hardening · 5-Initiative Sweep · ✅ COMPLETE (preview)
 
 User mandate: deliver Initiatives 1–5 (Sentry, Restore Drill, R2 Lifecycle, Session Boundaries, Admin/HR access) with zero regression to Stage B export work. Per stop-and-explain rule, hit hard blockers on Sentry DSN + R2 token + restore target — proceeded with audit-then-implement sequencing per your explicit answers (1c/2a/3b/4b/5a/6a).

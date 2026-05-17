@@ -62,8 +62,10 @@ Unset `SENTRY_DSN` (and `REACT_APP_SENTRY_DSN`) → restart → Sentry goes back
 - ✅ TTL index on `session_activity.last_seen_at` (30 days) — no unbounded growth
 - ✅ Token format unchanged (zero forced re-login at deploy time)
 - ✅ Health/version/login endpoints exempt
-- ✅ Tests: `test_iter186_phase2_hardening.py` (5 unit) + `test_iter186b_session_timeout_middleware.py` (8 integration)
-- ⏸ **Disabled by default** — flip `SESSION_TIMEOUTS_ENABLED=true` when you're ready
+- ✅ Tests: `test_iter186_phase2_hardening.py` (5 unit) + `test_iter186b_session_timeout_middleware.py` (8 integration) pass with isolated synthetic tokens
+- ✅ Flag set in preview (`SESSION_TIMEOUTS_ENABLED=true` in `/app/backend/.env`)
+- 🛑 **DEFECT DISCOVERED 2026-02-XX during doc reconciliation** — see § 2a below. Deterministic HMAC tokens + persistent `session_activity` rows produce a permanent idle-lockout after the first idle window. **Do NOT flip the flag in production until the fix lands.** Preview operator should consider rolling the flag back to `false` until then.
+- ⏸ User verification of timeout behaviour in preview was pending — this reconciliation pass discovered the defect before that verification could be completed honestly.
 
 ### Required env vars
 | Var | Default | Notes |
@@ -84,6 +86,31 @@ Unset `SENTRY_DSN` (and `REACT_APP_SENTRY_DSN`) → restart → Sentry goes back
 
 ### Rollback
 Set `SESSION_TIMEOUTS_ENABLED=false` (or unset it) → restart → enforcement disabled. The `session_activity` collection auto-expires within 30 days.
+
+### § 2a — Known defect (discovered 2026-02-XX during doc reconciliation)
+
+**Stateless HMAC tokens are deterministic** (same token returned on every successful login). The login endpoint is exempt from the middleware (correctly) but does NOT reset the corresponding `session_activity` row. As a result, after any operator is idle longer than their tier's idle limit, every subsequent login is immediately rejected by the middleware as `session_idle_timeout` against the stale `last_seen_at`.
+
+**Repro (preview, 2026-02-XX):**
+```
+POST /api/admin/login          → 200, token issued
+GET  /api/admin/check (same)   → 401 {"detail":"session_idle_timeout"}
+```
+
+**Impact:**
+- Preview: idle Admin/HR users (>15 min) cannot log back in.
+- Production: flag is currently OFF. **Do NOT flip it on until the fix below lands.**
+
+**Recommended fix (NOT applied this turn — operator hold per "documentation reconciliation only" mandate):** make every login route reset the caller's `session_activity` row (`$set` `first_seen_at=last_seen_at=now`). Add a regression test that exercises the deterministic-token + post-idle re-login path.
+
+**Test status reflecting this defect:**
+- `test_iter187_admin_hardening_5b.py::test_backup_delete_requires_confirm` — FAIL (401 instead of 400)
+- `test_iter187_admin_hardening_5b.py::test_step_up_record_writes_row` — FAIL (401 instead of 200)
+- `test_iter187_admin_hardening_5b.py::test_verify_password_records_admin_step_up_audit` — FAIL (stale step-up row from prior session)
+
+These three failures are downstream symptoms of the same root cause. The handoff's "192/192 passing" claim predates the flag activation.
+
+Full root cause analysis in `/app/memory/AUTH_SESSION_AUDIT.md § 9a`.
 
 ---
 
@@ -154,25 +181,26 @@ Quarterly, per `RESTORE_DRILL.md`. The next drill is due **Q3 2026** (90 days fr
 
 ### Status
 - ✅ Read-only audit: `/app/memory/AUTHORIZATION_MATRIX.md`
-- ⏸ Tightening (denied-access audit log, step-up re-auth) **awaiting your sign-off**
-
-### Identified gaps for next iteration
-1. Denied-access events not currently audit-logged (Admin endpoints log success only)
-2. No step-up re-auth on 7 super-sensitive routes (role mutations, password resets, user deletion, directory conversion, backup ops)
-3. Role-change-induced session invalidation not implemented (depends on Initiative 4 active)
-4. Bulk-delete confirmation absent on `DELETE /api/admin/backups/{filename}`
-5. Backup-download chain-of-custody log row absent
+- ✅ **5b-broader implemented in code** (iter187):
+  - Denied-access events written to `audit_events` for `require_admin` and `require_admin_strict`
+  - Backup download (`GET /api/admin/backups/{filename}`) writes a `backup_downloaded` chain-of-custody row
+  - Backup delete (`DELETE /api/admin/backups/{filename}`) requires `?confirm=<filename>` matching the path
+  - Step-up re-auth helper (`require_recent_step_up_raise`) wired into the 7 super-sensitive K4 mutation endpoints — env-gated by `ADMIN_STEP_UP_ENABLED`. **Currently a no-op (pass-through)** because `ADMIN_STEP_UP_ENABLED` is unset in both preview and production env. Flip it on (and front-end issues a `POST /api/admin/auth/verify-password` step-up call) to enforce the ≤5-minute window.
+- ✅ Tests: `test_iter187_admin_hardening_5b.py`
+- ⏸ Role-change-induced session invalidation NOT implemented — depends on Initiative 4 being active and is deferred to Initiative 5c.
 
 ---
 
 ## 6. Test coverage
 
-| Test file | Pass | Description |
-|---|---|---|
-| `test_iter186_phase2_hardening.py` | 12/13 ✅ | Sentry config gate (3), session-timeout config (4), /api/version surface (2), restore drill safety rails (3), R2 lifecycle --verify (1). 1 skipped if not exercising live env. |
-| `test_iter186b_session_timeout_middleware.py` | 8/8 ✅ | Middleware integration: noop-disabled, first-seen, idle expiry, absolute expiry, health exempt, anonymous, tier-strictest, dev-token-bypass |
-| `test_iter185_human_readable_export.py` | 19/21 ✅ | Stage A + B regression — confirmed unchanged by hardening work |
-| Full sweep | **81 pass / 2 skipped / 0 fail** | Including iter179, iter180, iter182, iter183, admin_auth |
+| Test file | Description |
+|---|---|
+| `test_iter186_phase2_hardening.py` | Sentry config gate (3) · session-timeout config (4) · `/api/version` surface (2) · restore drill safety rails (3) · R2 lifecycle `--verify` (1). 1 skipped if not exercising live env. |
+| `test_iter186b_session_timeout_middleware.py` | Middleware integration (8): noop-disabled · first-seen · idle expiry · absolute expiry · health exempt · anonymous · tier-strictest · dev-token-bypass |
+| `test_iter187_admin_hardening_5b.py` | Denial logging · backup chain-of-custody · delete confirmation rail · step-up env-gate (pass-through when disabled · record/check round-trip when enabled) |
+| `test_iter185_human_readable_export.py` | Stage A + B regression — confirmed unchanged by hardening work |
+
+**Test discipline note:** the canonical truth for total test counts is whatever `bash /app/scripts/pre_deploy_check.sh` reports at the time of deploy. Quoted numbers in older docs are point-in-time snapshots and can drift; trust the live gate output, not the doc.
 
 ---
 

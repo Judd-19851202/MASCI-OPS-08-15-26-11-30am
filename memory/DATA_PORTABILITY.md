@@ -3,8 +3,8 @@
 > Plain-English guide to MASCI Hub backups, what you own, and how to get
 > your data out — without a developer.
 >
-> Last updated: 2026-02-XX · Status: ACTIVE (Stage A — CSV + photos + index;
-> Stage B will add per-record PDFs; Stage C will add an Admin UI button)
+> Last updated: 2026-02-XX · Status: **ACTIVE — Stages A and B complete (CLI).**
+> Stage B.1 (Owner Snapshot PDF) and Stage C (Admin UI) are NOT live yet.
 
 ---
 
@@ -147,8 +147,10 @@ MASCI_HUMAN_READABLE_EXPORT_2026-02-15_120000Z.zip
 ✅ CSV per collection — opens cleanly in Excel / Google Sheets / Power BI
 ✅ JSON per record, organized by date / project / unit (whichever is most useful)
 ✅ **Per-record PDF — hybrid strategy** (Stage B):
-   - Platform-native templates for Daily Reports, JHAs, Incidents, Safety Inspections, Safety Meetings, Equipment Inspections, QA/QC Inspections, Field Leadership records (write-ups, coaching, recognition, terminations, equipment checkout/return, etc.). These PDFs look identical to what the live platform prints today.
-   - Standardized fallback PDF for every other record type (fire extinguishers, asset transfers, training records, audit logs, etc.) — clean two-column field table with MASCI / Powered by ForgedOps™ branding.
+   - **Bespoke platform layouts** for Daily Reports, Equipment Inspections, and QA/QC Inspections. These use the exact templates the live "Download PDF" buttons use, so the export PDFs are byte-equivalent to what the platform prints from the UI today.
+   - **Generic platform layout** (same `pdf_render.render_record_pdf` path the UI uses, generic body) for Safety Inspections, Safety Meetings, JHAs, and Incidents. They share the platform's letterhead, footer, and styling, but are field-table layouts rather than form-faithful reproductions. **Wording note:** these are NOT bespoke per-form recreations; they are the same generic layout the live UI's Download PDF currently produces for these record types.
+   - **Field Leadership records** (write-ups, coaching, recognition, terminations, equipment checkout/return, employee evaluations, payroll adjustments, etc.) use a dedicated `field_leadership_pdf.render_field_leadership_pdf` renderer.
+   - **Standardized fallback PDF** for every other record type (fire extinguishers, asset transfers, training records, audit logs, projects, jobs, role templates, etc.) — clean two-column field table with MASCI / Powered by ForgedOps™ branding. This is a generic record card, not a form-faithful reproduction.
 ✅ Photos resolved offline — `photo://` references inside records are pre-resolved to local data: URLs from the extracted backup, so PDFs render correctly even without R2 access.
 ✅ Defensive timeout — pathological legacy records (pre-iter64 with multi-MB embedded base64 photos) that hang the renderer are capped at 20 seconds and fall through to the standardized layout. NEVER crashes the export.
 ✅ Master index (`EXPORT_INDEX.csv`) — every record in the archive with title, date, project, JSON path, **PDF path**, and photo paths
@@ -270,10 +272,12 @@ Collections excluded from human-readable folders entirely (still in `RAW_JSON/`)
 
 ## 10. Current limitations
 
-- **No per-record PDF yet** (Stage B in progress). Use the JSON + CSV for now; an auditor can also be pointed at the live system's "Download PDF" button on each record.
+- **Per-record PDFs in the export are hybrid, not uniformly form-faithful.** Bespoke layouts exist for Daily Reports, Equipment Inspections, QA/QC Inspections, and Field Leadership records. Safety Inspections / Safety Meetings / JHAs / Incidents currently route through the platform's generic layout (same one the live UI uses for those record types' Download PDF). Everything else uses the standardized fallback. The export is honest about which is which in `Verification_Report.txt`.
 - **Photo→record association is best-effort.** The current convention is `photos/<YYYY>/<MM>/<source-id>/<uuid>.<ext>` — the `<source-id>` is matched back to a record id. Photos that don't match a known record go to `PHOTOS_AND_ATTACHMENTS/ORPHANED_FILES/`.
 - **No Admin UI yet** (Stage C). The exporter is CLI-only today; run it from the repo. The eventual UI will let an admin trigger this without shell access.
+- **No Owner Snapshot PDF yet** (Stage B.1). The high-level "company-at-a-glance" summary is not generated today.
 - **Module classifier is hand-maintained.** New collections added to the platform will land in an "OTHER" bucket until explicitly mapped. The exporter logs unmapped collections in `Verification_Report.txt` so we know to update the map.
+- **R2 lifecycle is not yet active.** Backups are written to the lifecycle-scoped `backups/auto-90d/` prefix, but the 90-day expiration rule has NOT been applied to the bucket (pending operator R2 token rotation — see `R2_RETENTION_AUDIT.md`). Until that rule is applied, no backup expires automatically.
 
 ---
 
@@ -282,7 +286,7 @@ Collections excluded from human-readable folders entirely (still in `RAW_JSON/`)
 | Stage | Status | Description |
 |---|---|---|
 | A — Foundation | ✅ Done | Doc + CSV per module + photo extraction + index + verification report + tests + storage-target-neutral exporter |
-| B — PDF rendering | ✅ Done (this build) | Per-record PDFs · hybrid strategy (platform templates + standardized fallback) · offline photo resolution · 20s per-record render watchdog · failure-tolerant |
+| B — PDF rendering | ✅ Done (CLI, hybrid strategy) | Per-record PDFs · bespoke layouts for daily reports / equipment inspections / QA/QC / field leadership · generic platform layout for inspections / meetings / JHAs / incidents · standardized fallback for everything else · offline photo resolution · 20s per-record render watchdog · failure-tolerant |
 | B.1 — Owner Snapshot PDF | ⏳ Next | One ~10-page summary at the archive root: active employees, projects, last 30 days of incidents, last 90 days of training compliance, equipment fleet roster, audit-log highlights |
 | C — Admin UI | ⏳ Later | Admin → Data Portability page: button, scope/date selector, async generation, audit log, expiring download link (writes to a tmpdir, reaped after delivery) |
 | D — Tenant-aware (SaaS) | Future | `EXPORT_COMPANY_NAME` env hook already in place; will be `{tenant}_HUMAN_READABLE_EXPORT_…` when multi-tenant lands |
@@ -291,7 +295,7 @@ Collections excluded from human-readable folders entirely (still in `RAW_JSON/`)
 
 ---
 
-## 11. Storage architecture — where exports live, where they go
+## 12. Storage architecture — where exports live, where they go
 
 This is the explicit architecture for how the two backup layers relate. **R2 stays the disaster-recovery layer. The human-readable layer is for customer access, audit, and offboarding — and is designed to live on the customer's own infrastructure, not in R2.**
 
@@ -378,7 +382,7 @@ In that target:
 
 ---
 
-## 12. Audience cheat sheet
+## 13. Audience cheat sheet
 
 | Who | What they need | Where to look |
 |---|---|---|
@@ -392,6 +396,6 @@ In that target:
 
 ---
 
-## 13. The answer to "Can I get all of my data out?"
+## 14. The answer to "Can I get all of my data out?"
 
-**Yes — clearly, professionally, and without needing a developer.**
+**Yes — via the CLI exporter today, via an Admin UI once Stage C ships.** The exporter is end-to-end functional and has been verified against a real 168 MB R2 backup, producing a 160+ PDF archive. Stage B.1 (Owner Snapshot PDF) and Stage C (Admin UI button + audited download) are explicitly deferred — see § 11 roadmap.
