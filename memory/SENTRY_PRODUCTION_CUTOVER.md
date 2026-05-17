@@ -50,7 +50,15 @@ The defaults are correct. Setting any of them to a non-zero value violates the o
 ## 3. Production cutover steps
 
 ### Step 1 — Add DSNs to production env (operator does this)
-On the production deployment surface, add **exactly these two variables**:
+
+**Iter190+ auto-detect note:** Both the backend and the frontend now auto-detect environment at runtime:
+
+- **Backend:** reads `APP_URL` (passed by Emergent supervisord) and tags `preview` if the URL contains `.preview.emergentagent.com`, otherwise `production`. Fallback: `preview_endpoint` env var. Override: `SENTRY_ENV`.
+- **Frontend:** reads `window.location.hostname` and tags `preview` for `*preview*` / `localhost`, otherwise `production`. Override: `REACT_APP_SENTRY_ENV`.
+
+**This means you do NOT need to set `SENTRY_ENV=production` in production.** The same `.env` file works for both surfaces. The DSN is the only thing that needs to exist in production. If your preview `.env` files already contain `SENTRY_DSN` and `REACT_APP_SENTRY_DSN` (they do), and Emergent's deploy pushes them as-is, **you only need to click Deploy** — Sentry will activate in production automatically with the correct environment tag.
+
+If you DO want to be explicit, add these to production env (overrides auto-detect):
 
 ```
 SENTRY_DSN=<your masci-backend-python DSN>

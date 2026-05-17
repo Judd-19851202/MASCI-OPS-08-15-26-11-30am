@@ -86,10 +86,38 @@ export async function initSentryIfConfigured({ release } = {}) {
     return false;
   }
 
-  const env =
-    process.env.REACT_APP_SENTRY_ENV ||
-    process.env.REACT_APP_ENV ||
-    "production";
+  // Environment auto-detection (Phase 2 production cutover hardening).
+  //
+  // Order of precedence:
+  //   1. Explicit REACT_APP_SENTRY_ENV env var if set (operator override).
+  //   2. Legacy REACT_APP_ENV env var if set.
+  //   3. window.location.hostname — runtime hostname is the most
+  //      reliable production signal. If the hostname contains
+  //      "preview" (Emergent preview pods) or matches "localhost",
+  //      tag as "preview". Otherwise → "production".
+  //   4. Default to "production".
+  //
+  // This means a single build works for both surfaces: preview pods
+  // auto-tag preview events, production deploys auto-tag production
+  // events. No operator flip required before deploy.
+  let env;
+  if (process.env.REACT_APP_SENTRY_ENV) {
+    env = process.env.REACT_APP_SENTRY_ENV;
+  } else if (process.env.REACT_APP_ENV) {
+    env = process.env.REACT_APP_ENV;
+  } else if (
+    typeof window !== "undefined" &&
+    window.location &&
+    window.location.hostname
+  ) {
+    const h = window.location.hostname;
+    env =
+      h.includes("preview") || h === "localhost" || h === "127.0.0.1"
+        ? "preview"
+        : "production";
+  } else {
+    env = "production";
+  }
 
   const tracesRate = parseFloat(process.env.REACT_APP_SENTRY_TRACES_RATE || "0");
   const replayRate = parseFloat(process.env.REACT_APP_SENTRY_REPLAY_RATE || "0");

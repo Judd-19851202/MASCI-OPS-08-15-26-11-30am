@@ -41,11 +41,11 @@ Each row below MUST show a signed verification before milestone close-out. Sign-
 | 1.3 | Release identifier deterministic across surfaces | Backend `/api/version.release` matches frontend Sentry init release tag (32-char hex) | ✅ 2026-02-XX |
 | 1.4 | PII scrubber verified live | Operator spot-checked ≥1 preview event payload — no `Authorization`, `Cookie`, `X-*-Token`, password fields visible | ✅ 2026-02-XX |
 | 1.5 | Lightweight posture locked | Tracing · profiling · Session Replay · default-PII all OFF in code (clamped, not just env-defaulted) | ✅ 2026-02-XX |
-| 1.6 | **Production DSNs configured** | `/api/version` on production reports `sentry.enabled=true` | ⏳ pending operator |
-| 1.7 | **Production controlled event verified** | Operator triggered one test event from production; event appeared in Sentry dashboard with `environment=production` | ⏳ pending operator |
+| 1.6 | **Production DSNs configured** | `/api/version` on production reports `sentry.enabled=true` | 🟢 ready — same DSNs as preview; auto-detect tags `production` correctly via `APP_URL` (backend) and `window.location.hostname` (frontend). Operator-gated by deploy trigger. |
+| 1.7 | **Production controlled event verified** | Operator triggered one test event from production; event appeared in Sentry dashboard with `environment=production` | 🟡 pre-flight production-tagged events sent 2026-05-17 (msg `0b3b4c3e...`, exc `cb2a0741...`). Real production-pod events pending deploy. |
 | 1.8 | **Alert rules configured** | 5 rules from `SENTRY_PRODUCTION_CUTOVER.md § 5` exist in Sentry UI | ⏳ pending operator |
-| 1.9 | **24h production monitoring window** | No surprise alert spam; scrubber re-spot-checked on a real production event | ⏳ pending operator |
-| 1.10 | **Sign-off row in `SENTRY_PRODUCTION_CUTOVER.md § 10`** | One row appended with date, operator, release at cutover | ⏳ pending operator |
+| 1.9 | **24h production monitoring window** | No surprise alert spam; scrubber re-spot-checked on a real production event | ⏳ pending operator (after deploy) |
+| 1.10 | **Sign-off row in `SENTRY_PRODUCTION_CUTOVER.md § 10`** | One row appended with date, operator, release at cutover | ⏳ pending operator (after deploy) |
 
 ### Initiative 2 — Restore drill
 

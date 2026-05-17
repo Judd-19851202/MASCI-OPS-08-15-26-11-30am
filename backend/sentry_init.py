@@ -156,7 +156,37 @@ def init_sentry_if_configured(release_override: Optional[str] = None) -> bool:
         logger.warning("[sentry] DSN set but sentry-sdk not installed: %s", e)
         return False
 
-    env = os.environ.get("SENTRY_ENV") or os.environ.get("ENVIRONMENT") or "production"
+    # Environment auto-detection (Phase 2 production cutover hardening).
+    #
+    # Order of precedence:
+    #   1. Explicit ``SENTRY_ENV`` env var if set (operator override).
+    #   2. Legacy ``ENVIRONMENT`` env var if set.
+    #   3. ``APP_URL`` — Emergent platform passes this via supervisord
+    #      with the pod's public URL. Preview pods get a URL containing
+    #      ".preview.emergentagent.com"; production pods get the
+    #      operator's custom domain. Most reliable signal in this
+    #      runtime.
+    #   4. ``preview_endpoint`` env var — secondary fallback if APP_URL
+    #      is missing.
+    #   5. Default to "production".
+    #
+    # This means a single .env file works for both surfaces: preview
+    # pods auto-tag preview events, production deploys auto-tag
+    # production events. No operator flip required before deploy.
+    if os.environ.get("SENTRY_ENV"):
+        env = os.environ["SENTRY_ENV"]
+    elif os.environ.get("ENVIRONMENT"):
+        env = os.environ["ENVIRONMENT"]
+    else:
+        host_hint = (
+            os.environ.get("APP_URL")
+            or os.environ.get("preview_endpoint")
+            or ""
+        ).lower()
+        if ".preview.emergentagent.com" in host_hint or "localhost" in host_hint:
+            env = "preview"
+        else:
+            env = "production"
     release = release_override or _read_release_identifier()
     if release_override:
         # Cache so get_release_identifier() agrees.
