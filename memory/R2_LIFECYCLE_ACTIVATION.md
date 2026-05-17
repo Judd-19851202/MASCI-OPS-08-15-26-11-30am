@@ -284,7 +284,7 @@ When § 7 returns exit 0 and all four verify steps show `✅`, append a row to t
 
 | Date | Operator | Bucket | Rule ID | Verify exit | Notes |
 |---|---|---|---|---|---|
-| 2026-05-17 | E1 agent (operator-directed) | `masci-hub` | `masci-backups-auto-90d` | 0 (all 4 steps ✅) | Existing "Default Multipart Abort Rule" preserved. Token used for activation was `masci-r2-lifecycle-s3` — must be rotated immediately due to public screenshot exposure (see next steps). |
+| 2026-05-17 | E1 agent (operator-directed) | `masci-hub` | `masci-backups-auto-90d` | 0 (all 4 steps ✅) | Existing "Default Multipart Abort Rule" preserved. Initial token `masci-r2-lifecycle-s3` was used to apply, then immediately rotated due to public screenshot exposure. New long-lived token `masci-r2-backend` (Admin Read & Write) is now in `/app/backend/.env`; re-verify against the live rule passed all 4 steps. |
 
 ---
 
