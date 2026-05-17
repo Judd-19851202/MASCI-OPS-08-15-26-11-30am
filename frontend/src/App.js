@@ -136,6 +136,7 @@ import PoRequests from "@/pages/PoRequests";
 import ProjectHealth from "@/pages/ProjectHealth";
 import AssetTransfers from "@/pages/AssetTransfers";
 import AccessDenied from "@/pages/AccessDenied";
+import NotFound from "@/pages/NotFound";
 import GlobalFooter from "@/components/GlobalFooter";
 import ScrollToTop from "@/components/ScrollToTop";
 import { RequireAdmin } from "@/components/RequireAdmin";
@@ -540,6 +541,23 @@ function App() {
                 want to land on AccessDenied (kept hidden, used by
                 tooling/diagnostics). */}
             <Route path="/access-denied" element={<AccessDenied />} />
+            {/* Iter181 — UX consistency fixes (production verification 2026-05-17).
+                Three legitimate-but-mistyped URLs previously rendered a
+                blank-shell because no React Router pattern matched. Alias
+                them to the canonical route so accidental tabs / external
+                links / muscle-memory typos land somewhere real instead of
+                an empty page. Each alias preserves the existing route's
+                authorization gate — these are display redirects only. */}
+            <Route path="/admin/audit" element={<Navigate to="/admin/audit-log" replace />} />
+            <Route path="/admin/health" element={<Navigate to="/admin/system-health" replace />} />
+            <Route path="/field-leadership" element={<Navigate to="/leadership" replace />} />
+            {/* Catch-all — any path that doesn't match an explicit route
+                renders the 404 NotFound page (Iter181). Previously such
+                URLs rendered only the global navbar + footer with an
+                empty middle (the "blank shell" the production
+                verification sweep flagged). Backend authorization is
+                untouched; this is purely the unmatched-route UX. */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <GlobalFooter />
         </div>

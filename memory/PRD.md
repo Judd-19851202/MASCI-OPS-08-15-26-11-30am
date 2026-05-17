@@ -1,6 +1,44 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-17 — Iter181 · Route-Guard UX Consistency · ✅ COMPLETE (production redeploy pending)
+
+### Cosmetic finding from prod sweep (2026-05-17)
+Three URLs rendered a "blank shell" (navbar + footer only, ~77 chars body) to anon users instead of redirecting:
+- `/admin/audit` (misspelled — real route is `/admin/audit-log`)
+- `/admin/health` (misspelled — real route is `/admin/system-health`)
+- `/field-leadership` (misspelled — real route is `/leadership`)
+
+**Not a security leak** — backend authorization was always correct, no admin data ever rendered. Pure UX/route-guard inconsistency.
+
+### Root cause
+No matching React Router pattern + no catch-all `<Route path="*">` → empty middle.
+
+### Fix (iter181 — frontend-only, no backend touched)
+- **NEW** `/app/frontend/src/pages/NotFound.jsx` — 404 page matching `AccessDenied` visual language (MASCI logo + caution stripe + role-aware CTAs)
+- **3 alias redirects** in `App.js` for the three legitimate-but-mistyped URLs (preserve canonical route's authorization gate)
+- **1 catch-all** `<Route path="*">` for any other unmatched URL → NotFound
+
+### Regression sweep (preview)
+18/18 probes pass:
+- ✅ All 3 aliases redirect through to the correct login (or canonical page)
+- ✅ Catch-all 404 renders proper NotFound page (no blank shell)
+- ✅ All 8 existing portal route guards unchanged (admin/people/integrations/hr/shop/pm/safety-portal/dispatch-portal)
+- ✅ All 3 alias target pages still redirect anon to their respective login
+- ✅ Browser-back after sign-out → no admin data exposed
+- ✅ 22/22 K-phase backend regression still pass (no backend touched)
+
+### Production status
+- ✅ Fix committed to preview
+- 🟡 Production (mascidocs.com) still shows blank-shell behavior until next redeploy
+
+### Next Action Items
+- 🟢 **You**: redeploy iter181 to production at your discretion (low-risk UX fix)
+- 🟡 **You**: live-verify per-portal user logins on production (deferred from previous sweep — only super admin and anon were testable from my side)
+- ⏸ K4b frontend, K5 — still held until you signal P0 verified
+
+
+---
 ## 2026-05-16 — Iter180 · PM-Token Admin-Namespace Lockdown · ✅ FIXED (production redeploy pending)
 
 ### User mandate (follow-up to iter179 testing-agent finding)
