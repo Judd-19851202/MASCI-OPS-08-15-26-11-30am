@@ -224,6 +224,22 @@ def build_auth_directory_router(
         session_token = ud.make_directory_token()
         await ud.persist_session(db, token=session_token, user_id=row["id"])
         await ud.stamp_last_login(db, user_id=row["id"], portal="multi")
+        # Initiative 4 fix — reset session_activity for every minted
+        # portal token. Each portal token is deterministic per
+        # (user_id, pwh), so without this a stale row would expire the
+        # session before the first authenticated request.
+        try:
+            from session_timeout import reset_session_activity
+            _portal_tier = {
+                "admin": "ADMIN_HR", "hr": "ADMIN_HR",
+                "pm": "OPERATIONS", "shop": "OPERATIONS",
+                "safety": "OPERATIONS", "dispatch": "OPERATIONS",
+            }
+            for _portal, _tok in (portal_tokens or {}).items():
+                if _tok:
+                    await reset_session_activity(db, _tok, _portal_tier.get(_portal, "OPERATIONS"))
+        except Exception:  # noqa: BLE001
+            pass
         await ud.write_audit(
             db,
             actor_email=row["email"],
@@ -284,6 +300,18 @@ def build_auth_directory_router(
         except Exception as e:  # noqa: BLE001
             logger.exception(f"[multi-login] portal-token mint failed: {e}")
             raise HTTPException(status_code=500, detail="Failed to mint token.")
+        # Initiative 4 fix — reset session_activity for the freshly
+        # re-minted portal token.
+        try:
+            from session_timeout import reset_session_activity
+            _tier = {
+                "admin": "ADMIN_HR", "hr": "ADMIN_HR",
+                "pm": "OPERATIONS", "shop": "OPERATIONS",
+                "safety": "OPERATIONS", "dispatch": "OPERATIONS",
+            }.get(target, "OPERATIONS")
+            await reset_session_activity(db, tok, _tier)
+        except Exception:  # noqa: BLE001
+            pass
         return {"ok": True, "portal": target, "token": tok}
 
     @router.post("/api/auth/change-master-password")

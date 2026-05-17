@@ -62,10 +62,10 @@ Unset `SENTRY_DSN` (and `REACT_APP_SENTRY_DSN`) → restart → Sentry goes back
 - ✅ TTL index on `session_activity.last_seen_at` (30 days) — no unbounded growth
 - ✅ Token format unchanged (zero forced re-login at deploy time)
 - ✅ Health/version/login endpoints exempt
-- ✅ Tests: `test_iter186_phase2_hardening.py` (5 unit) + `test_iter186b_session_timeout_middleware.py` (8 integration) pass with isolated synthetic tokens
-- ✅ Flag set in preview (`SESSION_TIMEOUTS_ENABLED=true` in `/app/backend/.env`)
-- 🛑 **DEFECT DISCOVERED 2026-02-XX during doc reconciliation** — see § 2a below. Deterministic HMAC tokens + persistent `session_activity` rows produce a permanent idle-lockout after the first idle window. **Do NOT flip the flag in production until the fix lands.** Preview operator should consider rolling the flag back to `false` until then.
-- ⏸ User verification of timeout behaviour in preview was pending — this reconciliation pass discovered the defect before that verification could be completed honestly.
+- ✅ Tests: `test_iter186_phase2_hardening.py` (5 unit) + `test_iter186b_session_timeout_middleware.py` (8 integration) + `test_iter187_admin_hardening_5b.py` (9 integration) + `test_iter188_deterministic_token_relogin.py` (9 regression — admin/HR/PM)
+- ✅ **ACTIVE in preview** (`SESSION_TIMEOUTS_ENABLED=true`)
+- ✅ **Deterministic-token defect fixed iter188 (2026-02-XX)** — login endpoints now reset/upsert `session_activity` on successful auth; logout clears the row. 202/202 auth + hardening tests passing.
+- 🛑 **Production flag remains OFF per operator directive.** Next step: ≥24h preview soak, then production flip and first-cycle monitoring.
 
 ### Required env vars
 | Var | Default | Notes |
@@ -87,30 +87,17 @@ Unset `SENTRY_DSN` (and `REACT_APP_SENTRY_DSN`) → restart → Sentry goes back
 ### Rollback
 Set `SESSION_TIMEOUTS_ENABLED=false` (or unset it) → restart → enforcement disabled. The `session_activity` collection auto-expires within 30 days.
 
-### § 2a — Known defect (discovered 2026-02-XX during doc reconciliation)
+### § 2a — Deterministic-token defect (RESOLVED iter188)
 
-**Stateless HMAC tokens are deterministic** (same token returned on every successful login). The login endpoint is exempt from the middleware (correctly) but does NOT reset the corresponding `session_activity` row. As a result, after any operator is idle longer than their tier's idle limit, every subsequent login is immediately rejected by the middleware as `session_idle_timeout` against the stale `last_seen_at`.
+The defect surfaced during the 2026-02-XX doc reconciliation pass: HMAC tokens are deterministic per (epoch, namespace, password), so the `session_activity` row keyed by `sha256(token)` survived across logins. Login endpoints were exempt from the middleware but did not reset the row — so any operator idle past their tier's idle limit was permanently locked out.
 
-**Repro (preview, 2026-02-XX):**
-```
-POST /api/admin/login          → 200, token issued
-GET  /api/admin/check (same)   → 401 {"detail":"session_idle_timeout"}
-```
+**Fix (iter188):** every login endpoint now calls `session_timeout.reset_session_activity(db, token, tier)` on success, which `$set`s `first_seen_at = last_seen_at = now`. Admin and PM logouts additionally call `clear_session_activity(db, token)` to delete the row.
 
-**Impact:**
-- Preview: idle Admin/HR users (>15 min) cannot log back in.
-- Production: flag is currently OFF. **Do NOT flip it on until the fix below lands.**
+**Endpoints updated:** `/api/admin/login`, `/api/hr/login`, `/api/pm/login` (per-user + shared), `/api/shop/login` (per-user + shared), `/api/safety/login`, `/api/dispatch/login`, `/api/auth/multi-login`, `/api/auth/issue-portal-token`.
 
-**Recommended fix (NOT applied this turn — operator hold per "documentation reconciliation only" mandate):** make every login route reset the caller's `session_activity` row (`$set` `first_seen_at=last_seen_at=now`). Add a regression test that exercises the deterministic-token + post-idle re-login path.
+**Regression coverage:** 9 tests in `test_iter188_deterministic_token_relogin.py` covering fresh login, post-idle re-login, multi-login cycles, browser refresh, multi-tab concurrency, cross-portal (admin/HR/PM-shared), and logout row clearance.
 
-**Test status reflecting this defect:**
-- `test_iter187_admin_hardening_5b.py::test_backup_delete_requires_confirm` — FAIL (401 instead of 400)
-- `test_iter187_admin_hardening_5b.py::test_step_up_record_writes_row` — FAIL (401 instead of 200)
-- `test_iter187_admin_hardening_5b.py::test_verify_password_records_admin_step_up_audit` — FAIL (stale step-up row from prior session)
-
-These three failures are downstream symptoms of the same root cause. The handoff's "192/192 passing" claim predates the flag activation.
-
-Full root cause analysis in `/app/memory/AUTH_SESSION_AUDIT.md § 9a`.
+Full root cause analysis and fix details: `/app/memory/AUTH_SESSION_AUDIT.md § 9a`.
 
 ---
 

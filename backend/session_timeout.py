@@ -237,6 +237,56 @@ def install_session_timeout_middleware(app: FastAPI, db) -> None:
     app.state.session_timeout_installed = True
 
 
+# Public helper — invoked by login endpoints to reset/upsert the
+# session_activity row for a freshly-authenticated token. The login
+# routes themselves are exempt from the middleware, so without this
+# call a deterministic-HMAC token would inherit a stale row from a
+# previous login and immediately fail idle/abs checks.
+#
+# Calls are non-blocking from the caller's perspective — any Mongo
+# error is swallowed and logged so an infra hiccup never blocks login.
+async def reset_session_activity(db, token: str, tier: str) -> None:
+    """Upsert session_activity for ``token`` setting both
+    ``first_seen_at`` and ``last_seen_at`` to now. Safe for every
+    login route; cheap no-op if timeouts are disabled (the next
+    request's middleware will skip the check anyway, but we still
+    keep the row tidy so flipping the flag on later starts clean).
+    """
+    if not token or not tier:
+        return
+    try:
+        now = datetime.now(timezone.utc)
+        th = _hash_token(token)
+        await db.session_activity.update_one(
+            {"token_hash": th},
+            {"$set": {
+                "token_hash": th,
+                "tier": tier,
+                "first_seen_at": now,
+                "last_seen_at": now,
+            }},
+            upsert=True,
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[session-timeout] reset_session_activity failed: %s", e)
+
+
+async def clear_session_activity(db, token: str) -> None:
+    """Delete the session_activity row for ``token`` (logout). Optional —
+    the row will also age out via the TTL index — but explicit clearance
+    means a re-login on the same deterministic token doesn't reuse a
+    half-stale row before the upsert above runs. Never raises."""
+    if not token:
+        return
+    try:
+        th = _hash_token(token)
+        await db.session_activity.delete_one({"token_hash": th})
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[session-timeout] clear_session_activity failed: %s", e)
+
+
+
+
 # Public test/diagnostic surface — used by tests and by /api/version
 # to surface the current configuration without leaking secrets.
 def describe_config() -> dict:

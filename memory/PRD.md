@@ -1,6 +1,56 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 2 · Initiative 4 deterministic-token defect FIX · ✅ COMPLETE (preview)
+
+Targeted fix approved by operator after the previous reconciliation pass surfaced the bug. Scope strictly limited to: login-reset, regression coverage, doc reconciliation.
+
+### Root cause (recap)
+Stateless HMAC tokens are deterministic per (epoch, namespace, password). The `session_activity` row keyed by `sha256(token)` survived across logins. Login endpoints were exempt from the middleware but did NOT reset the row — so any operator idle past their tier's idle limit was permanently locked out.
+
+### Fix landed (iter188)
+- **NEW** `session_timeout.reset_session_activity(db, token, tier)` — upserts the caller's row to `first_seen_at = last_seen_at = now`. Never raises (logged-and-swallowed Mongo errors).
+- **NEW** `session_timeout.clear_session_activity(db, token)` — deletes the row outright (logout path). Never raises.
+- **Wired into:** `/api/admin/login` · `/api/hr/login` · `/api/pm/login` (per-user + shared) · `/api/shop/login` (per-user + shared) · `/api/safety/login` · `/api/dispatch/login` · `/api/auth/multi-login` (every minted portal token) · `/api/auth/issue-portal-token` (re-minted token).
+- **Logout clearance:** `/api/admin/logout` · `/api/pm/logout` now also call `clear_session_activity`. Belt-and-suspenders with the 30-day TTL.
+- Field Leadership tokens (random, not deterministic) and Dev tokens (intentionally exempt from timeouts) are unchanged.
+
+### Regression coverage (`test_iter188_deterministic_token_relogin.py`, 9 tests)
+1. `test_admin_fresh_login_first_request_returns_200` — original defect repro
+2. `test_admin_post_idle_relogin_succeeds` — backdate row + re-login → 200
+3. `test_admin_multi_login_cycles_all_succeed` — 5 login/logout cycles
+4. `test_admin_logout_login_loop_recovers_from_stale_row` — verifies `last_seen_at` is fresh after every cycle
+5. `test_browser_refresh_does_not_force_relogin` — same token replayed 3x; monotonic `last_seen_at`
+6. `test_multi_tab_concurrent_requests_share_row` — 8 concurrent threads; exactly 1 row
+7. `test_hr_post_idle_relogin_succeeds` — HR portal parallel scenario
+8. `test_pm_shared_login_post_idle_relogin_succeeds` — PM shared-password parallel scenario
+9. `test_admin_logout_deletes_session_activity_row` — explicit row clearance on logout
+
+### Verification
+- Live preview: `POST /api/admin/login` → 200; immediate `GET /api/admin/check` → 200 (was 401 pre-fix).
+- 202/202 auth + Phase 2 hardening tests pass (iter172, iter174, iter175, iter176, iter177, iter179, iter180, iter186, iter186b, iter187, iter188, test_admin_auth).
+- Linter: `session_timeout.py` and `test_iter188_*` both pass ruff.
+
+### Production rollout
+- 🛑 `SESSION_TIMEOUTS_ENABLED=false` in production (operator directive).
+- ▶ Next step: ≥24h preview soak, operator verifies idle/abs behaviour live, then flip production flag and monitor first idle/abs cycle.
+
+### Held / waiting on operator (unchanged)
+- 🟢 "Last 5 Sessions" admin visibility panel — approved AFTER timeout fix is stable. Queued next.
+- 🛑 K4b frontend wiring, K5 onboarding, Stage B.1 Owner Snapshot, large refactors — still on hold.
+- 🟡 Sentry DSNs (Initiative 1) — unchanged
+- 🟡 R2 token rotation (Initiative 3) — unchanged
+
+### Next Action Items
+- 🟢 Operator soak preview for 24h → flip production flag once verified
+- 🟢 Build "Last 5 Sessions" admin panel (operator pre-approved)
+- 🟡 Provide Sentry DSNs when ready
+- 🟡 Rotate R2 token to `Workers R2 Storage = Edit`
+- ⏸ Resume held feature work (K4b · K5 · Stage B.1) once Phase 2 verification complete
+
+---
+
+---
 ## 2026-02-XX — Phase 2 · Documentation Reconciliation & Truthfulness Sweep · ✅ COMPLETE (review-only)
 
 Operator-requested stabilization pass between Phase 2 hardening and any further feature work (K4b / K5 / Stage B.1). **Zero code changes; documentation only.** Surfaced one HIGH-severity defect that was hidden behind a too-optimistic "192/192 passing" claim in the prior handoff.

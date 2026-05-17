@@ -137,6 +137,14 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             raise HTTPException(401, "Invalid email or password")
         token = make_hr_user_token(user["id"], pwh)
         await stamp_hr_login(db, user["id"], _client_ip(request))
+        # Initiative 4 fix — HR tokens are deterministic per
+        # (user_id, password_hash). Reset session_activity so a
+        # post-idle re-login doesn't inherit a stale row.
+        try:
+            from session_timeout import reset_session_activity
+            await reset_session_activity(db, token, "ADMIN_HR")
+        except Exception:  # noqa: BLE001
+            pass
         return {
             "ok": True,
             "token": token,

@@ -52,6 +52,8 @@ except Exception:  # noqa: BLE001
 # Default disabled. Installed during startup after db handle is ready.
 from session_timeout import (  # noqa: E402
     install_session_timeout_middleware, ensure_indexes as ensure_session_timeout_indexes,
+    reset_session_activity as _reset_session_activity,
+    clear_session_activity as _clear_session_activity,
 )
 install_session_timeout_middleware(app, db)
 
@@ -1163,7 +1165,13 @@ async def admin_login(body: AdminLoginRequest, request: Request):
         _record_login_fail(ip)
         raise HTTPException(status_code=401, detail="Wrong password")
     _reset_login_fails(ip)
-    return {"ok": True, "token": _admin_token_for(expected_pw)}
+    token = _admin_token_for(expected_pw)
+    # Initiative 4 fix — admin HMAC tokens are deterministic, so the
+    # session_activity row keyed by sha256(token) survives across
+    # logouts. Reset it on every successful login so a re-login after
+    # idle never fails the middleware's idle check against a stale row.
+    await _reset_session_activity(db, token, "ADMIN_HR")
+    return {"ok": True, "token": token}
 
 
 @api_router.get("/admin/check")
@@ -1189,6 +1197,11 @@ async def admin_logout(request: Request, _: bool = Depends(require_admin)):
         })
     except Exception:  # noqa: BLE001
         pass
+    # Initiative 4 — explicit server-side session clearance for the
+    # logging-out admin's token. Keeps the row from outliving the
+    # token's client-side lifetime; the next login will upsert fresh.
+    x_admin_token = request.headers.get("x-admin-token") or ""
+    await _clear_session_activity(db, x_admin_token)
     return {"ok": True}
 
 
@@ -1461,9 +1474,11 @@ async def shop_login(body: AdminLoginRequest, request: Request):
             raise HTTPException(status_code=401, detail="Wrong email or password")
         _reset_login_fails(ip)
         await stamp_shop_login(db, user["id"], ip=ip)
+        token = make_shop_user_token(user["id"], pwh)
+        await _reset_session_activity(db, token, "OPERATIONS")
         return {
             "ok": True,
-            "token": make_shop_user_token(user["id"], pwh),
+            "token": token,
             "must_change_password": bool(user.get("must_change_password")),
             "user": public_shop_user_view(user),
         }
@@ -1476,7 +1491,9 @@ async def shop_login(body: AdminLoginRequest, request: Request):
         _record_login_fail(ip)
         raise HTTPException(status_code=401, detail="Wrong password")
     _reset_login_fails(ip)
-    return {"ok": True, "token": _shop_token_for(expected_pw)}
+    token = _shop_token_for(expected_pw)
+    await _reset_session_activity(db, token, "OPERATIONS")
+    return {"ok": True, "token": token}
 
 
 @api_router.get("/shop/check")
@@ -1784,9 +1801,12 @@ async def pm_login(body: PMLoginBody, request: Request):
             raise HTTPException(status_code=401, detail="Wrong email or password")
         _reset_login_fails(ip)
         await stamp_login(db, pm["id"], ip=ip)
+        token = make_pm_token(pm["id"], pwh)
+        # Initiative 4 fix — reset session_activity (see admin_login).
+        await _reset_session_activity(db, token, "OPERATIONS")
         return {
             "ok": True,
-            "token": make_pm_token(pm["id"], pwh),
+            "token": token,
             "must_change_password": bool(pm.get("must_change_password")),
             "pm": public_pm_view(pm),
         }
@@ -1804,9 +1824,12 @@ async def pm_login(body: PMLoginBody, request: Request):
         _record_login_fail(ip)
         raise HTTPException(status_code=401, detail="Wrong password")
     _reset_login_fails(ip)
+    token = _pm_token_for(expected_pw)
+    # Initiative 4 fix — shared-password PM token is deterministic too.
+    await _reset_session_activity(db, token, "OPERATIONS")
     return {
         "ok": True,
-        "token": _pm_token_for(expected_pw),
+        "token": token,
         "must_change_password": False,
         "pm": None,
     }
@@ -2043,6 +2066,9 @@ async def pm_logout(request: Request, actor=Depends(require_admin_async)):
         })
     except Exception:  # noqa: BLE001
         pass
+    # Initiative 4 — explicit session_activity clearance.
+    x_pm_token = request.headers.get("x-pm-token") or ""
+    await _clear_session_activity(db, x_pm_token)
     return {"ok": True}
 
 

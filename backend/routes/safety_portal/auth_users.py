@@ -67,6 +67,13 @@ def register_auth_routes(
             raise HTTPException(401, "Invalid email or password")
         token = make_safety_user_token(user["id"], pwh)
         await stamp_safety_login(db, user["id"], (request.client.host if request.client else ""))
+        # Initiative 4 fix — reset session_activity for the
+        # deterministic safety token (see admin_login).
+        try:
+            from session_timeout import reset_session_activity
+            await reset_session_activity(db, token, "OPERATIONS")
+        except Exception:  # noqa: BLE001
+            pass
         return SafetyLoginResponse(
             token=token,
             user=public_safety_user_view(user),

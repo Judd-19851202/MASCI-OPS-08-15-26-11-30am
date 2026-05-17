@@ -89,9 +89,13 @@ def test_admin_endpoint_bogus_token_logs_denial():
     from pymongo import MongoClient
     client = MongoClient(_read_env_var("MONGO_URL"), serverSelectionTimeoutMS=3000)
     coll = client[_read_env_var("DB_NAME")].audit_events
+    # iter188 — also filter by actor=admin so a co-running iter180 test
+    # (which sends X-PM-Token to /api/admin/check) doesn't shadow our
+    # most-recent-row lookup with a pm-actor row.
     recent = list(coll.find(
         {"kind": "access_denied", "path": "/api/admin/check",
-         "reason": {"$in": ["invalid_token", "invalid_token_strict"]}},
+         "reason": {"$in": ["invalid_token", "invalid_token_strict"]},
+         "actor": "admin"},
         sort=[("at", -1)], limit=1,
     ))
     client.close()
