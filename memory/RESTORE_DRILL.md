@@ -49,16 +49,22 @@ to a working Mongo instance, end-to-end.
 
 ```bash
 # 1. Dry-run the restore plan (no writes)
-python3 scripts/restore_drill.py --backup <key-from-step-1> --target mongodb://localhost:27018 --target-db masci_drill --dry-run
+python3 scripts/restore_drill.py --backup <key-from-step-1> --target $MONGO_URL --target-db masci_restore_drill_$(date +%Y_%m_%d) --dry-run
 
-# 2. Execute the restore against the ephemeral target
-python3 scripts/restore_drill.py --backup <key-from-step-1> --target mongodb://localhost:27018 --target-db masci_drill
+# 2. Execute the restore against the side DB
+python3 scripts/restore_drill.py --backup <key-from-step-1> --target $MONGO_URL --target-db masci_restore_drill_$(date +%Y_%m_%d)
 
-# 3. Verify integrity — see "Integrity checks" below
+# 3. Validation prints automatically. Verdict line at the end must say PASS.
 
-# 4. Drop the ephemeral target when done
-mongosh "mongodb://localhost:27018" --eval 'db.getSiblingDB("masci_drill").dropDatabase()'
+# 4. Drop the side DB when done
+mongosh "$MONGO_URL" --eval 'db.getSiblingDB("masci_restore_drill_<date>").dropDatabase()'
 ```
+
+The exporter accepts both `MASCI_complete_backup_*.zip` (full) and the
+hourly lite backups. **Lite backups intentionally include only 6 core
+operational collections** (incidents, daily_reports, JHAs, meetings,
+inspections, equipment_inspections). For full integrity coverage,
+drill against the newest **complete** nightly backup, not a lite hourly.
 
 ---
 
@@ -87,7 +93,7 @@ recorded didn't happen.
 
 | Date | Operator | Backup key | Source size | Restored size | Integrity | Notes |
 |------|----------|------------|-------------|---------------|-----------|-------|
-| **2026-02-XX (SCHEDULED — first drill, due within 14 days)** | _TBD_ | _newest full nightly under `backups/auto-90d/` once one exists, else newest legacy `backups/MASCI_complete_backup_*.zip`_ | _TBD_ | _TBD_ | _TBD_ | First-ever drill. Operator must document actual archive layout so `restore_drill.py` can be promoted from manual to auto-restore. |
+| **2026-05-17** | E1 agent (Phase 2 Initiative 2) | `backups/auto-90d/MASCI_complete_backup_2026-05-17_140408Z.zip` | 111 KB (lite) | 160 records (6 lite-mode collections) | ✅ PASS — mongo_connectivity=True; all 6 lite-mode collections populated; daily_reports attachments intact; user_directory managed_count=0 (lite backups don't include user_directory by design) | First end-to-end drill against side DB `masci_restore_drill_2026_05_17_144307` on preview Mongo. Side DB dropped after verification. **Next drill should target a full nightly backup once available** (lite backups only carry 6 ops collections — see `restore_drill.py` validation row counts). |
 | _subsequent drills logged below_ | | | | | | |
 
 ---

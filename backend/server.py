@@ -35,6 +35,28 @@ app = FastAPI(title="MASCI Job Site Safety Inspection API")
 api_router = APIRouter(prefix="/api")
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# Sentry (Phase 2 Initiative 1) — env-gated. If SENTRY_DSN is unset, this
+# is a complete no-op. Initialised here BEFORE any middleware so all
+# subsequent code is observed.
+# ─────────────────────────────────────────────────────────────────────────
+try:
+    from sentry_init import init_sentry_if_configured, get_release_identifier as _sentry_release  # noqa: E402
+    # Sentry init defers until startup so we can pass _SOURCE_HASH as the
+    # release identifier — see the startup hook below.
+except Exception:  # noqa: BLE001
+    init_sentry_if_configured = None
+    _sentry_release = None
+
+# Session-timeout middleware (Phase 2 Initiative 4) — env-gated.
+# Default disabled. Installed during startup after db handle is ready.
+from session_timeout import (  # noqa: E402
+    install_session_timeout_middleware, ensure_indexes as ensure_session_timeout_indexes,
+)
+install_session_timeout_middleware(app, db)
+
+
+
 # ------------------------- Rate limiting (in-memory, single-instance) -------------------------
 # Public POST endpoints (form submissions, translate) are unauthenticated by
 # design — crews submit without logging in. To prevent spam / bot abuse we
@@ -547,13 +569,36 @@ _SOURCE_HASH = _compute_source_hash()
 
 @api_router.get("/version")
 def api_version():
+    # Sentry release identifier is computed by sentry_init from the same
+    # _SOURCE_HASH source, so /api/version is the canonical "what's
+    # deployed" probe. Also expose lightweight ops config (session
+    # timeout enablement + Sentry enablement) for ops visibility — these
+    # never leak secrets, only "is this knob turned on".
+    try:
+        from session_timeout import describe_config as _sess_cfg
+        sess = _sess_cfg()
+    except Exception:  # noqa: BLE001
+        sess = {"enabled": False}
+    try:
+        from sentry_init import is_initialized as _sentry_on, get_release_identifier as _sentry_rel
+        sentry = {"enabled": _sentry_on(), "release": _sentry_rel()}
+    except Exception:  # noqa: BLE001
+        sentry = {"enabled": False, "release": "unknown"}
+    # When Sentry is off, release falls back to the source_hash prefix so
+    # /api/version always exposes a deterministic release identifier the
+    # frontend bundle can consume.
+    if not sentry.get("enabled"):
+        sentry["release"] = _SOURCE_HASH[:16]
     return {
         "service": "masci-hub",
         "commit": os.environ.get("GIT_COMMIT", "unknown"),
         "built_at": os.environ.get("BUILT_AT", "unknown"),
         "source_hash": _SOURCE_HASH,
+        "release": sentry["release"],
         "started_at": _STARTUP_TS.isoformat(),
         "uptime_s": int((datetime.now(timezone.utc) - _STARTUP_TS).total_seconds()),
+        "session_timeouts": sess,
+        "sentry": {"enabled": sentry["enabled"]},
     }
 
 
@@ -8795,6 +8840,16 @@ async def _bootstrap_integrations():
     logger.info("[po-requests] indexes ensured")
     await ensure_signatures_indexes(db)
     logger.info("[signatures] indexes ensured")
+    # Phase 2 Initiative 4 — session_activity indexes (TTL + uniqueness)
+    await ensure_session_timeout_indexes(db)
+    logger.info("[session-timeout] indexes ensured")
+    # Phase 2 Initiative 1 — Sentry init AFTER _SOURCE_HASH is computed so
+    # the Sentry release identifier matches /api/version's source_hash.
+    try:
+        if init_sentry_if_configured is not None:
+            init_sentry_if_configured(release_override=_SOURCE_HASH)
+    except Exception:  # noqa: BLE001
+        pass  # Sentry init must never break the app.
 
 
 @app.on_event("startup")

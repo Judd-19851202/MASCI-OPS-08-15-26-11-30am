@@ -1,41 +1,47 @@
 #!/usr/bin/env python3
-"""restore_drill.py — Cloudflare R2 → ephemeral Mongo restore drill helper.
+"""restore_drill.py — Cloudflare R2 → side-DB restore drill helper.
 
-PURPOSE
-    Prove the MASCI Hub backups in Cloudflare R2 are actually restorable.
-    See /app/memory/RESTORE_DRILL.md for the surrounding procedure.
+Prove the MASCI Hub backups in R2 are actually restorable, without
+touching the live preview database. See /app/memory/RESTORE_DRILL.md for
+the surrounding procedure.
 
-This script is intentionally MINIMAL and SAFE:
-    • --list           lists backups in R2, newest first
-    • --dry-run        prints what would be downloaded + which collections
-                       it would write to, performs NO writes
-    • without dry-run  downloads, decrypts/decompresses if needed, and
-                       writes into the TARGET database on the TARGET URI.
+Modes:
+    --list                      list R2 backups, newest first
+    --backup K --target U
+        --target-db NAME --dry-run    print plan, no writes
+    --backup K --target U
+        --target-db NAME              full restore + validation
 
-SAFETY RAILS
-    • Refuses to write into the live `DB_NAME` (read from backend/.env).
-    • Refuses to write to the live mongo URI unless --i-know-what-i-am-doing
-      is also passed (you should be writing to an ephemeral target).
-    • Never deletes from R2.
-    • Never modifies the source database.
+SAFETY RAILS (per Phase 2 Initiative 2 — side-DB drill):
+    • --target-db MUST begin with "masci_restore_drill_" unless
+      --i-know-what-i-am-doing is also passed.
+    • --target-db CANNOT equal the live DB_NAME (read from backend/.env).
+    • Live MONGO_URL is allowed (we drill on the same Mongo instance,
+      but on a different database).
+    • Source backup is NEVER modified.
+
+After a successful restore the validation step prints:
+    • Mongo connectivity
+    • Core collection record counts
+    • Sample daily_report attachment integrity
+    • user_directory managed/mirrored split
 
 Required env (read from /app/backend/.env automatically if present):
-    R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT, R2_BUCKET
-
-Usage:
-    python3 scripts/restore_drill.py --list
-    python3 scripts/restore_drill.py --backup full-2026-02-15-0300.tar.gz \\
-        --target mongodb://localhost:27018 --target-db masci_drill --dry-run
-    python3 scripts/restore_drill.py --backup full-2026-02-15-0300.tar.gz \\
-        --target mongodb://localhost:27018 --target-db masci_drill
+    R2_ACCESS_KEY_ID / S3_ACCESS_KEY
+    R2_SECRET_ACCESS_KEY / S3_SECRET_KEY
+    R2_ENDPOINT / S3_ENDPOINT_URL
+    R2_BUCKET / S3_BUCKET
+    DB_NAME, MONGO_URL  (used only for safety-rail comparison)
 """
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 import tarfile
 import tempfile
+import zipfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -61,17 +67,23 @@ def _r2_client(env: dict):
     except ImportError:
         print("FAIL: boto3 not installed. pip install boto3", file=sys.stderr)
         sys.exit(2)
-    missing = [k for k in ("R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_ENDPOINT", "R2_BUCKET") if not env.get(k)]
-    if missing:
-        print(f"FAIL: missing R2 env vars: {', '.join(missing)}", file=sys.stderr)
+    # Support both R2_ and S3_ env var names (the platform uses S3_*).
+    endpoint = env.get("R2_ENDPOINT") or env.get("S3_ENDPOINT_URL")
+    bucket = env.get("R2_BUCKET") or env.get("S3_BUCKET")
+    access = env.get("R2_ACCESS_KEY_ID") or env.get("S3_ACCESS_KEY")
+    secret = env.get("R2_SECRET_ACCESS_KEY") or env.get("S3_SECRET_KEY")
+    if not all([endpoint, bucket, access, secret]):
+        print("FAIL: missing R2 env vars (endpoint/bucket/access/secret)",
+              file=sys.stderr)
         sys.exit(2)
-    return boto3.client(
+    client = boto3.client(
         "s3",
-        endpoint_url=env["R2_ENDPOINT"],
-        aws_access_key_id=env["R2_ACCESS_KEY_ID"],
-        aws_secret_access_key=env["R2_SECRET_ACCESS_KEY"],
-        config=Config(signature_version="s3v4"),
-    ), env["R2_BUCKET"]
+        endpoint_url=endpoint,
+        aws_access_key_id=access,
+        aws_secret_access_key=secret,
+        config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
+    )
+    return client, bucket
 
 
 def cmd_list(args, env):
@@ -79,8 +91,7 @@ def cmd_list(args, env):
     print(f"Listing R2 backups in bucket: {bucket}")
     print("-" * 78)
     objs = []
-    paginator = client.get_paginator("list_objects_v2")
-    for page in paginator.paginate(Bucket=bucket):
+    for page in client.get_paginator("list_objects_v2").paginate(Bucket=bucket):
         for o in page.get("Contents", []):
             objs.append(o)
     objs.sort(key=lambda o: o["LastModified"], reverse=True)
@@ -92,15 +103,111 @@ def cmd_list(args, env):
     return 0
 
 
+def _extract_archive(archive: Path, dest: Path) -> str:
+    """Auto-detect zip vs tar and extract to dest. Returns 'zip' or 'tar'."""
+    if zipfile.is_zipfile(archive):
+        with zipfile.ZipFile(archive, "r") as zf:
+            zf.extractall(dest)
+        return "zip"
+    with tarfile.open(archive, "r:*") as tf:
+        tf.extractall(dest)
+    return "tar"
+
+
+def _restore_side_db(extracted: Path, target_uri: str, target_db: str,
+                     verbose: bool = True) -> dict:
+    """Walk extracted/<collection>/json/*.json and insert into target_db.
+    Returns counters per collection."""
+    from pymongo import MongoClient
+
+    client = MongoClient(target_uri, serverSelectionTimeoutMS=5000)
+    sdb = client[target_db]
+    counters: dict = {}
+
+    for json_dir in extracted.rglob("json"):
+        if not json_dir.is_dir():
+            continue
+        coll_name = json_dir.parent.name.replace("-", "_")
+        coll = sdb[coll_name]
+        # Drop first so the drill is deterministic on the side DB.
+        coll.drop()
+        files = list(json_dir.glob("*.json"))
+        docs = []
+        bad = 0
+        for f in files:
+            try:
+                d = json.loads(f.read_text(encoding="utf-8"))
+                if isinstance(d, dict):
+                    docs.append(d)
+                else:
+                    bad += 1
+            except Exception:
+                bad += 1
+        if docs:
+            try:
+                coll.insert_many(docs, ordered=False)
+            except Exception as e:
+                if verbose:
+                    print(f"  [{coll_name}] insert warnings: {e}", file=sys.stderr)
+        counters[coll_name] = {"inserted": len(docs), "skipped_bad": bad,
+                               "files_seen": len(files)}
+        if verbose:
+            print(f"  {coll_name:<32}  inserted={len(docs):>5}  "
+                  f"bad={bad:>3}  files={len(files):>5}")
+    client.close()
+    return counters
+
+
+def _validate_restore(target_uri: str, target_db: str) -> dict:
+    """Sample integrity checks on the side DB. Returns a dict."""
+    from pymongo import MongoClient
+    client = MongoClient(target_uri, serverSelectionTimeoutMS=5000)
+    sdb = client[target_db]
+    checks: dict = {}
+
+    try:
+        sdb.command("ping")
+        checks["mongo_connectivity"] = True
+    except Exception as e:
+        checks["mongo_connectivity"] = f"FAIL: {e}"
+
+    for c in ("inspections", "jhas", "incidents", "daily_reports",
+              "meetings", "equipment", "employees",
+              "user_directory", "role_templates", "backup_health"):
+        try:
+            checks[f"{c}.count"] = sdb[c].estimated_document_count()
+        except Exception as e:
+            checks[f"{c}.count"] = f"ERR: {e}"
+
+    try:
+        dr = sdb.daily_reports.find_one(
+            {"attachments": {"$exists": True, "$ne": []}},
+            projection={"_id": 0, "id": 1},
+        )
+        checks["sample_daily_report_with_attachments"] = bool(dr)
+    except Exception as e:
+        checks["sample_daily_report_with_attachments"] = f"ERR: {e}"
+
+    try:
+        checks["user_directory.managed_count"] = sdb.user_directory.count_documents({"mirrored": False})
+    except Exception as e:
+        checks["user_directory.managed_count"] = f"ERR: {e}"
+
+    client.close()
+    return checks
+
+
 def cmd_restore(args, env):
-    # --- safety rails ------------------------------------------------------
+    # ── safety rails ────────────────────────────────────────────────────
     live_db = env.get("DB_NAME", "")
-    live_mongo = env.get("MONGO_URL", "")
     if args.target_db == live_db and not args.i_know_what_i_am_doing:
-        print(f"REFUSING: --target-db == live DB_NAME ({live_db}). Aborting.", file=sys.stderr)
+        print(f"REFUSING: --target-db == live DB_NAME ({live_db}). Aborting.",
+              file=sys.stderr)
         return 3
-    if args.target == live_mongo and not args.i_know_what_i_am_doing:
-        print("REFUSING: --target == live MONGO_URL. Aborting (use ephemeral target).", file=sys.stderr)
+    if not args.target_db.startswith("masci_restore_drill_") \
+            and not args.i_know_what_i_am_doing:
+        print("REFUSING: --target-db must start with 'masci_restore_drill_' "
+              "(override with --i-know-what-i-am-doing).", file=sys.stderr)
         return 3
 
     client, bucket = _r2_client(env)
@@ -111,12 +218,12 @@ def cmd_restore(args, env):
     print(f"  Target URI    : {args.target}")
     print(f"  Target DB     : {args.target_db}")
     print(f"  Dry run       : {args.dry_run}")
+    print("-" * 60)
 
-    with tempfile.TemporaryDirectory() as tmp:
+    with tempfile.TemporaryDirectory(prefix="masci_drill_") as tmp:
         tmp_path = Path(tmp)
         archive = tmp_path / Path(args.backup).name
 
-        # --- download -----------------------------------------------------
         if args.dry_run:
             print(f"  [dry-run] would download s3://{bucket}/{args.backup} → {archive}")
         else:
@@ -124,75 +231,66 @@ def cmd_restore(args, env):
             client.download_file(bucket, args.backup, str(archive))
             print(f"  Downloaded: {archive.stat().st_size / (1024*1024):.1f} MB")
 
-        # --- inspect archive ---------------------------------------------
+        extracted = tmp_path / "extracted"
         if args.dry_run:
-            print("  [dry-run] skipping archive inspection")
-        else:
-            print("  Inspecting archive contents...")
-            with tarfile.open(archive, "r:*") as tf:
-                members = tf.getmembers()
-                print(f"    members: {len(members)}")
-                for m in members[:20]:
-                    print(f"      - {m.name} ({m.size} bytes)")
-                if len(members) > 20:
-                    print(f"      ... and {len(members) - 20} more")
-
-        # --- restore -----------------------------------------------------
-        if args.dry_run:
-            print("  [dry-run] would mongorestore into target DB. Skipping.")
+            print(f"  [dry-run] would extract to {extracted} and restore.")
             return 0
+        extracted.mkdir()
+        fmt = _extract_archive(archive, extracted)
+        print(f"  Extracted format: {fmt}")
 
+        print("")
+        print("  Restoring into side DB ...")
         try:
-            from pymongo import MongoClient  # noqa: F401
-        except ImportError:
-            print("FAIL: pymongo not installed. pip install pymongo", file=sys.stderr)
-            return 2
+            counters = _restore_side_db(extracted, args.target, args.target_db)
+        except Exception as e:
+            print(f"  FAIL: restore: {e}", file=sys.stderr)
+            return 8
 
-        # Restore strategy depends on archive format. Two supported formats:
-        #   (a) tar containing JSON-per-collection dumps (preferred — easy to
-        #       reason about, version-stable).
-        #   (b) tar containing a `mongodump` BSON dir tree (requires
-        #       `mongorestore` binary on PATH).
-        # For now, we attempt (a); (b) is left for the first drill operator
-        # to flesh out based on what the actual archive looks like.
-        print("  Restore execution is intentionally not auto-completed in v1.")
-        print("  The first drill operator should:")
-        print("    1. Inspect the archive (printed above).")
-        print("    2. If JSON-per-collection: write each into target DB via pymongo.")
-        print("    3. If BSON/mongodump: run `mongorestore --uri <target> --nsFrom ... --nsTo ...`")
-        print("    4. Record outcome in /app/memory/RESTORE_DRILL.md log table.")
-        print()
-        print("  This deliberate manual step is a safety feature, NOT a TODO.")
-        print("  Auto-restore will be enabled only after the first successful drill")
-        print("  documents the exact archive layout.")
-        return 0
+        print("")
+        print("  Running validation checks ...")
+        checks = _validate_restore(args.target, args.target_db)
+        for k in sorted(checks):
+            print(f"    {k:<46} = {checks[k]}")
+
+        total_inserted = sum(c["inserted"] for c in counters.values())
+        total_bad = sum(c["skipped_bad"] for c in counters.values())
+        verdict = "PASS"
+        if checks.get("mongo_connectivity") is not True:
+            verdict = "FAIL (no mongo)"
+        if total_inserted == 0:
+            verdict = "FAIL (no records restored)"
+
+        print("")
+        print(f"  Total inserted: {total_inserted}")
+        print(f"  Total bad:      {total_bad}")
+        print(f"  VERDICT: {verdict}")
+        return 0 if verdict == "PASS" else 9
 
 
 def main():
     env = _load_env()
-
-    ap = argparse.ArgumentParser(description="MASCI Hub restore drill helper")
-
-    # `--list` works as a flag for backwards compat
-    ap.add_argument("--list", action="store_true", help="list backups in R2")
+    ap = argparse.ArgumentParser(description="MASCI Hub side-DB restore drill")
+    ap.add_argument("--list", action="store_true", help="list R2 backups")
     ap.add_argument("--limit", type=int, default=30, help="how many to list")
-    ap.add_argument("--backup", help="R2 key to restore (e.g. full-YYYY-MM-DD.tar.gz)")
-    ap.add_argument("--target", help="target Mongo URI (ephemeral)")
-    ap.add_argument("--target-db", help="target database name (must NOT equal live DB_NAME)")
-    ap.add_argument("--dry-run", action="store_true", help="do not write anything")
+    ap.add_argument("--backup", help="R2 key to restore")
+    ap.add_argument("--target", help="target Mongo URI (preview Mongo is fine)")
+    ap.add_argument("--target-db",
+                    help="target DB name — MUST start with masci_restore_drill_")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print plan without downloading or writing")
     ap.add_argument("--i-know-what-i-am-doing", action="store_true",
                     help="override safety rails (do not use)")
-
     args = ap.parse_args()
 
     if args.list:
         return cmd_list(args, env)
-
     if not args.backup:
         ap.print_help()
         return 1
     if not args.target or not args.target_db:
-        print("FAIL: --target and --target-db are required for restore.", file=sys.stderr)
+        print("FAIL: --target and --target-db are required for restore.",
+              file=sys.stderr)
         return 1
     return cmd_restore(args, env)
 

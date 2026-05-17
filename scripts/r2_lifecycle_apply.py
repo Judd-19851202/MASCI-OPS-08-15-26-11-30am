@@ -40,6 +40,7 @@ import argparse
 import json
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -190,15 +191,98 @@ def cmd_apply(args, env):
     return 0
 
 
+def cmd_verify(args, env):
+    """Sentinel-based lifecycle verification (Phase 2 Round 2, Initiative 3).
+
+    Procedure:
+      1. Write a tiny sentinel object under backups/auto-90d/_sentinel.txt
+      2. Read it back to confirm round-trip
+      3. Re-fetch the bucket's lifecycle config and confirm our rule is
+         present, enabled, and targets the right prefix
+      4. Delete the sentinel object so we don't accumulate clutter
+
+    Safe to run repeatedly. Returns 0 on full success, non-zero on any
+    step failure (with explicit reason).
+    """
+    client = _client(env)
+    bucket = env["S3_BUCKET"]
+    sentinel_key = "backups/auto-90d/_sentinel.txt"
+    payload = f"masci-hub r2 lifecycle sentinel · {datetime.utcnow().isoformat()}Z".encode()
+
+    print(f"Bucket : {bucket}")
+    print(f"Key    : {sentinel_key}")
+    print("-" * 60)
+
+    # Step 1 — write
+    try:
+        client.put_object(Bucket=bucket, Key=sentinel_key, Body=payload,
+                          ContentType="text/plain")
+        print("✅ Step 1 — wrote sentinel object")
+    except Exception as e:  # noqa: BLE001
+        print(f"❌ Step 1 — write failed: {e}", file=sys.stderr)
+        return 4
+
+    # Step 2 — read-back
+    try:
+        resp = client.get_object(Bucket=bucket, Key=sentinel_key)
+        body = resp["Body"].read()
+        if body != payload:
+            print("❌ Step 2 — read-back mismatch", file=sys.stderr)
+            return 5
+        print("✅ Step 2 — read-back matches")
+    except Exception as e:  # noqa: BLE001
+        print(f"❌ Step 2 — read failed: {e}", file=sys.stderr)
+        return 5
+
+    # Step 3 — confirm lifecycle present + enabled + targets right prefix
+    rules = fetch_current(client, bucket)
+    ours = [r for r in rules if r.get("ID") == RULE_ID]
+    if not ours:
+        print(f"⚠️  Step 3 — rule '{RULE_ID}' NOT found in lifecycle config.",
+              file=sys.stderr)
+        print("   New objects will accumulate WITHOUT expiration until the",
+              file=sys.stderr)
+        print("   rule is applied (python3 scripts/r2_lifecycle_apply.py).",
+              file=sys.stderr)
+        rc = 6
+    else:
+        r = ours[0]
+        status = r.get("Status", "")
+        flt = (r.get("Filter") or {}).get("Prefix", "")
+        days = (r.get("Expiration") or {}).get("Days")
+        ok = (status == "Enabled" and flt == RULE_PREFIX and days == EXPIRATION_DAYS)
+        msg = f"Status={status} Prefix={flt} Days={days}"
+        if ok:
+            print(f"✅ Step 3 — lifecycle rule active · {msg}")
+            rc = 0
+        else:
+            print(f"❌ Step 3 — lifecycle rule misconfigured · {msg}", file=sys.stderr)
+            rc = 7
+
+    # Step 4 — clean up the sentinel regardless of step 3 outcome
+    try:
+        client.delete_object(Bucket=bucket, Key=sentinel_key)
+        print("✅ Step 4 — sentinel cleaned up")
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️  Step 4 — sentinel cleanup failed (will expire via lifecycle "
+              f"if rule is active): {e}", file=sys.stderr)
+
+    return rc
+
+
 def main():
     env = _load_env()
     ap = argparse.ArgumentParser(description="MASCI R2 lifecycle apply")
     ap.add_argument("--dry-run", action="store_true", help="show plan without applying")
     ap.add_argument("--show", action="store_true", help="just show current config")
+    ap.add_argument("--verify", action="store_true",
+                    help="round-trip sentinel + confirm lifecycle rule active")
     args = ap.parse_args()
 
     if args.show:
         return cmd_show(args, env)
+    if args.verify:
+        return cmd_verify(args, env)
     return cmd_apply(args, env)
 
 

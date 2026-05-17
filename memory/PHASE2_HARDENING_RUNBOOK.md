@@ -1,0 +1,187 @@
+# MASCI Hub — Phase 2 Hardening Runbook
+
+> **Active runbook** for Phase 2 operational hardening (Sentry, session
+> timeouts, R2 lifecycle, restore drills, Admin/HR audit). Pairs with:
+>
+> - `/app/memory/DATA_PORTABILITY.md` — backup export system
+> - `/app/memory/AUTHORIZATION_MATRIX.md` — Admin/HR access classification
+> - `/app/memory/AUTH_SESSION_AUDIT.md` — session-boundary state
+> - `/app/memory/RESTORE_DRILL.md` — restore drill procedure
+> - `/app/memory/R2_RETENTION_AUDIT.md` — R2 lifecycle state
+> - `/app/memory/DEPLOY_CHECKLIST.md` — pre-deploy gate
+
+---
+
+## 1. Sentry (Initiative 1)
+
+### Status
+- ✅ Backend scaffolded (`/app/backend/sentry_init.py`)
+- ✅ Frontend scaffolded (`/app/frontend/src/lib/sentryInit.js`)
+- ✅ PII scrubber active (passwords, tokens, secrets, api_keys, Authorization/Cookie headers)
+- ✅ Release identifier wired to `/api/version` `source_hash` — **frontend + backend share the same release string deterministically**
+- ✅ Auto session tracking enabled (release health works out of the box)
+- ✅ Tests: `test_iter186_phase2_hardening.py::test_sentry_*` (3 tests)
+- ⏳ **Pending DSN from you** — events do not reach Sentry yet
+
+### Required env vars (set in `/app/backend/.env` and `/app/frontend/.env`)
+| Var | Default | Notes |
+|---|---|---|
+| `SENTRY_DSN` | _unset_ | Backend DSN. If empty, Sentry is a no-op. |
+| `REACT_APP_SENTRY_DSN` | _unset_ | Frontend DSN. If empty, no-op. |
+| `SENTRY_ENV` | `production` | Environment tag. Set to `staging` for staging, `local` for dev. |
+| `REACT_APP_SENTRY_ENV` | `production` | Same, frontend. |
+| `SENTRY_TRACES_RATE` | `0` | Performance sampling rate (0–1). Start at 0; enable later. |
+| `SENTRY_PROFILES_RATE` | `0` | Profiling sample rate. |
+| `REACT_APP_SENTRY_TRACES_RATE` | `0` | Frontend performance. |
+| `REACT_APP_SENTRY_REPLAY_RATE` | `0` | Session Replay sampling. Start at 0. |
+
+### Activation steps (when DSNs are ready)
+1. Create two Sentry projects (or one with separate envs): `masci-hub-backend`, `masci-hub-frontend`.
+2. Copy DSNs into the respective `.env` files.
+3. `sudo supervisorctl restart backend` (backend picks up env on restart).
+4. Rebuild frontend (`yarn build` or trigger redeploy) — `REACT_APP_*` vars are baked at build time.
+5. Verify via `GET /api/version` — `sentry.enabled` must be `true`.
+6. Trigger a controlled error in staging first, then production.
+
+### Alert rules to configure in Sentry UI (after first events arrive)
+1. **New high-severity backend error**: any new `level:error` issue
+2. **Auth failure spike**: `tag:component=backend message:*login*` rate > 10/min
+3. **Release regression**: any issue first-seen in the latest release within 30 min of deploy
+4. **5xx burst on critical endpoint**: `transaction:/api/admin/*` 5xx count > 3 in 5 min
+
+### Rollback
+Unset `SENTRY_DSN` (and `REACT_APP_SENTRY_DSN`) → restart → Sentry goes back to no-op.
+
+---
+
+## 2. Session / portal hardening (Initiative 4)
+
+### Status
+- ✅ Mongo-backed middleware (`/app/backend/session_timeout.py`)
+- ✅ Tiered defaults: Admin/HR 15/4, Operations 30/8, Field 60/12
+- ✅ TTL index on `session_activity.last_seen_at` (30 days) — no unbounded growth
+- ✅ Token format unchanged (zero forced re-login at deploy time)
+- ✅ Health/version/login endpoints exempt
+- ✅ Tests: `test_iter186_phase2_hardening.py` (5 unit) + `test_iter186b_session_timeout_middleware.py` (8 integration)
+- ⏸ **Disabled by default** — flip `SESSION_TIMEOUTS_ENABLED=true` when you're ready
+
+### Required env vars
+| Var | Default | Notes |
+|---|---|---|
+| `SESSION_TIMEOUTS_ENABLED` | `false` | Master switch. Anything else → enforcement disabled. |
+| `SESSION_IDLE_MIN_ADMIN_HR` | `15` | Admin/HR idle minutes |
+| `SESSION_ABS_HOUR_ADMIN_HR` | `4` | Admin/HR absolute hours |
+| `SESSION_IDLE_MIN_OPERATIONS` | `30` | PM/Shop/Dispatch/Safety idle |
+| `SESSION_ABS_HOUR_OPERATIONS` | `8` | PM/Shop/Dispatch/Safety absolute |
+| `SESSION_IDLE_MIN_FIELD` | `60` | Field Leadership idle |
+| `SESSION_ABS_HOUR_FIELD` | `12` | Field Leadership absolute |
+
+### Activation steps
+1. Add `SESSION_TIMEOUTS_ENABLED=true` to `/app/backend/.env`.
+2. `sudo supervisorctl restart backend`.
+3. Verify via `GET /api/version` — `session_timeouts.enabled` must be `true` and the tier values you expect.
+4. Existing logged-in users get a "fresh" `session_activity` row on their next request (last_seen_at = now), so no one is forced out at the flip. Real expiry kicks in only after `last_seen_at` reaches the configured idle TTL.
+
+### Rollback
+Set `SESSION_TIMEOUTS_ENABLED=false` (or unset it) → restart → enforcement disabled. The `session_activity` collection auto-expires within 30 days.
+
+---
+
+## 3. R2 lifecycle (Initiative 3)
+
+### Status
+- ✅ Backups write to `backups/auto-90d/<filename>` (lifecycle-scoped prefix)
+- ✅ Legacy `backups/*.zip` untouched (NO retroactive deletion)
+- ✅ Usage probe (`/app/scripts/r2_usage_check.py`): 19.48 GB / 707 objects (well below 45 GB warn / 50 GB alert)
+- ✅ Passive scheduler-side warning (no email storm — log + `backup_health` row only)
+- ✅ Lifecycle apply tooling (`/app/scripts/r2_lifecycle_apply.py`) with `--show / --dry-run / --verify / apply`
+- ✅ Sentinel-based `--verify` round-trip (write → read → confirm rule → cleanup)
+- ⏳ **Lifecycle rule not yet applied** — current R2 token returns `AccessDenied` on `PutBucketLifecycleConfiguration`
+
+### Activation steps (when you've rotated the token)
+1. Cloudflare → API Tokens → create token with **Workers R2 Storage = Edit** OR **R2 Admin Read & Write**.
+2. Update `S3_ACCESS_KEY` / `S3_SECRET_KEY` in `/app/backend/.env`.
+3. `sudo supervisorctl restart backend`.
+4. `python3 /app/scripts/r2_lifecycle_apply.py --dry-run` → review plan.
+5. `python3 /app/scripts/r2_lifecycle_apply.py` → apply.
+6. `python3 /app/scripts/r2_lifecycle_apply.py --verify` → must exit 0.
+
+### Rollback
+`python3 /app/scripts/r2_lifecycle_apply.py --show`, copy the rules dict minus our `masci-backups-auto-90d` rule, and re-PUT via the Cloudflare dashboard. (Or simply set the rule's `Status: Disabled` in the dashboard.)
+
+---
+
+## 4. Restore drill (Initiative 2)
+
+### Status
+- ✅ End-to-end drill executed 2026-05-17 — 160 records restored from a real R2 backup into side DB `masci_restore_drill_2026_05_17_144307` on preview Mongo
+- ✅ Verdict: **PASS** (mongo connectivity ✓, 6 lite-mode collections populated, daily_reports attachments intact)
+- ✅ Side DB dropped after verification
+- ✅ Logged in `/app/memory/RESTORE_DRILL.md`
+
+### Operator quickstart
+```bash
+MONGO_URL=$(grep MONGO_URL /app/backend/.env | cut -d= -f2 | tr -d '"')
+DRILL_DB="masci_restore_drill_$(date +%Y_%m_%d_%H%M%S)"
+
+# 1. List available backups
+python3 /app/scripts/restore_drill.py --list --limit 10
+
+# 2. Dry run
+python3 /app/scripts/restore_drill.py --backup <key> --target "$MONGO_URL" \
+    --target-db "$DRILL_DB" --dry-run
+
+# 3. Real restore (refuses any target-db not starting with masci_restore_drill_)
+python3 /app/scripts/restore_drill.py --backup <key> --target "$MONGO_URL" \
+    --target-db "$DRILL_DB"
+
+# 4. Cleanup
+mongosh "$MONGO_URL" --eval "db.getSiblingDB(\"$DRILL_DB\").dropDatabase()"
+```
+
+### Safety rails (enforced in code)
+- `--target-db` MUST begin with `masci_restore_drill_` (override: `--i-know-what-i-am-doing`)
+- `--target-db` CANNOT equal live `DB_NAME`
+- Source backup is never modified
+- R2 lifecycle is NOT triggered by drill objects (drill writes to Mongo only)
+
+### Cadence
+Quarterly, per `RESTORE_DRILL.md`. The next drill is due **Q3 2026** (90 days from 2026-05-17).
+
+---
+
+## 5. Admin / HR access matrix (Initiative 5)
+
+### Status
+- ✅ Read-only audit: `/app/memory/AUTHORIZATION_MATRIX.md`
+- ⏸ Tightening (denied-access audit log, step-up re-auth) **awaiting your sign-off**
+
+### Identified gaps for next iteration
+1. Denied-access events not currently audit-logged (Admin endpoints log success only)
+2. No step-up re-auth on 7 super-sensitive routes (role mutations, password resets, user deletion, directory conversion, backup ops)
+3. Role-change-induced session invalidation not implemented (depends on Initiative 4 active)
+4. Bulk-delete confirmation absent on `DELETE /api/admin/backups/{filename}`
+5. Backup-download chain-of-custody log row absent
+
+---
+
+## 6. Test coverage
+
+| Test file | Pass | Description |
+|---|---|---|
+| `test_iter186_phase2_hardening.py` | 12/13 ✅ | Sentry config gate (3), session-timeout config (4), /api/version surface (2), restore drill safety rails (3), R2 lifecycle --verify (1). 1 skipped if not exercising live env. |
+| `test_iter186b_session_timeout_middleware.py` | 8/8 ✅ | Middleware integration: noop-disabled, first-seen, idle expiry, absolute expiry, health exempt, anonymous, tier-strictest, dev-token-bypass |
+| `test_iter185_human_readable_export.py` | 19/21 ✅ | Stage A + B regression — confirmed unchanged by hardening work |
+| Full sweep | **81 pass / 2 skipped / 0 fail** | Including iter179, iter180, iter182, iter183, admin_auth |
+
+---
+
+## 7. Pre-deploy checklist (Phase 2 specific)
+
+1. ✅ `bash /app/scripts/pre_deploy_check.sh` exits 0
+2. ✅ `GET /api/version` returns expected `release` + `session_timeouts.enabled` + `sentry.enabled`
+3. ✅ `GET /api/health/full` returns 200 with all subsystems true
+4. ✅ Stage B export tests pass (no regression on hardening work)
+5. ✅ Session timeouts default DISABLED in env (turn on only after staging soak)
+6. ✅ Sentry DSNs match the right environment (staging DSN never lands in production env)
+7. ✅ R2 token (if rotated) has the right permission scope
