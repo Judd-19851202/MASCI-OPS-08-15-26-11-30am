@@ -33,6 +33,7 @@ import { friendlyError } from "@/lib/friendlyErrors";
 import { formatApiError } from "@/lib/apiErrors";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
+import { WhyItMattersPanel } from "@/components/guidance";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
 import { translateUserInput } from "@/lib/translateOnSubmit";
@@ -581,6 +582,15 @@ export default function NewDailyReport({ publicMode = false }) {
         </div>
 
         {/* 01 — Report info */}
+        <WhyItMattersPanel title="Why the daily report matters">
+          <p>
+            This report becomes the operational record of the day. It feeds HR time
+            verification, PM project review, and after-the-fact investigations.{" "}
+            <Link to="/guidance/field-daily-report-howto" className="font-medium underline">
+              Read how to author a defensible report →
+            </Link>
+          </p>
+        </WhyItMattersPanel>
         <Section number="01" title={t("Report Information")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">

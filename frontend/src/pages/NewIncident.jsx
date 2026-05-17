@@ -35,6 +35,7 @@ import { DistributionList } from "@/components/DistributionList";
 import { useT, getLang } from "@/lib/i18n";
 import { friendlyError } from "@/lib/friendlyErrors";
 import { HelpTip } from "@/components/ui/HelpTip";
+import { WhyItMattersPanel } from "@/components/guidance";
 import { formatApiError } from "@/lib/apiErrors";
 import {
   INCIDENT_TYPES,
@@ -327,6 +328,15 @@ export default function NewIncident({ publicMode = false }) {
         </div>
 
         {/* Section 01 — Report Info */}
+        <WhyItMattersPanel title="Why incident documentation matters">
+          <p>
+            Record facts and photographs from the scene before leaving. This
+            report drives the safety investigation and any corrective action.{" "}
+            <Link to="/guidance/field-incident-escalation" className="font-medium underline">
+              How escalation works →
+            </Link>
+          </p>
+        </WhyItMattersPanel>
         <Section number="01" title={t("Report Information")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">

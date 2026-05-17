@@ -37,6 +37,7 @@ import { friendlyError } from "@/lib/friendlyErrors";
 import { Link } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { getSafetyToken } from "@/lib/safetyAuth";
+import { WhyItMattersPanel } from "@/components/guidance";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -281,6 +282,19 @@ export default function SafetyCorrectiveActions() {
 
   return (
     <SafetyShell title="Corrective Actions" kicker="SAFETY · CORRECTIVE ACTION REGISTER">
+      <div className="mb-5">
+        <WhyItMattersPanel title="Why Corrective Actions matter">
+          <p>
+            A Corrective Action is the proof that an incident, audit finding,
+            or near-miss was actually addressed — not just discussed. Always
+            assign to a person (not a department), set a clear deadline,
+            and verify before closing.{" "}
+            <Link to="/guidance/safety-corrective-actions-workflow" className="font-medium underline">
+              Deep workflow →
+            </Link>
+          </p>
+        </WhyItMattersPanel>
+      </div>
       <div className="flex flex-col sm:flex-row gap-3 mb-5 items-start sm:items-center justify-between">
         <p className="text-slate-600 text-sm sm:text-base max-w-2xl leading-relaxed">
           {t("Track every safety deficiency to resolution. Auto-link CAs to incidents, audits, inspections, training records, and meetings. The pipeline is")}{" "}

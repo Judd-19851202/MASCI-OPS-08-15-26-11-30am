@@ -25,6 +25,7 @@ const REQUIRED_SECTIONS = ["roles", "portals", "troubleshooting", "knowledge"];
 export default function AdminGuidanceCoverage() {
   const [coverage, setCoverage] = useState(null);
   const [misses, setMisses] = useState(null);
+  const [workflows, setWorkflows] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -32,12 +33,14 @@ export default function AdminGuidanceCoverage() {
     setLoading(true);
     setError("");
     try {
-      const [c, m] = await Promise.all([
+      const [c, m, w] = await Promise.all([
         api.get("/admin/guidance/coverage"),
         api.get("/admin/guidance/search-misses?limit=200"),
+        api.get("/admin/guidance/workflow-coverage"),
       ]);
       setCoverage(c.data);
       setMisses(m.data);
+      setWorkflows(w.data);
     } catch (e) {
       const msg = e?.response?.data?.detail || e?.message || "Failed to load guidance coverage";
       setError(msg);
@@ -187,6 +190,80 @@ export default function AdminGuidanceCoverage() {
               ({REQUIRED_SECTIONS.join(" · ")}). Counts include articles
               scoped to that portal; admin-only articles are not credited to
               other portals.
+            </p>
+          </section>
+        )}
+
+        {/* Workflow guidance map */}
+        {workflows && (
+          <section data-testid="workflow-coverage-section">
+            <h2 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              Workflow Guidance Map · {workflows.totals.covered}/{workflows.totals.total} covered
+              {workflows.totals.gaps > 0 && (
+                <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                  <AlertCircle className="h-3 w-3" />
+                  {workflows.totals.gaps} gap{workflows.totals.gaps === 1 ? "" : "s"}
+                </span>
+              )}
+            </h2>
+            <div className="overflow-x-auto rounded-md border border-slate-200">
+              <table className="min-w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium text-slate-700">Portal</th>
+                    <th className="px-3 py-2 text-left font-medium text-slate-700">Workflow</th>
+                    <th className="px-3 py-2 text-left font-medium text-slate-700">Primary Guidance</th>
+                    <th className="px-3 py-2 text-center font-medium text-slate-700">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {workflows.workflows.map((w) => (
+                    <tr
+                      key={w.id}
+                      className={`border-t border-slate-100 ${
+                        w.has_guidance ? "" : "bg-amber-50/40"
+                      }`}
+                      data-testid={`workflow-row-${w.id}`}
+                    >
+                      <td className="px-3 py-2 font-mono text-xs text-slate-600">{w.portal}</td>
+                      <td className="px-3 py-2 text-slate-900">{w.label}</td>
+                      <td className="px-3 py-2 text-slate-700">
+                        {w.primary_article ? (
+                          <a
+                            href={`/guidance/${w.primary_article.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-amber-700 hover:underline"
+                          >
+                            {w.primary_article.title}
+                          </a>
+                        ) : (
+                          <span className="italic text-amber-700">— no guidance —</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        {w.has_guidance ? (
+                          <span className="inline-flex items-center gap-1 text-emerald-700 text-xs font-medium">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Linked
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-amber-700 text-xs font-medium">
+                            <AlertCircle className="h-3.5 w-3.5" />
+                            Gap
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Per-workflow guidance link map. Use this to spot operational surfaces
+              that don't yet have linked guidance. Adding a workflow here without a
+              primary article surfaces it as a gap — that's the maintenance signal.
             </p>
           </section>
         )}

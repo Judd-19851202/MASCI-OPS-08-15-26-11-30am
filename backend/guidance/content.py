@@ -2716,3 +2716,177 @@ def coverage_report() -> dict:
         "required_sections": list(COVERAGE_REQUIRED_SECTIONS),
         "covered_portals": COVERAGE_PORTALS,
     }
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Workflow Registry — "Has Guidance" indicator (iter194)
+# ─────────────────────────────────────────────────────────────────────
+#
+# Lightweight registry mapping operational workflows / forms to the
+# guidance article(s) that cover them. Operator-directive: this is
+# maintenance tooling for admins, NOT analytics — it answers the single
+# question "which workflows in the platform are documented, and which
+# aren't yet?".
+#
+# Adding a workflow here is the lightweight commitment that says
+# "this surface exists; it should have guidance." A new workflow added
+# without a `primary_article` shows up as a gap on the admin map.
+
+_WORKFLOWS: list[dict] = [
+    # ── Field Leadership ─────────────────────────────────────────────
+    {"id": "daily-report", "label": "Daily Report",
+     "portal": "leadership", "primary_article": "field-daily-report-howto",
+     "alt_articles": ["why-daily-reports", "connect-field-to-payroll"]},
+    {"id": "equipment-checkout", "label": "Equipment Checkout",
+     "portal": "leadership", "primary_article": "field-equipment-checkout",
+     "alt_articles": ["connect-equipment-lifecycle", "why-equipment-accountability"]},
+    {"id": "verbal-coaching", "label": "Verbal Coaching",
+     "portal": "leadership", "primary_article": "field-coaching-documentation",
+     "alt_articles": ["field-writeup-authoring"]},
+    {"id": "write-up", "label": "Employee Write-Up",
+     "portal": "leadership", "primary_article": "field-writeup-authoring",
+     "alt_articles": ["hr-writeups-correctives"]},
+    {"id": "field-incident", "label": "Field Incident Report",
+     "portal": "leadership", "primary_article": "task-submit-incident",
+     "alt_articles": ["field-incident-escalation", "connect-incident-to-audit"]},
+    # ── Safety ───────────────────────────────────────────────────────
+    {"id": "safety-incident", "label": "Safety Incident Investigation",
+     "portal": "safety", "primary_article": "safety-incident-investigation",
+     "alt_articles": ["why-incidents", "safety-near-miss-importance"]},
+    {"id": "corrective-action", "label": "Corrective Action",
+     "portal": "safety", "primary_article": "safety-corrective-actions-workflow",
+     "alt_articles": ["why-corrective-actions"]},
+    {"id": "safety-audit", "label": "Safety Audit",
+     "portal": "safety", "primary_article": "safety-audits-workflow",
+     "alt_articles": []},
+    {"id": "fire-extinguisher", "label": "Fire Extinguisher Inspection",
+     "portal": "safety", "primary_article": "safety-fire-extinguishers",
+     "alt_articles": []},
+    {"id": "safety-training", "label": "Safety Training Records",
+     "portal": "safety", "primary_article": "safety-training-compliance",
+     "alt_articles": []},
+    # ── HR ───────────────────────────────────────────────────────────
+    {"id": "time-verification", "label": "Time Verification",
+     "portal": "hr", "primary_article": "hr-time-verification-deep",
+     "alt_articles": ["task-verify-time", "why-time-verification", "connect-field-to-payroll"]},
+    {"id": "hr-onboarding", "label": "Employee Onboarding",
+     "portal": "hr", "primary_article": "hr-onboarding-new-hire",
+     "alt_articles": []},
+    {"id": "hr-offboarding", "label": "Employee Offboarding",
+     "portal": "hr", "primary_article": "hr-offboarding",
+     "alt_articles": ["connect-equipment-lifecycle"]},
+    # ── Shop / Fleet ─────────────────────────────────────────────────
+    {"id": "pre-op", "label": "Equipment Pre-Op Inspection",
+     "portal": "shop", "primary_article": "shop-preop-deep",
+     "alt_articles": ["shop-operator-responsibilities"]},
+    {"id": "failed-preop", "label": "Failed Pre-Op Workflow",
+     "portal": "shop", "primary_article": "shop-failed-preop-workflow",
+     "alt_articles": ["connect-shop-to-dispatch"]},
+    {"id": "damage-report", "label": "Equipment Damage Report",
+     "portal": "shop", "primary_article": "shop-damage-reporting",
+     "alt_articles": []},
+    {"id": "maintenance-coordination", "label": "Maintenance Coordination",
+     "portal": "shop", "primary_article": "shop-maintenance-coordination",
+     "alt_articles": []},
+    {"id": "equipment-return", "label": "Equipment Return",
+     "portal": "shop", "primary_article": "shop-equipment-return",
+     "alt_articles": ["connect-equipment-lifecycle"]},
+    # ── Dispatch ─────────────────────────────────────────────────────
+    {"id": "equipment-movement", "label": "Equipment Movement / Transfer",
+     "portal": "dispatch", "primary_article": "dispatch-equipment-movement",
+     "alt_articles": ["connect-equipment-lifecycle"]},
+    {"id": "holds-transfers", "label": "Holds & Transfers",
+     "portal": "dispatch", "primary_article": "dispatch-holds-transfers",
+     "alt_articles": []},
+    # ── PM ───────────────────────────────────────────────────────────
+    {"id": "pm-project-review", "label": "PM Project Review",
+     "portal": "pm", "primary_article": "pm-project-review-cadence",
+     "alt_articles": ["connect-pm-field-review"]},
+    # ── Admin ────────────────────────────────────────────────────────
+    {"id": "admin-user-mgmt", "label": "User Management",
+     "portal": "admin", "primary_article": "admin-user-management",
+     "alt_articles": []},
+    {"id": "admin-backup-restore", "label": "Backups & Restore",
+     "portal": "admin", "primary_article": "admin-backup-restore",
+     "alt_articles": ["why-backups"]},
+    {"id": "admin-role-templates", "label": "Role Templates",
+     "portal": "admin", "primary_article": "admin-role-templates",
+     "alt_articles": []},
+
+    # ── Known operational surfaces that do NOT yet have guidance ─────
+    # These are real gaps — registered here so the admin map shows them
+    # as outstanding work, not so they're hidden.
+    {"id": "toolbox-meeting", "label": "Toolbox Meeting / JHA Discussion",
+     "portal": "leadership", "primary_article": None, "alt_articles": []},
+    {"id": "jha", "label": "Job Hazard Analysis",
+     "portal": "safety", "primary_article": None, "alt_articles": []},
+    {"id": "trench-box", "label": "Trench Box Reference",
+     "portal": "safety", "primary_article": None, "alt_articles": []},
+    {"id": "po-request", "label": "PO Request / Approval",
+     "portal": "pm", "primary_article": None, "alt_articles": []},
+    {"id": "document-expirations", "label": "Document Expirations Tracking",
+     "portal": "hr", "primary_article": None, "alt_articles": []},
+    {"id": "tasks-actions", "label": "Cross-Portal Tasks & Actions",
+     "portal": "admin", "primary_article": None, "alt_articles": []},
+]
+
+
+def workflow_coverage_report() -> dict:
+    """Per-workflow guidance-link map. Used by admin maintenance UI.
+
+    Returns:
+      {
+        workflows: [
+          {id, label, portal, primary_article: {id,title}|None, alt_articles: [{id,title}], has_guidance: bool}
+        ],
+        totals: {total, covered, gaps},
+        per_portal: {portal: {total, covered, gaps}}
+      }
+    """
+    # Build a lookup of article id → title for fast resolution
+    title_by_id = {a["id"]: a["title"] for a in _ARTICLES}
+
+    rows: list[dict] = []
+    per_portal: dict[str, dict] = {}
+    covered = 0
+    gaps = 0
+
+    for w in _WORKFLOWS:
+        primary_id = w.get("primary_article")
+        primary = None
+        if primary_id and primary_id in title_by_id:
+            primary = {"id": primary_id, "title": title_by_id[primary_id]}
+        alts = []
+        for aid in (w.get("alt_articles") or []):
+            if aid in title_by_id:
+                alts.append({"id": aid, "title": title_by_id[aid]})
+        has = primary is not None
+        if has:
+            covered += 1
+        else:
+            gaps += 1
+        portal = w.get("portal", "unknown")
+        bucket = per_portal.setdefault(portal, {"total": 0, "covered": 0, "gaps": 0})
+        bucket["total"] += 1
+        if has:
+            bucket["covered"] += 1
+        else:
+            bucket["gaps"] += 1
+        rows.append({
+            "id": w["id"],
+            "label": w["label"],
+            "portal": portal,
+            "primary_article": primary,
+            "alt_articles": alts,
+            "has_guidance": has,
+        })
+
+    return {
+        "workflows": rows,
+        "totals": {
+            "total": len(_WORKFLOWS),
+            "covered": covered,
+            "gaps": gaps,
+        },
+        "per_portal": per_portal,
+    }

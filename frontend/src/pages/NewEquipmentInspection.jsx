@@ -24,6 +24,7 @@ import { useT, getLang } from "@/lib/i18n";
 import { formatApiError } from "@/lib/apiErrors";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
+import { WhyItMattersPanel } from "@/components/guidance";
 import { toast } from "sonner";
 
 const inputCls =
@@ -625,6 +626,15 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           </div>
         )}
 
+        <WhyItMattersPanel title="Why the pre-op matters">
+          <p>
+            Pre-op is a daily promise that the equipment is safe to run.
+            Box-ticking without walking the asset is signing a false document.{" "}
+            <Link to="/guidance/shop-preop-deep" className="font-medium underline">
+              What every pre-op should catch →
+            </Link>
+          </p>
+        </WhyItMattersPanel>
         <Section number="01" title={t("Project & Operator")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">

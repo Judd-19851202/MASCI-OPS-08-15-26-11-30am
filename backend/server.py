@@ -590,6 +590,18 @@ async def admin_guidance_coverage(
     return coverage_report()
 
 
+@api_router.get("/admin/guidance/workflow-coverage")
+async def admin_guidance_workflow_coverage(
+    _admin: bool = Depends(require_admin_strict),
+):
+    """Per-workflow guidance-link map (iter194).
+
+    Maintenance tooling — answers 'which forms/workflows have linked
+    guidance, and which are gaps?'. Read-only registry inspection."""
+    from guidance.content import workflow_coverage_report
+    return workflow_coverage_report()
+
+
 @api_router.get("/admin/guidance/search-misses")
 async def admin_guidance_search_misses(
     limit: int = 100,

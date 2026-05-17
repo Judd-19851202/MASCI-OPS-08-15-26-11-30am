@@ -1,6 +1,76 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 3 · Guidance Lifecycle (Workflow Registry) + Phase C Contextual Embeds · ✅ COMPLETE (preview only)
+
+Operator approved both: the "Has Guidance" maintenance-tool indicator and Phase C contextual embeds in the 6 priority forms. Strict directives: lightweight/admin-only/no-analytics-bloat for the indicator; no popup spam / mobile-first / collapsible / RBAC-aware / context-sensitive-only for the embeds. Don't turn the platform into a training website.
+
+### What landed (iter194)
+
+**Backend — Workflow Registry** (`/app/backend/guidance/content.py`):
+- New `_WORKFLOWS` registry: 30 operational surfaces (Daily Reports, Incidents, Time Verification, Pre-Op, Equipment Checkout, Corrective Actions, Equipment Movement, etc.) mapped to primary + alt articles
+- New `workflow_coverage_report()` function: per-workflow guidance-link map with totals + per-portal aggregates
+- **6 operator-flagged gap surfaces explicitly registered as outstanding maintenance work**: toolbox-meeting, jha, trench-box, po-request, document-expirations, tasks-actions
+- Current state: **24/30 covered, 6 gaps**
+
+**Backend — Admin endpoint**:
+- `GET /api/admin/guidance/workflow-coverage` (admin-strict) — returns the registry with article titles resolved
+- Read-only, no DB writes, no PII
+
+**Frontend — Coverage Dashboard extension** (`/app/frontend/src/pages/admin/AdminGuidanceCoverage.jsx`):
+- New "Workflow Guidance Map" section with header showing `24/30 covered · 6 gaps`
+- Per-row link to the primary article; gap rows highlighted amber with "no guidance" italic placeholder
+- Maintenance-tool framing in the help text below the table
+
+**Frontend — Phase C contextual embeds** in 6 priority forms:
+- `NewDailyReport.jsx` — top-of-form WhyItMattersPanel linking to `field-daily-report-howto`
+- `NewIncident.jsx` — WhyItMattersPanel linking to `field-incident-escalation`
+- `NewEquipmentInspection.jsx` (Pre-Op) — WhyItMattersPanel linking to `shop-preop-deep`
+- `HrTimeVerification.jsx` — WhyItMattersPanel linking to `hr-time-verification-deep`
+- `SafetyCorrectiveActions.jsx` — WhyItMattersPanel linking to `safety-corrective-actions-workflow`
+- `FieldLeadershipFormPage.jsx` — kind-aware panel (write_up, verbal_coaching, equipment_checkout, equipment_return) with per-kind article
+
+**UX discipline maintained per operator directive**:
+- One panel per form (top-of-form, not field-by-field)
+- Dismissible (× button, in-session state)
+- Mobile-first sizing (uses existing `WhyItMattersPanel` component)
+- Inline "Deep dive →" link to authoritative article — no overlays, no popups
+- RBAC inherited from the host page (panels render only after the user has access)
+
+### Test coverage (iter194)
+- **NEW** `tests/test_iter194_guidance_workflow_registry.py` — 9 tests:
+  - Admin-strict on `/api/admin/guidance/workflow-coverage` (anon 401, HR blocked)
+  - Shape & consistency (totals = covered + gaps, per_portal aggregates match)
+  - 6 Phase-C priority forms all registered with linked guidance
+  - 6 operator-flagged gap surfaces all present as gaps
+  - All primary_article references resolve to fetchable articles
+  - All alt_article references resolve
+- **Combined guidance suite**: 181/181 ✅
+- **Full hardening regression sweep**: 403/403 ✅
+
+### Verified live in preview
+- Coverage Dashboard renders: 85 articles · 7/7 portals mature · workflow map 24/30 covered · 6 gaps surfaced
+- Phase C panel on `/hr/time-verification` rendered correctly: yellow callout · why text · dismiss button · deep-dive link to `hr-time-verification-deep`
+
+### Production posture
+- 🛑 NOT deployed to production — preview-only per directive
+- 🟢 Guidance system has now matured into: RBAC-aware operational knowledge infrastructure + structural coverage governance + demand-signal logging + maintenance-tool workflow registry + contextual embed in priority forms
+
+### Next Action Items
+- 🟢 Operator reviews iter194 (Workflow Map + Phase C embeds) in preview
+- 🟢 Backfill the 6 registered gaps as content is authored (toolbox-meeting, jha, trench-box, po-request, document-expirations, tasks-actions)
+- 🟢 Phase C continuation (operator's call): extend embeds to additional forms if/when desired (Toolbox Meeting, JHA, Field Leadership write-ups already covered through kind-aware mapping)
+- 🟡 Phase 2 close-out: 48h R2 lifecycle re-verify, Sentry/timeout soak sign-off
+
+### Future / Backlog
+- Phase D: video / interactive walkthrough authoring
+- K4b Unified User Management UI Mutations (P2)
+- K5 Temp Password / Onboarding Standardization (P2)
+- Stage B.1 Owner Snapshot PDF (P2)
+- `server.py` router/services refactor (deferred backlog)
+
+---
+
 ## 2026-02-XX — Phase 3 · Operational Guidance · Phase B Iteration 3 (Dispatch + PM + Admin) + Governance Layer · ✅ COMPLETE (preview only)
 
 Operator green-lit final iter of Phase B saturation: Dispatch + PM + Admin content. Operator also approved the operational governance infrastructure (Coverage Dashboard + Search-Zero-Results logging) explicitly framed as governance — not analytics. Strict requirements: admin/operator-only, RBAC-aware, lightweight, no PII, no surveillance.

@@ -32,6 +32,33 @@ import { translateUserInput } from "@/lib/translateOnSubmit";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
+import { WhyItMattersPanel } from "@/components/guidance";
+
+// Phase C · contextual guidance map per FL form kind (iter194).
+// Keeps the embed lightweight: one inline WHY callout linking to the
+// authoritative article. No popup spam, no clutter, mobile-first.
+const FL_KIND_GUIDANCE = {
+  equipment_checkout: {
+    title: "Why Equipment Checkout matters",
+    article: "field-equipment-checkout",
+    body: "Equipment Checkout records who has what. It's the feeder for Shop (asset whereabouts) and HR (employee accountability).",
+  },
+  equipment_return: {
+    title: "Why a clean return matters",
+    article: "shop-equipment-return",
+    body: "Returns close the accountability loop opened at checkout. Photograph the condition at return; note any damage discovered.",
+  },
+  verbal_coaching: {
+    title: "Why coaching documentation matters",
+    article: "field-coaching-documentation",
+    body: "A 30-second record now becomes the basis for a write-up if the pattern repeats. Record date, what was discussed, what was agreed.",
+  },
+  write_up: {
+    title: "Why this write-up matters",
+    article: "field-writeup-authoring",
+    body: "Defensible write-ups record facts, the conversation, and the agreed next step. Vague write-ups protect nobody.",
+  },
+};
 import {
   useDraftSync, getActorId, mintIdempotencyKey, enqueueUpload,
   DraftStatusPill,
@@ -630,6 +657,22 @@ export default function FieldLeadershipFormPage() {
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
         <h1 className="font-display text-3xl sm:text-4xl font-black mt-1">{l(form.title, lang)}</h1>
         <p className="text-slate-600 mt-2 max-w-xl">{l(form.desc, lang)}</p>
+
+        {FL_KIND_GUIDANCE[kind] && (
+          <div className="mt-4 max-w-2xl">
+            <WhyItMattersPanel title={FL_KIND_GUIDANCE[kind].title}>
+              <p>
+                {FL_KIND_GUIDANCE[kind].body}{" "}
+                <Link
+                  to={`/guidance/${FL_KIND_GUIDANCE[kind].article}`}
+                  className="font-medium underline"
+                >
+                  Read more →
+                </Link>
+              </p>
+            </WhyItMattersPanel>
+          </div>
+        )}
 
         <Card className="mt-8 p-5 sm:p-6 space-y-5">
           {/* JOB */}
