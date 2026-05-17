@@ -1,8 +1,15 @@
 # MASCI Hub — Phase 2 Hardening Runbook
 
 > **Active runbook** for Phase 2 operational hardening (Sentry, session
-> timeouts, R2 lifecycle, restore drills, Admin/HR audit). Pairs with:
+> timeouts, R2 lifecycle, restore drills, Admin/HR audit).
 >
+> **Milestone close-out tracking lives in `/app/memory/PHASE2_MILESTONE_CLOSEOUT.md`** — that doc is the canonical sign-off ledger for when Phase 2 is closed and the Training / Help / Operational Guidance initiative is unblocked. This runbook is the implementation status; the close-out doc is the gate.
+>
+> Pairs with:
+>
+> - `/app/memory/PHASE2_MILESTONE_CLOSEOUT.md` — sign-off ledger
+> - `/app/memory/SENTRY_PRODUCTION_CUTOVER.md` — Sentry production runbook
+> - `/app/memory/R2_LIFECYCLE_ACTIVATION.md` — R2 activation runbook
 > - `/app/memory/DATA_PORTABILITY.md` — backup export system
 > - `/app/memory/AUTHORIZATION_MATRIX.md` — Admin/HR access classification
 > - `/app/memory/AUTH_SESSION_AUDIT.md` — session-boundary state
