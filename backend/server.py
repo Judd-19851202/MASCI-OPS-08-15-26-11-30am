@@ -6090,11 +6090,23 @@ def _hours_since_last_backup() -> Optional[float]:
 
     Used by the scheduler at boot time to decide whether to trigger a
     catch-up backup (because the container restarted across a missed slot).
+
+    Iter182 fix (2026-05-17): previously this only counted
+    ``MASCI_full_backup_*.zip``, which silently ignored lite-mode
+    backups. Production runs in lite-mode (``BACKUP_LITE_MODE_ONLY``
+    or auto-downgrade), so the only artifacts on disk were
+    ``MASCI_lite_backup_*.zip`` → the staleness check returned None →
+    the scheduler thought "no prior backup ever" → every container
+    restart fired a catch-up backup → user received one email per
+    restart (60+ per day during active development). Now counts BOTH
+    full and lite filenames so the same-day protection actually
+    engages on restart.
     """
     if not BACKUPS_DIR.exists():
         return None
     try:
         files = list(BACKUPS_DIR.glob("MASCI_full_backup_*.zip"))
+        files.extend(BACKUPS_DIR.glob("MASCI_lite_backup_*.zip"))
         if not files:
             return None
         newest = max(f.stat().st_mtime for f in files)
@@ -6194,6 +6206,40 @@ async def _backup_scheduler_loop(db) -> None:
     _BACKUP_SCHEDULER_STATE["armed_at"] = now.isoformat()
 
     hours_stale = _hours_since_last_backup()
+
+    # Iter182 belt-and-suspenders (2026-05-17): cross-check against the
+    # ``backup_health`` Mongo collection. The on-disk staleness check
+    # can return stale=None if an emergency prune just wiped all
+    # local archives (the scheduler log line "[scheduled-backup]
+    # disk at 77% on boot — running emergency prune" routinely
+    # appears). The Mongo collection persists every successful
+    # backup row with its own TTL, so use it as a second source of
+    # truth. We pick whichever timestamp is MORE recent.
+    try:
+        latest_row = await db.backup_health.find_one(
+            {"ok": True},
+            {"_id": 0, "ts": 1, "mode": 1},
+            sort=[("ts", -1)],
+        )
+        if latest_row and latest_row.get("ts"):
+            ts_str = latest_row["ts"]
+            # Tolerate both trailing-Z and offset ISO formats
+            ts_clean = ts_str.replace("Z", "+00:00")
+            row_ts = datetime.fromisoformat(ts_clean)
+            if row_ts.tzinfo is None:
+                row_ts = row_ts.replace(tzinfo=timezone.utc)
+            mongo_hours = (now - row_ts).total_seconds() / 3600.0
+            if hours_stale is None or mongo_hours < hours_stale:
+                logger.info(
+                    f"[scheduled-backup] staleness: disk={hours_stale}h "
+                    f"mongo={mongo_hours:.1f}h (using mongo, mode="
+                    f"{latest_row.get('mode')!r})"
+                )
+                hours_stale = mongo_hours
+    except Exception as e:  # noqa: BLE001
+        logger.warning(
+            f"[scheduled-backup] mongo staleness cross-check failed (non-fatal): {e}"
+        )
 
     if hours_stale is not None and hours_stale <= 8:
         # System is healthy. Original behaviour: skip past slots today.
