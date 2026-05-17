@@ -503,6 +503,148 @@ def api_healthz():
 # needs to hit it anonymously — which is why it leaks zero useful detail
 # beyond pass/fail per subsystem.
 # ─────────────────────────────────────────────────────────────────────────
+@api_router.get("/guidance/sections")
+async def guidance_sections(request: Request):
+    """Operational Guidance Center — list visible sections + counts.
+    RBAC: open endpoint; visibility filtered by caller's portal tokens."""
+    from guidance.content import sections_for
+    scopes = await _guidance_caller_scopes(request)
+    return {"sections": sections_for(scopes), "scopes": sorted(scopes)}
+
+
+@api_router.get("/guidance/articles")
+async def guidance_articles(request: Request, section: Optional[str] = None):
+    """List visible articles (optionally filtered by section)."""
+    from guidance.content import visible_articles
+    scopes = await _guidance_caller_scopes(request)
+    rows = visible_articles(scopes)
+    if section:
+        rows = [a for a in rows if a.get("section") == section]
+    return {
+        "articles": [
+            {"id": a["id"], "title": a["title"], "summary": a.get("summary"),
+             "section": a["section"], "tags": a.get("tags") or []}
+            for a in rows
+        ],
+        "count": len(rows),
+    }
+
+
+@api_router.get("/guidance/articles/{article_id}")
+async def guidance_article(article_id: str, request: Request):
+    """Fetch a single article. Returns 404 if not visible to caller —
+    a restricted title is never leaked to an unauthorized caller."""
+    from guidance.content import get_article
+    scopes = await _guidance_caller_scopes(request)
+    art = get_article(article_id, scopes)
+    if not art:
+        raise HTTPException(status_code=404, detail="Not found")
+    return art
+
+
+@api_router.get("/guidance/search")
+async def guidance_search(request: Request, q: str = "", limit: int = 25):
+    """Title + body keyword match, RBAC-aware, no fuzzy (Phase A spec)."""
+    from guidance.content import search_articles
+    scopes = await _guidance_caller_scopes(request)
+    safe_limit = max(1, min(int(limit or 25), 100))
+    return {
+        "query": q,
+        "results": search_articles(q, scopes, limit=safe_limit),
+    }
+
+
+async def _guidance_caller_scopes(request: Request) -> set:
+    """Compute the caller's guidance scope set from whatever portal
+    tokens are presented in headers. Best-effort and never raises —
+    missing/invalid tokens just shrink the scope set to {"public"}."""
+    from guidance.content import caller_scopes
+
+    def hdr(name: str) -> Optional[str]:
+        return request.headers.get(name) or request.headers.get(name.lower())
+
+    is_admin = _is_valid_admin_token(hdr("x-admin-token"))
+    # PM token can be shared or per-user
+    pm_tok = hdr("x-pm-token") or ""
+    is_pm = False
+    if pm_tok:
+        if _is_valid_pm_token(pm_tok):
+            is_pm = True
+        else:
+            try:
+                from pm_auth import is_valid_pm_user_token_async
+                pm_row = await is_valid_pm_user_token_async(db, pm_tok)
+                is_pm = pm_row is not None
+            except Exception:
+                is_pm = False
+    # Shop
+    shop_tok = hdr("x-shop-token") or ""
+    is_shop = False
+    if shop_tok:
+        # legacy shared-shop token validator
+        try:
+            is_shop = _is_valid_shop_token(shop_tok) if "_is_valid_shop_token" in globals() else False
+        except Exception:
+            is_shop = False
+        if not is_shop:
+            try:
+                from shop_users import is_valid_shop_user_token_async
+                row = await is_valid_shop_user_token_async(db, shop_tok)
+                is_shop = row is not None
+            except Exception:
+                is_shop = False
+    # HR / Safety / Dispatch — async-only
+    is_hr = False
+    hr_tok = hdr("x-hr-token") or ""
+    if hr_tok:
+        try:
+            from hr_users import is_valid_hr_user_token_async
+            row = await is_valid_hr_user_token_async(db, hr_tok)
+            is_hr = row is not None
+        except Exception:
+            is_hr = False
+    is_safety = False
+    safety_tok = hdr("x-safety-token") or ""
+    if safety_tok:
+        try:
+            from safety_users import is_valid_safety_user_token_async
+            row = await is_valid_safety_user_token_async(db, safety_tok)
+            is_safety = row is not None
+        except Exception:
+            is_safety = False
+    is_dispatch = False
+    dispatch_tok = hdr("x-dispatch-token") or ""
+    if dispatch_tok:
+        try:
+            from dispatch_users import is_valid_dispatch_user_token_async
+            row = await is_valid_dispatch_user_token_async(db, dispatch_tok)
+            is_dispatch = row is not None
+        except Exception:
+            is_dispatch = False
+    # Field leadership
+    is_leadership = False
+    leadership_tok = hdr("x-leadership-token") or ""
+    if leadership_tok:
+        try:
+            from field_leadership_auth import is_valid_leadership_token_async
+            row = await is_valid_leadership_token_async(db, leadership_tok)
+            is_leadership = row is not None
+        except Exception:
+            is_leadership = False
+
+    return caller_scopes(
+        is_admin=is_admin,
+        is_hr=is_hr,
+        is_safety=is_safety,
+        is_shop=is_shop,
+        is_dispatch=is_dispatch,
+        is_pm=is_pm,
+        is_leadership=is_leadership,
+        is_authenticated=any([is_admin, is_pm, is_shop, is_hr, is_safety, is_dispatch, is_leadership]),
+    )
+
+
+
 @api_router.get("/health/full")
 async def api_health_full(response: Response):
     out = {"ok": True, "mongo": False, "scheduler": False, "backup_recent": False}

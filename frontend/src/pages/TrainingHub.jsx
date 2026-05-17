@@ -13,6 +13,8 @@ import {
   Printer,
   QrCode,
   Lock,
+  BookOpen,
+  ChevronRight,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
@@ -112,6 +114,32 @@ export default function TrainingHub() {
           <p className="text-slate-600 text-base sm:text-lg mt-4 leading-relaxed">
             {t("Short, focused lessons for every role — Field Crews, Shop, Project Managers, and Admins. Written walk-throughs, printable cheat sheets, and video tutorials. Pick your track.")}
           </p>
+
+          {/* iter190 — Operational Guidance Center entry banner.
+              Wraps and absorbs this Training Hub without breaking
+              existing role-track URLs (/training/<slug> still works). */}
+          <Link
+            to="/guidance"
+            className="mt-5 flex items-center gap-3 bg-amber-50 border-2 border-amber-300 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all group"
+            data-testid="training-hub-guidance-banner"
+          >
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-700 font-bold">
+                New · Operational Guidance Center
+              </div>
+              <div className="font-display text-lg font-black text-slate-900">
+                How and why to run MASCI operations
+              </div>
+              <div className="text-[13px] text-slate-600 mt-0.5">
+                Role-based training · task-based help · troubleshooting · why each workflow matters.
+                Filtered to your portal access.
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-amber-700 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 mb-10">

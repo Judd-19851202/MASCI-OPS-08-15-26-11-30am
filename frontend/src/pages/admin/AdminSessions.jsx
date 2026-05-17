@@ -19,6 +19,7 @@ import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { TroubleshootingLink } from "@/components/guidance";
 
 const STATUS_STYLE = {
   active: {
@@ -325,6 +326,9 @@ export default function AdminSessions() {
           Server time:{" "}
           <span className="font-mono">{fmtTs(data?.server_now)}</span>
         </p>
+        <div className="mt-2">
+          <TroubleshootingLink articleId="why-session-timeouts" label="Why do sessions expire?" />
+        </div>
       </div>
     </AdminShell>
   );

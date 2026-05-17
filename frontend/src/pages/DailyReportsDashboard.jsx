@@ -19,6 +19,7 @@ import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
+import { WhyItMattersPanel } from "@/components/guidance";
 
 export default function DailyReportsDashboard() {
   const { t } = useT();
@@ -96,6 +97,18 @@ export default function DailyReportsDashboard() {
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
             {t("Crews · subs · visitors · equipment · materials · weather · photos. One record per crew, per day.")}
           </p>
+        </div>
+
+        {/* iter190 — Operational Guidance Center example placement. */}
+        <div className="mb-4">
+          <WhyItMattersPanel title="Why daily reports matter">
+            Daily reports are MASCI's most-referenced operational record.
+            They support payroll cross-check, project review, dispute
+            resolution, and after-the-fact investigations.{" "}
+            <Link to="/guidance/why-daily-reports" className="text-amber-700 hover:underline font-semibold">
+              Learn more →
+            </Link>
+          </WhyItMattersPanel>
         </div>
 
         <div className="bg-white border-2 border-slate-300 rounded-md overflow-hidden">

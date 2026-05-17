@@ -1,6 +1,97 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 3 (NEW MATURITY PHASE) · Training / Help / Operational Guidance · Phase A · ✅ COMPLETE (preview only, no production deploy)
+
+Operator-initiated kickoff of the post-hardening maturity phase. Scope strictly Phase A of the directive: foundation, RBAC architecture, contextual help components, 2–3 example placements. No content saturation, no production deploy.
+
+### Architectural decisions (operator-approved)
+- Existing Training Hub: **wrap and absorb** — legacy `/training` + `/ops-training` reachable as deep links; new entry banner directs to `/guidance`
+- RBAC enforcement: **hybrid** — server gates content endpoints, frontend filters menu shells
+- Content storage: **in-code Python modules** (`/app/backend/guidance/content.py`) for Phase A
+- Search depth: **title + body keyword match, RBAC-aware, no fuzzy**
+- Contextual components: **build + wire 2–3 examples**
+
+### What landed (iter190)
+
+**Backend**
+- **NEW** `/app/backend/guidance/__init__.py` + `/app/backend/guidance/content.py` — 31-article in-code registry across 7 sections (Roles · Quick Help · Portal Guides · Troubleshooting · Why It Matters · Reliability & Data Portability · Onboarding). Scope vocabulary: `public · field · admin · hr · safety · shop · dispatch · pm · leadership`.
+- **NEW** 4 endpoints in `server.py`:
+  - `GET /api/guidance/sections` — scoped section catalog + visible counts
+  - `GET /api/guidance/articles` (+ `?section=`) — scoped article list
+  - `GET /api/guidance/articles/{id}` — single article (404 if not visible to caller, never leaks title)
+  - `GET /api/guidance/search?q=` — title+body keyword match, scoped, ranked by match count
+- Scope detection helper `_guidance_caller_scopes` resolves each portal token (admin/pm/shop/hr/safety/dispatch/leadership) — best-effort, never raises.
+
+**Frontend**
+- **NEW** `/app/frontend/src/components/guidance/index.jsx` — 5 reusable components:
+  - `HelpTip` — inline (i) icon, click-to-reveal popover for forms
+  - `WhyItMattersPanel` — amber callout, dismissible
+  - `WhatHappensNextPanel` — emerald collapsible callout
+  - `RelatedWorkflowsPanel` — fetches RBAC-filtered related list from server
+  - `TroubleshootingLink` — one-line "need help?" pointer
+- **NEW** `/app/frontend/src/pages/guidance/OperationalGuidanceCenter.jsx` — single shell handling hub home · section view · article reader · search. Plain block renderer for `p / steps / bullets / why / next / warn / tip / mistakes`. Mobile-first.
+- 3 routes wired at `/guidance`, `/guidance/section/:sectionId`, `/guidance/:articleId`.
+
+**Example contextual placements (Phase A goal: visible pattern for the team)**
+- `TrainingHub.jsx` — banner above the role tracks directing to the new Guidance Center (the wrap-and-absorb visible entry point)
+- `DailyReportsDashboard.jsx` — `WhyItMattersPanel` with link to `why-daily-reports`
+- `AdminSessions.jsx` — `TroubleshootingLink` to `why-session-timeouts`
+
+### RBAC verification (live)
+- Anonymous: 4 visible sections, 5 visible articles (`onboard-login`, `onboard-mobile`, `tshoot-session-timeout`, `why-session-timeouts`, `role-new-employee`)
+- Admin: 7 visible sections, 31 visible articles
+- Anon GET `/api/guidance/articles/role-admin` → **404** (title never leaked)
+- Admin GET same → **200** with full body
+- Anon search `audit` → 0 admin-titled results (admin-only `why-audit-logs` filtered out)
+- Admin search `audit` → returns `why-audit-logs` correctly
+
+### Test coverage
+- `test_iter190_guidance_rbac.py` — 16 tests covering RBAC at every layer (sections, articles, single article, related-filtering, search). All pass.
+- Full hardening sweep: 227/228 pass (one pre-existing test-ordering flakiness in iter187, passes in isolation — not introduced by this work).
+
+### Production posture
+- 🛑 **NOT deployed to production** — operator directive `Do NOT deploy this to production until reviewed, tested, and explicitly approved`
+- 🟢 Live in preview at `/guidance`
+- 🟢 Legacy routes preserved (`/training`, `/ops-training`)
+
+### Phase A deliverables (per directive checklist)
+- ✅ Training Hub restructure (wrap-and-absorb, legacy preserved)
+- ✅ RBAC-aware help/search architecture
+- ✅ Role-based training sections (10 roles seeded)
+- ✅ Task-based quick help sections (3 tasks seeded)
+- ✅ Troubleshooting system (4 troubleshooting articles seeded)
+- ✅ Operational knowledge / Why It Matters sections (8 articles seeded)
+- ✅ Contextual help components (5 reusable)
+- ✅ Related workflow framework (RBAC-filtered server-side)
+- ✅ What Happens Next framework (block type + callout)
+- ✅ Portal-specific guidance panels (4 portals seeded, more in Phase B)
+- ✅ System reliability / backup / data portability training (1 admin article seeded)
+- ✅ New user onboarding guidance (2 articles seeded)
+- ✅ Preview QA report (this entry)
+- ✅ RBAC/search visibility test summary (16 tests · 16/16 pass)
+
+### Phase B/C/D backlog (for next operator green-light)
+- Content saturation across all 10 roles and remaining portals
+- Why-It-Matters articles for remaining record types (corrective actions / fire extinguishers / training records / human-readable exports / role-based access)
+- Wider contextual help placement across forms
+- Per-portal quick-start panels embedded directly in portal landings
+- Search analytics (which queries return zero results → content gap signal)
+- Screenshots / video / guided walkthroughs (Phase D)
+
+### Held / waiting on operator
+- 🟡 Operator review of preview behavior + Phase A scope acceptance
+- 🛑 Production deploy hold (per directive)
+- 🛑 Sentry alert rules · 24h timeout soak · 48h R2 re-verify · Phase 2 milestone close-out — all still pending from prior priority list
+
+### Next Action Items
+- 🟢 Operator reviews `/guidance` in preview
+- 🟢 If Phase A approved, queue Phase B (content saturation)
+- 🟡 Phase 2 hardening close-out activities continue in parallel (Sentry alert rules · 24h timeout soak · 48h R2 re-verify)
+
+---
+
+---
 ## 2026-02-XX — Phase 2 · Initiative 4 deterministic-token defect FIX · ✅ COMPLETE (preview)
 
 Targeted fix approved by operator after the previous reconciliation pass surfaced the bug. Scope strictly limited to: login-reset, regression coverage, doc reconciliation.
