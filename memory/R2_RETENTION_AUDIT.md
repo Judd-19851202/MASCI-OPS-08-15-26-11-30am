@@ -16,6 +16,42 @@ _Read-only inventory · NO deletions performed_
 | Time span | 5 days 12 hours (132 hours) |
 | **Effective rate** | **3.6 objects/hour** ← should be 1/hour |
 
+---
+
+## 2026-02-XX UPDATE — Phase 2 Round 2 implementation status
+
+| Item | Status |
+|---|---|
+| New backup sub-prefix `backups/auto-90d/` | ✅ Implemented in `server.py` (line ~5897) |
+| Lifecycle rule (90-day expiration on `backups/auto-90d/`) | ⚠️ **PENDING — user action required.** The current R2 API token returns `AccessDenied` on `PutBucketLifecycleConfiguration`. See "Required user action" below. |
+| Usage check script (`scripts/r2_usage_check.py`) | ✅ Implemented; thresholds 45 GB warn / 50 GB alert (override via `R2_USAGE_WARN_GB` / `R2_USAGE_ALERT_GB`) |
+| Scheduler-side passive warning | ✅ Implemented (`_log_r2_usage_warning` fires after each successful R2 backup; warn-only, no email) |
+| Legacy backups under `backups/<file>.zip` (no sub-prefix) | ✅ Untouched — NOT covered by lifecycle. Manual cleanup deferred until explicit operator approval. |
+
+### Current bucket snapshot (re-measured 2026-02-XX)
+- Total: **19.48 GB** across **707 objects**
+- `backups/`: 19.38 GB (482 objects — all legacy, no lifecycle)
+- `photos/`: 0.10 GB (224 objects — active record attachments, not in lifecycle scope)
+- `safety-docs/`: 0.00 GB (1 object)
+
+### Required user action — apply lifecycle rule
+
+The R2 API token in `backend/.env` has `Object Read & Write` scope, which is sufficient for backup upload but **does NOT include** `lifecycle:write`. To apply the 90-day rule:
+
+1. Cloudflare dashboard → **My Profile → API Tokens → Create Token**
+2. Use the **R2** template, then customize:
+   - Permissions: **Workers R2 Storage → Edit** (account-scoped) OR
+   - Bucket-scoped: **R2 Admin Read & Write** on the `masci-hub` bucket
+3. Replace `S3_ACCESS_KEY` / `S3_SECRET_KEY` in `/app/backend/.env`
+4. `sudo supervisorctl restart backend`
+5. Run: `python3 /app/scripts/r2_lifecycle_apply.py --dry-run` → verify plan
+6. Run: `python3 /app/scripts/r2_lifecycle_apply.py` → apply
+7. Verify: `python3 /app/scripts/r2_lifecycle_apply.py --show`
+
+**Until the token is updated**: new backups still write to the correct sub-prefix; they just won't auto-expire yet. No data is at risk — the cleanup is simply deferred. Bucket usage probe still works.
+
+
+
 ## Diagnosis
 
 Expected cadence is **1 hourly R2 archive** (`BACKUP_R2_HOURLY=true`) → at most 24 objects/day = ~132 over 5.5 days. **475 is 3.6× the expected rate.**

@@ -87,7 +87,8 @@ recorded didn't happen.
 
 | Date | Operator | Backup key | Source size | Restored size | Integrity | Notes |
 |------|----------|------------|-------------|---------------|-----------|-------|
-| _none yet_ | | | | | | |
+| **2026-02-XX (SCHEDULED — first drill, due within 14 days)** | _TBD_ | _newest full nightly under `backups/auto-90d/` once one exists, else newest legacy `backups/MASCI_complete_backup_*.zip`_ | _TBD_ | _TBD_ | _TBD_ | First-ever drill. Operator must document actual archive layout so `restore_drill.py` can be promoted from manual to auto-restore. |
+| _subsequent drills logged below_ | | | | | | |
 
 ---
 

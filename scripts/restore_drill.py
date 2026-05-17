@@ -105,7 +105,7 @@ def cmd_restore(args, env):
 
     client, bucket = _r2_client(env)
 
-    print(f"Restore plan:")
+    print("Restore plan:")
     print(f"  Source bucket : {bucket}")
     print(f"  Source key    : {args.backup}")
     print(f"  Target URI    : {args.target}")
@@ -172,7 +172,6 @@ def main():
     env = _load_env()
 
     ap = argparse.ArgumentParser(description="MASCI Hub restore drill helper")
-    sub = ap.add_subparsers(dest="cmd")
 
     # `--list` works as a flag for backwards compat
     ap.add_argument("--list", action="store_true", help="list backups in R2")

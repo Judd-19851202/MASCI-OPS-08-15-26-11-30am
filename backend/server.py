@@ -5858,9 +5858,95 @@ def _iter_photo_refs(doc):
                             yield p
 
 
+async def _log_r2_usage_warning() -> None:
+    """Background probe — sum bucket size and log a warning when we cross
+    the 45 GB warn / 50 GB alert thresholds. Fire-and-forget; failures are
+    swallowed so this never blocks the backup pipeline.
+
+    Surfaces:
+      • Backend logs (``/var/log/supervisor/backend.*.log``) on every
+        warn/alert tick.
+      • ``backup_health`` row with mode='r2-usage-warn' when crossing the
+        WARN threshold; mode='r2-usage-alert' when crossing the ALERT
+        threshold. Operators / dashboards can read these from
+        ``backup_health.find({mode: /r2-usage/})``.
+
+    Intentionally does NOT email — the legacy backup-overdue email path
+    already has rate-limiting and we don't want a second storm vector.
+    """
+    try:
+        from photo_storage import is_configured as _ps_cfg
+    except Exception:  # noqa: BLE001
+        return
+    if not _ps_cfg():
+        return
+    try:
+        import boto3
+        from botocore.config import Config as _BotoCfg
+    except Exception:  # noqa: BLE001
+        return
+
+    bucket = os.environ.get("S3_BUCKET", "").strip()
+    if not bucket:
+        return
+
+    try:
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=os.environ.get("S3_ENDPOINT_URL", ""),
+            aws_access_key_id=os.environ.get("S3_ACCESS_KEY", ""),
+            aws_secret_access_key=os.environ.get("S3_SECRET_KEY", ""),
+            region_name=os.environ.get("S3_REGION") or "auto",
+            config=_BotoCfg(signature_version="s3v4", s3={"addressing_style": "path"}),
+        )
+
+        def _sum():
+            total = 0
+            count = 0
+            paginator = s3.get_paginator("list_objects_v2")
+            for page in paginator.paginate(Bucket=bucket):
+                for o in page.get("Contents", []):
+                    total += o["Size"]
+                    count += 1
+            return total, count
+
+        total_bytes, count = await asyncio.to_thread(_sum)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[r2-usage] probe failed: {e}")
+        return
+
+    gb = total_bytes / (1024 ** 3)
+    WARN_GB = float(os.environ.get("R2_USAGE_WARN_GB", "45") or 45)
+    ALERT_GB = float(os.environ.get("R2_USAGE_ALERT_GB", "50") or 50)
+
+    if gb >= ALERT_GB:
+        level = "ALERT"
+        mode = "r2-usage-alert"
+    elif gb >= WARN_GB:
+        level = "WARN"
+        mode = "r2-usage-warn"
+    else:
+        # Healthy — keep a quiet info log so we can see the time-series
+        # in supervisor logs, but no DB row (avoids noise).
+        logger.info(f"[r2-usage] OK · {gb:.2f} GB · {count} objects · bucket={bucket}")
+        return
+
+    logger.warning(
+        f"[r2-usage] {level} · {gb:.2f} GB · {count} objects · bucket={bucket} "
+        f"(WARN_GB={WARN_GB}, ALERT_GB={ALERT_GB})"
+    )
+    try:
+        await _record_backup_health(
+            db, ok=True, size_bytes=int(total_bytes), mode=mode,
+            error=f"r2-usage gb={gb:.2f} objects={count}",
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[r2-usage] couldn't record health row: {e}")
+
+
 async def _run_complete_archive_to_r2(db) -> Optional[dict]:
     """Build a complete-system zip on disk, stream-upload it to
-    ``r2://<bucket>/backups/<filename>``, then delete the local file.
+    ``r2://<bucket>/backups/auto-90d/<filename>``, then delete the local file.
     Returns ``{filename, size_bytes, r2_key, presigned_url, stats}``
     or ``None`` on any failure (errors are logged + health-recorded)."""
     try:
@@ -5894,7 +5980,14 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             f"{stats.get('inlined_photos', 0)} photos inlined"
         )
 
-        r2_key = f"backups/{filename}"
+        # Iter184 / Phase-2 Round 2 — R2 lifecycle scope.
+        # New backups are written under a sub-prefix that the R2 lifecycle
+        # rule (configured by scripts/r2_lifecycle_apply.py) targets. Any
+        # legacy backups previously written to ``backups/*.zip`` (no
+        # sub-prefix) are intentionally OUT of scope so existing history
+        # is not retroactively deleted — they will be cleaned up manually
+        # later with explicit operator approval. See R2_RETENTION_AUDIT.md.
+        r2_key = f"backups/auto-90d/{filename}"
         await upload_local_file(out, key=r2_key, content_type="application/zip")
         logger.info(f"[complete-archive] uploaded to r2://{os.environ.get('S3_BUCKET','')}/{r2_key}")
 
@@ -5912,6 +6005,19 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             records=stats.get("total_records", 0),
             emailed_to=None, mode="complete-r2",
         )
+
+        # Phase-2 Round 2 — passive 50 GB bucket-usage probe (warn-only).
+        # After every successful nightly R2 upload, sum the bucket size in
+        # the background and log a WARNING if it crosses 45 GB (warn) or
+        # 50 GB (alert). Does NOT block, NOT delete, NOT email — that's
+        # intentional: the lifecycle rule will eventually shed pressure on
+        # its own, and we don't want a second email-storm vector. The
+        # warning surfaces in `/var/log/supervisor/backend.*.log` and via
+        # `python3 scripts/r2_usage_check.py` for on-demand checks.
+        try:
+            asyncio.create_task(_log_r2_usage_warning())
+        except Exception as _e:  # noqa: BLE001
+            logger.warning(f"[r2-usage] couldn't schedule probe: {_e}")
 
         return {
             "filename": filename,

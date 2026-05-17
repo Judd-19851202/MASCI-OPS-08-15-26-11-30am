@@ -1,6 +1,43 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 2 Operational Hardening · Round 2 (R2 lifecycle) · ✅ CODE COMPLETE (preview); ⚠️ token permission pending
+
+### Delivered
+- **NEW** `/app/scripts/r2_lifecycle_apply.py` — idempotent S3 `PutBucketLifecycleConfiguration`. Rule `masci-backups-auto-90d`, **prefix-scoped to `backups/auto-90d/`**, expiration 90 days, +7-day aborted-multipart cleanup. Modes: `--show`, `--dry-run`, apply.
+- **NEW** `/app/scripts/r2_usage_check.py` — bucket size probe (45 GB warn / 50 GB alert, configurable via `R2_USAGE_WARN_GB` / `R2_USAGE_ALERT_GB`). Exit codes 0/1/2 + `--json` for cron. Real reading: **19.48 GB / 707 objects** (well below thresholds).
+- **CODE CHANGE** `server.py` — `_run_complete_archive_to_r2` now writes new backups to `backups/auto-90d/<file>`. Legacy backups under `backups/<file>.zip` are intentionally NOT covered → **zero retroactive deletion** per user mandate.
+- **NEW** `server.py::_log_r2_usage_warning` — fire-and-forget post-upload probe. Logs WARN/ALERT to supervisor logs; records `backup_health` row with `mode='r2-usage-warn'|'r2-usage-alert'`; **does NOT email** (no new storm vector).
+- **Doc updates** — `R2_RETENTION_AUDIT.md` extended with current state + user-action instructions; `RESTORE_DRILL.md` log row added for the first drill (scheduled within 14 days per user mandate).
+
+### ⚠️ User action required to activate lifecycle
+The current R2 API token has `Object Read & Write` scope only, which is **not sufficient** for `PutBucketLifecycleConfiguration`. Cloudflare returns `AccessDenied`. To activate the 90-day expiration:
+
+1. Cloudflare dashboard → API Tokens → create new token with **Workers R2 Storage = Edit** (account-scoped) OR **R2 Admin Read & Write** (bucket-scoped)
+2. Replace `S3_ACCESS_KEY` / `S3_SECRET_KEY` in `/app/backend/.env`
+3. `sudo supervisorctl restart backend`
+4. `python3 /app/scripts/r2_lifecycle_apply.py --dry-run` → verify plan
+5. `python3 /app/scripts/r2_lifecycle_apply.py` → apply
+6. `python3 /app/scripts/r2_lifecycle_apply.py --show` → confirm
+
+**Until the token is rotated**: new backups still write to `backups/auto-90d/` (correct location), they just won't auto-expire. Usage probe still works. No risk; cleanup is deferred.
+
+### Held (per user mandate)
+- ⏸ Round 3: Sentry (frontend + backend, production-only, env-separated, PII-scrubbed) — blocked on user Sentry account
+- ⏸ Round 3: UptimeRobot setup doc + monitors
+- ⏸ Round 4: First restore drill execution (scheduled within 14 days)
+- ⏸ K4b frontend mutations (allowed AFTER Round 2 verified, per user)
+- ⏸ K5, K6, K8, K9, K7 — all still held
+
+### Next Action Items
+- 🟢 **You**: rotate R2 API token to one with lifecycle write, then run the 6-step apply sequence above
+- 🟢 **You**: schedule the first restore drill on the team calendar
+- 🟢 **You**: when ready, green-light Round 3 (Sentry) — I'll scaffold code and tell you exactly which DSNs to supply
+- 🟡 K4b frontend mutations now unblocked after Round 2 verification — say when
+
+---
+
+---
 ## 2026-02-XX — Phase 2 Operational Hardening · Round 1 · ✅ COMPLETE (preview)
 
 User cleared iter181 + iter182 + P0 auth/session stabilization. Now in **Phase 2: operational hardening + deployment discipline** (NOT new features). Round 1 = foundation, no integrations.
