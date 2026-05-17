@@ -67,11 +67,11 @@ Initiative 2 is closed. The next drill (2026-08-15) is a Phase 3 ops task, not a
 | 3.2 | Lifecycle apply tooling implemented | `r2_lifecycle_apply.py` with `--show`, `--dry-run`, `apply`, `--verify` modes | ✅ 2026-02-XX |
 | 3.3 | Sentinel `--verify` round-trip implemented | Step 1 write · Step 2 read-back · Step 3 rule active · Step 4 cleanup | ✅ 2026-02-XX |
 | 3.4 | Operator-facing activation runbook | `R2_LIFECYCLE_ACTIVATION.md` published with turn-by-turn UI clicks | ✅ 2026-02-XX |
-| 3.5 | **R2 token rotated to `Workers R2 Storage = Edit`** | Operator created new token, replaced `S3_ACCESS_KEY` / `S3_SECRET_KEY` in `/app/backend/.env`, backend restarted | ⏳ pending operator |
-| 3.6 | **Lifecycle rule applied to bucket** | `python3 /app/scripts/r2_lifecycle_apply.py` → both `✅ Lifecycle applied` AND `✅ Verified — rule present` lines | ⏳ pending operator |
-| 3.7 | **Sentinel verify exits 0** | All four `✅` lines from `r2_lifecycle_apply.py --verify` | ⏳ pending operator |
-| 3.8 | **24–48h post-activation re-verify** | Re-run `--verify` once a day for 2 days; all four `✅` still appear | ⏳ pending operator |
-| 3.9 | **Sign-off row in `R2_LIFECYCLE_ACTIVATION.md § 10`** | One row appended with date, operator, bucket, rule ID, verify exit | ⏳ pending operator |
+| 3.5 | **R2 token rotated to `Workers R2 Storage = Edit`** | Operator created new token, replaced `S3_ACCESS_KEY` / `S3_SECRET_KEY` in `/app/backend/.env`, backend restarted | ✅ 2026-05-17 |
+| 3.6 | **Lifecycle rule applied to bucket** | `python3 /app/scripts/r2_lifecycle_apply.py` → both `✅ Lifecycle applied` AND `✅ Verified — rule present` lines | ✅ 2026-05-17 |
+| 3.7 | **Sentinel verify exits 0** | All four `✅` lines from `r2_lifecycle_apply.py --verify` | ✅ 2026-05-17 |
+| 3.8 | **24–48h post-activation re-verify** | Re-run `--verify` once a day for 2 days; all four `✅` still appear | ⏳ pending operator (next: 2026-05-18, 2026-05-19) |
+| 3.9 | **Sign-off row in `R2_LIFECYCLE_ACTIVATION.md § 10`** | One row appended with date, operator, bucket, rule ID, verify exit | ✅ 2026-05-17 (filled below) |
 
 ### Initiative 4 — Session boundaries
 
