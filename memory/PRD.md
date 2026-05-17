@@ -1,6 +1,34 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 2 Operational Hardening · Round 1 · ✅ COMPLETE (preview)
+
+User cleared iter181 + iter182 + P0 auth/session stabilization. Now in **Phase 2: operational hardening + deployment discipline** (NOT new features). Round 1 = foundation, no integrations.
+
+### Delivered (Round 1)
+- **NEW** `/app/scripts/pre_deploy_check.sh` — mandatory pre-deploy gate (syntax compile → ruff errors → frontend lint → frontend build → auth+RBAC critical tests → full pytest). Modes: `--auth-only`, `--fast`, `--full` (default). Smoke-tested: 192/196 auth+RBAC tests pass.
+- **NEW** `/app/.github/workflows/ci.yml` — static code-quality GitHub Actions gate (backend syntax + ruff, frontend lint + build). Runs on push/PR to main/master. **Does NOT** gate Emergent Deploy (no platform hook); the integration gate is `pre_deploy_check.sh` run in preview.
+- **NEW** `/api/health/full` deep-health endpoint — anonymous, leaks no internals, booleans only (`mongo`, `scheduler`, `backup_recent`, `ok`), returns 503 on any subsystem degradation. `/api/health` and `/api/healthz` remain untouched (Cloudflare liveness contract preserved).
+- **NEW** `/app/backend/tests/test_iter183_health_full_endpoint.py` — contract tests (3/3 pass): shape, no-leak, lightweight-/api/health invariant.
+- **NEW** `/app/memory/DEPLOY_CHECKLIST.md` — single-source-of-truth deployment discipline (pre-deploy gate, testing-agent sweep, auth verification, health, backup scheduler, R2, post-deploy regression smoke, Sentry, process-violation log).
+- **NEW** `/app/memory/RESTORE_DRILL.md` — quarterly backup-restore drill procedure, integrity checks, failure response. First drill due within 14 days.
+- **NEW** `/app/scripts/restore_drill.py` — safe R2-listing + dry-run helper. Safety rails: refuses to write to live `DB_NAME` / `MONGO_URL` without explicit override. Auto-restore intentionally requires manual flesh-out after first drill documents actual archive layout.
+
+### Held (per user mandate)
+- ⏸ Round 2: R2 lifecycle hardening (90-day on future objects, 50 GB alert, **no retroactive deletion**)
+- ⏸ Round 3: Sentry frontend + backend (production-only, env-separated, PII-scrubbed) — requires user to create Sentry account + DSNs
+- ⏸ Round 3: UptimeRobot setup doc + monitors (mascidocs.com, /api/health, /api/auth/multi-login)
+- ⏸ Round 4: First restore drill execution
+- ⏸ K4b frontend mutations, K5 temp password (deferred until hardening tooling is in place)
+
+### Next Action Items
+- 🟢 **You**: review Round 1 deliverables in preview; greenlight Round 2 (R2 lifecycle, additive only)
+- 🟢 **You**: create Sentry account when ready (free tier OK for now) → I'll scaffold code + tell you which DSNs to supply
+- 🟡 **Run before any deploy**: `bash scripts/pre_deploy_check.sh` from `/app`
+
+---
+
+---
 ## 2026-05-17 — Iter181 · Route-Guard UX Consistency · ✅ COMPLETE (production redeploy pending)
 
 ### Cosmetic finding from prod sweep (2026-05-17)

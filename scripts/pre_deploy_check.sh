@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+# ─────────────────────────────────────────────────────────────────────────────
+# pre_deploy_check.sh — MASCI Hub mandatory pre-deploy gate.
+#
+# Run this BEFORE clicking the Emergent "Deploy" button on mascidocs.com.
+# It is the discipline enforcement layer that prevents shipping a build
+# with a broken auth gate, broken RBAC isolation, or frontend lint failures.
+#
+# Exits non-zero on ANY failure. CI / human operators MUST treat non-zero
+# as a hard stop — DO NOT redeploy until every stage passes.
+#
+# Stages:
+#   1. Backend syntax check (python compile)
+#   2. Backend lint (ruff) — fail on errors only
+#   3. Frontend lint (eslint via CRA) — fail on errors
+#   4. Frontend production build smoke (CI=true)
+#   5. Auth + RBAC critical-path integration tests (Phase K + iter179/180)
+#   6. Full backend pytest suite
+#
+# Usage:
+#   bash /app/scripts/pre_deploy_check.sh            # full sweep
+#   bash /app/scripts/pre_deploy_check.sh --fast     # skip frontend build
+#   bash /app/scripts/pre_deploy_check.sh --auth-only # only stages 1,5
+# ─────────────────────────────────────────────────────────────────────────────
+set -uo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+
+MODE="full"
+for arg in "$@"; do
+  case "$arg" in
+    --fast) MODE="fast" ;;
+    --auth-only) MODE="auth-only" ;;
+    *) echo "Unknown arg: $arg" ; exit 64 ;;
+  esac
+done
+
+PASS=0
+FAIL=0
+declare -a RESULTS
+
+run_stage() {
+  local name="$1"; shift
+  echo ""
+  echo "════════════════════════════════════════════════════════════════"
+  echo "  STAGE: $name"
+  echo "════════════════════════════════════════════════════════════════"
+  if "$@"; then
+    PASS=$((PASS+1))
+    RESULTS+=("  ✅ $name")
+  else
+    FAIL=$((FAIL+1))
+    RESULTS+=("  ❌ $name")
+  fi
+}
+
+stage_backend_syntax() {
+  python3 -m compileall -q backend/server.py backend/routes 2>&1
+}
+
+stage_backend_lint() {
+  if ! command -v ruff >/dev/null 2>&1; then
+    echo "ruff not installed — skipping (install: pip install ruff)"
+    return 0
+  fi
+  # Fail only on actual errors (E9, F63, F7, F82); style warnings tolerated.
+  ruff check backend/server.py backend/routes --select=E9,F63,F7,F82 --no-cache
+}
+
+stage_frontend_lint() {
+  cd "$REPO_ROOT/frontend"
+  CI=true yarn -s lint 2>/dev/null || CI=true npx -y eslint src --max-warnings=0 || return 1
+}
+
+stage_frontend_build() {
+  cd "$REPO_ROOT/frontend"
+  CI=true yarn -s build
+}
+
+# Auth + RBAC critical-path tests. These MUST pass on every deploy.
+stage_auth_rbac_tests() {
+  cd "$REPO_ROOT"
+  python3 -m pytest -q --tb=short \
+    backend/tests/test_admin_auth.py \
+    backend/tests/test_iter126_dispatch_auth.py \
+    backend/tests/test_iter155_admin_pm.py \
+    backend/tests/test_iter172_phase_k1_identity_mirror.py \
+    backend/tests/test_iter174_phase_k2_rbac_service.py \
+    backend/tests/test_iter175_phase_k3_role_templates.py \
+    backend/tests/test_iter176_login_regression.py \
+    backend/tests/test_iter176_phase_k4a_directory_read.py \
+    backend/tests/test_iter177_phase_k4b_directory_mutations.py \
+    backend/tests/test_iter179_admin_access_control_gate.py \
+    backend/tests/test_iter180_pm_token_admin_namespace_lockdown.py
+}
+
+stage_full_pytest() {
+  cd "$REPO_ROOT"
+  python3 -m pytest -q --tb=short backend/tests
+}
+
+echo "MASCI Hub Pre-Deploy Gate — mode: $MODE"
+echo "Repo: $REPO_ROOT"
+
+run_stage "Backend syntax compile" stage_backend_syntax
+run_stage "Backend lint (ruff errors)" stage_backend_lint
+
+if [[ "$MODE" != "auth-only" ]]; then
+  run_stage "Frontend lint" stage_frontend_lint
+  if [[ "$MODE" != "fast" ]]; then
+    run_stage "Frontend production build" stage_frontend_build
+  fi
+fi
+
+run_stage "Auth + RBAC critical tests" stage_auth_rbac_tests
+
+if [[ "$MODE" == "full" ]]; then
+  run_stage "Full backend pytest suite" stage_full_pytest
+fi
+
+echo ""
+echo "════════════════════════════════════════════════════════════════"
+echo "  PRE-DEPLOY GATE RESULT"
+echo "════════════════════════════════════════════════════════════════"
+for line in "${RESULTS[@]}"; do echo "$line"; done
+echo ""
+echo "  Passed: $PASS    Failed: $FAIL"
+
+if [[ "$FAIL" -gt 0 ]]; then
+  echo ""
+  echo "  ❌ GATE FAILED — DO NOT DEPLOY."
+  exit 1
+fi
+
+echo ""
+echo "  ✅ GATE PASSED — safe to click Emergent Deploy."
+exit 0

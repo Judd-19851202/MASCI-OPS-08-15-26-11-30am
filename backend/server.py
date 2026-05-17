@@ -437,6 +437,71 @@ def api_healthz():
     return {"ok": True}
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# /api/health/full — DEEP HEALTH (Phase 2 hardening)
+#
+# UptimeRobot + ops dashboards use this to detect degradation that the
+# lightweight /api/health cannot see:
+#   • mongo:          can we round-trip a ping in <1s?
+#   • scheduler:      did _backup_scheduler_loop tick in the last hour?
+#   • backup_recent:  did a backup_health row land in the last 26h?
+#
+# Returns booleans ONLY (no timestamps, no internal state). When any
+# subsystem is degraded the response is 503 so external monitors will
+# alert without us having to publish details that would help attackers.
+#
+# This endpoint is intentionally NOT protected by admin auth — UptimeRobot
+# needs to hit it anonymously — which is why it leaks zero useful detail
+# beyond pass/fail per subsystem.
+# ─────────────────────────────────────────────────────────────────────────
+@api_router.get("/health/full")
+async def api_health_full(response: Response):
+    out = {"ok": True, "mongo": False, "scheduler": False, "backup_recent": False}
+
+    # Mongo ping — short timeout so a stuck DB doesn't hang the probe.
+    try:
+        await asyncio.wait_for(db.command("ping"), timeout=2.0)
+        out["mongo"] = True
+    except Exception:
+        out["mongo"] = False
+
+    # Scheduler: tick within last 60 min. The scheduler wakes every ~5 min
+    # so anything past an hour is degraded.
+    try:
+        last_tick = (_BACKUP_SCHEDULER_STATE or {}).get("last_tick_ts")
+        if last_tick:
+            last_dt = datetime.fromisoformat(last_tick)
+            age_s = (datetime.now(timezone.utc) - last_dt).total_seconds()
+            out["scheduler"] = age_s < 3600
+    except Exception:
+        out["scheduler"] = False
+
+    # Most recent successful backup_health row within last 26h (covers a
+    # missed nightly + 2h fudge for retries).
+    try:
+        latest_ok = await asyncio.wait_for(
+            db.backup_health.find_one({"ok": True}, sort=[("ts", -1)], projection={"_id": 0, "ts": 1}),
+            timeout=2.0,
+        )
+        if latest_ok and latest_ok.get("ts"):
+            ts_val = latest_ok["ts"]
+            if isinstance(ts_val, str):
+                ts_dt = datetime.fromisoformat(ts_val.replace("Z", "+00:00"))
+            else:
+                ts_dt = ts_val
+            if ts_dt.tzinfo is None:
+                ts_dt = ts_dt.replace(tzinfo=timezone.utc)
+            age_s = (datetime.now(timezone.utc) - ts_dt).total_seconds()
+            out["backup_recent"] = age_s < (26 * 3600)
+    except Exception:
+        out["backup_recent"] = False
+
+    out["ok"] = bool(out["mongo"] and out["scheduler"] and out["backup_recent"])
+    if not out["ok"]:
+        response.status_code = 503
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Build fingerprint endpoint — /api/version
 #

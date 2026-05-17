@@ -1,0 +1,73 @@
+name: MASCI Hub CI Gate
+
+# Static code-quality gate that runs on every push and PR.
+#
+# This DOES NOT replace `scripts/pre_deploy_check.sh`.
+# Emergent's "Deploy" button does NOT read GitHub Actions status, so the
+# integration-test gate must still be executed in the preview environment
+# via `bash scripts/pre_deploy_check.sh` before redeploying mascidocs.com.
+#
+# What this workflow guards against:
+#   - Python syntax errors in server.py / routes/
+#   - JS/JSX lint regressions
+#   - Frontend production build failures (catches missing imports, etc.)
+#
+# What this workflow CANNOT guard against (run pre_deploy_check.sh for these):
+#   - Auth / RBAC behavioural regressions (needs live backend + Mongo)
+#   - Cross-portal session leakage
+#   - Scheduler / R2 / backup health
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch: {}
+
+jobs:
+  backend-static:
+    name: Backend static checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ruff
+        run: pip install --quiet ruff
+      - name: Python syntax compile
+        run: |
+          python -m compileall -q backend/server.py backend/routes
+      - name: Ruff (errors only — E9/F63/F7/F82)
+        run: |
+          ruff check backend/server.py backend/routes --select=E9,F63,F7,F82
+
+  frontend-build:
+    name: Frontend lint + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Enable Corepack & Yarn
+        run: |
+          corepack enable
+          corepack prepare yarn@stable --activate
+      - name: Install deps
+        run: yarn install --frozen-lockfile --network-timeout 600000
+      - name: Lint (if script defined)
+        run: |
+          if yarn run --silent | grep -qE '^\s*lint'; then
+            CI=true yarn lint
+          else
+            echo "no lint script defined — skipping"
+          fi
+      - name: Production build
+        env:
+          CI: 'true'
+          REACT_APP_BACKEND_URL: 'https://ci-placeholder.invalid'
+        run: yarn build
