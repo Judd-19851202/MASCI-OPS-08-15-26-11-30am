@@ -1,6 +1,94 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 3 · Operational Guidance · Phase B Iteration 1 (HR + Field Leadership) · ✅ COMPLETE (preview only)
+
+Operator green-lit Phase B (Portal-Content Saturation) starting with HR + Field Leadership. Operator emphasized: (a) every operational portal must be represented before Phase B is mature (Safety/Dispatch can NOT be optional); (b) HOW + WHY + WHAT HAPPENS NEXT in every major article; (c) field-friendly tone, no corporate/LMS drift; (d) strict RBAC across search, retrieval, related, troubleshooting; (e) cross-workflow relationship guidance as a top-value teaching opportunity.
+
+### What landed (iter191)
+
+**Backend — `/app/backend/guidance/content.py` content expansion**
+- **6 new HR articles** (scoped `["hr", "admin"]`):
+  - `hr-onboarding-new-hire` — account setup, equipment, training, audit trail
+  - `hr-time-verification-deep` — Reg/OT/Lunch invariant, weekly rollup, defensible record
+  - `hr-writeups-correctives` — write-up review chain, follow-through ownership
+  - `hr-offboarding` — equipment return, account disable (NOT delete), final pay
+  - `hr-cross-portal-reads` — what HR can read in adjacent portals
+  - `hr-audit-trail` — what HR actions are logged
+- **7 new Field Leadership articles** (scoped `["leadership", "admin"]`):
+  - `portal-leadership` — daily-ops portal quick-start
+  - `field-daily-report-howto` — defensible daily-report authoring
+  - `field-equipment-checkout` — handoff to Shop / HR
+  - `field-coaching-documentation` — the "small record" principle
+  - `field-incident-escalation` — Field → Safety → Admin chain
+  - `field-writeup-authoring` — defensible write-up structure
+  - `field-project-scope` — visibility rules across projects/PMs
+- **2 cross-workflow relationship articles** (operator-emphasized top-value):
+  - `connect-field-to-payroll` (scopes `field/leadership/hr/pm/admin`) — Daily Report → Time Verification → Payroll
+  - `connect-incident-to-audit` (scopes `field/leadership/safety/admin`) — Incident → Safety review → Corrective Action → Audit trail
+- Cross-linked existing `role-foreman`, `role-hr`, `why-daily-reports`, `portal-hr` so the related-article graph is richer.
+
+**Backend — `_guidance_caller_scopes` bug fix**
+- Found that the leadership-scope detection imported a non-existent module (`field_leadership_auth`), so the try/except always silently dropped to `is_leadership=False`. Replaced with the actual in-process validator (`routes.field_leadership._check_leadership_token`). Now `X-Leadership-Token` headers correctly grant the `leadership` scope on `/api/guidance/*`. **Discovered via test-driven failure — exactly the kind of latent gap Phase A tests didn't reach.**
+
+### Test coverage
+- **NEW** `/app/backend/tests/test_iter191_guidance_phaseb_hr_leadership.py` — 50 tests:
+  - HR/admin see all 6 new HR articles; anon/leadership don't (parametric per-article 404 leak guard)
+  - Leadership/admin see all 7 new field articles; anon/HR don't
+  - Cross-scope isolation (HR doesn't see leadership-only, leadership doesn't see HR-only)
+  - Cross-workflow connection articles respect their multi-scope grants
+  - Search RBAC-aware on new content (`offboarding`, `write-up` keyword tests)
+  - Section counts grew (portals 4→14, knowledge 8→13)
+  - Related-link RBAC filtering on new articles
+  - Content quality: every major article asserts a `why` block (operator-required HOW+WHY+WHAT-NEXT pattern)
+- **Combined Phase B + Phase A guidance suite**: 66/66 pass
+- **Full hardening regression (iter172-191)**: 296/297 pass; the 1 failure is the pre-existing iter187 ordering flakiness documented in iter190 (passes in isolation)
+
+### Section coverage matrix (admin scope)
+
+| Section | Pre-iter191 | Post-iter191 |
+|---|---|---|
+| Roles | 9 | 9 |
+| Quick Help | 3 | 3 |
+| Portals | 4 | 14 |
+| Troubleshooting | 4 | 4 |
+| Why It Matters / Connections | 8 | 13 |
+| Reliability | 1 | 1 |
+| Onboarding | 2 | 2 |
+| **Total** | **31** | **46** |
+
+### Portal coverage status (operator's checklist — Phase B maturity bar)
+
+| Portal | Roles | Portal Quick-Start | Deep Articles | Cross-Workflow Tie-in |
+|---|---|---|---|---|
+| HR | ✅ | ✅ | ✅ (6 deep) | ✅ field→payroll |
+| Field Leadership | ✅ (super, foreman) | ✅ (NEW) | ✅ (6 deep) | ✅ field→payroll · incident→audit |
+| Safety | ✅ | ✅ | ⏳ Iter 2 | ✅ incident→audit |
+| Shop/Fleet | ✅ | ✅ | ⏳ Iter 2 | ⏳ |
+| Dispatch | ✅ | ⏳ Iter 3 | ⏳ Iter 3 | ⏳ |
+| PM | ✅ | ⏳ Iter 3 | ⏳ Iter 3 | ⏳ |
+| Admin | ✅ | ✅ | ⏳ Iter 3 | ⏳ |
+
+### Production posture
+- 🛑 NOT deployed to production — Phase B is preview-only per operator directive
+- 🟢 Live in preview at `/guidance` (verified anon UI renders, RBAC holding)
+- 🟢 Legacy routes preserved (`/training`, `/ops-training`)
+
+### Held / waiting on operator
+- 🟢 Operator reviews HR + Field Leadership content in preview
+- 🟢 If approved, queue Phase B Iter 2 (Safety + Shop/Fleet — operator emphasized Safety should become "one of the strongest operational guidance areas in the platform")
+- 🟡 48h R2 lifecycle re-verify (monitoring soak)
+- 🟡 Phase 2 milestone close-out sign-off
+
+### Next Action Items
+- 🟢 Operator reviews iter191 HR + Field Leadership content in preview
+- 🟢 If approved, proceed to Phase B Iter 2: Safety (incidents, corrective actions, audits, extinguisher inspections, near misses) + Shop/Fleet
+- 🟢 Phase B Iter 3: Dispatch + PM + Admin
+- 🟢 Phase C: Embed `HelpTip` / `WhyItMattersPanel` at form-field level in key workflows
+- 🟡 Phase 2 hardening close-out activities continue in parallel
+
+---
+
 ## 2026-02-XX — Phase 3 (NEW MATURITY PHASE) · Training / Help / Operational Guidance · Phase A · ✅ COMPLETE (preview only, no production deploy)
 
 Operator-initiated kickoff of the post-hardening maturity phase. Scope strictly Phase A of the directive: foundation, RBAC architecture, contextual help components, 2–3 example placements. No content saturation, no production deploy.

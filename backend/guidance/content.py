@@ -132,7 +132,9 @@ _ARTICLES: list[dict] = [
                 "Escalate incidents quickly",
             ]},
         ],
-        "related": ["why-daily-reports", "task-submit-incident", "why-photos"],
+        "related": ["why-daily-reports", "task-submit-incident", "why-photos",
+                    "field-daily-report-howto", "field-coaching-documentation",
+                    "field-writeup-authoring", "field-incident-escalation"],
     },
     {
         "id": "role-hr",
@@ -161,7 +163,10 @@ _ARTICLES: list[dict] = [
                 "Audit log records who reviewed what",
             ]},
         ],
-        "related": ["why-time-verification", "task-verify-time", "tshoot-employee-not-found"],
+        "related": ["why-time-verification", "task-verify-time", "tshoot-employee-not-found",
+                    "hr-onboarding-new-hire", "hr-time-verification-deep",
+                    "hr-writeups-correctives", "hr-offboarding",
+                    "hr-cross-portal-reads", "hr-audit-trail"],
     },
     {
         "id": "role-safety",
@@ -376,7 +381,8 @@ _ARTICLES: list[dict] = [
                 "Centralising HR work here means everything is searchable, audited, and "
                 "reviewable by authorized leadership."},
         ],
-        "related": ["role-hr", "task-verify-time"],
+        "related": ["role-hr", "task-verify-time", "hr-onboarding-new-hire",
+                    "hr-time-verification-deep", "hr-offboarding"],
     },
     {
         "id": "portal-safety",
@@ -515,7 +521,8 @@ _ARTICLES: list[dict] = [
                 "communication between field and office, helps catch issues early, and "
                 "creates a defensible record of what actually happened on the job site."},
         ],
-        "related": ["role-superintendent", "role-foreman"],
+        "related": ["role-superintendent", "role-foreman", "connect-field-to-payroll",
+                    "field-daily-report-howto"],
     },
     {
         "id": "why-photos",
@@ -687,6 +694,502 @@ _ARTICLES: list[dict] = [
             ]},
         ],
         "related": ["task-upload-photos", "onboard-login"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PHASE B · HR PORTAL DEEP CONTENT (iter191 · preview only)
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "hr-onboarding-new-hire",
+        "section": "portals",
+        "title": "HR · Onboarding a New Hire",
+        "summary": "Account setup, equipment issuance, training assignment, paper trail.",
+        "scopes": ["hr", "admin"],
+        "tags": ["hr", "onboarding", "new hire", "setup", "account", "equipment"],
+        "body": [
+            {"type": "p", "text":
+                "Onboarding a new hire creates the operational record that follows them "
+                "for their entire tenure. The goal is one clean trail: account exists, "
+                "equipment is signed for, training is assigned, supervisor knows."},
+            {"type": "steps", "items": [
+                "Confirm the hire packet is complete (offer accepted, I-9, W-4) — outside the platform",
+                "In Admin → People & Access, create the employee's portal account (field / shop / dispatch as appropriate)",
+                "Set must_change_password=true and deliver the temp credentials via the channel HR uses (email / in person)",
+                "Open Safety Forms → Equipment Issuance for any PPE / tools / phone / tablet assigned on day one",
+                "Open Safety Forms → Equipment Training for required first-day training (extinguisher, lift, etc.)",
+                "Tell the supervisor in writing — the audit log records you did this",
+            ]},
+            {"type": "why", "text":
+                "Day-one documentation prevents the two most expensive HR problems: "
+                "an employee disputing what they were given, and an employee using equipment "
+                "they weren't trained on. Both come back to whether the paper trail exists."},
+            {"type": "next", "items": [
+                "Equipment issuance auto-emails Safety + HR (audit-tracked)",
+                "The supervisor sees the new hire in their crew roster the next time they open Field Leadership",
+                "Training records are searchable by Safety for audits",
+                "Time entries become possible on the first work day",
+            ]},
+            {"type": "mistakes", "items": [
+                "Skipping the equipment issuance form because 'it's just a hard hat'",
+                "Not setting must_change_password — temp credentials live forever",
+                "Issuing equipment without recording the training that authorizes its use",
+                "Forgetting to tell the supervisor (they will not know the person is starting)",
+            ]},
+        ],
+        "related": ["hr-offboarding", "hr-audit-trail", "task-verify-time", "role-hr"],
+    },
+    {
+        "id": "hr-time-verification-deep",
+        "section": "portals",
+        "title": "HR · Time Verification Deep Dive",
+        "summary": "Regular / Overtime / Lunch invariant, payroll cross-check, defensible record.",
+        "scopes": ["hr", "admin"],
+        "tags": ["hr", "time verification", "payroll", "overtime", "flsa", "lunch"],
+        "body": [
+            {"type": "p", "text":
+                "Time Verification compares supervisor-entered hours against the payroll system. "
+                "The platform does the FLSA Regular/Overtime split at the weekly rollup, not "
+                "per day. Lunch is unpaid and tracked separately."},
+            {"type": "bullets", "items": [
+                "Total paid hours = Regular + Overtime (invariant — never breaks)",
+                "Lunch is tracked but is NOT included in paid totals",
+                "OT is the weekly portion above 40 hours of regular work",
+                "Daily rows show 0.00 for Reg/OT — that is by design; the rollup is weekly",
+            ]},
+            {"type": "steps", "items": [
+                "Open HR → Time Verification",
+                "Pick the pay period (week ending)",
+                "Scan the summary cards: Total Hours / Regular / Overtime / Lunch",
+                "Drill into any employee whose totals look wrong",
+                "Flag discrepancies to the supervisor — do NOT silently edit",
+                "Export CSV with the WEEKLY ROLLUP section for payroll cross-check",
+            ]},
+            {"type": "why", "text":
+                "Time Verification is the most-questioned record we keep. If a paycheck is "
+                "ever disputed, this is the record that answers it. A clean weekly rollup "
+                "with a signed CSV is a defensible record. A guessed or backfilled entry is not."},
+            {"type": "next", "items": [
+                "Verified totals feed payroll cross-check (outside the platform)",
+                "CSV export with WEEKLY ROLLUP totals can be archived per pay period",
+                "Discrepancies become Field Leadership follow-ups — supervisor edits the source, not HR",
+            ]},
+            {"type": "warn", "text":
+                "HR does not edit supervisor-entered hours. If a number is wrong, the "
+                "supervisor fixes it in the source record — that preserves the chain of custody."},
+        ],
+        "related": ["task-verify-time", "why-time-verification", "connect-field-to-payroll", "role-hr"],
+    },
+    {
+        "id": "hr-writeups-correctives",
+        "section": "portals",
+        "title": "HR · Write-Ups & Corrective Action Follow-Through",
+        "summary": "What makes a defensible HR write-up and how it travels through the platform.",
+        "scopes": ["hr", "admin"],
+        "tags": ["hr", "write-up", "corrective action", "discipline", "documentation"],
+        "body": [
+            {"type": "p", "text":
+                "Write-Ups originate in Field Leadership (supervisor authors). HR reviews, "
+                "files, and follows up. A write-up is operational documentation, not a "
+                "punishment — its job is to record that a conversation happened, what was "
+                "agreed, and what the next step is."},
+            {"type": "bullets", "items": [
+                "Supervisor authors the write-up in Field Leadership",
+                "HR reviews via HR → Field Leadership Records",
+                "Corrective Actions (if any) are tracked separately by Safety",
+                "Every write-up is timestamped, attributed, and audit-logged",
+            ]},
+            {"type": "why", "text":
+                "A defensible write-up protects everyone. It protects the employee from "
+                "vague accusations, the supervisor from selective memory, and the company "
+                "from disputes. Vague write-ups protect nobody."},
+            {"type": "mistakes", "items": [
+                "Editing the supervisor's original record — HR reviews, doesn't rewrite",
+                "Closing the loop verbally without recording it",
+                "Treating a write-up as the end of the story — it's usually the start of one",
+                "Skipping the conversation and just filing the form",
+            ]},
+            {"type": "next", "items": [
+                "Write-up becomes visible to HR, Admin, and the authoring supervisor",
+                "If a Corrective Action is opened, Safety owns the follow-through",
+                "Repeated write-ups for the same employee surface in HR review patterns",
+            ]},
+        ],
+        "related": ["field-writeup-authoring", "why-corrective-actions", "hr-audit-trail", "role-hr"],
+    },
+    {
+        "id": "hr-offboarding",
+        "section": "portals",
+        "title": "HR · Employee Offboarding",
+        "summary": "Equipment return, account disable, final pay, audit closure.",
+        "scopes": ["hr", "admin"],
+        "tags": ["hr", "offboarding", "termination", "final pay", "equipment return"],
+        "body": [
+            {"type": "p", "text":
+                "Offboarding is the reverse of onboarding — and just as important. The goal "
+                "is no loose ends: every assigned item is returned or accounted for, every "
+                "account is disabled, and the last paycheck reflects verified hours."},
+            {"type": "steps", "items": [
+                "Pull the employee's equipment-issuance history (HR → Employee Accountability)",
+                "Confirm each item is returned, transferred, or written off — record which",
+                "Run a final Time Verification through their last work day",
+                "Disable the employee's portal account in Admin → People & Access (do NOT delete)",
+                "Note the offboarding date in their record",
+                "Inform payroll of the final pay window (outside the platform)",
+            ]},
+            {"type": "why", "text":
+                "Offboarding documentation answers two questions that come back later: "
+                "'Did we get our stuff back?' and 'Was the last paycheck right?'. A clean "
+                "offboarding closes both before they become a dispute."},
+            {"type": "warn", "text":
+                "Disable accounts, do NOT delete them. Deleting an account breaks every audit "
+                "trail that references that user. Disable preserves history; delete erases it."},
+            {"type": "next", "items": [
+                "Disabled account stops working immediately on next page load",
+                "Equipment records show the asset is unassigned (Shop / Dispatch can re-issue)",
+                "Final Time Verification CSV is the auditable record for the last paycheck",
+                "Audit log preserves the disable action with the actor and timestamp",
+            ]},
+        ],
+        "related": ["hr-onboarding-new-hire", "why-equipment-accountability", "hr-audit-trail"],
+    },
+    {
+        "id": "hr-cross-portal-reads",
+        "section": "knowledge",
+        "title": "HR · What You Can Read in Other Portals",
+        "summary": "HR's cross-portal read scope — what is and isn't visible.",
+        "scopes": ["hr", "admin"],
+        "tags": ["hr", "cross-portal", "read access", "rbac", "safety records"],
+        "body": [
+            {"type": "p", "text":
+                "HR has read access into adjacent portals when the data ties back to an "
+                "employee. That visibility is intentionally narrow — HR reviews, it does "
+                "not edit other portals."},
+            {"type": "bullets", "items": [
+                "Safety records (incidents tied to an employee) — read-only",
+                "Equipment issuance / training records — read-only",
+                "Field Leadership write-ups & coaching — read-only review",
+                "Time Verification for any project supervisor enters hours on",
+            ]},
+            {"type": "warn", "text":
+                "HR does NOT see admin audit logs, system health, backups, or other HR "
+                "users' password resets. Those stay with Admin."},
+            {"type": "why", "text":
+                "Cross-portal reads let HR build a complete picture of an employee without "
+                "needing admin escalation for routine review work. Writes stay locked to "
+                "the originating portal — that preserves chain of custody."},
+        ],
+        "related": ["role-hr", "hr-audit-trail", "role-safety"],
+    },
+    {
+        "id": "hr-audit-trail",
+        "section": "knowledge",
+        "title": "HR · Audit Trail — What Gets Logged",
+        "summary": "What HR actions are recorded and where to find them.",
+        "scopes": ["hr", "admin"],
+        "tags": ["hr", "audit", "log", "compliance"],
+        "body": [
+            {"type": "p", "text":
+                "Every HR action that touches an account or a record is logged. The audit "
+                "trail answers 'who did what, and when' for HR-significant actions."},
+            {"type": "bullets", "items": [
+                "Login / logout events (with IP)",
+                "Account create / disable / password reset (admin actions)",
+                "Time Verification CSV exports",
+                "Cross-portal record views are NOT individually logged (volume too high) — but the access scope is enforced server-side",
+            ]},
+            {"type": "p", "text":
+                "Admins can review the full audit log in Admin → Audit Log. HR users see "
+                "their own action history through HR review surfaces."},
+            {"type": "why", "text":
+                "The audit trail is a regression detector. If a record looks wrong, the "
+                "trail shows whether it was always wrong or whether someone changed it."},
+        ],
+        "related": ["why-audit-logs", "role-hr"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PHASE B · FIELD LEADERSHIP DEEP CONTENT (iter191 · preview only)
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "portal-leadership",
+        "section": "portals",
+        "title": "Field Leadership Portal Quick-Start",
+        "summary": "Daily ops surface for supers, foremen, and crew leads.",
+        "scopes": ["leadership", "admin"],
+        "tags": ["field leadership", "portal", "supervisor"],
+        "body": [
+            {"type": "p", "text":
+                "Field Leadership is the daily-operations surface for supers, foremen, and "
+                "crew leads. Everything you document here flows into HR, Safety, and PM review."},
+            {"type": "bullets", "items": [
+                "Daily Reports",
+                "Write-Ups / Verbal Coaching / Attendance",
+                "Recognition",
+                "Equipment Checkout",
+                "New Employee / Crew Evaluations",
+                "Training Deficiency notes",
+            ]},
+            {"type": "tip", "text":
+                "Use the mobile home-screen shortcut. The portal is built mobile-first because "
+                "most documentation happens on a phone in the field."},
+        ],
+        "related": ["field-daily-report-howto", "field-coaching-documentation", "role-foreman"],
+    },
+    {
+        "id": "field-daily-report-howto",
+        "section": "portals",
+        "title": "Field · Submitting a Defensible Daily Report",
+        "summary": "What goes in, what to skip, why it matters.",
+        "scopes": ["leadership", "admin"],
+        "tags": ["field", "daily report", "documentation", "supervisor"],
+        "body": [
+            {"type": "p", "text":
+                "A Daily Report is the operational record of the workday. It is referenced "
+                "by HR for time, by PM for project status, by Safety for incidents, and by "
+                "leadership for after-the-fact review. Build it like someone will read it "
+                "six months from now — because someone will."},
+            {"type": "steps", "items": [
+                "Pick the correct project (the most common mistake is the wrong project)",
+                "Enter crew on site, hours worked, lunch",
+                "Document work performed in plain language — what was built / completed / blocked",
+                "Photograph progress, deliveries, conditions, and any issue",
+                "Record equipment used and any failures",
+                "Note conditions: weather, delays, safety concerns",
+                "Submit BEFORE leaving the job site",
+            ]},
+            {"type": "why", "text":
+                "The daily report is the single most-cited document we keep. It supports "
+                "payroll, project schedule disputes, change orders, insurance claims, and "
+                "safety investigations. Field leadership is the only role that can produce it."},
+            {"type": "mistakes", "items": [
+                "Wrong project selected (everything downstream is wrong)",
+                "No photos (a note without a photo is harder to defend)",
+                "Submitting from home the next day (timestamp is wrong; details are colder)",
+                "Skipping the 'issues' field because nothing felt big enough to mention",
+                "Copy-pasting yesterday's narrative",
+            ]},
+            {"type": "next", "items": [
+                "Report becomes visible to PM, HR, Admin, and authorized leadership",
+                "Time entries on the report feed HR Time Verification",
+                "Photos become part of the project's archive — searchable by date",
+                "Issues flagged become PM follow-up items",
+            ]},
+        ],
+        "related": ["why-daily-reports", "connect-field-to-payroll", "why-photos", "role-foreman"],
+    },
+    {
+        "id": "field-equipment-checkout",
+        "section": "portals",
+        "title": "Field · Equipment Checkout & Return",
+        "summary": "The handoff between supervisor, Shop, and HR.",
+        "scopes": ["leadership", "admin"],
+        "tags": ["field", "equipment", "checkout", "return", "accountability"],
+        "body": [
+            {"type": "p", "text":
+                "Equipment Checkout is how field leadership records who has what. It is the "
+                "feeder for both Shop accountability (the asset's whereabouts) and HR "
+                "accountability (the employee's responsibility)."},
+            {"type": "steps", "items": [
+                "Open Field Leadership → Equipment Checkout",
+                "Pick the employee and the asset(s)",
+                "Note condition at issuance (photos count)",
+                "Submit",
+            ]},
+            {"type": "why", "text":
+                "If equipment is lost, damaged, or unreturned at offboarding, the checkout "
+                "record answers who had it last. No checkout record = no accountability."},
+            {"type": "next", "items": [
+                "Shop sees the asset is now assigned (no longer 'available')",
+                "HR sees the employee's accountability list grow",
+                "At offboarding, HR walks the list and confirms each item back",
+            ]},
+            {"type": "tip", "text":
+                "Photograph the asset condition at checkout AND at return. The two photos "
+                "are the cleanest possible damage record."},
+        ],
+        "related": ["why-equipment-accountability", "hr-offboarding", "role-shop"],
+    },
+    {
+        "id": "field-coaching-documentation",
+        "section": "portals",
+        "title": "Field · Documenting Coaching & Verbal Conversations",
+        "summary": "Why a 5-minute conversation deserves a 30-second record.",
+        "scopes": ["leadership", "admin"],
+        "tags": ["field", "coaching", "verbal", "documentation"],
+        "body": [
+            {"type": "p", "text":
+                "Verbal coaching is the most common form of leadership and the most under-"
+                "documented. Recording it briefly creates the pattern HR needs if the same "
+                "conversation keeps happening."},
+            {"type": "bullets", "items": [
+                "Date, employee, what was discussed, what was agreed",
+                "Keep it factual — no opinions, no labels",
+                "Note any follow-up action (training, re-check next week, etc.)",
+            ]},
+            {"type": "why", "text":
+                "A coaching record is a small thing the first time. The fourth time it "
+                "becomes the basis for a write-up. The tenth time it becomes the basis "
+                "for a corrective action. None of that is possible without record #1."},
+            {"type": "mistakes", "items": [
+                "Waiting until the conversation 'feels formal enough' to document it",
+                "Recording opinions instead of facts",
+                "Skipping the follow-up note (what was agreed)",
+            ]},
+        ],
+        "related": ["field-writeup-authoring", "hr-writeups-correctives"],
+    },
+    {
+        "id": "field-incident-escalation",
+        "section": "portals",
+        "title": "Field · Incident Escalation Chain",
+        "summary": "Field → Safety → Admin: who sees what, when.",
+        "scopes": ["leadership", "admin"],
+        "tags": ["field", "incident", "escalation", "safety"],
+        "body": [
+            {"type": "p", "text":
+                "An incident in the field travels through a defined chain. Knowing the "
+                "chain helps the right people respond at the right time."},
+            {"type": "steps", "items": [
+                "Make the scene safe — that is always step one",
+                "Document the incident with photos and a written account",
+                "Submit through Field or Safety portal before leaving the site",
+                "Safety reviews and may open a Corrective Action",
+                "Severe incidents escalate to Admin and the assigned PM",
+            ]},
+            {"type": "why", "text":
+                "Quick, factual incident documentation supports investigation, protects "
+                "the people involved, and prevents repeat events. Late or vague documentation "
+                "does the opposite."},
+            {"type": "warn", "text":
+                "Do not speculate about cause in the incident report. Record what you "
+                "observed. Cause analysis is the investigation's job, not the field report's."},
+            {"type": "next", "items": [
+                "Safety reviews within their normal cadence",
+                "Corrective Actions (if any) are tracked separately",
+                "Audit trail preserves the submission chain",
+                "Severe incidents trigger admin notification",
+            ]},
+        ],
+        "related": ["task-submit-incident", "connect-incident-to-audit", "why-incidents", "role-safety"],
+    },
+    {
+        "id": "field-writeup-authoring",
+        "section": "portals",
+        "title": "Field · Authoring a Defensible Write-Up",
+        "summary": "Facts, conversation, agreed next step.",
+        "scopes": ["leadership", "admin"],
+        "tags": ["field", "write-up", "discipline", "documentation"],
+        "body": [
+            {"type": "p", "text":
+                "A write-up records that a conversation happened, what was agreed, and what "
+                "the next step is. It is not a complaint form — it is a follow-up structure."},
+            {"type": "bullets", "items": [
+                "What happened (facts, no labels)",
+                "What was discussed (the conversation summary)",
+                "What was agreed (next step, deadline, check-in)",
+                "Employee acknowledgement (where applicable)",
+            ]},
+            {"type": "why", "text":
+                "Defensible write-ups protect everyone in the chain — the employee from "
+                "vague accusations, the supervisor from selective memory, the company from "
+                "disputes. The pattern is more important than the harshness of the wording."},
+            {"type": "mistakes", "items": [
+                "Writing only about the incident, with no agreed next step",
+                "Using opinion words ('lazy', 'careless') instead of describing behavior",
+                "Authoring without having had the conversation first",
+                "Filing and forgetting — the check-in is the point",
+            ]},
+            {"type": "next", "items": [
+                "HR reviews via HR → Field Leadership Records",
+                "Repeated write-ups for the same employee surface in review",
+                "If escalation is needed, Safety / HR / Admin pick it up from there",
+            ]},
+        ],
+        "related": ["field-coaching-documentation", "hr-writeups-correctives", "role-foreman"],
+    },
+    {
+        "id": "field-project-scope",
+        "section": "knowledge",
+        "title": "Field · What You See on Other Projects",
+        "summary": "Project assignment, PM scope, and why you might not see something.",
+        "scopes": ["leadership", "admin"],
+        "tags": ["field", "scope", "project", "visibility"],
+        "body": [
+            {"type": "p", "text":
+                "Field Leadership sees records tied to the projects they're assigned to. "
+                "PMs see records tied to projects they manage. Admin sees everything."},
+            {"type": "bullets", "items": [
+                "If a record is missing, the most likely cause is project assignment",
+                "If a project changed PMs, older records still belong to the old PM's scope",
+                "Cross-project reporting (when needed) goes through Admin",
+            ]},
+            {"type": "why", "text":
+                "Scope-based visibility keeps every supervisor's home screen focused on the "
+                "work that's actually theirs. It is not a security wall — it is a noise filter."},
+        ],
+        "related": ["tshoot-equipment-not-found"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PHASE B · CROSS-WORKFLOW CONNECTIONS (iter191 · preview only)
+    # ─────────────────────────────────────────────────────────────────
+    # Operator-emphasized: "how everything connects" is one of the
+    # highest-value teaching opportunities in the platform.
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "connect-field-to-payroll",
+        "section": "knowledge",
+        "title": "How Field Reports Become Payroll",
+        "summary": "Daily Report → HR Time Verification → Payroll cross-check.",
+        "scopes": ["field", "leadership", "hr", "pm", "admin"],
+        "tags": ["workflow", "field", "hr", "payroll", "time", "connection"],
+        "body": [
+            {"type": "p", "text":
+                "A daily report doesn't sit in one portal. Once submitted, the time entries "
+                "feed HR's Time Verification, where they are rolled up weekly into "
+                "Regular / Overtime / Lunch and cross-checked against payroll."},
+            {"type": "steps", "items": [
+                "Supervisor submits a Daily Report from the field",
+                "Hours per employee land in HR Time Verification under the matching pay period",
+                "HR rolls up the week and flags discrepancies",
+                "Verified totals support the payroll cross-check",
+                "Audit trail preserves every step — supervisor entry, HR review, export",
+            ]},
+            {"type": "why", "text":
+                "Understanding this connection is what makes a field supervisor careful about "
+                "hours and projects in the daily report. The number on a paycheck two weeks "
+                "later started life in their phone on the job site."},
+            {"type": "tip", "text":
+                "Wrong project on the daily report = wrong project on the paycheck cost-code. "
+                "It is the cheapest mistake to make and the most expensive to untangle."},
+        ],
+        "related": ["why-daily-reports", "why-time-verification", "hr-time-verification-deep", "field-daily-report-howto"],
+    },
+    {
+        "id": "connect-incident-to-audit",
+        "section": "knowledge",
+        "title": "How an Incident Becomes a Corrective Action",
+        "summary": "Field incident → Safety review → Corrective Action → Audit trail.",
+        "scopes": ["field", "leadership", "safety", "admin"],
+        "tags": ["workflow", "incident", "safety", "corrective", "audit", "connection"],
+        "body": [
+            {"type": "p", "text":
+                "An incident submitted in the field doesn't end with submission. It opens a "
+                "review chain that may produce a Corrective Action — the follow-up record "
+                "that proves the issue was actually addressed."},
+            {"type": "steps", "items": [
+                "Incident submitted (field, supervisor, or Safety)",
+                "Safety reviews the report and decides whether a Corrective Action is needed",
+                "Corrective Action is opened with an owner and a deadline",
+                "Owner completes the action and records what changed",
+                "Safety closes the action — the audit trail now shows the full lifecycle",
+            ]},
+            {"type": "why", "text":
+                "The Corrective Action is what turns an incident from a record of a problem "
+                "into a record of a solution. Without it, the same near-miss can happen again "
+                "and nobody can say what was done about it last time."},
+        ],
+        "related": ["why-incidents", "why-corrective-actions", "field-incident-escalation", "role-safety"],
     },
 ]
 

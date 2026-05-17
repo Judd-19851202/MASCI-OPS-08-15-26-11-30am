@@ -626,9 +626,8 @@ async def _guidance_caller_scopes(request: Request) -> set:
     leadership_tok = hdr("x-leadership-token") or ""
     if leadership_tok:
         try:
-            from field_leadership_auth import is_valid_leadership_token_async
-            row = await is_valid_leadership_token_async(db, leadership_tok)
-            is_leadership = row is not None
+            from routes.field_leadership import _check_leadership_token
+            is_leadership = bool(_check_leadership_token(leadership_tok))
         except Exception:
             is_leadership = False
 
