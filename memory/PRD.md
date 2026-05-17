@@ -1,6 +1,47 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 2 · Human-Readable Export · Stage A · ✅ COMPLETE
+
+User mandated a critical enterprise-grade data portability system: if MASCI (or any future customer) leaves the platform, they must be able to open, search, and use their records without a developer. Plus an architectural clarification: human-readable exports are **storage-target-neutral** and intended for the customer-owned MASCI server (future), NOT permanent R2 storage.
+
+### Delivered (Stage A — no PDF yet)
+- **NEW** `/app/memory/DATA_PORTABILITY.md` — plain-English doc for owner/HR/safety/superintendent/attorney/auditor/IT. 13 sections + storage-architecture (§ 11): R2 = technical/restore (90-day); human-readable = customer-owned, on-demand, never auto-persisted. Roadmap covers Stage B (PDFs), C (Admin UI), D (multi-tenant), E (MASCI server delivery), F (scheduled).
+- **NEW** `/app/scripts/export_human_readable.py` (1000+ LOC, lint-clean) — CLI exporter:
+  - Inputs: `--backup <zip>` OR `--from-source-folder <dir>` (extracted)
+  - Output: `{COMPANY_NAME}_HUMAN_READABLE_EXPORT_<UTC>` folder OR zip (`--no-zip` to keep folder)
+  - Modes: `--dry-run`, `--modules SAFETY,HR,…`
+  - Tenant-aware via `EXPORT_COMPANY_NAME` env var (defaults `MASCI`)
+  - **Storage-neutral by design**: zero R2 client, zero app-internal paths, zero implicit persistence. Future delivery integrations are thin wrappers around this CLI.
+- **NEW** Generated artifacts inside every export:
+  - `README_START_HERE.txt` — non-technical orientation
+  - `MANIFEST.json`, `EXPORT_INDEX.csv` (one row per record), `DATA_DICTIONARY.csv`
+  - Module folders: DAILY_REPORTS, SAFETY, HR, EQUIPMENT, DISPATCH, TRAINING, ADMIN_AUDIT, PROJECTS, OTHER (each with per-collection JSON + `CSV/` subfolder)
+  - `PHOTOS_AND_ATTACHMENTS/<module>/<record-id>/` with `ORPHANED_FILES/INDEX.csv` fallback
+  - `RAW_JSON/<collection>/` — verbatim mirror for IT/restore
+  - `SYSTEM/`: `Verification_Report.txt`, `Export_Errors.csv`, `Backup_Info.txt`
+- **Security**: sensitive field redaction (passwords/secrets/tokens/api_keys → `***REDACTED***`) in module folders; raw originals preserved in `RAW_JSON/` only. Credential collections (admin_users, hr_users, etc.) excluded from module folders entirely.
+- **Module map** covers 35+ collections across 8 business modules; unmapped collections land in `OTHER/` and are listed in Verification_Report.txt for follow-up.
+
+### Verified
+- **Synthetic fixture tests** (`/app/backend/tests/test_iter185_human_readable_export.py`): 13/13 pass — end-to-end run, CSV emission, redaction, security-skipped collections, photo association + orphaning, malformed-record graceful skip, unknown-collection bucketing, EXPORT_INDEX coverage, dry-run, module filter, company-name env, zip mode, `--from-source-folder` flow.
+- **Real R2 backup smoke test** (gated behind `RUN_REAL_R2_TEST=1`): downloaded 168 MB legacy backup → exporter completed in 4.5 s → **78 records, 200/200 photos associated, 0 errors, 0 warnings, VERDICT: PASS**.
+
+### Held (per user mandate)
+- ⏸ Stage B: per-record PDFs (hybrid — reuse platform templates where available, standardized fallback elsewhere)
+- ⏸ Stage C: Admin UI button (audit-logged, expiring download link, async generation)
+- ⏸ Future Stage E: MASCI-server delivery wrapper (separate thin upload script, exporter unchanged)
+- ⏸ All earlier holds remain: K4b frontend, K5, K6, K7, K8, K9, Sentry, restore drill execution, R2 lifecycle apply (token rotation still pending)
+
+### Next Action Items
+- 🟢 **You**: review `/app/memory/DATA_PORTABILITY.md` § 11 (Storage architecture) — confirm the future MASCI-server-as-archive direction matches your intent
+- 🟢 **You**: green-light Stage B (PDF rendering) when ready
+- 🟡 R2 token rotation + lifecycle apply (Round 2) still outstanding
+- 🟡 First restore drill scheduled within 14 days
+
+---
+
+---
 ## 2026-02-XX — Phase 2 Operational Hardening · Round 2 (R2 lifecycle) · ✅ CODE COMPLETE (preview); ⚠️ token permission pending
 
 ### Delivered
