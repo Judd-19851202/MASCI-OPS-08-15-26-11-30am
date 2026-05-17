@@ -239,7 +239,10 @@ _ARTICLES: list[dict] = [
                 "Accurate dispatch records prevent equipment from being double-booked or "
                 "sent to a job in a state it shouldn't be in."},
         ],
-        "related": ["why-equipment-accountability"],
+        "related": ["why-equipment-accountability", "portal-dispatch",
+                    "dispatch-equipment-movement", "dispatch-availability-management",
+                    "dispatch-holds-transfers", "dispatch-field-coordination",
+                    "dispatch-accuracy-why", "connect-shop-to-dispatch"],
     },
     {
         "id": "role-pm",
@@ -256,7 +259,10 @@ _ARTICLES: list[dict] = [
                 "PM review catches issues before they grow and keeps project records "
                 "aligned with what the field is actually seeing."},
         ],
-        "related": ["why-daily-reports"],
+        "related": ["why-daily-reports", "portal-pm", "pm-project-review-cadence",
+                    "pm-labor-documentation", "pm-cross-project-visibility",
+                    "pm-reporting-workflows", "pm-coordination",
+                    "connect-pm-field-review"],
     },
     {
         "id": "role-admin",
@@ -280,7 +286,11 @@ _ARTICLES: list[dict] = [
                 "Role templates",
             ]},
         ],
-        "related": ["why-audit-logs", "why-backups", "tshoot-session-timeout"],
+        "related": ["why-audit-logs", "why-backups", "tshoot-session-timeout",
+                    "admin-user-management", "admin-audit-forensics", "admin-system-health",
+                    "admin-backup-restore", "admin-data-portability",
+                    "admin-sentry-observability", "admin-role-templates",
+                    "admin-governance-why", "connect-admin-controls"],
     },
     {
         "id": "role-new-employee",
@@ -437,7 +447,10 @@ _ARTICLES: list[dict] = [
                 "Most operational visibility lives under Admin → System. Sessions, "
                 "audit log, and backups are all there."},
         ],
-        "related": ["role-admin"],
+        "related": ["role-admin", "admin-user-management", "admin-audit-forensics",
+                    "admin-system-health", "admin-backup-restore",
+                    "admin-data-portability", "admin-sentry-observability",
+                    "admin-role-templates", "admin-governance-why"],
     },
 
     # ── TROUBLESHOOTING ──────────────────────────────────────────────
@@ -1785,6 +1798,706 @@ _ARTICLES: list[dict] = [
         "related": ["field-equipment-checkout", "shop-equipment-return", "shop-damage-reporting",
                     "hr-offboarding", "why-equipment-accountability"],
     },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PHASE B ITER 3 · DISPATCH PORTAL DEEP CONTENT (iter193 · preview only)
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "portal-dispatch",
+        "section": "portals",
+        "title": "Dispatch Portal Quick-Start",
+        "summary": "Equipment movement, availability, and field coordination.",
+        "scopes": ["dispatch", "admin"],
+        "tags": ["dispatch", "portal", "equipment", "coordination"],
+        "body": [
+            {"type": "p", "text":
+                "Dispatch coordinates equipment across projects. Its job is to make sure the "
+                "right asset is in the right place, on the right job, in a known state — and "
+                "that everyone downstream (Shop, Field, PM) is in sync about it."},
+            {"type": "bullets", "items": [
+                "Equipment availability and utilisation",
+                "Holds, transfers, temporary out-of-service status",
+                "Cross-portal status: receives from Shop, broadcasts to Field/PM",
+                "Operational events log (assignments, holds, returns)",
+            ]},
+            {"type": "why", "text":
+                "Dispatch is upstream of every asset-related decision the rest of the "
+                "platform makes. When it's accurate, the field doesn't waste mornings "
+                "looking for equipment; when it isn't, every downstream report inherits "
+                "the drift."},
+            {"type": "tip", "text":
+                "Most disputes about 'where is X equipment?' end at Dispatch. The cleaner "
+                "the dispatch record, the shorter the conversation."},
+        ],
+        "related": ["dispatch-equipment-movement", "dispatch-availability-management",
+                    "dispatch-holds-transfers", "dispatch-field-coordination",
+                    "dispatch-accuracy-why", "role-dispatch"],
+    },
+    {
+        "id": "dispatch-equipment-movement",
+        "section": "portals",
+        "title": "Dispatch · Equipment Movement Lifecycle",
+        "summary": "Job-to-job transfers, in-transit status, arrival confirmation.",
+        "scopes": ["dispatch", "admin"],
+        "tags": ["dispatch", "movement", "transfer", "lifecycle"],
+        "body": [
+            {"type": "p", "text":
+                "Equipment doesn't teleport between jobs. The movement is a tracked event "
+                "with a source, a destination, an in-transit state, and an arrival "
+                "confirmation. Each of those states is visible to the people who need it."},
+            {"type": "steps", "items": [
+                "Originating PM / supervisor releases the asset (or Dispatch reclaims it)",
+                "Dispatch creates the movement event with source / destination / timing",
+                "Asset enters `in-transit` — invisible to either job's active asset list",
+                "Receiving project confirms arrival; asset re-enters `assigned` on the new job",
+                "Movement event closes — visible in the asset's history",
+            ]},
+            {"type": "why", "text":
+                "Without a tracked movement, equipment can show as 'still on job A' while it "
+                "is physically on job B. That breaks both project asset reports and Shop's "
+                "ability to know where to dispatch a technician for service."},
+            {"type": "mistakes", "items": [
+                "Reassigning to the new project without releasing from the old one",
+                "Skipping the in-transit state (jumps from A to B with no gap, hides delays)",
+                "Forgetting to confirm arrival (asset shows in-transit indefinitely)",
+            ]},
+            {"type": "next", "items": [
+                "Both projects' asset lists update automatically",
+                "Asset history shows the full path — useful for utilisation analysis",
+                "PMs see project-level changes in their dashboard",
+            ]},
+        ],
+        "related": ["dispatch-availability-management", "dispatch-holds-transfers",
+                    "connect-equipment-lifecycle", "role-dispatch"],
+    },
+    {
+        "id": "dispatch-availability-management",
+        "section": "portals",
+        "title": "Dispatch · Availability & Utilisation",
+        "summary": "What 'available' really means, and the cost of stale data.",
+        "scopes": ["dispatch", "admin"],
+        "tags": ["dispatch", "availability", "utilisation", "asset"],
+        "body": [
+            {"type": "p", "text":
+                "'Available' has a precise meaning: assigned to no project, not on hold, not "
+                "in service, condition-cleared. Anything less is something else — and the "
+                "system records the difference so Dispatch can decide accurately."},
+            {"type": "bullets", "items": [
+                "Available — ready to be assigned",
+                "Assigned — currently on a project",
+                "In-transit — moving between jobs",
+                "On hold — temporarily restricted (operator certification, project pause, etc.)",
+                "In service — Shop has the asset",
+                "Out of service — failed pre-op or damage pending repair",
+            ]},
+            {"type": "why", "text":
+                "Stale availability is the source of more daily wasted effort than any other "
+                "kind of bad data. A foreman driving to a yard for an asset that isn't there "
+                "is the most expensive five minutes in dispatch."},
+            {"type": "next", "items": [
+                "Availability changes flow to the field-assignment lists in real time",
+                "Utilisation reports surface assets that are over- or under-deployed",
+                "Patterns inform fleet sizing decisions",
+            ]},
+        ],
+        "related": ["dispatch-holds-transfers", "shop-failed-preop-workflow",
+                    "connect-shop-to-dispatch", "role-dispatch"],
+    },
+    {
+        "id": "dispatch-holds-transfers",
+        "section": "portals",
+        "title": "Dispatch · Holds & Transfers",
+        "summary": "Pausing, releasing, and routing assets without losing accountability.",
+        "scopes": ["dispatch", "admin"],
+        "tags": ["dispatch", "hold", "transfer", "release"],
+        "body": [
+            {"type": "p", "text":
+                "A hold is a temporary restriction. A transfer is a permanent change of "
+                "assignment. They're different operations because they have different "
+                "downstream effects — a hold is reversible without retracing accountability; "
+                "a transfer is not."},
+            {"type": "bullets", "items": [
+                "Hold reasons: operator certification, project pause, weather, inspection",
+                "Transfer reasons: project completion, reassignment, off-rent",
+                "Each carries a reason code that surfaces in the asset's history",
+            ]},
+            {"type": "why", "text":
+                "Hold vs transfer is one of the most-confused operations in dispatch — "
+                "and one where the wrong choice quietly poisons downstream reports. Picking "
+                "the right one is how project utilisation numbers stay honest."},
+            {"type": "warn", "text":
+                "Do not use a hold when a transfer is the right operation, or vice versa. "
+                "A held asset still counts against the original project's utilisation; a "
+                "transferred asset does not. The reporting downstream depends on the "
+                "correct choice."},
+            {"type": "next", "items": [
+                "Held assets reappear when the hold is cleared",
+                "Transferred assets close out the original project's record",
+                "PM views update with the change",
+            ]},
+        ],
+        "related": ["dispatch-availability-management", "dispatch-equipment-movement",
+                    "role-dispatch"],
+    },
+    {
+        "id": "dispatch-field-coordination",
+        "section": "knowledge",
+        "title": "Dispatch · How Dispatch & Field Stay in Sync",
+        "summary": "The handoff that prevents 'asset isn't where the system says it is'.",
+        "scopes": ["dispatch", "leadership", "pm", "admin"],
+        "tags": ["dispatch", "field", "coordination", "workflow"],
+        "body": [
+            {"type": "p", "text":
+                "Dispatch sees the system view; field sees the physical view. When those "
+                "drift, the field wastes morning hours looking for equipment. The handoff "
+                "is what keeps the two views aligned."},
+            {"type": "bullets", "items": [
+                "Field-leadership equipment checkout records WHO has WHAT (operator-level)",
+                "Dispatch records WHERE that WHAT is (project-level)",
+                "Both update on movement events; both surface to PM",
+            ]},
+            {"type": "why", "text":
+                "Dispatch alone can't see the operator-level reality; field alone can't see "
+                "the project-level allocation. The handoff is the only place both views meet."},
+            {"type": "tip", "text":
+                "If a supervisor finds equipment in the field that Dispatch doesn't show "
+                "there, the supervisor records the discrepancy — Dispatch reconciles, "
+                "doesn't argue. The record is more valuable than the question of who was right."},
+        ],
+        "related": ["dispatch-equipment-movement", "dispatch-availability-management",
+                    "field-equipment-checkout", "connect-shop-to-dispatch"],
+    },
+    {
+        "id": "dispatch-accuracy-why",
+        "section": "knowledge",
+        "title": "Dispatch · Why Accuracy Matters",
+        "summary": "Every downstream report depends on the dispatch record being right.",
+        "scopes": ["dispatch", "shop", "leadership", "pm", "admin"],
+        "tags": ["dispatch", "accuracy", "why", "data quality"],
+        "body": [
+            {"type": "p", "text":
+                "Dispatch is upstream of everything: project utilisation reports, Shop's "
+                "view of who has what, the field's available-asset list, executive fleet "
+                "decisions. When dispatch is wrong, every downstream view is wrong — but "
+                "the people relying on them often don't know it."},
+            {"type": "bullets", "items": [
+                "Field sees a stale 'available' list → wasted trips",
+                "Shop schedules service on assets that have moved → wasted technician time",
+                "PMs see wrong utilisation → wrong project cost estimates",
+                "Executives see wrong fleet utilisation → wrong purchase / sell decisions",
+            ]},
+            {"type": "why", "text":
+                "Dispatch accuracy isn't a Dispatch-team concern — it's an operational "
+                "concern for every team downstream. Treat each entry like the report it'll "
+                "be cited in, because it will be."},
+        ],
+        "related": ["dispatch-availability-management", "dispatch-field-coordination",
+                    "connect-shop-to-dispatch", "role-dispatch"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PHASE B ITER 3 · PM PORTAL DEEP CONTENT (iter193 · preview only)
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "portal-pm",
+        "section": "portals",
+        "title": "PM Portal Quick-Start",
+        "summary": "Project oversight, report review, coordination.",
+        "scopes": ["pm", "admin"],
+        "tags": ["pm", "project manager", "portal"],
+        "body": [
+            {"type": "p", "text":
+                "The PM portal is the project-level lens. PMs see the records tied to "
+                "projects they manage — daily reports, inspections, JHAs, incidents, "
+                "field-leadership records, equipment assignments."},
+            {"type": "bullets", "items": [
+                "Project dashboard with scope-filtered records",
+                "Read access into Field Leadership records on PM-assigned projects",
+                "Inspection / meeting / JHA review",
+                "Equipment-allocation visibility per project",
+            ]},
+            {"type": "why", "text":
+                "The PM portal is what turns 'data exists' into 'PM actually saw it.' "
+                "Scope-filtered views keep each PM focused on their projects without "
+                "having to wade through everyone else's."},
+            {"type": "tip", "text":
+                "PM scope is project-based, not portal-based. Records from projects the PM "
+                "doesn't manage are intentionally hidden — that's a noise filter, not a "
+                "security wall (admin can always read everything)."},
+        ],
+        "related": ["pm-project-review-cadence", "pm-labor-documentation",
+                    "pm-cross-project-visibility", "pm-coordination",
+                    "pm-reporting-workflows", "role-pm"],
+    },
+    {
+        "id": "pm-project-review-cadence",
+        "section": "portals",
+        "title": "PM · Project Review Cadence",
+        "summary": "What to review, how often, what to escalate.",
+        "scopes": ["pm", "admin"],
+        "tags": ["pm", "review", "cadence", "project"],
+        "body": [
+            {"type": "p", "text":
+                "PM review is the early-warning system for a project. Daily checks catch "
+                "small issues; weekly rollups catch trends; monthly reviews drive direction. "
+                "Skipping a level breaks the warning system."},
+            {"type": "steps", "items": [
+                "Daily: scan daily reports for issues, missing entries, schedule slip",
+                "Weekly: rollup of hours, incident count, equipment status, open items",
+                "Monthly: project trend review with leadership, scope alignment",
+                "Quarterly: cross-project lessons-learned",
+            ]},
+            {"type": "why", "text":
+                "Most project problems show up in the daily / weekly window as small "
+                "signals. The cost of catching them there is hours; the cost of catching "
+                "them at the monthly review is weeks; the cost of catching them at closeout "
+                "is the change order."},
+            {"type": "next", "items": [
+                "Issues flagged in review become PM follow-up items",
+                "Patterns inform supervisor coaching",
+                "Cross-project trends surface to admin and leadership",
+            ]},
+        ],
+        "related": ["pm-labor-documentation", "pm-reporting-workflows",
+                    "connect-pm-field-review", "role-pm"],
+    },
+    {
+        "id": "pm-labor-documentation",
+        "section": "portals",
+        "title": "PM · Labor & Documentation Relationships",
+        "summary": "How field labor entries become project cost reality.",
+        "scopes": ["pm", "admin"],
+        "tags": ["pm", "labor", "documentation", "cost", "payroll"],
+        "body": [
+            {"type": "p", "text":
+                "Hours entered on field reports become the project's labor cost. The PM is "
+                "the person who knows whether those hours make sense for the work performed "
+                "— nobody else has both the field view and the cost view."},
+            {"type": "bullets", "items": [
+                "Daily report hours → HR time verification → payroll cost-code",
+                "Wrong project on a daily report = wrong cost-code on payroll",
+                "Time discrepancies are typically caught in weekly PM review",
+            ]},
+            {"type": "why", "text":
+                "Labor is usually the biggest line on a project. Bad labor data isn't a "
+                "small problem — it's a multi-thousand-dollar problem repeating every week. "
+                "PM review is where it gets caught before it accumulates."},
+            {"type": "mistakes", "items": [
+                "Assuming HR will catch project mis-codes (HR catches totals, PM catches projects)",
+                "Reviewing labor only at month-end (the mistake compounds for 4 weeks)",
+                "Not requesting a re-entry when the report is materially wrong",
+            ]},
+        ],
+        "related": ["connect-field-to-payroll", "hr-time-verification-deep",
+                    "pm-project-review-cadence", "role-pm"],
+    },
+    {
+        "id": "pm-cross-project-visibility",
+        "section": "knowledge",
+        "title": "PM · What You Can and Cannot See",
+        "summary": "Project assignment, scope filtering, when to ask Admin.",
+        "scopes": ["pm", "admin"],
+        "tags": ["pm", "scope", "visibility", "rbac"],
+        "body": [
+            {"type": "p", "text":
+                "PM visibility is project-scoped. Records tied to projects you manage are "
+                "fully visible; records on other projects are intentionally hidden. This is "
+                "not a permissions limitation — it's a noise filter."},
+            {"type": "bullets", "items": [
+                "Visible: daily reports, inspections, JHAs, incidents, FL records on your projects",
+                "Visible: equipment assignments on your projects",
+                "Hidden: any record tied to a project you don't manage",
+                "Cross-project reporting: routed through Admin",
+            ]},
+            {"type": "warn", "text":
+                "If a record you expect to see is missing, first check the project "
+                "assignment. The most common cause is the wrong project on the originating "
+                "record — fix at the source, don't work around it."},
+            {"type": "why", "text":
+                "Scope-based visibility keeps each PM's view focused on the work that's "
+                "actually theirs. Admin sees everything; that's why cross-project questions "
+                "route through Admin, not through PM-to-PM data sharing."},
+        ],
+        "related": ["field-project-scope", "pm-project-review-cadence", "role-pm"],
+    },
+    {
+        "id": "pm-reporting-workflows",
+        "section": "portals",
+        "title": "PM · Reporting Workflows",
+        "summary": "Surface-level views, drill-downs, and what to export.",
+        "scopes": ["pm", "admin"],
+        "tags": ["pm", "reporting", "workflow", "export"],
+        "body": [
+            {"type": "p", "text":
+                "PM reporting is layered. The PM dashboard is the surface scan; drill-downs "
+                "answer specific questions; exports support conversations outside the platform."},
+            {"type": "bullets", "items": [
+                "Dashboard: per-project rollup of recent activity, open items, alerts",
+                "Drill-down: per-record detail (daily report, inspection, etc.)",
+                "Export: CSV / PDF for owner / client / executive review",
+            ]},
+            {"type": "why", "text":
+                "Layered reporting matches the kind of question being asked. Dashboard "
+                "answers 'how is the project doing'; drill-downs answer 'what specifically "
+                "happened'; exports answer 'show me the record'. Each has its place."},
+            {"type": "next", "items": [
+                "Audit trail records who exported what and when",
+                "Repeated drill-downs into the same area surface as PM patterns",
+            ]},
+        ],
+        "related": ["pm-project-review-cadence", "pm-labor-documentation", "role-pm"],
+    },
+    {
+        "id": "pm-coordination",
+        "section": "knowledge",
+        "title": "PM · Coordination Across Crews & Trades",
+        "summary": "How PMs use the platform to keep multiple crews aligned.",
+        "scopes": ["pm", "admin"],
+        "tags": ["pm", "coordination", "crews"],
+        "body": [
+            {"type": "p", "text":
+                "Multi-crew projects live or die on coordination. The platform doesn't run "
+                "coordination — humans do — but the platform creates the shared record that "
+                "keeps every crew working from the same facts."},
+            {"type": "bullets", "items": [
+                "Daily reports across crews tell a single project story",
+                "Field-leadership coaching / write-ups surface friction early",
+                "Equipment assignments per crew are visible across the project",
+                "Incident escalation engages PM the same day for severe events",
+            ]},
+            {"type": "why", "text":
+                "Without shared records, coordination depends on memory and phone calls — "
+                "both of which fail when something is being disputed. With shared records, "
+                "the conversation starts from a common baseline."},
+        ],
+        "related": ["pm-project-review-cadence", "field-incident-escalation", "role-pm"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PHASE B ITER 3 · ADMIN PORTAL DEEP CONTENT (iter193 · preview only)
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "admin-user-management",
+        "section": "portals",
+        "title": "Admin · User Management",
+        "summary": "Create, disable, transfer, reset — the directory's day-to-day.",
+        "scopes": ["admin"],
+        "tags": ["admin", "user", "directory", "access"],
+        "body": [
+            {"type": "p", "text":
+                "User management is the daily heart of admin work. Most of it is creating "
+                "and disabling accounts, resetting passwords, and assigning role templates. "
+                "Each one is small; the discipline is in doing it consistently."},
+            {"type": "steps", "items": [
+                "Create: enter email + portal(s) + role template; set must_change_password=true",
+                "Disable (preferred over delete): preserves audit history",
+                "Reset password: admin-issued temp credential, force change on next login",
+                "Convert mirrored → managed (K4b, when wired): explicit password handoff",
+            ]},
+            {"type": "why", "text":
+                "User management is the platform's access perimeter. A disabled-not-deleted "
+                "account preserves the audit chain; a forced password change at first login "
+                "preserves the secret. Both small disciplines add up to the platform's "
+                "answer when access is later questioned."},
+            {"type": "warn", "text":
+                "Never delete an account that has audit history — disable it. Deleting "
+                "breaks every audit-trail reference that points to that user. Disable "
+                "preserves history; delete erases the chain of custody."},
+            {"type": "next", "items": [
+                "Created users appear in the directory on next page load",
+                "Disabled accounts stop working immediately on next request",
+                "Audit log records every create / disable / password-reset action",
+            ]},
+        ],
+        "related": ["admin-audit-forensics", "admin-role-templates", "admin-governance-why",
+                    "role-admin"],
+    },
+    {
+        "id": "admin-audit-forensics",
+        "section": "portals",
+        "title": "Admin · Audit Trail Forensics",
+        "summary": "Reading the audit log to reconstruct what actually happened.",
+        "scopes": ["admin"],
+        "tags": ["admin", "audit", "forensics", "investigation"],
+        "body": [
+            {"type": "p", "text":
+                "The audit log is the platform's memory. When a question comes up — 'who "
+                "disabled that account?', 'who exported the backup?', 'when did this "
+                "permission change?' — the audit log is where you get a defensible answer."},
+            {"type": "bullets", "items": [
+                "Login / logout events with IP",
+                "Account create / disable / password reset",
+                "Backup downloads (chain-of-custody)",
+                "Permission and role-template changes",
+                "Sensitive admin actions (denials logged for step-up enforcement)",
+            ]},
+            {"type": "steps", "items": [
+                "Filter by actor (email) or by action type",
+                "Narrow by time window",
+                "Read the chain end-to-end before concluding — single rows can mislead",
+                "Export the relevant rows for the investigation record",
+            ]},
+            {"type": "why", "text":
+                "The audit log is the answer to questions of trust. Without it, every "
+                "dispute is one person's recollection against another. With it, the system "
+                "speaks for itself."},
+        ],
+        "related": ["why-audit-logs", "admin-user-management", "admin-governance-why",
+                    "role-admin"],
+    },
+    {
+        "id": "admin-system-health",
+        "section": "portals",
+        "title": "Admin · System Health & Sessions",
+        "summary": "What 'healthy' looks like and how to spot when it isn't.",
+        "scopes": ["admin"],
+        "tags": ["admin", "system health", "sessions", "operations"],
+        "body": [
+            {"type": "p", "text":
+                "Admin → System exposes the platform's vital signs: Mongo health, scheduler, "
+                "recent backups, active sessions. Most of the time this page is boring — "
+                "that's the point. Pay attention when it isn't."},
+            {"type": "bullets", "items": [
+                "Mongo + scheduler = both green at all times",
+                "Backup recency: most-recent backup timestamp must be within the auto-cadence",
+                "Last 5 Sessions panel: spot stale or anomalous active sessions",
+                "/api/health/full: deep-health probe (used by UptimeRobot)",
+            ]},
+            {"type": "why", "text":
+                "Boring is the goal. Most days the system-health page tells you nothing new. "
+                "The discipline is in checking it anyway — because the day it has something "
+                "to say, you want to learn about it from this page and not from a user."},
+            {"type": "next", "items": [
+                "Backup-recency miss → check the scheduler log; usually transient",
+                "Session anomaly → cross-check with audit log",
+            ]},
+        ],
+        "related": ["admin-backup-restore", "admin-sentry-observability", "role-admin"],
+    },
+    {
+        "id": "admin-backup-restore",
+        "section": "portals",
+        "title": "Admin · Backups & Restore Posture",
+        "summary": "What backs up, when, where it lives, and proving it works.",
+        "scopes": ["admin"],
+        "tags": ["admin", "backup", "restore", "r2", "drill"],
+        "body": [
+            {"type": "p", "text":
+                "MASCI keeps two parallel preservation systems: technical backups (used to "
+                "restore the live database) and human-readable exports (used to read records "
+                "outside the platform). A backup that's never been restored isn't yet a "
+                "backup — it's an assumption."},
+            {"type": "bullets", "items": [
+                "Hourly + nightly snapshots → Cloudflare R2 → 90-day lifecycle expiration",
+                "Side-DB restore drill: validates a backup can actually be read into Mongo",
+                "Quarterly drill cadence; logged in `RESTORE_DRILL.md`",
+                "Human-readable export: separate tool, storage-neutral, on-demand",
+            ]},
+            {"type": "why", "text":
+                "A backup that's never been restored is an assumption, not a backup. "
+                "The drill cadence converts that assumption into a verified capability — "
+                "and the side-DB target ensures verification never risks the live database."},
+            {"type": "warn", "text":
+                "Never restore a backup over the live DB. The restore-drill script refuses "
+                "any target_db that doesn't start with `masci_restore_drill_`. That refusal "
+                "is intentional."},
+            {"type": "next", "items": [
+                "Drill failure = backup is suspect; investigate immediately",
+                "Drill success = drill row appended to the runbook",
+                "Restore decisions over live data engage Admin + insurance / legal as appropriate",
+            ]},
+        ],
+        "related": ["why-backups", "admin-data-portability", "admin-governance-why",
+                    "role-admin"],
+    },
+    {
+        "id": "admin-data-portability",
+        "section": "portals",
+        "title": "Admin · Data Portability & Human-Readable Exports",
+        "summary": "When customers, auditors, or attorneys need readable records.",
+        "scopes": ["admin"],
+        "tags": ["admin", "export", "portability", "audit"],
+        "body": [
+            {"type": "p", "text":
+                "Human-readable exports turn the database into something a non-technical "
+                "reader can open. Used for customer leave-the-platform scenarios, auditor / "
+                "attorney requests, or just internal record-pulls."},
+            {"type": "bullets", "items": [
+                "Per-record PDF (platform layout where available, fallback elsewhere)",
+                "Per-record CSV / JSON / RAW",
+                "Photos resolved offline (no R2 dependency at read time)",
+                "Manifest + verification report included in every export"
+            ]},
+            {"type": "why", "text":
+                "Data portability isn't a marketing feature — it's an operational "
+                "obligation. When a customer, auditor, or attorney needs records, "
+                "human-readable exports are the answer that doesn't require a developer "
+                "or a platform login."},
+            {"type": "tip", "text":
+                "Exports are storage-neutral by design. The export tool never auto-uploads "
+                "to R2 — that decision belongs to whoever runs the export, for the case "
+                "they're running it for."},
+            {"type": "next", "items": [
+                "Export audit-logged with actor, scope, timestamp",
+                "Output zip / folder delivered through the chosen channel (manual, by design)",
+            ]},
+        ],
+        "related": ["admin-backup-restore", "why-backups", "role-admin"],
+    },
+    {
+        "id": "admin-sentry-observability",
+        "section": "portals",
+        "title": "Admin · Sentry & Observability Posture",
+        "summary": "Errors, releases, and PII discipline.",
+        "scopes": ["admin"],
+        "tags": ["admin", "sentry", "observability", "errors"],
+        "body": [
+            {"type": "p", "text":
+                "Sentry is active in preview and production for backend and frontend. Its "
+                "job is to surface errors the team didn't see — silently failing requests, "
+                "broken frontends in environments not actively being used."},
+            {"type": "bullets", "items": [
+                "Release identifier = source hash (BE + FE share the same release tag)",
+                "PII scrubber strips password*/token*/secret*/api_key* + auth headers + hex blobs",
+                "Auto-session-tracking enabled for release-health",
+                "Init is no-op if DSN is unset — app safe without Sentry configured",
+            ]},
+            {"type": "why", "text":
+                "Most production bugs aren't reported by users — they're silent failures "
+                "the team doesn't know to look for. Sentry's job is to surface those "
+                "automatically, with enough release context to know which deploy introduced "
+                "them and which one fixed them."},
+            {"type": "warn", "text":
+                "Do NOT log raw request bodies or response payloads to Sentry. The scrubber "
+                "catches common keys; assume any non-scrubbed surface is logged in clear."},
+            {"type": "next", "items": [
+                "New errors surface in Sentry issues — triage same-day",
+                "Release health drops after a deploy → roll back fast, investigate after",
+            ]},
+        ],
+        "related": ["admin-system-health", "admin-governance-why", "role-admin"],
+    },
+    {
+        "id": "admin-role-templates",
+        "section": "portals",
+        "title": "Admin · Role Templates",
+        "summary": "Why templates exist, how to assign them, and what's still hand-rolled.",
+        "scopes": ["admin"],
+        "tags": ["admin", "role template", "rbac", "permissions"],
+        "body": [
+            {"type": "p", "text":
+                "Role templates capture the standard permissions for each portal-role "
+                "combination (HR Manager, Mechanic, Foreman, Superintendent, etc.). They "
+                "exist so every account doesn't have to be permissioned from scratch."},
+            {"type": "bullets", "items": [
+                "31 built-in templates across all 7 portals (Phase K3)",
+                "Hierarchy supported (PM Read-Only ⊆ Coordinator ⊆ PM)",
+                "Custom templates survive system-seed (system != True flag)",
+                "Enforcement is deferred to Phase K6 — templates exist, are surfaced read-only today",
+            ]},
+            {"type": "why", "text":
+                "Role templates are the staging ground for replacing scattered "
+                "`role == \"...\"` checks with a single permission catalog. Surfacing them "
+                "read-only first lets the team verify the catalog before flipping the "
+                "enforcement gate — a deliberate slow rollout to avoid breaking valid users."},
+            {"type": "warn", "text":
+                "Today, role templates are visible in the Unified Directory but are not "
+                "yet enforced by the auth gates. Routes still use per-portal token checks. "
+                "The enforcement cutover is staged (Phase K6) and intentionally gradual."},
+        ],
+        "related": ["admin-user-management", "admin-governance-why", "role-admin"],
+    },
+    {
+        "id": "admin-governance-why",
+        "section": "knowledge",
+        "title": "Admin · Why Controls & Restrictions Exist",
+        "summary": "The reasoning behind RBAC, audit, lockouts, and rate limits.",
+        "scopes": ["admin"],
+        "tags": ["admin", "governance", "rbac", "security", "why"],
+        "body": [
+            {"type": "p", "text":
+                "Admin controls aren't a tax on speed — they're how the platform survives "
+                "the eventual day something goes wrong. Each control answers a specific "
+                "real-world risk."},
+            {"type": "bullets", "items": [
+                "RBAC: prevents one portal's mistake from spreading across other portals",
+                "Audit log: answers 'who did what' when a record is disputed",
+                "Session timeouts: limit the cost of a lost / unattended device",
+                "Rate limits: prevent a single buggy client (or attacker) from overwhelming the API",
+                "Backup + restore drill: ensures recovery is possible when needed",
+                "Step-up auth (when enabled): re-confirms identity for sensitive actions",
+            ]},
+            {"type": "why", "text":
+                "Each control is small; together they form the difference between a "
+                "platform that holds up under real-world friction and one that quietly "
+                "fails when it matters. None of them are paranoia — all of them are "
+                "responses to events that have happened to other platforms."},
+        ],
+        "related": ["admin-audit-forensics", "admin-user-management",
+                    "admin-backup-restore", "why-session-timeouts", "role-admin"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PHASE B ITER 3 · CROSS-WORKFLOW CONNECTIONS (iter193)
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "connect-pm-field-review",
+        "section": "knowledge",
+        "title": "How Field Reports Reach PM Review",
+        "summary": "Field submit → PM scope → review → action.",
+        "scopes": ["field", "leadership", "pm", "admin"],
+        "tags": ["workflow", "field", "pm", "review", "connection"],
+        "body": [
+            {"type": "p", "text":
+                "A field report doesn't just sit in the field's record store. It surfaces "
+                "automatically to the PMs assigned to the project, who use it as their "
+                "early-warning system."},
+            {"type": "steps", "items": [
+                "Supervisor submits a daily report / inspection / incident with the correct project",
+                "Record enters PM's project-scoped view on next page load",
+                "PM reviews in their cadence (daily / weekly / monthly)",
+                "Issues become follow-ups; severe items escalate same-day",
+                "Audit trail records who reviewed what, when",
+            ]},
+            {"type": "why", "text":
+                "Without this loop, the PM only learns about field issues when they "
+                "escalate verbally. With it, the PM has a chance to catch a small issue "
+                "while it's still small — which is also when it's cheapest to fix."},
+            {"type": "tip", "text":
+                "Wrong project on the field record = record never reaches PM review. Of "
+                "all the data-quality issues in the system, this is the highest-cost one "
+                "to leave uncorrected."},
+        ],
+        "related": ["pm-project-review-cadence", "pm-labor-documentation",
+                    "connect-field-to-payroll", "field-daily-report-howto"],
+    },
+    {
+        "id": "connect-admin-controls",
+        "section": "knowledge",
+        "title": "How Admin Controls Protect Each Portal",
+        "summary": "RBAC, audit, session boundaries — what each portal inherits.",
+        "scopes": ["admin"],
+        "tags": ["workflow", "admin", "rbac", "audit", "connection"],
+        "body": [
+            {"type": "p", "text":
+                "Each portal benefits from admin-level controls it doesn't see directly. "
+                "Understanding the inherited posture helps when designing new features or "
+                "deciding whether a request requires step-up."},
+            {"type": "bullets", "items": [
+                "Every portal inherits the audit log (login, logout, sensitive actions)",
+                "Every portal inherits session timeouts (tier-specific)",
+                "Every portal inherits rate limits on public POST surfaces",
+                "Every portal inherits scope-based RBAC at the API gate",
+                "Step-up auth (env-gated) applies to admin-sensitive mutations only",
+            ]},
+            {"type": "why", "text":
+                "The admin controls aren't admin-only protections — they're platform-level "
+                "protections that make every portal safer. The portals don't have to "
+                "implement these themselves; admin owns the posture for all of them."},
+        ],
+        "related": ["admin-governance-why", "admin-audit-forensics",
+                    "why-session-timeouts", "why-audit-logs"],
+    },
 ]
 
 
@@ -1937,3 +2650,69 @@ def sections_for(granted_scopes: set[str]) -> list[dict]:
         for s in SECTIONS
         if counts.get(s["id"], 0) > 0
     ]
+
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Coverage Dashboard — admin governance read-only view (iter193)
+# ─────────────────────────────────────────────────────────────────────
+#
+# Lightweight, structural coverage analyzer. NOT analytics — just a
+# snapshot of what content exists per portal × section. Admins use this
+# to spot gaps as the platform grows. Pairs with search-zero-results
+# logging (demand-signal) to inform Phase B/C/D content prioritization.
+
+# The 7 operational portals the operator has identified for full coverage.
+COVERAGE_PORTALS = ["hr", "safety", "shop", "dispatch", "pm", "leadership", "admin"]
+
+# The sections every portal should have at least one article in to be
+# considered "mature". Aligned with the operator's checklist:
+#   - roles            (role-based training)
+#   - portals          (deep portal-specific workflows)
+#   - troubleshooting  (problem-solving guidance)
+#   - knowledge        ("why it matters" / cross-workflow)
+COVERAGE_REQUIRED_SECTIONS = ["roles", "portals", "troubleshooting", "knowledge"]
+
+
+def coverage_report() -> dict:
+    """Structural coverage matrix: per-portal × per-section article counts.
+
+    Returns a dict with:
+      - portals: list of {portal, sections: {section_id: count}, gaps: [section_id]}
+      - totals: per-section totals across all articles
+      - article_count: total articles in registry
+
+    Read-only; never raises; never reads from DB. Pure registry inspection.
+    """
+    # Per-portal counts: an article counts toward a portal if its scopes
+    # include that portal OR if it is admin-scoped (admins see everything).
+    # We intentionally do NOT credit the cross-cutting "field" / "public"
+    # scopes here — those don't represent portal-specific coverage.
+    per_portal: list[dict] = []
+    for portal in COVERAGE_PORTALS:
+        section_counts: dict[str, int] = {s["id"]: 0 for s in SECTIONS}
+        for a in _ARTICLES:
+            scopes = _normalize_scopes(a.get("scopes") or [])
+            if portal in scopes:
+                section_counts[a["section"]] = section_counts.get(a["section"], 0) + 1
+        gaps = [s for s in COVERAGE_REQUIRED_SECTIONS if section_counts.get(s, 0) == 0]
+        per_portal.append({
+            "portal": portal,
+            "sections": section_counts,
+            "total": sum(section_counts.values()),
+            "gaps": gaps,
+            "mature": len(gaps) == 0,
+        })
+
+    # Per-section totals across the whole registry
+    totals: dict[str, int] = {s["id"]: 0 for s in SECTIONS}
+    for a in _ARTICLES:
+        totals[a["section"]] = totals.get(a["section"], 0) + 1
+
+    return {
+        "portals": per_portal,
+        "totals": totals,
+        "article_count": len(_ARTICLES),
+        "required_sections": list(COVERAGE_REQUIRED_SECTIONS),
+        "covered_portals": COVERAGE_PORTALS,
+    }

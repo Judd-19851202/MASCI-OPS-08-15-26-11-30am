@@ -77,6 +77,7 @@ import AdminDigestConfig from "@/pages/admin/AdminDigestConfig";
 import SystemHealth from "@/pages/admin/SystemHealth";
 import AdminAuditLog from "@/pages/admin/AdminAuditLog";
 import AdminSessions from "@/pages/admin/AdminSessions";
+import AdminGuidanceCoverage from "@/pages/admin/AdminGuidanceCoverage";
 import OperationalGuidanceCenter from "@/pages/guidance/OperationalGuidanceCenter";
 import DeployRecovery from "@/pages/admin/DeployRecovery";
 import AdminMasterHistory from "@/pages/admin/AdminMasterHistory";
@@ -316,6 +317,7 @@ function App() {
             <Route path="/admin/system-health" element={A(<SystemHealth />)} />
             <Route path="/admin/audit-log" element={A(<AdminAuditLog />)} />
             <Route path="/admin/sessions" element={A(<AdminSessions />)} />
+            <Route path="/admin/guidance-coverage" element={A(<AdminGuidanceCoverage />)} />
             {/* Operational Guidance Center (iter190 — Training/Help overhaul Phase A).
                 Public route — backend enforces RBAC per article.
                 The 3-slot route handles: hub home, section, article. */}

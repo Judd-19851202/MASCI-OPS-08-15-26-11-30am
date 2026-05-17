@@ -544,14 +544,80 @@ async def guidance_article(article_id: str, request: Request):
 
 @api_router.get("/guidance/search")
 async def guidance_search(request: Request, q: str = "", limit: int = 25):
-    """Title + body keyword match, RBAC-aware, no fuzzy (Phase A spec)."""
+    """Title + body keyword match, RBAC-aware, no fuzzy (Phase A spec).
+
+    Zero-results logging (iter193, operator-approved):
+      • Logs query text + UTC timestamp + scope set when a non-empty
+        query returns zero results.
+      • Operational gap-intelligence ONLY — used to identify content
+        gaps, terminology mismatches, onboarding pain.
+      • No sensitive payload, no user identification, no IP — strictly
+        a content-demand signal.
+    """
     from guidance.content import search_articles
     scopes = await _guidance_caller_scopes(request)
     safe_limit = max(1, min(int(limit or 25), 100))
+    results = search_articles(q, scopes, limit=safe_limit)
+    # Fire-and-forget zero-results logging
+    if q and (q.strip()) and not results:
+        try:
+            await db.guidance_search_misses.insert_one({
+                "query": q.strip()[:200],  # cap length defensively
+                "ts": datetime.now(timezone.utc).isoformat(),
+                "scopes": sorted(scopes),
+            })
+        except Exception as e:  # noqa: BLE001 — log-and-swallow by design
+            logger.debug("guidance_search_misses insert failed: %s", e)
     return {
         "query": q,
-        "results": search_articles(q, scopes, limit=safe_limit),
+        "results": results,
     }
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Operational Guidance · Coverage Dashboard (admin-only, iter193)
+# ─────────────────────────────────────────────────────────────────────
+# Read-only governance view. Tells admins which portals have which
+# sections covered — surfaces gaps as the platform grows. Pairs with
+# `/api/admin/guidance/search-misses` for demand-driven gap signal.
+@api_router.get("/admin/guidance/coverage")
+async def admin_guidance_coverage(
+    _admin: bool = Depends(require_admin_strict),
+):
+    """Structural coverage matrix: per-portal × per-section article counts.
+    Admin-only; never reads PII; never modifies state."""
+    from guidance.content import coverage_report
+    return coverage_report()
+
+
+@api_router.get("/admin/guidance/search-misses")
+async def admin_guidance_search_misses(
+    limit: int = 100,
+    _admin: bool = Depends(require_admin_strict),
+):
+    """List recent zero-result guidance searches. Operational gap-intel.
+
+    Returns the most-recent {limit} miss rows, plus an aggregated count
+    of distinct queries (case-folded) so the highest-demand gaps surface
+    first.
+    """
+    safe_limit = max(1, min(int(limit or 100), 500))
+    cursor = db.guidance_search_misses.find(
+        {}, {"_id": 0}
+    ).sort("ts", -1).limit(safe_limit)
+    rows = await cursor.to_list(safe_limit)
+    # Aggregate by normalized query
+    agg: dict[str, int] = {}
+    for r in rows:
+        key = (r.get("query") or "").strip().lower()
+        if not key:
+            continue
+        agg[key] = agg.get(key, 0) + 1
+    top = sorted(
+        ({"query": k, "count": v} for k, v in agg.items()),
+        key=lambda x: -x["count"],
+    )
+    return {"recent": rows, "top": top[:50], "count": len(rows)}
 
 
 async def _guidance_caller_scopes(request: Request) -> set:

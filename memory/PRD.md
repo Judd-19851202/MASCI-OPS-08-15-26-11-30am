@@ -1,6 +1,107 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 3 · Operational Guidance · Phase B Iteration 3 (Dispatch + PM + Admin) + Governance Layer · ✅ COMPLETE (preview only)
+
+Operator green-lit final iter of Phase B saturation: Dispatch + PM + Admin content. Operator also approved the operational governance infrastructure (Coverage Dashboard + Search-Zero-Results logging) explicitly framed as governance — not analytics. Strict requirements: admin/operator-only, RBAC-aware, lightweight, no PII, no surveillance.
+
+### What landed (iter193)
+
+**Backend — 22 new articles in `/app/backend/guidance/content.py`**
+
+**Dispatch (6 articles)** scoped `["dispatch", "admin"]` unless cross-scoped:
+- `portal-dispatch` — Dispatch portal quick-start (NEW · operator-required for full portal coverage)
+- `dispatch-equipment-movement` — job-to-job transfers, in-transit, arrival confirmation
+- `dispatch-availability-management` — what "available" really means; 6 state model
+- `dispatch-holds-transfers` — hold vs transfer correctness
+- `dispatch-field-coordination` (knowledge · multi-scope) — Dispatch ↔ field sync
+- `dispatch-accuracy-why` (knowledge · multi-scope) — downstream cost of stale dispatch data
+
+**PM (6 articles)** scoped `["pm", "admin"]`:
+- `portal-pm` — PM portal quick-start (NEW · operator-required)
+- `pm-project-review-cadence` — daily / weekly / monthly review loop
+- `pm-labor-documentation` — hours → cost-code → payroll connection
+- `pm-cross-project-visibility` (knowledge) — scope-based visibility rules
+- `pm-reporting-workflows` — dashboard / drill-down / export pattern
+- `pm-coordination` (knowledge) — multi-crew / multi-trade coordination
+
+**Admin (8 articles)** scoped `["admin"]`:
+- `admin-user-management` — directory ops + disable-not-delete discipline
+- `admin-audit-forensics` — reading the audit log to reconstruct events
+- `admin-system-health` — vital signs + observation discipline
+- `admin-backup-restore` — backup posture + restore drill cadence
+- `admin-data-portability` — human-readable exports, storage-neutral design
+- `admin-sentry-observability` — release tagging, PII scrubbing, posture
+- `admin-role-templates` — K3 catalog, K6 cutover staging
+- `admin-governance-why` (knowledge) — reasoning behind RBAC / audit / lockouts
+
+**Cross-workflow connection articles (2)**:
+- `connect-pm-field-review` (knowledge · field/leadership/pm/admin) — field submit → PM scope → review → action
+- `connect-admin-controls` (knowledge · admin) — what each portal inherits from admin posture
+
+### Operational Governance Layer (iter193)
+
+**Coverage Dashboard** — `/api/admin/guidance/coverage` (admin-strict):
+- Structural per-portal × per-section count matrix
+- "Mature" flag if a portal has ≥1 article in each required section (roles · portals · troubleshooting · knowledge)
+- Post-iter193, **7/7 portals report mature, 0 gaps**
+- Pure registry inspection — no DB reads, never raises
+- Admin UI panel at `/admin/guidance-coverage` with summary tiles + matrix table + demand-signal panel
+
+**Search-Zero-Results Logging** — operator-approved demand signal:
+- Fire-and-forget insert into `db.guidance_search_misses` when `/api/guidance/search` returns 0 results for a non-empty query
+- Stores **only** `{query, ts (UTC), scopes[]}` — no IP, no actor, no payload
+- Query text capped at 200 chars, log-and-swallow on Mongo hiccup
+- Admin endpoint `/api/admin/guidance/search-misses` returns recent rows + aggregated top-N by query
+- Surfaces in the Coverage Dashboard UI as "Search Demand Signal" panel
+
+### Cross-link updates
+`role-dispatch`, `role-pm`, `role-admin`, `portal-admin` now reference all the new deep content for proper related-article graphs.
+
+### Test coverage (iter193)
+- **NEW** `tests/test_iter193_guidance_phaseb_dispatch_pm_admin.py` — 48 tests:
+  - Dispatch/PM/Admin article visibility per scope
+  - Cross-scope isolation (HR can't see admin-only, PM can't see anon-only, etc.)
+  - Cross-workflow articles (connect-pm-field-review, connect-admin-controls) RBAC correctness
+  - Coverage Dashboard: admin-only, returns all 7 portals, all mature, article_count ≥ 85
+  - Search-miss logging: zero-result query gets logged; hit query does NOT; PII keys not present in stored row; aggregation works
+  - Content quality: every deep article asserts WHY block
+- **Self-bootstrap fixtures** for safety/dispatch (handles credential rotation)
+- **Combined guidance suite**: 172/172 ✅
+- **Full hardening regression sweep**: 394/394 ✅
+
+### Portal coverage matrix (post-iter193 · all mature ✅)
+
+| Portal | Roles | Portal | Troubleshooting | Knowledge | Total | Mature |
+|---|---|---|---|---|---|---|
+| HR | 1 | 5 | 2 | 6 | 16 | ✅ |
+| Safety | 1 | 6 | 1 | 7 | 17 | ✅ |
+| Shop | 1 | 6 | 2 | 8 | 18 | ✅ |
+| Dispatch | 1 | 4 | 1 | 6 | 12 | ✅ |
+| PM | 1 | 4 | 1 | 8 | 15 | ✅ |
+| Leadership | 2 | 6 | 3 | 18 | 31 | ✅ |
+| Admin | 8 | 39 | 3 | 26 | 80 | ✅ |
+
+**Total articles**: 31 (Phase A) → 46 (iter191) → 63 (iter192) → **85 (iter193)** ✅ Phase B saturation complete
+
+### Production posture
+- 🛑 NOT deployed to production — Phase B preview-only per directive
+- 🟢 Live in preview at `/guidance` (anon) and `/admin/guidance-coverage` (admin)
+- 🟢 Coverage Dashboard verified end-to-end: 85 articles · 7/7 portals mature · search-miss logging captures live test traffic
+
+### Held / waiting on operator
+- 🟢 Operator reviews iter193 Dispatch/PM/Admin content + Coverage Dashboard
+- 🟢 If approved, Phase C: contextual `HelpTip` / `WhyItMattersPanel` embeds at form-field level in key workflows
+- 🟢 Phase D (future): video / interactive walkthrough authoring system
+- 🟡 Phase 2 close-out: 48h R2 lifecycle re-verify, Sentry/timeout soak sign-off
+
+### Next Action Items
+- 🟢 Operator reviews iter193 content + Coverage Dashboard at `/admin/guidance-coverage`
+- 🟢 Phase C: contextual embeds in key forms (Daily Reports, Incidents, Time Verification, Pre-Op, Equipment Checkout)
+- 🟡 Phase 2 close-out activities continue in parallel
+
+---
+
 ## 2026-02-XX — Phase 3 · Operational Guidance · Phase B Iteration 2 (Safety + Shop/Fleet) · ✅ COMPLETE (preview only)
 
 Operator green-lit iter 2 with directive: "Safety should become one of the deepest and strongest operational guidance areas in the platform." Cross-portal lifecycle articles (Shop↔Dispatch, full equipment lifecycle) explicitly requested as top teaching opportunity. Search-zero-results logging approved BUT deferred until Phase B content saturation is complete.
