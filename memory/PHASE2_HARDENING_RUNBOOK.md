@@ -21,7 +21,11 @@
 - ✅ Release identifier wired to `/api/version` `source_hash` — **frontend + backend share the same release string deterministically**
 - ✅ Auto session tracking enabled (release health works out of the box)
 - ✅ Tests: `test_iter186_phase2_hardening.py::test_sentry_*` (3 tests)
-- ⏳ **Pending DSN from you** — events do not reach Sentry yet
+- ✅ **Preview DSNs wired 2026-02-XX** (`SENTRY_DSN` + `REACT_APP_SENTRY_DSN` in `.env`s, `SENTRY_ENV=preview`)
+- ✅ **SDKs installed:** backend `sentry-sdk[fastapi]==2.60.0`; frontend `@sentry/react==10.53.1`
+- ✅ **Release identifier verified live** — backend `/api/version` and frontend Sentry init both report `release=39ed7cf313e808e76a450ffe99e1c683` (full 32-char source_hash). Frontend pulls release from `/api/version` at boot — no rebuild needed when source_hash changes.
+- ✅ **Controlled verification 2026-02-XX:** backend `capture_message` + `capture_exception` succeeded; frontend test error fired via global error handler succeeded. Both projects (`masci-backend-python`, `masci-frontend-javascript-react`) received events under `environment=preview`.
+- 🛑 **Production DSNs NOT yet configured** — operator must add `SENTRY_DSN` + `REACT_APP_SENTRY_DSN` to the production env when ready.
 
 ### Required env vars (set in `/app/backend/.env` and `/app/frontend/.env`)
 | Var | Default | Notes |

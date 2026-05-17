@@ -160,13 +160,20 @@ def test_api_version_exposes_hardening_config():
 
 
 def test_api_version_release_matches_source_hash_when_no_git():
-    """When GIT_COMMIT etc are unset, release === source_hash prefix (16)."""
+    """When GIT_COMMIT etc are unset, release matches the source_hash.
+    Two acceptable shapes:
+      • 16-char prefix (fallback path in _read_release_identifier)
+      • full source_hash (when Sentry is active and the override is
+        passed at init time — iter190 + onward).
+    """
     r = requests.get(f"{URL}/api/version", timeout=10)
     body = r.json()
-    # release is 16-char prefix when fallback fires; matches source_hash[:16]
-    # (only assert when GIT_COMMIT etc weren't set on the backend)
     if body.get("commit") == "unknown":
-        assert body["release"] == body["source_hash"][:16]
+        rel = body["release"]
+        sh = body["source_hash"]
+        assert rel == sh or rel == sh[:16], (
+            f"release {rel!r} matches neither full nor [:16] of source_hash {sh!r}"
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────────

@@ -7,8 +7,23 @@ import { initSentryIfConfigured } from "@/lib/sentryInit";
 
 // Initialise Sentry as early as possible so the very first runtime error
 // is captured. Env-gated — if REACT_APP_SENTRY_DSN is unset, this is a
-// silent no-op.
-initSentryIfConfigured();
+// silent no-op. We fire-and-forget a /api/version fetch so the release
+// tag matches the backend's source_hash; if it fails (offline, slow,
+// API down) Sentry still initialises with release="unknown".
+(async () => {
+  let release;
+  try {
+    const apiBase = process.env.REACT_APP_BACKEND_URL || "";
+    const r = await fetch(`${apiBase}/api/version`, { cache: "no-store" });
+    if (r.ok) {
+      const j = await r.json();
+      release = j?.release;
+    }
+  } catch {
+    /* swallow — Sentry will init with release="unknown" */
+  }
+  initSentryIfConfigured({ release });
+})();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
