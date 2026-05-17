@@ -116,16 +116,11 @@ Full root cause analysis and fix details: `/app/memory/AUTH_SESSION_AUDIT.md § 
 - ✅ Sentinel-based `--verify` round-trip (write → read → confirm rule → cleanup)
 - ⏳ **Lifecycle rule not yet applied** — current R2 token returns `AccessDenied` on `PutBucketLifecycleConfiguration`
 
-### Activation steps (when you've rotated the token)
-1. Cloudflare → API Tokens → create token with **Workers R2 Storage = Edit** OR **R2 Admin Read & Write**.
-2. Update `S3_ACCESS_KEY` / `S3_SECRET_KEY` in `/app/backend/.env`.
-3. `sudo supervisorctl restart backend`.
-4. `python3 /app/scripts/r2_lifecycle_apply.py --dry-run` → review plan.
-5. `python3 /app/scripts/r2_lifecycle_apply.py` → apply.
-6. `python3 /app/scripts/r2_lifecycle_apply.py --verify` → must exit 0.
+### Activation runbook
+See **`/app/memory/R2_LIFECYCLE_ACTIVATION.md`** — single source of truth for the operator-gated rollout. Tracks sign-off in § 10.
 
 ### Rollback
-`python3 /app/scripts/r2_lifecycle_apply.py --show`, copy the rules dict minus our `masci-backups-auto-90d` rule, and re-PUT via the Cloudflare dashboard. (Or simply set the rule's `Status: Disabled` in the dashboard.)
+See `R2_LIFECYCLE_ACTIVATION.md § 9` — two layers (credential revert → rule removal). Both are non-destructive.
 
 ---
 

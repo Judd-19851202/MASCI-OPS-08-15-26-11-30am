@@ -36,19 +36,15 @@ _Read-only inventory · NO deletions performed_
 
 ### Required user action — apply lifecycle rule
 
-The R2 API token in `backend/.env` has `Object Read & Write` scope, which is sufficient for backup upload but **does NOT include** `lifecycle:write`. To apply the 90-day rule:
+**Operator-facing runbook: `/app/memory/R2_LIFECYCLE_ACTIVATION.md`** — turn-by-turn, copy-pasteable, written for a non-technical operator. Read that doc, not this section.
 
-1. Cloudflare dashboard → **My Profile → API Tokens → Create Token**
-2. Use the **R2** template, then customize:
-   - Permissions: **Workers R2 Storage → Edit** (account-scoped) OR
-   - Bucket-scoped: **R2 Admin Read & Write** on the `masci-hub` bucket
-3. Replace `S3_ACCESS_KEY` / `S3_SECRET_KEY` in `/app/backend/.env`
-4. `sudo supervisorctl restart backend`
-5. Run: `python3 /app/scripts/r2_lifecycle_apply.py --dry-run` → verify plan
-6. Run: `python3 /app/scripts/r2_lifecycle_apply.py` → apply
-7. Verify: `python3 /app/scripts/r2_lifecycle_apply.py --show`
-
-**Until the token is updated**: new backups still write to the correct sub-prefix; they just won't auto-expire yet. No data is at risk — the cleanup is simply deferred. Bucket usage probe still works.
+Summary of what the operator does (full detail in the runbook):
+1. Rotate R2 token to `Workers R2 Storage = Edit` (account-scoped)
+2. Paste new `S3_ACCESS_KEY` / `S3_SECRET_KEY` into `/app/backend/.env`, restart backend
+3. Dry-run: `python3 /app/scripts/r2_lifecycle_apply.py --dry-run`
+4. Apply: `python3 /app/scripts/r2_lifecycle_apply.py`
+5. Verify: `python3 /app/scripts/r2_lifecycle_apply.py --verify` (must exit 0, all 4 steps `✅`)
+6. Sign off in `R2_LIFECYCLE_ACTIVATION.md § 10`
 
 
 
