@@ -95,19 +95,48 @@ def compose_og(w: int, h: int) -> Image.Image:
     m_y = (h - m_side) // 2
     canvas.paste(m, (m_x, m_y))
 
-    # Wordmark + tagline in the right two-thirds
+    # Wordmark + tagline in the right two-thirds. Auto-fit each line so the
+    # text NEVER overflows the canvas — previously this used a fixed font
+    # size (10 % of height) which clipped "OPERATIONS PLATFORM" past the
+    # right edge on the 1200×630 spec ratio, and iMessage's tighter crop
+    # made it worse. We pick the largest font that fits inside the
+    # available slot with a 64-px safe margin on the right.
     text_x = m_x + m_side + int(w * 0.04)
-    wm_size = int(h * 0.10)
-    tag_size = int(h * 0.045)
-    try:
-        wm_font = ImageFont.truetype(FONT_BOLD, wm_size)
-        tag_font = ImageFont.truetype(FONT_REG, tag_size)
-    except OSError:
-        wm_font = ImageFont.load_default()
-        tag_font = ImageFont.load_default()
+    right_margin = max(64, int(w * 0.055))
+    avail_w = w - text_x - right_margin
+
+    def _fit_font(text: str, max_w: int, max_size: int, font_path: str,
+                  min_size: int = 18) -> ImageFont.FreeTypeFont:
+        size = max_size
+        while size > min_size:
+            try:
+                f = ImageFont.truetype(font_path, size)
+            except OSError:
+                return ImageFont.load_default()
+            bb = draw.textbbox((0, 0), text, font=f)
+            if (bb[2] - bb[0]) <= max_w:
+                return f
+            size -= 2
+        try:
+            return ImageFont.truetype(font_path, min_size)
+        except OSError:
+            return ImageFont.load_default()
 
     line1 = "MASCI"
     line2 = "OPERATIONS PLATFORM"
+    tagline = "Run every job. Control every detail. Protect everything."
+
+    # Wordmark target: 10 % of height (≈ 63 px at 1200×630), shrunk to fit.
+    wm_target = int(h * 0.10)
+    # Tagline target: 4.5 % of height (≈ 28 px), shrunk to fit.
+    tag_target = int(h * 0.045)
+
+    # Both wordmark lines must share the same font size — pick the size
+    # that fits the LONGER line, then apply to both. This keeps the
+    # vertical rhythm consistent across renders.
+    wm_font = _fit_font(line2, avail_w, wm_target, FONT_BOLD)
+    tag_font = _fit_font(tagline, avail_w, tag_target, FONT_REG)
+
     bbox1 = draw.textbbox((0, 0), line1, font=wm_font)
     bbox2 = draw.textbbox((0, 0), line2, font=wm_font)
     line1_h = bbox1[3] - bbox1[1]
@@ -117,7 +146,6 @@ def compose_og(w: int, h: int) -> Image.Image:
     draw.text((text_x, block_top + line1_h + int(h * 0.01)),
               line2, fill=WHITE, font=wm_font)
 
-    tagline = "Run every job. Control every detail. Protect everything."
     draw.text(
         (text_x, block_top + line1_h + line2_h + int(h * 0.05)),
         tagline, fill=SLATE_300, font=tag_font,
