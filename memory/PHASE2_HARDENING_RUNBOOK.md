@@ -48,10 +48,10 @@
 6. Trigger a controlled error in staging first, then production.
 
 ### Alert rules to configure in Sentry UI (after first events arrive)
-1. **New high-severity backend error**: any new `level:error` issue
-2. **Auth failure spike**: `tag:component=backend message:*login*` rate > 10/min
-3. **Release regression**: any issue first-seen in the latest release within 30 min of deploy
-4. **5xx burst on critical endpoint**: `transaction:/api/admin/*` 5xx count > 3 in 5 min
+See **`/app/memory/SENTRY_PRODUCTION_CUTOVER.md § 5`** for the 5 recommended alert rules — that doc is the canonical production cutover runbook.
+
+### Production cutover
+See **`/app/memory/SENTRY_PRODUCTION_CUTOVER.md`** — single source of truth. Tracks the cutover sign-off in § 10.
 
 ### Rollback
 Unset `SENTRY_DSN` (and `REACT_APP_SENTRY_DSN`) → restart → Sentry goes back to no-op.

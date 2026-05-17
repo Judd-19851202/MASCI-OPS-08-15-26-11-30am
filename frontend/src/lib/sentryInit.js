@@ -93,6 +93,13 @@ export async function initSentryIfConfigured({ release } = {}) {
 
   const tracesRate = parseFloat(process.env.REACT_APP_SENTRY_TRACES_RATE || "0");
   const replayRate = parseFloat(process.env.REACT_APP_SENTRY_REPLAY_RATE || "0");
+  // Per operator directive 2026-02-XX (Phase 2 production cutover):
+  // keep Sentry lightweight — errors + exceptions + release visibility
+  // only. Tracing and Session Replay are explicitly OFF. Both rates
+  // honour the env var verbatim; no floor is applied, so leaving the
+  // var unset (or setting it to 0) means truly zero traces / replays.
+  const safeTracesRate = isNaN(tracesRate) ? 0 : Math.max(0, Math.min(1, tracesRate));
+  const safeReplayRate = isNaN(replayRate) ? 0 : Math.max(0, Math.min(1, replayRate));
 
   try {
     Sentry.init({
@@ -100,9 +107,9 @@ export async function initSentryIfConfigured({ release } = {}) {
       environment: env,
       release: release || process.env.REACT_APP_RELEASE || "unknown",
       autoSessionTracking: true,
-      tracesSampleRate: isNaN(tracesRate) ? 0 : tracesRate,
-      replaysSessionSampleRate: isNaN(replayRate) ? 0 : replayRate,
-      replaysOnErrorSampleRate: isNaN(replayRate) ? 0 : Math.max(replayRate, 0.1),
+      tracesSampleRate: safeTracesRate,
+      replaysSessionSampleRate: safeReplayRate,
+      replaysOnErrorSampleRate: safeReplayRate,
       beforeSend: _beforeSend,
       beforeBreadcrumb: _beforeBreadcrumb,
       // Sensitive elements masked by default in any future Replay capture.
