@@ -35,7 +35,7 @@ import { DistributionList } from "@/components/DistributionList";
 import { useT, getLang } from "@/lib/i18n";
 import { friendlyError } from "@/lib/friendlyErrors";
 import { HelpTip } from "@/components/ui/HelpTip";
-import { WhyItMattersPanel } from "@/components/guidance";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { formatApiError } from "@/lib/apiErrors";
 import {
   INCIDENT_TYPES,
@@ -328,15 +328,7 @@ export default function NewIncident({ publicMode = false }) {
         </div>
 
         {/* Section 01 — Report Info */}
-        <WhyItMattersPanel title="Why incident documentation matters">
-          <p>
-            Record facts and photographs from the scene before leaving. This
-            report drives the safety investigation and any corrective action.{" "}
-            <Link to="/guidance/field-incident-escalation" className="font-medium underline">
-              How escalation works →
-            </Link>
-          </p>
-        </WhyItMattersPanel>
+        <HelpTipBlock formKey="incident" className="mb-3" />
         <Section number="01" title={t("Report Information")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
@@ -412,6 +404,7 @@ export default function NewIncident({ publicMode = false }) {
                   GPS · {formatCoords(data.gps_lat, data.gps_lng, data.gps_accuracy)}
                 </div>
               )}
+              <HelpTipBlock formKey="incident.location" className="mt-3" />
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
@@ -475,6 +468,7 @@ export default function NewIncident({ publicMode = false }) {
 
         {/* Section 02 — Classification & Severity */}
         <Section number="02" title={t("Classification & Severity")}>
+          <HelpTipBlock formKey="incident.severity" className="mb-3" />
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 flex items-center gap-1.5">
               {t("Incident Type *")}
@@ -741,6 +735,7 @@ export default function NewIncident({ publicMode = false }) {
 
         {/* Section 04 — Description */}
         <Section number="04" title={t("What Happened")}>
+          <HelpTipBlock formKey="incident.narrative" className="mb-3" />
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               Description of Incident *
@@ -834,6 +829,7 @@ export default function NewIncident({ publicMode = false }) {
 
         {/* Section 06 — Witnesses */}
         <Section number="06" title={t("Witnesses")}>
+          <HelpTipBlock formKey="incident.witnesses" className="mb-3" />
           <p className="text-sm text-slate-600">
             Add anyone who saw the event. Capture short statements while it's
             fresh.
@@ -887,6 +883,7 @@ export default function NewIncident({ publicMode = false }) {
 
         {/* Section 07 — Corrective actions */}
         <Section number="07" title={t("Corrective Actions & Follow-Up")}>
+          <HelpTipBlock formKey="incident.corrective" className="mb-3" />
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               Immediate Actions Taken (on-site, today)

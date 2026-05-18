@@ -1,6 +1,180 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter210 · Safety Incidents Contextual Guidance · ✅ DELIVERED (preview only)
+
+Second deployment of the HelpTip engine. The operator-stated #2 highest-ROI target: high-risk, legally sensitive, emotionally charged, commonly under-documented Safety Incident workflows.
+
+### Coverage authored
+
+**18 new tips** wired into 6 `form_key` surfaces on the public Safety Incident form:
+
+| Form key | Coverage | Operator-stated reason |
+|---|---|---|
+| `incident` (top-level) | Why · Who · Next · Escalate | canonical 4-tip surface |
+| `incident.location` | Why · Example · Common mistakes | location accuracy |
+| `incident.narrative` | Why · Common mistakes · Example | narrative quality |
+| `incident.severity` | Why · Common mistakes | severity clarity |
+| `incident.witnesses` | Why · Common mistakes · Escalate (refusal) | witness handling |
+| `incident.corrective` | Why · Next · Common mistakes | corrective-action expectations |
+
+Sample coaching texture (Tier-1, concise, operationally honest):
+- *"An incident report is a legal document the moment you submit it. OSHA, insurance, and any future investigation reads this. Calm, specific, factual now beats apologetic and vague later."*
+- *"Severity is a Safety judgement, not a personal embarrassment scale. When in doubt, go one level up and let Safety down-grade."*
+- *"Writing 'be more careful' as a corrective action. It's not actionable, not verifiable, and not auditable."*
+- *"Don't pressure a witness who refuses. Document that you asked, that they declined, and tell Safety verbally. They handle it from there."*
+
+### Bilingual
+
+EN + ES delivered for all 18 tips (matching the iter209 word-count discipline: ≤80 EN / ≤90 ES per body, no machine-translation artifacts). Tip registry total: 16 → **34**.
+
+### Frontend wiring
+
+`/incidents/submit` (public Safety Incident form) now renders `<HelpTipBlock>` at 6 surfaces:
+- Top of form (replaces obsolete one-off `<WhyItMattersPanel>` — unified engine handles all top-level guidance)
+- Section 01 location input — `incident.location`
+- Section 02 Classification & Severity — `incident.severity`
+- Section 04 What Happened (narrative) — `incident.narrative`
+- Section 06 Witnesses — `incident.witnesses`
+- Section 07 Corrective Actions & Follow-Up — `incident.corrective`
+
+Each leaf-level block auto-includes the 4 parent-level tips via the registry's fall-up — so the canonical Why/Who/Next/Escalate surface follows the user down the form for ambient awareness.
+
+The pre-existing inline-label `<HelpTip>` from `@/components/ui/HelpTip` (a different component with a colliding name on the Incident-Type field) is left untouched — the new `<HelpTipBlock>` import is distinct and does not clash.
+
+### Tests
+
+- **NEW** `tests/test_iter210_incident_helptips.py` — 9 test functions + parametrized sweeps = 22 assertions covering:
+  - Seed ≥16 incident tips
+  - Top-level exposes canonical 4-tip surface
+  - Each form_key anon-readable (200) and returns parent-context fall-up
+  - All bilingual (title_es + body_es)
+  - All concise (≤80 EN / ≤90 ES words)
+  - No admin-workflow leakage
+  - Operator-priority surfaces (location/narrative/witnesses/severity/corrective/escalate) covered
+- **Regression**: **476/476 passing** (iter19x + iter20x + iter21x suites, excluding chromium-binary-only walkthrough).
+
+### Real anonymous browser proof (preview, mobile 420px)
+
+```
+HelpTip blocks rendered: 6 (top, location, severity, narrative, witnesses, corrective)
+  helptip-block-incident:           4 tips
+  helptip-block-incident-location:  7 tips (4 parent + 3 leaf)
+  helptip-block-incident-severity:  6 tips (4 parent + 2 leaf)
+  helptip-block-incident-narrative: 7 tips (4 parent + 3 leaf)
+  helptip-block-incident-witnesses: 7 tips (4 parent + 3 leaf)
+  helptip-block-incident-corrective: 7 tips (4 parent + 3 leaf)
+```
+
+Three screenshot captures:
+1. Top-of-form — amber "secure the scene" emergency banner preserved, then the 4 canonical coaching tips with "Why this report matters" expanded showing the OSHA / insurance / investigation framing.
+2. Section 04 "What Happened" — narrative block with 3 leaf tips all expanded (Why narrative is the heart of the report; Common mistakes about speculation / blame / emotional language; Example showing the model 14:22 timeline narrative).
+3. Section 06 "Testigos" (Spanish) — full bilingual surface: "Por qué los testigos importan incluso si usted lo vio", "Errores comunes", "Cuándo un testigo rehúsa dar declaración" — all expanded with idiomatic Spanish coaching content.
+
+### Files touched
+- NEW: `backend/tests/test_iter210_incident_helptips.py`
+- MOD: `backend/guidance/tips.py` (+18 tips), `backend/guidance/tips_es.py` (+18 ES translations), `frontend/src/pages/NewIncident.jsx` (6 `HelpTipBlock` insertions; removed obsolete top-of-form `<WhyItMattersPanel>`), `memory/PRD.md`
+
+No production push.
+
+### Next priority
+
+⏸️ **Pre-Op Forms** — 3rd-highest-ROI per operator ordering. Author tips for `preop.*` surfaces (walk-around, fluids, controls, tires/tracks, defects, sign-off) and wire into the Pre-Op form. Same one-line `<HelpTipBlock>` insertion pattern.
+
+Then in order:
+- Equipment Checkout
+- Time Verification
+- Write-Ups
+- Material Requests
+- Dispatch Requests
+
+After contextual coverage of all 8 form families:
+- ⏸️ Real day-from-start-to-finish operator-flow walkthroughs
+- ⏸️ QR poster rollout for mobile field onboarding
+- ⏸️ Tier-2 manager-only HelpTips on shared forms (PM/HR/Safety see review-coaching that field staff don't)
+- ⏸️ Translate remaining hardcoded paragraphs in HR/Safety/Dispatch/Shop/PM login cards
+- ⏸️ Phase 2 close-out (48h R2 re-verify · Sentry/timeout soak sign-off)
+
+---
+## 2026-05-18 — iter209 · Contextual Operational Guidance Engine (HelpTip) · ✅ DELIVERED (preview only)
+
+**Phase transition**: identity / onboarding / troubleshoot layer locked complete. Platform now in operational refinement. Operator directive: "Build a unified contextual-guidance architecture using reusable components instead of hardcoding contextual help separately into every form."
+
+### Engine architecture
+
+**Backend (`/app/backend/guidance/tips.py`)**:
+- New `_TIPS` registry of short coaching cards keyed by `(form_key, kind)`. 16 initial Daily-Report tips seeded.
+- `kind` ∈ {`why`, `mistake`, `example`, `next`, `escalate`, `who`, `when`} — closed vocabulary, validator-enforced.
+- `form_key` follows a dotted hierarchy: `daily-report` → `daily-report.crew` → `daily-report.equipment` → etc. The `tips_for()` helper falls UP the ladder, so requesting `daily-report.crew` returns BOTH leaf tips AND parent context — frontend gets the full coaching surface in one fetch.
+- RBAC contract: same `scopes` vocabulary as guidance articles. Public seed today; portal-scoped/admin-only tips supported by design for future Tier-2 / Tier-3 expansion.
+- Bilingual: paired Spanish registry (`/app/backend/guidance/tips_es.py`) merged at import time; same companion pattern as articles.
+- Word-count guardrail: validator caps each tip body at 80 words ("coaching, not docs"). Caps EN at 80, ES at 90.
+- Banned-phrase guardrail: tips registry cannot leak protected portal workflow phrases (User management, Audit log, Backups & restore, Role templates, Sessions).
+
+**Backend API (`/api/guidance/tips`)**:
+- `GET /api/guidance/tips?form_key=daily-report.crew` → `{form_key, tips: [...], count}`. RBAC-filtered via the same `_guidance_caller_scopes` contract as articles.
+- Defensive truncation on long form_keys (no 500). Empty form_key returns empty tips.
+
+**Frontend (`/app/frontend/src/components/HelpTip.jsx`)**:
+- `<HelpTip kind="why" title="..." body="..." />` — static-mode single tip.
+- `<HelpTipBlock formKey="daily-report.crew" />` — registry-mode block fetches all tips for a form_key, in-memory cached per page load.
+- Collapsible by default — single H-line affordance, expands on tap. Never blocks the form.
+- Color-coded by kind (amber/rose/sky/emerald/orange/violet/slate). Mobile-first (renders cleanly at 420px).
+- Bilingual via existing `useT()` hook — falls back to EN when ES not present.
+- Auth-aware: passes any portal token found in localStorage (adminToken/hrToken/safetyToken/pmToken/shopToken/dispatchToken) so portal-scoped tips reach the right user even on a production form.
+- Every interactive element carries `data-testid` (`helptip-{form_key}-{kind}-toggle`, `-body`, plus a block-level `helptip-block-{form_key}`).
+
+### First-target wiring (Daily Reports)
+
+`/daily/submit` (public Daily Report form, the operator's highest-ROI target) now renders contextual tips inline at six surfaces:
+- **Top of form** (4 tips · Why Daily Reports matter · Who sees this · What happens next · When to escalate). **Replaces** the previous one-off `<WhyItMattersPanel>` static block — the unified engine now handles all top-level guidance.
+- **Section 04 Crew** (3 leaf tips · Why crew matters · Common mistakes · Example)
+- **Section 07 Equipment** (2 leaf tips · Why equipment · Common mistakes)
+- **Section 08 Materials** (2 leaf tips · Why materials · Example)
+- **Section 09 Activity / Narrative** (3 leaf tips · Why narrative · Common mistakes · Example)
+- **Section 10 Photos** (2 leaf tips · Why photos · Common mistakes)
+
+Each section's `HelpTipBlock` fetches with parent-context fall-up — so the 4 top-level Daily-Report tips ALSO appear above every section (consistent coaching across the form).
+
+### Tests
+
+- **NEW** `tests/test_iter209_helptip_engine.py` — 29 assertions: registry validates clean (≥16 seed tips), top-level Daily-Report exposes why/who/next/escalate, parent-context fall-up works, empty form_key returns empty, every tip has allowed kind, every tip is bilingual, every tip is ≤80 words EN / ≤90 words ES, banned admin-workflow phrases blocked, oversized form_key truncated (no 500).
+- **Regression**: **448/448 passing** (iter19x + iter20x suites, excluding the chromium-binary-required walkthrough which skips gracefully).
+
+### Real anonymous browser proof (preview)
+
+Mobile viewport 420px @ `/daily/submit`:
+```
+HelpTip blocks rendered: 6     (top, crew, equipment, materials, narrative, photos)
+HelpTip toggles rendered: 36   (each section: 4 parent + N leaf)
+```
+
+Screenshots captured:
+1. Daily Job Report top-of-form — 4 collapsed coaching tips (Why · Who · Next · Escalate)
+2. Crew section — 7 tips collapsed (4 parent inherited + 3 leaf), color-coded
+3. Crew section — Why-tip expanded, full body rendered: "A Daily Report becomes the official record of the workday. HR uses it for time, PM for project status, Safety for incident context..."
+4. Crew section in **Spanish** — full bilingual translation rendered: "Un Reporte Diario se vuelve el registro oficial del día de trabajo. RH lo usa para tiempo, PM para estado de proyecto..."
+
+### Files touched
+- NEW: `backend/guidance/tips.py`, `backend/guidance/tips_es.py`, `backend/tests/test_iter209_helptip_engine.py`, `frontend/src/components/HelpTip.jsx`
+- MOD: `backend/server.py` (new `/api/guidance/tips` endpoint), `frontend/src/pages/NewDailyReport.jsx` (5 `HelpTipBlock` insertions; removed obsolete `WhyItMattersPanel` block), `memory/PRD.md`
+
+No production push.
+
+### Architectural posture
+- One reusable component. Six surfaces wired in one file. Future form additions are 1-line `<HelpTipBlock formKey="incident.location" />` insertions. No per-form re-implementation.
+- Visual consistency by construction. Color/icon palette is part of the component, not the caller.
+- Bilingual by construction. Adding a new tip is a registry entry + translation entry — never frontend code.
+
+### Next
+- ⏸️ **Next target: Safety Incidents form** — author Tier-1 tips for `incident.*` (location, narrative, witness, severity, corrective-action), wire `<HelpTipBlock>` into the Incident form. Second-highest-ROI surface per operator priority list.
+- ⏸️ Then in order: Pre-Op Forms · Equipment Checkout · Time Verification · Write-Ups · Material Requests · Dispatch Requests.
+- ⏸️ Real day-from-start-to-finish operator-flow walkthroughs (laborer · foreman · super · PM · HR · safety · dispatch).
+- ⏸️ QR poster rollout for mobile field onboarding.
+- ⏸️ Translate remaining hardcoded paragraphs in HR/Safety/Dispatch/Shop/PM login cards.
+- ⏸️ Phase 2 close-out (48h R2 re-verify · Sentry/timeout soak sign-off).
+
+---
 ## 2026-05-18 — Pass 5c · Admin Onboarding & Login-Troubleshoot · ✅ DELIVERED (preview only)
 ## 2026-05-18 — Login-Page "First Week Here?" Footer Wiring · ✅ DELIVERED (preview only)
 

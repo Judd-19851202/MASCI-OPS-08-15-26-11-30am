@@ -33,7 +33,7 @@ import { friendlyError } from "@/lib/friendlyErrors";
 import { formatApiError } from "@/lib/apiErrors";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
-import { WhyItMattersPanel } from "@/components/guidance";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
 import { translateUserInput } from "@/lib/translateOnSubmit";
@@ -582,15 +582,7 @@ export default function NewDailyReport({ publicMode = false }) {
         </div>
 
         {/* 01 — Report info */}
-        <WhyItMattersPanel title="Why the daily report matters">
-          <p>
-            This report becomes the operational record of the day. It feeds HR time
-            verification, PM project review, and after-the-fact investigations.{" "}
-            <Link to="/guidance/field-daily-report-howto" className="font-medium underline">
-              Read how to author a defensible report →
-            </Link>
-          </p>
-        </WhyItMattersPanel>
+        <HelpTipBlock formKey="daily-report" className="mb-3" />
         <Section number="01" title={t("Report Information")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
@@ -1000,6 +992,7 @@ export default function NewDailyReport({ publicMode = false }) {
 
         {/* 04 — MASCI Crews */}
         <Section number="04" title={t("MASCI Crews on Site")}>
+          <HelpTipBlock formKey="daily-report.crew" className="mb-3" />
           <div className="space-y-3">
             {data.masci_crews.map((row, i) => {
               const auto = computeHours(row.start_time, row.stop_time, row.lunch_minutes);
@@ -1240,6 +1233,7 @@ export default function NewDailyReport({ publicMode = false }) {
 
         {/* 07 — Equipment */}
         <Section number="07" title={t("Equipment Log")}>
+          <HelpTipBlock formKey="daily-report.equipment" className="mb-3" />
           <RepeatBlock
             title={t("Equipment")}
             list="equipment"
@@ -1266,6 +1260,7 @@ export default function NewDailyReport({ publicMode = false }) {
 
         {/* 08 — Materials */}
         <Section number="08" title={t("Material Deliveries")}>
+          <HelpTipBlock formKey="daily-report.materials" className="mb-3" />
           <RepeatBlock
             title={t("Material")}
             list="materials"
@@ -1296,6 +1291,7 @@ export default function NewDailyReport({ publicMode = false }) {
 
         {/* 09 — Activity Log */}
         <Section number="09" title={t("Activity / Production Log")}>
+          <HelpTipBlock formKey="daily-report.narrative" className="mb-3" />
           <RepeatBlock
             title={t("Activity")}
             list="activities"
@@ -1327,6 +1323,7 @@ export default function NewDailyReport({ publicMode = false }) {
             photosCount > photoMin ? "+" : ""
           })`}
         >
+          <HelpTipBlock formKey="daily-report.photos" className="mb-3" />
           <div
             className={`px-3 py-2 rounded-md border-2 ${
               photosCount >= photoMin

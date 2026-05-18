@@ -542,6 +542,32 @@ async def guidance_article(article_id: str, request: Request):
     return art
 
 
+# ─────────────────────────────────────────────────────────────────────
+# Contextual Operational Guidance · HelpTip Engine (iter209)
+# ─────────────────────────────────────────────────────────────────────
+# Operator directive (2026-05-18): "Build a unified contextual-guidance
+# architecture using reusable components." This endpoint serves the
+# backend tip registry (guidance/tips.py) to the frontend <HelpTip />
+# component. RBAC-aware via the same _guidance_caller_scopes contract
+# as articles. Bilingual via merged tips_es.py.
+# ─────────────────────────────────────────────────────────────────────
+@api_router.get("/guidance/tips")
+async def guidance_tips(request: Request, form_key: str = ""):
+    """Return RBAC-filtered HelpTips for a form_key.
+
+    `form_key` follows a dotted hierarchy (e.g. "daily-report.crew").
+    A query for a leaf returns tips bound to the leaf AND tips bound
+    to parent contexts ("daily-report"), so callers always get the
+    broad + narrow coaching in one fetch.
+    """
+    from guidance.tips import tips_for
+    if not form_key:
+        return {"form_key": "", "tips": []}
+    scopes = await _guidance_caller_scopes(request)
+    rows = tips_for(form_key.strip()[:120], scopes)
+    return {"form_key": form_key, "tips": rows, "count": len(rows)}
+
+
 @api_router.get("/guidance/search")
 async def guidance_search(request: Request, q: str = "", limit: int = 25):
     """Title + body keyword match, RBAC-aware, no fuzzy (Phase A spec).
