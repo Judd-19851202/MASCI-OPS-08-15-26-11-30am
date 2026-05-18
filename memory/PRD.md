@@ -1,6 +1,73 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — Pass 5a · HR + Safety + PM Onboarding & Login-Troubleshoot · ✅ DELIVERED (preview only)
+
+Architecture is locked per operator directive. Pass 5a executes operational depth without architectural churn.
+
+### Six new public-scope (Tier-1) articles authored
+
+| Article ID | Title | Section | Body Blocks |
+|---|---|---|---|
+| `onboard-hr-first-week` | HR Staff — First Week | onboarding | 5 |
+| `tshoot-hr-login` | Can't sign in to HR | troubleshooting | 5 |
+| `onboard-safety-first-week` | Safety Staff — First Week | onboarding | 5 |
+| `tshoot-safety-login` | Can't sign in to Safety | troubleshooting | 5 |
+| `onboard-pm-first-week` | PM — First Week | onboarding | 5 |
+| `tshoot-pm-login` | Can't sign in to PM | troubleshooting | 5 |
+
+Each onboarding article follows the leadership-first-week pattern: an opening orientation paragraph, a 7-step day-by-day walkthrough (no enumerated portal workflows — only onboarding activities like "shadow your manager", "read the deep training articles", "build rapport with your foreman"), a Why-This-Matters block, a coaching tip, and a What-Happens-Next pointer to portal-scoped depth via sign-in.
+
+Each tshoot-login article is a 6-step recovery playbook (correct URL → caps lock → temp password → forgot-password → spam folder → contact operator), plus Why (per-portal isolation rationale), Warn (don't paste passwords across portals), and Tip (lockout auto-clears in 15 min).
+
+### Bilingual
+
+EN + ES delivered for all 6 articles. Spanish bodies match the English shape one-to-one (5 blocks each), idiomatic, no machine translation artifacts. Article total: 106 → **112** (+6).
+
+### Drift cleared for HR / Safety / PM
+
+`compute_drift()` reports the identity-incomplete triple drift is now cleared for HR, Safety, and PM:
+- Before Pass 5a: 6 portals flagged (HR · Safety · Shop · Dispatch · PM · Admin)
+- After Pass 5a: 3 portals flagged (Shop · Dispatch · Admin) → Pass 5b/5c
+
+### Tests
+
+- **NEW** `tests/test_iter206_pass5a_hr_safety_pm_onboarding.py` — 5-class parametrized sweep across all 6 Pass 5a articles: public-scope, anon-readable (200 OK), bilingual presence, banned-workflow-phrase guardrail (11 phrases), public-only related cross-links, plus a drift-state-machine check.
+- **MOD** `tests/test_iter201_identity_consistency_drift.py` — Pass 5a milestone moved: HR/Safety/PM now expected NOT in drift; Shop/Dispatch/Admin still expected; drift-message contract check pivoted from `hr` to `shop`.
+- **Regression**: 386/386 passing (iter19x + iter20x suites).
+
+### Real anonymous browser proof (preview)
+
+All 6 Pass 5a URLs visited as true anonymous (cookies cleared, localStorage cleared, then reload):
+
+```
+onboard-hr-first-week        leaks=0  chars=2355
+tshoot-hr-login              leaks=0  chars=1769
+onboard-safety-first-week    leaks=0  chars=2328
+tshoot-safety-login          leaks=0  chars=1583
+onboard-pm-first-week        leaks=0  chars=2354
+tshoot-pm-login              leaks=0  chars=1620
+```
+
+Banned-phrase scan (11 protected workflow phrases): **0 leaks across 6 articles**.
+EN + ES toggle verified on `/guidance/onboard-hr-first-week`.
+
+### Files touched
+- NEW: `backend/tests/test_iter206_pass5a_hr_safety_pm_onboarding.py`
+- MOD: `backend/guidance/content.py`, `backend/guidance/translations_es.py`, `backend/tests/test_iter201_identity_consistency_drift.py`, `memory/PRD.md`
+
+No production push.
+
+### Next
+- ⏸️ **Pass 5b** — Author `onboard-{shop,dispatch}-first-week` + `tshoot-{shop,dispatch}-login` (4 public articles, same thin Tier-1 discipline)
+- ⏸️ **Pass 5c** — Admin: `onboard-admin-first-week` + `tshoot-admin-login` (2 articles)
+- ⏸️ **Next major evolution per operator**: contextual operational guidance INSIDE workflows/forms — `HelpTip`, "Why It Matters", "Common Mistakes", "Example Entries", "What Happens Next" inline on the actual production forms (HR time-verify, Safety incident reporter, PM Daily Report review, etc.)
+- ⏸️ Real operator-flow walkthroughs (laborer · foreman · super · PM · HR · safety · dispatch) — day-from-start-to-finish verification
+- ⏸️ QR poster rollout for mobile field onboarding
+- ⏸️ Translate remaining hardcoded paragraphs in HR/Safety/Dispatch/Shop/PM login cards
+- ⏸️ Phase 2 close-out (48h R2 re-verify · Sentry/timeout soak sign-off)
+
+---
 ## 2026-05-18 — iter205-correction · Thin Tier-1 Identity Articles · ✅ DELIVERED (preview only)
 
 **Operator escalation accepted.** Previous iter205 routed cards correctly to public identity URLs, but the identity articles themselves still enumerated internal workflows (e.g., Admin "Audit log · Backups · Sessions · Role templates · User management"; HR "Time verification · Employee accountability · Document expirations · Offboarding"). That violated the operator's Tier-1 rule:

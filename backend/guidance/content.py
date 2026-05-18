@@ -1649,6 +1649,267 @@ _ARTICLES: list[dict] = [
             "public-cant-login",
         ],
     },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PASS 5a · HR + SAFETY + PM ONBOARDING + LOGIN TROUBLESHOOTING
+    # ─────────────────────────────────────────────────────────────────
+    # Public-scope, mirrors leadership pattern from Pass 4. These are
+    # FIRST-WEEK orientation + LOGIN recovery articles — not workflow
+    # SOPs. Anyone needing operational workflow depth signs in to the
+    # matching portal-scoped article (Tier 2).
+    # ═════════════════════════════════════════════════════════════════
+
+    # ── HR — onboarding + login-troubleshoot ─────────────────────────
+    {
+        "id": "onboard-hr-first-week",
+        "section": "onboarding",
+        "title": "HR Staff — First Week",
+        "summary": "What a new HR staffer or HR manager does in their first week at MASCI.",
+        "scopes": ["public"],
+        "tags": ["hr", "onboarding", "first week", "new staff"],
+        "body": [
+            {"type": "p", "text":
+                "Welcome to HR. The HR portal is people-and-time at MASCI. Your first week is "
+                "mostly setup, shadowing, and reading — not solo work. Take the time. HR records "
+                "are referenced by payroll, audits, and project reviews for years."},
+            {"type": "steps", "items": [
+                "Day 1 — Receive your HR credentials from an admin. Sign in at /hr/login and complete your forced password change.",
+                "Day 1 — Read the public Guidance Center landing once, end to end (15 minutes). You'll see what every portal does.",
+                "Day 2 — Sit with your HR Manager for an hour. Ask them to walk you through their inbox: what arrives daily, what arrives weekly, what's seasonal.",
+                "Day 2-3 — Shadow one full time-verification cycle with your manager before doing one yourself. The cadence matters more than the screen.",
+                "Day 3-4 — Shadow one full new-hire onboarding, paperwork to first-day. Take notes on what feels slow — that's where mistakes happen.",
+                "Day 4-5 — Read the deep HR training articles once. They're long on purpose; skim, bookmark, return when needed.",
+                "End of week 1 — Make a list of every question you didn't ask yet. Ask them. HR is forgiving of 'too many questions early' — much less forgiving of 'pretended to know'.",
+            ]},
+            {"type": "why", "text":
+                "HR records flow into payroll the same week they're created. A first-week "
+                "mistake on a time entry is corrected with a 30-second conversation; the same "
+                "mistake discovered three months later requires a paycheck adjustment, an audit "
+                "note, and a difficult conversation. Mistakes are cheap in week one. They get "
+                "expensive fast."},
+            {"type": "tip", "text":
+                "Keep a notebook (paper or app) for the first month. Write down every term, "
+                "every acronym, every workflow you encounter. Re-read it weekly. By week four "
+                "you'll have authored your own private HR cheatsheet — and that's worth more "
+                "than any document we could write for you."},
+            {"type": "next", "items": [
+                "By week 2 you should be doing time-verification independently with manager spot-checks",
+                "By week 4 you should own one onboarding cycle end-to-end",
+                "Bookmark 'Can't sign in?' (public) — you'll need to point new staff at it",
+            ]},
+        ],
+        "related": [
+            "portal-hr-identity",
+            "tshoot-hr-login",
+            "public-cant-login",
+        ],
+    },
+    {
+        "id": "tshoot-hr-login",
+        "section": "troubleshooting",
+        "title": "Can't sign in to HR",
+        "summary": "Quick fixes when /hr/login isn't working.",
+        "scopes": ["public"],
+        "tags": ["hr", "login", "troubleshooting", "password"],
+        "body": [
+            {"type": "p", "text":
+                "HR uses per-user email + password. If you can't get in, walk through these in order."},
+            {"type": "steps", "items": [
+                "Confirm you're at /hr/login (NOT /admin/login, NOT /pm/login — those expect different accounts and will lock you out after several attempts).",
+                "Check caps lock and your spelling. Passwords are case-sensitive.",
+                "If this is your first login, use the temporary password an admin gave you. You'll be forced to change it.",
+                "If you forgot your password, click 'Forgot password?' on /hr/login. You'll receive a reset link by email — single-use, 30-minute expiry.",
+                "If the reset email never arrives, check spam. If it's still missing after 10 minutes, the email on file may be wrong — contact your admin.",
+                "If you see 'account disabled', an admin has locked your account. Contact your operator.",
+            ]},
+            {"type": "why", "text":
+                "HR is its own isolated scope — admin tokens do NOT satisfy HR endpoints. That's "
+                "intentional: HR's records (personnel, payroll variance, write-ups) are "
+                "sensitive enough that 'admin can see everything' is not the right posture for "
+                "HR reads. Each HR user has their own audit trail."},
+            {"type": "warn", "text":
+                "Do NOT type your HR password into any other portal's login form (Safety, PM, "
+                "Shop, Dispatch, Admin). Each portal has its own login. Pasting the wrong "
+                "password elsewhere can temporarily lock that account after a few attempts."},
+            {"type": "tip", "text":
+                "If you're locked out after multiple bad attempts, wait 15 minutes — the "
+                "lockout is per-IP and self-clears. Or contact your operator to clear it sooner."},
+        ],
+        "related": [
+            "portal-hr-identity",
+            "onboard-hr-first-week",
+            "public-cant-login",
+        ],
+    },
+
+    # ── Safety — onboarding + login-troubleshoot ─────────────────────
+    {
+        "id": "onboard-safety-first-week",
+        "section": "onboarding",
+        "title": "Safety Staff — First Week",
+        "summary": "What a new Safety Manager, Coordinator, or Officer does in their first week.",
+        "scopes": ["public"],
+        "tags": ["safety", "onboarding", "first week", "new staff"],
+        "body": [
+            {"type": "p", "text":
+                "Welcome to Safety. The Safety portal is how MASCI proves compliance, documents "
+                "incidents, and defends operations during an OSHA visit. Your first week is "
+                "mostly site visits, shadowing, and reading. The depth matters more than the speed."},
+            {"type": "steps", "items": [
+                "Day 1 — Receive your Safety credentials from an admin. Sign in at /safety-portal/login and complete your forced password change.",
+                "Day 1 — Walk one active jobsite with a current Safety staffer. Don't take notes for compliance yet — just observe what they observe.",
+                "Day 2 — Sit with your manager and review the last 30 days of incidents, near-misses, and corrective actions. Patterns matter more than individual events.",
+                "Day 2-3 — Shadow one full incident from report → investigation → corrective action → close. Don't lead it. Watch the cadence.",
+                "Day 3-4 — Read the deep Safety training articles once. Bookmark them. They're authored to be re-read every quarter.",
+                "Day 4-5 — Lead one Toolbox Talk under your manager's supervision. Get comfortable with the rhythm of running a meeting.",
+                "End of week 1 — Identify the one project that worries you most. That's where your attention belongs in week 2.",
+            ]},
+            {"type": "why", "text":
+                "Safety is the portal that gets cited most often in disputes — OSHA visits, "
+                "insurance claims, after-action reviews. First-week mistakes are forgiven; "
+                "the goal is to build the muscle memory of 'document specifically, close "
+                "completely, follow up always' before you're operating alone."},
+            {"type": "tip", "text":
+                "Field crews respond to safety staff who LISTEN before correcting. Spend your "
+                "first week asking 'what's been frustrating you?' instead of 'are you following "
+                "the procedure?'. The trust you build early multiplies for years."},
+            {"type": "next", "items": [
+                "By week 2 you should be authoring routine incident reports independently",
+                "By week 4 you should own one project's safety oversight end-to-end",
+                "Bookmark 'If something happens on a job site' (public) — that's the field-side surface you'll be supporting",
+            ]},
+        ],
+        "related": [
+            "portal-safety-identity",
+            "tshoot-safety-login",
+            "public-incident-basics",
+            "public-cant-login",
+        ],
+    },
+    {
+        "id": "tshoot-safety-login",
+        "section": "troubleshooting",
+        "title": "Can't sign in to Safety",
+        "summary": "Quick fixes when /safety-portal/login isn't working.",
+        "scopes": ["public"],
+        "tags": ["safety", "login", "troubleshooting", "password"],
+        "body": [
+            {"type": "p", "text":
+                "Safety uses per-user email + password. If you can't get in, walk through these in order."},
+            {"type": "steps", "items": [
+                "Confirm you're at /safety-portal/login (NOT /admin/login or any other portal door).",
+                "Check caps lock and spelling. Passwords are case-sensitive.",
+                "If this is your first login, use the temporary password an admin gave you. You'll be forced to change it.",
+                "Use 'Forgot password?' for a reset link by email (single-use, 30-minute expiry).",
+                "Check spam if the reset email doesn't arrive. If it's still missing, your operator may have the wrong email on file.",
+                "If you see 'account disabled', contact your operator.",
+            ]},
+            {"type": "why", "text":
+                "Safety is its own isolated scope. Admin tokens do NOT satisfy Safety endpoints "
+                "automatically — that's intentional, because Safety records are referenced "
+                "during OSHA conversations and need a clean audit trail of 'who read what when'."},
+            {"type": "warn", "text":
+                "Do NOT type your Safety password into another portal's login form. Each portal "
+                "has its own login. Repeated bad attempts on the wrong portal can lock that "
+                "account temporarily."},
+            {"type": "tip", "text":
+                "If you're locked out, wait 15 minutes — the lockout self-clears — or contact "
+                "your operator. Safety lockouts are rare; if it happens twice in a week, the "
+                "issue is probably the wrong login URL, not the password."},
+        ],
+        "related": [
+            "portal-safety-identity",
+            "onboard-safety-first-week",
+            "public-cant-login",
+        ],
+    },
+
+    # ── PM — onboarding + login-troubleshoot ─────────────────────────
+    {
+        "id": "onboard-pm-first-week",
+        "section": "onboarding",
+        "title": "PM — First Week",
+        "summary": "What a new Project Manager or Co-PM does in their first week at MASCI.",
+        "scopes": ["public"],
+        "tags": ["pm", "onboarding", "first week", "project manager"],
+        "body": [
+            {"type": "p", "text":
+                "Welcome to PM. The PM portal is the project-level lens at MASCI. Your first "
+                "week is mostly listening, reading the project history, and building rapport "
+                "with the field. PMs who try to start by changing things in week one almost "
+                "always regret it."},
+            {"type": "steps", "items": [
+                "Day 1 — Receive your PM credentials from an admin. Sign in at /pm/login and complete your forced password change.",
+                "Day 1 — Read every project you'll be assigned. Last 30 days of Daily Reports, last 90 days of incidents, last quarter's labor totals. Don't act yet. Just read.",
+                "Day 2 — Visit at least one active jobsite for each project you're assigned. Meet the foreman in person. They are your most important relationship.",
+                "Day 2-3 — Sit with your outgoing PM (if there is one) for a half-day handoff. Ask: 'What's brittle here? What did the last PM not write down?'",
+                "Day 3-4 — Walk one weekly review cycle with another PM. Don't lead it — just watch what they look at and in what order.",
+                "Day 4-5 — Read the deep PM training articles once. They're long; skim and bookmark.",
+                "End of week 1 — Identify the one project that needs the most attention. Schedule a site visit for week 2.",
+            ]},
+            {"type": "why", "text":
+                "PMs are the bridge between field operations and project finance. The first "
+                "week's job isn't to demonstrate command — it's to build a clear mental model "
+                "of where the field is, what's working, and what the previous PM was nervous "
+                "about. That model is what every later decision depends on."},
+            {"type": "tip", "text":
+                "Send a short note to each foreman in your first week: 'I'm your new PM, my "
+                "phone is X, my email is Y, call me before noon for fastest reply.' Most "
+                "communication friction in PM work comes from the field not knowing how to "
+                "reach you. Close that gap on day three."},
+            {"type": "next", "items": [
+                "By week 2 you should be running weekly project reviews independently",
+                "By week 4 you should be reconciling labor and answering owner questions on your own",
+                "Bookmark 'Daily Report Basics' (public) — that's the field-side surface feeding your dashboard",
+            ]},
+        ],
+        "related": [
+            "portal-pm-identity",
+            "tshoot-pm-login",
+            "public-daily-report-basics",
+            "public-cant-login",
+        ],
+    },
+    {
+        "id": "tshoot-pm-login",
+        "section": "troubleshooting",
+        "title": "Can't sign in to PM",
+        "summary": "Quick fixes when /pm/login isn't working.",
+        "scopes": ["public"],
+        "tags": ["pm", "login", "troubleshooting", "password"],
+        "body": [
+            {"type": "p", "text":
+                "PM uses per-user email + password. Each PM has their own account scoped to "
+                "the projects they manage. If you can't get in, walk through these in order."},
+            {"type": "steps", "items": [
+                "Confirm you're at /pm/login (NOT /admin/login or any other portal door).",
+                "Check caps lock and spelling. Passwords are case-sensitive.",
+                "If this is your first login, use the temporary password an admin gave you. You'll be forced to change it.",
+                "Use 'Forgot password?' for a reset link by email (single-use, 30-minute expiry).",
+                "Check spam if the reset email doesn't arrive. If it's still missing, your operator may have the wrong email on file.",
+                "If you see 'account disabled' or 'locked', contact your operator.",
+            ]},
+            {"type": "why", "text":
+                "PM scope is project-based, not portal-based. Each PM signs in with their own "
+                "account so the audit log can attribute every action to the right person. "
+                "Sharing PM credentials defeats the audit trail and makes disputes harder to "
+                "resolve later."},
+            {"type": "warn", "text":
+                "Do NOT use another PM's credentials, even temporarily. The audit log will "
+                "attribute every action to them — including any approval, edit, or close-out "
+                "you perform. If you need cross-PM access, ask your operator for proper "
+                "delegation."},
+            {"type": "tip", "text":
+                "PM lockouts auto-clear after 15 minutes. If you're locked out twice in a "
+                "week, the issue is almost always the wrong portal door, not the password."},
+        ],
+        "related": [
+            "portal-pm-identity",
+            "onboard-pm-first-week",
+            "public-cant-login",
+        ],
+    },
+
     {
         "id": "field-daily-report-howto",
         "section": "portals",

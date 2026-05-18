@@ -156,6 +156,207 @@ TRANSLATIONS_ES: dict[str, dict] = {
         ],
     },
 
+    # ── Pass 5a · HR + Safety + PM onboarding + login troubleshoot ───
+    "onboard-hr-first-week": {
+        "title_es": "Personal de RH — Primera Semana",
+        "summary_es": "Qué hace un nuevo miembro del personal de RH o Gerente de RH en su primera semana en MASCI.",
+        "body_es": [
+            {"type": "p", "text":
+                "Bienvenido a RH. El portal de RH es personas-y-tiempo en MASCI. Su primera "
+                "semana es principalmente configuración, observación y lectura — no trabajo "
+                "solo. Tómese el tiempo. Los registros de RH son referenciados por nómina, "
+                "auditorías y revisiones de proyecto durante años."},
+            {"type": "steps", "items": [
+                "Día 1 — Reciba sus credenciales de RH de un administrador. Inicie sesión en /hr/login y complete su cambio de contraseña forzado.",
+                "Día 1 — Lea la página principal pública del Centro de Orientación de principio a fin (15 minutos). Verá lo que hace cada portal.",
+                "Día 2 — Siéntese con su Gerente de RH por una hora. Pídale que le muestre su bandeja de entrada: qué llega diariamente, qué llega semanalmente, qué es estacional.",
+                "Día 2-3 — Observe un ciclo completo con su gerente antes de hacer uno usted mismo. La cadencia importa más que la pantalla.",
+                "Día 3-4 — Observe una orientación completa de nuevo empleado, papeleo hasta el primer día. Tome notas de lo que se siente lento — ahí es donde ocurren los errores.",
+                "Día 4-5 — Lea los artículos profundos de capacitación de RH una vez. Son largos a propósito; revise, marque, regrese cuando lo necesite.",
+                "Fin de la semana 1 — Haga una lista de cada pregunta que aún no hizo. Hágalas. RH es perdonador con 'demasiadas preguntas temprano' — mucho menos con 'fingí saber'.",
+            ]},
+            {"type": "why", "text":
+                "Los registros de RH fluyen a nómina la misma semana que se crean. Un error "
+                "de primera semana en una entrada de tiempo se corrige con una conversación de "
+                "30 segundos; el mismo error descubierto tres meses después requiere un ajuste "
+                "de cheque, una nota de auditoría y una conversación difícil. Los errores son "
+                "baratos en la semana uno. Se vuelven caros rápido."},
+            {"type": "tip", "text":
+                "Mantenga un cuaderno (papel o app) durante el primer mes. Escriba cada "
+                "término, cada acrónimo, cada flujo que encuentre. Re-léalo semanalmente. "
+                "Para la semana cuatro habrá creado su propia hoja de referencia de RH — y "
+                "eso vale más que cualquier documento que podamos escribirle."},
+            {"type": "next", "items": [
+                "Para la semana 2 debería estar haciendo verificación de tiempo independientemente con revisiones puntuales del gerente",
+                "Para la semana 4 debería ser dueño de un ciclo de orientación de principio a fin",
+                "Marque '¿No puede iniciar sesión?' (público) — lo necesitará para apuntar a nuevos miembros del personal",
+            ]},
+        ],
+    },
+    "tshoot-hr-login": {
+        "title_es": "No puedo iniciar sesión en RH",
+        "summary_es": "Soluciones rápidas cuando /hr/login no funciona.",
+        "body_es": [
+            {"type": "p", "text":
+                "RH usa correo + contraseña por usuario. Si no puede entrar, recorra estos en orden."},
+            {"type": "steps", "items": [
+                "Confirme que está en /hr/login (NO en /admin/login, NO en /pm/login — esos esperan cuentas diferentes y lo bloquearán después de varios intentos).",
+                "Revise mayúsculas y ortografía. Las contraseñas distinguen mayúsculas y minúsculas.",
+                "Si es su primer inicio de sesión, use la contraseña temporal que le dio un administrador. Será forzado a cambiarla.",
+                "Si olvidó su contraseña, haga clic en '¿Olvidó su contraseña?' en /hr/login. Recibirá un enlace de restablecimiento por correo — de un solo uso, expiración de 30 minutos.",
+                "Si el correo de restablecimiento nunca llega, revise spam. Si todavía falta después de 10 minutos, el correo registrado puede estar equivocado — contacte a su administrador.",
+                "Si ve 'cuenta deshabilitada', un administrador ha bloqueado su cuenta. Contacte a su operador.",
+            ]},
+            {"type": "why", "text":
+                "RH es su propio ámbito aislado — los tokens de administrador NO satisfacen "
+                "los endpoints de RH. Es intencional: los registros de RH (personal, "
+                "variación de nómina, amonestaciones) son lo suficientemente sensibles como "
+                "para que 'admin puede ver todo' no sea la postura correcta para lecturas de RH."},
+            {"type": "warn", "text":
+                "NO escriba su contraseña de RH en el formulario de inicio de sesión de otro "
+                "portal (Seguridad, PM, Taller, Despacho, Admin). Cada portal tiene su propio "
+                "inicio de sesión. Pegar la contraseña equivocada en otro puede bloquear esa "
+                "cuenta temporalmente después de varios intentos."},
+            {"type": "tip", "text":
+                "Si está bloqueado después de múltiples intentos malos, espere 15 minutos — "
+                "el bloqueo es por IP y se auto-limpia. O contacte a su operador para "
+                "limpiarlo antes."},
+        ],
+    },
+    "onboard-safety-first-week": {
+        "title_es": "Personal de Seguridad — Primera Semana",
+        "summary_es": "Qué hace un nuevo Gerente, Coordinador u Oficial de Seguridad en su primera semana.",
+        "body_es": [
+            {"type": "p", "text":
+                "Bienvenido a Seguridad. El portal de Seguridad es cómo MASCI prueba "
+                "cumplimiento, documenta incidentes y defiende operaciones durante una visita "
+                "de OSHA. Su primera semana es principalmente visitas a sitios, observación y "
+                "lectura. La profundidad importa más que la velocidad."},
+            {"type": "steps", "items": [
+                "Día 1 — Reciba sus credenciales de Seguridad de un administrador. Inicie sesión en /safety-portal/login y complete su cambio de contraseña forzado.",
+                "Día 1 — Camine un sitio de trabajo activo con un miembro actual del personal de Seguridad. No tome notas de cumplimiento todavía — solo observe lo que ellos observan.",
+                "Día 2 — Siéntese con su gerente y revise los últimos 30 días de incidentes, casi-incidentes y acciones correctivas. Los patrones importan más que los eventos individuales.",
+                "Día 2-3 — Observe un incidente completo desde reporte → investigación → acción correctiva → cierre. No lo dirija. Observe la cadencia.",
+                "Día 3-4 — Lea los artículos profundos de capacitación de Seguridad una vez. Márquelos. Están escritos para releerse cada trimestre.",
+                "Día 4-5 — Dirija una Charla de Seguridad bajo la supervisión de su gerente. Acostúmbrese al ritmo de dirigir una reunión.",
+                "Fin de la semana 1 — Identifique el proyecto que más le preocupa. Ahí pertenece su atención en la semana 2.",
+            ]},
+            {"type": "why", "text":
+                "Seguridad es el portal que se cita más a menudo en disputas — visitas de "
+                "OSHA, reclamos de seguros, revisiones después de la acción. Los errores de "
+                "primera semana se perdonan; la meta es construir la memoria muscular de "
+                "'documentar específicamente, cerrar completamente, hacer seguimiento "
+                "siempre' antes de operar solo."},
+            {"type": "tip", "text":
+                "Las cuadrillas de campo responden al personal de seguridad que ESCUCHA antes "
+                "de corregir. Pase su primera semana preguntando '¿qué le ha estado "
+                "frustrando?' en vez de '¿está siguiendo el procedimiento?'. La confianza "
+                "que construya temprano se multiplica por años."},
+            {"type": "next", "items": [
+                "Para la semana 2 debería estar redactando reportes rutinarios de incidentes independientemente",
+                "Para la semana 4 debería ser dueño de la supervisión de seguridad de un proyecto de principio a fin",
+                "Marque 'Si pasa algo en el sitio' (público) — esa es la superficie de campo que estará apoyando",
+            ]},
+        ],
+    },
+    "tshoot-safety-login": {
+        "title_es": "No puedo iniciar sesión en Seguridad",
+        "summary_es": "Soluciones rápidas cuando /safety-portal/login no funciona.",
+        "body_es": [
+            {"type": "p", "text":
+                "Seguridad usa correo + contraseña por usuario. Si no puede entrar, recorra estos en orden."},
+            {"type": "steps", "items": [
+                "Confirme que está en /safety-portal/login (NO en /admin/login ni en ninguna otra puerta de portal).",
+                "Revise mayúsculas y ortografía. Las contraseñas distinguen mayúsculas y minúsculas.",
+                "Si es su primer inicio de sesión, use la contraseña temporal que le dio un administrador. Será forzado a cambiarla.",
+                "Use '¿Olvidó su contraseña?' para un enlace de restablecimiento por correo (un solo uso, expiración de 30 minutos).",
+                "Revise spam si el correo de restablecimiento no llega. Si todavía falta, su operador puede tener el correo equivocado registrado.",
+                "Si ve 'cuenta deshabilitada', contacte a su operador.",
+            ]},
+            {"type": "why", "text":
+                "Seguridad es su propio ámbito aislado. Los tokens de administrador NO "
+                "satisfacen los endpoints de Seguridad automáticamente — es intencional, "
+                "porque los registros de Seguridad se referencian durante conversaciones con "
+                "OSHA y necesitan una pista de auditoría limpia de 'quién leyó qué cuándo'."},
+            {"type": "warn", "text":
+                "NO escriba su contraseña de Seguridad en el formulario de inicio de sesión "
+                "de otro portal. Cada portal tiene su propio inicio de sesión. Intentos malos "
+                "repetidos en el portal equivocado pueden bloquear esa cuenta temporalmente."},
+            {"type": "tip", "text":
+                "Si está bloqueado, espere 15 minutos — el bloqueo se auto-limpia — o "
+                "contacte a su operador. Los bloqueos de Seguridad son raros; si pasa dos "
+                "veces en una semana, el problema probablemente es la URL de inicio de "
+                "sesión equivocada, no la contraseña."},
+        ],
+    },
+    "onboard-pm-first-week": {
+        "title_es": "PM — Primera Semana",
+        "summary_es": "Qué hace un nuevo Gerente de Proyecto o Co-PM en su primera semana en MASCI.",
+        "body_es": [
+            {"type": "p", "text":
+                "Bienvenido a PM. El portal de PM es la lente a nivel de proyecto en MASCI. "
+                "Su primera semana es principalmente escuchar, leer la historia del proyecto "
+                "y construir relación con el campo. Los PMs que intentan empezar cambiando "
+                "cosas en la semana uno casi siempre lo lamentan."},
+            {"type": "steps", "items": [
+                "Día 1 — Reciba sus credenciales de PM de un administrador. Inicie sesión en /pm/login y complete su cambio de contraseña forzado.",
+                "Día 1 — Lea cada proyecto que se le asignará. Últimos 30 días de Reportes Diarios, últimos 90 días de incidentes, últimos totales laborales del trimestre. No actúe todavía. Solo lea.",
+                "Día 2 — Visite al menos un sitio de trabajo activo de cada proyecto asignado. Conozca al capataz en persona. Es su relación más importante.",
+                "Día 2-3 — Siéntese con su PM saliente (si lo hay) por medio día de entrega. Pregunte: '¿Qué es frágil aquí? ¿Qué no escribió el último PM?'",
+                "Día 3-4 — Recorra un ciclo de revisión semanal con otro PM. No lo dirija — solo observe qué mira y en qué orden.",
+                "Día 4-5 — Lea los artículos profundos de capacitación de PM una vez. Son largos; revise y marque.",
+                "Fin de la semana 1 — Identifique el proyecto que necesita más atención. Programe una visita al sitio para la semana 2.",
+            ]},
+            {"type": "why", "text":
+                "Los PMs son el puente entre las operaciones de campo y las finanzas del "
+                "proyecto. El trabajo de la primera semana no es demostrar mando — es "
+                "construir un modelo mental claro de dónde está el campo, qué está "
+                "funcionando, y qué le preocupaba al PM anterior. Ese modelo es de lo que "
+                "depende cada decisión posterior."},
+            {"type": "tip", "text":
+                "Envíe una nota corta a cada capataz en su primera semana: 'Soy su nuevo PM, "
+                "mi teléfono es X, mi correo es Y, llámeme antes del mediodía para respuesta "
+                "más rápida.' La mayor parte de la fricción de comunicación en el trabajo de "
+                "PM viene del campo no sabiendo cómo contactarlo. Cierre esa brecha el día tres."},
+            {"type": "next", "items": [
+                "Para la semana 2 debería estar dirigiendo revisiones semanales de proyecto independientemente",
+                "Para la semana 4 debería estar reconciliando mano de obra y respondiendo preguntas de dueños por su cuenta",
+                "Marque 'Fundamentos de Reporte Diario' (público) — esa es la superficie de campo que alimenta su tablero",
+            ]},
+        ],
+    },
+    "tshoot-pm-login": {
+        "title_es": "No puedo iniciar sesión en PM",
+        "summary_es": "Soluciones rápidas cuando /pm/login no funciona.",
+        "body_es": [
+            {"type": "p", "text":
+                "PM usa correo + contraseña por usuario. Cada PM tiene su propia cuenta "
+                "acotada a los proyectos que administra. Si no puede entrar, recorra estos en orden."},
+            {"type": "steps", "items": [
+                "Confirme que está en /pm/login (NO en /admin/login ni en ninguna otra puerta de portal).",
+                "Revise mayúsculas y ortografía. Las contraseñas distinguen mayúsculas y minúsculas.",
+                "Si es su primer inicio de sesión, use la contraseña temporal que le dio un administrador. Será forzado a cambiarla.",
+                "Use '¿Olvidó su contraseña?' para un enlace de restablecimiento por correo (un solo uso, expiración de 30 minutos).",
+                "Revise spam si el correo de restablecimiento no llega. Si todavía falta, su operador puede tener el correo equivocado registrado.",
+                "Si ve 'cuenta deshabilitada' o 'bloqueada', contacte a su operador.",
+            ]},
+            {"type": "why", "text":
+                "El alcance de PM es basado-en-proyecto, no basado-en-portal. Cada PM inicia "
+                "sesión con su propia cuenta para que el registro de auditoría pueda atribuir "
+                "cada acción a la persona correcta. Compartir credenciales de PM rompe la "
+                "pista de auditoría y hace que las disputas sean más difíciles de resolver."},
+            {"type": "warn", "text":
+                "NO use las credenciales de otro PM, ni siquiera temporalmente. El registro "
+                "de auditoría atribuirá cada acción a ellos — incluyendo cualquier "
+                "aprobación, edición o cierre que realice. Si necesita acceso entre PMs, "
+                "pídale a su operador la delegación apropiada."},
+            {"type": "tip", "text":
+                "Los bloqueos de PM se auto-limpian después de 15 minutos. Si está bloqueado "
+                "dos veces en una semana, el problema casi siempre es la puerta de portal "
+                "equivocada, no la contraseña."},
+        ],
+    },
+
     # ── tshoot-session-timeout ───────────────────────────────────────
     "tshoot-session-timeout": {
         "title_es": "Mi sesión se cerró",
