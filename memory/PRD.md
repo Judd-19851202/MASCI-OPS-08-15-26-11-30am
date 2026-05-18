@@ -1,5 +1,87 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter234 · MASCI IT Integration Brief · 📝 DELIVERED (preview only · doc-only · planning-only)
+
+Per operator directive: a formal IT-facing planning brief that can be handed directly to MASCI IT leadership without translation. **Planning only — no implementation has begun.** Stabilization-phase posture preserved.
+
+### Output
+- NEW: `/app/MASCI_IT_INTEGRATION_BRIEF.md` (393 lines · repo root · alongside DEPLOY.md · external-facing pattern)
+
+### Structure (9 sections + appendix)
+1. Executive Summary — what's being archived, why MASCI wants it, two-distinct-archive-layer table, explicit "what this is NOT"
+2. What data moves — file types, structure illustration, storage growth ranges (Year 1: 30–80 GB · Year 5: 150–400 GB · Year 10: 300–800 GB), frequency options, bandwidth estimates
+3. Integration methods — 9-row comparison matrix with honest pros/cons/MASCI-IT-effort per method
+4. **Recommended architecture: MASCI pulls from R2** on scheduled cron — simplest, safest, lowest-maintenance, vendor-independent
+5. What Emergent needs from MASCI IT — 8 specific decision items as checklists (architectural · storage · access · retention · firewall · monitoring · permissions · contacts)
+6. Security & operational considerations — encryption layers, ownership boundaries, retention separation, responsibility matrix, three-layer disaster recovery
+7. Out of scope — explicit boundaries (no live DB hosting, no real-time sync, no migration off Emergent)
+8. Suggested next steps — 6-step sequence with 2–4 week elapsed estimate
+9. Appendix — plain-English glossary for non-technical reviewers
+
+### Honest architectural recommendation
+**MASCI pulls archives from Cloudflare R2** via scheduled `rclone`/`aws cli`. Operator gets:
+- No inbound exposure on MASCI infra
+- MASCI controls schedule, retention, and storage
+- Read-only S3 credentials scoped to a single bucket prefix
+- Industry-standard tools (rclone is free, open-source, ubiquitous)
+- Vendor-independent (works if Emergent or any other vendor goes away)
+- Built-in encryption, resumability, checksumming
+- No VPN, no SMB, no exposed share, no installed agent
+
+**Secondary option preserved:** SFTP-push if MASCI IT specifically prefers a "push to us" model.
+
+### Operator-stated boundaries preserved (every one explicitly documented in the brief)
+- ❌ NOT live database hosting on MASCI servers
+- ❌ NOT migration off Emergent or Cloudflare
+- ❌ NOT real-time replication
+- ❌ NOT exposed MASCI infrastructure
+- ❌ NOT a replacement for existing R2 or MASCI backup procedures
+- ❌ NOT infrastructure refactor
+- ✅ Human-readable archive only · PDF/CSV/photos · MASCI-owned long-term record
+
+### What the brief intentionally does
+- Reads as a real handoff document, not internal notes
+- Separates business explanation from technical specs
+- Names ownership boundaries crystal-clearly via tables
+- Tells IT exactly what answers we need (Section 4 checklist) before any work starts
+- Provides plain-English glossary for non-technical IT leadership reviewers
+- Sets realistic expectations (2–4 week elapsed time)
+- Acknowledges MASCI's existing IT preferences (Microsoft-stack-friendly secondary options included)
+
+### What the brief intentionally does NOT do
+- Does not commit Emergent to a specific implementation timeline
+- Does not assume MASCI will accept the recommended architecture
+- Does not start credential provisioning or bucket setup
+- Does not propose any change to the live platform
+- Does not request anything operationally sensitive from MASCI without justification
+
+### Files touched
+- NEW: `/app/MASCI_IT_INTEGRATION_BRIEF.md` (393 lines)
+- MOD: `/app/memory/PRD.md` (this entry)
+
+### Gate verification
+`pre_deploy_verify.py --classify-only` → **APPROVE** · MEDIUM risk · zero sensitivity flags · 0.8s. Doc-only iter correctly fast-paths.
+
+🔵 Preview only · documentation-only · planning-only · zero code change · zero registry change · zero implementation work begun · stabilization-phase posture preserved.
+
+### Next Action Items
+- ⏸ **Operator review** of the brief before handing to MASCI IT
+- ⏸ **Operator hands brief to MASCI IT** (no agent action)
+- ⏸ **MASCI IT response** to Section 4 checklist (operator-facing)
+- ⏸ Joint review call (operator-scheduled) before any implementation phase
+- ⏸ Implementation phase: separate future iter · operator-driven · explicit go signal required
+
+### Future / Backlog (one addition · all P2 unless operator promotes)
+- **NEW P2** · MASCI server-side archive integration implementation (held until MASCI IT response received)
+- Static orientation surfaces (P2 · iter231)
+- Phase K4b · Unified User Management UI mutations (P2)
+- Phase K5 · Temp Password / Onboarding standardization (P2)
+- Stage B.1 · Owner Snapshot PDF (P2)
+- Strategic Hold · Operator mid-day-defect architectural decision (PROTECTED)
+- Held · HelpTip helpfulness pulse telemetry (until Sentry/R2/timeout complete)
+
+---
+
 ## 2026-05-18 — iter233 · Operator-stated production env requirement · 📝 RECORDED (preview only · doc-only)
 
 Per operator (iter232 follow-up): the `SEED_DEFAULT_PASSWORD` fallback is the correct deployment-safe choice for the iter232 migration, but **production should move toward operator-controlled env ownership rather than indefinite fallback reliance.**
