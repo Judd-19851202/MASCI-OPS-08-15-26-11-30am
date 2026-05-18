@@ -81,17 +81,20 @@ def test_field_leadership_anomaly_is_flagged():
     assert fl.get("anomaly")  # the curated anomaly message must be present
 
 
-def test_translation_readiness_zero_today():
-    """Pass 3 hasn't shipped — pct_body must be 0.0 across the board."""
+def test_translation_readiness_baseline():
+    """Pass 3 shipped — pct_body must now reflect the 17 public-scope
+    articles (and may grow as later passes translate more)."""
     from governance.inventory import compute_translation_readiness
     t = compute_translation_readiness()
-    assert t["pct_body"] == 0.0
-    assert t["pct_title"] == 0.0
-    assert t["schema_landed"] is False
+    assert t["pct_body"] > 0.0, "Pass 3 has landed; pct_body must be > 0"
+    assert t["schema_landed"] is True
     assert t["total_articles"] >= 90
+    assert t["body_es_present"] >= 17
     # By-section and by-scope shape
     assert isinstance(t["by_section"], dict)
     assert isinstance(t["by_scope"], dict)
+    # Public scope must be effectively fully translated
+    assert t["by_scope"]["public"]["pct_body"] >= 95.0
 
 
 def test_drift_detects_field_leadership_no_login():

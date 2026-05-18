@@ -1358,6 +1358,8 @@ const ES = {
   "Training Track": "Track de Capacitación",
   "Print all cheat sheets": "Imprimir todas las hojas",
   "Why this matters": "Por qué importa",
+  "What happens next": "Qué pasa después",
+  "Common mistakes": "Errores comunes",
   "Step-by-step": "Paso a paso",
   "Tips": "Consejos",
   "Cheat Sheet": "Hoja de Referencia",

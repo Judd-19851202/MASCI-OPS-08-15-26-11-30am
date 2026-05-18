@@ -1,6 +1,60 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — Pass 3 · Translation Architecture (EN + ES) · ✅ DELIVERED (preview only)
+
+Pass 3 of the Operational Inventory initiative — guidance content is now bilingual end-to-end with graceful English fallback.
+
+### What landed
+
+**Backend:**
+- **NEW** `/app/backend/guidance/translations_es.py` (~270 lines) — Spanish translation registry. One entry per article id with `title_es` / `summary_es` / `body_es`. Tier 1 batch: **all 17 public-scope articles**.
+- **MOD** `/app/backend/guidance/__init__.py` — merges translations into `_ARTICLES` at import time. Missing translations → silent English fallback.
+- **MOD** `/app/backend/guidance/content.py` — validator now checks `title_es`/`summary_es`/`body_es` shape when present (must match block-type vocabulary). No required-field changes — translations remain optional.
+- **MOD** `/app/backend/governance/inventory.py` — `schema_landed` flag flips True automatically when `body_es_present > 0`. Inventory dashboard now shows real translation pct.
+
+**Frontend:**
+- **MOD** `/app/frontend/src/pages/guidance/OperationalGuidanceCenter.jsx` — Block renderer + article reader wired to `useT()`. Picks `title_es`/`summary_es`/`body_es` when `lang === "es"` AND field is present. Per-field fallback (translated title can show alongside English body when partial).
+- **MOD** `/app/frontend/src/components/guidance/index.jsx` — `WhyItMattersPanel` default title is now translation-aware.
+- **MOD** `/app/frontend/src/lib/i18n.js` — added 2 dictionary entries (`"What happens next"`, `"Common mistakes"`); `"Why this matters"` was already present.
+
+**Tests:**
+- **NEW** `/app/backend/tests/test_iter199_translation_pass3.py` — 13 tests covering import-time merge, all 17 public articles have full triple, body_es shape, inventory schema-landed flip, HTTP `body_es` exposure. **13/13 passing.**
+- **MOD** `tests/test_iter198_operational_inventory.py` — flipped baseline test from "zero today" to "Pass 3 baseline" (Pass 3 has shipped).
+- **Full iter19x regression**: **277/277 passing.**
+
+### Smoke-tested end-to-end
+Anonymous user visits `/guidance/public-preop-basics`:
+- **EN**: "Equipment Pre-Op Checks (Field Basics)" / "WHY THIS MATTERS" / "Brakes feel weak → stop, don't operate"
+- **ES** (after clicking EN/ES toggle): "Inspección Pre-Operación (Básico de Campo)" / "POR QUÉ IMPORTA" / "Frenos flojos → pare, no opere"
+- Toggle persists across navigation (localStorage `masci.lang`)
+- Article-by-article switch verified on `public-incident-basics`
+
+### Translation coverage signals (live on the inventory dashboard)
+- `schema_landed`: **true** (was false in Pass 2)
+- `body_es_present`: **17 / 97** (was 0)
+- `pct_body`: **~17.5%** (was 0)
+- `by_scope.public.pct_body`: **100%** (Tier 1 complete)
+- Drift continues to flag the remaining ~80 untranslated articles as P0 — to be addressed in later passes as content priority
+
+### Architectural decisions worth noting
+- Translations are a **side-companion module**, not inline content. Keeps `content.py` uncluttered; allows reviewers to scan translations in isolation; one file per language as more languages eventually land.
+- English remains canonical for ids, scopes, tags, block types — only human-readable strings get translated.
+- Acronyms (OSHA, RBAC, GPS, EPP, QR) and equipment model numbers stay English inside Spanish text, matching the existing `i18n.js` dictionary tone.
+- "Related guidance" link titles still render English (they come from the catalog endpoint, not the article endpoint). Future small enhancement: pipe `lang` into the catalog response.
+
+### Files touched
+- NEW: `backend/guidance/translations_es.py`, `backend/tests/test_iter199_translation_pass3.py`
+- MOD: `backend/guidance/__init__.py`, `backend/guidance/content.py`, `backend/governance/inventory.py`, `backend/tests/test_iter198_operational_inventory.py`, `frontend/src/pages/guidance/OperationalGuidanceCenter.jsx`, `frontend/src/components/guidance/index.jsx`, `frontend/src/lib/i18n.js`
+
+No production push. Read-only governance + content extension.
+
+### Next
+- ⏸️ Pass 4 — Field Leadership operational identity (login route + token + `/sign-in` tile + onboarding + workflow ownership + RBAC + guidance integration + mobile + translation compatibility + discoverability)
+- ⏸️ Pass 5+ — Persona onboarding · workflow saturation · translation content batches 2-5 (Field crew → Field Leadership → Safety → Shop → HR/Dispatch/PM)
+
+---
+
 ## 2026-05-18 — Pass 2 · Live Operational Inventory Dashboard · ✅ DELIVERED (preview only)
 
 Pass 2 of the Operational Inventory initiative — the audit doc from Pass 1 is now a live, code-derived governance surface.

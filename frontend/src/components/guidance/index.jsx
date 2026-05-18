@@ -15,6 +15,7 @@ import {
   Info, Lightbulb, ArrowRightCircle, LifeBuoy, X, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 // ─────────────────────────────────────────────────────────────────────
 // HelpTip — small (i) icon next to a label; click reveals body
@@ -54,7 +55,12 @@ export function HelpTip({ title, children, "data-testid": testId }) {
 // ─────────────────────────────────────────────────────────────────────
 // WhyItMattersPanel — yellow / amber callout for operational purpose
 // ─────────────────────────────────────────────────────────────────────
-export function WhyItMattersPanel({ title = "Why this matters", children, dismissible = true }) {
+// iter199 — Pass 3 translation: default title is translation-aware via
+// useT(). Callers passing their own ``title`` or ``children`` still
+// control their own strings (wrap with t() at the call site).
+export function WhyItMattersPanel({ title, children, dismissible = true }) {
+  const { t } = useT();
+  const resolvedTitle = title || t("Why this matters");
   const [dismissed, setDismissed] = useState(false);
   if (dismissed || !children) return null;
   return (
@@ -65,7 +71,7 @@ export function WhyItMattersPanel({ title = "Why this matters", children, dismis
       <Lightbulb className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
       <div className="flex-1 text-sm text-slate-800 leading-relaxed">
         <strong className="block text-[11px] uppercase tracking-wider text-amber-700 font-bold mb-1">
-          {title}
+          {resolvedTitle}
         </strong>
         {children}
       </div>

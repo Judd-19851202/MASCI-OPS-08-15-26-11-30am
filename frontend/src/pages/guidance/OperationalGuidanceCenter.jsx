@@ -24,6 +24,7 @@ import {
   AlertCircle, ArrowRightCircle, Home, LogIn,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -42,7 +43,14 @@ const SECTION_ICONS = {
 // ─────────────────────────────────────────────────────────────────────
 // Block renderer — turns body[].type into JSX
 // ─────────────────────────────────────────────────────────────────────
+//
+// iter199 — Pass 3 translation: callout headers ("Why this matters",
+// "What happens next", "Common mistakes") are now translation-aware
+// via useT(). Article body strings (block.text / block.items) come
+// already-localized from the server because the article reader picks
+// body_es vs body before rendering.
 function Block({ block }) {
+  const { t } = useT();
   if (!block || typeof block !== "object") return null;
   switch (block.type) {
     case "p":
@@ -65,7 +73,7 @@ function Block({ block }) {
           <Lightbulb className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div className="flex-1 text-sm text-slate-800 leading-relaxed">
             <strong className="block text-[11px] uppercase tracking-wider text-amber-700 mb-1">
-              Why this matters
+              {t("Why this matters")}
             </strong>
             {block.text}
           </div>
@@ -75,7 +83,7 @@ function Block({ block }) {
       return (
         <div className="border border-emerald-200 bg-emerald-50 rounded p-3">
           <strong className="text-[11px] uppercase tracking-wider text-emerald-700 block mb-1">
-            What happens next
+            {t("What happens next")}
           </strong>
           <ul className="space-y-1 text-sm text-slate-800">
             {(block.items || []).map((it, i) => (
@@ -105,7 +113,7 @@ function Block({ block }) {
       return (
         <div className="border border-orange-200 bg-orange-50 rounded p-3">
           <strong className="text-[11px] uppercase tracking-wider text-orange-700 block mb-1">
-            Common mistakes
+            {t("Common mistakes")}
           </strong>
           <ul className="space-y-1 text-sm text-slate-800">
             {(block.items || []).map((it, i) => (
@@ -164,6 +172,7 @@ function SearchBox({ onResults, query, setQuery }) {
 export default function OperationalGuidanceCenter() {
   const { articleId, sectionId } = useParams();
   const navigate = useNavigate();
+  const { lang } = useT();  // iter199 — Pass 3 translation toggle
   const [sections, setSections] = useState([]);
   const [articles, setArticles] = useState([]);
   const [article, setArticle] = useState(null);
@@ -307,6 +316,16 @@ export default function OperationalGuidanceCenter() {
         </Shell>
       );
     }
+    // iter199 — Pass 3 translation: pick *_es fields when caller is
+    // viewing Spanish AND the article has a translation. Graceful
+    // fallback to English on either field-by-field — a partially
+    // translated article still renders cleanly (translated title,
+    // English body for missing blocks).
+    const displayTitle   = (lang === "es" && article.title_es)   ? article.title_es   : article.title;
+    const displaySummary = (lang === "es" && article.summary_es) ? article.summary_es : article.summary;
+    const displayBody    = (lang === "es" && Array.isArray(article.body_es) && article.body_es.length)
+      ? article.body_es
+      : (article.body || []);
     return (
       <Shell>
         <button
@@ -318,13 +337,13 @@ export default function OperationalGuidanceCenter() {
           <ChevronLeft className="w-4 h-4" /> Back
         </button>
         <h1 className="font-display text-3xl font-black tracking-tight text-slate-900" data-testid="guidance-article-title">
-          {article.title}
+          {displayTitle}
         </h1>
-        {article.summary && (
-          <p className="text-slate-600 mt-1 text-[15px]">{article.summary}</p>
+        {displaySummary && (
+          <p className="text-slate-600 mt-1 text-[15px]">{displaySummary}</p>
         )}
         <div className="mt-6 space-y-4" data-testid="guidance-article-body">
-          {(article.body || []).map((b, i) => <Block key={i} block={b} />)}
+          {displayBody.map((b, i) => <Block key={i} block={b} />)}
         </div>
         {(article.related || []).length > 0 && (
           <div className="mt-8 border-t border-slate-200 pt-4">

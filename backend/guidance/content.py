@@ -3334,6 +3334,22 @@ def validate_registry(strict: bool = True) -> list[str]:
         for rel in a.get("related") or []:
             if rel not in article_ids:
                 issues.append(f"{prefix}: related id '{rel}' does not exist")
+        # iter199 — translation fields: title_es/summary_es must be strings
+        # when present; body_es must be a valid block-list with known types.
+        for opt in ("title_es", "summary_es"):
+            if opt in a and not isinstance(a[opt], str):
+                issues.append(f"{prefix}: '{opt}' must be a string when present")
+        if "body_es" in a:
+            body_es = a["body_es"]
+            if not isinstance(body_es, list):
+                issues.append(f"{prefix}: body_es must be a list when present")
+            else:
+                for bi, b in enumerate(body_es):
+                    if not isinstance(b, dict) or "type" not in b:
+                        issues.append(f"{prefix}: body_es[{bi}] must be a dict with `type`")
+                        continue
+                    if b["type"] not in _VALID_BLOCK_TYPES:
+                        issues.append(f"{prefix}: body_es[{bi}] has unknown type '{b['type']}'")
 
     # Workflow registry cross-check
     for wi, w in enumerate(_WORKFLOWS):

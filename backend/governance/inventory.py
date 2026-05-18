@@ -467,7 +467,9 @@ def compute_translation_readiness() -> dict:
         "pct_body":  round(100.0 * body_n  / total, 1) if total else 0.0,
         "by_section": by_section,
         "by_scope": by_scope,
-        "schema_landed": False,   # flipped to True once Pass 3 lands body_es
+        # Pass 3 landed once any article has body_es (the schema + render
+        # path are live). Coverage % is the separate, ongoing signal.
+        "schema_landed": body_n > 0,
     }
 
 
