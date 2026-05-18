@@ -1620,56 +1620,33 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-leadership-identity",
         "section": "portals",
-        "title": "What does Field Leadership do?",
-        "summary": "Operational identity, purpose, workflow ownership, and how Field Leadership connects to every other portal.",
+        "title": "Field Leadership Portal — Overview",
+        "summary": "What Field Leadership is for and how to access it. Operational training requires leadership sign-in.",
         "scopes": ["public"],
-        "tags": ["leadership", "identity", "operational", "portal", "supervisor"],
+        "tags": ["leadership", "identity", "portal", "supervisor"],
         "body": [
             {"type": "p", "text":
-                "Field Leadership is one of the primary operational user groups on the platform. "
-                "It is the daily-operations surface for Superintendents, Foremen, Field Leaders, "
-                "and Operations Oversight — the people running crews on the ground and making "
-                "the work happen."},
+                "The Field Leadership Portal is the daily-operations surface for Superintendents, "
+                "Foremen, Field Leaders, and Operations Oversight — the people running crews on "
+                "the ground."},
             {"type": "p", "text":
-                "Field Leadership is intentional, first-class, and operationally central. It is "
-                "not a 'shared lane' or a side door. It is the portal where the day-to-day "
-                "of construction operations gets documented."},
-            {"type": "bullets", "items": [
-                "Daily Reports — what was built, by whom, with what, in what conditions",
-                "Write-Ups / Verbal Coaching — accountability documentation",
-                "Recognition — formal acknowledgement of strong performance",
-                "Equipment Checkout — who signed out what, when, and back",
-                "Crew & New Employee Evaluations — career-path documentation",
-                "Training Deficiency Notes — gaps that need scheduling",
-                "Supervisor Notes — confidential operational notes",
-                "Promotion Recommendations — leadership pipeline",
-                "PO Requests — field-initiated purchasing",
-            ]},
-            {"type": "why", "text":
-                "Field Leadership work touches every other portal: Daily Reports flow into HR "
-                "(payroll), Safety (incident context), and PM (project status). Write-ups flow "
-                "into HR (accountability) and Safety (training gaps). Equipment Checkout flows "
-                "into Shop (asset condition) and Dispatch (availability). Crew Evaluations flow "
-                "into HR (career path) and PM (project staffing). What you document here is "
-                "where the rest of MASCI gets its source of truth from."},
+                "Who uses it: Superintendents, Foremen, Field Leaders, Operations Oversight."},
+            {"type": "p", "text":
+                "How to access it: sign in at /leadership/login with the shared leadership "
+                "password issued by the office or your direct supervisor. Admin and PM tokens "
+                "also satisfy the leadership gate."},
+            {"type": "warn", "text":
+                "Operational Field Leadership training (procedures, workflows, internal SOPs) "
+                "is restricted to authenticated leadership users. Workflow-level content is "
+                "not visible to anonymous users."},
             {"type": "next", "items": [
-                "If you're new — read 'Field Leadership — First Week'",
-                "If you're documenting a person — read 'Field · Authoring a Defensible Write-Up'",
-                "If you're documenting a day — read 'Submitting a Defensible Daily Report'",
-                "If you need help signing in — read 'Can't sign in to Field Leadership'",
+                "If you can't sign in — read 'Can't sign in to Field Leadership' (public)",
             ]},
-            {"type": "tip", "text":
-                "Field Leadership is mobile-first by design. Almost every workflow can be "
-                "completed on a phone with one hand, in poor signal, with the keyboard glove-friendly. "
-                "If something feels awkward on mobile, flag it — that's a bug, not normal."},
         ],
         "related": [
             "onboard-leadership-first-week",
             "tshoot-leadership-login",
-            "field-daily-report-howto",
-            "field-writeup-authoring",
-            "role-superintendent",
-            "role-foreman",
+            "public-cant-login",
         ],
     },
     {
@@ -3287,114 +3264,76 @@ _ARTICLES: list[dict] = [
     # ═════════════════════════════════════════════════════════════════
     # ITER205 · TIERED GUIDANCE RBAC · PUBLIC IDENTITY ARTICLES
     # ─────────────────────────────────────────────────────────────────
-    # Operator directive: Guidance is tiered, not all-public or all-locked.
-    #   Tier 1 (public): identity / "what is this portal" / first-week
-    #                    onboarding / login troubleshooting.
-    #   Tier 2 (portal-scoped): operational deep-dives — workflows,
-    #                    approval chains, escalations, audit expectations.
-    #   Tier 3 (admin-sensitive): user mgmt, backups, payroll admin,
-    #                    compliance exports.
-    # These six identity articles are the public-tier entry point each
-    # portal's training card on /guidance routes to. They explain what
-    # the portal does, who uses it, and that operational deep-dives
-    # require the same portal login as the production system itself.
-    # Each links to the matching deep portal-scoped article (intentional
-    # — anon users see the link but get 404 if they try to follow it,
-    # which is correct RBAC posture).
+    # Operator directive (iter205-correction): public identity articles
+    # must be STRICTLY LIMITED to:
+    #   • what this portal is (one paragraph)
+    #   • who uses it (one line)
+    #   • basic purpose / why it exists (one sentence)
+    #   • how to access it (sign-in URL)
+    #   • pointer to login-troubleshooting (public)
+    # They MUST NOT expose:
+    #   • internal workflows
+    #   • HR procedures
+    #   • admin operations
+    #   • dispatch logic
+    #   • PM management details
+    #   • protected training / SOPs
+    # Anyone wanting workflow-level depth must sign in to the matching
+    # portal-scoped article (404'd to anonymous — no title leak).
     # ═════════════════════════════════════════════════════════════════
     {
         "id": "portal-hr-identity",
         "section": "portals",
-        "title": "What does the HR Portal do?",
-        "summary": "Operational identity of HR: people, time, payroll — and why operational deep-dives require HR sign-in.",
+        "title": "HR Portal — Overview",
+        "summary": "What HR is for and how to access it. Operational HR training requires HR sign-in.",
         "scopes": ["public"],
-        "tags": ["hr", "identity", "portal", "human resources"],
+        "tags": ["hr", "identity", "portal"],
         "body": [
             {"type": "p", "text":
-                "HR is the people-and-time portal. It owns the records that prove who worked, "
-                "what hours were paid, who was hired, who left, and what training is current. "
-                "It is one of the most cross-connected portals on the platform — every other "
-                "portal feeds it data, and HR feeds payroll, compliance, and every audit conversation."},
+                "The HR portal is MASCI's people-and-time portal. It exists so HR staff have "
+                "one place to manage employee records and time."},
             {"type": "p", "text":
-                "Who uses it: HR Staff, HR Managers, and Operations support roles."},
-            {"type": "bullets", "items": [
-                "Time verification — comparing crew Daily Reports against payroll",
-                "New-hire onboarding — paperwork, credentials, equipment, training",
-                "Employee accountability — write-ups, coaching docs, recognition",
-                "Training records — OSHA, equipment-certified, internal courses",
-                "Document expirations — driver's licenses, medical cards, certifications",
-                "Time-off requests — vacation, sick, PTO",
-                "Offboarding / termination — final-pay calculations, asset returns",
-            ]},
-            {"type": "why", "text":
-                "HR is where the field's documentation becomes the company's source of truth. "
-                "A Daily Report from a foreman becomes an hours total in HR. A write-up authored "
-                "by a superintendent in Field Leadership becomes an accountability record in HR. "
-                "If HR records are wrong, payroll is wrong — and payroll-wrong is the fastest "
-                "way to lose a crew."},
+                "Who uses it: HR staff and HR managers."},
+            {"type": "p", "text":
+                "How to access it: sign in at /hr/login with the email and password issued to "
+                "you by an admin. If you do not have an account, contact your operator."},
             {"type": "warn", "text":
-                "Operational HR training (workflow deep-dives, time-verification procedures, "
-                "write-up authoring, offboarding) is restricted to HR staff. To read those "
-                "training articles, sign in at /hr/login. Anonymous users can read this "
-                "identity overview but cannot access workflow-level HR guidance."},
-            {"type": "next", "items": [
-                "If you're HR staff signed in — open 'HR Portal Training' for the operational deep-dive",
-                "If you can't sign in — read 'Can't sign in?' (public)",
-                "If you're a field employee — your time / write-ups flow into HR; read 'Daily Report Basics' (public)",
-            ]},
+                "Operational HR training (procedures, workflows, internal SOPs) is restricted "
+                "to HR staff. The public Guidance Center does not surface those articles. If "
+                "you are HR staff, sign in to read them. If you are not, this material is "
+                "intentionally not visible to you."},
         ],
         "related": [
-            "portal-hr",
-            "role-hr",
             "public-cant-login",
-            "public-daily-report-basics",
         ],
     },
     {
         "id": "portal-safety-identity",
         "section": "portals",
-        "title": "What does the Safety Portal do?",
-        "summary": "Operational identity of Safety: incidents, audits, compliance — and why deep-dives require Safety sign-in.",
+        "title": "Safety Portal — Overview",
+        "summary": "What the Safety Portal is for and how to access it. Operational Safety training requires Safety sign-in.",
         "scopes": ["public"],
-        "tags": ["safety", "identity", "portal", "compliance"],
+        "tags": ["safety", "identity", "portal"],
         "body": [
             {"type": "p", "text":
-                "Safety is the portal that turns events into accountability. Every incident, "
-                "near-miss, corrective action, audit finding, fire-extinguisher inspection, and "
-                "training-compliance check lives here. It is not a paperwork portal — every "
-                "record in Safety either prevented an injury, recovered from one, or built the "
-                "defense for an OSHA conversation that hasn't happened yet."},
+                "The Safety Portal is the system Safety staff use to manage compliance, "
+                "incidents, and audits at MASCI."},
             {"type": "p", "text":
-                "Who uses it: Safety Managers, Safety Coordinators, Safety Officers."},
-            {"type": "bullets", "items": [
-                "Incidents — injuries, property damage, near-misses, third-party events",
-                "Corrective actions — what gets fixed, by whom, by when, signed off",
-                "Audits — site walks, jobsite audits, sub-contractor audits",
-                "Fire extinguishers — inventory, monthly inspections, recharge tracking",
-                "Training compliance — OSHA-10, OSHA-30, equipment, first-aid",
-                "Toolbox talks — meeting topics, attendance, signatures",
-                "JHA plans — Job Hazard Analyses authored and approved",
-            ]},
-            {"type": "why", "text":
-                "Safety records are the single most important defensive documentation MASCI "
-                "produces. An OSHA inspector showing up tomorrow asks two questions: 'Show me "
-                "your training compliance' and 'Show me your last incident.' Safety is where "
-                "the answers live. Vague safety records = exposure; specific safety records = "
-                "defensible operations."},
+                "Who uses it: Safety Managers, Coordinators, and Officers."},
+            {"type": "p", "text":
+                "How to access it: sign in at /safety-portal/login with the email and password "
+                "issued to you by an admin. If you do not have an account, contact your operator."},
             {"type": "warn", "text":
-                "Operational Safety training (investigation workflows, corrective-action chains, "
-                "training-compliance procedures) is restricted to Safety staff. To read those "
-                "articles, sign in at /safety-portal/login. Field crews can read 'Incident "
-                "Basics' (public) — that's the field-side surface."},
+                "Operational Safety training (procedures, workflows, internal SOPs) is "
+                "restricted to Safety staff. Field crews can read basic safety guidance "
+                "(public) elsewhere in the Guidance Center. Workflow-level Safety content is "
+                "not visible to anonymous users."},
             {"type": "next", "items": [
-                "If you're Safety staff signed in — open 'Safety Portal Training' for the operational deep-dive",
                 "If you're field crew — read 'If something happens on a job site' (public)",
                 "If you can't sign in — read 'Can't sign in?' (public)",
             ]},
         ],
         "related": [
-            "portal-safety",
-            "role-safety",
             "public-incident-basics",
             "public-cant-login",
         ],
@@ -3402,47 +3341,31 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-shop-identity",
         "section": "portals",
-        "title": "What does the Shop / Fleet Portal do?",
-        "summary": "Operational identity of Shop: equipment health and fleet workflows — deep-dives require Shop sign-in.",
+        "title": "Shop / Fleet Portal — Overview",
+        "summary": "What the Shop Portal is for and how to access it. Operational Shop training requires Shop sign-in.",
         "scopes": ["public"],
         "tags": ["shop", "fleet", "identity", "portal"],
         "body": [
             {"type": "p", "text":
-                "Shop is the portal that keeps the fleet running. Every Pre-Op a field operator "
-                "submits flows here. Every damage report, every maintenance task, every parts "
-                "order, every equipment return — all of it lives in Shop. The portal exists to "
-                "make sure the right gear is operational on the right job at the right time, "
-                "and to document what happened to it along the way."},
+                "The Shop / Fleet Portal is the system Shop staff use to keep MASCI's fleet "
+                "running. It exists so mechanics and fleet coordinators have a single place "
+                "to manage equipment health."},
             {"type": "p", "text":
-                "Who uses it: Mechanics, Shop Foreman, Fleet Coordinator."},
-            {"type": "bullets", "items": [
-                "Pre-Op review — every field Pre-Op lands here; failed Pre-Ops need action",
-                "Damage reporting — what got bent, scraped, broken, by whom, when",
-                "Maintenance coordination — scheduled, preventive, emergency",
-                "Parts catalog & ordering — what's in stock, on order, lead times",
-                "Equipment issuance & return — Safety + Shop joint sign-offs",
-                "Sign-offs — releasing equipment back to the field after repair",
-            ]},
-            {"type": "why", "text":
-                "Shop records protect everyone. A field operator's Pre-Op signature shows they "
-                "did the walk; the shop's repair record shows what was found and fixed; the "
-                "return sign-off shows the unit is cleared back to service. If equipment causes "
-                "an incident, the chain of Pre-Op → Damage → Repair → Sign-Off is the entire "
-                "defense. Missing records mean missing answers."},
+                "Who uses it: Mechanics, Shop Foreman, and Fleet Coordinator."},
+            {"type": "p", "text":
+                "How to access it: sign in at /shop/login with the email and password issued "
+                "to you by an admin. If you do not have an account, contact your operator."},
             {"type": "warn", "text":
-                "Operational Shop training (failed-Pre-Op workflow, damage triage, maintenance "
-                "coordination, equipment-return joint sign-off) is restricted to Shop staff. "
-                "Sign in at /shop/login to access those articles. Field operators read 'Pre-Op "
-                "Basics' (public) — that's the field-side surface."},
+                "Operational Shop training (procedures, workflows, internal SOPs) is "
+                "restricted to Shop staff. Field operators can read 'Equipment Pre-Op Checks "
+                "(Field Basics)' (public) for the field-side surface. Workflow-level Shop "
+                "content is not visible to anonymous users."},
             {"type": "next", "items": [
-                "If you're a mechanic / Shop staff — open 'Shop Portal Training' for the operational deep-dive",
                 "If you're a field operator — read 'Equipment Pre-Op Checks (Field Basics)' (public)",
                 "If you can't sign in — read 'Can't sign in?' (public)",
             ]},
         ],
         "related": [
-            "portal-shop",
-            "role-shop",
             "public-preop-basics",
             "public-cant-login",
         ],
@@ -3450,96 +3373,60 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-dispatch-identity",
         "section": "portals",
-        "title": "What does the Dispatch Portal do?",
-        "summary": "Operational identity of Dispatch: equipment movement, availability — deep-dives require Dispatch sign-in.",
+        "title": "Dispatch Portal — Overview",
+        "summary": "What the Dispatch Portal is for and how to access it. Operational Dispatch training requires Dispatch sign-in.",
         "scopes": ["public"],
-        "tags": ["dispatch", "identity", "portal", "equipment"],
+        "tags": ["dispatch", "identity", "portal"],
         "body": [
             {"type": "p", "text":
-                "Dispatch is the portal that coordinates equipment across the fleet. Its job is "
-                "to make sure the right asset is in the right place, on the right job, in a "
-                "known state — and that everyone downstream (Shop, Field Leadership, PM) sees "
-                "the same truth about where things are and what they're doing."},
+                "The Dispatch Portal is the system Dispatch staff use to coordinate equipment "
+                "across MASCI projects. It exists so dispatchers and fleet coordinators have "
+                "a single place to know where assets are."},
             {"type": "p", "text":
-                "Who uses it: Dispatchers, Fleet Coordinators, Operations Oversight."},
-            {"type": "bullets", "items": [
-                "Equipment availability — Available / Assigned / In-Transit / Hold / In Service / OOS",
-                "Movement events — job-to-job transfers with source · destination · arrival",
-                "Holds & transfers — temporary restriction vs permanent reassignment",
-                "Utilisation reports — over- and under-deployed assets",
-                "Operational events log — assignments, holds, returns, reason codes",
-                "Field coordination — reconciling system view with physical reality",
-            ]},
-            {"type": "why", "text":
-                "Dispatch is upstream of every asset-related decision the rest of the platform "
-                "makes. When dispatch is accurate, the field doesn't waste mornings hunting for "
-                "equipment, Shop schedules service against the right project, PMs see real "
-                "utilisation, and executives make fleet decisions with honest data."},
+                "Who uses it: Dispatchers, Fleet Coordinators, and Operations Oversight."},
+            {"type": "p", "text":
+                "How to access it: sign in at /dispatch-portal/login with the email and "
+                "password issued to you by an admin. If you do not have an account, contact "
+                "your operator."},
             {"type": "warn", "text":
-                "Operational Dispatch training (movement lifecycle, availability rules, "
-                "hold-vs-transfer logic, field coordination procedures) is restricted to "
-                "Dispatch staff. Sign in at /dispatch-portal/login to access those articles. "
-                "Field crews and operators read public guidance on equipment basics."},
+                "Operational Dispatch training (procedures, workflows, internal SOPs) is "
+                "restricted to Dispatch staff. Workflow-level Dispatch content is not visible "
+                "to anonymous users."},
             {"type": "next", "items": [
-                "If you're Dispatch staff — open 'Dispatch Portal Training' for the operational deep-dive",
-                "If you're field crew — read 'Daily Report Basics' (public)",
                 "If you can't sign in — read 'Can't sign in?' (public)",
             ]},
         ],
         "related": [
-            "portal-dispatch",
-            "role-dispatch",
-            "public-daily-report-basics",
             "public-cant-login",
         ],
     },
     {
         "id": "portal-pm-identity",
         "section": "portals",
-        "title": "What does the PM Portal do?",
-        "summary": "Operational identity of PM: project oversight and labor — deep-dives require PM sign-in.",
+        "title": "PM Portal — Overview",
+        "summary": "What the PM Portal is for and how to access it. Operational PM training requires PM sign-in.",
         "scopes": ["public"],
         "tags": ["pm", "identity", "portal", "project manager"],
         "body": [
             {"type": "p", "text":
-                "The PM portal is the project-level lens. PMs see only the records tied to "
-                "projects they manage — Daily Reports, inspections, JHAs, incidents, "
-                "field-leadership records, equipment assignments, labor documentation, and "
-                "cross-portal status. It is intentionally scope-filtered: each PM focuses on "
-                "their own projects without wading through everyone else's."},
+                "The PM (Project Management) Portal is the system Project Managers use to "
+                "oversee their assigned projects. It exists so each PM has a single place "
+                "scoped to the projects they manage."},
             {"type": "p", "text":
                 "Who uses it: Project Managers and Co-PMs."},
-            {"type": "bullets", "items": [
-                "Project dashboard — scope-filtered to PM's assigned projects",
-                "Daily Report review — operational truth of each day on the project",
-                "Inspections / meetings / JHAs — safety and quality records",
-                "Incidents — anything that happened on the project",
-                "Field Leadership records — write-ups, recognition, attendance",
-                "Equipment-allocation visibility — what's on the project, in what state",
-                "Labor documentation — hours → cost-code → payroll connection",
-                "Reporting workflows — dashboards, drill-downs, owner exports",
-            ]},
-            {"type": "why", "text":
-                "PM work is the bridge between field operations and project finance. A Daily "
-                "Report from the field becomes a labor cost in the PM dashboard. An incident "
-                "becomes a project risk. PMs are the only role with a project-wide view that's "
-                "both wide enough to spot drift and narrow enough to act on it. If PM oversight "
-                "is sloppy, projects discover problems at month-end instead of mid-week — and "
-                "month-end is too late."},
+            {"type": "p", "text":
+                "How to access it: sign in at /pm/login with the email and password issued to "
+                "you by an admin. If you do not have an account, contact your operator."},
             {"type": "warn", "text":
-                "Operational PM training (review cadence, labor-reconciliation procedures, "
-                "cross-project visibility rules, reporting workflows) is restricted to PMs. "
-                "Sign in at /pm/login to access those articles. Field crews read public "
-                "guidance on Daily Reports and Pre-Op basics."},
+                "Operational PM training (procedures, workflows, internal SOPs) is restricted "
+                "to PMs. Field crews can read public guidance on Daily Reports. Workflow-level "
+                "PM management content is not visible to anonymous users."},
             {"type": "next", "items": [
-                "If you're a PM signed in — open 'PM Portal Training' for the operational deep-dive",
                 "If you're field crew — read 'Daily Report Basics' (public)",
                 "If you can't sign in — read 'Can't sign in?' (public)",
             ]},
         ],
         "related": [
-            "portal-pm",
-            "role-pm",
             "public-daily-report-basics",
             "public-cant-login",
         ],
@@ -3547,47 +3434,31 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-admin-identity",
         "section": "portals",
-        "title": "What does the Admin Console do?",
-        "summary": "Operational identity of the Admin Console: the control plane — deep-dives are admin-only.",
+        "title": "Admin Console — Overview",
+        "summary": "What the Admin Console is for and how to access it. Operational Admin training is admin-only.",
         "scopes": ["public"],
         "tags": ["admin", "identity", "console", "operator"],
         "body": [
             {"type": "p", "text":
-                "Admin is the operator-level control plane of the platform. It is intentionally "
-                "narrow in audience — typically the platform owner and one or two trusted "
-                "operators. Admin owns the surfaces no other portal can see: every user, every "
-                "role template, every audit-log entry, every active session, every backup, and "
-                "the governance signals that tell you when something is drifting."},
+                "The Admin Console is the operator-level control surface of the platform. It "
+                "exists so the platform owner and trusted operators have one place to administer "
+                "the system."},
             {"type": "p", "text":
                 "Who uses it: the platform Owner and designated Operator(s). Not for general staff."},
-            {"type": "bullets", "items": [
-                "User management — invite, role-assign, suspend, restore",
-                "Role templates — define what each portal token grants",
-                "Audit log — every privileged action, who/when/what",
-                "System health — backend metrics, queue depths, error rates",
-                "Sessions — who is signed in right now, force-revoke if needed",
-                "Backups & restore — manual triggers, schedule, point-in-time",
-                "Operational inventory & governance — drift detection",
-            ]},
-            {"type": "why", "text":
-                "Admin work has the deepest blast radius on the platform. A single role-template "
-                "change ripples to every user who has that role. The audit log is the only place "
-                "where 'who changed what when' is permanently recorded. Admin training is "
-                "deliberately admin-only because the content includes user-management, backup, "
-                "and compliance procedures that operators should not browse anonymously."},
+            {"type": "p", "text":
+                "How to access it: sign in at /admin/login. Admin accounts are issued by the "
+                "platform Owner directly."},
             {"type": "warn", "text":
-                "Operational Admin training is the most-restricted tier on the platform. Sign "
-                "in at /admin/login. If you don't have an admin account, this material is "
-                "intentionally not for you — that's by design, not an oversight."},
+                "Operational Admin training is the most-restricted tier on the platform. Its "
+                "procedures, workflows, and internal SOPs are deliberately not surfaced to "
+                "anonymous users. If you don't have an admin account, this material is "
+                "intentionally not for you — that's by design."},
             {"type": "next", "items": [
-                "If you're an operator signed in — open 'Admin Console Guidance' for the operational deep-dive",
                 "If you need an admin to take an action — contact your operator directly",
                 "If you can't sign in — read 'Can't sign in?' (public)",
             ]},
         ],
         "related": [
-            "portal-admin",
-            "role-admin",
             "public-cant-login",
         ],
     },

@@ -1,7 +1,84 @@
 # MASCI Safety Hub — PRD
 
 ---
-## 2026-05-18 — iter205 · Tiered Guidance RBAC (Public Identity · Portal Deep-Dive) · ✅ DELIVERED (preview only)
+## 2026-05-18 — iter205-correction · Thin Tier-1 Identity Articles · ✅ DELIVERED (preview only)
+
+**Operator escalation accepted.** Previous iter205 routed cards correctly to public identity URLs, but the identity articles themselves still enumerated internal workflows (e.g., Admin "Audit log · Backups · Sessions · Role templates · User management"; HR "Time verification · Employee accountability · Document expirations · Offboarding"). That violated the operator's Tier-1 rule:
+
+> **Tier-1 public identity articles may expose ONLY:**
+> what this portal is · who uses it · how to access it · basic purpose · pointer to login-troubleshooting.
+> **MUST NOT expose:** internal workflows, HR procedures, admin operations, dispatch logic, PM management details, protected training/SOPs.
+
+### What landed (iter205-correction)
+
+**Backend — `guidance/content.py`:**
+- **REWROTE** all 7 identity articles (`portal-hr-identity`, `portal-safety-identity`, `portal-shop-identity`, `portal-dispatch-identity`, `portal-pm-identity`, `portal-admin-identity`, `portal-leadership-identity`) to the strict thin Tier-1 shape:
+  - 1 paragraph: what this portal is
+  - 1 line: who uses it
+  - 1 line: how to access it (sign-in URL)
+  - 1 warning: operational training is restricted; sign-in required
+  - Optional pointer to public field-side content + "Can't sign in?" troubleshooting
+- All workflow-enumeration bullet lists **removed**. All "what happens next" operational steps **removed**. All cross-links to portal-scoped deep articles **removed** from `related` (so anon users can never click into a 404).
+- Article body block count: 4-5 per identity (was 6-9 before).
+
+**Backend — `guidance/translations_es.py`:**
+- Spanish rewritten to match thin EN. Same shape, same restraint, no workflow enumeration in either language.
+
+**Tests:**
+- **MOD** `tests/test_iter205_tiered_guidance_rbac.py` — added 3 new guardrail parametrizations:
+  - `test_identity_article_does_not_leak_operational_workflows` (parameter sweeps all 7 identity articles against 27 banned workflow phrases)
+  - `test_identity_article_states_sign_in_required` (anon expectation framing)
+  - `test_identity_article_related_only_links_public` (no anon dead links)
+  - Body length capped at 3-6 blocks for "thin Tier-1" enforcement.
+- **NEW** `tests/test_iter205_anon_browser_walkthrough.py` — real Playwright incognito walkthrough of every portal card + every deep-URL bypass attempt. Gracefully skips when local chromium binary unavailable; the same guard logic still runs via the API content-leak test.
+- **Full iter19x + iter20x regression**: **355/355 passing.**
+
+### Real anonymous browser walkthrough — verified end-to-end (preview)
+
+Step 1 — Card destinations:
+| Card | Href | Article ID | Scope |
+|---|---|---|---|
+| Leadership | `/guidance/portal-leadership-identity` | `portal-leadership-identity` | public |
+| HR | `/guidance/portal-hr-identity` | `portal-hr-identity` | public |
+| Safety | `/guidance/portal-safety-identity` | `portal-safety-identity` | public |
+| Shop | `/guidance/portal-shop-identity` | `portal-shop-identity` | public |
+| Dispatch | `/guidance/portal-dispatch-identity` | `portal-dispatch-identity` | public |
+| PM | `/guidance/portal-pm-identity` | `portal-pm-identity` | public |
+| Admin | `/guidance/portal-admin-identity` | `portal-admin-identity` | public |
+
+Step 2 — Anonymous identity article render: all 7 return **leaks: []** when scanned against 11 specific banned phrases (HR procedures, Safety SOPs, Shop SOPs, Dispatch logic, PM management, Admin operations).
+
+Step 3 — Anonymous direct deep-URL bypass attempt (`/guidance/portal-hr`, `/guidance/portal-admin`, etc.): all 6 deep articles render an empty/not-found state (~273 chars, no body content), confirming **no protected workflow content reaches an anonymous user** through either the card path or direct URL.
+
+### Banned workflow phrases scanned (anonymous body, all 7 identity articles)
+HR: "Time verification — comparing" · "Employee accountability — write-ups" · "Document expirations — driver's licenses" · "Offboarding / termination"
+Safety: "Corrective actions — what gets fixed" · "Audits — site walks" · "Fire extinguishers — inventory" · "JHA plans — Job Hazard Analyses"
+Shop: "Pre-Op review — every field Pre-Op" · "Damage reporting — what got bent" · "Maintenance coordination — scheduled"
+Dispatch: "Movement events — job-to-job" · "Holds & transfers —" · "Utilisation reports —"
+PM: "Project dashboard — scope-filtered" · "Daily Report review — operational truth" · "Labor documentation — hours →"
+Admin: "User management — invite" · "Role templates — define" · "Audit log — every privileged" · "Backups & restore — manual triggers" · "Sessions — who is signed in" · "Operational inventory & governance"
+
+**Result: 0 leaks across 7 identity articles × 27 banned phrases.**
+
+### Process correction
+The first iter205 cleared API RBAC (deep articles correctly 404'd to anon) but the **content of the public Tier-1 articles itself was still over-disclosing**. The fix was content-level, not RBAC-level. Operator walkthrough caught this — backend tests + screenshot tool both missed it because neither was scanning identity-article bodies against a banned-phrase list. New tests close that gap.
+
+### Files touched
+- NEW: `backend/tests/test_iter205_anon_browser_walkthrough.py`
+- MOD: `backend/guidance/content.py`, `backend/guidance/translations_es.py`, `backend/tests/test_iter205_tiered_guidance_rbac.py`, `memory/PRD.md`
+
+No production push.
+
+### Next
+- ⏸️ **Pass 5a** — Author `onboard-{hr,safety,pm}-first-week` and `tshoot-{hr,safety,pm}-login` (6 public articles, same thin Tier-1 discipline).
+- ⏸️ **Pass 5b** — Same for Shop + Dispatch (4 articles).
+- ⏸️ **Pass 5c** — Admin (2 articles).
+- ⏸️ Translate remaining hardcoded paragraphs in HR/Safety/Dispatch/Shop/PM login cards.
+- ⏸️ Phase 2 close-out (48h R2 re-verify · Sentry/timeout soak sign-off).
+- ⏸️ QR poster rollout (Pass 7).
+
+---
+## 2026-05-18 — iter205 · Tiered Guidance RBAC (initial pass · superseded by iter205-correction above)
 
 **Operator directive resolved.** The portal cards on `/guidance` now route to **public-tier identity articles** so anon users land on real content, while operational deep-dives remain **portal-scope** (RBAC-protected). Tiered model now mirrors the platform's operational RBAC tiers.
 

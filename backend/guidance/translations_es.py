@@ -133,48 +133,26 @@ TRANSLATIONS_ES: dict[str, dict] = {
     },
 
     "portal-leadership-identity": {
-        "title_es": "¿Qué hace el Liderazgo de Campo?",
-        "summary_es": "Identidad operacional, propósito, dueños de flujo y cómo el Liderazgo de Campo conecta con todos los demás portales.",
+        "title_es": "Portal de Liderazgo de Campo — Resumen",
+        "summary_es": "Para qué es el Liderazgo de Campo y cómo accederlo. La capacitación operacional requiere inicio de sesión de liderazgo.",
         "body_es": [
             {"type": "p", "text":
-                "El Liderazgo de Campo es uno de los grupos de usuarios operacionales principales "
-                "en la plataforma. Es la superficie de operaciones diarias para Superintendentes, "
-                "Capataces, Líderes de Campo y Supervisión de Operaciones — la gente que dirige "
-                "las cuadrillas en el suelo y hace que el trabajo se haga."},
+                "El Portal de Liderazgo de Campo es la superficie de operaciones diarias para "
+                "Superintendentes, Capataces, Líderes de Campo y Supervisión de Operaciones — "
+                "la gente que dirige las cuadrillas en el campo."},
             {"type": "p", "text":
-                "El Liderazgo de Campo es intencional, de primera clase y operacionalmente "
-                "central. No es una 'vía compartida' ni una puerta lateral. Es el portal donde "
-                "se documenta el día a día de las operaciones de construcción."},
-            {"type": "bullets", "items": [
-                "Reportes Diarios — qué se construyó, por quién, con qué, en qué condiciones",
-                "Amonestaciones / Coaching Verbal — documentación de rendición de cuentas",
-                "Reconocimientos — reconocimiento formal de desempeño sólido",
-                "Equipment Checkout — quién retiró qué, cuándo y la devolución",
-                "Evaluaciones de Cuadrilla y de Nuevo Empleado — documentación de carrera",
-                "Notas de Deficiencia de Capacitación — brechas que requieren programación",
-                "Notas del Supervisor — notas operacionales confidenciales",
-                "Recomendaciones de Promoción — pipeline de liderazgo",
-                "Solicitudes de OC — compras iniciadas desde el campo",
-            ]},
-            {"type": "why", "text":
-                "El trabajo del Liderazgo de Campo toca todos los demás portales: los Reportes "
-                "Diarios alimentan RH (nómina), Seguridad (contexto de incidentes) y PM (estado "
-                "de proyecto). Las amonestaciones alimentan RH (rendición de cuentas) y Seguridad "
-                "(brechas de capacitación). Equipment Checkout alimenta Taller (estado del "
-                "activo) y Despacho (disponibilidad). Las evaluaciones de cuadrilla alimentan "
-                "RH (carrera) y PM (asignación de proyecto). Lo que se documenta aquí es de "
-                "donde el resto de MASCI saca su fuente de verdad."},
+                "Quién lo usa: Superintendentes, Capataces, Líderes de Campo, Supervisión de Operaciones."},
+            {"type": "p", "text":
+                "Cómo accederlo: inicie sesión en /leadership/login con la contraseña de "
+                "liderazgo compartida que le da la oficina o su supervisor directo. Los "
+                "tokens de Admin y PM también satisfacen la puerta de liderazgo."},
+            {"type": "warn", "text":
+                "La capacitación operacional de Liderazgo de Campo (procedimientos, flujos, "
+                "SOPs internos) está restringida a usuarios autenticados de liderazgo. El "
+                "contenido a nivel de flujo no es visible para usuarios anónimos."},
             {"type": "next", "items": [
-                "Si es nuevo — lea 'Liderazgo de Campo — Primera Semana'",
-                "Si está documentando a una persona — lea 'Campo · Autoría de una Amonestación Defendible'",
-                "Si está documentando un día — lea 'Enviando un Reporte Diario Defendible'",
-                "Si necesita ayuda para iniciar sesión — lea 'No puedo iniciar sesión en Liderazgo de Campo'",
+                "Si no puede iniciar sesión — lea 'No puedo iniciar sesión en Liderazgo de Campo' (público)",
             ]},
-            {"type": "tip", "text":
-                "El Liderazgo de Campo es mobile-first por diseño. Casi cualquier flujo se "
-                "puede completar en un teléfono con una mano, con poca señal, con el teclado "
-                "amigable para guantes. Si algo se siente incómodo en móvil, repórtelo — es "
-                "un bug, no algo normal."},
         ],
     },
 
@@ -471,244 +449,144 @@ TRANSLATIONS_ES: dict[str, dict] = {
     },
 
     # ── iter205 · Tiered Guidance RBAC · public identity articles ────
+    # Operator directive: identity articles must NOT expose internal workflows.
     "portal-hr-identity": {
-        "title_es": "¿Qué hace el Portal de RH?",
-        "summary_es": "Identidad operacional de RH: personas, tiempo, nómina — las inmersiones operacionales requieren inicio de sesión en RH.",
+        "title_es": "Portal de RH — Resumen",
+        "summary_es": "Para qué es el Portal de RH y cómo accederlo. La capacitación operacional de RH requiere inicio de sesión.",
         "body_es": [
             {"type": "p", "text":
-                "RH es el portal de personas-y-tiempo. Es dueño de los registros que prueban "
-                "quién trabajó, qué horas se pagaron, quién fue contratado, quién se fue, y "
-                "qué capacitación está vigente. Es uno de los portales más interconectados de "
-                "la plataforma — todos los demás portales le envían datos, y RH alimenta nómina, "
-                "cumplimiento y cada conversación de auditoría."},
+                "El Portal de RH es el portal de personas y tiempo de MASCI. Existe para que "
+                "el personal de RH tenga un solo lugar para administrar registros de empleados y tiempo."},
             {"type": "p", "text":
-                "Quién lo usa: Personal de RH, Gerentes de RH y roles de soporte de Operaciones."},
-            {"type": "bullets", "items": [
-                "Verificación de tiempo — comparar Reportes Diarios contra nómina",
-                "Orientación de nuevos empleados — papeleo, credenciales, equipo, capacitación",
-                "Rendición de cuentas — amonestaciones, coaching, reconocimientos",
-                "Registros de capacitación — OSHA, certificación de equipo, cursos internos",
-                "Vencimientos de documentos — licencias, tarjetas médicas, certificaciones",
-                "Solicitudes de tiempo libre — vacaciones, enfermedad, PTO",
-                "Salida / terminación — pagos finales, devolución de activos",
-            ]},
-            {"type": "why", "text":
-                "RH es donde la documentación del campo se convierte en la fuente de verdad de "
-                "la compañía. Un Reporte Diario de un capataz se convierte en horas en RH. Una "
-                "amonestación de un superintendente en Liderazgo de Campo se convierte en un "
-                "registro de rendición de cuentas en RH. Si los registros de RH están "
-                "equivocados, la nómina está equivocada — y nómina equivocada es la forma más "
-                "rápida de perder una cuadrilla."},
+                "Quién lo usa: Personal de RH y Gerentes de RH."},
+            {"type": "p", "text":
+                "Cómo accederlo: inicie sesión en /hr/login con el correo y la contraseña que "
+                "le emitió un administrador. Si no tiene una cuenta, contacte a su operador."},
             {"type": "warn", "text":
-                "La capacitación operacional de RH (inmersiones de flujo, procedimientos de "
-                "verificación de tiempo, autoría de amonestaciones, salida) está restringida "
-                "al personal de RH. Para leer esos artículos de capacitación, inicie sesión "
-                "en /hr/login. Los usuarios anónimos pueden leer esta identidad pero no la "
-                "guía a nivel de flujo."},
-            {"type": "next", "items": [
-                "Si es personal de RH con sesión iniciada — abra 'Capacitación del Portal de RH' para la inmersión operacional",
-                "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
-                "Si es empleado de campo — su tiempo / amonestaciones alimentan RH; lea 'Fundamentos de Reporte Diario' (público)",
-            ]},
+                "La capacitación operacional de RH (procedimientos, flujos, SOPs internos) "
+                "está restringida al personal de RH. El Centro de Orientación público no "
+                "muestra esos artículos. Si es personal de RH, inicie sesión para leerlos. "
+                "Si no lo es, este material no es visible para usted intencionalmente."},
         ],
     },
     "portal-safety-identity": {
-        "title_es": "¿Qué hace el Portal de Seguridad?",
-        "summary_es": "Identidad operacional de Seguridad: incidentes, auditorías, cumplimiento — las inmersiones requieren inicio de sesión.",
+        "title_es": "Portal de Seguridad — Resumen",
+        "summary_es": "Para qué es el Portal de Seguridad y cómo accederlo. La capacitación operacional requiere inicio de sesión.",
         "body_es": [
             {"type": "p", "text":
-                "Seguridad es el portal que convierte eventos en rendición de cuentas. Cada "
-                "incidente, casi-incidente, acción correctiva, hallazgo de auditoría, "
-                "inspección de extintor y revisión de cumplimiento de capacitación vive aquí. "
-                "No es un portal de papeleo — cada registro en Seguridad o previno una lesión, "
-                "se recuperó de una, o construyó la defensa para una conversación con OSHA "
-                "que aún no ha ocurrido."},
+                "El Portal de Seguridad es el sistema que usa el personal de Seguridad para "
+                "administrar el cumplimiento, los incidentes y las auditorías en MASCI."},
             {"type": "p", "text":
-                "Quién lo usa: Gerentes de Seguridad, Coordinadores de Seguridad, Oficiales de Seguridad."},
-            {"type": "bullets", "items": [
-                "Incidentes — lesiones, daños a propiedad, casi-incidentes, eventos de terceros",
-                "Acciones correctivas — qué se arregla, por quién, para cuándo, firmado",
-                "Auditorías — recorridos de sitio, auditorías de obra, de subcontratistas",
-                "Extintores — inventario, inspecciones mensuales, recarga",
-                "Cumplimiento de capacitación — OSHA-10, OSHA-30, equipo, primeros auxilios",
-                "Charlas de seguridad — temas, asistencia, firmas",
-                "Planes JHA — Análisis de Riesgo de Trabajo autorizados",
-            ]},
-            {"type": "why", "text":
-                "Los registros de Seguridad son la documentación defensiva más importante que "
-                "MASCI produce. Un inspector de OSHA mañana hace dos preguntas: 'Muéstreme su "
-                "cumplimiento de capacitación' y 'Muéstreme su último incidente.' Seguridad "
-                "es donde viven las respuestas. Registros vagos = exposición; registros "
-                "específicos = operaciones defendibles."},
+                "Quién lo usa: Gerentes, Coordinadores y Oficiales de Seguridad."},
+            {"type": "p", "text":
+                "Cómo accederlo: inicie sesión en /safety-portal/login con el correo y la "
+                "contraseña que le emitió un administrador. Si no tiene una cuenta, contacte "
+                "a su operador."},
             {"type": "warn", "text":
-                "La capacitación operacional de Seguridad (flujos de investigación, cadenas de "
-                "acciones correctivas, procedimientos de cumplimiento) está restringida al "
-                "personal de Seguridad. Para leer esos artículos, inicie sesión en "
-                "/safety-portal/login. Las cuadrillas de campo pueden leer 'Fundamentos de "
-                "Incidente' (público)."},
+                "La capacitación operacional de Seguridad (procedimientos, flujos, SOPs "
+                "internos) está restringida al personal de Seguridad. Las cuadrillas de campo "
+                "pueden leer orientación básica de seguridad (pública) en otra parte del "
+                "Centro de Orientación. El contenido a nivel de flujo no es visible para "
+                "usuarios anónimos."},
             {"type": "next", "items": [
-                "Si es personal de Seguridad — abra 'Capacitación del Portal de Seguridad' para la inmersión operacional",
                 "Si es cuadrilla de campo — lea 'Si pasa algo en el sitio' (público)",
                 "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
             ]},
         ],
     },
     "portal-shop-identity": {
-        "title_es": "¿Qué hace el Portal de Taller / Flota?",
-        "summary_es": "Identidad operacional del Taller: salud del equipo y flujos de flota — las inmersiones requieren inicio de sesión.",
+        "title_es": "Portal de Taller / Flota — Resumen",
+        "summary_es": "Para qué es el Portal del Taller y cómo accederlo. La capacitación operacional requiere inicio de sesión.",
         "body_es": [
             {"type": "p", "text":
-                "El Taller es el portal que mantiene la flota funcionando. Cada Pre-Op que "
-                "envía un operador de campo fluye aquí. Cada reporte de daño, cada tarea de "
-                "mantenimiento, cada pedido de repuestos, cada devolución de equipo — todo "
-                "vive en el Taller. El portal existe para asegurar que el equipo correcto esté "
-                "operativo en el trabajo correcto a la hora correcta, y para documentar qué "
-                "pasó con él en el camino."},
+                "El Portal de Taller / Flota es el sistema que usa el personal del Taller para "
+                "mantener la flota de MASCI funcionando. Existe para que mecánicos y "
+                "coordinadores de flota tengan un solo lugar para administrar la salud del equipo."},
             {"type": "p", "text":
                 "Quién lo usa: Mecánicos, Capataz de Taller, Coordinador de Flota."},
-            {"type": "bullets", "items": [
-                "Revisión de Pre-Op — cada Pre-Op de campo llega aquí; los Pre-Ops fallidos necesitan acción",
-                "Reporte de daños — qué se dobló, raspó, rompió, por quién, cuándo",
-                "Coordinación de mantenimiento — programado, preventivo, emergencia",
-                "Catálogo y pedidos de repuestos — qué hay, qué está pedido, tiempos de entrega",
-                "Entrega y devolución de equipo — firmas conjuntas Seguridad + Taller",
-                "Firmas — liberar equipo al campo después de reparación",
-            ]},
-            {"type": "why", "text":
-                "Los registros del Taller protegen a todos. La firma de Pre-Op de un operador "
-                "muestra que hizo el recorrido; el registro de reparación muestra qué se "
-                "encontró y arregló; la firma de devolución muestra que la unidad está "
-                "liberada. Si una pieza de equipo causa un incidente, la cadena Pre-Op → Daño "
-                "→ Reparación → Firma es toda la defensa."},
+            {"type": "p", "text":
+                "Cómo accederlo: inicie sesión en /shop/login con el correo y la contraseña "
+                "que le emitió un administrador. Si no tiene una cuenta, contacte a su operador."},
             {"type": "warn", "text":
-                "La capacitación operacional del Taller (flujo de Pre-Op fallido, triaje de "
-                "daños, coordinación de mantenimiento, firma conjunta) está restringida al "
-                "personal del Taller. Inicie sesión en /shop/login para esos artículos. Los "
-                "operadores de campo leen 'Fundamentos de Pre-Op' (público)."},
+                "La capacitación operacional del Taller (procedimientos, flujos, SOPs "
+                "internos) está restringida al personal del Taller. Los operadores de campo "
+                "pueden leer 'Inspección Pre-Operación (Básico de Campo)' (pública) para la "
+                "superficie de campo. El contenido a nivel de flujo no es visible para "
+                "usuarios anónimos."},
             {"type": "next", "items": [
-                "Si es mecánico / personal del Taller — abra 'Capacitación del Portal de Taller' para la inmersión operacional",
                 "Si es operador de campo — lea 'Inspección Pre-Operación (Básico de Campo)' (público)",
                 "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
             ]},
         ],
     },
     "portal-dispatch-identity": {
-        "title_es": "¿Qué hace el Portal de Despacho?",
-        "summary_es": "Identidad operacional de Despacho: movimiento de equipo, disponibilidad — las inmersiones requieren inicio de sesión.",
+        "title_es": "Portal de Despacho — Resumen",
+        "summary_es": "Para qué es el Portal de Despacho y cómo accederlo. La capacitación operacional requiere inicio de sesión.",
         "body_es": [
             {"type": "p", "text":
-                "Despacho es el portal que coordina el equipo a través de la flota. Su trabajo "
-                "es asegurar que el activo correcto esté en el lugar correcto, en el trabajo "
-                "correcto, en un estado conocido — y que todos aguas abajo (Taller, Liderazgo "
-                "de Campo, PM) vean la misma verdad sobre dónde están las cosas y qué están "
-                "haciendo."},
+                "El Portal de Despacho es el sistema que usa el personal de Despacho para "
+                "coordinar equipo a través de los proyectos de MASCI. Existe para que "
+                "despachadores y coordinadores de flota tengan un solo lugar para saber "
+                "dónde están los activos."},
             {"type": "p", "text":
                 "Quién lo usa: Despachadores, Coordinadores de Flota, Supervisión de Operaciones."},
-            {"type": "bullets", "items": [
-                "Disponibilidad — Disponible / Asignado / En-Tránsito / Retenido / En Servicio / Fuera",
-                "Eventos de movimiento — transferencias trabajo-a-trabajo con origen · destino · llegada",
-                "Retenciones y transferencias — restricción temporal vs reasignación permanente",
-                "Reportes de utilización — activos sobre- y sub-desplegados",
-                "Registro de eventos operacionales — asignaciones, retenciones, devoluciones",
-                "Coordinación de campo — reconciliar vista del sistema con realidad física",
-            ]},
-            {"type": "why", "text":
-                "Despacho está aguas arriba de cada decisión sobre activos que toma el resto "
-                "de la plataforma. Cuando Despacho es preciso, el campo no pierde mañanas "
-                "buscando equipo, el Taller programa servicio contra el proyecto correcto, "
-                "los PMs ven utilización real, y los ejecutivos toman decisiones de flota con "
-                "datos honestos."},
+            {"type": "p", "text":
+                "Cómo accederlo: inicie sesión en /dispatch-portal/login con el correo y la "
+                "contraseña que le emitió un administrador. Si no tiene una cuenta, contacte "
+                "a su operador."},
             {"type": "warn", "text":
-                "La capacitación operacional de Despacho (ciclo de movimiento, reglas de "
-                "disponibilidad, lógica retención-vs-transferencia, coordinación de campo) "
-                "está restringida al personal de Despacho. Inicie sesión en "
-                "/dispatch-portal/login para esos artículos."},
+                "La capacitación operacional de Despacho (procedimientos, flujos, SOPs "
+                "internos) está restringida al personal de Despacho. El contenido a nivel de "
+                "flujo no es visible para usuarios anónimos."},
             {"type": "next", "items": [
-                "Si es personal de Despacho — abra 'Capacitación del Portal de Despacho' para la inmersión operacional",
-                "Si es cuadrilla de campo — lea 'Fundamentos de Reporte Diario' (público)",
                 "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
             ]},
         ],
     },
     "portal-pm-identity": {
-        "title_es": "¿Qué hace el Portal de PM?",
-        "summary_es": "Identidad operacional de PM: supervisión de proyecto y mano de obra — las inmersiones requieren inicio de sesión.",
+        "title_es": "Portal de PM — Resumen",
+        "summary_es": "Para qué es el Portal de PM y cómo accederlo. La capacitación operacional de PM requiere inicio de sesión.",
         "body_es": [
             {"type": "p", "text":
-                "El portal de PM es la lente a nivel de proyecto. Los PMs ven solo los "
-                "registros vinculados a los proyectos que administran — Reportes Diarios, "
-                "inspecciones, JHAs, incidentes, registros de Liderazgo de Campo, asignaciones "
-                "de equipo, documentación laboral y estado entre portales. Es intencionalmente "
-                "filtrado por alcance: cada PM se enfoca en sus propios proyectos sin tener "
-                "que revisar los de los demás."},
+                "El Portal de PM (Gestión de Proyectos) es el sistema que usan los Gerentes de "
+                "Proyecto para supervisar sus proyectos asignados. Existe para que cada PM "
+                "tenga un solo lugar acotado a los proyectos que administra."},
             {"type": "p", "text":
-                "Quién lo usa: Gerentes de Proyecto (PMs) y Co-PMs."},
-            {"type": "bullets", "items": [
-                "Tablero del proyecto — filtrado al alcance del PM",
-                "Revisión de Reportes Diarios — verdad operacional del día",
-                "Inspecciones / reuniones / JHAs — registros de seguridad y calidad",
-                "Incidentes — cualquier cosa que pasó en el proyecto",
-                "Registros de Liderazgo de Campo — amonestaciones, reconocimientos, asistencia",
-                "Visibilidad de asignación de equipo — qué está en el proyecto y en qué estado",
-                "Documentación laboral — horas → código de costo → conexión con nómina",
-                "Flujos de reportes — tableros, exploraciones, exportes para dueños",
-            ]},
-            {"type": "why", "text":
-                "El trabajo de PM es el puente entre operaciones de campo y finanzas de "
-                "proyecto. Un Reporte Diario del campo se convierte en un costo de mano de "
-                "obra en el tablero de PM. Un incidente se convierte en un riesgo del "
-                "proyecto. Los PMs son el único rol con una vista de proyecto lo suficientemente "
-                "amplia para detectar desviación y lo suficientemente estrecha para actuar. "
-                "Si la supervisión de PM es descuidada, los proyectos descubren problemas a "
-                "fin de mes en vez de a mediados de semana — y fin de mes es muy tarde."},
+                "Quién lo usa: Gerentes de Proyecto y Co-PMs."},
+            {"type": "p", "text":
+                "Cómo accederlo: inicie sesión en /pm/login con el correo y la contraseña que "
+                "le emitió un administrador. Si no tiene una cuenta, contacte a su operador."},
             {"type": "warn", "text":
-                "La capacitación operacional de PM (cadencia de revisión, procedimientos de "
-                "reconciliación laboral, reglas de visibilidad entre proyectos, flujos de "
-                "reportes) está restringida a los PMs. Inicie sesión en /pm/login para esos "
-                "artículos."},
+                "La capacitación operacional de PM (procedimientos, flujos, SOPs internos) "
+                "está restringida a los PMs. Las cuadrillas de campo pueden leer orientación "
+                "pública sobre Reportes Diarios. El contenido a nivel de gestión de PM no es "
+                "visible para usuarios anónimos."},
             {"type": "next", "items": [
-                "Si es PM con sesión iniciada — abra 'Capacitación del Portal de PM' para la inmersión operacional",
                 "Si es cuadrilla de campo — lea 'Fundamentos de Reporte Diario' (público)",
                 "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
             ]},
         ],
     },
     "portal-admin-identity": {
-        "title_es": "¿Qué hace la Consola de Admin?",
-        "summary_es": "Identidad operacional de la Consola de Admin: el plano de control — las inmersiones son solo para admin.",
+        "title_es": "Consola de Admin — Resumen",
+        "summary_es": "Para qué es la Consola de Admin y cómo accederla. La capacitación operacional es solo para admin.",
         "body_es": [
             {"type": "p", "text":
-                "Admin es el plano de control a nivel de operador de la plataforma. Es "
-                "intencionalmente estrecho en audiencia — típicamente el dueño de la "
-                "plataforma y uno o dos operadores de confianza. Admin es dueño de las "
-                "superficies que ningún otro portal puede ver: cada usuario, cada plantilla "
-                "de rol, cada entrada de auditoría, cada sesión activa, cada respaldo, y las "
-                "señales de gobernanza que indican cuándo algo está desviándose."},
+                "La Consola de Admin es la superficie de control a nivel de operador de la "
+                "plataforma. Existe para que el dueño de la plataforma y los operadores de "
+                "confianza tengan un solo lugar para administrar el sistema."},
             {"type": "p", "text":
-                "Quién lo usa: el Dueño de la plataforma y Operador(es) designado(s). No para personal general."},
-            {"type": "bullets", "items": [
-                "Gestión de usuarios — invitar, asignar rol, suspender, restaurar",
-                "Plantillas de rol — definir lo que otorga cada token de portal",
-                "Registro de auditoría — cada acción privilegiada, quién/cuándo/qué",
-                "Salud del sistema — métricas, profundidad de colas, tasas de error",
-                "Sesiones — quién está conectado, revocar si es necesario",
-                "Respaldos y restauración — disparadores manuales, programa, punto-en-tiempo",
-                "Inventario operacional y gobernanza — detección de desviación",
-            ]},
-            {"type": "why", "text":
-                "El trabajo de Admin tiene el radio de impacto más profundo de la plataforma. "
-                "Un solo cambio de plantilla de rol se propaga a cada usuario con ese rol. El "
-                "registro de auditoría es el único lugar donde 'quién cambió qué cuándo' se "
-                "registra permanentemente. La capacitación de Admin es deliberadamente solo "
-                "para admin porque el contenido incluye procedimientos de gestión de "
-                "usuarios, respaldo y cumplimiento que los operadores no deben navegar "
-                "anónimamente."},
+                "Quién la usa: el Dueño de la plataforma y Operador(es) designado(s). No "
+                "para personal general."},
+            {"type": "p", "text":
+                "Cómo accederla: inicie sesión en /admin/login. Las cuentas de admin las "
+                "emite directamente el Dueño de la plataforma."},
             {"type": "warn", "text":
                 "La capacitación operacional de Admin es el nivel más restringido de la "
-                "plataforma. Inicie sesión en /admin/login. Si no tiene una cuenta de admin, "
-                "este material no es para usted — es por diseño, no por descuido."},
+                "plataforma. Sus procedimientos, flujos y SOPs internos no se exponen "
+                "deliberadamente a usuarios anónimos. Si no tiene una cuenta de admin, este "
+                "material no es para usted intencionalmente — es por diseño."},
             {"type": "next", "items": [
-                "Si es operador con sesión iniciada — abra 'Guía de Consola de Admin' para la inmersión operacional",
                 "Si necesita que un admin realice una acción — contacte a su operador directamente",
                 "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
             ]},

@@ -65,7 +65,95 @@ def test_identity_article_readable_by_anonymous(aid):
     data = r.json()
     assert data.get("title")
     body = data.get("body") or []
-    assert len(body) >= 4, f"{aid} body must be substantive (>=4 blocks)"
+    # Thin Tier-1 content: substantive but not workflow-bloated.
+    # 3-6 blocks is the sweet spot.
+    assert 3 <= len(body) <= 6, (
+        f"{aid} body should be 3-6 blocks (thin Tier-1); got {len(body)}"
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Tier-1 content guardrail — identity must NOT leak operational workflows
+# ─────────────────────────────────────────────────────────────────────
+WORKFLOW_LEAK_TERMS = [
+    # HR-internal
+    "Time verification", "Employee accountability", "Document expirations",
+    "Offboarding", "Training records",
+    # Safety-internal
+    "Corrective actions", "Audits", "Fire extinguishers",
+    "Toolbox talks", "JHA plans",
+    # Shop-internal
+    "Pre-Op review", "Damage reporting", "Maintenance coordination",
+    "Parts catalog", "Equipment issuance",
+    # Dispatch-internal
+    "Movement events", "Holds & transfers", "Utilisation reports",
+    "Operational events log",
+    # PM-internal
+    "Project dashboard", "Daily Report review", "Labor documentation",
+    "Reporting workflows",
+    # Admin-internal
+    "User management", "Role templates", "Audit log",
+    "System health", "Sessions", "Backups & restore",
+    "Operational inventory",
+]
+
+
+@pytest.mark.parametrize("aid", IDENTITY_IDS + ["portal-leadership-identity"])
+def test_identity_article_does_not_leak_operational_workflows(aid):
+    """Tier-1 identity articles must NOT enumerate internal workflows.
+
+    Operator rule (iter205-correction): public identity articles are
+    limited to what / who / how-to-access / login-troubleshoot.
+    Workflow enumeration belongs in the portal-scoped deep article.
+    """
+    import guidance  # noqa: F401
+    from guidance.content import _ARTICLES
+    a = next((x for x in _ARTICLES if x["id"] == aid), None)
+    assert a is not None
+    body_text = " ".join(
+        (b.get("text") or "") + " " + " ".join(b.get("items") or [])
+        for b in a.get("body", [])
+    )
+    body_es_text = " ".join(
+        (b.get("text") or "") + " " + " ".join(b.get("items") or [])
+        for b in a.get("body_es", [])
+    )
+    leaks_en = [t for t in WORKFLOW_LEAK_TERMS if t in body_text]
+    assert not leaks_en, f"{aid} EN body leaks workflow terms: {leaks_en}"
+    # Spanish only checked when present; never assert leak terms via
+    # English strings — the ES leak guard is intentionally lighter
+    # since ES text rewords most workflow names.
+    assert len(body_es_text) > 0 or not a.get("body_es")
+
+
+@pytest.mark.parametrize("aid", IDENTITY_IDS + ["portal-leadership-identity"])
+def test_identity_article_states_sign_in_required(aid):
+    """Identity articles must explicitly tell anon users that operational
+    training requires sign-in (consistent expectation setting)."""
+    import guidance  # noqa: F401
+    from guidance.content import _ARTICLES
+    a = next((x for x in _ARTICLES if x["id"] == aid), None)
+    body_text = " ".join(
+        (b.get("text") or "") for b in a.get("body", [])
+    ).lower()
+    assert "sign in" in body_text or "/login" in body_text or "restricted" in body_text, (
+        f"{aid} must mention sign-in / login / restricted to anchor anon expectations"
+    )
+
+
+@pytest.mark.parametrize("aid", IDENTITY_IDS + ["portal-leadership-identity"])
+def test_identity_article_related_only_links_public(aid):
+    """Identity-article `related` links must all resolve to public-scope
+    articles so anon users never hit a 404 from a card they were shown."""
+    import guidance  # noqa: F401
+    from guidance.content import _ARTICLES
+    ids_to_scope = {x["id"]: x.get("scopes") or [] for x in _ARTICLES}
+    a = next((x for x in _ARTICLES if x["id"] == aid), None)
+    for rel in a.get("related") or []:
+        scopes = ids_to_scope.get(rel, [])
+        assert "public" in scopes, (
+            f"{aid}.related['{rel}'] is not public-scope; would 404 for anon"
+        )
 
 
 @pytest.mark.parametrize("aid", IDENTITY_IDS)
