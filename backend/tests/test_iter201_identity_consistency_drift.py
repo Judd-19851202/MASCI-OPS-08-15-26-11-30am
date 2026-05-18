@@ -46,33 +46,30 @@ def test_six_other_portals_flagged_for_identity_drift():
     """HR / Safety / Dispatch / Shop / PM / Admin all need the triple.
 
     iter205 update: identity articles landed for all six.
-    Pass 5a (2026-05-18) update: HR / Safety / PM cleared the full
-    triple (identity + onboard-first-week + tshoot-login). Only Shop /
-    Dispatch / Admin remain as drift until Pass 5b/5c land their
-    onboard + tshoot articles.
+    Pass 5a (2026-05-18) update: HR / Safety / PM cleared the triple.
+    Pass 5b (2026-05-18) update: Shop / Dispatch cleared. Only Admin
+    remains (Pass 5c).
     """
     import guidance  # noqa: F401
     from governance.inventory import compute_drift
     d = compute_drift()
     flagged = {it["subject"] for it in d["items"]
                if it["category"] == "portal-identity-incomplete"}
-    for portal in ("shop", "dispatch", "admin"):
-        assert portal in flagged, (
-            f"Portal '{portal}' must still be flagged for identity drift "
-            f"until Pass 5b/5c builds its triple; currently flagged: {flagged}"
-        )
-    for portal in ("hr", "safety", "pm"):
-        assert portal not in flagged, (
-            f"Portal '{portal}' cleared in Pass 5a — must NOT be in drift; "
+    assert "admin" in flagged, (
+        "admin still pending Pass 5c — must remain in drift"
+    )
+    for cleared in ("hr", "safety", "pm", "shop", "dispatch"):
+        assert cleared not in flagged, (
+            f"Portal '{cleared}' cleared in Pass 5a/5b — must NOT be in drift; "
             f"currently flagged: {flagged}"
         )
 
 
 def test_admin_drift_is_p2_others_p1():
-    """Admin gets softer P2 severity. Shop / Dispatch remain P1.
+    """Admin gets softer P2 severity.
 
-    HR / Safety / PM cleared the triple in Pass 5a and are no longer
-    in the identity-drift set.
+    Pass 5b update: only Admin remains in the identity-drift set, so
+    the only assertion left is that admin's severity is P2.
     """
     import guidance  # noqa: F401
     from governance.inventory import compute_drift
@@ -82,10 +79,6 @@ def test_admin_drift_is_p2_others_p1():
         if it["category"] == "portal-identity-incomplete"
     }
     assert by_subject["admin"]["severity"] == "p2"
-    for portal in ("shop", "dispatch"):
-        assert by_subject[portal]["severity"] == "p1", (
-            f"{portal} should be P1; got {by_subject[portal]['severity']}"
-        )
 
 
 def test_drift_message_names_missing_articles():
@@ -93,22 +86,23 @@ def test_drift_message_names_missing_articles():
     to create — otherwise it's noise, not signal.
 
     iter205 update: identity articles landed; message no longer names them.
-    Pass 5a update: HR / Safety / PM cleared. The check now pivots to
-    Shop (still incomplete) to validate the drift-message contract.
+    Pass 5a/5b update: HR / Safety / PM / Shop / Dispatch cleared. The
+    check now pivots to Admin (still incomplete) to validate the
+    drift-message contract.
     """
     import guidance  # noqa: F401
     from governance.inventory import compute_drift
     d = compute_drift()
-    shop_drift = next(
+    admin_drift = next(
         (it for it in d["items"]
          if it["category"] == "portal-identity-incomplete"
-         and it["subject"] == "shop"),
+         and it["subject"] == "admin"),
         None,
     )
-    assert shop_drift is not None
-    assert "onboard-shop-first-week" in shop_drift["message"]
-    assert "tshoot-shop-login" in shop_drift["message"]
-    assert "portal-shop-identity" not in shop_drift["message"]
+    assert admin_drift is not None
+    assert "onboard-admin-first-week" in admin_drift["message"]
+    assert "tshoot-admin-login" in admin_drift["message"]
+    assert "portal-admin-identity" not in admin_drift["message"]
 
 
 def test_drift_assigns_fix_pass_label():

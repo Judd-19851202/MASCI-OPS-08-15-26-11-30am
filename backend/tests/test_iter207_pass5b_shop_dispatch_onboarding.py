@@ -1,15 +1,14 @@
-"""Pass 5a — HR + Safety + PM onboarding + login-troubleshoot.
+"""Pass 5b — Shop + Dispatch onboarding + login-troubleshoot.
 
-Six new public-scope articles authored:
-  • onboard-hr-first-week        / tshoot-hr-login
-  • onboard-safety-first-week    / tshoot-safety-login
-  • onboard-pm-first-week        / tshoot-pm-login
+Four new public-scope articles authored:
+  • onboard-shop-first-week      / tshoot-shop-login
+  • onboard-dispatch-first-week  / tshoot-dispatch-login
 
-Each must be:
+Same Tier-1 discipline as Pass 5a:
   • public-scope (anonymous-readable)
   • Tier-1 in content (no enumerated portal workflows)
   • bilingual (title_es + body_es)
-  • cross-linked only to public articles (anon cannot hit a 404)
+  • cross-linked only to public articles
 """
 import os
 import httpx
@@ -20,19 +19,13 @@ API_URL = os.environ.get(
     os.environ.get("API_URL", "http://localhost:8001"),
 )
 
-PASS_5A_IDS = [
-    "onboard-hr-first-week",
-    "tshoot-hr-login",
-    "onboard-safety-first-week",
-    "tshoot-safety-login",
-    "onboard-pm-first-week",
-    "tshoot-pm-login",
+PASS_5B_IDS = [
+    "onboard-shop-first-week",
+    "tshoot-shop-login",
+    "onboard-dispatch-first-week",
+    "tshoot-dispatch-login",
 ]
 
-# Operator's Tier-1 rule: no enumerated portal workflows.
-# Pass 5a articles are onboarding + login-troubleshoot, so they MAY
-# mention "sign in", "password reset", and orientation activities. They
-# MUST NOT enumerate the protected portal workflows.
 BANNED_WORKFLOW_PHRASES = [
     "Time verification — comparing",
     "Employee accountability — write-ups",
@@ -41,6 +34,8 @@ BANNED_WORKFLOW_PHRASES = [
     "Pre-Op review — every field Pre-Op",
     "Damage reporting — what got bent",
     "Movement events — job-to-job",
+    "Holds & transfers —",
+    "Utilisation reports —",
     "Project dashboard — scope-filtered",
     "User management — invite",
     "Audit log — every privileged",
@@ -48,8 +43,8 @@ BANNED_WORKFLOW_PHRASES = [
 ]
 
 
-@pytest.mark.parametrize("aid", PASS_5A_IDS)
-def test_pass5a_article_is_public_scope(aid):
+@pytest.mark.parametrize("aid", PASS_5B_IDS)
+def test_pass5b_article_is_public_scope(aid):
     import guidance  # noqa: F401
     from guidance.content import _ARTICLES
     a = next((x for x in _ARTICLES if x["id"] == aid), None)
@@ -57,22 +52,20 @@ def test_pass5a_article_is_public_scope(aid):
     assert a["scopes"] == ["public"]
 
 
-@pytest.mark.parametrize("aid", PASS_5A_IDS)
-def test_pass5a_article_anon_readable(aid):
+@pytest.mark.parametrize("aid", PASS_5B_IDS)
+def test_pass5b_article_anon_readable(aid):
     r = httpx.get(f"{API_URL}/api/guidance/articles/{aid}", timeout=10.0)
     assert r.status_code == 200, f"{aid} anon GET → {r.status_code}"
     data = r.json()
     assert data.get("title")
     body = data.get("body") or []
-    # Onboarding + tshoot articles can be slightly longer than identity
-    # but should remain focused (4-8 blocks typical).
     assert 4 <= len(body) <= 9, (
         f"{aid} body should be 4-9 blocks; got {len(body)}"
     )
 
 
-@pytest.mark.parametrize("aid", PASS_5A_IDS)
-def test_pass5a_article_has_spanish(aid):
+@pytest.mark.parametrize("aid", PASS_5B_IDS)
+def test_pass5b_article_has_spanish(aid):
     import guidance  # noqa: F401
     from guidance.content import _ARTICLES
     a = next((x for x in _ARTICLES if x["id"] == aid), None)
@@ -80,8 +73,8 @@ def test_pass5a_article_has_spanish(aid):
     assert isinstance(a.get("body_es"), list) and len(a["body_es"]) >= 4
 
 
-@pytest.mark.parametrize("aid", PASS_5A_IDS)
-def test_pass5a_article_does_not_leak_workflows(aid):
+@pytest.mark.parametrize("aid", PASS_5B_IDS)
+def test_pass5b_article_does_not_leak_workflows(aid):
     """Tier-1 articles must not enumerate operational workflows."""
     import guidance  # noqa: F401
     from guidance.content import _ARTICLES
@@ -94,8 +87,8 @@ def test_pass5a_article_does_not_leak_workflows(aid):
     assert not leaks, f"{aid} leaks workflow phrases: {leaks}"
 
 
-@pytest.mark.parametrize("aid", PASS_5A_IDS)
-def test_pass5a_related_links_only_public(aid):
+@pytest.mark.parametrize("aid", PASS_5B_IDS)
+def test_pass5b_related_links_only_public(aid):
     """Related cross-links must all be public so anon never dead-ends."""
     import guidance  # noqa: F401
     from guidance.content import _ARTICLES
@@ -108,16 +101,9 @@ def test_pass5a_related_links_only_public(aid):
         )
 
 
-# ─────────────────────────────────────────────────────────────────────
-# Drift signal: HR / Safety / PM are now clear; Shop / Dispatch / Admin remain
-# ─────────────────────────────────────────────────────────────────────
-def test_drift_cleared_for_pass5a_personas():
-    """Pass 5a personas (HR / Safety / PM) cleared the identity triple.
-
-    Note: this test asserts only the Pass 5a contract. Shop / Dispatch
-    were later cleared in Pass 5b (asserted in test_iter207). Admin
-    remains pending (Pass 5c).
-    """
+def test_drift_cleared_for_pass5b_personas():
+    """Shop + Dispatch should clear the identity-incomplete drift after
+    Pass 5b. Only Admin should remain (Pass 5c)."""
     import guidance  # noqa: F401
     from governance.inventory import compute_drift
     d = compute_drift()
@@ -125,11 +111,11 @@ def test_drift_cleared_for_pass5a_personas():
         it["subject"] for it in d["items"]
         if it["category"] == "portal-identity-incomplete"
     }
-    for cleared in ("hr", "safety", "pm"):
+    for cleared in ("hr", "safety", "pm", "shop", "dispatch"):
         assert cleared not in flagged, (
-            f"Pass 5a cleared {cleared}; should not be in drift. "
+            f"Pass 5a/5b cleared {cleared}; should not be in drift. "
             f"Currently flagged: {flagged}"
         )
     assert "admin" in flagged, (
-        "admin still pending Pass 5c — must remain in drift"
+        "Admin still pending Pass 5c — must still be in drift"
     )

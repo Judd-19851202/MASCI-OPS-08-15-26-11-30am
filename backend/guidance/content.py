@@ -1910,6 +1910,175 @@ _ARTICLES: list[dict] = [
         ],
     },
 
+    # ── Shop — onboarding + login-troubleshoot ───────────────────────
+    {
+        "id": "onboard-shop-first-week",
+        "section": "onboarding",
+        "title": "Shop / Fleet Staff — First Week",
+        "summary": "What a new Mechanic, Shop Foreman, or Fleet Coordinator does in their first week.",
+        "scopes": ["public"],
+        "tags": ["shop", "fleet", "onboarding", "first week", "new staff"],
+        "body": [
+            {"type": "p", "text":
+                "Welcome to Shop. The Shop / Fleet portal is how MASCI keeps equipment "
+                "operational and documented. Your first week is mostly hands-on time in the "
+                "yard, shadowing the people who already do the work, and learning the rhythm "
+                "of how the field talks to the shop."},
+            {"type": "steps", "items": [
+                "Day 1 — Receive your Shop credentials from an admin. Sign in at /shop/login and complete your forced password change.",
+                "Day 1 — Walk the yard with the Shop Foreman. Touch every active piece of equipment. The platform names mean nothing until you've put hands on the actual unit.",
+                "Day 2 — Sit with the Fleet Coordinator for an hour. Ask them to walk you through their day: what arrives first thing, what's mid-day, what's end-of-day reconciliation.",
+                "Day 2-3 — Shadow one full Pre-Op review cycle from incoming submission to follow-up call with the field. Don't act yet — watch the cadence.",
+                "Day 3-4 — Shadow one full damage triage from field report to repair-sign-off. Note where the field operator was wrong, where they were right, and how the conversation went.",
+                "Day 4-5 — Read the deep Shop training articles once. Bookmark them; they're built to be re-read every quarter.",
+                "End of week 1 — Identify the one piece of equipment everyone in the yard worries about. That's where your attention belongs in week 2.",
+            ]},
+            {"type": "why", "text":
+                "Shop sits at the intersection of safety, money, and field morale. A unit "
+                "released too early causes an incident; a unit held too long stalls a "
+                "project. The shop's documentation is the only thing that proves which call "
+                "was made and why. First-week mistakes are expected — first-week shortcuts "
+                "in documentation are not."},
+            {"type": "tip", "text":
+                "Field operators trust mechanics who LISTEN. Spend your first week asking "
+                "operators 'what's been giving you trouble?' instead of telling them their "
+                "Pre-Op was wrong. The trust you build early shows up as honest damage "
+                "reports for years."},
+            {"type": "next", "items": [
+                "By week 2 you should be reviewing routine Pre-Ops independently",
+                "By week 4 you should own one equipment-return joint sign-off with Safety",
+                "Bookmark 'Equipment Pre-Op Checks (Field Basics)' (public) — that's the field-side surface you'll be supporting",
+            ]},
+        ],
+        "related": [
+            "portal-shop-identity",
+            "tshoot-shop-login",
+            "public-preop-basics",
+            "public-cant-login",
+        ],
+    },
+    {
+        "id": "tshoot-shop-login",
+        "section": "troubleshooting",
+        "title": "Can't sign in to Shop",
+        "summary": "Quick fixes when /shop/login isn't working.",
+        "scopes": ["public"],
+        "tags": ["shop", "fleet", "login", "troubleshooting", "password"],
+        "body": [
+            {"type": "p", "text":
+                "Shop uses per-user email + password. If you can't get in, walk through these in order."},
+            {"type": "steps", "items": [
+                "Confirm you're at /shop/login (NOT /admin/login or any other portal door).",
+                "Check caps lock and spelling. Passwords are case-sensitive.",
+                "If this is your first login, use the temporary password an admin gave you. You'll be forced to change it.",
+                "Use 'Forgot password?' for a reset link by email (single-use, 30-minute expiry).",
+                "Check spam if the reset email doesn't arrive. If it's still missing, your operator may have the wrong email on file.",
+                "If you see 'account disabled' or 'locked', contact your operator.",
+            ]},
+            {"type": "why", "text":
+                "Shop is its own isolated scope. Admin tokens do NOT satisfy Shop endpoints "
+                "automatically — that's intentional, because shop sign-offs are referenced "
+                "during insurance disputes and need a clean per-user audit trail."},
+            {"type": "warn", "text":
+                "Do NOT type your Shop password into another portal's login form (Safety, HR, "
+                "PM, Dispatch, Admin). Each portal has its own login. Repeated bad attempts "
+                "on the wrong portal can temporarily lock that account."},
+            {"type": "tip", "text":
+                "If you're locked out, wait 15 minutes — the lockout self-clears — or "
+                "contact your operator. Shop lockouts usually mean the wrong login URL, not "
+                "the wrong password. Bookmark /shop/login on day one to avoid the issue."},
+        ],
+        "related": [
+            "portal-shop-identity",
+            "onboard-shop-first-week",
+            "public-cant-login",
+        ],
+    },
+
+    # ── Dispatch — onboarding + login-troubleshoot ───────────────────
+    {
+        "id": "onboard-dispatch-first-week",
+        "section": "onboarding",
+        "title": "Dispatch Staff — First Week",
+        "summary": "What a new Dispatcher, Fleet Coordinator, or Operations Oversight staffer does in their first week.",
+        "scopes": ["public"],
+        "tags": ["dispatch", "onboarding", "first week", "new staff"],
+        "body": [
+            {"type": "p", "text":
+                "Welcome to Dispatch. The Dispatch portal is how MASCI coordinates equipment "
+                "across active projects. Your first week is mostly listening, mapping mental "
+                "models to physical units, and learning the rhythm of how the field, the shop, "
+                "and the office disagree about where equipment is."},
+            {"type": "steps", "items": [
+                "Day 1 — Receive your Dispatch credentials from an admin. Sign in at /dispatch-portal/login and complete your forced password change.",
+                "Day 1 — Sit beside the current dispatcher for the morning push. Don't speak. Just watch how they decide which call to take first.",
+                "Day 2 — Visit at least two active jobsites. See the equipment with your own eyes before trusting any system report. Memory of the physical units pays off for months.",
+                "Day 2-3 — Shadow one full job-to-job movement event from release through arrival. Note where the system view and the reality diverged.",
+                "Day 3-4 — Read the last 30 days of discrepancy reports between field and dispatch. Patterns matter more than individual incidents.",
+                "Day 4-5 — Read the deep Dispatch training articles once. They're long; skim and bookmark.",
+                "End of week 1 — Identify the one project that keeps generating reconciliation issues. Plan a site visit for week 2.",
+            ]},
+            {"type": "why", "text":
+                "Dispatch is upstream of every asset decision the rest of the platform makes. "
+                "A first-week dispatcher who reconciles honestly is worth more than a "
+                "ten-year veteran who hides discrepancies to keep numbers clean. Build the "
+                "habit early: write what's true, even when it's messy."},
+            {"type": "tip", "text":
+                "Field crews trust dispatchers who answer the phone. Spend your first week "
+                "answering every call within two rings, even if you can't solve it yet. "
+                "'I don't know, let me find out' beats 'I'll call you back' every time."},
+            {"type": "next", "items": [
+                "By week 2 you should be running routine movement events independently",
+                "By week 4 you should be reconciling field discrepancies on your own",
+                "Bookmark 'Daily Report Basics' (public) — that's the field-side surface feeding what you see",
+            ]},
+        ],
+        "related": [
+            "portal-dispatch-identity",
+            "tshoot-dispatch-login",
+            "public-daily-report-basics",
+            "public-cant-login",
+        ],
+    },
+    {
+        "id": "tshoot-dispatch-login",
+        "section": "troubleshooting",
+        "title": "Can't sign in to Dispatch",
+        "summary": "Quick fixes when /dispatch-portal/login isn't working.",
+        "scopes": ["public"],
+        "tags": ["dispatch", "login", "troubleshooting", "password"],
+        "body": [
+            {"type": "p", "text":
+                "Dispatch uses per-user email + password. If you can't get in, walk through these in order."},
+            {"type": "steps", "items": [
+                "Confirm you're at /dispatch-portal/login (NOT /admin/login or any other portal door — Dispatch's URL is longer than most).",
+                "Check caps lock and spelling. Passwords are case-sensitive.",
+                "If this is your first login, use the temporary password an admin gave you. You'll be forced to change it.",
+                "Use 'Forgot password?' for a reset link by email (single-use, 30-minute expiry).",
+                "Check spam if the reset email doesn't arrive. If it's still missing, your operator may have the wrong email on file.",
+                "If you see 'account disabled' or 'locked', contact your operator.",
+            ]},
+            {"type": "why", "text":
+                "Dispatch is its own isolated scope. Admin tokens do NOT satisfy Dispatch "
+                "endpoints automatically — that's intentional, because dispatch records are "
+                "referenced during utilisation reviews and need clean per-user attribution."},
+            {"type": "warn", "text":
+                "Do NOT type your Dispatch password into another portal's login form. Each "
+                "portal has its own login. The Dispatch URL is /dispatch-portal/login — "
+                "longer than HR's or Shop's — and confusing it with another portal door is "
+                "the single most common first-week login mistake."},
+            {"type": "tip", "text":
+                "Bookmark /dispatch-portal/login on day one. It's the longest portal URL "
+                "and the easiest to misremember. Lockouts self-clear in 15 minutes if you "
+                "do hit one."},
+        ],
+        "related": [
+            "portal-dispatch-identity",
+            "onboard-dispatch-first-week",
+            "public-cant-login",
+        ],
+    },
+
     {
         "id": "field-daily-report-howto",
         "section": "portals",

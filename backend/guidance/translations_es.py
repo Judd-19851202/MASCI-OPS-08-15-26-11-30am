@@ -357,6 +357,142 @@ TRANSLATIONS_ES: dict[str, dict] = {
         ],
     },
 
+    # ── Pass 5b · Shop + Dispatch onboarding + login troubleshoot ────
+    "onboard-shop-first-week": {
+        "title_es": "Personal de Taller / Flota — Primera Semana",
+        "summary_es": "Qué hace un nuevo Mecánico, Capataz de Taller o Coordinador de Flota en su primera semana.",
+        "body_es": [
+            {"type": "p", "text":
+                "Bienvenido al Taller. El portal de Taller / Flota es cómo MASCI mantiene el "
+                "equipo operativo y documentado. Su primera semana es principalmente tiempo "
+                "práctico en el patio, observando a quienes ya hacen el trabajo, y aprendiendo "
+                "el ritmo de cómo el campo le habla al taller."},
+            {"type": "steps", "items": [
+                "Día 1 — Reciba sus credenciales de Taller de un administrador. Inicie sesión en /shop/login y complete su cambio de contraseña forzado.",
+                "Día 1 — Camine el patio con el Capataz de Taller. Toque cada pieza activa de equipo. Los nombres en la plataforma no significan nada hasta que haya puesto las manos en la unidad real.",
+                "Día 2 — Siéntese con el Coordinador de Flota por una hora. Pídale que le muestre su día: qué llega primero, qué es de medio día, qué es reconciliación de fin de día.",
+                "Día 2-3 — Observe un ciclo completo de revisión de Pre-Op desde el envío entrante hasta la llamada de seguimiento con el campo. No actúe todavía — observe la cadencia.",
+                "Día 3-4 — Observe un triaje completo de daño desde el reporte de campo hasta la firma de reparación. Note dónde el operador de campo estaba equivocado, dónde tenía razón, y cómo fue la conversación.",
+                "Día 4-5 — Lea los artículos profundos de capacitación de Taller una vez. Márquelos; están construidos para releerse cada trimestre.",
+                "Fin de la semana 1 — Identifique la pieza de equipo que más preocupa a todos en el patio. Ahí pertenece su atención en la semana 2.",
+            ]},
+            {"type": "why", "text":
+                "El Taller se sienta en la intersección de seguridad, dinero y moral del "
+                "campo. Una unidad liberada muy temprano causa un incidente; una unidad "
+                "retenida muy tarde paraliza un proyecto. La documentación del taller es lo "
+                "único que prueba qué decisión se tomó y por qué. Los errores de primera "
+                "semana se esperan — los atajos de documentación de primera semana, no."},
+            {"type": "tip", "text":
+                "Los operadores de campo confían en mecánicos que ESCUCHAN. Pase su primera "
+                "semana preguntando a los operadores '¿qué le ha estado dando problemas?' en "
+                "vez de decirles que su Pre-Op estaba mal. La confianza que construya temprano "
+                "se muestra como reportes honestos de daño durante años."},
+            {"type": "next", "items": [
+                "Para la semana 2 debería estar revisando Pre-Ops rutinarios independientemente",
+                "Para la semana 4 debería ser dueño de una firma conjunta de devolución de equipo con Seguridad",
+                "Marque 'Inspección Pre-Operación (Básico de Campo)' (público) — esa es la superficie de campo que estará apoyando",
+            ]},
+        ],
+    },
+    "tshoot-shop-login": {
+        "title_es": "No puedo iniciar sesión en el Taller",
+        "summary_es": "Soluciones rápidas cuando /shop/login no funciona.",
+        "body_es": [
+            {"type": "p", "text":
+                "El Taller usa correo + contraseña por usuario. Si no puede entrar, recorra estos en orden."},
+            {"type": "steps", "items": [
+                "Confirme que está en /shop/login (NO en /admin/login ni en ninguna otra puerta de portal).",
+                "Revise mayúsculas y ortografía. Las contraseñas distinguen mayúsculas y minúsculas.",
+                "Si es su primer inicio de sesión, use la contraseña temporal que le dio un administrador. Será forzado a cambiarla.",
+                "Use '¿Olvidó su contraseña?' para un enlace de restablecimiento por correo (un solo uso, expiración de 30 minutos).",
+                "Revise spam si el correo de restablecimiento no llega. Si todavía falta, su operador puede tener el correo equivocado registrado.",
+                "Si ve 'cuenta deshabilitada' o 'bloqueada', contacte a su operador.",
+            ]},
+            {"type": "why", "text":
+                "El Taller es su propio ámbito aislado. Los tokens de administrador NO "
+                "satisfacen los endpoints de Taller automáticamente — es intencional, porque "
+                "las firmas del taller se referencian durante disputas de seguros y "
+                "necesitan una pista de auditoría limpia por usuario."},
+            {"type": "warn", "text":
+                "NO escriba su contraseña del Taller en el formulario de inicio de sesión "
+                "de otro portal (Seguridad, RH, PM, Despacho, Admin). Cada portal tiene su "
+                "propio inicio de sesión. Intentos malos repetidos en el portal equivocado "
+                "pueden bloquear esa cuenta temporalmente."},
+            {"type": "tip", "text":
+                "Si está bloqueado, espere 15 minutos — el bloqueo se auto-limpia — o "
+                "contacte a su operador. Los bloqueos del Taller usualmente significan la "
+                "URL equivocada, no la contraseña equivocada. Marque /shop/login el día uno "
+                "para evitar el problema."},
+        ],
+    },
+    "onboard-dispatch-first-week": {
+        "title_es": "Personal de Despacho — Primera Semana",
+        "summary_es": "Qué hace un nuevo Despachador, Coordinador de Flota o miembro de Supervisión de Operaciones en su primera semana.",
+        "body_es": [
+            {"type": "p", "text":
+                "Bienvenido a Despacho. El portal de Despacho es cómo MASCI coordina equipo a "
+                "través de proyectos activos. Su primera semana es principalmente escuchar, "
+                "mapear modelos mentales a unidades físicas, y aprender el ritmo de cómo el "
+                "campo, el taller y la oficina no están de acuerdo sobre dónde está el equipo."},
+            {"type": "steps", "items": [
+                "Día 1 — Reciba sus credenciales de Despacho de un administrador. Inicie sesión en /dispatch-portal/login y complete su cambio de contraseña forzado.",
+                "Día 1 — Siéntese al lado del despachador actual durante el empuje matutino. No hable. Solo observe cómo decide qué llamada tomar primero.",
+                "Día 2 — Visite al menos dos sitios de trabajo activos. Vea el equipo con sus propios ojos antes de confiar en cualquier reporte del sistema. La memoria de las unidades físicas paga durante meses.",
+                "Día 2-3 — Observe un evento completo de movimiento trabajo-a-trabajo desde la liberación hasta la llegada. Note dónde la vista del sistema y la realidad divergieron.",
+                "Día 3-4 — Lea los últimos 30 días de reportes de discrepancia entre campo y despacho. Los patrones importan más que los incidentes individuales.",
+                "Día 4-5 — Lea los artículos profundos de capacitación de Despacho una vez. Son largos; revise y marque.",
+                "Fin de la semana 1 — Identifique el proyecto que sigue generando problemas de reconciliación. Planifique una visita al sitio para la semana 2.",
+            ]},
+            {"type": "why", "text":
+                "Despacho está aguas arriba de cada decisión de activos que toma el resto de "
+                "la plataforma. Un despachador de primera semana que reconcilia honestamente "
+                "vale más que un veterano de diez años que esconde discrepancias para "
+                "mantener limpios los números. Construya el hábito temprano: escriba lo que "
+                "es verdad, incluso cuando es desordenado."},
+            {"type": "tip", "text":
+                "Las cuadrillas de campo confían en despachadores que contestan el teléfono. "
+                "Pase su primera semana contestando cada llamada en dos timbrazos, incluso "
+                "si no puede resolverla todavía. 'No sé, déjeme averiguar' le gana a 'le "
+                "llamo de vuelta' cada vez."},
+            {"type": "next", "items": [
+                "Para la semana 2 debería estar dirigiendo eventos de movimiento rutinarios independientemente",
+                "Para la semana 4 debería estar reconciliando discrepancias de campo por su cuenta",
+                "Marque 'Fundamentos de Reporte Diario' (público) — esa es la superficie de campo que alimenta lo que ve",
+            ]},
+        ],
+    },
+    "tshoot-dispatch-login": {
+        "title_es": "No puedo iniciar sesión en Despacho",
+        "summary_es": "Soluciones rápidas cuando /dispatch-portal/login no funciona.",
+        "body_es": [
+            {"type": "p", "text":
+                "Despacho usa correo + contraseña por usuario. Si no puede entrar, recorra estos en orden."},
+            {"type": "steps", "items": [
+                "Confirme que está en /dispatch-portal/login (NO en /admin/login ni en ninguna otra puerta de portal — la URL de Despacho es más larga que la mayoría).",
+                "Revise mayúsculas y ortografía. Las contraseñas distinguen mayúsculas y minúsculas.",
+                "Si es su primer inicio de sesión, use la contraseña temporal que le dio un administrador. Será forzado a cambiarla.",
+                "Use '¿Olvidó su contraseña?' para un enlace de restablecimiento por correo (un solo uso, expiración de 30 minutos).",
+                "Revise spam si el correo de restablecimiento no llega. Si todavía falta, su operador puede tener el correo equivocado registrado.",
+                "Si ve 'cuenta deshabilitada' o 'bloqueada', contacte a su operador.",
+            ]},
+            {"type": "why", "text":
+                "Despacho es su propio ámbito aislado. Los tokens de administrador NO "
+                "satisfacen los endpoints de Despacho automáticamente — es intencional, "
+                "porque los registros de despacho se referencian durante revisiones de "
+                "utilización y necesitan atribución limpia por usuario."},
+            {"type": "warn", "text":
+                "NO escriba su contraseña de Despacho en el formulario de inicio de sesión "
+                "de otro portal. Cada portal tiene su propio inicio de sesión. La URL de "
+                "Despacho es /dispatch-portal/login — más larga que la de RH o Taller — y "
+                "confundirla con otra puerta de portal es el error de inicio de sesión más "
+                "común de primera semana."},
+            {"type": "tip", "text":
+                "Marque /dispatch-portal/login el día uno. Es la URL de portal más larga "
+                "y la más fácil de recordar mal. Los bloqueos se auto-limpian en 15 "
+                "minutos si llega a tener uno."},
+        ],
+    },
+
     # ── tshoot-session-timeout ───────────────────────────────────────
     "tshoot-session-timeout": {
         "title_es": "Mi sesión se cerró",

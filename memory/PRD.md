@@ -1,6 +1,67 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — Pass 5b · Shop + Dispatch Onboarding & Login-Troubleshoot · ✅ DELIVERED (preview only)
+
+### Four new public-scope (Tier-1) articles authored
+
+| Article ID | Title | Section | Body Blocks |
+|---|---|---|---|
+| `onboard-shop-first-week` | Shop / Fleet Staff — First Week | onboarding | 5 |
+| `tshoot-shop-login` | Can't sign in to Shop | troubleshooting | 5 |
+| `onboard-dispatch-first-week` | Dispatch Staff — First Week | onboarding | 5 |
+| `tshoot-dispatch-login` | Can't sign in to Dispatch | troubleshooting | 5 |
+
+Same discipline as Pass 5a: 7-step day-by-day first-week walkthrough + Why/Tip/What-Happens-Next; 6-step login recovery + Why/Warn/Tip. Articles call out portal-specific nuances:
+- **Shop**: "Walk the yard touch every active piece", "intersection of safety, money, field morale", "field operators trust mechanics who LISTEN"
+- **Dispatch**: "Sit beside the current dispatcher for the morning push", "visit two jobsites before trusting system reports", "field crews trust dispatchers who answer the phone in 2 rings", "/dispatch-portal/login is the longest URL — bookmark it day one"
+
+### Bilingual
+
+EN + ES delivered for all 4 articles (5 blocks each language, idiomatic Spanish). Article total: 112 → **116** (+4).
+
+### Drift state
+
+`compute_drift()` identity-incomplete drift now flags **only Admin** (Pass 5c):
+- Before Pass 5b: 3 portals flagged (Shop · Dispatch · Admin)
+- After Pass 5b: 1 portal flagged (Admin) — drops from p1=22 → p1=20
+
+### Tests
+
+- **NEW** `tests/test_iter207_pass5b_shop_dispatch_onboarding.py` — 21 parametrized assertions: public scope, anon-readable (200), bilingual presence, banned-workflow-phrase guardrail (13 phrases), public-only related cross-links, drift state-machine check.
+- **MOD** `tests/test_iter201_identity_consistency_drift.py` — Pass 5b milestone moved: only Admin expected in drift; message contract pivoted from `shop` to `admin`.
+- **MOD** `tests/test_iter206_pass5a_hr_safety_pm_onboarding.py` — Pass 5a drift assertion narrowed to its own personas (HR/Safety/PM), no longer fails when Pass 5b clears Shop/Dispatch.
+- **Regression**: **407/407 passing.**
+
+### Real anonymous browser proof (preview)
+
+All 4 Pass 5b URLs visited cookies-cleared / storage-cleared / reloaded:
+
+```
+onboard-shop-first-week        leaks=0  chars=2533
+tshoot-shop-login              leaks=0  chars=1604
+onboard-dispatch-first-week    leaks=0  chars=2394
+tshoot-dispatch-login          leaks=0  chars=1674
+```
+
+Banned-phrase scan against 10 protected workflow phrases: **0 leaks across 4 articles**.
+EN + ES toggle verified on `/guidance/onboard-dispatch-first-week`.
+
+### Files touched
+- NEW: `backend/tests/test_iter207_pass5b_shop_dispatch_onboarding.py`
+- MOD: `backend/guidance/content.py`, `backend/guidance/translations_es.py`, `backend/tests/test_iter201_identity_consistency_drift.py`, `backend/tests/test_iter206_pass5a_hr_safety_pm_onboarding.py`, `memory/PRD.md`
+
+No production push.
+
+### Next
+- ⏸️ **Pass 5c** — Admin: `onboard-admin-first-week` + `tshoot-admin-login` (2 articles, final portal in the identity-triple drift cleanup)
+- ⏸️ **Next major operator-stated priority: contextual operational guidance INSIDE workflows/forms** — `HelpTip`, "Why It Matters", "Common Mistakes", "Example Entries", "What Happens Next" placed inline on actual production forms. This is the highest-ROI operational evolution and should follow Pass 5c.
+- ⏸️ Real day-from-start-to-finish operator-flow walkthroughs (laborer · foreman · super · PM · HR · safety · dispatch)
+- ⏸️ QR poster rollout for mobile field onboarding
+- ⏸️ Translate remaining hardcoded paragraphs in HR/Safety/Dispatch/Shop/PM login cards
+- ⏸️ Phase 2 close-out (48h R2 re-verify · Sentry/timeout soak sign-off)
+
+---
 ## 2026-05-18 — Pass 5a · HR + Safety + PM Onboarding & Login-Troubleshoot · ✅ DELIVERED (preview only)
 
 Architecture is locked per operator directive. Pass 5a executes operational depth without architectural churn.
