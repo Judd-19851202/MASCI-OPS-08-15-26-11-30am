@@ -348,6 +348,12 @@ const ES = {
   // Hub homepage subtext (2026-05 rebrand)
   "Daily reports, safety enforcement, equipment tracking, training, and complete documentation — automatically captured, routed, and stored in one system.":
     "Reportes diarios, seguridad, seguimiento de equipos, capacitación y documentación completa — capturados, enrutados y almacenados automáticamente en un solo sistema.",
+  // Hub "New here?" Day-1 entry banner (iter218 · localized iter236)
+  "New here?": "¿Nuevo aquí?",
+  "First week on the platform — start here":
+    "Primera semana en la plataforma — comience aquí",
+  "A 5-minute walkthrough for new hires: what to fill out, where, and why.":
+    "Un recorrido de 5 minutos para nuevos empleados: qué llenar, dónde y por qué.",
   "Quality assurance and quality control inspections for concrete, rebar, and subcontractor work — documented, signed, photographed, routed, and stored.":
     "Inspecciones de aseguramiento y control de calidad para concreto, varilla y trabajo de subcontratistas — documentadas, firmadas, fotografiadas, enrutadas y almacenadas.",
   "Site Inspections": "Inspecciones de Obra",

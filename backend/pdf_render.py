@@ -673,28 +673,36 @@ def build_email_subject(
     preview truncation at ~50 chars):
 
     Normal:
-      [MASCI] {project} · {short_title} · {doc_id}
+      [MASCI] {project} · {project_number} · {short_title} · {doc_id}
 
     Equipment fail:
-      ⚠ EQUIPMENT FAIL · {project} · {equipment_unit} · {doc_id}
+      ⚠ EQUIPMENT FAIL · {project} · {project_number} · {equipment_unit} · {doc_id}
 
     Severe incident:
-      🚨 SEVERE INCIDENT · {project} · {doc_id}
+      🚨 SEVERE INCIDENT · {project} · {project_number} · {doc_id}
 
     Notes:
       - PM tag dropped — PM is the recipient, already in the To: field
       - project_name trimmed to ~32 chars or to the trailing segment
+      - project_number (job number like "25-21") inserted directly after
+        the project name so PMs can filter inbox by job at a glance
+        without opening the email
       - doc_id makes the inbox a Cmd-F-able filing cabinet
     """
     project = _short_project_label(
         record.get("project_name") or record.get("project") or "MASCI",
         max_len=32,
     )
+    project_number = str(record.get("project_number") or "").strip()
     doc_id = (record.get("doc_id") or "").strip()
     short_title = SHORT_KIND_TITLES.get(kind, KIND_TITLES.get(kind, "Record"))
 
+    # Compose "{project} · {project_number}" head once so all three
+    # branches share the same job-identifier prefix.
+    project_head = f"{project} · {project_number}" if project_number else project
+
     if severe_incident:
-        head = f"🚨 SEVERE INCIDENT · {project}"
+        head = f"🚨 SEVERE INCIDENT · {project_head}"
         if doc_id:
             head += f" · {doc_id}"
         return head
@@ -706,16 +714,16 @@ def build_email_subject(
                 str(record.get("equipment_unit") or "").strip(),
             ] if p
         ).strip()
-        bits = ["⚠ EQUIPMENT FAIL", project]
+        bits = ["⚠ EQUIPMENT FAIL", project_head]
         if unit:
             bits.append(unit)
         if doc_id:
             bits.append(doc_id)
         return " · ".join(bits)
 
-    # Normal record — front-load the project (PM mental filter), then
-    # what the record is, then the doc_id for filing.
-    bits = ["[MASCI]", f"{project} · {short_title}"]
+    # Normal record — front-load the project + job number (PM mental
+    # filter), then what the record is, then the doc_id for filing.
+    bits = ["[MASCI]", f"{project_head} · {short_title}"]
     if doc_id:
         bits[1] = f"{bits[1]} · {doc_id}"
     return " ".join(bits)

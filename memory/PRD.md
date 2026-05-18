@@ -1,5 +1,136 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter237 · Auto-email subject line · job number inserted · ✅ DELIVERED (preview only)
+
+Operator-surfaced UX improvement. PMs / Safety / Owner receive a high volume of auto-routed emails from MASCI Operations Platform, and the subject line is the single highest-leverage real estate for inbox triage. The job number ("project_number") was missing from the subject, forcing recipients to open the email or attached PDF to identify the job. Operator request (verbatim):
+
+> *"On all emails that contain anything to do with jobs in subject right after job name can we also put job number in there too before report number?"*
+
+### Change (single function · `backend/pdf_render.py:663-721`)
+`build_email_subject` now inserts `project_number` directly after the project name in every job-related auto-email subject. All three branches updated identically (normal / equipment-fail / severe-incident) so PMs see the job number in the same position regardless of email type.
+
+| Branch | Before | After |
+|---|---|---|
+| Normal | `[MASCI] Spruce Creek · Safety Meeting · MTG-2026-00016` | `[MASCI] Spruce Creek · 25-21 · Safety Meeting · MTG-2026-00016` |
+| Equipment fail | `⚠ EQUIPMENT FAIL · Spruce Creek · CAT 320E · EQI-2026-00001` | `⚠ EQUIPMENT FAIL · Spruce Creek · 25-21 · CAT 320E · EQI-2026-00001` |
+| Severe incident | `🚨 SEVERE INCIDENT · Spruce Creek · INC-2026-00003` | `🚨 SEVERE INCIDENT · Spruce Creek · 25-21 · INC-2026-00003` |
+
+### Graceful fallback
+Records without a `project_number` field keep the original layout (no double "· ·" separator leakage). Asserted in test.
+
+### Scope
+- ✅ Site Inspection · Safety Meeting · JHA · Incident · Daily Report · Equipment Pre-Op · QA/QC (all forms covered — they share `build_email_subject`)
+- ✅ Severe-incident and equipment-fail prefix variants
+- ✅ Legacy iter78c subject-ordering invariant preserved (project_name appears before doc_id)
+- ❌ NOT touched: PM welcome / password-reset / health-monitor / digest / backup / outage emails — these are not job-related and the operator's request is scoped to "emails that contain anything to do with jobs"
+
+### Tests
+- **NEW** `backend/tests/test_iter79_regression.py:test_build_email_subject_includes_job_number_iter237` — asserts the operator-reported scenario verbatim plus all three branches (normal · equipment-fail · severe-incident) plus the graceful fallback when project_number is absent.
+- **Backward-compat** `test_build_email_subject_format` (iter79 invariant) still passes — project_name still precedes doc_id.
+
+### Gate verification
+`pre_deploy_verify.py --fast` → **✅ APPROVE** (624 passed · 1 skipped · 23s · MEDIUM risk · NOT auth-sensitive · NOT data-sensitive · zero anon-RBAC leakage). Report: `/app/deploy_reports/20260518_211622_deploy_summary.md`.
+
+### Files touched
+- MOD: `backend/pdf_render.py` (one function · `build_email_subject`)
+- MOD: `backend/tests/test_iter79_regression.py` (added iter237 regression test)
+- MOD: `memory/PRD.md` (this entry)
+
+### Cultural alignment
+Small operational delta · scoped to a single function · zero refactor · stabilization-phase posture preserved.
+
+🔵 Preview only. Gate APPROVE. Awaiting operator deploy decision.
+
+### Next Action Items
+- ⏸ Operator review of iter237 batch · gate verdict APPROVE
+- ⏸ Operator "Save to Github" → Deploy on mascidocs.com
+- ⏸ Continued stabilization-phase observation
+
+---
+
+
+## 2026-05-18 — iter236 · Site Inspection ownership → Safety portal · ✅ DELIVERED (preview only)
+
+Operator-surfaced stabilization correction. Site Inspection was historically reachable anonymously (legacy `/inspect/new` + `SITE_INSPECTION_CODE=1982` form-password gate). Per operator directive, ownership moved fully into Safety portal — anonymous and password-gated paths removed, Safety/Admin RBAC enforced, localized "New Here" Day-1 entry banner closed out.
+
+### Backend (auth tightening — completed previous session)
+- `POST /api/inspections` now requires Safety **or** Admin auth via `make_require_safety_or_admin` (`backend/routes/safety_portal/_deps.py`).
+- Wiring: `backend/server.py` passes `require_safety_or_admin` into `register_safety_routes`; `backend/routes/safety.py:267-282` swaps `rate_limit_public_post` → `Depends(require_safety_or_admin)` on the POST.
+- Legacy gate (`SITE_INSPECTION_CODE`) is no longer consulted on this surface.
+
+### Frontend (routing lockdown — completed previous session)
+- `/safety/inspections/new` (Safety-gated) is the only authoritative entry. Wrapped in `RequireSafety`.
+- Legacy URLs `/inspect/new`, `/submit`, `/inspections/submit`, `/inspections/new` now redirect to `/safety-portal/login?returnTo=/safety/inspections/new` so any stale QR / bookmark / shared link funnels people through proper auth.
+- `GateInspection` component removed from the public surface graph.
+
+### Test-suite regression (THIS iter236 batch)
+The auth tightening broke two anonymous-POST tests that pre-dated the change. Fixed without weakening RBAC:
+- **MOD** `backend/tests/test_admin_auth.py:127-167` — `TestPublicPostStaysOpen` was asserting `/api/inspections` POST without auth → 200. Replaced with two assertions matching the iter236 contract:
+  - `test_post_inspection_without_token_now_requires_safety_or_admin` → expects 401
+  - `test_post_inspection_with_admin_token_succeeds` → expects 200 with admin token (auto-attached by conftest)
+- **MOD** `backend/tests/test_iter117_deployment_audit.py:240-272` — Removed `/api/inspections` from `PUBLIC_POSTS` parametrize list; added a dedicated `test_inspections_post_now_requires_safety_or_admin` asserting 401 on anon POST.
+- All other test files that POST to `/api/inspections` were already covered: `tests/conftest.py:62-84` auto-attaches `X-Admin-Token` to every `requests.{get,post,delete}` and `Session.{get,post,delete}` call hitting the backend URL, so the new Safety-or-Admin gate is satisfied transparently for the 15+ files that exercise this endpoint as part of broader workflows.
+
+### Localization (NEW this iter236 batch)
+- **MOD** `frontend/src/lib/i18n.js` — added 3 missing Spanish translations for the Hub Day-1 "New Here" banner (iter218 entry surface):
+  - `"New here?"` → `"¿Nuevo aquí?"`
+  - `"First week on the platform — start here"` → `"Primera semana en la plataforma — comience aquí"`
+  - `"A 5-minute walkthrough for new hires: what to fill out, where, and why."` → `"Un recorrido de 5 minutos para nuevos empleados: qué llenar, dónde y por qué."`
+- Verified via preview ES screenshot: banner renders fully Spanish; hero, kicker, tiles, and section header all translated.
+
+### Verification (gate + e2e)
+| Phase | Verdict | Detail |
+|---|---|---|
+| 1 — Regression | PASS | 624 passed · 1 skipped · 23s |
+| 2 — Build | PASS | requirements/package/env/lint clean |
+| 3 — Walkthroughs | PASS | HR 0/0 · Dispatcher 0/0 · Foreman 6/6 (≤ baseline) |
+| 4 — Production-safety | PASS | All 7 Tier-2 anon-RBAC probes returned 0 tips |
+| 5 — Classification | MEDIUM · NOT auth-sensitive · NOT data-sensitive |
+| **Overall** | **✅ APPROVE** | 107s total · report `/app/deploy_reports/20260518_200800_deploy_summary.md` |
+
+E2E curl validation:
+- ✅ Anon `POST /api/inspections` → `401 {"detail":"Safety or Admin auth required"}`
+- ✅ Admin-token POST → `200` with `id` echoed; record appears in admin listing
+- ✅ Cleanup `DELETE /api/inspections/{id}` → `200`
+- ✅ Browser hit on legacy `/inspect/new` correctly redirects to `/safety-portal/login?returnTo=/safety/inspections/new`
+
+### Operating-environment fix (pre-existing latent in fresh pods)
+Playwright chromium binary was missing in this pod (same as iter224 noted: `playwright install chromium-headless-shell`). Without it Phase 3 walkthrough validation can't run. Installed before final gate run.
+
+### Files touched
+- MOD: `backend/tests/test_admin_auth.py` (iter236 contract assertions)
+- MOD: `backend/tests/test_iter117_deployment_audit.py` (iter236 contract assertions)
+- MOD: `frontend/src/lib/i18n.js` (3 ES entries · Day-1 banner)
+- MOD: `memory/PRD.md` (this entry)
+
+### Out of scope (deliberately)
+- `/sign-in` page broader localization gap — strings like "Sign In", "Work Email", "Master Password", "Remember me on this device", and the portal selector list are not in `i18n.js`. This is a known broader localization-coverage gap (P2 backlog) and was NOT touched per "do not expand scope" directive.
+- No coaching authored. No new tip families. No refactor. No legacy/anonymous fallback for Site Inspection.
+
+### Cultural alignment
+- Auth tightening kept conftest-friendly so the regression suite stays clean.
+- Legacy URL redirects honor "anyone with a stale link reaches the right place" — Safety/Admin gate is enforced without breaking discovery.
+- Stabilization-phase posture preserved: smaller delta, observation-first, no aggressive churn.
+
+🔵 Preview only. APPROVE verdict from the pre-deploy gate. Awaiting operator deploy decision.
+
+### Next Action Items
+- ⏸ Operator review of iter236 batch · APPROVE verdict from gate
+- ⏸ Operator "Save to Github" → click Deploy on `mascidocs.com`
+- ⏸ Continued stabilization-phase observation period
+
+### Future / Backlog (unchanged · per stabilization posture)
+- 🟡 `/sign-in` + portal-login pages localization sweep (P2) — broader gap surfaced during iter236 spot-check
+- Phase K4b · Unified User Management UI mutations (P2)
+- Phase K5 · Temp Password / Onboarding standardization (P2)
+- Stage B.1 · Owner Snapshot PDF (P2)
+- Static orientation surfaces (P2 · iter231)
+- Held · HelpTip helpfulness pulse telemetry (until Sentry/R2/timeout complete)
+- Strategic Hold · Operator mid-day-defect architectural decision (PROTECTED)
+
+---
+
+
 ## 2026-05-18 — iter234 · MASCI IT Integration Brief · 📝 DELIVERED (preview only · doc-only · planning-only)
 
 Per operator directive: a formal IT-facing planning brief that can be handed directly to MASCI IT leadership without translation. **Planning only — no implementation has begun.** Stabilization-phase posture preserved.

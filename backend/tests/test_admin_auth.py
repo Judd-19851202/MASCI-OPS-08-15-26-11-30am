@@ -125,9 +125,17 @@ class TestAdminGate:
 
 
 class TestPublicPostStaysOpen:
-    """POST endpoints must remain public — field crews don't log in."""
+    """POST endpoints must remain public — field crews don't log in.
 
-    def test_post_inspection_without_token_succeeds(self):
+    iter236 exception: `/api/inspections` POST moved fully under Safety
+    portal ownership and now requires Safety or Admin auth. The remaining
+    POST endpoints (translate, meetings, daily-reports, etc.) stay public.
+    """
+
+    def test_post_inspection_without_token_now_requires_safety_or_admin(self):
+        """iter236 — Site Inspection submission is no longer public; it
+        requires Safety or Admin auth. Without a token, the endpoint must
+        return 401 (not 200, not 500)."""
         payload = {
             "project_name": "TEST_AUTH_OPEN_INSP",
             "location": "Test",
@@ -140,6 +148,21 @@ class TestPublicPostStaysOpen:
         r = requests.post(
             f"{API}/inspections", json=payload, headers=_NO_AUTH, timeout=10
         )
+        assert r.status_code == 401, r.text
+
+    def test_post_inspection_with_admin_token_succeeds(self):
+        """Admin token (auto-attached by conftest) satisfies the iter236
+        Safety-or-Admin gate on Site Inspection submission."""
+        payload = {
+            "project_name": "TEST_AUTH_OPEN_INSP",
+            "location": "Test",
+            "inspection_date": "2026-04-26",
+            "inspection_time": "09:00",
+            "inspector_name": "Test",
+            "foreman_name": "Test",
+            "work_activity": "Test",
+        }
+        r = requests.post(f"{API}/inspections", json=payload, timeout=10)
         assert r.status_code == 200, r.text
         rid = r.json()["id"]
         # Cleanup with admin token (auto-attached)

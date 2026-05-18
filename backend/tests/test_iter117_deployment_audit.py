@@ -237,8 +237,11 @@ def test_admin_endpoint_200_and_no_id_leak(ep):
 # ============================================================
 # 6. PUBLIC POST ENDPOINTS — 200/201 + 422 not 500
 # ============================================================
+# iter236 — `/api/inspections` POST moved fully under Safety portal
+# ownership. It is no longer reachable anonymously; the gate returns 401
+# without a Safety or Admin token. Empty-body 422 protection is verified
+# only on endpoints that remain public.
 PUBLIC_POSTS = [
-    "/api/inspections",
     "/api/meetings",
     "/api/incidents",
     "/api/daily-reports",
@@ -253,6 +256,18 @@ def test_public_post_empty_returns_422_not_500(ep):
     assert r.status_code != 500, f"{ep} returned 500 on empty payload: {r.text[:200]}"
     # Accept 422 (validator) or 400 (manual handler)
     assert r.status_code in (400, 422), f"{ep} → {r.status_code} expected 400/422"
+
+
+def test_inspections_post_now_requires_safety_or_admin():
+    """iter236 — Site Inspection submission is no longer public. An
+    anonymous POST must return 401 (not 200, not 500)."""
+    r = requests.post(
+        f"{BASE_URL}/api/inspections", json={}, headers=_no_admin(), timeout=15
+    )
+    assert r.status_code == 401, (
+        f"/api/inspections should require Safety/Admin auth after iter236, "
+        f"got {r.status_code}: {r.text[:200]}"
+    )
 
 
 # ============================================================

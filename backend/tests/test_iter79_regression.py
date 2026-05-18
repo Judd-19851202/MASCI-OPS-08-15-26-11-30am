@@ -280,6 +280,86 @@ class TestEmailSubjectHelper:
         idx_dr = subj.find("DR-2026")
         assert idx_proj >= 0 and idx_dr >= 0 and idx_proj < idx_dr, f"subject ordering wrong: {subj}"
 
+    def test_build_email_subject_includes_job_number_iter237(self):
+        """iter237 — job number (project_number) is inserted between job
+        name and the rest of the subject so PMs can filter inbox by job
+        at a glance without opening the email.
+
+        Operator request (verbatim): "On all emails that contain anything
+        to do with jobs in subject right after job name can we also put
+        job number in there too before report number?"
+        """
+        sys.path.insert(0, "/app/backend")
+        from pdf_render import build_email_subject
+
+        # ── Safety Meeting (matches the operator-reported screenshot) ──
+        subj = build_email_subject(
+            "meeting",
+            {
+                "doc_id": "MTG-2026-00016",
+                "project_name": "Spruce Creek",
+                "project_number": "25-21",
+            },
+        )
+        assert subj == "[MASCI] Spruce Creek · 25-21 · Safety Meeting · MTG-2026-00016", (
+            f"meeting subject mismatch: {subj}"
+        )
+
+        # ── Daily Report ──
+        subj = build_email_subject(
+            "daily-report",
+            {
+                "doc_id": "DR-2026-0001",
+                "project_name": "Hwy 45 Reconstruction",
+                "project_number": "24-06",
+            },
+        )
+        assert subj == "[MASCI] Hwy 45 Reconstruction · 24-06 · Daily Report · DR-2026-0001", (
+            f"daily-report subject mismatch: {subj}"
+        )
+
+        # ── Equipment FAIL branch keeps job number adjacency ──
+        subj = build_email_subject(
+            "equipment-inspection",
+            {
+                "doc_id": "EQI-2026-00001",
+                "project_name": "Spruce Creek",
+                "project_number": "25-21",
+                "equipment_type": "CAT",
+                "equipment_unit": "320E",
+            },
+            equipment_fail=True,
+        )
+        assert subj == "⚠ EQUIPMENT FAIL · Spruce Creek · 25-21 · CAT 320E · EQI-2026-00001", (
+            f"equipment-fail subject mismatch: {subj}"
+        )
+
+        # ── Severe incident branch keeps job number adjacency ──
+        subj = build_email_subject(
+            "incident",
+            {
+                "doc_id": "INC-2026-00003",
+                "project_name": "Spruce Creek",
+                "project_number": "25-21",
+            },
+            severe_incident=True,
+        )
+        assert subj == "🚨 SEVERE INCIDENT · Spruce Creek · 25-21 · INC-2026-00003", (
+            f"severe-incident subject mismatch: {subj}"
+        )
+
+        # ── Graceful fallback when project_number is missing (no "· ·") ──
+        subj = build_email_subject(
+            "meeting",
+            {"doc_id": "MTG-2026-00016", "project_name": "Spruce Creek"},
+        )
+        assert subj == "[MASCI] Spruce Creek · Safety Meeting · MTG-2026-00016", (
+            f"no-job-number fallback mismatch: {subj}"
+        )
+        # no "· ·" double-separator leakage
+        assert " ·  · " not in subj
+        assert "· · " not in subj
+
 
 # ============================================================
 # 6. INDEX HTML BRANDING (iter78d)
