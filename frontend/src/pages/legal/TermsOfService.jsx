@@ -5,11 +5,20 @@ import { ArrowLeft, Scale } from "lucide-react";
 /**
  * /legal/terms — Terms of Service.
  *
+ * iter239 (2026-05-18) — branding/legal continuity refinement pass:
+ *   • Platform identity standardized to "MASCI Operations Platform".
+ *     Legacy "MASCI HUB™" designation retired from user-facing legal
+ *     surfaces. "ForgedOps™" remains the underlying platform trademark.
+ *   • Trademark/competitive-use section softened from defensive tone
+ *     to standard enterprise-SaaS language.
+ *   • Customer-data vs platform-IP separation re-stated cleanly.
+ *   • Backup/disaster-recovery language preserved.
+ *
  * Hardened in iter76 (legal/infra/branding standardization pass).
- * Existing approved language preserved verbatim; new sections added
- * per the iter76 spec for: trademark protection, enterprise backup &
- * disaster recovery, automation/AI future-proofing, notifications,
- * and regulatory compliance hardening.
+ * Existing approved language preserved verbatim where compatible; new
+ * sections added per the iter76 spec for: trademark protection,
+ * enterprise backup & disaster recovery, automation/AI future-proofing,
+ * notifications, and regulatory compliance hardening.
  *
  * Relationship model:
  *   • ForgedOps LLC owns the Platform (code, software,
@@ -46,7 +55,7 @@ export default function TermsOfService() {
         data-testid="terms-of-service-page"
       >
         <p className="text-xs font-mono uppercase tracking-wide text-slate-500 mb-6">
-          Effective Date: January 01, 2026 · Last Updated: May 13, 2026
+          Effective Date: January 01, 2026 · Last Updated: May 18, 2026
         </p>
 
         <p>
@@ -58,8 +67,9 @@ export default function TermsOfService() {
           The Platform is deployed for the use of{" "}
           <strong>MASCI General Contractors Inc.</strong> and{" "}
           <strong>MASCI Corporation</strong> (collectively, &ldquo;
-          <strong>MASCI</strong>&rdquo;) and delivered to MASCI&rsquo;s users
-          as &ldquo;<strong>MASCI HUB</strong>&rdquo;.
+          <strong>MASCI</strong>&rdquo;) as the{" "}
+          <strong>MASCI Operations Platform</strong>, a customer-branded
+          deployment of the underlying ForgedOps&trade; platform technology.
         </p>
         <p>
           By accessing or using the Platform, you (&ldquo;
@@ -88,17 +98,16 @@ export default function TermsOfService() {
         </p>
         <p>
           Nothing in these Terms transfers any ownership of the Platform IP to
-          MASCI or to any User.
+          MASCI or to any User. The white-label deployment of the Platform as
+          the MASCI Operations Platform reflects customer-branded presentation
+          only and does not transfer any underlying Platform IP, source code,
+          architecture, or operational methodology to MASCI.
         </p>
         <p>
-          MASCI acknowledges that the Platform includes proprietary systems
-          and operational methodologies developed by ForgedOps LLC, and
-          no rights are granted to replicate, reproduce, or develop competing
-          systems based on the Platform.
-        </p>
-        <p>
-          Customer deployments may be customized and branded for operational
-          use while remaining part of the ForgedOps platform ecosystem.
+          Customer Data submitted by MASCI through the Platform remains the
+          exclusive property of MASCI as set forth in Section 3 below. The
+          separation between Platform IP (owned by ForgedOps LLC) and Customer
+          Data (owned by MASCI) is intentional and material to these Terms.
         </p>
         <p>
           MASCI&rsquo;s use of the Platform is limited to the rights expressly
@@ -110,33 +119,39 @@ export default function TermsOfService() {
 
         <h2>2A. Trademarks, Branding &amp; Trade Dress</h2>
         <p>
-          ForgedOps&trade;, MASCI HUB&trade;, the ForgedOps logo, the MASCI
-          HUB lockup, and related platform names, logos, workflows,
-          interfaces, screen layouts, branding elements, color systems, and
-          operational system designs (collectively, the &ldquo;
-          <strong>Marks &amp; Trade Dress</strong>&rdquo;) are proprietary
-          trademarks, service marks, trade dress, or intellectual property
-          of ForgedOps LLC, whether registered or unregistered.
+          ForgedOps&trade;, the ForgedOps logo, the MASCI Operations Platform
+          name, and related platform names, logos, workflows, interfaces,
+          screen layouts, branding elements, color systems, and operational
+          system designs (collectively, the &ldquo;
+          <strong>Marks &amp; Trade Dress</strong>&rdquo;) are the proprietary
+          trademarks, service marks, trade dress, or other intellectual
+          property of ForgedOps LLC, whether registered or unregistered.
         </p>
         <p>
-          Unauthorized use, reproduction, misrepresentation, reverse
-          engineering, imitation, derivative branding, or any attempt to
-          create a confusingly similar product, interface, workflow, or
-          operational system is strictly prohibited.
+          MASCI is granted a non-exclusive, non-transferable, revocable right
+          to display the &ldquo;MASCI Operations Platform&rdquo; deployment
+          name and accompanying &ldquo;Powered by ForgedOps&trade;&rdquo;
+          attribution within MASCI&rsquo;s internal operations during the term
+          of MASCI&rsquo;s services agreement. All other uses (including
+          marketing, public-facing materials, press, recruiting, or
+          third-party communications) require ForgedOps LLC&rsquo;s prior
+          written consent.
         </p>
         <p>
-          MASCI is granted no license to use the Marks &amp; Trade Dress
-          except as strictly necessary to identify the Platform within
-          MASCI&rsquo;s internal operations. All other uses (including
-          marketing, public-facing materials, or third-party
-          communications) require ForgedOps LLC&rsquo;s prior written
-          consent.
+          Consistent with standard enterprise software terms, Users agree not
+          to reproduce, reverse-engineer, decompile, benchmark for the purpose
+          of building a competing product, or use the Platform to develop a
+          substantially similar service. This clause is intended to align
+          with industry-standard enterprise SaaS protections and is not
+          intended to restrict ordinary internal evaluation, troubleshooting,
+          or operational use by MASCI.
         </p>
         <p>
           Users agree not to remove, alter, obscure, or replicate any
-          ForgedOps&trade; or MASCI HUB&trade; marks, footers, copyright
-          notices, or attribution language appearing in the Platform, its
-          exports, generated PDFs, or printed materials.
+          ForgedOps&trade; mark, the &ldquo;Powered by ForgedOps&trade;&rdquo;
+          attribution, footers, copyright notices, or attribution language
+          appearing in the Platform, its exports, generated PDFs, or printed
+          materials.
         </p>
 
         <hr className="my-6 border-slate-200" />

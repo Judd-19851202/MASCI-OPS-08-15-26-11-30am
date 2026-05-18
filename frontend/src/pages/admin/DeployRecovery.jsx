@@ -122,7 +122,7 @@ export default function DeployRecovery() {
             <ol className="ml-5 list-decimal space-y-1">
               <li>Open <Link to="/admin/system-health" className="font-bold underline text-red-700" data-testid="recovery-health-link">System Health</Link> in a new tab. Confirm the red signals (MongoDB · R2 · auth failures · failed syncs).</li>
               <li>Tell the deploy operator <strong>"halt and roll back"</strong> and screenshot the System Health panel.</li>
-              <li>The hosting platform (Emergent) has one-click revert to the previous deploy. Use it. Production traffic re-routes within ~60 s.</li>
+              <li>The hosting platform has one-click revert to the previous deploy. Use it. Production traffic re-routes within ~60 s.</li>
               <li>While reverting, freeze NEW logins via Admin → System &amp; Backups → temporarily set <code>RATE_LIMITING=hard</code> or block at the edge.</li>
             </ol>
           </Playbook>

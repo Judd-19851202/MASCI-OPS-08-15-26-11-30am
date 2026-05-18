@@ -61,7 +61,10 @@ const subscribe = (cb) => {
 const ES = {
   // Branding / hub
   "MASCI Safety Hub": "Centro MASCI",
-  "MASCI Hub": "Centro MASCI",
+  // iter239 — Legacy "MASCI Hub" platform-identity strings retired
+  // from the live UI; their dead i18n entries were pruned to avoid
+  // future translation drift. "Hub" remains a normal operational
+  // section label (Dispatch Hub, Field Leadership Hub, etc.).
   // "One place for every MASCI job." is now rendered directly in Hub.jsx
   // with a per-language branch (since the trailing " job" doesn't appear in
   // the Spanish version) — no t() call to translate.
@@ -457,8 +460,8 @@ const ES = {
   "Scan to start": "Escanee para comenzar",
   "One front door for every safety form.":
     "Una puerta de entrada para cada formulario de seguridad.",
-  "Open your camera, point it at the QR code, and tap the link. The MASCI Hub opens in your browser. No login. No app to install. Add it to your home screen and you're set.":
-    "Abra la cámara, apúntela al código QR y toque el enlace. El MASCI Hub se abre en su navegador. Sin inicio de sesión. Sin aplicación que instalar. Agréguelo a su pantalla de inicio y listo.",
+  "Open your camera, point it at the QR code, and tap the link. The MASCI Operations Platform opens in your browser. No login. No app to install. Add it to your home screen and you're set.":
+    "Abra la cámara, apúntela al código QR y toque el enlace. La Plataforma de Operaciones MASCI se abre en su navegador. Sin inicio de sesión. Sin aplicación que instalar. Agréguela a su pantalla de inicio y listo.",
   "Step 01": "Paso 01",
   "Step 02": "Paso 02",
   "Step 03": "Paso 03",
@@ -1225,8 +1228,8 @@ const ES = {
   "Restore failed": "La restauración falló",
   "Restore failed — see console": "La restauración falló — vea la consola",
   "Backup & Restore Everything": "Copia y Restauración de Todo",
-  "Two buttons. Your whole MASCI Hub — every form, every photo, every Crew Hub message.":
-    "Dos botones. Todo su MASCI Hub — cada formulario, cada foto, cada mensaje del Hub de Cuadrilla.",
+  "Two buttons. Your whole MASCI Operations Platform — every form, every photo, every Crew Hub message.":
+    "Dos botones. Toda su Plataforma de Operaciones MASCI — cada formulario, cada foto, cada mensaje del Hub de Cuadrilla.",
   "Building backup…": "Creando copia…",
   "Backup Everything": "Copia de Todo",
   "Step 1 · Do this before any redeploy": "Paso 1 · Haga esto antes de cualquier redespliegue",
@@ -1269,7 +1272,7 @@ const ES = {
   "Looking for the Safety Admin console (inspections, equipment, JHP plans)? Use":
     "¿Busca la consola de Admin de Seguridad (inspecciones, equipo, planes JHP)? Use",
   "that's a different system.": "ese es un sistema diferente.",
-  "Back to MASCI Hub": "Volver al Hub MASCI",
+  "Back to MASCI Operations Platform": "Volver a la Plataforma de Operaciones MASCI",
 
   // ============================================================
   // Hub tile rewrite (2026-04-30) + ThankYou page (2026-05-01)
@@ -2166,7 +2169,6 @@ const ES = {
   "QA / QC Inspections": "Inspecciones de QA / QC",
   "MASCI · QA/QC": "MASCI · QA/QC",
   "Open Form": "Abrir Formulario",
-  "MASCI Hub": "MASCI Hub",
   "None": "Ninguno",
   "Location": "Ubicación",
   "Client": "Cliente",

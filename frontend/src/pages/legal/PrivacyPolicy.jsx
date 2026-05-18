@@ -12,11 +12,17 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
  * consent, automated processing & AI features, and a strengthened
  * compliance disclaimer.
  *
+ * iter239 (2026-05-18) — branding continuity refinement:
+ *   • Platform identity standardized to "MASCI Operations Platform".
+ *     Legacy "MASCI HUB" designation retired from user-facing legal
+ *     surfaces. "ForgedOps™" remains the underlying platform trademark.
+ *   • Customer-data vs platform-IP separation re-stated cleanly.
+ *
  * Roles:
  *   • ForgedOps LLC = data PROCESSOR (owns and operates the
  *     Platform). UI-facing branding uses "ForgedOps™".
  *   • MASCI = data CONTROLLER (owns all Customer Data submitted
- *     through MASCI HUB).
+ *     through the MASCI Operations Platform deployment).
  *   • The two companies are independent.
  */
 export default function PrivacyPolicy() {
@@ -44,7 +50,7 @@ export default function PrivacyPolicy() {
         data-testid="privacy-policy-page"
       >
         <p className="text-xs font-mono uppercase tracking-wide text-slate-500 mb-6">
-          Effective Date: January 01, 2026 · Last Updated: May 13, 2026
+          Effective Date: January 01, 2026 · Last Updated: May 18, 2026
         </p>
 
         <p>
@@ -54,8 +60,9 @@ export default function PrivacyPolicy() {
           operated by <strong>ForgedOps LLC</strong> and deployed for the use
           of <strong>MASCI General Contractors Inc.</strong> and{" "}
           <strong>MASCI Corporation</strong> (collectively, &ldquo;
-          <strong>MASCI</strong>&rdquo;) as &ldquo;
-          <strong>MASCI HUB</strong>&rdquo;.
+          <strong>MASCI</strong>&rdquo;) as the{" "}
+          <strong>MASCI Operations Platform</strong>, a customer-branded
+          deployment of the underlying ForgedOps&trade; platform technology.
         </p>
 
         <hr className="my-6 border-slate-200" />

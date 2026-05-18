@@ -1,5 +1,106 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter239 · System-wide branding & legal continuity pass · ✅ DELIVERED (preview only)
+
+Operator-surfaced production-hardening pass. The codebase had drifted: most surfaces already say "MASCI Operations Platform", but the legal pages (TOS/Privacy) still **defined** the product as "MASCI HUB", a stale i18n dictionary still mapped "MASCI Hub" → "Centro MASCI", and one admin recovery page mentioned "Emergent" by name. Per operator directive: surgical refinement only, no architectural drift, preserve iter238 email formatting exactly.
+
+### Pre-implementation audit (delivered to operator)
+The operator was given the full audit of every email-routing surface in the platform (19 distinct auto-email types · 6 always-CC config keys · live `/api/admin/email-routing` config dump) before any branding work began. The audit also enumerated where "MASCI HUB" still appeared and classified each hit as either user-facing (changeable) or internal-only (preserved per the ops_manual rule).
+
+### Legal pages refined
+- **TermsOfService.jsx**
+  - Header now reads: *"...deployed for the use of MASCI as the **MASCI Operations Platform**, a customer-branded deployment of the underlying ForgedOps™ platform technology."*
+  - Section 2 (Ownership) — added explicit paragraph: *"The white-label deployment of the Platform as the MASCI Operations Platform reflects customer-branded presentation only and does not transfer any underlying Platform IP..."* plus *"The separation between Platform IP (owned by ForgedOps LLC) and Customer Data (owned by MASCI) is intentional and material to these Terms."*
+  - Section 2A (Trademarks) — softened from "imitation… confusingly similar product, interface, workflow, or operational system" to industry-standard enterprise-SaaS language: *"Users agree not to reproduce, reverse-engineer, decompile, benchmark for the purpose of building a competing product, or use the Platform to develop a substantially similar service. This clause is intended to align with industry-standard enterprise SaaS protections and is not intended to restrict ordinary internal evaluation, troubleshooting, or operational use by MASCI."*
+  - Granted MASCI a *"non-exclusive, non-transferable, revocable right to display the 'MASCI Operations Platform' deployment name and accompanying 'Powered by ForgedOps™' attribution within MASCI's internal operations"* — this codifies the deployment relationship without claiming any new license.
+  - All "MASCI HUB™" trademark glyph references retired from user-facing legal copy.
+  - `Last Updated: May 13, 2026` → `May 18, 2026`.
+
+- **PrivacyPolicy.jsx**
+  - Header: same "MASCI Operations Platform, a customer-branded deployment of the underlying ForgedOps™ platform technology." framing.
+  - Roles preserved verbatim (Cloudflare R2 subprocessor disclosure, automation/AI disclosure, notifications consent — all untouched).
+  - File-level JSDoc updated to reflect iter239 retirement of the legacy "MASCI HUB" designation.
+  - `Last Updated: May 13, 2026` → `May 18, 2026`.
+
+### Stale i18n entries pruned
+- `frontend/src/lib/i18n.js`:
+  - REMOVED: `"MASCI Hub": "Centro MASCI"` (dead — grep confirmed no live `t("MASCI Hub")` calls)
+  - REMOVED: duplicate `"MASCI Hub": "MASCI Hub"` at line 2169
+  - UPDATED: cheat-sheet QR description string ("Open your camera...The MASCI Hub opens in your browser." → "The MASCI Operations Platform opens in your browser.")
+  - UPDATED: cheat-sheet pitch string ("Two buttons. Your whole MASCI Hub..." → "Two buttons. Your whole MASCI Operations Platform...")
+  - UPDATED: `"Back to MASCI Hub"` → `"Back to MASCI Operations Platform"`
+
+### Admin-page Emergent reference removed
+- `frontend/src/pages/admin/DeployRecovery.jsx:125` — *"The hosting platform (Emergent) has one-click revert..."* → *"The hosting platform has one-click revert..."*
+
+### Image alt-text branding
+- `frontend/src/components/MasciLogo.jsx:88` — `alt="MASCI Hub — No Guesswork..."` → `alt="MASCI Operations Platform — No Guesswork..."` (screen-reader accessibility surface)
+
+### Verification — preserve iter238 email formatting (operator-stated invariant)
+- ✅ `backend/pdf_render.py` unchanged
+- ✅ `backend/routes/safety_forms.py` unchanged
+- ✅ `backend/routes/field_leadership.py` unchanged
+- ✅ `backend/server.py` Pre-Op routing override unchanged
+- ✅ All 42 iter238 + 2 iter237 + 13 equipment-inspections subject-line tests still **PASS** (57 passed · 4 skipped)
+
+### Deliberately NOT touched (per directive: "Visible/user-facing cleanup only unless safe")
+- File-level code comments (`// MASCI Hub — top-level landing page` in Hub.jsx, App.js, FieldLeadershipHub.jsx, FieldLeadershipFormPage.jsx)
+- `backend/ops_manual.py` (operator-confidential internal doc; cover title intentionally "MASCI HUB")
+- `backend/server.py` admin backup email subjects (internal alarm/recovery emails, not job-related)
+- `backend/outage_alerts.py` (internal system alarm)
+- `backend/photo_storage.py` + `backend/doc_ids.py` docstrings
+- `frontend/public/index.html` `<script src="https://assets.emergent.sh/scripts/emergent-main.js">` (deploy-platform runtime — removing destabilizes hosting)
+- Operational section labels (Dispatch Hub, Field Leadership Hub, Safety Portal) — these are operational terminology, not platform identity
+- Test files (`test_rebrand_iter41.py`, `test_field_leadership_iter42.py`) — historical regression checks
+
+### Files touched (7 files · all surgical)
+- MOD: `frontend/src/pages/legal/TermsOfService.jsx`
+- MOD: `frontend/src/pages/legal/PrivacyPolicy.jsx`
+- MOD: `frontend/src/pages/admin/DeployRecovery.jsx`
+- MOD: `frontend/src/components/MasciLogo.jsx`
+- MOD: `frontend/src/lib/i18n.js`
+- MOD: `memory/PRD.md` (this entry)
+
+### Gate verification
+`pre_deploy_verify.py --full` →
+
+| Phase | Verdict | Detail |
+|---|---|---|
+| 1 — Regression | PASS | 624 passed · 1 skipped · 23s |
+| 2 — Build | PASS | requirements/package/env/lint clean |
+| 3 — Walkthroughs | PASS | HR 0/0 · Dispatcher 0/0 · Foreman 6/6 (≤ baseline) |
+| 4 — Production-safety | PASS | All 7 anon-RBAC probes returned 0 tips |
+| 5 — Classification | MEDIUM · NOT auth-sensitive · NOT data-sensitive · NOT rollback-sensitive |
+| **Overall** | **✅ APPROVE** | 110s total · report `/app/deploy_reports/20260518_222029_deploy_summary.md` |
+
+### Browser verification (screenshots captured)
+- ✅ `/legal/terms` — "MASCI Operations Platform" present · "MASCI HUB" absent · May 18 2026 date · softened SaaS language present · Platform IP / Customer Data separation paragraph present
+- ✅ `/legal/privacy` — "MASCI Operations Platform" present · "MASCI HUB" absent · May 18 2026 date · Cloudflare R2 subprocessor disclosure preserved
+
+### Cultural alignment
+- Surgical · 6 file edits · zero refactor · zero architectural drift · zero notification redesign · zero email-format change
+- Each change reviewed against the operator-stated "feel invisible" outcome — the platform doesn't look "changed", it looks like it was always intended to read this way
+- iter238 email standard explicitly verified intact
+
+🟢 Preview only · gate APPROVE · awaiting operator deploy decision.
+
+### Next Action Items
+- ⏸ Operator review of iter239 batch · gate APPROVE verdict
+- ⏸ Operator "Save to Github" → Deploy on mascidocs.com
+- ⏸ Resume stabilization-phase observation posture
+
+### Future / Backlog (unchanged)
+- 🟡 P2 · `/sign-in` + portal-login pages localization sweep (iter236)
+- Phase K4b · Unified User Management UI mutations (P2)
+- Phase K5 · Temp Password / Onboarding standardization (P2)
+- Stage B.1 · Owner Snapshot PDF (P2)
+- Static orientation surfaces (P2 · iter231)
+- Held · HelpTip helpfulness pulse telemetry
+- Strategic Hold · Operator mid-day-defect architectural decision
+
+---
+
+
 ## 2026-05-18 — iter238 · Uniform email subject prefix + Pre-Op shop-manager-only routing · ✅ DELIVERED (preview only)
 
 Two-part operator directive (2026-05-18):
