@@ -1,6 +1,59 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 3 · Operational Guidance UI Repair (iter195-hotfix) · ✅ COMPLETE (preview only)
+
+Operator review caught a critical user-facing failure that the backend-only RBAC tests didn't surface: the `/guidance` page was rendering with **no MASCI header, no Home/Sign-in/Back navigation, and a stripped-down feel** for any user with limited or no portal scopes. Backend RBAC was correctly enforcing — but the resulting "empty shell" experience felt broken for anonymous users and provided no path back to the rest of the platform.
+
+### What landed (iter195-hotfix · screenshot-verified across roles)
+
+**Frontend — Operational Guidance Center `<Shell>` rebuild**
+- Replaced bare `<div>` shell with proper MASCI page header (red caution stripe · MASCI logo · Home button · Sign in button · LangToggle) matching the canonical `Hub.jsx` pattern
+- Article-detail / section / search views now all inherit the same header — no more orphan pages
+
+**Frontend — Empty-state UX**
+- When a caller has no portal scopes (anon or pre-login), the landing now shows a **prominent yellow callout**: "Sign in to see your portal training — Portal-specific training (HR · Safety · Shop · Dispatch · PM · Field Leadership · Admin) appears here once you sign in to your portal" with a **"Sign in to your portal" CTA button**
+- This replaces the previous bare experience where anon users saw only sections (1-2 articles each) with no explanation
+
+**Frontend — Search-results back navigation**
+- Added "← All guidance" back button on the search-results view (previously had no way back without using browser back)
+
+### Screenshot proof (5 roles verified)
+- **Anonymous** → MASCI header · sign-in callout · 4 public sections (Role-Based Training, Troubleshooting, Why It Matters, New User Onboarding)
+- **Admin** → MASCI header · all 7 portal tiles (HR · Safety · Shop · Dispatch · PM · Field Leadership · Admin) + 7 secondary topic cards
+- **HR** → MASCI header · only HR Portal tile (no Safety/Dispatch/etc) · 6 topic cards · RBAC isolation confirmed
+- **Field Leadership** → MASCI header · only Field Leadership Portal tile · 6 topic cards · RBAC isolation confirmed
+- **Anon search "incident"** → returns "No matching guidance available for your access level" (incident articles correctly gated) · back button visible
+- **Article detail** → MASCI header · Back button · title · body · related guidance
+
+### Backend posture (unchanged from iter195)
+- `/api/training-center/*` still RBAC-locked (anon=0 portals, cross-portal=403, deep-link=404, PDF=404)
+- `/ops-training` still redirects to `/guidance`
+- All RBAC tests still pass: **202/202 guidance tests ✅**
+
+### Operator-flagged concerns — final status
+| Concern | Status |
+|---|---|
+| Empty / stripped-down training section | ✅ Now has full MASCI header + portal tiles + sign-in callout |
+| Only a basic search bar | ✅ Header bar + portal grid + topic grid + clear hierarchy |
+| Search appears to do little | ✅ Search works · empty results message clear · back button added |
+| No Home / Back navigation | ✅ Home button on every view · Back button on search/article/section |
+| Doesn't match MASCI theme | ✅ Red caution stripe + dark header + MASCI logo (canonical pattern) |
+| Safety + Dispatch buried | ✅ First-class portal tiles when authorized |
+
+### Production posture
+- 🛑 NOT deployed to production — preview-first per operator directive
+- 🟢 UI verified across anon/Admin/HR/Field Leadership in preview
+- 🟢 RBAC tests 202/202 green
+
+### Next Action Items
+- 🟢 Operator re-reviews `/guidance` in preview as anon → HR sign-in → Admin sign-in to verify the new shell
+- 🟢 Test remaining roles in preview (Safety / Shop / Dispatch / PM through their respective login flows)
+- 🟢 If approved, schedule production rollout
+- 🟡 Phase 2 close-out: 48h R2 lifecycle re-verify, Sentry/timeout soak sign-off
+
+---
+
 ## 2026-02-XX — Phase 3 · Guidance Unification + RBAC Lockdown (iter195) · ✅ COMPLETE (preview only)
 
 Operator review identified 4 critical issues that had to be fixed before any production discussion: (1) inconsistent "Hub" terminology, (2) Safety + Dispatch buried in the landing, (3) **`/ops-training` was a globally-reachable unrestricted side door into operator training (major RBAC failure)**, (4) multiple training systems coexisting without coherent enforcement. Sentry caught a content-syntax error during this audit, validating the preview-first + soak-period discipline. All issues now corrected in PREVIEW.

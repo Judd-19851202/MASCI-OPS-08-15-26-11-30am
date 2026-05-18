@@ -21,11 +21,13 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   BookOpen, Search, Loader2, ChevronLeft, UserCog, Zap, LayoutGrid,
   LifeBuoy, Lightbulb, Shield, UserPlus, AlertTriangle, Lightbulb as TipIcon,
-  AlertCircle, ArrowRightCircle,
+  AlertCircle, ArrowRightCircle, Home, LogIn,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MasciLogo } from "@/components/MasciLogo";
+import { LangToggle } from "@/components/LangToggle";
 
 const SECTION_ICONS = {
   "user-cog": UserCog,
@@ -223,6 +225,13 @@ export default function OperationalGuidanceCenter() {
   if (searchResults !== null) {
     return (
       <Shell title="Search results">
+        <button
+          onClick={() => { setSearchResults(null); setQuery(""); }}
+          className="inline-flex items-center gap-1 text-[12px] font-bold uppercase tracking-wider text-amber-700 hover:underline mb-3"
+          data-testid="guidance-search-back"
+        >
+          <ChevronLeft className="w-4 h-4" /> All guidance
+        </button>
         <SearchBox onResults={setSearchResults} query={query} setQuery={setQuery} />
         {searchResults.length === 0 ? (
           <div className="text-center text-slate-500 py-10" data-testid="guidance-search-empty">
@@ -394,6 +403,35 @@ export default function OperationalGuidanceCenter() {
 
       <SearchBox onResults={setSearchResults} query={query} setQuery={setQuery} />
 
+      {/* Anon / unauthenticated callout — show only when no portal
+          tracks are visible (i.e., the caller has no portal scopes).
+          This is the operator's "don't drop users on an empty shell"
+          requirement: when guidance is sparse, tell them why and how to
+          get more. */}
+      {visibleTracks.length === 0 && (
+        <div className="mt-5 bg-amber-50 border-2 border-amber-300 rounded-md p-4 flex items-start gap-3" data-testid="guidance-signin-callout">
+          <LogIn className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <div className="font-display text-base font-bold text-amber-900">
+              Sign in to see your portal training
+            </div>
+            <p className="text-sm text-amber-900/80 mt-1 leading-relaxed">
+              You're seeing the public, role-based guidance below. Portal-specific
+              training (HR · Safety · Shop · Dispatch · PM · Field Leadership · Admin)
+              appears here once you sign in to your portal.
+            </p>
+            <Link
+              to="/sign-in"
+              className="inline-flex items-center mt-3 h-9 px-4 rounded-md bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold uppercase tracking-wide transition-colors"
+              data-testid="guidance-signin-cta"
+            >
+              <LogIn className="w-3.5 h-3.5 mr-1.5" />
+              Sign in to your portal
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Portal Training — first-class portal tracks. Safety + Dispatch
           must always be visually surfaced when the caller has access. */}
       {visibleTracks.length > 0 && (
@@ -477,16 +515,45 @@ export default function OperationalGuidanceCenter() {
 }
 
 function Shell({ title, children }) {
+  // Iter195-fix: proper MASCI header + navigation. The Operational
+  // Guidance Center is a destination page, not a floating shell —
+  // users need branding, sign-in entry, and a clear way home.
   return (
-    <div className="min-h-screen bg-slate-50 py-6 px-4">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-slate-50">
+      <div className="caution-stripe" />
+      <header className="bg-slate-900 border-b-4 border-red-700">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between">
+          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
+          <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="inline-flex items-center h-9 px-3 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wide transition-colors"
+              data-testid="guidance-home-link"
+            >
+              <Home className="w-3.5 h-3.5 mr-1.5" />
+              Home
+            </Link>
+            <Link
+              to="/sign-in"
+              className="hidden sm:inline-flex items-center h-9 px-3 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wide transition-colors"
+              data-testid="guidance-signin-link"
+            >
+              Sign in
+            </Link>
+            <LangToggle />
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
         {title && (
           <h1 className="font-display text-2xl font-black tracking-tight text-slate-900 mb-4">
             {title}
           </h1>
         )}
         {children}
-      </div>
+      </main>
     </div>
   );
 }
