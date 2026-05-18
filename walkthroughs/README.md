@@ -1,5 +1,9 @@
 # MASCI Operator-Flow Walkthroughs (iter217)
 
+> **For the editorial discipline that governs HOW to use this framework,
+> read `walkthrough_pass.md` first** — that's the load-bearing protocol
+> document. This README documents the technical mechanics.
+
 Lightweight, operational, **editorial-tool** walkthroughs of the platform
 through each operational persona's actual day. **Not analytics. Not
 telemetry.** No new collections, no engagement metrics, no dashboards.

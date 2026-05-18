@@ -1,6 +1,71 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter220 · Walkthrough Editorial Discipline · Protocol Codification · ✅ DELIVERED (preview only)
+
+The editorial cadence (walkthrough → aggregate → review → author → re-run → measure delta) has now been demonstrated across three full cycles with a 69% actionable-finding reduction and zero regressions. iter220 codifies the discipline itself as a **load-bearing protocol document** so the philosophy survives agent handoffs, contributor turnover, and future iters.
+
+### Deliverable
+- `/app/walkthroughs/walkthrough_pass.md` — 11-section protocol document covering:
+  1. What this loop IS — and what it isn't (anti-pattern framing)
+  2. Persona execution order (operator-stated, DO NOT REORDER)
+  3. Walkthrough execution expectations (when to run, how, what it simulates)
+  4. Finding kinds — the load-bearing vocabulary (10 typed kinds, banned-taxonomy list)
+  5. Finding review cadence (what to do with each kind)
+  6. Coaching authoring standards (canonical-4 surface, tone discipline, banlists, positive-realism anchors, RBAC honesty, bilingual discipline)
+  7. Re-run expectations after authoring coaching
+  8. Actionable-finding delta tracking (signal, not target)
+  9. Operational realism requirements (time-of-day · physical context · before/after continuity)
+  10. Anti-pattern guardrails — HARD STOPS (11 explicit "never do this" items)
+  11. Strategic holds (operator-deferred items, with stated reasoning)
+- Closing one-paragraph cadence summary — the entire protocol distilled
+
+### Why this matters
+The editorial cadence is the platform's strongest operational differentiator. Without codification, the discipline survives only as institutional memory in PRD entries — vulnerable to drift, dilution, and accidental analytics creep. With the protocol doc:
+
+- Future agents inherit the workflow with zero ramp-up
+- "Strategic holds" (operator mid-day-defect, helpfulness-pulse telemetry) survive across agent sessions instead of being re-discovered/re-implemented
+- Cultural anchors from iter211→218 (Checkout-as-handshake · conversation-comes-first · calibration-beats-scoring · opportunity-not-blame · etc.) are preserved as a reference table
+- Anti-pattern hard stops are explicit, not implicit
+- Tone-discipline banlists (ROBOTIC_OSHA · CORPORATE_DRIFT · HR_LEGAL_DRIFT · CORPORATE_HR) are referenced by name
+
+### Tests landed
+- New: `test_iter220_walkthrough_protocol.py` — **25 passed**:
+  - Doc existence + all 11 required sections present
+  - Persona order locked + matches `aggregate_findings.PRIORITY_ORDER`
+  - 9 hard-stop anti-patterns each explicitly called out (parametrized)
+  - 2 operator-stated strategic holds preserved (parametrized)
+  - 7 authored cultural anchors preserved in the reference table (parametrized)
+  - Cadence summary structure verified (loop verbs · closing analytics-drift hard stop)
+  - Banned-taxonomy vocabulary (warning/error/info/bug/severity) called out
+  - 4 tone-discipline banlist constants referenced
+
+If a future agent removes a section, drops an anti-pattern guardrail, reorders the personas, or quietly deletes a strategic hold, **the test catches it.** The doc is institutionally enforced.
+
+### What changed about the workflow
+Nothing operationally — same cadence, same tools, same outputs. iter220 is pure codification. The 5 actionable findings from iter219 remain the operational baseline (1 strategic-hold, 3 scaffolded placeholders, 1 documented architecture note).
+
+### Files touched
+- NEW: `walkthroughs/walkthrough_pass.md` (11-section protocol document · ~280 lines)
+- NEW: `backend/tests/test_iter220_walkthrough_protocol.py` (25 tests)
+- MOD: `walkthroughs/README.md` (cross-reference banner pointing at the protocol doc)
+- MOD: `memory/PRD.md`
+
+### Backend regression
+- iter21x + iter22x suite: **239 passed · 1 expected skip**
+- No code paths modified — pure documentation + enforcement
+
+🔵 Preview only. No production push.
+
+### What remains (operator's queued work, unchanged from iter219)
+- 🔵 **Strategic hold** · Operator mid-day-defect surface decision (deliberate future architecture)
+- 🟡 P2 · Flesh out HR / Safety / PM persona walkthroughs (currently scaffolded)
+- 🟡 P2 · Translation consistency close-out (HR/PM/Safety/Dispatch/Shop login body copy)
+- 🟢 Post-hardening · HelpTip helpfulness-pulse telemetry (held until Sentry/R2/timeout/Phase-2 close-out)
+
+The walkthrough editorial loop is now institutionally protected.
+
+---
 ## 2026-05-18 — iter219 · Portal Title Persona-Tagging + Foreman Walkthrough Refinement · ✅ DELIVERED (preview only)
 
 Small-scope operational-polish iter that lands the **very clean operational baseline** the operator named: **5 actionable walkthrough findings remaining, all strategic/scaffolded, zero genuine coaching gaps.**
