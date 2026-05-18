@@ -264,11 +264,22 @@ class IncidentSummary(BaseModel):
 # ============================================================
 # Route registration
 # ============================================================
-def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_public_post, schedule_auto_email):
+def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_public_post, schedule_auto_email, require_safety_or_admin=None):
     """Attach Inspection / Meeting / JHP / Incident endpoints to the router."""
 
     # ---------- Inspections ----------
-    @api_router.post("/inspections", response_model=Inspection, dependencies=[Depends(rate_limit_public_post)])
+    # iter236 · Site Inspection moved fully into Safety portal ownership.
+    # If require_safety_or_admin is provided, the endpoint requires Safety or
+    # Admin auth (the iter236 default). If omitted (legacy callers), the route
+    # falls back to public + rate-limit so registration doesn't crash if a
+    # legacy caller wires the registration without the new dep.
+    _insp_deps = (
+        [Depends(require_safety_or_admin)]
+        if require_safety_or_admin is not None
+        else [Depends(rate_limit_public_post)]
+    )
+
+    @api_router.post("/inspections", response_model=Inspection, dependencies=_insp_deps)
     async def create_inspection(payload: InspectionCreate):
         inspection = Inspection(**payload.model_dump())
         doc = inspection.model_dump()

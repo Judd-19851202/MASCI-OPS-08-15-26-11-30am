@@ -90,7 +90,7 @@ export default function Dashboard() {
             <ShareFormDialog />
             <CompanyInfoDialog />
             <Button
-              onClick={() => navigate("/inspect/new")}
+              onClick={() => navigate("/safety/inspections/new")}
               className="h-12 px-5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-4 border-red-900"
               data-testid="new-inspection-btn"
             >
@@ -157,7 +157,7 @@ export default function Dashboard() {
                 reports show up here automatically.
               </p>
               <Button
-                onClick={() => navigate("/inspect/new")}
+                onClick={() => navigate("/safety/inspections/new")}
                 className="mt-6 h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
                 data-testid="empty-state-cta"
               >

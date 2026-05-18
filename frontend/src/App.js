@@ -164,15 +164,18 @@ import PosterErrorBoundary from "@/components/PosterErrorBoundary";
 // Crew Hub (Basecamp-style /app section)
 // Crew Hub pages removed 2026-04-28 — replaced by external Basecamp link.
 
-const SITE_INSPECTION_CODE = "1982";
-const GateInspection = ({ children }) => (
-  <FormPasswordGate
-    storageKey="masci.gate.site-inspection"
-    password={SITE_INSPECTION_CODE}
-    formLabel="Site Inspection"
-  >
-    {children}
-  </FormPasswordGate>
+// iter236 · Site Inspection moved into Safety portal ownership.
+// The legacy public form-password gate (SITE_INSPECTION_CODE = "1982")
+// and the public submission paths (/submit, /inspections/submit,
+// /inspect/new) are removed. Site Inspection is now an authenticated
+// Safety/Admin-only operation at /safety/inspections/new. Public/legacy
+// URLs redirect to /safety-portal/login so anyone with a stale link
+// reaches the right place.
+const InspectionLegacyRedirect = () => (
+  <Navigate
+    to="/safety-portal/login?returnTo=/safety/inspections/new"
+    replace
+  />
 );
 
 const A = (el) => <RequireAdmin>{el}</RequireAdmin>;
@@ -253,10 +256,14 @@ function App() {
             <Route path="/leadership/records/:id" element={<FieldLeadershipView />} />
             <Route path="/leadership/:kind/new" element={<FieldLeadershipFormPage />} />
 
-            <Route path="/inspect/new" element={<GateInspection><NewInspection /></GateInspection>} />
-            <Route path="/submit" element={<GateInspection><NewInspection publicMode /></GateInspection>} />
-            <Route path="/inspections/submit" element={<GateInspection><NewInspection publicMode /></GateInspection>} />
-            <Route path="/inspections/new" element={<Navigate to="/inspect/new" replace />} />
+            {/* iter236 · Site Inspection moved into Safety portal ownership.
+                Legacy URLs redirect to safety login; the authoritative
+                authenticated entry is /safety/inspections/new. */}
+            <Route path="/safety/inspections/new" element={SF(<NewInspection />)} />
+            <Route path="/inspect/new" element={<InspectionLegacyRedirect />} />
+            <Route path="/submit" element={<InspectionLegacyRedirect />} />
+            <Route path="/inspections/submit" element={<InspectionLegacyRedirect />} />
+            <Route path="/inspections/new" element={<InspectionLegacyRedirect />} />
 
             <Route path="/meetings/new" element={<NewMeeting />} />
             <Route path="/meetings/submit" element={<NewMeeting publicMode />} />

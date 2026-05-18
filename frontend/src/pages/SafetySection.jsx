@@ -65,7 +65,7 @@ export default function SafetySection() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
           <SectionTile
-            to="/inspections/submit"
+            to="/safety/inspections/new"
             icon={ClipboardCheck}
             title={t("Site Inspections")}
             desc={t("Daily and weekly job-site safety inspections. PPE, MOT, fall protection, electrical, and more — graded automatically.")}

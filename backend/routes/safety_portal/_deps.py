@@ -23,6 +23,30 @@ def make_require_safety_token(db) -> Callable[..., Awaitable[dict]]:
     return _require_safety_token
 
 
+def make_require_safety_or_admin(
+    db, is_valid_admin_token: Optional[Callable[[str], bool]] = None
+) -> Callable[..., Awaitable[dict]]:
+    """Write-side gate. Accepts Safety or Admin tokens only — HR is
+    intentionally NOT accepted here. Used for write surfaces inside
+    Safety operations (Site Inspection submission, etc.) where HR
+    review-side access is inappropriate for the action."""
+
+    async def _require_safety_or_admin(
+        request: Request,
+        x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    ) -> dict:
+        if x_safety_token:
+            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            if u:
+                return {**u, "_actor": "safety"}
+        if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
+            return {"_actor": "admin", "name": "Admin"}
+        raise HTTPException(401, "Safety or Admin auth required")
+
+    return _require_safety_or_admin
+
+
 def make_require_safety_or_hr_or_admin(
     db, is_valid_admin_token: Optional[Callable[[str], bool]] = None
 ) -> Callable[..., Awaitable[dict]]:

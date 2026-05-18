@@ -2743,6 +2743,13 @@ register_safety_routes(
     # in a lambda lets Python resolve it at request time (when the route fires)
     # rather than at registration time (when it doesn't exist yet).
     lambda kind, record: schedule_auto_email(kind, record),
+    # iter236 · Site Inspection moved into Safety portal ownership. POST
+    # /api/inspections now requires Safety or Admin auth (no public/rate-limit
+    # path). The make_require_safety_or_admin factory accepts X-Safety-Token
+    # or X-Admin-Token; HR is intentionally excluded for this write surface.
+    require_safety_or_admin=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_or_admin"]
+    ).make_require_safety_or_admin(db, _is_valid_admin_token),
 )
 
 
