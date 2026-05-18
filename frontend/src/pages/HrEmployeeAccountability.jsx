@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import HrPageShell from "@/components/HrPageShell";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { HelpTipBlock } from "@/components/HelpTip";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-purple-600";
 
@@ -50,6 +51,12 @@ export default function HrEmployeeAccountability() {
 
   return (
     <HrPageShell title="Employee Accountability" kicker="HR · Offboarding & Clearance">
+      {/* iter223 · operational leadership coaching for the trust-impact
+          moment. Anchor: "The answer lives in the record — read first,
+          respond second." */}
+      <div className="mb-5">
+        <HelpTipBlock formKey="employee-accountability" showCounter />
+      </div>
       <Card className="p-4 mb-5 border-2 border-purple-200 bg-purple-50/30">
         <form onSubmit={search} className="flex gap-2 items-end">
           <div className="flex-1">

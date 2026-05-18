@@ -1,6 +1,93 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter223 · employee-accountability Coaching Family · ✅ DELIVERED (preview only)
+
+Authored the **second highest-trust-impact** coaching family in the platform — the "my check is short" / "where's my last paystub" moment. Per operator directive: read first, verify first, understand context first, respond human-first; avoid defensiveness, bureaucracy, and escalation reflexes.
+
+### Operator-stated load-bearing anchors (verbatim · test-enforced)
+
+| Anchor (verbatim in tip body/title) | Family | Type |
+|---|---|---|
+| **"The answer lives in the record — read first, respond second."** | `employee-accountability.read-first` | title |
+| **"The answer lives in the record"** | `employee-accountability.read-first` | body |
+| **"Trust" framing of the top-level "why"** | `employee-accountability` (top) | body |
+| **"Fairness stories travel faster than any company communication"** | `employee-accountability` (who) | body |
+| **"That's the moment to pause and call up"** (defensiveness self-awareness) | `employee-accountability` (escalate) | body |
+| **"Investigate WITH them, not THEM"** | `employee-accountability.verify` | body |
+| **"Calm response wins"** | `employee-accountability.tone` | body |
+| **Close-the-loop discipline** | `employee-accountability.followup` | body |
+
+Every operator-stated principle (read first · verify first · understand context first · respond human-first · avoid defensiveness · avoid bureaucracy · avoid escalation reflexes) has at least one test asserting it lands verbatim or by required keyword.
+
+### Coverage
+- **5 form-key surfaces · 12 tips · EN+ES**
+  - `employee-accountability` (canonical 4 — why/who/next/escalate)
+  - `employee-accountability.read-first` (3 tips — why/mistake/example with concrete $80 / 42.5hrs scenario)
+  - `employee-accountability.tone` (2 tips — why/mistake on defensiveness)
+  - `employee-accountability.verify` (2 tips — why/next on open-question discipline)
+  - `employee-accountability.followup` (1 tip — close-the-loop)
+- Scope: **Tier-2 `hr` + `admin` only** (anon callers verified to see 0 tips)
+- Wired into `HrEmployeeAccountability.jsx` above the search form · counter "4 coaching tips available · tap to expand" visible
+
+### Self-validating loop · iter223 closure
+
+| Persona | Before iter223 | After iter223 | Delta |
+|---|---|---|---|
+| HR | 8 actionable | 6 actionable | -2 ✅ |
+| Total actionable | 10 | 8 | -2 ✅ |
+| Total positive observations | 18 | 18 | unchanged |
+
+### Cumulative HR self-validating loop · iter221→iter223
+| Iter | HR actionable | Cumulative Δ | What landed |
+|---|---|---|---|
+| iter221 (HR scaffold fleshed) | 10 | baseline | Real HR day-script + iter218 records-page surfacing |
+| iter222 | 8 | -2 | `time-off-review` family (12 tips) |
+| iter223 | 6 | -4 | `employee-accountability` family (12 tips) |
+
+Two HR surfaces remain in the operator-decision queue: Employee Lifecycle + Document Expirations.
+
+### Tests landed
+- New: `test_iter223_employee_accountability_helptips.py` — **41 passed**:
+  - Seed count + canonical 4 + leaf surface coverage
+  - RBAC: strictly Tier-2 hr/admin; anon-blocked
+  - Bilingual + ≤80 EN / ≤90 ES word budget
+  - **2 operator-stated cultural anchor tests** (verbatim phrase enforcement for "read first, respond second" and "the answer lives in the record")
+  - Top-level "trust" anchor test
+  - Top-level "fairness travels" anchor test
+  - Escalate-must-address-defensive-reflex test
+  - Tone-must-name-defensiveness test
+  - Verify-must-teach-open-questions test (`investigate WITH them, not THEM`)
+  - Followup-must-coach-close-the-loop test
+  - Read-first-example-must-show-concrete-numbers test ($ or hours pattern)
+  - **15 anti-legal-drift parametrized tests** (inherited iter222 firewall)
+  - Standard tone discipline (OSHA · corporate-HR · HR-legal-drift)
+  - Humanity-anchor sweep on each leaf surface
+  - Static UI wiring check
+- iter21x + iter22x: **321 passed · 1 skip**
+- iter220 protocol-doc test still 25/25
+- Tip registry: 155 → **167 tips** across 32 → **37 form-key surfaces**
+
+### Files touched
+- MOD: `backend/guidance/tips.py` (+12 tips · `employee-accountability` family)
+- MOD: `backend/guidance/tips_es.py` (+12 ES translations)
+- MOD: `frontend/src/pages/HrEmployeeAccountability.jsx` (HelpTipBlock wiring above search form)
+- NEW: `backend/tests/test_iter223_employee_accountability_helptips.py` (41 tests)
+- MOD: `memory/PRD.md`
+
+🔵 Preview only. No production push.
+
+### Operator-decision queue (remaining)
+1. 🟡 **iter224 candidate** — `employee-lifecycle` ("Get it right and they hear about the company; get it wrong and they hear about the bureaucracy")
+2. 🟢 **iter225 candidate** — `document-expirations` ("phone call beats email blast")
+
+### Other queued work (unchanged)
+- 🔵 Strategic hold · Operator mid-day-defect surface architecture decision
+- 🟡 P2 · Safety + PM persona walkthrough fleshing
+- 🟡 P2 · Translation consistency close-out
+- 🟢 Post-hardening · HelpTip helpfulness-pulse telemetry
+
+---
 ## 2026-05-18 — iter222 · time-off-review Coaching Family · ✅ DELIVERED (preview only)
 
 Authored the highest-cultural-drift-risk coaching family in the platform — Time Off Request review for HR. Per operator directive: operational leadership guidance, NOT legal advice. All four operator-stated cultural anchors land verbatim in tip bodies and are asserted in the test suite as load-bearing cultural invariants.

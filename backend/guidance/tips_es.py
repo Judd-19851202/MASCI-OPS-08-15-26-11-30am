@@ -1402,4 +1402,134 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "el asunto médico. Tratar una nota médica como un "
             "permiso que usted puede evaluar.",
     },
+
+    # ── iter223 · employee-accountability (Tier-2 HR) ────────────────
+    ("employee-accountability", "why"): {
+        "title_es": "Por qué importa esta conversación",
+        "body_es":
+            "Cuando un empleado pregunta sobre su pago, su talón, o "
+            "un bono que falta, no está buscando pelea — le está "
+            "extendiendo confianza a RH para que arregle las cosas. "
+            "Cómo responda en los próximos 90 segundos decide si "
+            "se va del mostrador creyendo que la empresa lo "
+            "respalda, o creyendo que está por su cuenta.",
+    },
+    ("employee-accountability", "who"): {
+        "title_es": "Quién está escuchando su respuesta",
+        "body_es":
+            "El empleado enfrente de usted. Los dos compañeros en "
+            "la sala de descanso que se enterarán en una hora. El "
+            "supervisor (si resulta ser un arreglo de Reporte "
+            "Diario). Nómina (si es un problema del sistema). La "
+            "cuadrilla — porque las historias de justicia viajan "
+            "más rápido que cualquier comunicación corporativa.",
+    },
+    ("employee-accountability", "next"): {
+        "title_es": "Qué pasa después de que leyó el registro",
+        "body_es":
+            "Dígale al empleado lo que encontró en palabras "
+            "claras. Si tiene razón, arréglelo hoy y dígale cuándo "
+            "llega el cheque corregido. Si no tiene razón, "
+            "explíquele los números para que entienda. Si necesita "
+            "más tiempo, dele una hora específica para devolverle "
+            "la llamada — y cúmplala.",
+    },
+    ("employee-accountability", "escalate"): {
+        "title_es": "Cuándo llamar al Director de RH antes de responder",
+        "body_es":
+            "Cualquier cosa que suene a queja más allá del pago "
+            "(acoso, discriminación, represalia). Cualquier caso "
+            "donde varios empleados estén haciendo la misma "
+            "pregunta esta semana (problema del sistema, no del "
+            "empleado). Cualquier caso donde ya se sienta usted "
+            "poniéndose a la defensiva — ese es el momento de "
+            "pausar y llamar arriba.",
+    },
+
+    ("employee-accountability.read-first", "why"): {
+        "title_es": "La respuesta vive en el registro — lea primero, responda después",
+        "body_es":
+            "Resista el reflejo de responder de memoria o de lo "
+            "que se siente correcto. Abra el registro de "
+            "verificación de tiempo. Abra el Reporte Diario. Abra "
+            "el talón anterior. La respuesta está en esos "
+            "documentos. Leer primero le cuesta 60 segundos y le "
+            "compra una respuesta que el empleado de verdad puede "
+            "verificar.",
+    },
+    ("employee-accountability.read-first", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Responder 'eso no puede estar bien' antes de abrir "
+            "nada. Citar números de política en vez de mostrar el "
+            "registro real. Decir 'lo voy a revisar' y luego "
+            "olvidarse por dos días. Mirar la pantalla pero no "
+            "leer en serio lo que dice.",
+    },
+    ("employee-accountability.read-first", "example"): {
+        "title_es": "Cómo se ve 'leer primero'",
+        "body_es":
+            "Empleado: 'Mi cheque está corto como $80.' Usted: "
+            "'Déjeme sacar su semana pasada — un minuto.' [Abre "
+            "Reportes Diarios, verificación de tiempo, talón.] "
+            "Usted: 'Registró 42.5 horas, le pagaron 40 — parece "
+            "que 2.5 de OT no entró. Veo qué pasó. Lo arreglo y "
+            "tiene la corrección el viernes.' Esa es toda la "
+            "interacción.",
+    },
+
+    ("employee-accountability.tone", "why"): {
+        "title_es": "Por qué la respuesta calmada gana",
+        "body_es":
+            "El empleado vino con usted porque confió en RH antes "
+            "que en el supervisor, los rumores, o irse frustrado a "
+            "casa. La actitud defensiva termina esa confianza. "
+            "Calmado, específico, basado en evidencia — ese es el "
+            "tono que deja que la conversación resuelva algo. La "
+            "frustración rara vez es contra usted; no se la tome.",
+    },
+    ("employee-accountability.tone", "mistake"): {
+        "title_es": "Errores comunes de actitud defensiva",
+        "body_es":
+            "Empatar la frustración del empleado con la suya. "
+            "Decir 'así no funciona' antes de escuchar. Alcanzar "
+            "el manual antes de alcanzar el registro real. Tratar "
+            "la pregunta como una acusación. Leer 'creo que hay "
+            "un error' como 'creo que usted cometió un error' — "
+            "no son la misma frase.",
+    },
+
+    ("employee-accountability.verify", "why"): {
+        "title_es": "Verificar sin que se sienta como interrogatorio",
+        "body_es":
+            "Necesita hechos para responder: qué semana, qué "
+            "trabajo, qué horas. El empleado necesita sentir que "
+            "está investigando CON él, no investigándolo. Haga "
+            "preguntas abiertas ('cuénteme de esa semana') en vez "
+            "de cerradas ('¿tiene prueba de esas horas?'). La "
+            "misma recolección de hechos, la mitad de fricción.",
+    },
+    ("employee-accountability.verify", "next"): {
+        "title_es": "Cómo se ve una 'buena verificación'",
+        "body_es":
+            "Una nota corta en el registro: 'El empleado preguntó "
+            "por faltante en el periodo de pago 2026-05-12, "
+            "reclamó 42.5 hrs. Contrastado contra Reportes Diarios "
+            "+ verificación: 42.5 confirmado. Corrección emitida "
+            "2026-05-19, empleado notificado verbalmente.' "
+            "Cualquiera que lea esa nota tres meses después "
+            "entiende exactamente qué pasó y por qué.",
+    },
+
+    ("employee-accountability.followup", "why"): {
+        "title_es": "Por qué cerrar el ciclo importa más que la solución",
+        "body_es":
+            "Una corrección de la que el empleado nunca se entera "
+            "es lo mismo que ninguna corrección. Después de que "
+            "corra nómina, mande una confirmación rápida — 'su "
+            "cheque debería reflejar el arreglo el viernes, "
+            "avíseme si no' — y signifique las últimas cinco "
+            "palabras. El seguimiento es la parte que la "
+            "cuadrilla recuerda, no la conversación original.",
+    },
 }

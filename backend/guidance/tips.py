@@ -1955,6 +1955,194 @@ _TIPS: list[dict] = [
             "the supervisor what the medical issue is. Treating a "
             "medical note as a permission slip you get to evaluate.",
     },
+
+    # ═════════════════════════════════════════════════════════════════
+    # iter223 · employee-accountability · Tier-2 HR-scoped.
+    #
+    # "My check is short." "Where's my last paystub?" "I didn't get
+    # the bonus." Highest-trust-impact operational moment in HR's day.
+    # How leadership responds here determines credibility, escalation
+    # likelihood, morale, retention, and the crew's perception of
+    # fairness.
+    #
+    # OPERATOR-STATED ANCHOR: "The answer lives in the record — read
+    # first, respond second."
+    #
+    # Coaching principles (operator-stated):
+    #   • read first · verify first · understand context first
+    #   • respond human-first
+    #   • avoid defensiveness · avoid bureaucracy · avoid escalation reflexes
+    #
+    # Scope: hr + admin (HR's review-side surface).
+    # ═════════════════════════════════════════════════════════════════
+
+    # ── employee-accountability (canonical 4) ────────────────────────
+    {
+        "form_key": "employee-accountability",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why this conversation matters",
+        "body":
+            "When an employee asks about their pay, their stub, or a "
+            "missing bonus, they're not picking a fight — they're "
+            "extending trust to HR to make it right. How you respond "
+            "in the next 90 seconds decides whether they leave the "
+            "counter believing the company has their back or "
+            "believing they're on their own.",
+    },
+    {
+        "form_key": "employee-accountability",
+        "kind": "who",
+        "scopes": ["hr", "admin"],
+        "title": "Who's listening to your response",
+        "body":
+            "The employee in front of you. The two coworkers in the "
+            "break room who will hear about it within the hour. The "
+            "supervisor (if it turns out to be a Daily Report fix). "
+            "Payroll (if it's a system issue). The crew — because "
+            "fairness stories travel faster than any company "
+            "communication ever will.",
+    },
+    {
+        "form_key": "employee-accountability",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What happens after you've read the record",
+        "body":
+            "Tell the employee what you found in plain words. If "
+            "they're right, fix it today and tell them when the "
+            "corrected check arrives. If they're wrong, walk them "
+            "through the numbers so they understand. If you need "
+            "more time, give them a specific callback time — and "
+            "honor it.",
+    },
+    {
+        "form_key": "employee-accountability",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When to call HR Director before responding",
+        "body":
+            "Anything that sounds like it could become a complaint "
+            "beyond pay (harassment, discrimination, retaliation). "
+            "Anything where multiple employees are asking the same "
+            "question this week (system issue, not employee issue). "
+            "Anything where you can already feel yourself getting "
+            "defensive — that's the moment to pause and call up.",
+    },
+
+    # ── employee-accountability.read-first ───────────────────────────
+    # OPERATOR-STATED ANCHOR (verbatim · test-enforced):
+    # "The answer lives in the record — read first, respond second."
+    {
+        "form_key": "employee-accountability.read-first",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "The answer lives in the record — read first, respond second",
+        "body":
+            "Resist the reflex to answer from memory or from what "
+            "feels right. Open the time-verification record. Open "
+            "the Daily Report. Open the prior paystub. The answer "
+            "is sitting in those documents. Reading first costs you "
+            "60 seconds and buys you a response the employee can "
+            "actually verify.",
+    },
+    {
+        "form_key": "employee-accountability.read-first",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Answering 'that can't be right' before opening anything. "
+            "Quoting policy numbers instead of showing the actual "
+            "record. Saying 'I'll check on that' and then forgetting "
+            "for two days. Looking at the screen but not actually "
+            "reading what's on it.",
+    },
+    {
+        "form_key": "employee-accountability.read-first",
+        "kind": "example",
+        "scopes": ["hr", "admin"],
+        "title": "What 'reading first' looks like",
+        "body":
+            "Employee: 'My check is short by about $80.' You: 'Let "
+            "me pull your last week — give me a minute.' [Open "
+            "Daily Reports, time-verification, paystub.] You: 'You "
+            "logged 42.5 hours, paid for 40 — looks like 2.5 OT "
+            "didn't roll through. I see what happened. Let me fix "
+            "it and you'll have the correction by Friday.' That's "
+            "the whole interaction.",
+    },
+
+    # ── employee-accountability.tone ─────────────────────────────────
+    {
+        "form_key": "employee-accountability.tone",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why the calm response wins",
+        "body":
+            "The employee came to you because they trusted HR over "
+            "the supervisor, the rumor mill, or just going home "
+            "frustrated. Defensiveness ends that trust. Calm, "
+            "specific, evidence-based — that's the tone that lets "
+            "the conversation actually solve something. The "
+            "frustration is rarely about you; don't take it that way.",
+    },
+    {
+        "form_key": "employee-accountability.tone",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common defensiveness mistakes",
+        "body":
+            "Matching the employee's frustration with your own. "
+            "Saying 'that's not how it works' before listening. "
+            "Reaching for the handbook before reaching for the "
+            "actual record. Treating the question as an accusation. "
+            "Reading 'I think there's a mistake' as 'I think you "
+            "made a mistake' — they're not the same sentence.",
+    },
+
+    # ── employee-accountability.verify ───────────────────────────────
+    {
+        "form_key": "employee-accountability.verify",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Verifying without making it feel like an interrogation",
+        "body":
+            "You need facts to answer: what week, what job, what "
+            "hours. The employee needs to feel that you're "
+            "investigating WITH them, not investigating THEM. Ask "
+            "open questions ('walk me through that week') rather "
+            "than closed ones ('do you have proof of those hours?'). "
+            "The same fact-gathering, half the friction.",
+    },
+    {
+        "form_key": "employee-accountability.verify",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What 'good verification' produces",
+        "body":
+            "A short note in the record: 'Employee inquired about "
+            "shortage in pay period 2026-05-12, claimed 42.5 hrs. "
+            "Cross-checked Daily Reports + time-verification: 42.5 "
+            "confirmed. Correction issued 2026-05-19, employee "
+            "notified verbally.' Anyone reading that note three "
+            "months later understands exactly what happened and why.",
+    },
+
+    # ── employee-accountability.followup ─────────────────────────────
+    {
+        "form_key": "employee-accountability.followup",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why closing the loop matters more than the resolution",
+        "body":
+            "A correction the employee never hears about is the same "
+            "as no correction. After payroll runs, send a quick "
+            "confirmation — 'your check should reflect the fix this "
+            "Friday, let me know if it doesn't' — and mean the last "
+            "five words. The follow-through is the part the crew "
+            "remembers, not the original conversation.",
+    },
 ]
 
 
