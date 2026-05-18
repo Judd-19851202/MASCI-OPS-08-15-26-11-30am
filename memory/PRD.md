@@ -1,6 +1,53 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — Operational Inventory & Governance Audit (Pass 1) · ✅ DELIVERED (preview only)
+
+**Operator directive:** Stop reactive gap-filling. Begin intentional operational architecture / governance maturity. Audit the entire ecosystem against a fixed 10-field coverage matrix before any further guidance iterations.
+
+**Deliverable:** `/app/docs/OPERATIONAL_INVENTORY.md` — 463 lines authoritative audit covering:
+- 10-field operational coverage matrix (who · login · guidance · onboarding · ctxt help · WHY · troubleshoot · discoverability · mobile · **translation readiness**)
+- Field Leadership full worked example (template for all other portals)
+- All 8 portals matrix (Public · HR · Safety · Shop · Dispatch · PM · Field Leadership · Admin · Dev)
+- All ~12 user-type coverage matrix (anon · field crew · operator · mechanic · foreman · super · PM · HR · Safety · Dispatch · Admin · Owner · Dev)
+- All ~150 routes inventoried (Public 24 · Gated by portal token · QR-access · mobile-only · utility)
+- All ~45 workflows × 10-field matrix
+- System-wide translation readiness (existing `useT()` architecture + guidance gap)
+- 7-pass governance roadmap (this is Pass 1)
+
+### Top operational blind spots identified
+- 🔴 **Field Leadership has no portal door** — uses shared MASCIGC password, no `/leadership/login`, not in `/sign-in` selector
+- 🔴 **Guidance content is English-only** — `useT()` architecture exists for forms but is not wired into the Block renderer; guidance article bodies are 0% translated
+- 🔴 **`/sign-in` doesn't list all portals** — Shop · Dispatch · Safety · PM · Field Leadership require URL knowledge
+- 🟠 **Public route map is implicit** — `/cheatsheet`, `/safety/cards`, `/jha`, `/trench-boxes` lack public guidance articles
+- 🟠 **Onboarding paths aren't role-aware** — single `role-new-employee` for foreman vs laborer vs operator
+- 🟡 **No live drift detection** — Pass 2 dashboard will close this gap
+
+### Critical new requirement registered
+**All guidance/training/help content must support EN (canonical) + ES toggle via the existing `useT()` architecture (do not duplicate).**
+- Proposed schema: add `title_es`, `summary_es`, `body_es` to article schema; missing → graceful fallback to English
+- Wire `useT()` into Block renderer in `OperationalGuidanceCenter.jsx`
+- Add `translation_coverage_pct` to `/api/admin/guidance/coverage`
+- Future articles must inherit translation capability (schema-enforced)
+
+### Sequencing
+1. ✅ Pass 1 — Markdown authoritative audit (THIS)
+2. ⏸️ Pass 2 — Live `/admin/operational-inventory` dashboard (drift detection)
+3. ⏸️ Pass 3 — Translation schema (`body_es`) + Block renderer wiring
+4. ⏸️ Pass 4 — Field Leadership portal door (`/leadership/login` + `/sign-in` tile)
+5. ⏸️ Pass 5 — Per-persona onboarding articles (7 new articles)
+6. ⏸️ Pass 6 — Cross-cutting workflow coverage (Tasks · DocExpirations · POs · ProjectHealth · AssetTransfers · HR Time-Off · Shop Parts)
+7. ⏸️ Pass 7 — QR poster rollout (correctly sequenced AFTER inventory operationalized)
+
+### Files touched
+- **NEW** `/app/docs/OPERATIONAL_INVENTORY.md` (463 lines)
+- **THIS** `/app/memory/PRD.md` (entry above)
+
+No code changes. No production push. Read-only governance artifact.
+
+---
+
+---
 ## 2026-02-XX — Phase 3 · Public Field Crew Training Tier + Strong-Hero Redesign (iter196) · ✅ COMPLETE (preview only)
 
 Operator review flagged that the previous iter195-hotfix still left field crews / no-login users with a basic-feeling page. Field crews **may not have portal logins but still need useful training** — and the page needed to look like the rest of the MASCI Operations Platform, not an afterthought. Required: clear split between public/no-login and restricted/portal training, strong hero, real visual energy, mobile-first.
