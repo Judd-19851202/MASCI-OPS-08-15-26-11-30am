@@ -1,6 +1,60 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter201 · Operational Identity Consistency Drift Rule · ✅ DELIVERED (preview only)
+
+Governance maturation in response to the operator surfacing a new consistency gap after Pass 4: "Field Leadership has a mature operational identity, but the other protected portals still don't have equivalent representation inside Guidance/Training. The platform should feel like ONE intentional operational ecosystem."
+
+### What landed
+**Backend governance — automatic drift detection:**
+- **MOD** `backend/governance/inventory.py` `compute_drift()` — added rule #6: `portal-identity-incomplete`. For every protected portal, checks whether the same triple Field Leadership got in Pass 4 exists:
+  - `onboard-<persona>-first-week` (public scope, pre-login readable)
+  - `tshoot-<persona>-login` (public scope)
+  - `portal-<persona>-identity` (public scope — "what does this portal do?")
+- Each missing piece is named explicitly in the drift message — actionable, not vague.
+- Severity: **P1** for operational portals (HR · Safety · Shop · Dispatch · PM), **P2** for admin (admin "first-week" is internal, less field-driven).
+- Field Leadership already has the triple → does NOT appear in the new drift category.
+
+**Tests:**
+- **NEW** `backend/tests/test_iter201_identity_consistency_drift.py` — 6 tests covering category existence, FL exclusion, 6-portal inclusion, severity assignment, message specificity, fix-pass labeling. **6/6 passing.**
+- **Full regression**: **295/295 passing.**
+
+### Live signals after rule lands
+- **Drift total**: 33 → **36** (+3 net — 6 new identity items minus the 3 Pass 4 cleared)
+- **P1 count**: jumped to 25 — accurate reflection that identity consistency is real outstanding work
+- **18 new article specs** now auto-surfaced (3 per portal × 6 portals)
+
+### Operator decision the rule clarifies
+Before the rule, the operator had to discover this gap by feel. Now the dashboard names it explicitly:
+
+```
+[p1] hr:       missing: onboard-hr-first-week, tshoot-hr-login, portal-hr-identity
+[p1] safety:   missing: onboard-safety-first-week, tshoot-safety-login, portal-safety-identity
+[p1] shop:     missing: onboard-shop-first-week, tshoot-shop-login, portal-shop-identity
+[p1] dispatch: missing: onboard-dispatch-first-week, tshoot-dispatch-login, portal-dispatch-identity
+[p1] pm:       missing: onboard-pm-first-week, tshoot-pm-login, portal-pm-identity
+[p2] admin:    missing: onboard-admin-first-week, tshoot-admin-login, portal-admin-identity
+```
+
+This is the heart of the governance-first philosophy: the platform now tells the operator what's drifting instead of the operator needing to spot it.
+
+### Files touched
+- NEW: `backend/tests/test_iter201_identity_consistency_drift.py`
+- MOD: `backend/governance/inventory.py`, `memory/PRD.md`
+
+No production push. Read-only governance rule.
+
+### Long-term architectural note (per operator)
+Field Leadership shared-password auth is correct **today** but should remain **migration-ready** for eventual move to named leadership users + HR onboarding + login-level audit trails + per-user accountability. The auth-architecture review (a future "Pass K-something") is not Pass 5+ scope but is tracked.
+
+### Next — Pass 5 sequenced into 3 sub-passes
+- **Pass 5a** — HR + Safety + PM (the 3 most operationally adjacent portals; 9 articles)
+- **Pass 5b** — Shop + Dispatch (operational/asset portals; 6 articles)
+- **Pass 5c** — Admin (operator-internal; 3 articles, EN-only by intent)
+- Each sub-pass follows the Field Leadership template: identity article + onboarding + login troubleshooting, all public-scope so pre-login discoverability works, all translated to Spanish for the public/field-adjacent portals (HR/Safety/Shop/Dispatch/PM), admin EN-only.
+
+---
+
 ## 2026-05-18 — Pass 4 · Field Leadership Operational Identity · ✅ DELIVERED (preview only)
 
 Pass 4 of the Operational Inventory initiative — Field Leadership is now a **first-class operational portal**, not a shared/hidden lane. This is the operational identity, not just a route.

@@ -556,6 +556,65 @@ def compute_drift() -> dict:
                 "fix_pass": "Pass 5 — persona onboarding",
             })
 
+    # 6. iter201 — Operational identity consistency (governance rule)
+    # Every protected portal must carry the same identity triple Field
+    # Leadership got in Pass 4:
+    #   • onboard-<persona>-first-week    (public scope, pre-login readable)
+    #   • tshoot-<persona>-login          (public scope, pre-login readable)
+    #   • portal-<persona>-identity       (public scope — "what does this portal do?")
+    #
+    # This catches the maturity drift the operator surfaced after Pass 4:
+    # one portal having a mature operational identity while the others
+    # still feel hidden/incidental is itself a governance gap. Public
+    # scope is required because field crews / new hires / contractors
+    # often discover a portal BEFORE they have credentials.
+    PORTAL_PERSONAS = {
+        "hr":         "hr",
+        "safety":     "safety",
+        "shop":       "shop",
+        "dispatch":   "dispatch",
+        "pm":         "pm",
+        "admin":      "admin",
+        "leadership": "leadership",
+    }
+    article_ids = {a["id"] for a in _ARTICLES}
+    public_article_ids = {a["id"] for a in _ARTICLES if "public" in (a.get("scopes") or [])}
+    for portal_key, persona_slug in PORTAL_PERSONAS.items():
+        identity_triple = {
+            "onboarding":   f"onboard-{persona_slug}-first-week",
+            "troubleshoot": f"tshoot-{persona_slug}-login",
+            "identity":     f"portal-{persona_slug}-identity",
+        }
+        missing_articles: list[str] = []
+        missing_public: list[str] = []
+        for kind, aid in identity_triple.items():
+            if aid not in article_ids:
+                missing_articles.append(aid)
+            elif aid not in public_article_ids:
+                # Article exists but isn't public-scoped — can't be read
+                # pre-login, defeating the discoverability intent.
+                missing_public.append(aid)
+        if not missing_articles and not missing_public:
+            continue  # this portal is fully consistent — no drift
+        # Admin gets a softer severity — its "first-week" arrives via HR,
+        # not a public article. Same triple, lower priority.
+        severity = "p2" if portal_key == "admin" else "p1"
+        details: list[str] = []
+        if missing_articles:
+            details.append(f"missing: {', '.join(missing_articles)}")
+        if missing_public:
+            details.append(f"not public-scope: {', '.join(missing_public)}")
+        items.append({
+            "severity": severity,
+            "category": "portal-identity-incomplete",
+            "subject": portal_key,
+            "message": (
+                f"Portal {portal_key} is missing the operational-identity triple "
+                f"(onboard / tshoot / identity). " + " · ".join(details)
+            ),
+            "fix_pass": "Pass 5 — operational identity consistency",
+        })
+
     # Aggregate counts
     by_severity = {"p0": 0, "p1": 0, "p2": 0}
     for it in items:
