@@ -140,6 +140,15 @@ export default function PoRequests() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
+        {/* iter242 — Authority-boundary clarification banner. Field
+            Leadership submits the request; PM / Co-PMs / HR / Admin
+            issue the official PO. Visible to PM-role users (covers
+            primary PM AND any Co-PMs on the job), HR, and Admin. */}
+        <div className="bg-amber-50 border-l-4 border-amber-400 text-amber-900 text-[12px] sm:text-[13px] rounded-md px-3 py-2 mb-5 leading-snug" data-testid="po-authority-banner">
+          <span className="font-bold uppercase tracking-wide text-[10px] sm:text-[11px] block mb-0.5">Authority &amp; Visibility</span>
+          Field Leadership submits purchase <strong>requests</strong>. The assigned PM, any Co-PMs on the job, HR, and Admin issue the official PO and assign the PO number. After purchase, the requester uploads receipts here.
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <SummaryTile label="Pending Approval" value={summary.pending_approval ?? 0} icon={ClipboardCheck} accent="blue" />
           <SummaryTile label="Pending Receipt"  value={summary.pending_receipt ?? 0}  icon={Receipt}        accent="indigo" />

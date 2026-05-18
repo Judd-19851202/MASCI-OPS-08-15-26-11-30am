@@ -171,9 +171,23 @@ async def _audit_push(db, po_id: str, action: str,
 
 async def _fan_out_task(db, po: Dict[str, Any], kind: str,
                          priority: str = "Medium",
-                         assignee_role: str = "leadership") -> None:
-    """Helper to emit task via Phase A service."""
-    from routes.tasks_notifications import task_service  # noqa: PLC0415
+                         assignee_role: str = "leadership",
+                         cc_roles: Optional[List[str]] = None) -> None:
+    """Helper to emit task via Phase A service.
+
+    iter242 — ``cc_roles`` adds *visibility-only* notifications to additional
+    roles WITHOUT creating duplicate tasks. The primary task ownership stays
+    with ``assignee_role`` (so the approval queue doesn't double-count), but
+    the listed cc roles get a parallel notification in their bell feed.
+
+    Operational use:
+      * ``approval_needed`` — primary task owned by ``pm`` (which covers the
+        assigned PM AND any Co-PMs on the job, because both are
+        ``pm``-role users). ``cc_roles=["hr"]`` so HR also sees the
+        approval request in their bell feed. Admin sees everything by
+        virtue of cross-portal visibility.
+    """
+    from routes.tasks_notifications import task_service, notification_service  # noqa: PLC0415
     titles = {
         "approval_needed": f"PO needs approval: {po.get('po_number') or po.get('id')[:8]}",
         "receipt_missing": f"Receipt missing for {po.get('po_number')}",
@@ -184,10 +198,12 @@ async def _fan_out_task(db, po: Dict[str, Any], kind: str,
         "receipt_missing": f"PO {po.get('po_number')} approved on {po.get('approved_at')} — receipt not yet uploaded.",
         "clarification_needed": f"PM/HR/Admin requested clarification on PO {po.get('po_number') or po.get('id')[:8]}.",
     }
+    title = titles.get(kind, kind)
+    desc = descs.get(kind, "")
     try:
         await task_service.create(db, {
-            "title": titles.get(kind, kind),
-            "description": descs.get(kind, ""),
+            "title": title,
+            "description": desc,
             "source_module": "po.requests" if kind != "receipt_missing" else "po.receipts",
             "source_record_id": po.get("id"),
             "linked_project_number": po.get("project_number"),
@@ -199,6 +215,26 @@ async def _fan_out_task(db, po: Dict[str, Any], kind: str,
         })
     except Exception as e:  # pragma: no cover
         logger.warning("PO task fan-out failed: %s", e)
+    # iter242 — Parallel visibility notifications for cc_roles. These do
+    # NOT create duplicate tasks; they only push a bell-feed notification
+    # so the role can see + act on the underlying PO via existing
+    # approval endpoints (HR is already in `_can_approve`).
+    for cc_role in (cc_roles or []):
+        if cc_role == assignee_role:
+            continue  # primary fanout already covers this role
+        try:
+            await notification_service.fanout(db, {
+                "type": "po.approval_visibility",
+                "title": title,
+                "message": desc[:200] if desc else None,
+                "severity": "Info" if priority in ("Low", "Medium") else "Warning",
+                "recipient_role": cc_role,
+                "linked_source_module": "po.requests",
+                "linked_source_record_id": po.get("id"),
+                "linked_project_number": po.get("project_number"),
+            })
+        except Exception as e:  # pragma: no cover
+            logger.warning("PO cc-role notification (%s) failed: %s", cc_role, e)
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -505,11 +541,17 @@ def build_po_requests_router(
         }
         await db.po_requests.insert_one(po)
 
-        # Fan-out approval task via Phase A
+        # Fan-out approval task via Phase A.
+        # iter242 — Task ownership stays with "pm" (which covers the
+        # assigned PM AND any Co-PMs on the job — both are pm-role users).
+        # `cc_roles=["hr"]` pushes a parallel visibility-only notification
+        # so HR also sees the approval request in their bell feed.
+        # Admin sees everything by virtue of cross-portal visibility.
         priority = "Critical" if body.urgency == "Emergency" else (
             "High" if body.urgency == "Urgent" else "Medium")
         await _fan_out_task(db, po, "approval_needed",
-                             priority=priority, assignee_role="pm")
+                             priority=priority, assignee_role="pm",
+                             cc_roles=["hr"])
         return _strip(po)
 
     @router.post("/api/po-requests/{po_id}/approve")
@@ -693,9 +735,11 @@ def build_po_requests_router(
         }})
         await _audit_push(db, po_id, "clarification_response", actor,
                           {"response": body.response})
-        # Re-fan an approval task for PM
+        # Re-fan an approval task (PM owns, HR receives visibility-only
+        # notification — iter242 authority-boundary clarification).
         await _fan_out_task(db, existing, "approval_needed",
-                            priority="High", assignee_role="pm")
+                            priority="High", assignee_role="pm",
+                            cc_roles=["hr"])
         return await get_po(po_id, actor=actor)
 
     @router.post("/api/po-requests/{po_id}/close")

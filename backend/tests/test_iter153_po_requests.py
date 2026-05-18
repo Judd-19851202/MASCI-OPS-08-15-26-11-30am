@@ -358,3 +358,77 @@ def test_offboarding_summary_includes_open_pos(admin_token, leadership_token):
     assert "open_pos_count" in body
     assert isinstance(body["open_pos"], list)
     assert isinstance(body["open_pos_count"], int)
+
+
+
+# ── iter242 · Authority-boundary clarification ───────────────────────
+#
+# Field Leadership submits the request; PM (incl. Co-PMs by role) owns
+# the approval TASK; HR receives a parallel visibility-only NOTIFICATION
+# so the HR portal bell feed surfaces it. Admin sees everything.
+def test_iter242_po_submission_emits_hr_visibility_notification(
+    admin_token, leadership_token,
+):
+    """A new PO request fan-out should:
+    1. Create a Task with assignee_role='pm'   (existing behavior — guarded by an earlier test)
+    2. Additionally emit a Notification with recipient_role='hr' so HR can act on it
+    Admin sees both via cross-portal visibility."""
+    payload = {
+        "project_number": f"{TAG}-iter242",
+        "vendor": f"{TAG}-iter242-vendor",
+        "description": f"{TAG} iter242 authority-boundary check",
+        "estimated_amount": 75.00,
+        "category": "Materials",
+        "urgency": "Normal",
+    }
+    r = requests.post(
+        f"{BASE_URL}/api/po-requests", json=payload,
+        headers=_ldr_headers(leadership_token), timeout=20,
+    )
+    assert r.status_code == 200, r.text
+    po_id = r.json()["id"]
+
+    # Give fan-out a beat to land
+    time.sleep(1.2)
+
+    # 1) PM task exists (regression-guard for existing behavior)
+    tasks = requests.get(
+        f"{BASE_URL}/api/tasks?source_module=po.requests&limit=200",
+        headers=_adm_headers(admin_token), timeout=20,
+    ).json().get("items", [])
+    pm_tasks = [
+        t for t in tasks
+        if t.get("linked_po_id") == po_id and t.get("assignee_role") == "pm"
+    ]
+    assert pm_tasks, (
+        f"iter242 regression: PM task missing for po_id={po_id} — "
+        f"approval ownership broken."
+    )
+
+    # 2) HR visibility notification exists (NEW iter242 behavior)
+    notifs = requests.get(
+        f"{BASE_URL}/api/notifications?recipient_role=hr&limit=200",
+        headers=_adm_headers(admin_token), timeout=20,
+    ).json().get("items", [])
+    hr_notifs = [
+        n for n in notifs
+        if n.get("linked_source_record_id") == po_id
+        and n.get("recipient_role") == "hr"
+    ]
+    assert hr_notifs, (
+        "iter242: expected HR to receive a visibility-only notification "
+        f"for the new PO request po_id={po_id}, but none was found. HR "
+        "is in `_can_approve` so they must see the request in their bell."
+    )
+    n = hr_notifs[0]
+    assert n.get("type") == "po.approval_visibility", n
+    # No duplicate task should exist for HR — visibility-only, not duplicate workload
+    hr_tasks = [
+        t for t in tasks
+        if t.get("linked_po_id") == po_id and t.get("assignee_role") == "hr"
+    ]
+    assert not hr_tasks, (
+        "iter242: HR must NOT receive a duplicate approval Task. "
+        "Visibility-only via notification. Found: "
+        f"{[t.get('id') for t in hr_tasks]}"
+    )

@@ -1,5 +1,94 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter242 · PO Request authority-boundary clarification · ✅ DELIVERED (preview only)
+
+Operator-surfaced operational governance correction. Field Leadership UI/workflow was unintentionally implying that field supervisors could **create official Purchase Orders**, when the real authority chain is:
+
+- **Field Leadership** submits PO _requests_, uploads receipts after purchase, documents field spending
+- **PM + Co-PMs + HR + Accounting/Admin** approve requests, issue the official PO, and assign the PO number
+
+The pre-iter242 audit found the backend already had the right authority model in place (`_can_approve = pm | hr | admin`, manual PO numbers from accounting can override `po_number_source ∈ {generated, manual}`, separate receipt-upload lifecycle). The fixes needed were narrower than the directive implied.
+
+### 3 surgical fixes shipped
+
+**1 · Terminology correction — `FieldLeadershipHub.jsx`**
+| Before | After |
+|---|---|
+| EN: "Submit purchase orders from the field, track approvals, upload receipts..." | "Submit purchase **requests** from the field for PM, Co-PM, HR, or Accounting approval — **they issue the official PO**. After purchase, upload receipts (camera supported) and respond to clarification requests." |
+| ES: "Envía órdenes de compra desde el campo..." | "Envía **solicitudes de compra** desde el campo para que el PM, Co-PM, RH o Contabilidad las aprueben — **ellos emiten la OC oficial.**" |
+| Group-05 subtitle EN: "Submit PO requests, upload receipts..." | "Submit purchase requests, upload receipts... **The assigned PM, any Co-PMs, HR, and Admin issue the official PO.**" |
+| Group-05 subtitle ES: equivalent ES revision | "El PM asignado, los Co-PMs, RH y Admin emiten la OC oficial." |
+| Tile title ES "Solicitudes y Recibos de OC" | "Solicitudes de OC y Recibos" (cleaner Spanish ordering) |
+
+**2 · HR notification fan-out — `backend/routes/po_requests.py`**
+Extended `_fan_out_task()` with an optional `cc_roles: List[str]` parameter that emits a parallel **visibility-only Notification** (NOT a duplicate Task) per cc-role. Both `approval_needed` callsites (initial submission + post-clarification resubmit) now pass `cc_roles=["hr"]`, so:
+
+- **Primary Task** owned by `assignee_role="pm"` — appears in PM bell + PM task queue. Because `pm` is a role bucket, both the **assigned primary PM AND any Co-PMs** on the project receive this notification automatically (operator's specific Co-PM directive).
+- **HR Notification** (no duplicate Task) — appears in HR bell so HR can act on the request via existing `/api/po-requests/{po_id}/approve` (HR is already in `_can_approve`).
+- **Admin** sees both via cross-portal visibility (unchanged).
+
+This is a workflow-OWNERSHIP correction, not an architecture change. HR is now a visible participant in the approval chain without creating duplicate workload.
+
+**3 · Explicit Co-PM coverage — `PoRequests.jsx`**
+Added a quiet, restrained authority banner directly above the PO summary tiles:
+
+> **AUTHORITY & VISIBILITY** — Field Leadership submits purchase **requests**. The assigned PM, any Co-PMs on the job, HR, and Admin issue the official PO and assign the PO number. After purchase, the requester uploads receipts here.
+
+This makes the authority separation literally readable in the UI for every user who opens the page (Field Leadership, PMs, HR, Admin). Co-PM coverage is now explicit in both code (`pm_routing.py` already supports it) AND in the user-facing copy.
+
+### Architecture invariants preserved (deliberately not touched)
+- ❌ NOT touched: PO numbering scheme (`MASCI-PO-YY-MM-NNN`, manual override from accounting)
+- ❌ NOT touched: `_can_approve` permission set (already `pm | hr | admin`)
+- ❌ NOT touched: receipt-upload-after-purchase linkage (already `linked_po_id`-tied)
+- ❌ NOT touched: task service architecture
+- ❌ NOT touched: collections / endpoints / approval queues
+- ❌ NOT touched: iter238 email subject system
+
+### Files touched (4 surgical edits)
+- MOD: `frontend/src/pages/FieldLeadershipHub.jsx` — 2 tile-copy edits (EN + ES title/desc + group-05 subtitle)
+- MOD: `frontend/src/pages/PoRequests.jsx` — added authority banner above summary tiles
+- MOD: `backend/routes/po_requests.py` — `_fan_out_task` extended with `cc_roles` param + both approval-needed callsites pass `cc_roles=["hr"]` + iter242 docstring + inline code comments
+- NEW (extends existing file): `backend/tests/test_iter153_po_requests.py::test_iter242_po_submission_emits_hr_visibility_notification` — regression test asserting (a) PM task is created, (b) HR notification is created, (c) HR does NOT get a duplicate Task
+- MOD: `memory/PRD.md` (this entry)
+
+### Verification
+- ✅ Backend regression: 19/19 PO request tests pass (was 18, +1 iter242)
+- ✅ Pre-deploy gate: **APPROVE** · MEDIUM risk · NOT auth-sensitive · NOT data-sensitive · NOT rollback-sensitive · affected portals: field-leadership + public
+- ✅ Live preview (authenticated as Leadership in ES):
+  - "solicitudes de compra desde el campo" rendered
+  - "el PM, Co-PM, RH o Contabilidad las aprueben" rendered
+  - "El PM asignado, los Co-PMs" rendered
+  - Old wording "órdenes de compra desde el campo" — GONE from DOM
+- ✅ Lint clean (Python + JS)
+
+### Operational summary
+The platform now correctly communicates the authority boundary:
+- Field Leadership = **requester + receipt uploader**
+- PM + Co-PMs = **primary approval ownership** (task)
+- HR = **visibility participant** in the approval chain (bell notification, can act via existing `_can_approve`)
+- Admin = **catch-all visibility + override** (unchanged)
+
+🟢 Preview only · gate APPROVE · awaiting operator deploy decision.
+
+### Next Action Items
+- ⏸ Operator review of iter242 batch · gate APPROVE verdict
+- ⏸ Save to Github → Deploy on mascidocs.com
+- ⏸ Resume stabilization/observation posture
+
+### Future / Backlog (unchanged · all deferred per stabilization posture)
+- 🟡 Future · Deep-portal localization sweep (~544 strings · iter241 backlog)
+- 🟡 Future · Lesson-level `title_es` content-data localization
+- 🟡 Future · Long legal-page paragraph translation (lawyer-reviewed)
+- Phase K4b · Unified User Management UI mutations (P2)
+- Phase K5 · Temp Password / Onboarding standardization (P2)
+- Stage B.1 · Owner Snapshot PDF (P2)
+- Static orientation surfaces (P2 · iter231)
+- Held · HelpTip helpfulness pulse telemetry
+- Strategic Hold · Operator mid-day-defect architectural decision
+
+---
+
+
 ## 2026-05-18 — iter241b · ES localization continuity — second pass (operator-surfaced miss) · ✅ DELIVERED (preview only)
 
 **Operator caught a real miss.** After iter241a closed `/guidance`, `/training`, and footer link primitives, the "Operational Guidance Center" button at the bottom of the hub homepage was still showing in English in ES mode. The operator (rightly) asked: *"If you missed that what else did you miss?"*

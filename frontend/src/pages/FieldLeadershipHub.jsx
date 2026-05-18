@@ -59,11 +59,15 @@ const FL_EXTERNAL_TILES = {
     accent: "amber",
     title: {
       en: "PO Requests & Receipts",
-      es: "Solicitudes y Recibos de OC",
+      es: "Solicitudes de OC y Recibos",
     },
     desc: {
-      en: "Submit purchase orders from the field, track approvals, upload receipts (camera supported), and respond to clarification requests.",
-      es: "Envía órdenes de compra desde el campo, sigue aprobaciones, sube recibos (con cámara) y responde aclaraciones.",
+      // iter242 — Operational authority clarification. Field Leadership
+      // REQUESTS purchases. PM / Co-PMs / HR / Accounting issue the
+      // official PO and assign the PO number. Receipt upload after
+      // purchase is correct Field Leadership scope.
+      en: "Submit purchase requests from the field for PM, Co-PM, HR, or Accounting approval — they issue the official PO. After purchase, upload receipts (camera supported) and respond to clarification requests.",
+      es: "Envía solicitudes de compra desde el campo para que el PM, Co-PM, RH o Contabilidad las aprueben — ellos emiten la OC oficial. Después de la compra, sube los recibos (compatible con cámara) y responde a las solicitudes de aclaración.",
     },
   },
 };
@@ -102,8 +106,13 @@ const GROUPS = [
   {
     kicker: "05",
     title: { en: "Operations & Spending", es: "Operaciones y Gastos" },
-    subtitle: { en: "Submit PO requests, upload receipts, respond to clarifications, and track spending tied to your jobs.",
-                es: "Envía solicitudes de orden de compra, sube recibos, responde aclaraciones y haz seguimiento de gastos." },
+    // iter242 — Authority clarification copy. Field Leadership submits
+    // PO _requests_ (not official POs). Issuance + PO number assignment
+    // belongs to PM / Co-PMs / HR / Accounting. Visibility/notification
+    // already fans out to PM-role users (which includes both primary PM
+    // and Co-PMs) plus HR.
+    subtitle: { en: "Submit purchase requests, upload receipts, respond to clarifications, and track spending tied to your jobs. The assigned PM, any Co-PMs, HR, and Admin issue the official PO.",
+                es: "Envía solicitudes de compra, sube recibos, responde aclaraciones y haz seguimiento de gastos. El PM asignado, los Co-PMs, RH y Admin emiten la OC oficial." },
     kinds: ["po_requests"],
   },
 ];
