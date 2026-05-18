@@ -15,6 +15,7 @@ import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import { useT } from "@/lib/i18n";
 import { isSafety, getSafetyToken, getSafetyUser } from "@/lib/safetyAuth";
+import { usePageTitle } from "@/lib/usePageTitle";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -39,6 +40,7 @@ function KPI({ label, value, sub, accent = "cyan" }) {
 }
 
 export default function SafetyHub() {
+  usePageTitle("Safety · MASCI");
   const { t } = useT();
   const nav = useNavigate();
   const user = getSafetyUser();

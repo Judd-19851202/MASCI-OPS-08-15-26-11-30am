@@ -31,32 +31,47 @@ def foreman_day(page, wt: Walkthrough) -> None:
     page.goto(base + "/", wait_until="domcontentloaded", timeout=30_000)
     page.wait_for_timeout(1500)
     page.screenshot(path=wt.shot_path(), full_page=False)
-    # On the public hub, a foreman expects to see the Pre-Op tile and
-    # the Daily Report tile within thumb-reach (no horizontal scroll).
+    # iter219 refinement — recognize the legitimate /field aggregator
+    # IA pattern. The public hub intentionally routes through /field
+    # (the field-tools aggregator) and /leadership (the supervisor
+    # entry), NOT direct /equipment/submit / /daily/submit deeplinks.
+    # First-screen reach for the FOREMAN means the /field tile is
+    # above the fold; from /field they have one tap to Pre-Op + DR.
     tiles = page.evaluate("""() => {
         const hits = {};
-        ['/equipment/submit', '/daily/submit', '/incidents/submit', '/leadership']
-          .forEach(href => {
-            const a = document.querySelector(`a[href="${href}"], a[href^="${href}"]`);
+        // /field is the aggregator; /leadership is the supervisor route.
+        // The Day-1 banner is a third valid above-the-fold target for
+        // a foreman who's also onboarding a new hire that morning.
+        ['/field', '/leadership', '#hub-day-one-start-here'].forEach(href => {
+            let a = null;
+            if (href.startsWith('#')) {
+                a = document.querySelector('[data-testid="' + href.slice(1) + '"]');
+            } else {
+                a = document.querySelector(`a[href="${href}"], a[href^="${href}"]`);
+            }
             if (a) {
                 const r = a.getBoundingClientRect();
                 hits[href] = {visible: r.top >= 0 && r.top < window.innerHeight, top: Math.round(r.top)};
             } else {
                 hits[href] = null;
             }
-          });
+        });
         return hits;
     }""")
-    if not tiles.get("/equipment/submit") or not tiles["/equipment/submit"].get("visible"):
+    field_tile = tiles.get("/field") or {}
+    if not field_tile.get("visible"):
         wt.note(
             "discoverability-gap",
-            "Pre-Op tile is not within first-screen reach on the public hub at 414px width.",
-            "Re-order the hub tiles so Pre-Op + Daily Report are above the fold for mobile foremen.",
+            "Field aggregator tile (gateway to Pre-Op + Daily Report) is not "
+            "within first-screen reach on the public hub at 414px width.",
+            "Re-check public-hub IA: /field should be the first BigTile in "
+            "the 'Today in the Field' section.",
         )
     else:
         wt.note(
             "positive-observation",
-            f"Pre-Op tile is in first-screen reach at y={tiles['/equipment/submit']['top']}px.",
+            f"/field aggregator tile is in first-screen reach at "
+            f"y={field_tile['top']}px — foreman has 1 tap to Pre-Op + DR.",
         )
 
     # ── 06:25 · First machine Pre-Op ───────────────────────────────

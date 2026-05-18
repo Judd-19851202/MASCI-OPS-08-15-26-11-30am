@@ -25,6 +25,7 @@ import { clearAllSessions } from "@/lib/sessionReset";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { paletteFor } from "@/lib/portalPalette";
+import { usePageTitle } from "@/lib/usePageTitle";
 
 const SHOP_PAL = paletteFor("shop");
 
@@ -35,6 +36,7 @@ const SHOP_PAL = paletteFor("shop");
  * incidents / dailies / meetings / inspections / settings.
  */
 export default function ShopHub() {
+  usePageTitle("Shop · MASCI");
   const { t } = useT();
   const navigate = useNavigate();
   const [items, setItems] = useState([]);

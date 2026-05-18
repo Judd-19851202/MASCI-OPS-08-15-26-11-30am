@@ -20,13 +20,26 @@ def superintendent_day(page, wt: Walkthrough) -> None:
     page.goto(base + "/leadership", wait_until="domcontentloaded", timeout=30_000)
     page.wait_for_timeout(2500)
     page.screenshot(path=wt.shot_path(), full_page=False)
-    # The leadership hub is the super's daily entry. Verify it's
-    # immediately legible (no "what is this place?" friction).
+    # iter219 — the leadership hub MUST signal its persona in the
+    # <title> tag (browser tabs · screen readers · QR-poster previews).
+    # Expect "Field Leadership · MASCI" (set via usePageTitle hook).
     page_title = page.evaluate("() => (document.title || '').toLowerCase()")
-    if "leadership" not in page_title and "field" not in page_title:
+    if "field leadership" in page_title:
+        wt.note(
+            "positive-observation",
+            f"Leadership hub <title> persona-tagged: {page_title!r}",
+        )
+    elif "leadership" in page_title or "masci" in page_title:
         wt.note(
             "unclear-wording",
-            f"Leadership hub <title> tag does not signal the persona — got: {page_title!r}.",
+            f"Leadership hub <title> contains 'leadership' or 'masci' but not "
+            f"the canonical 'Field Leadership · MASCI' string — got: {page_title!r}.",
+            "Verify usePageTitle hook is firing on /leadership.",
+        )
+    else:
+        wt.note(
+            "unclear-wording",
+            f"Leadership hub <title> does not signal the persona — got: {page_title!r}.",
             "Set a descriptive document.title for crew/super orientation.",
         )
 

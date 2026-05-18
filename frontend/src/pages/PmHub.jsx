@@ -15,6 +15,7 @@ import {
 import PmShell from "@/components/PmShell";
 import OperationsCenter from "@/components/OperationsCenter";
 import { api } from "@/lib/api";
+import { usePageTitle } from "@/lib/usePageTitle";
 
 const FORM_TILES = [
   { to: "/tasks",             icon: ClipboardCheck, title: "Tasks & Actions",     countKey: null,         sub: "Open · overdue · cross-portal", accent: "amber" },
@@ -67,6 +68,7 @@ function PmTile({ to, icon: Icon, title, count, sub, accent, testId }) {
 }
 
 export default function PmHub() {
+  usePageTitle("PM · MASCI");
   const [counts, setCounts] = useState({});
   const [loading, setLoading] = useState(true);
 

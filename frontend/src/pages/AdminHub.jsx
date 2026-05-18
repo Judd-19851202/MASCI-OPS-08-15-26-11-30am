@@ -14,6 +14,7 @@ import AdminKpiStrip from "@/components/AdminKpiStrip";
 import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import OperationsCenter from "@/components/OperationsCenter";
 import { getAdminToken } from "@/lib/adminAuth";
+import { usePageTitle } from "@/lib/usePageTitle";
 
 function SectionTile({ to, icon: Icon, label, desc, testId }) {
   return (
@@ -37,6 +38,7 @@ function SectionTile({ to, icon: Icon, label, desc, testId }) {
 }
 
 export default function AdminHub() {
+  usePageTitle("Admin Console · MASCI");
   // The Overview tile excludes itself.
   const tiles = SECTIONS.filter((s) => s.key !== "overview");
 

@@ -35,6 +35,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { SectionTile } from "@/components/SectionTile";
+import { usePageTitle } from "@/lib/usePageTitle";
 import {
   getLeadershipToken,
   loginLeadership,
@@ -244,6 +245,7 @@ function resolveForm(kind) {
 }
 
 export default function FieldLeadershipHub() {
+  usePageTitle("Field Leadership · MASCI");
   const { t, lang } = useT();
   const navigate = useNavigate();
   const [authed, setAuthed] = useState(

@@ -1,6 +1,69 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter219 · Portal Title Persona-Tagging + Foreman Walkthrough Refinement · ✅ DELIVERED (preview only)
+
+Small-scope operational-polish iter that lands the **very clean operational baseline** the operator named: **5 actionable walkthrough findings remaining, all strategic/scaffolded, zero genuine coaching gaps.**
+
+### Two mechanical fixes
+**1. Portal `<title>` persona-tagging.** Every portal hub was rendering the generic "MASCI Operations Platform" `<title>` tag, hurting orientation across browser tabs, QR-poster previews, screen readers, and supers walking up to someone's desk.
+- New `usePageTitle` hook in `frontend/src/lib/usePageTitle.js` — sets `document.title` on mount, restores on unmount
+- Applied to 7 portal hubs with persona-canonical titles:
+  - `FieldLeadershipHub.jsx` → "Field Leadership · MASCI"
+  - `HrHub.jsx` → "HR · MASCI"
+  - `SafetyHub.jsx` → "Safety · MASCI"
+  - `PmHub.jsx` → "PM · MASCI"
+  - `ShopHub.jsx` → "Shop · MASCI"
+  - `DispatchHub.jsx` → "Dispatch · MASCI"
+  - `AdminHub.jsx` → "Admin Console · MASCI"
+- Public `Hub.jsx` intentionally NOT persona-tagged — it IS the platform; the index.html generic `<title>` stays authoritative
+
+**2. Foreman walkthrough discoverability check refined.** The iter217 check looked for direct `/equipment/submit` and `/daily/submit` deeplinks on the public hub, but the legitimate IA uses `/field` as the aggregator. The original "Pre-Op tile below the fold" finding was a false positive — the `/field` aggregator IS above the fold; from there it's one tap to Pre-Op + Daily Report. The walkthrough now correctly recognizes the aggregator pattern. The superintendent walkthrough's `<title>` check was also upgraded to expect the new persona-tagged scheme and emit `positive-observation` instead of `unclear-wording` when it lands.
+
+### Walkthrough deltas (third self-validating loop iteration)
+| Persona | Before iter218 | After iter218 | After iter219 |
+|---|---|---|---|
+| Foreman | 1 actionable | 1 actionable (false positive) | **0 actionable** ✅ |
+| Superintendent | 5 actionable | 1 actionable (`<title>`) | **0 actionable** ✅ |
+| Operator | 1 | 1 (mid-day defect · strategic hold) | 1 (strategic, held) |
+| Dispatcher | 4 | 0 | 0 ✅ |
+| Laborer | 2 | 1 (foreman-tablet doc note) | 1 (doc note) |
+| HR / Safety / PM scaffolds | 3 frictions | 3 frictions | 3 frictions |
+| **Total actionable** | **16** | **7** | **5** |
+| **Positive observations** | **13** | **15** | **17** |
+
+**Cumulative delta: 16 → 5 actionable findings (-69% across iter218+iter219).**
+
+The 5 remaining items are:
+- 1 strategic architectural decision (operator mid-day-defect — operator-stated hold)
+- 3 known scaffolded persona placeholders (HR, Safety, PM walkthroughs)
+- 1 documented architecture note (Day-1 laborer + foreman-tablet checkout model)
+
+**No coaching authoring gaps remain.**
+
+### Backend regression
+- New: `test_iter219_portal_titles_and_discoverability.py` — 12 passed (usePageTitle API · 7 hub persona-title parametrized checks · public hub correctly NOT persona-tagged · static index.html keeps generic title · foreman walkthrough refinement · super walkthrough title-check upgrade)
+- Full iter21x suite: 217 passed · 1 expected skip
+- Public-hub Day-1 banner re-screenshot verified at 414px (amber callout, above the fold)
+
+### Files touched
+- NEW: `frontend/src/lib/usePageTitle.js`
+- NEW: `backend/tests/test_iter219_portal_titles_and_discoverability.py` (12 tests)
+- MOD: 7 portal hub pages (`FieldLeadershipHub`, `HrHub`, `SafetyHub`, `PmHub`, `ShopHub`, `DispatchHub`, `AdminHub`)
+- MOD: `walkthroughs/foreman.py` (aggregator-IA recognition)
+- MOD: `walkthroughs/superintendent.py` (persona-tagged title acceptance)
+- MOD: `memory/PRD.md`
+
+🔵 Preview only. No production push.
+
+### Strategic items deliberately HELD (not touched in mini-iter219)
+- **Operator mid-day-defect surface decision** — affects operational escalation culture, field communication expectations, accountability routing, real-time defect ownership. Treated as a deliberate future operational architecture decision per operator directive, NOT a quick patch.
+- **HR / Safety / PM persona walkthrough fleshing** — queued for a future iter when those persona observability passes are scheduled.
+- **Translation consistency close-out** — HR/PM/Safety/Dispatch/Shop login body copy.
+
+The operational baseline is now genuinely clean. Walkthrough-driven editorial loop has proven itself across three full cycles.
+
+---
 ## 2026-05-18 — iter218 · Self-Validating Editorial Loop · Close iter217 Walkthrough P0 Gaps · ✅ DELIVERED (preview only)
 
 First full demonstration of the iter217 self-validating editorial loop: walkthrough surfaced gaps → author the coaching → re-run the walkthrough → watch the actionable-finding count drop. **Validated: 16 → 7 actionable findings (-56% reduction).** Of the 7 remaining, 3 are scaffolded-not-implemented placeholders (known) and 4 are documentation/architecture observations, NOT coaching authoring gaps. **The iter217 coaching-gap backlog is now zero.**

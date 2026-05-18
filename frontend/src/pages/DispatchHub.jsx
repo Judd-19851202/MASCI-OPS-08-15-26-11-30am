@@ -24,10 +24,12 @@ import DispatchIntegrationsTab from "@/components/DispatchIntegrationsTab";
 import { clearDispatchToken, getDispatchUser } from "@/lib/dispatchAuth";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { paletteFor } from "@/lib/portalPalette";
+import { usePageTitle } from "@/lib/usePageTitle";
 
 const DISPATCH_PAL = paletteFor("dispatch");
 
 export default function DispatchHub() {
+  usePageTitle("Dispatch · MASCI");
   const nav = useNavigate();
   const [tab, setTab] = useState("overview");
   const user = getDispatchUser() || {};

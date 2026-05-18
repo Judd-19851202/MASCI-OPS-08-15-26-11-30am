@@ -16,6 +16,7 @@ import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import OperationsCenter from "@/components/OperationsCenter";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
+import { usePageTitle } from "@/lib/usePageTitle";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { paletteFor } from "@/lib/portalPalette";
 
@@ -64,6 +65,7 @@ const TILES = [
 ];
 
 export default function HrHub() {
+  usePageTitle("HR · MASCI");
   const { t } = useT();
   const nav = useNavigate();
   const user = getHrUser();
