@@ -1,6 +1,80 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter217 · Operator-Flow Walkthrough Framework · ✅ DELIVERED (preview only)
+
+Lightweight, **editorial-tool** walkthrough framework that simulates real persona days through the platform and emits typed findings as the coaching-refinement backlog. Built strictly to the operator's directives: lightweight · operational · realistic · field-authentic · NOT analytics · NOT telemetry · NOT a "dashboard." No new Mongo collections; no engagement metrics; no production observers.
+
+### Architecture (`/app/walkthroughs/`)
+- `_runner.py` — `Walkthrough` class (typed finding emitter, screenshot orchestrator) + `run()` Playwright bootstrap. The finding vocabulary (`FINDING_KINDS`) is locked: friction, missing-coaching, weak-tip, unclear-wording, discoverability-gap, mobile-clipping, workflow-confusion, no-escalation-path, voice-drift, positive-observation.
+- 8 persona scripts (one per operator-priority persona, in operator-stated order):
+  - **Fully scripted** (`foreman`, `superintendent`, `operator`, `dispatcher`, `laborer`)
+  - **Scaffolded** with day-skeleton ready (`hr`, `safety`, `pm`)
+- `aggregate_findings.py` — collates every `{persona}_findings.json` into `_backlog.json`, sorted by kind-priority then persona-priority. Editorial workflow's single read target.
+- `README.md` — anti-pattern guardrails so the framework can't drift into analytics scope.
+
+### First walkthrough pass — 29 findings (16 actionable · 13 positive)
+
+**Tally:** missing-coaching=4 · unclear-wording=1 · workflow-confusion=1 · discoverability-gap=6 · friction=4 (3 = scaffolded placeholders) · positive=13.
+
+**Real coaching-refinement backlog surfaced for the first time:**
+
+🔴 **Tier-2 reviewer-side coaching gaps (P0 editorial)**
+- `superintendent / leadership records list` — supers reviewing crew filings get no reviewer-side coaching (what to look for · when to push back · when to escalate)
+- `superintendent / crew_eval` form — has no coaching surface at all (neither HelpTip nor legacy WhyItMattersPanel)
+- `dispatcher / Idle Alerts tab` — high-value opportunistic-transfer surface lacks operational coaching
+- `dispatcher / Holds tab` — coordination-with-Safety/Shop workflow ambiguous for new dispatchers
+
+🟡 **Discoverability gaps (P1 layout)**
+- `foreman / 06:15 yard arrival` — Pre-Op tile is NOT within first-screen reach at 414px width (the #1 daily action requires a scroll)
+- `laborer / 06:15 QR landing` — public hub has no obvious "new here / first week / start here" entry point for a Day-1 employee
+- `superintendent / 05:50 leadership hub` — `<title>` tag is generic ("MASCI Operations Platform"), no persona-orienting signal
+
+🟡 **Workflow confusion (P1)**
+- `operator / 11:00 mid-day defect` — no dedicated "flag this unit" surface. Operator might submit a redundant Pre-Op, an inappropriate Incident, or wait until EOD.
+
+✅ **Positive realism anchors verified end-to-end:**
+- iter211 Pre-Op "4 coaching tips available · tap to expand" counter renders for foreman + new-hire
+- iter211 preop.signoff "pressure-to-sign" escalate tip is live at the operator's signature
+- iter212 Equipment Checkout 4 canonical tips visible
+- iter213 Time Verification top+discrepancy blocks both render (HR persona)
+- iter214 Write-Up "conversation comes first" anchor is preserved (the iter214 voice DNA survived the live UI)
+- iter209 Daily Report exposes 6 HelpTip blocks at the EOD step
+- iter215 `daily-report.materials` deepening verified: renders 9 tips end-to-end
+- iter216 `dispatch.transfers` block above the fold at y=401px in the Dispatcher Transfers tab
+- iter202 PortalLoginHelp triple visible to a super arriving at Safety login without an account
+
+### Backend regression
+- New: `test_iter217_walkthrough_smoke.py` (14 passed · 1 skip) — verifies framework structure, finding-vocabulary stability, persona-priority-order matches operator directive, runner constructs cleanly. Optional `RUN_WALKTHROUGHS=1` env-flag runs the foreman script end-to-end in CI.
+- Full suite: **621/621 passing** (14 graceful chromium skips).
+
+### Files touched
+- NEW: `walkthroughs/_runner.py`, `walkthroughs/foreman.py`, `walkthroughs/superintendent.py`, `walkthroughs/operator.py`, `walkthroughs/dispatcher.py`, `walkthroughs/hr.py`, `walkthroughs/safety.py`, `walkthroughs/pm.py`, `walkthroughs/laborer.py`, `walkthroughs/aggregate_findings.py`, `walkthroughs/README.md`
+- NEW: `backend/tests/test_iter217_walkthrough_smoke.py`
+- NEW: `walkthrough_reports/` (gitignored output dir — screenshots + findings JSON)
+- INSTALL: chromium-headless-shell v1217 (`/pw-browsers/chromium_headless_shell-1217/`)
+- MOD: `memory/PRD.md`
+
+### Refinement backlog (queued, not implemented this session)
+
+P0 editorial — author tips for the gaps surfaced:
+1. `field-leadership.records` — reviewer-side coaching (what to look for · push-back patterns · escalate to PM/Safety)
+2. `crew_eval` — migrate from legacy WhyItMattersPanel to HelpTip engine; author the registry entries
+3. `dispatch.idle-alerts` — Tier-2 dispatcher coaching ("an idle unit while another job calls for the same model is a routing opportunity")
+4. `dispatch.holds` — Tier-2 dispatcher coaching (Safety/Shop coordination dance)
+
+P1 layout/discoverability:
+5. Re-order public-hub tiles so Pre-Op + Daily Report are above the fold at 414px
+6. Add a "Start here — first week" visible entry tile to public hub for Day-1 laborers
+7. Set persona-orienting `<title>` tags on portal hubs
+8. Decide on a mid-day defect surface OR add a `preop.mid-day` coaching block
+
+P2 walkthrough completion:
+9. Flesh out HR, Safety, PM persona walkthroughs (currently scaffolded)
+
+🔵 Preview only. No production push.
+
+---
 ## 2026-05-18 — iter212–216 · Contextual Operational Guidance Rollout · ✅ DELIVERED (preview only)
 
 Five-iteration rollout of the HelpTip Engine across the remaining 4 operator-priority surfaces (Equipment Checkout · Time Verification · Write-Ups · Material Requests · Dispatch Requests). All work strictly inherits the iter211 tone discipline (operational realism, field-leadership coaching voice, anti-OSHA / anti-corporate-HR / anti-MBA banlists) and adds positive-realism anchor tests so the cultural voice is load-bearing in the test suite.

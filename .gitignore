@@ -876,3 +876,6 @@ credentials.json
 *.key
 .credentials
 backend/backups/MASCI_full_backup_2026-05-18_105211Z.zip
+
+# iter217 — walkthrough screenshot + findings output (editorial artifact, not source)
+walkthrough_reports/
