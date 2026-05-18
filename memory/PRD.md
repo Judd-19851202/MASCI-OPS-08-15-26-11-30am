@@ -1,5 +1,61 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter240 · Full Hard-Use Readiness Audit · ✅ APPROVE — READY FOR HEAVY FIELD AND OFFICE USE
+
+Operator-directed comprehensive production-readiness audit. No code changes — verification, RBAC probing, mobile responsiveness measurement, and screenshot validation only. Full report: `/app/HARD_USE_READINESS_AUDIT_iter240.md`.
+
+### Headline numbers
+- ✅ **624 / 624** regression tests pass (1 skip · 0 failures)
+- ✅ **20 / 20** anon-RBAC probes returned 401 on protected portal surfaces (Safety · Admin · HR · PM · Dispatch · Shop · Field Leadership · Equipment Trends · Equipment Parts · Email Routing · Audit Log · System Health · Backups · Safety Users · Documents · Training Records · Fire Extinguishers · Corrective Actions · Overview · Me-checks)
+- ✅ **5 / 5** intended-public field forms returned 422 on empty-body POST (validator working · no 500s · no auth leaks)
+- ✅ **0px horizontal overflow** at every tested viewport (320 / 375 / 1920) across 16 user-facing surfaces
+- ✅ **0 JS console errors** across the probe sweep
+- ✅ **104 / 104** iter238 + iter237 + iter78c + iter117 + admin-auth + inspection email-subject tests pass
+- ✅ **0** visible "MASCI HUB" references on user-facing surfaces
+- ✅ **0** visible "Emergent" references on user-facing surfaces
+- ✅ Legacy URL `/inspect/new` correctly redirects to `/safety-portal/login?returnTo=/safety/inspections/new`
+- ✅ Pre-deploy gate verdict: **APPROVE** · MEDIUM risk · NOT auth-sensitive · NOT data-sensitive · NOT rollback-sensitive
+
+### Critical blockers
+**None.**
+
+### High-priority polish (non-blocking)
+1. `/sign-in` + portal-login surfaces still carry untranslated strings (P2 backlog · iter236) — Hub itself fully bilingual
+
+### Known acceptable limitations (documented · not blocking)
+- P2 · Phase K4b · Unified User Management UI mutations
+- P2 · Phase K5 · Temp Password / Onboarding standardization
+- P2 · Stage B.1 · Owner Snapshot PDF
+- P2 · Static orientation surfaces (iter231)
+- Held · HelpTip helpfulness pulse telemetry
+- Strategic Hold · Operator mid-day-defect architectural decision
+
+### Files created (audit only · no code changes)
+- NEW: `/app/HARD_USE_READINESS_AUDIT_iter240.md` — full structured readiness report
+- MOD: `memory/PRD.md` (this entry)
+
+### Final recommendation
+**MASCI Operations Platform is READY FOR HEAVY FIELD AND OFFICE USE.** Operator can confidently click Deploy.
+
+🟢 Preview verified · gate APPROVE · zero defects surfaced during audit.
+
+### Next Action Items
+- ⏸ Operator review iter240 audit report
+- ⏸ Save to Github → Deploy on mascidocs.com
+- ⏸ Resume stabilization-phase observation posture
+
+### Future / Backlog (unchanged)
+- 🟡 P2 · `/sign-in` + portal-login localization sweep
+- P2 · Phase K4b · Unified User Management UI mutations
+- P2 · Phase K5 · Temp Password / Onboarding standardization
+- P2 · Stage B.1 · Owner Snapshot PDF
+- P2 · Static orientation surfaces
+- Held · HelpTip helpfulness pulse telemetry
+- Strategic Hold · Operator mid-day-defect architectural decision
+
+---
+
+
 ## 2026-05-18 — iter239 · System-wide branding & legal continuity pass · ✅ DELIVERED (preview only)
 
 Operator-surfaced production-hardening pass. The codebase had drifted: most surfaces already say "MASCI Operations Platform", but the legal pages (TOS/Privacy) still **defined** the product as "MASCI HUB", a stale i18n dictionary still mapped "MASCI Hub" → "Centro MASCI", and one admin recovery page mentioned "Emergent" by name. Per operator directive: surgical refinement only, no architectural drift, preserve iter238 email formatting exactly.
