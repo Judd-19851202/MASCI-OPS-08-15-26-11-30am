@@ -48,6 +48,7 @@ import StatusBadge from "@/components/StatusBadge";
 import EmptyState from "@/components/EmptyState";
 import GlobalSearch from "@/components/GlobalSearch";
 import { LIFECYCLE_STATUS_TINTS } from "@/lib/statusBadges";
+import { HelpTipBlock } from "@/components/HelpTip";
 
 const STATUS_COLORS = LIFECYCLE_STATUS_TINTS;
 
@@ -114,6 +115,7 @@ export default function HrEmployees() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
+        <HelpTipBlock formKey="employee-lifecycle" showCounter />
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
           <SummaryTile label="Actively Employed" value={counts.active} icon={UserCheck} accent="emerald" />
           <SummaryTile label="Inactive / Off-roll" value={counts.inactive} icon={UserMinus} accent="slate" />

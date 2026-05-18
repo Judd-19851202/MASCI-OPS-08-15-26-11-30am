@@ -1,5 +1,175 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter225 · document-expirations Coaching Family · ✅ DELIVERED (preview only)
+
+Authored the **proactive-engagement coaching family** for the platform — the document-expirations surface that decides whether the company feels HUMAN or BUREAUCRATIC. Every row is somebody's CDL / medical card / OSHA-10 / first-aid cert. Coaching reinforces direct leadership engagement, accountability, operational respect, and proactive communication over passive bureaucracy.
+
+### Operator-stated load-bearing anchor (verbatim · test-enforced)
+
+| Anchor (verbatim in tip body/title) | Family | Type |
+|---|---|---|
+| **"Phone call beats email blast"** | `document-expirations.outreach` | title + body |
+| **"people, not paperwork"** framing of the top-level "why" | `document-expirations` (top why) | body |
+| **downstream cascade** (supervisor · dispatch · safety · owner) | `document-expirations` (top who) | body |
+| **"system problem, not a reminder problem"** | `document-expirations` (top escalate) | body |
+| **DOT medical card ≠ CDL** (separate expiration) | `document-expirations.cdl` | body |
+| **impact-over-date triage** (`stops work first, not by date`) | `document-expirations.triage` | body |
+| **weekly rhythm** (`same time, same sequence, every week`) | `document-expirations.cadence` | body |
+| Concrete phone-call script (named person · date · calendar block) | `document-expirations.outreach.example` | body |
+
+### Coverage
+- **5 form-key surfaces · 12 tips · EN+ES**
+  - `document-expirations` (canonical 4 — why/who/next/escalate)
+  - `document-expirations.outreach` (3 tips — why/mistake/example) ← anchor surface
+  - `document-expirations.cdl` (2 tips — why/mistake)
+  - `document-expirations.triage` (2 tips — why/mistake)
+  - `document-expirations.cadence` (1 tip — next)
+- Scope: **Tier-2 `hr` + `safety` + `admin`** (anon callers verified to see 0 tips; shop excluded — has its own asset-management voice)
+- Wired into `DocumentExpirations.jsx` above the summary tiles · counter "4 coaching tips available · tap to expand" visible
+
+### Self-validating loop · iter225 closure
+
+| Persona | Before iter225 | After iter225 | Delta |
+|---|---|---|---|
+| HR · actionable | 2 | **0** ✅ | -2 |
+| HR · positive-observation | 2 | 2 | unchanged |
+| Step 07 (`doc-expirations`) findings | 2 actionable (1 discoverability + 1 missing-coaching) | 0 ✅ | -2 |
+| Step 07 helptips rendered | 0 | **`helptip-block-document-expirations: 4`** | +4 |
+
+**HR walkthrough loop is now fully closed.** Zero actionable findings remain on the HR persona.
+
+### Cumulative HR self-validating loop · iter221→iter225
+| Iter | HR actionable | Cumulative Δ | What landed |
+|---|---|---|---|
+| iter221 (HR scaffold fleshed) | 10 | baseline | Real HR day-script + iter218 records-page surfacing |
+| iter222 | 8 | -2 | `time-off-review` family (12 tips) |
+| iter223 | 6 | -4 | `employee-accountability` family (12 tips) |
+| iter224 | 2 | -8 | `employee-lifecycle` family (12 tips) |
+| iter225 | **0** | **-10** | `document-expirations` family (12 tips) — **HR loop closed** |
+
+### Tests landed
+- New: `test_iter225_document_expirations_helptips.py` — **44 passed**:
+  - Seed count + canonical 4 + leaf surface coverage
+  - RBAC: strictly Tier-2 hr/safety/admin (no public, no shop, no dispatch); anon-blocked
+  - Bilingual + ≤80 EN / ≤90 ES word budget
+  - **Operator-stated anchor verbatim test**: "phone call beats email blast"
+  - Top-level "why" must frame as people / phone-call vs email-blast / name
+  - Top-level "who" must name ≥3 downstream-consequence roles (supervisor / dispatch / safety / employee / owner)
+  - Escalate must coach "system problem, not reminder problem"
+  - Outreach mistake must name auto-generated / repeat-send anti-pattern
+  - Outreach example must contain quoted script + concrete date
+  - CDL family must teach DOT medical card as separate expiration
+  - Triage family must coach impact-over-date judgment
+  - Cadence family must teach weekly rhythm + fixed-slot discipline
+  - **15 anti-legal-drift parametrized tests** (inherited iter222 firewall)
+  - Standard tone discipline (OSHA · corporate-HR · HR-legal-drift)
+  - **Motivational-fluff banlist** (iter224 inherited + extended for this surface): "committed to compliance" / "compliance journey" / "compliance excellence" added — compliance-branding is HR-branding wearing a different shirt
+  - Humanity-anchor sweep on each leaf surface
+  - Family-wide proactive-engagement reinforcement (≥5 of call/phone/talk/calendar/follow-up/confirm/appointment/schedule/rhythm)
+  - Static UI wiring check (DocumentExpirations.jsx → HelpTipBlock formKey="document-expirations")
+- iter21x + iter22x + iter224 + iter225: **408 passed · 1 skip** (was 364 · +44)
+- Tip registry: 179 → **191 tips** across 42 → **47 form-key surfaces**
+
+### Files touched
+- MOD: `backend/guidance/tips.py` (+12 tips · `document-expirations` family)
+- MOD: `backend/guidance/tips_es.py` (+12 ES translations)
+- MOD: `frontend/src/pages/DocumentExpirations.jsx` (HelpTipBlock wired above SummaryTile grid)
+- NEW: `backend/tests/test_iter225_document_expirations_helptips.py` (44 tests)
+- MOD: `memory/PRD.md`
+
+🔵 Preview only. No production push.
+
+### HR walkthrough milestone
+With iter225 closing the loop, the HR persona is the **first persona** with zero actionable walkthrough findings. The editorial/walkthrough refinement loop has now materially improved every operational moment in HR's day:
+  07:45 portal scan · 08:30 records review · 09:00 time verification · 10:15 paycheck-trust query · 11:30 new-hire onboarding · 13:30 time-off judgment · 14:30 document-expiration outreach.
+
+Per operator directive, the **Supervisor "first 14 days" coaching family** (approved in principle) is held until this HR milestone is operator-acknowledged.
+
+---
+
+## 2026-05-18 — iter224 · employee-lifecycle Coaching Family · ✅ DELIVERED (preview only)
+
+Authored the **highest long-term culture-shaping coaching family** in the platform — the new-hire onboarding moment. Per operator directive: belonging, preparedness, professionalism, operational readiness, respect for crew reliance, showing up prepared — landed through OPERATIONAL behavior signals (organized, named, expected, prepared, hand-off-by-phone), NOT through corporate-culture fluff, motivational language, or HR-branding tone.
+
+### Operator-stated load-bearing anchor (verbatim · test-enforced)
+
+| Anchor (verbatim in tip body/title) | Family | Type |
+|---|---|---|
+| **"Get it right and they hear about the company; get it wrong and they hear about the bureaucracy"** | `employee-lifecycle.first-impression` | title |
+| **"hear about the company"** + **"hear about the bureaucracy"** | `employee-lifecycle.first-impression` | body (verbatim phrase enforcement) |
+| **"first message the company sends"** framing of the top-level "why" | `employee-lifecycle` (top why) | body |
+| **supervisor + crew** as load-bearing Day-1 participants | `employee-lifecycle` (top who) | body |
+| **"uncomfortable but the form is asking you to click Submit anyway"** | `employee-lifecycle` (top escalate) | body |
+| **interrogation / border / screening** anti-pattern | `employee-lifecycle.documents` | body |
+| **paperwork-after-handshake** sequence | `employee-lifecycle.welcome` | body |
+| **phone / call / in-person** hand-off (not just text) | `employee-lifecycle.day-one` | body |
+
+### Coverage
+- **5 form-key surfaces · 12 tips · EN+ES**
+  - `employee-lifecycle` (canonical 4 — why/who/next/escalate)
+  - `employee-lifecycle.first-impression` (3 tips — why/mistake/example) ← anchor surface
+  - `employee-lifecycle.welcome` (2 tips — why/mistake)
+  - `employee-lifecycle.documents` (2 tips — why/mistake)
+  - `employee-lifecycle.day-one` (1 tip — next)
+- Scope: **Tier-2 `hr` + `admin` only** (anon callers verified to see 0 tips)
+- Wired into `HrEmployees.jsx` above the summary tiles · counter "4 coaching tips available · tap to expand" visible
+
+### Self-validating loop · iter224 closure
+
+| Persona | Before iter224 | After iter224 | Delta |
+|---|---|---|---|
+| HR · actionable | 4 | 2 | -2 ✅ |
+| HR · positive-observation | 2 | 2 | unchanged |
+| Step 05 (`new-hire-onboard`) findings | 2 actionable (1 discoverability + 1 missing-coaching) | 0 ✅ | -2 |
+| Step 05 helptips rendered | 0 | **`helptip-block-employee-lifecycle: 4`** | +4 |
+
+Only remaining HR gap is step 07 (`document-expirations`) — iter225 target.
+
+### Cumulative HR self-validating loop · iter221→iter224
+| Iter | HR actionable | Cumulative Δ | What landed |
+|---|---|---|---|
+| iter221 (HR scaffold fleshed) | 10 | baseline | Real HR day-script + iter218 records-page surfacing |
+| iter222 | 8 | -2 | `time-off-review` family (12 tips) |
+| iter223 | 6 | -4 | `employee-accountability` family (12 tips) |
+| iter224 | 2 | -8 | `employee-lifecycle` family (12 tips) |
+
+### Tests landed
+- New: `test_iter224_employee_lifecycle_helptips.py` — **43 passed**:
+  - Seed count + canonical 4 + leaf surface coverage
+  - RBAC: strictly Tier-2 hr/admin; anon-blocked
+  - Bilingual + ≤80 EN / ≤90 ES word budget
+  - **Operator-stated cultural anchor test** (verbatim phrase enforcement for "hear about the company" + "hear about the bureaucracy")
+  - Top-level "first message / first day" anchor test
+  - Top-level "supervisor + crew" hand-off anchor test
+  - Escalate-must-address-uncomfortable-submit-moment test
+  - Documents-leaf-must-name-interrogation-anti-pattern test
+  - Welcome-leaf-must-teach-handshake-before-paperwork-sequence test
+  - Day-one-leaf-must-coach-phone-handoff test
+  - First-impression-example-must-show-≥3-concrete-operational-signals test
+  - Family-must-subtly-reinforce-operational-professionalism test (≥5 concrete signals: organized, expected, prepared, professional, joining, supervisor, crew, ready)
+  - **15 anti-legal-drift parametrized tests** (inherited iter222 firewall)
+  - Standard tone discipline (OSHA · corporate-HR · HR-legal-drift)
+  - **NEW · motivational-fluff banlist** (welcome aboard / excited to have you / journey / passionate about / world-class) — operator-stated hard-stop against HR-branding tone
+  - Humanity-anchor sweep on each leaf surface
+  - Static UI wiring check (HrEmployees.jsx → HelpTipBlock formKey="employee-lifecycle")
+- iter21x + iter22x + iter224: **364 passed · 1 skip** (was 321 · +43)
+- Tip registry: 167 → **179 tips** across 37 → **42 form-key surfaces**
+
+### Files touched
+- MOD: `backend/guidance/tips.py` (+12 tips · `employee-lifecycle` family, EN dictionary — landed previous session)
+- MOD: `backend/guidance/tips_es.py` (+12 ES translations)
+- MOD: `frontend/src/pages/HrEmployees.jsx` (HelpTipBlock wired above SummaryTile grid)
+- NEW: `backend/tests/test_iter224_employee_lifecycle_helptips.py` (43 tests)
+- NEW: tooling — installed `playwright install chromium-headless-shell` (was missing in this pod)
+- MOD: `memory/PRD.md`
+
+🔵 Preview only. No production push.
+
+### Operator-decision queue (remaining)
+- Iter 225 (next · PAUSED for review): `document-expirations` coaching family — HR step 07 outreach-vs-email-blast decision, voice anchor candidate: 'phone call beats email blast'
+
+---
+
 ---
 ## 2026-05-18 — iter223 · employee-accountability Coaching Family · ✅ DELIVERED (preview only)
 

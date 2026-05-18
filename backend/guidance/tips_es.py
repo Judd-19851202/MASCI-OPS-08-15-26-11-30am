@@ -1532,4 +1532,290 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "palabras. El seguimiento es la parte que la "
             "cuadrilla recuerda, no la conversación original.",
     },
+
+    # ── iter224 · employee-lifecycle (Tier-2 HR onboarding) ──────────
+    # Operator-stated anchor (verbatim · test-enforced):
+    #   "Get it right and they hear about the company; get it wrong
+    #    and they hear about the bureaucracy."
+    ("employee-lifecycle", "why"): {
+        "title_es": "Por qué el primer día importa más que el papeleo",
+        "body_es":
+            "Dentro de años, el empleado no se acordará de qué "
+            "formulario firmó primero. Se acordará de si el lugar "
+            "se sintió organizado, acogedor, y serio con su gente. "
+            "La inducción no es una lista de tareas — es el primer "
+            "mensaje que la empresa manda sobre cómo trata a la "
+            "cuadrilla.",
+    },
+    ("employee-lifecycle", "who"): {
+        "title_es": "Quién más hace que el Día 1 funcione",
+        "body_es":
+            "El supervisor que lo contrata (necesita saber que "
+            "viene, con el nombre y la hora correctos). La cuadrilla "
+            "donde va a entrar (un aviso vale más que una sorpresa). "
+            "Nómina (datos bancarios, deducciones). Taller o "
+            "Despacho si hay equipo que asignar. Los dueños no ven "
+            "esto — pero se enteran si sale mal.",
+    },
+    ("employee-lifecycle", "next"): {
+        "title_es": "Qué pasa después de terminar la inducción",
+        "body_es":
+            "Mándele al supervisor la confirmación de hora de "
+            "entrada el mismo día. Asegúrese de que el nuevo "
+            "empleado sepa dónde estacionarse, dónde encontrarlo a "
+            "usted, y a quién va a buscar mañana. Agende un "
+            "seguimiento a los 14 días en su calendario antes de "
+            "dejarlo salir por la puerta — ahí es cuando empiezan "
+            "las preguntas reales.",
+    },
+    ("employee-lifecycle", "escalate"): {
+        "title_es": "Cuándo llamar al Director de RH antes de terminar",
+        "body_es":
+            "Documentos I-9 que faltan o están vencidos y no se "
+            "van a resolver antes de la fecha de inicio. Banderas "
+            "del background check que no eran esperadas. Descubrir "
+            "que esta persona ya había trabajado aquí y se fue en "
+            "condiciones que vale la pena saber. Cualquier cosa "
+            "donde usted se siente incómodo pero el formulario le "
+            "pide que apriete Enviar de todos modos.",
+    },
+
+    # ── iter224 · employee-lifecycle.first-impression ────────────────
+    # OPERATOR-STATED ANCHOR (verbatim · test-enforced):
+    #   "Get it right and they hear about the company; get it wrong
+    #    and they hear about the bureaucracy."
+    ("employee-lifecycle.first-impression", "why"): {
+        "title_es": "Si lo hace bien hablan de la empresa; si lo hace mal hablan de la burocracia",
+        "body_es":
+            "El nuevo empleado le va a contar a alguien esta noche "
+            "cómo le fue en su primer día. Va a describir un lugar "
+            "que tenía las cosas en orden y lo trató como persona, "
+            "o un lugar que le entregó un montón de formularios y "
+            "le señaló una silla. Usted decide cuál de las dos "
+            "historias se cuenta.",
+    },
+    ("employee-lifecycle.first-impression", "mistake"): {
+        "title_es": "Errores comunes de primera impresión",
+        "body_es":
+            "Dejarlo esperando en recepción 20 minutos porque "
+            "nadie sabía que venía. Arrancar con el I-9 en vez de "
+            "con un apretón de manos y su nombre. Tratar la "
+            "inducción como captura de datos. Mandarlo al campo "
+            "sin avisarle al supervisor que existe.",
+    },
+    ("employee-lifecycle.first-impression", "example"): {
+        "title_es": "Cómo se ve una buena primera impresión",
+        "body_es":
+            "Lo recibe en la puerta por su nombre. El café o el "
+            "agua ya están afuera. La cara del supervisor está en "
+            "un papelito para que sepa a quién buscar. El papeleo "
+            "viene DESPUÉS de la conversación de bienvenida, no "
+            "antes. Se va sabiendo dónde estacionarse mañana, qué "
+            "traer, y que usted es la persona a quien llamar si "
+            "algo no está claro.",
+    },
+
+    # ── iter224 · employee-lifecycle.welcome ─────────────────────────
+    ("employee-lifecycle.welcome", "why"): {
+        "title_es": "Por qué la bienvenida va antes que los formularios",
+        "body_es":
+            "Si los primeros 60 segundos de la conversación son "
+            "'necesito su seguro social y una copia de su licencia,' "
+            "el empleado ya sabe qué clase de lugar es este. "
+            "Arranque con su nombre, de dónde es, qué turno empieza. "
+            "El papeleo toma los mismos cinco minutos en el minuto "
+            "uno o en el minuto diez — el minuto diez se siente "
+            "mejor.",
+    },
+    ("employee-lifecycle.welcome", "mistake"): {
+        "title_es": "Errores comunes en la bienvenida",
+        "body_es":
+            "Pedir documentos antes de presentarse usted mismo. "
+            "Leerle la lista de políticas en vez de explicarle "
+            "cómo se ve el día. Hablarle a la pantalla en vez de "
+            "a él. Tratarlo como una transacción en vez del "
+            "comienzo de una relación de trabajo.",
+    },
+
+    # ── iter224 · employee-lifecycle.documents ───────────────────────
+    ("employee-lifecycle.documents", "why"): {
+        "title_es": "Recoger documentos sin que se sienta como interrogatorio",
+        "body_es":
+            "Usted necesita el I-9, los datos del banco, el "
+            "contacto de emergencia. Él necesita sentir que usted "
+            "lo está ayudando a entrar a la empresa, no que lo "
+            "está revisando en una frontera. Explique POR QUÉ se "
+            "necesita cada uno en palabras simples, acepte lo que "
+            "trae, y resuelva lo que falta con una cita de "
+            "seguimiento — nunca con actitud.",
+    },
+    ("employee-lifecycle.documents", "mistake"): {
+        "title_es": "Errores comunes recogiendo documentos",
+        "body_es":
+            "Recitar la lista sin explicar por qué se necesita "
+            "cada cosa. Suspirar cuando le falta algo. Hacerle "
+            "sentir que el documento que falta es culpa suya, en "
+            "vez de un momento de 'no hay problema, busquemos el "
+            "camino más rápido.' Tratar la lista como un examen "
+            "que está pasando o reprobando.",
+    },
+
+    # ── iter224 · employee-lifecycle.day-one ─────────────────────────
+    ("employee-lifecycle.day-one", "next"): {
+        "title_es": "Cómo se ve un buen traspaso de Día 1",
+        "body_es":
+            "Confirme con el supervisor por teléfono (no solo por "
+            "mensaje) que el nuevo empleado ya va en camino y a "
+            "qué hora lo espera. Si puede, acompáñelo personalmente "
+            "a la salida, o al menos señálele la entrada correcta. "
+            "Asegúrese de que tenga su número para la inevitable "
+            "llamada de 'ya estoy aquí — ¿a dónde voy?' la mañana "
+            "del primer día.",
+    },
+
+    # ── iter225 · document-expirations (Tier-2 hr+safety+admin) ──────
+    # Operator-stated anchor (verbatim · test-enforced):
+    #   "Phone call beats email blast."
+    ("document-expirations", "why"): {
+        "title_es": "Por qué esta lista es de personas, no de papeleo",
+        "body_es":
+            "Cada renglón en esta página es la CDL de alguien, su "
+            "tarjeta médica, su OSHA-10, o su certificado de "
+            "primeros auxilios — lo que necesitan para seguir "
+            "trabajando. Cómo la empresa los busca antes del "
+            "vencimiento es cómo la empresa les dice si importan. "
+            "Una llamada dice 'sabemos tu nombre.' Un correo "
+            "masivo dice 'estás en una lista.'",
+    },
+    ("document-expirations", "who"): {
+        "title_es": "Quién más depende de que esto se resuelva",
+        "body_es":
+            "El empleado (su cheque se para si el certificado "
+            "vence). Su supervisor (que tiene que reacomodar a la "
+            "cuadrilla). Despacho (si se cae una CDL, el camión no "
+            "sale). Seguridad (si vence la tarjeta de OSHA, el "
+            "sitio no lo puede usar). Los dueños se enteran cuando "
+            "un trabajo se atrasa porque nadie renovó una tarjeta "
+            "a tiempo.",
+    },
+    ("document-expirations", "next"): {
+        "title_es": "Qué pasa después de terminar el contacto del día",
+        "body_es":
+            "La renovación no está terminada hasta que habló con "
+            "una persona y le dijo cuándo va a ir a la clínica, al "
+            "DOL, al centro de pruebas. Apunte la fecha en el "
+            "registro. Marque un seguimiento para el día siguiente "
+            "a su cita para confirmar la tarjeta nueva. No cierre "
+            "el renglón solo porque 'mandó el recordatorio.'",
+    },
+    ("document-expirations", "escalate"): {
+        "title_es": "Cuándo llamar arriba antes de que venza",
+        "body_es":
+            "Cuando el empleado no responde después de dos intentos "
+            "y la fecha está adentro de 14 días. Cuando la "
+            "renovación requiere dinero que el empleado no puede "
+            "adelantar y la empresa no ha decidido si lo cubre. "
+            "Cuando la misma persona se ha vencido tres trimestres "
+            "seguidos — ese es un problema del sistema, no un "
+            "problema de recordatorio.",
+    },
+
+    # ── iter225 · document-expirations.outreach (ANCHOR SURFACE) ─────
+    # OPERATOR-STATED ANCHOR (verbatim · test-enforced):
+    #   "Llamada por teléfono le gana al correo masivo." (ES anchor)
+    ("document-expirations.outreach", "why"): {
+        "title_es": "Llamada por teléfono le gana al correo masivo",
+        "body_es":
+            "Un correo masivo sobre CDLs por vencer se abre, se "
+            "mira por encima, y se olvida entre otras tres "
+            "notificaciones. Una llamada — aunque sea de 90 "
+            "segundos — pone la renovación en su calendario. La "
+            "llamada dice 'esto es entre tú y yo, y no voy a "
+            "dejar que se venza.' El correo dice 'esto es un "
+            "evento del sistema.' Escoja el que renueva la "
+            "tarjeta.",
+    },
+    ("document-expirations.outreach", "mistake"): {
+        "title_es": "Errores comunes al hacer el contacto",
+        "body_es":
+            "Mandar el mismo correo automático tres semanas "
+            "seguidas y contarlo como 'estoy dando seguimiento.' "
+            "Poner al supervisor en copia en vez de llamarle al "
+            "empleado. Tratar la renovación como problema solo "
+            "del empleado. Marcar el renglón 'notificado' cuando "
+            "nadie confirmó que recibió el mensaje — mucho menos "
+            "que tiene un plan.",
+    },
+    ("document-expirations.outreach", "example"): {
+        "title_es": "Cómo suena una buena llamada de contacto",
+        "body_es":
+            "'Oye Mike, tu renovación de CDL es el 30 de mayo — "
+            "tres semanas. ¿Ya tienes cita? … Ok, te bloqueo la "
+            "mañana del 24 en tu horario para que tengas tiempo "
+            "para la clínica. Tráeme la tarjeta nueva antes del "
+            "31. Llámame si algo se complica en medio.' Noventa "
+            "segundos. El certificado se renueva a tiempo.",
+    },
+
+    # ── iter225 · document-expirations.cdl ───────────────────────────
+    ("document-expirations.cdl", "why"): {
+        "title_es": "Por qué la renovación de la CDL merece su propio plan",
+        "body_es":
+            "Una CDL vencida no solo incomoda al chofer — para el "
+            "camión. La cuadrilla entera pierde un día, despacho "
+            "corre a reasignar, y el cliente se entera. Construya "
+            "la secuencia de renovación de la CDL como un momento "
+            "operativo de primera, no como un recordatorio en el "
+            "calendario. El sustento del chofer está sentado "
+            "encima de esta fecha.",
+    },
+    ("document-expirations.cdl", "mistake"): {
+        "title_es": "Errores comunes en la renovación de la CDL",
+        "body_es":
+            "Esperar hasta 14 días antes para empezar la "
+            "conversación — la tarjeta médica sola puede tomar más "
+            "que eso para conseguir cita. No avisarle a Despacho "
+            "de la renovación con tiempo, para que no los agarre "
+            "por sorpresa cuando el camión no sale. Olvidar que la "
+            "tarjeta médica del DOT vence aparte de la CDL en sí.",
+    },
+
+    # ── iter225 · document-expirations.triage ────────────────────────
+    ("document-expirations.triage", "why"): {
+        "title_es": "No todo vencimiento es problema de esta semana",
+        "body_es":
+            "Un certificado de primeros auxilios que vence en 90 "
+            "días no es lo mismo que una tarjeta médica que vence "
+            "en 8 días. Lea la lista con criterio: ¿qué persona "
+            "está en un trabajo que requiere el certificado hoy? "
+            "¿Quién puede seguir trabajando hasta el mes que viene "
+            "sin él? ¿Qué chofer está a punto de salir con un "
+            "camión donde una tarjeta vencida es un paro real? "
+            "Ordene la página por qué para el trabajo primero, no "
+            "por fecha.",
+    },
+    ("document-expirations.triage", "mistake"): {
+        "title_es": "Errores comunes al priorizar",
+        "body_es":
+            "Tratar el filtro de 30 días como el único filtro. "
+            "Perseguir un certificado de bajo impacto con la misma "
+            "energía que una CDL porque las fechas se parecen. "
+            "Saltarse la pestaña de Por Vencer y solo trabajar la "
+            "de Vencidos — para entonces alguien ya está fuera "
+            "del trabajo.",
+    },
+
+    # ── iter225 · document-expirations.cadence ───────────────────────
+    ("document-expirations.cadence", "next"): {
+        "title_es": "Construyendo el ritmo semanal que lo agarra a tiempo",
+        "body_es":
+            "Escoja un horario fijo cada semana — el lunes en la "
+            "mañana le funciona a la mayoría de coordinadores de "
+            "RH — y revise la lista de Por Vencer antes de "
+            "cualquier otra cosa. Una llamada por teléfono a cada "
+            "persona de la lista, bloque de calendario, fecha de "
+            "seguimiento. Mismo horario, misma secuencia, cada "
+            "semana. El ritmo es lo que evita que la lista se "
+            "vuelva un incendio dos veces al año.",
+    },
 }

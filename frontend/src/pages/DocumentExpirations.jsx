@@ -42,6 +42,7 @@ import StatusBadge from "@/components/StatusBadge";
 import EmptyState from "@/components/EmptyState";
 import GlobalSearch from "@/components/GlobalSearch";
 import { DOC_EXP_STATUS_TINTS } from "@/lib/statusBadges";
+import { HelpTipBlock } from "@/components/HelpTip";
 
 const STATUS_COLORS = DOC_EXP_STATUS_TINTS;
 
@@ -145,6 +146,10 @@ export default function DocumentExpirations() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
+        {/* iter225 · operational outreach coaching for the
+            document-expirations surface. Anchor: "Phone call beats
+            email blast." Tier-2: hr + safety + admin. */}
+        <HelpTipBlock formKey="document-expirations" showCounter />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <SummaryTile label="Current" value={summ.by_status?.Current ?? 0} icon={CheckCircle2} accent="emerald" />
           <SummaryTile label="Expiring Soon" value={summ.expiring_30d ?? 0} icon={CalendarClock} accent="amber" />

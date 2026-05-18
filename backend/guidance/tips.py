@@ -2143,6 +2143,394 @@ _TIPS: list[dict] = [
             "five words. The follow-through is the part the crew "
             "remembers, not the original conversation.",
     },
+
+    # ═════════════════════════════════════════════════════════════════
+    # iter224 · employee-lifecycle · Tier-2 HR-scoped.
+    #
+    # New-hire onboarding is the highest long-term culture-shaping
+    # operational surface in the company. The first day decides:
+    # retention, morale, trust, operational confidence, perception of
+    # leadership, perception of professionalism.
+    #
+    # OPERATOR-STATED ANCHOR (verbatim · test-enforced):
+    # "Get it right and they hear about the company; get it wrong and
+    #  they hear about the bureaucracy."
+    #
+    # Coaching principles (operator-stated):
+    #   • first-impression matters more than paperwork accuracy
+    #   • human-first welcome, not forms-first welcome
+    #   • collect documents WITHOUT making it feel like an interrogation
+    #   • the hand-off to the supervisor is the actual onboarding moment
+    #
+    # Scope: hr + admin.
+    # ═════════════════════════════════════════════════════════════════
+
+    # ── employee-lifecycle (canonical 4) ─────────────────────────────
+    {
+        "form_key": "employee-lifecycle",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why the first day matters more than the paperwork",
+        "body":
+            "Years from now, the employee won't remember which form "
+            "they signed first. They will remember whether the place "
+            "felt organized, welcoming, and serious about its people. "
+            "Onboarding isn't a checklist — it's the first message "
+            "the company sends about how it treats the crew.",
+    },
+    {
+        "form_key": "employee-lifecycle",
+        "kind": "who",
+        "scopes": ["hr", "admin"],
+        "title": "Who else makes Day-1 work",
+        "body":
+            "The hiring supervisor (who needs to know they're "
+            "coming, with the right name and start time). The "
+            "crew they're joining (a heads-up beats a surprise "
+            "introduction). Payroll (banking info, deductions). "
+            "Shop or Dispatch if equipment assignment is needed. "
+            "Owners don't see this — but they will hear about it "
+            "if it goes badly.",
+    },
+    {
+        "form_key": "employee-lifecycle",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What happens after you finish onboarding",
+        "body":
+            "Send the supervisor the start-time confirmation same "
+            "day. Make sure the new hire knows where to park, where "
+            "to find you, and who their supervisor's face looks "
+            "like. Schedule a 14-day check-in on your calendar "
+            "before you let them out the door — that's when the "
+            "real questions start coming.",
+    },
+    {
+        "form_key": "employee-lifecycle",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When to call HR Director before completing",
+        "body":
+            "Missing or expired I-9 documents that won't be "
+            "resolved by start date. Background check flags that "
+            "weren't expected. Discovery that this hire was "
+            "previously employed and left under conditions worth "
+            "knowing. Anything where you find yourself uncomfortable "
+            "but the form is asking you to click Submit anyway.",
+    },
+
+    # ── employee-lifecycle.first-impression ──────────────────────────
+    # OPERATOR-STATED ANCHOR (verbatim · test-enforced):
+    # "Get it right and they hear about the company; get it wrong and
+    #  they hear about the bureaucracy."
+    {
+        "form_key": "employee-lifecycle.first-impression",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Get it right and they hear about the company; get it wrong and they hear about the bureaucracy",
+        "body":
+            "The new hire is going to tell someone tonight how "
+            "their first day went. They'll either describe a place "
+            "that had its act together and treated them like a "
+            "person, or a place that handed them a stack of forms "
+            "and pointed at a chair. You're choosing which story "
+            "gets told.",
+    },
+    {
+        "form_key": "employee-lifecycle.first-impression",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common first-impression mistakes",
+        "body":
+            "Making them wait at the front desk for 20 minutes "
+            "because nobody was told they were coming. Starting "
+            "with the I-9 instead of a handshake and their name. "
+            "Treating onboarding like data entry. Sending them to "
+            "the field without telling the supervisor they exist.",
+    },
+    {
+        "form_key": "employee-lifecycle.first-impression",
+        "kind": "example",
+        "scopes": ["hr", "admin"],
+        "title": "What a good first impression looks like",
+        "body":
+            "You meet them at the door by name. Coffee or water "
+            "is already out. The supervisor's face is on a sticky "
+            "note so they know who to look for. Paperwork comes "
+            "AFTER the welcome conversation, not before it. They "
+            "leave knowing where to park tomorrow, what to bring, "
+            "and that you're who they call if something's unclear.",
+    },
+
+    # ── employee-lifecycle.welcome ───────────────────────────────────
+    {
+        "form_key": "employee-lifecycle.welcome",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why the welcome comes before the forms",
+        "body":
+            "If the first 60 seconds of the conversation is 'I "
+            "need your SSN and a copy of your driver's license,' "
+            "the employee already knows what kind of place this "
+            "is. Lead with their name, where they're from, what "
+            "shift they're starting on. The paperwork takes the "
+            "same five minutes whether it happens at minute one or "
+            "minute ten — minute ten lands better.",
+    },
+    {
+        "form_key": "employee-lifecycle.welcome",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common welcome mistakes",
+        "body":
+            "Asking for documents before introducing yourself. "
+            "Reading them the policy stack instead of explaining "
+            "what the day looks like. Talking past them to the "
+            "form on the screen. Treating it like a transaction "
+            "instead of the beginning of a working relationship.",
+    },
+
+    # ── employee-lifecycle.documents ─────────────────────────────────
+    {
+        "form_key": "employee-lifecycle.documents",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Collecting documents without making it feel like an interrogation",
+        "body":
+            "You need the I-9 docs, the bank info, the emergency "
+            "contact. They need to feel like you're helping them "
+            "join the company, not screening them at a border. "
+            "Explain WHY each one is needed in plain words, accept "
+            "what they bring, and resolve gaps with a follow-up "
+            "appointment — never with an attitude.",
+    },
+    {
+        "form_key": "employee-lifecycle.documents",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common document-collection mistakes",
+        "body":
+            "Reciting the list without explaining why each one is "
+            "needed. Sighing when they're missing something. "
+            "Making them feel like the missing document is their "
+            "fault rather than a 'no problem, let's figure out "
+            "the fastest path' moment. Treating the document "
+            "checklist as a test they're passing or failing.",
+    },
+
+    # ── employee-lifecycle.day-one ───────────────────────────────────
+    {
+        "form_key": "employee-lifecycle.day-one",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What a good Day 1 hand-off looks like",
+        "body":
+            "Confirm with the supervisor by phone (not just text) "
+            "that the new hire is on their way and what time to "
+            "expect them. Walk the new hire out personally if you "
+            "can, or at minimum point them at the right entrance. "
+            "Make sure they have your number for the inevitable "
+            "'I'm here — where do I go?' call on the actual first "
+            "morning.",
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # iter225 · document-expirations · Tier-2 (hr + safety + admin).
+    #
+    # Document-expiration handling is one of the clearest operational
+    # indicators of whether a company feels HUMAN or BUREAUCRATIC.
+    # The list shows expiring CDLs, training certs, safety
+    # certifications, medical cards — but those rows are PEOPLE, and
+    # the choice between a phone call and a bulk email signals how
+    # the company actually treats them.
+    #
+    # OPERATOR-STATED ANCHOR (verbatim · test-enforced):
+    #   "Phone call beats email blast."
+    #
+    # Coaching principles (operator-stated):
+    #   • direct leadership engagement over passive bureaucracy
+    #   • accountability through proactive communication
+    #   • operational respect (the operator's CDL is their livelihood,
+    #     not a row on a list)
+    #   • triage with judgment — not everything expiring is urgent,
+    #     and not everything urgent is on a 30-day window
+    #   • when the same person keeps expiring, fix the system, not
+    #     the symptom
+    #
+    # Scope: hr + safety + admin. Shop has its own asset-management
+    # voice for equipment expirations — out of scope here.
+    # ═════════════════════════════════════════════════════════════════
+
+    # ── document-expirations (canonical 4) ───────────────────────────
+    {
+        "form_key": "document-expirations",
+        "kind": "why",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "Why this list is people, not paperwork",
+        "body":
+            "Every row on this page is somebody's CDL, medical "
+            "card, OSHA-10, or first-aid cert — the things they "
+            "need to keep working. How the company chases them down "
+            "before the expiration is how the company tells them "
+            "whether they matter. A phone call says 'we know your "
+            "name.' A bulk email says 'you're on a list.'",
+    },
+    {
+        "form_key": "document-expirations",
+        "kind": "who",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "Who else depends on this getting handled",
+        "body":
+            "The employee (whose paycheck stops if the cert lapses). "
+            "Their supervisor (who has to redeploy the crew around "
+            "the gap). Dispatch (if a CDL drops, the truck doesn't "
+            "roll). Safety (if the OSHA card lapses, the site can't "
+            "use them). Owners hear about it when a job slows down "
+            "because nobody renewed a card on time.",
+    },
+    {
+        "form_key": "document-expirations",
+        "kind": "next",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "What happens after you finish today's outreach",
+        "body":
+            "The renewal isn't done until you've talked to a human "
+            "and they've told you when they're going to the clinic, "
+            "the DOL, the testing center. Note the date in the "
+            "record. Mark a follow-up for the day after their "
+            "appointment so you can confirm the new card. Don't "
+            "close the row just because you 'sent the reminder.'",
+    },
+    {
+        "form_key": "document-expirations",
+        "kind": "escalate",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "When to call up before the cert lapses",
+        "body":
+            "When the employee won't respond after two attempts and "
+            "the deadline is inside 14 days. When the renewal "
+            "requires money the employee can't front and the "
+            "company hasn't decided whether it covers it. When the "
+            "same person has expired three quarters in a row — "
+            "that's a system problem, not a reminder problem.",
+    },
+
+    # ── document-expirations.outreach (ANCHOR SURFACE) ───────────────
+    # OPERATOR-STATED ANCHOR (verbatim · test-enforced):
+    #   "Phone call beats email blast."
+    {
+        "form_key": "document-expirations.outreach",
+        "kind": "why",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "Phone call beats email blast",
+        "body":
+            "A bulk email about expiring CDLs gets opened, glanced "
+            "at, and forgotten between three other notifications. A "
+            "phone call — even a 90-second one — gets the renewal "
+            "on their calendar. The phone call says 'this is "
+            "between you and me, and I'm not letting it lapse.' "
+            "The email says 'this is a system event.' Pick the one "
+            "that gets the cert renewed.",
+    },
+    {
+        "form_key": "document-expirations.outreach",
+        "kind": "mistake",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "Common outreach mistakes",
+        "body":
+            "Sending the same auto-generated email three weeks in a "
+            "row and counting that as 'doing outreach.' Cc'ing the "
+            "supervisor instead of calling the employee. Treating "
+            "the renewal as the employee's problem alone. Marking "
+            "the row 'notified' when nobody confirmed they received "
+            "the message — much less that they have a plan.",
+    },
+    {
+        "form_key": "document-expirations.outreach",
+        "kind": "example",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "What a good outreach call sounds like",
+        "body":
+            "'Hey Mike, your CDL renewal is due May 30 — three "
+            "weeks. You got an appointment lined up? … Okay, I'll "
+            "block out the morning of the 24th on your schedule so "
+            "you've got time for the clinic. Bring the new card to "
+            "me by the 31st. Call me if anything blows up in "
+            "between.' Ninety seconds. The cert renews on time.",
+    },
+
+    # ── document-expirations.cdl ─────────────────────────────────────
+    {
+        "form_key": "document-expirations.cdl",
+        "kind": "why",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "Why the CDL renewal deserves its own playbook",
+        "body":
+            "A lapsed CDL doesn't just inconvenience the driver — "
+            "it parks the truck. The whole crew slips a day, "
+            "dispatch scrambles to reassign, and the customer hears "
+            "about it. Build the CDL renewal sequence as a "
+            "first-class operational moment, not a calendar "
+            "reminder. The driver's livelihood is sitting on top of "
+            "this date.",
+    },
+    {
+        "form_key": "document-expirations.cdl",
+        "kind": "mistake",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "Common CDL-renewal mistakes",
+        "body":
+            "Waiting until 14 days out to start the conversation — "
+            "the medical card alone can take longer than that to "
+            "schedule. Not flagging the renewal to Dispatch ahead "
+            "of time, so they're surprised when the truck doesn't "
+            "roll. Forgetting the DOT medical card is a separate "
+            "expiration from the CDL itself.",
+    },
+
+    # ── document-expirations.triage ──────────────────────────────────
+    {
+        "form_key": "document-expirations.triage",
+        "kind": "why",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "Not every expiration is this week's problem",
+        "body":
+            "A first-aid cert expiring in 90 days is not the same "
+            "as a medical card expiring in 8 days. Read the list "
+            "with judgment: which person is working a job that "
+            "requires the cert today? Who can keep working until "
+            "next month without it? Which driver is about to roll "
+            "a truck where a lapsed card is a real shutdown? Sort "
+            "the page by what stops work first, not by date.",
+    },
+    {
+        "form_key": "document-expirations.triage",
+        "kind": "mistake",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "Common triage mistakes",
+        "body":
+            "Treating the 30-day filter as the only filter. "
+            "Chasing a low-impact cert with the same energy as a "
+            "CDL because the dates look similar. Skipping the "
+            "Expiring Soon tile and only working the Expired tile "
+            "— by then someone is already off the job.",
+    },
+
+    # ── document-expirations.cadence ─────────────────────────────────
+    {
+        "form_key": "document-expirations.cadence",
+        "kind": "next",
+        "scopes": ["hr", "safety", "admin"],
+        "title": "Building the weekly rhythm that catches it early",
+        "body":
+            "Pick a fixed slot each week — Monday morning works for "
+            "most HR coordinators — and walk the Expiring Soon list "
+            "before anything else hits the calendar. Phone call to "
+            "each person on the list, calendar block, follow-up "
+            "date. Same time, same sequence, every week. The "
+            "rhythm is what keeps the list from becoming a fire "
+            "drill twice a year.",
+    },
 ]
 
 
