@@ -383,74 +383,264 @@ _ARTICLES: list[dict] = [
         "related": ["why-time-verification", "role-hr"],
     },
 
-    # ── PORTAL GUIDES ────────────────────────────────────────────────
+    # ── PORTAL GUIDES (iter205 — rebuilt to Field Leadership standard) ───
+    # Each portal training landing must include: what it is · who uses
+    # it · workflows it owns · why it matters · what happens after
+    # records land · common mistakes · what to do first · related
+    # deeper guidance. Public scope so the /guidance training card
+    # action lands on real content for anonymous users.
     {
         "id": "portal-hr",
         "section": "portals",
-        "title": "HR Portal Quick-Start",
-        "summary": "What the HR portal does and how to use it.",
-        "scopes": ["hr", "admin"],
-        "tags": ["hr portal", "human resources"],
+        "title": "HR Portal Training",
+        "summary": "What HR owns, who uses it, and how the work connects to every other portal.",
+        "scopes": ["public"],
+        "tags": ["hr portal", "human resources", "onboarding", "time", "payroll"],
         "body": [
             {"type": "p", "text":
-                "The HR portal is the entry point for time verification, employee records, "
-                "write-ups, equipment-checkout visibility, and offboarding support."},
+                "HR is the people-and-time portal. It owns the records that prove who worked, "
+                "what hours were paid, who was hired, who left, and what training is current. "
+                "It is one of the most cross-connected portals on the platform — every other portal "
+                "feeds it data, and HR feeds payroll + compliance + every audit conversation."},
+            {"type": "p", "text":
+                "Who uses it: HR Staff, HR Managers, and Operations support roles. Cross-portal "
+                "reads from PM (project labor) and Field Leadership (write-ups, recognition)."},
+            {"type": "bullets", "items": [
+                "Time verification — comparing crew Daily Reports against payroll",
+                "New-hire onboarding — paperwork, credentials, equipment, training",
+                "Employee accountability — write-ups, coaching docs, recognition",
+                "Training records — OSHA, equipment-certified, internal courses",
+                "Document expirations — driver's licenses, medical cards, certifications",
+                "Time-off requests — vacation, sick, PTO, public confirmation",
+                "Payroll variance — when reported hours don't match the field record",
+                "Offboarding / termination — final-pay calculations, asset returns",
+            ]},
             {"type": "why", "text":
-                "Centralising HR work here means everything is searchable, audited, and "
-                "reviewable by authorized leadership."},
+                "HR is where the field's documentation becomes the company's source of truth. "
+                "A Daily Report submitted from the field by a foreman becomes an hours total in HR. "
+                "A write-up authored by a superintendent in Field Leadership becomes an accountability "
+                "record in HR. A QA/QC inspection signed off in PM becomes a training-pattern signal "
+                "for HR. If HR records are wrong, payroll is wrong — and payroll is wrong is the "
+                "fastest way to lose a crew."},
+            {"type": "next", "items": [
+                "If you're new — read the role guide for HR Staff",
+                "First task usually: time verification for the current pay period",
+                "Walk one new-hire onboarding end-to-end before you do one alone",
+                "Bookmark Document Expirations — it never stops needing attention",
+            ]},
+            {"type": "mistakes", "items": [
+                "Approving time without comparing the Daily Report (the field record is the truth)",
+                "Closing an onboarding before equipment-issuance is signed",
+                "Filing a write-up without the supervisor's signature attached",
+                "Letting a license/medical/certification expiration slip past its date",
+            ]},
+            {"type": "tip", "text":
+                "HR records are read by PM and Field Leadership constantly. Treat every HR record "
+                "as if the project manager and superintendent will read it tomorrow — because they will."},
+            {"type": "warn", "text":
+                "If you can't sign in to HR, do not type your HR password into another portal's "
+                "login form (Safety, Shop, etc.). Each portal has its own login — pasting the "
+                "wrong password elsewhere can temporarily lock your account."},
         ],
-        "related": ["role-hr", "task-verify-time", "hr-onboarding-new-hire",
-                    "hr-time-verification-deep", "hr-offboarding"],
+        "related": [
+            "role-hr",
+            "task-verify-time",
+            "hr-onboarding-new-hire",
+            "hr-time-verification-deep",
+            "hr-writeups-correctives",
+            "hr-offboarding",
+            "tshoot-employee-not-found",
+            "public-cant-login",
+        ],
     },
     {
         "id": "portal-safety",
         "section": "portals",
-        "title": "Safety Portal Quick-Start",
-        "summary": "How Safety manages incidents and audits.",
-        "scopes": ["safety", "admin"],
-        "tags": ["safety portal"],
+        "title": "Safety Portal Training",
+        "summary": "Incidents, corrective actions, audits, training compliance — and why none of it is paperwork.",
+        "scopes": ["public"],
+        "tags": ["safety portal", "incidents", "audits", "compliance"],
         "body": [
             {"type": "p", "text":
-                "The Safety portal is where incidents, near-misses, corrective actions, "
-                "fire extinguisher records, and audit work happen."},
+                "Safety is the portal that turns events into accountability. Every incident, "
+                "near-miss, corrective action, audit finding, fire-extinguisher inspection, and "
+                "training-compliance check lives here. It is not a paperwork portal — every record "
+                "in Safety either prevented an injury, recovered from one, or built the defense for "
+                "an OSHA conversation that hasn't happened yet."},
+            {"type": "p", "text":
+                "Who uses it: Safety Managers, Safety Coordinators, Safety Officers. Cross-portal "
+                "reads from Field Leadership (incident context), HR (training records), and Admin."},
+            {"type": "bullets", "items": [
+                "Incidents — injuries, property damage, near-misses, third-party events",
+                "Corrective actions — what gets fixed, by whom, by when, signed off",
+                "Audits — site walks, jobsite safety audits, sub-contractor audits",
+                "Fire extinguishers — inventory, monthly inspections, recharge tracking",
+                "Training compliance — who's current on OSHA-10, OSHA-30, equipment, first-aid",
+                "Toolbox talks — meeting topics, attendance, signatures",
+                "JHA plans — Job Hazard Analyses authored and approved",
+            ]},
+            {"type": "why", "text":
+                "Safety records are the single most important defensive documentation MASCI produces. "
+                "An OSHA inspector showing up tomorrow asks two questions: 'Show me your training "
+                "compliance' and 'Show me your last incident.' Safety is where the answers live. "
+                "Vague safety records = exposure; specific safety records = defensible operations."},
+            {"type": "next", "items": [
+                "If you're new — read the role guide for Safety Manager",
+                "Walk one open incident end-to-end (report → investigation → corrective → close)",
+                "Pull the current training-compliance report for your most active project",
+                "Bookmark Fire Extinguishers — monthly cadence catches you fast",
+            ]},
+            {"type": "mistakes", "items": [
+                "Closing an incident without a documented root cause + corrective action",
+                "Logging a corrective action without a signed-off completion date",
+                "Letting OSHA-10 expirations slip on the active crew (project shutdown risk)",
+                "Filing a toolbox-talk without the attendance signatures",
+                "Speculating about cause in an incident report — record only observed facts",
+            ]},
+            {"type": "tip", "text":
+                "Near-misses are the cheapest lessons MASCI ever gets. Encourage crews to report "
+                "them and document them the same way as injuries — they're the early-warning system."},
+            {"type": "warn", "text":
+                "Never close an incident before the corrective action is verified complete. "
+                "An 'incident closed' record with an open corrective action is the worst possible "
+                "audit trail."},
         ],
-        "related": ["role-safety", "safety-incident-investigation",
-                    "safety-corrective-actions-workflow", "safety-audits-workflow",
-                    "safety-fire-extinguishers", "safety-training-compliance"],
+        "related": [
+            "role-safety",
+            "safety-incident-investigation",
+            "safety-corrective-actions-workflow",
+            "safety-audits-workflow",
+            "safety-fire-extinguishers",
+            "safety-training-compliance",
+            "safety-near-miss-importance",
+            "public-incident-basics",
+        ],
     },
     {
         "id": "portal-shop",
         "section": "portals",
-        "title": "Shop / Fleet Portal Quick-Start",
-        "summary": "Equipment health, inspections, and maintenance.",
-        "scopes": ["shop", "admin"],
-        "tags": ["shop portal", "fleet"],
-        "body": [{"type": "p", "text":
-            "The Shop portal owns equipment health and maintenance coordination."}],
-        "related": ["role-shop", "shop-preop-deep", "shop-failed-preop-workflow",
-                    "shop-damage-reporting", "shop-maintenance-coordination",
-                    "shop-equipment-return", "connect-shop-to-dispatch",
-                    "connect-equipment-lifecycle"],
+        "title": "Shop / Fleet Portal Training",
+        "summary": "Equipment health, Pre-Op review, damage workflow, maintenance coordination — the back-end of fleet operations.",
+        "scopes": ["public"],
+        "tags": ["shop portal", "fleet", "mechanic", "maintenance"],
+        "body": [
+            {"type": "p", "text":
+                "Shop is the portal that keeps the fleet running. Every Pre-Op a field operator "
+                "submits flows here. Every damage report, every maintenance task, every parts order, "
+                "every equipment return — all of it lives in Shop. The portal exists to make sure "
+                "the right gear is operational on the right job at the right time, and to document "
+                "what happened to it along the way."},
+            {"type": "p", "text":
+                "Who uses it: Mechanics, Shop Foreman, Fleet Coordinator. Cross-portal "
+                "reads from Dispatch (where equipment is going) and Field Leadership (who has it now)."},
+            {"type": "bullets", "items": [
+                "Pre-Op review — every field Pre-Op lands here; failed Pre-Ops need action",
+                "Damage reporting — what got bent, scraped, broken, by whom, when",
+                "Maintenance coordination — scheduled, preventive, emergency",
+                "Parts catalog & ordering — what's in stock, what's on order, lead times",
+                "Equipment issuance & return — Safety + Shop joint sign-offs",
+                "Sign-offs — releasing equipment back to the field after repair",
+            ]},
+            {"type": "why", "text":
+                "Shop records protect everyone. A field operator's Pre-Op signature shows they "
+                "did the walk; the shop's repair record shows what was found and fixed; the return "
+                "sign-off shows the unit is cleared back to service. If a piece of equipment causes "
+                "an incident, the chain of Pre-Op → Damage → Repair → Sign-Off is the entire defense. "
+                "Missing records mean missing answers."},
+            {"type": "next", "items": [
+                "If you're new — read the role guide for Shop / Mechanic",
+                "Walk one failed Pre-Op end-to-end from field report to shop sign-off",
+                "Open Parts Catalog and learn the ordering lead times by category",
+                "Bookmark the equipment-return form — it's joint with Safety",
+            ]},
+            {"type": "mistakes", "items": [
+                "Signing off a unit back to service before the corrective action is verified",
+                "Ordering parts without confirming the equipment ID + serial number",
+                "Closing damage reports without photos before AND after repair",
+                "Skipping the Safety joint sign-off on equipment return",
+            ]},
+            {"type": "tip", "text":
+                "When a failed Pre-Op lands, the goal isn't to win the argument with the field — "
+                "it's to determine whether the unit is operationally safe right now. Field operators "
+                "who feel heard report problems faster the next time."},
+        ],
+        "related": [
+            "role-shop",
+            "shop-preop-deep",
+            "shop-failed-preop-workflow",
+            "shop-damage-reporting",
+            "shop-maintenance-coordination",
+            "shop-equipment-return",
+            "connect-shop-to-dispatch",
+            "connect-equipment-lifecycle",
+            "public-preop-basics",
+        ],
     },
     {
         "id": "portal-admin",
         "section": "portals",
-        "title": "Admin Portal Quick-Start",
-        "summary": "Users, audits, system health, backups.",
-        "scopes": ["admin"],
-        "tags": ["admin portal"],
+        "title": "Admin Console Guidance",
+        "summary": "The control plane — people, roles, system health, backups, governance.",
+        "scopes": ["public"],
+        "tags": ["admin portal", "operator", "control plane"],
         "body": [
             {"type": "p", "text":
-                "Admin covers the platform's control plane: users, role templates, audit "
-                "logs, system health, sessions, and backup/restore tools."},
+                "Admin is the operator-level control plane of the platform. It is intentionally "
+                "narrow in audience — typically the platform owner and one or two trusted operators. "
+                "Admin owns the surfaces no other portal can see: every user, every role template, "
+                "every audit-log entry, every active session, every backup, and the governance signals "
+                "that tell you when something is drifting."},
+            {"type": "p", "text":
+                "Who uses it: the platform Owner and designated Operator(s). Not for general staff."},
+            {"type": "bullets", "items": [
+                "User management — invite, role-assign, suspend, restore",
+                "Role templates — define what each portal token grants",
+                "Audit log — every privileged action, who/when/what",
+                "System health — backend metrics, queue depths, error rates",
+                "Sessions — who is signed in right now, force-revoke if needed",
+                "Backups & restore — manual triggers, schedule, point-in-time recovery",
+                "Data portability — compliance-grade export per record family",
+                "Operational inventory & governance — drift detection across portals",
+                "Sentry observability — error tracking, release tagging",
+            ]},
+            {"type": "why", "text":
+                "Admin work has the deepest blast radius on the platform. A single role-template "
+                "change ripples to every user who has that role. A force-revoked session locks "
+                "someone out mid-task. The audit log is the only place where 'who changed what when' "
+                "is permanently recorded — and the only safeguard against assumptions in disputes. "
+                "Admin is intentionally English-only because operators need precise terminology, "
+                "not translated approximations."},
+            {"type": "next", "items": [
+                "If you're new to operator role — read Admin User Management first",
+                "Run a manual backup and walk the restore process in a safe context",
+                "Open the Operational Inventory dashboard and read every drift item",
+                "Bookmark the Audit Log — every operator action you take lands there",
+            ]},
+            {"type": "mistakes", "items": [
+                "Modifying a role template without checking who currently holds that role",
+                "Force-revoking a session without telling the user first",
+                "Editing user records without an audit-log-friendly reason in the notes",
+                "Skipping the operational-inventory drift review during weekly checks",
+            ]},
             {"type": "tip", "text":
-                "Most operational visibility lives under Admin → System. Sessions, "
-                "audit log, and backups are all there."},
+                "When Admin work touches multiple users (role changes, bulk suspend), pair it with "
+                "a Slack/email notice. The audit log records the action; communication records the "
+                "operational intent."},
+            {"type": "warn", "text":
+                "Admin tokens grant access to every other portal automatically. Never share an "
+                "admin token. If an admin password needs rotation, rotate the role-token grants too."},
         ],
-        "related": ["role-admin", "admin-user-management", "admin-audit-forensics",
-                    "admin-system-health", "admin-backup-restore",
-                    "admin-data-portability", "admin-sentry-observability",
-                    "admin-role-templates", "admin-governance-why"],
+        "related": [
+            "role-admin",
+            "admin-user-management",
+            "admin-audit-forensics",
+            "admin-system-health",
+            "admin-backup-restore",
+            "admin-data-portability",
+            "admin-sentry-observability",
+            "admin-role-templates",
+            "admin-governance-why",
+        ],
     },
 
     # ── TROUBLESHOOTING ──────────────────────────────────────────────
