@@ -275,6 +275,228 @@ def foreman_day(page, wt: Walkthrough) -> None:
         )
 
 
+    # ── 07:00 · Crew check — first leadership moment of the day ─────
+    # The foreman's first POST-arrival operational moment is crew
+    # check: who showed up, who's late, who's on what unit. This is
+    # a verbal/operational moment for most field leaders — the
+    # walkthrough's job here is to surface whether the platform offers
+    # a digital surface that supports this moment (or document the
+    # absence honestly).
+    wt.begin_step(
+        "02b-crew-check",
+        "07:00 · Foreman opens the Leadership hub to confirm today's crew",
+        base + "/leadership",
+    )
+    page.goto(base + "/leadership", wait_until="domcontentloaded", timeout=30_000)
+    page.wait_for_timeout(2500)
+    page.screenshot(path=wt.shot_path(), full_page=False)
+    blocks = page.evaluate(FIND_HELPTIPS_JS)
+    wt.record_helptips(blocks)
+    # Discovery-only — operator directive: no coaching authored yet,
+    # just surface honest gaps. Three discovery checks:
+    #   (a) Is there any crew/headcount/muster surface visible from
+    #       the leadership hub at 414px?
+    #   (b) Does the leadership hub have ANY contextual coaching?
+    #   (c) If a foreman is supposed to "take headcount" digitally,
+    #       where would they actually do it?
+    has_crew_surface = page.evaluate("""() => {
+        const candidates = [
+            '[data-testid*="crew"]', '[data-testid*="muster"]',
+            '[data-testid*="headcount"]', '[data-testid*="attendance"]',
+            'a[href*="crew"]', 'a[href*="muster"]',
+        ];
+        for (const sel of candidates) {
+            if (document.querySelector(sel)) return sel;
+        }
+        return null;
+    }""")
+    if not has_crew_surface:
+        wt.note(
+            "discoverability-gap",
+            "Leadership hub at 414px exposes NO crew-check / muster / "
+            "headcount surface. The foreman's 07:00 'who showed up, who's "
+            "late, who's on what unit' moment has no platform support — "
+            "they're tracking it on a clipboard or in their head.",
+            "Operator-decision-required: does the platform need a digital "
+            "crew-check surface, or is this intentionally a verbal moment? "
+            "Document the architectural decision either way.",
+        )
+    if not blocks:
+        wt.note(
+            "missing-coaching",
+            "Leadership hub itself has no contextual coaching at 414px. "
+            "It's a navigation surface, but a new foreman arriving here "
+            "has no operational framing for which records to file when, "
+            "or what the crew-check moment is supposed to feel like.",
+            "Consider whether the leadership hub deserves a top-level "
+            "'why this portal exists for foremen' tip (canonical-4) or "
+            "whether the navigation pattern itself is the coaching.",
+        )
+
+    # ── 11:00 · Dispatch interaction — foreman reads transfer ───────
+    # Mid-morning, Dispatch sends a transfer request. The foreman
+    # opens it from the truck cab. This is the bidirectional moment
+    # iter226 Dispatch coaching anticipated ("call the receiving
+    # foreman before opening the Transfer") — does the foreman SIDE
+    # of that conversation have its own coaching?
+    wt.begin_step(
+        "04b-dispatch-interaction",
+        "11:00 · Foreman reads incoming transfer request from Dispatch",
+        base + "/asset-transfers",
+    )
+    page.goto(base + "/asset-transfers", wait_until="domcontentloaded", timeout=30_000)
+    page.wait_for_timeout(2500)
+    page.screenshot(path=wt.shot_path(), full_page=False)
+    landed = page.url
+    if "/login" in landed or "/access-denied" in landed:
+        wt.note(
+            "workflow-confusion",
+            f"Asset Transfers page redirected the foreman to {landed!r} — "
+            f"the receiving-foreman side of the Transfer workflow may not "
+            f"be accessible to the leadership token at all.",
+            "Audit whether the foreman receives Transfers via this URL or "
+            "via a different surface (e.g. Daily Report annotation, "
+            "notification bell, push). Operator-decision-required.",
+        )
+    else:
+        blocks = page.evaluate(FIND_HELPTIPS_JS)
+        wt.record_helptips(blocks)
+        if not blocks:
+            wt.note(
+                "missing-coaching",
+                "Foreman-side of the Transfer interaction has no coaching "
+                "surface. iter226 authored the dispatcher's side ('call "
+                "before opening the Transfer'); the receiving foreman has "
+                "no parallel coaching for what to do when a transfer "
+                "lands in their queue.",
+                "Consider authoring a foreman-scoped `transfer.receive` "
+                "family — but only after operator review of this finding. "
+                "Voice anchor candidate (operator-decision-required): "
+                "'A transfer landing in your queue is a conversation, not "
+                "an order — confirm it before the truck rolls.'",
+            )
+
+    # ── 12:30 · Field interruption (non-mid-day-defect) ─────────────
+    # The foreman takes a 90-second break in the truck cab and pulls
+    # up the leadership records page to remember a phone number, or
+    # to check whether they filed yesterday's recognition note. This
+    # is the "mid-shift reading moment" — different from mid-day
+    # DEFECT routing (strategic hold) — and surfaces whether the
+    # field-leadership records reader-side IA works for the person
+    # who FILED them too.
+    wt.begin_step(
+        "05b-mid-shift-records-read",
+        "12:30 · Foreman pulls up their own leadership records in the truck cab",
+        base + "/leadership/records",
+    )
+    page.goto(base + "/leadership/records", wait_until="domcontentloaded", timeout=30_000)
+    page.wait_for_timeout(2500)
+    page.screenshot(path=wt.shot_path(), full_page=False)
+    landed = page.url
+    if "/login" in landed:
+        wt.note(
+            "workflow-confusion",
+            f"Leadership records redirected to login despite leadership "
+            f"token; landed at {landed!r}.",
+            "Audit auth persistence for the records list at mobile width.",
+        )
+    else:
+        blocks = page.evaluate(FIND_HELPTIPS_JS)
+        wt.record_helptips(blocks)
+        # iter218 authored REVIEWER-SIDE coaching for HR reading
+        # records. The FILER side (the foreman who filed them) may
+        # need a different coaching — "go back and read your own
+        # filings to remember context."
+        records_block = "helptip-block-field-leadership-records" in blocks
+        if records_block:
+            wt.note(
+                "positive-observation",
+                "Leadership records page renders the iter218 coaching "
+                "block — but currently scoped to REVIEWER (HR) voice. "
+                "Operator-decision-required: does the FILER side need a "
+                "parallel coaching surface?",
+            )
+        else:
+            wt.note(
+                "discoverability-gap",
+                "Leadership records page at 414px does not render any "
+                "coaching block visible to the foreman (filer-side). "
+                "The iter218 block exists but may be scoped to HR-only.",
+                "Audit `field-leadership.records` scope: is it intentionally "
+                "reviewer-only, or should the filer also see context-of-use "
+                "coaching when reading their own records?",
+            )
+
+    # ── 18:00 · End-of-day wrap — different from filing the DR ──────
+    # After the Daily Report is filed (step 06 above), the foreman
+    # has one more operational moment: confirming nothing is left
+    # undone before driving off the site. This is the "did I file
+    # the recognition note · did I close yesterday's open write-up
+    # · did I tell the super about tomorrow's headcount gap" check.
+    # The Daily Report doesn't cover all of these — they live in
+    # different surfaces.
+    wt.begin_step(
+        "07-end-of-day-wrap",
+        "18:00 · Foreman returns to Leadership hub for end-of-day wrap",
+        base + "/leadership",
+    )
+    page.goto(base + "/leadership", wait_until="domcontentloaded", timeout=30_000)
+    page.wait_for_timeout(2500)
+    page.screenshot(path=wt.shot_path(), full_page=False)
+    # Discovery checks for the EOD wrap:
+    #   (a) Is there a "what's still open from today" surface visible?
+    #   (b) Is there an "anything to tell the super" handoff surface
+    #       (analogous to iter226 dispatch.handoff)?
+    open_items_surface = page.evaluate("""() => {
+        const candidates = [
+            '[data-testid*="open"]', '[data-testid*="pending"]',
+            '[data-testid*="incomplete"]', '[data-testid*="draft"]',
+            '[data-testid*="unfinished"]',
+        ];
+        for (const sel of candidates) {
+            if (document.querySelector(sel)) return sel;
+        }
+        return null;
+    }""")
+    if not open_items_surface:
+        wt.note(
+            "discoverability-gap",
+            "Leadership hub at 414px exposes no 'what's still open from "
+            "today' surface for the foreman's end-of-day wrap. They have "
+            "to remember what they didn't finish — or skip it and "
+            "rediscover the gap tomorrow morning.",
+            "Operator-decision-required: does the platform need a foreman "
+            "EOD-wrap surface (analogous to iter226 dispatch.handoff)? "
+            "Or is the assumption that the foreman has zero pending items "
+            "at EOD? Document the architectural decision.",
+        )
+    handoff_surface = page.evaluate("""() => {
+        const candidates = [
+            'a[href*="handoff"]', '[data-testid*="handoff"]',
+            'a[href*="supervisor"]', '[data-testid*="super-note"]',
+            '[data-testid*="to-super"]', '[data-testid*="brief"]',
+        ];
+        for (const sel of candidates) {
+            if (document.querySelector(sel)) return sel;
+        }
+        return null;
+    }""")
+    if not handoff_surface:
+        wt.note(
+            "discoverability-gap",
+            "Leadership hub at 414px exposes no 'anything for the super "
+            "to know' handoff surface — the foreman's mirror of the "
+            "iter226 dispatch.handoff discipline. Currently the foreman's "
+            "end-of-day communication to the super is either a phone "
+            "call (no platform support) or buried inside the Daily "
+            "Report narrative.",
+            "Operator-decision-required: should there be a structured "
+            "foreman → super handoff surface (held until Supervisor "
+            "first-14-days coaching is unblocked — these architectures "
+            "are likely interconnected)?",
+        )
+
+
 if __name__ == "__main__":
     # iPhone 14-class mobile viewport — the foreman's actual device.
     report = run(

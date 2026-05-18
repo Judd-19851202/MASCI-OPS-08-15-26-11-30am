@@ -1,5 +1,61 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter227 · Foreman walkthrough audit · 🔍 HONEST DISCOVERY (no coaching authored)
+
+Per operator directive: "the goal is NOT yet 'close the Foreman persona' — the goal is honest operational discovery." Foreman scaffold audited against the operator-stated §8 real-day pattern (yard arrival · crew check · mobile continuity · field interruptions · escalation moments · daily-report flow · dispatch interaction · end-of-day wrap). Scaffold fleshed from 6 to 10 steps. **No coaching authored** — findings documented and PAUSED for operator review.
+
+### Pre-audit baseline (misleadingly clean)
+- 6 steps · **0 actionable** · 5 positive-observation
+- Coverage: yard arrival · pre-op · checkout · incident · write-up · daily-report
+- Missing per operator §8 pattern: crew check · dispatch interaction · field interruption · end-of-day wrap (distinct from daily-report)
+
+### Post-audit findings (10-step real day)
+
+| Step | Time | Operational moment | Finding(s) |
+|---|---|---|---|
+| 02b · crew-check | 07:00 | Foreman opens Leadership hub to confirm today's crew | **(d-gap)** No crew/muster/headcount surface visible at 414px · **(missing)** Leadership hub itself has no contextual coaching |
+| 04b · dispatch-interaction | 11:00 | Foreman reads incoming transfer request | **(missing)** Receiving-foreman side of iter226 Transfer flow has no coaching parallel · iter226 authored the dispatcher side; the foreman side is silent |
+| 05b · mid-shift-records-read | 12:30 | Foreman pulls up own filed records in truck cab | **(positive-but-asks-decision)** iter218 records-page coaching renders, but scoped REVIEWER-only — filer-side voice not yet authored |
+| 07 · end-of-day-wrap | 18:00 | Foreman returns to Leadership hub after filing DR | **(d-gap)** No "what's still open from today" surface · **(d-gap)** No foreman→super handoff surface (mirror of iter226 dispatch.handoff) |
+
+**Totals: 0 → 6 actionable** (4 discoverability-gap + 2 missing-coaching) + 1 architectural-decision surface for operator review.
+
+### Discovery summary — operator-decision-required items
+
+These are NOT tactical coaching-authoring backlog. They are **architectural decisions** that affect platform philosophy, scope boundaries, and the still-held Supervisor first-14-days coaching family:
+
+| # | Decision | Notes |
+|---|---|---|
+| 1 | Should the platform offer a digital **crew-check / muster / headcount** surface at 07:00? | Currently this is a verbal/clipboard moment. May be intentional (operational realism) or a real gap. |
+| 2 | Should the **Leadership hub** itself have canonical-4 coaching for a new foreman? | Or is the navigation pattern itself the coaching? |
+| 3 | Should the foreman side of the **Transfer interaction** have parallel coaching to iter226 `dispatch.transfers`? | Candidate anchor: "A transfer landing in your queue is a conversation, not an order — confirm it before the truck rolls." Mirrors iter226 dispatch-side discipline. |
+| 4 | Should the iter218 `field-leadership.records` family be **scoped both reviewer-side AND filer-side**, or stay reviewer-only? | iter218 was authored for HR reading; the foreman who FILED them may need different voice when re-reading their own. |
+| 5 | Should there be a foreman **end-of-day wrap surface** (analogous to iter226 `dispatch.handoff`)? | The "what's still open · anything to tell the super" moment currently has no platform support. |
+| 6 | Should there be a structured **foreman → super handoff** surface? | Mirror of iter226 dispatch.handoff. **Likely interconnected with the still-held Supervisor first-14-days architecture.** |
+
+### Strategic-hold preservation confirmed
+- **Operator mid-day-defect** routing surface explicitly NOT exercised in this audit — the 12:30 step deliberately tests a NON-defect field-interruption moment (mid-shift records read), preserving the operator architectural hold per walkthrough_pass.md §10.
+- **Supervisor first-14-days** coaching family still HELD — findings #5 and #6 above will likely be inputs to it when unblocked.
+
+### Files touched
+- MOD: `walkthroughs/foreman.py` (6 → 10 steps · added 02b crew-check, 04b dispatch-interaction, 05b mid-shift-records-read, 07 end-of-day-wrap)
+- MOD: `memory/PRD.md`
+
+### Cumulative walkthrough state across personas
+| Persona | Scaffold | Real-day audited? | Actionable | Status |
+|---|---|---|---|---|
+| HR | 7 steps | ✅ | 0 | ✅ CLOSED (iter225) |
+| Dispatcher | 8 steps | ✅ | 0 | ✅ CLOSED (iter226) |
+| **Foreman** | **10 steps** | **✅ (this iter)** | **6** | **🔍 DISCOVERY · operator review pending** |
+| Operator · Super · Safety · PM · Laborer | scaffolded only | ❌ | unknown (likely hidden) | future audit needed |
+
+### Architectural insight (iter226 pattern confirmed)
+The Foreman audit confirms the iter226 insight: **scaffolded walkthroughs hide real gaps**. Foreman went 0 → 6 actionable just by reflecting the actual operational day. The same fleshing audit is now an **expected discipline** before declaring any persona zero-actionable.
+
+🔵 Preview only · no coaching authored · no tip-registry changes · awaiting operator architectural decisions.
+
+---
+
 ## 2026-05-18 — iter226 · Dispatcher persona-loop closure · ✅ DELIVERED (preview only)
 
 **Second persona-loop closure** after iter225's HR milestone. Dispatcher walkthrough scaffold fleshed from 5 steps to 8 (per walkthrough_pass.md §8 — arrival → first action → escalation → end-of-day), surfacing three operational gaps that map to the operator-stated dispatch domain: **scheduling · crews · equipment · urgency · coordination · reassignment · communication · accountability · trust**.
