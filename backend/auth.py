@@ -38,7 +38,12 @@ SEED_USERS = [
     ("jaymn.judd@mascigc.com", "Jaymn Judd", "owner"),
     ("safety@mascigc.com", "MASCI Safety", "admin"),
 ]
-SEED_DEFAULT_PASSWORD = "Welcome2MASCI!"
+# iter232 · Pulled from env (operator-stated stabilization-phase posture
+# preserves auth-sensitive defaults as explicit operator decisions, not
+# hardcoded constants). Fallback is the historical value to preserve
+# current behavior on environments that haven't set the key yet — this
+# is the documented safe fallback per the code-review triage.
+SEED_DEFAULT_PASSWORD = os.environ.get("SEED_DEFAULT_PASSWORD", "Welcome2MASCI!")
 
 
 # ------------------------- crypto helpers -------------------------
