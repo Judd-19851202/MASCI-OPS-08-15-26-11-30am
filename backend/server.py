@@ -737,7 +737,7 @@ async def _guidance_caller_scopes(request: Request) -> set:
     if shop_tok:
         # legacy shared-shop token validator
         try:
-            is_shop = _is_valid_shop_token(shop_tok) if "_is_valid_shop_token" in globals() else False
+            is_shop = _is_valid_shop_token(shop_tok) if "_is_valid_shop_token" in globals() else False  # noqa: F821
         except Exception:
             is_shop = False
         if not is_shop:
