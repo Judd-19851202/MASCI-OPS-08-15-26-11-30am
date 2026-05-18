@@ -102,8 +102,11 @@ def test_pass5b_related_links_only_public(aid):
 
 
 def test_drift_cleared_for_pass5b_personas():
-    """Shop + Dispatch should clear the identity-incomplete drift after
-    Pass 5b. Only Admin should remain (Pass 5c)."""
+    """Shop + Dispatch cleared the identity-incomplete drift after Pass 5b.
+
+    Pass 5c update: Admin also cleared. The identity-drift bucket is
+    now empty entirely.
+    """
     import guidance  # noqa: F401
     from governance.inventory import compute_drift
     d = compute_drift()
@@ -111,11 +114,8 @@ def test_drift_cleared_for_pass5b_personas():
         it["subject"] for it in d["items"]
         if it["category"] == "portal-identity-incomplete"
     }
-    for cleared in ("hr", "safety", "pm", "shop", "dispatch"):
+    for cleared in ("hr", "safety", "pm", "shop", "dispatch", "admin"):
         assert cleared not in flagged, (
-            f"Pass 5a/5b cleared {cleared}; should not be in drift. "
+            f"Pass 5a/5b/5c cleared {cleared}; should not be in drift. "
             f"Currently flagged: {flagged}"
         )
-    assert "admin" in flagged, (
-        "Admin still pending Pass 5c — must still be in drift"
-    )

@@ -32,14 +32,30 @@ const PORTAL_LABELS = {
   leadership: { en: "Field Leadership Portal",   es: "Portal de Liderazgo de Campo" },
 };
 
+// Pass 5a/5b/5c complete: every protected portal has the full identity
+// triple (identity + onboard-first-week + tshoot-login) in the public
+// guidance tier. Auto-resolve the article IDs from `portal` so each
+// login page can simply render `<PortalLoginHelp portal="hr" />`.
+const PORTAL_GUIDANCE = {
+  hr:         { identity: "portal-hr-identity",         onboard: "onboard-hr-first-week",         tshoot: "tshoot-hr-login" },
+  safety:     { identity: "portal-safety-identity",     onboard: "onboard-safety-first-week",     tshoot: "tshoot-safety-login" },
+  shop:       { identity: "portal-shop-identity",       onboard: "onboard-shop-first-week",       tshoot: "tshoot-shop-login" },
+  dispatch:   { identity: "portal-dispatch-identity",   onboard: "onboard-dispatch-first-week",   tshoot: "tshoot-dispatch-login" },
+  pm:         { identity: "portal-pm-identity",         onboard: "onboard-pm-first-week",         tshoot: "tshoot-pm-login" },
+  admin:      { identity: "portal-admin-identity",      onboard: "onboard-admin-first-week",      tshoot: "tshoot-admin-login" },
+  leadership: { identity: "portal-leadership-identity", onboard: "onboard-leadership-first-week", tshoot: "tshoot-leadership-login" },
+};
+
 export function PortalLoginHelp({ portal, identityId, onboardId, tshootId }) {
   const { t, lang } = useT();
   const portalLabel = (PORTAL_LABELS[portal] || {})[lang] || (PORTAL_LABELS[portal] || {}).en || "";
+  const defaults = PORTAL_GUIDANCE[portal] || {};
 
-  // Defaults: if a specific article isn't named, fall back to /guidance.
-  const onboardHref  = onboardId  ? `/guidance/${onboardId}`  : "/guidance";
-  const identityHref = identityId ? `/guidance/${identityId}` : "/guidance";
-  const tshootHref   = tshootId   ? `/guidance/${tshootId}`   : "/guidance/public-cant-login";
+  // Caller can override per-link; otherwise auto-resolve from the
+  // portal key. Final fallback is the universal /guidance landing.
+  const onboardHref  = `/guidance/${onboardId  || defaults.onboard  || ""}`.replace(/\/$/, "/guidance");
+  const identityHref = `/guidance/${identityId || defaults.identity || ""}`.replace(/\/$/, "/guidance");
+  const tshootHref   = `/guidance/${tshootId   || defaults.tshoot   || "public-cant-login"}`;
 
   return (
     <div

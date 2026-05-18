@@ -2079,6 +2079,95 @@ _ARTICLES: list[dict] = [
         ],
     },
 
+    # ── Admin — onboarding + login-troubleshoot ──────────────────────
+    {
+        "id": "onboard-admin-first-week",
+        "section": "onboarding",
+        "title": "Admin / Operator — First Week",
+        "summary": "What a new platform Operator does in their first week. Deliberate, slow, audit-first.",
+        "scopes": ["public"],
+        "tags": ["admin", "operator", "onboarding", "first week", "new staff"],
+        "body": [
+            {"type": "p", "text":
+                "Welcome. Operator is the most trusted role on the platform — and the one "
+                "with the deepest blast radius. Your first week is deliberately slow. Read, "
+                "watch, ask, and resist the urge to change things. Every operator who got "
+                "this seriously wrong got there by acting fast in week one."},
+            {"type": "steps", "items": [
+                "Day 1 — Receive your operator credentials from the platform Owner directly. Sign in at /admin/login and complete your forced password change. Change it again at end of week 1 — by then you'll have learned what a strong password feels like in this environment.",
+                "Day 1 — Read the deep Admin Console guidance once, end to end. Don't act on any of it yet.",
+                "Day 2 — Sit beside the current operator for the full day. Watch what they do, not what they say they do. The gap between those two is where most mistakes hide.",
+                "Day 2-3 — Read every audit-log entry from the last 30 days. Patterns matter more than individual events. If something looks weird, ask before assuming.",
+                "Day 3-4 — Pick one low-risk maintenance task (e.g., reviewing the operational-inventory drift dashboard) and walk it under supervision. Do not perform any user-management or backup operation alone yet.",
+                "Day 4-5 — Read the platform's last two incident post-mortems if any exist. Operator work is judged by what didn't happen — knowing past near-misses is how you stay there.",
+                "End of week 1 — Make a list of every system surface you don't yet understand. Bring that list to your weekly check-in with the Owner.",
+            ]},
+            {"type": "why", "text":
+                "Admin work is high-trust and high-impact. A first-week mistake on a user "
+                "record creates a paper trail. A first-week mistake on a role template "
+                "creates a security gap. A first-week mistake on a backup creates a "
+                "recovery problem. The cost of going slowly in week one is zero; the cost "
+                "of going fast can be permanent."},
+            {"type": "tip", "text":
+                "Operator work is a relationship with the Owner, not just a technical job. "
+                "In your first week, send a short end-of-day summary every day: 'today I "
+                "did X, Y, Z; tomorrow I plan to do A, B, C; questions I have are 1, 2.' "
+                "Most operator-onboarding friction comes from gaps in communication, not "
+                "gaps in skill."},
+            {"type": "next", "items": [
+                "By week 2 you should be performing routine read-only operations independently",
+                "By week 4 you should own one user-management cycle end-to-end with Owner sign-off",
+                "Bookmark the audit log — you'll be living in it",
+            ]},
+        ],
+        "related": [
+            "portal-admin-identity",
+            "tshoot-admin-login",
+            "public-cant-login",
+        ],
+    },
+    {
+        "id": "tshoot-admin-login",
+        "section": "troubleshooting",
+        "title": "Can't sign in to Admin",
+        "summary": "Quick fixes when /admin/login isn't working.",
+        "scopes": ["public"],
+        "tags": ["admin", "operator", "login", "troubleshooting", "password"],
+        "body": [
+            {"type": "p", "text":
+                "Admin uses a password issued directly by the platform Owner. If you can't get "
+                "in, walk through these in order."},
+            {"type": "steps", "items": [
+                "Confirm you're at /admin/login (NOT /hr/login or any other portal door — admin has its own surface).",
+                "Check caps lock and spelling. Passwords are case-sensitive.",
+                "If this is your first login, use the temporary password the Owner gave you. You'll be forced to change it.",
+                "If you forgot your password, contact the platform Owner directly. Admin password resets are not self-serve by design.",
+                "If you see 'account disabled' or 'locked', contact the Owner. Admin lockouts are rare and intentional.",
+                "Do not request an admin password reset through any other channel (chat, email forwarding, screenshots). The Owner is the only authorized reset path.",
+            ]},
+            {"type": "why", "text":
+                "Admin password resets are deliberately not automated. A self-serve reset "
+                "for the most-privileged account on the platform would be a structural "
+                "weakness. The Owner-only reset path is a feature, not a friction — it "
+                "makes a phishing attack on an operator account meaningfully harder."},
+            {"type": "warn", "text":
+                "Never paste your admin password into another portal's login form. Never "
+                "share an admin password — not with another operator, not with the Owner "
+                "over chat, never. If you suspect your admin password has been seen by "
+                "anyone, request a rotation through the Owner immediately."},
+            {"type": "tip", "text":
+                "Admin lockouts auto-clear in 15 minutes for IP-based lockouts. Account-level "
+                "lockouts require Owner action. Bookmark /admin/login and use it from a "
+                "known device — the most common admin-login failure is typing /admin in "
+                "a phone browser that auto-completes to a previous portal URL."},
+        ],
+        "related": [
+            "portal-admin-identity",
+            "onboard-admin-first-week",
+            "public-cant-login",
+        ],
+    },
+
     {
         "id": "field-daily-report-howto",
         "section": "portals",

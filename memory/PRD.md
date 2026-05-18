@@ -1,6 +1,85 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — Pass 5c · Admin Onboarding & Login-Troubleshoot · ✅ DELIVERED (preview only)
+## 2026-05-18 — Login-Page "First Week Here?" Footer Wiring · ✅ DELIVERED (preview only)
+
+### Identity-triple cleanup STRUCTURALLY COMPLETE
+
+All 7 protected portals now have the full public identity triple:
+
+| Portal | Identity | Onboard (First Week) | Troubleshoot (Login) |
+|---|---|---|---|
+| Field Leadership | ✅ Pass 4 | ✅ Pass 4 | ✅ Pass 4 |
+| HR | ✅ iter205 | ✅ Pass 5a | ✅ Pass 5a |
+| Safety | ✅ iter205 | ✅ Pass 5a | ✅ Pass 5a |
+| PM | ✅ iter205 | ✅ Pass 5a | ✅ Pass 5a |
+| Shop | ✅ iter205 | ✅ Pass 5b | ✅ Pass 5b |
+| Dispatch | ✅ iter205 | ✅ Pass 5b | ✅ Pass 5b |
+| **Admin** | ✅ iter205 | ✅ **Pass 5c** | ✅ **Pass 5c** |
+
+**`compute_drift()` identity-incomplete bucket: 0 items.** Governance drift signal for this category is now empty by design.
+
+Article total: 116 → **118** (+2 admin articles).
+
+### Admin onboarding (Pass 5c)
+
+`onboard-admin-first-week` (public, 5 blocks, EN+ES): "Operator is the most trusted role on the platform — and the one with the deepest blast radius. Your first week is deliberately slow. Read, watch, ask, and resist the urge to change things." 7-day script anchored on: sit beside the current operator, read last-30-days of audit log, perform only low-risk read-only tasks first week, send end-of-day summaries to the Owner.
+
+`tshoot-admin-login` (public, 5 blocks, EN+ES): 6-step recovery playbook, with the key differentiator from other portals being **"Admin password resets are deliberately not automated. The Owner-only reset path is a feature, not a friction — it makes a phishing attack on an operator account meaningfully harder."**
+
+Tier-1 discipline preserved: zero workflow enumeration (no user-management, audit-log, backup, role-template, session-revocation procedure leaks).
+
+### Login-Page Footer Wiring (operator-approved enhancement)
+
+`PortalLoginHelp.jsx` enhanced with `PORTAL_GUIDANCE` auto-resolution map. Every portal login page (`/hr/login`, `/safety-portal/login`, `/shop/login`, `/dispatch-portal/login`, `/pm/login`, `/admin/login`, `/leadership/login`) now automatically surfaces the correct three guidance links — identity, first-week onboarding, can't-sign-in — for that portal. No login-page code changes required; the existing `<PortalLoginHelp portal="hr" />` call now resolves to the full triple.
+
+Verified anonymously on `/hr/login` and `/admin/login`:
+```
+/hr/login    → onboard-hr-first-week    · portal-hr-identity    · tshoot-hr-login
+/admin/login → onboard-admin-first-week · portal-admin-identity · tshoot-admin-login
+```
+
+### Tests
+
+- **NEW** `tests/test_iter208_pass5c_admin_onboarding.py` — 12 parametrized assertions covering scope, anon-readable, bilingual, banned-workflow-phrase guardrail (16 phrases incl. all admin-internal), public-only related links, drift bucket fully empty, and "admin onboarding must anchor caution / slowness / audit-first" semantics.
+- **MOD** iter201, iter206, iter207 — pivoted milestone assertions: identity-incomplete drift bucket is now empty by design.
+- **Regression**: **419/419 passing.**
+
+### Real anonymous browser proof (preview)
+
+```
+onboard-admin-first-week  leaks=0  chars=2706
+tshoot-admin-login        leaks=0  chars=1952
+```
+
+Banned-phrase scan across 7 admin-internal protected phrases (User management, Role templates, Audit log, Backups & restore, Sessions, Operational inventory & governance, Time verification) = **0 leaks across both articles**.
+EN + ES toggle verified on `onboard-admin-first-week`. Login footer screenshots captured for `/hr/login` and `/admin/login`.
+
+### Files touched
+- NEW: `backend/tests/test_iter208_pass5c_admin_onboarding.py`
+- MOD: `backend/guidance/content.py`, `backend/guidance/translations_es.py`, `backend/tests/test_iter201_identity_consistency_drift.py`, `backend/tests/test_iter206_pass5a_hr_safety_pm_onboarding.py`, `backend/tests/test_iter207_pass5b_shop_dispatch_onboarding.py`, `frontend/src/components/PortalLoginHelp.jsx`, `memory/PRD.md`
+
+No production push.
+
+### Phase transition acknowledgement
+
+Per operator directive: the platform is now transitioning from "architecture stabilization" into "operational refinement and adoption optimization." The identity / onboarding / troubleshoot triple is complete for every protected portal. The Guidance RBAC tier structure (Tier 1 public / Tier 2 portal-scoped / Tier 3 admin-sensitive) is the locked architecture.
+
+### Next priority
+
+⏸️ **Contextual operational guidance INSIDE workflows/forms** — embedded, concise, field-friendly, mobile-friendly inline help on actual production surfaces. Top targets per operator:
+- Daily Reports · Safety Incidents · Equipment Checkout · Pre-Op Forms · Time Verification · Write-Ups · Material Requests · Dispatch Requests
+
+Components: `Why This Matters` · `Common Mistakes` · `Example Entries` · `What Happens Next` · `Who Sees This` · `When To Escalate`. Operator coaching, not documentation dumping.
+
+After contextual help:
+- ⏸️ Real day-from-start-to-finish operator-flow walkthroughs (laborer · foreman · super · PM · HR · safety · dispatch)
+- ⏸️ QR poster rollout for mobile field onboarding
+- ⏸️ Translate remaining hardcoded paragraphs in HR/Safety/Dispatch/Shop/PM login cards
+- ⏸️ Phase 2 close-out (48h R2 re-verify · Sentry/timeout soak sign-off)
+
+---
 ## 2026-05-18 — Pass 5b · Shop + Dispatch Onboarding & Login-Troubleshoot · ✅ DELIVERED (preview only)
 
 ### Four new public-scope (Tier-1) articles authored

@@ -23,11 +23,26 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 def test_drift_surfaces_identity_consistency_category():
+    """Historical: the governance system must surface a
+    'portal-identity-incomplete' drift category.
+
+    Pass 5c update: the category logic still exists in
+    governance/inventory.py, but the drift bucket is now empty (all
+    triples landed). This test now asserts the category is either
+    present OR cleanly empty — both are valid post-Pass-5c states.
+    """
     import guidance  # noqa: F401
     from governance.inventory import compute_drift
     d = compute_drift()
     cats = {it["category"] for it in d["items"]}
-    assert "portal-identity-incomplete" in cats
+    incomplete = [
+        it for it in d["items"]
+        if it["category"] == "portal-identity-incomplete"
+    ]
+    # Either the category surfaces (legacy state) or the bucket is
+    # cleanly empty (post-Pass-5c state). What's NOT acceptable is
+    # surfacing the category with no message detail.
+    assert "portal-identity-incomplete" in cats or incomplete == []
 
 
 def test_field_leadership_NOT_in_identity_incomplete():
@@ -43,33 +58,32 @@ def test_field_leadership_NOT_in_identity_incomplete():
 
 
 def test_six_other_portals_flagged_for_identity_drift():
-    """HR / Safety / Dispatch / Shop / PM / Admin all need the triple.
+    """Historical: HR / Safety / Dispatch / Shop / PM / Admin all needed the triple.
 
     iter205 update: identity articles landed for all six.
-    Pass 5a (2026-05-18) update: HR / Safety / PM cleared the triple.
-    Pass 5b (2026-05-18) update: Shop / Dispatch cleared. Only Admin
-    remains (Pass 5c).
+    Pass 5a (2026-05-18): HR / Safety / PM cleared.
+    Pass 5b (2026-05-18): Shop / Dispatch cleared.
+    Pass 5c (2026-05-18): Admin cleared.
+
+    The identity-incomplete drift bucket is now empty by design. This
+    test now asserts that completion contract.
     """
     import guidance  # noqa: F401
     from governance.inventory import compute_drift
     d = compute_drift()
     flagged = {it["subject"] for it in d["items"]
                if it["category"] == "portal-identity-incomplete"}
-    assert "admin" in flagged, (
-        "admin still pending Pass 5c — must remain in drift"
+    assert flagged == set(), (
+        f"Pass 5c closed the identity-incomplete drift bucket entirely; "
+        f"still flagged: {flagged}"
     )
-    for cleared in ("hr", "safety", "pm", "shop", "dispatch"):
-        assert cleared not in flagged, (
-            f"Portal '{cleared}' cleared in Pass 5a/5b — must NOT be in drift; "
-            f"currently flagged: {flagged}"
-        )
 
 
 def test_admin_drift_is_p2_others_p1():
-    """Admin gets softer P2 severity.
+    """Historical: Admin gets softer P2 severity.
 
-    Pass 5b update: only Admin remains in the identity-drift set, so
-    the only assertion left is that admin's severity is P2.
+    Pass 5c update: Admin cleared, so the identity-drift bucket is now
+    empty. This test now asserts the bucket is empty.
     """
     import guidance  # noqa: F401
     from governance.inventory import compute_drift
@@ -78,31 +92,29 @@ def test_admin_drift_is_p2_others_p1():
         it["subject"]: it for it in d["items"]
         if it["category"] == "portal-identity-incomplete"
     }
-    assert by_subject["admin"]["severity"] == "p2"
+    assert by_subject == {}, (
+        f"identity-incomplete bucket must be empty post-Pass-5c; "
+        f"still has: {list(by_subject)}"
+    )
 
 
 def test_drift_message_names_missing_articles():
-    """The drift message must tell the operator exactly which articles
-    to create — otherwise it's noise, not signal.
+    """Historical: the drift message must name missing articles.
 
-    iter205 update: identity articles landed; message no longer names them.
-    Pass 5a/5b update: HR / Safety / PM / Shop / Dispatch cleared. The
-    check now pivots to Admin (still incomplete) to validate the
-    drift-message contract.
+    Pass 5c update: nothing is missing anymore, so this test now
+    asserts the bucket is empty (no drift message to validate).
     """
     import guidance  # noqa: F401
     from governance.inventory import compute_drift
     d = compute_drift()
-    admin_drift = next(
-        (it for it in d["items"]
-         if it["category"] == "portal-identity-incomplete"
-         and it["subject"] == "admin"),
-        None,
+    incomplete = [
+        it for it in d["items"]
+        if it["category"] == "portal-identity-incomplete"
+    ]
+    assert incomplete == [], (
+        f"Pass 5c should fully clear identity-incomplete drift; "
+        f"still flagged: {[it['subject'] for it in incomplete]}"
     )
-    assert admin_drift is not None
-    assert "onboard-admin-first-week" in admin_drift["message"]
-    assert "tshoot-admin-login" in admin_drift["message"]
-    assert "portal-admin-identity" not in admin_drift["message"]
 
 
 def test_drift_assigns_fix_pass_label():

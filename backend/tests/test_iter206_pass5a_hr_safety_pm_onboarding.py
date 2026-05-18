@@ -114,9 +114,11 @@ def test_pass5a_related_links_only_public(aid):
 def test_drift_cleared_for_pass5a_personas():
     """Pass 5a personas (HR / Safety / PM) cleared the identity triple.
 
-    Note: this test asserts only the Pass 5a contract. Shop / Dispatch
-    were later cleared in Pass 5b (asserted in test_iter207). Admin
-    remains pending (Pass 5c).
+    Pass 5b cleared Shop / Dispatch.
+    Pass 5c cleared Admin (final).
+
+    This test asserts the Pass 5a contract — its own personas are
+    cleared. The broader closure is asserted in iter207 / iter208.
     """
     import guidance  # noqa: F401
     from governance.inventory import compute_drift
@@ -130,6 +132,3 @@ def test_drift_cleared_for_pass5a_personas():
             f"Pass 5a cleared {cleared}; should not be in drift. "
             f"Currently flagged: {flagged}"
         )
-    assert "admin" in flagged, (
-        "admin still pending Pass 5c — must remain in drift"
-    )

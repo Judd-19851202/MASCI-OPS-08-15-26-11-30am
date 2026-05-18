@@ -493,6 +493,82 @@ TRANSLATIONS_ES: dict[str, dict] = {
         ],
     },
 
+    # ── Pass 5c · Admin onboarding + login troubleshoot ──────────────
+    "onboard-admin-first-week": {
+        "title_es": "Admin / Operador — Primera Semana",
+        "summary_es": "Qué hace un nuevo Operador de plataforma en su primera semana. Deliberado, lento, auditoría-primero.",
+        "body_es": [
+            {"type": "p", "text":
+                "Bienvenido. Operador es el rol de más confianza en la plataforma — y el "
+                "de mayor radio de impacto. Su primera semana es deliberadamente lenta. "
+                "Lea, observe, pregunte y resista el impulso de cambiar cosas. Cada operador "
+                "que se equivocó seriamente llegó ahí actuando rápido en la semana uno."},
+            {"type": "steps", "items": [
+                "Día 1 — Reciba sus credenciales de operador directamente del Dueño de la plataforma. Inicie sesión en /admin/login y complete su cambio de contraseña forzado. Cámbiela otra vez al final de la semana 1 — para entonces habrá aprendido cómo se siente una contraseña fuerte en este entorno.",
+                "Día 1 — Lea la guía profunda de la Consola de Admin una vez, de principio a fin. No actúe sobre nada todavía.",
+                "Día 2 — Siéntese al lado del operador actual durante el día completo. Observe lo que hace, no lo que dice que hace. La brecha entre esos dos es donde se esconden la mayoría de los errores.",
+                "Día 2-3 — Lea cada entrada del registro de auditoría de los últimos 30 días. Los patrones importan más que los eventos individuales. Si algo se ve raro, pregunte antes de asumir.",
+                "Día 3-4 — Elija una tarea de mantenimiento de bajo riesgo (por ejemplo, revisar el tablero de desviación de inventario operacional) y recórrala bajo supervisión. No realice ninguna operación de gestión de usuarios o respaldo solo todavía.",
+                "Día 4-5 — Lea los últimos dos post-mortems de incidentes de la plataforma si existen. El trabajo de operador se juzga por lo que no pasó — conocer los casi-incidentes pasados es cómo se mantiene ahí.",
+                "Fin de la semana 1 — Haga una lista de cada superficie del sistema que aún no entiende. Llévela a su reunión semanal con el Dueño.",
+            ]},
+            {"type": "why", "text":
+                "El trabajo de Admin es de alta confianza y alto impacto. Un error de "
+                "primera semana en un registro de usuario crea una pista de papel. Un "
+                "error de primera semana en una plantilla de rol crea una brecha de "
+                "seguridad. Un error de primera semana en un respaldo crea un problema de "
+                "recuperación. El costo de ir lento en la semana uno es cero; el costo de "
+                "ir rápido puede ser permanente."},
+            {"type": "tip", "text":
+                "El trabajo de operador es una relación con el Dueño, no solo un trabajo "
+                "técnico. En su primera semana, envíe un resumen corto de fin del día cada "
+                "día: 'hoy hice X, Y, Z; mañana planeo hacer A, B, C; mis preguntas son "
+                "1, 2.' La mayor parte de la fricción de orientación de operador viene de "
+                "brechas en comunicación, no en habilidad."},
+            {"type": "next", "items": [
+                "Para la semana 2 debería estar realizando operaciones rutinarias de solo lectura independientemente",
+                "Para la semana 4 debería ser dueño de un ciclo de gestión de usuarios de principio a fin con la aprobación del Dueño",
+                "Marque el registro de auditoría — vivirá en él",
+            ]},
+        ],
+    },
+    "tshoot-admin-login": {
+        "title_es": "No puedo iniciar sesión en Admin",
+        "summary_es": "Soluciones rápidas cuando /admin/login no funciona.",
+        "body_es": [
+            {"type": "p", "text":
+                "Admin usa una contraseña emitida directamente por el Dueño de la plataforma. "
+                "Si no puede entrar, recorra estos en orden."},
+            {"type": "steps", "items": [
+                "Confirme que está en /admin/login (NO en /hr/login ni en ninguna otra puerta de portal — admin tiene su propia superficie).",
+                "Revise mayúsculas y ortografía. Las contraseñas distinguen mayúsculas y minúsculas.",
+                "Si es su primer inicio de sesión, use la contraseña temporal que le dio el Dueño. Será forzado a cambiarla.",
+                "Si olvidó su contraseña, contacte al Dueño de la plataforma directamente. Los restablecimientos de contraseña de admin no son auto-servicio por diseño.",
+                "Si ve 'cuenta deshabilitada' o 'bloqueada', contacte al Dueño. Los bloqueos de admin son raros e intencionales.",
+                "No solicite un restablecimiento de contraseña de admin por ningún otro canal (chat, reenvío de correo, capturas de pantalla). El Dueño es la única ruta de restablecimiento autorizada.",
+            ]},
+            {"type": "why", "text":
+                "Los restablecimientos de contraseña de admin deliberadamente no están "
+                "automatizados. Un restablecimiento de auto-servicio para la cuenta más "
+                "privilegiada de la plataforma sería una debilidad estructural. La ruta "
+                "de restablecimiento solo-Dueño es una característica, no una fricción — "
+                "hace que un ataque de phishing a una cuenta de operador sea "
+                "significativamente más difícil."},
+            {"type": "warn", "text":
+                "Nunca pegue su contraseña de admin en el formulario de inicio de sesión "
+                "de otro portal. Nunca comparta una contraseña de admin — ni con otro "
+                "operador, ni con el Dueño por chat, nunca. Si sospecha que su contraseña "
+                "de admin ha sido vista por alguien, solicite una rotación a través del "
+                "Dueño inmediatamente."},
+            {"type": "tip", "text":
+                "Los bloqueos de admin se auto-limpian en 15 minutos para bloqueos basados "
+                "en IP. Los bloqueos a nivel de cuenta requieren acción del Dueño. Marque "
+                "/admin/login y úselo desde un dispositivo conocido — la falla más común "
+                "de inicio de sesión de admin es escribir /admin en un navegador de "
+                "teléfono que auto-completa a una URL de portal previa."},
+        ],
+    },
+
     # ── tshoot-session-timeout ───────────────────────────────────────
     "tshoot-session-timeout": {
         "title_es": "Mi sesión se cerró",
