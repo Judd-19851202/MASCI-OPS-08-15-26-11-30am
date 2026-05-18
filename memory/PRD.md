@@ -1,6 +1,47 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter202 · Operational Portal-Entry Consistency Fix · ✅ DELIVERED (preview only)
+
+**Hard course-correction triggered by operator walkthrough.** The previous Pass 3 / Pass 4 / iter201 work passed all backend tests but the operator caught real user-facing inconsistencies that tests didn't cover:
+1. ES toggle on `/guidance` landing was visibly broken — hero, tiles, sections, search placeholder all hardcoded English
+2. Shop and Admin login pages were missing the `<LangToggle>` entirely
+3. Every protected portal except Leadership had zero pre-login guidance discoverability
+
+### What landed
+**Translation wiring (the actual fix):**
+- **MOD** `OperationalGuidanceCenter.jsx` — wrapped every hardcoded English string in `useT()` / `lang === "es" ? ... : ...`. Hero kicker, h1, both subtitle variants (auth + anon), CTA button, search placeholder, both section kickers ("Public · No Sign-In Required" / "Sign-In Required · Your Portals"), both section h2s ("Field Crew Training" / "Portal Training"), "All portal articles →" link, all 15 tile labels and 15 tile blurbs (added `labelEs`/`blurbEs` to the PUBLIC_TRACKS array), portal-track article-count pluralization, "By Topic" / "Browse all guidance", empty state, header "Home" and "Sign in" buttons, related-guidance section header.
+- **MOD** `lib/i18n.js` — added 30+ Spanish dictionary entries covering the Guidance landing, Leadership login operational identity strings, and the new PortalLoginHelp component strings.
+
+**Portal-entry consistency:**
+- **NEW** `components/PortalLoginHelp.jsx` (~80 lines) — single shared discoverability strip used by every protected portal login page. Renders 3 pre-login guidance links (onboarding · identity · troubleshoot). Accepts optional article-id props so when Pass 5 saturates the per-portal identity articles, the same component will pick them up automatically. Until then, links fall back to `/guidance` / `/guidance/public-cant-login` (which both exist). EN/ES aware.
+- **MOD** `ShopLogin.jsx` + `AdminLogin.jsx` — added `<LangToggle />` to header (was missing entirely).
+- **MOD** 6 portal logins — `HrLogin`, `SafetyLogin`, `DispatchLogin`, `PmLogin`, `ShopLogin`, `AdminLogin` — each imports and renders `<PortalLoginHelp portal="..." />` right below the sign-in form.
+
+### Verified end-to-end (operator-style walkthrough, anonymous user, no test theater)
+- `/guidance` EN snippet vs ES snippet — visibly different. Spanish includes "Plataforma de Operaciones MASCI", "Cómo y por qué operar", "Capacitación de Cuadrilla de Campo", "Empleado Nuevo · Básico", etc.
+- All 7 portal logins now show lang toggle + help block + form (Leadership uses its Pass 4 inline block, functionally equivalent)
+- Admin login in ES: "NUEVO EN CONSOLA DE ADMIN? · Orientación de Primera Semana · ¿Qué hace el Consola de Admin? · ¿No puede iniciar sesión?"
+- PM login in ES: "GESTIÓN DE PROYECTOS · Portal de Gestión — Iniciar Sesión · NUEVO EN PORTAL DE PM?"
+
+### Residual gaps acknowledged
+- Long paragraph subtitles inside HR/PM/Safety/Dispatch/Shop login cards remain English. The header chrome, identity kicker, sign-in button, and help block all translate — but body copy doesn't yet. Mechanical fix, not blocking portal entry.
+- Pre-login guidance links currently fall back to `/guidance` for HR/Safety/Shop/Dispatch/PM/Admin because their per-portal identity/onboarding/troubleshoot articles don't exist yet (Pass 5 work). When Pass 5 lands, the `<PortalLoginHelp>` component picks them up automatically.
+
+### Process correction (most important)
+**"Backend tests pass" ≠ "UX works."** The previous iterations claimed Pass 3 / Pass 4 / iter201 complete based on green pytest output, but the operator caught real user-facing breakage. Operator walkthrough validation is now the primary acceptance criteria for any guidance / portal-entry / translation work. Adding green tests is necessary but not sufficient.
+
+### Files touched
+- NEW: `frontend/src/components/PortalLoginHelp.jsx`
+- MOD: `frontend/src/pages/guidance/OperationalGuidanceCenter.jsx`, `frontend/src/lib/i18n.js`, `frontend/src/pages/HrLogin.jsx`, `SafetyLogin.jsx`, `DispatchLogin.jsx`, `PmLogin.jsx`, `ShopLogin.jsx`, `AdminLogin.jsx`, `memory/PRD.md`
+
+No production push. Read-only fix to the portal-entry layer.
+
+### Status of Pass 5 sequencing
+**Held.** Operator confirmed Pass 5 stays paused until the portal-entry layer is verified. With iter202 the portal-entry layer is now consistent across all 7 portals. Awaiting operator approval to resume Pass 5a (HR + Safety + PM identity articles).
+
+---
+
 ## 2026-05-18 — iter201 · Operational Identity Consistency Drift Rule · ✅ DELIVERED (preview only)
 
 Governance maturation in response to the operator surfacing a new consistency gap after Pass 4: "Field Leadership has a mature operational identity, but the other protected portals still don't have equivalent representation inside Guidance/Training. The platform should feel like ONE intentional operational ecosystem."

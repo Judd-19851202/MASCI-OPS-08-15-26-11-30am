@@ -18,7 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
+import { LangToggle } from "@/components/LangToggle";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
+import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { api } from "@/lib/api";
 import { applyMultiLoginResponse, landingFor } from "@/lib/directoryAuth";
 import { clearAdminToken } from "@/lib/adminAuth";
@@ -126,7 +128,7 @@ export default function AdminLogin() {
           </Link>
           <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <span className="hidden sm:inline-block w-20" />
+          <LangToggle />
         </div>
       </header>
 
@@ -227,6 +229,7 @@ export default function AdminLogin() {
               )}
             </Button>
           </form>
+          <PortalLoginHelp portal="admin" />
 
           <p className="mt-5 pt-4 border-t border-slate-200 text-[11px] text-slate-500 leading-relaxed text-center">
             Access multiple portals?{" "}

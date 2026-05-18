@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
+import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { LangToggle } from "@/components/LangToggle";
 import { toast } from "sonner";
 import axios from "axios";
@@ -162,6 +163,7 @@ export default function DispatchLogin() {
               )}
             </Button>
           </form>
+          <PortalLoginHelp portal="dispatch" />
         </div>
       </main>
 

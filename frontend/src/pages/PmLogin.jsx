@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
+import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
@@ -248,6 +249,7 @@ export default function PmLogin() {
               {t("Forgot password? Click the link above and we'll email you a reset. Or call the office — admin can issue a fresh temp password from the console.")}
             </p>
           </form>
+          <PortalLoginHelp portal="pm" />
         </div>
       </main>
 

@@ -7,6 +7,8 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { Input } from "@/components/ui/input";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
+import { LangToggle } from "@/components/LangToggle";
+import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { api } from "@/lib/api";
 import { setShopToken, clearShopToken } from "@/lib/shopAuth";
 import { clearAdminToken } from "@/lib/adminAuth";
@@ -138,7 +140,7 @@ export default function ShopLogin() {
           </Link>
           <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <span className="hidden sm:inline-block w-20" />
+          <LangToggle />
         </div>
       </header>
 
@@ -233,6 +235,7 @@ export default function ShopLogin() {
               )}
             </Button>
           </form>
+          <PortalLoginHelp portal="shop" />
         </div>
       </main>
 

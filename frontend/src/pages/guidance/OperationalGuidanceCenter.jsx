@@ -134,6 +134,7 @@ function Block({ block }) {
 // Search
 // ─────────────────────────────────────────────────────────────────────
 function SearchBox({ onResults, query, setQuery }) {
+  const { t } = useT();  // iter202 — translation fix: placeholder was hardcoded
   const [loading, setLoading] = useState(false);
   const run = async (q) => {
     setQuery(q);
@@ -153,7 +154,7 @@ function SearchBox({ onResults, query, setQuery }) {
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
       <Input
         type="search"
-        placeholder="Search guidance — by role, task, or keyword"
+        placeholder={t("Search guidance — by role, task, or keyword")}
         className="pl-9 pr-9 h-11"
         value={query}
         onChange={(e) => run(e.target.value)}
@@ -172,7 +173,7 @@ function SearchBox({ onResults, query, setQuery }) {
 export default function OperationalGuidanceCenter() {
   const { articleId, sectionId } = useParams();
   const navigate = useNavigate();
-  const { lang } = useT();  // iter199 — Pass 3 translation toggle
+  const { lang, t } = useT();  // iter202 — translation fix: also need t() not just lang
   const [sections, setSections] = useState([]);
   const [articles, setArticles] = useState([]);
   const [article, setArticle] = useState(null);
@@ -449,22 +450,26 @@ export default function OperationalGuidanceCenter() {
   //   /meetings/submit, /qaqc, /field/calculators, etc.
   // Each tile maps to a single article; the article explains the
   // workflow + what happens after submission + who to ask for help.
+  //
+  // iter202 — added labelEs / blurbEs for Spanish toggle parity. Tile
+  // labels are blurb-style summaries, slightly different from article
+  // titles (which already have title_es). Render-time picks the lang.
   const PUBLIC_TRACKS = [
-    { id: "public-tools-map",         icon: LayoutGrid, label: "All Public Field Tools",   blurb: "Index of every no-login tool on the platform." },
-    { id: "role-new-employee",        icon: UserPlus,   label: "New Employee Basics",       blurb: "First-week orientation for any role." },
-    { id: "public-mobile-qr",         icon: Zap,        label: "Scan-and-Go (QR Codes)",    blurb: "Open MASCI on your phone in seconds." },
-    { id: "onboard-mobile",           icon: BookOpen,   label: "Using MASCI on a Phone",    blurb: "Mobile-first tips that save your work." },
-    { id: "public-photos",            icon: Lightbulb,  label: "Photos That Actually Help", blurb: "Wide shot · close-up · clear." },
-    { id: "public-daily-report-basics", icon: LayoutGrid, label: "Daily Report Basics",    blurb: "What it is, why yours matters." },
-    { id: "public-preop-basics",      icon: Shield,     label: "Equipment Pre-Op Basics",   blurb: "Walk it. Sign it. Flag what's broken." },
-    { id: "public-toolbox-talks",     icon: UserCog,    label: "Toolbox Talks / Safety Meetings", blurb: "Sign in. Listen. The record is your signature." },
-    { id: "public-qaqc-basics",       icon: LifeBuoy,   label: "QA / QC for Field Crews",   blurb: "Photo before you cover it. Sign-offs that matter." },
-    { id: "public-material-calculator", icon: Lightbulb, label: "Material Calculator",     blurb: "Concrete · gravel · asphalt quick math." },
-    { id: "public-incident-basics",   icon: AlertTriangle, label: "If Something Happens",  blurb: "First steps after injury, near-miss, or damage." },
-    { id: "public-cant-login",        icon: LifeBuoy,   label: "I Can't Log In",            blurb: "Common login problems & fixes." },
-    { id: "public-who-to-ask",        icon: UserCog,    label: "Who Do I Ask for Help?",    blurb: "A quick map of who handles what." },
-    { id: "public-why-documentation", icon: Shield,     label: "Why This Paperwork Matters", blurb: "Field crew's version of 'why'." },
-    { id: "onboard-login",            icon: LogIn,      label: "How to Log In",             blurb: "First-time login basics." },
+    { id: "public-tools-map",         icon: LayoutGrid, label: "All Public Field Tools",   labelEs: "Todas las Herramientas de Campo",   blurb: "Index of every no-login tool on the platform.",   blurbEs: "Índice de cada herramienta sin inicio de sesión." },
+    { id: "role-new-employee",        icon: UserPlus,   label: "New Employee Basics",       labelEs: "Empleado Nuevo · Básico",            blurb: "First-week orientation for any role.",            blurbEs: "Orientación de primera semana para cualquier rol." },
+    { id: "public-mobile-qr",         icon: Zap,        label: "Scan-and-Go (QR Codes)",    labelEs: "Escanear-y-Listo (QR)",              blurb: "Open MASCI on your phone in seconds.",            blurbEs: "Abra MASCI en su teléfono en segundos." },
+    { id: "onboard-mobile",           icon: BookOpen,   label: "Using MASCI on a Phone",    labelEs: "Usando MASCI en el Teléfono",        blurb: "Mobile-first tips that save your work.",          blurbEs: "Consejos móviles que guardan su trabajo." },
+    { id: "public-photos",            icon: Lightbulb,  label: "Photos That Actually Help", labelEs: "Fotos Que Sí Sirven",                blurb: "Wide shot · close-up · clear.",                   blurbEs: "Toma amplia · acercamiento · claras." },
+    { id: "public-daily-report-basics", icon: LayoutGrid, label: "Daily Report Basics",    labelEs: "Reporte Diario · Básico",            blurb: "What it is, why yours matters.",                  blurbEs: "Qué es y por qué el suyo importa." },
+    { id: "public-preop-basics",      icon: Shield,     label: "Equipment Pre-Op Basics",   labelEs: "Pre-Operación · Básico",             blurb: "Walk it. Sign it. Flag what's broken.",           blurbEs: "Recórralo. Fírmelo. Marque lo roto." },
+    { id: "public-toolbox-talks",     icon: UserCog,    label: "Toolbox Talks / Safety Meetings", labelEs: "Charlas de Seguridad",         blurb: "Sign in. Listen. The record is your signature.",  blurbEs: "Firme. Escuche. El registro es su firma." },
+    { id: "public-qaqc-basics",       icon: LifeBuoy,   label: "QA / QC for Field Crews",   labelEs: "QA / QC para Cuadrillas",            blurb: "Photo before you cover it. Sign-offs that matter.", blurbEs: "Foto antes de cubrir. Firmas que importan." },
+    { id: "public-material-calculator", icon: Lightbulb, label: "Material Calculator",     labelEs: "Calculadora de Materiales",         blurb: "Concrete · gravel · asphalt quick math.",         blurbEs: "Concreto · grava · asfalto · matemática rápida." },
+    { id: "public-incident-basics",   icon: AlertTriangle, label: "If Something Happens",  labelEs: "Si Pasa Algo",                       blurb: "First steps after injury, near-miss, or damage.", blurbEs: "Primeros pasos después de lesión o daño." },
+    { id: "public-cant-login",        icon: LifeBuoy,   label: "I Can't Log In",            labelEs: "No Puedo Iniciar Sesión",            blurb: "Common login problems & fixes.",                  blurbEs: "Problemas comunes y soluciones." },
+    { id: "public-who-to-ask",        icon: UserCog,    label: "Who Do I Ask for Help?",    labelEs: "¿A Quién Pregunto?",                 blurb: "A quick map of who handles what.",                blurbEs: "Mapa rápido de quién maneja qué." },
+    { id: "public-why-documentation", icon: Shield,     label: "Why This Paperwork Matters", labelEs: "Por Qué Importa Este Papeleo",     blurb: "Field crew's version of 'why'.",                  blurbEs: "La versión de la cuadrilla del 'por qué'." },
+    { id: "onboard-login",            icon: LogIn,      label: "How to Log In",             labelEs: "Cómo Iniciar Sesión",                blurb: "First-time login basics.",                        blurbEs: "Lo básico de la primera vez." },
   ];
   const visiblePublicTracks = PUBLIC_TRACKS.filter((t) => publicTrackArticles[t.id]);
   const isAuthenticated = visibleTracks.length > 0;
@@ -477,15 +482,17 @@ export default function OperationalGuidanceCenter() {
         <div className="px-5 sm:px-8 py-6 sm:py-8 grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="md:col-span-2">
             <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-red-400 font-bold mb-2">
-              MASCI Operations Platform · Operational Guidance Center
+              {t("MASCI Operations Platform · Operational Guidance Center")}
             </div>
             <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight leading-tight">
-              How and why to run<br className="hidden sm:block" /> MASCI operations.
+              {lang === "es"
+                ? <>Cómo y por qué operar<br className="hidden sm:block" /> MASCI.</>
+                : <>How and why to run<br className="hidden sm:block" /> MASCI operations.</>}
             </h1>
             <p className="mt-3 text-sm sm:text-base text-slate-300 max-w-xl leading-relaxed">
               {isAuthenticated
-                ? "Portal-specific training, role-based help, troubleshooting, and operational knowledge. Filtered by your portal access."
-                : "Public field-crew training is open below. Portal-specific training (HR · Safety · Shop · Dispatch · PM · Field Leadership · Admin) appears when you sign in."}
+                ? t("Portal-specific training, role-based help, troubleshooting, and operational knowledge. Filtered by your portal access.")
+                : t("Public field-crew training is open below. Portal-specific training (HR · Safety · Shop · Dispatch · PM · Field Leadership · Admin) appears when you sign in.")}
             </p>
             {!isAuthenticated && (
               <Link
@@ -494,7 +501,7 @@ export default function OperationalGuidanceCenter() {
                 data-testid="guidance-signin-cta"
               >
                 <LogIn className="w-4 h-4 mr-2" />
-                Sign in for portal training
+                {t("Sign in for portal training")}
               </Link>
             )}
           </div>
@@ -514,22 +521,24 @@ export default function OperationalGuidanceCenter() {
           <div className="flex items-baseline justify-between mb-3">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
-                Public · No Sign-In Required
+                {t("Public · No Sign-In Required")}
               </div>
               <h2 className="font-display text-xl font-black tracking-tight">
-                Field Crew Training
+                {t("Field Crew Training")}
               </h2>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {visiblePublicTracks.map((t) => {
-              const Icon = t.icon;
+            {visiblePublicTracks.map((tk) => {
+              const Icon = tk.icon;
+              const tileLabel = (lang === "es" && tk.labelEs) ? tk.labelEs : tk.label;
+              const tileBlurb = (lang === "es" && tk.blurbEs) ? tk.blurbEs : tk.blurb;
               return (
                 <Link
-                  key={t.id}
-                  to={`/guidance/${t.id}`}
+                  key={tk.id}
+                  to={`/guidance/${tk.id}`}
                   className="group relative bg-white border-2 border-slate-300 rounded-md p-4 hover:border-red-700 hover:shadow-md transition-all"
-                  data-testid={`guidance-public-track-${t.id}`}
+                  data-testid={`guidance-public-track-${tk.id}`}
                 >
                   <div className="absolute inset-y-0 left-0 w-1 bg-red-700 rounded-l-sm" />
                   <div className="flex items-start gap-3">
@@ -538,10 +547,10 @@ export default function OperationalGuidanceCenter() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-display text-base font-bold text-slate-900 leading-tight">
-                        {t.label}
+                        {tileLabel}
                       </div>
                       <div className="text-[12px] text-slate-600 mt-1 leading-snug">
-                        {t.blurb}
+                        {tileBlurb}
                       </div>
                     </div>
                   </div>
@@ -559,10 +568,10 @@ export default function OperationalGuidanceCenter() {
           <div className="flex items-baseline justify-between mb-3">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-700 font-bold">
-                Sign-In Required · Your Portals
+                {t("Sign-In Required · Your Portals")}
               </div>
               <h2 className="font-display text-xl font-black tracking-tight">
-                Portal Training
+                {t("Portal Training")}
               </h2>
             </div>
             <Link
@@ -570,26 +579,26 @@ export default function OperationalGuidanceCenter() {
               className="text-[12px] font-bold uppercase tracking-wider text-amber-700 hover:underline"
               data-testid="guidance-portal-tracks-all"
             >
-              All portal articles →
+              {t("All portal articles")} →
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {visibleTracks.map((t) => (
+            {visibleTracks.map((tk) => (
               <Link
-                key={t.key}
+                key={tk.key}
                 to="/guidance/section/portals"
                 className="group relative bg-white border-2 border-slate-300 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all overflow-hidden"
-                data-testid={`guidance-portal-track-${t.key}`}
+                data-testid={`guidance-portal-track-${tk.key}`}
               >
-                <div className={`absolute inset-y-0 left-0 w-1 ${ACCENT_BAND[t.accent] || "bg-slate-700"}`} />
+                <div className={`absolute inset-y-0 left-0 w-1 ${ACCENT_BAND[tk.accent] || "bg-slate-700"}`} />
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
-                  {t.key}
+                  {tk.key}
                 </div>
                 <div className="font-display text-base font-bold text-slate-900 mt-1 leading-tight">
-                  {t.label}
+                  {tk.label}
                 </div>
                 <div className="text-[12px] text-slate-500 mt-1">
-                  {portalCounts[t.key]} {portalCounts[t.key] === 1 ? "article" : "articles"}
+                  {portalCounts[tk.key]} {portalCounts[tk.key] === 1 ? t("article") : t("articles")}
                 </div>
               </Link>
             ))}
@@ -600,10 +609,10 @@ export default function OperationalGuidanceCenter() {
       {/* Browse by topic — tertiary navigation for power users */}
       <section className="mt-8">
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 font-bold">
-          By Topic
+          {t("By Topic")}
         </div>
         <h2 className="font-display text-xl font-black tracking-tight mb-3">
-          Browse all guidance
+          {t("Browse all guidance")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {sections.map((s) => {
@@ -622,7 +631,7 @@ export default function OperationalGuidanceCenter() {
                   <div className="flex-1">
                     <div className="font-semibold text-slate-900">{s.title}</div>
                     <div className="text-[12px] text-slate-500 mt-0.5">
-                      {s.count} {s.count === 1 ? "article" : "articles"}
+                      {s.count} {s.count === 1 ? t("article") : t("articles")}
                     </div>
                   </div>
                 </div>
@@ -634,7 +643,7 @@ export default function OperationalGuidanceCenter() {
 
       {sections.length === 0 && visibleTracks.length === 0 && visiblePublicTracks.length === 0 && (
         <div className="text-center text-slate-500 py-10" data-testid="guidance-empty">
-          No guidance is available for your access level yet.
+          {t("No guidance is available for your access level yet.")}
         </div>
       )}
 
@@ -649,6 +658,8 @@ function Shell({ title, children }) {
   // Iter195-fix: proper MASCI header + navigation. The Operational
   // Guidance Center is a destination page, not a floating shell —
   // users need branding, sign-in entry, and a clear way home.
+  // iter202 — translation fix for header chrome.
+  const { t } = useT();
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="caution-stripe" />
@@ -663,14 +674,14 @@ function Shell({ title, children }) {
               data-testid="guidance-home-link"
             >
               <Home className="w-3.5 h-3.5 mr-1.5" />
-              Home
+              {t("Home")}
             </Link>
             <Link
               to="/sign-in"
               className="hidden sm:inline-flex items-center h-9 px-3 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wide transition-colors"
               data-testid="guidance-signin-link"
             >
-              Sign in
+              {t("Sign in")}
             </Link>
             <LangToggle />
           </div>
