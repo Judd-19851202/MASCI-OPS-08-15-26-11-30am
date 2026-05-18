@@ -827,8 +827,14 @@ _ARTICLES: list[dict] = [
             {"type": "warn", "text":
                 "Do not guess about cause or assign blame. Just describe what you saw. "
                 "Safety will investigate from there."},
+            {"type": "tip", "text":
+                "A near-miss (something almost happened — almost fell, almost dropped, "
+                "almost hit) is worth reporting. Report it the same way: facts, time, "
+                "place, photos if relevant. Near-misses are the cheapest lessons the "
+                "crew gets — speak up and you may have just prevented the real one."},
         ],
-        "related": ["public-who-to-ask", "public-photos", "public-why-documentation"],
+        "related": ["public-who-to-ask", "public-photos", "public-why-documentation",
+                    "public-toolbox-talks"],
     },
     {
         "id": "public-cant-login",
@@ -904,6 +910,188 @@ _ARTICLES: list[dict] = [
         ],
         "related": ["public-daily-report-basics", "public-incident-basics",
                     "public-photos", "public-who-to-ask"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # PHASE 3 · PUBLIC FIELD TOOLS — REAL ROUTE COVERAGE (iter197)
+    # ─────────────────────────────────────────────────────────────────
+    # Operator directive: every public/no-login surface in the actual
+    # platform must have a public guidance article. The routes covered
+    # here come from a code-level audit of /app/frontend/src/App.js:
+    #   /equipment/submit      → public-preop-basics
+    #   /meetings/submit       → public-toolbox-talks
+    #   /qaqc, /qaqc/:slug/new → public-qaqc-basics
+    #   /field/calculators     → public-material-calculator
+    #   /submit, /inspections/submit, /jha, /trench-boxes, /cheatsheet,
+    #   /daily/submit, /incidents/submit, /meetings/submit, /equipment/submit
+    #                          → public-tools-map (overview index)
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "public-preop-basics",
+        "section": "onboarding",
+        "title": "Equipment Pre-Op Checks (Field Basics)",
+        "summary": "Daily check before you operate. Sign your name. Flag what's broken.",
+        "scopes": ["public"],
+        "tags": ["public", "pre-op", "equipment", "field crew", "inspection"],
+        "body": [
+            {"type": "p", "text":
+                "Before you run any piece of equipment, you walk it. A Pre-Op is the "
+                "record of that walk-around: fluids, tires, lights, safety devices, "
+                "obvious damage. You sign your name and submit before you start work."},
+            {"type": "steps", "items": [
+                "Open the Pre-Op form (scan the QR on the asset, or use the public submit link)",
+                "Walk the machine — actually look, don't box-tick from the seat",
+                "Check fluids, tires/tracks, lights, alarms, seatbelt, guards, controls",
+                "Photograph anything wrong before you submit",
+                "Submit. The form locks in the time and your name",
+            ]},
+            {"type": "why", "text":
+                "Pre-Op protects you. If the equipment was damaged before you used it, "
+                "your signed Pre-Op shows you flagged it. If you didn't sign, the question "
+                "becomes whether you caused the damage. Five minutes of walking around is "
+                "the cheapest insurance on the job."},
+            {"type": "warn", "text":
+                "If something fails inspection, do NOT use the equipment. Tell your "
+                "supervisor. The shop has to clear it before it goes back into service."},
+            {"type": "bullets", "items": [
+                "Brakes feel weak → stop, don't operate",
+                "Hydraulic leak → stop, don't operate",
+                "Missing/cracked guards → stop, don't operate",
+                "Anything you wouldn't trust your kid in → stop",
+            ]},
+        ],
+        "related": ["public-photos", "public-who-to-ask", "public-tools-map"],
+    },
+    {
+        "id": "public-toolbox-talks",
+        "section": "onboarding",
+        "title": "Safety Meetings & Toolbox Talks",
+        "summary": "Sign in. Listen. Sign out. That's the record of your attendance.",
+        "scopes": ["public"],
+        "tags": ["public", "toolbox talk", "safety meeting", "field crew"],
+        "body": [
+            {"type": "p", "text":
+                "A toolbox talk (or safety meeting) is a short stand-up at the start of "
+                "the day or shift. Topic of the day, hazards, anything new. You sign the "
+                "roster — that's how it gets recorded that you attended and acknowledged."},
+            {"type": "steps", "items": [
+                "Show up on time — they're usually 5-15 minutes",
+                "Listen to the topic. Ask if anything is unclear",
+                "Sign the attendance form when it comes around (or scan the QR / submit through the public meeting form)",
+                "If you spotted a hazard during the talk, speak up before the crew breaks",
+            ]},
+            {"type": "why", "text":
+                "Your signature is the record that you heard the safety topic. If "
+                "something later happens that was covered in the meeting, that signature "
+                "protects everyone — you knew, the crew knew, the company can prove it. "
+                "Skipping the signature does the opposite."},
+            {"type": "tip", "text":
+                "If you can't make it (medical, late shift change), tell your supervisor. "
+                "They can sometimes have you acknowledge separately."},
+        ],
+        "related": ["public-incident-basics", "public-why-documentation", "public-tools-map"],
+    },
+    {
+        "id": "public-qaqc-basics",
+        "section": "onboarding",
+        "title": "QA/QC for Field Crews",
+        "summary": "Quality checks while you work — photos, measurements, sign-offs.",
+        "scopes": ["public"],
+        "tags": ["public", "qaqc", "quality", "field crew", "inspection"],
+        "body": [
+            {"type": "p", "text":
+                "QA/QC means Quality Assurance / Quality Control. In the field, it's "
+                "the records you create that prove the work was done to spec — photos of "
+                "rebar before pour, dimensions, materials used, sign-offs at each stage."},
+            {"type": "bullets", "items": [
+                "Photo BEFORE you cover it (concrete pour, backfill, sheetrock, etc.)",
+                "Photo AFTER if condition matters",
+                "Record measurements / counts when asked — guesses don't help anybody",
+                "Note who inspected and when, if you're the one doing it",
+            ]},
+            {"type": "why", "text":
+                "QA/QC documentation protects the project. If the owner or inspector "
+                "ever asks 'is this to spec?', the answer is whatever the photos and "
+                "records say. Good records = no rework arguments. Missing records = "
+                "rework or worse."},
+            {"type": "warn", "text":
+                "Do not pour, cover, or close out work that was supposed to be inspected "
+                "first. Wait for the sign-off, or capture the inspection record on the spot."},
+        ],
+        "related": ["public-photos", "public-why-documentation", "public-tools-map"],
+    },
+    {
+        "id": "public-material-calculator",
+        "section": "onboarding",
+        "title": "Material Calculator & Field Tools",
+        "summary": "Quick math for concrete, gravel, asphalt, and more.",
+        "scopes": ["public"],
+        "tags": ["public", "calculator", "material", "field crew", "tool"],
+        "body": [
+            {"type": "p", "text":
+                "The Material Calculator is a no-login tool on the MASCI platform that "
+                "estimates quantities for common materials — concrete (yards), gravel "
+                "(tons), asphalt (tons), pipe trench backfill, and similar. It's a "
+                "ball-park: useful for ordering and double-checking, NOT a substitute for "
+                "engineered drawings."},
+            {"type": "steps", "items": [
+                "Pick the material type",
+                "Enter the dimensions (length × width × depth, or whatever the tool asks)",
+                "Check the calculated quantity",
+                "Compare to your plan or the supervisor's number — if they don't agree, ask before ordering",
+            ]},
+            {"type": "why", "text":
+                "Over-ordering material wastes money; under-ordering stops the crew. The "
+                "calculator catches obvious errors before the truck shows up. A 30-second "
+                "check is cheaper than half a day of waiting."},
+            {"type": "mistakes", "items": [
+                "Mixing units (feet vs inches, yards vs tons) — read the labels carefully",
+                "Forgetting waste/compaction factors — supervisor knows the right multiplier",
+                "Trusting the calculator over the plan when they disagree — verify",
+            ]},
+            {"type": "tip", "text":
+                "When in doubt, send the supervisor a screenshot of the calculator result "
+                "before placing an order. Two-minute confirmation, zero re-orders."},
+        ],
+        "related": ["public-who-to-ask", "public-tools-map"],
+    },
+    {
+        "id": "public-tools-map",
+        "section": "knowledge",
+        "title": "Public Field Tools — What's Available Without Login",
+        "summary": "Every no-login tool on the MASCI platform and what each is for.",
+        "scopes": ["public"],
+        "tags": ["public", "tools", "field crew", "directory", "overview"],
+        "body": [
+            {"type": "p", "text":
+                "Many MASCI tools work without a portal login — you can use them from "
+                "any phone, on any job site, by scanning the QR or following a link. Here "
+                "is what's available and what each is for."},
+            {"type": "bullets", "items": [
+                "Daily Report submit — record the workday before leaving the site",
+                "Equipment Pre-Op submit — sign off that equipment is safe to run",
+                "Incident submit — report an injury / near-miss / damage",
+                "Site Inspection submit — public safety walk inspection",
+                "Safety Meeting / Toolbox Talk submit — sign attendance, log the topic",
+                "QA/QC checklists — quality records by trade / stage",
+                "Material Calculator — quick quantity math",
+                "JHA / Trench Box reference — printable hazard reference",
+                "Cheat Sheet — quick reference card for the most-used forms",
+            ]},
+            {"type": "tip", "text":
+                "Bookmark the platform URL on your phone after the first scan — you "
+                "won't need the QR every time. Add it to your phone's home screen for "
+                "one-tap access."},
+            {"type": "next", "items": [
+                "Submitted forms are picked up by the office team for review",
+                "Most flow into payroll / safety / project records the next business day",
+                "Anything urgent (incident, equipment failure) — also tell the supervisor in person",
+            ]},
+        ],
+        "related": ["public-daily-report-basics", "public-preop-basics",
+                    "public-incident-basics", "public-toolbox-talks",
+                    "public-qaqc-basics", "public-material-calculator",
+                    "public-mobile-qr", "public-who-to-ask"],
     },
 
     # ═════════════════════════════════════════════════════════════════

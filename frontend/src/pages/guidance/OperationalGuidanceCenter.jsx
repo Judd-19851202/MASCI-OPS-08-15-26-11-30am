@@ -207,8 +207,11 @@ export default function OperationalGuidanceCenter() {
   useEffect(() => {
     if (articleId || sectionId) return;
     const ids = [
+      "public-tools-map",
       "role-new-employee", "onboard-login", "onboard-mobile",
       "public-mobile-qr", "public-photos", "public-daily-report-basics",
+      "public-preop-basics", "public-toolbox-talks", "public-qaqc-basics",
+      "public-material-calculator",
       "public-incident-basics", "public-cant-login", "public-who-to-ask",
       "public-why-documentation",
     ];
@@ -417,17 +420,23 @@ export default function OperationalGuidanceCenter() {
   }
   const visibleTracks = PORTAL_TRACKS.filter((t) => portalCounts[t.key] > 0);
 
-  // iter196 — curated Public Field Training tiles. Each tile maps to a
-  // single article. Tiles only render if the article is visible to the
-  // caller (server-side RBAC already filtered the loader). Anon users
-  // see all 10; authenticated users see the same set + their portal
-  // tracks above.
+  // iter196-197 — curated Public Field Training tiles. Mapped to real
+  // public/no-login surfaces in the platform (audited from App.js):
+  //   /daily/submit, /incidents/submit, /equipment/submit,
+  //   /meetings/submit, /qaqc, /field/calculators, etc.
+  // Each tile maps to a single article; the article explains the
+  // workflow + what happens after submission + who to ask for help.
   const PUBLIC_TRACKS = [
+    { id: "public-tools-map",         icon: LayoutGrid, label: "All Public Field Tools",   blurb: "Index of every no-login tool on the platform." },
     { id: "role-new-employee",        icon: UserPlus,   label: "New Employee Basics",       blurb: "First-week orientation for any role." },
     { id: "public-mobile-qr",         icon: Zap,        label: "Scan-and-Go (QR Codes)",    blurb: "Open MASCI on your phone in seconds." },
     { id: "onboard-mobile",           icon: BookOpen,   label: "Using MASCI on a Phone",    blurb: "Mobile-first tips that save your work." },
     { id: "public-photos",            icon: Lightbulb,  label: "Photos That Actually Help", blurb: "Wide shot · close-up · clear." },
     { id: "public-daily-report-basics", icon: LayoutGrid, label: "Daily Report Basics",    blurb: "What it is, why yours matters." },
+    { id: "public-preop-basics",      icon: Shield,     label: "Equipment Pre-Op Basics",   blurb: "Walk it. Sign it. Flag what's broken." },
+    { id: "public-toolbox-talks",     icon: UserCog,    label: "Toolbox Talks / Safety Meetings", blurb: "Sign in. Listen. The record is your signature." },
+    { id: "public-qaqc-basics",       icon: LifeBuoy,   label: "QA / QC for Field Crews",   blurb: "Photo before you cover it. Sign-offs that matter." },
+    { id: "public-material-calculator", icon: Lightbulb, label: "Material Calculator",     blurb: "Concrete · gravel · asphalt quick math." },
     { id: "public-incident-basics",   icon: AlertTriangle, label: "If Something Happens",  blurb: "First steps after injury, near-miss, or damage." },
     { id: "public-cant-login",        icon: LifeBuoy,   label: "I Can't Log In",            blurb: "Common login problems & fixes." },
     { id: "public-who-to-ask",        icon: UserCog,    label: "Who Do I Ask for Help?",    blurb: "A quick map of who handles what." },
