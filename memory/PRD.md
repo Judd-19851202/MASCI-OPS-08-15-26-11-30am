@@ -1,6 +1,52 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — Pass 2 · Live Operational Inventory Dashboard · ✅ DELIVERED (preview only)
+
+Pass 2 of the Operational Inventory initiative — the audit doc from Pass 1 is now a live, code-derived governance surface.
+
+### What landed
+**Backend:**
+- **NEW** `/app/backend/governance/__init__.py` + `inventory.py` (~430 lines) — canonical static registries (8 portals · 12 user types · 20 public routes · 10 cross-cutting workflows) + 10-field matrix computer + drift detector + translation-readiness aggregator.
+- **NEW** 4 admin-strict endpoints in `server.py`:
+  - `GET /api/admin/operational-inventory` — full snapshot
+  - `GET /api/admin/operational-inventory/portals` — portal matrix only
+  - `GET /api/admin/operational-inventory/translation` — translation readiness
+  - `GET /api/admin/operational-inventory/drift` — drift items + severity buckets
+
+**Frontend:**
+- **NEW** `/app/frontend/src/pages/admin/AdminOperationalInventory.jsx` (~450 lines) — 7-tab dashboard (Overview · Portals · User Types · Public Routes · Workflows · Translation · Drift)
+- **WIRED** `/admin/operational-inventory` route in `App.js` (admin-gated via `A()`)
+- **ADDED** "Operational Inventory" entry to `AdminShell.jsx` SECTIONS nav
+
+**Tests:**
+- **NEW** `/app/backend/tests/test_iter198_operational_inventory.py` — 14 tests covering computation correctness, Field Leadership anomaly detection, translation-zero baseline, drift surfacing, admin gate enforcement. **14/14 passing.**
+- **Full iter19x regression**: **264/264 passing**.
+
+### Live signals (anchored by today's snapshot)
+- **33 operational drift items** detected: P0=2 · P1=22 · P2=9
+- **P0 #1**: Field Leadership has no `/leadership/login` route (scheduled fix: Pass 4)
+- **P0 #2**: 97/97 guidance articles have no `body_es` translation (scheduled fix: Pass 3)
+- **Translation pct_body**: 0.0% (baseline — Pass 3 will move this)
+- **Public routes missing guidance**: 13/20
+- **Cross-cutting workflows missing guidance**: 10/10
+
+### Smoke test (admin browser session)
+All 4 tabs render correctly with live data. Screenshots captured of Overview · Portals · Translation · Drift.
+
+### Files touched
+- NEW: `backend/governance/__init__.py`, `backend/governance/inventory.py`, `backend/tests/test_iter198_operational_inventory.py`, `frontend/src/pages/admin/AdminOperationalInventory.jsx`
+- MOD: `backend/server.py` (4 new endpoints inserted at the guidance routes block), `frontend/src/App.js` (import + route), `frontend/src/components/AdminShell.jsx` (Map icon import + SECTIONS entry)
+
+No production push. Read-only governance.
+
+### Next
+- ⏸️ Pass 3 — Translation schema (`body_es` + Block renderer `useT()` wiring)
+- ⏸️ Pass 4 — Field Leadership portal door
+- ⏸️ Passes 5-7
+
+---
+
 ## 2026-05-18 — Operational Inventory & Governance Audit (Pass 1) · ✅ DELIVERED (preview only)
 
 **Operator directive:** Stop reactive gap-filling. Begin intentional operational architecture / governance maturity. Audit the entire ecosystem against a fixed 10-field coverage matrix before any further guidance iterations.

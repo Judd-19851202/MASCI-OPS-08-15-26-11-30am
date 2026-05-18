@@ -602,6 +602,56 @@ async def admin_guidance_workflow_coverage(
     return workflow_coverage_report()
 
 
+# ─────────────────────────────────────────────────────────────────────
+# Operational Inventory (Pass 2 — governance dashboard backend)
+# ─────────────────────────────────────────────────────────────────────
+# Top-level system-wide inventory and 10-field coverage matrix.
+# Programmatic mirror of /app/docs/OPERATIONAL_INVENTORY.md. Admin-strict
+# read-only. Joins live guidance.content data with the static registries
+# in backend/governance/inventory.py.
+
+@api_router.get("/admin/operational-inventory")
+async def admin_operational_inventory(
+    _admin: bool = Depends(require_admin_strict),
+):
+    """Full operational inventory snapshot: portals × user types ×
+    public routes × workflows × translation readiness × drift.
+
+    Read-only; pure registry inspection; never touches DB."""
+    from governance.inventory import compute_full_inventory
+    return compute_full_inventory()
+
+
+@api_router.get("/admin/operational-inventory/portals")
+async def admin_operational_inventory_portals(
+    _admin: bool = Depends(require_admin_strict),
+):
+    """Portal-only matrix (10-field coverage per portal). Lightweight
+    endpoint for the 'Portals' tab on the dashboard."""
+    from governance.inventory import compute_portal_matrix
+    return {"portals": compute_portal_matrix()}
+
+
+@api_router.get("/admin/operational-inventory/translation")
+async def admin_operational_inventory_translation(
+    _admin: bool = Depends(require_admin_strict),
+):
+    """Translation-readiness snapshot (system-wide aggregates + per
+    section + per scope). Tracks Pass 3 progress as body_es lands."""
+    from governance.inventory import compute_translation_readiness
+    return compute_translation_readiness()
+
+
+@api_router.get("/admin/operational-inventory/drift")
+async def admin_operational_inventory_drift(
+    _admin: bool = Depends(require_admin_strict),
+):
+    """Drift signal: portals/articles/routes/workflows missing required
+    coverage fields. Severity-tagged for triage."""
+    from governance.inventory import compute_drift
+    return compute_drift()
+
+
 @api_router.get("/admin/guidance/search-misses")
 async def admin_guidance_search_misses(
     limit: int = 100,
