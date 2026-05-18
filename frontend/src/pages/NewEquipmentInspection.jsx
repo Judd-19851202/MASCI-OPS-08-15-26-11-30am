@@ -25,6 +25,7 @@ import { formatApiError } from "@/lib/apiErrors";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
 import { WhyItMattersPanel } from "@/components/guidance";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { toast } from "sonner";
 
 const inputCls =
@@ -626,15 +627,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           </div>
         )}
 
-        <WhyItMattersPanel title="Why the pre-op matters">
-          <p>
-            Pre-op is a daily promise that the equipment is safe to run.
-            Box-ticking without walking the asset is signing a false document.{" "}
-            <Link to="/guidance/shop-preop-deep" className="font-medium underline">
-              What every pre-op should catch →
-            </Link>
-          </p>
-        </WhyItMattersPanel>
+        <HelpTipBlock formKey="preop" className="mb-3" showCounter />
         <Section number="01" title={t("Project & Operator")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
@@ -787,6 +780,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
         </Section>
 
         {/* Checklist sections (one per OSHA category) */}
+        <HelpTipBlock formKey="preop.defects" className="mb-3" />
         {sections.map((sec, idx) => (
           <Section
             key={sec.title}
@@ -998,6 +992,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
         </Section>
 
         <Section number="99" title={t("Operator Sign-Off")}>
+          <HelpTipBlock formKey="preop.signoff" className="mb-3" />
           <p className="text-sm text-slate-700 leading-relaxed">
             {t(
               "I certify that I performed this pre-shift inspection of the listed equipment and that the conditions noted above are true and accurate. I will not operate this unit if any item is marked FAIL."

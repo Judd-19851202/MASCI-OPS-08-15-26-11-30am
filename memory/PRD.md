@@ -1,6 +1,109 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter211 · Pre-Op Equipment Inspection Contextual Coaching + Discoverability Counter · ✅ DELIVERED (preview only)
+
+Third HelpTip-engine deployment. Operator-stated **highest-frequency operational coaching surface on the platform**. The tone discipline directive: lean into operational realism / accountability / ownership; avoid robotic OSHA tone, fear-based language, corporate/legal overload.
+
+### Coverage authored
+
+**16 new tips** wired into 6 `form_key` surfaces on the public Pre-Op form:
+
+| Form key | Coverage | Operator-stated reason |
+|---|---|---|
+| `preop` (top-level) | Why · Who · Next · Escalate | canonical 4-tip surface |
+| `preop.fluids` | Why · Common mistakes · Example | accountability, equipment stewardship |
+| `preop.tires-tracks` | Why · Common mistakes | operational ownership |
+| `preop.controls` | Why · Example | professionalism |
+| `preop.defects` | Why · Next · Common mistakes | truthful inspections, mechanic/operator trust |
+| `preop.signoff` | Why · Escalate (pressure) | safety culture |
+
+Sample coaching texture (operationally honest, not OSHA-robotic):
+- *"Pre-ops are not paperwork. The operator before you trusted theirs; the operator after you trusts yours."*
+- *"Marking 'good' because the dipstick checked out. Fluid checks are visual AND a look at the ground under the unit. Wet ground under a parked machine almost never means rain."*
+- *"'Hydraulic seep at left tilt cylinder — operational, monitor daily.' is good. 'OK' is not — there's nothing in that for the mechanic to act on."*
+- *"Your signature on a Pre-Op is your word. If you didn't physically check it, don't sign for it."*
+- *"If your supervisor pressures you to sign for something you didn't check, or to mark a failed item as passing, tell Safety. That's not a personality issue — it's a safety culture issue."*
+
+### Bilingual
+
+EN + ES delivered for all 16 tips. Tip registry total: 34 → **50**.
+
+### Discoverability counter (operator-approved enhancement)
+
+`HelpTipBlock` enhanced with `showCounter` prop. When true and the block has ≥3 tips, a single-line monospace label renders above: **"N COACHING TIPS AVAILABLE · TAP TO EXPAND"** (Spanish: "N consejos disponibles · toca para expandir"). Subtle, compact, mobile-friendly — no oversized onboarding banners.
+
+Wired on the top-of-form block of all 3 forms now using the engine:
+- `/daily/submit` (Daily Reports — `showCounter` on `daily-report`)
+- `/incidents/submit` (Safety Incident — `showCounter` on `incident`)
+- `/equipment/submit` (Pre-Op — `showCounter` on `preop`)
+
+### Frontend wiring
+
+`/equipment/submit` (public Pre-Op form) now renders `<HelpTipBlock>` at 3 strategic surfaces:
+- Top of form (replaces obsolete one-off `<WhyItMattersPanel>` — unified engine handles all top-level guidance, `showCounter` on)
+- Above the dynamic OSHA-category checklist sections — `preop.defects` (covers fail-flow coaching that applies to every machine type without per-category clutter)
+- Inside Section 99 "Operator Sign-Off" — `preop.signoff` (the highest-stakes cultural-safety surface)
+
+### Tests
+
+- **NEW** `tests/test_iter211_preop_helptips.py` — 14 test functions + parametrized sweeps = 30+ assertions:
+  - Seed ≥14 Pre-Op tips
+  - Top-level exposes canonical 4-tip surface
+  - Each form_key anon-readable
+  - All bilingual (title_es + body_es)
+  - All concise (≤80 EN / ≤90 ES words)
+  - **Tone guardrail**: hard-fails if any of 8 robotic-OSHA phrases ("in accordance with", "pursuant to", "OSHA-mandated", "regulatory requirement", "shall be required to", "the undersigned", "willful violation", etc.) appear in EN or ES bodies. Operator-stated tone direction enforced by the test suite.
+  - Operator-priority surfaces (fluids, tires-tracks, controls, defects, signoff) all covered with `why` tips
+  - `preop.signoff` includes the explicit "pressure to sign" escalate tip (operator-stated highest-value cultural-safety surface)
+  - `preop.defects` explicitly articulates the photo+1-sentence rule
+- **Regression**: **505/505 passing** (iter19x + iter20x + iter21x suites).
+
+### Real anonymous browser proof (preview, mobile 420px)
+
+```
+Pre-Op HelpTip blocks rendered: 3 + counter (top, defects, signoff)
+  helptip-block-preop:          4 tips
+  helptip-block-preop-counter:  "4 COACHING TIPS AVAILABLE · TAP TO EXPAND"
+  helptip-block-preop-defects:  7 tips (4 parent + 3 leaf)
+  helptip-block-preop-signoff:  6 tips (4 parent + 2 leaf)
+```
+
+Four screenshot captures verifying:
+1. Top-of-form — discoverability counter visible above 4 collapsible coaching tips. Why expanded showing the full "operator before you / operator after you" accountability framing.
+2. Top-of-form with Escalate also expanded — full "stop and call before signing anything" cultural-safety coaching.
+3. Defects block above checklist — all 3 leaf tips expanded (Why honest defect logging matters; What happens after a Fail; Common mistakes about photo requirement).
+4. Section 99 "Firma del Operador" in **Spanish** — full bilingual cultural-safety surface: "Por qué la firma es su palabra" + "Cuándo la presión para firmar se siente mal" both expanded with full Spanish coaching.
+
+### Files touched
+- NEW: `backend/tests/test_iter211_preop_helptips.py`
+- MOD: `backend/guidance/tips.py` (+16 tips), `backend/guidance/tips_es.py` (+16 ES), `frontend/src/components/HelpTip.jsx` (`showCounter` prop), `frontend/src/pages/NewEquipmentInspection.jsx` (3 `HelpTipBlock` insertions, removed obsolete `<WhyItMattersPanel>`), `frontend/src/pages/NewDailyReport.jsx` (`showCounter` on top block), `frontend/src/pages/NewIncident.jsx` (`showCounter` on top block), `memory/PRD.md`
+
+No production push.
+
+### Cultural alignment achievement
+
+Per operator: *"The platform is no longer merely adding features. It is now embedding MASCI operational culture directly into workflows."* Sample lines that achieve this in iter211:
+- "Walk all four corners on every Pre-Op — that's how you catch what the routine misses."
+- "Wet ground under a parked machine almost never means rain."
+- "They won't see what you can't show them."
+- "Your signature on a Pre-Op is your word."
+- "That's not a personality issue — it's a safety culture issue, and Safety wants to know."
+
+### Next priority
+
+⏸️ **Equipment Checkout** — 4th-target per operator ordering. Author tips for `checkout.*` surfaces and wire into the Equipment Checkout form.
+
+Then in order: Time Verification · Write-Ups · Material Requests · Dispatch Requests.
+
+After contextual coverage of all 8 form families:
+- ⏸️ Real day-from-start-to-finish operator-flow walkthroughs (laborer · foreman · super · PM · HR · safety · dispatch)
+- ⏸️ Tier-2 manager-only HelpTips on shared forms (PM/HR/Safety see review-coaching field staff don't)
+- ⏸️ QR poster rollout for mobile field onboarding
+- ⏸️ Translate remaining hardcoded paragraphs in HR/Safety/Dispatch/Shop/PM login cards
+- ⏸️ Phase 2 close-out (48h R2 re-verify · Sentry/timeout soak sign-off)
+
+---
 ## 2026-05-18 — iter210 · Safety Incidents Contextual Guidance · ✅ DELIVERED (preview only)
 
 Second deployment of the HelpTip engine. The operator-stated #2 highest-ROI target: high-risk, legally sensitive, emotionally charged, commonly under-documented Safety Incident workflows.

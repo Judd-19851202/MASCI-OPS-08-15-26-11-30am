@@ -401,6 +401,184 @@ _TIPS: list[dict] = [
             "not verifiable, and not auditable. State a concrete change: new "
             "signage, new procedure, retraining, equipment fix.",
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter211 · Pre-Op Equipment Inspection
+    # Highest-frequency operational coaching surface on the platform.
+    # Tone direction: operational realism + accountability, not OSHA-robot.
+    # The operator before you signed in good faith; return the favor.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "preop",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why this Pre-Op matters",
+        "body":
+            "Pre-ops are not paperwork. The operator before you trusted theirs; "
+            "the operator after you trusts yours. Mark only what you've "
+            "physically checked.",
+    },
+    {
+        "form_key": "preop",
+        "kind": "who",
+        "scopes": ["public"],
+        "title": "Who sees this",
+        "body":
+            "Your Shop foreman, Dispatch, your supervisor, and the next operator "
+            "who runs this unit. If something fails on this machine today, this "
+            "is the first record anyone reads.",
+    },
+    {
+        "form_key": "preop",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens after you submit",
+        "body":
+            "Pass → unit stays operational. Fail → routes to Shop. Major fail "
+            "(brakes, steering, ROPS, hose leak) → Out of Service until "
+            "cleared. Your sign-off is this unit's release for the day.",
+    },
+    {
+        "form_key": "preop",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When to stop and call",
+        "body":
+            "Major safety items failing — brakes, steering, hydraulics with an "
+            "active leak, missing or damaged ROPS — stop. Call your supervisor "
+            "before signing anything. Don't try to run it 'just for today'.",
+    },
+
+    # ── preop.fluids ─────────────────────────────────────────────────
+    {
+        "form_key": "preop.fluids",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why fluid checks matter",
+        "body":
+            "Leaks today are repairs tomorrow are breakdowns next week. "
+            "Catching a seep at the cylinder while it's a wet spot is the "
+            "cheapest fix this machine will ever get.",
+    },
+    {
+        "form_key": "preop.fluids",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Marking 'good' because the dipstick checked out. Fluid checks are "
+            "visual AND a look at the ground under the unit. Wet ground under "
+            "a parked machine almost never means rain.",
+    },
+    {
+        "form_key": "preop.fluids",
+        "kind": "example",
+        "scopes": ["public"],
+        "title": "Example entry",
+        "body":
+            "'Hydraulic seep at left tilt cylinder — operational, monitor "
+            "daily.' is good. 'OK' is not — there's nothing in that for the "
+            "mechanic to act on.",
+    },
+
+    # ── preop.tires-tracks ───────────────────────────────────────────
+    {
+        "form_key": "preop.tires-tracks",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why tires and tracks matter",
+        "body":
+            "Tires and tracks are the only thing between the machine and the "
+            "ground. A worn cleat or low PSI shows up first as a 'feels weird' "
+            "day — log it before it shows up as a recovery call.",
+    },
+    {
+        "form_key": "preop.tires-tracks",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Walking past one side. Operators favor the same side every day. "
+            "Walk all four corners on every Pre-Op — that's how you catch what "
+            "the routine misses.",
+    },
+
+    # ── preop.controls ───────────────────────────────────────────────
+    {
+        "form_key": "preop.controls",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why controls matter",
+        "body":
+            "Every control you skip checking is something you'll discover at the "
+            "wrong moment. Two minutes in the seat now beats two hours waiting "
+            "for a mechanic later.",
+    },
+    {
+        "form_key": "preop.controls",
+        "kind": "example",
+        "scopes": ["public"],
+        "title": "Example entry",
+        "body":
+            "'Backup alarm intermittent — works when cold, silent after warm-up.' "
+            "is exactly what Shop needs. 'Backup alarm broken' tells Shop "
+            "nothing about when or how.",
+    },
+
+    # ── preop.defects (fail flow) ────────────────────────────────────
+    {
+        "form_key": "preop.defects",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why honest defect logging matters",
+        "body":
+            "A defect honestly logged is a defect that gets fixed. A defect "
+            "hidden becomes the next operator's incident. Pre-ops are the "
+            "platform's most-read safety record.",
+    },
+    {
+        "form_key": "preop.defects",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens after a Fail",
+        "body":
+            "Failed items route to Shop/Fleet within the hour. Photo + a "
+            "specific note speeds the response by hours. Vague notes slow it "
+            "down — Shop can't dispatch a part on 'something's wrong'.",
+    },
+    {
+        "form_key": "preop.defects",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Marking 'fail' without a photo. Skipping the note because 'they'll "
+            "see it'. They won't see what you can't show them. Photo + one "
+            "sentence is the rule.",
+    },
+
+    # ── preop.signoff ────────────────────────────────────────────────
+    {
+        "form_key": "preop.signoff",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why the sign-off is your word",
+        "body":
+            "Your signature on a Pre-Op is your word. The operator before you "
+            "signed in good faith — return the favor. If you didn't physically "
+            "check it, don't sign for it.",
+    },
+    {
+        "form_key": "preop.signoff",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When pressure to sign feels wrong",
+        "body":
+            "If your supervisor pressures you to sign for something you didn't "
+            "check, or to mark a failed item as passing, tell Safety. That's "
+            "not a personality issue — it's a safety culture issue, and Safety "
+            "wants to know.",
+    },
 ]
 
 

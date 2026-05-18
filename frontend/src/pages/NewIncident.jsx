@@ -328,7 +328,7 @@ export default function NewIncident({ publicMode = false }) {
         </div>
 
         {/* Section 01 — Report Info */}
-        <HelpTipBlock formKey="incident" className="mb-3" />
+        <HelpTipBlock formKey="incident" className="mb-3" showCounter />
         <Section number="01" title={t("Report Information")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">

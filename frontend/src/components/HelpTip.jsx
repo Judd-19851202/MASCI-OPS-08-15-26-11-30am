@@ -160,7 +160,8 @@ async function _fetchTips(formKey) {
   return Array.isArray(j?.tips) ? j.tips : [];
 }
 
-export function HelpTipBlock({ formKey, kinds, className = "" }) {
+export function HelpTipBlock({ formKey, kinds, className = "", showCounter = false }) {
+  const { lang } = useT();
   const [tips, setTips] = useState(null);
 
   useEffect(() => {
@@ -179,11 +180,26 @@ export function HelpTipBlock({ formKey, kinds, className = "" }) {
     ? tips.filter((t) => kinds.includes(t.kind))
     : tips;
 
+  // Discoverability counter — single subtle line above the tips block,
+  // shown only when at least 3 tips are available. Operator-approved.
+  const counterLabel =
+    lang === "es"
+      ? `${filtered.length} consejos disponibles · toca para expandir`
+      : `${filtered.length} coaching tips available · tap to expand`;
+
   return (
     <div
       className={`space-y-1 ${className}`}
       data-testid={`helptip-block-${formKey.replace(/[^a-z0-9\-]/gi, "-").toLowerCase()}`}
     >
+      {showCounter && filtered.length >= 3 && (
+        <div
+          className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 pl-1 pb-0.5"
+          data-testid={`helptip-block-${formKey.replace(/[^a-z0-9\-]/gi, "-").toLowerCase()}-counter`}
+        >
+          {counterLabel}
+        </div>
+      )}
       {filtered.map((t, i) => (
         <HelpTip
           key={`${t.form_key}-${t.kind}-${i}`}

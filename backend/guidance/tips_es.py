@@ -276,4 +276,130 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "concreto: nueva señalización, nuevo procedimiento, recapacitación, "
             "reparación de equipo.",
     },
+
+    # ── iter211 · Pre-Op Equipment Inspection ────────────────────────
+    ("preop", "why"): {
+        "title_es": "Por qué importa este Pre-Op",
+        "body_es":
+            "Los Pre-Ops no son papeleo. El operador antes de usted confió en "
+            "el suyo; el operador después de usted confía en el suyo. Marque "
+            "solo lo que ha revisado físicamente.",
+    },
+    ("preop", "who"): {
+        "title_es": "Quién lo ve",
+        "body_es":
+            "Su capataz de Taller, Despacho, su supervisor, y el siguiente "
+            "operador que use esta unidad. Si algo falla en esta máquina hoy, "
+            "este es el primer registro que cualquiera lee.",
+    },
+    ("preop", "next"): {
+        "title_es": "Qué pasa después de enviar",
+        "body_es":
+            "Pasa → la unidad queda operativa. Falla → va al Taller. Falla "
+            "mayor (frenos, dirección, ROPS, fuga de manguera) → Fuera de "
+            "Servicio hasta que se libere. Su firma es la liberación de esta "
+            "unidad del día.",
+    },
+    ("preop", "escalate"): {
+        "title_es": "Cuándo detenerse y llamar",
+        "body_es":
+            "Elementos críticos de seguridad fallando — frenos, dirección, "
+            "hidráulicos con fuga activa, ROPS faltante o dañado — deténgase. "
+            "Llame a su supervisor antes de firmar nada. No trate de "
+            "manejarla 'solo por hoy'.",
+    },
+
+    ("preop.fluids", "why"): {
+        "title_es": "Por qué importan las revisiones de fluidos",
+        "body_es":
+            "Las fugas de hoy son las reparaciones de mañana y las descomposturas "
+            "de la próxima semana. Atrapar un sudor en el cilindro mientras es "
+            "una mancha húmeda es la reparación más barata que esta máquina "
+            "tendrá.",
+    },
+    ("preop.fluids", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Marcar 'bien' porque la varilla salió bien. Las revisiones de "
+            "fluido son visuales Y un vistazo al suelo bajo la unidad. Suelo "
+            "mojado bajo una máquina estacionada casi nunca significa lluvia.",
+    },
+    ("preop.fluids", "example"): {
+        "title_es": "Ejemplo",
+        "body_es":
+            "'Sudor hidráulico en cilindro de inclinación izquierdo — "
+            "operativo, monitorear diariamente.' es bueno. 'OK' no — no hay "
+            "nada ahí con lo que el mecánico pueda actuar.",
+    },
+
+    ("preop.tires-tracks", "why"): {
+        "title_es": "Por qué importan llantas y orugas",
+        "body_es":
+            "Las llantas y orugas son lo único entre la máquina y el suelo. "
+            "Una garra desgastada o PSI baja aparece primero como un día que "
+            "'se siente raro' — regístrelo antes de que aparezca como una "
+            "llamada de recuperación.",
+    },
+    ("preop.tires-tracks", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Pasar por un solo lado. Los operadores favorecen el mismo lado "
+            "cada día. Camine las cuatro esquinas en cada Pre-Op — así es "
+            "como atrapa lo que la rutina deja pasar.",
+    },
+
+    ("preop.controls", "why"): {
+        "title_es": "Por qué importan los controles",
+        "body_es":
+            "Cada control que se salta de revisar es algo que descubrirá en el "
+            "momento equivocado. Dos minutos en el asiento ahora le ganan a "
+            "dos horas esperando un mecánico después.",
+    },
+    ("preop.controls", "example"): {
+        "title_es": "Ejemplo",
+        "body_es":
+            "'Alarma de reversa intermitente — funciona en frío, silenciosa "
+            "después de calentar.' es exactamente lo que el Taller necesita. "
+            "'Alarma de reversa rota' no le dice al Taller cuándo ni cómo.",
+    },
+
+    ("preop.defects", "why"): {
+        "title_es": "Por qué importa el registro honesto de defectos",
+        "body_es":
+            "Un defecto registrado honestamente es un defecto que se arregla. "
+            "Un defecto escondido se vuelve el incidente del siguiente "
+            "operador. Los Pre-Ops son el registro de seguridad más leído de "
+            "la plataforma.",
+    },
+    ("preop.defects", "next"): {
+        "title_es": "Qué pasa después de un Falla",
+        "body_es":
+            "Los elementos fallidos van al Taller/Flota dentro de la hora. "
+            "Foto + nota específica acelera la respuesta por horas. Notas "
+            "vagas la frenan — el Taller no puede despachar una pieza con "
+            "'algo está mal'.",
+    },
+    ("preop.defects", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Marcar 'falla' sin foto. Saltarse la nota porque 'ya lo verán'. "
+            "No verán lo que usted no les muestra. Foto + una oración es la "
+            "regla.",
+    },
+
+    ("preop.signoff", "why"): {
+        "title_es": "Por qué la firma es su palabra",
+        "body_es":
+            "Su firma en un Pre-Op es su palabra. El operador antes de usted "
+            "firmó de buena fe — devuelva el favor. Si no lo revisó "
+            "físicamente, no firme por él.",
+    },
+    ("preop.signoff", "escalate"): {
+        "title_es": "Cuándo la presión para firmar se siente mal",
+        "body_es":
+            "Si su supervisor lo presiona para firmar por algo que no revisó, "
+            "o para marcar un elemento fallido como aprobado, dígale a "
+            "Seguridad. Eso no es un problema de personalidad — es un problema "
+            "de cultura de seguridad, y Seguridad quiere saberlo.",
+    },
 }

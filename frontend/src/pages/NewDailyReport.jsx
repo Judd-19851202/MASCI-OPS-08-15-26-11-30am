@@ -582,7 +582,7 @@ export default function NewDailyReport({ publicMode = false }) {
         </div>
 
         {/* 01 — Report info */}
-        <HelpTipBlock formKey="daily-report" className="mb-3" />
+        <HelpTipBlock formKey="daily-report" className="mb-3" showCounter />
         <Section number="01" title={t("Report Information")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
