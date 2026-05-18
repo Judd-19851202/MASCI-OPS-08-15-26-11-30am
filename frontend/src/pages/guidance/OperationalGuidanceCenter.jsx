@@ -21,7 +21,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   BookOpen, Search, Loader2, ChevronLeft, UserCog, Zap, LayoutGrid,
   LifeBuoy, Lightbulb, Shield, UserPlus, AlertTriangle, Lightbulb as TipIcon,
-  AlertCircle, ArrowRightCircle, Home, LogIn, Building2,
+  AlertCircle, ArrowRightCircle, Home, LogIn,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
@@ -131,66 +131,73 @@ function Block({ block }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Portal Sign-In Directory (iter203)
+// Portal Training Directory (iter204)
 // ─────────────────────────────────────────────────────────────────────
-// Always-visible portal-entry cards inside the Operational Guidance
-// Center. Each card represents one protected portal:
-//   - Portal identity kicker
-//   - Short purpose statement (translation-aware)
-//   - "Sign in" CTA → /<portal>/login
-//   - "Learn about this portal" → identity article (or /guidance fallback)
+// Training-first portal cards inside the Operational Guidance Center.
 //
-// This is the operational gateway pattern: Guidance becomes the place
-// users learn about a portal AND navigate to its login from the same
-// surface, instead of having to find /sign-in separately.
+// Operator-driven design correction (iter204 over iter203):
+//   Guidance is a TRAINING / ONBOARDING ecosystem — NOT a duplicate
+//   production navigation layer. Each card primarily opens portal
+//   training, onboarding, and troubleshooting. The portal login link
+//   is preserved but de-emphasized as a small secondary action.
+//
+// Per-card behavior:
+//   PRIMARY action  → opens the portal's training/identity article
+//                     (e.g., /guidance/portal-hr).
+//   SECONDARY link  → small "Go to {Portal} sign-in →" text link.
+//                     Operationally optional, intentionally subdued.
+//
+// Mental model:
+//   "Operational Guidance teaches me how the portal works."
+//   NOT: "Operational Guidance is another way into the production system."
 const PORTAL_DIRECTORY = [
   {
-    key: "leadership", label: "Field Leadership", labelEs: "Liderazgo de Campo",
-    loginUrl: "/leadership/login", identityArticle: "portal-leadership-identity",
-    purpose: "Superintendents · Foremen · Field Leaders · Operations Oversight",
-    purposeEs: "Superintendentes · Capataces · Líderes de Campo · Supervisión",
+    key: "leadership", label: "Field Leadership Training", labelEs: "Capacitación · Liderazgo de Campo",
+    loginUrl: "/leadership/login", trainingArticle: "portal-leadership-identity",
+    purpose: "Onboarding & operational identity for Superintendents, Foremen, and Field Leaders.",
+    purposeEs: "Orientación e identidad operacional para Superintendentes, Capataces y Líderes de Campo.",
     accent: "bg-red-700", iconBg: "bg-red-50", iconColor: "text-red-700", border: "hover:border-red-700",
   },
   {
-    key: "hr", label: "HR Portal", labelEs: "Portal de RH",
-    loginUrl: "/hr/login", identityArticle: null,
-    purpose: "Time verification · Onboarding · Accountability · Training records",
-    purposeEs: "Verificación de tiempo · Onboarding · Rendición de cuentas · Capacitación",
+    key: "hr", label: "HR Portal Training", labelEs: "Capacitación · Portal de RH",
+    loginUrl: "/hr/login", trainingArticle: "portal-hr",
+    purpose: "Onboarding, time verification, accountability, and HR workflow guidance.",
+    purposeEs: "Orientación, verificación de tiempo, rendición de cuentas y flujos de RH.",
     accent: "bg-purple-700", iconBg: "bg-purple-50", iconColor: "text-purple-700", border: "hover:border-purple-700",
   },
   {
-    key: "safety", label: "Safety Portal", labelEs: "Portal de Seguridad",
-    loginUrl: "/safety-portal/login", identityArticle: null,
-    purpose: "Incidents · Corrective actions · Audits · Training compliance",
-    purposeEs: "Incidentes · Acciones correctivas · Auditorías · Cumplimiento",
+    key: "safety", label: "Safety Portal Training", labelEs: "Capacitación · Portal de Seguridad",
+    loginUrl: "/safety-portal/login", trainingArticle: "portal-safety",
+    purpose: "Incident response, corrective actions, audits, and training compliance.",
+    purposeEs: "Respuesta a incidentes, acciones correctivas, auditorías y cumplimiento.",
     accent: "bg-yellow-600", iconBg: "bg-yellow-50", iconColor: "text-yellow-700", border: "hover:border-yellow-600",
   },
   {
-    key: "shop", label: "Shop / Fleet Portal", labelEs: "Portal de Taller / Flota",
-    loginUrl: "/shop/login", identityArticle: null,
-    purpose: "Pre-Op review · Damage · Maintenance · Parts · Sign-offs",
-    purposeEs: "Revisión Pre-Op · Daños · Mantenimiento · Repuestos · Firmas",
+    key: "shop", label: "Shop / Fleet Training", labelEs: "Capacitación · Taller / Flota",
+    loginUrl: "/shop/login", trainingArticle: "portal-shop",
+    purpose: "Pre-Op review, damage workflow, maintenance coordination, parts ordering.",
+    purposeEs: "Revisión Pre-Op, daños, coordinación de mantenimiento y repuestos.",
     accent: "bg-orange-600", iconBg: "bg-orange-50", iconColor: "text-orange-700", border: "hover:border-orange-600",
   },
   {
-    key: "dispatch", label: "Dispatch Portal", labelEs: "Portal de Despacho",
-    loginUrl: "/dispatch-portal/login", identityArticle: null,
-    purpose: "Equipment movement · Availability · Holds · Transfers",
-    purposeEs: "Movimiento de equipo · Disponibilidad · Retenciones · Transferencias",
+    key: "dispatch", label: "Dispatch Portal Training", labelEs: "Capacitación · Portal de Despacho",
+    loginUrl: "/dispatch-portal/login", trainingArticle: "portal-dispatch",
+    purpose: "Equipment movement, availability, holds, transfers, and dispatch workflows.",
+    purposeEs: "Movimiento de equipo, disponibilidad, retenciones, transferencias y flujos.",
     accent: "bg-sky-700", iconBg: "bg-sky-50", iconColor: "text-sky-700", border: "hover:border-sky-700",
   },
   {
-    key: "pm", label: "PM Portal", labelEs: "Portal de PM",
-    loginUrl: "/pm/login", identityArticle: null,
-    purpose: "Project review · Labor docs · Cross-portal coordination",
-    purposeEs: "Revisión de proyecto · Documentación laboral · Coordinación entre portales",
+    key: "pm", label: "PM Portal Training", labelEs: "Capacitación · Portal de PM",
+    loginUrl: "/pm/login", trainingArticle: "portal-pm",
+    purpose: "Project review cadence, labor documentation, cross-portal coordination.",
+    purposeEs: "Revisión de proyecto, documentación laboral, coordinación entre portales.",
     accent: "bg-amber-600", iconBg: "bg-amber-50", iconColor: "text-amber-700", border: "hover:border-amber-600",
   },
   {
-    key: "admin", label: "Admin Console", labelEs: "Consola de Admin",
-    loginUrl: "/admin/login", identityArticle: null,
-    purpose: "Operator console — people · jobs · system · backups · governance",
-    purposeEs: "Consola de operador — personas · trabajos · sistema · respaldos · gobernanza",
+    key: "admin", label: "Admin Console Guidance", labelEs: "Guía · Consola de Admin",
+    loginUrl: "/admin/login", trainingArticle: "portal-admin",
+    purpose: "Operator-level training — people, jobs, system, backups, governance.",
+    purposeEs: "Capacitación de operador — personas, trabajos, sistema, respaldos, gobernanza.",
     accent: "bg-slate-900", iconBg: "bg-slate-100", iconColor: "text-slate-900", border: "hover:border-slate-900",
   },
 ];
@@ -201,20 +208,20 @@ function PortalSignInDirectory({ lang }) {
     <section className="mt-8" data-testid="guidance-portal-directory">
       <div className="mb-3">
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-700 font-bold">
-          {t("Sign-In Required · Portal Directory")}
+          {t("Training & Onboarding · By Portal")}
         </div>
         <h2 className="font-display text-xl font-black tracking-tight">
-          {t("Find Your Portal")}
+          {t("Portal Training")}
         </h2>
         <p className="text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
-          {t("Each protected portal has its own login, training, and operational identity. Tap to sign in or learn what each portal does.")}
+          {t("Open each portal's training to learn what it does, who uses it, and how to operate it. Sign-in links are available if you already know your portal.")}
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {PORTAL_DIRECTORY.map((p) => {
           const portalLabel = (lang === "es" && p.labelEs) ? p.labelEs : p.label;
           const portalPurpose = (lang === "es" && p.purposeEs) ? p.purposeEs : p.purpose;
-          const learnHref = p.identityArticle ? `/guidance/${p.identityArticle}` : "/guidance";
+          const trainingHref = `/guidance/${p.trainingArticle}`;
           return (
             <div
               key={p.key}
@@ -223,7 +230,7 @@ function PortalSignInDirectory({ lang }) {
             >
               <div className={`absolute inset-y-0 left-0 w-1.5 ${p.accent} rounded-l-sm`} />
               <div className={`inline-flex items-center justify-center w-10 h-10 rounded ${p.iconBg} ${p.iconColor} shrink-0 mb-2`}>
-                <Building2 className="w-5 h-5" />
+                <BookOpen className="w-5 h-5" />
               </div>
               <div className="font-display text-base font-bold text-slate-900 leading-tight">
                 {portalLabel}
@@ -231,21 +238,27 @@ function PortalSignInDirectory({ lang }) {
               <div className="text-[12px] text-slate-600 mt-1 leading-snug min-h-[2.5rem]">
                 {portalPurpose}
               </div>
-              <div className="mt-3 flex flex-wrap gap-2">
+              {/* PRIMARY — open training */}
+              <div className="mt-3">
+                <Link
+                  to={trainingHref}
+                  className={`inline-flex items-center h-9 px-3 rounded-md text-white text-[11px] font-bold uppercase tracking-wider transition-colors ${p.accent} hover:opacity-90`}
+                  data-testid={`guidance-portal-directory-${p.key}-training`}
+                >
+                  <BookOpen className="w-3.5 h-3.5 mr-1.5" />
+                  {t("Open Training")}
+                </Link>
+              </div>
+              {/* SECONDARY — small de-emphasized sign-in link.
+                  Intentionally subdued so the card never feels like
+                  a primary production navigation entry. */}
+              <div className="mt-2">
                 <Link
                   to={p.loginUrl}
-                  className={`inline-flex items-center h-9 px-3 rounded-md text-white text-[11px] font-bold uppercase tracking-wider transition-colors ${p.accent} hover:opacity-90`}
+                  className="inline-flex items-center text-[11px] text-slate-500 hover:text-slate-800 hover:underline"
                   data-testid={`guidance-portal-directory-${p.key}-signin`}
                 >
-                  <LogIn className="w-3.5 h-3.5 mr-1.5" />
-                  {t("Sign in")}
-                </Link>
-                <Link
-                  to={learnHref}
-                  className="inline-flex items-center h-9 px-3 rounded-md text-slate-700 hover:text-slate-900 text-[11px] font-bold uppercase tracking-wider transition-colors hover:bg-slate-100"
-                  data-testid={`guidance-portal-directory-${p.key}-learn`}
-                >
-                  {t("Learn")} →
+                  {t("Go to portal sign-in")} →
                 </Link>
               </div>
             </div>

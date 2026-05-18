@@ -1,7 +1,49 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter204 · Guidance Cards Reframed: Training-First (NOT Production Navigation) · ✅ DELIVERED (preview only)
+
+**Operator-driven conceptual correction.** iter203 made the portal cards inside `/guidance` behave as a duplicate production navigation layer ("Sign in" as primary CTA). The operator clarified that **Guidance is a training/onboarding/troubleshooting ecosystem — not a second production launcher.**
+
+### Correct mental model (enforced by iter204)
+> "Operational Guidance teaches me how the portal works."
+> NOT: "Operational Guidance is another way into the production system."
+
+### What changed
+**Card structure reframed:**
+- **Card title**: `{Portal}` → `{Portal} Training` (e.g., "HR Portal Training", "Safety Portal Training", "Admin Console Guidance")
+- **Card icon**: `Building2` (production-coded) → `BookOpen` (training-coded)
+- **PRIMARY button** (large, colored, prominent): "**Open Training**" → opens the portal's training article in Guidance (e.g., `/guidance/portal-hr`, `/guidance/portal-leadership-identity`)
+- **SECONDARY link** (small, low-contrast text-only): "Go to portal sign-in →" — preserved as an optional convenience, intentionally subdued
+
+**Section header reframed:**
+- Kicker: "Sign-In Required · Portal Directory" → **"Training & Onboarding · By Portal"**
+- Heading: "Find Your Portal" → **"Portal Training"**
+- Subtitle: "Each protected portal has its own login..." → **"Open each portal's training to learn what it does, who uses it, and how to operate it. Sign-in links are available if you already know your portal."**
+
+**Behavioral confirmation (mobile, anonymous):**
+- Click "Open Training" on HR card → opens `/guidance/portal-hr` (training article) ✅
+- Click "Go to portal sign-in" small link on HR card → opens `/hr/login` (still works, but de-emphasized) ✅
+- All 7 portals have an existing `portal-<key>` training article — primary action always lands on real training content
+- Spanish toggle translates the entire section: "CAPACITACIÓN Y ORIENTACIÓN · POR PORTAL · Capacitación de Portal · ABRIR CAPACITACIÓN · Ir al inicio de sesión del portal →"
+
+### Why this matters operationally
+Without the reframing, Guidance was duplicating navigation already provided by `/sign-in` — confusing the mental model of "production access vs operational enablement." iter204 restores the clean separation: **`/sign-in` is the production entry directory; `/guidance` is the training/onboarding/troubleshooting ecosystem.** Sign-in links inside Guidance are optional convenience, never the primary action.
+
+### Files touched
+- MOD: `frontend/src/pages/guidance/OperationalGuidanceCenter.jsx` (component renamed conceptually to `PortalSignInDirectory` — kept name for callsite compat — reframed CTAs, swapped icon, reordered actions, removed unused `Building2` import)
+- MOD: `frontend/src/lib/i18n.js` (replaced iter203 dictionary entries with iter204 training-first strings)
+- MOD: `memory/PRD.md`
+
+No production push. Process discipline: walkthrough-verified before claiming complete.
+
+### Pass 5 — STILL HELD until operator confirms iter204 matches expectations
+The portal-entry / training-first / mobile-header layer is now consistent. Awaiting operator green-light to begin Pass 5a.
+
+---
+
 ## 2026-05-18 — iter203 · Portal Sign-In Directory in Guidance + Mobile Header Unification · ✅ DELIVERED (preview only)
+> **Note:** iter204 (entry above this section) corrected the conceptual model — iter203 made the cards production-launchers; iter204 reframed them as training-first. iter203 entry retained below for history.
 
 **Operator caught a second UX-vs-tests disconnect.** Built the actual gateway pattern + unified mobile headers.
 
