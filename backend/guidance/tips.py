@@ -1375,6 +1375,379 @@ _TIPS: list[dict] = [
             "weren't planned together. Surface both to PM — they'd "
             "rather hear it from Dispatch than from finance.",
     },
+
+    # ═════════════════════════════════════════════════════════════════
+    # iter218 · Coaching gaps surfaced by iter217 walkthroughs.
+    # Authored to close four operator-validated P0 gaps. Re-running the
+    # affected walkthroughs after this iter should drop the actionable
+    # finding count by ≥4 (self-validating editorial loop).
+    # ═════════════════════════════════════════════════════════════════
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter218 · field-leadership.records — REVIEWER-side coaching for
+    # the records list page. This is a NEW operational class of tip:
+    # not coaching the FILER, but coaching the REVIEWER (super / PM /
+    # admin) reading a filing they didn't create. Voice anchor:
+    # reviewing isn't auditing — it's the supervisor's reading of the
+    # crew's report, the moment where blind-spots get caught.
+    # Scope: leadership + admin + pm (the three roles that read records).
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "field-leadership.records",
+        "kind": "why",
+        "scopes": ["leadership", "admin", "pm"],
+        "title": "Why review the records, not just file them",
+        "body":
+            "A daily report you skim is a daily report nobody read. The "
+            "crew can tell which supers actually read what got filed — "
+            "they hear it the next morning when you ask about the "
+            "specific note that mattered. Reviewing isn't auditing; "
+            "it's the supervisor's reading of the crew's work.",
+    },
+    {
+        "form_key": "field-leadership.records",
+        "kind": "who",
+        "scopes": ["leadership", "admin", "pm"],
+        "title": "Who else reads this same record",
+        "body":
+            "PM (project margin), HR (any people note), Safety (any "
+            "incident reference), Dispatch (equipment notes), and "
+            "Owners (the weekly rollup). When you push back on a vague "
+            "entry, you're not nitpicking — you're protecting the "
+            "five readers who come after you.",
+    },
+    {
+        "form_key": "field-leadership.records",
+        "kind": "next",
+        "scopes": ["leadership", "admin", "pm"],
+        "title": "What to do when something doesn't add up",
+        "body":
+            "Open the record. Read the foreman's narrative. If the math "
+            "between crew hours, equipment hours, and material notes "
+            "doesn't tell a coherent story of the day — that's a "
+            "conversation with the foreman, not a silent edit. Same "
+            "principle as Time Verification: fix at the source.",
+    },
+    {
+        "form_key": "field-leadership.records",
+        "kind": "escalate",
+        "scopes": ["leadership", "admin", "pm"],
+        "title": "When to push back, when to escalate",
+        "body":
+            "Pattern across multiple records from the same foreman — "
+            "vague entries, missing dispatch needs, ghost equipment — "
+            "is an HR-coaching conversation, not a single-record fix. "
+            "A safety reference buried in a Daily Report instead of an "
+            "Incident is an immediate Safety call. Don't sit on either.",
+    },
+
+    # ── field-leadership.records.review-tone ─────────────────────────
+    {
+        "form_key": "field-leadership.records.review-tone",
+        "kind": "why",
+        "scopes": ["leadership", "admin", "pm"],
+        "title": "Why HOW you push back matters",
+        "body":
+            "The first foreman who got their daily report 'corrected' "
+            "without a phone call is the same foreman who stops writing "
+            "detailed notes the next month. Reviewers protect the "
+            "filing culture by calling, not by editing. A 30-second "
+            "phone call buys six months of honest reporting.",
+    },
+    {
+        "form_key": "field-leadership.records.review-tone",
+        "kind": "mistake",
+        "scopes": ["leadership", "admin", "pm"],
+        "title": "Common reviewer mistakes",
+        "body":
+            "Quietly correcting the foreman's narrative because 'it's "
+            "easier.' Asking 'why didn't you write XYZ?' instead of "
+            "'tell me about the morning so I can fix the report.' "
+            "Treating the record as the truth instead of as the "
+            "foreman's account OF the truth.",
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter218 · crew_eval — migrated from legacy WhyItMattersPanel to
+    # the modern HelpTip engine. Voice anchor: a crew evaluation is the
+    # super's read of an operator's last 6 months — calibration matters
+    # more than scoring. The eval that says "he's fine" the same way
+    # for every operator is the eval that taught nobody anything.
+    # Scope: leadership + admin (the roles that write evals).
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "crew_eval",
+        "kind": "why",
+        "scopes": ["leadership", "admin"],
+        "title": "Why this evaluation matters",
+        "body":
+            "An honest crew eval is the only formal moment when an "
+            "operator's last 6 months gets put on the record. Vague "
+            "evals make later promotions, raises, and (rarely) "
+            "discipline indefensible. The super who writes evals the "
+            "crew can trust is the super whose feedback the crew "
+            "actually hears.",
+    },
+    {
+        "form_key": "crew_eval",
+        "kind": "who",
+        "scopes": ["leadership", "admin"],
+        "title": "Who reads this 6 months from now",
+        "body":
+            "HR (promotions, raises), the next super inheriting the "
+            "operator, PM (project-staffing decisions), and the "
+            "operator themselves (when they ask why they didn't get "
+            "the raise). Write it so the answer is in the file, not "
+            "in your memory.",
+    },
+    {
+        "form_key": "crew_eval",
+        "kind": "next",
+        "scopes": ["leadership", "admin"],
+        "title": "What happens after you submit",
+        "body":
+            "HR files it. The operator receives a copy. It joins the "
+            "operator's record alongside prior evals — patterns over "
+            "time become visible. If this is the third 'meets "
+            "expectations' in a row on someone you've been "
+            "considering for foreman, the file says you haven't "
+            "actually moved them.",
+    },
+    {
+        "form_key": "crew_eval",
+        "kind": "escalate",
+        "scopes": ["leadership", "admin"],
+        "title": "When to write less, talk more",
+        "body":
+            "If the honest eval would be 'we need to part ways,' "
+            "write nothing here yet — call HR. Same for any harassment "
+            "or safety pattern. The eval form is for the steady-state "
+            "operator on your crew, not for the conversation that's "
+            "about to change someone's employment.",
+    },
+
+    # ── crew_eval.calibration ────────────────────────────────────────
+    {
+        "form_key": "crew_eval.calibration",
+        "kind": "why",
+        "scopes": ["leadership", "admin"],
+        "title": "Why calibration beats scoring",
+        "body":
+            "If every operator on your crew is a 4-out-of-5, the eval "
+            "tells HR nothing. Calibration is asking: compared to the "
+            "average operator on similar work, where does this person "
+            "fall? Below, at, or above? That's the question the eval "
+            "is really asking.",
+    },
+    {
+        "form_key": "crew_eval.calibration",
+        "kind": "mistake",
+        "scopes": ["leadership", "admin"],
+        "title": "Common calibration mistakes",
+        "body":
+            "Scoring everyone the same to avoid conflict. Letting one "
+            "great day inflate the whole 6 months. Letting one bad day "
+            "tank it. Comparing your B-team operator to your A-team "
+            "lead instead of to the average. Rate against the real "
+            "average, not against your favorite or your frustration.",
+    },
+
+    # ── crew_eval.evidence ───────────────────────────────────────────
+    {
+        "form_key": "crew_eval.evidence",
+        "kind": "why",
+        "scopes": ["leadership", "admin"],
+        "title": "Why specific examples beat generalizations",
+        "body":
+            "'Good attitude' is a feeling. 'Stayed late three Fridays "
+            "in May to help finish the McCray pad' is evidence. The "
+            "operator can argue with a feeling; they can't argue with "
+            "a specific day. And HR can act on evidence; they can't "
+            "act on a vibe.",
+    },
+    {
+        "form_key": "crew_eval.evidence",
+        "kind": "example",
+        "scopes": ["leadership", "admin"],
+        "title": "Example evidence",
+        "body":
+            "Good: 'Caught a hydraulic seep on Unit 217 during pre-op "
+            "2026-03-14 — flagged Shop before sunrise, prevented a "
+            "blown line on the McCray pour.' Bad: 'Pays attention to "
+            "his equipment.' The first one is the eval; the second is "
+            "the wallpaper.",
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter218 · dispatch.idle-alerts — Tier-2 dispatcher coaching for
+    # the Idle Alerts tab. Voice anchor: idle alerts aren't a "bad
+    # foreman" detector — they're a routing-opportunity discovery
+    # surface. Don't move units that are idle for good reasons; move
+    # units that are idle for forgotten reasons.
+    # Scope: dispatch + admin.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "dispatch.idle-alerts",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why idle alerts are opportunity, not blame",
+        "body":
+            "An idle alert isn't 'this foreman is wasting equipment.' "
+            "It's 'this unit hasn't produced an operations event in N "
+            "days — is that on purpose, or did everyone forget?' "
+            "Treat it as discovery, not gotcha — most idle units have "
+            "a story; the alert just makes you ask.",
+    },
+    {
+        "form_key": "dispatch.idle-alerts",
+        "kind": "who",
+        "scopes": ["dispatch", "admin"],
+        "title": "Who you call before you move",
+        "body":
+            "The assigned foreman first — they know if the unit is "
+            "staged for next week's pour, broken and waiting on a "
+            "part, or genuinely forgotten. Then PM if the answer is "
+            "'we still need it' so utilization gets re-checked at "
+            "project level. Never auto-recall.",
+    },
+    {
+        "form_key": "dispatch.idle-alerts",
+        "kind": "next",
+        "scopes": ["dispatch", "admin"],
+        "title": "What turns an alert into a move",
+        "body":
+            "The foreman confirms the unit is genuinely available. "
+            "Another job has a confirmed need for the same model. "
+            "Lead time covers the transfer. PM is told before the "
+            "move, not after. If any of those four are missing, the "
+            "alert is information — not yet an action.",
+    },
+    {
+        "form_key": "dispatch.idle-alerts",
+        "kind": "escalate",
+        "scopes": ["dispatch", "admin"],
+        "title": "When the pattern is the story",
+        "body":
+            "One unit idle on a job is normal. A whole job's "
+            "equipment trending toward idle for three weeks is a "
+            "project-status conversation with PM — the job may be "
+            "winding down, stalled, or quietly losing scope. Surface "
+            "it to PM as a question, not a complaint.",
+    },
+
+    # ── dispatch.idle-alerts.thresholds ──────────────────────────────
+    {
+        "form_key": "dispatch.idle-alerts.thresholds",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why 7 / 14 / 30 days, not one number",
+        "body":
+            "7 days catches genuine recent forgetting. 14 days catches "
+            "the unit-staged-for-next-week pattern. 30 days catches "
+            "the season-on, season-off equipment cycle. One threshold "
+            "would either flood you with false alerts or hide the "
+            "real ones.",
+    },
+    {
+        "form_key": "dispatch.idle-alerts.thresholds",
+        "kind": "mistake",
+        "scopes": ["dispatch", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Setting threshold to 30 because it's quieter — now you "
+            "miss the 10-day idle that another foreman is actively "
+            "calling for. Treating the 7-day count as 'units to "
+            "recall' instead of 'units to ask about'. The threshold "
+            "is a conversation-starter, not a verdict.",
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter218 · dispatch.holds — Tier-2 dispatcher coaching for the
+    # Holds tab. Voice anchor: holds are the multi-team coordination
+    # surface — Safety puts a unit on hold, Shop releases it, Dispatch
+    # is the visibility layer in between. Holds aren't dispatch's
+    # decision; they're dispatch's read of what Safety/Shop are saying.
+    # Scope: dispatch + admin.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "dispatch.holds",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why holds exist (and why Dispatch can't release them)",
+        "body":
+            "A hold means Safety or Shop has decided this unit isn't "
+            "fit for the field right now. Dispatch's job is to SEE "
+            "the hold and route around it — not to second-guess the "
+            "decision. If the hold seems wrong, the conversation is "
+            "with the team who placed it, not a workaround.",
+    },
+    {
+        "form_key": "dispatch.holds",
+        "kind": "who",
+        "scopes": ["dispatch", "admin"],
+        "title": "Who placed which kind of hold",
+        "body":
+            "Safety holds = Safety put it down (usually post-incident "
+            "or audit finding). Maintenance holds = Shop put it down "
+            "(usually a failed PM, broken part, or operator-reported "
+            "defect). Pending holds = someone requested one and it "
+            "needs approval. Dispatch reads all three; releases none "
+            "of them.",
+    },
+    {
+        "form_key": "dispatch.holds",
+        "kind": "next",
+        "scopes": ["dispatch", "admin"],
+        "title": "What Dispatch does while a unit is on hold",
+        "body":
+            "Don't queue the unit for any transfer. Tell the "
+            "requesting foreman the unit is unavailable AND the "
+            "reason class (Safety / Maintenance) — they need to "
+            "know which team to chase if they think the hold is "
+            "wrong. Watch the queue for the release event; that's "
+            "when routing resumes.",
+    },
+    {
+        "form_key": "dispatch.holds",
+        "kind": "escalate",
+        "scopes": ["dispatch", "admin"],
+        "title": "When to surface a hold pattern",
+        "body":
+            "Same unit on hold three times in a quarter is a Shop "
+            "conversation about retirement. A whole job's equipment "
+            "trending toward holds is a Safety walk-the-job "
+            "conversation. Dispatch doesn't fix either — Dispatch is "
+            "the team that NOTICES first because the routing queue "
+            "shows the pattern.",
+    },
+
+    # ── dispatch.holds.pending ───────────────────────────────────────
+    {
+        "form_key": "dispatch.holds.pending",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why pending holds need fast review",
+        "body":
+            "A pending hold is a request that hasn't been approved "
+            "yet — the unit is still routable, but somebody on the "
+            "team thinks it shouldn't be. Sit on it too long and the "
+            "unit goes out the gate the next morning before the "
+            "approval lands. Dispatch's job: get eyes on pending the "
+            "same day.",
+    },
+    {
+        "form_key": "dispatch.holds.pending",
+        "kind": "mistake",
+        "scopes": ["dispatch", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Dismissing a pending hold without reading the request "
+            "context. Approving without asking the requester whether "
+            "it should be Safety-class or Maintenance-class — those "
+            "route to different release authorities. Treating pending "
+            "as a 'review when there's time' queue instead of a "
+            "today-action queue.",
+    },
 ]
 
 

@@ -42,6 +42,9 @@ const FL_KIND_HELPTIP_FORMKEY = {
   equipment_checkout: "checkout",
   // iter214 — Write-Ups: facts-not-feelings disciplinary documentation.
   write_up: "writeup",
+  // iter218 — Crew Eval: migrated from legacy WhyItMattersPanel.
+  // Voice anchor: calibration beats scoring; specific examples beat generalizations.
+  crew_eval: "crew_eval",
 };
 
 // Phase C · contextual guidance map per FL form kind (iter194).

@@ -457,9 +457,18 @@ export function DispatchHoldsTab() {
 
   return (
     <div className="space-y-4" data-testid="dp-holds">
+      {/* iter218 · Tier-2 dispatcher coaching — Safety/Shop place
+          holds, Dispatch routes around them. Coaching anchor: "don't
+          second-guess; see, route around, and watch for patterns." */}
+      <HelpTipBlock formKey="dispatch.holds" showCounter />
       {/* Pending review queue */}
       {pending.length > 0 && (
         <div className="bg-amber-50 border-2 border-amber-300 rounded-md p-4" data-testid="dp-pending-holds">
+          {/* Pending-specific coaching surface — only shown when there
+              IS a pending queue, since that's when the coaching matters. */}
+          <div className="mb-3">
+            <HelpTipBlock formKey="dispatch.holds.pending" />
+          </div>
           <div className="flex items-start gap-3 mb-3">
             <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
             <div>
@@ -651,6 +660,9 @@ export function DispatchIdleAlertsTab() {
 
   return (
     <div className="space-y-3" data-testid="dp-idle">
+      {/* iter218 · Tier-2 dispatcher coaching — idle alerts are
+          opportunity, not blame. Don't auto-recall; call the foreman. */}
+      <HelpTipBlock formKey="dispatch.idle-alerts" showCounter />
       <div className="bg-amber-50 border-2 border-amber-300 rounded-md p-4 flex items-start gap-3">
         <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
         <div className="text-xs text-amber-900">

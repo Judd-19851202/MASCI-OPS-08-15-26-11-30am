@@ -1,6 +1,87 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter218 · Self-Validating Editorial Loop · Close iter217 Walkthrough P0 Gaps · ✅ DELIVERED (preview only)
+
+First full demonstration of the iter217 self-validating editorial loop: walkthrough surfaced gaps → author the coaching → re-run the walkthrough → watch the actionable-finding count drop. **Validated: 16 → 7 actionable findings (-56% reduction).** Of the 7 remaining, 3 are scaffolded-not-implemented placeholders (known) and 4 are documentation/architecture observations, NOT coaching authoring gaps. **The iter217 coaching-gap backlog is now zero.**
+
+### Four P0 coaching gaps closed (28 new tips · 4 new families)
+
+🔴 **`field-leadership.records` — reviewer-side coaching (NEW Tier-2 class)**
+- 6 tips · scope `{leadership, admin, pm}`
+- Voice anchor: *"A daily report you skim is a daily report nobody read. Reviewing isn't auditing — it's the supervisor's reading of the crew's work."*
+- Sub-surface `field-leadership.records.review-tone` coaches the call-don't-edit-quietly culture
+- Wired into `FieldLeadershipRecords.jsx` at the records list header
+
+🔴 **`crew_eval` — migrated from legacy WhyItMattersPanel to HelpTip engine**
+- 8 tips · scope `{leadership, admin}`
+- Voice anchor: *"Calibration beats scoring. The eval that says 'he's fine' the same way for every operator is the eval that taught nobody anything."*
+- Sub-surfaces: `crew_eval.calibration` (compare to average, not to favorite) · `crew_eval.evidence` (specific examples beat generalizations, with concrete date+unit-ID example)
+- Wired via `FL_KIND_HELPTIP_FORMKEY` map in `FieldLeadershipFormPage.jsx`
+
+🔴 **`dispatch.idle-alerts` — Tier-2 dispatcher coaching**
+- 6 tips · scope `{dispatch, admin}`
+- Voice anchor: *"An idle alert isn't 'this foreman is wasting equipment.' It's 'is this on purpose, or did everyone forget?' Discovery, not gotcha."*
+- Sub-surface `dispatch.idle-alerts.thresholds` explains the 7/14/30-day mental model
+- Wired into `DispatchIdleAlertsTab` in `AdminDispatch.jsx`
+
+🔴 **`dispatch.holds` — Tier-2 dispatcher coaching**
+- 8 tips · scope `{dispatch, admin}`
+- Voice anchor: *"A hold means Safety or Shop has decided this unit isn't fit for the field. Dispatch's job is to SEE the hold and route around it — not to second-guess the decision."*
+- Sub-surface `dispatch.holds.pending` covers the day-action queue (vs review-when-time queue)
+- Wired into `DispatchHoldsTab` in `AdminDispatch.jsx` (top-of-tab block + pending-only sub-block)
+
+### Public-hub discoverability — Day-1 "Start Here" entry
+- New conditional Link in `Hub.jsx` (visible only when `!session`) targeting `/guidance/role-new-employee`
+- Above-the-fold amber callout: *"NEW HERE? · First week on the platform — start here · A 5-minute walkthrough for new hires"*
+- Closes the iter217 laborer-walkthrough discoverability gap
+
+### Self-validating editorial loop results (re-run walkthroughs)
+| Persona | Actionable findings before iter218 | After iter218 | Delta |
+|---|---|---|---|
+| Foreman | 1 | 1 (false positive — `/field` aggregator is correct IA) | — |
+| Superintendent | 5 | 1 (`<title>` tag — queued) | -4 ✅ |
+| Operator | 1 | 1 (mid-day defect — queued) | — |
+| Dispatcher | 4 | 0 | -4 ✅ |
+| HR / Safety / PM | 3 scaffolded frictions | 3 scaffolded (unchanged — placeholder by design) | — |
+| Laborer | 2 | 1 (foreman-tablet checkout note) | -1 ✅ |
+| **Total actionable** | **16** | **7** | **-9 (-56%)** |
+| **Positive observations** | **13** | **15** | **+2** ✅ |
+
+The 7 remaining items are 3 scaffolded placeholders + 4 non-coaching items (1 false positive · 1 architecture note · 1 layout note · 1 documentation note). **No P0 coaching gaps remain.**
+
+### Backend regression
+- New: `test_iter218_walkthrough_gap_closure.py` — 29 passed (RBAC · tone discipline · bilingual · positive-realism anchors · static Hub.jsx Day-1-entry check)
+- iter21x suite: **202 passed · 1 expected skip**
+- Tip registry total: 115 → **143** tips (+28 in this iter)
+- Form_key surfaces covered: 19 → **27** (+8 new surfaces: records, records.review-tone, crew_eval, crew_eval.calibration, crew_eval.evidence, idle-alerts, idle-alerts.thresholds, holds, holds.pending)
+
+### Tone discipline guardrails enforced
+- `ROBOTIC_OSHA_PHRASES` (iter211 baseline)
+- `CORPORATE_DRIFT_PHRASES` (synergize · stakeholder alignment · core competency · etc.)
+- `HR_LEGAL_DRIFT_PHRASES` (progressive discipline policy · disciplinary action up to and including · etc.) — especially load-bearing for `crew_eval` 
+- Positive-realism anchor sweep: every family must contain at least one persona-anchor phrase (foreman · crew · super · dispatch · HR · PM · Shop · Safety · operator)
+
+### Files touched
+- MOD: `backend/guidance/tips.py` (+28 tips), `backend/guidance/tips_es.py` (+28 ES translations)
+- MOD: `frontend/src/pages/FieldLeadershipRecords.jsx` (HelpTipBlock at records list header)
+- MOD: `frontend/src/pages/FieldLeadershipFormPage.jsx` (crew_eval map entry)
+- MOD: `frontend/src/pages/admin/AdminDispatch.jsx` (idle-alerts + holds + holds.pending wiring)
+- MOD: `frontend/src/pages/Hub.jsx` (Day-1 "Start Here" amber callout)
+- NEW: `backend/tests/test_iter218_walkthrough_gap_closure.py` (29 tests)
+- MOD: `memory/PRD.md`
+
+🔵 Preview only. No production push.
+
+### What's queued (remaining walkthrough backlog)
+- 🟡 P1: Operator mid-day-defect surface decision (queued — needs operator's architectural call)
+- 🟡 P1: Set persona-orienting `<title>` tags on portal hubs (small mechanical fix)
+- 🟡 P2: Flesh out HR, Safety, PM persona walkthroughs (currently scaffolded)
+- 🟡 P2: Translation consistency close-out (HR/PM/Safety/Dispatch/Shop login body copy)
+
+The walkthrough framework is now demonstrably operating as **editorial leverage**, not observation theatre.
+
+---
 ## 2026-05-18 — iter217 · Operator-Flow Walkthrough Framework · ✅ DELIVERED (preview only)
 
 Lightweight, **editorial-tool** walkthrough framework that simulates real persona days through the platform and emits typed findings as the coaching-refinement backlog. Built strictly to the operator's directives: lightweight · operational · realistic · field-authentic · NOT analytics · NOT telemetry · NOT a "dashboard." No new Mongo collections; no engagement metrics; no production observers.

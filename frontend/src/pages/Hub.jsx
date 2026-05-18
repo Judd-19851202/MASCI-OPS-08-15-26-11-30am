@@ -271,6 +271,34 @@ export default function Hub() {
         {/* Welcome back strip (only when an active session is detected) */}
         {session && <WelcomeBackHero session={session} />}
 
+        {/* iter218 · Day-1 "Start Here" entry — visible only when NO
+            session is detected, so it stays out of the way for crews
+            who already know the platform. Surfaced for new hires
+            arriving from QR posters at the yard. */}
+        {!session && (
+          <Link
+            to="/guidance/role-new-employee"
+            data-testid="hub-day-one-start-here"
+            className="group flex items-center gap-3 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 hover:border-amber-500 rounded-md px-4 py-3 mb-8 transition-all"
+          >
+            <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-600 text-white shrink-0">
+              <MapPin className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-900 font-bold">
+                {t("New here?")}
+              </div>
+              <div className="font-display text-base sm:text-lg font-black text-slate-900">
+                {t("First week on the platform — start here")}
+              </div>
+              <div className="text-slate-700 text-xs mt-0.5 leading-snug">
+                {t("A 5-minute walkthrough for new hires: what to fill out, where, and why.")}
+              </div>
+            </div>
+            <ArrowRight className="w-5 h-5 text-amber-700 group-hover:translate-x-1 transition-transform shrink-0" />
+          </Link>
+        )}
+
         {/* SECTION 1 — Today in the Field */}
         <SectionHeader kicker="01" title={t("Today in the Field")} subtitle={t("Submissions every crew on site needs today.")} />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-10">

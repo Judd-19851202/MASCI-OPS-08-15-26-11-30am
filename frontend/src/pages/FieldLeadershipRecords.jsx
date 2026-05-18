@@ -27,6 +27,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import BackLink from "@/components/BackLink";
+import { HelpTipBlock } from "@/components/HelpTip";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600";
 
@@ -171,6 +172,13 @@ export default function FieldLeadershipRecords() {
         <p className="text-slate-600 mt-1 text-sm">
           {admin ? t("All Field Leadership submissions across every job.") : t("Submissions for jobs assigned to you.")}
         </p>
+
+        {/* iter218 · reviewer-side coaching — supers reviewing crew
+            filings get coaching on what to look for, how to push back,
+            and when to escalate. NOT auditing tone; reading tone. */}
+        <div className="mt-5">
+          <HelpTipBlock formKey="field-leadership.records" showCounter />
+        </div>
 
         {/* COUNTS */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-5">

@@ -989,4 +989,270 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "Lleve ambos a PM — prefieren oírlo de Despacho que de "
             "finanzas.",
     },
+
+    # ── iter218 · field-leadership.records (reviewer-side) ───────────
+    ("field-leadership.records", "why"): {
+        "title_es": "Por qué revisar los registros, no solo archivarlos",
+        "body_es":
+            "Un reporte diario que solo le da una hojeada es un reporte "
+            "que nadie leyó. La cuadrilla nota cuáles supers de verdad "
+            "leen lo que se entrega — lo oyen la siguiente mañana "
+            "cuando usted les pregunta sobre la nota específica que "
+            "importó. Revisar no es auditar; es la lectura del "
+            "supervisor del trabajo de su cuadrilla.",
+    },
+    ("field-leadership.records", "who"): {
+        "title_es": "Quién más lee este mismo registro",
+        "body_es":
+            "PM (margen de proyecto), RH (cualquier nota de personal), "
+            "Seguridad (cualquier referencia a incidente), Despacho "
+            "(notas de equipo), y los dueños (el resumen semanal). "
+            "Cuando rechaza una entrada vaga, no está siendo "
+            "exigente — está protegiendo a los cinco lectores que "
+            "vienen después.",
+    },
+    ("field-leadership.records", "next"): {
+        "title_es": "Qué hacer cuando algo no cuadra",
+        "body_es":
+            "Abra el registro. Lea la narrativa del capataz. Si las "
+            "cuentas entre horas de cuadrilla, horas de equipo, y "
+            "notas de material no cuentan una historia coherente del "
+            "día — esa es una conversación con el capataz, no una "
+            "edición silenciosa. Mismo principio que Verificación de "
+            "Tiempo: arregle en la fuente.",
+    },
+    ("field-leadership.records", "escalate"): {
+        "title_es": "Cuándo empujar de regreso, cuándo escalar",
+        "body_es":
+            "Un patrón en varios registros del mismo capataz — entradas "
+            "vagas, sin notas de despacho, equipo fantasma — es una "
+            "conversación de coaching con RH, no un arreglo de un solo "
+            "registro. Una referencia de seguridad enterrada en un "
+            "Reporte Diario en vez de un Incidente es una llamada "
+            "inmediata a Seguridad. No se quede con ninguno.",
+    },
+    ("field-leadership.records.review-tone", "why"): {
+        "title_es": "Por qué importa CÓMO se empuja de regreso",
+        "body_es":
+            "El primer capataz al que le 'corrigieron' su reporte "
+            "diario sin una llamada es el mismo capataz que deja de "
+            "escribir notas detalladas al mes siguiente. Los "
+            "revisores protegen la cultura del reporte llamando, no "
+            "editando. Una llamada de 30 segundos compra seis meses "
+            "de reportes honestos.",
+    },
+    ("field-leadership.records.review-tone", "mistake"): {
+        "title_es": "Errores comunes del revisor",
+        "body_es":
+            "Corregir silenciosamente la narrativa del capataz porque "
+            "'es más fácil'. Preguntar '¿por qué no escribió XYZ?' "
+            "en vez de 'cuénteme de la mañana para que arregle el "
+            "reporte'. Tratar el registro como LA verdad en vez de "
+            "como el RELATO del capataz de la verdad.",
+    },
+
+    # ── iter218 · crew_eval (migrated from legacy WhyItMattersPanel) ─
+    ("crew_eval", "why"): {
+        "title_es": "Por qué importa esta evaluación",
+        "body_es":
+            "Una evaluación de cuadrilla honesta es el único momento "
+            "formal en que los últimos 6 meses de un operador quedan "
+            "en el registro. Las evaluaciones vagas hacen que después "
+            "los aumentos, ascensos, y (raramente) la disciplina sean "
+            "indefendibles. El super que escribe evaluaciones en las "
+            "que la cuadrilla puede confiar es el super al que la "
+            "cuadrilla de verdad escucha.",
+    },
+    ("crew_eval", "who"): {
+        "title_es": "Quién lo lee 6 meses después",
+        "body_es":
+            "RH (ascensos, aumentos), el siguiente super que herede al "
+            "operador, PM (decisiones de staffing de proyecto), y el "
+            "operador mismo (cuando pregunte por qué no recibió el "
+            "aumento). Escríbalo de modo que la respuesta esté en el "
+            "archivo, no en su memoria.",
+    },
+    ("crew_eval", "next"): {
+        "title_es": "Qué pasa después de enviarlo",
+        "body_es":
+            "RH lo archiva. El operador recibe una copia. Se une al "
+            "expediente del operador junto a las evaluaciones previas — "
+            "los patrones se vuelven visibles con el tiempo. Si esta "
+            "es la tercera 'cumple expectativas' consecutiva de "
+            "alguien que ha estado considerando para capataz, el "
+            "expediente dice que en realidad no lo ha movido.",
+    },
+    ("crew_eval", "escalate"): {
+        "title_es": "Cuándo escribir menos, hablar más",
+        "body_es":
+            "Si la evaluación honesta sería 'necesitamos separarnos', "
+            "no escriba nada aquí todavía — llame a RH. Lo mismo para "
+            "cualquier patrón de acoso o seguridad. La evaluación es "
+            "para el operador en estado estable de su cuadrilla, no "
+            "para la conversación que está a punto de cambiar el "
+            "empleo de alguien.",
+    },
+    ("crew_eval.calibration", "why"): {
+        "title_es": "Por qué la calibración le gana a las calificaciones",
+        "body_es":
+            "Si cada operador de su cuadrilla es un 4 de 5, la "
+            "evaluación no le dice nada a RH. Calibrar es preguntar: "
+            "comparado con el operador promedio en trabajo similar, "
+            "¿dónde cae esta persona? Abajo, igual, o arriba. Esa es "
+            "la pregunta real de la evaluación.",
+    },
+    ("crew_eval.calibration", "mistake"): {
+        "title_es": "Errores comunes de calibración",
+        "body_es":
+            "Calificar a todos igual para evitar conflicto. Dejar que "
+            "un buen día infle los 6 meses completos. Dejar que un "
+            "mal día los hunda. Comparar a su operador de banca-B "
+            "con su líder de banca-A en vez de con el promedio. "
+            "Califique contra el promedio real, no contra su favorito "
+            "ni contra su frustración.",
+    },
+    ("crew_eval.evidence", "why"): {
+        "title_es": "Por qué los ejemplos específicos le ganan a las generalidades",
+        "body_es":
+            "'Buena actitud' es un sentimiento. 'Se quedó tarde tres "
+            "viernes en mayo para ayudar a terminar la plataforma "
+            "McCray' es evidencia. El operador puede pelear con un "
+            "sentimiento; no puede pelear con un día específico. Y "
+            "RH puede actuar con evidencia; no puede actuar con "
+            "buena vibra.",
+    },
+    ("crew_eval.evidence", "example"): {
+        "title_es": "Ejemplo de evidencia",
+        "body_es":
+            "Bueno: 'Detectó una fuga hidráulica en la Unidad 217 "
+            "durante el pre-op 2026-03-14 — avisó al Taller antes "
+            "del amanecer, previno una línea reventada en la colada "
+            "de McCray.' Malo: 'Le pone atención a su equipo.' Lo "
+            "primero es la evaluación; lo segundo es el papel tapiz.",
+    },
+
+    # ── iter218 · dispatch.idle-alerts ───────────────────────────────
+    ("dispatch.idle-alerts", "why"): {
+        "title_es": "Por qué las alertas de inactividad son oportunidad, no culpa",
+        "body_es":
+            "Una alerta de inactividad no es 'este capataz está "
+            "desperdiciando equipo'. Es 'esta unidad no ha generado "
+            "un evento operacional en N días — ¿es a propósito o se "
+            "le olvidó a todos?'. Trátelo como descubrimiento, no "
+            "como trampa — la mayoría de las unidades inactivas "
+            "tienen una historia; la alerta solo le hace preguntar.",
+    },
+    ("dispatch.idle-alerts", "who"): {
+        "title_es": "A quién llama antes de mover",
+        "body_es":
+            "Al capataz asignado primero — él sabe si la unidad está "
+            "lista para la colada de la próxima semana, descompuesta "
+            "esperando una parte, o genuinamente olvidada. Después al "
+            "PM si la respuesta es 'todavía la necesitamos' para "
+            "revisar la utilización a nivel proyecto. Nunca "
+            "auto-retire.",
+    },
+    ("dispatch.idle-alerts", "next"): {
+        "title_es": "Qué convierte una alerta en un movimiento",
+        "body_es":
+            "El capataz confirma que la unidad está genuinamente "
+            "disponible. Otro trabajo tiene una necesidad confirmada "
+            "del mismo modelo. El tiempo de aviso alcanza para la "
+            "transferencia. El PM se entera antes del movimiento, no "
+            "después. Si falta cualquiera de los cuatro, la alerta es "
+            "información — aún no es una acción.",
+    },
+    ("dispatch.idle-alerts", "escalate"): {
+        "title_es": "Cuándo el patrón es la historia",
+        "body_es":
+            "Una unidad inactiva en un trabajo es normal. El equipo "
+            "entero de un trabajo tendiendo a inactividad por tres "
+            "semanas es una conversación de estatus de proyecto con "
+            "el PM — el trabajo puede estar cerrando, parado, o "
+            "perdiendo alcance calladamente. Llévelo al PM como una "
+            "pregunta, no como una queja.",
+    },
+    ("dispatch.idle-alerts.thresholds", "why"): {
+        "title_es": "Por qué 7 / 14 / 30 días, no un solo número",
+        "body_es":
+            "7 días atrapa el olvido reciente genuino. 14 días atrapa "
+            "el patrón de unidad-lista-para-la-próxima-semana. 30 "
+            "días atrapa el ciclo de equipo de temporada-sí, "
+            "temporada-no. Un solo umbral lo inundaría de falsas "
+            "alertas o le escondería las reales.",
+    },
+    ("dispatch.idle-alerts.thresholds", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Subir el umbral a 30 porque es más tranquilo — ahora "
+            "pierde la inactividad de 10 días que otro capataz está "
+            "pidiendo activamente. Tratar el conteo de 7 días como "
+            "'unidades a retirar' en vez de 'unidades a preguntar'. "
+            "El umbral es un iniciador de conversación, no un "
+            "veredicto.",
+    },
+
+    # ── iter218 · dispatch.holds ─────────────────────────────────────
+    ("dispatch.holds", "why"): {
+        "title_es": "Por qué existen los retenes (y por qué Despacho no los libera)",
+        "body_es":
+            "Un retén significa que Seguridad o Taller decidió que "
+            "esta unidad no está apta para campo ahora mismo. El "
+            "trabajo de Despacho es VER el retén y rutear alrededor — "
+            "no cuestionar la decisión. Si el retén parece equivocado, "
+            "la conversación es con el equipo que lo puso, no un "
+            "rodeo.",
+    },
+    ("dispatch.holds", "who"): {
+        "title_es": "Quién puso qué tipo de retén",
+        "body_es":
+            "Retenes de Seguridad = Seguridad lo puso (usualmente "
+            "post-incidente o hallazgo de auditoría). Retenes de "
+            "Mantenimiento = Taller lo puso (usualmente un PM "
+            "fallido, parte rota, o defecto reportado por el "
+            "operador). Retenes pendientes = alguien solicitó uno y "
+            "necesita aprobación. Despacho lee los tres; libera "
+            "ninguno.",
+    },
+    ("dispatch.holds", "next"): {
+        "title_es": "Qué hace Despacho mientras una unidad está retenida",
+        "body_es":
+            "No ponga la unidad en cola para ninguna transferencia. "
+            "Dígale al capataz que pide que la unidad no está "
+            "disponible Y la clase de razón (Seguridad / "
+            "Mantenimiento) — necesita saber a qué equipo perseguir "
+            "si cree que el retén está mal. Vigile la cola para el "
+            "evento de liberación; ahí es cuando reanuda el ruteo.",
+    },
+    ("dispatch.holds", "escalate"): {
+        "title_es": "Cuándo surface un patrón de retenes",
+        "body_es":
+            "La misma unidad retenida tres veces en un trimestre es "
+            "una conversación con Taller sobre retiro. El equipo "
+            "entero de un trabajo tendiendo a retenes es una "
+            "conversación de camínale-el-trabajo con Seguridad. "
+            "Despacho no arregla ninguno — Despacho es el equipo "
+            "que NOTA primero porque la cola de ruteo muestra el "
+            "patrón.",
+    },
+    ("dispatch.holds.pending", "why"): {
+        "title_es": "Por qué los retenes pendientes necesitan revisión rápida",
+        "body_es":
+            "Un retén pendiente es una solicitud que no se ha "
+            "aprobado todavía — la unidad todavía es ruteable, pero "
+            "alguien del equipo cree que no debería serlo. Si lo "
+            "deja mucho, la unidad sale por la reja a la mañana "
+            "siguiente antes de que aterrice la aprobación. Trabajo "
+            "de Despacho: ponerle ojos a pendiente el mismo día.",
+    },
+    ("dispatch.holds.pending", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Descartar un retén pendiente sin leer el contexto de la "
+            "solicitud. Aprobar sin preguntarle al solicitante si "
+            "debe ser clase-Seguridad o clase-Mantenimiento — esas "
+            "se enrutan a distintas autoridades de liberación. "
+            "Tratar pendiente como una cola de 'revisar cuando haya "
+            "tiempo' en vez de una cola de acción del día.",
+    },
 }
