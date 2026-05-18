@@ -20,6 +20,7 @@ import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
 import { WhyItMattersPanel } from "@/components/guidance";
+import { HelpTipBlock } from "@/components/HelpTip";
 
 export default function DailyReportsDashboard() {
   const { t } = useT();
@@ -109,6 +110,14 @@ export default function DailyReportsDashboard() {
               Learn more →
             </Link>
           </WhyItMattersPanel>
+        </div>
+
+        {/* iter226 — dispatch-reader-side coaching. Server-side RBAC
+            ensures only Tier-2 dispatch + admin tokens see these tips;
+            foremen/operators reading their own filings see nothing
+            here. Anchor: "Read it for movement, not for blame." */}
+        <div className="mb-4">
+          <HelpTipBlock formKey="dispatch.daily-report-read" showCounter />
         </div>
 
         <div className="bg-white border-2 border-slate-300 rounded-md overflow-hidden">

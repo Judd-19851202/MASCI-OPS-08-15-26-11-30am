@@ -1818,4 +1818,305 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "semana. El ritmo es lo que evita que la lista se "
             "vuelva un incendio dos veces al año.",
     },
+
+    # ── iter226 · dispatch.utilization ───────────────────────────────
+    # Operator-stated anchor (verbatim · test-enforced):
+    #   "La utilización es una herramienta de decisión, no un tablero."
+    ("dispatch.utilization", "why"): {
+        "title_es": "Por qué esta página es una herramienta de decisión, no un tablero",
+        "body_es":
+            "La utilización es una herramienta de decisión, no un "
+            "tablero. Lea la página para encontrar el próximo "
+            "movimiento, la próxima rotación, el próximo servicio "
+            "— no para calificar operadores. Un 38% en una unidad "
+            "no significa que el operador es flojo. Significa que "
+            "la unidad está disponible para otro trabajo, o que va "
+            "rumbo a una falla y el taller debería saberlo ya.",
+    },
+    ("dispatch.utilization", "who"): {
+        "title_es": "Quién más lee lo que usted decide aquí",
+        "body_es":
+            "El foreman cuya cuadrilla pierde o gana una pieza de "
+            "equipo mañana. El taller, si la rotación destapa un "
+            "intervalo de servicio. El PM, cuando una unidad "
+            "reubicada aparece en el código de costo de otro "
+            "trabajo. No tome la decisión en silencio — la gente "
+            "del otro lado se entera más rápido de lo que cree y "
+            "se acuerda si usted les avisó primero.",
+    },
+    ("dispatch.utilization", "next"): {
+        "title_es": "Qué pasa después de decidir reubicar",
+        "body_es":
+            "Abra una Transferencia desde esta página (no mueva "
+            "la unidad por mensaje). Confirme con el foreman que "
+            "recibe que la espera antes de que salga el camión. "
+            "Apunte la razón operativa — 'subutilizada en Sitio "
+            "23, Cuadrilla 12 necesita un respaldo' — para que "
+            "el próximo despachador que lea esto en tres meses "
+            "entienda por qué se movió la unidad.",
+    },
+    ("dispatch.utilization", "escalate"): {
+        "title_es": "Cuando el número le está diciendo algo más grande",
+        "body_es":
+            "Una cuadrilla entera con todas sus unidades en 25% "
+            "— ese es un problema de programación de trabajo, no "
+            "de reubicación. Hable con el super. Una unidad "
+            "siempre en 100%+ — es una falla esperando pasar. "
+            "Hable con el taller. Cuando la página dice lo mismo "
+            "tres semanas seguidas y usted persigue renglones "
+            "sueltos, está perdiéndose el patrón.",
+    },
+
+    # ── iter226 · dispatch.utilization.scoreboard ────────────────────
+    ("dispatch.utilization.scoreboard", "why"): {
+        "title_es": "Por qué la utilización no es una calificación",
+        "body_es":
+            "Una unidad en 40% no es una unidad reprobada. Puede "
+            "ser el respaldo del tamaño correcto para una "
+            "cuadrilla que va adelantada, o la de repuesto que "
+            "tiene en un trabajo porque la principal se descompone. "
+            "Leer el número como calificación lleva a malas "
+            "decisiones — saca respaldos que funcionan y deja a "
+            "las cuadrillas atascadas la próxima vez que la "
+            "principal se cae.",
+    },
+    ("dispatch.utilization.scoreboard", "mistake"): {
+        "title_es": "Errores comunes de tablero",
+        "body_es":
+            "Llamar la atención de operadores por número de "
+            "utilización enfrente de supers. Reasignar unidades "
+            "basándose solo en el número sin preguntarle al "
+            "foreman por qué está bajo. Tratar la pestaña de "
+            "utilización como evaluación de desempeño. Repetirle "
+            "el porcentaje de la semana pasada al operador de esta "
+            "semana sin revisar si cambió el trabajo.",
+    },
+
+    # ── iter226 · dispatch.utilization.redeploy ──────────────────────
+    ("dispatch.utilization.redeploy", "why"): {
+        "title_es": "Por qué las reubicaciones aterrizan mejor cuando llama primero",
+        "body_es":
+            "El foreman que recibe no quiere una unidad que no "
+            "pidió, y el foreman que la entrega no quiere que se "
+            "la jalen a medio trabajo sin avisar. Levante el "
+            "teléfono antes de abrir la Transferencia. Noventa "
+            "segundos de conversación cambian una llamada de "
+            "'¿por qué se llevaron mi equipo?' por una de "
+            "'gracias por el respaldo.'",
+    },
+    ("dispatch.utilization.redeploy", "example"): {
+        "title_es": "Cómo se ve una decisión de reubicación limpia",
+        "body_es":
+            "Ve la Unidad 247 en 32% en Sitio 14 por segunda "
+            "semana. Le llama a Mike en Sitio 14: 'Oye, la mini "
+            "ha estado tranquila — ¿estás bien si la muevo a la "
+            "Cuadrilla 8?' Mike dice sí. Le llama al foreman de "
+            "la Cuadrilla 8: 'Te llega la mini mañana.' DESPUÉS "
+            "abre la Transferencia. Tres llamadas, dos minutos "
+            "en total, y mañana en la mañana nadie se sorprende.",
+    },
+
+    # ── iter226 · dispatch.daily-report-read ─────────────────────────
+    # Operator-stated anchor (verbatim · test-enforced):
+    #   "El Reporte Diario es la inteligencia de ruta del despachador
+    #    — léalo para movimiento, no para culpa."
+    ("dispatch.daily-report-read", "why"): {
+        "title_es": "Por qué el Reporte Diario es su inteligencia de ruta",
+        "body_es":
+            "El Reporte Diario es la inteligencia de ruta del "
+            "despachador — léalo para movimiento, no para culpa. "
+            "Las notas sobre qué equipo se usó, qué quedó parado, "
+            "qué regresó dañado, qué se necesita mañana — esa es "
+            "la entrada para las reubicaciones de hoy. Léalo como "
+            "lo lee un despachador en la mañana, no como un "
+            "auditor revisando una tarjeta de tiempo.",
+    },
+    ("dispatch.daily-report-read", "who"): {
+        "title_es": "Quién más lee el mismo reporte distinto",
+        "body_es":
+            "RH lo lee por horas. El PM lo lee por códigos de "
+            "costo. Seguridad lo lee por incidentes. Usted es el "
+            "único leyéndolo para saber dónde acabó el equipo. "
+            "Ese es el trabajo del despachador — traducir lo que "
+            "escribió el foreman a 'qué muevo mañana.'",
+    },
+    ("dispatch.daily-report-read", "next"): {
+        "title_es": "Qué pasa después de leer los reportes de hoy",
+        "body_es":
+            "Marque las unidades señaladas para regreso o "
+            "servicio antes de salir de la página. Abra una "
+            "Transferencia o una Retención para las obvias. "
+            "Apunte el nombre del foreman en cualquier reporte "
+            "donde las notas de equipo estaban flojas — esa es "
+            "una conversación de coaching, no un regaño, para "
+            "mañana.",
+    },
+    ("dispatch.daily-report-read", "escalate"): {
+        "title_es": "Cuándo dejar de leer y llamar",
+        "body_es":
+            "Un reporte describiendo una unidad cayéndose duro a "
+            "media jornada y el foreman todavía la tiene en el "
+            "trabajo — llame al super, no al foreman. Un reporte "
+            "sin la sección de equipo dos días seguidos de la "
+            "misma cuadrilla — llame al foreman ya, no después "
+            "del tercero. Un reporte que contradice el registro "
+            "de checkout — llame a RH antes de reubicar nada de "
+            "esa cuadrilla.",
+    },
+
+    # ── iter226 · dispatch.daily-report-read.routing-intel ───────────
+    ("dispatch.daily-report-read.routing-intel", "why"): {
+        "title_es": "Léalo para movimiento, no para culpa",
+        "body_es":
+            "La nota del foreman 'la mini sonó mal casi todo el "
+            "día' es oro para el despachador — eso es un servicio "
+            "para mañana, no una conversación de culpa hoy. La "
+            "nota 'no usamos el segundo rodillo, se quedó parado' "
+            "es candidato a reubicación, no a regaño. Traduzca el "
+            "lenguaje operativo a decisiones de ruta. La culpa es "
+            "trabajo de otro, no suyo.",
+    },
+    ("dispatch.daily-report-read.routing-intel", "example"): {
+        "title_es": "Cómo se ve una buena lectura de inteligencia",
+        "body_es":
+            "Reporte Diario de Cuadrilla 12: 'Usamos las dos "
+            "excavadoras, rodillo parado 60% del turno, generador "
+            "se apagó dos veces.' Decisiones de ruta en 90 "
+            "segundos: deje las excavadoras, marque el rodillo "
+            "como candidato a reubicación (llame a Cuadrilla 8 "
+            "en la mañana), abra una Retención de mantenimiento "
+            "en el generador con una nota para el Taller. Un "
+            "reporte, tres decisiones, nadie culpó a nadie.",
+    },
+
+    # ── iter226 · dispatch.daily-report-read.return-drift ────────────
+    ("dispatch.daily-report-read.return-drift", "why"): {
+        "title_es": "Cómo agarrar la deriva entre checkout y regreso",
+        "body_es":
+            "Una unidad está en la lista de checkout pero el "
+            "Reporte Diario no la menciona tres días seguidos — "
+            "esa es una renta fantasma. O regresó y nadie cerró "
+            "el checkout, o está sentada en un trabajo donde el "
+            "foreman no la está registrando. Cruzar las dos "
+            "listas es el trabajo del despachador; nadie más lo "
+            "hace.",
+    },
+    ("dispatch.daily-report-read.return-drift", "mistake"): {
+        "title_es": "Errores comunes con rentas fantasma",
+        "body_es":
+            "Asumir que una unidad sigue en el campo porque el "
+            "checkout lo dice. Asumir que una unidad regresó "
+            "porque el foreman no la mencionó. Tratar un reporte "
+            "que falta como 'nada de qué preocuparse' en vez de "
+            "como un hueco de datos que merece una llamada. "
+            "Dejar que la lista de checkout y la realidad del "
+            "campo se separen una semana antes de cuadrarlas.",
+    },
+
+    # ── iter226 · dispatch.handoff ───────────────────────────────────
+    # Operator-stated anchor (verbatim · test-enforced):
+    #   "El traspaso es una conversación, no una invitación de calendario."
+    ("dispatch.handoff", "why"): {
+        "title_es": "Por qué el traspaso de esta noche evita el caos de mañana",
+        "body_es":
+            "El traspaso es una conversación, no una invitación "
+            "de calendario. Si cambió el plan de mañana, el "
+            "foreman se entera de usted esta noche — no del "
+            "guardia de la entrada a las 06:00. Cada minuto en "
+            "la llamada de confirmación de las 16:30 ahorra tres "
+            "minutos de confusión en la mañana, dos camiones "
+            "apuntados al patio equivocado, y un foreman que "
+            "empieza el día frustrado.",
+    },
+    ("dispatch.handoff", "who"): {
+        "title_es": "Quién depende de que salga la llamada",
+        "body_es":
+            "Cada foreman con una cuadrilla saliendo en la "
+            "mañana. Operadores que ponen su despertador según "
+            "a qué patio reportan. El Taller, si el plan de "
+            "mañana incluye una ventana de servicio. El siguiente "
+            "despachador de turno, que lee el plan de mañana de "
+            "sus notas y hereda lo que usted dejó sin decir.",
+    },
+    ("dispatch.handoff", "next"): {
+        "title_es": "Qué deja atrás un buen traspaso",
+        "body_es":
+            "El plan de mañana escrito, no solo recordado. Cada "
+            "foreman afectado confirmado por voz (solo texto no "
+            "cuenta como confirmado). Transferencias abiertas "
+            "cerradas por el día, o anotadas con qué queda "
+            "pendiente y por qué. Una nota corta para el "
+            "siguiente despachador sobre cualquier cosa que no "
+            "vaya a ser obvia en las pantallas.",
+    },
+    ("dispatch.handoff", "escalate"): {
+        "title_es": "Cuando el traspaso tiene que subir, no salir",
+        "body_es":
+            "Una unidad caída y no regresa mañana — el super "
+            "necesita saber antes que el foreman llame. Un "
+            "foreman no contesta y cambió el plan de mañana — "
+            "llame al super para respaldar el mensaje. Un hueco "
+            "de personal que no puede arreglar solo desde la "
+            "silla del despachador — esa es una llamada de las "
+            "17:00 a supervisión de operaciones, no un problema "
+            "para mañana en la mañana.",
+    },
+
+    # ── iter226 · dispatch.handoff.communication ─────────────────────
+    ("dispatch.handoff.communication", "why"): {
+        "title_es": "Por qué una llamada le gana al texto y el texto al silencio",
+        "body_es":
+            "Las llamadas confirman recepción; los textos se "
+            "pasan de largo; los planes silenciosos se descubren "
+            "a las 06:00. La llamada de 90 segundos a cada "
+            "foreman es la disciplina que mantiene la mañana "
+            "tranquila. Mande texto después de la llamada si "
+            "necesita registro escrito — pero la conversación es "
+            "donde de verdad se acuerda algo.",
+    },
+    ("dispatch.handoff.communication", "mistake"): {
+        "title_es": "Errores comunes de comunicación",
+        "body_es":
+            "Mandar el plan de despacho por chat grupal y llamarle "
+            "a eso el traspaso. Asumir que la invitación del "
+            "calendario cuenta. Saltarse al foreman cuyo plan no "
+            "cambió (igual quiere saber qué hacen los demás). "
+            "Llamar a las 17:45 cuando el foreman ya va manejando "
+            "a su casa — muy tarde para planear nada.",
+    },
+    ("dispatch.handoff.communication", "example"): {
+        "title_es": "Cómo suena una llamada de traspaso de 90 segundos",
+        "body_es":
+            "'Oye Tony, rapidito — mañana sigues en Sitio 23 "
+            "con la misma cuadrilla. Dos cambios respecto a hoy: "
+            "el segundo rodillo regresa al patio en la noche "
+            "para servicio, y el operador nuevo Alex te reporta "
+            "a las 07:00 en vez de las 06:30. ¿Algo más que "
+            "necesites de mí antes de mañana? Bien — llámame si "
+            "algo se complica en la noche.' Listo.",
+    },
+
+    # ── iter226 · dispatch.handoff.changes ───────────────────────────
+    ("dispatch.handoff.changes", "why"): {
+        "title_es": "Por qué la llamada de cambio sale primero",
+        "body_es":
+            "El foreman cuyo plan se movió entre las 14:00 y las "
+            "16:30 es el que más probable arranca mañana con el "
+            "pie equivocado. Llámele a ESOS foreman PRIMERO en "
+            "la secuencia de traspaso — no a los cuyo día no "
+            "cambió. Un cambio no dicho a las 16:30 se vuelve "
+            "una cuadrilla parada a las 06:30, pagada por "
+            "esperar respuesta.",
+    },
+    ("dispatch.handoff.changes", "mistake"): {
+        "title_es": "Errores comunes al comunicar cambios",
+        "body_es":
+            "Secuenciar el traspaso por nombre de foreman en vez "
+            "de por qué cambió. Esconder el cambio dentro de un "
+            "resumen largo de planes que no cambiaron. Decirle "
+            "al operador pero no al foreman, o al foreman pero "
+            "no al super. Mandar el cambio como 'FYI' cuando en "
+            "realidad requiere una decisión en la que el foreman "
+            "debería opinar.",
+    },
 }

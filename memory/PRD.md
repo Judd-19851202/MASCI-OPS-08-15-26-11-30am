@@ -1,5 +1,91 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter226 · Dispatcher persona-loop closure · ✅ DELIVERED (preview only)
+
+**Second persona-loop closure** after iter225's HR milestone. Dispatcher walkthrough scaffold fleshed from 5 steps to 8 (per walkthrough_pass.md §8 — arrival → first action → escalation → end-of-day), surfacing three operational gaps that map to the operator-stated dispatch domain: **scheduling · crews · equipment · urgency · coordination · reassignment · communication · accountability · trust**.
+
+### Operator-stated load-bearing anchors (verbatim · test-enforced)
+
+| Anchor (verbatim in tip body/title) | Family | Type |
+|---|---|---|
+| **"Utilization is a decision tool, not a scoreboard"** | `dispatch.utilization` | title + body |
+| **"The Daily Report is the dispatcher's routing intel — read it for movement, not for blame"** | `dispatch.daily-report-read` | body |
+| **"The handoff is a conversation, not a calendar invite"** | `dispatch.handoff` | body |
+| **"gate guard at 06:00"** (concrete operational image) | `dispatch.handoff` | body |
+| **"ghost rental"** (return-drift concrete framing) | `dispatch.daily-report-read.return-drift` | body |
+| **call > text > silent** communication hierarchy | `dispatch.handoff.communication` | body |
+| **changed-foremen-first** sequencing | `dispatch.handoff.changes` | body |
+| Reviewer-side voice (iter218 pattern) on cross-portal read | `dispatch.daily-report-read` | structural |
+
+### Coverage
+- **9 form-key surfaces · 25 tips · EN+ES**
+  - `dispatch.utilization` (4 canonical) + `.scoreboard` (2 · anti-pattern) + `.redeploy` (2 · operational read) = 8 tips
+  - `dispatch.daily-report-read` (4 canonical) + `.routing-intel` (2 · anchor) + `.return-drift` (2 · ghost-rental) = 8 tips
+  - `dispatch.handoff` (4 canonical) + `.communication` (3 · call-beats-text) + `.changes` (2 · sequencing) = 9 tips
+- Scope: **Tier-2 `dispatch` + `admin` only** (anon callers verified to see 0 tips; out-of-scope guard enforces no leakage)
+- Wired into:
+  - `AdminDispatch.jsx` overview tab (`dispatch.handoff` above stat cards)
+  - `AdminDispatch.jsx` utilization tab (`dispatch.utilization` above filter row)
+  - `DailyReportsDashboard.jsx` (`dispatch.daily-report-read` reviewer-side, server-RBAC filters non-dispatch readers to zero tips)
+
+### Self-validating loop · iter226 closure
+
+| Walkthrough state | Steps | Actionable | Notes |
+|---|---|---|---|
+| Before iter226 (5-step scaffold) | 5 | 0 | Misleadingly clean — script didn't exercise the real day |
+| After fleshing (8-step real day) | 8 | 6 | 3 missing-coaching + 3 paired discoverability gaps surfaced |
+| After iter226 authoring | 8 | **0** ✅ | All 3 families wired, walkthrough verified |
+
+### Cumulative persona-loop closure tracking
+| Persona | Status | Actionable at closure | Iter |
+|---|---|---|---|
+| HR | ✅ CLOSED | 0 | iter225 |
+| Dispatcher | ✅ CLOSED | 0 | iter226 |
+| Foreman / Super / Operator / Safety / PM / Laborer | scaffolded | TBD | future |
+
+### Tests landed
+- New: `test_iter226_dispatcher_helptips.py` — **56 passed**:
+  - Seed count + canonical-4 per family + leaf surface coverage
+  - RBAC: strictly Tier-2 dispatch/admin (no public, no scope creep); anon-blocked for each of 3 families
+  - Bilingual + ≤80 EN / ≤90 ES word budget
+  - **3 operator-anchor verbatim tests**: utilization "decision tool, not a scoreboard" · daily-report-read "routing intel" + "movement, not for blame" · handoff "conversation, not a calendar invite" + "gate guard at 06:00"
+  - .scoreboard leaf must name the grade/scoreboard anti-pattern
+  - .redeploy leaf must teach call-FIRST-transfer-SECOND order
+  - .return-drift leaf must name "ghost rental" verbatim
+  - .communication must teach call > text hierarchy + concrete dialogue with named person/time
+  - .changes must teach changed-foremen-FIRST sequencing
+  - **Reviewer-side discipline check** (iter218 pattern): daily-report-read family must use reading verbs, not filing verbs
+  - **Persona-anchor sweep** (walkthrough_pass.md §5): ≥3 field-realism vocabulary phrases per family
+  - **Strategic-hold guard**: hard-stop on mid-day-defect prescriptions per walkthrough_pass.md §10
+  - 15 anti-legal-drift parametrized tests · OSHA tone · corporate drift
+  - **iter224 motivational-fluff banlist extended for dispatch**: "operational excellence" / "world-class dispatch" / "dispatch excellence" added
+  - **NEW · iter226 KPI-poster banlist**: hard-stop on "key performance indicator" / "kpi dashboard" / "performance grade" / "scorecard system" / "leaderboard rank" — utilization page is the highest-risk surface for KPI-dashboard tone drift
+  - 3 static UI wiring checks
+- iter21x + iter22x + iter226: **464 passed · 1 skip** (was 408 · +56)
+- Tip registry: 191 → **216 tips** across 47 → **56 form-key surfaces**
+
+### Files touched
+- MOD: `backend/guidance/tips.py` (+25 tips · 3 new families)
+- MOD: `backend/guidance/tips_es.py` (+25 ES translations)
+- MOD: `frontend/src/pages/admin/AdminDispatch.jsx` (2 HelpTipBlock wirings · overview + utilization tabs)
+- MOD: `frontend/src/pages/DailyReportsDashboard.jsx` (HelpTipBlock import + reviewer-side wiring)
+- MOD: `walkthroughs/dispatcher.py` (5 → 8 steps · added utilization-tab, daily-report-read, end-of-day-handoff)
+- NEW: `backend/tests/test_iter226_dispatcher_helptips.py` (56 tests)
+- MOD: `memory/PRD.md`
+
+🔵 Preview only. No production push.
+
+### Strategic hold preserved (walkthrough_pass.md §10)
+Per operator directive, the **mid-day-defect routing surface** was NOT addressed. The handoff family deliberately stops at end-of-day; the daily-report-read family deliberately stops at next-morning routing decisions. iter226 includes a `test_iter226_does_not_violate_mid_day_defect_hold` test that hard-stops any future drift into authoring the mid-day routing playbook — preserves the operator's architectural decision space.
+
+### Architectural note for next agent
+The Dispatcher loop closure surfaced an editorial-loop **insight**: when a walkthrough's scaffold has 5 steps but the persona's real day has 8, the actionable-count baseline is misleadingly low. The walkthrough_pass.md §8 audit ("arrival → first action → escalation → end-of-day") should be run BEFORE declaring a persona zero-actionable. Same may apply to other partially-scaffolded personas (Operator / Foreman / etc.) — they may also be hiding gaps.
+
+### Supervisor "first 14 days" coaching family — STILL HELD
+Per operator directive, this remains held until Dispatcher findings are operator-reviewed. The Dispatcher loop did surface communication-discipline coaching (call > text > silent, changed-foremen-first sequencing) that will inform the supervisor-side coaching when it's authorized.
+
+---
+
 ## 2026-05-18 — iter225 · document-expirations Coaching Family · ✅ DELIVERED (preview only)
 
 Authored the **proactive-engagement coaching family** for the platform — the document-expirations surface that decides whether the company feels HUMAN or BUREAUCRATIC. Every row is somebody's CDL / medical card / OSHA-10 / first-aid cert. Coaching reinforces direct leadership engagement, accountability, operational respect, and proactive communication over passive bureaucracy.

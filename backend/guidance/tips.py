@@ -2516,7 +2516,7 @@ _TIPS: list[dict] = [
             "— by then someone is already off the job.",
     },
 
-    # ── document-expirations.cadence ─────────────────────────────────
+    # ── iter225 · document-expirations.cadence ─────────────────────── 
     {
         "form_key": "document-expirations.cadence",
         "kind": "next",
@@ -2530,6 +2530,396 @@ _TIPS: list[dict] = [
             "date. Same time, same sequence, every week. The "
             "rhythm is what keeps the list from becoming a fire "
             "drill twice a year.",
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # iter226 · Dispatcher persona-loop closure (Tier-2 dispatch+admin)
+    #
+    # Three new families flesh out the dispatcher's operational day
+    # surfaced by the iter226 fleshed walkthrough:
+    #
+    #   • dispatch.utilization       — read the fleet, decide redeploys
+    #   • dispatch.daily-report-read — reviewer-side coaching for the
+    #                                  cross-portal Daily Reports read
+    #   • dispatch.handoff           — end-of-day communication
+    #                                  discipline with foremen
+    #
+    # OPERATOR-STATED ANCHORS (verbatim · test-enforced):
+    #   utilization:       "Utilization is a decision tool, not a
+    #                      scoreboard."
+    #   daily-report-read: "The Daily Report is the dispatcher's
+    #                      routing intel — read it for movement, not
+    #                      for blame."
+    #   handoff:           "The handoff is a conversation, not a
+    #                      calendar invite. If tomorrow's plan
+    #                      changed, the foreman hears it from you
+    #                      tonight — not from the gate guard at
+    #                      06:00."
+    #
+    # Strategic hold preserved: operator mid-day-defect surface is
+    # NOT addressed here. Communication-discipline coaching deliberately
+    # stops at the end-of-day handoff and the cross-portal read — the
+    # mid-day-defect routing philosophy remains an operator-driven
+    # architectural decision per walkthrough_pass.md §10.
+    # ═════════════════════════════════════════════════════════════════
+
+    # ── dispatch.utilization (canonical 4) ───────────────────────────
+    {
+        "form_key": "dispatch.utilization",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why this page is a decision tool, not a scoreboard",
+        "body":
+            "Utilization is a decision tool, not a scoreboard. Read "
+            "the page to find your next redeploy, your next "
+            "rotation, and your next service pull — not to grade "
+            "operators. A 38% utilization number on a unit doesn't "
+            "mean the operator is lazy. It means the unit is "
+            "available for another job, or it's headed for a "
+            "breakdown the shop should know about now.",
+    },
+    {
+        "form_key": "dispatch.utilization",
+        "kind": "who",
+        "scopes": ["dispatch", "admin"],
+        "title": "Who else reads what you decide here",
+        "body":
+            "The foreman whose crew loses or gains a piece of "
+            "equipment tomorrow. The shop, if the rotation surfaces "
+            "a service interval. The PM, when a redeployed unit "
+            "shows up on a different job's cost code. Don't make "
+            "the decision in silence — the people downstream find "
+            "out faster than you think and remember whether you "
+            "told them first.",
+    },
+    {
+        "form_key": "dispatch.utilization",
+        "kind": "next",
+        "scopes": ["dispatch", "admin"],
+        "title": "What happens after you decide to redeploy",
+        "body":
+            "Open a Transfer request from this page (don't move "
+            "the unit by text message). Confirm the receiving "
+            "foreman is expecting it before the truck rolls. Note "
+            "the operational reason — 'underused at Site 23, "
+            "Crew 12 needs a backup' — so the next dispatcher "
+            "reading this in three months knows why the unit "
+            "moved.",
+    },
+    {
+        "form_key": "dispatch.utilization",
+        "kind": "escalate",
+        "scopes": ["dispatch", "admin"],
+        "title": "When the number is telling you something bigger",
+        "body":
+            "A whole crew's units showing 25% across the board — "
+            "that's a job-scheduling problem, not a redeploy "
+            "problem. Talk to the super. A unit chronically at "
+            "100%+ — that's a breakdown waiting to happen. Talk "
+            "to the shop. When the page says the same thing for "
+            "three weeks running and you've been chasing single "
+            "rows, you're missing the pattern.",
+    },
+
+    # ── dispatch.utilization.scoreboard (anti-pattern surface) ───────
+    {
+        "form_key": "dispatch.utilization.scoreboard",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why utilization isn't a grade",
+        "body":
+            "A unit at 40% isn't a failing unit. It might be the "
+            "right-sized backup for a crew that's running ahead of "
+            "schedule, or the spare you keep on a job because the "
+            "primary breaks down. Reading the number as a grade "
+            "drives bad decisions — you pull working backups out "
+            "of yards and put crews in a bind the next time the "
+            "primary unit goes down.",
+    },
+    {
+        "form_key": "dispatch.utilization.scoreboard",
+        "kind": "mistake",
+        "scopes": ["dispatch", "admin"],
+        "title": "Common scoreboard mistakes",
+        "body":
+            "Naming and shaming operators by utilization number in "
+            "front of supers. Reassigning units based on the "
+            "number alone without asking the foreman why it's low. "
+            "Treating the utilization tab like a performance "
+            "review. Quoting last week's percent at this week's "
+            "operator without checking whether the job changed.",
+    },
+
+    # ── dispatch.utilization.redeploy (operational read surface) ─────
+    {
+        "form_key": "dispatch.utilization.redeploy",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why redeploys land better when you call first",
+        "body":
+            "The receiving foreman doesn't want a unit they didn't "
+            "ask for, and the sending foreman doesn't want one "
+            "pulled mid-job without a heads-up. Pick up the phone "
+            "before you open the Transfer ticket. Ninety seconds "
+            "of conversation turns a 'why is my equipment gone?' "
+            "phone call into a 'thanks for the back-up' one.",
+    },
+    {
+        "form_key": "dispatch.utilization.redeploy",
+        "kind": "example",
+        "scopes": ["dispatch", "admin"],
+        "title": "What a clean redeploy decision looks like",
+        "body":
+            "You see Unit 247 at 32% on Site 14 for the second "
+            "week. You call Mike on Site 14: 'Hey, the mini's been "
+            "quiet — you good if I move it to Crew 8?' Mike says "
+            "yes. You call Crew 8's foreman: 'I've got the mini "
+            "coming over tomorrow.' THEN you open the Transfer. "
+            "Three calls, two minutes total, and tomorrow morning "
+            "nobody is surprised.",
+    },
+
+    # ── dispatch.daily-report-read (canonical 4 · reviewer-side) ─────
+    {
+        "form_key": "dispatch.daily-report-read",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why the Daily Report is your routing intel",
+        "body":
+            "The Daily Report is the dispatcher's routing intel — "
+            "read it for movement, not for blame. The notes about "
+            "what equipment got used, what sat idle, what came "
+            "back damaged, what's needed tomorrow — that's the "
+            "input to today's redeploys. Read it the way a "
+            "dispatcher reads the morning load board, not the way "
+            "an auditor reads a timecard.",
+    },
+    {
+        "form_key": "dispatch.daily-report-read",
+        "kind": "who",
+        "scopes": ["dispatch", "admin"],
+        "title": "Who else is reading the same report differently",
+        "body":
+            "HR is reading it for hours. PM is reading it for cost "
+            "codes. Safety is reading it for incidents. You're the "
+            "only one reading it for where the equipment actually "
+            "ended up. That's the dispatcher's job — translate "
+            "what the foreman wrote into 'what do I move tomorrow.'",
+    },
+    {
+        "form_key": "dispatch.daily-report-read",
+        "kind": "next",
+        "scopes": ["dispatch", "admin"],
+        "title": "What happens after you read today's reports",
+        "body":
+            "Mark the units you saw flagged for return or service "
+            "before you leave the page. Open a Transfer or a Hold "
+            "for the obvious ones. Note the foreman's name on any "
+            "report where the equipment notes were thin — that's "
+            "a coaching conversation, not a write-up, for "
+            "tomorrow.",
+    },
+    {
+        "form_key": "dispatch.daily-report-read",
+        "kind": "escalate",
+        "scopes": ["dispatch", "admin"],
+        "title": "When to stop reading and call",
+        "body":
+            "A report describing a unit going down hard mid-shift "
+            "and the foreman still has it on the job — call the "
+            "super, not the foreman. A report missing the "
+            "equipment section entirely two days in a row from "
+            "the same crew — call the foreman now, not after the "
+            "third miss. A report contradicting the checkout "
+            "record — call HR before redeploying anything from "
+            "that crew.",
+    },
+
+    # ── dispatch.daily-report-read.routing-intel (anchor surface) ────
+    {
+        "form_key": "dispatch.daily-report-read.routing-intel",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Read it for movement, not for blame",
+        "body":
+            "The foreman's note 'mini ran rough most of the day' "
+            "is dispatcher gold — that's a service pull tomorrow, "
+            "not a blame conversation today. The note 'didn't use "
+            "the second roller, sat in yard' is a redeploy "
+            "candidate, not a reprimand. Translate the operational "
+            "language into routing decisions. The blame frame is "
+            "somebody else's job, not yours.",
+    },
+    {
+        "form_key": "dispatch.daily-report-read.routing-intel",
+        "kind": "example",
+        "scopes": ["dispatch", "admin"],
+        "title": "What a good routing-intel read looks like",
+        "body":
+            "Daily Report from Crew 12: 'Used both excavators, "
+            "roller idle 60% of shift, generator quit twice.' "
+            "Routing decisions in 90 seconds: leave excavators "
+            "alone, mark roller as redeploy candidate (call Crew "
+            "8 in the morning), open a Maintenance Hold on the "
+            "generator with a note for Shop. One report, three "
+            "decisions, nobody got blamed for anything.",
+    },
+
+    # ── dispatch.daily-report-read.return-drift (anti-ghost surface) ──
+    {
+        "form_key": "dispatch.daily-report-read.return-drift",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Catching the checkout vs return drift",
+        "body":
+            "A unit is on the checkout list but the Daily Report "
+            "doesn't mention it for three days running — that's "
+            "a ghost rental. Either it came back and nobody "
+            "closed the checkout, or it's sitting on a job where "
+            "the foreman isn't logging it. Cross-checking the two "
+            "lists is the dispatcher's job; nobody else does it.",
+    },
+    {
+        "form_key": "dispatch.daily-report-read.return-drift",
+        "kind": "mistake",
+        "scopes": ["dispatch", "admin"],
+        "title": "Common ghost-rental mistakes",
+        "body":
+            "Assuming a unit is still in the field because the "
+            "checkout says so. Assuming a unit came back because "
+            "the foreman didn't mention it. Treating a missing "
+            "report as 'nothing to worry about' instead of as a "
+            "data gap worth a phone call. Letting the checkout "
+            "list and the field reality drift for a week before "
+            "reconciling.",
+    },
+
+    # ── dispatch.handoff (canonical 4 · end-of-day discipline) ───────
+    {
+        "form_key": "dispatch.handoff",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why tonight's handoff prevents tomorrow's scramble",
+        "body":
+            "The handoff is a conversation, not a calendar invite. "
+            "If tomorrow's plan changed, the foreman hears it from "
+            "you tonight — not from the gate guard at 06:00. "
+            "Every minute you spend on the 16:30 confirm call "
+            "saves three minutes of next-morning confusion, two "
+            "trucks pointed at the wrong yard, and one foreman "
+            "who starts the day frustrated.",
+    },
+    {
+        "form_key": "dispatch.handoff",
+        "kind": "who",
+        "scopes": ["dispatch", "admin"],
+        "title": "Who's depending on the call going out",
+        "body":
+            "Every foreman with a crew rolling in the morning. "
+            "Operators who set their alarms based on which yard "
+            "they're reporting to. Shop, if the morning plan "
+            "includes a service window. The next dispatcher on "
+            "shift, who reads tomorrow's plan from your notes "
+            "and inherits whatever you left unsaid.",
+    },
+    {
+        "form_key": "dispatch.handoff",
+        "kind": "next",
+        "scopes": ["dispatch", "admin"],
+        "title": "What a clean handoff leaves behind",
+        "body":
+            "Tomorrow's plan written down, not just remembered. "
+            "Each affected foreman confirmed by voice (text-only "
+            "doesn't count as confirmed). Open transfers either "
+            "closed for the day or annotated with what's still "
+            "pending and why. A short note for the next "
+            "dispatcher about anything that isn't going to be "
+            "obvious from the screens.",
+    },
+    {
+        "form_key": "dispatch.handoff",
+        "kind": "escalate",
+        "scopes": ["dispatch", "admin"],
+        "title": "When the handoff has to go up, not out",
+        "body":
+            "A unit is down and won't be back tomorrow — the super "
+            "needs to know before the foreman calls. A foreman "
+            "isn't answering and tomorrow's plan changed — call "
+            "the super to backstop the message. A staffing gap "
+            "you can't fix from the dispatch seat alone — that's "
+            "a 17:00 call to ops oversight, not a problem you "
+            "leave for tomorrow morning.",
+    },
+
+    # ── dispatch.handoff.communication (the discipline) ──────────────
+    {
+        "form_key": "dispatch.handoff.communication",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why a call beats a text beats a silent plan",
+        "body":
+            "Phone calls confirm receipt; texts get scrolled past; "
+            "silent plans get discovered at 06:00. The 90-second "
+            "phone call to each foreman is the discipline that "
+            "keeps the morning calm. Text after the call if you "
+            "need a written record — but the conversation is "
+            "where the agreement actually happens.",
+    },
+    {
+        "form_key": "dispatch.handoff.communication",
+        "kind": "mistake",
+        "scopes": ["dispatch", "admin"],
+        "title": "Common communication mistakes",
+        "body":
+            "Group-texting the dispatch sheet and calling that "
+            "the handoff. Assuming the calendar invite counts. "
+            "Skipping the foreman whose plan didn't change "
+            "(they still want to know what everyone else is "
+            "doing). Calling at 17:45 when the foreman is "
+            "driving home — too late to plan around any of it.",
+    },
+    {
+        "form_key": "dispatch.handoff.communication",
+        "kind": "example",
+        "scopes": ["dispatch", "admin"],
+        "title": "What a 90-second handoff call sounds like",
+        "body":
+            "'Hey Tony, quick one — tomorrow you're still on "
+            "Site 23 with the same crew. Two changes from today: "
+            "the second roller's coming back to the yard "
+            "overnight for service, and the new operator Alex "
+            "is reporting to you at 07:00 instead of 06:30. "
+            "Anything else you need from me before tomorrow? "
+            "Cool — call if anything blows up overnight.' Done.",
+    },
+
+    # ── dispatch.handoff.changes (when the plan moved today) ─────────
+    {
+        "form_key": "dispatch.handoff.changes",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why the change call goes out first",
+        "body":
+            "The foreman whose plan moved between 14:00 and 16:30 "
+            "is the one most likely to start tomorrow on the "
+            "wrong foot. Call those foremen FIRST in your "
+            "handoff sequence — not the ones whose day is "
+            "unchanged. A change unspoken at 16:30 becomes a "
+            "crew standing around at 06:30, paid to wait for an "
+            "answer.",
+    },
+    {
+        "form_key": "dispatch.handoff.changes",
+        "kind": "mistake",
+        "scopes": ["dispatch", "admin"],
+        "title": "Common change-communication mistakes",
+        "body":
+            "Sequencing the handoff by foreman name instead of by "
+            "what changed. Burying the change inside a long "
+            "summary of unchanged plans. Telling the operator "
+            "but not the foreman, or the foreman but not the "
+            "super. Sending the change as 'FYI' when it actually "
+            "requires a decision the foreman should weigh in on.",
     },
 ]
 

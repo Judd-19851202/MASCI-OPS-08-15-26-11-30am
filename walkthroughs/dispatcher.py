@@ -152,6 +152,119 @@ def dispatcher_day(page, wt: Walkthrough) -> None:
             "the foreman conversation about the held unit).",
         )
 
+    # ── 10:30 · Utilization tab — where dispatch judges the fleet's
+    # operational health. Existing UI surface, no coaching yet. Real
+    # operational moment: dispatcher reads utilization not to score
+    # operators but to decide which units to redeploy this week and
+    # which to send to shop on the next idle stretch.
+    wt.begin_step(
+        "06-utilization-tab",
+        "10:30 · Dispatcher reads utilization · plans next redeploys",
+        base + "/dispatch-portal#utilization",
+    )
+    util_tab = page.query_selector('[data-testid="dh-tab-utilization"]')
+    if util_tab:
+        util_tab.click()
+        page.wait_for_timeout(2500)
+    else:
+        wt.note(
+            "friction",
+            "Could not find Utilization tab trigger [data-testid='dh-tab-utilization'].",
+            "Verify DispatchHub.jsx tabs wiring.",
+        )
+    blocks = page.evaluate(FIND_HELPTIPS_JS)
+    wt.record_helptips(blocks)
+    page.screenshot(path=wt.shot_path(), full_page=False)
+    if not blocks:
+        wt.note(
+            "missing-coaching",
+            "Utilization tab has no HelpTip coverage. Dispatchers reading utilization without coaching "
+            "drift into scoring operators or chasing the wrong number. The operational moment is: "
+            "'what's underused that I can redeploy, what's overworked that I should rotate, what's "
+            "headed for a breakdown if I don't pull it in for service.' Without coaching, new "
+            "dispatchers chase utilization % as a KPI instead of using it as a decision tool.",
+            "Author Tier-2 dispatch.utilization tips. Voice anchor candidate: 'Utilization is a "
+            "decision tool, not a scoreboard. Read it to find the next redeploy, not to grade the "
+            "operator.'",
+        )
+
+    # ── 12:45 · Cross-portal read — yesterday's Daily Reports tell
+    # the dispatcher what equipment actually got used (vs what was
+    # CHECKED OUT). This is a continuity moment that bridges Foreman →
+    # Dispatch and is the antidote to "ghost rentals" (a unit on the
+    # checkout list that's been sitting in the yard for three days).
+    wt.begin_step(
+        "07-daily-report-read",
+        "12:45 · Dispatcher cross-reads yesterday's Daily Reports · catches checkout/return drift",
+        base + "/admin/daily",
+    )
+    page.goto(base + "/admin/daily", wait_until="domcontentloaded", timeout=30_000)
+    page.wait_for_timeout(2500)
+    blocks = page.evaluate(FIND_HELPTIPS_JS)
+    wt.record_helptips(blocks)
+    page.screenshot(path=wt.shot_path(), full_page=False)
+    # The Daily Reports list page has Tier-1 (public-ish) coaching for
+    # foremen who file. It does NOT have dispatch-reader-side coaching
+    # — the equivalent of iter218 'reviewing isn't auditing' but for
+    # equipment-movement reads. A new dispatcher reading the list
+    # without operational framing tends to second-guess foremen's
+    # notes rather than read them for routing intel.
+    has_reader_tip = page.evaluate("""() => {
+        return !!document.querySelector('[data-testid="helptip-block-dispatch-daily-report-read"]');
+    }""")
+    if not has_reader_tip:
+        wt.note(
+            "missing-coaching",
+            "Daily Reports list page has no dispatch-reader-side coaching. The dispatcher reads this "
+            "page every day to understand what equipment moved, what stayed put, and what's about to "
+            "come back. Without reviewer-side framing (iter218 pattern), new dispatchers either skip "
+            "the list entirely or read it like an auditor instead of as a routing intel feed.",
+            "Author Tier-2 dispatch.daily-report-read tips OR extend daily-report family with a "
+            "dispatch-scoped reviewer-side surface. Voice anchor candidate: 'The Daily Report is "
+            "the dispatcher's routing intel — read it for movement, not for blame.'",
+        )
+
+    # ── 16:30 · End-of-day handoff — dispatcher confirms tomorrow's
+    # plan to the foremen. This is one of the highest trust-impact
+    # dispatcher moments: a missed handoff = trucks rolling to the
+    # wrong yard at 06:00 tomorrow morning. Communication discipline
+    # (call vs text vs Daily Report annotation) is the operational
+    # standard the operator has explicitly flagged as worth coaching.
+    wt.begin_step(
+        "08-end-of-day-handoff",
+        "16:30 · Dispatcher confirms tomorrow's plan with foremen · communication discipline",
+        base + "/dispatch-portal#overview",
+    )
+    # Navigate back to the dispatch portal after the cross-portal
+    # Daily Reports read in step 07 — the persona is returning to
+    # their primary surface to do the end-of-day handoff.
+    page.goto(base + "/dispatch-portal", wait_until="domcontentloaded", timeout=30_000)
+    page.wait_for_timeout(2000)
+    overview_tab = page.query_selector('[data-testid="dh-tab-overview"]')
+    if overview_tab:
+        overview_tab.click()
+        page.wait_for_timeout(2000)
+    blocks = page.evaluate(FIND_HELPTIPS_JS)
+    wt.record_helptips(blocks)
+    page.screenshot(path=wt.shot_path(), full_page=False)
+    # No coaching surface exists for end-of-day handoff discipline.
+    # This is the operational moment that decides whether tomorrow
+    # starts smooth or starts with three confused foremen calling at
+    # 06:00. Operator-stated framing (from iter225 outreach work):
+    # phone call beats text beats unsaid plan.
+    has_handoff_tip = "helptip-block-dispatch-handoff" in blocks or "helptip-block-dispatch-overview" in blocks
+    if not has_handoff_tip:
+        wt.note(
+            "missing-coaching",
+            "End-of-day handoff has no coaching surface. The dispatcher's 16:30 'confirm tomorrow's "
+            "plan' call to each foreman is the trust-impact moment that prevents the 06:00 "
+            "next-morning scramble. Communication discipline (call > text > silent plan) is exactly "
+            "the kind of operational standard the platform should coach — not enforce.",
+            "Author Tier-2 dispatch.handoff tips. Voice anchor candidate: 'The handoff is a "
+            "conversation, not a calendar invite. If tomorrow's plan changed, the foreman hears "
+            "it from you tonight — not from the gate guard at 06:00.'",
+        )
+
 
 if __name__ == "__main__":
     report = run(

@@ -126,6 +126,9 @@ export function DispatchOverviewTab() {
   ];
   return (
     <div className="space-y-4" data-testid="dp-overview">
+      {/* iter226 · end-of-day handoff coaching · Tier-2 dispatch+admin.
+          Anchor: "The handoff is a conversation, not a calendar invite." */}
+      <HelpTipBlock formKey="dispatch.handoff" showCounter />
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map((c) => (
           <div key={c.label} className={`bg-white border-2 ${c.cls} rounded-md p-4`}>
@@ -196,6 +199,9 @@ export function DispatchUtilizationTab() {
   if (loading) return <div className="text-center text-slate-500 py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
   return (
     <div className="space-y-3" data-testid="dp-utilization">
+      {/* iter226 · utilization coaching · Tier-2 dispatch+admin.
+          Anchor: "Utilization is a decision tool, not a scoreboard." */}
+      <HelpTipBlock formKey="dispatch.utilization" showCounter />
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1 flex-wrap">
           {filters.map((f) => (
