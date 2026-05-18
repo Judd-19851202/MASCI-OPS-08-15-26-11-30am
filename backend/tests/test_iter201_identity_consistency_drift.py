@@ -75,7 +75,13 @@ def test_admin_drift_is_p2_others_p1():
 
 def test_drift_message_names_missing_articles():
     """The drift message must tell the operator exactly which articles
-    to create — otherwise it's noise, not signal."""
+    to create — otherwise it's noise, not signal.
+
+    iter205 update: portal-<persona>-identity articles were authored as
+    part of the Tiered Guidance RBAC pass, so they are no longer
+    missing. The triple still surfaces drift for the remaining two
+    pieces (onboard-* and tshoot-*) until Pass 5a/5b/5c land them.
+    """
     import guidance  # noqa: F401
     from governance.inventory import compute_drift
     d = compute_drift()
@@ -88,7 +94,8 @@ def test_drift_message_names_missing_articles():
     assert hr_drift is not None
     assert "onboard-hr-first-week" in hr_drift["message"]
     assert "tshoot-hr-login" in hr_drift["message"]
-    assert "portal-hr-identity" in hr_drift["message"]
+    # iter205 — identity article landed; message must NOT name it as missing
+    assert "portal-hr-identity" not in hr_drift["message"]
 
 
 def test_drift_assigns_fix_pass_label():

@@ -469,4 +469,565 @@ TRANSLATIONS_ES: dict[str, dict] = {
             {"type": "tip", "text": "Si solo usa una herramienta — que sea el Reporte Diario. Es la columna vertebral de cómo se documenta el día."},
         ],
     },
+
+    # ── iter205 · Tiered Guidance RBAC · public identity articles ────
+    "portal-hr-identity": {
+        "title_es": "¿Qué hace el Portal de RH?",
+        "summary_es": "Identidad operacional de RH: personas, tiempo, nómina — las inmersiones operacionales requieren inicio de sesión en RH.",
+        "body_es": [
+            {"type": "p", "text":
+                "RH es el portal de personas-y-tiempo. Es dueño de los registros que prueban "
+                "quién trabajó, qué horas se pagaron, quién fue contratado, quién se fue, y "
+                "qué capacitación está vigente. Es uno de los portales más interconectados de "
+                "la plataforma — todos los demás portales le envían datos, y RH alimenta nómina, "
+                "cumplimiento y cada conversación de auditoría."},
+            {"type": "p", "text":
+                "Quién lo usa: Personal de RH, Gerentes de RH y roles de soporte de Operaciones."},
+            {"type": "bullets", "items": [
+                "Verificación de tiempo — comparar Reportes Diarios contra nómina",
+                "Orientación de nuevos empleados — papeleo, credenciales, equipo, capacitación",
+                "Rendición de cuentas — amonestaciones, coaching, reconocimientos",
+                "Registros de capacitación — OSHA, certificación de equipo, cursos internos",
+                "Vencimientos de documentos — licencias, tarjetas médicas, certificaciones",
+                "Solicitudes de tiempo libre — vacaciones, enfermedad, PTO",
+                "Salida / terminación — pagos finales, devolución de activos",
+            ]},
+            {"type": "why", "text":
+                "RH es donde la documentación del campo se convierte en la fuente de verdad de "
+                "la compañía. Un Reporte Diario de un capataz se convierte en horas en RH. Una "
+                "amonestación de un superintendente en Liderazgo de Campo se convierte en un "
+                "registro de rendición de cuentas en RH. Si los registros de RH están "
+                "equivocados, la nómina está equivocada — y nómina equivocada es la forma más "
+                "rápida de perder una cuadrilla."},
+            {"type": "warn", "text":
+                "La capacitación operacional de RH (inmersiones de flujo, procedimientos de "
+                "verificación de tiempo, autoría de amonestaciones, salida) está restringida "
+                "al personal de RH. Para leer esos artículos de capacitación, inicie sesión "
+                "en /hr/login. Los usuarios anónimos pueden leer esta identidad pero no la "
+                "guía a nivel de flujo."},
+            {"type": "next", "items": [
+                "Si es personal de RH con sesión iniciada — abra 'Capacitación del Portal de RH' para la inmersión operacional",
+                "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
+                "Si es empleado de campo — su tiempo / amonestaciones alimentan RH; lea 'Fundamentos de Reporte Diario' (público)",
+            ]},
+        ],
+    },
+    "portal-safety-identity": {
+        "title_es": "¿Qué hace el Portal de Seguridad?",
+        "summary_es": "Identidad operacional de Seguridad: incidentes, auditorías, cumplimiento — las inmersiones requieren inicio de sesión.",
+        "body_es": [
+            {"type": "p", "text":
+                "Seguridad es el portal que convierte eventos en rendición de cuentas. Cada "
+                "incidente, casi-incidente, acción correctiva, hallazgo de auditoría, "
+                "inspección de extintor y revisión de cumplimiento de capacitación vive aquí. "
+                "No es un portal de papeleo — cada registro en Seguridad o previno una lesión, "
+                "se recuperó de una, o construyó la defensa para una conversación con OSHA "
+                "que aún no ha ocurrido."},
+            {"type": "p", "text":
+                "Quién lo usa: Gerentes de Seguridad, Coordinadores de Seguridad, Oficiales de Seguridad."},
+            {"type": "bullets", "items": [
+                "Incidentes — lesiones, daños a propiedad, casi-incidentes, eventos de terceros",
+                "Acciones correctivas — qué se arregla, por quién, para cuándo, firmado",
+                "Auditorías — recorridos de sitio, auditorías de obra, de subcontratistas",
+                "Extintores — inventario, inspecciones mensuales, recarga",
+                "Cumplimiento de capacitación — OSHA-10, OSHA-30, equipo, primeros auxilios",
+                "Charlas de seguridad — temas, asistencia, firmas",
+                "Planes JHA — Análisis de Riesgo de Trabajo autorizados",
+            ]},
+            {"type": "why", "text":
+                "Los registros de Seguridad son la documentación defensiva más importante que "
+                "MASCI produce. Un inspector de OSHA mañana hace dos preguntas: 'Muéstreme su "
+                "cumplimiento de capacitación' y 'Muéstreme su último incidente.' Seguridad "
+                "es donde viven las respuestas. Registros vagos = exposición; registros "
+                "específicos = operaciones defendibles."},
+            {"type": "warn", "text":
+                "La capacitación operacional de Seguridad (flujos de investigación, cadenas de "
+                "acciones correctivas, procedimientos de cumplimiento) está restringida al "
+                "personal de Seguridad. Para leer esos artículos, inicie sesión en "
+                "/safety-portal/login. Las cuadrillas de campo pueden leer 'Fundamentos de "
+                "Incidente' (público)."},
+            {"type": "next", "items": [
+                "Si es personal de Seguridad — abra 'Capacitación del Portal de Seguridad' para la inmersión operacional",
+                "Si es cuadrilla de campo — lea 'Si pasa algo en el sitio' (público)",
+                "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
+            ]},
+        ],
+    },
+    "portal-shop-identity": {
+        "title_es": "¿Qué hace el Portal de Taller / Flota?",
+        "summary_es": "Identidad operacional del Taller: salud del equipo y flujos de flota — las inmersiones requieren inicio de sesión.",
+        "body_es": [
+            {"type": "p", "text":
+                "El Taller es el portal que mantiene la flota funcionando. Cada Pre-Op que "
+                "envía un operador de campo fluye aquí. Cada reporte de daño, cada tarea de "
+                "mantenimiento, cada pedido de repuestos, cada devolución de equipo — todo "
+                "vive en el Taller. El portal existe para asegurar que el equipo correcto esté "
+                "operativo en el trabajo correcto a la hora correcta, y para documentar qué "
+                "pasó con él en el camino."},
+            {"type": "p", "text":
+                "Quién lo usa: Mecánicos, Capataz de Taller, Coordinador de Flota."},
+            {"type": "bullets", "items": [
+                "Revisión de Pre-Op — cada Pre-Op de campo llega aquí; los Pre-Ops fallidos necesitan acción",
+                "Reporte de daños — qué se dobló, raspó, rompió, por quién, cuándo",
+                "Coordinación de mantenimiento — programado, preventivo, emergencia",
+                "Catálogo y pedidos de repuestos — qué hay, qué está pedido, tiempos de entrega",
+                "Entrega y devolución de equipo — firmas conjuntas Seguridad + Taller",
+                "Firmas — liberar equipo al campo después de reparación",
+            ]},
+            {"type": "why", "text":
+                "Los registros del Taller protegen a todos. La firma de Pre-Op de un operador "
+                "muestra que hizo el recorrido; el registro de reparación muestra qué se "
+                "encontró y arregló; la firma de devolución muestra que la unidad está "
+                "liberada. Si una pieza de equipo causa un incidente, la cadena Pre-Op → Daño "
+                "→ Reparación → Firma es toda la defensa."},
+            {"type": "warn", "text":
+                "La capacitación operacional del Taller (flujo de Pre-Op fallido, triaje de "
+                "daños, coordinación de mantenimiento, firma conjunta) está restringida al "
+                "personal del Taller. Inicie sesión en /shop/login para esos artículos. Los "
+                "operadores de campo leen 'Fundamentos de Pre-Op' (público)."},
+            {"type": "next", "items": [
+                "Si es mecánico / personal del Taller — abra 'Capacitación del Portal de Taller' para la inmersión operacional",
+                "Si es operador de campo — lea 'Inspección Pre-Operación (Básico de Campo)' (público)",
+                "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
+            ]},
+        ],
+    },
+    "portal-dispatch-identity": {
+        "title_es": "¿Qué hace el Portal de Despacho?",
+        "summary_es": "Identidad operacional de Despacho: movimiento de equipo, disponibilidad — las inmersiones requieren inicio de sesión.",
+        "body_es": [
+            {"type": "p", "text":
+                "Despacho es el portal que coordina el equipo a través de la flota. Su trabajo "
+                "es asegurar que el activo correcto esté en el lugar correcto, en el trabajo "
+                "correcto, en un estado conocido — y que todos aguas abajo (Taller, Liderazgo "
+                "de Campo, PM) vean la misma verdad sobre dónde están las cosas y qué están "
+                "haciendo."},
+            {"type": "p", "text":
+                "Quién lo usa: Despachadores, Coordinadores de Flota, Supervisión de Operaciones."},
+            {"type": "bullets", "items": [
+                "Disponibilidad — Disponible / Asignado / En-Tránsito / Retenido / En Servicio / Fuera",
+                "Eventos de movimiento — transferencias trabajo-a-trabajo con origen · destino · llegada",
+                "Retenciones y transferencias — restricción temporal vs reasignación permanente",
+                "Reportes de utilización — activos sobre- y sub-desplegados",
+                "Registro de eventos operacionales — asignaciones, retenciones, devoluciones",
+                "Coordinación de campo — reconciliar vista del sistema con realidad física",
+            ]},
+            {"type": "why", "text":
+                "Despacho está aguas arriba de cada decisión sobre activos que toma el resto "
+                "de la plataforma. Cuando Despacho es preciso, el campo no pierde mañanas "
+                "buscando equipo, el Taller programa servicio contra el proyecto correcto, "
+                "los PMs ven utilización real, y los ejecutivos toman decisiones de flota con "
+                "datos honestos."},
+            {"type": "warn", "text":
+                "La capacitación operacional de Despacho (ciclo de movimiento, reglas de "
+                "disponibilidad, lógica retención-vs-transferencia, coordinación de campo) "
+                "está restringida al personal de Despacho. Inicie sesión en "
+                "/dispatch-portal/login para esos artículos."},
+            {"type": "next", "items": [
+                "Si es personal de Despacho — abra 'Capacitación del Portal de Despacho' para la inmersión operacional",
+                "Si es cuadrilla de campo — lea 'Fundamentos de Reporte Diario' (público)",
+                "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
+            ]},
+        ],
+    },
+    "portal-pm-identity": {
+        "title_es": "¿Qué hace el Portal de PM?",
+        "summary_es": "Identidad operacional de PM: supervisión de proyecto y mano de obra — las inmersiones requieren inicio de sesión.",
+        "body_es": [
+            {"type": "p", "text":
+                "El portal de PM es la lente a nivel de proyecto. Los PMs ven solo los "
+                "registros vinculados a los proyectos que administran — Reportes Diarios, "
+                "inspecciones, JHAs, incidentes, registros de Liderazgo de Campo, asignaciones "
+                "de equipo, documentación laboral y estado entre portales. Es intencionalmente "
+                "filtrado por alcance: cada PM se enfoca en sus propios proyectos sin tener "
+                "que revisar los de los demás."},
+            {"type": "p", "text":
+                "Quién lo usa: Gerentes de Proyecto (PMs) y Co-PMs."},
+            {"type": "bullets", "items": [
+                "Tablero del proyecto — filtrado al alcance del PM",
+                "Revisión de Reportes Diarios — verdad operacional del día",
+                "Inspecciones / reuniones / JHAs — registros de seguridad y calidad",
+                "Incidentes — cualquier cosa que pasó en el proyecto",
+                "Registros de Liderazgo de Campo — amonestaciones, reconocimientos, asistencia",
+                "Visibilidad de asignación de equipo — qué está en el proyecto y en qué estado",
+                "Documentación laboral — horas → código de costo → conexión con nómina",
+                "Flujos de reportes — tableros, exploraciones, exportes para dueños",
+            ]},
+            {"type": "why", "text":
+                "El trabajo de PM es el puente entre operaciones de campo y finanzas de "
+                "proyecto. Un Reporte Diario del campo se convierte en un costo de mano de "
+                "obra en el tablero de PM. Un incidente se convierte en un riesgo del "
+                "proyecto. Los PMs son el único rol con una vista de proyecto lo suficientemente "
+                "amplia para detectar desviación y lo suficientemente estrecha para actuar. "
+                "Si la supervisión de PM es descuidada, los proyectos descubren problemas a "
+                "fin de mes en vez de a mediados de semana — y fin de mes es muy tarde."},
+            {"type": "warn", "text":
+                "La capacitación operacional de PM (cadencia de revisión, procedimientos de "
+                "reconciliación laboral, reglas de visibilidad entre proyectos, flujos de "
+                "reportes) está restringida a los PMs. Inicie sesión en /pm/login para esos "
+                "artículos."},
+            {"type": "next", "items": [
+                "Si es PM con sesión iniciada — abra 'Capacitación del Portal de PM' para la inmersión operacional",
+                "Si es cuadrilla de campo — lea 'Fundamentos de Reporte Diario' (público)",
+                "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
+            ]},
+        ],
+    },
+    "portal-admin-identity": {
+        "title_es": "¿Qué hace la Consola de Admin?",
+        "summary_es": "Identidad operacional de la Consola de Admin: el plano de control — las inmersiones son solo para admin.",
+        "body_es": [
+            {"type": "p", "text":
+                "Admin es el plano de control a nivel de operador de la plataforma. Es "
+                "intencionalmente estrecho en audiencia — típicamente el dueño de la "
+                "plataforma y uno o dos operadores de confianza. Admin es dueño de las "
+                "superficies que ningún otro portal puede ver: cada usuario, cada plantilla "
+                "de rol, cada entrada de auditoría, cada sesión activa, cada respaldo, y las "
+                "señales de gobernanza que indican cuándo algo está desviándose."},
+            {"type": "p", "text":
+                "Quién lo usa: el Dueño de la plataforma y Operador(es) designado(s). No para personal general."},
+            {"type": "bullets", "items": [
+                "Gestión de usuarios — invitar, asignar rol, suspender, restaurar",
+                "Plantillas de rol — definir lo que otorga cada token de portal",
+                "Registro de auditoría — cada acción privilegiada, quién/cuándo/qué",
+                "Salud del sistema — métricas, profundidad de colas, tasas de error",
+                "Sesiones — quién está conectado, revocar si es necesario",
+                "Respaldos y restauración — disparadores manuales, programa, punto-en-tiempo",
+                "Inventario operacional y gobernanza — detección de desviación",
+            ]},
+            {"type": "why", "text":
+                "El trabajo de Admin tiene el radio de impacto más profundo de la plataforma. "
+                "Un solo cambio de plantilla de rol se propaga a cada usuario con ese rol. El "
+                "registro de auditoría es el único lugar donde 'quién cambió qué cuándo' se "
+                "registra permanentemente. La capacitación de Admin es deliberadamente solo "
+                "para admin porque el contenido incluye procedimientos de gestión de "
+                "usuarios, respaldo y cumplimiento que los operadores no deben navegar "
+                "anónimamente."},
+            {"type": "warn", "text":
+                "La capacitación operacional de Admin es el nivel más restringido de la "
+                "plataforma. Inicie sesión en /admin/login. Si no tiene una cuenta de admin, "
+                "este material no es para usted — es por diseño, no por descuido."},
+            {"type": "next", "items": [
+                "Si es operador con sesión iniciada — abra 'Guía de Consola de Admin' para la inmersión operacional",
+                "Si necesita que un admin realice una acción — contacte a su operador directamente",
+                "Si no puede iniciar sesión — lea '¿No puede iniciar sesión?' (público)",
+            ]},
+        ],
+    },
+
+    # ── iter205 · Tier 2 · Deep portal-scoped operational training ───
+    # Spanish for the deep portal articles. Only visible to authenticated
+    # portal-scoped readers (HR/Safety/Shop/Dispatch/PM/Admin).
+    "portal-hr": {
+        "title_es": "Capacitación del Portal de RH",
+        "summary_es": "Lo que RH posee, quién lo usa, y cómo el trabajo conecta con todos los demás portales.",
+        "body_es": [
+            {"type": "p", "text":
+                "RH es el portal de personas-y-tiempo. Es dueño de los registros que prueban "
+                "quién trabajó, qué horas se pagaron, quién fue contratado, quién se fue, y "
+                "qué capacitación está vigente. Es uno de los portales más interconectados — "
+                "todos los demás portales le envían datos, y RH alimenta nómina + cumplimiento "
+                "+ cada conversación de auditoría."},
+            {"type": "p", "text":
+                "Quién lo usa: Personal de RH, Gerentes de RH, roles de soporte de Operaciones. "
+                "Lecturas entre portales desde PM (mano de obra de proyecto) y Liderazgo de "
+                "Campo (amonestaciones, reconocimientos)."},
+            {"type": "bullets", "items": [
+                "Verificación de tiempo — comparar Reportes Diarios contra nómina",
+                "Orientación de nuevos empleados — papeleo, credenciales, equipo, capacitación",
+                "Rendición de cuentas — amonestaciones, coaching, reconocimientos",
+                "Registros de capacitación — OSHA, certificación de equipo, cursos internos",
+                "Vencimientos de documentos — licencias, tarjetas médicas, certificaciones",
+                "Solicitudes de tiempo libre — vacaciones, enfermedad, PTO",
+                "Variación de nómina — cuando las horas reportadas no coinciden con el campo",
+                "Salida / terminación — pagos finales, devolución de activos",
+            ]},
+            {"type": "why", "text":
+                "RH es donde la documentación del campo se convierte en la fuente de verdad de "
+                "la compañía. Un Reporte Diario de un capataz se vuelve un total de horas en "
+                "RH. Una amonestación de un superintendente en Liderazgo de Campo se vuelve un "
+                "registro de rendición de cuentas en RH. Una inspección QA/QC firmada en PM se "
+                "vuelve una señal de patrón de capacitación para RH. Si los registros de RH "
+                "están equivocados, la nómina está equivocada — y nómina equivocada es la "
+                "forma más rápida de perder una cuadrilla."},
+            {"type": "next", "items": [
+                "Si es nuevo — lea la guía de rol para personal de RH",
+                "Primera tarea usualmente: verificación de tiempo del período actual",
+                "Recorra un onboarding de nuevo empleado de principio a fin antes de hacer uno solo",
+                "Marque Vencimientos de Documentos — nunca deja de necesitar atención",
+            ]},
+            {"type": "mistakes", "items": [
+                "Aprobar tiempo sin comparar el Reporte Diario (el campo es la verdad)",
+                "Cerrar un onboarding antes de que se firme la entrega de equipo",
+                "Archivar una amonestación sin la firma del supervisor",
+                "Dejar que un vencimiento de licencia/médico/certificación pase de fecha",
+            ]},
+            {"type": "tip", "text":
+                "Los registros de RH son leídos constantemente por PM y Liderazgo de Campo. "
+                "Trate cada registro de RH como si el gerente de proyecto y el superintendente "
+                "lo leyeran mañana — porque lo harán."},
+            {"type": "warn", "text":
+                "Si no puede iniciar sesión en RH, no escriba su contraseña de RH en el "
+                "formulario de inicio de sesión de otro portal (Seguridad, Taller, etc.). "
+                "Cada portal tiene su propio inicio de sesión — pegar la contraseña "
+                "equivocada en otro puede bloquear su cuenta temporalmente."},
+        ],
+    },
+    "portal-safety": {
+        "title_es": "Capacitación del Portal de Seguridad",
+        "summary_es": "Incidentes, acciones correctivas, auditorías, cumplimiento de capacitación — y por qué nada de esto es papeleo.",
+        "body_es": [
+            {"type": "p", "text":
+                "Seguridad es el portal que convierte eventos en rendición de cuentas. Cada "
+                "incidente, casi-incidente, acción correctiva, hallazgo de auditoría, "
+                "inspección de extintor y revisión de cumplimiento de capacitación vive aquí. "
+                "No es un portal de papeleo — cada registro en Seguridad o previno una lesión, "
+                "se recuperó de una, o construyó la defensa para una conversación con OSHA "
+                "que aún no ha ocurrido."},
+            {"type": "p", "text":
+                "Quién lo usa: Gerentes de Seguridad, Coordinadores y Oficiales de Seguridad. "
+                "Lecturas entre portales desde Liderazgo de Campo (contexto de incidentes), RH "
+                "(registros de capacitación) y Admin."},
+            {"type": "bullets", "items": [
+                "Incidentes — lesiones, daños a propiedad, casi-incidentes, eventos de terceros",
+                "Acciones correctivas — qué se arregla, por quién, para cuándo, firmado",
+                "Auditorías — recorridos de sitio, auditorías de obra, de subcontratistas",
+                "Extintores — inventario, inspecciones mensuales, recarga",
+                "Cumplimiento de capacitación — OSHA-10, OSHA-30, equipo, primeros auxilios",
+                "Charlas de seguridad — temas, asistencia, firmas",
+                "Planes JHA — Análisis de Riesgo de Trabajo autorizados",
+            ]},
+            {"type": "why", "text":
+                "Los registros de Seguridad son la documentación defensiva más importante que "
+                "MASCI produce. Un inspector de OSHA mañana hace dos preguntas: 'Muéstreme su "
+                "cumplimiento de capacitación' y 'Muéstreme su último incidente.' Seguridad "
+                "es donde viven las respuestas."},
+            {"type": "next", "items": [
+                "Si es nuevo — lea la guía de rol para Gerente de Seguridad",
+                "Recorra un incidente abierto de principio a fin (reporte → investigación → correctivo → cierre)",
+                "Saque el reporte actual de cumplimiento de capacitación de su proyecto más activo",
+                "Marque Extintores — la cadencia mensual se le adelanta rápido",
+            ]},
+            {"type": "mistakes", "items": [
+                "Cerrar un incidente sin una causa raíz documentada + acción correctiva",
+                "Registrar una acción correctiva sin fecha de cierre firmada",
+                "Dejar que vencimientos de OSHA-10 pasen en la cuadrilla activa (riesgo de cierre)",
+                "Archivar una charla sin las firmas de asistencia",
+                "Especular sobre la causa en un reporte de incidente — registre solo hechos observados",
+            ]},
+            {"type": "tip", "text":
+                "Los casi-incidentes son las lecciones más baratas que MASCI obtiene. Anime "
+                "a las cuadrillas a reportarlos y documentarlos igual que las lesiones — son "
+                "el sistema de alerta temprana."},
+            {"type": "warn", "text":
+                "Nunca cierre un incidente antes de que la acción correctiva esté verificada "
+                "completa. Un registro 'incidente cerrado' con acción correctiva abierta es "
+                "la peor pista de auditoría posible."},
+        ],
+    },
+    "portal-shop": {
+        "title_es": "Capacitación del Portal de Taller / Flota",
+        "summary_es": "Salud del equipo, revisión Pre-Op, flujo de daños, coordinación de mantenimiento — el back-end de operaciones de flota.",
+        "body_es": [
+            {"type": "p", "text":
+                "El Taller es el portal que mantiene la flota funcionando. Cada Pre-Op que un "
+                "operador de campo envía fluye aquí. Cada reporte de daño, cada tarea de "
+                "mantenimiento, cada pedido de repuestos, cada devolución de equipo — todo "
+                "vive en el Taller. El portal existe para asegurar que el equipo correcto esté "
+                "operativo en el trabajo correcto a la hora correcta."},
+            {"type": "p", "text":
+                "Quién lo usa: Mecánicos, Capataz de Taller, Coordinador de Flota. Lecturas "
+                "entre portales desde Despacho (a dónde va el equipo) y Liderazgo de Campo "
+                "(quién lo tiene ahora)."},
+            {"type": "bullets", "items": [
+                "Revisión de Pre-Op — cada Pre-Op llega aquí; los fallidos necesitan acción",
+                "Reporte de daños — qué se dobló, raspó, rompió, por quién, cuándo",
+                "Coordinación de mantenimiento — programado, preventivo, emergencia",
+                "Catálogo y pedidos de repuestos — qué hay, qué está pedido, tiempos de entrega",
+                "Entrega y devolución de equipo — firmas conjuntas Seguridad + Taller",
+                "Firmas — liberar equipo al campo después de reparación",
+            ]},
+            {"type": "why", "text":
+                "Los registros del Taller protegen a todos. La firma de Pre-Op de un operador "
+                "muestra que hizo el recorrido; el registro de reparación muestra qué se "
+                "encontró y arregló; la firma de devolución muestra que la unidad está "
+                "liberada. Si una pieza de equipo causa un incidente, la cadena Pre-Op → Daño "
+                "→ Reparación → Firma es toda la defensa."},
+            {"type": "next", "items": [
+                "Si es nuevo — lea la guía de rol para Taller / Mecánico",
+                "Recorra un Pre-Op fallido de principio a fin (reporte de campo → firma de taller)",
+                "Abra el Catálogo de Repuestos y aprenda los tiempos de pedido por categoría",
+                "Marque el formulario de devolución de equipo — es conjunto con Seguridad",
+            ]},
+            {"type": "mistakes", "items": [
+                "Firmar una unidad de vuelta al servicio antes de verificar la acción correctiva",
+                "Pedir repuestos sin confirmar ID de equipo + número de serie",
+                "Cerrar reportes de daño sin fotos antes Y después de la reparación",
+                "Saltarse la firma conjunta de Seguridad en la devolución de equipo",
+            ]},
+            {"type": "tip", "text":
+                "Cuando llega un Pre-Op fallido, la meta no es ganarle al campo — es "
+                "determinar si la unidad es operacionalmente segura ahora. Operadores de "
+                "campo que se sienten escuchados reportan problemas más rápido la próxima vez."},
+        ],
+    },
+    "portal-dispatch": {
+        "title_es": "Capacitación del Portal de Despacho",
+        "summary_es": "Movimiento de equipo, disponibilidad, retenciones, transferencias y coordinación con el campo — aguas arriba de cada decisión sobre activos.",
+        "body_es": [
+            {"type": "p", "text":
+                "Despacho es el portal que coordina el equipo a través de la flota. Su trabajo "
+                "es asegurar que el activo correcto esté en el lugar correcto, en el trabajo "
+                "correcto, en un estado conocido — y que todos aguas abajo (Taller, Liderazgo "
+                "de Campo, PM) vean la misma verdad."},
+            {"type": "p", "text":
+                "Quién lo usa: Despachadores, Coordinadores de Flota, Supervisión de "
+                "Operaciones. Lecturas entre portales desde Taller (salud del equipo), "
+                "Liderazgo de Campo (entrega a operador) y PM (asignaciones)."},
+            {"type": "bullets", "items": [
+                "Disponibilidad — Disponible / Asignado / En-Tránsito / Retenido / En Servicio / Fuera",
+                "Eventos de movimiento — transferencias trabajo-a-trabajo con origen · destino · llegada",
+                "Retenciones y transferencias — restricción temporal vs reasignación permanente",
+                "Reportes de utilización — activos sobre- y sub-desplegados",
+                "Registro de eventos operacionales — asignaciones, retenciones, devoluciones",
+                "Coordinación de campo — reconciliar vista del sistema con realidad física",
+                "Difusión de estado entre portales — sincronización Taller / Campo / PM",
+            ]},
+            {"type": "why", "text":
+                "Despacho está aguas arriba de cada decisión sobre activos que toma el resto "
+                "de la plataforma. Cuando Despacho es preciso, el campo no pierde mañanas "
+                "buscando equipo, el Taller programa servicio contra el proyecto correcto, "
+                "los PMs ven utilización real, y los ejecutivos toman decisiones de flota con "
+                "datos honestos."},
+            {"type": "next", "items": [
+                "Si es nuevo — lea la guía de rol para Despacho",
+                "Recorra un evento de movimiento trabajo-a-trabajo (liberar → en-tránsito → llegada)",
+                "Aprenda la diferencia entre RETENCIÓN y TRANSFERENCIA — la elección equivocada corrompe la utilización",
+                "Marque Disponibilidad — su superficie más referenciada",
+            ]},
+            {"type": "mistakes", "items": [
+                "Reasignar a un nuevo proyecto sin liberar del anterior",
+                "Saltarse el estado en-tránsito (salto A→B sin brecha, esconde retrasos)",
+                "Usar RETENCIÓN cuando TRANSFERENCIA es correcta (o viceversa) — corrompe la utilización",
+                "Olvidar confirmar llegada (activo muestra en-tránsito indefinidamente)",
+                "Discutir con reportes de discrepancia de campo en vez de registrar la reconciliación",
+            ]},
+            {"type": "tip", "text":
+                "La mayoría de disputas sobre 'dónde está el equipo X?' terminan en Despacho. "
+                "Mientras más limpio el registro de Despacho, más corta la conversación."},
+            {"type": "warn", "text":
+                "Un activo retenido todavía cuenta contra la utilización del proyecto original; "
+                "un activo transferido no. Escoger la operación correcta es cómo se mantiene "
+                "honesto el reporte aguas abajo."},
+        ],
+    },
+    "portal-pm": {
+        "title_es": "Capacitación del Portal de PM",
+        "summary_es": "Supervisión de proyecto, revisión de reportes, documentación laboral, coordinación entre portales — la lente a nivel de proyecto.",
+        "body_es": [
+            {"type": "p", "text":
+                "El portal de PM es la lente a nivel de proyecto. Los PMs ven solo los "
+                "registros vinculados a los proyectos que administran — Reportes Diarios, "
+                "inspecciones, JHAs, incidentes, registros de Liderazgo de Campo, asignaciones "
+                "de equipo, documentación laboral y estado entre portales. Es intencionalmente "
+                "filtrado por alcance: cada PM se enfoca en sus propios proyectos."},
+            {"type": "p", "text":
+                "Quién lo usa: Gerentes de Proyecto y Co-PMs. Lecturas entre portales desde "
+                "Liderazgo de Campo (Reportes Diarios), RH (totales de mano de obra), Seguridad "
+                "(incidentes), Taller (salud del equipo) y Despacho (asignaciones)."},
+            {"type": "bullets", "items": [
+                "Tablero del proyecto — filtrado a los proyectos del PM",
+                "Revisión de Reportes Diarios — verdad operacional del día",
+                "Inspecciones / reuniones / JHAs — registros de seguridad y calidad",
+                "Incidentes — cualquier cosa que pasó en el proyecto, cadena completa",
+                "Registros de Liderazgo de Campo — amonestaciones, reconocimientos, asistencia",
+                "Visibilidad de asignación de equipo — qué está en el proyecto y en qué estado",
+                "Documentación laboral — horas → código de costo → conexión con nómina",
+                "Visibilidad entre proyectos — solo lo que el alcance permite; admin ve todo",
+                "Flujos de reportes — tableros, exploraciones, exportes para dueños",
+                "Revisiones de cadencia — ciclos diarios / semanales / mensuales",
+            ]},
+            {"type": "why", "text":
+                "El trabajo de PM es el puente entre operaciones de campo y finanzas de "
+                "proyecto. Un Reporte Diario del campo se vuelve un costo de mano de obra en "
+                "el tablero de PM. Un incidente se vuelve un riesgo del proyecto. Los PMs son "
+                "el único rol con una vista de proyecto lo suficientemente amplia para "
+                "detectar desviación y lo suficientemente estrecha para actuar."},
+            {"type": "next", "items": [
+                "Si es nuevo — lea la guía de rol para PM",
+                "Recorra los últimos 7 días de Reportes Diarios de un proyecto (el anclaje de cadencia)",
+                "Abra el reporte de documentación laboral y reconcilie contra una nómina semanal",
+                "Marque Visibilidad Entre Proyectos — entienda qué muestra y qué no su alcance",
+            ]},
+            {"type": "mistakes", "items": [
+                "Aprobar un Reporte Diario sin verificar que los totales de mano de obra coincidan con el campo",
+                "Dejar que un incidente se cierre sin confirmar que la acción correctiva fue verificada",
+                "Saltarse la cadencia semanal de revisión (la desviación compone cuando nadie está mirando)",
+                "Asumir que admin ve la misma vista filtrada por alcance (admin ve todo)",
+                "Revisar reportes una semana tarde — el campo necesita retroalimentación mientras los detalles están calientes",
+            ]},
+            {"type": "tip", "text":
+                "El alcance de PM es basado-en-proyecto, no basado-en-portal. Los registros de "
+                "proyectos que no administra están intencionalmente ocultos — eso es un filtro "
+                "de ruido, no una pared de seguridad. Si necesita ver el proyecto de otro PM, "
+                "pida acceso de lectura a admin."},
+            {"type": "warn", "text":
+                "No inicie sesión en /pm/login con el correo de otra persona. El alcance "
+                "por-PM se aplica por token — usar la cuenta de otro PM hace que el registro "
+                "de auditoría apunte a ellos por cada acción que tome."},
+        ],
+    },
+    "portal-admin": {
+        "title_es": "Guía de Consola de Admin",
+        "summary_es": "El plano de control — personas, roles, salud del sistema, respaldos, gobernanza.",
+        "body_es": [
+            {"type": "p", "text":
+                "Admin es el plano de control a nivel de operador de la plataforma. Es "
+                "intencionalmente estrecho en audiencia — típicamente el dueño de la "
+                "plataforma y uno o dos operadores de confianza. Admin es dueño de las "
+                "superficies que ningún otro portal puede ver: cada usuario, cada plantilla "
+                "de rol, cada entrada de auditoría, cada sesión activa, cada respaldo, y las "
+                "señales de gobernanza que indican cuándo algo está desviándose."},
+            {"type": "p", "text":
+                "Quién lo usa: el Dueño de la plataforma y Operador(es) designado(s). No para personal general."},
+            {"type": "bullets", "items": [
+                "Gestión de usuarios — invitar, asignar rol, suspender, restaurar",
+                "Plantillas de rol — definir lo que otorga cada token de portal",
+                "Registro de auditoría — cada acción privilegiada, quién/cuándo/qué",
+                "Salud del sistema — métricas del backend, profundidad de colas, tasas de error",
+                "Sesiones — quién está conectado ahora, revocar si es necesario",
+                "Respaldos y restauración — disparadores manuales, programa, punto-en-tiempo",
+                "Portabilidad de datos — exportes de grado de cumplimiento por familia de registro",
+                "Inventario operacional y gobernanza — detección de desviación entre portales",
+                "Observabilidad Sentry — seguimiento de errores, etiquetado de release",
+            ]},
+            {"type": "why", "text":
+                "El trabajo de Admin tiene el radio de impacto más profundo de la plataforma. "
+                "Un solo cambio de plantilla de rol se propaga a cada usuario con ese rol. Una "
+                "sesión revocada por la fuerza bloquea a alguien en medio de su tarea. El "
+                "registro de auditoría es el único lugar donde 'quién cambió qué cuándo' se "
+                "registra permanentemente. Admin es intencionalmente solo en inglés porque "
+                "los operadores necesitan terminología precisa, no aproximaciones traducidas."},
+            {"type": "next", "items": [
+                "Si es nuevo en el rol de operador — primero lea Gestión de Usuarios de Admin",
+                "Ejecute un respaldo manual y recorra el proceso de restauración en un contexto seguro",
+                "Abra el tablero de Inventario Operacional y lea cada elemento de desviación",
+                "Marque el Registro de Auditoría — cada acción de operador que tome llega ahí",
+            ]},
+            {"type": "mistakes", "items": [
+                "Modificar una plantilla de rol sin revisar quién tiene ese rol actualmente",
+                "Revocar por la fuerza una sesión sin avisarle primero al usuario",
+                "Editar registros de usuario sin una razón amigable al registro de auditoría en las notas",
+                "Saltarse la revisión de desviación de inventario operacional durante las revisiones semanales",
+            ]},
+            {"type": "tip", "text":
+                "Cuando el trabajo de Admin toca múltiples usuarios (cambios de rol, suspensión "
+                "masiva), combínelo con un aviso por Slack/correo. El registro de auditoría "
+                "registra la acción; la comunicación registra la intención operacional."},
+            {"type": "warn", "text":
+                "Los tokens de admin otorgan acceso a cada otro portal automáticamente. Nunca "
+                "comparta un token de admin. Si una contraseña de admin necesita rotación, "
+                "rote también las concesiones de token de rol."},
+        ],
+    },
 }

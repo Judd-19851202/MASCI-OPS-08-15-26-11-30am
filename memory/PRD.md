@@ -1,6 +1,69 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter205 · Tiered Guidance RBAC (Public Identity · Portal Deep-Dive) · ✅ DELIVERED (preview only)
+
+**Operator directive resolved.** The portal cards on `/guidance` now route to **public-tier identity articles** so anon users land on real content, while operational deep-dives remain **portal-scope** (RBAC-protected). Tiered model now mirrors the platform's operational RBAC tiers.
+
+### Tiered model now enforced
+- **Tier 1 (public)** — `portal-<x>-identity` articles: "what is this portal?", who uses it, why it matters, where deep-dives live. Readable by anonymous users. EN + ES.
+- **Tier 2 (portal-scoped)** — `portal-<x>` deep articles: operational workflows, approval chains, escalations, common mistakes. Returns 404 to anonymous (no title leak). Requires HR/Safety/Shop/Dispatch/PM/Admin token. EN + ES.
+- **Tier 3 (admin-sensitive)** — `portal-admin`, admin-* deep articles: admin-only by scope. No public anchor for sensitive operational procedures.
+
+### What landed (iter205)
+
+**Backend — `/app/backend/guidance/content.py`:**
+- **NEW** 6 public-scope identity articles (`portal-hr-identity`, `portal-safety-identity`, `portal-shop-identity`, `portal-dispatch-identity`, `portal-pm-identity`, `portal-admin-identity`) — Field Leadership template applied to every protected portal. ~280 lines.
+- **REVERTED** scope on `portal-hr`, `portal-safety`, `portal-shop`, `portal-admin` from `["public"]` (a previous incorrect attempt) back to portal-scoped (`["hr","admin"]`, etc.). The rich Pass-5-standard EN bodies are retained.
+- **REWROTE** `portal-pm` and `portal-dispatch` deep articles to Field Leadership standard (who uses it, workflows, why, what's next, common mistakes, tips, warnings). Scope unchanged (`["pm","admin"]` / `["dispatch","admin"]`).
+- **Article total**: 97 → **106** (+9 net: 6 identity + 3 deep rewrites).
+
+**Backend — `/app/backend/guidance/translations_es.py`:**
+- **NEW** Spanish translations for all 6 identity articles.
+- **NEW** Spanish translations for the 6 rebuilt deep portal articles (`portal-hr`, `portal-safety`, `portal-shop`, `portal-dispatch`, `portal-pm`, `portal-admin`).
+- Translation coverage on rebuilt articles: 12/12 with `title_es` + `body_es`.
+
+**Frontend — `OperationalGuidanceCenter.jsx`:**
+- Portal directory cards now route `trainingArticle` to `portal-<x>-identity` (public) instead of `portal-<x>` (portal-scoped). Anon click on any portal training card opens substantive content.
+- Field Leadership card unchanged (`portal-leadership-identity` was already the public anchor).
+
+**Backend — governance signal (`/app/backend/governance/inventory.py`):**
+- iter201 portal-identity-incomplete drift now reports only the remaining two pieces (`onboard-<x>-first-week` and `tshoot-<x>-login`) for HR/Safety/Shop/Dispatch/PM/Admin. The identity leg cleared for all 6 portals.
+- Drift counts: 35 → 36 → still 36 (identity articles satisfied; onboard + tshoot still scheduled for Pass 5a/5b/5c).
+
+**Tests:**
+- **NEW** `tests/test_iter205_tiered_guidance_rbac.py` — 28 tests covering identity-article public scope, deep-article portal scope, anon 404 on deep articles, admin can read all, HR blocked from non-HR deep articles, Spanish presence on both tiers, frontend card routing.
+- **MOD** `tests/test_iter201_identity_consistency_drift.py` — flipped the "portal-hr-identity in drift message" assertion (article now lands; drift message no longer names it).
+- **Full iter19x + iter20x regression**: **334/334 passing.**
+
+### Smoke-test verified end-to-end (anonymous, preview)
+- `/guidance/portal-pm-identity` (EN) — full content, hero, body blocks, WHY panel, WHAT-HAPPENS-NEXT, restricted-deep-dive warning, related-guidance links. ✅
+- `/guidance/portal-pm-identity` (ES) — identical structure with full Spanish translation. ✅
+- `/guidance` landing → click "PM Portal Training" → routes to `/guidance/portal-pm-identity` (real content, not 404). ✅
+- `curl /api/guidance/articles/portal-hr` (no token) → **404** (no title leak). ✅
+- `curl /api/guidance/articles/portal-hr-identity` (no token) → **200** with public body. ✅
+- HR token on `portal-safety` → 404. Admin token → 200 across all 6 deep articles. ✅
+
+### Architectural decisions
+- **Identity articles never reference admin-sensitive procedures**. They explain "what this portal does" and explicitly say "operational deep-dives require sign-in." That is the social contract: anon visitors learn the platform's shape; portal users learn the workflows.
+- **Translations stay side-companion** in `translations_es.py`. The deep portal articles' Spanish is opt-in per portal-scope visibility — Spanish-speaking HR/Safety users get the same depth as English-speaking.
+- **No new routes**. The tiered model is purely a content/scope refactor — no new endpoints, no new UI components.
+
+### Files touched
+- NEW: `backend/tests/test_iter205_tiered_guidance_rbac.py`
+- MOD: `backend/guidance/content.py`, `backend/guidance/translations_es.py`, `backend/tests/test_iter201_identity_consistency_drift.py`, `frontend/src/pages/guidance/OperationalGuidanceCenter.jsx`, `memory/PRD.md`
+
+No production push. Tiered Guidance RBAC enforced; no cross-portal leakage; EN/ES still works; mobile-responsive.
+
+### Next
+- ⏸️ **Pass 5a** — HR + Safety + PM onboarding + login-troubleshoot triples (`onboard-<x>-first-week`, `tshoot-<x>-login`). 6 public articles.
+- ⏸️ **Pass 5b** — Shop + Dispatch onboarding + login-troubleshoot triples. 4 public articles.
+- ⏸️ **Pass 5c** — Admin onboarding + login-troubleshoot triples. 2 articles (admin-onboard scoped admin-only; tshoot-admin-login public).
+- ⏸️ Translate remaining hardcoded paragraphs in HR/Safety/Dispatch/Shop/PM login cards.
+- ⏸️ Phase 2 close-out (48h R2 re-verify · Sentry/timeout soak sign-off).
+- ⏸️ QR poster rollout (Pass 7).
+
+---
 ## 2026-05-18 — iter204 · Guidance Cards Reframed: Training-First (NOT Production Navigation) · ✅ DELIVERED (preview only)
 
 **Operator-driven conceptual correction.** iter203 made the portal cards inside `/guidance` behave as a duplicate production navigation layer ("Sign in" as primary CTA). The operator clarified that **Guidance is a training/onboarding/troubleshooting ecosystem — not a second production launcher.**

@@ -394,7 +394,7 @@ _ARTICLES: list[dict] = [
         "section": "portals",
         "title": "HR Portal Training",
         "summary": "What HR owns, who uses it, and how the work connects to every other portal.",
-        "scopes": ["public"],
+        "scopes": ["hr", "admin"],
         "tags": ["hr portal", "human resources", "onboarding", "time", "payroll"],
         "body": [
             {"type": "p", "text":
@@ -458,7 +458,7 @@ _ARTICLES: list[dict] = [
         "section": "portals",
         "title": "Safety Portal Training",
         "summary": "Incidents, corrective actions, audits, training compliance — and why none of it is paperwork.",
-        "scopes": ["public"],
+        "scopes": ["safety", "admin"],
         "tags": ["safety portal", "incidents", "audits", "compliance"],
         "body": [
             {"type": "p", "text":
@@ -521,7 +521,7 @@ _ARTICLES: list[dict] = [
         "section": "portals",
         "title": "Shop / Fleet Portal Training",
         "summary": "Equipment health, Pre-Op review, damage workflow, maintenance coordination — the back-end of fleet operations.",
-        "scopes": ["public"],
+        "scopes": ["shop", "admin"],
         "tags": ["shop portal", "fleet", "mechanic", "maintenance"],
         "body": [
             {"type": "p", "text":
@@ -581,7 +581,7 @@ _ARTICLES: list[dict] = [
         "section": "portals",
         "title": "Admin Console Guidance",
         "summary": "The control plane — people, roles, system health, backups, governance.",
-        "scopes": ["public"],
+        "scopes": ["admin"],
         "tags": ["admin portal", "operator", "control plane"],
         "body": [
             {"type": "p", "text":
@@ -2516,33 +2516,68 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-dispatch",
         "section": "portals",
-        "title": "Dispatch Portal Quick-Start",
-        "summary": "Equipment movement, availability, and field coordination.",
+        "title": "Dispatch Portal Training",
+        "summary": "Equipment movement, availability, holds, transfers, and field coordination — the upstream of every asset decision.",
         "scopes": ["dispatch", "admin"],
         "tags": ["dispatch", "portal", "equipment", "coordination"],
         "body": [
             {"type": "p", "text":
-                "Dispatch coordinates equipment across projects. Its job is to make sure the "
-                "right asset is in the right place, on the right job, in a known state — and "
-                "that everyone downstream (Shop, Field, PM) is in sync about it."},
+                "Dispatch is the portal that coordinates equipment across the fleet. Its job is to "
+                "make sure the right asset is in the right place, on the right job, in a known "
+                "state — and that everyone downstream (Shop, Field Leadership, PM) sees the same "
+                "truth about where things are and what they're doing."},
+            {"type": "p", "text":
+                "Who uses it: Dispatchers, Fleet Coordinators, and Operations Oversight. Cross-portal "
+                "reads from Shop (equipment health), Field Leadership (operator-level checkout), "
+                "and PM (project assignments)."},
             {"type": "bullets", "items": [
-                "Equipment availability and utilisation",
-                "Holds, transfers, temporary out-of-service status",
-                "Cross-portal status: receives from Shop, broadcasts to Field/PM",
-                "Operational events log (assignments, holds, returns)",
+                "Equipment availability — Available / Assigned / In-Transit / Hold / In Service / OOS",
+                "Movement events — job-to-job transfers with source · destination · arrival",
+                "Holds & transfers — temporary restriction vs permanent reassignment",
+                "Utilisation reports — over- and under-deployed assets surfaced",
+                "Operational events log — assignments, holds, returns, reason codes",
+                "Field coordination — reconciling system view with physical reality",
+                "Cross-portal status broadcasting — Shop / Field / PM sync",
             ]},
             {"type": "why", "text":
-                "Dispatch is upstream of every asset-related decision the rest of the "
-                "platform makes. When it's accurate, the field doesn't waste mornings "
-                "looking for equipment; when it isn't, every downstream report inherits "
-                "the drift."},
+                "Dispatch is upstream of every asset-related decision the rest of the platform makes. "
+                "When dispatch is accurate, the field doesn't waste mornings hunting for equipment, "
+                "Shop schedules service against the right project, PMs see real utilisation, and "
+                "executives make fleet decisions with honest data. When dispatch is wrong, every "
+                "downstream view is wrong — and the people relying on them often don't know it."},
+            {"type": "next", "items": [
+                "If you're new — read the role guide for Dispatch",
+                "Walk one job-to-job movement event end-to-end (release → in-transit → arrival)",
+                "Learn the difference between a HOLD and a TRANSFER — picking the wrong one quietly corrupts utilisation",
+                "Bookmark Availability — your single most-referenced surface",
+            ]},
+            {"type": "mistakes", "items": [
+                "Reassigning to a new project without releasing from the old one",
+                "Skipping the in-transit state (jumps A→B with no gap, hides delays)",
+                "Using a HOLD when a TRANSFER is correct (or vice versa) — corrupts utilisation",
+                "Forgetting to confirm arrival (asset shows in-transit indefinitely)",
+                "Arguing with field discrepancy reports instead of recording the reconciliation",
+            ]},
             {"type": "tip", "text":
-                "Most disputes about 'where is X equipment?' end at Dispatch. The cleaner "
-                "the dispatch record, the shorter the conversation."},
+                "Most disputes about 'where is X equipment?' end at Dispatch. The cleaner the "
+                "dispatch record, the shorter the conversation. If a supervisor finds equipment "
+                "in the field that Dispatch doesn't show there, record the discrepancy and "
+                "reconcile — the record is more valuable than the question of who was right."},
+            {"type": "warn", "text":
+                "A held asset still counts against the original project's utilisation; a "
+                "transferred asset does not. Picking the right operation is how project "
+                "reporting downstream stays honest."},
         ],
-        "related": ["dispatch-equipment-movement", "dispatch-availability-management",
-                    "dispatch-holds-transfers", "dispatch-field-coordination",
-                    "dispatch-accuracy-why", "role-dispatch"],
+        "related": [
+            "role-dispatch",
+            "dispatch-equipment-movement",
+            "dispatch-availability-management",
+            "dispatch-holds-transfers",
+            "dispatch-field-coordination",
+            "dispatch-accuracy-why",
+            "connect-shop-to-dispatch",
+            "connect-equipment-lifecycle",
+        ],
     },
     {
         "id": "dispatch-equipment-movement",
@@ -2712,33 +2747,72 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-pm",
         "section": "portals",
-        "title": "PM Portal Quick-Start",
-        "summary": "Project oversight, report review, coordination.",
+        "title": "PM Portal Training",
+        "summary": "Project oversight, report review, labor documentation, and cross-portal coordination — the project-level lens.",
         "scopes": ["pm", "admin"],
         "tags": ["pm", "project manager", "portal"],
         "body": [
             {"type": "p", "text":
-                "The PM portal is the project-level lens. PMs see the records tied to "
+                "The PM portal is the project-level lens. PMs see only the records tied to "
                 "projects they manage — daily reports, inspections, JHAs, incidents, "
-                "field-leadership records, equipment assignments."},
+                "field-leadership records, equipment assignments, labor documentation, and "
+                "cross-portal status. It is intentionally scope-filtered: each PM focuses on "
+                "their own projects without wading through everyone else's."},
+            {"type": "p", "text":
+                "Who uses it: Project Managers and Co-PMs. Cross-portal reads from Field "
+                "Leadership (Daily Reports), HR (labor totals), Safety (incidents), Shop "
+                "(equipment health), and Dispatch (assignments)."},
             {"type": "bullets", "items": [
-                "Project dashboard with scope-filtered records",
-                "Read access into Field Leadership records on PM-assigned projects",
-                "Inspection / meeting / JHA review",
-                "Equipment-allocation visibility per project",
+                "Project dashboard — scope-filtered to PM's assigned projects only",
+                "Daily Report review — operational truth of each day on the project",
+                "Inspections / meetings / JHAs — safety and quality records",
+                "Incidents — anything that happened on the project, full chain",
+                "Field Leadership records — write-ups, recognition, attendance",
+                "Equipment-allocation visibility — what's on the project, in what state",
+                "Labor documentation — hours → cost-code → payroll connection",
+                "Cross-project visibility — only what scope grants; admin can see all",
+                "Reporting workflows — dashboards, drill-downs, exports for owners",
+                "Cadence reviews — daily / weekly / monthly review loops",
             ]},
             {"type": "why", "text":
-                "The PM portal is what turns 'data exists' into 'PM actually saw it.' "
-                "Scope-filtered views keep each PM focused on their projects without "
-                "having to wade through everyone else's."},
+                "PM work is the bridge between field operations and project finance. A Daily "
+                "Report from the field becomes a labor cost in the PM dashboard. An incident "
+                "becomes a project risk. An equipment allocation becomes a utilisation number. "
+                "PMs are the only role with a project-wide view that's both wide enough to spot "
+                "drift and narrow enough to act on it. If PM oversight is sloppy, projects "
+                "discover problems at month-end instead of mid-week — and month-end is too late."},
+            {"type": "next", "items": [
+                "If you're new — read the role guide for PM",
+                "Walk one project's last 7 days of Daily Reports end-to-end (the cadence anchor)",
+                "Open the labor-documentation report and reconcile against one weekly payroll",
+                "Bookmark Cross-Project Visibility — understand what your scope does/doesn't show",
+            ]},
+            {"type": "mistakes", "items": [
+                "Approving a Daily Report without verifying the labor totals match the field",
+                "Letting an incident close without confirming the corrective action was verified",
+                "Skipping the weekly review cadence (drift compounds when no one's watching)",
+                "Assuming admin sees the same scope-filtered view (admin sees everything)",
+                "Reviewing reports a week late — the field needs feedback while details are warm",
+            ]},
             {"type": "tip", "text":
-                "PM scope is project-based, not portal-based. Records from projects the PM "
-                "doesn't manage are intentionally hidden — that's a noise filter, not a "
-                "security wall (admin can always read everything)."},
+                "PM scope is project-based, not portal-based. Records from projects you don't "
+                "manage are intentionally hidden — that's a noise filter, not a security wall. "
+                "If you need to see a different PM's project, ask admin for read access; don't "
+                "go around the scope by signing in with shared credentials."},
+            {"type": "warn", "text":
+                "Don't sign in to /pm/login with someone else's email. Per-PM scope is enforced "
+                "by token — using another PM's account makes the audit log point at them for "
+                "every action you take. Ask admin for proper cross-PM access if you need it."},
         ],
-        "related": ["pm-project-review-cadence", "pm-labor-documentation",
-                    "pm-cross-project-visibility", "pm-coordination",
-                    "pm-reporting-workflows", "role-pm"],
+        "related": [
+            "role-pm",
+            "pm-project-review-cadence",
+            "pm-labor-documentation",
+            "pm-cross-project-visibility",
+            "pm-coordination",
+            "pm-reporting-workflows",
+            "connect-pm-field-review",
+        ],
     },
     {
         "id": "pm-project-review-cadence",
@@ -3208,6 +3282,314 @@ _ARTICLES: list[dict] = [
         ],
         "related": ["admin-governance-why", "admin-audit-forensics",
                     "why-session-timeouts", "why-audit-logs"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # ITER205 · TIERED GUIDANCE RBAC · PUBLIC IDENTITY ARTICLES
+    # ─────────────────────────────────────────────────────────────────
+    # Operator directive: Guidance is tiered, not all-public or all-locked.
+    #   Tier 1 (public): identity / "what is this portal" / first-week
+    #                    onboarding / login troubleshooting.
+    #   Tier 2 (portal-scoped): operational deep-dives — workflows,
+    #                    approval chains, escalations, audit expectations.
+    #   Tier 3 (admin-sensitive): user mgmt, backups, payroll admin,
+    #                    compliance exports.
+    # These six identity articles are the public-tier entry point each
+    # portal's training card on /guidance routes to. They explain what
+    # the portal does, who uses it, and that operational deep-dives
+    # require the same portal login as the production system itself.
+    # Each links to the matching deep portal-scoped article (intentional
+    # — anon users see the link but get 404 if they try to follow it,
+    # which is correct RBAC posture).
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "portal-hr-identity",
+        "section": "portals",
+        "title": "What does the HR Portal do?",
+        "summary": "Operational identity of HR: people, time, payroll — and why operational deep-dives require HR sign-in.",
+        "scopes": ["public"],
+        "tags": ["hr", "identity", "portal", "human resources"],
+        "body": [
+            {"type": "p", "text":
+                "HR is the people-and-time portal. It owns the records that prove who worked, "
+                "what hours were paid, who was hired, who left, and what training is current. "
+                "It is one of the most cross-connected portals on the platform — every other "
+                "portal feeds it data, and HR feeds payroll, compliance, and every audit conversation."},
+            {"type": "p", "text":
+                "Who uses it: HR Staff, HR Managers, and Operations support roles."},
+            {"type": "bullets", "items": [
+                "Time verification — comparing crew Daily Reports against payroll",
+                "New-hire onboarding — paperwork, credentials, equipment, training",
+                "Employee accountability — write-ups, coaching docs, recognition",
+                "Training records — OSHA, equipment-certified, internal courses",
+                "Document expirations — driver's licenses, medical cards, certifications",
+                "Time-off requests — vacation, sick, PTO",
+                "Offboarding / termination — final-pay calculations, asset returns",
+            ]},
+            {"type": "why", "text":
+                "HR is where the field's documentation becomes the company's source of truth. "
+                "A Daily Report from a foreman becomes an hours total in HR. A write-up authored "
+                "by a superintendent in Field Leadership becomes an accountability record in HR. "
+                "If HR records are wrong, payroll is wrong — and payroll-wrong is the fastest "
+                "way to lose a crew."},
+            {"type": "warn", "text":
+                "Operational HR training (workflow deep-dives, time-verification procedures, "
+                "write-up authoring, offboarding) is restricted to HR staff. To read those "
+                "training articles, sign in at /hr/login. Anonymous users can read this "
+                "identity overview but cannot access workflow-level HR guidance."},
+            {"type": "next", "items": [
+                "If you're HR staff signed in — open 'HR Portal Training' for the operational deep-dive",
+                "If you can't sign in — read 'Can't sign in?' (public)",
+                "If you're a field employee — your time / write-ups flow into HR; read 'Daily Report Basics' (public)",
+            ]},
+        ],
+        "related": [
+            "portal-hr",
+            "role-hr",
+            "public-cant-login",
+            "public-daily-report-basics",
+        ],
+    },
+    {
+        "id": "portal-safety-identity",
+        "section": "portals",
+        "title": "What does the Safety Portal do?",
+        "summary": "Operational identity of Safety: incidents, audits, compliance — and why deep-dives require Safety sign-in.",
+        "scopes": ["public"],
+        "tags": ["safety", "identity", "portal", "compliance"],
+        "body": [
+            {"type": "p", "text":
+                "Safety is the portal that turns events into accountability. Every incident, "
+                "near-miss, corrective action, audit finding, fire-extinguisher inspection, and "
+                "training-compliance check lives here. It is not a paperwork portal — every "
+                "record in Safety either prevented an injury, recovered from one, or built the "
+                "defense for an OSHA conversation that hasn't happened yet."},
+            {"type": "p", "text":
+                "Who uses it: Safety Managers, Safety Coordinators, Safety Officers."},
+            {"type": "bullets", "items": [
+                "Incidents — injuries, property damage, near-misses, third-party events",
+                "Corrective actions — what gets fixed, by whom, by when, signed off",
+                "Audits — site walks, jobsite audits, sub-contractor audits",
+                "Fire extinguishers — inventory, monthly inspections, recharge tracking",
+                "Training compliance — OSHA-10, OSHA-30, equipment, first-aid",
+                "Toolbox talks — meeting topics, attendance, signatures",
+                "JHA plans — Job Hazard Analyses authored and approved",
+            ]},
+            {"type": "why", "text":
+                "Safety records are the single most important defensive documentation MASCI "
+                "produces. An OSHA inspector showing up tomorrow asks two questions: 'Show me "
+                "your training compliance' and 'Show me your last incident.' Safety is where "
+                "the answers live. Vague safety records = exposure; specific safety records = "
+                "defensible operations."},
+            {"type": "warn", "text":
+                "Operational Safety training (investigation workflows, corrective-action chains, "
+                "training-compliance procedures) is restricted to Safety staff. To read those "
+                "articles, sign in at /safety-portal/login. Field crews can read 'Incident "
+                "Basics' (public) — that's the field-side surface."},
+            {"type": "next", "items": [
+                "If you're Safety staff signed in — open 'Safety Portal Training' for the operational deep-dive",
+                "If you're field crew — read 'If something happens on a job site' (public)",
+                "If you can't sign in — read 'Can't sign in?' (public)",
+            ]},
+        ],
+        "related": [
+            "portal-safety",
+            "role-safety",
+            "public-incident-basics",
+            "public-cant-login",
+        ],
+    },
+    {
+        "id": "portal-shop-identity",
+        "section": "portals",
+        "title": "What does the Shop / Fleet Portal do?",
+        "summary": "Operational identity of Shop: equipment health and fleet workflows — deep-dives require Shop sign-in.",
+        "scopes": ["public"],
+        "tags": ["shop", "fleet", "identity", "portal"],
+        "body": [
+            {"type": "p", "text":
+                "Shop is the portal that keeps the fleet running. Every Pre-Op a field operator "
+                "submits flows here. Every damage report, every maintenance task, every parts "
+                "order, every equipment return — all of it lives in Shop. The portal exists to "
+                "make sure the right gear is operational on the right job at the right time, "
+                "and to document what happened to it along the way."},
+            {"type": "p", "text":
+                "Who uses it: Mechanics, Shop Foreman, Fleet Coordinator."},
+            {"type": "bullets", "items": [
+                "Pre-Op review — every field Pre-Op lands here; failed Pre-Ops need action",
+                "Damage reporting — what got bent, scraped, broken, by whom, when",
+                "Maintenance coordination — scheduled, preventive, emergency",
+                "Parts catalog & ordering — what's in stock, on order, lead times",
+                "Equipment issuance & return — Safety + Shop joint sign-offs",
+                "Sign-offs — releasing equipment back to the field after repair",
+            ]},
+            {"type": "why", "text":
+                "Shop records protect everyone. A field operator's Pre-Op signature shows they "
+                "did the walk; the shop's repair record shows what was found and fixed; the "
+                "return sign-off shows the unit is cleared back to service. If equipment causes "
+                "an incident, the chain of Pre-Op → Damage → Repair → Sign-Off is the entire "
+                "defense. Missing records mean missing answers."},
+            {"type": "warn", "text":
+                "Operational Shop training (failed-Pre-Op workflow, damage triage, maintenance "
+                "coordination, equipment-return joint sign-off) is restricted to Shop staff. "
+                "Sign in at /shop/login to access those articles. Field operators read 'Pre-Op "
+                "Basics' (public) — that's the field-side surface."},
+            {"type": "next", "items": [
+                "If you're a mechanic / Shop staff — open 'Shop Portal Training' for the operational deep-dive",
+                "If you're a field operator — read 'Equipment Pre-Op Checks (Field Basics)' (public)",
+                "If you can't sign in — read 'Can't sign in?' (public)",
+            ]},
+        ],
+        "related": [
+            "portal-shop",
+            "role-shop",
+            "public-preop-basics",
+            "public-cant-login",
+        ],
+    },
+    {
+        "id": "portal-dispatch-identity",
+        "section": "portals",
+        "title": "What does the Dispatch Portal do?",
+        "summary": "Operational identity of Dispatch: equipment movement, availability — deep-dives require Dispatch sign-in.",
+        "scopes": ["public"],
+        "tags": ["dispatch", "identity", "portal", "equipment"],
+        "body": [
+            {"type": "p", "text":
+                "Dispatch is the portal that coordinates equipment across the fleet. Its job is "
+                "to make sure the right asset is in the right place, on the right job, in a "
+                "known state — and that everyone downstream (Shop, Field Leadership, PM) sees "
+                "the same truth about where things are and what they're doing."},
+            {"type": "p", "text":
+                "Who uses it: Dispatchers, Fleet Coordinators, Operations Oversight."},
+            {"type": "bullets", "items": [
+                "Equipment availability — Available / Assigned / In-Transit / Hold / In Service / OOS",
+                "Movement events — job-to-job transfers with source · destination · arrival",
+                "Holds & transfers — temporary restriction vs permanent reassignment",
+                "Utilisation reports — over- and under-deployed assets",
+                "Operational events log — assignments, holds, returns, reason codes",
+                "Field coordination — reconciling system view with physical reality",
+            ]},
+            {"type": "why", "text":
+                "Dispatch is upstream of every asset-related decision the rest of the platform "
+                "makes. When dispatch is accurate, the field doesn't waste mornings hunting for "
+                "equipment, Shop schedules service against the right project, PMs see real "
+                "utilisation, and executives make fleet decisions with honest data."},
+            {"type": "warn", "text":
+                "Operational Dispatch training (movement lifecycle, availability rules, "
+                "hold-vs-transfer logic, field coordination procedures) is restricted to "
+                "Dispatch staff. Sign in at /dispatch-portal/login to access those articles. "
+                "Field crews and operators read public guidance on equipment basics."},
+            {"type": "next", "items": [
+                "If you're Dispatch staff — open 'Dispatch Portal Training' for the operational deep-dive",
+                "If you're field crew — read 'Daily Report Basics' (public)",
+                "If you can't sign in — read 'Can't sign in?' (public)",
+            ]},
+        ],
+        "related": [
+            "portal-dispatch",
+            "role-dispatch",
+            "public-daily-report-basics",
+            "public-cant-login",
+        ],
+    },
+    {
+        "id": "portal-pm-identity",
+        "section": "portals",
+        "title": "What does the PM Portal do?",
+        "summary": "Operational identity of PM: project oversight and labor — deep-dives require PM sign-in.",
+        "scopes": ["public"],
+        "tags": ["pm", "identity", "portal", "project manager"],
+        "body": [
+            {"type": "p", "text":
+                "The PM portal is the project-level lens. PMs see only the records tied to "
+                "projects they manage — Daily Reports, inspections, JHAs, incidents, "
+                "field-leadership records, equipment assignments, labor documentation, and "
+                "cross-portal status. It is intentionally scope-filtered: each PM focuses on "
+                "their own projects without wading through everyone else's."},
+            {"type": "p", "text":
+                "Who uses it: Project Managers and Co-PMs."},
+            {"type": "bullets", "items": [
+                "Project dashboard — scope-filtered to PM's assigned projects",
+                "Daily Report review — operational truth of each day on the project",
+                "Inspections / meetings / JHAs — safety and quality records",
+                "Incidents — anything that happened on the project",
+                "Field Leadership records — write-ups, recognition, attendance",
+                "Equipment-allocation visibility — what's on the project, in what state",
+                "Labor documentation — hours → cost-code → payroll connection",
+                "Reporting workflows — dashboards, drill-downs, owner exports",
+            ]},
+            {"type": "why", "text":
+                "PM work is the bridge between field operations and project finance. A Daily "
+                "Report from the field becomes a labor cost in the PM dashboard. An incident "
+                "becomes a project risk. PMs are the only role with a project-wide view that's "
+                "both wide enough to spot drift and narrow enough to act on it. If PM oversight "
+                "is sloppy, projects discover problems at month-end instead of mid-week — and "
+                "month-end is too late."},
+            {"type": "warn", "text":
+                "Operational PM training (review cadence, labor-reconciliation procedures, "
+                "cross-project visibility rules, reporting workflows) is restricted to PMs. "
+                "Sign in at /pm/login to access those articles. Field crews read public "
+                "guidance on Daily Reports and Pre-Op basics."},
+            {"type": "next", "items": [
+                "If you're a PM signed in — open 'PM Portal Training' for the operational deep-dive",
+                "If you're field crew — read 'Daily Report Basics' (public)",
+                "If you can't sign in — read 'Can't sign in?' (public)",
+            ]},
+        ],
+        "related": [
+            "portal-pm",
+            "role-pm",
+            "public-daily-report-basics",
+            "public-cant-login",
+        ],
+    },
+    {
+        "id": "portal-admin-identity",
+        "section": "portals",
+        "title": "What does the Admin Console do?",
+        "summary": "Operational identity of the Admin Console: the control plane — deep-dives are admin-only.",
+        "scopes": ["public"],
+        "tags": ["admin", "identity", "console", "operator"],
+        "body": [
+            {"type": "p", "text":
+                "Admin is the operator-level control plane of the platform. It is intentionally "
+                "narrow in audience — typically the platform owner and one or two trusted "
+                "operators. Admin owns the surfaces no other portal can see: every user, every "
+                "role template, every audit-log entry, every active session, every backup, and "
+                "the governance signals that tell you when something is drifting."},
+            {"type": "p", "text":
+                "Who uses it: the platform Owner and designated Operator(s). Not for general staff."},
+            {"type": "bullets", "items": [
+                "User management — invite, role-assign, suspend, restore",
+                "Role templates — define what each portal token grants",
+                "Audit log — every privileged action, who/when/what",
+                "System health — backend metrics, queue depths, error rates",
+                "Sessions — who is signed in right now, force-revoke if needed",
+                "Backups & restore — manual triggers, schedule, point-in-time",
+                "Operational inventory & governance — drift detection",
+            ]},
+            {"type": "why", "text":
+                "Admin work has the deepest blast radius on the platform. A single role-template "
+                "change ripples to every user who has that role. The audit log is the only place "
+                "where 'who changed what when' is permanently recorded. Admin training is "
+                "deliberately admin-only because the content includes user-management, backup, "
+                "and compliance procedures that operators should not browse anonymously."},
+            {"type": "warn", "text":
+                "Operational Admin training is the most-restricted tier on the platform. Sign "
+                "in at /admin/login. If you don't have an admin account, this material is "
+                "intentionally not for you — that's by design, not an oversight."},
+            {"type": "next", "items": [
+                "If you're an operator signed in — open 'Admin Console Guidance' for the operational deep-dive",
+                "If you need an admin to take an action — contact your operator directly",
+                "If you can't sign in — read 'Can't sign in?' (public)",
+            ]},
+        ],
+        "related": [
+            "portal-admin",
+            "role-admin",
+            "public-cant-login",
+        ],
     },
 ]
 
