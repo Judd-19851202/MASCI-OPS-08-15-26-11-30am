@@ -744,6 +744,294 @@ _TIPS: list[dict] = [
             "silhouettes. Four sides + cab + any pre-existing damage is "
             "the minimum.",
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter213 · Time Verification (HR review surface — Tier 2)
+    # Where supervisor-reported crew hours become paychecks. The tone
+    # anchor: HR is the bridge between the field and the paycheck. A
+    # quiet "cleanup" of a number — without calling the supervisor —
+    # is how a $40 discrepancy becomes a grievance. Coach toward
+    # good-faith correction at the source, never silent overwrites.
+    # Scope: ["hr","admin"] — Tier-2 HR-portal coaching.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "time-verification",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why Time Verification matters",
+        "body":
+            "This is where field hours become paychecks. Get it right and "
+            "supervisors stop hearing 'my check is short' on Monday morning. "
+            "Get it wrong — quietly — and trust with the crew takes months "
+            "to rebuild. Your job is the bridge between the field and the "
+            "paycheck.",
+    },
+    {
+        "form_key": "time-verification",
+        "kind": "who",
+        "scopes": ["hr", "admin"],
+        "title": "Who depends on this",
+        "body":
+            "The crew first — their pay rides on these numbers. Then the "
+            "supervisor who reported the hours, then PM (project cost), "
+            "then payroll (Exact). Owners see weekly OT rollups. If a "
+            "number is off here, every downstream record is off.",
+    },
+    {
+        "form_key": "time-verification",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What happens after you verify",
+        "body":
+            "Verified hours roll to the Exact payroll export. Any flagged "
+            "anomaly stays on the supervisor's Monday-morning list. "
+            "Corrections happen at the source — the Daily Report — not "
+            "by silently overwriting numbers here.",
+    },
+    {
+        "form_key": "time-verification",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When to escalate, not fix",
+        "body":
+            "If a number looks wrong, call the supervisor before you change "
+            "anything. Quiet edits are how a $40 discrepancy becomes a "
+            "grievance. The supervisor edits the Daily Report; you verify "
+            "the result. That order matters.",
+    },
+
+    # ── time-verification.overtime ───────────────────────────────────
+    {
+        "form_key": "time-verification.overtime",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why OT is weekly, not daily",
+        "body":
+            "Overtime is the rollup above 40 hours in the workweek — not "
+            "'over 8 in a day'. A 10-hour Tuesday isn't OT if Friday brings "
+            "the week to 38. OT shows up here once the weekly total crosses "
+            "40; the daily column stays regular.",
+    },
+    {
+        "form_key": "time-verification.overtime",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Flagging a long Tuesday as OT before the week is closed. "
+            "Splitting OT across jobs without asking the supervisor which "
+            "project carries it. Reading the OT column on day 3 and "
+            "assuming it's final — the week isn't over.",
+    },
+
+    # ── time-verification.lunch ──────────────────────────────────────
+    {
+        "form_key": "time-verification.lunch",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why lunch is tracked but unpaid",
+        "body":
+            "Lunch is the 30 minutes the crew owes themselves and the "
+            "company. It's unpaid, but it has to be on the record — both "
+            "for compliance and so the supervisor's hours math actually "
+            "adds up. Missing lunch isn't a data-entry shortcut; it's a "
+            "missing meal break worth asking about.",
+    },
+    {
+        "form_key": "time-verification.lunch",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Silently filling in 0.5 lunch on every row because 'they "
+            "always take it'. That hides the days they didn't, which is "
+            "exactly the data the supervisor and Safety need. If lunch is "
+            "missing, ask — don't backfill.",
+    },
+
+    # ── time-verification.discrepancy ────────────────────────────────
+    {
+        "form_key": "time-verification.discrepancy",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why discrepancies are conversations, not fixes",
+        "body":
+            "Every Daily-Report-vs-payroll mismatch is a story the "
+            "supervisor knows and you don't yet. The number isn't wrong "
+            "because someone was lazy — it's wrong because the day was "
+            "long, the timesheet was rushed, or the crew swapped jobs "
+            "mid-shift. Ask first.",
+    },
+    {
+        "form_key": "time-verification.discrepancy",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What the right correction looks like",
+        "body":
+            "Call the supervisor, get the story, agree on the right "
+            "number, and have them fix the Daily Report at the source. "
+            "Then re-run verification — the corrected number flows back "
+            "here and the audit trail shows who changed what and why.",
+    },
+    {
+        "form_key": "time-verification.discrepancy",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When the pattern is the problem",
+        "body":
+            "One-off discrepancies happen. A crew that posts 8.00 every "
+            "day for two weeks straight — including a known rain day — "
+            "is a rounding pattern, not a math error. That's an HR "
+            "conversation with the supervisor, not a silent correction "
+            "here.",
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter214 · Write-Ups (Field Leadership disciplinary documentation)
+    # Tone anchor: a write-up is the record of a conversation that
+    # already happened. The supervisor coached, the employee heard it,
+    # both agreed to a next step. Write-ups are NEVER the conversation
+    # itself — they're the documented evidence afterward. Coach toward
+    # facts-not-feelings, due-process discipline, and the truth that
+    # documentation protects the SUPERVISOR's word every bit as much as
+    # the employee's. Scope: public (this is a public-form workflow
+    # template; the actual records are portal-scoped on access).
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "writeup",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why a write-up matters",
+        "body":
+            "A write-up is the record of a conversation that already "
+            "happened — never a substitute for it. If the employee learns "
+            "about a write-up before you've talked to them, you skipped "
+            "the part that actually changes behavior. The paper is the "
+            "evidence; the conversation is the work.",
+    },
+    {
+        "form_key": "writeup",
+        "kind": "who",
+        "scopes": ["public"],
+        "title": "Who reads this later",
+        "body":
+            "HR, the employee, the supervisor (you), and — if the pattern "
+            "continues — a future manager deciding next steps. Months "
+            "from now, anyone reading should be able to picture the "
+            "incident from your words alone. Write for that reader.",
+    },
+    {
+        "form_key": "writeup",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens after you submit",
+        "body":
+            "HR reviews and files it. The employee receives a copy. If "
+            "this is a repeat pattern, it joins the prior records and may "
+            "trigger an HR conversation. If it's a first occurrence, it "
+            "sits on file as the baseline for any future pattern call.",
+    },
+    {
+        "form_key": "writeup",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When to call HR before submitting",
+        "body":
+            "Safety violation that put a crew at risk. Theft, harassment, "
+            "or anything that touches a protected class. Anything where "
+            "you're not sure if it's a write-up or a termination. Call "
+            "HR first — they'd rather coach you through it than read "
+            "about it Monday morning.",
+    },
+
+    # ── writeup.facts (facts, not feelings) ──────────────────────────
+    {
+        "form_key": "writeup.facts",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why facts, not feelings",
+        "body":
+            "'Arrived 22 minutes late, 3rd time this month, no call' is a "
+            "fact. 'Has an attitude problem' is a feeling. Facts hold up; "
+            "feelings don't. The same write-up read by a different person "
+            "should yield the same conclusion — that's only possible "
+            "with facts.",
+    },
+    {
+        "form_key": "writeup.facts",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Loaded language ('lazy', 'doesn't care', 'thinks he runs the "
+            "place'). Vague timeframes ('lately', 'always', 'never'). "
+            "Skipping the witness names. Editorializing what the "
+            "employee 'must have been thinking'. None of those help the "
+            "next person reading the file.",
+    },
+    {
+        "form_key": "writeup.facts",
+        "kind": "example",
+        "scopes": ["public"],
+        "title": "Example entry",
+        "body":
+            "'2026-05-12, 6:38am — Employee arrived at the yard at 6:38, "
+            "scheduled start 6:15. No call, no text. This is the 3rd late "
+            "arrival in 14 working days (2026-04-29, 2026-05-06, "
+            "2026-05-12). Foreman Davis was on-site at start time. "
+            "Conversation held 6:40am.' is good. 'Late again' is not.",
+    },
+
+    # ── writeup.conversation (the talk before the paper) ─────────────
+    {
+        "form_key": "writeup.conversation",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why the conversation comes first",
+        "body":
+            "Surprising someone with a write-up they didn't see coming "
+            "ends the relationship. The conversation gives the employee a "
+            "fair shot to explain, agree on what's expected, and own the "
+            "fix. The write-up just records what was already said and "
+            "agreed.",
+    },
+    {
+        "form_key": "writeup.conversation",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What 'agreed next step' looks like",
+        "body":
+            "Specific, time-bound, and verifiable. 'Be on time' is not "
+            "agreed — 'arrive at the yard at 6:15 or earlier for the "
+            "next 30 days, with a call to me by 5:45 if anything is "
+            "going to make that late' is agreed. The employee should be "
+            "able to repeat it back.",
+    },
+
+    # ── writeup.due-process (employee's right to respond) ────────────
+    {
+        "form_key": "writeup.due-process",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why due process protects both sides",
+        "body":
+            "An employee who reads a write-up and disagrees has a right "
+            "to add their side. That isn't a loss for the supervisor — "
+            "it's the file telling the whole truth instead of half of "
+            "it. A write-up where only one voice is on the page is "
+            "weaker, not stronger.",
+    },
+    {
+        "form_key": "writeup.due-process",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When the employee won't sign",
+        "body":
+            "Document that you offered, that they declined, and that you "
+            "explained signing means 'I received this', not 'I agree'. "
+            "Then submit anyway — refusal doesn't void the record. Tell "
+            "HR verbally so they're not surprised.",
+    },
 ]
 
 

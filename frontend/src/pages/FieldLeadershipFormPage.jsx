@@ -40,6 +40,8 @@ import { HelpTipBlock } from "@/components/HelpTip";
 // Other kinds continue to render the legacy <WhyItMattersPanel>.
 const FL_KIND_HELPTIP_FORMKEY = {
   equipment_checkout: "checkout",
+  // iter214 — Write-Ups: facts-not-feelings disciplinary documentation.
+  write_up: "writeup",
 };
 
 // Phase C · contextual guidance map per FL form kind (iter194).

@@ -20,6 +20,7 @@ import { Card } from "@/components/ui/card";
 import HrPageShell from "@/components/HrPageShell";
 import { Link } from "react-router-dom";
 import { WhyItMattersPanel } from "@/components/guidance";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { getHrToken } from "@/lib/hrAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
@@ -110,16 +111,7 @@ export default function HrTimeVerification() {
       kicker="HR · Payroll Cross-Check"
     >
       <div className="mb-4">
-        <WhyItMattersPanel title="Why Time Verification matters">
-          <p>
-            Reg + OT = total paid; lunch is unpaid and tracked separately.
-            OT is the weekly rollup above 40 hours, not daily. HR reviews;
-            the supervisor edits the source if a number is wrong.{" "}
-            <Link to="/guidance/hr-time-verification-deep" className="font-medium underline">
-              Deep dive →
-            </Link>
-          </p>
-        </WhyItMattersPanel>
+        <HelpTipBlock formKey="time-verification" showCounter />
       </div>
       {/* Filter bar */}
       <Card className="p-4 mb-5 border-2 border-purple-200 bg-purple-50/30">
@@ -185,6 +177,13 @@ export default function HrTimeVerification() {
         >
           {t("Per-Day Detail")} · {rows.length}
         </Button>
+      </div>
+
+      {/* iter213 · operational coaching surface for the discrepancy
+          conversation — sits above the table because that's where HR
+          actually catches the numbers that don't match. */}
+      <div className="mb-4">
+        <HelpTipBlock formKey="time-verification.discrepancy" />
       </div>
 
       {/* Body */}

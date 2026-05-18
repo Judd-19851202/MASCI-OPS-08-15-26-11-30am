@@ -140,20 +140,37 @@ export function HelpTip({
 // ─────────────────────────────────────────────────────────────────────
 const _tipCache = new Map(); // form_key -> promise
 
+// Read a token from sessionStorage first (leadership uses session), then
+// localStorage (admin/hr/pm/shop/safety/dispatch). Matches the actual
+// canonical storage keys used across the portal-auth modules.
+function _readToken(key) {
+  try {
+    return (
+      (typeof sessionStorage !== "undefined" && sessionStorage.getItem(key)) ||
+      (typeof localStorage !== "undefined" && localStorage.getItem(key)) ||
+      null
+    );
+  } catch (_e) {
+    return null;
+  }
+}
+
 async function _fetchTips(formKey) {
   const base = process.env.REACT_APP_BACKEND_URL || "";
   const url = `${base}/api/guidance/tips?form_key=${encodeURIComponent(formKey)}`;
   const headers = {};
-  // Best-effort auth: pass any portal token we find in localStorage so
-  // RBAC-scoped tips reach the right portal.
-  try {
-    const tk = localStorage.getItem("adminToken"); if (tk) headers["X-Admin-Token"] = tk;
-    const hr = localStorage.getItem("hrToken");    if (hr) headers["X-HR-Token"] = hr;
-    const sa = localStorage.getItem("safetyToken"); if (sa) headers["X-Safety-Token"] = sa;
-    const pm = localStorage.getItem("pmToken");     if (pm) headers["X-PM-Token"] = pm;
-    const sh = localStorage.getItem("shopToken");   if (sh) headers["X-Shop-Token"] = sh;
-    const dp = localStorage.getItem("dispatchToken"); if (dp) headers["X-Dispatch-Token"] = dp;
-  } catch (_e) { /* ignore storage errors */ }
+  // Best-effort auth: pass any portal token we find so RBAC-scoped tips
+  // reach the right portal. Storage keys match the canonical auth libs:
+  //   masci.admin.token · masci.hr.token · masci.safety.token ·
+  //   masci.pm.token · masci.shop.token · masci.dispatch.token ·
+  //   masci.leadership.token (sessionStorage).
+  const adminTok = _readToken("masci.admin.token");           if (adminTok) headers["X-Admin-Token"] = adminTok;
+  const hrTok = _readToken("masci.hr.token");                 if (hrTok) headers["X-HR-Token"] = hrTok;
+  const safetyTok = _readToken("masci.safety.token");         if (safetyTok) headers["X-Safety-Token"] = safetyTok;
+  const pmTok = _readToken("masci.pm.token");                 if (pmTok) headers["X-PM-Token"] = pmTok;
+  const shopTok = _readToken("masci.shop.token");             if (shopTok) headers["X-Shop-Token"] = shopTok;
+  const dispatchTok = _readToken("masci.dispatch.token");     if (dispatchTok) headers["X-Dispatch-Token"] = dispatchTok;
+  const leadershipTok = _readToken("masci.leadership.token"); if (leadershipTok) headers["X-Leadership-Token"] = leadershipTok;
   const r = await fetch(url, { headers });
   if (!r.ok) return [];
   const j = await r.json();

@@ -518,4 +518,211 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "con el sol detrás del equipo y obtener solo siluetas. Cuatro "
             "lados + cabina + cualquier daño existente es el mínimo.",
     },
+
+    # ── iter213 · Time Verification (Tier 2 · RH) ────────────────────
+    ("time-verification", "why"): {
+        "title_es": "Por qué importa la Verificación de Tiempo",
+        "body_es":
+            "Aquí es donde las horas de campo se vuelven cheques de pago. "
+            "Hágalo bien y los supervisores dejan de oír 'mi cheque está "
+            "corto' el lunes por la mañana. Hágalo mal — calladamente — y "
+            "la confianza con la cuadrilla tarda meses en reconstruirse. "
+            "Su trabajo es el puente entre el campo y el cheque.",
+    },
+    ("time-verification", "who"): {
+        "title_es": "Quién depende de esto",
+        "body_es":
+            "La cuadrilla primero — su pago depende de estos números. "
+            "Después el supervisor que reportó las horas, luego PM (costo "
+            "de proyecto), y luego nómina (Exact). Los dueños ven los "
+            "totales semanales de OT. Si un número está mal aquí, cada "
+            "registro corriente abajo está mal.",
+    },
+    ("time-verification", "next"): {
+        "title_es": "Qué pasa después de verificar",
+        "body_es":
+            "Las horas verificadas fluyen al export de nómina de Exact. "
+            "Cualquier anomalía marcada queda en la lista del lunes del "
+            "supervisor. Las correcciones se hacen en la fuente — el "
+            "Reporte Diario — no sobrescribiendo números aquí en "
+            "silencio.",
+    },
+    ("time-verification", "escalate"): {
+        "title_es": "Cuándo escalar, no corregir",
+        "body_es":
+            "Si un número se ve mal, llame al supervisor antes de cambiar "
+            "nada. Las ediciones silenciosas son cómo una discrepancia de "
+            "$40 se vuelve una queja formal. El supervisor edita el "
+            "Reporte Diario; usted verifica el resultado. Ese orden "
+            "importa.",
+    },
+
+    ("time-verification.overtime", "why"): {
+        "title_es": "Por qué el OT es semanal, no diario",
+        "body_es":
+            "El tiempo extra es lo que pasa de 40 horas en la semana "
+            "laboral — no 'más de 8 en un día'. Un martes de 10 horas no "
+            "es OT si el viernes la semana llega a 38. El OT aparece aquí "
+            "una vez que el total semanal cruza las 40; la columna diaria "
+            "se queda como regular.",
+    },
+    ("time-verification.overtime", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Marcar un martes largo como OT antes de cerrar la semana. "
+            "Dividir el OT entre trabajos sin preguntarle al supervisor "
+            "qué proyecto lo carga. Leer la columna de OT en el día 3 y "
+            "asumir que es final — la semana no terminó.",
+    },
+
+    ("time-verification.lunch", "why"): {
+        "title_es": "Por qué el almuerzo se rastrea pero no se paga",
+        "body_es":
+            "El almuerzo son los 30 minutos que la cuadrilla se debe a sí "
+            "misma y a la empresa. No se paga, pero tiene que estar en el "
+            "registro — tanto por cumplimiento como para que las cuentas "
+            "del supervisor cuadren. Saltarse el almuerzo no es un atajo "
+            "de captura; es un descanso perdido que vale preguntar.",
+    },
+    ("time-verification.lunch", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Llenar calladamente 0.5 de almuerzo en cada renglón porque "
+            "'siempre lo toman'. Eso esconde los días en que no lo "
+            "tomaron, que es exactamente la información que el supervisor "
+            "y Seguridad necesitan. Si falta el almuerzo, pregunte — no "
+            "rellene.",
+    },
+
+    ("time-verification.discrepancy", "why"): {
+        "title_es": "Por qué las discrepancias son conversaciones, no correcciones",
+        "body_es":
+            "Cada desajuste entre Reporte Diario y nómina es una historia "
+            "que el supervisor conoce y usted aún no. El número no está "
+            "mal porque alguien fue flojo — está mal porque el día fue "
+            "largo, la hoja se llenó apurado, o la cuadrilla cambió de "
+            "trabajo a media jornada. Pregunte primero.",
+    },
+    ("time-verification.discrepancy", "next"): {
+        "title_es": "Cómo se ve la corrección correcta",
+        "body_es":
+            "Llame al supervisor, escuche la historia, acuerden el número "
+            "correcto, y haga que él corrija el Reporte Diario en la "
+            "fuente. Luego vuelva a correr la verificación — el número "
+            "corregido fluye de regreso aquí y la pista de auditoría "
+            "muestra quién cambió qué y por qué.",
+    },
+    ("time-verification.discrepancy", "escalate"): {
+        "title_es": "Cuándo el patrón es el problema",
+        "body_es":
+            "Una discrepancia aislada pasa. Una cuadrilla que registra "
+            "8.00 todos los días por dos semanas seguidas — incluyendo "
+            "un día de lluvia conocido — es un patrón de redondeo, no un "
+            "error de matemáticas. Eso es una conversación de RH con el "
+            "supervisor, no una corrección silenciosa aquí.",
+    },
+
+    # ── iter214 · Write-Ups (FL disciplinary documentation) ──────────
+    ("writeup", "why"): {
+        "title_es": "Por qué importa un Write-Up",
+        "body_es":
+            "Un write-up es el registro de una conversación que ya "
+            "ocurrió — nunca un sustituto de ella. Si el empleado se "
+            "entera del write-up antes de que usted hable con él, se "
+            "saltó la parte que realmente cambia el comportamiento. El "
+            "papel es la evidencia; la conversación es el trabajo.",
+    },
+    ("writeup", "who"): {
+        "title_es": "Quién lo lee después",
+        "body_es":
+            "RH, el empleado, el supervisor (usted), y — si el patrón "
+            "continúa — un futuro gerente decidiendo el siguiente paso. "
+            "Meses después, cualquiera que lo lea debe poder imaginarse "
+            "el incidente solo con sus palabras. Escriba para ese lector.",
+    },
+    ("writeup", "next"): {
+        "title_es": "Qué pasa después de enviar",
+        "body_es":
+            "RH lo revisa y lo archiva. El empleado recibe una copia. Si "
+            "es un patrón repetido, se une a los registros previos y "
+            "puede generar una conversación con RH. Si es la primera "
+            "vez, queda en archivo como base para cualquier patrón "
+            "futuro.",
+    },
+    ("writeup", "escalate"): {
+        "title_es": "Cuándo llamar a RH antes de enviar",
+        "body_es":
+            "Violación de seguridad que puso a la cuadrilla en riesgo. "
+            "Robo, acoso, o cualquier cosa que toque una clase protegida. "
+            "Cualquier caso donde usted no esté seguro si es write-up o "
+            "terminación. Llame a RH primero — prefieren acompañarlo a "
+            "leerlo el lunes por la mañana.",
+    },
+
+    ("writeup.facts", "why"): {
+        "title_es": "Por qué hechos, no sentimientos",
+        "body_es":
+            "'Llegó 22 minutos tarde, 3ra vez este mes, sin llamar' es un "
+            "hecho. 'Tiene problema de actitud' es un sentimiento. Los "
+            "hechos sostienen; los sentimientos no. El mismo write-up "
+            "leído por otra persona debe llegar a la misma conclusión — "
+            "eso solo es posible con hechos.",
+    },
+    ("writeup.facts", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Lenguaje cargado ('flojo', 'no le importa', 'se cree el "
+            "dueño'). Tiempos vagos ('últimamente', 'siempre', 'nunca'). "
+            "Saltarse los nombres de los testigos. Editorializar lo que "
+            "el empleado 'debió estar pensando'. Nada de eso ayuda a la "
+            "siguiente persona que lea el archivo.",
+    },
+    ("writeup.facts", "example"): {
+        "title_es": "Ejemplo",
+        "body_es":
+            "'2026-05-12, 6:38am — El empleado llegó al patio a las 6:38, "
+            "inicio programado 6:15. Sin llamar, sin mensaje. Es la 3ra "
+            "llegada tarde en 14 días laborales (2026-04-29, 2026-05-06, "
+            "2026-05-12). El capataz Davis estaba en sitio a la hora de "
+            "inicio. Conversación sostenida a las 6:40am.' es bueno. "
+            "'Tarde otra vez' no lo es.",
+    },
+
+    ("writeup.conversation", "why"): {
+        "title_es": "Por qué la conversación va primero",
+        "body_es":
+            "Sorprender a alguien con un write-up que no vio venir "
+            "termina la relación. La conversación le da al empleado una "
+            "oportunidad justa de explicar, acordar lo que se espera, y "
+            "asumir el arreglo. El write-up solo registra lo que ya se "
+            "dijo y se acordó.",
+    },
+    ("writeup.conversation", "next"): {
+        "title_es": "Cómo se ve un 'próximo paso acordado'",
+        "body_es":
+            "Específico, con tiempo, y verificable. 'Llegar a tiempo' no "
+            "es acordado — 'llegar al patio a las 6:15 o antes los "
+            "próximos 30 días, con llamada antes de las 5:45 si algo lo "
+            "va a hacer tarde' sí es acordado. El empleado debe poder "
+            "repetirlo.",
+    },
+
+    ("writeup.due-process", "why"): {
+        "title_es": "Por qué el debido proceso protege a ambos lados",
+        "body_es":
+            "Un empleado que lee un write-up y no está de acuerdo tiene "
+            "derecho a agregar su versión. Eso no es una pérdida para el "
+            "supervisor — es el archivo contando toda la verdad en lugar "
+            "de la mitad. Un write-up donde solo hay una voz en la "
+            "página es más débil, no más fuerte.",
+    },
+    ("writeup.due-process", "escalate"): {
+        "title_es": "Cuándo el empleado no firma",
+        "body_es":
+            "Documente que usted le ofreció, que rehusó, y que le "
+            "explicó que firmar significa 'lo recibí', no 'estoy de "
+            "acuerdo'. Luego envíelo de todos modos — el rechazo no "
+            "anula el registro. Avise a RH verbalmente para que no se "
+            "sorprendan.",
+    },
 }
