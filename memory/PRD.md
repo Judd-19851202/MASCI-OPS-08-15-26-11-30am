@@ -1,6 +1,97 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter222 · time-off-review Coaching Family · ✅ DELIVERED (preview only)
+
+Authored the highest-cultural-drift-risk coaching family in the platform — Time Off Request review for HR. Per operator directive: operational leadership guidance, NOT legal advice. All four operator-stated cultural anchors land verbatim in tip bodies and are asserted in the test suite as load-bearing cultural invariants.
+
+### Cultural anchors landed (operator-stated, verbatim · test-enforced)
+
+| Anchor (verbatim in tip body) | Family | Type |
+|---|---|---|
+| **"Bereavement is granted, never debated."** | `time-off-review.bereavement` | title + body |
+| **"A pattern is a conversation, not a denial."** | `time-off-review.pattern` | title + body |
+| **"Vacation is a yes with timing."** | `time-off-review.vacation` | title + body |
+| **"Plan around it, don't dig into it."** | `time-off-review.medical` | body (medical-privacy boundary) |
+| **"Most of these are judgment calls, not policy calls."** | `time-off-review` (top-level) | body (cultural-drift firewall) |
+
+Each anchor is asserted as a load-bearing test in `test_iter222_time_off_review_helptips.py`. If a future agent dilutes or removes the operator-stated voice, the test catches it.
+
+### Coverage
+- **5 form-key surfaces** · 12 tips · EN+ES
+  - `time-off-review` (canonical 4 — why/who/next/escalate)
+  - `time-off-review.bereavement` (3 tips — why/mistake/escalate)
+  - `time-off-review.pattern` (3 tips — why/mistake/next)
+  - `time-off-review.vacation` (2 tips — why/mistake)
+  - `time-off-review.medical` (2 tips — why/mistake)
+- Scope: **Tier-2 `hr` + `admin` only** (anon callers verified to see 0 tips)
+- Wired into `HrTimeOff.jsx` between StatsStrip and the filter card · counter visible (4 coaching tips available · tap to expand)
+
+### Anti-legal-drift discipline (NEW load-bearing banlist)
+iter222 introduces the strongest anti-drift firewall in the platform — `LEGAL_DRIFT_PHRASES`:
+
+- **Statute references:** FMLA, EEOC, ADA-protected, ADAAA, Title VII, Family and Medical Leave Act, Americans with Disabilities Act, Equal Employment Opportunity
+- **Policy-citation patterns:** "per company policy section", "see employee handbook section", "in accordance with section", "pursuant to policy"
+- **Legal-advice tone:** "you should consult", "it is illegal to", "violation of"
+- **Compliance-manual cliches:** "qualifying event", "designated representative", "leave of absence policy procedure"
+
+Plus standard tone discipline inherited from iter211→218: ROBOTIC_OSHA, CORPORATE_HR, HR_LEGAL_DRIFT banlists all enforced.
+
+### Cultural-leadership invariants (test-enforced)
+- **Bereavement escalate** must teach *"approve, then talk"* — never *"deny to investigate"* (deny-first anti-pattern explicitly forbidden in test)
+- **Pattern next** must explicitly separate the current request approval from the pattern conversation — they cannot be conflated
+- **Each leaf surface** must contain at least one humanity anchor (employee · person · family · grief · crew · trust · humanly · humanity)
+- **Top-level why** must anchor on the word *"judgment"* — the cultural-drift firewall for the entire family
+
+### Walkthrough self-validating loop · iter222 closure
+
+| Persona | Before iter222 | After iter222 | Delta |
+|---|---|---|---|
+| HR | 10 actionable | 8 actionable | -2 ✅ (time-off review step closed silently) |
+| Total actionable | 12 | 10 | -2 ✅ |
+| Total positive observations | 18 | 18 | unchanged |
+
+The remaining 3 HR coaching gaps are sequenced for operator approval (iter223 candidates):
+1. 🟡 `employee-accountability` ("my check is short" trust-preserving coaching)
+2. 🟡 `employee-lifecycle` (new-hire Day-1 cultural anchor)
+3. 🟢 `document-expirations` (outreach-vs-blast)
+
+### Tests landed
+- New: `test_iter222_time_off_review_helptips.py` — **41 passed**:
+  - Seed count + canonical 4 + leaf surface coverage
+  - RBAC: strictly Tier-2 hr/admin; anon-blocked
+  - Bilingual + ≤80 EN / ≤90 ES word budget
+  - **4 operator-stated cultural anchor tests** (verbatim phrase enforcement)
+  - **15 anti-legal-drift parametrized tests** (FMLA, EEOC, ADA, Title VII, policy citations, legal-advice tone, compliance cliches)
+  - Standard tone discipline (OSHA · corporate-HR · HR-legal-drift)
+  - Humanity-anchor sweep on each leaf surface
+  - Cultural-leadership invariants (approve-then-talk for bereavement, separate-request-from-conversation for patterns)
+  - Static UI wiring check (HrTimeOff.jsx imports + renders the block)
+- iter21x + iter22x: **280 passed · 1 skip**
+- iter220 protocol-doc test still 25/25
+- Tip registry: 143 → **155 tips** across 27 → **32 form-key surfaces**
+
+### Files touched
+- MOD: `backend/guidance/tips.py` (+12 tips · `time-off-review` family)
+- MOD: `backend/guidance/tips_es.py` (+12 ES translations)
+- MOD: `frontend/src/pages/HrTimeOff.jsx` (HelpTipBlock wiring between stats + filter)
+- NEW: `backend/tests/test_iter222_time_off_review_helptips.py` (41 tests)
+- MOD: `memory/PRD.md`
+
+🔵 Preview only. No production push.
+
+### Operator-decision queue (sequenced for next iter approval)
+1. 🟡 **iter223 candidate** — `employee-accountability` ("the answer lives in the record — read first, respond second")
+2. 🟡 **iter224 candidate** — `employee-lifecycle` ("Get it right and they hear about the company; get it wrong and they hear about the bureaucracy")
+3. 🟢 **iter225 candidate** — `document-expirations` ("phone call beats email blast")
+
+### Other queued work (unchanged)
+- 🔵 Strategic hold · Operator mid-day-defect surface architecture decision
+- 🟡 P2 · Safety + PM persona walkthrough fleshing
+- 🟡 P2 · Translation consistency close-out
+- 🟢 Post-hardening · HelpTip helpfulness-pulse telemetry
+
+---
 ## 2026-05-18 — iter221 · HR Persona Walkthrough Fleshed Out · ✅ DELIVERED (preview only)
 
 Per operator directive ("HR first · do NOT broaden scope beyond one persona yet"), the HR scaffold was replaced with a real 7-step day-script that exercises HR's actual workflow surfaces and validates the operational-continuity / escalation-clarity / cultural-sensitivity invariants the operator named.

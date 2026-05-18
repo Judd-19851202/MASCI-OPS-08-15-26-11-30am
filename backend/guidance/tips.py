@@ -1748,6 +1748,213 @@ _TIPS: list[dict] = [
             "as a 'review when there's time' queue instead of a "
             "today-action queue.",
     },
+
+    # ═════════════════════════════════════════════════════════════════
+    # iter222 · time-off-review · Tier-2 HR-scoped review-side coaching.
+    #
+    # Highest cultural-drift-risk surface in the platform. The right
+    # response to a time-off request is rarely a single binary answer.
+    # Bereavement is granted, never debated. Patterns are conversations,
+    # not denials. Vacations are yes-with-timing, not no.
+    #
+    # OPERATIONAL LEADERSHIP GUIDANCE, NOT LEGAL ADVICE. Coaching never
+    # cites policy sections, EEOC, FMLA, or any statutory framework —
+    # those belong to HR's training and the employee handbook, not to
+    # the contextual coaching surface.
+    #
+    # Scope: hr + admin (review-side only — Tier-2).
+    # ═════════════════════════════════════════════════════════════════
+
+    # ── time-off-review (canonical 4) ────────────────────────────────
+    {
+        "form_key": "time-off-review",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why this review matters",
+        "body":
+            "Time off is where the company's character shows up. The "
+            "crew watches how HR handles these requests — fairly, "
+            "humanly, on time — and decides whether the place is "
+            "worth working for. Most of these are judgment calls, not "
+            "policy calls. Read the request, ask the questions, then "
+            "decide.",
+    },
+    {
+        "form_key": "time-off-review",
+        "kind": "who",
+        "scopes": ["hr", "admin"],
+        "title": "Who's affected by your decision",
+        "body":
+            "The employee first (their day off, their family, their "
+            "trust in the company). Their supervisor (who has to "
+            "cover the work). The crew (who watches whether the "
+            "decision matches the last 10 like it). PM if it affects "
+            "project staffing. Payroll if it changes the week's "
+            "totals.",
+    },
+    {
+        "form_key": "time-off-review",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What happens after you decide",
+        "body":
+            "The employee gets the answer — same day if at all "
+            "possible. The supervisor gets visibility so they can "
+            "plan coverage. Approved time hits the time-verification "
+            "queue automatically. If you needed more info, the "
+            "request stays open with a note explaining what you "
+            "asked for and when.",
+    },
+    {
+        "form_key": "time-off-review",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When to call before deciding",
+        "body":
+            "Anything that could be a medical disability question, "
+            "anything that touches a protected class, anything where "
+            "the same employee has 3+ open requests this quarter, or "
+            "anything where the supervisor pushes back hard on "
+            "approval. Call up before deciding — HR Director hears "
+            "about it Monday morning either way.",
+    },
+
+    # ── time-off-review.bereavement ──────────────────────────────────
+    # OPERATOR-STATED ANCHOR: "Bereavement is granted, never debated."
+    {
+        "form_key": "time-off-review.bereavement",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Bereavement is granted, never debated",
+        "body":
+            "Someone died. Approve the time. The conversation later "
+            "is about the return date and what they need when they "
+            "come back — not about whether they 'really' need to be "
+            "off. The 3-day standard is the floor, not the ceiling; "
+            "extend it if they ask, on the spot.",
+    },
+    {
+        "form_key": "time-off-review.bereavement",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Asking for a death certificate before approving. Calling "
+            "the supervisor 'just to check' before granting. Pushing "
+            "back on which family member 'counts' — the employee "
+            "decides who's family. Treating the request like a "
+            "policy puzzle instead of a person in grief.",
+    },
+    {
+        "form_key": "time-off-review.bereavement",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When something looks off",
+        "body":
+            "If a pattern is forming (multiple bereavement requests "
+            "for the same person · clearly fabricated names · timing "
+            "that maps to known shift dodges), that's an HR Director "
+            "conversation AFTER the time off is already approved. "
+            "You don't deny bereavement to investigate it. You "
+            "approve, then talk.",
+    },
+
+    # ── time-off-review.pattern ──────────────────────────────────────
+    # OPERATOR-STATED ANCHOR: "A pattern is a conversation, not a denial."
+    {
+        "form_key": "time-off-review.pattern",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "A pattern is a conversation, not a denial",
+        "body":
+            "One sick day is a sick day. Three Mondays in a row is a "
+            "pattern. The pattern doesn't change whether the current "
+            "request gets approved — it changes whether the "
+            "conversation that should be happening, IS happening. "
+            "Denying the request to 'send a message' just teaches "
+            "the crew that HR plays games.",
+    },
+    {
+        "form_key": "time-off-review.pattern",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Denying the request as a stand-in for the conversation "
+            "you don't want to have. Approving for the 30th time "
+            "without ever flagging the pattern to the supervisor. "
+            "Letting the pattern become a 'reputation' before anyone "
+            "has actually said the words to the employee.",
+    },
+    {
+        "form_key": "time-off-review.pattern",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What the right conversation looks like",
+        "body":
+            "Approve the current request. Then, separately, you or "
+            "the supervisor sits with the employee and says what "
+            "you've observed — specific dates, no editorializing. "
+            "Ask if anything's going on. Hear them out. Most "
+            "'patterns' have a real story behind them; some don't. "
+            "The conversation finds out.",
+    },
+
+    # ── time-off-review.vacation ─────────────────────────────────────
+    # OPERATOR-STATED ANCHOR: "Vacation is a yes with timing."
+    {
+        "form_key": "time-off-review.vacation",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Vacation is a yes with timing",
+        "body":
+            "Pre-planned vacation isn't a privilege HR grants — it's "
+            "earned time the employee owns. The question is rarely "
+            "'yes or no' — it's 'this week or that week?'. Check the "
+            "project schedule, talk to the supervisor about coverage, "
+            "and confirm a window that works. Saying 'no' outright is "
+            "almost always the wrong answer.",
+    },
+    {
+        "form_key": "time-off-review.vacation",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Saying 'no' instead of 'not that week'. Failing to "
+            "check the project schedule before deciding. Approving "
+            "without notifying the supervisor — coverage gets "
+            "discovered the morning of, not the week before. "
+            "Letting requests sit for 5 days while the employee "
+            "wonders if it counts as a 'no'.",
+    },
+
+    # ── time-off-review.medical ──────────────────────────────────────
+    {
+        "form_key": "time-off-review.medical",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Medical leave: plan around it, don't dig into it",
+        "body":
+            "Surgery, appointments, recovery — the employee tells "
+            "you when, you plan around it. The diagnosis is not your "
+            "business unless the employee chooses to share it. "
+            "Coordinate the schedule, confirm coverage, and respect "
+            "the privacy. 'What's wrong?' is not a question HR "
+            "asks here.",
+    },
+    {
+        "form_key": "time-off-review.medical",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Asking what the appointment is for. Pushing back on "
+            "timing because 'we have a busy week' — they didn't "
+            "schedule surgery around your pour schedule. Telling "
+            "the supervisor what the medical issue is. Treating a "
+            "medical note as a permission slip you get to evaluate.",
+    },
 ]
 
 

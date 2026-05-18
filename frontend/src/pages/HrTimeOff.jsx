@@ -25,6 +25,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { getHrToken } from "@/lib/hrAuth";
+import { HelpTipBlock } from "@/components/HelpTip";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -98,6 +99,14 @@ export default function HrTimeOff() {
         </div>
 
         <StatsStrip stats={stats} t={t} />
+
+        {/* iter222 · operational leadership coaching for HR's
+            highest-cultural-drift-risk decision moments. Anchor:
+            "Bereavement is granted, never debated. A pattern is a
+            conversation, not a denial. Vacation is a yes with timing." */}
+        <div className="mt-5">
+          <HelpTipBlock formKey="time-off-review" showCounter />
+        </div>
 
         <Card className="p-3 sm:p-4 mt-5 sm:mt-6">
           <div className="flex flex-wrap items-end gap-3">

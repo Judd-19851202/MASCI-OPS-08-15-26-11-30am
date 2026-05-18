@@ -1255,4 +1255,151 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "Tratar pendiente como una cola de 'revisar cuando haya "
             "tiempo' en vez de una cola de acción del día.",
     },
+
+    # ── iter222 · time-off-review (Tier-2 HR) ────────────────────────
+    ("time-off-review", "why"): {
+        "title_es": "Por qué importa esta revisión",
+        "body_es":
+            "El tiempo libre es donde aparece el carácter de la "
+            "empresa. La cuadrilla mira cómo RH maneja estas "
+            "solicitudes — con justicia, con humanidad, a tiempo — y "
+            "decide si vale la pena trabajar aquí. La mayoría son "
+            "decisiones de juicio, no de política. Lea la solicitud, "
+            "haga las preguntas, luego decida.",
+    },
+    ("time-off-review", "who"): {
+        "title_es": "A quién afecta su decisión",
+        "body_es":
+            "Al empleado primero (su día libre, su familia, su "
+            "confianza en la empresa). A su supervisor (que tiene "
+            "que cubrir el trabajo). A la cuadrilla (que ve si la "
+            "decisión cuadra con las últimas 10 iguales). Al PM si "
+            "afecta el staffing de proyecto. A nómina si cambia los "
+            "totales de la semana.",
+    },
+    ("time-off-review", "next"): {
+        "title_es": "Qué pasa después de que decide",
+        "body_es":
+            "El empleado recibe la respuesta — el mismo día si es "
+            "posible. El supervisor recibe visibilidad para planear "
+            "la cobertura. El tiempo aprobado entra a la cola de "
+            "verificación de tiempo automáticamente. Si necesitó más "
+            "información, la solicitud queda abierta con una nota "
+            "explicando qué pidió y cuándo.",
+    },
+    ("time-off-review", "escalate"): {
+        "title_es": "Cuándo llamar antes de decidir",
+        "body_es":
+            "Cualquier cosa que pudiera ser una pregunta de "
+            "discapacidad médica, cualquier cosa que toque una clase "
+            "protegida, cualquier caso donde el mismo empleado tenga "
+            "3+ solicitudes abiertas este trimestre, o cualquier "
+            "caso donde el supervisor empuje fuerte contra la "
+            "aprobación. Llame antes de decidir — el Director de RH "
+            "se entera el lunes de cualquier modo.",
+    },
+
+    ("time-off-review.bereavement", "why"): {
+        "title_es": "El duelo se concede, nunca se debate",
+        "body_es":
+            "Alguien murió. Apruebe el tiempo. La conversación "
+            "después es sobre la fecha de regreso y qué necesita "
+            "cuando regrese — no sobre si 'de verdad' necesita "
+            "estar fuera. El estándar de 3 días es el piso, no el "
+            "techo; extiéndalo si lo piden, en el momento.",
+    },
+    ("time-off-review.bereavement", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Pedir certificado de defunción antes de aprobar. Llamar "
+            "al supervisor 'solo para chequear' antes de conceder. "
+            "Empujar de regreso sobre cuál familiar 'cuenta' — el "
+            "empleado decide quién es familia. Tratar la solicitud "
+            "como un rompecabezas de política en vez de una persona "
+            "de duelo.",
+    },
+    ("time-off-review.bereavement", "escalate"): {
+        "title_es": "Cuándo algo se ve raro",
+        "body_es":
+            "Si se forma un patrón (varias solicitudes de duelo por "
+            "la misma persona · nombres claramente inventados · "
+            "tiempos que cuadran con turnos esquivados conocidos), "
+            "eso es una conversación con el Director de RH DESPUÉS "
+            "de que el tiempo ya está aprobado. No le niega el duelo "
+            "a alguien para investigarlo. Aprueba, luego habla.",
+    },
+
+    ("time-off-review.pattern", "why"): {
+        "title_es": "Un patrón es una conversación, no una negativa",
+        "body_es":
+            "Un día de enfermedad es un día de enfermedad. Tres "
+            "lunes seguidos es un patrón. El patrón no cambia si "
+            "se aprueba la solicitud actual — cambia si la "
+            "conversación que debería estar pasando, está pasando. "
+            "Negar la solicitud para 'mandar un mensaje' solo le "
+            "enseña a la cuadrilla que RH juega juegos.",
+    },
+    ("time-off-review.pattern", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Negar la solicitud como sustituto de la conversación "
+            "que no quiere tener. Aprobar por trigésima vez sin "
+            "nunca avisarle al supervisor del patrón. Dejar que el "
+            "patrón se vuelva 'reputación' antes de que alguien le "
+            "haya dicho las palabras al empleado.",
+    },
+    ("time-off-review.pattern", "next"): {
+        "title_es": "Cómo se ve la conversación correcta",
+        "body_es":
+            "Apruebe la solicitud actual. Después, por separado, "
+            "usted o el supervisor se sienta con el empleado y le "
+            "dice lo observado — fechas específicas, sin "
+            "editorializar. Pregunte si está pasando algo. "
+            "Escúchelo. La mayoría de los 'patrones' tienen una "
+            "historia real atrás; algunos no. La conversación "
+            "averigua.",
+    },
+
+    ("time-off-review.vacation", "why"): {
+        "title_es": "Las vacaciones son un sí con tiempo",
+        "body_es":
+            "Las vacaciones planeadas no son un privilegio que RH "
+            "concede — son tiempo ganado del empleado. La pregunta "
+            "rara vez es 'sí o no' — es 'esta semana o esa semana'. "
+            "Revise el calendario del proyecto, hable con el "
+            "supervisor sobre cobertura, y confirme una ventana que "
+            "funcione. Decir 'no' de plano casi siempre es la "
+            "respuesta equivocada.",
+    },
+    ("time-off-review.vacation", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Decir 'no' en vez de 'esa semana no'. No revisar el "
+            "calendario del proyecto antes de decidir. Aprobar sin "
+            "avisarle al supervisor — la cobertura se descubre la "
+            "mañana del primer día, no la semana antes. Dejar "
+            "solicitudes pendientes 5 días mientras el empleado se "
+            "pregunta si cuenta como 'no'.",
+    },
+
+    ("time-off-review.medical", "why"): {
+        "title_es": "Permiso médico: planee alrededor, no escarbe en él",
+        "body_es":
+            "Cirugía, citas, recuperación — el empleado le dice "
+            "cuándo, usted planea alrededor. El diagnóstico no es "
+            "asunto suyo a menos que el empleado decida compartirlo. "
+            "Coordine el calendario, confirme la cobertura, y "
+            "respete la privacidad. '¿Qué tiene?' no es una "
+            "pregunta que RH haga aquí.",
+    },
+    ("time-off-review.medical", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Preguntar para qué es la cita. Empujar de regreso "
+            "sobre los tiempos porque 'tenemos una semana ocupada' — "
+            "ellos no programaron la cirugía alrededor de su "
+            "calendario de coladas. Decirle al supervisor cuál es "
+            "el asunto médico. Tratar una nota médica como un "
+            "permiso que usted puede evaluar.",
+    },
 }
