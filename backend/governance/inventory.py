@@ -48,12 +48,12 @@ PORTALS: list[dict] = [
     },
     {
         "key": "shop", "label": "Shop / Fleet Portal", "login_url": "/shop/login",
-        "token_header": "X-Shop-Token", "sign_in_listed": False, "scope": "shop",
+        "token_header": "X-Shop-Token", "sign_in_listed": True, "scope": "shop",
         "section_prefix": "shop-", "purpose": "Pre-Op review · damage · maintenance · parts · sign-offs.",
     },
     {
         "key": "dispatch", "label": "Dispatch Portal", "login_url": "/dispatch-portal/login",
-        "token_header": "X-Dispatch-Token", "sign_in_listed": False, "scope": "dispatch",
+        "token_header": "X-Dispatch-Token", "sign_in_listed": True, "scope": "dispatch",
         "section_prefix": "dispatch-", "purpose": "Equipment movement · availability · holds · transfers.",
     },
     {
@@ -62,12 +62,14 @@ PORTALS: list[dict] = [
         "section_prefix": "pm-", "purpose": "Project review · labor docs · cross-portal coordination.",
     },
     {
-        # Pass 4 will close this gap; today it's the worst-current-offender
-        # captured by the audit as a known structural anomaly.
-        "key": "leadership", "label": "Field Leadership Portal", "login_url": None,
-        "token_header": None, "sign_in_listed": False, "scope": "leadership",
+        # Pass 4 — Field Leadership operational identity landed.
+        # Shared-password auth is an intentional design choice (parallel
+        # to crew dispatch codes / shop key cards) — every record
+        # produced inside the portal is individually signed at the
+        # record level. This is no longer flagged as an anomaly.
+        "key": "leadership", "label": "Field Leadership Portal", "login_url": "/leadership/login",
+        "token_header": "X-Leadership-Token", "sign_in_listed": True, "scope": "leadership",
         "section_prefix": "field-", "purpose": "Superintendents · Foremen · writeups · coaching · field oversight.",
-        "anomaly": "No portal-token login. Uses shared MASCIGC password gate at /leadership.",
     },
     {
         "key": "admin", "label": "Admin Console", "login_url": "/admin/login",
@@ -252,7 +254,7 @@ def compute_portal_matrix() -> list[dict]:
         ctxt_present = {
             "public": "partial", "hr": "partial", "safety": "complete",
             "shop": "partial", "dispatch": "missing", "pm": "complete",
-            "leadership": "missing", "admin": "complete",
+            "leadership": "complete", "admin": "complete",
         }
         f_ctxt = {"status": ctxt_present.get(p["key"], "missing"),
                   "detail": "WhyItMattersPanel embed coverage per audit"}

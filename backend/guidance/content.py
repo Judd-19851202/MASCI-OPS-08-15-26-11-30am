@@ -1333,6 +1333,155 @@ _ARTICLES: list[dict] = [
         ],
         "related": ["field-daily-report-howto", "field-coaching-documentation", "role-foreman"],
     },
+    # ── Pass 4 — Field Leadership Operational Identity (iter200) ─────────
+    # New articles supporting the first-class /leadership/login URL + the
+    # operational-identity messaging on the login page. Onboarding and
+    # troubleshooting use `public` scope so they're readable BEFORE login.
+    # The identity article uses leadership scope (assumes you're already in).
+    {
+        "id": "onboard-leadership-first-week",
+        "section": "onboarding",
+        "title": "Field Leadership — First Week",
+        "summary": "What a new Superintendent or Foreman does in their first week on MASCI.",
+        "scopes": ["public"],
+        "tags": ["onboarding", "leadership", "first week", "supervisor", "foreman", "superintendent"],
+        "body": [
+            {"type": "p", "text":
+                "Welcome to Field Leadership. This portal is the daily operations surface "
+                "for Superintendents, Foremen, Field Leaders, and Operations Oversight. "
+                "Here is what to do your first week."},
+            {"type": "steps", "items": [
+                "Day 1 — Visit /leadership/login and get the leadership password from the office or your direct supervisor.",
+                "Day 1 — Read the 'What does Field Leadership do?' article (linked at the bottom of the login page).",
+                "Day 2 — Submit your first Daily Report on the actual job (not a test). Photos. Crews. Hours. Conditions.",
+                "Day 2-3 — Walk the lifecycle of one equipment Pre-Op from operator → shop → back to field. Understand what your sign-off triggers.",
+                "Day 3-4 — Issue one piece of PPE / equipment using Equipment Checkout. The record is the proof.",
+                "Day 4-5 — Run a Toolbox Talk / Safety Meeting and submit the attendance form.",
+                "End of Week 1 — If you have any documentation event (verbal coaching, write-up, recognition), enter it the same day. Late documentation is weaker documentation.",
+            ]},
+            {"type": "why", "text":
+                "Field Leadership is the most operationally connected portal in MASCI — your "
+                "Daily Reports feed payroll (HR), your write-ups feed accountability (HR + Safety), "
+                "your equipment sign-outs feed Shop + Dispatch, and your project notes feed PM. "
+                "The first week is about understanding that everything you document touches "
+                "another team. Get the rhythm right and the rest of the platform works around you."},
+            {"type": "tip", "text":
+                "Add /leadership to your phone home screen on Day 1. Almost every Field Leadership "
+                "task is done on a phone in the field — installing the shortcut early saves you "
+                "5-10 taps per submission for the rest of your career here."},
+            {"type": "warn", "text":
+                "Field Leadership uses a SHARED leadership password — same as a crew dispatch code. "
+                "Do not share the password outside the leadership team. Accountability for every "
+                "record happens at the record level (your signature on the form), not at the door."},
+            {"type": "next", "items": [
+                "Bookmark this article — it's also the answer to 'what do I do next' for the first month",
+                "Read 'Submitting a Defensible Daily Report' — referenced more than any other guide here",
+                "Talk to your PM about which projects you'll be assigned",
+            ]},
+        ],
+        "related": [
+            "portal-leadership-identity",
+            "tshoot-leadership-login",
+            "field-daily-report-howto",
+            "role-superintendent",
+            "role-foreman",
+        ],
+    },
+    {
+        "id": "tshoot-leadership-login",
+        "section": "troubleshooting",
+        "title": "Can't sign in to Field Leadership",
+        "summary": "Quick fixes when /leadership/login isn't working.",
+        "scopes": ["public"],
+        "tags": ["troubleshooting", "leadership", "login", "supervisor"],
+        "body": [
+            {"type": "p", "text":
+                "Field Leadership uses a shared leadership password (not your individual email + "
+                "password). If you can't get in, walk through these in order."},
+            {"type": "steps", "items": [
+                "Confirm you're at /leadership/login (the dedicated portal door). The shared password works there.",
+                "Verify your spelling and the caps lock state — leadership passwords are case-sensitive.",
+                "If you already have an Admin or PM token (you've signed in to /admin/login or /pm/login earlier in this session), the leadership gate accepts those automatically — no need for the leadership password.",
+                "Clear sessionStorage and reload the page if a previous token is interfering — close the browser tab and reopen /leadership/login.",
+                "Ask your direct supervisor or the office for the current leadership password. The password may have been rotated.",
+            ]},
+            {"type": "why", "text":
+                "The shared leadership password is the right model for crews because it works "
+                "the same way as a crew dispatch code or a shop key — every leader needs to enter, "
+                "and individual identity is captured at the form-signature level. If you've lost "
+                "the password, it's almost always something the office can give you in 30 seconds."},
+            {"type": "warn", "text":
+                "Do NOT type the leadership password into any other portal's login form "
+                "(/hr/login, /pm/login, etc.) — those expect individual email + password, "
+                "and pasting the shared password there can lock your individual account "
+                "temporarily after a few attempts."},
+            {"type": "tip", "text":
+                "Once you sign in successfully, your browser tab holds a 12-hour token. You "
+                "don't need to re-enter the password again that same shift unless you close "
+                "the browser tab."},
+        ],
+        "related": [
+            "onboard-leadership-first-week",
+            "portal-leadership-identity",
+            "tshoot-session-timeout",
+            "public-cant-login",
+        ],
+    },
+    {
+        "id": "portal-leadership-identity",
+        "section": "portals",
+        "title": "What does Field Leadership do?",
+        "summary": "Operational identity, purpose, workflow ownership, and how Field Leadership connects to every other portal.",
+        "scopes": ["public"],
+        "tags": ["leadership", "identity", "operational", "portal", "supervisor"],
+        "body": [
+            {"type": "p", "text":
+                "Field Leadership is one of the primary operational user groups on the platform. "
+                "It is the daily-operations surface for Superintendents, Foremen, Field Leaders, "
+                "and Operations Oversight — the people running crews on the ground and making "
+                "the work happen."},
+            {"type": "p", "text":
+                "Field Leadership is intentional, first-class, and operationally central. It is "
+                "not a 'shared lane' or a side door. It is the portal where the day-to-day "
+                "of construction operations gets documented."},
+            {"type": "bullets", "items": [
+                "Daily Reports — what was built, by whom, with what, in what conditions",
+                "Write-Ups / Verbal Coaching — accountability documentation",
+                "Recognition — formal acknowledgement of strong performance",
+                "Equipment Checkout — who signed out what, when, and back",
+                "Crew & New Employee Evaluations — career-path documentation",
+                "Training Deficiency Notes — gaps that need scheduling",
+                "Supervisor Notes — confidential operational notes",
+                "Promotion Recommendations — leadership pipeline",
+                "PO Requests — field-initiated purchasing",
+            ]},
+            {"type": "why", "text":
+                "Field Leadership work touches every other portal: Daily Reports flow into HR "
+                "(payroll), Safety (incident context), and PM (project status). Write-ups flow "
+                "into HR (accountability) and Safety (training gaps). Equipment Checkout flows "
+                "into Shop (asset condition) and Dispatch (availability). Crew Evaluations flow "
+                "into HR (career path) and PM (project staffing). What you document here is "
+                "where the rest of MASCI gets its source of truth from."},
+            {"type": "next", "items": [
+                "If you're new — read 'Field Leadership — First Week'",
+                "If you're documenting a person — read 'Field · Authoring a Defensible Write-Up'",
+                "If you're documenting a day — read 'Submitting a Defensible Daily Report'",
+                "If you need help signing in — read 'Can't sign in to Field Leadership'",
+            ]},
+            {"type": "tip", "text":
+                "Field Leadership is mobile-first by design. Almost every workflow can be "
+                "completed on a phone with one hand, in poor signal, with the keyboard glove-friendly. "
+                "If something feels awkward on mobile, flag it — that's a bug, not normal."},
+        ],
+        "related": [
+            "onboard-leadership-first-week",
+            "tshoot-leadership-login",
+            "field-daily-report-howto",
+            "field-writeup-authoring",
+            "role-superintendent",
+            "role-foreman",
+        ],
+    },
     {
         "id": "field-daily-report-howto",
         "section": "portals",
@@ -2956,11 +3105,19 @@ def visible_articles(granted_scopes: set[str]) -> list[dict]:
 def get_article(article_id: str, granted_scopes: set[str]) -> dict | None:
     for a in _ARTICLES:
         if a["id"] == article_id and article_visible(a, granted_scopes):
-            # Filter `related` to only show visible related articles
+            # Filter `related` to only show visible related articles.
+            # iter200 polish — include title_es alongside English title
+            # so the frontend can render related-link labels in the
+            # caller's language with graceful EN fallback.
             allowed_ids = {x["id"] for x in visible_articles(granted_scopes)}
+            articles_by_id = {x["id"]: x for x in _ARTICLES}
             out = dict(a)
             out["related"] = [
-                {"id": r, "title": next((x["title"] for x in _ARTICLES if x["id"] == r), r)}
+                {
+                    "id": r,
+                    "title": (articles_by_id.get(r, {}).get("title") or r),
+                    "title_es": articles_by_id.get(r, {}).get("title_es"),
+                }
                 for r in (a.get("related") or [])
                 if r in allowed_ids
             ]

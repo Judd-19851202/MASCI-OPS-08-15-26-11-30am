@@ -348,21 +348,25 @@ export default function OperationalGuidanceCenter() {
         {(article.related || []).length > 0 && (
           <div className="mt-8 border-t border-slate-200 pt-4">
             <strong className="block text-[11px] uppercase tracking-wider text-slate-600 mb-2">
-              Related guidance
+              {lang === "es" ? "Guía relacionada" : "Related guidance"}
             </strong>
             <ul className="space-y-1">
-              {article.related.map((r) => (
-                <li key={r.id}>
-                  <Link
-                    to={`/guidance/${r.id}`}
-                    className="text-amber-700 hover:text-amber-900 hover:underline inline-flex items-center gap-1 text-sm"
-                    data-testid={`guidance-related-${r.id}`}
-                  >
-                    <ArrowRightCircle className="w-3.5 h-3.5" />
-                    {r.title}
-                  </Link>
-                </li>
-              ))}
+              {article.related.map((r) => {
+                // iter200 polish — pick title_es when available + ES is selected
+                const relTitle = (lang === "es" && r.title_es) ? r.title_es : r.title;
+                return (
+                  <li key={r.id}>
+                    <Link
+                      to={`/guidance/${r.id}`}
+                      className="text-amber-700 hover:text-amber-900 hover:underline inline-flex items-center gap-1 text-sm"
+                      data-testid={`guidance-related-${r.id}`}
+                    >
+                      <ArrowRightCircle className="w-3.5 h-3.5" />
+                      {relTitle}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

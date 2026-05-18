@@ -251,8 +251,17 @@ export default function FieldLeadershipHub() {
   );
 
   useEffect(() => {
-    setAuthed(Boolean(getLeadershipToken()) || isAdmin() || Boolean(getPmToken()));
-  }, []);
+    const next = Boolean(getLeadershipToken()) || isAdmin() || Boolean(getPmToken());
+    setAuthed(next);
+    // Pass 4 — first-class /leadership/login. If not authed, send the
+    // user to the dedicated portal door instead of rendering the
+    // inline password gate. The inline PasswordGate below is retained
+    // as a safety net (link from older bookmarks / mid-session token
+    // expiry) but the canonical entry is /leadership/login.
+    if (!next) {
+      navigate("/leadership/login", { replace: true });
+    }
+  }, [navigate]);
 
   if (!authed) {
     return <PasswordGate onAuthed={() => setAuthed(true)} />;

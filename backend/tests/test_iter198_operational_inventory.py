@@ -69,16 +69,17 @@ def test_portal_matrix_has_all_ten_fields():
             assert f["status"] in {"complete", "partial", "missing", "n/a", "deferred"}
 
 
-def test_field_leadership_anomaly_is_flagged():
-    """Field Leadership must be reported as login=partial and disco=missing
-    until Pass 4 closes the gap. This is the worked-example anchor."""
+def test_field_leadership_login_now_complete():
+    """Pass 4 — Field Leadership operational identity landed. Login is
+    no longer partial/missing; it's a first-class portal door."""
     from governance.inventory import compute_portal_matrix
     rows = compute_portal_matrix()
     fl = next((r for r in rows if r["portal"] == "leadership"), None)
     assert fl is not None
-    assert fl["fields"]["login_required"]["status"] in {"partial", "missing"}
-    assert fl["fields"]["discoverability"]["status"] == "missing"
-    assert fl.get("anomaly")  # the curated anomaly message must be present
+    assert fl["fields"]["login_required"]["status"] == "complete"
+    assert fl["fields"]["discoverability"]["status"] == "complete"
+    # Anomaly cleared in Pass 4
+    assert not fl.get("anomaly")
 
 
 def test_translation_readiness_baseline():
@@ -97,16 +98,15 @@ def test_translation_readiness_baseline():
     assert t["by_scope"]["public"]["pct_body"] >= 95.0
 
 
-def test_drift_detects_field_leadership_no_login():
+def test_drift_post_pass4_no_portal_without_login():
+    """Pass 4 closed the only portal-without-login gap. Drift should
+    no longer flag any portal as missing a login URL."""
     from governance.inventory import compute_drift
     d = compute_drift()
     cats = {it["category"] for it in d["items"]}
-    assert "portal-without-login" in cats
-    # The leadership row must be there
-    fl_items = [it for it in d["items"]
-                if it["category"] == "portal-without-login" and it["subject"] == "leadership"]
-    assert fl_items, "Field Leadership drift item must be surfaced"
-    assert fl_items[0]["severity"] == "p0"
+    assert "portal-without-login" not in cats, (
+        f"Pass 4 should have cleared portal-without-login drift; still in {cats}"
+    )
 
 
 def test_drift_detects_translation_missing():

@@ -58,6 +58,42 @@ const FL_KIND_GUIDANCE = {
     article: "field-writeup-authoring",
     body: "Defensible write-ups record facts, the conversation, and the agreed next step. Vague write-ups protect nobody.",
   },
+  // Pass 4 — complete the contextual-help map for the remaining kinds.
+  attendance: {
+    title: "Why attendance documentation matters",
+    article: "field-coaching-documentation",
+    body: "Attendance patterns are the early-warning system for performance issues. Date, time, what happened, who was told.",
+  },
+  recognition: {
+    title: "Why recognition is part of the record",
+    article: "portal-leadership-identity",
+    body: "Recognition documents strong performance the same way write-ups document weak performance — both feed HR career path decisions.",
+  },
+  new_employee_eval: {
+    title: "Why the first evaluation matters",
+    article: "portal-leadership-identity",
+    body: "A new-employee evaluation is the baseline the rest of the career documentation gets compared against. Honest > generous.",
+  },
+  crew_eval: {
+    title: "Why crew evaluations matter",
+    article: "portal-leadership-identity",
+    body: "Crew evaluations feed PM project staffing and HR career path. Comment on the crew dynamic, not just the individuals.",
+  },
+  training_deficiency: {
+    title: "Why training-gap notes matter",
+    article: "safety-training-compliance",
+    body: "A training-deficiency note converts a vague 'this guy needs OSHA-10' into a scheduled, tracked, signed-off training event. Specifics > vibes.",
+  },
+  supervisor_notes: {
+    title: "Why supervisor notes matter",
+    article: "portal-leadership-identity",
+    body: "Confidential operational notes — context that doesn't belong on a write-up but you'll want when reviewing later.",
+  },
+  promotion_recommendation: {
+    title: "Why promotion recommendations matter",
+    article: "portal-leadership-identity",
+    body: "Formal recommendation that feeds HR career-path review. Specific examples + measurable observations > 'good guy'.",
+  },
 };
 import {
   useDraftSync, getActorId, mintIdempotencyKey, enqueueUpload,

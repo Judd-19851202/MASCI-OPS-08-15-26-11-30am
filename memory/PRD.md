@@ -1,6 +1,89 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — Pass 4 · Field Leadership Operational Identity · ✅ DELIVERED (preview only)
+
+Pass 4 of the Operational Inventory initiative — Field Leadership is now a **first-class operational portal**, not a shared/hidden lane. This is the operational identity, not just a route.
+
+### What landed
+
+**Frontend — Operational portal door:**
+- **NEW** `/app/frontend/src/pages/LeadershipLogin.jsx` (~180 lines) — dedicated `/leadership/login` page with full operational identity:
+  - HardHat icon · "FIELD LEADERSHIP PORTAL" kicker · clear purpose statement
+  - Explicit operational identity ("Superintendents, Foremen, Field Leaders, and Operations Oversight — the people running crews on the ground")
+  - Shared-password rationale explained ("Accountability is at the record, not the door")
+  - Pre-login guidance discoverability: 3 links to onboarding, identity article, troubleshooting
+  - RBAC transparency callout (Admin + PM tokens also satisfy gate)
+  - Translation-aware via `useT()`
+  - Mobile-friendly · keyboard-friendly · glove-friendly
+- **MOD** `/app/frontend/src/App.js` — `/leadership/login` route mounted alongside `/dispatch-portal/login`
+- **MOD** `/app/frontend/src/pages/FieldLeadershipHub.jsx` — unauth users now redirect to `/leadership/login` (instead of rendering inline gate). First-class URL replaces the inline gate as the canonical entry.
+- **MOD** `/app/frontend/src/pages/SignIn.jsx` — Field Leadership tile added to portal directory. Also surfaced **Safety**, **Dispatch**, and **Shop** which were missing from the directory (audit drift items closed in the same pass).
+
+**Frontend — Contextual help:**
+- **MOD** `/app/frontend/src/pages/FieldLeadershipFormPage.jsx` — extended `FL_KIND_GUIDANCE` map from 4 → **10** kinds (attendance, recognition, new_employee_eval, crew_eval, training_deficiency, supervisor_notes, promotion_recommendation added). WhyItMattersPanel now embedded on every Field Leadership form kind.
+
+**Backend — Operational identity content:**
+- **NEW** 3 guidance articles in `backend/guidance/content.py` (~150 lines):
+  - `onboard-leadership-first-week` (public-scope · onboarding) — Day-by-day first-week walk-through
+  - `tshoot-leadership-login` (public-scope · troubleshooting) — Login error recovery
+  - `portal-leadership-identity` (public-scope · portals) — "What does Field Leadership do?" operational identity statement, workflow ownership, cross-portal connections
+- All 3 cross-linked via `related`
+
+**Backend — Spanish translations (Tier 1 batch +3):**
+- **MOD** `backend/guidance/translations_es.py` — Full ES translations for all 3 new articles. Field crews can read the operational identity in their language pre-login.
+
+**Backend — Governance flip:**
+- **MOD** `backend/governance/inventory.py`:
+  - Field Leadership `login_url: "/leadership/login"` (was `None`)
+  - Field Leadership `sign_in_listed: True` (was `False`)
+  - Field Leadership `anomaly` field removed (no longer flagged as structural anomaly)
+  - Safety / Shop / Dispatch `sign_in_listed: True` (corrected — they're in the directory now)
+  - Leadership `contextual_help: "complete"` (was "missing" — full 10-kind WhyPanel coverage)
+
+**Tests:**
+- **NEW** `backend/tests/test_iter200_field_leadership_identity.py` — 12 tests covering article registry, public-scope readability, ES translation, cross-links, governance flip, drift count drop, anonymous HTTP access, related-link title_es polish
+- **MOD** `tests/test_iter198_operational_inventory.py` — flipped 2 tests from "anomaly expected" to "Pass 4 complete"
+- **Full regression**: **289/289 passing**
+
+**Polish (iter200 prerequisite):**
+- **MOD** `backend/guidance/content.py` `get_article()` now includes `title_es` on each related-link record
+- **MOD** `OperationalGuidanceCenter.jsx` related-link list picks `title_es` when `lang === "es"`
+- "Related guidance" section header itself now translates
+
+### Live signals (`/admin/operational-inventory`)
+- **Drift P0 count: 1** (down from 2 — only `translation-missing` remains)
+- **`portal-without-login` drift category: cleared** (was 1 item · leadership)
+- **`portal-not-in-signin` drift category: cleared** for shop/dispatch (was 2 items)
+- **Field Leadership `login_required`: complete · `discoverability`: complete · `contextual_help`: complete**
+- **Translation `body_es_present`: 20/97** (+3 from Pass 4 — public-scope now ≥100% with new articles)
+
+### Smoke-tested end-to-end
+- `/leadership/login` renders with full operational identity (EN + ES)
+- Pre-login link to `onboard-leadership-first-week` works anonymously
+- ES toggle on onboarding article: "Liderazgo de Campo — Primera Semana" / "POR QUÉ IMPORTA" / "QUÉ PASA DESPUÉS"
+- `/sign-in` directory now shows all 7 portal tiles including Field Leadership
+- FieldLeadershipHub auto-redirects unauth users to `/leadership/login`
+- Field Leadership form kinds all show contextual WhyPanels
+
+### Architectural decisions
+- **Shared-password auth retained** — it's an intentional design parallel to crew dispatch codes / shop key cards. Individual accountability happens at the record-signature level. Migrating to per-user email+password would be a different initiative (Pass K-something) and was not in Pass 4 scope.
+- **Field Leadership is `public` scope for its discoverability articles** — same RBAC pattern as `onboard-login`, `public-cant-login`. Public-scope means "universally readable"; restricted scopes are now never combined with public per `iter197` guardrail.
+
+### Files touched
+- NEW: `frontend/src/pages/LeadershipLogin.jsx`, `backend/tests/test_iter200_field_leadership_identity.py`
+- MOD: `frontend/src/App.js`, `frontend/src/pages/SignIn.jsx`, `frontend/src/pages/FieldLeadershipHub.jsx`, `frontend/src/pages/FieldLeadershipFormPage.jsx`, `frontend/src/pages/guidance/OperationalGuidanceCenter.jsx`, `backend/guidance/content.py`, `backend/guidance/translations_es.py`, `backend/governance/inventory.py`, `backend/tests/test_iter198_operational_inventory.py`, `memory/PRD.md`
+
+No production push. Read-only governance + identity content.
+
+### Next
+- ⏸️ Pass 5 — Per-persona onboarding articles (Shop · Dispatch · PM · HR · Safety first-week walks)
+- ⏸️ Pass 6 — Cross-cutting workflow coverage (Tasks · DocExpirations · POs · ProjectHealth · AssetTransfers · HR Time-Off · Shop Parts)
+- ⏸️ Pass 7 — QR poster rollout
+- ⏸️ Translation batches 2-5 (Field crew → Field Leadership → Safety → Shop → HR/Dispatch/PM)
+
+---
+
 ## 2026-05-18 — Pass 3 · Translation Architecture (EN + ES) · ✅ DELIVERED (preview only)
 
 Pass 3 of the Operational Inventory initiative — guidance content is now bilingual end-to-end with graceful English fallback.

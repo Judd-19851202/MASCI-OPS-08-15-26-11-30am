@@ -201,7 +201,16 @@ export default function SignIn() {
               <Link to="/hr/login" className="text-purple-700 hover:underline" data-testid="signin-hr-link">
                 HR Portal →
               </Link>
-              <Link to="/admin/login" className="text-slate-900 hover:underline font-bold" data-testid="signin-admin-link">
+              <Link to="/safety-portal/login" className="text-yellow-700 hover:underline" data-testid="signin-safety-link">
+                Safety Portal →
+              </Link>
+              <Link to="/dispatch-portal/login" className="text-sky-700 hover:underline" data-testid="signin-dispatch-link">
+                Dispatch Portal →
+              </Link>
+              <Link to="/leadership/login" className="text-red-700 hover:underline" data-testid="signin-leadership-link">
+                Field Leadership →
+              </Link>
+              <Link to="/admin/login" className="text-slate-900 hover:underline font-bold col-span-2" data-testid="signin-admin-link">
                 Admin Console →
               </Link>
             </div>

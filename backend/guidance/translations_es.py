@@ -58,6 +58,126 @@ TRANSLATIONS_ES: dict[str, dict] = {
         ],
     },
 
+    # ── Pass 4 — Field Leadership Operational Identity (public articles) ──
+    "onboard-leadership-first-week": {
+        "title_es": "Liderazgo de Campo — Primera Semana",
+        "summary_es": "Qué hace un nuevo Superintendente o Capataz en su primera semana en MASCI.",
+        "body_es": [
+            {"type": "p", "text":
+                "Bienvenido al Liderazgo de Campo. Este portal es la superficie de operaciones diarias "
+                "para Superintendentes, Capataces, Líderes de Campo y Supervisión de Operaciones. "
+                "Esto es lo que debe hacer su primera semana."},
+            {"type": "steps", "items": [
+                "Día 1 — Visite /leadership/login y pida la contraseña de liderazgo a la oficina o a su supervisor directo.",
+                "Día 1 — Lea el artículo '¿Qué hace el Liderazgo de Campo?' (enlace en la parte inferior de la página de inicio de sesión).",
+                "Día 2 — Envíe su primer Reporte Diario en un trabajo real (no de prueba). Fotos. Cuadrillas. Horas. Condiciones.",
+                "Día 2-3 — Recorra el ciclo completo de un Pre-Op de equipo desde el operador → taller → de vuelta al campo. Entienda qué pasa cuando usted firma.",
+                "Día 3-4 — Entregue una pieza de EPP / equipo usando Equipment Checkout. El registro es la prueba.",
+                "Día 4-5 — Dirija una Charla de Seguridad / Toolbox Talk y envíe el formulario de asistencia.",
+                "Fin de Semana 1 — Si tuvo cualquier evento de documentación (amonestación verbal, escrita, reconocimiento), regístrelo el mismo día. La documentación tardía es documentación débil.",
+            ]},
+            {"type": "why", "text":
+                "El Liderazgo de Campo es el portal más conectado operacionalmente en MASCI — sus "
+                "Reportes Diarios alimentan la nómina (RH), sus amonestaciones alimentan la "
+                "rendición de cuentas (RH + Seguridad), sus salidas de equipo alimentan Taller + "
+                "Despacho, y sus notas de proyecto alimentan al PM. La primera semana se trata "
+                "de entender que todo lo que documenta afecta a otro equipo. Si toma el ritmo "
+                "correcto, el resto de la plataforma trabaja a su favor."},
+            {"type": "tip", "text":
+                "Agregue /leadership a la pantalla de inicio de su teléfono el Día 1. Casi toda "
+                "tarea de Liderazgo de Campo se hace en un teléfono en el sitio — instalar el "
+                "atajo temprano le ahorra 5-10 toques por envío el resto de su carrera aquí."},
+            {"type": "warn", "text":
+                "El Liderazgo de Campo usa una CONTRASEÑA COMPARTIDA — igual que un código de "
+                "despacho de cuadrilla. No comparta la contraseña fuera del equipo de liderazgo. "
+                "La rendición de cuentas por cada registro pasa al nivel del registro (su firma "
+                "en el formulario), no en la puerta."},
+            {"type": "next", "items": [
+                "Marque este artículo — también es la respuesta a 'qué hago después' durante el primer mes",
+                "Lea 'Enviando un Reporte Diario Defendible' — el más referenciado de todos",
+                "Hable con su PM sobre los proyectos a los que será asignado",
+            ]},
+        ],
+    },
+
+    "tshoot-leadership-login": {
+        "title_es": "No puedo iniciar sesión en Liderazgo de Campo",
+        "summary_es": "Soluciones rápidas cuando /leadership/login no funciona.",
+        "body_es": [
+            {"type": "p", "text":
+                "El Liderazgo de Campo usa una contraseña compartida (no su correo + contraseña "
+                "individual). Si no puede entrar, siga estos pasos en orden."},
+            {"type": "steps", "items": [
+                "Confirme que está en /leadership/login (la puerta dedicada del portal). La contraseña compartida funciona ahí.",
+                "Verifique la ortografía y el estado de mayúsculas — las contraseñas de liderazgo distinguen mayúsculas.",
+                "Si ya tiene un token Admin o PM (inició sesión en /admin/login o /pm/login antes en esta sesión), la puerta de liderazgo los acepta automáticamente — no necesita la contraseña de liderazgo.",
+                "Borre sessionStorage y recargue la página si un token previo está interfiriendo — cierre la pestaña del navegador y vuelva a abrir /leadership/login.",
+                "Pida la contraseña de liderazgo actual a su supervisor directo o a la oficina. La contraseña puede haber rotado.",
+            ]},
+            {"type": "why", "text":
+                "La contraseña compartida de liderazgo es el modelo correcto para cuadrillas "
+                "porque funciona igual que un código de despacho o una llave del taller — todo "
+                "líder necesita entrar, y la identidad individual queda capturada al nivel de "
+                "firma del formulario. Si perdió la contraseña, casi siempre la oficina puede "
+                "dársela en 30 segundos."},
+            {"type": "warn", "text":
+                "NO escriba la contraseña de liderazgo en el formulario de inicio de sesión de "
+                "otro portal (/hr/login, /pm/login, etc.) — esos esperan correo + contraseña "
+                "individual, y pegar la contraseña compartida ahí puede bloquear su cuenta "
+                "individual temporalmente después de varios intentos."},
+            {"type": "tip", "text":
+                "Una vez que inicie sesión correctamente, su pestaña del navegador guarda un "
+                "token de 12 horas. No necesita volver a escribir la contraseña ese mismo "
+                "turno a menos que cierre la pestaña."},
+        ],
+    },
+
+    "portal-leadership-identity": {
+        "title_es": "¿Qué hace el Liderazgo de Campo?",
+        "summary_es": "Identidad operacional, propósito, dueños de flujo y cómo el Liderazgo de Campo conecta con todos los demás portales.",
+        "body_es": [
+            {"type": "p", "text":
+                "El Liderazgo de Campo es uno de los grupos de usuarios operacionales principales "
+                "en la plataforma. Es la superficie de operaciones diarias para Superintendentes, "
+                "Capataces, Líderes de Campo y Supervisión de Operaciones — la gente que dirige "
+                "las cuadrillas en el suelo y hace que el trabajo se haga."},
+            {"type": "p", "text":
+                "El Liderazgo de Campo es intencional, de primera clase y operacionalmente "
+                "central. No es una 'vía compartida' ni una puerta lateral. Es el portal donde "
+                "se documenta el día a día de las operaciones de construcción."},
+            {"type": "bullets", "items": [
+                "Reportes Diarios — qué se construyó, por quién, con qué, en qué condiciones",
+                "Amonestaciones / Coaching Verbal — documentación de rendición de cuentas",
+                "Reconocimientos — reconocimiento formal de desempeño sólido",
+                "Equipment Checkout — quién retiró qué, cuándo y la devolución",
+                "Evaluaciones de Cuadrilla y de Nuevo Empleado — documentación de carrera",
+                "Notas de Deficiencia de Capacitación — brechas que requieren programación",
+                "Notas del Supervisor — notas operacionales confidenciales",
+                "Recomendaciones de Promoción — pipeline de liderazgo",
+                "Solicitudes de OC — compras iniciadas desde el campo",
+            ]},
+            {"type": "why", "text":
+                "El trabajo del Liderazgo de Campo toca todos los demás portales: los Reportes "
+                "Diarios alimentan RH (nómina), Seguridad (contexto de incidentes) y PM (estado "
+                "de proyecto). Las amonestaciones alimentan RH (rendición de cuentas) y Seguridad "
+                "(brechas de capacitación). Equipment Checkout alimenta Taller (estado del "
+                "activo) y Despacho (disponibilidad). Las evaluaciones de cuadrilla alimentan "
+                "RH (carrera) y PM (asignación de proyecto). Lo que se documenta aquí es de "
+                "donde el resto de MASCI saca su fuente de verdad."},
+            {"type": "next", "items": [
+                "Si es nuevo — lea 'Liderazgo de Campo — Primera Semana'",
+                "Si está documentando a una persona — lea 'Campo · Autoría de una Amonestación Defendible'",
+                "Si está documentando un día — lea 'Enviando un Reporte Diario Defendible'",
+                "Si necesita ayuda para iniciar sesión — lea 'No puedo iniciar sesión en Liderazgo de Campo'",
+            ]},
+            {"type": "tip", "text":
+                "El Liderazgo de Campo es mobile-first por diseño. Casi cualquier flujo se "
+                "puede completar en un teléfono con una mano, con poca señal, con el teclado "
+                "amigable para guantes. Si algo se siente incómodo en móvil, repórtelo — es "
+                "un bug, no algo normal."},
+        ],
+    },
+
     # ── tshoot-session-timeout ───────────────────────────────────────
     "tshoot-session-timeout": {
         "title_es": "Mi sesión se cerró",
