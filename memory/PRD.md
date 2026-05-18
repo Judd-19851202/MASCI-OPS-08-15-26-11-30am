@@ -1,5 +1,88 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter230 · DEPLOY.md · ✅ DELIVERED · deployment discipline institutionalized (preview only)
+
+Per operator directive: option A only ("add DEPLOY.md · document usage discipline · lock deployment governance in place"). Option B (experimenting with coaching surfaces) explicitly declined per stabilization-phase pivot. **No coaching authored. No registry edits. Documentation-only iter.**
+
+### Output
+- NEW: `/app/DEPLOY.md` (163 lines · repo root · single readable page · anti-bureaucracy by design)
+
+### DEPLOY.md structure (intentionally minimal)
+1. One-line philosophy: *"HOLD is a conversation. BLOCK is a fix-first signal. APPROVE is a fast-path for proven-safe iter classes."*
+2. Before every production push — single command instruction
+3. Mode-selection decision table (full · fast · auth-only · classify-only)
+4. Verdict interpretation (APPROVE / HOLD / BLOCK)
+5. Risk classification interpretation table
+6. Rollback expectations by class
+7. **Stabilization-phase deploy cadence philosophy** — smaller deltas · observation between deploys · real-user validation cadence · friction reduction over feature expansion · strategic-hold respect
+8. **What this gate is NOT** — 6 anti-bureaucracy reinforcements (NOT compliance factory · NOT branch protection · NOT replacement for judgment · NOT production smoke · NOT slow ceremony · NOT KPI dashboard)
+9. What to do when the gate is wrong — *update the gate, not the verdict*
+10. Pointers to deeper docs
+
+### Cultural alignment confirmed
+The document is intentionally short. Includes a directive: *"If you find yourself adding sections to it, ask whether the platform really needs the additional process — usually the answer is no."*
+
+Embeds the iter229 philosophical line throughout. Preserves the operator's hard stops:
+- NO "deploys-per-week" target
+- NO leaderboard
+- NO KPI dashboard
+- Gate is tool, not god — humans still own the Deploy click
+
+### Gate self-validation
+Ran `pre_deploy_verify.py --classify-only` on the iter230 batch:
+- Verdict: APPROVE
+- Risk: MEDIUM (doc-only · zero sensitivity flags)
+- 0.3s
+- Confirms the gate correctly fast-paths a documentation iter
+
+### Files touched
+- NEW: `/app/DEPLOY.md` (163 lines)
+- MOD: `/app/memory/PRD.md` (this entry)
+
+### Stabilization-phase posture (operator directive · enforced)
+**FROZEN going forward unless operator explicitly releases:**
+- Aggressive coaching expansion
+- Authoring iter228 surfaces #2/#3/#4 without explicit operator approval
+- New tip families
+- Walkthrough fleshing for additional personas without explicit audit-vs-author decision
+
+**ACTIVE in stabilization phase:**
+- Real-world usage observation (no instrumentation, no analytics — operator-stated observation only)
+- Deploy discipline via `pre_deploy_verify.py`
+- Friction reduction at the operator's direction
+- Operator-driven simplification sweeps
+- Workflow efficiency improvements when operator surfaces specific pain
+- Onboarding refinement when operator surfaces specific gap
+
+### Cumulative maturity-phase status
+| Asset | Status |
+|---|---|
+| Coaching system (191 tips · 56 form-key surfaces · 5 closed surfaces · 2 closed personas) | ✅ DELIVERED · frozen for expansion |
+| Walkthrough editorial protocol (walkthrough_pass.md) | ✅ DELIVERED |
+| Foreman operational architecture brief | ✅ DELIVERED · awaiting operator decisions |
+| Pre-deploy verification gate (`pre_deploy_verify.py` · 5 phases · 4 modes) | ✅ DELIVERED · tested end-to-end |
+| Deployment policy (`pre_deploy_verification.md`) | ✅ DELIVERED |
+| Deployment discipline doc (`DEPLOY.md`) | ✅ DELIVERED |
+| Anti-drift firewall stack (legal · OSHA · corporate · fluff · KPI · strategic-hold) | ✅ ENFORCED via Phase 1 |
+| RBAC anon-leakage live probe | ✅ ENFORCED via Phase 4 |
+| Walkthrough loop-closure invariants (HR · Dispatcher zero · Foreman ≤6) | ✅ ENFORCED via Phase 3 |
+
+### What the platform now has that it didn't have at session start
+1. Closed-loop coaching for HR persona (10 → 0 actionable)
+2. Closed-loop coaching for Dispatcher persona (0 → 0 actionable across fleshed real-day)
+3. Honest Foreman discovery (0 → 6 documented baseline · architecture brief authored)
+4. Five operator-stated load-bearing cultural anchors enforced verbatim across tests
+5. Six firewall categories blocking drift (legal · OSHA · corporate · fluff · KPI · held-architecture)
+6. Formal pre-deploy verification gate (5 phases · 3 verdicts · operator-facing reports)
+7. Repo-root deployment discipline doc
+8. Foreman operational architecture brief (526 lines · 6 surfaces analyzed across 10 dimensions)
+9. Walkthrough editorial protocol formalized (walkthrough_pass.md)
+10. Stabilization-phase posture explicitly named and enforced
+
+🔵 Preview only · no production push · documentation institutionalization complete.
+
+---
+
 ## 2026-05-18 — iter229 · Pre-Deploy Verification Gate · ✅ DELIVERED + END-TO-END TESTED (preview only)
 
 Stabilization-phase first deliverable per operator directive: *"every deployment should pass a formal verification gate before production push · 'looks good in preview' is no longer sufficient."*
