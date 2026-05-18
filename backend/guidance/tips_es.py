@@ -725,4 +725,268 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "anula el registro. Avise a RH verbalmente para que no se "
             "sorprendan.",
     },
+
+    # ── iter215 · deepening daily-report.materials ───────────────────
+    ("daily-report.materials", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Entradas vagas tipo 'una tarima de conexiones' (¿cuáles "
+            "conexiones, cuántas?). Redondear salvajemente a un número "
+            "limpio ('como 20 toneladas') cuando el boleto dice 18.4. "
+            "Olvidarse de registrar el material que llegó corto — esa es "
+            "la conversación que PM necesita tener con el proveedor, no "
+            "la sorpresa de la próxima semana.",
+    },
+    ("daily-report.materials", "next"): {
+        "title_es": "Qué pasa después de que PM lo ve",
+        "body_es":
+            "Las cantidades se cargan al código de costo del proyecto. "
+            "Si el uso registrado está muy por encima del plan, PM recibe "
+            "una alerta de margen. Si está muy por debajo, inventario "
+            "recibe una pregunta de '¿dónde quedó el resto?'. De "
+            "cualquier modo, su nota es la primera explicación que se "
+            "lee.",
+    },
+    ("daily-report.materials", "escalate"): {
+        "title_es": "Cuándo marcar un cambio ANTES de que sea disputa",
+        "body_es":
+            "Si el campo usó algo distinto al plan — sustituido, cambió "
+            "una especificación, se acabó y tomó de otro trabajo — "
+            "escríbalo en palabras claras aquí Y avise a PM verbalmente "
+            "el mismo día. Las sustituciones silenciosas son cómo un "
+            "trabajo termina en disputa de facturación seis semanas "
+            "después.",
+    },
+
+    # ── iter216 · deepening daily-report.equipment ───────────────────
+    ("daily-report.equipment", "next"): {
+        "title_es": "Qué lee Despacho mañana",
+        "body_es":
+            "Despacho saca todos los Reportes Diarios a las 5pm para "
+            "armar los movimientos de mañana. Una nota aquí que diga "
+            "'necesitamos el mini de regreso el martes' es lo que hace "
+            "que el martes sea suave. Un Reporte Diario sin notas hace "
+            "del mañana un arrebato de llamadas para todos.",
+    },
+    ("daily-report.equipment", "escalate"): {
+        "title_es": "Cuándo la unidad está fallando o va a fallar",
+        "body_es":
+            "Si una unidad se rompió hoy, o vio algo hoy que dice que SE "
+            "VA a romper mañana, dígalo aquí Y avise a Taller "
+            "directamente. El Reporte Diario alerta a todos pasivamente; "
+            "un aviso verbal a Taller pone a un mecánico en marcha antes "
+            "del amanecer.",
+    },
+
+    # ── iter215 · Material Calculator ────────────────────────────────
+    ("material-calculator", "why"): {
+        "title_es": "Por qué importa este cálculo",
+        "body_es":
+            "Este número guía la orden. Pida corto y la cuadrilla se "
+            "detiene a las 2pm esperando una segunda entrega; pida de "
+            "más y el sobrante se le carga al trabajo por yardas que "
+            "nadie colocó. Los cinco minutos aquí ahorran un día de "
+            "carreras.",
+    },
+    ("material-calculator", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Tratar el número del calculador como final — es una "
+            "estimación de planeación, no una medición. Poner el "
+            "desperdicio en 0% porque 'esta cuadrilla es limpia'. "
+            "Olvidar que el calculador no sabe que su subbase está "
+            "blanda, que su zanja se ensanchó, o que el proveedor solo "
+            "vende tarima completa.",
+    },
+    ("material-calculator", "example"): {
+        "title_es": "Ejemplo",
+        "body_es":
+            "'Plataforma 24×40, 6\" de roca caliza, densidad 1.45, 10% "
+            "de desperdicio → 14.5 toneladas → ordene 15 toneladas' es "
+            "un número real. Después verifique contra el mínimo de "
+            "tarima/camión del proveedor y la medición de campo del "
+            "capataz antes de firmar la PO.",
+    },
+
+    ("material-calculator.waste", "why"): {
+        "title_es": "Por qué el factor de desperdicio no es opcional",
+        "body_es":
+            "Pérdida por corte, derrame, orilla, asentamiento por "
+            "compactación, y faltantes del proveedor son reales en cada "
+            "trabajo. Un estimado de 0% de desperdicio es un 0% honesto. "
+            "Use el histórico del trabajo — si el último trimestre fue "
+            "12%, planee 12%, no 5%.",
+    },
+    ("material-calculator.waste", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Escoger un porcentaje de desperdicio que 'se siente bien' "
+            "en vez de usar el histórico del tipo de trabajo. Subirlo "
+            "para acolchonar la orden (ahora PM cree que el proyecto "
+            "está sangrando margen). Bajarlo para ganar la propuesta "
+            "(ahora el capataz está corto el martes).",
+    },
+
+    ("material-calculator.lead-time", "why"): {
+        "title_es": "Por qué el tiempo de entrega es parte del cálculo",
+        "body_es":
+            "El calculador resuelve cantidad. El tiempo de entrega "
+            "resuelve CUÁNDO. Un número perfecto de 14.5 toneladas no "
+            "vale nada si lo ordena viernes en la tarde para una colada "
+            "del lunes y la planta del proveedor está cerrada el "
+            "domingo. Revise el calendario del proveedor antes de "
+            "comprometer una fecha.",
+    },
+    ("material-calculator.lead-time", "escalate"): {
+        "title_es": "Cuándo llamar al proveedor primero",
+        "body_es":
+            "Mezclas especiales, cargas de sobretamaño, cualquier cosa "
+            "que venga de fuera de la planta regional, y cualquier orden "
+            "puesta dentro de 24h de la necesidad. Llame antes de "
+            "comprometer una fecha de entrega en un Reporte Diario o "
+            "schedule. El 'sí' del proveedor por teléfono le gana a la "
+            "confianza del calculador todas las veces.",
+    },
+
+    ("material-calculator.field-verify", "why"): {
+        "title_es": "Por qué ningún calculador reemplaza una medición de campo",
+        "body_es":
+            "El plano decía que la zanja es de 80 pies a 24 pulgadas. "
+            "El campo encontró roca a los 50 pies y la zanja se ensanchó "
+            "a 36 para librarla. El calculador no puede saber eso. "
+            "Camine el trabajo, mida lo que de verdad está ahí, y "
+            "después calcule — no al revés.",
+    },
+    ("material-calculator.field-verify", "next"): {
+        "title_es": "Qué hacer con el número calculado",
+        "body_es":
+            "Contrástelo con la intuición del capataz. Confirme que el "
+            "proveedor lo puede entregar a tiempo. Después el día del "
+            "Reporte Diario, registre lo que SE COLOCÓ (no lo que se "
+            "ordenó). El calculador es para planear; el Reporte Diario "
+            "es para la verdad.",
+    },
+
+    # ── iter216 · Dispatch Transfers (Tier 2) ────────────────────────
+    ("dispatch.transfers", "why"): {
+        "title_es": "Por qué las transferencias son el apalancamiento del despachador",
+        "body_es":
+            "Cada transferencia o le ahorra un día al trabajo o le "
+            "cuesta uno. Un movimiento bien ruteado convierte un camión "
+            "en tres paradas productivas; un movimiento apurado "
+            "desperdicia el camión y frustra a dos capataces. Despacho "
+            "es el árbitro operacional — proteja el schedule, el "
+            "equipo, y el día de la cuadrilla.",
+    },
+    ("dispatch.transfers", "who"): {
+        "title_es": "Quién se ve afectado por este movimiento",
+        "body_es":
+            "El capataz que envía (perdió la unidad), el capataz que "
+            "recibe (la consiguió — o no, a tiempo), el operador (ruta "
+            "y carga), Taller (cualquier defecto en camino), PM (código "
+            "de costo), y Seguridad (cualquier movimiento que toque "
+            "DOT). Una tarjeta de transferencia aterriza en el radar de "
+            "seis personas.",
+    },
+    ("dispatch.transfers", "next"): {
+        "title_es": "Qué pasa después de que la pone en cola",
+        "body_es":
+            "El capataz que recibe ve la disponibilidad de mañana. El "
+            "operador recibe la hoja de carga. Taller ve la última "
+            "ubicación conocida de la unidad para partes/PM. Si el "
+            "movimiento se atrasa, todos los que dependen necesitan "
+            "saberlo en la hora — no al inicio del turno del día "
+            "siguiente.",
+    },
+    ("dispatch.transfers", "escalate"): {
+        "title_es": "Cuándo la solicitud no cuadra",
+        "body_es":
+            "El capataz pide una unidad que usted no tiene. El "
+            "movimiento requiere un permiso, escolta, o ventana fuera "
+            "de horario. Le piden a una unidad que deje un trabajo que "
+            "sigue activo según el Reporte Diario. No diga simplemente "
+            "'no' — llame al capataz que pidió Y al PM, hablen, y "
+            "documente la decisión.",
+    },
+
+    ("dispatch.transfers.lead-time", "why"): {
+        "title_es": "Por qué el tiempo de aviso es todo el juego",
+        "body_es":
+            "24 horas de aviso = puede rutear eficiente y evitar millas "
+            "muertas. 4 horas de aviso = un camión apurado y un "
+            "operador frustrado. 30 minutos de aviso = se quema el día "
+            "de alguien. Enseñe a los capataces a pensar un día de "
+            "trabajo adelante, no un descanso adelante.",
+    },
+    ("dispatch.transfers.lead-time", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Aceptar 'lo necesito ya' como el tiempo de respuesta por "
+            "default. No preguntar al que pide CUÁNDO de verdad lo "
+            "necesita — la mayoría de los 'ya' tienen un deadline real "
+            "de 4-6 horas. Cotizar un tiempo aspiracional que no puede "
+            "cumplir. Mejor comprometer tarde y entregar temprano que "
+            "al revés.",
+    },
+
+    ("dispatch.transfers.access", "why"): {
+        "title_es": "Por qué los detalles de acceso al sitio importan",
+        "body_es":
+            "Un operador que llega a una reja sin código, un lote "
+            "blando que no aguanta un lowboy, o un techo bajo que el "
+            "camión no pasa — esos no son errores del operador, son "
+            "fallas de información de Despacho. Pídale al capataz los "
+            "detalles de acceso antes de comprometer el horario de "
+            "entrega.",
+    },
+    ("dispatch.transfers.access", "example"): {
+        "title_es": "Ejemplo",
+        "body_es":
+            "Nota de acceso buena: 'Sitio en 1450 Industrial Pkwy, "
+            "código de reja 8842, capataz Díaz al 555-0117, lote de "
+            "grava al este del tráiler, 11'6\" techo bajo en la reja "
+            "(nada de cubiertas altas).' Mala: 'Industrial Parkway, "
+            "pregunte por Díaz.' — la segunda genera la llamada.",
+    },
+
+    ("dispatch.transfers.load-specs", "why"): {
+        "title_es": "Por qué las especificaciones de carga nos protegen a todos",
+        "body_es":
+            "Peso, altura, largo, accesorios montados/desmontados, "
+            "fluidos llenos o vaciados — esos deciden qué tráiler va, "
+            "si se necesita permiso, y si el DOT puede ser problema. "
+            "El operador y el capataz los necesitan correctos a la "
+            "primera.",
+    },
+    ("dispatch.transfers.load-specs", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Confiar en las hojas de especificación del equipment-"
+            "master sin verificar con el capataz que envía ('le "
+            "dejamos el bote'). Saltarse las notas de fluidos/"
+            "combustible (un tanque lleno puede ser la diferencia "
+            "entre legal y sobrepeso). Olvidar los accesorios — van "
+            "separados si no se cuentan.",
+    },
+
+    ("dispatch.transfers.utilization", "why"): {
+        "title_es": "Por qué la utilización es el marcador del juego largo",
+        "body_es":
+            "Cada unidad parada en un patio es dinero quieto. Cada "
+            "unidad doble-asignada es un pleito. La utilización no es "
+            "un reporte administrativo que lee una vez al mes — es el "
+            "marcador diario por el que está jugando. Una buena "
+            "transferencia empuja la utilización para arriba; una "
+            "apurada la empuja para abajo.",
+    },
+    ("dispatch.transfers.utilization", "next"): {
+        "title_es": "Qué le dice el tablero de utilización",
+        "body_es":
+            "Una unidad parada en un patio mientras otro trabajo pide "
+            "el mismo modelo es una oportunidad de ruteo. Múltiples "
+            "intercambios de la misma unidad entre dos trabajos en una "
+            "semana dice que los proyectos no se planearon juntos. "
+            "Lleve ambos a PM — prefieren oírlo de Despacho que de "
+            "finanzas.",
+    },
 }

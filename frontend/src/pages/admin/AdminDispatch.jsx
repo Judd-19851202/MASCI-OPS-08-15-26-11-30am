@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { HelpTipBlock } from "@/components/HelpTip";
 
 const STATUS_PILL = {
   Available:         "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -271,6 +272,9 @@ export function DispatchTransfersTab() {
 
   return (
     <div className="space-y-3" data-testid="dp-transfers">
+      {/* iter216 · Tier-2 dispatcher coaching — protects schedule,
+          equipment, and the crew's day. */}
+      <HelpTipBlock formKey="dispatch.transfers" showCounter />
       <div className="flex items-center gap-2">
         <Button onClick={() => setCreating(true)} className="bg-slate-900 hover:bg-slate-800 text-white" data-testid="dp-transfer-new"><Plus className="w-3.5 h-3.5 mr-1" /> New Transfer</Button>
         <Button onClick={load} variant="outline" size="sm"><RefreshCcw className="w-3.5 h-3.5 mr-1" />Refresh</Button>

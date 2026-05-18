@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { HelpTipBlock } from "@/components/HelpTip";
 import {
   AGGREGATE_DENSITIES,
   ASPHALT_DEFAULT_DENSITY,
@@ -128,6 +129,18 @@ export default function MaterialCalculators() {
         {active === "truck_load" && <TruckLoadPanel lang={lang} t={t} />}
         {active === "yield_waste" && <YieldWastePanel lang={lang} t={t} />}
         {active === "conversion" && <ConversionPanel lang={lang} t={t} />}
+
+        {/* iter215 · pre-job planning coaching · public scope. Lives
+            below the active calculator so it never blocks the work, but
+            sits in the user's path before they sign a PO. */}
+        <div className="mt-8 max-w-3xl">
+          <HelpTipBlock formKey="material-calculator" showCounter />
+        </div>
+        {active === "yield_waste" && (
+          <div className="mt-3 max-w-3xl">
+            <HelpTipBlock formKey="material-calculator.waste" />
+          </div>
+        )}
 
         <p className="text-[11px] text-slate-500 mt-10 italic border-t border-slate-200 pt-4 max-w-3xl">
           {t(

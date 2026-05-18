@@ -1,6 +1,79 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter212–216 · Contextual Operational Guidance Rollout · ✅ DELIVERED (preview only)
+
+Five-iteration rollout of the HelpTip Engine across the remaining 4 operator-priority surfaces (Equipment Checkout · Time Verification · Write-Ups · Material Requests · Dispatch Requests). All work strictly inherits the iter211 tone discipline (operational realism, field-leadership coaching voice, anti-OSHA / anti-corporate-HR / anti-MBA banlists) and adds positive-realism anchor tests so the cultural voice is load-bearing in the test suite.
+
+### iter212 — Equipment Checkout (Tier 1 · public)
+**12 tips · 5 form_keys**: `checkout`, `checkout.condition`, `checkout.signature`, `checkout.return-expectations`, `checkout.photos`. Anchor: *"Checkout is the handshake: you say 'I have this', the system says 'you have this'. Your name is on it."* Wired into `FieldLeadershipFormPage.jsx` via new `FL_KIND_HELPTIP_FORMKEY` map. EN+ES screenshots verified.
+
+### iter213 — Time Verification (Tier 2 · HR-scoped)
+**11 tips · 4 form_keys**: `time-verification`, `.overtime`, `.lunch`, `.discrepancy`. Anchor: *"This is where field hours become paychecks. Quiet edits are how a $40 discrepancy becomes a grievance."* Wired into `HrTimeVerification.jsx`: top-of-page block (with counter) + discrepancy block above the weekly/daily table. **17/17 pytest passing.** EN screenshot verified with HR token.
+
+**Bonus latent bug fix** in `HelpTip.jsx`: Tier-2 token storage keys were reading the wrong localStorage keys (`adminToken`, `hrToken`, etc.). Now correctly reads canonical `masci.{role}.token` from both sessionStorage (leadership) and localStorage (all other portals). Without this fix, Tier-2 HelpTips would never have fetched.
+
+### iter214 — Write-Ups (Tier 1 · public)
+**11 tips · 4 form_keys**: `writeup`, `.facts`, `.conversation`, `.due-process`. Anchor: *"A write-up is the record of a conversation that already happened — never a substitute for it. The paper is the evidence; the conversation is the work."* Wired into `FieldLeadershipFormPage.jsx` for `write_up` kind. **24/24 pytest passing.** EN screenshot verified.
+
+Includes the operator-stated "signature = received, not agreed" coaching for refusal-to-sign, and explicit anti-loaded-language pattern detection.
+
+### iter215 — Material Requests (Tier 1 · public, both surfaces)
+**Surface A — `daily-report.materials` deepened**: +3 tips (mistake, next, escalate). Anchor: *"Quiet substitutions are how a job gets a billing dispute six weeks later."*
+
+**Surface B — `material-calculator` new**: 9 tips · 4 form_keys (`material-calculator`, `.waste`, `.lead-time`, `.field-verify`). Anchor: *"The calculator is for planning; the Daily Report is for truth."* Wired into `MaterialCalculators.jsx`. EN screenshot verified.
+
+### iter216 — Dispatch Requests (mixed: Tier 1 + Tier 2, both surfaces)
+**Surface A — `daily-report.equipment` deepened**: +2 tips (next, escalate). Anchor: *"Dispatch pulls every Daily Report by 5pm to set tomorrow's moves. A no-note Daily Report makes tomorrow a phone-call scramble for everybody."*
+
+**Surface B — `dispatch.transfers` new · Tier 2 (`dispatch`/`admin` scoped)**: 12 tips · 5 form_keys (`dispatch.transfers`, `.lead-time`, `.access`, `.load-specs`, `.utilization`). Anchor: *"Dispatch is the operational referee — protect the schedule, the equipment, and the crew's day."* Wired into `DispatchTransfersTab` (re-rendered across both `AdminShell` admin view and `DispatchHub` portal). EN+ES screenshots verified with dispatch token.
+
+iter215 + iter216 share a single test file: **32/32 pytest passing**, including dual-surface RBAC isolation, supplier-calendar coaching, access-concreteness verification (phone/code/address), and corporate-MBA tone banlist.
+
+### Tone discipline guardrails landed this session
+- iter213 introduces **`CORPORATE_HR_PHRASES` banlist** (human capital, stakeholder alignment, leverage synergies, etc.)
+- iter214 introduces **`HR_LEGAL_DRIFT_PHRASES` banlist** (progressive discipline policy, disciplinary action up to and including, at-will employment)
+- iter215/216 introduces **`CORPORATE_MBA_PHRASES` banlist** (synergize, right-size, deliverables-driven, core competency)
+- All five surfaces enforce the iter211 ROBOTIC_OSHA_PHRASES banlist
+- All five surfaces enforce the iter212 positive-realism anchor sweep
+
+### Coverage growth
+- Tip registry total: 50 → **115** (+65 in this session)
+- Form_key surfaces covered: 6 → **19**
+- Anchor-driven test count: +17 (iter213) + 24 (iter214) + 32 (iter215/216) = **+73 new tests**
+- Backend regression: **607/607 passing** (14 graceful skips for chromium-only)
+
+### Files touched
+- NEW: `backend/tests/test_iter213_time_verification_helptips.py`, `test_iter214_writeup_helptips.py`, `test_iter215_iter216_materials_dispatch.py`
+- MOD: `backend/guidance/tips.py` (+65 tips), `backend/guidance/tips_es.py` (+65 ES translations), `frontend/src/components/HelpTip.jsx` (token storage key fix), `frontend/src/pages/FieldLeadershipFormPage.jsx` (write_up wiring), `frontend/src/pages/HrTimeVerification.jsx` (top + discrepancy blocks), `frontend/src/pages/MaterialCalculators.jsx` (post-tab planning block + yield/waste sub-block), `frontend/src/pages/admin/AdminDispatch.jsx` (Transfers tab dispatcher-coaching block), `memory/PRD.md`
+
+No production push. Preview-only as always.
+
+### Operator's 8-form-family contextual-guidance directive — STATUS COMPLETE
+| Family | Done in | Scope | Form keys |
+|---|---|---|---|
+| Daily Reports | iter209 + iter215+216 deepening | public | 6 |
+| Safety Incidents | iter210 | public | 6 |
+| Pre-Op Forms | iter211 | public | 6 |
+| Equipment Checkout | **iter212** | public | 5 |
+| Time Verification | **iter213** | hr · admin | 4 |
+| Write-Ups | **iter214** | public | 4 |
+| Material Requests | **iter215** | public | 5 (1 deepened + 4 new) |
+| Dispatch Requests | **iter216** | public + dispatch · admin | 6 (1 deepened + 5 new) |
+
+The "Contextual Operational Guidance Engine" rollout is now operationally complete across all 8 family surfaces the operator named.
+
+### Next priority (operator-stated future work, NOT in this session's scope)
+- ⏸️ Tier-2 manager-only HelpTips on shared forms (PM/HR/Safety see review-coaching that field staff don't)
+- ⏸️ Real day-from-start-to-finish operator-flow walkthroughs (laborer · operator · foreman · super · PM · HR · safety · dispatch)
+- ⏸️ QR poster rollout for mobile field onboarding
+- ⏸️ Translate remaining hardcoded paragraphs in HR/Safety/Dispatch/Shop/PM login cards
+- ⏸️ Phase K4b — Unified User Management UI Mutations (P2)
+- ⏸️ Phase K5 — Temp Password / Onboarding Standardization (P2)
+- ⏸️ Stage B.1 — Owner Snapshot PDF (P2)
+- ⏸️ Phase 2 close-out (48h R2 re-verify · Sentry/timeout soak sign-off)
+
+---
 ## 2026-05-18 — iter211 · Pre-Op Equipment Inspection Contextual Coaching + Discoverability Counter · ✅ DELIVERED (preview only)
 
 Third HelpTip-engine deployment. Operator-stated **highest-frequency operational coaching surface on the platform**. The tone discipline directive: lean into operational realism / accountability / ownership; avoid robotic OSHA tone, fear-based language, corporate/legal overload.

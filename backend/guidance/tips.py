@@ -124,6 +124,31 @@ _TIPS: list[dict] = [
             "(idle still counts against utilisation). Listing the wrong unit ID — "
             "always confirm from the side of the unit, not memory.",
     },
+    # iter216 · deepening — field-side equipment-needed and broken-unit
+    # coaching. The Daily Report is where Dispatch first learns what
+    # you need tomorrow. Surprise requests at 6:30am are the enemy.
+    {
+        "form_key": "daily-report.equipment",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What Dispatch reads tomorrow",
+        "body":
+            "Dispatch pulls every Daily Report by 5pm to set tomorrow's "
+            "moves. A note here saying 'need the skid steer back Tuesday' "
+            "is what makes Tuesday smooth. A no-note Daily Report makes "
+            "tomorrow a phone-call scramble for everybody.",
+    },
+    {
+        "form_key": "daily-report.equipment",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When the unit is down or going down",
+        "body":
+            "If a unit broke today, or you saw something today that says "
+            "it WILL break tomorrow, say it here AND tell Shop directly. "
+            "The Daily Report alerts everyone passively; a verbal heads-up "
+            "to Shop gets a mechanic moving before sunrise.",
+    },
 
     # ── daily-report.materials ───────────────────────────────────────
     {
@@ -144,6 +169,42 @@ _TIPS: list[dict] = [
         "body":
             "'Stone, 3/4\" base — 18 tons placed at the north pad' is good. "
             "'Some stone' is not — finance can't cost-code it.",
+    },
+    # iter215 · deepening — accuracy, shortages, change-before-dispute
+    {
+        "form_key": "daily-report.materials",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Vague entries like 'pallet of fittings' (which fittings, how "
+            "many?). Rounding wildly to a clean number ('about 20 tons') "
+            "when the ticket reads 18.4. Forgetting to log material that "
+            "showed up short — that's the conversation PM needs to have "
+            "with the supplier, not next week's surprise.",
+    },
+    {
+        "form_key": "daily-report.materials",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens after PM sees this",
+        "body":
+            "Quantities post to the project's cost code. If the recorded "
+            "use is well above plan, PM gets a margin flag. If well below, "
+            "the inventory team gets a 'where did the rest go' question. "
+            "Either way, your note is the first explanation read.",
+    },
+    {
+        "form_key": "daily-report.materials",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When to flag a change BEFORE it becomes a dispute",
+        "body":
+            "If the field used something different from the plan — "
+            "substituted, swapped a spec, ran out and grabbed from another "
+            "job — write it in plain words here AND tell PM verbally same "
+            "day. Quiet substitutions are how a job gets a billing "
+            "dispute six weeks later.",
     },
 
     # ── daily-report.photos ──────────────────────────────────────────
@@ -1031,6 +1092,288 @@ _TIPS: list[dict] = [
             "explained signing means 'I received this', not 'I agree'. "
             "Then submit anyway — refusal doesn't void the record. Tell "
             "HR verbally so they're not surprised.",
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter215 · Material Calculator (pre-job planning surface)
+    # The calculator is the moment before materials are ordered. Coach
+    # toward: waste factors are not optional, lead times are real, and
+    # NO calculator replaces a field measurement. Scope: public — the
+    # calculator itself is a public tool, so the coaching is public.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "material-calculator",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why this calculation matters",
+        "body":
+            "This number drives the order. Order short and the crew "
+            "stops at 2pm waiting on a second delivery; order long and "
+            "the surplus gets billed to the job for cubic yards nobody "
+            "ever placed. The five minutes spent here saves a day of "
+            "scrambling.",
+    },
+    {
+        "form_key": "material-calculator",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Treating the calculator number as final — it's a planning "
+            "estimate, not a measurement. Setting waste at 0% because "
+            "'this crew is clean'. Forgetting the calculator doesn't "
+            "know your subgrade is soft, your trench widened, or the "
+            "supplier sells full pallets only.",
+    },
+    {
+        "form_key": "material-calculator",
+        "kind": "example",
+        "scopes": ["public"],
+        "title": "Example",
+        "body":
+            "'24×40 pad, 6\" lime rock, 1.45 density, 10% waste → 14.5 "
+            "tons → order 15 tons' is a real number. Then verify against "
+            "the supplier's pallet/truck minimum and the foreman's "
+            "field measurement before you sign the PO.",
+    },
+
+    # ── material-calculator.waste ────────────────────────────────────
+    {
+        "form_key": "material-calculator.waste",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why waste factor is not optional",
+        "body":
+            "Cut waste, spill, edge loss, compaction settling, and "
+            "supplier short-counts are real on every job. A 0% waste "
+            "estimate is a 0% honest estimate. Use the job's history "
+            "— if last quarter ran 12%, plan for 12%, not 5%.",
+    },
+    {
+        "form_key": "material-calculator.waste",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Picking a waste percent that 'feels right' instead of using "
+            "the job-type historical number. Setting waste high to pad "
+            "the order (now PM thinks the project's bleeding margin). "
+            "Setting it low to win the bid (now the foreman is short on "
+            "Tuesday).",
+    },
+
+    # ── material-calculator.lead-time ────────────────────────────────
+    {
+        "form_key": "material-calculator.lead-time",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why lead time is part of the calculation",
+        "body":
+            "The calculator solves quantity. Lead time solves WHEN. A "
+            "perfect 14.5-ton number is worthless if you order it Friday "
+            "afternoon for a Monday pour and the supplier's plant is "
+            "closed Sunday. Check the supplier's calendar before "
+            "committing to a schedule.",
+    },
+    {
+        "form_key": "material-calculator.lead-time",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When to call the supplier first",
+        "body":
+            "Specialty mixes, oversize loads, anything coming from "
+            "outside the regional plant, and any order placed within 24h "
+            "of need. Call before you commit a delivery date on a Daily "
+            "Report or schedule. The supplier's 'yes' on the phone "
+            "beats the calculator's confidence every time.",
+    },
+
+    # ── material-calculator.field-verify ─────────────────────────────
+    {
+        "form_key": "material-calculator.field-verify",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why no calculator replaces a field measurement",
+        "body":
+            "The plan said the trench is 80 feet at 24 inches. The field "
+            "found rock at 50 feet and the trench widened to 36 to get "
+            "around it. The calculator can't know that. Walk the job, "
+            "measure what's actually there, then calculate — not the "
+            "other way around.",
+    },
+    {
+        "form_key": "material-calculator.field-verify",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What to do with the calculated number",
+        "body":
+            "Cross-check against the foreman's gut. Confirm the supplier "
+            "can deliver it on time. Then on Daily Report day, log what "
+            "ACTUALLY got placed (not what was ordered). The calculator "
+            "is for planning; the Daily Report is for truth.",
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter216 · Dispatch Transfers (Tier-2 · dispatcher surface)
+    # The dispatcher fields requests from the field, juggles
+    # availability, and makes the moves that keep crews working.
+    # Tone anchor: dispatch is operational referee — they protect the
+    # schedule, equipment utilization, and the crew's day. Coach
+    # toward lead time, exact jobsite access, load specifics, and
+    # respecting the dispatcher's calendar.
+    # Scope: ["dispatch","admin"] — Tier-2 portal-scoped.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "dispatch.transfers",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why transfers are the dispatcher's leverage",
+        "body":
+            "Every transfer either saves a job a day or costs one. A "
+            "well-routed move turns one truck into three productive "
+            "stops; a rushed move wastes the truck and frustrates two "
+            "foremen. Dispatch is the operational referee — protect the "
+            "schedule, the equipment, and the crew's day.",
+    },
+    {
+        "form_key": "dispatch.transfers",
+        "kind": "who",
+        "scopes": ["dispatch", "admin"],
+        "title": "Who's affected by this move",
+        "body":
+            "The sending foreman (lost the unit), the receiving foreman "
+            "(got it — or didn't, on time), the driver (route and "
+            "load), Shop (any defects en route), PM (cost code), and "
+            "Safety (any DOT-touchy move). One transfer card lands on "
+            "six people's radar.",
+    },
+    {
+        "form_key": "dispatch.transfers",
+        "kind": "next",
+        "scopes": ["dispatch", "admin"],
+        "title": "What happens after you queue it",
+        "body":
+            "The receiving foreman gets visibility on tomorrow's "
+            "availability. The driver gets the load sheet. Shop sees the "
+            "unit's last-known location for parts/PM scheduling. If "
+            "the move slips, everyone downstream needs to know within "
+            "the hour — not at start-of-shift the next day.",
+    },
+    {
+        "form_key": "dispatch.transfers",
+        "kind": "escalate",
+        "scopes": ["dispatch", "admin"],
+        "title": "When the request doesn't add up",
+        "body":
+            "Foreman asks for a unit you don't have. The move requires "
+            "a permit, escort, or after-hours window. A unit is being "
+            "asked to leave a job that's still active per the Daily "
+            "Report. Don't just say 'no' — call the requesting foreman "
+            "AND the PM, talk through it, and document the decision.",
+    },
+
+    # ── dispatch.transfers.lead-time ─────────────────────────────────
+    {
+        "form_key": "dispatch.transfers.lead-time",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why lead time is the whole game",
+        "body":
+            "24 hours' notice = you can route efficiently and avoid "
+            "deadhead miles. 4 hours' notice = a rushed truck and a "
+            "frustrated driver. 30 minutes' notice = somebody's day "
+            "burns. Coach foremen to think one work-day ahead, not one "
+            "smoke-break.",
+    },
+    {
+        "form_key": "dispatch.transfers.lead-time",
+        "kind": "mistake",
+        "scopes": ["dispatch", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Accepting a 'need it now' as the default response time. "
+            "Not asking the requester WHEN they actually need it — most "
+            "'now' requests have a real deadline 4-6 hours out. "
+            "Quoting an aspirational time you can't hit. Better to "
+            "commit late and deliver early than the reverse.",
+    },
+
+    # ── dispatch.transfers.access ────────────────────────────────────
+    {
+        "form_key": "dispatch.transfers.access",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why jobsite access details matter",
+        "body":
+            "A driver who shows up to a gate without a code, a soft "
+            "lot that won't hold a lowboy, or an overhead the truck "
+            "can't clear — those aren't driver mistakes, they're "
+            "dispatch information failures. Get the access specifics "
+            "from the foreman before you commit a delivery slot.",
+    },
+    {
+        "form_key": "dispatch.transfers.access",
+        "kind": "example",
+        "scopes": ["dispatch", "admin"],
+        "title": "Example",
+        "body":
+            "Good access note: 'Site is 1450 Industrial Pkwy, gate code "
+            "8842, foreman Diaz on 555-0117, gravel lot east of trailer, "
+            "11'6\" overhead at gate (no high decks).' Bad: 'Industrial "
+            "Parkway, ask for Diaz.' — the second one creates the call.",
+    },
+
+    # ── dispatch.transfers.load-specs ────────────────────────────────
+    {
+        "form_key": "dispatch.transfers.load-specs",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why load specifics protect everybody",
+        "body":
+            "Weight, height, length, attachments still on/off, fluids "
+            "topped or drained — those decide which trailer goes, "
+            "whether a permit is needed, and whether DOT can be a "
+            "problem. The driver and the foreman both need them right "
+            "the first time.",
+    },
+    {
+        "form_key": "dispatch.transfers.load-specs",
+        "kind": "mistake",
+        "scopes": ["dispatch", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Trusting equipment-master spec sheets without verifying "
+            "with the sending foreman ('we left the bucket on'). "
+            "Skipping fluids/fuel notes (a full tank can be the "
+            "difference between legal and overweight). Forgetting "
+            "attachments — they ride separately if they're not "
+            "factored in.",
+    },
+
+    # ── dispatch.transfers.utilization ───────────────────────────────
+    {
+        "form_key": "dispatch.transfers.utilization",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why utilization is the long-game scorecard",
+        "body":
+            "Every idle unit on a yard is money sitting still. Every "
+            "double-booked unit is a fight. Utilization isn't an admin "
+            "report you read once a month — it's the daily score you're "
+            "playing for. A good transfer pushes utilization up; a "
+            "rushed one pushes it down.",
+    },
+    {
+        "form_key": "dispatch.transfers.utilization",
+        "kind": "next",
+        "scopes": ["dispatch", "admin"],
+        "title": "What the utilization dashboard tells you",
+        "body":
+            "A unit sitting on a yard while another job calls for the "
+            "same model is a routing opportunity. Multiple swaps of the "
+            "same unit between two jobs in one week says the projects "
+            "weren't planned together. Surface both to PM — they'd "
+            "rather hear it from Dispatch than from finance.",
     },
 ]
 
