@@ -721,14 +721,27 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
         # three kinds (issuance, return, training). For ``return`` we
         # use the parent issuance's doc_id since the return is a
         # follow-up event on that same record.
+        # iter238 — Subject now uses the uniform
+        #   [MASCI · {TAG}] {project} · {job#} · {title} · {doc_id} · {who}
+        # format via the shared build_email_subject_for_kind helper, so
+        # filter rules in Gmail/Outlook can match a stable prefix and
+        # the job name/number always sit in the same position.
+        from pdf_render import build_email_subject_for_kind  # noqa: PLC0415
         rec_doc_id = (rec.get("doc_id") or "").strip()
+        project_name = (rec.get("project_name") or "").strip()
+        project_number = (rec.get("project_number") or "").strip()
 
         if kind == "issuance":
             pdf_bytes = await asyncio.to_thread(render_issuance_pdf, rec)
             title = "Safety Equipment Issuance"
             who = rec.get("employee_name") or "—"
-            doc_seg = f"{rec_doc_id} · " if rec_doc_id else ""
-            subject = f"[MASCI] {doc_seg}{title} · {who}"
+            subject = build_email_subject_for_kind(
+                type_tag_key="issuance",
+                project_name=project_name,
+                project_number=project_number,
+                short_title=f"{title} · {who}",
+                doc_id=rec_doc_id,
+            )
             fname = f"MASCI_Equipment_Issuance_{(who or '').replace(' ', '_')}_{rec.get('issued_date', '')}.pdf"
             extra_html = ""
         elif kind == "return":
@@ -736,8 +749,13 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
             pdf_bytes = await asyncio.to_thread(render_return_pdf, rec, extra or {})
             title = "Equipment Check-In & Return"
             who = rec.get("employee_name") or "—"
-            doc_seg = f"{rec_doc_id} · " if rec_doc_id else ""
-            subject = f"[MASCI] {doc_seg}{title} · {who}"
+            subject = build_email_subject_for_kind(
+                type_tag_key="return",
+                project_name=project_name,
+                project_number=project_number,
+                short_title=f"{title} · {who}",
+                doc_id=rec_doc_id,
+            )
             fname = f"MASCI_Equipment_Return_{(who or '').replace(' ', '_')}_{(extra or {}).get('check_in_date', '')}.pdf"
             cb = compute_chargeback((extra or {}).get("items") or [])
             extra_html = (
@@ -750,8 +768,13 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
             pdf_bytes = await asyncio.to_thread(render_training_pdf, rec)
             title = "Equipment Use & Care Training"
             who = rec.get("employee_name") or "—"
-            doc_seg = f"{rec_doc_id} · " if rec_doc_id else ""
-            subject = f"[MASCI] {doc_seg}{title} · {who}"
+            subject = build_email_subject_for_kind(
+                type_tag_key="training",
+                project_name=project_name,
+                project_number=project_number,
+                short_title=f"{title} · {who}",
+                doc_id=rec_doc_id,
+            )
             fname = f"MASCI_Equipment_Training_{(who or '').replace(' ', '_')}_{rec.get('training_date', '')}.pdf"
             extra_html = ""
 

@@ -9952,32 +9952,34 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         dist = await recipients_for_record_async(db, record, kind)
         recipients: List[str] = list(dist["all"])  # type: ignore[arg-type]
 
-        # Equipment Pre-Op with FAILs / out-of-service items — always
-        # CC every active shop user so they can plan parts + scheduling.
-        # Falls back to the legacy single SHOP_MANAGER_EMAIL env when no
-        # shop_users have been seeded yet.
-        if (
-            kind == "equipment-inspection"
-            and (
-                (record.get("fail_count") or 0) > 0
-                or (record.get("out_of_service") or "").strip().lower() in ("yes", "true", "1")
-            )
-        ):
-            shop_emails: List[str] = []
+        # iter238 — Equipment Pre-Op routing simplification (operator
+        # directive 2026-05-18):
+        #   "All Pre Ops only need to go to shop manager no other emails
+        #    just shop manager"
+        # We override the entire recipient list for ``equipment-inspection``
+        # to ONLY the active shop user(s) whose role is "Shop Manager".
+        # This is Q1 option (a): role-based fan-out so multiple Shop
+        # Managers (if ever added) all get the email automatically, but
+        # mechanics / parts coordinators are excluded. Falls back to the
+        # ``shop_manager_fallback`` env value when no Shop Manager role
+        # exists in the shop_users collection (deploy bootstrap).
+        if kind == "equipment-inspection":
+            shop_manager_emails: List[str] = []
             try:
-                from shop_users import list_shop_users
+                from shop_users import list_shop_users  # noqa: PLC0415
                 shop_users_list = await list_shop_users(db, only_active=True)
-                shop_emails = [
-                    (u.get("email") or "").strip()
-                    for u in shop_users_list
-                    if u.get("email") and not u.get("disabled")
-                ]
+                for u in shop_users_list:
+                    role = (u.get("role") or "").strip().lower()
+                    em = (u.get("email") or "").strip()
+                    if role == "shop manager" and em and not u.get("disabled"):
+                        if em.lower() not in {x.lower() for x in shop_manager_emails}:
+                            shop_manager_emails.append(em)
             except Exception as e:  # noqa: BLE001
-                logger.warning(f"shop fan-out lookup failed: {e}")
-            if not shop_emails:
+                logger.warning(f"shop-manager lookup failed: {e}")
+            if not shop_manager_emails:
                 fallback = ""
                 try:
-                    from email_routing import get_value as _routing_get
+                    from email_routing import get_value as _routing_get  # noqa: PLC0415
                     fallback = (await _routing_get(db, "shop_manager_fallback")) or ""
                 except Exception:
                     pass
@@ -9986,10 +9988,11 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                         "SHOP_MANAGER_EMAIL", "shopmanager@mascigc.com"
                     ).strip()
                 if fallback:
-                    shop_emails = [fallback]
-            for shop_email in shop_emails:
-                if shop_email and shop_email.lower() not in {r.lower() for r in recipients}:
-                    recipients.append(shop_email)
+                    shop_manager_emails = [fallback]
+            # HARD OVERRIDE — Pre-Op emails go to Shop Manager(s) only.
+            # No PM, no co-PMs, no always-CC, no FAIL fan-out to other
+            # shop users. Per operator: "no other emails just shop manager".
+            recipients = list(shop_manager_emails)
 
         # Severity fan-out for incidents (Major/Severe currently mirrors the
         # always-CC; future ops/GC list can be appended here from env.)
@@ -10055,6 +10058,15 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             note = (
                 f"EQUIPMENT FAIL — {record.get('fail_count')} item(s) "
                 f"failed inspection.{unit_suffix}"
+            )
+        elif kind == "equipment-inspection":
+            # iter238 — Pre-Op emails route to Shop Manager only, not
+            # the assigned PM. The body note should reflect that or the
+            # reader will look for a PM thread that doesn't exist.
+            note = (
+                "Routed to Shop Manager. Equipment Pre-Op records are "
+                "delivered to the shop only — PM and office are not on "
+                "this thread."
             )
         elif pm_name:
             note = (

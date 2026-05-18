@@ -272,7 +272,9 @@ class TestEmailSubjectHelper:
             "daily-report",
             {"doc_id": "DR-2026-0001", "project_name": "MASCI Hwy 45 Reconstruction Phase II"},
         )
-        assert "[MASCI]" in subj
+        # iter238 — prefix is now "[MASCI · TAG]" rather than bare
+        # "[MASCI]". The legacy invariant is project-before-doc_id.
+        assert "[MASCI" in subj
         assert "DR-2026-0001" in subj
         assert "Daily Report" in subj or "Daily" in subj
         # project must appear before DR-... per iter78c spec
@@ -285,9 +287,10 @@ class TestEmailSubjectHelper:
         name and the rest of the subject so PMs can filter inbox by job
         at a glance without opening the email.
 
-        Operator request (verbatim): "On all emails that contain anything
-        to do with jobs in subject right after job name can we also put
-        job number in there too before report number?"
+        iter238 — prefix gained a per-record-type tag (`[MASCI · TAG]`)
+        so Gmail/Outlook filter rules can match by kind. The
+        project-name → job-number → short_title → doc_id ordering is
+        preserved.
         """
         sys.path.insert(0, "/app/backend")
         from pdf_render import build_email_subject
@@ -301,7 +304,7 @@ class TestEmailSubjectHelper:
                 "project_number": "25-21",
             },
         )
-        assert subj == "[MASCI] Spruce Creek · 25-21 · Safety Meeting · MTG-2026-00016", (
+        assert subj == "[MASCI · SAFETY] Spruce Creek · 25-21 · Safety Meeting · MTG-2026-00016", (
             f"meeting subject mismatch: {subj}"
         )
 
@@ -314,7 +317,7 @@ class TestEmailSubjectHelper:
                 "project_number": "24-06",
             },
         )
-        assert subj == "[MASCI] Hwy 45 Reconstruction · 24-06 · Daily Report · DR-2026-0001", (
+        assert subj == "[MASCI · DAILY] Hwy 45 Reconstruction · 24-06 · Daily Report · DR-2026-0001", (
             f"daily-report subject mismatch: {subj}"
         )
 
@@ -353,7 +356,7 @@ class TestEmailSubjectHelper:
             "meeting",
             {"doc_id": "MTG-2026-00016", "project_name": "Spruce Creek"},
         )
-        assert subj == "[MASCI] Spruce Creek · Safety Meeting · MTG-2026-00016", (
+        assert subj == "[MASCI · SAFETY] Spruce Creek · Safety Meeting · MTG-2026-00016", (
             f"no-job-number fallback mismatch: {subj}"
         )
         # no "· ·" double-separator leakage

@@ -1,5 +1,116 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter238 · Uniform email subject prefix + Pre-Op shop-manager-only routing · ✅ DELIVERED (preview only)
+
+Two-part operator directive (2026-05-18):
+
+> *"all Pre Ops only need to go to shop manager no other emails just shop manager"*
+> *"Q2 looks good but need job name & job number after appropriate prefixes then appropriate report number after that"*
+
+The pre-iter238 audit of the entire email-routing system was also surfaced to the operator for verification (full routing table delivered inline · 19 distinct auto-email surfaces enumerated).
+
+### Part 1 · Uniform per-record-type subject prefix
+Every job-related auto-email now carries a stable `[MASCI · {TAG}]` prefix so Gmail/Outlook filter rules can match by record type. Format across **every** surface (main pipeline + Safety Forms + Field Leadership):
+
+```
+[MASCI · {TAG}] {project} · {project_number} · {short_title} · {doc_id}
+```
+
+| Tag | Records |
+|---|---|
+| `INSP` | Site Inspection |
+| `SAFETY` | Safety Meeting |
+| `JHA` | Job Hazard Plan |
+| `INC` | Incident Report |
+| `DAILY` | Daily Job Report |
+| `EQUIP` | Equipment Pre-Op |
+| `QA/QC` | QA/QC Inspection |
+| `ISSUANCE` | Safety Equipment Issuance |
+| `RETURN` | Safety Equipment Return/Check-In |
+| `TRAINING` | Equipment Use & Care Training |
+| `LEADERSHIP` | Write-Up · Verbal Coaching · Attendance · Recognition · Equipment Checkout · New-Employee Eval · Crew Eval · Promotion · Training Deficiency · Supervisor Notes |
+| `TERMINATION` | Employee Termination (FL record, gets the special tag) |
+| `TIME OFF` | Time Off Request (FL record, gets the special tag) |
+
+**Severe-incident** and **equipment-fail** branches deliberately keep their `🚨 SEVERE INCIDENT` / `⚠ EQUIPMENT FAIL` warning prefixes — the attention signal outranks the type filter, and operator-stated filter rules still match the warning string.
+
+### Part 2 · Equipment Pre-Op → Shop Manager only
+- **Before**: Pre-Op routed to assigned PM + co-PMs (PM_ONLY_KINDS branch); on FAIL/OOS it additionally fanned out to *every* active shop user (mechanics + parts + manager).
+- **After**: Pre-Op routes to **only** active shop users with role `"Shop Manager"` (Q1 option a — role-based fan-out so multiple Shop Managers all get included automatically). No PM, no co-PMs, no always-CC, no FAIL/OOS multi-user fanout.
+- **Fallback**: When no Shop Manager exists in `shop_users` (deploy bootstrap), the system falls back to `shop_manager_fallback` (`shopmanager@mascigc.com`) so an email always lands.
+- **Email body note** updated for Pre-Op to read *"Routed to Shop Manager. Equipment Pre-Op records are delivered to the shop only — PM and office are not on this thread."* — readers don't look for a PM thread that doesn't exist.
+
+### Files touched
+- MOD: `backend/pdf_render.py` — added `SUBJECT_TYPE_TAGS` registry + `build_email_subject_for_kind()` helper; `build_email_subject` now emits `[MASCI · TAG]` when a tag is registered, falls back to bare `[MASCI]` otherwise
+- MOD: `backend/routes/safety_forms.py:704-768` — Issuance / Return / Training subjects now built via shared helper with proper tags + project + job# fields
+- MOD: `backend/routes/field_leadership.py:580-593` — every FL kind routed through the shared helper; `employee_termination` and `time_off_request` get their distinct tags
+- MOD: `backend/server.py:9955-9994 + 10047-10078` — Pre-Op recipient list hard-overridden to Shop Manager(s) only; body note updated
+- MOD: `backend/tests/test_iter79_regression.py` — iter237 + iter78c invariants updated to expect tagged prefix
+- NEW: `backend/tests/test_iter238_email_uniformity.py` — 42 tests covering all tags, severe/fail prefix preservation, uniform builder, tag-registry coverage, and back-compat invariants
+- MOD: `memory/PRD.md` (this entry)
+
+### Tests
+- iter238 suite: **42 passed**
+- iter79 helper + equipment-inspections backward-compat: **15 passed · 4 skipped**
+- Full pre-deploy regression: **624 passed · 1 skipped**
+
+### Gate verification
+`pre_deploy_verify.py --full` →
+
+| Phase | Verdict | Detail |
+|---|---|---|
+| 1 — Regression | PASS | 624 passed · 23s |
+| 2 — Build | PASS | requirements/package/env/lint clean |
+| 3 — Walkthroughs | PASS | HR 0/0 · Dispatcher 0/0 · Foreman 6/6 (≤ baseline) |
+| 4 — Production-safety | PASS | All 7 anon-RBAC probes returned 0 tips |
+| 5 — Classification | HIGH · **auth-sensitive: True** (`field_leadership.py` touched) |
+| **Overall** | **🟡 HOLD** | Auth-sensitive → operator review required before deploy. Working as designed. |
+
+The HOLD is the gate working as intended: any touch to FL paths flags auth-sensitive even though this iter only changes the subject string. Operator acknowledgement required before clicking Deploy.
+
+### Sample subjects (verified against unit tests)
+```
+[MASCI · SAFETY] Spruce Creek · 25-21 · Safety Meeting · MTG-2026-00016
+[MASCI · INSP] Spruce Creek · 25-21 · Site Inspection · INSP-2026-00007
+[MASCI · DAILY] Hwy 45 Reconstruction · 24-06 · Daily Report · DR-2026-0001
+[MASCI · EQUIP] Spruce Creek · 25-21 · Pre-Op · EQI-2026-00001
+[MASCI · QA/QC] Spruce Creek · 25-21 · QA/QC · QA-2026-0014
+[MASCI · ISSUANCE] Spruce Creek · 25-21 · Safety Equipment Issuance · Juan Perez · EQI-2026-0001
+[MASCI · LEADERSHIP] Spruce Creek · 25-21 · Field Leadership: Write-Up · Juan Perez · FLN-2026-00042
+[MASCI · TERMINATION] Spruce Creek · 25-21 · Field Leadership: Employee Termination · Juan Perez · FLN-2026-00043
+[MASCI · TIME OFF] Spruce Creek · 25-21 · Field Leadership: Time Off Request · Juan Perez · FLN-2026-00044
+⚠ EQUIPMENT FAIL · Spruce Creek · 25-21 · CAT 320E · EQI-2026-0001        (warning preserved)
+🚨 SEVERE INCIDENT · Spruce Creek · 25-21 · INC-2026-0003                  (warning preserved)
+```
+
+### Out of scope (intentionally not touched)
+- PM welcome / password-reset / digest / backup-verification / health-monitor / outage-alarm emails are NOT job-related — they don't carry `project_name`/`project_number` and the operator's directive scoped this to "emails that contain anything to do with jobs". Their existing subject formats stand.
+
+### Cultural alignment
+- Two scoped operational deltas — single `build_email_subject` function + targeted helper + 3 callsite updates + 1 recipient-list override
+- Zero refactor, zero new collections, zero architectural drift
+- Stabilization-phase posture preserved
+
+🟡 Preview only · gate HOLD (auth-sensitive flag from `field_leadership.py` touch) · awaiting operator review.
+
+### Next Action Items
+- ⏸ Operator review of iter238 batch · gate HOLD acknowledged (subject-line change to FL, not actual auth change)
+- ⏸ Operator "Save to Github" → click Deploy on mascidocs.com
+- ⏸ Continued stabilization-phase observation
+- ⏸ Operator monitors next Pre-Op submission to confirm Shop Manager receives it and no PM/office address does
+
+### Future / Backlog (unchanged)
+- 🟡 P2 · `/sign-in` + portal-login pages localization sweep (iter236)
+- Phase K4b · Unified User Management UI mutations (P2)
+- Phase K5 · Temp Password / Onboarding standardization (P2)
+- Stage B.1 · Owner Snapshot PDF (P2)
+- Static orientation surfaces (P2 · iter231)
+- Held · HelpTip helpfulness pulse telemetry
+- Strategic Hold · Operator mid-day-defect architectural decision
+
+---
+
+
 ## 2026-05-18 — iter237 · Auto-email subject line · job number inserted · ✅ DELIVERED (preview only)
 
 Operator-surfaced UX improvement. PMs / Safety / Owner receive a high volume of auto-routed emails from MASCI Operations Platform, and the subject line is the single highest-leverage real estate for inbox triage. The job number ("project_number") was missing from the subject, forcing recipients to open the email or attached PDF to identify the job. Operator request (verbatim):

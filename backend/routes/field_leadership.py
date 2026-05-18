@@ -577,14 +577,19 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         kind_meta = FIELD_LEADERSHIP_KINDS.get(rec["kind"], {})
         kind_label = kind_meta.get("title_en", rec["kind"])
 
-        # Stamp the doc_id (EQC-2026-00042 / FLN-2026-00007 etc.) into
-        # the subject so the inbox is searchable by record number.
+        # iter238 — Uniform subject:
+        #   [MASCI · {TAG}] {project} · {job#} · Field Leadership: {kind} · {employee} · {doc_id}
+        # The tag distinguishes LEADERSHIP / TERMINATION / TIME OFF so
+        # Gmail/Outlook filter rules can match a stable prefix.
+        from pdf_render import build_email_subject_for_kind  # noqa: PLC0415
         doc_id_val = (rec.get("doc_id") or "").strip()
-        doc_seg = f"{doc_id_val} — " if doc_id_val else ""
-        subject = (
-            f"[MASCI] {doc_seg}Field Leadership: {kind_label} — "
-            f"{rec.get('employee_name') or '—'} — "
-            f"{rec.get('project_number') or ''} {rec.get('project_name') or ''}".strip()
+        emp_name = rec.get("employee_name") or "—"
+        subject = build_email_subject_for_kind(
+            type_tag_key=rec.get("kind") or "",
+            project_name=(rec.get("project_name") or "").strip(),
+            project_number=(rec.get("project_number") or "").strip(),
+            short_title=f"Field Leadership: {kind_label} · {emp_name}",
+            doc_id=doc_id_val,
         )
 
         body_html = _email_html(rec, kind_label, no_pm_warning)

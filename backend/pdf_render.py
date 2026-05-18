@@ -673,7 +673,7 @@ def build_email_subject(
     preview truncation at ~50 chars):
 
     Normal:
-      [MASCI] {project} · {project_number} · {short_title} · {doc_id}
+      [MASCI · {TAG}] {project} · {project_number} · {short_title} · {doc_id}
 
     Equipment fail:
       ⚠ EQUIPMENT FAIL · {project} · {project_number} · {equipment_unit} · {doc_id}
@@ -682,6 +682,11 @@ def build_email_subject(
       🚨 SEVERE INCIDENT · {project} · {project_number} · {doc_id}
 
     Notes:
+      - The {TAG} short-code (iter238) lets PMs / Safety set Gmail /
+        Outlook filter rules per record type — e.g. anything tagged
+        ``[MASCI · SAFETY]`` auto-routes to a Safety folder. Equipment
+        fail and severe incident keep their attention-grabbing prefixes
+        because the warning matters more than the type filter.
       - PM tag dropped — PM is the recipient, already in the To: field
       - project_name trimmed to ~32 chars or to the trailing segment
       - project_number (job number like "25-21") inserted directly after
@@ -696,6 +701,7 @@ def build_email_subject(
     project_number = str(record.get("project_number") or "").strip()
     doc_id = (record.get("doc_id") or "").strip()
     short_title = SHORT_KIND_TITLES.get(kind, KIND_TITLES.get(kind, "Record"))
+    tag = SUBJECT_TYPE_TAGS.get(kind, "")
 
     # Compose "{project} · {project_number}" head once so all three
     # branches share the same job-identifier prefix.
@@ -721,12 +727,81 @@ def build_email_subject(
             bits.append(doc_id)
         return " · ".join(bits)
 
-    # Normal record — front-load the project + job number (PM mental
-    # filter), then what the record is, then the doc_id for filing.
-    bits = ["[MASCI]", f"{project_head} · {short_title}"]
+    # Normal record — front-load the typed prefix + project + job
+    # number (PM mental filter), then what the record is, then the
+    # doc_id for filing.
+    prefix = f"[MASCI · {tag}]" if tag else "[MASCI]"
+    bits = [prefix, f"{project_head} · {short_title}"]
     if doc_id:
         bits[1] = f"{bits[1]} · {doc_id}"
     return " ".join(bits)
+
+
+# iter238 · Per-record-type subject tags. Used by build_email_subject
+# (this module) and the parallel subject builders in
+# routes/safety_forms.py + routes/field_leadership.py so every
+# job-related auto-email gets a stable, Gmail/Outlook-filterable prefix.
+SUBJECT_TYPE_TAGS: Dict[str, str] = {
+    # Main pipeline (build_email_subject)
+    "inspection": "INSP",
+    "meeting": "SAFETY",
+    "jha": "JHA",
+    "incident": "INC",
+    "daily-report": "DAILY",
+    "equipment-inspection": "EQUIP",
+    "qaqc": "QA/QC",
+    "qaqc-inspection": "QA/QC",
+    # Safety-office forms (safety_forms.py)
+    "issuance": "ISSUANCE",
+    "return": "RETURN",
+    "training": "TRAINING",
+    # Field-leadership records (field_leadership.py)
+    "write_up": "LEADERSHIP",
+    "verbal_coaching": "LEADERSHIP",
+    "attendance": "LEADERSHIP",
+    "recognition": "LEADERSHIP",
+    "equipment_checkout": "LEADERSHIP",
+    "new_employee_eval": "LEADERSHIP",
+    "crew_eval": "LEADERSHIP",
+    "promotion_recommendation": "LEADERSHIP",
+    "training_deficiency": "LEADERSHIP",
+    "supervisor_notes": "LEADERSHIP",
+    "employee_termination": "TERMINATION",
+    "time_off_request": "TIME OFF",
+}
+
+
+def build_email_subject_for_kind(
+    *,
+    type_tag_key: str,
+    project_name: str = "",
+    project_number: str = "",
+    short_title: str,
+    doc_id: str = "",
+) -> str:
+    """Standalone subject builder used by callers that don't have a
+    ``record`` dict in the schedule_auto_email shape (Safety Forms,
+    Field Leadership).
+
+    Produces the iter238 uniform format:
+      [MASCI · {TAG}] {project} · {project_number} · {short_title} · {doc_id}
+
+    Falls back gracefully when project / project_number / doc_id are
+    missing (no "· ·" leakage)."""
+    project = _short_project_label(project_name or "MASCI", max_len=32) if project_name else "MASCI"
+    tag = SUBJECT_TYPE_TAGS.get(type_tag_key, "")
+    prefix = f"[MASCI · {tag}]" if tag else "[MASCI]"
+
+    head_parts = []
+    if project_name:
+        head_parts.append(project)
+    if project_number:
+        head_parts.append(str(project_number).strip())
+    head_parts.append(short_title)
+    if doc_id:
+        head_parts.append(doc_id.strip())
+
+    return f"{prefix} {' · '.join(head_parts)}"
 
 
 # ────────────────────────────────────────────────────────────────────────
