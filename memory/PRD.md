@@ -1,6 +1,60 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter203 · Portal Sign-In Directory in Guidance + Mobile Header Unification · ✅ DELIVERED (preview only)
+
+**Operator caught a second UX-vs-tests disconnect.** Built the actual gateway pattern + unified mobile headers.
+
+### What was actually broken
+1. The Operational Guidance Center had **no visible portal-login entry points inside it**. Users had to know to go to `/sign-in` separately. Guidance should be the gateway — learn about a portal AND navigate to its login from the same surface.
+2. Mobile portal headers (PM especially) had **7 icons competing** in a 390px-wide bar: PortalSwitcher, GlobalSearch, NotificationBell, OfflineIndicator, SystemHealthBadge, Home, KeyRound, plus Sign Out. Title got crushed, icons collided.
+
+### What landed
+
+**Guidance Sign-In Directory:**
+- **MOD** `OperationalGuidanceCenter.jsx` — added a new always-visible "Find Your Portal" section between Public Tracks and Portal Tracks. Each card represents one protected portal:
+  - identity icon · portal name · 1-line purpose
+  - "Sign in" CTA → `/<portal>/login`
+  - "Learn →" link → identity article (or `/guidance` fallback until Pass 5 lands per-portal articles)
+- 7 portal cards (Field Leadership · HR · Safety · Shop · Dispatch · PM · Admin) — color-coded per portal accent
+- Fully translation-aware (purpose strings have `purposeEs`, labels have `labelEs`)
+- New `Building2` icon import
+
+**Mobile Header Unification (consistent pattern across all shells):**
+Pattern applied: on `<sm` collapse PortalSwitcher, GlobalSearch, SystemHealthBadge, KeyRound (change-password). Keep visible: hamburger, logo, title, NotificationBell, OfflineIndicator, LangToggle (where present), Sign Out icon.
+- **MOD** `PmShell.jsx`
+- **MOD** `AdminShell.jsx`
+- **MOD** `SafetyShell.jsx`
+- **MOD** `pages/ShopHub.jsx`
+- **MOD** `pages/HrHub.jsx`
+- Sign Out button always has `title="Sign out"` for accessibility and stays visible on mobile as an icon-only button
+
+### Mobile walkthrough verified (real preview, anonymous + admin tokens, iPhone 14 Pro viewport)
+- ✅ `/guidance` mobile shows all 7 portal cards with Sign In + Learn buttons
+- ✅ HR card "Sign in" navigates to `/hr/login`
+- ✅ Spanish toggle on directory translates all 7 cards
+- ✅ PM hub mobile header: "PM PORTAL / Overview" cleanly readable, no icon stacking
+- ✅ Admin hub mobile header: "ADMIN CONSOLE / Overview" clean
+- ✅ Sign Out icon-only on mobile, label appears on `>=sm`
+- ✅ RBAC strict isolation confirmed (admin token can't reach Safety/HR hubs)
+
+### Translation dictionary additions
+- "Sign-In Required · Portal Directory" → "Inicio de Sesión Requerido · Directorio de Portales"
+- "Find Your Portal" → "Encuentre Su Portal"
+- Purpose statement → translated
+- "Sign in" → "Iniciar sesión"
+- "Learn" → "Aprender"
+
+### Files touched
+- MOD: `frontend/src/pages/guidance/OperationalGuidanceCenter.jsx`, `frontend/src/lib/i18n.js`, `frontend/src/components/PmShell.jsx`, `frontend/src/components/AdminShell.jsx`, `frontend/src/components/SafetyShell.jsx`, `frontend/src/pages/ShopHub.jsx`, `frontend/src/pages/HrHub.jsx`, `memory/PRD.md`
+
+No production push.
+
+### Pass 5 status — STILL HELD
+Pass 5 content saturation does not begin until operator confirms iter203 fixes match their walkthrough expectations.
+
+---
+
 ## 2026-05-18 — iter202 · Operational Portal-Entry Consistency Fix · ✅ DELIVERED (preview only)
 
 **Hard course-correction triggered by operator walkthrough.** The previous Pass 3 / Pass 4 / iter201 work passed all backend tests but the operator caught real user-facing inconsistencies that tests didn't cover:

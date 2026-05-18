@@ -144,12 +144,21 @@ export default function PmShell({ title, section, children, intro }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            <PortalSwitcher current="pm" />
-            <GlobalSearch accent="dark" />
+          {/* iter203 — Mobile header collapse: on <sm hide
+              PortalSwitcher, GlobalSearch, SystemHealthBadge, and
+              KeyRound (change-password). Keep visible: hamburger, logo,
+              title, NotificationBell, OfflineIndicator, Sign Out icon.
+              Non-essentials remain accessible via the mobile sheet. */}
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            <div className="hidden sm:flex items-center gap-1.5">
+              <PortalSwitcher current="pm" />
+              <GlobalSearch accent="dark" />
+            </div>
             <NotificationBell accent="white" />
             <OfflineIndicator />
-            <SystemHealthBadge />
+            <div className="hidden sm:flex items-center gap-1.5">
+              <SystemHealthBadge />
+            </div>
             <Link
               to="/"
               className="hidden md:inline-flex items-center h-8 px-2.5 rounded-md text-white hover:bg-slate-800 text-xs font-bold uppercase tracking-wide"
@@ -160,7 +169,7 @@ export default function PmShell({ title, section, children, intro }) {
             </Link>
             <Link
               to="/pm/change-password"
-              className="inline-flex items-center h-8 px-2.5 rounded-md text-white hover:bg-slate-800 text-xs font-bold uppercase tracking-wide"
+              className="hidden sm:inline-flex items-center h-8 px-2.5 rounded-md text-white hover:bg-slate-800 text-xs font-bold uppercase tracking-wide"
               data-testid="pm-change-password"
               title="Change My Password"
             >
@@ -170,8 +179,9 @@ export default function PmShell({ title, section, children, intro }) {
               variant="ghost"
               size="sm"
               onClick={signOut}
-              className="text-white hover:bg-amber-900 hover:text-white h-8 px-2.5 text-xs"
+              className="text-white hover:bg-amber-900 hover:text-white h-8 px-2 sm:px-2.5 text-xs"
               data-testid="pm-sign-out"
+              title="Sign out"
             >
               <LogOut className="w-3.5 h-3.5 sm:mr-1" />
               <span className="hidden sm:inline">Sign out</span>

@@ -1362,6 +1362,12 @@ const ES = {
   "Common mistakes": "Errores comunes",
   // iter202 — Operational Guidance Center landing translation
   "MASCI Operations Platform · Operational Guidance Center": "Plataforma de Operaciones MASCI · Centro de Guía Operacional",
+  // iter203 — Portal Sign-In Directory inside Guidance
+  "Sign-In Required · Portal Directory": "Inicio de Sesión Requerido · Directorio de Portales",
+  "Find Your Portal": "Encuentre Su Portal",
+  "Each protected portal has its own login, training, and operational identity. Tap to sign in or learn what each portal does.": "Cada portal protegido tiene su propio inicio de sesión, capacitación e identidad operacional. Toque para iniciar sesión o aprender qué hace cada portal.",
+  "Sign in": "Iniciar sesión",
+  "Learn": "Aprender",
   "Portal-specific training, role-based help, troubleshooting, and operational knowledge. Filtered by your portal access.": "Capacitación específica del portal, ayuda por rol, solución de problemas y conocimiento operacional. Filtrado por su acceso al portal.",
   "Public field-crew training is open below. Portal-specific training (HR · Safety · Shop · Dispatch · PM · Field Leadership · Admin) appears when you sign in.": "La capacitación pública de cuadrilla está abierta abajo. La capacitación específica del portal (RH · Seguridad · Taller · Despacho · PM · Liderazgo de Campo · Admin) aparece cuando inicia sesión.",
   "Sign in for portal training": "Iniciar sesión para capacitación del portal",

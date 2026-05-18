@@ -167,15 +167,20 @@ export default function AdminShell({ title, section, children, intro }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          {/* iter203 — Mobile header collapse: hide PortalSwitcher,
+              GlobalSearch icon, SystemHealthBadge on <sm. Keep
+              NotificationBell, OfflineIndicator, Sign Out visible. */}
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             <div className="hidden md:block w-72">
               <AdminGlobalSearch />
             </div>
-            <PortalSwitcher current="admin" />
-            <div className="md:hidden"><GlobalSearch accent="dark" /></div>
+            <div className="hidden sm:flex items-center gap-1.5">
+              <PortalSwitcher current="admin" />
+              <div className="md:hidden"><GlobalSearch accent="dark" /></div>
+            </div>
             <NotificationBell accent="white" />
             <OfflineIndicator />
-            <SystemHealthBadge />
+            <div className="hidden sm:flex"><SystemHealthBadge /></div>
             <Link
               to="/"
               className="hidden md:inline-flex items-center h-8 px-2.5 rounded-md text-white hover:bg-slate-800 text-xs font-bold uppercase tracking-wide"
@@ -188,8 +193,9 @@ export default function AdminShell({ title, section, children, intro }) {
               variant="ghost"
               size="sm"
               onClick={signOut}
-              className="text-white hover:bg-red-900 hover:text-white h-8 px-2.5 text-xs"
+              className="text-white hover:bg-red-900 hover:text-white h-8 px-2 sm:px-2.5 text-xs"
               data-testid="admin-sign-out"
+              title="Sign out"
             >
               <LogOut className="w-3.5 h-3.5 sm:mr-1" />
               <span className="hidden sm:inline">Sign out</span>

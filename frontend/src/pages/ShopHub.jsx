@@ -97,15 +97,20 @@ export default function ShopHub() {
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
           <MasciLogo variant="mark" size="md" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <PortalSwitcher current="shop" />
-            <GlobalSearch accent="dark" />
+          {/* iter203 — Mobile header collapse: hide PortalSwitcher,
+              GlobalSearch, Guides link, and change-password on <sm.
+              Keep visible: NotificationBell, OfflineIndicator, LangToggle, Sign out. */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="hidden sm:flex items-center gap-2">
+              <PortalSwitcher current="shop" />
+              <GlobalSearch accent="dark" />
+            </div>
             <NotificationBell accent="white" />
             <OfflineIndicator />
             <LangToggle />
             <Link
               to="/guidance"
-              className="inline-flex items-center h-10 px-3 rounded-md border-2 border-amber-400 text-amber-400 hover:bg-amber-500 hover:text-white bg-transparent font-bold uppercase tracking-wide text-xs"
+              className="hidden sm:inline-flex items-center h-10 px-3 rounded-md border-2 border-amber-400 text-amber-400 hover:bg-amber-500 hover:text-white bg-transparent font-bold uppercase tracking-wide text-xs"
               data-testid="shop-training-link"
             >
               <BookOpen className="w-4 h-4 sm:mr-1" />
@@ -125,10 +130,11 @@ export default function ShopHub() {
             <Button
               onClick={onLogout}
               variant="outline"
-              className="h-10 px-3 border-2 border-amber-400 text-amber-400 hover:bg-amber-500 hover:text-white bg-transparent font-bold uppercase tracking-wide text-xs"
+              className="h-10 px-2 sm:px-3 border-2 border-amber-400 text-amber-400 hover:bg-amber-500 hover:text-white bg-transparent font-bold uppercase tracking-wide text-xs"
               data-testid="shop-logout-btn"
+              title="Sign out"
             >
-              <LogOut className="w-4 h-4 mr-1" /> {t("Sign out")}
+              <LogOut className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">{t("Sign out")}</span>
             </Button>
           </div>
         </div>

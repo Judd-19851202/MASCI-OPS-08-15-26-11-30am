@@ -21,7 +21,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   BookOpen, Search, Loader2, ChevronLeft, UserCog, Zap, LayoutGrid,
   LifeBuoy, Lightbulb, Shield, UserPlus, AlertTriangle, Lightbulb as TipIcon,
-  AlertCircle, ArrowRightCircle, Home, LogIn,
+  AlertCircle, ArrowRightCircle, Home, LogIn, Building2,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
@@ -128,6 +128,132 @@ function Block({ block }) {
     default:
       return null;
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Portal Sign-In Directory (iter203)
+// ─────────────────────────────────────────────────────────────────────
+// Always-visible portal-entry cards inside the Operational Guidance
+// Center. Each card represents one protected portal:
+//   - Portal identity kicker
+//   - Short purpose statement (translation-aware)
+//   - "Sign in" CTA → /<portal>/login
+//   - "Learn about this portal" → identity article (or /guidance fallback)
+//
+// This is the operational gateway pattern: Guidance becomes the place
+// users learn about a portal AND navigate to its login from the same
+// surface, instead of having to find /sign-in separately.
+const PORTAL_DIRECTORY = [
+  {
+    key: "leadership", label: "Field Leadership", labelEs: "Liderazgo de Campo",
+    loginUrl: "/leadership/login", identityArticle: "portal-leadership-identity",
+    purpose: "Superintendents · Foremen · Field Leaders · Operations Oversight",
+    purposeEs: "Superintendentes · Capataces · Líderes de Campo · Supervisión",
+    accent: "bg-red-700", iconBg: "bg-red-50", iconColor: "text-red-700", border: "hover:border-red-700",
+  },
+  {
+    key: "hr", label: "HR Portal", labelEs: "Portal de RH",
+    loginUrl: "/hr/login", identityArticle: null,
+    purpose: "Time verification · Onboarding · Accountability · Training records",
+    purposeEs: "Verificación de tiempo · Onboarding · Rendición de cuentas · Capacitación",
+    accent: "bg-purple-700", iconBg: "bg-purple-50", iconColor: "text-purple-700", border: "hover:border-purple-700",
+  },
+  {
+    key: "safety", label: "Safety Portal", labelEs: "Portal de Seguridad",
+    loginUrl: "/safety-portal/login", identityArticle: null,
+    purpose: "Incidents · Corrective actions · Audits · Training compliance",
+    purposeEs: "Incidentes · Acciones correctivas · Auditorías · Cumplimiento",
+    accent: "bg-yellow-600", iconBg: "bg-yellow-50", iconColor: "text-yellow-700", border: "hover:border-yellow-600",
+  },
+  {
+    key: "shop", label: "Shop / Fleet Portal", labelEs: "Portal de Taller / Flota",
+    loginUrl: "/shop/login", identityArticle: null,
+    purpose: "Pre-Op review · Damage · Maintenance · Parts · Sign-offs",
+    purposeEs: "Revisión Pre-Op · Daños · Mantenimiento · Repuestos · Firmas",
+    accent: "bg-orange-600", iconBg: "bg-orange-50", iconColor: "text-orange-700", border: "hover:border-orange-600",
+  },
+  {
+    key: "dispatch", label: "Dispatch Portal", labelEs: "Portal de Despacho",
+    loginUrl: "/dispatch-portal/login", identityArticle: null,
+    purpose: "Equipment movement · Availability · Holds · Transfers",
+    purposeEs: "Movimiento de equipo · Disponibilidad · Retenciones · Transferencias",
+    accent: "bg-sky-700", iconBg: "bg-sky-50", iconColor: "text-sky-700", border: "hover:border-sky-700",
+  },
+  {
+    key: "pm", label: "PM Portal", labelEs: "Portal de PM",
+    loginUrl: "/pm/login", identityArticle: null,
+    purpose: "Project review · Labor docs · Cross-portal coordination",
+    purposeEs: "Revisión de proyecto · Documentación laboral · Coordinación entre portales",
+    accent: "bg-amber-600", iconBg: "bg-amber-50", iconColor: "text-amber-700", border: "hover:border-amber-600",
+  },
+  {
+    key: "admin", label: "Admin Console", labelEs: "Consola de Admin",
+    loginUrl: "/admin/login", identityArticle: null,
+    purpose: "Operator console — people · jobs · system · backups · governance",
+    purposeEs: "Consola de operador — personas · trabajos · sistema · respaldos · gobernanza",
+    accent: "bg-slate-900", iconBg: "bg-slate-100", iconColor: "text-slate-900", border: "hover:border-slate-900",
+  },
+];
+
+function PortalSignInDirectory({ lang }) {
+  const { t } = useT();
+  return (
+    <section className="mt-8" data-testid="guidance-portal-directory">
+      <div className="mb-3">
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-700 font-bold">
+          {t("Sign-In Required · Portal Directory")}
+        </div>
+        <h2 className="font-display text-xl font-black tracking-tight">
+          {t("Find Your Portal")}
+        </h2>
+        <p className="text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
+          {t("Each protected portal has its own login, training, and operational identity. Tap to sign in or learn what each portal does.")}
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {PORTAL_DIRECTORY.map((p) => {
+          const portalLabel = (lang === "es" && p.labelEs) ? p.labelEs : p.label;
+          const portalPurpose = (lang === "es" && p.purposeEs) ? p.purposeEs : p.purpose;
+          const learnHref = p.identityArticle ? `/guidance/${p.identityArticle}` : "/guidance";
+          return (
+            <div
+              key={p.key}
+              className={`group relative bg-white border-2 border-slate-300 rounded-md p-4 ${p.border} hover:shadow-md transition-all`}
+              data-testid={`guidance-portal-directory-${p.key}`}
+            >
+              <div className={`absolute inset-y-0 left-0 w-1.5 ${p.accent} rounded-l-sm`} />
+              <div className={`inline-flex items-center justify-center w-10 h-10 rounded ${p.iconBg} ${p.iconColor} shrink-0 mb-2`}>
+                <Building2 className="w-5 h-5" />
+              </div>
+              <div className="font-display text-base font-bold text-slate-900 leading-tight">
+                {portalLabel}
+              </div>
+              <div className="text-[12px] text-slate-600 mt-1 leading-snug min-h-[2.5rem]">
+                {portalPurpose}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link
+                  to={p.loginUrl}
+                  className={`inline-flex items-center h-9 px-3 rounded-md text-white text-[11px] font-bold uppercase tracking-wider transition-colors ${p.accent} hover:opacity-90`}
+                  data-testid={`guidance-portal-directory-${p.key}-signin`}
+                >
+                  <LogIn className="w-3.5 h-3.5 mr-1.5" />
+                  {t("Sign in")}
+                </Link>
+                <Link
+                  to={learnHref}
+                  className="inline-flex items-center h-9 px-3 rounded-md text-slate-700 hover:text-slate-900 text-[11px] font-bold uppercase tracking-wider transition-colors hover:bg-slate-100"
+                  data-testid={`guidance-portal-directory-${p.key}-learn`}
+                >
+                  {t("Learn")} →
+                </Link>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -560,6 +686,18 @@ export default function OperationalGuidanceCenter() {
           </div>
         </section>
       )}
+
+      {/* iter203 — Portal Sign-In Directory inside Operational Guidance.
+          Always visible (anon + authenticated). Each card = one protected
+          portal with: identity kicker · purpose · "Sign in" CTA (deep
+          link to /<portal>/login) · "Learn about this portal" link to
+          the guidance identity article (or /guidance fallback until
+          Pass 5 saturates per-portal identity articles).
+
+          This is the operational gateway pattern the operator surfaced:
+          Guidance should be where users LEARN about a portal AND where
+          they navigate to its login — not just a training catalog. */}
+      <PortalSignInDirectory lang={lang} />
 
       {/* Portal Training — first-class portal tracks for authenticated
           users. Safety + Dispatch are always surfaced when authorized. */}

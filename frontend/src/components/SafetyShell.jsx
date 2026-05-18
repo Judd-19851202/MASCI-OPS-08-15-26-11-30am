@@ -40,17 +40,20 @@ export default function SafetyShell({ title, kicker, children }) {
           <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <div className="flex-1" />
-          <div className="flex flex-wrap items-center justify-end gap-2 min-w-0">
-            <GlobalSearch accent="dark" />
+          {/* iter203 — Mobile header collapse */}
+          <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 min-w-0">
+            <div className="hidden sm:flex items-center gap-2">
+              <GlobalSearch accent="dark" />
+            </div>
             <NotificationBell accent="white" />
             <OfflineIndicator />
             <LangToggle />
-            <CompanyInfoDialog />
+            <div className="hidden sm:flex"><CompanyInfoDialog /></div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => nav("/safety-portal/change-password")}
-              className="text-xs"
+              className="hidden sm:inline-flex text-xs"
               data-testid="safety-change-password"
               title="Change My Password"
             >
@@ -60,8 +63,9 @@ export default function SafetyShell({ title, kicker, children }) {
               variant="outline"
               size="sm"
               onClick={signOut}
-              className="text-xs"
+              className="text-xs h-8 px-2 sm:px-2.5"
               data-testid="safety-sign-out"
+              title="Sign out"
             >
               <LogOut className="w-3.5 h-3.5 sm:mr-1" /><span className="hidden sm:inline">{t("Sign out")}</span>
             </Button>
