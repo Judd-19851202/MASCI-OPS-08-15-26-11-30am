@@ -128,14 +128,13 @@ export default function TrainingHub() {
             </div>
             <div className="flex-1 text-left">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-700 font-bold">
-                New · Operational Guidance Center
+                {t("New · Operational Guidance Center")}
               </div>
               <div className="font-display text-lg font-black text-slate-900">
-                How and why to run MASCI operations
+                {t("How and why to run MASCI operations")}
               </div>
               <div className="text-[13px] text-slate-600 mt-0.5">
-                Role-based training · task-based help · troubleshooting · why each workflow matters.
-                Filtered to your portal access.
+                {t("Role-based training · task-based help · troubleshooting · why each workflow matters. Filtered to your portal access.")}
               </div>
             </div>
             <ChevronRight className="w-5 h-5 text-amber-700 group-hover:translate-x-1 transition-transform" />

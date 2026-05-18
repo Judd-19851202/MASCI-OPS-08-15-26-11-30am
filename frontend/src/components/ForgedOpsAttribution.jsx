@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import forgedOpsLogo from "@/assets/forgedops-logo.png";
 import { BUILD_VERSION, BUILT_AT_ISO } from "@/buildVersion.generated";
+import { useT } from "@/lib/i18n";
 
 /**
  * ForgedOpsAttribution — platform-owner branding line, three render modes.
@@ -30,6 +31,7 @@ import { BUILD_VERSION, BUILT_AT_ISO } from "@/buildVersion.generated";
  */
 
 export function ForgedOpsAttribution({ variant = "global", className = "" }) {
+  const { t } = useT();
   if (variant === "login") {
     return (
       <div
@@ -90,7 +92,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
           className="hover:text-slate-700 underline-offset-2 hover:underline"
           data-testid="footer-terms-link"
         >
-          Terms
+          {t("Terms")}
         </Link>{" "}
         ·{" "}
         <Link
@@ -98,7 +100,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
           className="hover:text-slate-700 underline-offset-2 hover:underline"
           data-testid="footer-privacy-link"
         >
-          Privacy
+          {t("Privacy")}
         </Link>{" "}
         ·{" "}
         <span

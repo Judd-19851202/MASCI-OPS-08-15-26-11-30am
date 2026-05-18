@@ -450,6 +450,46 @@ const ES = {
   "MASCI · Job Site Safety Program": "MASCI · Programa de Seguridad del Sitio",
   "MASCI · Field Safety Reporting Portal":
     "MASCI · Portal de Reportes de Seguridad de Campo",
+  // iter241 — Localization continuity completion pass. The platform
+  // was already strongly bilingual; the remaining English fragments
+  // (footer link labels, guidance-hub section titles, portal-track
+  // labels, training-hub banner) now have their ES counterparts so
+  // Spanish-speaking field crews don't encounter random English on
+  // shared/common surfaces.
+  //
+  // Footer link primitives (rendered uppercase via CSS).
+  "Terms": "Términos",
+  "Privacy": "Privacidad",
+  //
+  // Operational Guidance Center — SECTIONS (backend-driven, frontend
+  // now wraps `s.title` in t()).
+  "Role-Based Training": "Capacitación por Rol",
+  "Task-Based Quick Help": "Ayuda Rápida por Tarea",
+  "Portal Guides": "Guías de Portal",
+  "Troubleshooting": "Solución de Problemas",
+  "Why It Matters": "Por Qué Importa",
+  "Backups & Data Portability": "Respaldos y Portabilidad de Datos",
+  "New User Onboarding": "Orientación para Usuarios Nuevos",
+  //
+  // Operational Guidance Center — PORTAL_TRACKS labels.
+  "HR Portal": "Portal de RH",
+  "Safety Portal": "Portal de Seguridad",
+  "Shop / Fleet Portal": "Portal de Taller / Flota",
+  "Dispatch Portal": "Portal de Despacho",
+  "PM Portal": "Portal de PM",
+  "Field Leadership Portal": "Portal de Liderazgo de Campo",
+  "Admin Console": "Consola de Administración",
+  //
+  // Training Hub — operational-guidance banner that links from
+  // /training → /guidance.
+  "New · Operational Guidance Center": "Nuevo · Centro de Guía Operacional",
+  "How and why to run MASCI operations":
+    "Cómo y por qué operar MASCI",
+  "Role-based training · task-based help · troubleshooting · why each workflow matters. Filtered to your portal access.":
+    "Capacitación por rol · ayuda por tarea · solución de problemas · por qué importa cada flujo. Filtrado por su acceso al portal.",
+  //
+  // ── End iter241 entries ──
+
   // Crew Cheat Sheet
   "Cheat Sheet": "Hoja de Referencia",
   "Crew Cheat Sheet": "Hoja de Referencia de Cuadrilla",

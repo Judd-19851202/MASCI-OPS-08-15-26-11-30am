@@ -1,5 +1,98 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter241 · Bilingual continuity completion pass · ✅ DELIVERED (preview only)
+
+Operator surfaced this in the iter240 audit: although the platform is already heavily bilingual, a handful of shared/common surfaces still leaked English fragments in ES mode, and the visible inconsistency was eroding trust with Spanish-speaking crews (~50% of the field workforce). Per the operator's exact framing: *"the issue is no longer architecture, the issue is continuity completeness."*
+
+### Operator-supplied leak inventory (from ES.pdf attachment)
+- "Role-Based Training"
+- "Portal Guides"
+- "Troubleshooting"
+- "Why It Matters"
+- "New User Onboarding"
+- "Field Leadership Portal"
+- "TERMS · PRIVACY" (footer link primitives)
+- plus the shared portal-track labels and `/training` operational-guidance banner
+
+### Audit + fix executed
+Targeted four files. Two of them had raw-string rendering (no `t()` wrapper); the other two had wrappers but missing ES dictionary entries.
+
+| File | Issue | Fix |
+|---|---|---|
+| `frontend/src/pages/guidance/OperationalGuidanceCenter.jsx` | Section titles (`s.title`) and PORTAL_TRACKS labels (`tk.label`) rendered raw | Wrapped both in `t()` |
+| `frontend/src/components/ForgedOpsAttribution.jsx` | Footer link labels "Terms" / "Privacy" rendered raw | Imported `useT`, wrapped both in `t()` |
+| `frontend/src/pages/TrainingHub.jsx` | `/training` banner kicker / title / blurb rendered raw | Wrapped 3 strings in `t()` |
+| `frontend/src/lib/i18n.js` | Missing ES entries for ~20 strings | Added the iter241 block (footer · 7 guidance sections · 7 portal tracks · 3 training-banner strings) |
+
+### Surfaces verified clean
+Live preview ES rendering checked end-to-end:
+
+| Surface | Pre-iter241 leaks | Post-iter241 leaks |
+|---|---|---|
+| `/` (hub home) | 0 | 0 (already clean) |
+| `/sign-in` | already mostly clean | already mostly clean |
+| `/guidance` | 14 English fragments | **0** |
+| `/training` | 3 banner fragments | **0** |
+| Footer (every page) | "TERMS · PRIVACY" | "TÉRMINOS · PRIVACIDAD" |
+
+### Spanish strings rendered correctly (live preview verification)
+- "Capacitación por Rol" · "Guías de Portal" · "Solución de Problemas" · "Por Qué Importa" · "Orientación para Usuarios Nuevos" · "Ayuda Rápida por Tarea" · "Respaldos y Portabilidad de Datos"
+- "Portal de RH" · "Portal de Seguridad" · "Portal de Taller / Flota" · "Portal de Despacho" · "Portal de PM" · "Portal de Liderazgo de Campo" · "Consola de Administración"
+- "Nuevo · Centro de Guía Operacional" · "Cómo y por qué operar MASCI" · "Capacitación por rol · ayuda por tarea · solución de problemas · por qué importa cada flujo. Filtrado por su acceso al portal."
+- "Términos" · "Privacidad"
+
+### Mobile responsiveness (longer ES labels don't break layout)
+- `/guidance` ES @ 375px wide: **0px overflow**
+- `/guidance` ES @ 320px wide: **0px overflow**
+- `/training` ES @ 375px wide: **0px overflow**
+- No button collisions · no overlapping cards · longer ES labels (e.g. "Portal de Liderazgo de Campo" is ~28 chars vs EN "Field Leadership Portal" ~23 chars) fit cleanly in the grid
+
+### Known acceptable remaining leakage (deliberately not touched · documented for future iter)
+- **Lesson-level titles** in `/training/<slug>` cards (e.g. "Navigating the MASCI Hub", "Daily Reports", "Equipment Pre-Op Inspection"). These are individual lesson titles in the TRACKS content data — they need per-lesson `title_es` fields, which is content-data localization rather than UI primitive localization. Strictly out of iter241 scope per operator-stated boundaries ("not multilingual expansion / AI translation redesign / localization architecture work"). Logged as future P2 work.
+- **Long legal-page paragraphs** in `/legal/terms` and `/legal/privacy`. Translating contractual paragraphs requires lawyer-reviewed Spanish drafts — outside this UI-continuity pass scope. The user-facing branding ("MASCI Operations Platform" / "Powered by ForgedOps™") was already iter239-cleaned.
+
+### Files touched (4 files · all surgical)
+- MOD: `frontend/src/pages/guidance/OperationalGuidanceCenter.jsx` (wrap 2 raw renders)
+- MOD: `frontend/src/components/ForgedOpsAttribution.jsx` (import `useT`, wrap 2 link labels)
+- MOD: `frontend/src/pages/TrainingHub.jsx` (wrap 3 banner strings)
+- MOD: `frontend/src/lib/i18n.js` (~20 new ES dictionary entries · clearly fenced as iter241 block)
+- MOD: `memory/PRD.md` (this entry)
+
+### Gate verification
+`pre_deploy_verify.py --full` →
+
+| Phase | Verdict | Detail |
+|---|---|---|
+| 1 · Regression | PASS | 624 passed · 1 skipped · 23s |
+| 2 · Build | PASS | requirements/package/env/lint clean |
+| 3 · Walkthroughs | PASS | HR 0/0 · Dispatcher 0/0 · Foreman 6/6 |
+| 4 · Production-safety | PASS | All 7 anon-RBAC probes returned 0 tips |
+| 5 · Classification | MEDIUM · NOT auth-sensitive · NOT data-sensitive · NOT rollback-sensitive · affected portals: public |
+| **Overall** | **✅ APPROVE** | 108s total · report `/app/deploy_reports/20260518_230547_deploy_summary.md` |
+
+### Cultural alignment
+Per operator: this is **the final contained bilingual continuity pass before a longer stabilization/observation period after deployment**. Scope held exactly: 4 file edits · zero refactor · zero new architecture · zero feature expansion. iter238 email subject system explicitly untouched.
+
+🟢 Preview only · gate APPROVE · awaiting operator deploy decision · then enter stabilization/observation posture.
+
+### Next Action Items
+- ⏸ Operator review of iter241 batch · gate APPROVE verdict
+- ⏸ Save to Github → Deploy on mascidocs.com
+- ⏸ **Enter stabilization / observation posture for the remainder of the week** (operator-stated)
+
+### Future / Backlog (unchanged · all deferred per stabilization posture)
+- 🟡 Future · Lesson-level `title_es` content-data localization (logged from iter241)
+- 🟡 Future · Long legal-page paragraph translation (requires lawyer review)
+- Phase K4b · Unified User Management UI mutations (P2)
+- Phase K5 · Temp Password / Onboarding standardization (P2)
+- Stage B.1 · Owner Snapshot PDF (P2)
+- Static orientation surfaces (P2 · iter231)
+- Held · HelpTip helpfulness pulse telemetry
+- Strategic Hold · Operator mid-day-defect architectural decision
+
+---
+
+
 ## 2026-05-18 — iter240 · Full Hard-Use Readiness Audit · ✅ APPROVE — READY FOR HEAVY FIELD AND OFFICE USE
 
 Operator-directed comprehensive production-readiness audit. No code changes — verification, RBAC probing, mobile responsiveness measurement, and screenshot validation only. Full report: `/app/HARD_USE_READINESS_AUDIT_iter240.md`.

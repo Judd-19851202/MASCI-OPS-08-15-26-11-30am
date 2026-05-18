@@ -746,7 +746,7 @@ export default function OperationalGuidanceCenter() {
                   {tk.key}
                 </div>
                 <div className="font-display text-base font-bold text-slate-900 mt-1 leading-tight">
-                  {tk.label}
+                  {t(tk.label)}
                 </div>
                 <div className="text-[12px] text-slate-500 mt-1">
                   {portalCounts[tk.key]} {portalCounts[tk.key] === 1 ? t("article") : t("articles")}
@@ -780,7 +780,7 @@ export default function OperationalGuidanceCenter() {
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-slate-900">{s.title}</div>
+                    <div className="font-semibold text-slate-900">{t(s.title)}</div>
                     <div className="text-[12px] text-slate-500 mt-0.5">
                       {s.count} {s.count === 1 ? t("article") : t("articles")}
                     </div>
