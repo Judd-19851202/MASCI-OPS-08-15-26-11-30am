@@ -1,5 +1,45 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter231 · Terminology clarification · ✅ DELIVERED (preview only · docs-only)
+
+Operator-surfaced vocabulary confusion: the word "walkthrough" was being used in two senses (internal QA simulation framework vs. user-facing tour) without clear documentation. **Architecture itself is correct — this is purely a terminology/documentation clarification.**
+
+### What was clarified (verbatim from operator)
+- **Internal walkthroughs** = QA / editorial simulation infrastructure (Playwright-driven · runs in preview pod · operator/developer/agent-facing · never user-facing)
+- **HelpTips / coaching blocks** = actual user-facing operational guidance ("N coaching tips available · tap to expand")
+- The walkthrough framework **produces** coaching content; users never **touch** the walkthrough framework
+
+### Anti-drift hard-stops (operator-stated · documented in walkthrough_pass.md)
+- ❌ NO popup onboarding
+- ❌ NO LMS-style tutorials
+- ❌ NO guided click-through tours
+- ❌ NO heavy onboarding systems
+- ✅ Future allowance (P2 backlog · NOT authored): lightweight STATIC orientation surfaces only — "Start Here" pages · role-expectation summaries · common-mistakes lists · operational basics. **Static. Not interactive. Not tour-style.**
+
+### Three small doc edits
+- MOD: `/app/walkthroughs/walkthrough_pass.md` — added prominent "Terminology" section at top with the term-vs-meaning table and anti-drift hard-stops · placed BEFORE all other protocol content so it's read first
+- MOD: `/app/DEPLOY.md` — added a one-paragraph "Vocabulary note (iter231)" at the top pointing to walkthrough_pass.md
+- MOD: `/app/memory/PRD.md` — this entry
+
+### Future P2 backlog addition (operator-mentioned · NOT authored this iter)
+- **Static orientation surfaces** — "Start Here" / role-expectations / common-mistakes / operational-basics. Strictly static markdown or simple pages. Not interactive tours. Not popups. To be considered later, not now. Tracked in backlog only.
+
+### Files touched
+- `/app/walkthroughs/walkthrough_pass.md` (terminology section added)
+- `/app/DEPLOY.md` (vocabulary note added)
+- `/app/memory/PRD.md` (this entry)
+
+### Architecture / behavior
+- Zero architecture change
+- Zero registry change
+- Zero coaching authored
+- Zero tests added/changed
+- 623 tests still pass · walkthrough baselines intact · gate still operational
+
+🔵 Preview only · documentation-only iter · stabilization-phase posture preserved · operator-surfaced clarification answered with minimum delta.
+
+---
+
 ## 2026-05-18 — iter230 · DEPLOY.md · ✅ DELIVERED · deployment discipline institutionalized (preview only)
 
 Per operator directive: option A only ("add DEPLOY.md · document usage discipline · lock deployment governance in place"). Option B (experimenting with coaching surfaces) explicitly declined per stabilization-phase pivot. **No coaching authored. No registry edits. Documentation-only iter.**

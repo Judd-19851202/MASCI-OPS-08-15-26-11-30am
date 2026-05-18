@@ -13,6 +13,32 @@
 
 ---
 
+## ⚠ Terminology — read this before anything else
+
+The word "walkthrough" in this codebase has ONE meaning. It does **not**
+mean what the same word means in most consumer software.
+
+| Term | What it actually is | Who runs / sees it |
+|---|---|---|
+| **Walkthrough** (this doc) | Internal Playwright-driven QA/editorial **simulation framework** that runs in the preview pod. Simulates a persona's day, surfaces coaching gaps, produces a findings JSON. | Developers, agents, operator. **Never end-users.** |
+| **HelpTip / coaching block** | The actual **user-facing** contextual guidance that appears as a small "N coaching tips available · tap to expand" element above forms. | HR, Dispatch, Foreman, Safety, PM, Admin · in the live platform. |
+
+**The walkthrough framework produces the coaching content; users never touch
+the walkthrough framework itself.**
+
+Anti-drift hard-stops (operator-stated, iter230):
+- ❌ NO popup onboarding · NO LMS-style tutorials · NO guided click-through tours · NO heavy onboarding systems
+- ❌ The internal walkthrough is **never** to be confused with a user-facing tour
+- ❌ The platform's "tour" for end-users IS the contextual HelpTip blocks — that's the entire surface
+- ✅ Future allowance (P2 backlog, not authored yet): **lightweight STATIC orientation surfaces** — "Start Here" pages, role-expectation summaries, common-mistakes lists, operational basics. **Static. Not interactive. Not tour-style.**
+
+If you find yourself writing the phrase "HR can use the walkthrough to learn
+the portal" — STOP. That sentence is a category error. HR never sees the
+walkthrough. HR sees HelpTip blocks. The walkthrough produced those tips,
+once, in this codebase, run by an agent.
+
+---
+
 ## 0 · What this loop IS — and what it isn't
 
 **IS:** an editorial cadence for the contextual operational coaching

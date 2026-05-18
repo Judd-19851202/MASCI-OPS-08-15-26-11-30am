@@ -9,6 +9,14 @@ Platform stabilization phase. It is intentionally short. If you find yourself
 adding sections to it, ask whether the platform really needs the additional
 process — usually the answer is no.
 
+> **Vocabulary note (iter231):** In this codebase, **"walkthrough"** refers
+> to an internal Playwright-driven QA/simulation tool used by developers and
+> agents — *never* a user-facing tutorial. End-user contextual guidance is
+> delivered exclusively via **HelpTip blocks** ("N coaching tips available
+> · tap to expand"). The walkthrough framework PRODUCES coaching content;
+> users never interact with it. See `walkthroughs/walkthrough_pass.md` for
+> the full terminology table.
+
 ---
 
 ## 1 · Before every production push
