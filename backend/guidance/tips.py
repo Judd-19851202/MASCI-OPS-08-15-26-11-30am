@@ -579,6 +579,171 @@ _TIPS: list[dict] = [
             "not a personality issue — it's a safety culture issue, and Safety "
             "wants to know.",
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter212 · Equipment Checkout
+    # The accountability handshake. Operator-stated priority anchors:
+    # trust, accountability, operational integrity, good-faith,
+    # crew-reliance, equipment stewardship.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "checkout",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why this Checkout matters",
+        "body":
+            "Checkout is the handshake: you say 'I have this', the system "
+            "says 'you have this'. When something goes missing or gets "
+            "damaged, the Checkout is the first record anyone reads. Your "
+            "name is on it.",
+    },
+    {
+        "form_key": "checkout",
+        "kind": "who",
+        "scopes": ["public"],
+        "title": "Who sees this",
+        "body":
+            "Your foreman, Shop (asset whereabouts tracking), Dispatch "
+            "(availability), HR (employee accountability), and Admin. Your "
+            "supervisor sees it within a minute of you signing.",
+    },
+    {
+        "form_key": "checkout",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens after you sign",
+        "body":
+            "The unit leaves Dispatch's availability and enters your "
+            "personal accountability record. It stays there until you "
+            "officially return or transfer it — no return sign-off, still "
+            "your responsibility.",
+    },
+    {
+        "form_key": "checkout",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When NOT to sign yet",
+        "body":
+            "If the unit comes to you with undocumented damage, stop and "
+            "document before signing. Once you sign, that damage is "
+            "operationally yours unless you can prove it was there first.",
+    },
+
+    # ── checkout.condition ───────────────────────────────────────────
+    {
+        "form_key": "checkout.condition",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why receiving condition matters",
+        "body":
+            "The condition record at checkout is the only thing separating "
+            "'it came to me this way' from 'I did it'. Thirty seconds of "
+            "notes and photos now saves hours of explaining when a dispute "
+            "lands.",
+    },
+    {
+        "form_key": "checkout.condition",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Marking 'good' without walking the unit. Skipping photos "
+            "because 'it looks fine'. Taking the previous operator's word "
+            "without verifying. Trust the unit yourself — the operator "
+            "before you signed in good faith, but it's your turn now.",
+    },
+    {
+        "form_key": "checkout.condition",
+        "kind": "example",
+        "scopes": ["public"],
+        "title": "Example entry",
+        "body":
+            "'Existing scuff — rear left fender, ~6 inches. Photo attached. "
+            "Right side mirror dust-covered but intact.' is good. "
+            "'Condition OK' is not — there's no record to return against.",
+    },
+
+    # ── checkout.signature ───────────────────────────────────────────
+    {
+        "form_key": "checkout.signature",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why signature is accountability, not formality",
+        "body":
+            "Your signature is the moment the system passes operational "
+            "responsibility to you. It's not just another field. It's the "
+            "commitment to treat this equipment like it's yours — because "
+            "for every practical purpose, it is now.",
+    },
+    {
+        "form_key": "checkout.signature",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Signing first, checking after. Signing with a scrawled name "
+            "that isn't clearly yours. Signing for someone else 'because "
+            "they're driving right now'. All three break the audit trail "
+            "when it matters.",
+    },
+    {
+        "form_key": "checkout.signature",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When NOT to sign",
+        "body":
+            "If Shop or Dispatch insists you sign for gear you haven't "
+            "physically seen or walked, don't. That isn't a shortcut — "
+            "it's shifting blame in advance. Call your supervisor.",
+    },
+
+    # ── checkout.return-expectations ─────────────────────────────────
+    {
+        "form_key": "checkout.return-expectations",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why return expectations matter now",
+        "body":
+            "Checkout is the front half of a pair. Return closes the loop. "
+            "Knowing what's expected at return — cleanliness, fluid "
+            "documentation, photos — turns the final day into 30 seconds "
+            "instead of a week of disputes.",
+    },
+    {
+        "form_key": "checkout.return-expectations",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What comes when you return it",
+        "body":
+            "A return sign-off + photo close the checkout. Damage found at "
+            "return opens a damage case — your original condition note at "
+            "checkout is what decides if it's yours or not. Document well "
+            "up front to avoid disputes at the end.",
+    },
+
+    # ── checkout.photos ──────────────────────────────────────────────
+    {
+        "form_key": "checkout.photos",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why photos at checkout matter",
+        "body":
+            "Photos aren't optional — they're the only objective record. "
+            "Memory fades; words get interpreted; photos don't. A quick "
+            "photo now saves a complicated conversation later.",
+    },
+    {
+        "form_key": "checkout.photos",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "A single photo from across the lot. Skipping the areas that "
+            "actually matter (wheels/tires, windshield, decks, mirrors). "
+            "Taking photos with the sun behind the unit and getting "
+            "silhouettes. Four sides + cab + any pre-existing damage is "
+            "the minimum.",
+    },
 ]
 
 

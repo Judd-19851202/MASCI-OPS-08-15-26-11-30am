@@ -402,4 +402,120 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "Seguridad. Eso no es un problema de personalidad — es un problema "
             "de cultura de seguridad, y Seguridad quiere saberlo.",
     },
+
+    # ── iter212 · Equipment Checkout ─────────────────────────────────
+    ("checkout", "why"): {
+        "title_es": "Por qué importa el Checkout de Equipo",
+        "body_es":
+            "El Checkout es la promesa: usted dice 'tengo esto', el sistema "
+            "dice 'lo tiene'. Cuando algo se pierde o se daña, el Checkout "
+            "es el primer registro que alguien lee. Su nombre está en él.",
+    },
+    ("checkout", "who"): {
+        "title_es": "Quién lo ve",
+        "body_es":
+            "Su capataz, Taller (rastrear estado del activo), Despacho "
+            "(disponibilidad), RH (rendición de cuentas del empleado), y "
+            "Admin. Su supervisor lo ve dentro del minuto que usted firma.",
+    },
+    ("checkout", "next"): {
+        "title_es": "Qué pasa después de firmar",
+        "body_es":
+            "La unidad sale de la disponibilidad de Despacho y entra en su "
+            "registro personal de rendición de cuentas. Permanece ahí hasta "
+            "que la devuelva o la transfiera oficialmente — sin firma de "
+            "devolución, sigue siendo su responsabilidad.",
+    },
+    ("checkout", "escalate"): {
+        "title_es": "Cuándo no firmar todavía",
+        "body_es":
+            "Si la unidad le llega con daño no documentado, deténgase y "
+            "documéntelo antes de firmar. Una vez que firma, ese daño es "
+            "operacionalmente suyo a menos que pueda demostrar que estaba "
+            "ahí antes.",
+    },
+
+    ("checkout.condition", "why"): {
+        "title_es": "Por qué la condición al recibir importa",
+        "body_es":
+            "El registro de condición al checkout es lo único que separa el "
+            "'lo recibí así' de 'yo lo hice'. Treinta segundos de notas y "
+            "fotos ahora le ahorran horas de explicación cuando ocurre una "
+            "disputa.",
+    },
+    ("checkout.condition", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Marcar 'bueno' sin caminar la unidad. Saltarse las fotos porque "
+            "'se ve bien'. Aceptar la palabra del operador anterior sin "
+            "verificar. Confíe en la unidad por sí mismo — el operador antes "
+            "de usted firmó de buena fe, pero ahora es su turno.",
+    },
+    ("checkout.condition", "example"): {
+        "title_es": "Ejemplo",
+        "body_es":
+            "'Rasguño existente — guardabarros trasero izquierdo, ~6 pulgadas. "
+            "Foto adjunta. Espejo lateral derecho lleno de polvo pero "
+            "intacto.' es bueno. 'Condición OK' no — no hay registro para "
+            "regresar.",
+    },
+
+    ("checkout.signature", "why"): {
+        "title_es": "Por qué la firma es rendición de cuentas, no formalidad",
+        "body_es":
+            "Su firma es el momento en que el sistema le pasa la "
+            "responsabilidad operacional. No es un campo más. Es el "
+            "compromiso de cuidar este equipo como si fuera suyo — porque "
+            "para todos los efectos prácticos, lo es ahora.",
+    },
+    ("checkout.signature", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Firmar primero, revisar después. Firmar con un nombre garabateado "
+            "que no es claramente el suyo. Firmar por alguien más 'porque "
+            "está manejando ahora mismo'. Todos esos rompen la pista de "
+            "auditoría cuando importa.",
+    },
+    ("checkout.signature", "escalate"): {
+        "title_es": "Cuándo NO firmar",
+        "body_es":
+            "Si Taller o Despacho insiste en que firme por equipo que aún no "
+            "ha visto físicamente o caminado, no lo haga. Eso no es un "
+            "atajo — es transferir la culpa antes de tiempo. Llame a su "
+            "supervisor.",
+    },
+
+    ("checkout.return-expectations", "why"): {
+        "title_es": "Por qué importan las expectativas de devolución",
+        "body_es":
+            "El Checkout es la mitad delantera de un par. El Return cierra "
+            "el ciclo. Saber qué se espera al devolver — limpieza, "
+            "documentación de fluidos, fotos — convierte el día final en "
+            "30 segundos en vez de una semana de disputas.",
+    },
+    ("checkout.return-expectations", "next"): {
+        "title_es": "Lo que viene cuando devuelve",
+        "body_es":
+            "Una firma de Return + foto cierran el Checkout. Daño descubierto "
+            "en el Return abre un caso de daño — su nota original de "
+            "condición al checkout es lo que decide si es suyo o no. "
+            "Documente bien al inicio para evitar disputas al final.",
+    },
+
+    ("checkout.photos", "why"): {
+        "title_es": "Por qué importan las fotos al checkout",
+        "body_es":
+            "Las fotos no son opcionales — son el único registro objetivo. "
+            "La memoria se desvanece; las palabras se interpretan; las "
+            "fotos no. Una foto rápida ahora le ahorra una conversación "
+            "complicada después.",
+    },
+    ("checkout.photos", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Una sola foto desde lejos. Saltarse las áreas que importan "
+            "(ruedas/llantas, parabrisas, cubiertas, espejos). Tomar fotos "
+            "con el sol detrás del equipo y obtener solo siluetas. Cuatro "
+            "lados + cabina + cualquier daño existente es el mínimo.",
+    },
 }

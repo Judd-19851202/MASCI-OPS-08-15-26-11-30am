@@ -33,6 +33,14 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import { WhyItMattersPanel } from "@/components/guidance";
+import { HelpTipBlock } from "@/components/HelpTip";
+
+// iter212 — map FL form-kind ↔ HelpTip form_key.
+// Only kinds with a fully authored HelpTip registry are listed here.
+// Other kinds continue to render the legacy <WhyItMattersPanel>.
+const FL_KIND_HELPTIP_FORMKEY = {
+  equipment_checkout: "checkout",
+};
 
 // Phase C · contextual guidance map per FL form kind (iter194).
 // Keeps the embed lightweight: one inline WHY callout linking to the
@@ -694,7 +702,11 @@ export default function FieldLeadershipFormPage() {
         <h1 className="font-display text-3xl sm:text-4xl font-black mt-1">{l(form.title, lang)}</h1>
         <p className="text-slate-600 mt-2 max-w-xl">{l(form.desc, lang)}</p>
 
-        {FL_KIND_GUIDANCE[kind] && (
+        {FL_KIND_HELPTIP_FORMKEY[kind] ? (
+          <div className="mt-4 max-w-2xl">
+            <HelpTipBlock formKey={FL_KIND_HELPTIP_FORMKEY[kind]} showCounter />
+          </div>
+        ) : FL_KIND_GUIDANCE[kind] && (
           <div className="mt-4 max-w-2xl">
             <WhyItMattersPanel title={FL_KIND_GUIDANCE[kind].title}>
               <p>
