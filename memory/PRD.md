@@ -1,5 +1,36 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter233 · Operator-stated production env requirement · 📝 RECORDED (preview only · doc-only)
+
+Per operator (iter232 follow-up): the `SEED_DEFAULT_PASSWORD` fallback is the correct deployment-safe choice for the iter232 migration, but **production should move toward operator-controlled env ownership rather than indefinite fallback reliance.**
+
+### Operational requirement
+- `SEED_DEFAULT_PASSWORD` should be **explicitly set in production** (`mascidocs.com`) to an operator-chosen value
+- The historical default `"Welcome2MASCI!"` remains as a documented safe fallback, **not as a permanent production posture**
+- Recommended production setting: any operator-chosen strong password that's NOT the historical default
+
+### What this means for future agents reading this
+- DO NOT remove the env-var fallback in `auth.py` — it preserves deployment-safety for environments that haven't migrated yet
+- DO NOT change the fallback value as part of any "cleanup" sweep — the fallback is the bridge during the migration window
+- DO assume that production has the env var set explicitly; the fallback is a safety net, not the operational baseline
+
+### Operator-driven workflow (no agent action)
+1. Operator sets `SEED_DEFAULT_PASSWORD` env var in production (Emergent control panel · environment configuration)
+2. Operator uses **"Save to Github"** feature for any preview-side commits going to production
+3. Operator runs `pre_deploy_verify.py` (gate already produced HOLD verdict for the iter232 batch — operator acknowledges and proceeds)
+4. Operator clicks Emergent **Deploy** on `mascidocs.com`
+5. Operator runs `python3 /app/scripts/post_deploy_check.py` after deploy to confirm the live backend matches preview source-hash
+
+🔵 Preview only · documentation-only iter · zero code change · zero registry change · awaiting operator-driven production deploy.
+
+### Next Action Items (operator-side · no agent work)
+- ⏸ Set `SEED_DEFAULT_PASSWORD` env var explicitly in `mascidocs.com` production environment
+- ⏸ Save to Github · acknowledge gate HOLD · click Deploy
+- ⏸ Run `post_deploy_check.py` after deploy for drift verification
+- ⏸ Continued stabilization-phase observation period
+
+---
+
 ## 2026-05-18 — iter232 · Code-review triage · Option C executed (preview only)
 
 External code-review report received. Triaged against the stabilization-phase posture. **Most findings declined as either false-positives, scanner noise, or conflicting with the operator-stated 'smaller deltas / no aggressive refactor' posture.** Operator-approved Option C executed:
