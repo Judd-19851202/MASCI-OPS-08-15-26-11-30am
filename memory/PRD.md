@@ -1,6 +1,75 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 3 · Public Field Crew Training Tier + Strong-Hero Redesign (iter196) · ✅ COMPLETE (preview only)
+
+Operator review flagged that the previous iter195-hotfix still left field crews / no-login users with a basic-feeling page. Field crews **may not have portal logins but still need useful training** — and the page needed to look like the rest of the MASCI Operations Platform, not an afterthought. Required: clear split between public/no-login and restricted/portal training, strong hero, real visual energy, mobile-first.
+
+### What landed (iter196)
+
+**Backend — 7 new public-scoped articles** (`/app/backend/guidance/content.py`):
+- `public-mobile-qr` — Scan-and-go QR-code workflow
+- `public-photos` — Photos that actually help (wide shot · close-up · clear)
+- `public-daily-report-basics` — What a daily report is (and why yours matters)
+- `public-incident-basics` — If something happens on a job site
+- `public-cant-login` — Most-common login problems
+- `public-who-to-ask` — Quick map of who handles what
+- `public-why-documentation` — Why this paperwork matters (field crew version of "why")
+
+All scoped strictly `["public"]` — no HR/Safety/Shop/Dispatch/PM/Admin/Leadership scope leakage. Anon-visible articles grew **5 → 12**.
+
+**Frontend — Operational Guidance Center landing redesign** (`/app/frontend/src/pages/guidance/OperationalGuidanceCenter.jsx`):
+- **Strong hero**: dark slate background with red caution rail · MASCI kicker (`MASCI OPERATIONS PLATFORM · OPERATIONAL GUIDANCE CENTER`) · large display headline · clear public-vs-portal explainer · red "Sign in for portal training" CTA · large background icon for visual energy
+- **PUBLIC · NO SIGN-IN REQUIRED · Field Crew Training** — first-class tile group with 10 curated tiles (red accent rails, lucide icons, label + blurb). Always shown when public articles exist; never an empty shell.
+- **SIGN-IN REQUIRED · Your Portals** — Portal Training tiles with portal-specific accent colors (HR blue · Safety red · Shop orange · Dispatch purple · PM teal · Field Leadership amber · Admin slate). Only renders for authenticated callers; only shows the portals the caller is authorized for.
+- **BY TOPIC · Browse all guidance** — tertiary topic grid (Roles · Portals · Troubleshooting · etc.) for power users
+- All sections use proper MASCI typography (`font-display` · `font-mono` kickers · semantic accent colors)
+- Mobile-first: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` throughout
+
+### Test coverage (iter196)
+- **NEW** `tests/test_iter196_guidance_public_field_crew.py` — 23 tests:
+  - Every new public article fetchable by anon (200)
+  - Anon list includes all 7 new public IDs
+  - Anon sees ≥9 of 10 curated field-crew tiles
+  - **No public article has any restricted-portal scope leak** (hr/safety/shop/dispatch/pm/admin/leadership)
+  - Public WHY articles have WHY blocks
+  - All related-article links resolve for anon (no dead links)
+  - Coverage Dashboard article_count ≥ 92
+  - Search "photo" surfaces public-photos to anon
+- **Combined guidance suite**: 225/225 ✅
+- **Full hardening regression**: 222/222 ✅
+- **Total green**: **447 tests passing**
+
+### Screenshot proof (5 captured views)
+- **Anonymous (desktop)** — Strong dark hero · 10 Field Crew Training tiles (red accent) · Browse all guidance below
+- **Admin** — Hero · 10 public tiles · all 7 portal tiles with portal-specific accents (HR blue, Safety red, Shop orange, Dispatch purple, PM teal, Leadership amber, Admin slate) · topic grid
+- **Safety user** — Hero · 10 public tiles · ONLY Safety Portal tile (red accent) — RBAC strictly enforced
+- **Dispatch user** — Hero · 10 public tiles · ONLY Dispatch Portal tile (purple accent) — RBAC strictly enforced
+- **HR / Field Leadership** — verified in iter195-hotfix; same RBAC pattern applies post-iter196
+
+### Operator-flagged concerns — final status
+| Concern | Status |
+|---|---|
+| Public/no-login users get useful training | ✅ 10 first-class field-crew tiles |
+| Restricted portal training requires portal access | ✅ Server-side RBAC enforced; tiles only render when authorized |
+| Field crew tiles surface what operator listed (QR, mobile, photos, daily-report basics, incident basics, troubleshooting, why, who-to-ask) | ✅ All 8 covered |
+| Strong hero / better cards / MASCI visual energy | ✅ Dark hero · red caution rail · portal-accent rails on each tile · MASCI typography |
+| Safety + Dispatch first-class when authorized | ✅ Red accent rail · purple accent rail · prominent placement |
+| Mobile-first | ✅ Responsive grid classes throughout |
+| Anonymous cannot see restricted portal articles | ✅ Verified by 30+ RBAC tests across iter190-196 |
+
+### Production posture
+- 🛑 NOT deployed to production — preview-only per operator directive
+- 🟢 Live in preview at `/guidance` · verified anon/Safety/Dispatch/Admin
+- 🟢 RBAC strict and visually clear: public-vs-portal split is obvious in the UI
+
+### Next Action Items
+- 🟢 Operator final review at `/guidance` as anon, then signed in as HR/Safety/Dispatch/Field Leadership to confirm visual + RBAC + mobile experience
+- 🟢 If approved → schedule production rollout for the Phase 3 guidance ecosystem
+- 🟡 Phase 2 close-out: 48h R2 lifecycle re-verify, Sentry/timeout soak sign-off
+
+---
+
 ## 2026-02-XX — Phase 3 · Operational Guidance UI Repair (iter195-hotfix) · ✅ COMPLETE (preview only)
 
 Operator review caught a critical user-facing failure that the backend-only RBAC tests didn't surface: the `/guidance` page was rendering with **no MASCI header, no Home/Sign-in/Back navigation, and a stripped-down feel** for any user with limited or no portal scopes. Backend RBAC was correctly enforcing — but the resulting "empty shell" experience felt broken for anonymous users and provided no path back to the rest of the platform.

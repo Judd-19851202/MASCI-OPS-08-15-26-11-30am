@@ -723,6 +723,190 @@ _ARTICLES: list[dict] = [
     },
 
     # ═════════════════════════════════════════════════════════════════
+    # PHASE 3 · PUBLIC FIELD CREW TRAINING (iter196 · preview only)
+    # Operator directive: field crews and new employees may not have
+    # portal logins but still need useful, safe public training. Public
+    # articles must NEVER expose restricted operational intelligence —
+    # they teach the WHAT and the WHY, not the HOW for restricted roles.
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "id": "public-mobile-qr",
+        "section": "onboarding",
+        "title": "Scan-and-Go: Using the QR code at your job site",
+        "summary": "Open the MASCI Operations Platform on your phone in seconds.",
+        "scopes": ["public"],
+        "tags": ["public", "mobile", "qr", "field crew", "job site"],
+        "body": [
+            {"type": "p", "text":
+                "Most job-site signs and time-card posters carry a MASCI QR code. "
+                "Scanning it opens the platform on your phone — no app to install, "
+                "no URL to remember."},
+            {"type": "steps", "items": [
+                "Open your phone's camera",
+                "Point it at the QR code on the job-site sign or poster",
+                "Tap the link that appears at the top of the screen",
+                "Bookmark the page or add it to your home screen so you don't need the QR next time",
+            ]},
+            {"type": "tip", "text":
+                "If the QR doesn't open the platform, the link expired or the sign is "
+                "out of date. Tell your supervisor — they'll get a fresh sign printed."},
+        ],
+        "related": ["onboard-login", "onboard-mobile", "public-photos"],
+    },
+    {
+        "id": "public-photos",
+        "section": "onboarding",
+        "title": "Photos that actually help",
+        "summary": "What to photograph in the field — and how.",
+        "scopes": ["public"],
+        "tags": ["public", "photos", "documentation", "field crew"],
+        "body": [
+            {"type": "p", "text":
+                "Whenever you take a photo for MASCI, you're creating a record someone "
+                "may rely on later. A clear photo can answer a question; a blurry one "
+                "creates a new one."},
+            {"type": "bullets", "items": [
+                "Wide shot first (the whole area)",
+                "Then close-up shots (the specific item or issue)",
+                "Include a hand or tape measure if size matters",
+                "Re-take if the photo is blurry",
+                "More is better — delete is cheap, returning to the site isn't",
+            ]},
+            {"type": "why", "text":
+                "Photos protect you. If anyone later asks 'what did it look like?', a good "
+                "photo answers it. If only words exist, the answer depends on memory — and "
+                "memory loses every argument."},
+        ],
+        "related": ["public-daily-report-basics", "public-incident-basics"],
+    },
+    {
+        "id": "public-daily-report-basics",
+        "section": "onboarding",
+        "title": "What a daily report is (and why yours matters)",
+        "summary": "The 60-second explanation for field crew.",
+        "scopes": ["public"],
+        "tags": ["public", "daily report", "field crew", "why"],
+        "body": [
+            {"type": "p", "text":
+                "Every workday gets a Daily Report. Your supervisor or foreman submits "
+                "it before the crew leaves the site. It records: who was there, what was "
+                "done, what was used, and anything that came up."},
+            {"type": "why", "text":
+                "That report is what the office reads to know how the job is going. It "
+                "feeds payroll, project status, and any after-the-fact question about the "
+                "day. Your work shows up there — accurately reporting hours and conditions "
+                "is how your day gets fairly documented."},
+            {"type": "bullets", "items": [
+                "Tell your supervisor if hours were missed or recorded wrong",
+                "Flag issues out loud at the end of the day so they make it into the report",
+                "Photos you took on the phone may get included — keep them clear",
+            ]},
+        ],
+        "related": ["public-photos", "public-who-to-ask", "public-why-documentation"],
+    },
+    {
+        "id": "public-incident-basics",
+        "section": "troubleshooting",
+        "title": "If something happens on a job site",
+        "summary": "First steps after any injury, near-miss, or damage.",
+        "scopes": ["public"],
+        "tags": ["public", "incident", "field crew", "safety"],
+        "body": [
+            {"type": "p", "text":
+                "Things happen. What matters is what you do in the next few minutes."},
+            {"type": "steps", "items": [
+                "Make the area safe first — that always comes first, before paperwork",
+                "Tell the supervisor or foreman immediately — in person, not by text",
+                "If someone is hurt, get medical help — call 911 if it's serious",
+                "Take photos of the scene if it's safe to do so",
+                "Do not move equipment or clean up until told to (it preserves the evidence)",
+            ]},
+            {"type": "why", "text":
+                "Quick honest reporting protects everyone — the person hurt, the crew, the "
+                "supervisor, and the company. Late or vague reporting protects nobody."},
+            {"type": "warn", "text":
+                "Do not guess about cause or assign blame. Just describe what you saw. "
+                "Safety will investigate from there."},
+        ],
+        "related": ["public-who-to-ask", "public-photos", "public-why-documentation"],
+    },
+    {
+        "id": "public-cant-login",
+        "section": "troubleshooting",
+        "title": "I can't log in",
+        "summary": "Most-common login problems and what to try.",
+        "scopes": ["public"],
+        "tags": ["public", "troubleshooting", "login"],
+        "body": [
+            {"type": "p", "text":
+                "Login problems are usually one of three things. Try in this order."},
+            {"type": "steps", "items": [
+                "Double-check the email or username — typos are #1",
+                "Make sure caps lock isn't on for the password",
+                "If you got temp credentials, the first login forces a password change — finish that step",
+                "If you keep getting 'invalid credentials' after several tries, the account may be locked — wait 15 minutes and try again",
+                "If still stuck, ask HR (for HR/Field/Shop logins) or your IT contact (for Admin)",
+            ]},
+            {"type": "tip", "text":
+                "Bookmark the login page after your first successful login. Re-typing the "
+                "URL on a phone every time is where typos sneak in."},
+        ],
+        "related": ["public-who-to-ask", "onboard-login", "tshoot-session-timeout"],
+    },
+    {
+        "id": "public-who-to-ask",
+        "section": "knowledge",
+        "title": "Who do I ask for help?",
+        "summary": "A quick map of who handles what.",
+        "scopes": ["public"],
+        "tags": ["public", "help", "directory"],
+        "body": [
+            {"type": "p", "text":
+                "MASCI Operations Platform is run by different teams for different things. "
+                "Knowing who to ask saves a lot of back-and-forth."},
+            {"type": "bullets", "items": [
+                "Wrong hours / paycheck question → talk to your supervisor first, then HR",
+                "Equipment broken or unsafe → tell your supervisor and Shop",
+                "Got hurt or saw something unsafe → supervisor + Safety",
+                "Can't log in or account locked → HR (for most portals) or your IT contact (Admin)",
+                "Forgot a password → HR can reset it; do NOT share passwords",
+                "Question about a job-site assignment → your supervisor or PM",
+            ]},
+            {"type": "tip", "text":
+                "If you don't know who to ask, ask your direct supervisor. They'll route "
+                "it to the right place."},
+        ],
+        "related": ["public-cant-login", "public-incident-basics", "public-why-documentation"],
+    },
+    {
+        "id": "public-why-documentation",
+        "section": "knowledge",
+        "title": "Why this paperwork matters",
+        "summary": "The field crew's version of 'why the platform exists'.",
+        "scopes": ["public"],
+        "tags": ["public", "why", "documentation", "field crew"],
+        "body": [
+            {"type": "p", "text":
+                "MASCI's documentation isn't busywork. Every form, every photo, every "
+                "report exists to answer a question that comes up later — sometimes weeks "
+                "later, sometimes years."},
+            {"type": "bullets", "items": [
+                "Daily reports → answer 'what got built today?'",
+                "Time records → answer 'did the paycheck match the work?'",
+                "Incident reports → answer 'what happened?' for insurance, doctors, lawyers",
+                "Equipment records → answer 'who had what and was it working?'",
+                "Photos → answer 'what did it look like?'",
+            ]},
+            {"type": "why", "text":
+                "Most disputes — over hours, over damage, over what was agreed — get "
+                "settled by whatever was written down at the time. People who document well "
+                "get the benefit of the doubt. People who don't, don't."},
+        ],
+        "related": ["public-daily-report-basics", "public-incident-basics",
+                    "public-photos", "public-who-to-ask"],
+    },
+
+    # ═════════════════════════════════════════════════════════════════
     # PHASE B · HR PORTAL DEEP CONTENT (iter191 · preview only)
     # ═════════════════════════════════════════════════════════════════
     {

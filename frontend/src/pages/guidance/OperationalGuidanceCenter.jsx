@@ -175,6 +175,11 @@ export default function OperationalGuidanceCenter() {
   // tracks (operator directive: do not bury Safety / Dispatch behind a
   // generic "Portals" section).
   const [portalArticles, setPortalArticles] = useState([]);
+  // iter196 — curated public-tracks tile data. Loaded for home view
+  // only. These are the public field-crew training articles, surfaced
+  // as first-class tiles so anon / no-login users have a useful entry
+  // point (not just a bare "browse by topic" grid).
+  const [publicTrackArticles, setPublicTrackArticles] = useState({});
 
   // Load section catalog on mount
   useEffect(() => {
@@ -194,6 +199,30 @@ export default function OperationalGuidanceCenter() {
         const r = await api.get("/guidance/articles?section=portals");
         setPortalArticles(r?.data?.articles || []);
       } catch { /* render nothing */ }
+    })();
+  }, [articleId, sectionId]);
+
+  // Home-page public-track tiles — load each curated public article
+  // by id. Server filters by scope, so missing ones simply won't render.
+  useEffect(() => {
+    if (articleId || sectionId) return;
+    const ids = [
+      "role-new-employee", "onboard-login", "onboard-mobile",
+      "public-mobile-qr", "public-photos", "public-daily-report-basics",
+      "public-incident-basics", "public-cant-login", "public-who-to-ask",
+      "public-why-documentation",
+    ];
+    (async () => {
+      const results = {};
+      await Promise.all(ids.map(async (id) => {
+        try {
+          const r = await api.get(`/guidance/articles/${id}`);
+          if (r?.data?.id) {
+            results[id] = { id: r.data.id, title: r.data.title, summary: r.data.summary };
+          }
+        } catch { /* not visible to this caller — skip */ }
+      }));
+      setPublicTrackArticles(results);
     })();
   }, [articleId, sectionId]);
 
@@ -358,21 +387,28 @@ export default function OperationalGuidanceCenter() {
   }
 
   // ── Render: Operational Guidance Center · home ────────────────────
-  // Portal-first treatment: surface every portal the caller has access
-  // to as a primary card (Safety + Dispatch must NOT be buried). The
-  // generic-section grid below is secondary navigation.
-  // Build per-portal counts from the `portals` section we just loaded.
-  // The server has already filtered articles by caller scope, so any
-  // portal with ≥1 article here is a portal the user can access.
+  // Two first-class tile groups: PUBLIC field-crew training (always
+  // shown when its articles exist) + PORTAL training (gated by scope).
+  // Then topic grid below. Operator directive: this page must teach
+  // field crews + new hires too, not just authenticated portal users.
   const PORTAL_TRACKS = [
-    { key: "hr",         label: "HR Portal",                  matchPrefix: ["portal-hr", "hr-"] },
-    { key: "safety",     label: "Safety Portal",              matchPrefix: ["portal-safety", "safety-"] },
-    { key: "shop",       label: "Shop / Fleet Portal",        matchPrefix: ["portal-shop", "shop-"] },
-    { key: "dispatch",   label: "Dispatch Portal",            matchPrefix: ["portal-dispatch", "dispatch-"] },
-    { key: "pm",         label: "PM Portal",                  matchPrefix: ["portal-pm", "pm-"] },
-    { key: "leadership", label: "Field Leadership Portal",    matchPrefix: ["portal-leadership", "field-"] },
-    { key: "admin",      label: "Admin Console",              matchPrefix: ["portal-admin", "admin-"] },
+    { key: "hr",         label: "HR Portal",                  accent: "blue",   matchPrefix: ["portal-hr", "hr-"] },
+    { key: "safety",     label: "Safety Portal",              accent: "red",    matchPrefix: ["portal-safety", "safety-"] },
+    { key: "shop",       label: "Shop / Fleet Portal",        accent: "orange", matchPrefix: ["portal-shop", "shop-"] },
+    { key: "dispatch",   label: "Dispatch Portal",            accent: "purple", matchPrefix: ["portal-dispatch", "dispatch-"] },
+    { key: "pm",         label: "PM Portal",                  accent: "teal",   matchPrefix: ["portal-pm", "pm-"] },
+    { key: "leadership", label: "Field Leadership Portal",    accent: "amber",  matchPrefix: ["portal-leadership", "field-"] },
+    { key: "admin",      label: "Admin Console",              accent: "slate",  matchPrefix: ["portal-admin", "admin-"] },
   ];
+  const ACCENT_BAND = {
+    blue:   "bg-blue-600",
+    red:    "bg-red-700",
+    orange: "bg-orange-600",
+    purple: "bg-purple-700",
+    teal:   "bg-teal-600",
+    amber:  "bg-amber-600",
+    slate:  "bg-slate-700",
+  };
   const portalCounts = {};
   for (const t of PORTAL_TRACKS) {
     portalCounts[t.key] = portalArticles.filter((a) =>
@@ -381,65 +417,122 @@ export default function OperationalGuidanceCenter() {
   }
   const visibleTracks = PORTAL_TRACKS.filter((t) => portalCounts[t.key] > 0);
 
+  // iter196 — curated Public Field Training tiles. Each tile maps to a
+  // single article. Tiles only render if the article is visible to the
+  // caller (server-side RBAC already filtered the loader). Anon users
+  // see all 10; authenticated users see the same set + their portal
+  // tracks above.
+  const PUBLIC_TRACKS = [
+    { id: "role-new-employee",        icon: UserPlus,   label: "New Employee Basics",       blurb: "First-week orientation for any role." },
+    { id: "public-mobile-qr",         icon: Zap,        label: "Scan-and-Go (QR Codes)",    blurb: "Open MASCI on your phone in seconds." },
+    { id: "onboard-mobile",           icon: BookOpen,   label: "Using MASCI on a Phone",    blurb: "Mobile-first tips that save your work." },
+    { id: "public-photos",            icon: Lightbulb,  label: "Photos That Actually Help", blurb: "Wide shot · close-up · clear." },
+    { id: "public-daily-report-basics", icon: LayoutGrid, label: "Daily Report Basics",    blurb: "What it is, why yours matters." },
+    { id: "public-incident-basics",   icon: AlertTriangle, label: "If Something Happens",  blurb: "First steps after injury, near-miss, or damage." },
+    { id: "public-cant-login",        icon: LifeBuoy,   label: "I Can't Log In",            blurb: "Common login problems & fixes." },
+    { id: "public-who-to-ask",        icon: UserCog,    label: "Who Do I Ask for Help?",    blurb: "A quick map of who handles what." },
+    { id: "public-why-documentation", icon: Shield,     label: "Why This Paperwork Matters", blurb: "Field crew's version of 'why'." },
+    { id: "onboard-login",            icon: LogIn,      label: "How to Log In",             blurb: "First-time login basics." },
+  ];
+  const visiblePublicTracks = PUBLIC_TRACKS.filter((t) => publicTrackArticles[t.id]);
+  const isAuthenticated = visibleTracks.length > 0;
+
   return (
     <Shell>
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4 flex items-start gap-3" data-testid="guidance-home-header">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">
-          <BookOpen className="w-6 h-6" />
+      {/* Hero — strong MASCI visual identity */}
+      <section className="relative overflow-hidden rounded-md border-2 border-slate-900 bg-slate-900 text-white mb-6" data-testid="guidance-hero">
+        <div className="absolute inset-y-0 left-0 w-1.5 bg-red-700" />
+        <div className="px-5 sm:px-8 py-6 sm:py-8 grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="md:col-span-2">
+            <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-red-400 font-bold mb-2">
+              MASCI Operations Platform · Operational Guidance Center
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight leading-tight">
+              How and why to run<br className="hidden sm:block" /> MASCI operations.
+            </h1>
+            <p className="mt-3 text-sm sm:text-base text-slate-300 max-w-xl leading-relaxed">
+              {isAuthenticated
+                ? "Portal-specific training, role-based help, troubleshooting, and operational knowledge. Filtered by your portal access."
+                : "Public field-crew training is open below. Portal-specific training (HR · Safety · Shop · Dispatch · PM · Field Leadership · Admin) appears when you sign in."}
+            </p>
+            {!isAuthenticated && (
+              <Link
+                to="/sign-in"
+                className="inline-flex items-center mt-4 h-10 px-4 rounded-md bg-red-700 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-wider transition-colors"
+                data-testid="guidance-signin-cta"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Sign in for portal training
+              </Link>
+            )}
+          </div>
+          <div className="hidden md:flex items-end justify-end">
+            <BookOpen className="w-32 h-32 text-white/10" strokeWidth={1.2} />
+          </div>
         </div>
-        <div className="flex-1">
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
-            Operational Guidance Center
-          </span>
-          <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">
-            How and why to run MASCI operations
-          </h1>
-          <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-            Role-based training · task-based help · troubleshooting · operational knowledge.
-            Filtered server-side by your portal access — nothing you can't act on appears here.
-          </p>
-        </div>
-      </div>
+      </section>
 
       <SearchBox onResults={setSearchResults} query={query} setQuery={setQuery} />
 
-      {/* Anon / unauthenticated callout — show only when no portal
-          tracks are visible (i.e., the caller has no portal scopes).
-          This is the operator's "don't drop users on an empty shell"
-          requirement: when guidance is sparse, tell them why and how to
-          get more. */}
-      {visibleTracks.length === 0 && (
-        <div className="mt-5 bg-amber-50 border-2 border-amber-300 rounded-md p-4 flex items-start gap-3" data-testid="guidance-signin-callout">
-          <LogIn className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
-          <div className="flex-1">
-            <div className="font-display text-base font-bold text-amber-900">
-              Sign in to see your portal training
+      {/* Public Field Crew Training — first-class tiles for anyone.
+          These do not require login. RBAC-safe: every article shown is
+          tagged `public` and contains no restricted operational intel. */}
+      {visiblePublicTracks.length > 0 && (
+        <section className="mt-6" data-testid="guidance-public-tracks">
+          <div className="flex items-baseline justify-between mb-3">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
+                Public · No Sign-In Required
+              </div>
+              <h2 className="font-display text-xl font-black tracking-tight">
+                Field Crew Training
+              </h2>
             </div>
-            <p className="text-sm text-amber-900/80 mt-1 leading-relaxed">
-              You're seeing the public, role-based guidance below. Portal-specific
-              training (HR · Safety · Shop · Dispatch · PM · Field Leadership · Admin)
-              appears here once you sign in to your portal.
-            </p>
-            <Link
-              to="/sign-in"
-              className="inline-flex items-center mt-3 h-9 px-4 rounded-md bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold uppercase tracking-wide transition-colors"
-              data-testid="guidance-signin-cta"
-            >
-              <LogIn className="w-3.5 h-3.5 mr-1.5" />
-              Sign in to your portal
-            </Link>
           </div>
-        </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {visiblePublicTracks.map((t) => {
+              const Icon = t.icon;
+              return (
+                <Link
+                  key={t.id}
+                  to={`/guidance/${t.id}`}
+                  className="group relative bg-white border-2 border-slate-300 rounded-md p-4 hover:border-red-700 hover:shadow-md transition-all"
+                  data-testid={`guidance-public-track-${t.id}`}
+                >
+                  <div className="absolute inset-y-0 left-0 w-1 bg-red-700 rounded-l-sm" />
+                  <div className="flex items-start gap-3">
+                    <div className="inline-flex items-center justify-center w-10 h-10 rounded bg-red-50 text-red-700 shrink-0 group-hover:bg-red-100 transition-colors">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-display text-base font-bold text-slate-900 leading-tight">
+                        {t.label}
+                      </div>
+                      <div className="text-[12px] text-slate-600 mt-1 leading-snug">
+                        {t.blurb}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
       )}
 
-      {/* Portal Training — first-class portal tracks. Safety + Dispatch
-          must always be visually surfaced when the caller has access. */}
+      {/* Portal Training — first-class portal tracks for authenticated
+          users. Safety + Dispatch are always surfaced when authorized. */}
       {visibleTracks.length > 0 && (
-        <section className="mt-6" data-testid="guidance-portal-tracks">
+        <section className="mt-8" data-testid="guidance-portal-tracks">
           <div className="flex items-baseline justify-between mb-3">
-            <h2 className="font-display text-lg font-black tracking-tight">
-              Portal Training
-            </h2>
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-700 font-bold">
+                Sign-In Required · Your Portals
+              </div>
+              <h2 className="font-display text-xl font-black tracking-tight">
+                Portal Training
+              </h2>
+            </div>
             <Link
               to="/guidance/section/portals"
               className="text-[12px] font-bold uppercase tracking-wider text-amber-700 hover:underline"
@@ -452,14 +545,17 @@ export default function OperationalGuidanceCenter() {
             {visibleTracks.map((t) => (
               <Link
                 key={t.key}
-                to={`/guidance/section/portals`}
-                className="bg-white border-2 border-slate-300 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all"
+                to="/guidance/section/portals"
+                className="group relative bg-white border-2 border-slate-300 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all overflow-hidden"
                 data-testid={`guidance-portal-track-${t.key}`}
               >
+                <div className={`absolute inset-y-0 left-0 w-1 ${ACCENT_BAND[t.accent] || "bg-slate-700"}`} />
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
                   {t.key}
                 </div>
-                <div className="font-display text-base font-bold mt-1">{t.label}</div>
+                <div className="font-display text-base font-bold text-slate-900 mt-1 leading-tight">
+                  {t.label}
+                </div>
                 <div className="text-[12px] text-slate-500 mt-1">
                   {portalCounts[t.key]} {portalCounts[t.key] === 1 ? "article" : "articles"}
                 </div>
@@ -469,10 +565,13 @@ export default function OperationalGuidanceCenter() {
         </section>
       )}
 
-      {/* Secondary: cross-cutting sections (roles · troubleshooting · etc.) */}
-      <section className="mt-6">
-        <h2 className="font-display text-lg font-black tracking-tight mb-3">
-          Browse by topic
+      {/* Browse by topic — tertiary navigation for power users */}
+      <section className="mt-8">
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 font-bold">
+          By Topic
+        </div>
+        <h2 className="font-display text-xl font-black tracking-tight mb-3">
+          Browse all guidance
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {sections.map((s) => {
@@ -501,7 +600,7 @@ export default function OperationalGuidanceCenter() {
         </div>
       </section>
 
-      {sections.length === 0 && visibleTracks.length === 0 && (
+      {sections.length === 0 && visibleTracks.length === 0 && visiblePublicTracks.length === 0 && (
         <div className="text-center text-slate-500 py-10" data-testid="guidance-empty">
           No guidance is available for your access level yet.
         </div>
