@@ -307,7 +307,7 @@ export default function FieldLeadershipHub() {
               className="h-10 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-indigo-400 hover:text-white text-xs font-bold uppercase tracking-wide"
               data-testid="leadership-training-link"
             >
-              <Link to="/ops-training?portal=field">
+              <Link to="/guidance">
                 <BookOpen className="w-3.5 h-3.5 mr-1" />
                 {t("Guides")}
               </Link>

@@ -31,7 +31,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -424,8 +424,54 @@ def _render_guide_html(guide: Dict[str, Any]) -> str:
 
 
 # ─── ROUTER ────────────────────────────────────────────────────────
-def build_training_center_router(db, require_admin: Callable) -> APIRouter:
+def build_training_center_router(db, require_admin: Callable, caller_scopes_fn: Optional[Callable] = None) -> APIRouter:
+    """Build the training-center router.
+
+    Args:
+      db: Mongo db handle
+      require_admin: admin-strict dependency (for POST/PATCH/DELETE)
+      caller_scopes_fn: async fn(request) -> Set[str]. When provided
+        (iter195 RBAC lockdown), GET endpoints filter portals/guides
+        and deny direct guide access to scopes that don't include the
+        guide's portal. If omitted (legacy fallback), public-read.
+    """
     router = APIRouter(prefix="/api/training-center", tags=["training-center"])
+
+    # iter195 — Portal-key → scope name mapping. A caller's scope set
+    # (from caller_scopes_fn) must intersect with the value here for
+    # that portal's content to be visible. `integration` and `reliability`
+    # are admin-only operational guides.
+    #
+    # NOTE: the legacy training-center uses "field" as a portal-key for
+    # Field Leadership content. That collides with the cross-cutting
+    # "field" scope (granted to any authenticated user). To preserve
+    # strict RBAC, the field portal here requires `leadership` or
+    # `admin` — NOT the cross-cutting field scope.
+    PORTAL_SCOPE_REQUIRED: Dict[str, set] = {
+        "admin":       {"admin"},
+        "safety":      {"safety", "admin"},
+        "hr":          {"hr", "admin"},
+        "dispatch":    {"dispatch", "admin"},
+        "shop":        {"shop", "admin"},
+        "pm":          {"pm", "admin"},
+        "field":       {"leadership", "admin"},
+        "integration": {"admin"},
+        "reliability": {"admin"},
+    }
+
+    def _portal_allowed(portal_key: str, scopes: set) -> bool:
+        required = PORTAL_SCOPE_REQUIRED.get(portal_key, {"admin"})
+        return bool(scopes & required)
+
+    async def _scopes(request: Request) -> set:
+        """Return caller scopes via the injected helper, or a conservative
+        anon set if no helper was provided (legacy mount)."""
+        if caller_scopes_fn is None:
+            return {"public"}
+        try:
+            return set(await caller_scopes_fn(request))
+        except Exception:
+            return {"public"}
 
     async def _seed_if_empty():
         """Idempotent seed: upsert any DEFAULT_GUIDES slug that is missing
@@ -444,45 +490,61 @@ def build_training_center_router(db, require_admin: Callable) -> APIRouter:
         return True
 
     @router.get("/portals")
-    async def list_portals():
+    async def list_portals(request: Request):
         await _seed_if_empty()
-        counts = {}
+        scopes = await _scopes(request)
+        # Count only guides whose portal the caller is allowed to see
+        counts: Dict[str, int] = {}
         async for d in db.training_guides.find({}, {"_id": 0, "portal": 1}):
-            counts[d["portal"]] = counts.get(d["portal"], 0) + 1
+            if _portal_allowed(d.get("portal", ""), scopes):
+                counts[d["portal"]] = counts.get(d["portal"], 0) + 1
         return {
             "portals": [
                 {**p, "count": counts.get(p["key"], 0)}
                 for p in PORTALS
+                if _portal_allowed(p["key"], scopes)
             ],
         }
 
     @router.get("/guides")
-    async def list_guides(portal: Optional[str] = Query(default=None)):
+    async def list_guides(request: Request, portal: Optional[str] = Query(default=None)):
         await _seed_if_empty()
+        scopes = await _scopes(request)
+        if portal and not _portal_allowed(portal, scopes):
+            # iter195: hard 403 — listing must not silently empty
+            raise HTTPException(status_code=403, detail="Not authorized for that portal")
         q: Dict[str, Any] = {}
         if portal:
             q["portal"] = portal
         cursor = db.training_guides.find(
-            q, {"_id": 0, "sections": 0},  # exclude heavy section blob from list
+            q, {"_id": 0, "sections": 0},
         ).sort([("portal", 1), ("title", 1)])
         out = []
         async for d in cursor:
-            out.append(d)
+            if _portal_allowed(d.get("portal", ""), scopes):
+                out.append(d)
         return {"guides": out, "total": len(out)}
 
     @router.get("/guide/{slug}")
-    async def get_guide(slug: str):
+    async def get_guide(request: Request, slug: str):
         await _seed_if_empty()
+        scopes = await _scopes(request)
         g = await db.training_guides.find_one({"slug": slug}, {"_id": 0})
         if not g:
+            raise HTTPException(status_code=404, detail="Guide not found")
+        if not _portal_allowed(g.get("portal", ""), scopes):
+            # iter195: 404 (not 403) — never leak titles for restricted portals
             raise HTTPException(status_code=404, detail="Guide not found")
         return g
 
     @router.get("/guide/{slug}/pdf")
-    async def get_guide_pdf(slug: str):
+    async def get_guide_pdf(request: Request, slug: str):
         await _seed_if_empty()
+        scopes = await _scopes(request)
         g = await db.training_guides.find_one({"slug": slug}, {"_id": 0})
         if not g:
+            raise HTTPException(status_code=404, detail="Guide not found")
+        if not _portal_allowed(g.get("portal", ""), scopes):
             raise HTTPException(status_code=404, detail="Guide not found")
         try:
             from weasyprint import HTML  # noqa: PLC0415

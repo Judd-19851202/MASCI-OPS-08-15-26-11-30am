@@ -218,7 +218,7 @@ export default function SafetyHub() {
           testId="safety-tile-reports"
         />
         <SectionTile
-          to="/ops-training?portal=safety"
+          to="/guidance"
           icon={GraduationCap}
           title={t("Training Center & Guides")}
           desc={t("Step-by-step operator guides for Safety Portal workflows — Corrective Actions, Incidents, Fire Extinguisher Bulk Import, Weekly Digest. Download any guide as PDF.")}

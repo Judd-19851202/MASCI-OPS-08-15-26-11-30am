@@ -115,8 +115,6 @@ import SafetyAudits from "@/pages/SafetyAudits";
 import SafetyReports from "@/pages/SafetyReports";
 import HrSafetyRecords from "@/pages/HrSafetyRecords";
 import TrainingHub from "@/pages/TrainingHub";
-import OpsTrainingCenter from "@/pages/OpsTrainingCenter";
-import OpsTrainingGuide from "@/pages/OpsTrainingGuide";
 import AdminDeployReadiness from "@/pages/AdminDeployReadiness";
 import TrainingTrack from "@/pages/TrainingTrack";
 import TrainingQrPoster from "@/pages/TrainingQrPoster";
@@ -502,8 +500,16 @@ function App() {
                 (distinct from /training which is field-worker tracks).
                 Public-read so any user in any portal can reach it.
                 ============================================================ */}
-            <Route path="/ops-training" element={<OpsTrainingCenter />} />
-            <Route path="/ops-training/:slug" element={<OpsTrainingGuide />} />
+            {/* ============================================================
+                /ops-training — retired iter195. Was a duplicate, unrestricted
+                operator-training surface ("public-read, no auth required").
+                Operator directive: ONE coherent guidance ecosystem with
+                strict RBAC. /ops-training and /ops-training/:slug now
+                redirect to the unified Operational Guidance Center which
+                inherits portal-access boundaries.
+                ============================================================ */}
+            <Route path="/ops-training" element={<Navigate to="/guidance" replace />} />
+            <Route path="/ops-training/:slug" element={<Navigate to="/guidance" replace />} />
 
             {/* ============================================================
                 Developer Portal — ForgedOps™ vendor-internal only.

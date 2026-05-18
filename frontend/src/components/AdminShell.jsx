@@ -60,7 +60,7 @@ const SECTIONS = [
   { key: "deploy-recovery", to: "/admin/deploy-recovery", icon: Rocket, label: "Deploy Recovery", desc: "Rollback playbook · backup chain" },
   { key: "deploy-readiness", to: "/admin/deploy-readiness", icon: ListChecks, label: "Deploy Readiness", desc: "Pre-deploy QA · Mongo · indexes · R2 · integrations" },
   { key: "analytics", to: "/admin/analytics", icon: ChartBar, label: "Usage Analytics", desc: "Operational insight · routes · portals · friction" },
-  { key: "ops-training", to: "/ops-training", icon: GraduationCap, label: "Operator Training", desc: "Step-by-step portal & integration guides · PDF download" },
+  { key: "operational-guidance", to: "/guidance", icon: GraduationCap, label: "Operational Guidance Center", desc: "RBAC-aware portal training · operator guides · troubleshooting" },
 ];
 
 export { SECTIONS };

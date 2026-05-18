@@ -82,7 +82,7 @@ export default function DispatchHub() {
             <span className="hidden sm:inline">Transfers</span>
           </Link>
           <Link
-            to="/ops-training?portal=dispatch"
+            to="/guidance"
             className="inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
             data-testid="dispatch-training-link"
           >

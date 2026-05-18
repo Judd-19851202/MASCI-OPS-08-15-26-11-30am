@@ -31,7 +31,7 @@ const FORM_TILES = [
   { to: "/pm/qaqc",           icon: ShieldCheck,   title: "QA / QC Inspections", countKey: "qaqc",       sub: "Records on your jobs", accent: "amber" },
   { to: "/pm/photos",         icon: ImageIcon,     title: "Job Photos",          countKey: null,         sub: "All photos by job & week", accent: "rose" },
   { to: "/pm/field-leadership", icon: UserCheck,   title: "Field Leadership",    countKey: null,         sub: "Crew docs · my jobs only", accent: "amber" },
-  { to: "/ops-training?portal=pm", icon: GraduationCap, title: "Training & Guides", countKey: null,    sub: "Operator guides · PDF download", accent: "slate" },
+  { to: "/guidance", icon: GraduationCap, title: "Training & Guides", countKey: null,    sub: "Operator guides · PDF download", accent: "slate" },
 ];
 
 function PmTile({ to, icon: Icon, title, count, sub, accent, testId }) {

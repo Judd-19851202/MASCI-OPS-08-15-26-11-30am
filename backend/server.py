@@ -8948,7 +8948,7 @@ app.include_router(build_fire_import_router(db, _require_safety))
 # ─── Training Center — system-wide operator guides (iter134) ────────
 from routes.training_center import build_training_center_router  # noqa: E402
 
-app.include_router(build_training_center_router(db, require_admin))
+app.include_router(build_training_center_router(db, require_admin, _guidance_caller_scopes))
 
 
 # ─── Deploy Readiness Aggregator (iter136) ──────────────────────────

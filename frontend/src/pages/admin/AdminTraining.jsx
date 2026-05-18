@@ -21,7 +21,7 @@ export default function AdminTraining() {
       section="training"
       intro={
         <p className="text-sm text-slate-600 leading-relaxed">
-          Bilingual training resources surfaced on the Training Hub, the printable safety-forms
+          Bilingual training resources surfaced on the Operational Guidance Center, the printable safety-forms
           library used by Field Leadership, and the field-adoption analytics that show how the
           crew is actually using each one.
         </p>

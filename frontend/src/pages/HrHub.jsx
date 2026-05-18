@@ -58,7 +58,7 @@ const TILES = [
   { to: "/hr/safety-records", icon: ShieldCheck, label: "Safety Records",
     desc: "Read-only · safety document library (OSHA, SDS, EAPs) and per-employee training & certifications maintained by Safety",
     accent: "border-cyan-700 bg-cyan-50", btn: "bg-cyan-700 hover:bg-cyan-800" },
-  { to: "/ops-training?portal=hr", icon: BookOpen, label: "Training Center & Guides",
+  { to: "/guidance", icon: BookOpen, label: "Training Center & Guides",
     desc: "Step-by-step operator guides for the HR Portal · onboarding · payroll · cross-portal safety access · downloadable PDFs",
     accent: "border-indigo-500 bg-indigo-50", btn: "bg-indigo-700 hover:bg-indigo-800" },
 ];

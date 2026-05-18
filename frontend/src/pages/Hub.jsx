@@ -413,10 +413,10 @@ export default function Hub() {
             )}
           />
           <ReferenceLink
-            to="/training"
+            to="/guidance"
             icon={GraduationCap}
-            title={t("Training Hub")}
-            desc={t("Short bilingual lessons for every role.")}
+            title={t("Operational Guidance Center")}
+            desc={t("RBAC-aware portal training, role-based help, and operator guides.")}
             testId="hub-section-training"
           />
           <ReferenceLink

@@ -1,6 +1,91 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-02-XX — Phase 3 · Guidance Unification + RBAC Lockdown (iter195) · ✅ COMPLETE (preview only)
+
+Operator review identified 4 critical issues that had to be fixed before any production discussion: (1) inconsistent "Hub" terminology, (2) Safety + Dispatch buried in the landing, (3) **`/ops-training` was a globally-reachable unrestricted side door into operator training (major RBAC failure)**, (4) multiple training systems coexisting without coherent enforcement. Sentry caught a content-syntax error during this audit, validating the preview-first + soak-period discipline. All issues now corrected in PREVIEW.
+
+### What landed (iter195)
+
+**Backend — `/api/training-center/*` full RBAC lockdown**
+- Refactored `build_training_center_router` to accept a `caller_scopes_fn` injected from server.py (same canonical scope helper used by `/api/guidance/*`)
+- New `PORTAL_SCOPE_REQUIRED` map: each portal-key gated by the intersecting scope set
+- `field` portal-key tightened to `{leadership, admin}` (resolves the cross-cutting `field`-scope naming collision so authenticated non-leadership users can't see field-leadership-portal content)
+- `GET /api/training-center/portals` now filtered by caller scopes (anon = 0 portals)
+- `GET /api/training-center/guides?portal=X` returns **403** for out-of-scope callers (no silent empty-list to mask the failure)
+- `GET /api/training-center/guide/{slug}` returns **404** for out-of-scope callers (no title leak; matches the guidance article RBAC posture)
+- `GET /api/training-center/guide/{slug}/pdf` same 404 protection — no unrestricted PDF download
+- Admin POST/PATCH/DELETE endpoints were already admin-strict; unchanged
+
+**Frontend — Unified ecosystem, retired legacy side door**
+- `/ops-training` and `/ops-training/:slug` routes now `<Navigate to="/guidance" replace />` — no more duplicate operator-training surface
+- `OpsTrainingCenter` and `OpsTrainingGuide` imports removed from App.js
+- **All 7 portal hubs** (Hr / Safety / Shop / Dispatch / Pm / FieldLeadership / AdminShell sidenav) updated to link to `/guidance` instead of `/ops-training`
+
+**Frontend — Operational Guidance Center landing redesign**
+- **Portal Training** grid is now the primary, top-of-page section: HR · Safety · Shop · Dispatch · PM · Field Leadership · Admin — each rendered as a first-class card with article count. **Safety + Dispatch are no longer buried.**
+- "Browse by topic" (sections grid) is now secondary navigation
+- Legacy `/ops-training` link **removed** from the landing — no more side door
+- "Hub" terminology removed throughout (component file, comments, data-testids: `guidance-hub-header` → `guidance-home-header`, `guidance-hub-empty` → `guidance-empty`, `guidance-back-to-hub` → `guidance-back-to-home`)
+- Updated landing description: "Filtered server-side by your portal access — nothing you can't act on appears here."
+- Hub.jsx top-level reference link, AdminTraining, HrTrainingRecords copy: "Training Hub" → "Operational Guidance Center"
+
+**Backend — Content-validation safety net**
+- New `validate_registry(strict=True)` in `guidance/content.py` runs at import time. Checks: required keys, duplicate ids, valid section refs, scopes are non-empty list of strings, body blocks have known types, related-ids resolve, workflow primary/alt-articles resolve.
+- Production mode: catches AssertionError and logs to Sentry (`log-and-allow`) so other healthy endpoints continue serving even if a content-only mistake slips in. Strict mode raises (used by tests).
+- This directly addresses the operator's concern: "one malformed article should not take down all guidance/search endpoints."
+
+### Test coverage (iter195)
+- **NEW** `tests/test_iter195_guidance_unification_rbac.py` — 21 tests:
+  - Anon: 0 portals visible from `/api/training-center/portals`
+  - Anon `?portal=X` → 403 for all 9 portal keys (no silent empty-list)
+  - HR → only sees `{hr}` portals; blocked from safety/dispatch/admin/integration
+  - Safety → only sees `{safety}`; blocked from HR
+  - Admin → sees all 9 portals + can filter any
+  - Direct deep-link 404 protection (no title leak) for anon AND cross-portal callers
+  - PDF download blocked for unauthorized callers
+  - Source-level guards: `OpsTrainingCenter` no longer imported, `/ops-training` route redirects to `/guidance`, no portal hub links to `/ops-training`
+  - Guidance Center file does not contain "hub" wording in user-visible labels
+  - `validate_registry()` passes; malformed article surfaces clear issue
+- **Combined guidance suite**: 202/202 ✅
+- **Full hardening regression**: 222/222 ✅ (excluded iter187 known ordering flakiness)
+- **Total green**: **424 tests passing**
+
+### Verified live in preview
+Operational Guidance Center landing renders correctly with all 7 portal tracks first-class (HR · Safety · Shop · Dispatch · PM · Field Leadership · Admin). No `/ops-training` link. Server-side filtering caption is clear. Backend curl confirms: anon sees 0 portals, anon `?portal=safety` → 403, anon direct slug → 404.
+
+### Operator-flagged concerns — status
+| Concern | Status |
+|---|---|
+| Stop calling the system "Hub" | ✅ Cleaned in guidance/training surfaces |
+| Safety + Dispatch underrepresented | ✅ First-class portal track grid |
+| `/ops-training` global RBAC failure | ✅ Route redirected, backend RBAC-gated |
+| Multiple training systems | ✅ Unified — `/ops-training` retired into `/guidance` |
+| Unrestricted deep links | ✅ 404 (not 403) — no title leak |
+| Unrestricted PDF downloads | ✅ Same 404 protection |
+| Content syntax should fail safely | ✅ `validate_registry()` with log-and-allow |
+
+### Production posture
+- 🛑 NOT deployed to production — operator-mandated preview-only window
+- 🟢 Live in preview at `/guidance`, `/admin/guidance-coverage`
+- 🟢 Sentry observability already active — caught the syntax error during this audit (preview-first + Sentry working as designed)
+
+### Next Action Items
+- 🟢 Operator reviews iter195 in preview (`/guidance`, portal hub pages, direct deep-link attempts)
+- 🟢 If approved, schedule production rollout
+- 🟢 Backfill the 6 registered workflow gaps as content is authored (toolbox-meeting, jha, trench-box, po-request, document-expirations, tasks-actions)
+- 🟡 Phase 2 close-out: 48h R2 lifecycle re-verify, Sentry/timeout soak sign-off
+
+### Future / Backlog
+- Phase D: video / interactive walkthrough authoring
+- Guidance freshness timestamps + stale-content surfacing
+- K4b Unified User Management UI Mutations (P2)
+- K5 Temp Password / Onboarding Standardization (P2)
+- Stage B.1 Owner Snapshot PDF (P2)
+- `server.py` router/services refactor (deferred backlog)
+
+---
+
 ## 2026-02-XX — Phase 3 · Guidance Lifecycle (Workflow Registry) + Phase C Contextual Embeds · ✅ COMPLETE (preview only)
 
 Operator approved both: the "Has Guidance" maintenance-tool indicator and Phase C contextual embeds in the 6 priority forms. Strict directives: lightweight/admin-only/no-analytics-bloat for the indicator; no popup spam / mobile-first / collapsible / RBAC-aware / context-sensitive-only for the embeds. Don't turn the platform into a training website.

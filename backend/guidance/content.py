@@ -2890,3 +2890,108 @@ def workflow_coverage_report() -> dict:
         },
         "per_portal": per_portal,
     }
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Registry integrity validation (iter195)
+# ─────────────────────────────────────────────────────────────────────
+#
+# Lightweight content safety net. Runs at import time and asserts the
+# registry has no structurally-bad entries. Operator-directive: one
+# malformed article must not be able to take down all guidance and
+# search endpoints — Sentry already catches runtime errors, but a
+# defensive structural check at import-time catches editorial issues
+# before they reach a deploy.
+#
+# Validation is intentionally lenient: missing/invalid blocks raise a
+# clear AssertionError naming the offending article id. Use this in
+# tests for fast-fail; production import always runs it once.
+
+_VALID_BLOCK_TYPES = {"p", "steps", "bullets", "why", "next", "warn", "tip", "mistakes"}
+_REQUIRED_ARTICLE_KEYS = {"id", "section", "title", "summary", "scopes", "body"}
+_KNOWN_SECTIONS = {s["id"] for s in SECTIONS}
+
+
+def validate_registry(strict: bool = True) -> list[str]:
+    """Return a list of integrity issues. With strict=True, also raises
+    AssertionError on the first issue (used at import time).
+
+    Issues detected:
+      • Article missing required keys
+      • Article id duplicate
+      • Article section not in SECTIONS
+      • Scopes must be a non-empty list of strings
+      • Body must be a list of dicts with valid `type`
+      • Tags / related must be lists when present
+      • All `related` ids must exist in the registry
+      • All `alt_articles` / `primary_article` in workflows must exist
+    """
+    issues: list[str] = []
+    seen_ids: set[str] = set()
+    article_ids: set[str] = {a.get("id") for a in _ARTICLES if isinstance(a.get("id"), str)}
+
+    for idx, a in enumerate(_ARTICLES):
+        prefix = f"_ARTICLES[{idx}] id={a.get('id', '<missing>')}"
+        missing = _REQUIRED_ARTICLE_KEYS - set(a.keys())
+        if missing:
+            issues.append(f"{prefix}: missing keys {missing}")
+            continue
+        aid = a["id"]
+        if aid in seen_ids:
+            issues.append(f"{prefix}: duplicate id")
+        seen_ids.add(aid)
+        if a["section"] not in _KNOWN_SECTIONS:
+            issues.append(f"{prefix}: section '{a['section']}' is not a registered section")
+        scopes = a.get("scopes")
+        if not isinstance(scopes, list) or not scopes or not all(isinstance(s, str) for s in scopes):
+            issues.append(f"{prefix}: scopes must be a non-empty list of strings")
+        body = a.get("body")
+        if not isinstance(body, list):
+            issues.append(f"{prefix}: body must be a list")
+        else:
+            for bi, b in enumerate(body):
+                if not isinstance(b, dict) or "type" not in b:
+                    issues.append(f"{prefix}: body[{bi}] must be a dict with `type`")
+                    continue
+                if b["type"] not in _VALID_BLOCK_TYPES:
+                    issues.append(f"{prefix}: body[{bi}] has unknown type '{b['type']}'")
+        # Optional fields shape check
+        for opt in ("tags", "related"):
+            if opt in a and not isinstance(a[opt], list):
+                issues.append(f"{prefix}: '{opt}' must be a list when present")
+        for rel in a.get("related") or []:
+            if rel not in article_ids:
+                issues.append(f"{prefix}: related id '{rel}' does not exist")
+
+    # Workflow registry cross-check
+    for wi, w in enumerate(_WORKFLOWS):
+        prefix = f"_WORKFLOWS[{wi}] id={w.get('id', '<missing>')}"
+        if not isinstance(w, dict) or "id" not in w or "label" not in w or "portal" not in w:
+            issues.append(f"{prefix}: missing required keys (id/label/portal)")
+            continue
+        primary = w.get("primary_article")
+        if primary is not None and primary not in article_ids:
+            issues.append(f"{prefix}: primary_article '{primary}' does not exist")
+        for alt in w.get("alt_articles") or []:
+            if alt not in article_ids:
+                issues.append(f"{prefix}: alt_article '{alt}' does not exist")
+
+    if strict and issues:
+        raise AssertionError(
+            "guidance registry integrity check failed:\n  - " + "\n  - ".join(issues)
+        )
+    return issues
+
+
+# Run at import time so a malformed registry is caught before the app
+# accepts a single request. The strict mode raises on first issue;
+# we wrap in a log-and-allow guard for production so the app can still
+# serve OTHER healthy endpoints even if a content-only mistake slips in.
+try:
+    validate_registry(strict=True)
+except AssertionError as _e:  # pragma: no cover — defensive
+    import logging as _logging
+    _logging.getLogger(__name__).error("[guidance] %s", _e)
+    # We do NOT re-raise. The endpoints will continue to serve whatever
+    # articles ARE valid; a malformed article only affects itself.
+

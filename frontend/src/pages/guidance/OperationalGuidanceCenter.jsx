@@ -1,19 +1,20 @@
-// OperationalGuidanceCenter — the new top-level shell for MASCI's
+// OperationalGuidanceCenter — the top-level shell for MASCI's
 // Training / Help / Operational Guidance system.
 //
-// Phase A scope (preview only):
+// Phase A + B + C scope:
 //   • RBAC-aware section + article rendering, driven entirely by the
 //     server (/api/guidance/*). Frontend trusts the server's visibility
 //     decisions; never displays a title the server didn't return.
-//   • Single-page hub with: sections grid · search · article reader.
+//   • Single-page Operational Guidance Center with: portal-first track
+//     grid (Safety + Dispatch surfaced as first-class) · cross-cutting
+//     section grid · search · article reader.
 //   • Plain content blocks (p / steps / bullets / why / next / warn /
 //     tip / mistakes). One renderer for everything.
-//   • Wraps and absorbs the existing /training and /ops-training
-//     entry points — those routes remain reachable as legacy deep
-//     links, but the home hub directs new traffic here.
+//   • iter195: the legacy /ops-training surface is retired. /ops-training
+//     now redirects here. No unrestricted side door into operator training.
 //
 // Style: matches MASCI's existing card/typography conventions.
-// Mobile-first; the section grid collapses to a single column under md.
+// Mobile-first; section grids collapse to a single column under md.
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -167,6 +168,11 @@ export default function OperationalGuidanceCenter() {
   const [searchResults, setSearchResults] = useState(null);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  // Iter195 — portal-first landing grid. Loaded for home view only.
+  // Surfaces Safety + Dispatch + all other portals visually as first-class
+  // tracks (operator directive: do not bury Safety / Dispatch behind a
+  // generic "Portals" section).
+  const [portalArticles, setPortalArticles] = useState([]);
 
   // Load section catalog on mount
   useEffect(() => {
@@ -177,6 +183,17 @@ export default function OperationalGuidanceCenter() {
       } catch { /* render nothing */ }
     })();
   }, []);
+
+  // Home-page portal grid — load the portals section once
+  useEffect(() => {
+    if (articleId || sectionId) return;
+    (async () => {
+      try {
+        const r = await api.get("/guidance/articles?section=portals");
+        setPortalArticles(r?.data?.articles || []);
+      } catch { /* render nothing */ }
+    })();
+  }, [articleId, sectionId]);
 
   // Load article OR section listing when URL changes
   useEffect(() => {
@@ -302,7 +319,7 @@ export default function OperationalGuidanceCenter() {
           type="button"
           onClick={() => navigate("/guidance")}
           className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 mb-3"
-          data-testid="guidance-back-to-hub"
+          data-testid="guidance-back-to-home"
         >
           <ChevronLeft className="w-4 h-4" /> All guidance
         </button>
@@ -331,10 +348,33 @@ export default function OperationalGuidanceCenter() {
     );
   }
 
-  // ── Render: hub home ──────────────────────────────────────────────
+  // ── Render: Operational Guidance Center · home ────────────────────
+  // Portal-first treatment: surface every portal the caller has access
+  // to as a primary card (Safety + Dispatch must NOT be buried). The
+  // generic-section grid below is secondary navigation.
+  // Build per-portal counts from the `portals` section we just loaded.
+  // The server has already filtered articles by caller scope, so any
+  // portal with ≥1 article here is a portal the user can access.
+  const PORTAL_TRACKS = [
+    { key: "hr",         label: "HR Portal",                  matchPrefix: ["portal-hr", "hr-"] },
+    { key: "safety",     label: "Safety Portal",              matchPrefix: ["portal-safety", "safety-"] },
+    { key: "shop",       label: "Shop / Fleet Portal",        matchPrefix: ["portal-shop", "shop-"] },
+    { key: "dispatch",   label: "Dispatch Portal",            matchPrefix: ["portal-dispatch", "dispatch-"] },
+    { key: "pm",         label: "PM Portal",                  matchPrefix: ["portal-pm", "pm-"] },
+    { key: "leadership", label: "Field Leadership Portal",    matchPrefix: ["portal-leadership", "field-"] },
+    { key: "admin",      label: "Admin Console",              matchPrefix: ["portal-admin", "admin-"] },
+  ];
+  const portalCounts = {};
+  for (const t of PORTAL_TRACKS) {
+    portalCounts[t.key] = portalArticles.filter((a) =>
+      t.matchPrefix.some((p) => a.id === p || a.id.startsWith(p))
+    ).length;
+  }
+  const visibleTracks = PORTAL_TRACKS.filter((t) => portalCounts[t.key] > 0);
+
   return (
     <Shell>
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4 flex items-start gap-3" data-testid="guidance-hub-header">
+      <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4 flex items-start gap-3" data-testid="guidance-home-header">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">
           <BookOpen className="w-6 h-6" />
         </div>
@@ -347,59 +387,91 @@ export default function OperationalGuidanceCenter() {
           </h1>
           <p className="text-sm text-slate-600 mt-1 leading-relaxed">
             Role-based training · task-based help · troubleshooting · operational knowledge.
-            What you see here is filtered by your portal access.
+            Filtered server-side by your portal access — nothing you can't act on appears here.
           </p>
         </div>
       </div>
 
       <SearchBox onResults={setSearchResults} query={query} setQuery={setQuery} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-5">
-        {sections.map((s) => {
-          const Icon = SECTION_ICONS[s.icon] || BookOpen;
-          return (
+      {/* Portal Training — first-class portal tracks. Safety + Dispatch
+          must always be visually surfaced when the caller has access. */}
+      {visibleTracks.length > 0 && (
+        <section className="mt-6" data-testid="guidance-portal-tracks">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="font-display text-lg font-black tracking-tight">
+              Portal Training
+            </h2>
             <Link
-              key={s.id}
-              to={`/guidance/section/${s.id}`}
-              className="bg-white border-2 border-slate-300 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all"
-              data-testid={`guidance-section-card-${s.id}`}
+              to="/guidance/section/portals"
+              className="text-[12px] font-bold uppercase tracking-wider text-amber-700 hover:underline"
+              data-testid="guidance-portal-tracks-all"
             >
-              <div className="flex items-start gap-3">
-                <div className="inline-flex items-center justify-center w-10 h-10 rounded bg-slate-100 text-slate-700 shrink-0">
-                  <Icon className="w-5 h-5" />
+              All portal articles →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {visibleTracks.map((t) => (
+              <Link
+                key={t.key}
+                to={`/guidance/section/portals`}
+                className="bg-white border-2 border-slate-300 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all"
+                data-testid={`guidance-portal-track-${t.key}`}
+              >
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
+                  {t.key}
                 </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-slate-900">{s.title}</div>
-                  <div className="text-[12px] text-slate-500 mt-0.5">
-                    {s.count} {s.count === 1 ? "article" : "articles"}
+                <div className="font-display text-base font-bold mt-1">{t.label}</div>
+                <div className="text-[12px] text-slate-500 mt-1">
+                  {portalCounts[t.key]} {portalCounts[t.key] === 1 ? "article" : "articles"}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Secondary: cross-cutting sections (roles · troubleshooting · etc.) */}
+      <section className="mt-6">
+        <h2 className="font-display text-lg font-black tracking-tight mb-3">
+          Browse by topic
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {sections.map((s) => {
+            const Icon = SECTION_ICONS[s.icon] || BookOpen;
+            return (
+              <Link
+                key={s.id}
+                to={`/guidance/section/${s.id}`}
+                className="bg-white border-2 border-slate-300 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all"
+                data-testid={`guidance-section-card-${s.id}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded bg-slate-100 text-slate-700 shrink-0">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-slate-900">{s.title}</div>
+                    <div className="text-[12px] text-slate-500 mt-0.5">
+                      {s.count} {s.count === 1 ? "article" : "articles"}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
-      {sections.length === 0 && (
-        <div className="text-center text-slate-500 py-10" data-testid="guidance-hub-empty">
+      {sections.length === 0 && visibleTracks.length === 0 && (
+        <div className="text-center text-slate-500 py-10" data-testid="guidance-empty">
           No guidance is available for your access level yet.
         </div>
       )}
 
-      <div className="mt-8 pt-4 border-t border-slate-200">
-        <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-2 font-bold">
-          Legacy training pages
-        </div>
-        <div className="flex flex-wrap gap-2 text-[13px]">
-          <Link to="/training" className="text-amber-700 hover:underline" data-testid="legacy-training-link">
-            Training Hub
-          </Link>
-          <span className="text-slate-400">·</span>
-          <Link to="/ops-training" className="text-amber-700 hover:underline" data-testid="legacy-ops-training-link">
-            Ops Training Center
-          </Link>
-        </div>
-      </div>
+      {/* Iter195: the legacy /ops-training link has been retired.
+          That route now redirects into this Center. There is no longer
+          an unrestricted side door into operator training. */}
     </Shell>
   );
 }

@@ -1,6 +1,6 @@
 // HR — Training Records (read-only).
 // Pulls from training_track_records (populated when an employee finishes
-// a Training Hub track). Empty state shows guidance for HR until the
+// a Training Center track). Empty state shows guidance for HR until the
 // collection has rows.
 import React, { useCallback, useEffect, useState } from "react";
 import { Loader2, Search, GraduationCap } from "lucide-react";
@@ -61,7 +61,7 @@ export default function HrTrainingRecords() {
           <GraduationCap className="w-10 h-10 mx-auto text-slate-400 mb-3" />
           <div className="font-bold text-base text-slate-900">{t("No training records yet")}</div>
           <p className="text-sm text-slate-600 mt-2 max-w-md mx-auto">
-            {t("Training completions appear here automatically once an employee finishes a track in the Training Hub. The HR-side report stays read-only.")}
+            {t("Training completions appear here automatically once an employee finishes a track in the Operational Guidance Center. The HR-side report stays read-only.")}
           </p>
         </Card>
       ) : (
