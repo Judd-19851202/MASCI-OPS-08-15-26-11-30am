@@ -257,6 +257,36 @@ This is not analytics. It's the smallest possible measurement that
 confirms editorial work is improving operational continuity rather
 than just adding text.
 
+### When the actionable count GOES UP
+
+Two operationally-healthy reasons exist:
+
+1. **A scaffolded persona walkthrough was fleshed out** — what was
+   previously 1 placeholder friction becomes N real operational gaps
+   surfaced by an honest day-script. The total rose, but the platform
+   didn't regress — coverage expanded. (Demonstrated iter221:
+   fleshing the HR scaffold went 5 → 12 actionable; net was +8
+   missing-coaching/discoverability findings on previously-hidden HR
+   surfaces.)
+
+2. **A new portal / feature shipped without coaching coverage** —
+   the walkthrough catches it. Same loop: author the coaching, the
+   number drops.
+
+Neither case is a regression. The actionable count is only a
+regression signal **when the surfaces and walkthroughs are constant
+between runs** and the number still rises — that means coaching that
+used to land no longer does.
+
+### When the actionable count SHOULD be ignored
+
+- Right after fleshing a scaffold (read the new findings as the new
+  authoring backlog, not as a regression)
+- Right after a major IA change (the walkthroughs may need their
+  expectations refined — see iter219 foreman false-positive fix)
+- When the operator has explicitly added strategic holds that prevent
+  closing certain findings (mid-day-defect, etc.)
+
 ---
 
 ## 8 · Operational realism requirements

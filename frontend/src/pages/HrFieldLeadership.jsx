@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import HrPageShell from "@/components/HrPageShell";
 import { getHrToken } from "@/lib/hrAuth";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 
@@ -78,6 +79,13 @@ export default function HrFieldLeadership() {
 
   return (
     <HrPageShell title="Field Leadership Records" kicker="HR · Read-Only">
+      {/* iter221 · surface the iter218 reviewer-side coaching on the
+          HR records page. Same family wired on FieldLeadershipRecords
+          for supers; HR reviewers need the same anchor: reviewing
+          isn't auditing — it's reading the crew's work. */}
+      <div className="mb-5">
+        <HelpTipBlock formKey="field-leadership.records" showCounter />
+      </div>
       <Card className="p-4 mb-5 border-2 border-purple-200 bg-purple-50/30">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
           <div className="md:col-span-2">

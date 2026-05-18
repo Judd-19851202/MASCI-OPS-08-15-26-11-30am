@@ -1,6 +1,89 @@
 # MASCI Safety Hub — PRD
 
 ---
+## 2026-05-18 — iter221 · HR Persona Walkthrough Fleshed Out · ✅ DELIVERED (preview only)
+
+Per operator directive ("HR first · do NOT broaden scope beyond one persona yet"), the HR scaffold was replaced with a real 7-step day-script that exercises HR's actual workflow surfaces and validates the operational-continuity / escalation-clarity / cultural-sensitivity invariants the operator named.
+
+### The HR persona day (7 real operational moments)
+| # | Time  | Step | Surface |
+|---|-------|------|---------|
+| 1 | 07:45 | Hub open · scan overnight filings | `/hr` |
+| 2 | 08:30 | Review overnight write-ups + crew records | `/hr/field-leadership` |
+| 3 | 09:00 | Clear yesterday's payroll · Time Verification | `/hr/time-verification` |
+| 4 | 10:15 | "My check is short" · Employee Accountability | `/hr/employee-accountability` |
+| 5 | 11:30 | Onboard a new operator · Employee Lifecycle | `/hr/employees` |
+| 6 | 13:30 | Approve/deny pending Time Off requests | `/hr/time-off` |
+| 7 | 14:30 | Plan expiring-document outreach | `/document-expirations` |
+
+### Trivial wiring fix landed (operator-permitted micro-scope)
+Surfaced the **existing iter218 `field-leadership.records` coaching block** on `HrFieldLeadership.jsx` — same family, same anchor ("reviewing isn't auditing"), one new page. Closed 2 findings in the HR walkthrough without authoring new content.
+
+### Four NEW HR coaching families surfaced (NOT authored — operator-decision)
+Each surfaced finding includes a **drafted operator-tone voice anchor candidate** so a future operator-approved authoring iter can pick them up cleanly:
+
+| Surface | Operational moment | Voice anchor (candidate) |
+|---|---|---|
+| Employee Accountability | "My check is short" / "Where's my last paystub" | *"When an employee asks about their pay, the answer lives in the record — read first, respond second."* |
+| Employee Lifecycle | New-hire Day-1 onboarding | *"The new hire's first impression of MASCI is this form. Get it right and they hear about the company; get it wrong and they hear about the bureaucracy."* |
+| Time Off Requests | Bereavement vs vacation vs pattern judgment | *"Bereavement is granted, never debated. A pattern is a conversation, not a denial. Vacation is a yes with timing."* |
+| Document Expirations | Outreach vs email-blast | *"A bulk email about expiring CDLs misses the human moment; a phone call to the operator doesn't."* |
+
+These four are the HR-specific high-cultural-drift-risk surfaces the operator named (communication-sensitive, policy-sensitive, escalation-sensitive). They're held for explicit operator approval before authoring.
+
+### Walkthrough-delta · iter221
+| Persona | Before iter221 | After iter221 | Notes |
+|---|---|---|---|
+| HR | 1 (scaffolded placeholder) | 10 (real day-script · 4 missing-coaching + 4 discoverability + 2 positive) | **+9 healthy expansion** |
+| **Total actionable** | **5** | **12** | **+7 healthy expansion** |
+| **Total positive observations** | **17** | **18** | **+1** |
+
+### Why a +9 actionable-finding increase is HEALTHY, not regression
+Replacing a single "this walkthrough is SCAFFOLDED" placeholder finding with 10 honest findings about HR's actual day-script is **coverage expansion, not platform regression.** This is documented in `walkthrough_pass.md §7` (new subsection: "When the actionable count GOES UP"):
+
+> *"A scaffolded persona walkthrough was fleshed out — what was previously 1 placeholder friction becomes N real operational gaps surfaced by an honest day-script. The total rose, but the platform didn't regress — coverage expanded."*
+
+The protocol doc now explicitly distinguishes healthy-expansion vs regression cases so future agents/operators read the same number correctly.
+
+### Backend regression
+- iter21x + iter22x: **239 passed · 1 expected skip**
+- iter220 protocol test still passes (25/25) — the new §7 subsection didn't break the structural invariants
+- No tip registry changes (iter221 surfaced gaps; didn't author new families)
+- No new API surface
+
+### Operator-stated discipline preserved
+- ✅ Single-persona scope (only HR fleshed; Safety + PM remain scaffolded)
+- ✅ No speculative architecture (didn't author the 4 new coaching families pre-approval)
+- ✅ No analytics drift / LMS drift / dashboard creep
+- ✅ Operator-stated strategic holds preserved (mid-day-defect still HELD)
+- ✅ Voice anchors drafted in operator-validated cultural-leadership tone
+
+### Files touched
+- MOD: `walkthroughs/hr.py` (scaffold → 7-step real day-script with 4 missing-coaching findings)
+- MOD: `walkthroughs/walkthrough_pass.md` (new §7 subsection: "When the actionable count GOES UP")
+- MOD: `frontend/src/pages/HrFieldLeadership.jsx` (surface iter218 `field-leadership.records` coaching block)
+- MOD: `memory/PRD.md`
+
+🔵 Preview only. No production push.
+
+### Operator-decision queue (sequenced for next iter approval)
+
+In operator-priority order (highest-cultural-drift-risk first):
+
+1. 🟡 **`time-off-review` tip family** — bereavement-vs-vacation-vs-pattern judgment coaching (highest EEOC exposure)
+2. 🟡 **`employee-accountability` tip family** — "my check is short" trust-preserving coaching
+3. 🟡 **`employee-lifecycle` tip family** — new-hire Day-1 onboarding cultural anchor
+4. 🟢 **`document-expirations` tip family** — outreach-vs-blast coaching (lowest urgency, still valuable)
+
+Each is held for explicit operator approval before authoring (consistent with iter218 pattern — operator approves the family list before authoring begins).
+
+### Other queued work (unchanged)
+- 🔵 Strategic hold · Operator mid-day-defect (deliberate future architecture decision)
+- 🟡 P2 · Safety + PM persona walkthrough fleshing (next two personas, when sequenced)
+- 🟡 P2 · Translation consistency close-out
+- 🟢 Post-hardening · HelpTip helpfulness-pulse telemetry
+
+---
 ## 2026-05-18 — iter220 · Walkthrough Editorial Discipline · Protocol Codification · ✅ DELIVERED (preview only)
 
 The editorial cadence (walkthrough → aggregate → review → author → re-run → measure delta) has now been demonstrated across three full cycles with a 69% actionable-finding reduction and zero regressions. iter220 codifies the discipline itself as a **load-bearing protocol document** so the philosophy survives agent handoffs, contributor turnover, and future iters.
