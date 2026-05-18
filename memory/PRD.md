@@ -1,5 +1,58 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter228 · Foreman Operational Architecture Brief · 🔍 DELIVERED · awaiting decisions
+
+Per operator directive ("coordinated operational architecture analysis and intentional decisioning across all 6 together · honest operational systems analysis · NOT tactical coaching authoring"). Single consolidated brief authored covering the 6 surfaces raised by iter227, against the operator-stated 10-dimension structure, with 5 outcome categories.
+
+### Output
+- NEW: `/app/walkthroughs/foreman_architecture_brief.md` (526 lines · self-contained · preview-only)
+
+### Brief structure
+1. Load-bearing principle: "Not every operational behavior should become software workflow"
+2. 5 outcome categories defined: human/verbal · coaching-only · lightweight workflow · structured workflow · strategic hold
+3. Per-surface analysis × 6 (each surface answers the operator's 10 dimensions)
+4. Cross-surface synthesis (which moments stay human, which become coaching, which become workflow, which stay held)
+5. Internal-consistency check
+6. Decision-ready summary table
+
+### Recommendations (decision-ready)
+
+| # | Surface | Outcome | Conditional on |
+|---|---|---|---|
+| 1 | 07:00 crew-check | **Remain human/verbal** | Supervisor first-14-days unblock for optional coaching |
+| 2 | Leadership hub philosophy | **Coaching-only** · single canonical-4 · default-collapsed | Operator anchor approval — **approvable today** |
+| 3 | Foreman side of Transfer | **Coaching-only** · canonical-4 + 1-2 leaves · mirror of iter226 | Operator anchor approval — **approvable today** |
+| 4 | Records filer-side voice | **Coaching-only** · parallel scope variant of iter218 | Operator anchor approval — **approvable today** |
+| 5 | Foreman EOD wrap | **Strategic hold** · candidate: lightweight workflow + coaching | Supervisor first-14-days release |
+| 6 | Foreman → super handoff | **Strategic hold** · IS the Supervisor first-14-days architecture | Operator architectural decision |
+
+### Architectural philosophy crystallized
+The brief refuses structured workflows on all 6 surfaces. The platform's strongest move at multiple surfaces is to **explicitly NOT digitize** — and to coach the foreman about why the moment stays human. The brief identifies three surfaces (#1 crew-check, #6 foreman→super call moment, mid-day-defect) where the platform deliberately refuses to insert itself.
+
+### What this brief explicitly does NOT recommend
+- No structured workflows on any surface (cultural cost > operational benefit at every surface evaluated)
+- No KPI/dashboard surfaces (especially not EOD wrap)
+- No LMS layering on leadership hub
+- No popup interruptions
+- No analytics capture / walkthrough findings stay editorial
+
+### Three approvable-today coaching surfaces
+Surfaces #2 (leadership hub), #3 (transfer receive), #4 (filer-side records) are coaching-only with proposed anchors, do not touch held architecture, and can be authored at operator approval without disturbing the held Supervisor first-14-days family. Each has a candidate cultural anchor in the brief awaiting operator wording approval.
+
+### Three interconnected-held surfaces
+Surfaces #1 (crew-check coaching), #5 (EOD wrap), #6 (foreman→super handoff) form a single architectural decision-set tied to the Supervisor first-14-days family. Should be decided as a coordinated trio when the operator chooses to unblock.
+
+### Files touched
+- NEW: `walkthroughs/foreman_architecture_brief.md`
+- MOD: `memory/PRD.md`
+
+### Regression
+464 tests still pass · zero coaching authored · zero registry changes · zero workflow surfaces built.
+
+🔵 Preview only. No production push. No tactical implementation drift. Awaiting operator architectural decisions.
+
+---
+
 ## 2026-05-18 — iter227 · Foreman walkthrough audit · 🔍 HONEST DISCOVERY (no coaching authored)
 
 Per operator directive: "the goal is NOT yet 'close the Foreman persona' — the goal is honest operational discovery." Foreman scaffold audited against the operator-stated §8 real-day pattern (yard arrival · crew check · mobile continuity · field interruptions · escalation moments · daily-report flow · dispatch interaction · end-of-day wrap). Scaffold fleshed from 6 to 10 steps. **No coaching authored** — findings documented and PAUSED for operator review.
