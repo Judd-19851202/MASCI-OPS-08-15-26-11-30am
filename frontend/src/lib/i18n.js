@@ -490,6 +490,260 @@ const ES = {
   //
   // ── End iter241 entries ──
 
+  // ────────────────────────────────────────────────────────────────────
+  // iter241b — Operator-surfaced second pass: 146 missing translations
+  // on the explicit user journey (Hub → guidance → training → portal
+  // login → password flows). All strings were already wrapped in t();
+  // they were silently falling back to English because the ES
+  // dictionary had no entry. Translated as a single batch so
+  // Spanish-speaking crews don't keep encountering random English
+  // fragments while moving through the system.
+  // ────────────────────────────────────────────────────────────────────
+
+  // Hub homepage — additional surfaces beyond iter241a
+  "Welcome back": "Bienvenido de nuevo",
+  "Signed in": "Sesión iniciada",
+  "Tap to jump back into your": "Toque para volver a su",
+  "Open Portal": "Abrir Portal",
+  "Open Console": "Abrir Consola",
+  "Your Portals": "Sus Portales",
+  "Other Portals": "Otros Portales",
+  "Sign-in required. Showing portals you're authorized for.":
+    "Inicio de sesión requerido. Mostrando los portales para los que está autorizado.",
+  "Sign-in required. For office staff, mechanics, HR, Safety, and Dispatch.":
+    "Inicio de sesión requerido. Para personal de oficina, mecánicos, RH, Seguridad y Despacho.",
+  "Sign-in required. Office staff, mechanics, HR.":
+    "Inicio de sesión requerido. Personal de oficina, mecánicos, RH.",
+  "not in your access set": "no en su conjunto de acceso",
+  "Operational Guidance Center": "Centro de Guía Operacional",
+  "RBAC-aware portal training, role-based help, and operator guides.":
+    "Capacitación de portal por rol, ayuda basada en tareas y guías para operadores.",
+  "Step into the Hub": "Entrar al Centro",
+  "Submit on Site": "Enviar en la Obra",
+  "Run every job. Control every detail.":
+    "Dirija cada trabajo. Controle cada detalle.",
+  "Safety command center — incidents, audits, corrective actions, training.":
+    "Centro de mando de seguridad — incidentes, auditorías, acciones correctivas, capacitación.",
+  "Equipment movement, availability, transfers, and utilization.":
+    "Movimiento, disponibilidad, transferencias y utilización de equipos.",
+  "Mechanics · out-of-service queue · Pre-Op FAILs · sign-offs.":
+    "Mecánicos · cola fuera de servicio · FALLOS Pre-Op · aprobaciones.",
+  "Project managers · active jobs · routing · fleet · staff.":
+    "Gerentes de proyecto · trabajos activos · enrutamiento · flota · personal.",
+  "Employee accountability · time verification · payroll cross-check.":
+    "Responsabilidad del empleado · verificación de tiempo · cruce de nómina.",
+  "Supervisor forms · crew accountability · equipment checkout.":
+    "Formularios de supervisor · responsabilidad de cuadrilla · entrega de equipos.",
+  "Dispatch": "Despacho",
+  "Quality & Compliance": "Calidad y Cumplimiento",
+  "Public · no sign-in required.": "Público · sin inicio de sesión.",
+  "Concrete · Rebar · Subcontractor Inspections. Sign on screen, submit, instant PDF + record.":
+    "Inspecciones de Concreto · Acero · Subcontratista. Firme en pantalla, envíe, PDF + registro al instante.",
+  "Daily Reports · Equipment Pre-Op walk-arounds. GPS auto-fills location, weather auto-loads, photos attach instantly.":
+    "Reportes Diarios · Inspecciones Pre-Op de equipos. GPS llena ubicación, clima se carga automáticamente, fotos se adjuntan al instante.",
+  "Inspections · Toolbox Talks · Incidents · JHPs · Trench Box reference. Routed to the office in 60 seconds.":
+    "Inspecciones · Charlas de Caja de Herramientas · Incidentes · Planes JHP · Referencia de Caja de Zanja. Enrutado a la oficina en 60 segundos.",
+
+  // Sign-in master entry
+  "MASCI Operations Platform · Master Sign-In":
+    "Plataforma de Operaciones MASCI · Inicio de Sesión Principal",
+  "Single-Portal Sign-In": "Inicio de Sesión de Portal Único",
+  "Multi-portal sign-in for accounts with access to more than one portal. Single-portal employees, use your portal":
+    "Inicio de sesión multi-portal para cuentas con acceso a más de un portal. Empleados de un solo portal, use su portal",
+  "Operations Platform": "Plataforma de Operaciones",
+  "Master Password": "Contraseña Principal",
+  "Enter your work email and master password":
+    "Ingrese su correo de trabajo y contraseña principal",
+  "Signing in…": "Iniciando sesión…",
+  "Sign-in failed": "Falló el inicio de sesión",
+  "Sign-in failed — try again": "Falló el inicio de sesión — intente de nuevo",
+  "Invalid email or password": "Correo o contraseña inválidos",
+  "Welcome": "Bienvenido",
+  "Signed in to": "Sesión iniciada en",
+  "Signed in as": "Sesión iniciada como",
+
+  // Universal login form primitives (used across every portal)
+  "Work Email": "Correo de Trabajo",
+  "Work email": "Correo de trabajo",
+  "Remember me on this device": "Recordarme en este dispositivo",
+  "Forgot password?": "¿Olvidó su contraseña?",
+  "Forgot password": "Olvidó su contraseña",
+  "Enter your work email": "Ingrese su correo de trabajo",
+  "Enter your password": "Ingrese su contraseña",
+  "Enter your work email and password":
+    "Ingrese su correo de trabajo y contraseña",
+  "Sending…": "Enviando…",
+  "Saving…": "Guardando…",
+  "Wrong email or password": "Correo o contraseña incorrectos",
+  "Too many requests — wait a minute and try again":
+    "Demasiadas solicitudes — espere un minuto e intente de nuevo",
+  "Account locked — contact admin": "Cuenta bloqueada — contacte al administrador",
+  "Access blocked": "Acceso bloqueado",
+  "Call the office immediately": "Llame a la oficina de inmediato",
+  "Back to sign in": "Volver al inicio de sesión",
+
+  // Forgot / Reset / Change Password flows
+  "Reset your password": "Restablecer su contraseña",
+  "Self-service reset": "Restablecimiento de autoservicio",
+  "Send reset link": "Enviar enlace de restablecimiento",
+  "Email reset link": "Enviar enlace por correo",
+  "If that email is on file, a reset link is on its way.":
+    "Si ese correo está en nuestros registros, un enlace de restablecimiento está en camino.",
+  "If this email belongs to a Dispatch user, a reset link is on its way. The link expires in 30 minutes.":
+    "Si este correo pertenece a un usuario de Despacho, un enlace de restablecimiento está en camino. El enlace expira en 30 minutos.",
+  "If this email belongs to a Safety user, a reset link is on its way. The link expires in 30 minutes.":
+    "Si este correo pertenece a un usuario de Seguridad, un enlace de restablecimiento está en camino. El enlace expira en 30 minutos.",
+  "Enter your work email. If we have you on file with an active account, we'll email you a one-time link to set a new password.":
+    "Ingrese su correo de trabajo. Si lo tenemos en nuestros registros con una cuenta activa, le enviaremos un enlace de un solo uso para establecer una nueva contraseña.",
+  "Enter your Dispatch Portal email. We'll send you a link to choose a new password.":
+    "Ingrese su correo del Portal de Despacho. Le enviaremos un enlace para elegir una nueva contraseña.",
+  "Enter your Safety Portal email. We'll send you a link to choose a new password.":
+    "Ingrese su correo del Portal de Seguridad. Le enviaremos un enlace para elegir una nueva contraseña.",
+  "Couldn't send reset email — try again or call the office":
+    "No se pudo enviar el correo de restablecimiento — intente de nuevo o llame a la oficina",
+  "This reset link is invalid or has expired.":
+    "Este enlace de restablecimiento es inválido o ha expirado.",
+  "This reset link is invalid or has expired. Request a new one from the HR login page.":
+    "Este enlace de restablecimiento es inválido o ha expirado. Solicite uno nuevo desde la página de inicio de sesión de RH.",
+  "Reset failed": "Falló el restablecimiento",
+  "Reset failed — request a fresh link from /pm/login":
+    "Falló el restablecimiento — solicite un nuevo enlace desde /pm/login",
+  "Reset failed — request a fresh link from /shop/login":
+    "Falló el restablecimiento — solicite un nuevo enlace desde /shop/login",
+  "Password reset successful": "Contraseña restablecida correctamente",
+  "Choose a new password": "Elija una nueva contraseña",
+  "Choose your password": "Elija su contraseña",
+  "Current (or temporary) password": "Contraseña actual (o temporal)",
+  "Current password is incorrect": "La contraseña actual es incorrecta",
+  "Enter the password": "Ingrese la contraseña",
+  "Confirm new password": "Confirme la nueva contraseña",
+  "New password (6+ characters)": "Nueva contraseña (6+ caracteres)",
+  "New password (8+ characters)": "Nueva contraseña (8+ caracteres)",
+  "New password must be at least 6 characters":
+    "La nueva contraseña debe tener al menos 6 caracteres",
+  "New password must be at least 8 characters":
+    "La nueva contraseña debe tener al menos 8 caracteres",
+  "New password must be different from the old one":
+    "La nueva contraseña debe ser diferente de la anterior",
+  "Password must be at least 6 characters":
+    "La contraseña debe tener al menos 6 caracteres",
+  "Password must be at least 8 characters":
+    "La contraseña debe tener al menos 8 caracteres",
+  "Passwords don't match": "Las contraseñas no coinciden",
+  "Save new password": "Guardar nueva contraseña",
+  "Save password & sign in": "Guardar contraseña e iniciar sesión",
+  "Save password &amp; sign in": "Guardar contraseña e iniciar sesión",
+  "Password updated": "Contraseña actualizada",
+  "Password updated — welcome back!": "Contraseña actualizada — ¡bienvenido de nuevo!",
+  "Update failed": "Falló la actualización",
+  "Password rotation required — pick a new one":
+    "Se requiere rotación de contraseña — elija una nueva",
+  "Welcome — please choose a new password":
+    "Bienvenido — por favor elija una nueva contraseña",
+  "Welcome, HR": "Bienvenido, RH",
+  "Welcome to Dispatch": "Bienvenido a Despacho",
+  "Welcome to the Safety Portal": "Bienvenido al Portal de Seguridad",
+  "Pick a new password to finish signing in.":
+    "Elija una nueva contraseña para terminar de iniciar sesión.",
+  "Pick a new password to finish signing in. You'll be dropped straight into the HR portal once saved.":
+    "Elija una nueva contraseña para terminar de iniciar sesión. Será llevado directamente al portal de RH una vez guardada.",
+  "Pick something at least 6 characters. The reset link in your email stops working as soon as you save.":
+    "Elija algo de al menos 6 caracteres. El enlace de restablecimiento en su correo deja de funcionar tan pronto como guarde.",
+  "Pick something at least 6 characters. The temporary password the admin issued will stop working as soon as you save.":
+    "Elija algo de al menos 6 caracteres. La contraseña temporal que emitió el administrador dejará de funcionar tan pronto como guarde.",
+  "Pick something at least 8 characters. The temporary password the admin issued will stop working as soon as you save.":
+    "Elija algo de al menos 8 caracteres. La contraseña temporal que emitió el administrador dejará de funcionar tan pronto como guarde.",
+  "Only per-PM accounts can change password here":
+    "Solo las cuentas por PM pueden cambiar la contraseña aquí",
+  "Only per-user accounts can change password here":
+    "Solo las cuentas por usuario pueden cambiar la contraseña aquí",
+  "New to this portal?": "¿Nuevo en este portal?",
+  "What does this portal do?": "¿Qué hace este portal?",
+
+  // Portal-login headings + chrome
+  "PM Login": "Inicio de Sesión PM",
+  "HR Login": "Inicio de Sesión RH",
+  "HR Portal Sign In": "Inicio de Sesión Portal RH",
+  "Human Resources": "Recursos Humanos",
+  "MASCI · Human Resources Portal": "MASCI · Portal de Recursos Humanos",
+  "Safety Login": "Inicio de Sesión de Seguridad",
+  "Safety Portal Sign In": "Inicio de Sesión Portal de Seguridad",
+  "Safety Manager, Coordinator, and Officer access. Use the credentials issued by Admin.":
+    "Acceso para Gerente de Seguridad, Coordinador y Oficial. Use las credenciales emitidas por el administrador.",
+  "Safety Operations": "Operaciones de Seguridad",
+  "MASCI · Safety Portal": "MASCI · Portal de Seguridad",
+  "Shop Login": "Inicio de Sesión Taller",
+  "Dispatch Login": "Inicio de Sesión Despacho",
+  "Dispatch Portal Sign In": "Inicio de Sesión Portal de Despacho",
+  "Dispatcher access. Use the credentials issued by Admin.":
+    "Acceso de despachador. Use las credenciales emitidas por el administrador.",
+  "Operations · Fleet Movement": "Operaciones · Movimiento de Flota",
+  "MASCI · Dispatch Portal": "MASCI · Portal de Despacho",
+  "Sign in with the account the admin issued you. First-time users will be prompted to set their own password after entering the temporary one.":
+    "Inicie sesión con la cuenta que el administrador le emitió. A los usuarios por primera vez se les pedirá establecer su propia contraseña después de ingresar la temporal.",
+  "Sign in with your MASCI work email. If this is your first time, the admin will give you a temporary password — you'll change it on first sign-in.":
+    "Inicie sesión con su correo de trabajo MASCI. Si es su primera vez, el administrador le dará una contraseña temporal — la cambiará en el primer inicio de sesión.",
+  "Forgot password? Click the link above and we'll email you a reset. Or call the office — admin can issue a fresh temp password.":
+    "¿Olvidó su contraseña? Haga clic en el enlace de arriba y le enviaremos un restablecimiento. O llame a la oficina — el administrador puede emitir una nueva contraseña temporal.",
+
+  // Cheat Sheet card + reference
+  "MASCI Operations Platform · Field Card":
+    "Plataforma de Operaciones MASCI · Tarjeta de Campo",
+  "Print and post inside every site trailer.":
+    "Imprima y publique dentro de cada tráiler de obra.",
+  "Memorize these.": "Memorice esto.",
+  "Tips for Everyone": "Consejos para Todos",
+  "Field Tips & Emergency Steps": "Consejos de Campo y Pasos de Emergencia",
+  "Safety & Stop-the-Line": "Seguridad y Detener la Línea",
+  "Office": "Oficina",
+  "Pre-Op FAILs": "FALLOS Pre-Op",
+  "Open the": "Abra el",
+  "Open your camera, point it at the QR code, tap the link. MASCI Operations Platform opens in your browser. No login. No app. Add it to your home screen and you're set.":
+    "Abra la cámara, apúntela al código QR, toque el enlace. La Plataforma de Operaciones MASCI se abre en su navegador. Sin inicio de sesión. Sin app. Agréguela a su pantalla de inicio y listo.",
+  "Powered by ForgedOps™": "Impulsado por ForgedOps™",
+  "Use the ES button to switch any form to Spanish — it submits in English automatically.":
+    "Use el botón ES para cambiar cualquier formulario a español — se envía en inglés automáticamente.",
+  "Short bilingual lessons for every role — open mascidocs.com/training.":
+    "Lecciones bilingües cortas para cada rol — abra mascidocs.com/training.",
+  "Tap the Need Help tile on the Hub — office phone, address, and after-hours contact.":
+    "Toque la tarjeta ¿Necesita Ayuda? en el centro — teléfono de la oficina, dirección y contacto fuera de horario.",
+  "Every submission gets a unique tracking number printed on the PDF (e.g. DR-2026-00042). Read it back to the office when calling about a job.":
+    "Cada envío recibe un número de seguimiento único impreso en el PDF (ej. DR-2026-00042). Léalo a la oficina cuando llame sobre un trabajo.",
+  "auto-email every active mechanic and the parts office in 60 seconds. No need to call separately.":
+    "se envía por correo automáticamente a cada mecánico activo y a la oficina de partes en 60 segundos. No es necesario llamar por separado.",
+  "— it will prompt you to confirm the office was notified and the Incident Report was filed before the truck moves.":
+    "— le pedirá confirmar que se notificó a la oficina y que se presentó el Reporte de Incidente antes de que el camión se mueva.",
+  "Doc ID:": "ID Doc:",
+  "Field Crew is public — share with insurance, auditors, or new-hire onboarding. Internal Shop, PM, and Admin packets are sign-in required.":
+    "Cuadrilla de Campo es público — compártalo con seguros, auditores u orientación de nuevos empleados. Los paquetes internos de Taller, PM y Admin requieren inicio de sesión.",
+  // ── End iter241b entries ──
+
+  // iter241c — 10 exact-wording corrections (operator-sourced strings
+  // that had slightly different wording than the iter241b batch
+  // translated; the source-of-truth strings now have matching ES
+  // entries verbatim).
+  "Daily Reports · Equipment Pre-Op walk-arounds. GPS auto-fills location, weather auto-loads, photos in two taps.":
+    "Reportes Diarios · Inspecciones Pre-Op de equipos. GPS llena ubicación, clima se carga automáticamente, fotos en dos toques.",
+  "Enter your work email. If we have you on file with an active account, we'll email you a one-time link to set a new password. Link expires in 30 minutes.":
+    "Ingrese su correo de trabajo. Si lo tenemos en nuestros registros con una cuenta activa, le enviaremos un enlace de un solo uso para establecer una nueva contraseña. El enlace expira en 30 minutos.",
+  "Every submission gets a unique tracking number printed on the PDF (e.g. DR-2026-00042). Read it back when the office calls — they find it instantly.":
+    "Cada envío recibe un número de seguimiento único impreso en el PDF (ej. DR-2026-00042). Léalo cuando la oficina llame — lo encuentran al instante.",
+  "Field Crew is public — share with insurance, auditors, or new-hire onboarding. Internal Shop, PM, and Admin packets are managed in the Admin Console.":
+    "Cuadrilla de Campo es público — compártalo con seguros, auditores u orientación de nuevos empleados. Los paquetes internos de Taller, PM y Admin se gestionan en la Consola de Administración.",
+  "Forgot password? Click the link above and we'll email you a reset. Or call the office — admin can issue a fresh temp password from the console.":
+    "¿Olvidó su contraseña? Haga clic en el enlace de arriba y le enviaremos un restablecimiento. O llame a la oficina — el administrador puede emitir una nueva contraseña temporal desde la consola.",
+  "Multi-portal sign-in for accounts with access to more than one portal. Single-portal employees, use your portal's direct sign-in page (linked below).":
+    "Inicio de sesión multi-portal para cuentas con acceso a más de un portal. Empleados de un solo portal, use la página de inicio de sesión directo de su portal (enlace abajo).",
+  "Open your camera, point it at the QR code, tap the link. MASCI Operations Platform opens in your browser. No login for field forms. No app to install. Add it to your home screen and you're set.":
+    "Abra la cámara, apúntela al código QR, toque el enlace. La Plataforma de Operaciones MASCI se abre en su navegador. Sin inicio de sesión para formularios de campo. Sin app que instalar. Agréguela a su pantalla de inicio y listo.",
+  "Sign in with the account the admin issued you. First-time users will be prompted to set their own password after entering the temporary one from their welcome email.":
+    "Inicie sesión con la cuenta que el administrador le emitió. A los usuarios por primera vez se les pedirá establecer su propia contraseña después de ingresar la temporal de su correo de bienvenida.",
+  "Sign in with your MASCI work email. If this is your first time, the admin will give you a temporary password — you'll choose your own on first login.":
+    "Inicie sesión con su correo de trabajo MASCI. Si es su primera vez, el administrador le dará una contraseña temporal — elegirá la suya en el primer inicio de sesión.",
+  "— it will prompt you to confirm the office was notified and the Incident Report was filed before you can submit.":
+    "— le pedirá confirmar que se notificó a la oficina y que se presentó el Reporte de Incidente antes de poder enviar.",
+  // ── End iter241c entries ──
+
   // Crew Cheat Sheet
   "Cheat Sheet": "Hoja de Referencia",
   "Crew Cheat Sheet": "Hoja de Referencia de Cuadrilla",

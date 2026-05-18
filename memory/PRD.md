@@ -1,5 +1,93 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-18 — iter241b · ES localization continuity — second pass (operator-surfaced miss) · ✅ DELIVERED (preview only)
+
+**Operator caught a real miss.** After iter241a closed `/guidance`, `/training`, and footer link primitives, the "Operational Guidance Center" button at the bottom of the hub homepage was still showing in English in ES mode. The operator (rightly) asked: *"If you missed that what else did you miss?"*
+
+I owe transparency: the iter241a verification probes were not exhaustive. I checked the surfaces the operator originally cited, but I did not run a systematic sweep of every `t()` call against the ES dictionary. When I did, the data was stark.
+
+### The real gap (proper sweep · 317 files · 1856 t() calls)
+- **Total `t()` UI strings:** 1856
+- **With ES translation:** 1166 (63%)
+- **Missing ES translation:** **690 (37%)**
+
+Most of the 690 are in deeper admin/portal-internal screens (HR audits, Safety corrective actions, dispatch change-password flows, etc.) that Spanish field crews rarely see. But on the operator's stated user journey — **Hub → guidance → training → portal login → password flows** — the gap was **146 strings** silently falling back to English.
+
+### What iter241b fixed
+- Translated all **146 user-journey strings** in one batch:
+  - Hub homepage auth-state UI (Welcome back · Signed in · Open Portal · Open Console · Your Portals · Other Portals · ...) — 17 strings
+  - Hub section descriptions (Safety command center · Equipment movement · Project managers · Employee accountability · Supervisor forms · ...) — 8 strings
+  - Hub "Operational Guidance Center" tile (operator's specific complaint) + description — 2 strings
+  - Sign-In master entry (Master Password · Single-Portal Sign-In · Operations Platform · Invalid email or password · Sign-in failed · Welcome · ...) — 14 strings
+  - Universal login form primitives (Work Email · Work email · Forgot password? · Remember me on this device · Wrong email or password · Account locked · ...) — 14 strings
+  - Forgot/Reset/Change password flows (every portal · Send reset link · This reset link is invalid · Password reset successful · Choose a new password · New password (6+/8+ characters) · Passwords don't match · Save new password · Password updated · ...) — 39 strings
+  - Portal-login headings + descriptions (PM Login · HR Portal Sign In · Safety Manager, Coordinator, and Officer access · Dispatcher access · Welcome to Dispatch · Welcome to the Safety Portal · ...) — 16 strings
+  - Cheat Sheet card + reference strings — 16 strings
+  - Long-form portal-help paragraphs (Sign in with the account the admin issued you · Forgot password? Click the link above · Multi-portal sign-in for accounts · ...) — 10 strings
+  - iter241c fixup: 10 long-form strings where my batch wording didn't match source-of-truth verbatim (corrected with exact-match strings)
+
+### Verification methodology (no more shortcuts)
+- **Python AST-grade `t()` extractor** with proper handling of single quotes, double quotes, escape sequences, and template literals
+- Cross-referenced every extracted string against the ES dictionary
+- Filtered out non-UI strings (URL paths, API constants, single-char fragments)
+- **Result: 0 missing on the operator's stated user journey after iter241b+c**
+
+### Live preview verification (the iter241a probe gap, closed)
+| Surface | Pre-iter241b leaks | Post-iter241b leaks |
+|---|---|---|
+| Hub home (anonymous) | "Operational Guidance Center" + 14 other tile strings | **0** |
+| `/sign-in` master entry | "Sign In" · "Work Email" · "Master Password" · "Single-Portal Sign-In" · all 6 sign-in flow strings | **0** |
+| `/pm/login` (full screenshot) | Every label, button, hint paragraph | **0** — screenshot confirms full Spanish: "Portal de Gestión — Iniciar Sesión" / "CORREO DE TRABAJO" / "CONTRASEÑA" / "RECORDARME EN ESTE DISPOSITIVO" / "¿Olvidó su contraseña?" / "INICIAR SESIÓN" / "¿No puede iniciar sesión?" / etc. |
+| Footer (every page) | Already iter241a-clean | Still clean |
+
+### What I'm explicitly NOT claiming
+- **544 deeper t() strings remain untranslated** in admin/portal-internal screens (HR audits, Safety corrective actions, dispatch internals, equipment trends, etc.). These are not on the operator's stated user journey but they exist. They're logged as future iter242 work, NOT silently buried.
+- **Lesson-level `title_es` content data** in TRACKS (the `/training/<slug>` lesson cards) — same as iter241a: content-data localization, separate iter.
+- **Long legal-page paragraphs** in `/legal/terms` and `/legal/privacy` — requires lawyer-reviewed Spanish drafts.
+
+### Honest reflection on the miss
+The iter241a verification was: *"check the operator-cited examples"*. The iter241b verification was: *"extract every `t()` call programmatically, diff against the ES dictionary, fix the gap on the user journey"*. The second methodology is the only one I should have used in iter241a. I'm logging this so a future agent picks the systematic methodology by default for any localization-continuity work.
+
+### Files touched
+- MOD: `frontend/src/lib/i18n.js` — added the iter241b + iter241c blocks (146 + 10 ES dictionary entries · clearly fenced with section comments)
+- MOD: `memory/PRD.md` (this entry)
+
+### Gate verification
+`pre_deploy_verify.py --full` →
+
+| Phase | Verdict | Detail |
+|---|---|---|
+| 1 · Regression | PASS | 624 passed · 1 skipped · 23s |
+| 2 · Build | PASS | requirements/package/env/lint clean |
+| 3 · Walkthroughs | PASS | HR 0/0 · Dispatcher 0/0 · Foreman 6/6 |
+| 4 · Production-safety | PASS | All 7 anon-RBAC probes returned 0 tips |
+| 5 · Classification | MEDIUM · NOT auth-sensitive · NOT data-sensitive · NOT rollback-sensitive |
+| **Overall** | **✅ APPROVE** | 107s total · report `/app/deploy_reports/20260518_231728_deploy_summary.md` |
+
+### iter238 email subject system explicitly preserved
+- ✅ Zero touches to `pdf_render.py`, `routes/safety_forms.py`, `routes/field_leadership.py`, Pre-Op routing override
+
+🟢 Preview only · gate APPROVE.
+
+### Next Action Items
+- ⏸ Operator review of iter241b/c batch · gate APPROVE verdict
+- ⏸ Save to Github → Deploy on mascidocs.com
+- ⏸ Enter stabilization/observation posture · OR decide whether iter242 (deeper-portal localization · ~544 remaining strings) should run before observation
+
+### Future / Backlog (with honest scope)
+- 🟡 **iter242 (new · operator decision)** · Deep-portal localization sweep (~544 strings in HR / Safety / Dispatch / Admin internal screens · Spanish-speaking back-office users would benefit but field crews don't typically see these)
+- 🟡 Lesson-level `title_es` content-data localization (iter241a backlog)
+- 🟡 Long legal-page paragraph translation (requires lawyer review)
+- Phase K4b · Unified User Management UI mutations (P2)
+- Phase K5 · Temp Password / Onboarding standardization (P2)
+- Stage B.1 · Owner Snapshot PDF (P2)
+- Static orientation surfaces (P2 · iter231)
+- Held · HelpTip helpfulness pulse telemetry
+- Strategic Hold · Operator mid-day-defect architectural decision
+
+---
+
+
 ## 2026-05-18 — iter241 · Bilingual continuity completion pass · ✅ DELIVERED (preview only)
 
 Operator surfaced this in the iter240 audit: although the platform is already heavily bilingual, a handful of shared/common surfaces still leaked English fragments in ES mode, and the visible inconsistency was eroding trust with Spanish-speaking crews (~50% of the field workforce). Per the operator's exact framing: *"the issue is no longer architecture, the issue is continuity completeness."*
