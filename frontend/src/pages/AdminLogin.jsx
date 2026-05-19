@@ -27,9 +27,11 @@ import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearShopToken } from "@/lib/shopAuth";
 import { clearHrToken } from "@/lib/hrAuth";
+import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 
 export default function AdminLogin() {
+  const { t } = useT();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -124,7 +126,7 @@ export default function AdminLogin() {
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="admin-login-back"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Home
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
           <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
@@ -140,19 +142,17 @@ export default function AdminLogin() {
             </div>
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
-                Restricted Area
+                {t("Restricted Area")}
               </div>
               <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
-                Admin Sign In
+                {t("Admin Sign In")}
               </h1>
             </div>
           </div>
           <p className="text-slate-600 text-sm mt-3 mb-6">
-            Office sign-in for managers and supervisors. Field crews don't need
-            to sign in to fill out forms — they can start a new one straight
-            from the{" "}
+            {t("Office sign-in for managers and supervisors. Field crews don't need to sign in to fill out forms — they can start a new one straight from the")}{" "}
             <Link to="/" className="text-red-700 font-bold hover:underline">
-              Hub
+              {t("Hub")}
             </Link>
             .
           </p>
@@ -161,7 +161,7 @@ export default function AdminLogin() {
             {/* Email */}
             <div>
               <Label htmlFor="admin-email" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                Work Email
+                {t("Work Email")}
               </Label>
               <div className="relative mt-2">
                 <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -183,7 +183,7 @@ export default function AdminLogin() {
             {/* Password */}
             <div>
               <Label htmlFor="admin-password" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 flex items-center gap-1">
-                <KeyRound className="w-3 h-3" /> Password
+                <KeyRound className="w-3 h-3" /> {t("Password")}
               </Label>
               <PasswordInput
                 id="admin-password"
@@ -206,11 +206,11 @@ export default function AdminLogin() {
                   data-testid="admin-remember-me"
                 />
                 <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
-                  Remember me on this device
+                  {t("Remember me on this device")}
                 </span>
               </label>
               <span className="text-[11px] text-slate-500">
-                Forgot password? Call the office.
+                {t("Forgot password? Call the office.")}
               </span>
             </div>
 
@@ -222,21 +222,21 @@ export default function AdminLogin() {
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying…
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Verifying…")}
                 </>
               ) : (
-                <>Sign In</>
+                <>{t("Sign In")}</>
               )}
             </Button>
           </form>
           <PortalLoginHelp portal="admin" />
 
           <p className="mt-5 pt-4 border-t border-slate-200 text-[11px] text-slate-500 leading-relaxed text-center">
-            Access multiple portals?{" "}
+            {t("Access multiple portals?")}{" "}
             <Link to="/sign-in" className="text-slate-900 font-bold hover:underline" data-testid="admin-login-master-link">
-              Use the master sign-in
+              {t("Use the master sign-in")}
             </Link>{" "}
-            to land on any portal in one step.
+            {t("to land on any portal in one step.")}
           </p>
         </div>
       </main>

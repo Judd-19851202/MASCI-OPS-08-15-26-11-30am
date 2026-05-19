@@ -9463,6 +9463,92 @@ async def _start_safety_digest_cron():
         logger.exception(f"[safety-digest] failed to start: {e}")
 
 
+# ─── iter246 F3 · Weekly PO Request digest (PM + HR) ─────────────────
+from po_digest import (  # noqa: E402
+    po_digest_scheduler_loop, send_po_digest_once, DIGEST_SUBJECT as PO_DIGEST_SUBJECT,
+)
+
+
+async def _po_digest_send_email(to_email: str, subject: str, html: str) -> bool:
+    """Resend wrapper used by the weekly PO digest. Mirrors
+    _safety_send_email exactly — same gating (RESEND_API_KEY +
+    AUTO_EMAIL_REPORTS) so preview/dev environments don't burn quota."""
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        logger.info(f"[po-digest-stub] to={to_email} subject={subject}")
+        return False
+    if (os.environ.get("AUTO_EMAIL_REPORTS") or "").strip().lower() not in ("true", "1", "yes"):
+        logger.info(f"[po-digest-preview] to={to_email} subject={subject}")
+        return False
+    import resend as _resend  # noqa: PLC0415
+    _resend.api_key = api_key
+    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    params = {
+        "from": f"MASCI PO Operations <{sender}>",
+        "to": [to_email],
+        "subject": subject,
+        "html": html,
+    }
+    await asyncio.to_thread(_resend.Emails.send, params)
+    return True
+
+
+_po_digest_task: Optional[asyncio.Task] = None
+
+
+@app.on_event("startup")
+async def _start_po_digest_cron():
+    """iter246 F3 · Long-running weekly cron sending the PO Request
+    Digest to every active PM (scoped to their assigned jobs) and every
+    active HR user (platform-wide). Mon 14:00 UTC default."""
+    global _po_digest_task
+    try:
+        portal_url = (os.environ.get("PORTAL_PUBLIC_URL")
+                      or os.environ.get("PUBLIC_BASE_URL")
+                      or "https://mascidocs.com").rstrip("/")
+        _po_digest_task = asyncio.create_task(
+            po_digest_scheduler_loop(
+                db,
+                send_email_fn=_po_digest_send_email,
+                portal_url=portal_url,
+            )
+        )
+        logger.info("[po-digest] weekly cron started")
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"[po-digest] failed to start: {e}")
+
+
+@app.get("/api/admin/po-digest/preview")
+async def admin_preview_po_digest(_: bool = Depends(require_admin)):
+    """Admin-only preview of the upcoming PO digest. Returns the per-
+    recipient summary (no email send, no Resend quota spent). Lets
+    operators verify scope/counts before the Monday fire.
+
+    NOTE: registered on `app` (not `api_router`) because this block
+    runs AFTER `app.include_router(api_router)` — see line 9899 for
+    the same pattern with find-by-doc-id."""
+    portal_url = (os.environ.get("PORTAL_PUBLIC_URL")
+                  or os.environ.get("PUBLIC_BASE_URL")
+                  or "https://mascidocs.com").rstrip("/")
+    results = await send_po_digest_once(db, None, portal_url=portal_url, dry_run=True)
+    return {"ok": True, **results}
+
+
+@app.post("/api/admin/po-digest/run-now")
+async def admin_run_po_digest_now(_: bool = Depends(require_admin_strict)):
+    """Admin-only · explicit fire of the PO digest right now. Honors
+    the same AUTO_EMAIL_REPORTS gate as the cron — preview env will
+    log-only; production env (with the env flag set) will actually
+    send via Resend."""
+    portal_url = (os.environ.get("PORTAL_PUBLIC_URL")
+                  or os.environ.get("PUBLIC_BASE_URL")
+                  or "https://mascidocs.com").rstrip("/")
+    results = await send_po_digest_once(
+        db, _po_digest_send_email, portal_url=portal_url, dry_run=False,
+    )
+    return {"ok": True, **results}
+
+
 # ─── HR Payroll Variance (iter72) ────────────────────────────────────
 from routes import payroll_variance as _pv_module  # noqa: E402
 

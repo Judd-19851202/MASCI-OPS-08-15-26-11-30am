@@ -1,5 +1,189 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter246 F1 + F3 · Admin login ES polish + Weekly PO digest · ✅ DELIVERED (preview only)
+
+Operator-approved follow-ups to the iter246 audit. Final contained polish batch before extended observation period. **F2 (latent leadership scope filter null-guard) NOT included** per operator's "tightly scoped" directive — held as P2 backlog.
+
+### F1 — `/admin/login` ES localization polish · ✅
+
+**Files touched**
+- `frontend/src/pages/AdminLogin.jsx` — imported `useT`, wrapped 6 hard-coded UI strings: "Admin Sign In" · "Sign In" · "Forgot password? Call the office." · "Office sign-in for managers and supervisors…" · "Access multiple portals?" · "Use the master sign-in" · "to land on any portal in one step." · "Home". Zero auth-logic changes (no token/session/password code touched).
+- `frontend/src/lib/i18n.js` — added 6-entry iter246-F1 ES block (the rest were already present).
+
+**Verification**
+- Desktop @ 1280 × 800 (ES): **0 leaks** of the 6 forbidden EN strings · clean Spanish render: "Inicio de Sesión de Administrador" / "Iniciar Sesión" / "¿Olvidó su contraseña? Llame a la oficina." / "Recordarme en este dispositivo" / etc.
+- Mobile @ 390 × 844 (ES): **0 leaks** · 0 px horizontal overflow even with longer Spanish strings · layout intact
+- Desktop @ 1280 × 800 (EN): All English strings present and unchanged · no regression
+- "Hub" intentionally not translated — it's the brand product name (see existing `i18n.js` entry `"Hub": "Hub"`)
+
+### F3 — Weekly PM/HR PO Request Digest · ✅
+
+**Files created**
+- `backend/po_digest.py` (≈ 350 lines) — mirrors iter120 `safety_digest.py` architecture exactly. Payload builders for PM (scoped to assigned jobs via `pm_email` + `co_pm_emails` filter) and HR (platform-wide). HTML render with indigo PM-brand accent. Long-running `po_digest_scheduler_loop` using same `_seconds_until_next_send()` weekly rhythm as Safety digest.
+- `backend/tests/test_iter246_po_digest.py` — **11 tests · 11 pass**. Covers subject literal, env-overridable cron timing, empty-scope payload, HR-global payload, HTML render (empty + full states), dry-run send-once, recipient email-normalization invariants.
+
+**Files touched**
+- `backend/server.py` — wired startup cron task `_start_po_digest_cron()` (mirrors `_start_safety_digest_cron`), added admin-only `GET /api/admin/po-digest/preview` (dry-run · returns per-recipient summary · 0 emails sent) and `POST /api/admin/po-digest/run-now` (admin-strict · gated by AUTO_EMAIL_REPORTS env). Both registered via `@app.get`/`@app.post` (not `@api_router`) because they sit after `app.include_router(api_router)` — same pattern documented at server.py:9899 for find-by-doc-id.
+
+**Operator spec adherence**
+| Requirement | Status |
+|---|---|
+| Reuse iter238 [MASCI · TAG] subject-prefix system | ✅ Literal subject `[MASCI · PO] Weekly Request PO Digest` (digest is not record-tied, same approach as iter120 Safety) |
+| Reuse iter120 Safety digest cron pattern | ✅ Identical `_seconds_until_next_send()` math · same `asyncio.create_task` startup wiring · same crash-loop guard |
+| No new notification architecture | ✅ Zero new collections · zero new SDKs · reuses `resend` lib + `AUTO_EMAIL_REPORTS` gate |
+| No dashboard expansion / analytics platform | ✅ No new frontend UI; admin preview is a curl-able JSON endpoint for ops verification only |
+| PO request counts by status | ✅ 6 open statuses tracked (Submitted, Pending Approval, Clarification Needed, Approved, Pending Receipt, Overdue Receipt) |
+| Pending approvals / pending receipts hero KPIs | ✅ 4-tile color-coded summary at top of email |
+| Top vendors (simple count) | ✅ Aggregation: `$match` open → `$group _id:vendor → $count → $sort → limit 5` |
+| Grouped by jobs PM is tied to | ✅ `_summarize_pos(project_numbers=[scoped])` honors `db.jobs_master {pm_email OR co_pm_emails}` |
+| Direct link back to platform | ✅ Indigo CTA button → `${PORTAL_PUBLIC_URL}/po-requests` |
+| Subject format `[MASCI · PO] Weekly Request PO Digest` | ✅ Verified via `python.../po_digest.py` import: `'[MASCI · PO] Weekly Request PO Digest'` |
+| iter238 email standards untouched | ✅ Zero edits to `auto_email.py`, `subject_builder.py`, or `_iter238_subject_tags` registry |
+
+**Cron wiring verification (live preview)**
+```
+[po-digest] weekly cron started
+[po-digest] sleeping 155.3h until next send   # ≈ 6.5 days · next Mon 14:00 UTC
+```
+Configurable via env (defaults shown):
+- `PO_DIGEST_ENABLED=true` · `PO_DIGEST_HOUR_UTC=14` · `PO_DIGEST_WEEKDAY=0` (Mon)
+- `AUTO_EMAIL_REPORTS` gate identical to Safety digest — preview env logs-only, production env actually sends via Resend
+
+**Duplicate-send risk: NONE**
+- Single-fire-per-slot guaranteed by sleep-until-next-slot mechanic (same proven pattern as iter120 Safety — never duplicated in 6+ months of production)
+- No dedup table needed
+- Backend restart inside the slot would re-arm to the *next* Monday, not the same one (cron checks `target ≤ now` and advances)
+
+**RBAC scoping (live verification via `/admin/po-digest/preview`)**
+- 6 active PMs · each scoped to their own jobs:
+  - `davidjewett@mascigc.com` → 8 jobs visible
+  - `chriswright@mascigc.com` → 8 jobs visible
+  - `ramonrodriguez@mascigc.com` → 4 jobs visible
+  - `jaymn.judd@mascigc.com` → 2 jobs visible
+  - `asphaltpm@mascigc.com` → 0 jobs (correctly returns empty payload, not crash)
+- 46 active HR users · all see global view (HR cross-portal scope)
+- **NOTE for operator:** the 46 HR count includes ~38 seeded test accounts (`@masci.test`). These are pre-existing in `db.hr_users` from earlier K4b testing. They're respected by every system email (digest just mirrors existing roster semantics). If operator wants them suppressed, the cleanup is to disable them in the HR users admin tab — F3 honors `disabled=true` and skips them.
+
+**Email send dry-run evidence**
+- Subject: `'[MASCI · PO] Weekly Request PO Digest'` (with middle-dot · matches operator spec exactly)
+- HR sample: 5,561 bytes · contains "Platform-wide visibility (HR cross-portal scope)." · 5 top vendors rendered
+- PM sample: 3,957 bytes · contains "Scoped to your 8 assigned job(s)." · "No vendor activity this week." (PM-scoped POs are 0 in preview env · empty-state copy renders cleanly)
+- HTML validates with `html.parser` · 0 broken tags · 0 `None` placeholders leaked
+
+### Pre-deploy gate
+
+```
+Phase 1 · Regression suite        PASS  624 passed, 1 skipped
+Phase 2 · Build verification      PASS  frontend lint clean
+Phase 4 · Production-safety       PASS  all anon-RBAC counts = 0
+Phase 5 · Deployment classification PASS
+══ VERDICT: HOLD ══
+```
+
+**HOLD is expected and intentional** — the gate's own report says: *"This is not a block — it's a request for explicit operator acknowledgement that the sensitive surfaces in this batch are intentional."* Trigger: `AdminLogin.jsx` edit flips `auth-sensitive=True` classifier flag. The actual auth change is **zero** (only `t()` wrappers, no token/session/password logic).
+
+**Operator acknowledges → APPROVE → deploy.**
+
+### Files touched (final inventory)
+- MOD: `backend/server.py` (cron wiring + 2 admin endpoints · ~80 lines added)
+- NEW: `backend/po_digest.py` (≈ 350 lines · module)
+- NEW: `backend/tests/test_iter246_po_digest.py` (11 tests · all pass)
+- MOD: `frontend/src/pages/AdminLogin.jsx` (useT import + 8 t() wrappers)
+- MOD: `frontend/src/lib/i18n.js` (6 new ES entries under iter246 F1 block)
+- MOD: `memory/PRD.md` (this entry)
+
+### Next Action Items
+- ⏸ Operator acknowledges HOLD-due-to-auth-classifier → flip to APPROVE
+- ⏸ Save to Github
+- ⏸ Deploy to `mascidocs.com`
+- ⏸ Set `AUTO_EMAIL_REPORTS=true` on production (already set per operator iter120 deployment · digest will fire automatically on next Mon 14:00 UTC)
+- ⏸ Enter extended observation period
+- ⏸ Optional · operator decides whether to disable the ~38 seeded `@masci.test` HR accounts to silence their digest noise (cosmetic only · no security implication)
+
+### Future / Backlog (unchanged · operator promotes when ready)
+- 🟡 F2 · Leadership scope filter null-guard (`routes/po_requests.py:325-329` · ~10 min · iter245-surfaced)
+- 🟢 F4 · Deeper-portal ES translation sweep (~381 strings)
+- 🟢 F5 · Lesson `title_es` content localization
+- 🔵 F6 · Long legal-page ES (lawyer-reviewed)
+- 🔵 F7 · Backend observability dashboard
+- Phase K4b · Unified User Management UI mutations
+- Phase K5 · Temp Password / Onboarding standardization
+- Stage B.1 · Owner Snapshot PDF
+
+🟢 Preview verified · stabilization posture preserved · final polish batch complete.
+
+---
+
+
+## 2026-05-19 — iter246 · Hard-Use Readiness Audit · ✅ APPROVE — READY FOR HEAVY FIELD & OFFICE USE
+
+Operator-directed final hardening sweep before extended observation period. Read-only verification · zero code changes · zero feature work. Full report: `/app/HARD_USE_READINESS_AUDIT_iter246.md`.
+
+### Headline numbers
+- ✅ Pre-deploy gate: **APPROVE** · 624/624 regression · MEDIUM risk · 25.4s
+- ✅ Multi-viewport overflow: **0 px** across 17 surfaces × 6 viewports = **102 probes** (375/390/768/1024/1280/1920)
+- ✅ Anonymous RBAC sweep: **25/25 protected routes return 401** · 0 leaks
+- ✅ Cross-portal token isolation: **6/6 Leadership→Admin attempts return 401**
+- ✅ Public POST validators: **5/5 return 422 on empty body** (no 500s)
+- ✅ JS console errors during full sweep: **0**
+- ✅ Authenticated portal JS errors (6 surfaces): **0**
+- ✅ Dead-route handling: proper 404 component renders · no crashes
+- ✅ Legacy URL redirects (iter236 contract): **4/4 redirect correctly**
+- ✅ API response times: all sampled < 110 ms
+- ✅ Page render times: all sampled Load < 520 ms
+- ✅ ES localization continuity: **13/14 user-journey surfaces clean** (93%)
+- ✅ iter245 verification: 17 checkpoints triple-verified across mobile/tablet/desktop
+
+### Findings classification
+- **CRITICAL:** 0
+- **IMPORTANT:** 1 — `/admin/login` leaks "Sign In" + "Forgot password?" in ES mode (operator-discretion polish · does NOT block deploy · documented backlog from iter240)
+- **COSMETIC:** 1 — Deeper-portal admin strings untranslated (~381) · documented iter241b backlog · not on user journey
+
+### Future improvement options surfaced (NOT silently implemented per operator directive)
+- F1 · `/admin/login` ES localization (~15 min)
+- F2 · Backend `_scope_filter` null-guard for leadership role (~10 min · pre-existing latent · iter245-surfaced)
+- F3 · Per-PM/HR weekly PO digest email (~2 hr · enhancement)
+- F4 · Deeper-portal ES translation sweep (~381 strings · ~3 hr)
+- F5 · Lesson-level `title_es` content-data localization
+- F6 · Long legal-page paragraph ES translation (lawyer-reviewed)
+- F7 · Backend observability dashboard (feature-class)
+
+### Architecture invariants verified intact
+- ✅ iter238 email subject system · iter237 job-number subjects · iter236 Site Inspection auth · iter242 authority banner · iter243 Safety welcome-email parity · iter245 vendor consolidation
+- ✅ PO numbering · receipt-upload lifecycle · PM data scoping · HR cross-portal reads · `ADMIN_SESSION_EPOCH` invalidation · `SEED_DEFAULT_PASSWORD` fallback
+
+### Files created (audit-only · no code changes)
+- NEW: `/app/HARD_USE_READINESS_AUDIT_iter246.md` (full structured report)
+- MOD: `/app/memory/PRD.md` (this entry)
+
+### Final recommendation
+**MASCI Operations Platform is READY FOR HARD DAILY OPERATIONAL USE.** Operator can confidently click Deploy. The one ES leak on `/admin/login` is operator-discretion polish, not a deploy blocker.
+
+🟢 Preview verified · gate APPROVE · zero defects surfaced during audit beyond the one documented backlog polish item.
+
+### Next Action Items
+- ⏸ Operator review iter246 audit report
+- ⏸ Operator decision on F1 (`/admin/login` ES polish) — accept or defer
+- ⏸ Save to Github → Deploy on `mascidocs.com`
+- ⏸ Enter extended observation period (operator-stated cadence)
+
+### Future / Backlog (unchanged · all P2 unless operator promotes)
+- 🟡 F1 · `/admin/login` ES polish (audit-surfaced · operator discretion)
+- 🟡 F2 · `_scope_filter` null-guard (iter245-surfaced · P2)
+- 🟢 F3 · PO weekly digest email
+- 🟢 F4 · Deeper-portal ES sweep (~381 strings)
+- 🟢 F5 · Lesson `title_es` content localization
+- 🔵 F6 · Long legal-page ES (lawyer-reviewed)
+- 🔵 F7 · Backend observability dashboard
+- Phase K4b · Unified User Management UI mutations
+- Phase K5 · Temp Password / Onboarding standardization
+- Stage B.1 · Owner Snapshot PDF
+- Held · HelpTip helpfulness pulse telemetry
+- Strategic Hold · Operator mid-day-defect architectural decision
+
+---
+
+
 ## 2026-05-19 — iter245 · Request PO workflow refinement + vendors consolidation · ✅ DELIVERED (preview only)
 
 Operator-directed Field Leadership UX refinement. Two-part scope:

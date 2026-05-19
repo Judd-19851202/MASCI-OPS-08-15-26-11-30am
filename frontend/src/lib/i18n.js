@@ -768,6 +768,18 @@ const ES = {
   "Supervisor signature": "Firma del supervisor",
   // ── End iter245 entries ──
 
+  // iter246 · F1 — /admin/login ES polish (final localization continuity)
+  "Admin Sign In": "Inicio de Sesión de Administrador",
+  "Forgot password? Call the office.":
+    "¿Olvidó su contraseña? Llame a la oficina.",
+  "Office sign-in for managers and supervisors. Field crews don't need to sign in to fill out forms — they can start a new one straight from the":
+    "Inicio de sesión de oficina para gerentes y supervisores. Las cuadrillas de campo no necesitan iniciar sesión para llenar formularios — pueden comenzar uno nuevo directamente desde el",
+  "Access multiple portals?": "¿Tiene acceso a varios portales?",
+  "Use the master sign-in": "Use el inicio de sesión maestro",
+  "to land on any portal in one step.":
+    "para acceder a cualquier portal en un solo paso.",
+  // ── End iter246 F1 entries ──
+
   // Crew Cheat Sheet
   "Cheat Sheet": "Hoja de Referencia",
   "Crew Cheat Sheet": "Hoja de Referencia de Cuadrilla",
