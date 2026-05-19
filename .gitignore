@@ -943,3 +943,4 @@ credentials.json
 *.pem
 *.key
 .credentials
+backend/backups/MASCI_full_backup_2026-05-19_154611Z.zip

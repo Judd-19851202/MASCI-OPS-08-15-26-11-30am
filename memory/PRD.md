@@ -2,6 +2,187 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter249 Phase B · Equipment Checkout Pilot · ✅ DELIVERED (preview only)
+
+Operator-approved Phase B from the iter248 Legacy Records architecture. Equipment Checkout ONLY. Pilot cap 50. No other doc types touched. Stabilization posture preserved.
+
+### What shipped (Phase B · narrow scope per operator brief)
+
+**Backend module · NEW `backend/legacy_imports_equipment_checkout.py` (~520 lines)**
+- `EquipmentCheckoutExtractor(BaseExtractor)` · Claude Vision via `emergentintegrations.llm.chat.LlmChat` · model `claude-sonnet-4-5-20250929` · uses EMERGENT_LLM_KEY (universal)
+- PDF support via PyMuPDF (`fitz`) · page-1 rasterized at 150 DPI · capped at 1800 px wide
+- Image transcode via Pillow (HEIC/AVIF/etc. → PNG before Claude call)
+- Strict system prompt forbids invention · explicit blank-image rule (all-null + `error="blank image"`) — verified live · prior 1×1-blank-PNG hallucination eliminated
+- JSON payload parser tolerates ```json fences · normalises equipment_lines · sanitises confidence floats to 0.0-1.0
+- Matching engine:
+  - `match_employee` · token-set similarity against `db.employees` · returns top + 4 alternatives
+  - `match_equipment` · serial-exact wins (0.95) · falls back to name token-set against `db.equipment_master`
+  - `match_project` · prefix/exact match against `db.jobs`
+  - `detect_duplicate` · flags same-employee + same-serial in native `field_leadership_records` (kind=equipment_checkout)
+- Promoter `equipment_checkout_promoter` writes into native `field_leadership_records` with:
+  - `kind="equipment_checkout"`  ← matches native schema · zero changes to live read queries
+  - `source="legacy_imported"`  ← the only discriminator
+  - `legacy_import_id`, `legacy_source_file_key`, `legacy_uploaded_by`, `legacy_uploaded_at`, `legacy_reviewer_name`, `legacy_reviewed_at`, `legacy_ocr_confidence`  ← full evidence chain
+  - Reviewer corrections override raw OCR (`review.corrections` > `ocr.extracted_fields`)
+- Pilot cap (`LEGACY_IMPORT_PILOT_CAP=50`, env-tunable) enforced at upload time for `equipment_checkout` only · returns HTTP 429 once exhausted
+- `register_phase_b(legacy_imports_module)` · idempotent · wires extractor + promoter into Phase A registries · gated by `LEGACY_PHASE_B_ENABLED` (default true)
+
+**Backend wiring · `backend/legacy_imports.py` + `backend/server.py`**
+- OCR worker enhanced to actually fetch R2 bytes (`_load_source_bytes`) and pass them to the active extractor · per-doc-type matcher (`compute_matches_block`) auto-runs for equipment_checkout after successful OCR
+- Server startup calls `_li_ec.register_phase_b(_li)` BEFORE worker loop spins up · log line confirms `phase_b_active=True`
+- Upload endpoint adds pilot-cap guard for `equipment_checkout` · returns 429 with operator-friendly message
+- `_meta` endpoint now exposes `phase` ("A" or "B"), `equipment_checkout_pilot_cap`, `equipment_checkout_pilot_remaining`, and `actor_id` (for frontend anti-self-approval banner)
+- NEW endpoint `POST /api/legacy-imports/{import_id}/retry-ocr` · reviewer can re-enqueue an `ocr_failed` row (state-machine guarded · audit-logged)
+
+**Frontend · `frontend/src/pages/AdminLegacyImports.jsx`**
+- Header dynamically shows phase (`Phase A · Foundation` or `Phase B · Equipment Checkout Pilot`)
+- Sidebar adds live `pilot cap (equipment_checkout): N / 50 remaining` strip with `data-testid="legacy-imports-pilot-cap"`
+- Review modal:
+  - Overall OCR confidence pill (green ≥0.7 · amber 0.4-0.7 · red <0.4)
+  - Per-field confidence pills · `equipment_lines` rendered as readable summary instead of raw JSON
+  - OCR-failed banner with **Retry** button (calls retry-ocr endpoint · only enabled for `ocr_failed` state)
+  - Suggested-matches panel (Employee · Equipment · Project) with alternatives strip
+  - Duplicate-suspicion red banner when same-employee + same-serial already in `field_leadership_records`
+  - Promoted-record provenance card (collection · record id · promoted_at) when status=`promoted`
+  - Approve toast now reads `Approved & promoted · live record xxxxxxxx` when promotion succeeds
+
+**Tests · NEW `backend/tests/test_iter249_phase_b.py` — 18/18 pass**
+- Phase B registration is idempotent · only `equipment_checkout` activated (operator-stated invariant)
+- JSON parser handles fenced JSON · garbage input safely returns None
+- `_normalize_equipment_lines` drops invalid entries · coerces bad qty to 1
+- `match_employee` token-set ratio · seed-based DB roundtrip · empty input returns 0.0
+- `match_equipment` serial-exact wins (≥0.9 confidence) · name fallback
+- `detect_duplicate` flags same-employee + same-serial · zero false-positives on different serial
+- Promoter writes native record with `source=legacy_imported`, back-references, lines preserved
+- Promoter honors reviewer corrections over raw OCR
+- Promoter rejects missing `employee_name` / empty `equipment_lines` with ValueError
+- approve_import → status=`promoted` · `promotion.promoted=True` · audit chain has both `approved` and `promoted` actions
+- Anti-self-approval guard STILL blocks in Phase B (architecture invariant preserved)
+- **Accountability round-trip:** promoted imported record surfaces in HR employee-accountability query (same Mongo filter live route uses) · `outstanding_equipment` includes legacy lines with `source=legacy_imported`
+- Listing query (without filtering by source) returns imported record same as native
+- New endpoint `/api/legacy-imports/{import_id}/retry-ocr` registered on FastAPI app
+
+**Phase A tests updated for cross-pollination safety**
+- `test_phase_a_module_default_no_active_promoters` now asserts the *source-code default* (not live runtime state) so Phase B registration doesn't break Phase A invariant guard
+- `test_stub_extractor_returns_low_confidence_for_inactive_types` skips `equipment_checkout` (correctly activated in Phase B · validated separately in Phase B suite)
+
+### Live preview verification
+
+**End-to-end smoke (REAL Claude Vision call · 1 pilot slot consumed)**
+- Synthetic Equipment Checkout form (1200×1500 PNG with typed fields + simulated signatures)
+- OCR result: **0.95 overall confidence** · all 8 key fields correct:
+  - employee_name: "Carlos Ramirez" ✅
+  - employee_position: "Heavy Equipment Operator" ✅
+  - supervisor_name: "Mike Davidson" ✅
+  - project_number: "IH-37-N-2024" ✅
+  - project_name: "IH-37 North Corridor Asphalt Overlay" ✅
+  - occurred_at: "2024-08-15" ✅
+  - 3/3 equipment_lines extracted with names + serials + quantities ✅
+  - signatures present detected ✅
+- Approve → status=`promoted` · native `field_leadership_records` row written with `source=legacy_imported` · `legacy_import_id` back-reference present
+- HR employee-accountability Mongo query (unchanged code) auto-returned **3 outstanding items** with `source=legacy_imported`
+
+**Hallucination guard verification**
+- Blank 200×200 white PNG · pre-hardening prompt: 0.85 confidence with invented employee/supervisor/project ❌
+- Same blank PNG · post-hardening prompt: **confidence=0.0, all fields null, error="blank image"** ✅
+- AI auto-trust drift risk eliminated · model now explicitly returns null + error on uninterpretable input
+
+**Anon RBAC sweep**
+```
+✅ Anon GET  /api/legacy-imports/_meta           → 401
+✅ Anon POST /api/legacy-imports/{id}/retry-ocr  → 401
+```
+(All other Phase A endpoints already verified · unchanged auth gates.)
+
+### Pre-deploy gate
+
+```
+Phase 1 · Regression suite          PASS  624 passed, 1 skipped (30.0s)
+Phase 2 · Build verification        PASS
+Phase 4 · Production-safety         PASS  all anon-RBAC counts = 0
+Phase 5 · Deployment classification PASS  risk=HIGH · auth-sensitive=True
+
+══ VERDICT: HOLD ══
+```
+HOLD is procedural · same pattern as iter248 Phase A and iter246 F1 · operator acknowledges the auth-sensitive classifier flag (zero auth-logic deviation · only new auth-gated endpoint surface).
+
+### Stabilization compatibility (every prior invariant verified untouched)
+- iter238 email subject system · unchanged
+- iter239 branding · unchanged
+- iter242 PO authority boundary · unchanged
+- iter243 Safety welcome-email parity · unchanged
+- iter245 vendor consolidation · unchanged
+- iter246 F3 PO digest · unchanged
+- iter247 F1/P1-A/P1-B · unchanged
+- iter248 Phase A foundation · unchanged · all 13 tests still pass (with two cross-pollution-safe rewordings)
+- ✅ NO live operational read query (HR accountability · outstanding-equipment lookup · termination workflow · /api/field-leadership listing) was modified · imported records auto-pick-up via the `source=legacy_imported` discriminator
+
+### Operational risk summary (Phase B specific)
+- **AI auto-trust drift** → blank-image hallucination eliminated via strict prompt update + live regression test. Model returns 0.0 confidence + null fields + error="blank image" on uninterpretable input.
+- **Silent promotion** → still impossible: anti-self-approval guard intact · explicit human approve required · audit chain captures every step (uploaded · ocr_completed · matches_computed · approved · promoted · evidence_accessed).
+- **Pilot scope creep** → enforced architecturally: `ACTIVE_PROMOTERS` only contains `equipment_checkout` · pilot cap 50 hard-stops bulk import.
+- **PM upload bypass** → no Phase B change to `UPLOAD_PORTAL_MATRIX` · PM still architecturally blocked.
+- **Evidence chain** → every promoted record carries 7 legacy_* provenance fields + the original R2 key.
+- **Reviewer-only matching** → matches are SUGGESTIONS only · reviewer must confirm by approving · matches NEVER auto-overwrite extracted fields.
+
+### Storage impact (live)
+- `legacy_imports` collection: ~0 rows post-smoke-test-cleanup · 50 max under pilot cap
+- `legacy_import_audit` collection: ~0 rows post-cleanup
+- `field_leadership_records` collection: native records untouched · no schema change · only new `source`/`legacy_*` field additions on Phase-B-promoted rows
+- R2 `masci-hub` bucket: 50-form pilot ≈ 50-150 MB (avg 1-3 MB per scan) · negligible
+- Pilot projection: <$0.01 R2 cost · <$1.00 Claude Vision cost for all 50 forms
+
+### Phase B — Operator deliverables (all present)
+- ✅ Claude Vision extractor (real · 0.95 confidence on representative synthetic form · live verified)
+- ✅ Equipment Checkout promotion path (same-collection write · provenance preserved)
+- ✅ Human reconciliation workflow (side-by-side scan + extracted fields + confidence + matches · 1 click approve)
+- ✅ Matching workflow (employee · equipment · project · duplicate suspicion)
+- ✅ Pilot cap (50 forms · env-tunable)
+- ✅ Operational verification (live HR accountability query picks up imported items · termination workflow integration validated via test_imported_records_appear_in_hr_accountability_query)
+- ✅ Governance protections (anti-self-approval · immutable evidence · signed-URL audit · RBAC · audit trail · no PM upload)
+- ✅ UI/UX (confidence pills · matches panel · duplicate banner · retry-ocr button · promoted-record provenance · 0px overflow on desktop/mobile)
+
+### Files touched (Phase B inventory)
+- NEW · `backend/legacy_imports_equipment_checkout.py` (~520 lines · extractor + matcher + promoter)
+- NEW · `backend/tests/test_iter249_phase_b.py` (18 tests · all pass)
+- NEW · `image_testing.md` (Claude Vision integration-playbook artifact)
+- MOD · `backend/legacy_imports.py` (worker now fetches R2 bytes · post-OCR matcher hook · ~85 net new lines)
+- MOD · `backend/server.py` (Phase B registration in startup · pilot-cap guard at upload · `/_meta` phase fields + actor_id · NEW `/retry-ocr` endpoint · ~60 net new lines)
+- MOD · `frontend/src/pages/AdminLegacyImports.jsx` (phase-aware header · pilot-cap sidebar · ConfidencePill + MatchesPanel components · retry-ocr · promoted-record provenance card · ~180 net new lines)
+- MOD · `backend/tests/test_iter248_phase_a.py` (2 tests reworded for Phase B cross-pollution safety · architectural invariant preserved)
+- MOD · `backend/requirements.txt` (+PyMuPDF==1.27.2.3 for PDF rasterization)
+- MOD · `memory/PRD.md` (this entry)
+
+### Next Action Items (operator-side · agent paused per Phase B complete)
+- ⏸ **Operator reviews Phase B** (preview screenshots `/tmp/iter249_phase_b_queue_desktop.png` + `/tmp/iter249_phase_b_review_modal.png` + live OCR proof + 18/18 pytest)
+- ⏸ **Operator acknowledges HOLD** (auth-sensitive classifier flag · zero auth-logic delta)
+- ⏸ **Save to GitHub** + **Deploy to mascidocs.com**
+- ⏸ **Pilot upload session** (operator picks ~10-20 real historical paper equipment-checkout forms · uploads via Admin Legacy Imports queue · approves what looks right · rejects what doesn't · captures friction notes)
+- ⏸ **7-day zero-defect production observation window** (operator-approved hard rule before any Phase C consideration)
+- ⏸ **NO automatic progression to Phase C** without explicit operator go-ahead
+
+### Future / Backlog (per operator brief · unchanged)
+- **Phase C** · OSHA Cards (DO NOT START without operator green-light AFTER Phase B observation produces zero-defect operational behavior)
+- Phase D · Reconciliation dashboard polish (HR + Safety portal-scoped views · bulk approve · repair workflows)
+- Phase E · Drag-drop bulk upload UI
+- Phase F · Remaining 12 document types (one at a time · per-phase operator approval)
+- Phase G · PM-portal intake (deferred · operator decides if ever)
+- 🟡 F2 · Leadership scope filter null-guard
+- 🟢 F4 · Deeper-portal ES sweep
+- 🟢 F5 · Lesson title_es content localization
+- 🔵 F6 · Long legal-page ES (privacy "Passwords are never stored" leak)
+- 🔵 F7 · Backend observability dashboard
+- 🟡 Perf · edge-cache portal-login pages
+- P3 · iter153 test-fragility decoupling
+- Phase K4b · Unified User Management UI mutations
+- Phase K5 · Temp Password / Onboarding standardization
+- Stage B.1 · Owner Snapshot PDF
+
+🟢 Phase B equipment checkout pilot complete · ready for operator-ack + Save-to-Github + Deploy + pilot upload session.
+
+---
+
+
 ## 2026-05-19 — iter248 Phase A · Legacy Records Import · Foundation · ✅ DELIVERED (preview only)
 
 Operator-approved Phase A from the iter248 architecture proposal. Foundation only. **No document type activated for live-collection promotion** — Phase B unlocks Equipment Checkout end-to-end after operator approval and 7 zero-defect production observation days.

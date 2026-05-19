@@ -9616,8 +9616,18 @@ _li_worker_task: Optional[asyncio.Task] = None
 @app.on_event("startup")
 async def _li_start_worker():
     global _li_worker_task
+    # Register Phase B extractor + promoter for equipment_checkout BEFORE
+    # the worker starts so the very first iteration uses the real extractor.
+    try:
+        import legacy_imports_equipment_checkout as _li_ec  # noqa: PLC0415
+        _li_ec.register_phase_b(_li)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[legacy-imports] Phase B registration skipped: {e}")
     _li_worker_task = _li.start_worker(db)
-    logger.info("[legacy-imports] OCR worker started (Phase A · StubExtractor)")
+    logger.info(
+        "[legacy-imports] OCR worker started · phase_b_active="
+        f"{'equipment_checkout' in _li.ACTIVE_PROMOTERS}"
+    )
 
 
 async def _li_require_uploader(
@@ -9675,6 +9685,23 @@ async def li_upload(
             403,
             f"{actor['upload_portal']} portal cannot upload document_type={document_type!r}",
         )
+
+    # Phase B · pilot cap on equipment_checkout (50 by default · env
+    # LEGACY_IMPORT_PILOT_CAP). Goal: learn operational friction at
+    # small scale before scaling up — operator-stated rule.
+    if document_type == "equipment_checkout":
+        try:
+            import legacy_imports_equipment_checkout as _li_ec  # noqa: PLC0415
+            remaining = await _li_ec.equipment_checkout_pilot_remaining(db)
+        except Exception:
+            remaining = 9999
+        if remaining <= 0:
+            raise HTTPException(
+                429,
+                "equipment_checkout pilot cap reached "
+                "(LEGACY_IMPORT_PILOT_CAP). Operator must lift before "
+                "more uploads can be staged.",
+            )
 
     data = await file.read()
     if not data:
@@ -9788,12 +9815,24 @@ async def li_meta(actor=Depends(_li_require_uploader)):
     so FastAPI's path-matching doesn't capture `_meta` as an ID."""
     portal = actor["upload_portal"]
     allowed = sorted(_li.UPLOAD_PORTAL_MATRIX.get(portal, set()))
+    pilot_remaining = None
+    pilot_cap_v = None
+    try:
+        import legacy_imports_equipment_checkout as _li_ec  # noqa: PLC0415
+        if "equipment_checkout" in _li.ACTIVE_PROMOTERS:
+            pilot_remaining = await _li_ec.equipment_checkout_pilot_remaining(db)
+            pilot_cap_v = _li_ec.pilot_cap()
+    except Exception:
+        pass
     return {
         "upload_portal": portal,
         "actor_role": actor["actor_role"],
+        "actor_id": actor["actor_id"],
         "allowed_document_types": allowed,
         "active_promoters": sorted(_li.ACTIVE_PROMOTERS.keys()),
-        "phase": "A",
+        "phase": ("B" if "equipment_checkout" in _li.ACTIVE_PROMOTERS else "A"),
+        "equipment_checkout_pilot_cap": pilot_cap_v,
+        "equipment_checkout_pilot_remaining": pilot_remaining,
     }
 
 
@@ -9966,6 +10005,42 @@ async def li_reject(
         return {"ok": True, "row": out}
     except _li.ApprovalError as e:
         raise HTTPException(400, str(e))
+
+
+@app.post("/api/legacy-imports/{import_id}/retry-ocr")
+async def li_retry_ocr(
+    import_id: str,
+    actor=Depends(_li_require_uploader),
+):
+    """Re-enqueue an `ocr_failed` row for the worker. Only OCR-failed
+    rows can be retried (state-machine guard prevents resetting an
+    approved/promoted row by accident)."""
+    q = {"id": import_id, **_li_scope_filter(actor)}
+    doc = await db.legacy_imports.find_one(q, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "import not found")
+    if doc.get("status") != "ocr_failed":
+        raise HTTPException(
+            400,
+            f"can only retry from status=ocr_failed (current={doc.get('status')!r})",
+        )
+    await db.legacy_imports.update_one(
+        {"id": import_id},
+        {"$set": {
+            "status": "uploaded",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }},
+    )
+    await _li.audit_log(
+        db,
+        import_id=import_id,
+        batch_id=doc.get("batch_id"),
+        actor_user_id=actor["actor_id"],
+        actor_name=actor["actor_name"],
+        actor_role=actor["actor_role"],
+        action="ocr_retry_requested",
+    )
+    return {"ok": True}
 
 
 @app.get("/api/admin/legacy-imports/audit")

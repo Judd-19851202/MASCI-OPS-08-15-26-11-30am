@@ -286,15 +286,50 @@ def can_transition(current: str, target: str) -> bool:
 _worker_task: Optional[asyncio.Task] = None
 
 
-async def ocr_worker_loop(db) -> None:
-    """Foundation worker · picks up rows in `uploaded` and runs the
-    appropriate extractor. Phase A uses StubExtractor universally so
-    every row lands in `needs_review` with all fields empty — proves
-    the pipeline shape without making any AI promotion claims.
+async def _load_source_bytes(doc: Dict[str, Any]) -> tuple[bytes, str]:
+    """Fetch the first source_file's bytes from R2. Returns (bytes, mime).
+    Empty bytes on failure · caller treats that as OCR failure."""
+    files = doc.get("source_files") or []
+    if not files:
+        return b"", "application/octet-stream"
+    f = files[0]
+    key = f.get("r2_key")
+    mime = f.get("mime") or "application/octet-stream"
+    if not key:
+        return b"", mime
+    try:
+        import photo_storage as _ps  # noqa: PLC0415
+        c = _ps._client()
+        if c is None:
+            return b"", mime
+        obj = await asyncio.to_thread(c.get_object, Bucket=_ps._bucket(), Key=key)
+        body = obj["Body"]
+        chunks = []
+        while True:
+            chunk = await asyncio.to_thread(body.read, 1024 * 512)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        return b"".join(chunks), mime
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[legacy-imports] r2 fetch failed for {key}: {e}")
+        return b"", mime
 
-    Stale-import sweeper also runs here: any row stuck in
-    `ocr_in_progress` for >10 min is reset to `uploaded`. Same crash-
-    loop guard pattern as iter120 safety_digest and iter246 po_digest.
+
+async def ocr_worker_loop(db) -> None:
+    """Picks up rows in `uploaded` · runs the appropriate extractor ·
+    Phase A used StubExtractor universally · Phase B activates a real
+    Claude Vision extractor for equipment_checkout (registered into
+    EXTRACTORS by `legacy_imports_equipment_checkout.register_phase_b`).
+
+    Stale-import sweeper: any row stuck in `ocr_in_progress` for >10
+    min is reset to `uploaded` (crash-loop guard · same pattern as
+    iter120 safety_digest and iter246 po_digest).
+
+    After OCR completes successfully and a per-doc-type matcher is
+    registered (Phase B: equipment_checkout), the worker also computes
+    the matches block (employee · equipment · project · duplicate
+    suspicion) so the reviewer has everything in front of them.
     """
     while True:
         try:
@@ -320,14 +355,18 @@ async def ocr_worker_loop(db) -> None:
                 continue
 
             extractor = get_extractor(doc["document_type"])
-            # Phase A · stub returns empty. Phase B will load the file
-            # from R2 and pass real bytes to a real extractor.
+            is_stub = isinstance(extractor, StubExtractor)
+            matches_block: Optional[Dict[str, Any]] = None
             try:
-                result = await extractor.extract(b"", "application/octet-stream")
+                # Phase A stub doesn't need bytes. Phase B extractors do.
+                if is_stub:
+                    file_bytes, mime = b"", "application/octet-stream"
+                else:
+                    file_bytes, mime = await _load_source_bytes(doc)
+                result = await extractor.extract(file_bytes, mime)
                 new_status = "needs_review"
                 ocr_block = {
-                    "provider": ("stub" if isinstance(extractor, StubExtractor)
-                                 else "claude_vision"),
+                    "provider": ("stub" if is_stub else "claude_vision"),
                     "completed_at": datetime.now(timezone.utc).isoformat(),
                     "raw_text": result.raw_text,
                     "extracted_fields": result.extracted_fields,
@@ -336,22 +375,41 @@ async def ocr_worker_loop(db) -> None:
                     "classifier_score": result.classifier_score,
                     "error": result.error,
                 }
+                # Phase B · equipment_checkout matcher
+                if (not is_stub
+                        and not result.error
+                        and result.extracted_fields
+                        and doc["document_type"] == "equipment_checkout"):
+                    try:
+                        from legacy_imports_equipment_checkout import (  # noqa: PLC0415
+                            compute_matches_block,
+                        )
+                        matches_block = await compute_matches_block(
+                            db, result.extracted_fields
+                        )
+                    except Exception as e:  # noqa: BLE001
+                        logger.warning(
+                            f"[legacy-imports] match build failed for {doc['id']}: {e}"
+                        )
             except Exception as e:  # noqa: BLE001
                 logger.exception(f"[legacy-imports] OCR crashed for {doc['id']}: {e}")
                 new_status = "ocr_failed"
                 ocr_block = {
-                    "provider": "stub",
+                    "provider": ("claude_vision" if not is_stub else "stub"),
                     "completed_at": datetime.now(timezone.utc).isoformat(),
                     "error": str(e)[:200],
                 }
 
+            update_set = {
+                "status": new_status,
+                "ocr": ocr_block,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+            if matches_block is not None:
+                update_set["matches"] = matches_block
             await db.legacy_imports.update_one(
                 {"id": doc["id"]},
-                {"$set": {
-                    "status": new_status,
-                    "ocr": ocr_block,
-                    "updated_at": datetime.now(timezone.utc).isoformat(),
-                }},
+                {"$set": update_set},
             )
             await audit_log(
                 db,

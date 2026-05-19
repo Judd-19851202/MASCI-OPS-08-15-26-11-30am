@@ -72,19 +72,38 @@ def test_state_machine_valid_transitions():
     assert not M.can_transition("needs_review", "promoted"), "must approve first"
 
 
-def test_phase_a_no_active_promoters():
-    """Phase A · explicit operator-stated guarantee: no document type
-    has an active promoter. Activation is a per-phase decision."""
-    assert M.ACTIVE_PROMOTERS == {}
+def test_phase_a_module_default_no_active_promoters():
+    """Phase A foundation module ships with ACTIVE_PROMOTERS as a
+    mutable EMPTY dict by default. Phase B (and any future phase)
+    must explicitly register itself via a per-doc-type extension
+    module (e.g. legacy_imports_equipment_checkout.register_phase_b).
+    This guards against accidental in-module promoter wiring that
+    would bypass the per-phase operator approval gate.
+
+    We assert by inspecting the module SOURCE (not the live runtime
+    dict — which Phase B legitimately mutates at startup)."""
+    import inspect
+    src = inspect.getsource(M)
+    # Find the literal default assignment in the module text.
+    assert "ACTIVE_PROMOTERS: Dict[str, Any] = {}" in src, (
+        "Phase A guarantee: legacy_imports.py module MUST declare "
+        "ACTIVE_PROMOTERS = {} as its literal default. Any phase that "
+        "wants to activate a document type must do so via an explicit "
+        "register() call from a separate module — never inline."
+    )
 
 
-def test_stub_extractor_returns_low_confidence_for_all_types():
-    """Phase A · StubExtractor must never claim high confidence. The
-    operational philosophy says OCR/AI assists; humans approve."""
+def test_stub_extractor_returns_low_confidence_for_inactive_types():
+    """Phase A · StubExtractor must never claim high confidence for
+    document types that have NOT yet been activated by a phase module.
+    (equipment_checkout is activated by Phase B and tested separately
+    in test_iter249_phase_b · we exclude it here on purpose.)"""
     async def _go():
-        for t in ("equipment_checkout", "osha_card", "training_record", "unknown"):
+        for t in ("osha_card", "training_record", "fit_test", "unknown"):
             ex = M.get_extractor(t)
-            assert isinstance(ex, M.StubExtractor)
+            assert isinstance(ex, M.StubExtractor), (
+                f"doc type {t!r} should still use StubExtractor in Phase A"
+            )
             result = await ex.extract(b"any-bytes", "application/pdf")
             assert result.confidence == 0.0
             assert result.extracted_fields == {}

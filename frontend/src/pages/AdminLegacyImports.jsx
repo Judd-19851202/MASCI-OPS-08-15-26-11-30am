@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Upload, FileText, CheckCircle2, XCircle, Eye, Clock, AlertTriangle, ShieldAlert } from "lucide-react";
+import { Upload, FileText, CheckCircle2, XCircle, Eye, Clock, AlertTriangle, ShieldAlert, Users, Wrench, Briefcase, Copy, ExternalLink, RotateCw } from "lucide-react";
 import { api } from "@/lib/api";
 
 const DOCUMENT_TYPES = [
@@ -81,22 +81,32 @@ export default function AdminLegacyImports() {
         <div className="flex items-start justify-between flex-wrap gap-3 mb-1">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-indigo-700 font-black">
-              iter248 · Phase A · Foundation
+              iter248 · Phase {meta?.phase || "A"} · {meta?.phase === "B" ? "Equipment Checkout Pilot" : "Foundation"}
             </div>
             <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Legacy Records · Reconciliation Queue
             </h1>
             <p className="text-sm text-slate-600 mt-1 max-w-2xl">
               OCR/AI assists — humans approve. Imported records become live
-              operational records only after human review. Phase A ships the
-              foundation; per-document-type promotion activates in later phases.
+              operational records only after human review. Equipment Checkout
+              is the first activated document type; other types remain
+              staging-only until operator activation.
             </p>
           </div>
           {meta && (
-            <div className="text-xs font-mono text-slate-500 bg-white border border-slate-200 rounded-md px-3 py-2">
+            <div className="text-xs font-mono text-slate-500 bg-white border border-slate-200 rounded-md px-3 py-2 min-w-[200px]">
               <div>portal: <strong className="text-slate-900">{meta.upload_portal}</strong></div>
               <div>role: <strong className="text-slate-900">{meta.actor_role}</strong></div>
-              <div>active promoters: <strong className="text-slate-900">{meta.active_promoters.length || "none yet"}</strong></div>
+              <div>phase: <strong className="text-slate-900">{meta.phase}</strong></div>
+              <div>active promoters: <strong className="text-slate-900">{meta.active_promoters?.join(", ") || "none yet"}</strong></div>
+              {meta.equipment_checkout_pilot_cap != null && (
+                <div className="mt-1 pt-1 border-t border-slate-100" data-testid="legacy-imports-pilot-cap">
+                  pilot cap (equipment_checkout):{" "}
+                  <strong className="text-slate-900">
+                    {meta.equipment_checkout_pilot_remaining} / {meta.equipment_checkout_pilot_cap} remaining
+                  </strong>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -322,11 +332,18 @@ function ReviewModal({ importId, onClose, onChange, meta }) {
   const approve = async () => {
     setBusy(true);
     try {
-      await api.post(`/legacy-imports/${importId}/approve`, {
+      const { data } = await api.post(`/legacy-imports/${importId}/approve`, {
         corrections, notes,
         admin_override_self_approval: adminOverride,
       });
-      toast.success("Approved");
+      const row = data?.row;
+      if (row?.promotion?.promoted) {
+        toast.success(
+          `Approved & promoted · live record ${row.promotion.promoted_record_id?.slice(0, 8) || "?"}`
+        );
+      } else {
+        toast.success("Approved");
+      }
       onChange();
       onClose();
     } catch (e) {
@@ -347,6 +364,20 @@ function ReviewModal({ importId, onClose, onChange, meta }) {
       onClose();
     } catch (e) {
       toast.error(friendlyError(e, "Reject failed"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const retryOcr = async () => {
+    setBusy(true);
+    try {
+      await api.post(`/legacy-imports/${importId}/retry-ocr`);
+      toast.success("OCR re-queued");
+      await refresh();
+      onChange();
+    } catch (e) {
+      toast.error(friendlyError(e, "Retry failed"));
     } finally {
       setBusy(false);
     }
@@ -408,24 +439,71 @@ function ReviewModal({ importId, onClose, onChange, meta }) {
               {doc.batch_id && <div>batch: <strong className="text-slate-800">{doc.batch_id}</strong></div>}
               <div>OCR provider: {doc.ocr?.provider}</div>
               <div>OCR confidence: {doc.ocr?.confidence != null ? (doc.ocr.confidence * 100).toFixed(0) + "%" : "—"}</div>
+              {doc.promotion?.promoted && (
+                <div className="mt-2 pt-2 border-t border-emerald-200 bg-emerald-50 -mx-1 px-1.5 py-1.5 rounded text-emerald-900" data-testid="legacy-imports-promoted-info">
+                  <div className="font-bold">PROMOTED to live record</div>
+                  <div>collection: <strong>{doc.promotion.promoted_to_collection}</strong></div>
+                  <div>record id: <strong className="break-all">{doc.promotion.promoted_record_id}</strong></div>
+                  <div>at: {(doc.promotion.promoted_at || "").replace("T", " ").slice(0, 19)}</div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* RIGHT · extracted fields */}
           <div>
-            <div className="text-[10px] font-mono uppercase tracking-wide text-slate-500 font-bold mb-1.5">
-              Extracted fields (editable)
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="text-[10px] font-mono uppercase tracking-wide text-slate-500 font-bold">
+                Extracted fields (editable)
+              </div>
+              {doc.ocr?.confidence != null && (
+                <ConfidencePill value={doc.ocr.confidence} data-testid="legacy-imports-overall-confidence" />
+              )}
             </div>
-            {Object.keys(corrections).length === 0 && (
+            {doc.ocr?.provider === "stub" && Object.keys(corrections).length === 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs text-amber-900 mb-2 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                 <div>
-                  No fields extracted yet (Phase A · stub OCR). Reviewer fills
-                  fields manually below. Phase B activates real AI extraction.
+                  No fields extracted yet (stub OCR for this document type).
+                  Reviewer fills fields manually below. Activation of the AI
+                  extractor for this document type is operator-gated.
                 </div>
               </div>
             )}
-            <FieldEditor value={corrections} onChange={setCorrections} />
+            {doc.ocr?.error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3 text-xs text-red-900 mb-2 flex items-start gap-2" data-testid="legacy-imports-ocr-error">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <div className="font-bold">OCR failed</div>
+                  <div className="font-mono text-[10px] mt-1">{doc.ocr.error}</div>
+                </div>
+                {doc.status === "ocr_failed" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={retryOcr}
+                    className="text-[10px] h-7"
+                    data-testid="legacy-imports-retry-ocr"
+                  >
+                    <RotateCw className="w-3 h-3 mr-1" />
+                    Retry
+                  </Button>
+                )}
+              </div>
+            )}
+            <FieldEditor
+              value={corrections}
+              onChange={setCorrections}
+              fieldConfidences={doc.ocr?.field_confidences || {}}
+            />
+
+            {/* Matches panel — Phase B + */}
+            {doc.matches && (doc.matches.employee?.suggested_id ||
+                             doc.matches.equipment?.suggested_id ||
+                             doc.matches.project?.suggested_id ||
+                             doc.matches.duplicate_of) && (
+              <MatchesPanel matches={doc.matches} />
+            )}
 
             {/* Notes */}
             <Label className="text-[10px] font-mono uppercase tracking-wide text-slate-600 mt-3 block">
@@ -513,37 +591,42 @@ function ReviewModal({ importId, onClose, onChange, meta }) {
 }
 
 // Tiny dynamic key/value editor for the extracted fields.
-function FieldEditor({ value, onChange }) {
+function FieldEditor({ value, onChange, fieldConfidences = {} }) {
   const [newKey, setNewKey] = useState("");
   const entries = Object.entries(value || {});
   return (
     <div className="space-y-2" data-testid="legacy-imports-field-editor">
-      {entries.map(([k, v]) => (
-        <div key={k} className="flex items-start gap-2">
-          <div className="w-32 shrink-0 font-mono text-[10px] uppercase tracking-wide text-slate-600 pt-2 truncate">
-            {k}
+      {entries.map(([k, v]) => {
+        const conf = fieldConfidences?.[k];
+        return (
+          <div key={k} className="flex items-start gap-2">
+            <div className="w-32 shrink-0 font-mono text-[10px] uppercase tracking-wide text-slate-600 pt-2 truncate">
+              <div className="truncate">{k}</div>
+              {typeof conf === "number" && (
+                <ConfidencePill value={conf} compact />
+              )}
+            </div>
+            <FieldValueInput
+              fieldKey={k}
+              value={v}
+              onChange={(nv) => onChange({ ...value, [k]: nv })}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const next = { ...value };
+                delete next[k];
+                onChange(next);
+              }}
+              className="text-xs"
+            >
+              ×
+            </Button>
           </div>
-          <Input
-            value={String(v ?? "")}
-            onChange={(e) => onChange({ ...value, [k]: e.target.value })}
-            className="flex-1"
-            data-testid={`legacy-imports-field-${k}`}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              const next = { ...value };
-              delete next[k];
-              onChange(next);
-            }}
-            className="text-xs"
-          >
-            ×
-          </Button>
-        </div>
-      ))}
+        );
+      })}
       <div className="flex items-center gap-2 pt-1">
         <Input
           value={newKey}
@@ -564,6 +647,107 @@ function FieldEditor({ value, onChange }) {
         >
           + Add field
         </Button>
+      </div>
+    </div>
+  );
+}
+
+// Render either a simple text input, or for `equipment_lines` show a
+// readable summary so the reviewer can see the list at a glance
+// (full per-line editing happens via the side-panel for Phase B+).
+function FieldValueInput({ fieldKey, value, onChange }) {
+  if (fieldKey === "equipment_lines" && Array.isArray(value)) {
+    return (
+      <div className="flex-1 border border-slate-200 rounded-md p-2 bg-slate-50" data-testid="legacy-imports-equipment-lines">
+        {value.length === 0 && (
+          <div className="text-[11px] text-slate-500 font-mono italic">No equipment lines extracted — add manually if needed.</div>
+        )}
+        <div className="space-y-1">
+          {value.map((line, idx) => (
+            <div key={idx} className="text-[11px] font-mono text-slate-700 flex items-start gap-2">
+              <span className="text-slate-400">{idx + 1}.</span>
+              <span className="font-bold">{line?.name || "—"}</span>
+              {line?.serial && <span className="text-slate-500">· s/n {line.serial}</span>}
+              {line?.qty && line.qty !== 1 && <span className="text-slate-500">· qty {line.qty}</span>}
+              {line?.returned && <span className="text-emerald-700">· returned</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <Input
+      value={String(value ?? "")}
+      onChange={(e) => onChange(e.target.value)}
+      className="flex-1"
+      data-testid={`legacy-imports-field-${fieldKey}`}
+    />
+  );
+}
+
+// Small colored confidence pill — green ≥0.7, amber 0.4-0.7, red <0.4.
+function ConfidencePill({ value, compact = false }) {
+  const pct = Math.round((Number(value) || 0) * 100);
+  const cls = value >= 0.7 ? "bg-emerald-100 text-emerald-800"
+            : value >= 0.4 ? "bg-amber-100 text-amber-800"
+            :                "bg-red-100 text-red-800";
+  return (
+    <span
+      className={`inline-block ${compact ? "text-[9px] px-1.5 py-0 mt-0.5" : "text-[10px] px-2 py-0.5"} font-mono font-bold uppercase rounded ${cls}`}
+      data-testid="legacy-imports-confidence-pill"
+    >
+      {pct}%
+    </span>
+  );
+}
+
+// Phase B Matches panel — employee/equipment/project suggestions + dup banner.
+function MatchesPanel({ matches }) {
+  const sections = [
+    { key: "employee", label: "Employee", icon: Users },
+    { key: "equipment", label: "Equipment", icon: Wrench },
+    { key: "project", label: "Project", icon: Briefcase },
+  ];
+  return (
+    <div className="mt-3 bg-indigo-50 border border-indigo-200 rounded-md p-3" data-testid="legacy-imports-matches-panel">
+      <div className="text-[10px] font-mono uppercase tracking-wide text-indigo-700 font-bold mb-2">
+        Suggested matches
+      </div>
+      <div className="space-y-2">
+        {sections.map(({ key, label, icon: Icon }) => {
+          const m = matches?.[key];
+          if (!m?.suggested_id && !m?.suggested_name) return null;
+          return (
+            <div key={key} className="flex items-start gap-2 text-xs" data-testid={`legacy-imports-match-${key}`}>
+              <Icon className="w-3.5 h-3.5 text-indigo-700 mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-mono text-[10px] uppercase tracking-wide text-indigo-700 font-bold">{label}</span>
+                  <ConfidencePill value={m.confidence} />
+                </div>
+                <div className="font-bold text-slate-900 truncate">{m.suggested_name || m.suggested_id}</div>
+                {m.alternatives?.length > 0 && (
+                  <div className="text-[10px] font-mono text-slate-500 mt-0.5 truncate">
+                    alt: {m.alternatives.slice(0, 3).map(a => a.name || a.id).join(" · ")}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {matches?.duplicate_of && (
+          <div className="mt-2 bg-red-50 border border-red-200 rounded-md p-2.5 text-[11px] text-red-900 flex items-start gap-2" data-testid="legacy-imports-duplicate-banner">
+            <Copy className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+            <div>
+              <div className="font-bold">Possible duplicate</div>
+              <div className="font-mono text-[10px] mt-0.5">{matches.duplicate_of.note}</div>
+              <div className="font-mono text-[10px] mt-0.5">
+                {matches.duplicate_of.match_count} matching native record(s) found.
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
