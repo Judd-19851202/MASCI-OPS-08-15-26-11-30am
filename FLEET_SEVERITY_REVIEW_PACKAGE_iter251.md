@@ -1,7 +1,7 @@
 # Fleet Defect Severity Review Package · iter251
 
-**Status:** v1.1-approved-2026-05-19
-**Approved:** 2026-05-19 · Operator (Jaymn) · per SEVERITY_RULINGS_iter251.md + CFR § 396.11 refinement pass
+**Status:** v1.2-approved-2026-05-19
+**Approved:** 2026-05-19 · Operator (Jaymn) · v1 rulings + v1.1 CFR alignment + v1.2 commercial-DVIR coverage hardening
 **Approval record:** `/app/SEVERITY_RULINGS_iter251.md`
 **Generated from:** `/app/backend/fleet_defect_severity.py` + `/app/backend/checklists_fleet.py`
 **Audience:** Safety · Shop · Operations · Dispatch leadership
@@ -15,10 +15,10 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 
 ## Summary
 
-- **Total classified items:** 109
-- **OUT OF SERVICE classifications:** 74
-- **MONITOR classifications:** 35
-- **OOS-to-monitor ratio:** 2.11 (conservative bias toward OOS)
+- **Total classified items:** 120
+- **OUT OF SERVICE classifications:** 82
+- **MONITOR classifications:** 38
+- **OOS-to-monitor ratio:** 2.16 (conservative bias toward OOS)
 - **Items flagged UNCERTAIN pending Safety review:** 0
 - **Items missing severity classification:** 0 (must be zero before deploy)
 - **Orphan severity entries (not used by any checklist):** 0
@@ -30,7 +30,7 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 
 | Inspection Kind | Truck Items | Trailer Items | Total | Classified | Coverage |
 |---|---|---|---|---|---|
-| `dvir` (Daily DVIR) | 84 | 25 | 109 | 109 | 100.0% |
+| `dvir` (Daily DVIR) | 93 | 27 | 120 | 120 | 100.0% |
 | `weekly_lead` (Weekly Lead Driver Inspection) | 9 | 0 | 9 | 9 | 100.0% |
 | `weekly_emergency` (Weekly Emergency Equipment Inspection) | 16 | 0 | 16 | 16 | 100.0% |
 
@@ -177,7 +177,7 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Rationale:** Stable seep without active drip + normal steering effort + fluid at or above MIN is Monitor · 5-day shop window. Active drip, abnormal effort, pump squeal, or fluid below MIN escalates to OOS. (Ruling #1 · 2026-05-19)
 
 
-### Suspension · 2 OOS · 0 MONITOR
+### Suspension · 4 OOS · 0 MONITOR
 
 #### 🛑 `Suspension — air bags inflate · no leaks · no severe sag`
 - **Severity:** OOS
@@ -188,6 +188,16 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.207 · CVSA OOS §9
 - **Rationale:** Broken springs or missing U-bolts compromise axle integrity. OOS.
+
+#### 🛑 `Trailer suspension — air bags inflate · no leaks · no severe sag (where applicable)`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.207
+- **Rationale:** Air-suspension trailers · driver checks that all bags hold pressure (no severe sag on one side) and listens for hissing leaks. Severe sag indicates broken bag or air-line failure. OOS until repaired. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)
+
+#### 🛑 `Trailer suspension — leaf springs · u-bolts · shackles intact (where applicable)`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.207 · CVSA OOS criteria
+- **Rationale:** Trailer-axle suspension failures (broken leaf, cracked u-bolt, missing shackle) are CVSA OOS criteria for combination vehicles. Driver visually inspects under the trailer during walk-around. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)
 
 
 ### Structural · 5 OOS · 1 MONITOR
@@ -494,7 +504,7 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Rationale:** PTO issues stop the work the truck is dispatched for but don't make the truck unsafe to drive. Monitor.
 
 
-### Fluids · 3 OOS · 2 MONITOR
+### Fluids · 4 OOS · 2 MONITOR
 
 #### 🛑 `Coolant — proper level · no major leak`
 - **Severity:** OOS
@@ -505,6 +515,11 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Severity:** OOS
 - **Reference:** operational
 - **Rationale:** Major oil leak = engine failure or fire risk. OOS.
+
+#### 🛑 `Fuel tank — straps / mounts secure · no abrasion against frame`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.65 · CVSA OOS criteria
+- **Rationale:** Fuel tank straps loose or abraded against frame = imminent fuel leak / tank loss · fire / fuel-spill hazard. Driver sees the strap during walk-around. OOS for loose or severely abraded mount. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)
 
 #### 🛑 `Fuel — no leaks · cap secure`
 - **Severity:** OOS
@@ -669,6 +684,58 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Rationale:** Federally required CMV identification · legible from 50 feet · letters at least 2 inches tall. Monitor for fading / dirt buildup that obscures the marking. (v1.1 commercial-vehicle addition 2026-05-19 PM)
 
 
+### Engine · 3 OOS · 1 MONITOR
+
+#### 🛑 `Engine drive belts — no severe cracking · no missing piece · proper tension`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.5 · operational
+- **Rationale:** Failed belt can shut down power steering, alternator, water pump, or A/C compressor mid-route. Driver pops hood and visually checks for severe cracking, glazing, or chunks missing. Tight enough that there's no slip. OOS if missing piece or imminent failure. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)
+
+#### 🛑 `Engine hoses (coolant / heater) — no bulges · no soft spots · no active leak`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.5 · operational
+- **Rationale:** Burst coolant hose strands the truck and risks engine overheating damage. Driver checks for bulges (soft spots under pressure), staining around clamps, and dampness on the hose surface. Active leak or bulge = OOS. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)
+
+#### 🛑 `Engine start-up — starts cleanly · no abnormal noise · no excess smoke · no severe vibration`
+- **Severity:** OOS
+- **Reference:** operational · driver judgment
+- **Rationale:** Driver knows their truck and what's normal. A hot start producing blue/white smoke, a knock, or severe vibration is real engine distress and a refusal-to-roll trigger. OOS if severe; Monitor for borderline. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)
+
+#### 👁 `Radiator — no leak at neck or hoses · cooling fins not severely debris-fouled`
+- **Severity:** MONITOR
+- **Reference:** operational
+- **Rationale:** Radiator leak at fill neck or hose joint is a coolant-loss precursor. Cooling fins packed with mud/asphalt millings reduce cooling capacity on summer haul routes. Monitor unless active drip during hot-running test. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)
+
+
+### Driveline · 0 OOS · 1 MONITOR
+
+#### 👁 `Drive line / U-joints — no visible play · no boot tear · no missing strap (walk-around visual)`
+- **Severity:** MONITOR
+- **Reference:** 49 CFR § 393.89 · operational
+- **Rationale:** True U-joint play check requires getting under the truck with a pry bar (shop function), but a walk-around can catch missing safety strap, torn boot, or grease slung around indicating bearing wear. Monitor catches these before the shaft drops. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)
+
+
+### Front Axle · 0 OOS · 1 MONITOR
+
+#### 👁 `Front axle — spindle nuts in place · no obvious damage to axle or knuckle`
+- **Severity:** MONITOR
+- **Reference:** 49 CFR § 393.205 · operational
+- **Rationale:** Missing spindle nut = wheel-off hazard. Visible cracking at the steering knuckle = imminent steering failure. Quick visual during the walk-around catches these. Monitor unless something obvious found, then OOS. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)
+
+
+### Transmission · 2 OOS · 0 MONITOR
+
+#### 🛑 `Clutch (manual transmission only) — free play within range · engages smoothly`
+- **Severity:** OOS
+- **Reference:** operational
+- **Rationale:** Manual-trans only · driver feels free play through the pedal. No free play (worn) or slipping (smoke smell · won't grab) = OOS until adjusted/replaced. Skip on automatic-trans trucks (mark N/A). (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)
+
+#### 🛑 `Transmission — engages / shifts cleanly · no slipping · no abnormal grind`
+- **Severity:** OOS
+- **Reference:** operational
+- **Rationale:** Slipping clutch on a manual or transmission slip on an automatic = imminent breakdown and a load-stranding risk. Driver feels this on the yard shake-down. OOS until shop diagnoses. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)
+
+
 ---
 
 ## Operational Sign-Off
@@ -680,7 +747,7 @@ Before production reliance, each of the following must redline + sign:
 - [ ] **Operations** · confirms operational impact estimates (false-positive OOS productivity hit acceptable)
 - [ ] **Dispatch leadership** · confirms re-clearance authority + workflow
 
-Severity table currently stamped **`v1.1-approved-2026-05-19`**. After a re-rulings cycle, bump the version stamp + add a new dated rulings record (mirroring `/app/SEVERITY_RULINGS_iter251.md`) and re-run this generator + audit endpoint.
+Severity table currently stamped **`v1.2-approved-2026-05-19`**. After a re-rulings cycle, bump the version stamp + add a new dated rulings record (mirroring `/app/SEVERITY_RULINGS_iter251.md`) and re-run this generator + audit endpoint.
 
 ---
 

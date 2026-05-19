@@ -1,0 +1,40 @@
+{
+  "summary": "iter251 Phase 2 DVIR v1.2 commercial-DVIR coverage-hardening pass — frontend verification complete. All v1.2 backend data refinements correctly surface on /fleet/dvir/new via server-driven /api/fleet/_meta. Verified: severity version pill shows 'v1.2-approved-2026-05-19', all 9 new truck items render (Engine drive belts / Engine hoses / Engine start-up / Radiator / Drive line / Front axle / Fuel tank / Transmission / Clutch), both new trailer-suspension items render after Add trailer (leaf-springs + air-bags), FAIL→rationale flow on 'Engine drive belts' displays correct OOS severity badge with v1.2 marker '(v1.2 commercial-DVIR coverage 2026-05-19 PM/2)' AND 49 CFR § 393.5 regulation_ref, mobile 414×900 renders without horizontal overflow, regression v1+v1.1 items still present (Exhaust system, Battery, Cargo securement, DOT number/company markings, Wipers, Power steering, Suspension), 4 HelpTips intact, backend /api/admin/fleet/severity-audit returns verdict READY_FOR_SAFETY_SIGNOFF · 120 entries · 82 OOS / 38 Monitor · 0 uncertain · v1_2_coverage_hardening array present.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/fleet/dvir/new (initial load ~2s)", "issues": ["Animated MASCI splash overlay briefly intercepts pointer events for ~2s after route mount. Not a v1.2 regression — present in earlier iterations. Tests must wait ~2.5s before clicking PASS/FAIL buttons. Consider pointer-events:none on the splash or shortening its dwell time so first-tap-on-load is not absorbed."]}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_254_phase2_dvir_v12_commercial.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "NewFleetDVIR.jsx: safeId truncation at 60 chars produces brittle test-ids like 'engine-drive-belts-no-severe-cracking-no-missing-piece-prope' (drops the final 'r' from 'proper'). Functional but cosmetically odd in DOM inspector — consider stable hash or shorter canonical key.",
+    "MASCI Operations Platform splash overlay swallows pointer events for ~2s on /fleet/dvir/new — driver tapping FAIL too quickly on a slow phone will appear to 'do nothing'. Worth adding pointer-events:none after first paint."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin break-glass: POST /api/admin/login {password: 'MASCI1982!'} for severity-audit verification only.",
+  "seed_data_creation": "None — read-only verification. No DVIR submissions persisted, no employees added, no cleanup required.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "v1.2 verification was scoped to (a) data-presence of 9 new truck items + 2 trailer items, (b) FAIL→rationale display path with v1.2 PM/2 marker + 49 CFR § 393.5, (c) backend audit endpoint sanity, (d) mobile responsive at 414×900. Full end-to-end submit-with-FAIL was NOT exercised in this iteration because (i) v1+v1.1 submission paths were already validated in iter_252/iter_253 and the underlying NewFleetDVIR.jsx is unchanged in v1.2, (ii) backend severity_by_item already returns correct oos/monitor classification for all 9 truck + 2 trailer new items via /api/fleet/_meta (confirmed via curl), so confirmation-page color outcome is deterministic. If a deeper E2E pass is desired, drive the form with EmployeeCombo driver pick + dvir-truck-select + FAIL 'fuel-tank-straps-mounts-secure-no-abrasion-against-frame-pfn-fail' + 10+ char note + dvir-submit, then assert confirmation page shows red OOS pill and 'Fuel tank — straps / mounts secure · no abrasion against frame' in the Logged-for-Shop list. Remember to cleanup driver_name + truck_unit_number from collections equipment_inspections / fleet_defects / fleet_status / fleet_audit afterward. TEST DRIVER NAMES used in playbook: 'TEST_DVIR_v12_FuelTank' style — none persisted in this iteration.",
+  "verifications_passed": [
+    "Severity version pill data-testid='dvir-severity-version' renders 'v1.2-approved-2026-05-19'",
+    "9 new truck items present: Engine drive belts · Engine hoses · Engine start-up · Radiator · Drive line · Front axle · Fuel tank (mounting) · Transmission · Clutch",
+    "2 new trailer items present after Add trailer: Trailer suspension — leaf springs · Trailer suspension — air bags",
+    "FAIL on Engine drive belts opens defect block · displays severity badge 'Out of Service if failed' · v1.2 marker '(v1.2 commercial-DVIR coverage 2026-05-19 PM/2)' present in rationale · 49 CFR § 393.5 visible · 'operational' tag visible",
+    "Mobile 414×900 viewport: zero horizontal overflow before and after Add trailer · trailer dropdown populates with real units · checklist rows readable",
+    "Regression v1.1 items still present: Exhaust system · Battery · Cargo securement · DOT number/company markings · Wipers (case-insensitive) · Mudflaps (in trailer section)",
+    "Regression v1 items still present: Power steering · Headlights · Suspension · Body · Hydraulic",
+    "4 HelpTips intact: dvir-tip-driver · dvir-tip-walkaround · dvir-tip-airbrakes · dvir-tip-tires · dvir-tip-coupling (conditional, shows after Add trailer) · dvir-tip-next",
+    "Backend /api/admin/fleet/severity-audit: verdict='READY_FOR_SAFETY_SIGNOFF' · version='v1.2-approved-2026-05-19' · total_severity_entries=120 · total_oos=82 · total_monitor=38 · uncertainty_resolved=true · v1_2_coverage_hardening array present with 4 entries (engine items · radiator/drive line/front axle/fuel tank · transmission/clutch/trailer suspension · skipped tire chains/enclosed trailer roof)",
+    "Backend /api/fleet/_meta: truck_items count=93 · trailer_items count=27 · severity_by_item size=120 · all 9 new truck items + 2 new trailer items found by string match"
+  ],
+  "verifications_deferred_with_justification": [
+    "End-to-end submit-with-FAIL confirmation page color (🔴 OOS): deferred. NewFleetDVIR.jsx + FleetDVIRConfirmation.jsx are unchanged in v1.2 and the submit/confirmation path was already exercised in iter_252 (v1) and iter_253 (v1.1). Confirmation-page severity color is computed deterministically server-side from severity_by_item, which is verified correct above. Re-running the full submit would require seed/teardown across 4 collections without changing v1.2-specific behavior."
+  ],
+  "rca_of_issue": "No bug. v1.2 is a clean data-only refinement: backend SEVERITY_TABLE + checklists_fleet.dvir_truck_items/dvir_trailer_items added the 10 new items with proper oos/monitor classification and rationale strings containing the '(v1.2 commercial-DVIR coverage 2026-05-19 PM/2)' marker; the unchanged React form pulls them via /api/fleet/_meta and renders identically to v1.1. Only minor observation: animated MASCI splash overlay on /fleet/dvir/new intercepts pointer events for ~2s after route mount (pre-existing, not v1.2 regression)."
+}

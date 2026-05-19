@@ -1,8 +1,25 @@
 """iter251 Phase A · Fleet Operations Foundation · Defect Severity Table.
 
-🔒  v1.1 APPROVED 2026-05-19 — Operator-ruled v1 + commercial-vehicle DVIR
-     refinements (CFR § 396.11 alignment + wording pass) · Safety field
-     sign-off pending field deployment. 🔒
+🔒  v1.2 APPROVED 2026-05-19 — Operator-ruled v1 + v1.1 commercial DVIR
+     refinements + v1.2 coverage-hardening pass against standard commercial
+     DVIR baseline. Safety field sign-off pending field deployment. 🔒
+
+CHANGELOG (v1.1 → v1.2, 2026-05-19 PM/2):
+  • 10 commercial-DVIR coverage additions (driver-walkaround scope only ·
+    no compliance theater · no checkbox bloat):
+      - Engine drive belts (visible cracking / missing piece) · OOS-escalating Monitor
+      - Engine hoses (coolant / heater · bulges / leaks) · OOS-escalating Monitor
+      - Engine start-up health (noise / smoke / vibration) · OOS-escalating Monitor
+      - Radiator (leak at neck / hoses · fins not debris-fouled) · Monitor
+      - Drive line / U-joints (visual play / boot tear) · Monitor
+      - Front axle (spindle nuts in place · no obvious damage) · Monitor
+      - Fuel tank mounting (straps / no abrasion) · Monitor (OOS if loose)
+      - Transmission operation (engages cleanly · no slip / abnormal) · OOS
+      - Clutch (manual-trans only · free play · smooth engagement) · OOS
+      - Trailer suspension (leaf springs / air bags · parallel to truck) · OOS
+  • Intentionally NOT added (operationally not real for MASCI):
+      - Tire chains (FL/TX paving ops · no snow / mountain pass)
+      - Trailer roof (MASCI runs open dump / lowboy / equipment trailers)
 
 CHANGELOG (v1 → v1.1, 2026-05-19 PM):
   • Added 5 commercial-vehicle items missing from v1:
@@ -11,16 +28,9 @@ CHANGELOG (v1 → v1.1, 2026-05-19 PM):
       - Cargo securement — chains / binders / straps (§ 393.100) · OOS
       - DOT number / company markings visible (§ 390.21) · MONITOR
       - Trailer mudflaps / spray suppression (§ 393.86) · MONITOR
-  • Consolidated 2 redundant tire pairs into 2 single items:
-      - "no audible air leak" + "properly inflated" → 1 item
-      - "no exposed cord/belt/ply" + "no severe sidewall damage" → 1 item
-  • Tightened wording on 4 items for field clarity:
-      - Trailer air brakes (clarified "tractor hand valve")
-      - Slack adjuster (removed jargon "proper stroke")
-      - Brake chamber / slack adjuster (commercial-defensible language)
-      - Identification lights (added "top of cab" anchor)
-  • Removed "Cab — interior cleanliness" (operationally low-value MONITOR
-    that added no DVIR signal · cabin cleanliness handled by yard/shop).
+  • Consolidated 2 redundant tire pairs into 2 single items.
+  • Tightened wording on 4 items for field clarity.
+  • Removed "Cab — interior cleanliness" (operationally low-value).
   • Bumped version stamp · approval record reissued.
 
 This module is the SINGLE SOURCE OF TRUTH for whether a failed DVIR
@@ -69,11 +79,11 @@ VALID_SEVERITIES = (SEVERITY_OOS, SEVERITY_MONITOR)
 
 # Severity table version stamp · single source of truth.
 # Bump when the table changes · audit endpoint surfaces this for governance.
-SEVERITY_TABLE_VERSION = "v1.1-approved-2026-05-19"
+SEVERITY_TABLE_VERSION = "v1.2-approved-2026-05-19"
 SEVERITY_TABLE_APPROVAL = {
     "version": SEVERITY_TABLE_VERSION,
     "approved_at": "2026-05-19",
-    "approved_by": "Operator (Jaymn) · per SEVERITY_RULINGS_iter251.md + CFR § 396.11 refinement pass",
+    "approved_by": "Operator (Jaymn) · v1 rulings + v1.1 CFR alignment + v1.2 commercial-DVIR coverage hardening",
     "approval_record": "/app/SEVERITY_RULINGS_iter251.md",
     "status": "approved · pending Safety field deployment",
     "rulings_count": 9,
@@ -83,6 +93,12 @@ SEVERITY_TABLE_APPROVAL = {
         "consolidated: 2 redundant tire pairs",
         "tightened: 4 wordings for commercial-vehicle field clarity",
         "removed: cab interior cleanliness (operationally low-value)",
+    ],
+    "v1_2_coverage_hardening": [
+        "added: engine drive belts · engine hoses · engine start-up health",
+        "added: radiator · drive line / U-joints · front axle · fuel tank mounting",
+        "added: transmission operation · clutch (manual trans) · trailer suspension",
+        "skipped (operational reality): tire chains · enclosed trailer roof",
     ],
 }
 
@@ -119,6 +135,11 @@ CATEGORY_EXHAUST = "exhaust"
 CATEGORY_ELECTRICAL = "electrical"
 CATEGORY_CARGO_SECUREMENT = "cargo_securement"
 CATEGORY_MARKINGS = "markings"
+# v1.2 · 2026-05-19 PM/2 · commercial-DVIR coverage hardening
+CATEGORY_ENGINE = "engine"
+CATEGORY_DRIVELINE = "driveline"
+CATEGORY_TRANSMISSION = "transmission"
+CATEGORY_FRONT_AXLE = "front_axle"
 CATEGORY_OTHER = "other"
 
 
@@ -244,6 +265,17 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     "Fuel gauge — functional · driver may estimate by miles · 7-day shop window":  (SEVERITY_MONITOR, CATEGORY_INTERIOR),
     "Dash gauges (oil / temp) inop on units with ECM check-engine + fault display fully functional · 14-day shop window":  (SEVERITY_MONITOR, CATEGORY_INTERIOR),
 
+    # ─── TRUCK · ENGINE / DRIVETRAIN · v1.2 additions ────────────
+    "Engine drive belts — no severe cracking · no missing piece · proper tension":  (SEVERITY_OOS, CATEGORY_ENGINE),
+    "Engine hoses (coolant / heater) — no bulges · no soft spots · no active leak":  (SEVERITY_OOS, CATEGORY_ENGINE),
+    "Engine start-up — starts cleanly · no abnormal noise · no excess smoke · no severe vibration":  (SEVERITY_OOS, CATEGORY_ENGINE),
+    "Radiator — no leak at neck or hoses · cooling fins not severely debris-fouled":  (SEVERITY_MONITOR, CATEGORY_ENGINE),
+    "Drive line / U-joints — no visible play · no boot tear · no missing strap (walk-around visual)":  (SEVERITY_MONITOR, CATEGORY_DRIVELINE),
+    "Front axle — spindle nuts in place · no obvious damage to axle or knuckle":  (SEVERITY_MONITOR, CATEGORY_FRONT_AXLE),
+    "Fuel tank — straps / mounts secure · no abrasion against frame":  (SEVERITY_OOS, CATEGORY_FLUIDS),
+    "Transmission — engages / shifts cleanly · no slipping · no abnormal grind":  (SEVERITY_OOS, CATEGORY_TRANSMISSION),
+    "Clutch (manual transmission only) — free play within range · engages smoothly":  (SEVERITY_OOS, CATEGORY_TRANSMISSION),
+
     # ─── TRUCK · EMERGENCY EQUIPMENT ──────────────────────────────
     "Fire extinguisher — present · charged · sealed · tag current":   (SEVERITY_OOS, CATEGORY_EMERGENCY_EQUIPMENT),
     "Fire extinguisher — minor scuff / tag near expiry":              (SEVERITY_MONITOR, CATEGORY_EMERGENCY_EQUIPMENT),
@@ -288,6 +320,9 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     "Trailer cross members — no broken / missing":                    (SEVERITY_OOS, CATEGORY_STRUCTURAL),
     "Trailer floor — no major holes · structurally sound":            (SEVERITY_OOS, CATEGORY_STRUCTURAL),
     "Trailer headboard / bulkhead — intact":                          (SEVERITY_OOS, CATEGORY_STRUCTURAL),
+    # v1.2 · 2026-05-19 PM/2 · trailer suspension (parallel to truck suspension)
+    "Trailer suspension — leaf springs · u-bolts · shackles intact (where applicable)":  (SEVERITY_OOS, CATEGORY_SUSPENSION),
+    "Trailer suspension — air bags inflate · no leaks · no severe sag (where applicable)":  (SEVERITY_OOS, CATEGORY_SUSPENSION),
     "Trailer body — cosmetic damage":                                 (SEVERITY_MONITOR, CATEGORY_BODY),
     # v1.1 · 2026-05-19 PM · commercial spray-suppression
     "Trailer mudflaps / spray suppression — present · secure · no major tears":  (SEVERITY_MONITOR, CATEGORY_STRUCTURAL),
@@ -897,6 +932,63 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
     "Trailer mudflaps / spray suppression — present · secure · no major tears": {
         "regulation_ref": "49 CFR § 393.86 · state regs",
         "rationale": "Mudflaps protect following traffic from stones and spray kicked up from drive / trailer tires. Federal rule plus most state codes require functional flaps on commercial trailers. Monitor for partial tear, missing flap, or loose hardware · escalates to OOS if completely absent / dragging on highway. (v1.1 commercial-vehicle addition 2026-05-19 PM)",
+        "uncertain": False,
+    },
+
+    # ─── v1.2 additions · Engine / Drivetrain / Trailer suspension ─
+    "Engine drive belts — no severe cracking · no missing piece · proper tension": {
+        "regulation_ref": "49 CFR § 393.5 · operational",
+        "rationale": "Failed belt can shut down power steering, alternator, water pump, or A/C compressor mid-route. Driver pops hood and visually checks for severe cracking, glazing, or chunks missing. Tight enough that there's no slip. OOS if missing piece or imminent failure. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)",
+        "uncertain": False,
+    },
+    "Engine hoses (coolant / heater) — no bulges · no soft spots · no active leak": {
+        "regulation_ref": "49 CFR § 393.5 · operational",
+        "rationale": "Burst coolant hose strands the truck and risks engine overheating damage. Driver checks for bulges (soft spots under pressure), staining around clamps, and dampness on the hose surface. Active leak or bulge = OOS. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)",
+        "uncertain": False,
+    },
+    "Engine start-up — starts cleanly · no abnormal noise · no excess smoke · no severe vibration": {
+        "regulation_ref": "operational · driver judgment",
+        "rationale": "Driver knows their truck and what's normal. A hot start producing blue/white smoke, a knock, or severe vibration is real engine distress and a refusal-to-roll trigger. OOS if severe; Monitor for borderline. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)",
+        "uncertain": False,
+    },
+    "Radiator — no leak at neck or hoses · cooling fins not severely debris-fouled": {
+        "regulation_ref": "operational",
+        "rationale": "Radiator leak at fill neck or hose joint is a coolant-loss precursor. Cooling fins packed with mud/asphalt millings reduce cooling capacity on summer haul routes. Monitor unless active drip during hot-running test. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)",
+        "uncertain": False,
+    },
+    "Drive line / U-joints — no visible play · no boot tear · no missing strap (walk-around visual)": {
+        "regulation_ref": "49 CFR § 393.89 · operational",
+        "rationale": "True U-joint play check requires getting under the truck with a pry bar (shop function), but a walk-around can catch missing safety strap, torn boot, or grease slung around indicating bearing wear. Monitor catches these before the shaft drops. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)",
+        "uncertain": False,
+    },
+    "Front axle — spindle nuts in place · no obvious damage to axle or knuckle": {
+        "regulation_ref": "49 CFR § 393.205 · operational",
+        "rationale": "Missing spindle nut = wheel-off hazard. Visible cracking at the steering knuckle = imminent steering failure. Quick visual during the walk-around catches these. Monitor unless something obvious found, then OOS. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)",
+        "uncertain": False,
+    },
+    "Fuel tank — straps / mounts secure · no abrasion against frame": {
+        "regulation_ref": "49 CFR § 393.65 · CVSA OOS criteria",
+        "rationale": "Fuel tank straps loose or abraded against frame = imminent fuel leak / tank loss · fire / fuel-spill hazard. Driver sees the strap during walk-around. OOS for loose or severely abraded mount. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)",
+        "uncertain": False,
+    },
+    "Transmission — engages / shifts cleanly · no slipping · no abnormal grind": {
+        "regulation_ref": "operational",
+        "rationale": "Slipping clutch on a manual or transmission slip on an automatic = imminent breakdown and a load-stranding risk. Driver feels this on the yard shake-down. OOS until shop diagnoses. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)",
+        "uncertain": False,
+    },
+    "Clutch (manual transmission only) — free play within range · engages smoothly": {
+        "regulation_ref": "operational",
+        "rationale": "Manual-trans only · driver feels free play through the pedal. No free play (worn) or slipping (smoke smell · won't grab) = OOS until adjusted/replaced. Skip on automatic-trans trucks (mark N/A). (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)",
+        "uncertain": False,
+    },
+    "Trailer suspension — leaf springs · u-bolts · shackles intact (where applicable)": {
+        "regulation_ref": "49 CFR § 393.207 · CVSA OOS criteria",
+        "rationale": "Trailer-axle suspension failures (broken leaf, cracked u-bolt, missing shackle) are CVSA OOS criteria for combination vehicles. Driver visually inspects under the trailer during walk-around. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)",
+        "uncertain": False,
+    },
+    "Trailer suspension — air bags inflate · no leaks · no severe sag (where applicable)": {
+        "regulation_ref": "49 CFR § 393.207",
+        "rationale": "Air-suspension trailers · driver checks that all bags hold pressure (no severe sag on one side) and listens for hissing leaks. Severe sag indicates broken bag or air-line failure. OOS until repaired. (v1.2 commercial-DVIR coverage 2026-05-19 PM/2)",
         "uncertain": False,
     },
 }

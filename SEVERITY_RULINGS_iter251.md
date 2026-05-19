@@ -262,3 +262,130 @@ Coverage is now **defensibly aligned with commercial DVIR realities** without be
 
 🔒 **v1.1 is the current production-target version.** No further severity-table edits without a new dated rulings record + version bump.
 
+---
+
+# v1.2 Coverage-Hardening Pass · 2026-05-19 PM/2
+
+**Status**: 🔒 LOCKED · operator-approved 2026-05-19 PM/2
+**Version stamp**: `v1.1-approved-2026-05-19` → **`v1.2-approved-2026-05-19`**
+**Audit verdict**: `READY_FOR_SAFETY_SIGNOFF` (preserved)
+
+## Operator brief (2026-05-19 PM/2)
+Operator referenced a standard commercial-vehicle DVIR baseline and approved hardening the inspection-item coverage against it. Explicit posture:
+- Use the standard commercial DVIR as a *coverage baseline* — not a layout/visual template
+- MASCI Operations Platform is already operationally better (severity governance · routing · photos · audit chain · bilingual · mobile · coaching · dispatch/shop visibility)
+- BUT the inspection-item *coverage* should align with real-world commercial DVIR expectations across all visible commercial categories (engine · drivetrain · fuel system · etc.)
+- NOT compliance theater · NOT duplicate items · NOT passenger-vehicle language
+- DO commercial-realistic · DOT/FMCSA-aware · operationally defensible · field-readable
+
+## v1.2 changes
+
+### Added · 10 commercial-DVIR coverage items (driver-walkaround scope only)
+
+**Engine / Drivetrain block** (new section in truck checklist):
+- 🛑 **OOS** · `Engine drive belts — no severe cracking · no missing piece · proper tension` (§ 393.5)
+- 🛑 **OOS** · `Engine hoses (coolant / heater) — no bulges · no soft spots · no active leak` (§ 393.5)
+- 🛑 **OOS** · `Engine start-up — starts cleanly · no abnormal noise · no excess smoke · no severe vibration` (driver judgment)
+- 👁 **Monitor** · `Radiator — no leak at neck or hoses · cooling fins not severely debris-fouled`
+- 👁 **Monitor** · `Drive line / U-joints — no visible play · no boot tear · no missing strap (walk-around visual)` (§ 393.89)
+- 👁 **Monitor** · `Front axle — spindle nuts in place · no obvious damage to axle or knuckle` (§ 393.205)
+- 🛑 **OOS** · `Fuel tank — straps / mounts secure · no abrasion against frame` (§ 393.65)
+- 🛑 **OOS** · `Transmission — engages / shifts cleanly · no slipping · no abnormal grind`
+- 🛑 **OOS** · `Clutch (manual transmission only) — free play within range · engages smoothly`
+
+**Trailer suspension block** (parallel to truck suspension · was missing in v1.1):
+- 🛑 **OOS** · `Trailer suspension — leaf springs · u-bolts · shackles intact (where applicable)` (§ 393.207)
+- 🛑 **OOS** · `Trailer suspension — air bags inflate · no leaks · no severe sag (where applicable)` (§ 393.207)
+
+### Intentionally NOT added · operational reality
+- ❌ **Tire chains** — MASCI ops are FL/TX paving/haul · no snow chains required · adding would be checkbox theater
+- ❌ **Trailer roof** — MASCI runs open dump / lowboy / equipment trailers · not enclosed vans · roof check is not in scope
+
+### Coverage cross-check against operator's commercial-DVIR baseline
+
+| Operator's baseline category | v1.2 coverage |
+|---|---|
+| Air compressor | ✅ (Air pressure builds + air system holds) |
+| Air lines | ✅ (Airlines / gladhands) |
+| Battery | ✅ (v1.1) |
+| Belts and hoses | ✅ (v1.2 · engine drive belts + engine hoses) |
+| Body | ✅ (5-test rubric · v1) |
+| Brake accessories | ✅ (chamber/slack adjuster) |
+| Parking brakes | ✅ |
+| Service brakes | ✅ |
+| Clutch | ✅ (v1.2 · manual trans only) |
+| Coupling devices | ✅ (4 items: fifth wheel locked · mounting · safety chains · pintle) |
+| Defroster/heater | ✅ (v1 ruling #7) |
+| Drive line | ✅ (v1.2) |
+| Engine | ✅ (v1.2 · belts + hoses + start-up · oil/coolant/fuel level) |
+| Exhaust | ✅ (v1.1) |
+| Fifth wheel | ✅ |
+| Fluid levels | ✅ (oil · coolant · fuel · transmission · washer) |
+| Frame/assembly | ✅ |
+| Front axle | ✅ (v1.2) |
+| Fuel tanks | ✅ (fuel + v1.2 tank mounting) |
+| Horn | ✅ |
+| Lights (all 7 sub-types) | ✅ |
+| Mirrors | ✅ |
+| Muffler | ✅ (exhaust system covers) |
+| Oil pressure | ✅ (ECM-aware dash gauges) |
+| Radiator | ✅ (v1.2) |
+| Rear end | ⚠️ partial (covered by "fluid level — no major leak" · driver doesn't pop the diff cover) |
+| Reflectors | ✅ |
+| Safety equipment | ✅ (5 items) |
+| Steering | ✅ (3 items) |
+| Suspension | ✅ (truck + v1.2 trailer) |
+| Tire chains | ❌ skipped · FL/TX no snow ops |
+| Tires | ✅ |
+| Transmission | ✅ (v1.2) |
+| Wheels/rims | ✅ |
+| Windows | ⚠️ partial (windshield · side/rear cab glass not separately checked) |
+| Wipers/washers | ✅ |
+| **Trailer:** Brake connections | ✅ (trailer hand valve + gladhands) |
+| Trailer brakes | ✅ (2 items) |
+| Trailer coupling | ✅ |
+| King pin | ✅ |
+| Landing gear | ✅ |
+| Trailer lights | ✅ (all 5 sub-types) |
+| Reflective tape | ✅ (DOT conspicuity) |
+| Trailer roof | ❌ skipped · open trailers only |
+| Trailer suspension | ✅ (v1.2) |
+| Tarpaulin/tarp | ✅ (load-haul split · v1) |
+| Trailer tires | ✅ (3 items) |
+| Trailer wheels/rims | ✅ (truck wheel items apply) |
+
+**Coverage status**: ~37/39 commercial-DVIR baseline categories covered. 2 intentionally skipped (operational reality). 2 partially covered (rear end · cab side glass · acceptable for driver walk-around scope).
+
+## Table stats (v1.1 → v1.2)
+
+| Metric | v1.1-approved | v1.2-approved |
+|---|---|---|
+| Total severity entries | 109 | **120** |
+| OOS classifications | 74 | **82** |
+| Monitor classifications | 35 | **38** |
+| OOS/Monitor ratio | 2.11 | **2.16** (conservative · ≥ 1.5 floor) |
+| Uncertain items | 0 | **0** |
+| Truck checklist items | 84 | **93** |
+| Trailer checklist items | 25 | **27** |
+| Verdict | READY_FOR_SAFETY_SIGNOFF | **READY_FOR_SAFETY_SIGNOFF** |
+
+## Files touched in v1.2 cycle
+- MOD · `backend/fleet_defect_severity.py` (+v1.2 changelog comment · +SEVERITY_TABLE_APPROVAL.v1_2_coverage_hardening · +11 new items + metadata · +4 new categories: engine · driveline · transmission · front_axle)
+- MOD · `backend/checklists_fleet.py` (truck list +9 engine/drivetrain items · trailer list +2 trailer suspension items)
+- MOD · `backend/tests/test_iter251_severity_v1_approved.py` (assertion v1.1 → v1.2 · size 109 → 120 · v1.2 changelog assertion)
+- MOD · `/app/SEVERITY_RULINGS_iter251.md` (appended this v1.2 section · sign-off chain updated)
+- REGEN · `/app/FLEET_SEVERITY_REVIEW_PACKAGE_iter251.md` (now reflects v1.2 · 120 items)
+
+## Sign-off chain (preserved · approvals cumulative)
+
+- [x] Operator (Jaymn) · 2026-05-19 · all 9 v1 rulings approved
+- [x] Operator (Jaymn) · 2026-05-19 PM · v1.1 commercial-vehicle refinement pass approved
+- [x] Operator (Jaymn) · 2026-05-19 PM/2 · v1.2 commercial-DVIR coverage-hardening pass approved
+- [ ] Safety · field-deployment sign-off (after Phase 2 driver UX shipped to mascidocs.com)
+- [ ] Shop · operational sign-off (after first 30 days of field DVIRs)
+- [ ] Dispatch · re-clearance authority sign-off (after first 30 days)
+
+---
+
+🔒 **v1.2 is the current production-target version.** Coverage now aligned with standard commercial DVIR baseline · operationally defensible · field-realistic · no checkbox theater. No further severity-table edits without a new dated rulings record + version bump.
+

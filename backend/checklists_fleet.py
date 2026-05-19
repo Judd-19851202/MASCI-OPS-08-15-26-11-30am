@@ -109,6 +109,16 @@ def dvir_truck_items() -> List[str]:
         # Cargo / Markings (v1.1)
         "Cargo securement — chains / binders / straps rated and applied per load (flatbed / service truck)",
         "DOT number / company markings — legible · readable from 50 ft",
+        # Engine / Drivetrain (v1.2 · commercial-DVIR coverage hardening)
+        "Engine drive belts — no severe cracking · no missing piece · proper tension",
+        "Engine hoses (coolant / heater) — no bulges · no soft spots · no active leak",
+        "Engine start-up — starts cleanly · no abnormal noise · no excess smoke · no severe vibration",
+        "Radiator — no leak at neck or hoses · cooling fins not severely debris-fouled",
+        "Drive line / U-joints — no visible play · no boot tear · no missing strap (walk-around visual)",
+        "Front axle — spindle nuts in place · no obvious damage to axle or knuckle",
+        "Fuel tank — straps / mounts secure · no abrasion against frame",
+        "Transmission — engages / shifts cleanly · no slipping · no abnormal grind",
+        "Clutch (manual transmission only) — free play within range · engages smoothly",
         # Interior / cab
         "Seat belt — present · functional · no fraying",
         "Defroster — functional when ambient ≤ 40°F or precipitation forecast in shift window",
@@ -165,6 +175,9 @@ def dvir_trailer_items() -> List[str]:
         "Trailer body — cosmetic damage",
         # v1.1 commercial-vehicle addition (2026-05-19 PM)
         "Trailer mudflaps / spray suppression — present · secure · no major tears",
+        # v1.2 · trailer suspension (parallel to truck suspension · 2026-05-19 PM/2)
+        "Trailer suspension — leaf springs · u-bolts · shackles intact (where applicable)",
+        "Trailer suspension — air bags inflate · no leaks · no severe sag (where applicable)",
     ]
 
 
