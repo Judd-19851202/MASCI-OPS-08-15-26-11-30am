@@ -76,6 +76,7 @@ import AdminOperationsEvents from "@/pages/admin/AdminOperationsEvents";
 import AdminDigestConfig from "@/pages/admin/AdminDigestConfig";
 import SystemHealth from "@/pages/admin/SystemHealth";
 import AdminAuditLog from "@/pages/admin/AdminAuditLog";
+import AdminLegacyImports from "@/pages/AdminLegacyImports";
 import AdminSessions from "@/pages/admin/AdminSessions";
 import AdminGuidanceCoverage from "@/pages/admin/AdminGuidanceCoverage";
 import AdminOperationalInventory from "@/pages/admin/AdminOperationalInventory";
@@ -323,6 +324,7 @@ function App() {
             <Route path="/admin/digest-config" element={A(<AdminDigestConfig />)} />
             <Route path="/admin/system-health" element={A(<SystemHealth />)} />
             <Route path="/admin/audit-log" element={A(<AdminAuditLog />)} />
+            <Route path="/admin/legacy-imports" element={A(<AdminLegacyImports />)} />
             <Route path="/admin/sessions" element={A(<AdminSessions />)} />
             <Route path="/admin/guidance-coverage" element={A(<AdminGuidanceCoverage />)} />
             <Route path="/admin/operational-inventory" element={A(<AdminOperationalInventory />)} />

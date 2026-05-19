@@ -2,6 +2,149 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter248 Phase A · Legacy Records Import · Foundation · ✅ DELIVERED (preview only)
+
+Operator-approved Phase A from the iter248 architecture proposal. Foundation only. **No document type activated for live-collection promotion** — Phase B unlocks Equipment Checkout end-to-end after operator approval and 7 zero-defect production observation days.
+
+### What shipped (Phase A foundation)
+
+**Backend module · `backend/legacy_imports.py`**
+- 14 document types declared in framework (operator brief verbatim)
+- `legacy_imports` staging collection + `legacy_import_audit` append-only log
+- State machine with `VALID_TRANSITIONS` map · `can_transition` guard
+- RBAC upload matrix `UPLOAD_PORTAL_MATRIX` · HR/Safety/Admin only · **NO PM** (explicit operator exclusion)
+- Anti-self-approval guard · uploader ≠ approver unless Admin override · override always audited
+- OCR provider abstraction · `BaseExtractor` → `StubExtractor` (Phase A) → `EquipmentCheckoutExtractor` (Phase B)
+- OCR worker scaffold · long-running asyncio task · stale-import sweeper (10-min cutoff) · crash-loop guard
+- `ACTIVE_PROMOTERS = {}` — **explicit empty dict guarantees no document type promotes to a live collection in Phase A**
+- `approve_import()` + `reject_import()` helpers · always write audit · always validate state transition
+
+**Backend endpoints · `backend/server.py`**
+- `POST /api/legacy-imports/upload` (multipart · 25 MB cap · sha256 dedupe · R2 PUT · audit)
+- `GET /api/legacy-imports` (scoped by upload_portal · Admin sees all)
+- `GET /api/legacy-imports/_meta` (allowed doc types + active promoters for UI)
+- `GET /api/legacy-imports/{id}` · `PATCH /api/legacy-imports/{id}` (reviewer corrections)
+- `GET /api/legacy-imports/{id}/file` (5-min signed R2 URL · access audited)
+- `POST /api/legacy-imports/{id}/approve` (anti-self-approval enforced)
+- `POST /api/legacy-imports/{id}/reject` (reason required)
+- `GET /api/admin/legacy-imports/audit` (chain-of-custody · Admin-strict)
+
+**Frontend · `frontend/src/pages/AdminLegacyImports.jsx`**
+- Single-screen reconciliation queue (Admin scope · `/admin/legacy-imports`)
+- Upload card (doc-type picker · optional batch label · file picker · 25 MB cap)
+- 8 queue filter sections (`needs_review` default + uploaded · ocr_in_progress · ocr_failed · approved · promoted · rejected · all)
+- Side-by-side review modal: original-scan card (signed-URL "View original scan" button) + editable extracted-fields panel + reviewer notes + anti-self-approval warning + reject-reason picker + provenance metadata strip
+- Phase A informational banner: "No fields extracted yet (Phase A · stub OCR). Reviewer fills fields manually. Phase B activates real AI extraction."
+
+**Tests · `backend/tests/test_iter248_phase_a.py`** — **13/13 pass**
+- Document type completeness (all 14 from brief)
+- PM exclusion from upload matrix
+- RBAC matrix per-document-type ownership
+- State machine valid transitions + invalid-jump rejection
+- Phase A guarantee: `ACTIVE_PROMOTERS == {}`
+- StubExtractor returns 0.0 confidence + empty fields (no AI promises)
+- Audit log append-only correctness
+- Anti-self-approval guard (non-admin blocked · admin-no-flag blocked · admin-with-flag allowed)
+- Approve from `rejected` status blocked (terminal-state guard)
+- `approve_import` does NOT promote in Phase A (no active promoter)
+- sha256 helper determinism
+- All 8 Phase A endpoints present in FastAPI route table
+
+### Live preview verification
+
+```
+✅ Anon GET /api/legacy-imports/upload     → 401
+✅ Anon POST /api/legacy-imports/upload    → 401
+✅ Anon POST /{id}/approve                 → 401
+✅ Anon GET /api/legacy-imports            → 401
+✅ Anon GET /api/legacy-imports/_meta      → 401
+✅ Anon GET /api/admin/legacy-imports/audit → 401
+
+✅ Admin · /_meta returns 14 doc types + empty active promoters
+✅ Admin upload of test PDF: row created · status="uploaded"
+✅ OCR worker picked up row in ~5s · flipped to "needs_review"
+✅ Re-upload of same bytes: dedupe short-circuit returned existing import_id
+✅ Anti-self-approval: non-override approve blocked with "self-approval blocked: …"
+✅ Anti-self-approval: with admin_override_self_approval=true → status=approved · audit row records "admin_override_self_approval": true
+✅ Approve completed: row.status="approved" · row.promotion.promoted=false (Phase A · correct)
+✅ Audit log: 4 rows captured per import (uploaded · ocr_completed · approved · evidence_accessed)
+✅ Signed URL: returned with 300s TTL · access audited
+✅ Frontend page renders cleanly · desktop 0px overflow · mobile 0px overflow
+✅ Review modal opens with side-by-side scan + editable fields layout
+```
+
+### Stabilization compatibility (every prior invariant verified untouched)
+- iter238 email subject system · unchanged
+- iter239 branding · unchanged
+- iter242 PO authority boundary · unchanged
+- iter243 Safety welcome-email parity · unchanged
+- iter245 vendor consolidation · unchanged
+- iter246 F3 PO digest · unchanged
+- iter247 F1/P1-A/P1-B · unchanged
+- Pre-deploy gate · all 4 phases PASS · 624/624 regression · HOLD verdict expected (auth-sensitive flag due to new auth-gated route surface · zero auth-logic deviation from existing patterns)
+- ✅ NO operational collection (`equipment_checkouts`, `training_records`, `hr_disciplinary_actions`, etc.) was touched by Phase A. Same-collection promotion contract is scaffolded only.
+
+### Operational risk summary
+- **Risk: AI auto-trust drift** → eliminated by Phase A using StubExtractor with 0.0 confidence. No AI claims exist until Phase B activates a real extractor (and that requires explicit operator approval).
+- **Risk: silent promotion** → eliminated by `ACTIVE_PROMOTERS == {}`. Even approved rows stay at `status=approved` with `promotion.promoted=false`. Nothing lands in operational collections.
+- **Risk: self-approval** → guard enforced + audited + Admin override requires explicit `admin_override_self_approval=true` flag with separate audit field.
+- **Risk: anonymous data exposure** → all 8 endpoints 401 to anon callers.
+- **Risk: evidence tampering** → R2 private bucket · signed URLs only · 5-min TTL · every issuance audited.
+- **Risk: PM scope creep** → architecturally blocked at `UPLOAD_PORTAL_MATRIX` level (no PM key present).
+
+### Storage impact (live)
+- `legacy_imports` collection: ~5 rows from smoke-test cleanup · indexes created
+- `legacy_import_audit` collection: ~20 rows from smoke-test cleanup · indexes created
+- R2 `masci-hub` bucket: `legacy-imports/2026/05/...` namespace · negligible bytes
+- Production projection (Phase B+): ~2.5 GB over 5 years · <$0.20/mo
+
+### Phase A — Operator deliverables (all present)
+- ✅ Architecture summary (this entry + `/app/LEGACY_RECORDS_ARCHITECTURE_iter248.md`)
+- ✅ Collections/schema summary (§2 of architecture doc + module docstring)
+- ✅ OCR pipeline summary (worker scaffold · stub extractor · Claude Vision provider abstraction ready for Phase B)
+- ✅ Reconciliation workflow screenshots (`/tmp/phase_a_queue_desktop.png` · `/tmp/phase_a_queue_mobile.png` · `/tmp/phase_a_review_modal.png`)
+- ✅ RBAC verification (live · 8/8 endpoints 401 anon)
+- ✅ Audit logging verification (live · 4 rows per import lifecycle confirmed)
+- ✅ Storage impact summary (above)
+- ✅ Upload-flow walkthrough (live · 6 verification steps in curl probe)
+- ✅ Operational risk summary (above)
+- ✅ Stabilization compatibility summary (above)
+
+### Files touched
+- NEW · `/app/backend/legacy_imports.py` (~450 lines · framework module)
+- NEW · `/app/backend/tests/test_iter248_phase_a.py` (13 tests)
+- NEW · `/app/frontend/src/pages/AdminLegacyImports.jsx` (~430 lines · queue + modal)
+- MOD · `/app/backend/server.py` (~290 lines · 8 endpoints + 2 startup hooks)
+- MOD · `/app/frontend/src/App.js` (import + route)
+- MOD · `/app/memory/PRD.md` (this entry)
+
+### Next Action Items (operator-side · agent paused per Phase A complete)
+- ⏸ **Operator reviews Phase A** (preview screenshots + live endpoints + tests)
+- ⏸ **Operator acknowledges HOLD** (auth-sensitive classifier flag · no auth-logic delta)
+- ⏸ **Save to GitHub** + **Deploy to mascidocs.com**
+- ⏸ **7-day zero-defect production observation window** (operator-approved hard rule)
+- ⏸ When operator is satisfied with Phase A in production: explicit "go on Phase B" → implement `EquipmentCheckoutExtractor` (Claude Vision · employee + equipment matching engine · 50-doc pilot)
+- ⏸ **NO automatic progression to Phase B** without operator go-ahead
+
+### Future / Backlog (unchanged)
+- **Phase B** · Equipment Checkout end-to-end (~5-7 days · Claude Vision extractor · matching engine · 50-doc pilot · then live-collection activation)
+- Phase C · OSHA Cards
+- Phase D · Reconciliation dashboard polish (HR + Safety portal-scoped views · bulk approve · repair workflows)
+- Phase E · Drag-drop bulk upload
+- Phase F · Remaining 12 document types
+- Phase G · PM-portal intake (deferred · operator decides)
+- 🟡 F2 · Leadership scope filter null-guard
+- 🟢 F4 · Deeper-portal ES sweep
+- 🟢 F5 · Lesson title_es content localization
+- 🔵 F6 · Long legal-page ES
+- 🔵 F7 · Backend observability dashboard
+- 🟡 Perf · edge-cache portal-login pages
+
+🟢 Phase A foundation complete · ready for operator-ack + Save-to-Github + Deploy + 7-day observation.
+
+---
+
+
 ## 2026-05-19 — iter248 · Legacy Operational Records Import & Continuity System · 📐 ARCHITECTURE PROPOSAL ONLY (NO IMPLEMENTATION)
 
 Operator-directed planning + architecture design for the largest operationally-impactful initiative since iter153 (PO Requests). Full architecture proposal: `/app/LEGACY_RECORDS_ARCHITECTURE_iter248.md` (~700 lines · 22 sections).
