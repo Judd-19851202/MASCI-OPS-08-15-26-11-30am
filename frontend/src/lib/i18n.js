@@ -744,6 +744,30 @@ const ES = {
     "— le pedirá confirmar que se notificó a la oficina y que se presentó el Reporte de Incidente antes de poder enviar.",
   // ── End iter241c entries ──
 
+  // iter245 — Request PO workflow refinement (2026-05-19).
+  // Field Leadership submits PO requests using searchable dropdowns for
+  // Active Jobs and the shared Vendor / Subcontractor master list.
+  // (Keys already present elsewhere in this dict — Job, Description,
+  // Urgency, Category, Notes, Estimated amount, Needed by, Your name —
+  // are NOT duplicated here; they resolve via their existing entries.)
+  "Request PO": "Solicitar OC",
+  "PO requested": "OC solicitada",
+  "Could not request PO": "No se pudo solicitar la OC",
+  "Please select a job, choose a vendor, and add a description.":
+    "Seleccione una obra, elija un proveedor y agregue una descripción.",
+  "Select Job": "Seleccionar obra",
+  "Active jobs only · maintained by PM / Admin.":
+    "Solo obras activas · administradas por PM / Admin.",
+  "I don't see this job — contact PM to add it.":
+    "No veo esta obra — contacte al PM para agregarla.",
+  "Vendor / Subcontractor": "Proveedor / Subcontratista",
+  "Search vendors or add a new one…":
+    "Buscar proveedores o agregar uno nuevo…",
+  "Type to search the shared vendor list. New names are added to the master list for everyone.":
+    "Escriba para buscar en la lista compartida de proveedores. Los nombres nuevos se agregan a la lista maestra para todos.",
+  "Supervisor signature": "Firma del supervisor",
+  // ── End iter245 entries ──
+
   // Crew Cheat Sheet
   "Cheat Sheet": "Hoja de Referencia",
   "Crew Cheat Sheet": "Hoja de Referencia de Cuadrilla",

@@ -45,6 +45,8 @@ export function JobPicker({
   projectNumber = "",
   onSelect,
   className = "",
+  allowCustom = true,
+  emptyHint = "",
 }) {
   const [open, setOpen] = useState(false);
   const [library, setLibrary] = useState(STATIC_LIBRARY);
@@ -76,7 +78,9 @@ export function JobPicker({
     ? `${matched.project_name}  ·  #${matched.project_number}`
     : projectName
     ? `${projectName}${projectNumber ? `  ·  #${projectNumber}` : `  ·  ${t("Custom")}`}`
-    : t("Pick a MASCI job — or choose Custom");
+    : allowCustom
+    ? t("Pick a MASCI job — or choose Custom")
+    : t("Select Job");
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -119,8 +123,13 @@ export function JobPicker({
             data-testid="job-picker-search"
           />
           <CommandList className="max-h-[55vh]">
-            <CommandEmpty>{t("No job matches that search.")}</CommandEmpty>
+            <CommandEmpty>
+              {allowCustom
+                ? t("No job matches that search.")
+                : (emptyHint || t("I don't see this job — contact PM to add it."))}
+            </CommandEmpty>
 
+            {allowCustom && (
             <CommandGroup heading={t("Custom")}>
               <CommandItem
                 value="custom job free form not in list"
@@ -147,6 +156,7 @@ export function JobPicker({
                 </div>
               </CommandItem>
             </CommandGroup>
+            )}
 
             <CommandGroup heading={`MASCI Current Jobs · ${library.length}`}>
               {library.map((j) => (

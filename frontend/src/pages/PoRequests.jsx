@@ -32,6 +32,9 @@ import {
 } from "@/components/ui/select";
 import { MasciLogo } from "@/components/MasciLogo";
 import NotificationBell from "@/components/NotificationBell";
+import { JobPicker } from "@/components/JobPicker";
+import { SupplierCombo } from "@/components/SupplierCombo";
+import { useT } from "@/lib/i18n";
 import {
   listPos, poSummary, getPo, submitPo, approvePo, uploadReceipt,
   closePo, cancelPo, respondClarification, downloadPoExportCsv,
@@ -330,8 +333,9 @@ function SummaryTile({ label, value, icon: Icon, accent }) {
 }
 
 function AddDialog({ open, setOpen, onSaved }) {
+  const { t } = useT();
   const empty = {
-    project_number: "", vendor: "", description: "",
+    project_number: "", project_name: "", vendor: "", description: "",
     estimated_amount: "", category: "Materials", urgency: "Normal",
     needed_by_date: "", notes: "", supervisor_signature: "",
   };
@@ -339,34 +343,77 @@ function AddDialog({ open, setOpen, onSaved }) {
   const submit = async (e) => {
     e.preventDefault();
     if (!form.project_number.trim() || !form.vendor.trim() || !form.description.trim()) {
-      toast.error("Project, vendor, and description are required"); return;
+      toast.error(t("Please select a job, choose a vendor, and add a description.")); return;
     }
-    const payload = { ...form,
+    // project_name is local-only (used for picker display) — strip before submit
+    // so the backend PoRequestCreate schema receives only the fields it knows.
+    const { project_name: _pname, ...rest } = form;
+    const payload = { ...rest,
       estimated_amount: parseFloat(form.estimated_amount) || 0 };
     try {
       const r = await submitPo(payload);
-      toast.success(`PO submitted — ${r.id.slice(0, 8)}`);
+      toast.success(`${t("PO requested")} — ${r.id.slice(0, 8)}`);
       onSaved();
       setForm(empty);
-    } catch (e2) { toast.error(friendlyError(e2, "Could not submit PO")); }
+    } catch (e2) { toast.error(friendlyError(e2, t("Could not request PO"))); }
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" className="text-xs" data-testid="po-add-trigger">
-          <Plus className="w-3.5 h-3.5 mr-1" /> Submit PO
+          <Plus className="w-3.5 h-3.5 mr-1" /> {t("Request PO")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg" data-testid="po-add-dialog">
-        <DialogHeader><DialogTitle>Submit PO Request</DialogTitle></DialogHeader>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" data-testid="po-add-dialog">
+        <DialogHeader><DialogTitle>{t("Request PO")}</DialogTitle></DialogHeader>
         <form onSubmit={submit} className="space-y-3">
+          <div>
+            <Label>{t("Job")} *</Label>
+            <JobPicker
+              projectName={form.project_name}
+              projectNumber={form.project_number}
+              allowCustom={false}
+              emptyHint={t("I don't see this job — contact PM to add it.")}
+              onSelect={(job) => {
+                if (job) {
+                  setForm((f) => ({
+                    ...f,
+                    project_number: job.project_number || "",
+                    project_name: job.project_name || "",
+                  }));
+                }
+              }}
+              className="mt-1"
+            />
+            <p className="text-[11px] text-slate-500 mt-1">
+              {t("Active jobs only · maintained by PM / Admin.")}
+            </p>
+          </div>
+          <div>
+            <Label>{t("Vendor / Subcontractor")} *</Label>
+            <SupplierCombo
+              value={form.vendor}
+              onChange={(v) => setForm((f) => ({ ...f, vendor: v }))}
+              onPick={(sup) => setForm((f) => ({ ...f, vendor: sup?.name || f.vendor }))}
+              placeholder={t("Search vendors or add a new one…")}
+              testId="po-add-vendor"
+              className="mt-1"
+            />
+            <p className="text-[11px] text-slate-500 mt-1">
+              {t("Type to search the shared vendor list. New names are added to the master list for everyone.")}
+            </p>
+          </div>
           <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label>Project / Job # *</Label>
-              <Input value={form.project_number} onChange={(e) => setForm({ ...form, project_number: e.target.value })} placeholder="e.g. 24-101" data-testid="po-add-project" />
+            <div className="col-span-2">
+              <Label>{t("Description")} *</Label>
+              <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="po-add-description" />
             </div>
             <div>
-              <Label>Urgency</Label>
+              <Label>{t("Estimated amount")}</Label>
+              <Input type="number" step="0.01" value={form.estimated_amount} onChange={(e) => setForm({ ...form, estimated_amount: e.target.value })} data-testid="po-add-amount" />
+            </div>
+            <div>
+              <Label>{t("Urgency")}</Label>
               <Select value={form.urgency} onValueChange={(v) => setForm({ ...form, urgency: v })}>
                 <SelectTrigger data-testid="po-add-urgency"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -374,20 +421,8 @@ function AddDialog({ open, setOpen, onSaved }) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="col-span-2">
-              <Label>Vendor *</Label>
-              <Input value={form.vendor} onChange={(e) => setForm({ ...form, vendor: e.target.value })} data-testid="po-add-vendor" />
-            </div>
-            <div className="col-span-2">
-              <Label>Description *</Label>
-              <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="po-add-description" />
-            </div>
             <div>
-              <Label>Estimated amount</Label>
-              <Input type="number" step="0.01" value={form.estimated_amount} onChange={(e) => setForm({ ...form, estimated_amount: e.target.value })} data-testid="po-add-amount" />
-            </div>
-            <div>
-              <Label>Category</Label>
+              <Label>{t("Category")}</Label>
               <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
                 <SelectTrigger data-testid="po-add-category"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -396,19 +431,19 @@ function AddDialog({ open, setOpen, onSaved }) {
               </Select>
             </div>
             <div>
-              <Label>Needed by</Label>
+              <Label>{t("Needed by")}</Label>
               <Input type="date" value={form.needed_by_date} onChange={(e) => setForm({ ...form, needed_by_date: e.target.value })} />
             </div>
-            <div>
-              <Label>Supervisor signature</Label>
-              <Input value={form.supervisor_signature} onChange={(e) => setForm({ ...form, supervisor_signature: e.target.value })} placeholder="Your name" />
+            <div className="col-span-2">
+              <Label>{t("Supervisor signature")}</Label>
+              <Input value={form.supervisor_signature} onChange={(e) => setForm({ ...form, supervisor_signature: e.target.value })} placeholder={t("Your name")} />
             </div>
             <div className="col-span-2">
-              <Label>Notes</Label>
+              <Label>{t("Notes")}</Label>
               <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
           </div>
-          <DialogFooter><Button type="submit" data-testid="po-add-submit">Submit</Button></DialogFooter>
+          <DialogFooter><Button type="submit" data-testid="po-add-submit">{t("Request PO")}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

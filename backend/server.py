@@ -3510,96 +3510,13 @@ async def list_jobs_public():
     return {"items": await list_jobs(db, only_active=True)}
 
 
-# ── iter245 · Vendors / Subcontractors master list ──────────────────
-# Centralized vendor list to eliminate the inconsistent-spelling problem
-# in PO requests. Field Leadership reads + appends; PM/Admin read + edit.
-# Auth: any authenticated portal user (Leadership, PM, Safety, HR, Shop,
-# Dispatch, Admin) can list or create. No anonymous access.
-async def _require_any_authenticated_user(
-    x_admin_token: Optional[str] = Header(None),
-    x_pm_token: Optional[str] = Header(None),
-    x_safety_token: Optional[str] = Header(None),
-    x_hr_token: Optional[str] = Header(None),
-    x_shop_token: Optional[str] = Header(None),
-    x_dispatch_token: Optional[str] = Header(None),
-    x_leadership_token: Optional[str] = Header(None),
-) -> Dict[str, Any]:
-    """iter245 — any signed-in portal user (Leadership, PM, Safety, HR,
-    Shop, Dispatch, Admin) can access the vendors list. Anonymous
-    field-form users cannot — the vendors list is only used by the
-    Request PO workflow which already requires Field Leadership auth."""
-    actor: Dict[str, Any] = {}
-    if x_admin_token:
-        if _is_valid_admin_token(x_admin_token):
-            actor = {"role": "admin"}
-    elif x_pm_token:
-        actor = {"role": "pm", "token": "set"}
-    elif x_safety_token:
-        from safety_users import is_valid_safety_user_token  # noqa: PLC0415
-        u = await is_valid_safety_user_token(db, x_safety_token)
-        if u:
-            actor = {"role": "safety", "name": u.get("name"), "user_id": u.get("id")}
-    elif x_hr_token:
-        actor = {"role": "hr", "token": "set"}
-    elif x_shop_token:
-        actor = {"role": "shop", "token": "set"}
-    elif x_dispatch_token:
-        actor = {"role": "dispatch", "token": "set"}
-    elif x_leadership_token:
-        try:
-            from routes.field_leadership import _check_leadership_token  # noqa: PLC0415
-            if _check_leadership_token(x_leadership_token):
-                actor = {"role": "field_leadership"}
-        except Exception:
-            pass
-    if not actor:
-        raise HTTPException(401, "Authentication required")
-    return actor
-
-
-class VendorInRequest(BaseModel):
-    name: str = Field(..., min_length=2, max_length=120)
-    category: Optional[str] = "General"
-    notes: Optional[str] = ""
-
-
-@api_router.get("/vendors")
-async def list_vendors_endpoint(
-    actor=Depends(_require_any_authenticated_user),
-):
-    """List all active vendors, sorted alphabetically. Drives the
-    iter245 Request PO workflow's searchable vendor dropdown."""
-    from vendors_master import list_vendors
-    return {"items": await list_vendors(db, only_active=True)}
-
-
-@api_router.post("/vendors")
-async def create_vendor_endpoint(
-    body: VendorInRequest,
-    actor=Depends(_require_any_authenticated_user),
-):
-    """Append a new vendor. Idempotent: returns existing if name_key
-    already matches. Field Leadership may add inline per iter245."""
-    from vendors_master import create_vendor, VendorIn
-    try:
-        vendor = await create_vendor(
-            db,
-            VendorIn(name=body.name, category=body.category, notes=body.notes),
-            actor=actor,
-            source=(
-                "field_leadership_po_request"
-                if actor.get("role") == "field_leadership"
-                else f"{actor.get('role')}_portal"
-            ),
-        )
-        return vendor
-    except ValueError as e:
-        raise HTTPException(400, str(e))
-    except Exception as e:  # pragma: no cover
-        logger.exception("create_vendor failed: %s", e)
-        raise HTTPException(500, "Could not create vendor")
-
-
+# iter245 · Vendors / Subcontractors master list — RETIRED 2026-05-19.
+# The /api/vendors collection introduced earlier in this iter has been
+# consolidated into the pre-existing /api/suppliers master list used by
+# Daily Reports, Incidents, and QA/QC. Operator directive: ONE
+# operational vendor source platform-wide — no parallel collections.
+# The PO Request workflow now reuses /api/suppliers via SupplierCombo
+# (see frontend/src/components/SupplierCombo.jsx).
 
 
 @api_router.get("/admin/jobs")
@@ -8979,15 +8896,6 @@ async def _seed_field_leadership_equipment_catalog():
 async def _seed_shop_users():
     from shop_users import seed_shop_users
     await seed_shop_users(db)
-
-
-
-@app.on_event("startup")
-async def _ensure_vendors_unique_index():
-    """iter245 — Ensure the vendors `name_key` unique index exists for
-    case-insensitive dedupe at the storage layer."""
-    from vendors_master import ensure_unique_index
-    await ensure_unique_index(db)
 
 
 
