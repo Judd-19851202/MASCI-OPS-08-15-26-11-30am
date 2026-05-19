@@ -2,6 +2,92 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter251 Phase 2 · Driver DVIR UX · ✅ DELIVERED (preview · all retest items PASS · ready for field use)
+
+Phase 2 of the fleet operations workstream · operator-approved tile placement (a) · inherits all existing MASCI platform conventions verbatim · zero new design language.
+
+### What shipped (driver-facing surface · /fleet/dvir/new + /fleet/dvir/submitted/:id)
+
+**New page · NewFleetDVIR.jsx** (mobile-first DVIR form · ~480 lines after server-SOT refactor)
+- Inherits `<Section>`, `<ChecklistRow>`, `<HelpTip>`, `<SignaturePad>`, `<PhotoUpload>`, `<LangToggle>`, `MasciLogo`, `blueprint-bg`, `caution-stripe` · zero new design primitives
+- 4 sections matching `NewEquipmentInspection.jsx` layout: 01 Driver & Truck · 02 Truck Walk-Around · 03 Trailer Walk-Around (optional · repeating) · 04 Sign & Submit
+- PASS / FAIL / N/A buttons · large tap targets (h-11 sm:h-12) · emerald / amber / slate (NOT red — operator philosophy)
+- Per-FAIL row reveals: defect note input (10+ char validation) + PhotoUpload + "Why this matters" HelpTip
+- Severity rationale pulled VERBATIM from server `/api/fleet/_meta.severity_by_item` · no client-side drift surface · operator-approved rulings flow straight to the driver
+- Truck dropdown · trailer dropdown · add/remove trailers · auto-fill plate/VIN from unit master
+- Bilingual EN↔ES via `useT()` · ~70 new translation strings appended to `lib/i18n.js`
+- Offline / bad-signal tolerance: pre-fetch + sessionStorage cache · 3-attempt exponential retry on submit · online/offline indicator pill in header
+- Severity table version pill in form footer (read from `/api/fleet/_meta.severity_table_version`)
+
+**New page · FleetDVIRConfirmation.jsx** (calm outcome page · ~210 lines)
+- 3 outcomes · zero compliance-theater language:
+  - 🟢 emerald · "All Clear · Ready to Roll" (no defects)
+  - 🟡 amber · "Defect Logged · Truck Still Available" (Monitor only)
+  - 🔴 red-700 · "Out of Service · Repair required before return to service" (any OOS)
+- 4 summary chips (Truck · Defects · Status · Driver)
+- "Logged for Shop" itemized list with quoted driver note
+- "What happens next" HelpTip (auto-open) explains role of Shop / Dispatch in plain language
+- 3 CTAs: Start another DVIR · Back to Field · Home
+- Reads from React Router state · no new auth surface · no public read endpoint added
+
+**Modified · FieldSection.jsx** · added 4th tile "Trucking · Daily DVIR" next to Daily Reports / Equipment Pre-Op / Material Calculators (amber accent · operator-approved placement)
+
+**Modified · App.js** · 3 new routes: `/fleet/dvir/new` · `/fleet/dvir/submit` (alias) · `/fleet/dvir/submitted/:id`
+
+**Backend enhancement · routes/fleet_ops.py** · `/api/fleet/_meta` now returns `severity_by_item` map (107 entries · severity + category + rationale + regulation_ref) so the driver UX always mirrors the v1-approved-2026-05-19 table verbatim. Single source of truth · zero drift surface.
+
+### Verified by testing agent (iter252 retest cycle)
+
+✅ **HIGH bug closed** · duplicate-key React warnings: 0 (was 1682 in iter251)
+   - Fix: `truckSelectable` + `trailerSelectable` filter out blank unit_numbers · `<option>` key uses `u.id || u.unit_number`
+✅ **Server-driven rationale verified** · "Why this matters" panel shows operator-approved text VERBATIM (e.g. ruling #1 power steering rationale "Active drip / fluid below MIN / abnormal effort / pump whine = imminent steering loss · OOS. (Ruling #1 · 2026-05-19)") + regulation_ref ("49 CFR § 393.209 · CVSA OOS criteria")
+✅ **Severity table version pill** · renders `v1-approved-2026-05-19` (data-testid `dvir-severity-version`)
+✅ **107-entry severity_by_item map** validated via curl
+✅ All previously passing items still green: 4 form sections render · PASS/FAIL/NA functional · validation blocks empty submits · all 3 outcomes 🟢🟡🔴 on confirmation · bilingual EN↔ES with zero English leakage · /field tile renders · mobile 414×900 + tablet 768×1024 layouts clean · calm tone preserved
+
+### Cultural compliance (per operator brief)
+✅ Native to MASCI Operations Platform · uses all existing components · zero invented Fleet-specific behavior
+✅ Driver-respectful · calm · operational · NOT punitive
+✅ NO scary compliance tone · NO "FAILED · NONCOMPLIANT · VIOLATION" language anywhere
+✅ Coaching-oriented HelpTips · short · collapsible
+✅ Severity calculated server-side · driver only picks PASS / FAIL / N/A
+✅ Mobile-first guarantees: ≥ 44px tap targets · no horizontal overflow · readable on phones/tablets in sunlight + gloves
+✅ Translation continuity · ~70 new EN↔ES pairs · zero English leakage in ES mode
+
+### Files touched (Phase 2 inventory)
+- NEW · `frontend/src/pages/NewFleetDVIR.jsx` (~480 lines after SOT refactor)
+- NEW · `frontend/src/pages/FleetDVIRConfirmation.jsx` (~210 lines)
+- MOD · `frontend/src/pages/FieldSection.jsx` (added 4th DVIR tile + Truck icon import)
+- MOD · `frontend/src/App.js` (3 new routes + 2 imports)
+- MOD · `frontend/src/lib/i18n.js` (~70 new EN→ES translation entries for DVIR strings)
+- MOD · `backend/routes/fleet_ops.py` (added `severity_by_item` to `/api/fleet/_meta`)
+
+### Test coverage status
+- iter251 Phase 1 severity governance tests · 70/70 still pass (no regression from Phase 2)
+- iter251 Phase 2 frontend retest · 100% pass · 0 critical · 1 LOW cosmetic console noise (VisualEdit dev-tooling injection · not application source)
+- Cumulative: 117/117 pytest still green across iter248+iter249+iter250+iter251
+
+### Phase discipline (held line)
+- ✅ Phase 2 = Driver UX ONLY — built only `/fleet/dvir/new` + confirmation + tile + `/api/fleet/_meta` enhancement
+- ⏸ Phase 3 = Dispatch / Shop / Safety visibility (NOT BUILT)
+- ⏸ Phase 4 = Repair lifecycle hardening (NOT BUILT)
+- ⏸ Phase 5 = Weekly Lead / Weekly Emergency UX (NOT BUILT)
+- ⏸ Phase 6 = Motive / MaintainX integration (NOT BUILT · external_refs stubs already present)
+
+### Next Action Items
+- ⏸ Operator review of the Phase 2 driver experience on production preview · verify tone + mobile flow + ES translation continuity
+- ⏸ Begin **Phase 3 · Dispatch / Shop / Safety visibility** (role-scoped views · operational clarity only · no dashboard bloat)
+- ⏸ Save to GitHub → Deploy mascidocs.com (Phase 2 is anon-public · drivers can hit `/fleet/dvir/new` directly · ready for first field-use)
+
+### Future / Backlog (unchanged)
+- iter249 Phase B Equipment Checkout pilot real-paperwork batch (HR/Safety · independent)
+- iter250 Subcontractor photos field test
+- Phase K4b · K5 · Stage B.1 · F6 ES privacy fix · iter153 test-fragility decoupling
+
+🔒 iter251 Phase 2 Driver DVIR UX **COMPLETE** · native to MASCI · operator philosophy honored verbatim · server-SOT for severity rationale · 0 critical bugs · ready for field deployment behind Safety sign-off.
+
+---
+
 ## 2026-05-19 — iter251 Phase 1 · Severity Table v1-APPROVED · 9 uncertain items resolved · ✅ DELIVERED (preview only · governance gate cleared)
 
 Operator-ruled Phase 1 severity finalization. All 9 uncertain items resolved with operator-approved tiered logic. **Audit verdict flipped: `NEEDS_REVIEW` → `READY_FOR_SAFETY_SIGNOFF`**. Phase 2 (Driver DVIR UX) is now unblocked.
