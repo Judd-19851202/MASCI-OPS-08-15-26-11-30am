@@ -461,24 +461,30 @@ def test_defect_lifecycle_state_machine(admin_token):
         )
         assert r.status_code == 200, r.text[:300]
 
-        # Truck should NOT yet be cleared back to available (Dispatch
-        # still needs to clear)
+        # Phase 4 · Truck must NOT yet be cleared back to "available".
+        # Dispatch still needs to confirm Return-to-Service. The interim
+        # state is "repair_in_progress" (awaiting RTS).
         async def _status_after_repair():
             db = _db()
             return await db.fleet_status.find_one({"unit_number": truck}, {"_id": 0})
         st = asyncio.run(_status_after_repair())
-        assert st["status"] == "available", (
-            "after repair, the unit can roll again since no OOS defect "
-            "is in open/acknowledged status anymore"
+        assert st["status"] == "repair_in_progress", (
+            "after repair (Phase 4), unit awaits Dispatch RTS confirmation"
         )
 
-        # Clear (dispatch action)
+        # Clear (dispatch RTS confirmation)
         r = requests.post(
             f"{URL}/api/dispatch/fleet/defects/{defect_id}/clear",
             json={"actor_name": "Dispatch Mike"},
             headers=H_ADMIN, timeout=15,
         )
         assert r.status_code == 200, r.text[:300]
+
+        # After RTS, unit returns to "available"
+        st2 = asyncio.run(_status_after_repair())
+        assert st2["status"] == "available", (
+            "after Dispatch RTS, unit is back to available"
+        )
 
         # Final defect doc has full lifecycle stamped
         async def _final_defect():

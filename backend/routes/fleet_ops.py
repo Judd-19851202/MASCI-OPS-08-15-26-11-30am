@@ -233,11 +233,19 @@ async def _rebuild_status(db, unit_number: str) -> Dict[str, Any]:
         "status": {"$in": ["open", "acknowledged"]},
         "severity": _sev.SEVERITY_MONITOR,
     })
+    # Phase 4 · "repair in progress" = shop has acknowledged or marked
+    # repaired but dispatch has not yet confirmed Return-to-Service.
+    in_progress = await db.fleet_defects.count_documents({
+        **defect_q,
+        "status": {"$in": ["acknowledged", "repaired"]},
+    })
 
     if open_oos > 0:
         status = "oos"
     elif open_monitor > 0:
         status = "defect_open"
+    elif in_progress > 0:
+        status = "repair_in_progress"
     else:
         status = "available"
 
@@ -292,6 +300,7 @@ def build_router(
     require_shop_or_admin,
     require_safety_or_admin,
     require_admin_strict,
+    require_any_fleet_portal=None,
 ) -> APIRouter:
     """All RBAC dependencies are injected · keeps this module free of
     server.py auth coupling. Phase B (driver UX) and Phase C (dashboards)
@@ -708,6 +717,12 @@ def build_router(
             db, actor=payload.actor_name, actor_role="shop",
             action="defect_acknowledged",
             target_type="fleet_defect", target_id=defect_id,
+            payload={
+                "status_before": "open",
+                "status_after": "acknowledged",
+                "unit_number": defect.get("truck_unit_number") or defect.get("trailer_unit_number"),
+                "checklist_item": defect.get("item_text"),
+            },
         )
         return {"ok": True}
 
@@ -741,8 +756,14 @@ def build_router(
             db, actor=payload.actor_name, actor_role="shop",
             action="defect_repaired",
             target_type="fleet_defect", target_id=defect_id,
-            payload={"repair_notes": payload.notes,
-                     "photo_count": len(payload.photos)},
+            payload={
+                "status_before": defect.get("status"),
+                "status_after": "repaired",
+                "unit_number": defect.get("truck_unit_number") or defect.get("trailer_unit_number"),
+                "checklist_item": defect.get("item_text"),
+                "repair_notes": payload.notes,
+                "photo_count": len(payload.photos),
+            },
         )
         # Status rebuild for the affected unit
         unit_to_rebuild = defect.get("trailer_unit_number") or defect.get("truck_unit_number")
@@ -781,6 +802,14 @@ def build_router(
             db, actor=payload.actor_name, actor_role="dispatch",
             action="defect_cleared",
             target_type="fleet_defect", target_id=defect_id,
+            payload={
+                "status_before": "repaired",
+                "status_after": "cleared",
+                "unit_number": defect.get("truck_unit_number") or defect.get("trailer_unit_number"),
+                "checklist_item": defect.get("item_text"),
+                "rts_note": payload.notes or "",
+                "rts_label": "returned_to_service",
+            },
         )
         unit_to_rebuild = defect.get("trailer_unit_number") or defect.get("truck_unit_number")
         if unit_to_rebuild:
@@ -856,6 +885,54 @@ def build_router(
         if not doc:
             raise HTTPException(404, "defect not found")
         return doc
+
+    # ─── Phase 4 · Defect detail + audit trail (multi-portal read) ──
+    @router.get("/api/fleet/defects/{defect_id}/detail")
+    async def get_defect_detail(
+        defect_id: str,
+        _actor=Depends(require_any_fleet_portal or require_dispatch_or_admin),
+    ):
+        """Phase 4 · operational repair trail · readable by Shop /
+        Dispatch / Safety / Admin. Returns the defect projected into
+        the Phase 3 spec contract PLUS the full append-only audit trail
+        for that defect.
+        """
+        d = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+        if not d:
+            raise HTTPException(404, "defect not found")
+        item_text = d.get("item_text") or ""
+        meta = _sev.FLEET_DEFECT_SEVERITY_META.get(item_text) or {}
+        projected = {
+            "defect_id": d.get("id"),
+            "doc_id": d.get("doc_id") or "",
+            "inspection_id": d.get("inspection_id"),
+            "inspection_kind": d.get("inspection_kind"),
+            "truck_unit_number": d.get("truck_unit_number") or "",
+            "trailer_unit_number": d.get("trailer_unit_number") or "",
+            "checklist_item": item_text,
+            "category": d.get("category"),
+            "severity": d.get("severity"),
+            "status": d.get("status"),
+            "driver_note": d.get("note") or "",
+            "photos": d.get("photos") or [],
+            "reported_by_driver_name": d.get("reported_by_name") or "",
+            "reported_at": d.get("reported_at"),
+            "regulation_ref": meta.get("regulation_ref") or "",
+            "rationale": meta.get("rationale") or "",
+            "acknowledged_at": d.get("acknowledged_at"),
+            "acknowledged_by_name": d.get("acknowledged_by_name"),
+            "repaired_at": d.get("repaired_at"),
+            "repaired_by_name": d.get("repaired_by_name"),
+            "repair_notes": d.get("repair_notes") or "",
+            "repair_photos": d.get("repair_photos") or [],
+            "cleared_at": d.get("cleared_at"),
+            "cleared_by_name": d.get("cleared_by_name"),
+        }
+        audit_cursor = db.fleet_audit.find(
+            {"target_id": defect_id, "target_type": "fleet_defect"}, {"_id": 0}
+        ).sort([("timestamp", 1)])
+        audit = await audit_cursor.to_list(None)
+        return {"defect": projected, "audit": audit}
 
     # ─── Admin migration helper · backfill `kind` on existing rows ──
     @router.post("/api/admin/fleet/migrate-kind-field")
@@ -1164,17 +1241,20 @@ def build_router(
     # ─── Phase 3 · Shop fleet queue · grouped BY UNIT (not chronological)
     @router.get("/api/shop/fleet/by-unit")
     async def shop_defects_grouped_by_unit(
-        _actor=Depends(require_shop_or_admin),
+        _actor=Depends(require_any_fleet_portal or require_shop_or_admin),
     ):
         """Phase 3 operator-strongly-approved view: shop sees defects
         grouped by truck/unit (one card per truck · all open defects
         collapsed inside · driver note thumbprint surfaced).
 
-        Reduces context-switching for mechanics who naturally work
-        truck-by-truck.
+        Phase 4 · readable by Shop / Dispatch / Safety / Admin so all
+        three scopes can see the same operational picture (Shop to act
+        on repairs, Dispatch to clear RTS, Safety to read the audit
+        trail). Path retained at /api/shop/fleet/by-unit for backward
+        compat with the existing frontend wiring.
         """
         cursor = db.fleet_defects.find(
-            {"status": {"$in": ["open", "acknowledged"]}}, {"_id": 0}
+            {"status": {"$in": ["open", "acknowledged", "repaired"]}}, {"_id": 0}
         ).sort([("severity", 1), ("reported_at", 1)])
         defects = await cursor.to_list(None)
 
@@ -1187,6 +1267,7 @@ def build_router(
                                    and not d.get("truck_unit_number")),
                 "open_oos_count": 0,
                 "open_monitor_count": 0,
+                "awaiting_rts_count": 0,
                 "latest_inspection_at": None,
                 "latest_driver_name": None,
                 # Enrichment placeholders · populated below from
@@ -1219,9 +1300,19 @@ def build_router(
                 "rationale": meta.get("rationale") or "",
                 "truck_unit_number": d.get("truck_unit_number") or "",
                 "trailer_unit_number": d.get("trailer_unit_number") or "",
+                # Phase 4 · repair lifecycle visible alongside the defect
+                "acknowledged_at": d.get("acknowledged_at"),
+                "acknowledged_by_name": d.get("acknowledged_by_name"),
+                "repaired_at": d.get("repaired_at"),
+                "repaired_by_name": d.get("repaired_by_name"),
+                "repair_notes": d.get("repair_notes") or "",
+                "repair_photos": d.get("repair_photos") or [],
             }
             grp["defects"].append(projected)
-            if d.get("severity") == _sev.SEVERITY_OOS:
+            d_status = d.get("status")
+            if d_status == "repaired":
+                grp["awaiting_rts_count"] += 1
+            elif d.get("severity") == _sev.SEVERITY_OOS:
                 grp["open_oos_count"] += 1
             else:
                 grp["open_monitor_count"] += 1
@@ -1254,9 +1345,10 @@ def build_router(
                     by_unit[u]["year"] = udoc.get("year")
 
         groups = list(by_unit.values())
-        # Order: OOS-bearing units first · then by oldest defect age
+        # Order: OOS-bearing units first · then awaiting-RTS · then by
+        # oldest defect age (Phase 4 · ops actionability).
         groups.sort(key=lambda g: (
-            0 if g["open_oos_count"] > 0 else 1,
+            0 if g["open_oos_count"] > 0 else (1 if g["awaiting_rts_count"] > 0 else 2),
             g["latest_inspection_at"] or "9999",
         ))
         return {

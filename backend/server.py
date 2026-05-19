@@ -10194,6 +10194,42 @@ async def _require_shop_or_admin_fleet(
     raise HTTPException(401, "Shop or Admin auth required")
 
 
+# Phase 4 · multi-portal READ gate. Any of admin / shop / dispatch /
+# safety satisfies — used for defect detail + audit-trail reads where
+# the operator wants all three operational scopes (Shop, Dispatch,
+# Safety) to see the same record.
+async def _require_any_fleet_portal(
+    request: Request,
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+    x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+    x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+) -> Dict[str, Any]:
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"role": "admin"}
+    if x_shop_token:
+        shop_pw = os.environ.get("SHOP_PASSWORD", "")
+        if shop_pw and x_shop_token == _shop_token_for(shop_pw):
+            return {"role": "shop"}
+    if x_dispatch_token:
+        try:
+            from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
+            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+            if u:
+                return {"role": "dispatch", **u}
+        except Exception:
+            pass
+    if x_safety_token:
+        try:
+            from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
+            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            if u:
+                return {"role": "safety", **u}
+        except Exception:
+            pass
+    raise HTTPException(401, "Shop, Dispatch, Safety, or Admin auth required")
+
+
 @app.on_event("startup")
 async def _fleet_ensure_indexes():
     """Index fleet collections at boot · idempotent."""
@@ -10221,6 +10257,7 @@ _fleet_router = _fleet_build_router(
     require_shop_or_admin=_require_shop_or_admin_fleet,
     require_safety_or_admin=_require_safety_or_admin_fleet,
     require_admin_strict=require_admin_strict,
+    require_any_fleet_portal=_require_any_fleet_portal,
 )
 app.include_router(_fleet_router)
 logging.getLogger(__name__).info("[fleet-ops] iter251 Phase A router mounted · backend-only foundation")

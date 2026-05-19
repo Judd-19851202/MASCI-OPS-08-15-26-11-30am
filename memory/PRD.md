@@ -2,6 +2,69 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 PM/5 — iter251 Phase 4 · Repair Lifecycle · COMPLETE (88/88 fleet tests · ES/EN verified)
+
+Operator-bounded Phase 4 delivered. Defect now flows cleanly from driver submission → Shop acknowledged/repaired → Dispatch Return-to-Service. Calm, native MASCI tone. No CMMS bloat. No KPI theater. No Motive/MaintainX integration. Mobile-first. Bilingual EN/ES end-to-end.
+
+### Status state-machine (Phase 4 finalised)
+```
+open ─[Shop ack]─▶ acknowledged ─[Shop repair]─▶ repaired ─[Dispatch RTS]─▶ cleared
+                                                      └──── fleet_status: repair_in_progress
+                                                                              ↓ (after RTS)
+                                                                          available
+```
+
+### Backend deliveries · `routes/fleet_ops.py`
+- `_rebuild_status` extended with `repair_in_progress` (when any defect in `acknowledged|repaired` and no open OOS).
+- `/api/shop/fleet/by-unit` query expanded to `status ∈ (open, acknowledged, repaired)`; multi-portal gate (admin OR shop OR dispatch OR safety).
+- Group response carries `awaiting_rts_count` + projected `repaired_*` fields per defect.
+- Group ordering: OOS-bearing → awaiting-RTS → monitor.
+- Audit payloads on `defect_acknowledged` / `defect_repaired` / `defect_cleared` now embed `status_before`, `status_after`, `unit_number`, `checklist_item`, plus repair / RTS notes.
+- NEW `GET /api/fleet/defects/{id}/detail` · multi-portal · projected defect + chronological audit trail.
+
+### Frontend deliveries
+- NEW `components/FleetRepairDrawer.jsx` — `<RepairDrawer>` (Shop) and `<RtsDrawer>` (Dispatch) sharing a mobile-first `<ModalShell>`. RTS requires an intentional "I confirm this unit is safe to return to service" checkbox.
+- `pages/FleetVisibility.jsx` — Awaiting-RTS KPI chip, per-defect `<DefectStatusPill>`, inline emerald "Shop repair logged" strip on repaired defects, per-defect action row by scope (Mark Repaired / Return to Service / View audit trail), `<AuditTrailPanel>` for Safety scope (lazy-loaded from `/detail`).
+
+### Tone / culture preserved
+- No FAIL banners. No scary OOS red walls. No KPI dashboards. No mechanic scorecards.
+- Driver Note thumbprint preserved across Shop/Dispatch/Safety scopes.
+- Bilingual continuity: 30+ new ES translations added (Phase 4 block in `i18n.js`).
+
+### Test coverage
+- iter251 Phase 4: **4/4** (`test_iter251_phase4_repair_lifecycle.py`)
+- iter251 Phase 3: 12/12
+- iter251 Foundation + Severity v1 + Severity audit: 72/72
+- **Cumulative fleet: 88/88 green**
+
+### Hard boundaries respected (per operator)
+- 🚫 No CMMS · no parts inventory · no mechanic timecards
+- 🚫 No Motive · no MaintainX · no signed public RTS receipt links
+- 🚫 No KPI dashboards · no scoreboards · no analytics theater
+- ✅ Repair drawer · ✅ RTS confirmation · ✅ Dispatch visibility · ✅ Safety governance read · ✅ Audit trail
+
+### Files touched
+- MOD · `backend/routes/fleet_ops.py` (~120 lines · new endpoint + audit payloads + projection)
+- MOD · `backend/server.py` (~30 lines · new multi-portal gate)
+- NEW · `frontend/src/components/FleetRepairDrawer.jsx` (~340 lines)
+- MOD · `frontend/src/pages/FleetVisibility.jsx` (~200 lines)
+- MOD · `frontend/src/lib/i18n.js` (~30 new ES entries)
+- MOD · `backend/tests/test_iter251_fleet_ops_foundation.py` (state-machine assertion)
+- NEW · `backend/tests/test_iter251_phase4_repair_lifecycle.py` (4 tests)
+
+### Phase discipline (held)
+- ✅ Phase 1 v1.3 · severity table
+- ✅ Phase 2 v1.3 · driver UX
+- ✅ Phase 3 · Dispatch / Shop / Safety visibility
+- ✅ Phase 4 · Repair Lifecycle
+- ⏸ Phase 5 · Weekly / Emergency forms (next, on operator approval)
+- ⏸ Phase 6 · Motive + MaintainX integration
+
+🔒 iter251 Phase 4 **CLOSED** · awaiting operator approval for Phase 5.
+
+---
+
+
 ## 2026-05-19 PM/4 — iter251 Phase 3 · Fleet Visibility · P0 fix delivered (test report iter255 resolved · 12/12 phase3 tests green · 72/72 cumulative fleet tests green)
 
 Acted on the iter255 testing-agent report. Four of the seven flagged issues were stale (App.js routes, hub links, and both auth gates were already correctly wired — verified by direct curl from external ingress). The one real regression was a backend/frontend field-name contract drift in `/api/shop/fleet/by-unit`.
