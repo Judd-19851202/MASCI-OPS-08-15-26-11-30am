@@ -196,60 +196,21 @@ export default function NewFleetDVIR() {
   };
 
   const truckSelectable = useMemo(
-    () => units.filter((u) => u.unit_type === "truck"),
+    () => units.filter((u) => u.unit_type === "truck" && (u.unit_number || "").trim()),
     [units]
   );
   const trailerSelectable = useMemo(
-    () => units.filter((u) => u.unit_type === "trailer"),
+    () => units.filter((u) => u.unit_type === "trailer" && (u.unit_number || "").trim()),
     [units]
   );
 
-  // ─── Severity lookup (lite client-side hint · server is the SOT) ─
-  // Meta endpoint exposes severity_table_version + categories · per-item
-  // severity is not in meta payload (would bloat). Use a small inline
-  // map driven by the FAIL→hint surface. If unavailable, just collapse
-  // the helptip (server still classifies correctly).
-  const severityHintFor = (item) => {
-    // Server stays the source of truth · we use a lightweight rule
-    // for the helptip body only: if item text contains certain
-    // operational tokens, hint OOS; otherwise hint Monitor.
-    // The actual OOS decision happens server-side at submit time.
-    const oosTokens = [
-      "Service brakes", "Parking brake", "Trailer air brakes",
-      "Brake chamber", "Brake hoses", "Brake warning",
-      "Steer tire", "Drive / trailer tire",
-      "Tire — no exposed", "Tire — no severe", "Tire — properly inflated",
-      "Tire — no audible",
-      "Wheel — all lug nuts", "Wheel rim", "Wheel — no oil",
-      "Steering wheel free play", "Steering linkage",
-      "Power steering — fluid",
-      "Headlights — low beam", "Headlights — both low-beams",
-      "Brake lights", "Tail lights",
-      "Turn signals", "4-way hazard",
-      "Strobes / beacons — all flash patterns operational (work-zone",
-      "Strobes / beacons — at least one operational",
-      "Backup alarm", "Raised-bed alarm", "Horn",
-      "Mirrors — both sides", "Windshield — no cracks",
-      "Driver-side wiper", "Passenger-side wiper — sweeps cleanly when rain",
-      "Suspension", "Frame", "Body — no frame",
-      "Air pressure", "Air system", "Airlines", "Low air warning",
-      "Fifth wheel", "Safety chains", "Pintle hook",
-      "Hydraulic system — no active drip", "Hydraulic — bed raise",
-      "Engine oil", "Coolant", "Fuel — no leaks",
-      "Seat belt", "Defroster", "Oil pressure & coolant",
-      "Fire extinguisher — present", "Reflective triangles — 3 present",
-      "Trailer tire", "Trailer brake lights", "Trailer tail lights",
-      "Trailer turn signals", "Trailer service brakes",
-      "Trailer brake hoses", "Trailer coupler", "Trailer safety chains",
-      "Landing gear — cranks freely",
-      "Tarp system — deploys + retracts · no tear",
-      "Trailer hydraulic", "Trailer frame", "Trailer cross members",
-      "Trailer floor", "Trailer headboard",
-    ];
-    return oosTokens.some((tok) => item.startsWith(tok) || item.includes(tok))
-      ? "oos"
-      : "monitor";
-  };
+  // ─── Severity lookup · server SOT via /api/fleet/_meta ──────────
+  // The server returns severity_by_item: {item_text: {severity, category,
+  // rationale, regulation_ref}} so the "Why this matters" panel always
+  // mirrors the v1-approved-2026-05-19 table verbatim. No client-side
+  // drift surface · no string-includes heuristic.
+  const severityByItem = meta?.severity_by_item || {};
+  const severityHintFor = (item) => severityByItem[item] || null;
 
   // ─── Validation ─────────────────────────────────────────────────
   const failedItems = useMemo(() => {
@@ -545,7 +506,7 @@ export default function NewFleetDVIR() {
             >
               <option value="">{t("— Pick your truck —")}</option>
               {truckSelectable.map((u) => (
-                <option key={u.unit_number} value={u.unit_number}>
+                <option key={u.id || u.unit_number} value={u.unit_number}>
                   {u.unit_number} — {u.make_model || u.category}
                 </option>
               ))}
@@ -640,7 +601,7 @@ export default function NewFleetDVIR() {
                     >
                       <option value="">{t("— Pick trailer —")}</option>
                       {trailerSelectable.map((u) => (
-                        <option key={u.unit_number} value={u.unit_number}>
+                        <option key={u.id || u.unit_number} value={u.unit_number}>
                           {u.unit_number} — {u.make_model || u.category}
                         </option>
                       ))}
@@ -782,13 +743,14 @@ function DVIRItem({ item, value, onChange, detail, onDetailNote, onDetailPhotos,
           />
           <div className="pt-1">
             <SeverityRationale
-              severity={severityHint}
+              severity={severityHint?.severity}
               rationale={
-                severityHint === "oos"
+                severityHint?.rationale ||
+                (severityHint?.severity === "oos"
                   ? t("Safety-critical for road operation or worker protection. Shop will be notified and the truck will be tagged Out of Service for this defect.")
-                  : t("Shop will see this on their queue and schedule a repair window. Truck stays available.")
+                  : t("Shop will see this on their queue and schedule a repair window. Truck stays available."))
               }
-              regulationRef={null}
+              regulationRef={severityHint?.regulation_ref}
               t={t}
             />
           </div>

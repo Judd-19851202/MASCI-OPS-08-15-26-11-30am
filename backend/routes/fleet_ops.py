@@ -312,6 +312,18 @@ def build_router(
                 "trailer_items": (defn["trailer_items"]() if defn["trailer_items"] else None),
                 "allows_trailers": defn["allows_trailers"],
             }
+        # iter251 Phase 2 · per-item severity map so the driver UX can render
+        # the correct "Why this matters" rationale at FAIL time without a
+        # drift-prone client-side lookup table. Server is the SOT.
+        severity_by_item: Dict[str, Dict[str, Any]] = {}
+        for item, (sev, cat) in _sev.FLEET_DEFECT_SEVERITY.items():
+            meta = _sev.FLEET_DEFECT_SEVERITY_META.get(item) or {}
+            severity_by_item[item] = {
+                "severity": sev,
+                "category": cat,
+                "rationale": meta.get("rationale", ""),
+                "regulation_ref": meta.get("regulation_ref", ""),
+            }
         return {
             "phase": "A",
             "kinds": kinds,
@@ -319,6 +331,7 @@ def build_router(
             "severity_table_approval": _sev.SEVERITY_TABLE_APPROVAL,
             "severity_categories": sorted({c for (_s, c) in
                                             _sev.FLEET_DEFECT_SEVERITY.values()}),
+            "severity_by_item": severity_by_item,
             "fleet_unit_categories": [
                 "Dump Trucks", "Tractor Trailer Trucks", "Service Trucks",
                 "Pickup Trucks", "Flatbed Trucks", "Water Trucks",

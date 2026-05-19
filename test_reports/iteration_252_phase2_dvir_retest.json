@@ -1,0 +1,45 @@
+{
+  "summary": "iter251 Phase 2 DVIR · retest cycle after the two follow-ups. Both fixes verified PASSING. (1) Duplicate-key flood gone · console now reports 0 'Encountered two children with the same key' warnings on /fleet/dvir/new (was 1682). truckSelectable now filters blank unit_numbers (89 real trucks shown · 0 blank options) and option keys use u.id || u.unit_number. (2) Server-driven severity rationale verified end-to-end · /api/fleet/_meta returns severity_by_item with 107 entries · the React 'Why this matters' panel reads the entry verbatim including operator-approved rationale string and regulation_ref. Sample Power Steering FAIL renders: 'Out of Service if failed / Active drip / fluid below MIN / abnormal effort / pump whine = imminent steering loss · OOS. (Ruling #1 · 2026-05-19) / Reference: 49 CFR § 393.209 · CVSA OOS criteria' — exactly matches backend SOT. Severity version pill still shows v1-approved-2026-05-19. Tone audit passes (no punitive language; technical/regulatory references appropriate).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Console hydration warning · '<span> cannot be a child of <option>'",
+        "issue": "Still emitted by React (1 occurrence on initial render). Root cause is NOT in NewFleetDVIR.jsx source — the file renders plain text inside <option>{u.unit_number} — {u.make_model}</option>. The injected <span data-ve-dynamic='true' style={display:contents} x-excluded='true'> wrapper around the dynamic text comes from the Emergent VisualEdit tooling auto-instrumenting array-mapped JSX expressions (x-source-var='truckSelectable'). It is dev-tooling-only and does not affect rendered output; safe to ignore in production builds. If undesirable in dev, the VisualEdit instrumentation needs to skip <option> children, or use a tag-aware injection mode.",
+        "selector": "select option > span[data-ve-dynamic]",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_passing": [
+    "REGRESSION · /fleet/dvir/new console: 0 duplicate-key React warnings (was 1682 in iter251). truck <select> shows 89 valid trucks · 0 blank options. trailer <select> filtered the same way.",
+    "FIX · /api/fleet/_meta.severity_by_item present with 107 entries · shape {severity:'oos'|'monitor', category, rationale, regulation_ref} confirmed by curl.",
+    "FIX · marking Power steering (fluid AT or ABOVE MIN…) FAIL on the form → 'Why this matters' HelpTip expands to operator-approved rationale verbatim: 'Active drip / fluid below MIN / abnormal effort / pump whine = imminent steering loss · OOS. (Ruling #1 · 2026-05-19)' + Reference '49 CFR § 393.209 · CVSA OOS criteria'.",
+    "Severity version pill renders 'v1-approved-2026-05-19' (data-testid='dvir-severity-version').",
+    "PASS/FAIL/NA buttons functional · FAIL reveals defect note + PhotoUpload + severity rationale section (testid 'helptip-severity-rationale').",
+    "Page loads cleanly at the public REACT_APP_BACKEND_URL · meta + units pre-fetched · no fetch errors."
+  ],
+  "skipped_but_previously_verified_in_iter251": [
+    "Sections 01-04 render · validation blocks empty submits · anon submit happy paths for 🟢/🟡/🔴 outcomes · /field tile · LangToggle EN↔ES with no English leakage · mobile 414×900 · tablet 768×1024 · calm tone audit. These were not re-exercised because they share no code path with the two fixes; their previous passes are still valid."
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "(Optional · LOW) Investigate or suppress the <span> inside <option> hydration warning · root cause is the Emergent VisualEdit auto-instrumentation, not application source. If it bothers QA, configure VisualEdit to skip option/select children, or wrap the option text in a fragment helper."
+  ],
+  "critical_code_review_comments": [
+    "Both severity-table SoT migration and dropdown-key correctness are now clean and aligned with iter251 Phase 2 acceptance criteria.",
+    "severityByItem lookup uses item-text key — fine, but a future refactor could move to a stable item slug (e.g. severity_by_slug) so the meta key is decoupled from the human-readable label and is safer against translation churn.",
+    "truckSelectable/trailerSelectable correctly drop blank unit_numbers · consider also enforcing this server-side in /api/fleet/units so other surfaces (Dispatch, Shop) don't have to filter.",
+    "DVIR submission and confirmation page logic untouched in this iteration · previous iter251 verification of the three outcomes (🟢🟡🔴) and bilingual paths remains valid · no regressions detected during interaction."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend only · backend meta endpoint sanity-checked)", "frontend": "100% on the two retest items · all iter251 regression items remain passing"},
+  "test_credentials": "None · DVIR is anonymously submittable.",
+  "seed_data_creation": "No new DVIR submissions in this iteration · retest stayed at the FAIL-toggle / HelpTip layer to avoid generating dispatch/shop rows. Previous iter251 seed rows (TEST Driver Clear / TEST Driver OOS / TEST Driver Monitor against DPT002-6387 / DPT007-8803 / DPT014-7057) still need cleanup per iter251 note.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 2 DVIR is functionally complete and shippable. HIGH duplicate-key bug is closed (0 occurrences). Server-driven severity rationale is wired correctly and renders verbatim from /api/fleet/_meta.severity_by_item · 107 items mapped. Only remaining cosmetic console noise is the VisualEdit-injected <span> inside <option>, which is dev-tooling-only and not in source.",
+  "rca of the issue": "N/A · prior iter251 HIGH bug now closed. RCA confirmed by inspecting source (NewFleetDVIR.jsx lines 198-205 add a (u.unit_number || '').trim() filter and the option key is u.id || u.unit_number) and by runtime console (0 'same key' warnings; 89 real options, 0 blanks). Backend /api/fleet/_meta verified to expose severity_by_item with full operator-approved rationale + regulation_ref strings consumed verbatim by SeverityRationale → HelpTip."
+}
