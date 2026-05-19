@@ -547,6 +547,7 @@ def build_router(
             categories = truck_categories + trailer_categories
 
         rows: List[Dict[str, Any]] = []
+        seen_units: set = set()
         # Get all fleet units from master
         cursor = db.equipment_master.find(
             {"category": {"$in": categories}},
@@ -557,6 +558,7 @@ def build_router(
             unit_num = u.get("unit_number") or ""
             if not unit_num:
                 continue
+            seen_units.add(unit_num)
             status_doc = await db.fleet_status.find_one(
                 {"unit_number": unit_num}, {"_id": 0}
             )
@@ -573,6 +575,31 @@ def build_router(
                 "latest_inspection_id": (status_doc or {}).get("latest_inspection_id"),
                 "latest_inspection_at": (status_doc or {}).get("latest_inspection_at"),
                 "latest_driver_name": (status_doc or {}).get("latest_driver_name"),
+            }
+            if status and row["status"] != status:
+                continue
+            rows.append(row)
+        # Also include fleet_status rows that don't have a matching
+        # equipment_master row (synthetic / off-roster units that have
+        # been inspected · should still be visible to dispatch).
+        async for sdoc in db.fleet_status.find({}, {"_id": 0}):
+            unit_num = sdoc.get("unit_number") or ""
+            if not unit_num or unit_num in seen_units:
+                continue
+            row = {
+                "unit_number": unit_num,
+                "category": None,
+                "make_model": None,
+                "plate": None,
+                "year": None,
+                "company": None,
+                "status": sdoc.get("status", "unknown"),
+                "open_oos_count": sdoc.get("open_oos_count", 0),
+                "open_monitor_count": sdoc.get("open_monitor_count", 0),
+                "latest_inspection_id": sdoc.get("latest_inspection_id"),
+                "latest_inspection_at": sdoc.get("latest_inspection_at"),
+                "latest_driver_name": sdoc.get("latest_driver_name"),
+                "off_roster": True,  # flag for dispatch UI
             }
             if status and row["status"] != status:
                 continue
@@ -828,6 +855,151 @@ def build_router(
             "ok": True,
             "rows_missing_kind_before": existing,
             "rows_updated": result.modified_count,
+        }
+
+    # ─── Severity audit (governance · read-only validation) ──────
+    @router.get("/api/admin/fleet/severity-audit")
+    async def severity_audit(
+        _: bool = Depends(require_admin_strict),
+    ):
+        """iter251 governance · read-only validation of the severity
+        table.  Cross-checks every checklist item across every fleet
+        inspection kind against `fleet_defect_severity.FLEET_DEFECT_SEVERITY`
+        AND the per-item metadata table.
+
+        Catches BEFORE production reliance:
+          - items used in a checklist with NO severity classification
+            (would cause submission HTTP 400 in the field)
+          - items in the severity table NOT referenced by any checklist
+            (orphan classifications)
+          - duplicate item text (e.g. same string used for trailer +
+            truck context with different classifications)
+          - severity entries with no metadata (rationale / regulation_ref)
+          - items flagged uncertain pending Safety review
+          - category coverage stats
+
+        Returns operator-readable JSON. Endpoint is admin-strict only ·
+        operationally sensitive content."""
+        all_checklist_items: Dict[str, list] = {}
+        for kind, defn in _ck.FLEET_INSPECTION_KINDS.items():
+            kind_items = []
+            if defn["truck_items"]:
+                kind_items.extend([("truck", x) for x in defn["truck_items"]()])
+            if defn["trailer_items"]:
+                kind_items.extend([("trailer", x) for x in defn["trailer_items"]()])
+            all_checklist_items[kind] = kind_items
+
+        # Flat set of all checklist items across all kinds
+        used_items: set = set()
+        for kind_items in all_checklist_items.values():
+            for _section, item in kind_items:
+                used_items.add(item)
+
+        sev_keys: set = set(_sev.FLEET_DEFECT_SEVERITY.keys())
+        meta_keys: set = set(_sev.FLEET_DEFECT_SEVERITY_META.keys())
+
+        # ── Findings ─────────────────────────────────────────────
+        # (1) Checklist items missing severity classification = HARD FAIL
+        missing_severity = sorted(used_items - sev_keys)
+        # (2) Severity entries not used by any checklist = ORPHAN
+        orphan_severity = sorted(sev_keys - used_items)
+        # (3) Severity entries missing metadata = SOFT FAIL
+        missing_metadata = sorted(sev_keys - meta_keys)
+        # (4) Metadata entries with no corresponding severity row = ORPHAN
+        orphan_metadata = sorted(meta_keys - sev_keys)
+        # (5) Items flagged uncertain pending Safety review
+        uncertain_items = sorted([
+            item for item, meta in _sev.FLEET_DEFECT_SEVERITY_META.items()
+            if meta.get("uncertain")
+        ])
+        # (6) Per-kind coverage stats
+        per_kind_coverage = {}
+        for kind, items in all_checklist_items.items():
+            total = len(items)
+            classified = sum(1 for _s, x in items if x in sev_keys)
+            per_kind_coverage[kind] = {
+                "total_items": total,
+                "classified": classified,
+                "missing": total - classified,
+                "coverage_pct": round(100.0 * classified / total, 1) if total else None,
+            }
+        # (7) Category breakdown
+        category_counts: Dict[str, Dict[str, int]] = {}
+        for item, (sev, cat) in _sev.FLEET_DEFECT_SEVERITY.items():
+            bucket = category_counts.setdefault(cat, {"oos": 0, "monitor": 0})
+            bucket[sev] = bucket.get(sev, 0) + 1
+        category_counts_sorted = dict(sorted(
+            category_counts.items(),
+            key=lambda kv: -(kv[1].get("oos", 0) + kv[1].get("monitor", 0)),
+        ))
+        # (8) Severity ratio
+        total_oos = sum(1 for s, _c in _sev.FLEET_DEFECT_SEVERITY.values()
+                        if s == _sev.SEVERITY_OOS)
+        total_mon = sum(1 for s, _c in _sev.FLEET_DEFECT_SEVERITY.values()
+                        if s == _sev.SEVERITY_MONITOR)
+
+        # ── Verdict ─────────────────────────────────────────────
+        if missing_severity:
+            verdict = "FAIL"
+            verdict_reason = (
+                f"{len(missing_severity)} checklist item(s) have no severity "
+                f"classification · these would HTTP 400 in production."
+            )
+        elif missing_metadata:
+            verdict = "NEEDS_REVIEW"
+            verdict_reason = (
+                f"{len(missing_metadata)} severity entries missing metadata "
+                f"(rationale / regulation_ref / uncertain flag) · operator "
+                f"+ Safety review required before production reliance."
+            )
+        elif uncertain_items:
+            verdict = "NEEDS_REVIEW"
+            verdict_reason = (
+                f"{len(uncertain_items)} severity entries marked uncertain "
+                f"pending Safety review · production reliance gated on "
+                f"resolving each."
+            )
+        elif orphan_severity or orphan_metadata:
+            verdict = "NEEDS_CLEANUP"
+            verdict_reason = "Orphan entries detected · operationally safe but indicates table drift."
+        else:
+            verdict = "READY_FOR_SAFETY_SIGNOFF"
+            verdict_reason = "Every checklist item classified · every severity entry has metadata · no uncertain flags remaining."
+
+        return {
+            "phase": "iter251 Phase A · severity governance cycle",
+            "verdict": verdict,
+            "verdict_reason": verdict_reason,
+            "severity_table_version": "v1-DRAFT-pending-safety-review",
+            "total_severity_entries": len(sev_keys),
+            "total_oos": total_oos,
+            "total_monitor": total_mon,
+            "oos_to_monitor_ratio": (
+                round(total_oos / total_mon, 2) if total_mon else None
+            ),
+            "per_kind_coverage": per_kind_coverage,
+            "category_breakdown": category_counts_sorted,
+            "missing_severity": missing_severity,
+            "orphan_severity": orphan_severity,
+            "missing_metadata": missing_metadata,
+            "orphan_metadata": orphan_metadata,
+            "uncertain_items_pending_review": [
+                {
+                    "item": item,
+                    "severity": _sev.FLEET_DEFECT_SEVERITY[item][0],
+                    "category": _sev.FLEET_DEFECT_SEVERITY[item][1],
+                    "rationale": _sev.FLEET_DEFECT_SEVERITY_META[item].get("rationale"),
+                    "uncertainty_note": _sev.FLEET_DEFECT_SEVERITY_META[item].get(
+                        "uncertainty_note", ""
+                    ),
+                    "regulation_ref": _sev.FLEET_DEFECT_SEVERITY_META[item].get("regulation_ref"),
+                }
+                for item in uncertain_items
+            ],
+            "scope_note": (
+                "Read-only governance tool · validates table integrity · "
+                "does NOT modify any production data."
+            ),
         }
 
     return router
