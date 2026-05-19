@@ -17,11 +17,18 @@ EXPLICITLY OUT OF SCOPE in Phase A (per operator brief):
   - Repair lifecycle deepening (parts · labor · mechanic assignment)
   - Cross-yard / multi-state TMS
 
+PERMANENTLY OUT OF SCOPE (operator decision · 2026-05-19):
+  - Legacy / historical trucking-record digitization · NO fleet OCR
+  - NO reconciliation of paper DVIRs into this system
+  - Fleet/DVIR is a clean forward-looking operational system only
+  - (Legacy-import tooling continues to serve HR / Safety / Training /
+    Equipment Checkout · those are separate workstreams.)
+
 Reused infrastructure (zero refactor risk):
   - `equipment_master` collection · 589 units · gets `kind` discriminator
   - `equipment_inspections` schema · adds optional `kind` field
   - `PhotoUpload` widget (Phase B will consume) · unchanged
-  - Audit pattern (`legacy_import_audit` style) · mirrored as `fleet_audit`
+  - Append-only audit pattern · `fleet_audit` collection
 """
 from __future__ import annotations
 
@@ -264,7 +271,7 @@ async def _audit(
     target_id: str,
     payload: Optional[Dict[str, Any]] = None,
 ) -> None:
-    """Append-only · same pattern as legacy_import_audit."""
+    """Append-only fleet audit trail · permanent retention."""
     await db.fleet_audit.insert_one({
         "id": str(uuid.uuid4()),
         "timestamp": datetime.now(timezone.utc).isoformat(),

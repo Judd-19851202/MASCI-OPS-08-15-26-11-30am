@@ -222,7 +222,14 @@ GET  /api/safety/fleet/emergency-equipment     (safety_user|admin)  filtered def
 ```
 
 All endpoints `require_admin_strict` OR portal-scoped tokens. **All writes
-audited** to a `fleet_audit` collection (same pattern as `legacy_import_audit`).
+audited** to a `fleet_audit` collection (append-only · permanent retention).
+
+> **Scope boundary (operator decision · 2026-05-19):** Fleet/DVIR is a clean
+> forward-looking operational system. There is **NO legacy / historical
+> trucking-record digitization** in this workstream · no OCR · no
+> reconciliation of paper DVIRs. Historical fleet paperwork remains filed
+> separately for retention. The Legacy Imports module (iter248-249) continues
+> to serve HR / Safety / Training / Equipment Checkout only.
 
 ---
 

@@ -2,6 +2,77 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter251 Scope Clarification · Fleet/DVIR is forward-looking only · NO legacy trucking-record import · 🔒 OPERATOR DECISION LOCKED
+
+Operator-issued boundary clarification before any further fleet work. **Fleet/DVIR will NOT import or digitize legacy trucking/fleet records.** Existing paper trucking records remain filed separately for historical retention.
+
+### Decision
+- Fleet/DVIR begins clean · forward-looking operational system only
+- NO fleet OCR · NO reconciliation of paper DVIRs · NO mixed historical/future fleet data continuity
+- Reduces complexity, liability, and maintenance burden
+
+### What this changes in the roadmap
+- ❌ Fleet legacy-import roadmap items: **REMOVED** (none were planned · scope was never expanded into fleet · zero rollback needed)
+- ✅ iter251 Phases B-F continue as planned (driver UX · dashboards · weekly forms · repair lifecycle · Motive/MaintainX integration)
+- ✅ Severity governance gate (audit verdict NEEDS_REVIEW · 9 uncertain items) still applies before Phase B
+- ✅ Legacy Imports module (iter248-249) **continues unchanged** for HR / Safety / Training / Equipment Checkout (those are explicitly approved workstreams)
+
+### Codebase audit (verified 2026-05-19)
+- `backend/legacy_imports.py` · 14 DOCUMENT_TYPES · **zero** trucking/DVIR/fleet types
+- `backend/legacy_imports_equipment_checkout.py` · **zero** fleet/DVIR references
+- `backend/routes/fleet_ops.py` + `fleet_defect_severity.py` + `checklists_fleet.py` · **zero** functional dependency on legacy_imports
+- Only crossover removed: 3 cosmetic comment-level pattern references ("audit pattern mirrored from legacy_import_audit") · replaced with neutral "append-only audit pattern" language
+- 50/50 fleet tests still pass · 13/13 Phase A legacy tests untouched · zero regression
+
+### Files touched (scope-clarification cycle)
+- MOD · `backend/routes/fleet_ops.py` (docstring · removed legacy_import_audit pattern reference · added "PERMANENTLY OUT OF SCOPE: legacy trucking digitization" block + neutral audit-trail comment)
+- MOD · `/app/FLEET_OPS_FOUNDATION_iter251_ARCHITECTURE.md` (added scope-boundary callout · removed legacy_import_audit comparison)
+- MOD · `memory/PRD.md` (this entry)
+
+### Confirmed: no remaining fleet OCR/import dependencies
+- ✅ No fleet code path calls `legacy_imports.*`
+- ✅ No fleet schema field references legacy_import collections
+- ✅ No frontend page links fleet ↔ legacy imports
+- ✅ Fleet audit (`fleet_audit`) is a fully independent collection · not shared with `legacy_import_audit`
+- ✅ Fleet defect lifecycle has no upload-and-reconcile state · only field-submitted DVIRs
+
+### Preserved (operator instruction · 100% intact)
+- ✅ DVIR severity table (97 items · 24 categories · OOS/Monitor classification)
+- ✅ Severity audit endpoint (`GET /api/admin/fleet/severity-audit`)
+- ✅ Severity review package (`/app/FLEET_SEVERITY_REVIEW_PACKAGE_iter251.md` · 9 uncertain items pending Safety)
+- ✅ Cross-dept workflow tests (Dispatch · Shop · Safety scoping)
+- ✅ Trailer-only-scope rule (trailer defect does NOT OOS tractor)
+- ✅ Audit chain integrity (every state transition writes to `fleet_audit`)
+- ✅ Integration-ready external_refs (Motive/MaintainX stubbed · Phase F)
+
+### Simplified iter251+ roadmap (post-clarification)
+**Active / gated:**
+- ⏸ Phase B · Driver UX + public DVIR tile + form (gated on severity sign-off · 9 uncertain items)
+- ⏸ Phase C · Dispatch / Shop / Safety dashboard sections (gated on B)
+- ⏸ Phase D · Weekly Lead + Weekly Emergency UX (gated on C)
+- ⏸ Phase E · Defect repair lifecycle hardening (gated on D)
+- ⏸ Phase F · Motive + MaintainX integration (separate operator approval)
+
+**No-longer-on-radar (was never coded · now formally de-scoped):**
+- ❌ Fleet legacy-import pipeline · not built · not planned · not coming
+- ❌ Fleet OCR vendor evaluation · not needed
+- ❌ Paper-DVIR reconciliation tooling · not needed
+- ❌ Historical truck-record migration cron · not needed
+
+### Next Action Items (operator-side · unchanged from prior cycle)
+- ⏸ **Severity sign-off** · review `/app/FLEET_SEVERITY_REVIEW_PACKAGE_iter251.md` · rule on the 9 uncertain items · stamp severity_table_version → `v1-approved-YYYY-MM-DD`
+- ⏸ **Re-run** severity audit endpoint · expect verdict `READY_FOR_SAFETY_SIGNOFF`
+- ⏸ **Then** approve Phase B (driver UX)
+
+### Future / Backlog (unchanged)
+- iter249 Phase B Equipment Checkout pilot real-paperwork batch (HR/Safety scope · independent of fleet)
+- iter250 Subcontractor photos field test (parallel · independent)
+- Phase K4b · K5 · Stage B.1 · F6 ES privacy fix · iter153 test-fragility
+
+🔒 Fleet/DVIR scope locked forward-looking only · Legacy Imports module continues to serve HR/Safety/Training/Equipment Checkout only · zero code removed · zero regression · 50/50 fleet tests + 13/13 legacy Phase A tests still pass.
+
+---
+
 ## 2026-05-19 — iter251 Phase A · Severity Review & Hardening Cycle · ✅ DELIVERED (preview only · governance · backend only)
 
 Operator-approved governance cycle BEFORE any Phase B. Severity table is treated as operational infrastructure, not configuration · this cycle produces the redline package + audit tool + simulation evidence required to validate it before driver UX rollout.
