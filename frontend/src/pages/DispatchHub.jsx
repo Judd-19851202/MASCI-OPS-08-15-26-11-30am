@@ -84,6 +84,14 @@ export default function DispatchHub() {
             <span className="hidden sm:inline">Transfers</span>
           </Link>
           <Link
+            to="/dispatch-portal/fleet"
+            className="inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
+            data-testid="dispatch-fleet-link"
+          >
+            <Truck className="w-3.5 h-3.5 sm:mr-1" />
+            <span className="hidden sm:inline">Fleet</span>
+          </Link>
+          <Link
             to="/guidance"
             className="inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
             data-testid="dispatch-training-link"

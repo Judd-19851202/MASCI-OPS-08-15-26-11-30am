@@ -1024,4 +1024,216 @@ def build_router(
             ),
         }
 
+    # ─── Phase 3 governance · printable severity reference card ──────────
+    @router.get("/api/admin/fleet/severity-reference-card.pdf")
+    async def severity_reference_card_pdf(_actor=Depends(require_admin_strict)):
+        """One-page printable PDF reference card · auditor + Safety field
+        reference + field-manual insertion. Generated server-side from the
+        same `FLEET_DEFECT_SEVERITY` SOT so there is NEVER a manual table
+        to maintain.
+
+        Returns: application/pdf · letter size · landscape · single page.
+        """
+        from fastapi.responses import Response
+        from io import BytesIO
+        from reportlab.lib.pagesizes import letter, landscape
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.platypus import (
+            SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak,
+        )
+
+        buf = BytesIO()
+        doc = SimpleDocTemplate(
+            buf,
+            pagesize=landscape(letter),
+            leftMargin=0.35 * inch, rightMargin=0.35 * inch,
+            topMargin=0.30 * inch, bottomMargin=0.30 * inch,
+            title=f"MASCI Fleet · DVIR Severity Reference · {_sev.SEVERITY_TABLE_VERSION}",
+            author="MASCI Operations Platform",
+        )
+
+        styles = getSampleStyleSheet()
+        h1 = ParagraphStyle("h1", parent=styles["Heading1"],
+                            fontSize=14, leading=16, spaceAfter=2,
+                            textColor=colors.HexColor("#0F172A"))
+        sub = ParagraphStyle("sub", parent=styles["Normal"],
+                             fontSize=8, leading=10, textColor=colors.HexColor("#64748B"))
+        cat = ParagraphStyle("cat", parent=styles["Normal"],
+                             fontSize=7, leading=8, fontName="Helvetica-Bold",
+                             textColor=colors.HexColor("#0F172A"))
+        item_s = ParagraphStyle("item", parent=styles["Normal"],
+                                fontSize=6.4, leading=7.5,
+                                textColor=colors.HexColor("#0F172A"))
+        foot = ParagraphStyle("foot", parent=styles["Normal"],
+                              fontSize=6.5, leading=8,
+                              textColor=colors.HexColor("#64748B"),
+                              alignment=1)
+
+        flow = []
+        flow.append(Paragraph("MASCI Fleet · DVIR Severity Reference Card", h1))
+        approval = _sev.SEVERITY_TABLE_APPROVAL
+        flow.append(Paragraph(
+            f"Version <b>{_sev.SEVERITY_TABLE_VERSION}</b> · "
+            f"Approved {approval.get('approved_at','')} · "
+            f"{approval.get('approved_by','')} · "
+            f"Verdict: READY_FOR_SAFETY_SIGNOFF · "
+            f"{len(_sev.FLEET_DEFECT_SEVERITY)} items · "
+            f"{sum(1 for s,_ in _sev.FLEET_DEFECT_SEVERITY.values() if s == _sev.SEVERITY_OOS)} OOS · "
+            f"{sum(1 for s,_ in _sev.FLEET_DEFECT_SEVERITY.values() if s == _sev.SEVERITY_MONITOR)} Monitor",
+            sub,
+        ))
+        flow.append(Spacer(1, 6))
+
+        # Group items by category · order by sev (OOS first) then alpha
+        by_cat: Dict[str, List[Tuple[str, str]]] = {}
+        for item, (sev, category) in _sev.FLEET_DEFECT_SEVERITY.items():
+            by_cat.setdefault(category, []).append((sev, item))
+        for cat_name in by_cat:
+            by_cat[cat_name].sort(key=lambda x: (0 if x[0] == _sev.SEVERITY_OOS else 1, x[1]))
+
+        # Categories ordered by total count desc for visual balance
+        ordered_cats = sorted(by_cat.keys(), key=lambda c: (-len(by_cat[c]), c))
+
+        # 3-column layout · severity letter prefix (S=OOS strict · M=monitor)
+        rows = [["Category", "Severity Items"]]
+        for category in ordered_cats:
+            cell = "<br/>".join(
+                f'<font color="{"#B91C1C" if sev == _sev.SEVERITY_OOS else "#92400E"}">'
+                f'{"S" if sev == _sev.SEVERITY_OOS else "M"}</font> · {item}'
+                for sev, item in by_cat[category]
+            )
+            rows.append([
+                Paragraph(category.replace("_", " ").title(), cat),
+                Paragraph(cell, item_s),
+            ])
+
+        # Single landscape-fit table with two columns
+        table = Table(
+            rows,
+            colWidths=[1.45 * inch, 8.55 * inch],
+            repeatRows=1,
+            hAlign="LEFT",
+        )
+        table.setStyle(TableStyle([
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, 0), 7),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0F172A")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("ALIGN", (0, 0), (-1, 0), "LEFT"),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1),
+             [colors.HexColor("#F8FAFC"), colors.white]),
+            ("LINEBELOW", (0, 0), (-1, 0), 1, colors.HexColor("#D97706")),
+            ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#CBD5E1")),
+            ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#E2E8F0")),
+        ]))
+        flow.append(table)
+        flow.append(Spacer(1, 4))
+
+        flow.append(Paragraph(
+            "<b>S</b> = Out of Service (truck cannot operate until cleared) &nbsp;·&nbsp; "
+            "<b>M</b> = Monitor (shop tracks · truck remains available within stated window) &nbsp;·&nbsp; "
+            "Driver picks PASS / FAIL / N/A · severity is server-calculated · "
+            "<b>governance record:</b> /app/SEVERITY_RULINGS_iter251.md &nbsp;·&nbsp; "
+            "<b>print stamp:</b> "
+            f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
+            foot,
+        ))
+
+        doc.build(flow)
+        pdf_bytes = buf.getvalue()
+        buf.close()
+
+        filename = f"MASCI_Fleet_Severity_Reference_{_sev.SEVERITY_TABLE_VERSION}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'inline; filename="{filename}"',
+                "X-Severity-Version": _sev.SEVERITY_TABLE_VERSION,
+                "Cache-Control": "no-store",
+            },
+        )
+
+    # ─── Phase 3 · Shop fleet queue · grouped BY UNIT (not chronological)
+    @router.get("/api/shop/fleet/by-unit")
+    async def shop_defects_grouped_by_unit(
+        _actor=Depends(require_shop_or_admin),
+    ):
+        """Phase 3 operator-strongly-approved view: shop sees defects
+        grouped by truck/unit (one card per truck · all open defects
+        collapsed inside · driver note thumbprint surfaced).
+
+        Reduces context-switching for mechanics who naturally work
+        truck-by-truck.
+        """
+        cursor = db.fleet_defects.find(
+            {"status": {"$in": ["open", "acknowledged"]}}, {"_id": 0}
+        ).sort([("severity", 1), ("reported_at", 1)])
+        defects = await cursor.to_list(None)
+
+        by_unit: Dict[str, Dict[str, Any]] = {}
+        for d in defects:
+            unit_key = d.get("truck_unit_number") or d.get("trailer_unit_number") or "—"
+            grp = by_unit.setdefault(unit_key, {
+                "unit_number": unit_key,
+                "is_trailer": bool(d.get("trailer_unit_number")
+                                   and not d.get("truck_unit_number")),
+                "open_oos_count": 0,
+                "open_monitor_count": 0,
+                "latest_inspection_at": None,
+                "latest_driver_name": None,
+                "defects": [],
+            })
+            grp["defects"].append(d)
+            if d.get("severity") == _sev.SEVERITY_OOS:
+                grp["open_oos_count"] += 1
+            else:
+                grp["open_monitor_count"] += 1
+            rep_at = d.get("reported_at")
+            if rep_at and (
+                grp["latest_inspection_at"] is None
+                or rep_at > grp["latest_inspection_at"]
+            ):
+                grp["latest_inspection_at"] = rep_at
+                grp["latest_driver_name"] = d.get("reported_by_driver_name")
+
+        # Enrich with fleet_status (truck-state) + equipment_master snapshot
+        units_list = list(by_unit.keys())
+        if units_list:
+            async for sdoc in db.fleet_status.find(
+                {"unit_number": {"$in": units_list}}, {"_id": 0}
+            ):
+                u = sdoc.get("unit_number")
+                if u in by_unit:
+                    by_unit[u]["truck_status"] = sdoc.get("status", "unknown")
+            async for udoc in db.equipment_master.find(
+                {"unit_number": {"$in": units_list}},
+                {"_id": 0, "unit_number": 1, "make_model": 1, "category": 1, "plate": 1, "year": 1},
+            ):
+                u = udoc.get("unit_number")
+                if u in by_unit:
+                    by_unit[u]["make_model"] = udoc.get("make_model")
+                    by_unit[u]["category"] = udoc.get("category")
+                    by_unit[u]["plate"] = udoc.get("plate")
+                    by_unit[u]["year"] = udoc.get("year")
+
+        groups = list(by_unit.values())
+        # Order: OOS-bearing units first · then by oldest defect age
+        groups.sort(key=lambda g: (
+            0 if g["open_oos_count"] > 0 else 1,
+            g["latest_inspection_at"] or "9999",
+        ))
+        return {
+            "count_units": len(groups),
+            "count_defects": sum(len(g["defects"]) for g in groups),
+            "groups": groups,
+        }
+
     return router

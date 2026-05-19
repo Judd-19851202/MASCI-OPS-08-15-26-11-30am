@@ -42,6 +42,7 @@ import EquipmentDashboard from "@/pages/EquipmentDashboard";
 import NewEquipmentInspection from "@/pages/NewEquipmentInspection";
 import NewFleetDVIR from "@/pages/NewFleetDVIR";
 import FleetDVIRConfirmation from "@/pages/FleetDVIRConfirmation";
+import FleetVisibility from "@/pages/FleetVisibility";
 import ViewEquipmentInspection from "@/pages/ViewEquipmentInspection";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
@@ -441,6 +442,7 @@ function App() {
             <Route path="/shop/reset/:token" element={<ShopResetPassword />} />
             <Route path="/shop/change-password" element={S(<ShopChangePassword />)} />
             <Route path="/shop" element={S(<ShopHub />)} />
+            <Route path="/shop/fleet" element={S(<FleetVisibility scope="shop" />)} />
             <Route path="/shop/equipment/:id" element={S(<ViewEquipmentInspection context="shop" />)} />
 
             {/* ============================================================
@@ -477,6 +479,7 @@ function App() {
             <Route path="/safety-portal/reset/:token" element={<SafetyResetPassword />} />
             <Route path="/safety-portal/change-password" element={SF(<SafetyChangePassword />)} />
             <Route path="/safety-portal" element={SF(<SafetyHub />)} />
+            <Route path="/safety-portal/fleet" element={SF(<FleetVisibility scope="safety" />)} />
             <Route path="/safety-portal/corrective-actions" element={SF(<SafetyCorrectiveActions />)} />
             <Route path="/safety-portal/fire-extinguishers" element={SF(<SafetyFireExtinguishers />)} />
             <Route path="/safety-portal/fire-extinguishers/import" element={SF(<SafetyFireExtImport />)} />
@@ -501,6 +504,7 @@ function App() {
             <Route path="/dispatch-portal/reset/:token" element={<DispatchResetPassword />} />
             <Route path="/dispatch-portal/change-password" element={DP(<DispatchChangePassword />)} />
             <Route path="/dispatch-portal" element={DP(<DispatchHub />)} />
+            <Route path="/dispatch-portal/fleet" element={DP(<FleetVisibility scope="dispatch" />)} />
 
             {/* ============================================================
                 Training Hub — landing is public, tracks gate per audience

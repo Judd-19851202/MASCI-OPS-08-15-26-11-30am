@@ -1,0 +1,53 @@
+{
+  "summary": "iter251 Phase 3 fleet-visibility surfaces tested end-to-end. PDF endpoint works (200, application/pdf, ~? KB ≥5KB, X-Severity-Version=v1.3-approved-2026-05-19, filename includes version). /shop/fleet view renders with correct EN kicker/title, all 4 KPI chip testids present, bilingual ES translates cleanly with NO English leakage. CRITICAL bugs: (a) backend /api/shop/fleet/by-unit defect schema mismatches spec — returns item_text/note/reported_by_name but frontend reads checklist_item/driver_note/reported_by_driver_name → Driver Note thumbprint (the operator-strongly-approved feature) will NEVER render, and item title falls back to '(no item)'; (b) group enrichment fields truck_status/make_model/plate are MISSING from response → status pills always show fallback 'Repair Required'; (c) /dispatch-portal/fleet and /safety-portal/fleet routes do NOT render the FleetVisibility shell — likely missing App.js wiring OR EnforcePortalScope redirects away; (d) dispatch-fleet-link in DispatchHub and safety-tile-fleet in SafetyHub are NOT present (count=0); (e) PDF and by-unit endpoints respond 200 to unauthenticated requests — security regression vs spec.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "/api/shop/fleet/by-unit", "issue": "Defect schema mismatch with spec. Returns: id, item_text, note, reported_by_name. Spec/frontend expect: checklist_item, driver_note, reported_by_driver_name. Result: Driver Note amber blockquote thumbprint never renders, defect titles fall back to '(no item)'.", "priority": "CRITICAL"},
+      {"endpoint": "/api/shop/fleet/by-unit", "issue": "Group missing enrichment fields truck_status, make_model, plate. Frontend StatusPill always falls back to 'Repair Required' (or OOS when open_oos_count>0) instead of using fleet_status calm operational status. Make/model/year/plate metadata row renders empty.", "priority": "CRITICAL"},
+      {"endpoint": "/api/admin/fleet/severity-reference-card.pdf", "issue": "Returns HTTP 200 with NO X-Admin-Token (unauthenticated). Spec says require_admin_strict. Possible auth dependency wiring bug.", "priority": "HIGH"},
+      {"endpoint": "/api/shop/fleet/by-unit", "issue": "Returns HTTP 200 with NO portal token (unauthenticated). Spec says require_shop_or_admin. Auth gate appears to allow no-token through.", "priority": "HIGH"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "App.js routing OR DispatchPortalGate/SafetyPortalGate", "issue": "/dispatch-portal/fleet and /safety-portal/fleet do NOT render the FleetVisibility shell. data-testid='fleet-visibility' never appears — page either redirects to portal login or route is unwired. Only /shop/fleet works.", "selector": "[data-testid='fleet-visibility']", "priority": "CRITICAL"},
+      {"component": "DispatchHub.jsx", "issue": "data-testid='dispatch-fleet-link' is NOT present on /dispatch-portal page. Operators have no link to fleet view from dispatch home.", "selector": "[data-testid='dispatch-fleet-link']", "priority": "HIGH"},
+      {"component": "SafetyHub.jsx", "issue": "data-testid='safety-tile-fleet' is NOT present on /safety-portal page. SectionTile entry point missing.", "selector": "[data-testid='safety-tile-fleet']", "priority": "HIGH"},
+      {"component": "FleetVisibility.jsx", "issue": "Reads d.driver_note / d.checklist_item / d.reported_by_driver_name but backend returns d.note / d.item_text / d.reported_by_name. Either frontend should adapt or backend should rename. Per spec, BACKEND field names are the contract.", "selector": "[data-testid*='-defect-'][data-testid$='-note']", "priority": "CRITICAL"}
+    ],
+    "integration_issues": [
+      {"flow": "Shop fleet load with shop token", "issue": "When the user has an admin token planted in masci.shop.token, fetch sends X-Shop-Token: <admin_token> which the backend rejects (401). The cross-token admin fallback only works when admin token arrives via X-Admin-Token header. Real shop users with real shop tokens work fine — this is test-only — but the FleetVisibility.jsx scopeTokenHeader could optionally also include X-Admin-Token for graceful admin impersonation.", "affected_selectors": ["[data-testid='fleet-visibility-counts']"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter251_phase3_fleet_visibility.py",
+    "/app/test_reports/pytest/iter255_phase3.xml"
+  ],
+  "action_items": [
+    "BACKEND fleet_ops.py /api/shop/fleet/by-unit: rename defect fields to match spec — item_text → checklist_item, note → driver_note, reported_by_name → reported_by_driver_name. Without this the Driver Note thumbprint will never appear (operator-strongly-approved feature regression).",
+    "BACKEND fleet_ops.py /api/shop/fleet/by-unit: enrich each group with truck_status (from fleet_status collection) + make_model + plate (from equipment_master). Without truck_status the StatusPill cannot show the calm operational statuses (Available / Monitor / Repair Required / OOS / Repair In Progress / Returned to Service) that are central to Phase 3.",
+    "BACKEND verify auth wiring: PDF endpoint must require_admin_strict (currently returns 200 unauthenticated). by-unit must require_shop_or_admin (currently returns 200 unauthenticated). Likely missing Depends() in route signature.",
+    "FRONTEND App.js: verify /dispatch-portal/fleet and /safety-portal/fleet routes are registered with proper DP/SF wrappers. Currently the FleetVisibility shell never mounts on these two routes. Check EnforcePortalScope/portal gate is not redirecting them to login.",
+    "FRONTEND DispatchHub.jsx (line ~85): add the 'Fleet' header link with data-testid='dispatch-fleet-link' navigating to /dispatch-portal/fleet.",
+    "FRONTEND SafetyHub.jsx (line ~196): add the 'Trucking · Fleet' SectionTile with data-testid='safety-tile-fleet' navigating to /safety-portal/fleet.",
+    "Optional FRONTEND: FleetVisibility.scopeTokenHeader could ALSO append X-Admin-Token from getAdminToken() so admin impersonation 'View as Shop' works without minting a shop token."
+  ],
+  "critical_code_review_comments": [
+    "FleetVisibility.jsx defensively does `d.checklist_item || d.item` but backend returns NEITHER — it returns `item_text`. The fallback never matches → title shows '(no item)'. Same for driver_note (never matches d.note).",
+    "Backend response should be the contract; frontend rename is a smell. Use Pydantic response_model to lock in the operator-approved field names so backend can't drift.",
+    "Endpoint auth: 200-on-no-token suggests `Depends(require_shop_or_admin)` is either omitted from the new endpoints or returning None silently. Add an explicit raise HTTPException(401) when no portal token is present.",
+    "Spec promised group fields truck_status/make_model/plate to drive calm-operational-status pills. Without them, every unit card defaults to 'Repair Required' which contradicts Phase 3's whole philosophy (Available / Monitor / Returned to Service / Repair In Progress cannot be displayed at all)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter251_phase3_fleet_visibility.py (new pytest suite)"
+  ],
+  "success_rate": {"backend": "67% (8/12 — PDF passes fully, by-unit shape & ordering pass, schema fields & auth-required fail)", "frontend": "40% (/shop/fleet renders + ES bilingual + ShopHub CTA pass; /dispatch-portal/fleet, /safety-portal/fleet, dispatch link, safety tile, driver note thumbprint, status pills all fail)"},
+  "test_credentials": "Admin token derived via POST /api/admin/login {password: MASCI1982!} returns 64-char HMAC token; documented in /app/memory/test_credentials.md.",
+  "seed_data_creation": "No seed data created. Read-only verification against existing fleet_defects collection (preview env has real Phase A/B defects already).",
+  "retest_needed": true,
+  "main_agent_can_self_test": false,
+  "context_for_next_testing_agent": "Phase 3 frontend partially works: only /shop/fleet renders. The two big regressions that hide the entire operator-approved philosophy: (1) backend defect fields are wrong-named (item_text/note instead of checklist_item/driver_note) which kills the Driver Note thumbprint silently — no error, just an empty quote area; (2) groups lack truck_status so the calm operational status pills can never show. Plus dispatch & safety scoped routes don't render at all. Re-run /app/backend/tests/test_iter251_phase3_fleet_visibility.py after main agent fixes — it tests the 4 spec field names + the truck_status/make_model/plate enrichment + auth. To smoke-test FE after fixes: plant masci.shop.token = an actual shop user token (not admin) OR have main agent update scopeTokenHeader to also send X-Admin-Token. Then verify [data-testid$='-note'] count > 0 on /shop/fleet, and that /dispatch-portal/fleet + /safety-portal/fleet render their respective kickers ('Dispatch · Fleet Availability', 'Safety · Fleet Governance').",
+  "rca_of_issue": "Backend and frontend Phase 3 contracts disagree on field names. Frontend was written to a spec (checklist_item / driver_note / reported_by_driver_name + group.truck_status/make_model/plate); backend ships fleet_defects raw fields (item_text/note/reported_by_name) without enrichment-projection. Routes for /dispatch-portal/fleet and /safety-portal/fleet appear not wired in App.js (or are wired but EnforcePortalScope redirects away). Hub-link discoverability for dispatch and safety scopes was not actually added to DispatchHub.jsx / SafetyHub.jsx despite spec calling for them. Auth dependency on the two new endpoints is missing or permissive — anonymous requests get 200."
+}

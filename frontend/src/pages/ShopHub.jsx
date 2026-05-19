@@ -165,6 +165,30 @@ export default function ShopHub() {
           <Kpi label={t("Equipment in fleet")} value={equipmentMaster.count} />
         </div>
 
+        {/* Fleet · DVIR queue · iter251 Phase 3 */}
+        <Link
+          to="/shop/fleet"
+          data-testid="shop-fleet-link"
+          className="mt-1 group flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 rounded-md bg-white border-2 border-amber-300 hover:border-amber-600 hover:bg-amber-50 transition-colors"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-600 text-white shrink-0">
+              <Truck className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-700 font-bold">
+                {t("Trucking · Fleet")}
+              </div>
+              <div className="font-display text-base sm:text-lg font-bold text-slate-900 leading-tight">
+                {t("Fleet Repair Queue · grouped by truck")}
+              </div>
+            </div>
+          </div>
+          <span className="text-xs sm:text-sm font-mono uppercase tracking-[0.18em] text-amber-700 font-bold group-hover:text-amber-900 shrink-0">
+            {t("Open Fleet View")} →
+          </span>
+        </Link>
+
         {/* Tabs */}
         <div className="flex border-b-2 border-slate-200">
           {[

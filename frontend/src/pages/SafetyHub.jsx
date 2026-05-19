@@ -7,7 +7,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   ShieldAlert, AlertOctagon, ClipboardCheck, Users, FileText,
-  Award, Flame, FolderArchive, BarChart3, Loader2, Mail, GraduationCap,
+  Award, Flame, FolderArchive, BarChart3, Loader2, Mail, GraduationCap, Truck,
 } from "lucide-react";
 import { SectionTile } from "@/components/SectionTile";
 import SafetyShell from "@/components/SafetyShell";
@@ -218,6 +218,15 @@ export default function SafetyHub() {
           accent="purple"
           ctaLabel={t("Open")}
           testId="safety-tile-reports"
+        />
+        <SectionTile
+          to="/safety-portal/fleet"
+          icon={Truck}
+          title={t("Trucking · Fleet")}
+          desc={t("See defects grouped by truck · driver notes · current status · severity context. Mobile-friendly · operational clarity only.")}
+          accent="amber"
+          ctaLabel={t("Open Fleet View")}
+          testId="safety-tile-fleet"
         />
         <SectionTile
           to="/guidance"

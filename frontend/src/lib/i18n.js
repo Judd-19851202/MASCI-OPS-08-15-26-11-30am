@@ -2888,6 +2888,38 @@ const ES = {
   "Home": "Inicio",
   "MASCI · Trucking · DVIR": "MASCI · Camiones · DVIR",
 
+  // ─── Phase 3 · Fleet Visibility (Dispatch / Shop / Safety) ──────
+  "Shop · Fleet Repair Queue": "Taller · Cola de Reparación de Flota",
+  "Trucks needing attention": "Camiones que requieren atención",
+  "Dispatch · Fleet Availability": "Despacho · Disponibilidad de Flota",
+  "Fleet operational status": "Estado operacional de la flota",
+  "Safety · Fleet Governance": "Seguridad · Gobernanza de Flota",
+  "Open defects across fleet": "Defectos abiertos en toda la flota",
+  "Repair Required": "Reparación Requerida",
+  "Repair In Progress": "Reparación en Progreso",
+  "Returned to Service": "Regresado al Servicio",
+  "Monitor": "Monitor",
+  "OOS": "FDS",
+  "Latest DVIR": "Último DVIR",
+  "Open OOS units": "Unidades con FDS",
+  "Monitor-only units": "Unidades solo en monitoreo",
+  "Total units with defects": "Total de unidades con defectos",
+  "Total open defects": "Total de defectos abiertos",
+  "Severity table approved": "Tabla de severidad aprobada",
+  "Download printable reference": "Descargar referencia imprimible",
+  "Units": "Unidades",
+  "Refresh": "Actualizar",
+  "Loading…": "Cargando…",
+  "Could not load fleet status.": "No se pudo cargar el estado de la flota.",
+  "All clear": "Todo despejado",
+  "No open defects across the fleet right now. Great job out there.": "No hay defectos abiertos en la flota en este momento. Excelente trabajo.",
+  "Fleet unit": "Unidad de flota",
+  "(no item)": "(sin elemento)",
+  "photo(s)": "foto(s)",
+  "Trucking · Fleet": "Camiones · Flota",
+  "See defects grouped by truck · driver notes · current status · severity context. Mobile-friendly · operational clarity only.": "Ver defectos agrupados por camión · notas del conductor · estado actual · contexto de severidad. Compatible con móvil · solo claridad operacional.",
+  "Open Fleet View": "Abrir vista de flota",
+
 };
 
 const DICTS = { es: ES, en: {} };
