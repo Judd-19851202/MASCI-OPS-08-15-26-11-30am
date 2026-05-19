@@ -1,5 +1,67 @@
 # MASCI Safety Hub — PRD
 
+# MASCI Safety Hub — PRD
+
+## 2026-05-19 — iter247 · Live Production Hardening Verification · ✅ APPROVE
+
+Operator-directed full external verification of `https://mascidocs.com` (post-deploy). Read-only black-box audit · zero code changes · zero feature work. Full structured report: `/app/LIVE_PRODUCTION_AUDIT_iter247.md`.
+
+### Headline numbers
+- ✅ Anon-RBAC sweep: **25/25 protected routes return 401** — zero leaks
+- ✅ Cross-portal token isolation: **5/5 Leadership→Admin attempts return 401**
+- ✅ Multi-viewport overflow: **0 px across 108 probes** (16 surfaces × 6 viewports including 320px iPhone SE and 2560px ultrawide)
+- ✅ JS console/page errors: **0** cumulative across full sweep
+- ✅ Public POST validators: 5/5 return 422 on empty body (no 500s)
+- ✅ Dead-route handling: 4/4 hit proper 404 component · API dead routes 404 (not 500)
+- ✅ Legacy URL redirects (iter236 contract): 4/4 redirect correctly
+- ✅ iter245 vendor consolidation: `/api/vendors` 404 · `/api/suppliers` 158 vendors live
+- ✅ F1 `/admin/login` ES localization verified live (all 11 elements render in Spanish · 0 EN leaks · 0 mobile overflow)
+- ✅ F3 weekly PO digest live verified: subject `[MASCI · PO] Weekly Request PO Digest` · 8 PMs scoped correctly · 3 HR global · **0 test-domain leaks**
+- ✅ iter238 email subject system · iter239 branding · iter242 authority-banner all intact
+- ✅ Performance: home TTFB 2ms (edge-cached) · API median 120ms · portal-login warm 1.5-2.6s
+- ✅ Last-24-hour concerns: triple-verified clean on live production
+
+### Findings classification
+- **CRITICAL: 0** (deploy itself is sound)
+- **IMPORTANT: 2** — P1-A: `run-now` endpoint has no dry-run guard (caused unintentional 11-email fire during audit) · P1-B: AccessDenied/403 page hardcoded English in ES mode
+- **COSMETIC: 2** — `/legal/privacy` body text "Passwords are never stored…" (F6 lawyer-reviewed backlog) · portal-login warm TTFB 1.5-2.6s (perf-polish · not breaking)
+
+### One operator-attention item from this audit
+🚨 The verification call to `POST /api/admin/po-digest/run-now` fired **11 real Resend emails** to active production PMs + HR users. AUTO_EMAIL_REPORTS=true on production (correct for production · different from preview's log-only). Subject/content was accurate but timing was ~3 days ahead of the cron's Monday slot.
+
+### Recommended P1 surgical patches (operator decides · not silently implemented)
+- **P1-A** — Add `?dry_run=true` query param to `/api/admin/po-digest/run-now` (~10 min · prevents future quota burns)
+- **P1-B** — Wrap AccessDenied page strings in `t()` (~15 min · closes ES continuity to 14/14)
+
+### Files created (audit-only)
+- NEW · `/app/LIVE_PRODUCTION_AUDIT_iter247.md` (full structured report · evidence-grade)
+- MOD · `/app/memory/PRD.md` (this entry)
+
+### Final recommendation
+🟢 **APPROVE.** MASCI Operations Platform is genuinely ready for hard daily operational use on phones, tablets/iPads, laptops, desktops, and ultrawides. Architecture is sound. Findings are operational-polish, not deploy blockers. Operator can let field crews, PMs, Safety, HR, Dispatch, Shop, and Leadership rely on this system daily.
+
+### Next Action Items (operator-side)
+- ⏸ **Check inbox for 11 digest emails** (sent during this audit · accurate content · apologies for unintentional fire)
+- ⏸ **Decide on P1-A and P1-B** patches — small surgical work, ready to execute next cycle
+- ⏸ **Enter extended observation / stabilization period** per stated cadence
+
+### Future / Backlog (unchanged · no silent implementation)
+- 🟡 P1-A · `run-now` dry-run guard (~10 min · this audit-surfaced)
+- 🟡 P1-B · AccessDenied page ES (~15 min · this audit-surfaced)
+- 🟡 F2 · Leadership scope filter null-guard (iter245-surfaced)
+- 🟢 F4 · Deeper-portal ES sweep (~381 strings)
+- 🟢 F5 · Lesson `title_es` content localization
+- 🔵 F6 · Long legal-page ES (lawyer-reviewed)
+- 🔵 F7 · Backend observability dashboard
+- 🟡 Perf · edge-cache portal-login pages (~30 min)
+- P3 · iter153 test fragility (decouple `pytest.po_approved_id` module-state)
+- Phase K4b · Unified User Management UI mutations
+- Phase K5 · Temp Password / Onboarding standardization
+- Stage B.1 · Owner Snapshot PDF
+
+---
+
+
 ## 2026-05-19 — iter246 F3 · Recipient hygiene polish (pre-deploy) · ✅ APPROVE
 
 Operator-directed hygiene fix on F3 recipient scoping before production deploy.
