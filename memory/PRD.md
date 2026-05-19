@@ -2,6 +2,130 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter248 · Legacy Operational Records Import & Continuity System · 📐 ARCHITECTURE PROPOSAL ONLY (NO IMPLEMENTATION)
+
+Operator-directed planning + architecture design for the largest operationally-impactful initiative since iter153 (PO Requests). Full architecture proposal: `/app/LEGACY_RECORDS_ARCHITECTURE_iter248.md` (~700 lines · 22 sections).
+
+### Scope of this iter
+**Design / validation / system architecture ONLY. Zero code changes. Zero feature work.** Pure planning artifact for operator review.
+
+### Goal
+Turn decades of paper operational records (Equipment Checkout, Training, OSHA Cards, Toolbox Talks, Fit Tests, Medical Cards, CDL, Certifications, Acknowledgements, Write-Ups, Onboarding Packets, HR Records, Licensing, Qualifications) into structured, searchable, **operationally-active** records inside MASCI — not a passive archive.
+
+### Three non-negotiable architectural guarantees baked into the design
+
+1. **Human approval is the only path to operational activation.** OCR/AI surfaces suggestions; humans approve.
+2. **Approved imported records live in the SAME collections as native records** (with a `source: "legacy_imported"` discriminator), so they participate in termination workflows, expiration tracking, accountability searches, and dashboards **without any changes to existing code paths**.
+3. **Original source evidence (PDF/image) is permanently attached to every promoted record** in R2, with immutable signed-URL-issuance audit chain.
+
+### What the document delivers (operator-requested deliverables · all present)
+
+| Deliverable | Section |
+|---|---|
+| System architecture proposal | §2 Unified Data Model · §3 Single Ingestion Pipeline |
+| Operational workflow proposal | §3 + §5 Reconciliation Dashboard UX |
+| Reconciliation workflow proposal | §5 + §7 Matching Engine |
+| Governance / security model | §4 RBAC · §14 Governance · §11 Required Metadata |
+| OCR / provider recommendations | §6 (recommendation: Claude Vision via existing Emergent LLM key · no new vendor) |
+| Confidence scoring approach | §6.3 + §7.4 (with env-tunable thresholds) |
+| Rollout phases | §16 Phased Rollout (Phases A→G · ~6 weeks total · one type proven before next) |
+| Implementation risk assessment | §17 (13-row risk table with probability/impact/mitigation) |
+| UI/UX flow concepts | §18 + §5.3 ASCII reconciliation modal layout |
+| Storage impact analysis | §15 (~2.5GB year 1, ~$0.04/mo R2 cost) |
+| Operational integration map | §8 (table per document type) |
+| Employee lifecycle integration map | §9 (every lifecycle event verified for imported-record participation) |
+| Accountability integration map | §10 (termination workflow ALREADY surfaces imported checkouts — zero code change) |
+
+### Key design decisions (all defensible · all reversible if operator disagrees)
+
+| Decision | Rationale |
+|---|---|
+| Single `legacy_imports` staging collection · ONE pipeline | Same architecture for every doc type · no parallel importers · matches operator brief explicitly |
+| Same-collection promotion (not parallel collection) | Zero changes to ~30+ existing queries · termination/expiration/accountability auto-pick-up imported records · single most important architectural choice |
+| Claude Vision OCR via Emergent LLM key | Already in stack · ~$3-15 total cost for entire 5,000-doc backlog · no new vendor |
+| HR/Safety/Admin upload only · NO PM | Matches operator brief · PM intake deferred to Phase G (operator decides if it ever happens) |
+| Mandatory side-by-side scan + fields in reconciliation modal | Forces reviewer to literally see the source · prevents auto-trust drift |
+| Anti-self-approval guard (uploader ≠ approver unless Admin override) | HR/legal best practice · separation of duties · Admin override logged in audit |
+| R2 source files: private bucket · 5-min signed URLs · audited issuance · never deleted | Legal defensibility · chain-of-custody · matches existing R2 archive posture |
+| Phased rollout: A→B→C→D→E→F→G with hard "prove before expand" rule | Matches operator stabilization-mode mandate · one document type operational-success-criteria met before next starts |
+
+### 10 Open Decisions requiring operator input before Phase A (§19)
+
+1. R2 bucket name + region (dedicated vs. reuse MASCI archive bucket)
+2. Anti-self-approval rule (Admin override permitted?)
+3. Default behavior on unknown document type (Admin queue vs. auto-reject)
+4. Claude Sonnet vs. Haiku (recommendation: start Haiku, escalate Sonnet on low confidence)
+5. Phase B pilot batch size (proposed 50 documents)
+6. Reviewer training collateral (one-page guide + Loom walkthrough recommended)
+7. "Legacy" pill visibility (always-on vs. opt-in per portal)
+8. Bulk-approve high-confidence rows (proposed default: NO)
+9. Retention on rejected uploads (forever vs. 90-day purge)
+10. PM-portal Phase G — on roadmap at all?
+
+### Phased rollout cadence
+
+- **Phase A** (~3-5 days · foundation) → in production >7 days zero-defect → unlock Phase B
+- **Phase B** (~5-7 days · Equipment Checkout end-to-end · pilot batch) → success criteria met → unlock Phase C
+- **Phase C** (~3-4 days · OSHA Cards) → unlock Phase D
+- **Phase D** (~3-5 days · dashboard polish + bulk + repair workflows)
+- **Phase E** (~2-3 days · drag-drop bulk upload UI)
+- **Phase F** (~10-14 days · remaining 12 document types · one at a time)
+- **Phase G** (deferred · PM intake · operator decision)
+- **Cumulative: ~6 weeks of focused dev** for full coverage · plus operator approval gates between phases
+
+### Stabilization compatibility statement (§21)
+Every existing invariant from iter215/iter236/iter238/iter239/iter242/iter243/iter245/iter246/iter247 explicitly verified untouched by the proposed design. Pre-deploy verification gate auto-picks-up new endpoints via existing anon-RBAC sweep. iter238 email-subject system extension only if Phase B adds a `legacy_import_promoted` event kind (slots into existing prefix registry).
+
+### Anti-patterns explicitly avoided (§20)
+- ❌ AI document magic / silent extraction → silent record creation
+- ❌ Parallel collections for imported vs. live
+- ❌ Auto-approval
+- ❌ Background promotion
+- ❌ Disconnected archive
+- ❌ Per-doc-type bespoke importers
+- ❌ PM direct upload
+- ❌ Destructive conversion
+- ❌ Indistinguishable imported records
+- ❌ LMS-style learning system
+- ❌ Speculative "smart system" behavior
+
+### Files created (planning-only · no code)
+- NEW · `/app/LEGACY_RECORDS_ARCHITECTURE_iter248.md` (~700 lines · full proposal)
+- MOD · `/app/memory/PRD.md` (this entry)
+
+### Next Action Items (operator-side only · agent is done)
+- ⏸ Operator reads the architecture document
+- ⏸ Operator marks disagreements/changes
+- ⏸ Operator answers the 10 Open Decisions
+- ⏸ Operator approves/adjusts the Operational Integration Map (§8 / §9 / §10)
+- ⏸ Operator confirms phased rollout cadence (one type proven before next)
+- ⏸ When/if operator approves Phase A: implement scaffold (data model + R2 + RBAC + stub OCR + empty Admin dashboard) · pass pre-deploy gate · ship to production · observe for 7 days
+- ⏸ Phases B-G follow same operator-approval cadence
+
+### Stabilization posture honored
+- ✅ Zero code changes in this iter
+- ✅ Zero feature work
+- ✅ Zero architecture drift on the running platform
+- ✅ Planning artifact only — operator can reject the whole proposal or any section without rework cost
+- ✅ Implementation deferred until operator explicit go-ahead per phase
+
+### Future / Backlog (unchanged · these remain available to operator)
+- 🟡 F2 · Leadership scope filter null-guard (iter245-surfaced)
+- 🟢 F4 · Deeper-portal ES sweep (~381 strings)
+- 🟢 F5 · Lesson `title_es` content localization
+- 🔵 F6 · Long legal-page ES (lawyer-reviewed)
+- 🔵 F7 · Backend observability dashboard
+- 🟡 Perf · edge-cache portal-login pages
+- P3 · iter153 test-fragility decoupling
+- Phase K4b · Unified User Management UI mutations
+- Phase K5 · Temp Password / Onboarding standardization
+- Stage B.1 · Owner Snapshot PDF
+
+🟢 Planning phase complete. Awaiting operator review of `/app/LEGACY_RECORDS_ARCHITECTURE_iter248.md`.
+
+---
+
+
 ## 2026-05-19 — iter247 follow-up · P1-A (run-now dry-run guard) + P1-B (AccessDenied ES) · ✅ DELIVERED (preview only)
 
 Operator-approved surgical patches from the live production audit. Tight stabilization-compatible scope: just the two flagged items.
