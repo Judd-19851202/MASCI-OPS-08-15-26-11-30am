@@ -9535,16 +9535,29 @@ async def admin_preview_po_digest(_: bool = Depends(require_admin)):
 
 
 @app.post("/api/admin/po-digest/run-now")
-async def admin_run_po_digest_now(_: bool = Depends(require_admin_strict)):
-    """Admin-only · explicit fire of the PO digest right now. Honors
-    the same AUTO_EMAIL_REPORTS gate as the cron — preview env will
-    log-only; production env (with the env flag set) will actually
-    send via Resend."""
+async def admin_run_po_digest_now(
+    dry_run: bool = False,
+    _: bool = Depends(require_admin_strict),
+):
+    """Admin-only · explicit fire of the PO digest right now.
+
+    iter247 P1-A · Operator-approved dry-run guard.
+      • `?dry_run=true`  → log-only, ZERO Resend quota burned. Returns
+        the same per-recipient summary as /preview. Use this for
+        verification, walkthroughs, and demo runs.
+      • default (no query)→ real send, honors AUTO_EMAIL_REPORTS env
+        gate (preview env logs-only · production sends via Resend).
+
+    Without `?dry_run=true`, callers MUST expect real emails to fire
+    on any environment where AUTO_EMAIL_REPORTS=true."""
     portal_url = (os.environ.get("PORTAL_PUBLIC_URL")
                   or os.environ.get("PUBLIC_BASE_URL")
                   or "https://mascidocs.com").rstrip("/")
     results = await send_po_digest_once(
-        db, _po_digest_send_email, portal_url=portal_url, dry_run=False,
+        db,
+        None if dry_run else _po_digest_send_email,
+        portal_url=portal_url,
+        dry_run=dry_run,
     )
     return {"ok": True, **results}
 

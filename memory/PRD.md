@@ -2,6 +2,113 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter247 follow-up · P1-A (run-now dry-run guard) + P1-B (AccessDenied ES) · ✅ DELIVERED (preview only)
+
+Operator-approved surgical patches from the live production audit. Tight stabilization-compatible scope: just the two flagged items.
+
+### P1-A — `/api/admin/po-digest/run-now?dry_run=true` guard · ✅
+
+**File:** `backend/server.py` — endpoint signature changed from `(_: bool = Depends(require_admin_strict))` to `(dry_run: bool = False, _: bool = Depends(require_admin_strict))`. When `?dry_run=true`, passes `None` as the send_email_fn so `send_po_digest_once` returns the per-recipient summary without firing any Resend emails.
+
+**Backward-compat:** default `dry_run=False` preserves the existing real-send behavior. Existing automation/scripts continue to work unchanged. Operator can now safely verify production roster without burning quota.
+
+**Live preview verification:**
+| Call | Result |
+|---|---|
+| `POST /api/admin/po-digest/run-now` (no query) | `dry_run=False` · honors `AUTO_EMAIL_REPORTS` gate · preview env log-only · 0 actual sends |
+| `POST /api/admin/po-digest/run-now?dry_run=true` | `dry_run=True` · 4 PMs + 2 HR processed · 0 actually sent · 0 Resend quota burned |
+
+**Test:** `test_run_now_endpoint_signature_has_dry_run_param` — guards against future regressions by inspecting the FastAPI route table for the `dry_run` parameter and verifying its default is `False`.
+
+### P1-B — `/AccessDenied` page ES localization · ✅
+
+**Files:**
+- `frontend/src/pages/AccessDenied.jsx` — imported `useT`, wrapped 11 hardcoded strings in `t()`: "that section" · "403 · Access Restricted" · "You don't have access to" · the signed-in body paragraph · the anonymous body paragraph · "Back to" · "Sign in" · "Public Home" · "Other portals you can access" · "Path:"
+- `frontend/src/lib/i18n.js` — added 11-entry iter247-P1B ES dict block
+
+**Live preview verification (mobile · 390 × 844 · ES mode · screenshot evidence captured):**
+
+| Element | Spanish render |
+|---|---|
+| Section badge | **403 · ACCESO RESTRINGIDO** ✅ |
+| Title | **No tiene acceso a po-requests** ✅ |
+| Body | "Debe iniciar sesión para ver esta sección. Elija el inicio de sesión del portal correcto a continuación — o regrese a la página pública." ✅ |
+| Primary CTA | **INICIAR SESIÓN** ✅ |
+| Secondary CTA | **PÁGINA PÚBLICA** ✅ |
+| Footer | "Ruta: /po-requests" ✅ |
+
+- 6/6 expected Spanish strings render ✅
+- 6/6 forbidden English strings clean (no leaks) ✅
+- 0 px horizontal overflow at 390 px mobile ✅
+- EN mode regression-free (all 4 English fallbacks present at desktop) ✅
+
+ES localization continuity now reaches **14/14 user-journey surfaces** (was 13/14 in iter247 audit) — closing the last operator-flagged i18n gap on portal-gated surfaces. The remaining 1 cosmetic item (`/legal/privacy` body sentence) stays in the F6 lawyer-reviewed backlog as previously documented.
+
+### Pre-deploy gate
+
+```
+Phase 1 · Regression suite          PASS  624 passed, 1 skipped
+Phase 2 · Build verification        PASS
+Phase 4 · Production-safety         PASS  all anon-RBAC counts = 0
+Phase 5 · Deployment classification PASS
+
+══ VERDICT: HOLD ══
+risk level: HIGH · auth-sensitive: True · 6 changed files
+```
+
+**HOLD is expected and intentional** — same operator-acknowledge pattern as iter246 F1 deploy. Triggers:
+- `AccessDenied.jsx` is the "auth-failure surface" so any edit flips `auth-sensitive=True`
+- `/run-now` endpoint sits behind `require_admin_strict` so any signature change flips the same flag
+
+**Actual auth-logic delta: zero.** Both patches are cosmetic/UX:
+- P1-A: added one query parameter; auth dependency unchanged
+- P1-B: wrapped strings in `t()`; no token/session/password code touched
+
+Gate report quote: *"This is not a block — it's a request for explicit operator acknowledgement that the sensitive surfaces in this batch are intentional."*
+
+### Files touched (final delta)
+
+- MOD · `backend/server.py` (~8-line `dry_run` query param + docstring update)
+- MOD · `backend/tests/test_iter246_po_digest.py` (+1 signature-guard test · 16/16 pass)
+- MOD · `frontend/src/pages/AccessDenied.jsx` (useT import + 11 t() wrappers · zero auth-logic change)
+- MOD · `frontend/src/lib/i18n.js` (+11 ES entries · iter247 P1-B block)
+- MOD · `memory/PRD.md` (this entry)
+
+### Stabilization posture preserved
+- ✅ No feature expansion beyond the two operator-approved items
+- ✅ No architecture drift
+- ✅ No observability-dashboard expansion
+- ✅ No proactive roadmap acceleration
+- ✅ No new collections, no new SDKs, no new auth flows
+- ✅ Operator's "observation-first operational stewardship" mandate fully honored
+
+### Next Action Items (operator-side)
+- ⏸ Operator acknowledges HOLD-due-to-auth-classifier → flip to APPROVE
+- ⏸ Save to Github
+- ⏸ Deploy to mascidocs.com
+- ⏸ Verify on production:
+  - `/po-requests` anon visit in ES → AccessDenied page renders in Spanish
+  - `POST /api/admin/po-digest/run-now?dry_run=true` → returns `dry_run:true` · 0 emails fire
+  - `POST /api/admin/po-digest/run-now` (no query) → respects AUTO_EMAIL_REPORTS gate · still sends real emails per existing production behavior
+- ⏸ Enter observation-first operational stewardship phase
+
+### Future / Backlog (unchanged · all from real-usage feedback going forward)
+- 🟡 F2 · Leadership scope filter null-guard (iter245-surfaced · pre-existing latent)
+- 🟢 F4 · Deeper-portal ES sweep (~381 strings)
+- 🟢 F5 · Lesson `title_es` content localization
+- 🔵 F6 · Long legal-page ES (lawyer-reviewed)
+- 🔵 F7 · Backend observability dashboard
+- 🟡 Perf · edge-cache portal-login pages (~30 min)
+- P3 · iter153 test-fragility decoupling
+- Phase K4b · Unified User Management UI mutations
+- Phase K5 · Temp Password / Onboarding standardization
+- Stage B.1 · Owner Snapshot PDF
+
+🟢 Preview verified · ready for operator-ack + Save-to-Github + Deploy.
+
+---
+
+
 ## 2026-05-19 — iter247 · Live Production Hardening Verification · ✅ APPROVE
 
 Operator-directed full external verification of `https://mascidocs.com` (post-deploy). Read-only black-box audit · zero code changes · zero feature work. Full structured report: `/app/LIVE_PRODUCTION_AUDIT_iter247.md`.

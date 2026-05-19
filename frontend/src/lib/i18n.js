@@ -768,6 +768,21 @@ const ES = {
   "Supervisor signature": "Firma del supervisor",
   // ── End iter245 entries ──
 
+  // iter247 P1-B · AccessDenied page localization (operator-approved audit follow-up)
+  "that section": "esa sección",
+  "403 · Access Restricted": "403 · Acceso Restringido",
+  "You don't have access to": "No tiene acceso a",
+  "This section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.":
+    "Esta sección pertenece a otro portal. Su sesión actual no puede abrirla, pero puede regresar a un portal al que sí tiene acceso a continuación. Si esto no es lo esperado, contacte a su administrador.",
+  "You need to sign in to view this section. Pick the right portal sign-in below — or head back to the public home.":
+    "Debe iniciar sesión para ver esta sección. Elija el inicio de sesión del portal correcto a continuación — o regrese a la página pública.",
+  "Back to": "Regresar a",
+  "Sign in": "Iniciar sesión",
+  "Public Home": "Página Pública",
+  "Other portals you can access": "Otros portales a los que tiene acceso",
+  "Path:": "Ruta:",
+  // ── End iter247 P1-B entries ──
+
   // iter246 · F1 — /admin/login ES polish (final localization continuity)
   "Admin Sign In": "Inicio de Sesión de Administrador",
   "Forgot password? Call the office.":

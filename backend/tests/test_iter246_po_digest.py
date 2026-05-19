@@ -233,3 +233,40 @@ def test_empty_scope_pms_included_when_opt_in(monkeypatch):
     assert M._send_empty_scope_pms() is True
     monkeypatch.setenv("PO_DIGEST_SEND_EMPTY_SCOPE_PMS", "false")
     assert M._send_empty_scope_pms() is False
+
+
+def test_run_now_endpoint_signature_has_dry_run_param():
+    """iter247 P1-A · The /api/admin/po-digest/run-now endpoint MUST
+    accept a `dry_run` query parameter. This guards against future
+    accidental Resend quota burns during admin verification calls.
+
+    Live curl verification (preview env):
+      POST /run-now             → dry_run=False (real send path, honors AUTO_EMAIL_REPORTS gate)
+      POST /run-now?dry_run=true → dry_run=True  (zero quota burned)
+    """
+    import sys
+    import importlib
+    # Force a fresh import of server.py so the route table is current
+    if "server" in sys.modules:
+        importlib.reload(sys.modules["server"])
+    import server as srv  # noqa: PLC0415
+
+    # Find the route by path
+    target_route = None
+    for r in srv.app.routes:
+        if getattr(r, "path", None) == "/api/admin/po-digest/run-now":
+            target_route = r
+            break
+    assert target_route is not None, "/api/admin/po-digest/run-now not registered"
+
+    # Inspect the endpoint signature for the `dry_run` parameter
+    import inspect
+    sig = inspect.signature(target_route.endpoint)
+    assert "dry_run" in sig.parameters, (
+        f"P1-A regression: run-now endpoint missing `dry_run` param. "
+        f"Current params: {list(sig.parameters)}"
+    )
+    # Default must be False so existing callers keep the same behavior
+    assert sig.parameters["dry_run"].default is False, (
+        "P1-A regression: dry_run default must be False (preserves existing real-send behavior)"
+    )

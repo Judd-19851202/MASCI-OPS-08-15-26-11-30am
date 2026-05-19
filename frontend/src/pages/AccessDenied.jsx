@@ -18,8 +18,10 @@ import {
   authorizedPortals, homePortal, isSignedInAnywhere,
   PORTAL_LABEL, PORTAL_HOME,
 } from "@/lib/permissions";
+import { useT } from "@/lib/i18n";
 
 export default function AccessDenied({ attemptedPortal }) {
+  const { t } = useT();
   const location = useLocation();
   const home = homePortal();
   const others = authorizedPortals().filter((p) => p !== home);
@@ -27,7 +29,7 @@ export default function AccessDenied({ attemptedPortal }) {
   // attempted portal label — for the body copy
   const what = attemptedPortal
     ? PORTAL_LABEL[attemptedPortal] || attemptedPortal
-    : "that section";
+    : t("that section");
 
   return (
     <div className="min-h-screen blueprint-bg flex flex-col" data-testid="access-denied-page">
@@ -45,17 +47,15 @@ export default function AccessDenied({ attemptedPortal }) {
           </div>
 
           <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-red-700 font-black">
-            403 · Access Restricted
+            {t("403 · Access Restricted")}
           </span>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1.5">
-            You don&apos;t have access to {what}
+            {t("You don't have access to")} {what}
           </h1>
           <p className="text-slate-600 mt-3 leading-relaxed text-sm sm:text-base">
-            {signedIn ? (
-              <>This section belongs to a different portal scope. Your current session can&apos;t open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.</>
-            ) : (
-              <>You need to sign in to view this section. Pick the right portal sign-in below — or head back to the public home.</>
-            )}
+            {signedIn
+              ? t("This section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.")
+              : t("You need to sign in to view this section. Pick the right portal sign-in below — or head back to the public home.")}
           </p>
 
           {/* Primary CTA */}
@@ -66,7 +66,7 @@ export default function AccessDenied({ attemptedPortal }) {
                 className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-slate-900 hover:bg-red-700 text-white font-bold uppercase tracking-wide text-xs transition-colors"
                 data-testid="access-denied-home-portal"
               >
-                Back to {PORTAL_LABEL[home]} <ArrowRight className="w-4 h-4" />
+                {t("Back to")} {PORTAL_LABEL[home]} <ArrowRight className="w-4 h-4" />
               </Link>
             ) : (
               <Link
@@ -74,7 +74,7 @@ export default function AccessDenied({ attemptedPortal }) {
                 className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-slate-900 hover:bg-red-700 text-white font-bold uppercase tracking-wide text-xs transition-colors"
                 data-testid="access-denied-sign-in"
               >
-                <LogIn className="w-4 h-4" /> Sign in
+                <LogIn className="w-4 h-4" /> {t("Sign in")}
               </Link>
             )}
             <Link
@@ -82,7 +82,7 @@ export default function AccessDenied({ attemptedPortal }) {
               className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-white border-2 border-slate-300 hover:border-slate-400 text-slate-900 font-bold uppercase tracking-wide text-xs transition-colors"
               data-testid="access-denied-home"
             >
-              <Home className="w-4 h-4" /> Public Home
+              <Home className="w-4 h-4" /> {t("Public Home")}
             </Link>
           </div>
 
@@ -90,7 +90,7 @@ export default function AccessDenied({ attemptedPortal }) {
           {signedIn && others.length > 0 && (
             <div className="mt-8 pt-6 border-t border-slate-200">
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold mb-2.5">
-                Other portals you can access
+                {t("Other portals you can access")}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {others.map((p) => (
@@ -111,7 +111,7 @@ export default function AccessDenied({ attemptedPortal }) {
           )}
 
           <div className="mt-8 text-[11px] text-slate-400 font-mono">
-            Path: <span className="text-slate-500">{location.pathname}</span>
+            {t("Path:")} <span className="text-slate-500">{location.pathname}</span>
           </div>
         </div>
       </main>
