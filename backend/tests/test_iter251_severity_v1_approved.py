@@ -15,9 +15,13 @@ import fleet_defect_severity as _sev
 
 
 def test_severity_table_version_is_v1_approved():
-    assert _sev.SEVERITY_TABLE_VERSION == "v1-approved-2026-05-19"
+    # v1.1 commercial-vehicle refinement pass · 2026-05-19 PM
+    assert _sev.SEVERITY_TABLE_VERSION == "v1.1-approved-2026-05-19"
     assert _sev.SEVERITY_TABLE_APPROVAL["uncertainty_resolved"] is True
     assert _sev.SEVERITY_TABLE_APPROVAL["rulings_count"] == 9
+    # v1.1 changelog must be exposed
+    assert "v1_1_refinements" in _sev.SEVERITY_TABLE_APPROVAL
+    assert len(_sev.SEVERITY_TABLE_APPROVAL["v1_1_refinements"]) >= 4
 
 
 def test_no_uncertain_items_remain():
@@ -145,9 +149,11 @@ def test_ruling_9_tarp_load_haul_split():
 
 # ─── Table-wide health checks after rulings ─────────────────────────
 def test_table_size_grew_by_split_items():
-    """9 vague items → 19 precise items · net +10 entries."""
-    assert len(_sev.FLEET_DEFECT_SEVERITY) == 107
-    assert len(_sev.FLEET_DEFECT_SEVERITY_META) == 107
+    """v1: 97→107 entries from 9 rulings.
+    v1.1: +5 commercial additions, -2 tire consolidations, -1 cab cleanliness
+    removal → net +2 (109 total)."""
+    assert len(_sev.FLEET_DEFECT_SEVERITY) == 109
+    assert len(_sev.FLEET_DEFECT_SEVERITY_META) == 109
 
 
 def test_oos_monitor_ratio_still_conservative():

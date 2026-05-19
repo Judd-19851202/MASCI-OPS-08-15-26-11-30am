@@ -27,17 +27,15 @@ def dvir_truck_items() -> List[str]:
         # Brakes
         "Service brakes — apply firmly · stop straight · no pulling",
         "Parking brake — holds truck against engine torque",
-        "Trailer air brakes — engage with hand valve · release fully",
-        "Brake chamber / slack adjuster — no visible damage · proper stroke",
+        "Trailer hand valve — applies trailer service brakes from tractor · releases fully",
+        "Brake chamber / slack adjuster — no visible damage · slack adjuster travel within normal range",
         "Brake hoses / lines — no cracks · no abrasion · no leaks",
         "Brake warning light / low-air buzzer — operates correctly",
-        # Tires
+        # Tires (v1.1 · consolidated)
         "Steer tire tread depth — ≥ 4/32\" across full width",
         "Drive / trailer tire tread depth — ≥ 2/32\" across full width",
-        "Tire — no exposed cord / belt / ply",
-        "Tire — no severe sidewall damage (bulge / cut / cord exposed)",
-        "Tire — properly inflated (no flat · no severe under-inflation)",
-        "Tire — no audible air leak",
+        "Tire — no sidewall bulge · no exposed cord / belt / ply · no severe cut",
+        "Tire — properly inflated · no audible leak · no flat",
         "Tire — minor sidewall scuff / cosmetic",
         # Wheels / lugs
         "Wheel — all lug nuts present",
@@ -57,7 +55,7 @@ def dvir_truck_items() -> List[str]:
         "Brake lights — both sides functional",
         "Tail lights — both sides functional",
         "Clearance / marker lights — all functional",
-        "Identification lights (3-light cluster) — all functional",
+        "Identification lights (3-light cluster · top of cab) — all functional",
         "License plate light — functional",
         "Reflectors — clean · undamaged · in place",
         # Signals / alarms / horn
@@ -105,11 +103,16 @@ def dvir_truck_items() -> List[str]:
         "Fuel — no leaks · cap secure",
         "Transmission fluid — proper level",
         "Windshield washer fluid",
+        # Exhaust / Electrical (v1.1)
+        "Exhaust system — no leaks ahead of muffler · no fumes entering cab",
+        "Battery — securely mounted · no severe corrosion · cables tight",
+        # Cargo / Markings (v1.1)
+        "Cargo securement — chains / binders / straps rated and applied per load (flatbed / service truck)",
+        "DOT number / company markings — legible · readable from 50 ft",
         # Interior / cab
         "Seat belt — present · functional · no fraying",
         "Defroster — functional when ambient ≤ 40°F or precipitation forecast in shift window",
         "Cab heater — functional · escalates to OOS if window fogging affects visibility",
-        "Cab — interior cleanliness",
         "Oil pressure & coolant temp gauges OR equivalent ECM warning system functional",
         "Fuel gauge — functional · driver may estimate by miles · 7-day shop window",
         "Dash gauges (oil / temp) inop on units with ECM check-engine + fault display fully functional · 14-day shop window",
@@ -160,6 +163,8 @@ def dvir_trailer_items() -> List[str]:
         "Trailer floor — no major holes · structurally sound",
         "Trailer headboard / bulkhead — intact",
         "Trailer body — cosmetic damage",
+        # v1.1 commercial-vehicle addition (2026-05-19 PM)
+        "Trailer mudflaps / spray suppression — present · secure · no major tears",
     ]
 
 
@@ -198,7 +203,7 @@ def dvir_weekly_lead_items() -> List[str]:
     return [
         # Body / cosmetic accountability
         "Body — cosmetic dings · scrapes · paint",
-        "Cab — interior cleanliness",
+        # v1.1 · "Cab — interior cleanliness" removed (low operational value)
         # Recurring issues to flag for shop visibility
         "Tire — minor sidewall scuff / cosmetic",
         "Mirror — minor crack / chip with visible image",

@@ -159,3 +159,106 @@ version bumps to `v1-safety-signed-YYYY-MM-DD`.
 ---
 
 🔒 **This document is the audit-of-record for the v1-approved-2026-05-19 severity table.** Any future severity-table change MUST reference this file in the new rulings record and bump the version stamp.
+
+---
+
+# v1.1 Refinement Pass · 2026-05-19 PM
+
+**Status**: 🔒 LOCKED · operator-approved 2026-05-19 PM
+**Version stamp**: `v1-approved-2026-05-19` → **`v1.1-approved-2026-05-19`**
+**Audit verdict**: `READY_FOR_SAFETY_SIGNOFF` (preserved)
+
+## Operator brief (2026-05-19 PM)
+Pre-production sign-off refinement pass requested:
+1. Driver Name field → searchable employee picker + "+ Add to roster" fallback (operationally lightweight · case-insensitive dedup)
+2. DOT/FMCSA/commercial DVIR alignment review (semis, dumps, trailers · NOT generic passenger inspection)
+3. HelpTip density tuning (slightly denser where genuinely helpful · still calm/short/collapsible)
+4. Inspection wording pass (field-clear, commercially accurate, non-ambiguous, no overlap)
+
+## v1.1 changes
+
+### Added · 5 commercial-vehicle items (§ 396.11 alignment)
+- 🛑 **OOS** · `Exhaust system — no leaks ahead of muffler · no fumes entering cab` (§ 393.83 · CO poisoning prevention)
+- 🛑 **OOS** · `Battery — securely mounted · no severe corrosion · cables tight` (§ 393.30 · safety lighting + remote-route reliability)
+- 🛑 **OOS** · `Cargo securement — chains / binders / straps rated and applied per load (flatbed / service truck)` (§ 393.100 · load-shed struck-by prevention)
+- 👁 **Monitor** · `DOT number / company markings — legible · readable from 50 ft` (§ 390.21 · CMV identification)
+- 👁 **Monitor** · `Trailer mudflaps / spray suppression — present · secure · no major tears` (§ 393.86 · spray protection for following traffic)
+
+### Consolidated · 2 redundant tire pairs (no signal loss)
+- ❌ `Tire — no exposed cord / belt / ply` + `Tire — no severe sidewall damage (bulge / cut / cord exposed)` → ✅ **`Tire — no sidewall bulge · no exposed cord / belt / ply · no severe cut`** (OOS · single item)
+- ❌ `Tire — properly inflated (no flat · no severe under-inflation)` + `Tire — no audible air leak` → ✅ **`Tire — properly inflated · no audible leak · no flat`** (OOS · single item)
+
+### Tightened · 4 wordings for commercial field clarity
+- `Trailer air brakes — engage with hand valve · release fully` → **`Trailer hand valve — applies trailer service brakes from tractor · releases fully`** (explicit re: "hand valve = tractor hand control")
+- `Brake chamber / slack adjuster — no visible damage · proper stroke` → **`Brake chamber / slack adjuster — no visible damage · slack adjuster travel within normal range`** (driver-checkable language · removed shop-only "proper stroke" jargon)
+- `Identification lights (3-light cluster) — all functional` → **`Identification lights (3-light cluster · top of cab) — all functional`** (anchored location for drivers)
+- (Existing wordings audited · others retained as-is)
+
+### Removed · 1 low-operational-value item
+- ❌ `Cab — interior cleanliness` (MONITOR) — operationally low-signal · cabin cleanliness is a yard/shop responsibility, not a DVIR signal. Removed from severity table, daily DVIR checklist, and weekly lead checklist.
+
+### Driver UX additions (frontend NewFleetDVIR.jsx)
+- 🟢 Driver Name field now uses **`EmployeeCombo`** (searchable picker · same UX as Request PO) + "+ Add to roster" fallback via existing `POST /api/employees/add` endpoint (case-insensitive dedup · trim whitespace · idempotent · no HR approval queue).
+- 🟢 **3 new collapsible HelpTips** in Truck Walk-Around section:
+  - "Air brakes · what to listen for" (95 psi build · gladhand leaks · 4 psi/min leak-down rule)
+  - "Tires · quick check" (tread depth · wear bars · sidewall feel-test · hiss listen)
+- 🟢 **1 new collapsible HelpTip** in Trailer Walk-Around section:
+  - "Coupling · the most common roadside finding" (kingpin seated · jaws closed · safety pin · tug-test)
+- All 4 new tips: short · operational · field-practical · collapsed by default · zero preachy LMS tone.
+
+## Table stats (v1 → v1.1)
+
+| Metric | v1-approved | v1.1-approved |
+|---|---|---|
+| Total severity entries | 107 | **109** |
+| OOS classifications | 73 | **74** |
+| Monitor classifications | 34 | **35** |
+| OOS/Monitor ratio | 2.15 | **2.11** (still conservative · ≥ 1.5 floor) |
+| Uncertain items | 0 | **0** |
+| Verdict | READY_FOR_SAFETY_SIGNOFF | **READY_FOR_SAFETY_SIGNOFF** |
+
+## Coverage matrix · v1.1 against 49 CFR § 396.11 mandatory inspection items
+
+| § 396.11 mandatory item | v1.1 coverage |
+|---|---|
+| Service brakes (incl. trailer connections) | ✅ Service brakes · Trailer hand valve · Brake hoses · Brake warning · Brake chamber/slack adjuster |
+| Parking (hand) brake | ✅ Parking brake — holds against torque |
+| Steering mechanism | ✅ Free play · Linkage/drag link/pitman · Power steering (split) |
+| Lighting devices and reflectors | ✅ Low + high beams · brake · tail · clearance · ID cluster · plate · reflectors · trailer set |
+| Tires | ✅ Steer 4/32" · Drive/trailer 2/32" · Consolidated sidewall · Consolidated inflation |
+| Horn | ✅ Horn — sounds at normal volume |
+| Windshield wipers | ✅ Driver-side strict · Passenger conditional by forecast |
+| Rear vision mirrors | ✅ Both sides · Minor crack chip MONITOR |
+| Coupling devices | ✅ Fifth wheel locked · mounting bolts · safety chains · pintle hook · Trailer coupler/kingpin · Trailer safety chains |
+| Wheels and rims | ✅ Lugs present · Lugs tight · Rim cracks · Hub seal |
+| Emergency equipment | ✅ Fire extinguisher · Reflective triangles · Fuses · First aid · Vest |
+| **+ Air brake system** (CMV-specific) | ✅ Pressure build · Leak-down · Gladhands · Low-air warning |
+| **+ Suspension** | ✅ Leaf springs/u-bolts · Air bags |
+| **+ Exhaust** (v1.1 new) | ✅ § 393.83 added |
+| **+ Battery** (v1.1 new) | ✅ § 393.30 added |
+| **+ Cargo securement** (v1.1 new) | ✅ § 393.100 added (flatbed/service scope) |
+| **+ DOT marking** (v1.1 new) | ✅ § 390.21 added |
+| **+ Mudflaps** (v1.1 new trailer) | ✅ § 393.86 added |
+
+Coverage is now **defensibly aligned with commercial DVIR realities** without becoming compliance theater. Operationally usable · short list · objective thresholds.
+
+## Files touched in v1.1 cycle
+- MOD · `backend/fleet_defect_severity.py` (+changelog comment · +SEVERITY_TABLE_APPROVAL.v1_1_refinements · +5 new items + metadata · 2 consolidations · 4 wording tightens · 1 removal · 2 new category constants)
+- MOD · `backend/checklists_fleet.py` (truck list +6 new items / -2 consolidated + 4 tightened wordings · trailer list +1 mudflap · weekly lead list -1 cleanliness · emergency list +1 ID-cluster wording)
+- MOD · `frontend/src/pages/NewFleetDVIR.jsx` (Driver name → EmployeeCombo · +3 truck helptips · +1 coupling helptip · `<>` fragment around trailer map)
+- MOD · `frontend/src/lib/i18n.js` (~8 new EN→ES translation entries for driver-combo placeholder + 4 new helptips)
+- MOD · `backend/tests/test_iter251_severity_v1_approved.py` (version assertion v1.1 · size 107→109)
+- REGEN · `/app/FLEET_SEVERITY_REVIEW_PACKAGE_iter251.md` (now reflects v1.1 · 109 items)
+
+## Sign-off chain (preserved · status of approval-bands unchanged)
+
+- [x] Operator (Jaymn) · 2026-05-19 · all 9 v1 rulings approved
+- [x] Operator (Jaymn) · 2026-05-19 PM · v1.1 commercial-vehicle refinement pass approved
+- [ ] Safety · field-deployment sign-off (after Phase 2 driver UX shipped to mascidocs.com)
+- [ ] Shop · operational sign-off (after first 30 days of field DVIRs)
+- [ ] Dispatch · re-clearance authority sign-off (after first 30 days)
+
+---
+
+🔒 **v1.1 is the current production-target version.** No further severity-table edits without a new dated rulings record + version bump.
+

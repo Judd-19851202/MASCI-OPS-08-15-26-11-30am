@@ -32,6 +32,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { LangToggle } from "@/components/LangToggle";
 import { HelpTip } from "@/components/HelpTip";
+import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 
@@ -463,14 +464,16 @@ export default function NewFleetDVIR() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-semibold text-slate-800">{t("Driver name")}</Label>
-              <Input
-                className={inputCls + " mt-1"}
+              <EmployeeCombo
                 value={driverName}
-                onChange={(e) => setDriverName(e.target.value)}
-                placeholder={t("First and last name")}
-                data-testid="dvir-driver-name"
-                autoComplete="name"
+                onChange={setDriverName}
+                placeholder={t("Type or pick driver name…")}
+                testId="dvir-driver-combo"
+                className="mt-1"
               />
+              <p className="text-[11px] text-slate-500 mt-1">
+                {t("If you're new to MASCI, type your full name and tap '+ Add to roster'. Future DVIRs will autocomplete.")}
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -543,6 +546,18 @@ export default function NewFleetDVIR() {
             body={t("Front · driver side · rear · passenger side. Look for leaks under the engine, listen for air, check lights with the 4-ways on, look at every tire's tread.")}
             testId="dvir-tip-walkaround"
           />
+          <HelpTip
+            kind="why"
+            title={t("Air brakes · what to listen for")}
+            body={t("Build to 95 psi · listen for leaks at gladhands and chambers · then engine off and watch the gauge for 2 minutes · should not drop more than ~4 psi/min. If it bleeds faster, it's a real defect — not driver error.")}
+            testId="dvir-tip-airbrakes"
+          />
+          <HelpTip
+            kind="next"
+            title={t("Tires · quick check")}
+            body={t("Tread depth gauge if you have one · otherwise eyeball the wear bars. Walk every tire and run your hand along the sidewall — bulges and cuts feel obvious. Note any audible hiss.")}
+            testId="dvir-tip-tires"
+          />
           <div className="text-[12px] font-mono uppercase tracking-widest text-slate-500 mt-2 mb-1">
             {t("Progress")}: {truckProgress.answered} / {truckProgress.total}
           </div>
@@ -586,7 +601,14 @@ export default function NewFleetDVIR() {
               {t("No trailer today? Skip this section.")}
             </div>
           ) : (
-            trailers.map((tr, idx) => (
+            <>
+              <HelpTip
+                kind="why"
+                title={t("Coupling · the most common roadside finding")}
+                body={t("Confirm the kingpin is fully seated in the fifth wheel · jaws closed · safety pin in place. Tug-test forward in low gear. A bad coupling will drop the trailer · always worth the extra 10 seconds.")}
+                testId="dvir-tip-coupling"
+              />
+              {trailers.map((tr, idx) => (
               <div key={idx} className="border-2 border-slate-200 rounded-md p-4 bg-slate-50/40 mb-4 last:mb-0" data-testid={`dvir-trailer-${idx}`}>
                 <div className="flex items-end justify-between gap-3 mb-3">
                   <div className="flex-1">
@@ -637,7 +659,8 @@ export default function NewFleetDVIR() {
                   </div>
                 )}
               </div>
-            ))
+            ))}
+            </>
           )}
         </Section>
 

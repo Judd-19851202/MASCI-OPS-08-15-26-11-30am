@@ -1,7 +1,7 @@
 # Fleet Defect Severity Review Package · iter251
 
-**Status:** v1-approved-2026-05-19
-**Approved:** 2026-05-19 · Operator (Jaymn) · per SEVERITY_RULINGS_iter251.md
+**Status:** v1.1-approved-2026-05-19
+**Approved:** 2026-05-19 · Operator (Jaymn) · per SEVERITY_RULINGS_iter251.md + CFR § 396.11 refinement pass
 **Approval record:** `/app/SEVERITY_RULINGS_iter251.md`
 **Generated from:** `/app/backend/fleet_defect_severity.py` + `/app/backend/checklists_fleet.py`
 **Audience:** Safety · Shop · Operations · Dispatch leadership
@@ -15,10 +15,10 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 
 ## Summary
 
-- **Total classified items:** 107
-- **OUT OF SERVICE classifications:** 73
-- **MONITOR classifications:** 34
-- **OOS-to-monitor ratio:** 2.15 (conservative bias toward OOS)
+- **Total classified items:** 109
+- **OUT OF SERVICE classifications:** 74
+- **MONITOR classifications:** 35
+- **OOS-to-monitor ratio:** 2.11 (conservative bias toward OOS)
 - **Items flagged UNCERTAIN pending Safety review:** 0
 - **Items missing severity classification:** 0 (must be zero before deploy)
 - **Orphan severity entries (not used by any checklist):** 0
@@ -30,8 +30,8 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 
 | Inspection Kind | Truck Items | Trailer Items | Total | Classified | Coverage |
 |---|---|---|---|---|---|
-| `dvir` (Daily DVIR) | 83 | 24 | 107 | 107 | 100.0% |
-| `weekly_lead` (Weekly Lead Driver Inspection) | 10 | 0 | 10 | 10 | 100.0% |
+| `dvir` (Daily DVIR) | 84 | 25 | 109 | 109 | 100.0% |
+| `weekly_lead` (Weekly Lead Driver Inspection) | 9 | 0 | 9 | 9 | 100.0% |
 | `weekly_emergency` (Weekly Emergency Equipment Inspection) | 16 | 0 | 16 | 16 | 100.0% |
 
 ---
@@ -42,10 +42,10 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 
 ### Brakes · 8 OOS · 0 MONITOR
 
-#### 🛑 `Brake chamber / slack adjuster — no visible damage · proper stroke`
+#### 🛑 `Brake chamber / slack adjuster — no visible damage · slack adjuster travel within normal range`
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.47 · CVSA OOS §1.d
-- **Rationale:** Out-of-adjustment slack adjusters or damaged brake chambers are the most common brake-stroke OOS finding at roadside. Conservative OOS.
+- **Rationale:** Out-of-adjustment slack adjusters or damaged brake chambers are the most common brake-stroke OOS finding at roadside. Driver checks visually for damage + extended travel · the precise stroke measurement is a shop function. (v1.1 wording clarification 2026-05-19 PM)
 
 #### 🛑 `Brake hoses / lines — no cracks · no abrasion · no leaks`
 - **Severity:** OOS
@@ -67,15 +67,15 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Reference:** 49 CFR § 393.40 · CVSA OOS §1.b
 - **Rationale:** Service brake failure is the single largest OOS category in CVSA roadside inspections. Inoperable service brake on any axle or stopping-distance failure removes a CMV from service.
 
-#### 🛑 `Trailer air brakes — engage with hand valve · release fully`
-- **Severity:** OOS
-- **Reference:** 49 CFR § 393.43 · CVSA OOS §1.b
-- **Rationale:** Trailer brake control is part of the combined-vehicle braking capacity. Failure renders the combination OOS even if tractor brakes are fine.
-
 #### 🛑 `Trailer brake hoses — no cracks · no abrasion`
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.45
 - **Rationale:** Brake line integrity · OOS.
+
+#### 🛑 `Trailer hand valve — applies trailer service brakes from tractor · releases fully`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.43 · CVSA OOS §1.b
+- **Rationale:** Trailer brake control via tractor hand valve is part of the combined-vehicle braking capacity. Failure renders the combination OOS even if tractor brakes are fine. (v1.1 wording clarification 2026-05-19 PM)
 
 #### 🛑 `Trailer service brakes — engage · release · no drag`
 - **Severity:** OOS
@@ -83,7 +83,7 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Rationale:** Trailer brake failure compromises combination braking. OOS.
 
 
-### Tires · 9 OOS · 1 MONITOR
+### Tires · 7 OOS · 1 MONITOR
 
 #### 🛑 `Drive / trailer tire tread depth — ≥ 2/32" across full width`
 - **Severity:** OOS
@@ -95,25 +95,15 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Reference:** 49 CFR § 393.75(c) · CVSA OOS §6.a
 - **Rationale:** Steer tires below 4/32" tread depth lose wet-weather grip and steering control. Federal OOS minimum.
 
-#### 🛑 `Tire — no audible air leak`
+#### 🛑 `Tire — no sidewall bulge · no exposed cord / belt / ply · no severe cut`
 - **Severity:** OOS
-- **Reference:** 49 CFR § 393.75
-- **Rationale:** Audible leak indicates active deflation. OOS until repaired.
+- **Reference:** 49 CFR § 393.75(a)(2)(3) · CVSA OOS §6.d
+- **Rationale:** Sidewall bulge/cut OR exposed cord/belt/ply indicates compromised tire structural integrity · imminent catastrophic failure risk. Always OOS. (v1.1 · consolidated 2 prior items 2026-05-19 PM)
 
-#### 🛑 `Tire — no exposed cord / belt / ply`
-- **Severity:** OOS
-- **Reference:** 49 CFR § 393.75(a)(3) · CVSA OOS §6.d
-- **Rationale:** Exposed cord/belt indicates imminent catastrophic tire failure. Always OOS.
-
-#### 🛑 `Tire — no severe sidewall damage (bulge / cut / cord exposed)`
-- **Severity:** OOS
-- **Reference:** 49 CFR § 393.75(a)(2)
-- **Rationale:** Sidewall bulges/cuts compromise tire structural integrity. Always OOS.
-
-#### 🛑 `Tire — properly inflated (no flat · no severe under-inflation)`
+#### 🛑 `Tire — properly inflated · no audible leak · no flat`
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.75(h)
-- **Rationale:** Severe under-inflation generates heat and risks blowout. Flat tire is unsafe to operate. OOS.
+- **Rationale:** Severe under-inflation generates heat and risks blowout · audible leak indicates active deflation · flat tire is unsafe to operate. OOS until repaired. (v1.1 · consolidated 2 prior items 2026-05-19 PM)
 
 #### 🛑 `Trailer tire tread — ≥ 2/32" across full width`
 - **Severity:** OOS
@@ -200,7 +190,7 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Rationale:** Broken springs or missing U-bolts compromise axle integrity. OOS.
 
 
-### Structural · 5 OOS · 0 MONITOR
+### Structural · 5 OOS · 1 MONITOR
 
 #### 🛑 `Frame — no cracks · no severe rust-through`
 - **Severity:** OOS
@@ -226,6 +216,11 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.106
 - **Rationale:** Load-shift protection for cab · OOS if compromised.
+
+#### 👁 `Trailer mudflaps / spray suppression — present · secure · no major tears`
+- **Severity:** MONITOR
+- **Reference:** 49 CFR § 393.86 · state regs
+- **Rationale:** Mudflaps protect following traffic from stones and spray kicked up from drive / trailer tires. Federal rule plus most state codes require functional flaps on commercial trailers. Monitor for partial tear, missing flap, or loose hardware · escalates to OOS if completely absent / dragging on highway. (v1.1 commercial-vehicle addition 2026-05-19 PM)
 
 
 ### Air System · 4 OOS · 0 MONITOR
@@ -339,10 +334,10 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Reference:** 49 CFR § 393.24 (operational tier)
 - **Rationale:** Single high-beam failure with both low-beams functional is Monitor for daylight-only paving/haul ops · 3-day shop window. Escalates to OOS if night work assigned. (Ruling #2 · 2026-05-19)
 
-#### 👁 `Identification lights (3-light cluster) — all functional`
+#### 👁 `Identification lights (3-light cluster · top of cab) — all functional`
 - **Severity:** MONITOR
 - **Reference:** 49 CFR § 393.11
-- **Rationale:** Compliance lighting · monitor.
+- **Rationale:** Required commercial lighting · top-of-cab 3-light cluster signals vehicle width to following traffic. Conservative monitor since they don't impede operation. (v1.1 wording clarification 2026-05-19 PM)
 
 #### 👁 `License plate light — functional`
 - **Severity:** MONITOR
@@ -591,7 +586,7 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Rationale:** Minor tear (< 6"×6") OR unit assigned to empty / equipment / non-dust haul = Monitor with 5-day shop window. Escalates to OOS the moment unit reassigned to aggregate / asphalt / dust haul. (Ruling #9 · 2026-05-19)
 
 
-### Interior · 3 OOS · 4 MONITOR
+### Interior · 3 OOS · 3 MONITOR
 
 #### 🛑 `Defroster — functional when ambient ≤ 40°F or precipitation forecast in shift window`
 - **Severity:** OOS
@@ -612,11 +607,6 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Severity:** MONITOR
 - **Reference:** 49 CFR § 393.79 (operational tier)
 - **Rationale:** Cab heater inop is driver-comfort Monitor only when above 40°F + dry forecast + no fogging. Escalates to OOS if fogging conditions affect windshield visibility (visibility is the actual safety concern, not comfort). 7-day shop window. (Ruling #7 · 2026-05-19)
-
-#### 👁 `Cab — interior cleanliness`
-- **Severity:** MONITOR
-- **Reference:** operational
-- **Rationale:** Accountability + lead-driver visibility · monitor.
 
 #### 👁 `Dash gauges (oil / temp) inop on units with ECM check-engine + fault display fully functional · 14-day shop window`
 - **Severity:** MONITOR
@@ -647,6 +637,38 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Rationale:** Cosmetic only · monitor for accountability.
 
 
+### Exhaust · 1 OOS · 0 MONITOR
+
+#### 🛑 `Exhaust system — no leaks ahead of muffler · no fumes entering cab`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.83 · CVSA OOS criteria
+- **Rationale:** Exhaust leaks ahead of the muffler can introduce carbon monoxide into the cab · CO poisoning is a documented commercial-driver fatality cause. Federal rule requires discharge to the outside atmosphere. OOS until repaired. (v1.1 commercial-vehicle addition 2026-05-19 PM)
+
+
+### Electrical · 1 OOS · 0 MONITOR
+
+#### 🛑 `Battery — securely mounted · no severe corrosion · cables tight`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.30
+- **Rationale:** Battery hold-down failure can drop the battery into the engine bay; severe corrosion can break the connection under load creating no-start on remote routes or interrupting safety lighting. OOS for any unsecured battery / heavy corrosion / loose cable. (v1.1 commercial-vehicle addition 2026-05-19 PM)
+
+
+### Cargo Securement · 1 OOS · 0 MONITOR
+
+#### 🛑 `Cargo securement — chains / binders / straps rated and applied per load (flatbed / service truck)`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.100 · CVSA OOS criteria
+- **Rationale:** Load shedding from a CMV is a leading struck-by fatality cause for following traffic. Securement rule applies to any rigid cargo (equipment, pipe, pallets) on flatbed / service truck. Each tie-down rated; minimum count per length per § 393.100. OOS if missing or under-rated. (v1.1 commercial-vehicle addition 2026-05-19 PM)
+
+
+### Markings · 0 OOS · 1 MONITOR
+
+#### 👁 `DOT number / company markings — legible · readable from 50 ft`
+- **Severity:** MONITOR
+- **Reference:** 49 CFR § 390.21
+- **Rationale:** Federally required CMV identification · legible from 50 feet · letters at least 2 inches tall. Monitor for fading / dirt buildup that obscures the marking. (v1.1 commercial-vehicle addition 2026-05-19 PM)
+
+
 ---
 
 ## Operational Sign-Off
@@ -658,7 +680,7 @@ Before production reliance, each of the following must redline + sign:
 - [ ] **Operations** · confirms operational impact estimates (false-positive OOS productivity hit acceptable)
 - [ ] **Dispatch leadership** · confirms re-clearance authority + workflow
 
-Severity table currently stamped **`v1-approved-2026-05-19`**. After a re-rulings cycle, bump the version stamp + add a new dated rulings record (mirroring `/app/SEVERITY_RULINGS_iter251.md`) and re-run this generator + audit endpoint.
+Severity table currently stamped **`v1.1-approved-2026-05-19`**. After a re-rulings cycle, bump the version stamp + add a new dated rulings record (mirroring `/app/SEVERITY_RULINGS_iter251.md`) and re-run this generator + audit endpoint.
 
 ---
 

@@ -1,6 +1,27 @@
 """iter251 Phase A · Fleet Operations Foundation · Defect Severity Table.
 
-🔒  v1 APPROVED 2026-05-19 — Operator-ruled · Safety sign-off pending field deployment 🔒
+🔒  v1.1 APPROVED 2026-05-19 — Operator-ruled v1 + commercial-vehicle DVIR
+     refinements (CFR § 396.11 alignment + wording pass) · Safety field
+     sign-off pending field deployment. 🔒
+
+CHANGELOG (v1 → v1.1, 2026-05-19 PM):
+  • Added 5 commercial-vehicle items missing from v1:
+      - Exhaust system (§ 393.83) · OOS
+      - Battery hold-down / corrosion (§ 393.30) · OOS
+      - Cargo securement — chains / binders / straps (§ 393.100) · OOS
+      - DOT number / company markings visible (§ 390.21) · MONITOR
+      - Trailer mudflaps / spray suppression (§ 393.86) · MONITOR
+  • Consolidated 2 redundant tire pairs into 2 single items:
+      - "no audible air leak" + "properly inflated" → 1 item
+      - "no exposed cord/belt/ply" + "no severe sidewall damage" → 1 item
+  • Tightened wording on 4 items for field clarity:
+      - Trailer air brakes (clarified "tractor hand valve")
+      - Slack adjuster (removed jargon "proper stroke")
+      - Brake chamber / slack adjuster (commercial-defensible language)
+      - Identification lights (added "top of cab" anchor)
+  • Removed "Cab — interior cleanliness" (operationally low-value MONITOR
+    that added no DVIR signal · cabin cleanliness handled by yard/shop).
+  • Bumped version stamp · approval record reissued.
 
 This module is the SINGLE SOURCE OF TRUTH for whether a failed DVIR
 checklist item puts a truck/trailer OUT OF SERVICE or merely flags it
@@ -48,15 +69,21 @@ VALID_SEVERITIES = (SEVERITY_OOS, SEVERITY_MONITOR)
 
 # Severity table version stamp · single source of truth.
 # Bump when the table changes · audit endpoint surfaces this for governance.
-SEVERITY_TABLE_VERSION = "v1-approved-2026-05-19"
+SEVERITY_TABLE_VERSION = "v1.1-approved-2026-05-19"
 SEVERITY_TABLE_APPROVAL = {
     "version": SEVERITY_TABLE_VERSION,
     "approved_at": "2026-05-19",
-    "approved_by": "Operator (Jaymn) · per SEVERITY_RULINGS_iter251.md",
+    "approved_by": "Operator (Jaymn) · per SEVERITY_RULINGS_iter251.md + CFR § 396.11 refinement pass",
     "approval_record": "/app/SEVERITY_RULINGS_iter251.md",
     "status": "approved · pending Safety field deployment",
     "rulings_count": 9,
     "uncertainty_resolved": True,
+    "v1_1_refinements": [
+        "added: exhaust system · battery · cargo securement · DOT marking · mudflaps",
+        "consolidated: 2 redundant tire pairs",
+        "tightened: 4 wordings for commercial-vehicle field clarity",
+        "removed: cab interior cleanliness (operationally low-value)",
+    ],
 }
 
 
@@ -87,6 +114,11 @@ CATEGORY_INTERIOR = "interior"
 CATEGORY_STRUCTURAL = "structural"
 CATEGORY_TARP = "tarp"
 CATEGORY_LANDING_GEAR = "landing_gear"
+# v1.1 · 2026-05-19 PM · commercial-vehicle additions
+CATEGORY_EXHAUST = "exhaust"
+CATEGORY_ELECTRICAL = "electrical"
+CATEGORY_CARGO_SECUREMENT = "cargo_securement"
+CATEGORY_MARKINGS = "markings"
 CATEGORY_OTHER = "other"
 
 
@@ -96,18 +128,17 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     # ─── TRUCK · BRAKES ────────────────────────────────────────────
     "Service brakes — apply firmly · stop straight · no pulling":     (SEVERITY_OOS, CATEGORY_BRAKES),
     "Parking brake — holds truck against engine torque":              (SEVERITY_OOS, CATEGORY_BRAKES),
-    "Trailer air brakes — engage with hand valve · release fully":    (SEVERITY_OOS, CATEGORY_BRAKES),
-    "Brake chamber / slack adjuster — no visible damage · proper stroke":  (SEVERITY_OOS, CATEGORY_BRAKES),
+    "Trailer hand valve — applies trailer service brakes from tractor · releases fully":    (SEVERITY_OOS, CATEGORY_BRAKES),
+    "Brake chamber / slack adjuster — no visible damage · slack adjuster travel within normal range":  (SEVERITY_OOS, CATEGORY_BRAKES),
     "Brake hoses / lines — no cracks · no abrasion · no leaks":       (SEVERITY_OOS, CATEGORY_BRAKES),
     "Brake warning light / low-air buzzer — operates correctly":      (SEVERITY_OOS, CATEGORY_BRAKES),
 
     # ─── TRUCK · TIRES ─────────────────────────────────────────────
+    # v1.1 · 2026-05-19 PM · consolidated 2 redundant tire pairs
     "Steer tire tread depth — ≥ 4/32\" across full width":            (SEVERITY_OOS, CATEGORY_TIRES),
     "Drive / trailer tire tread depth — ≥ 2/32\" across full width":  (SEVERITY_OOS, CATEGORY_TIRES),
-    "Tire — no exposed cord / belt / ply":                            (SEVERITY_OOS, CATEGORY_TIRES),
-    "Tire — no severe sidewall damage (bulge / cut / cord exposed)":  (SEVERITY_OOS, CATEGORY_TIRES),
-    "Tire — properly inflated (no flat · no severe under-inflation)": (SEVERITY_OOS, CATEGORY_TIRES),
-    "Tire — no audible air leak":                                     (SEVERITY_OOS, CATEGORY_TIRES),
+    "Tire — no sidewall bulge · no exposed cord / belt / ply · no severe cut":  (SEVERITY_OOS, CATEGORY_TIRES),
+    "Tire — properly inflated · no audible leak · no flat":           (SEVERITY_OOS, CATEGORY_TIRES),
     "Tire — minor sidewall scuff / cosmetic":                         (SEVERITY_MONITOR, CATEGORY_TIRES),
 
     # ─── TRUCK · WHEELS / LUGS ─────────────────────────────────────
@@ -132,7 +163,7 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     "Brake lights — both sides functional":                           (SEVERITY_OOS, CATEGORY_LIGHTS),
     "Tail lights — both sides functional":                            (SEVERITY_OOS, CATEGORY_LIGHTS),
     "Clearance / marker lights — all functional":                     (SEVERITY_MONITOR, CATEGORY_LIGHTS),
-    "Identification lights (3-light cluster) — all functional":       (SEVERITY_MONITOR, CATEGORY_LIGHTS),
+    "Identification lights (3-light cluster · top of cab) — all functional":       (SEVERITY_MONITOR, CATEGORY_LIGHTS),
     "License plate light — functional":                               (SEVERITY_MONITOR, CATEGORY_LIGHTS),
     "Reflectors — clean · undamaged · in place":                      (SEVERITY_MONITOR, CATEGORY_REFLECTORS),
 
@@ -192,12 +223,22 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     "Transmission fluid — proper level":                              (SEVERITY_MONITOR, CATEGORY_FLUIDS),
     "Windshield washer fluid":                                        (SEVERITY_MONITOR, CATEGORY_FLUIDS),
 
+    # ─── TRUCK · EXHAUST / ELECTRICAL · v1.1 additions ───────────
+    "Exhaust system — no leaks ahead of muffler · no fumes entering cab":  (SEVERITY_OOS, CATEGORY_EXHAUST),
+    "Battery — securely mounted · no severe corrosion · cables tight":     (SEVERITY_OOS, CATEGORY_ELECTRICAL),
+
+    # ─── TRUCK · CARGO SECUREMENT · v1.1 addition ────────────────
+    "Cargo securement — chains / binders / straps rated and applied per load (flatbed / service truck)":  (SEVERITY_OOS, CATEGORY_CARGO_SECUREMENT),
+
+    # ─── TRUCK · DOT MARKINGS · v1.1 addition ────────────────────
+    "DOT number / company markings — legible · readable from 50 ft":  (SEVERITY_MONITOR, CATEGORY_MARKINGS),
+
     # ─── TRUCK · INTERIOR / CAB ───────────────────────────────────
     "Seat belt — present · functional · no fraying":                  (SEVERITY_OOS, CATEGORY_INTERIOR),
     # Heater/defroster · ruling #7 · defroster conditional OOS on visibility (2026-05-19)
     "Defroster — functional when ambient ≤ 40°F or precipitation forecast in shift window":  (SEVERITY_OOS, CATEGORY_INTERIOR),
     "Cab heater — functional · escalates to OOS if window fogging affects visibility":  (SEVERITY_MONITOR, CATEGORY_INTERIOR),
-    "Cab — interior cleanliness":                                     (SEVERITY_MONITOR, CATEGORY_INTERIOR),
+    # v1.1 · 2026-05-19 PM · removed "Cab — interior cleanliness" (low operational value)
     # Dash gauges · ruling #8 · tiered by ECM presence (2026-05-19)
     "Oil pressure & coolant temp gauges OR equivalent ECM warning system functional":  (SEVERITY_OOS, CATEGORY_INTERIOR),
     "Fuel gauge — functional · driver may estimate by miles · 7-day shop window":  (SEVERITY_MONITOR, CATEGORY_INTERIOR),
@@ -248,6 +289,8 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     "Trailer floor — no major holes · structurally sound":            (SEVERITY_OOS, CATEGORY_STRUCTURAL),
     "Trailer headboard / bulkhead — intact":                          (SEVERITY_OOS, CATEGORY_STRUCTURAL),
     "Trailer body — cosmetic damage":                                 (SEVERITY_MONITOR, CATEGORY_BODY),
+    # v1.1 · 2026-05-19 PM · commercial spray-suppression
+    "Trailer mudflaps / spray suppression — present · secure · no major tears":  (SEVERITY_MONITOR, CATEGORY_STRUCTURAL),
 }
 
 
@@ -304,14 +347,14 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "A non-functioning parking brake creates a rollaway hazard particularly on the grades and yard slopes MASCI operates on. Always OOS.",
         "uncertain": False,
     },
-    "Trailer air brakes — engage with hand valve · release fully": {
+    "Trailer hand valve — applies trailer service brakes from tractor · releases fully": {
         "regulation_ref": "49 CFR § 393.43 · CVSA OOS §1.b",
-        "rationale": "Trailer brake control is part of the combined-vehicle braking capacity. Failure renders the combination OOS even if tractor brakes are fine.",
+        "rationale": "Trailer brake control via tractor hand valve is part of the combined-vehicle braking capacity. Failure renders the combination OOS even if tractor brakes are fine. (v1.1 wording clarification 2026-05-19 PM)",
         "uncertain": False,
     },
-    "Brake chamber / slack adjuster — no visible damage · proper stroke": {
+    "Brake chamber / slack adjuster — no visible damage · slack adjuster travel within normal range": {
         "regulation_ref": "49 CFR § 393.47 · CVSA OOS §1.d",
-        "rationale": "Out-of-adjustment slack adjusters or damaged brake chambers are the most common brake-stroke OOS finding at roadside. Conservative OOS.",
+        "rationale": "Out-of-adjustment slack adjusters or damaged brake chambers are the most common brake-stroke OOS finding at roadside. Driver checks visually for damage + extended travel · the precise stroke measurement is a shop function. (v1.1 wording clarification 2026-05-19 PM)",
         "uncertain": False,
     },
     "Brake hoses / lines — no cracks · no abrasion · no leaks": {
@@ -335,24 +378,14 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Drive/trailer tires below 2/32\" tread depth · federal OOS minimum.",
         "uncertain": False,
     },
-    "Tire — no exposed cord / belt / ply": {
-        "regulation_ref": "49 CFR § 393.75(a)(3) · CVSA OOS §6.d",
-        "rationale": "Exposed cord/belt indicates imminent catastrophic tire failure. Always OOS.",
+    "Tire — no sidewall bulge · no exposed cord / belt / ply · no severe cut": {
+        "regulation_ref": "49 CFR § 393.75(a)(2)(3) · CVSA OOS §6.d",
+        "rationale": "Sidewall bulge/cut OR exposed cord/belt/ply indicates compromised tire structural integrity · imminent catastrophic failure risk. Always OOS. (v1.1 · consolidated 2 prior items 2026-05-19 PM)",
         "uncertain": False,
     },
-    "Tire — no severe sidewall damage (bulge / cut / cord exposed)": {
-        "regulation_ref": "49 CFR § 393.75(a)(2)",
-        "rationale": "Sidewall bulges/cuts compromise tire structural integrity. Always OOS.",
-        "uncertain": False,
-    },
-    "Tire — properly inflated (no flat · no severe under-inflation)": {
+    "Tire — properly inflated · no audible leak · no flat": {
         "regulation_ref": "49 CFR § 393.75(h)",
-        "rationale": "Severe under-inflation generates heat and risks blowout. Flat tire is unsafe to operate. OOS.",
-        "uncertain": False,
-    },
-    "Tire — no audible air leak": {
-        "regulation_ref": "49 CFR § 393.75",
-        "rationale": "Audible leak indicates active deflation. OOS until repaired.",
+        "rationale": "Severe under-inflation generates heat and risks blowout · audible leak indicates active deflation · flat tire is unsafe to operate. OOS until repaired. (v1.1 · consolidated 2 prior items 2026-05-19 PM)",
         "uncertain": False,
     },
     "Tire — minor sidewall scuff / cosmetic": {
@@ -438,9 +471,9 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Loss of one or two marker lights doesn't impair operational safety in daylight. Monitor; replace at next shop touch.",
         "uncertain": False,
     },
-    "Identification lights (3-light cluster) — all functional": {
+    "Identification lights (3-light cluster · top of cab) — all functional": {
         "regulation_ref": "49 CFR § 393.11",
-        "rationale": "Compliance lighting · monitor.",
+        "rationale": "Required commercial lighting · top-of-cab 3-light cluster signals vehicle width to following traffic. Conservative monitor since they don't impede operation. (v1.1 wording clarification 2026-05-19 PM)",
         "uncertain": False,
     },
     "License plate light — functional": {
@@ -650,6 +683,27 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Comfort · monitor.",
         "uncertain": False,
     },
+    # ─── v1.1 additions · Exhaust / Electrical / Cargo / Markings ─
+    "Exhaust system — no leaks ahead of muffler · no fumes entering cab": {
+        "regulation_ref": "49 CFR § 393.83 · CVSA OOS criteria",
+        "rationale": "Exhaust leaks ahead of the muffler can introduce carbon monoxide into the cab · CO poisoning is a documented commercial-driver fatality cause. Federal rule requires discharge to the outside atmosphere. OOS until repaired. (v1.1 commercial-vehicle addition 2026-05-19 PM)",
+        "uncertain": False,
+    },
+    "Battery — securely mounted · no severe corrosion · cables tight": {
+        "regulation_ref": "49 CFR § 393.30",
+        "rationale": "Battery hold-down failure can drop the battery into the engine bay; severe corrosion can break the connection under load creating no-start on remote routes or interrupting safety lighting. OOS for any unsecured battery / heavy corrosion / loose cable. (v1.1 commercial-vehicle addition 2026-05-19 PM)",
+        "uncertain": False,
+    },
+    "Cargo securement — chains / binders / straps rated and applied per load (flatbed / service truck)": {
+        "regulation_ref": "49 CFR § 393.100 · CVSA OOS criteria",
+        "rationale": "Load shedding from a CMV is a leading struck-by fatality cause for following traffic. Securement rule applies to any rigid cargo (equipment, pipe, pallets) on flatbed / service truck. Each tie-down rated; minimum count per length per § 393.100. OOS if missing or under-rated. (v1.1 commercial-vehicle addition 2026-05-19 PM)",
+        "uncertain": False,
+    },
+    "DOT number / company markings — legible · readable from 50 ft": {
+        "regulation_ref": "49 CFR § 390.21",
+        "rationale": "Federally required CMV identification · legible from 50 feet · letters at least 2 inches tall. Monitor for fading / dirt buildup that obscures the marking. (v1.1 commercial-vehicle addition 2026-05-19 PM)",
+        "uncertain": False,
+    },
     # ─── Interior / cab ─────────────────────────────────────────────
     "Seat belt — present · functional · no fraying": {
         "regulation_ref": "49 CFR § 393.93",
@@ -666,11 +720,7 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Cab heater inop is driver-comfort Monitor only when above 40°F + dry forecast + no fogging. Escalates to OOS if fogging conditions affect windshield visibility (visibility is the actual safety concern, not comfort). 7-day shop window. (Ruling #7 · 2026-05-19)",
         "uncertain": False,
     },
-    "Cab — interior cleanliness": {
-        "regulation_ref": "operational",
-        "rationale": "Accountability + lead-driver visibility · monitor.",
-        "uncertain": False,
-    },
+    # v1.1 · 2026-05-19 PM · removed "Cab — interior cleanliness" metadata
     "Oil pressure & coolant temp gauges OR equivalent ECM warning system functional": {
         "regulation_ref": "49 CFR § 393.51 (spirit) · operational",
         "rationale": "Engine protection signal (oil pressure + coolant temp) must be functional via dash gauge OR ECM warning system. Loss of both = engine destruction risk. OOS. (Ruling #8 · 2026-05-19)",
@@ -841,6 +891,12 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
     "Trailer body — cosmetic damage": {
         "regulation_ref": "operational",
         "rationale": "Cosmetic only · monitor for accountability.",
+        "uncertain": False,
+    },
+    # v1.1 commercial-vehicle addition (2026-05-19 PM)
+    "Trailer mudflaps / spray suppression — present · secure · no major tears": {
+        "regulation_ref": "49 CFR § 393.86 · state regs",
+        "rationale": "Mudflaps protect following traffic from stones and spray kicked up from drive / trailer tires. Federal rule plus most state codes require functional flaps on commercial trailers. Monitor for partial tear, missing flap, or loose hardware · escalates to OOS if completely absent / dragging on highway. (v1.1 commercial-vehicle addition 2026-05-19 PM)",
         "uncertain": False,
     },
 }

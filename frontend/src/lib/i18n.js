@@ -2871,6 +2871,16 @@ const ES = {
   "Defect Logged": "Defecto Registrado",
   "Unknown": "Desconocido",
   "Logged for Shop": "Registrado para el Taller",
+
+  // v1.1 · driver dropdown + denser helptips
+  "Type or pick driver name…": "Escriba o elija el nombre del conductor…",
+  "If you're new to MASCI, type your full name and tap '+ Add to roster'. Future DVIRs will autocomplete.": "Si es nuevo en MASCI, escriba su nombre completo y toque '+ Agregar al roster'. Los próximos DVIR se autocompletarán.",
+  "Air brakes · what to listen for": "Frenos de aire · qué escuchar",
+  "Build to 95 psi · listen for leaks at gladhands and chambers · then engine off and watch the gauge for 2 minutes · should not drop more than ~4 psi/min. If it bleeds faster, it's a real defect — not driver error.": "Cargue hasta 95 psi · escuche fugas en las conexiones y cámaras · luego apague el motor y observe el manómetro durante 2 minutos · no debería caer más de ~4 psi/min. Si pierde más rápido, es un defecto real — no es error del conductor.",
+  "Tires · quick check": "Llantas · revisión rápida",
+  "Tread depth gauge if you have one · otherwise eyeball the wear bars. Walk every tire and run your hand along the sidewall — bulges and cuts feel obvious. Note any audible hiss.": "Use un medidor de profundidad si tiene uno · si no, observe las barras de desgaste. Camine cada llanta y pase la mano por el costado — los bultos y cortes se sienten obvios. Anote cualquier silbido audible.",
+  "Coupling · the most common roadside finding": "Acoplamiento · el hallazgo más común en carretera",
+  "Confirm the kingpin is fully seated in the fifth wheel · jaws closed · safety pin in place. Tug-test forward in low gear. A bad coupling will drop the trailer · always worth the extra 10 seconds.": "Confirme que el pivote esté completamente asentado en la quinta rueda · mordazas cerradas · pasador de seguridad en su lugar. Pruebe tirando hacia adelante en marcha baja. Un acoplamiento defectuoso dejará caer el remolque · siempre vale los 10 segundos extra.",
   "Shop sees this truck in their queue right now. Once they repair and sign off, Dispatch re-clears the unit for service. You'll see status update on the next DVIR.": "El Taller ve este camión en su cola ahora mismo. Una vez que reparen y aprueben, Despacho autoriza nuevamente la unidad para servicio. Verá la actualización del estado en el próximo DVIR.",
   "Shop sees the defect on their queue. Repair gets scheduled within the operational window for the item. Drive normally until then.": "El Taller ve el defecto en su cola. La reparación se programa dentro de la ventana operacional del elemento. Conduzca normalmente hasta entonces.",
   "You're good to go. Submit another DVIR at the start of your next shift.": "Está listo para irse. Envíe otro DVIR al inicio de su próximo turno.",
