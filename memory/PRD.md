@@ -2,6 +2,125 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter250 · Subcontractor photo attachments · ✅ DELIVERED (preview only)
+
+Targeted operational enhancement to the existing Daily Report Subcontractor section. Mirrors the proven Materials `ticket_photos` pattern exactly. Operator-approved scope (1A + 2A · row-level caption · no per-photo captions · no PDF support deferred).
+
+### What shipped
+
+**Frontend · `frontend/src/pages/NewDailyReport.jsx`**
+- Subcontractor `RepeatBlock` `defaults` gain `photos: []` + `attachment_note: ""`
+- Two new fields surface in the row: `attachment_note` (single-line text · placeholder "e.g. Flagger tickets — AM shift · Signed labor slips · QC issue") and `photos` (`type: "photo"` · reuses shared `<PhotoUpload>` widget)
+- NEW soft payload-size warning · derived from `data.photos + materials[].ticket_photos + subcontractors[].photos`
+  - Estimates total payload at ~300 KB per compressed photo
+  - Amber awareness banner above Submit when total ≥ 30 photos
+  - Reads: "Heads-up: this report has N photo(s) attached (≈X.X MB estimated). Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit."
+  - **NOT a hard block** · purely informational
+
+**Frontend · `frontend/src/pages/ViewDailyReport.jsx`**
+- Subcontractor `ReportSection` now renders an attachment block beneath the existing table when any subcontractor has photos or a caption
+- Per-row card shows: company · trade · caption (italicized) · 3-col mobile / 5-col desktop photo grid using existing `<PhotoLightbox>` (download filenames stamped with subcontractor company)
+- Skipped silently when no sub has evidence (zero visual noise on plain DRs)
+
+**Backend · `backend/pdf_render.py`**
+- `_render_daily` subcontractor section (05) now mirrors the existing Materials photo pattern: per-sub attachment block with company/trade header + italic caption + 3-col image grid using existing `_resolve_photo_ref` helper
+- Old DRs (no photos, no attachment_note) render identically · no visual change
+
+**Backend tests · NEW `backend/tests/test_iter250_subcontractor_photos.py` — 4/4 pass**
+- Round-trip via live `/api/daily-reports` POST + GET: subcontractor photos + caption survive intact across save/read
+- PDF renders without raising · embeds photos + caption · sub with empty photos still produces a `%PDF`-prefixed binary
+- Backward-compat smoke: old DR shape (no `photos`/`attachment_note` keys on subcontractor rows) still renders cleanly
+- All assertions exercise the actual `render_record_pdf("daily-report", dr)` codepath
+
+### Live preview verification
+
+Mobile screenshot at 414px: ATTACHMENT NOTE (OPTIONAL) field + PHOTOS / TICKETS picker (From Gallery + Take Photo buttons · identical visual language to Materials) both render cleanly in the Subcontractor row. No overflow. Existing PhotoUpload widget unchanged.
+
+### Pre-deploy gate
+
+```
+Phase 1 · Regression suite          PASS  624 passed, 1 skipped
+Phase 2 · Build verification        PASS
+Phase 4 · Production-safety         PASS  all anon-RBAC counts = 0
+Phase 5 · Deployment classification PASS  risk=MEDIUM
+                                            auth-sensitive=False
+                                            data-sensitive=False
+                                            rollback-sensitive=False
+                                            changed files: 6
+
+══ VERDICT: APPROVE ══
+```
+
+First **APPROVE** verdict since iter245 vendor consolidation. No HOLD acknowledgement needed.
+
+### Operational value delivered (per operator brief)
+- ✅ Subcontractor accountability · photos tied to specific sub row, not generic DR-level
+- ✅ Invoice verification · signed labor tickets retainable as evidence per row
+- ✅ Owner dispute defense · timestamped photo evidence per subcontractor visit
+- ✅ QC documentation · subcontractor work captured per row with caption context
+- ✅ Force-account tracking · ticket photos + caption ("Force account — extra dirt haul · 8/15")
+- ✅ Lane closure support · flagger-ticket photos with "Flagger tickets — AM shift" caption
+- ✅ Daily production validation · per-sub visual evidence
+
+### Storage impact (validated)
+- Per photo: ~150-300 KB compressed JPEG as base64 data-URL (same as Materials)
+- Typical DR: 1-3 subs × 2-5 photos = +0.6 to 6 MB Mongo doc size
+- Power-user case: 5 subs × 5 photos × 400 KB ≈ 10 MB → soft warning fires at 30 total photos
+- Mongo 16 MB doc ceiling: same constraint as Materials today · not a new risk
+- R2 cost impact: $0 (inline storage · no R2 writes added)
+- Net codebase impact: ~140 net new lines · zero schema migration · zero new endpoint · zero new collection
+
+### Mobile UX (verified existing widget)
+- iOS Safari multi-photo snapshot pattern (no "only-photo-1-uploaded" bug)
+- "Compressing 1 of 20" live progress with thumbnail reveal
+- "From Gallery" + "Take Photo" buttons · capture="environment" → rear camera default
+- HEIC auto-conversion via iOS native file input (no special handling needed)
+- 3-col mobile thumbnail grid · per-thumb remove button · lightbox preview
+
+### Stabilization compatibility (verified)
+- iter238 email subject · unchanged
+- iter239 branding · unchanged
+- iter245 vendor consolidation · unchanged
+- iter246 PO digest · unchanged
+- iter247 stabilization · unchanged
+- iter248 Phase A · unchanged · 13/13 tests still green
+- iter249 Phase B + Pilot Debrief · unchanged · 30/30 tests still green
+- Materials photo pattern · UNTOUCHED · zero regression risk to existing Materials uploads
+
+### Files touched (iter250 inventory)
+- MOD · `frontend/src/pages/NewDailyReport.jsx` (~35 lines · sub-row photos + attachment_note + soft payload warning)
+- MOD · `frontend/src/pages/ViewDailyReport.jsx` (~50 lines · sub-photo render block beneath existing table)
+- MOD · `backend/pdf_render.py` (~50 lines · sub-section PDF block mirroring Materials pattern)
+- NEW · `backend/tests/test_iter250_subcontractor_photos.py` (4 tests · 4/4 pass)
+- MOD · `memory/PRD.md` (this entry)
+
+### Boundaries respected (per operator brief)
+- ❌ No new dashboard · ❌ No standalone subcontractor media gallery
+- ❌ No AI/image analysis · ❌ No annotation system
+- ❌ No bulk upload complexity · ❌ No reporting expansion
+- ❌ No new endpoint · ❌ No new collection · ❌ No new auth surface
+- ❌ Shared `<PhotoUpload>` widget NOT modified (per 1A choice · zero Materials regression risk)
+- ❌ PDF support for scanned labor tickets explicitly deferred (per 2A choice)
+- ✅ Soft payload warning added (operator-requested · client-side only · informational only · no hard block)
+
+### Next Action Items
+- ⏸ **Operator reviews preview** (`/daily/new` Section 05 + ATTACHMENT NOTE + PHOTOS / TICKETS picker)
+- ⏸ **Save to GitHub** → **Deploy on mascidocs.com**
+- ⏸ **Field test**: one foreman uploads a real subcontractor evidence pack on a live job DR · validate gallery + camera flows from field iPhone/Android
+- ⏸ Continue Phase B equipment-checkout pilot upload activity (parallel · independent)
+
+### Future / Backlog (unchanged · per operator brief · stabilization posture)
+- Phase C · OSHA Cards (gated on Phase B Equipment Checkout pilot success · operator approval required)
+- Phase D-G · dashboard polish · bulk upload · remaining 12 doc types · PM intake
+- F2 leadership scope null-guard · F4 ES sweep · F6 privacy ES leak · F7 observability
+- Phase K4b · K5 · Stage B.1
+- iter153 test-fragility decoupling
+
+🟢 iter250 subcontractor photo attachments complete · gate APPROVED · ready for deploy.
+
+---
+
+
 ## 2026-05-19 — iter249 Phase B follow-up · Pilot Debrief endpoint (Option A) · ✅ DELIVERED (preview only)
 
 Operator-approved tight-scope tooling addition so the upcoming 10-20 form real-paperwork pilot produces structured evidence on demand. **NOT a dashboard, NOT a feature surface.** One read-only admin-only JSON endpoint.

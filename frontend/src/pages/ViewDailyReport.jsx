@@ -435,6 +435,54 @@ export default function ViewDailyReport() {
             ])}
             emptyText="No subcontractors on site."
           />
+          {(data.subcontractors || []).some((s) => (s.photos?.length || 0) > 0 || s.attachment_note) && (
+            <div className="mt-4 space-y-4" data-testid="dr-sub-attachments">
+              {(data.subcontractors || []).map((s, idx) => {
+                const photos = s.photos || [];
+                if (photos.length === 0 && !s.attachment_note) return null;
+                return (
+                  <div
+                    key={idx}
+                    className="border border-slate-200 rounded-md p-3 bg-slate-50"
+                    data-testid={`dr-sub-attachment-${idx}`}
+                  >
+                    <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">
+                      {s.company || `Subcontractor #${idx + 1}`}
+                      {s.trade ? ` · ${s.trade}` : ""}
+                    </div>
+                    {s.attachment_note && (
+                      <div
+                        className="text-sm text-slate-800 mb-2 italic"
+                        data-testid={`dr-sub-attachment-note-${idx}`}
+                      >
+                        {s.attachment_note}
+                      </div>
+                    )}
+                    {photos.length > 0 && (
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                        {photos.map((p, i) => (
+                          <PhotoLightbox
+                            key={i}
+                            src={p}
+                            alt={`${s.company || "Subcontractor"} photo ${i + 1}`}
+                            filename={`MASCI_DR_sub_${(s.company || "sub").replace(/[^a-z0-9]+/gi, "_")}_${i + 1}.jpg`}
+                            className="aspect-square rounded-md overflow-hidden border-2 border-slate-200"
+                            testId={`dr-sub-photo-${idx}-${i}`}
+                          >
+                            <img
+                              src={resolvePhotoSrc(p)}
+                              alt={`${s.company || "Subcontractor"} photo ${i + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </PhotoLightbox>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </ReportSection>
 
         <ReportSection number="06" title={`Visitors (${data.visitors?.length || 0})`}>

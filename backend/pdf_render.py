@@ -321,22 +321,60 @@ def _render_daily(d: Dict[str, Any]) -> str:
 
     subs = d.get("subcontractors") or []
     if subs:
+        body_rows = []
+        sub_photo_blocks = []
+        for s in subs:
+            body_rows.append([
+                s.get("name") or s.get("company") or "",
+                s.get("trade") or s.get("work") or "",
+                s.get("count") or s.get("headcount") or "",
+                s.get("hours") or "",
+                s.get("notes") or s.get("work_performed") or "",
+            ])
+            sub_photos = s.get("photos") or []
+            note = (s.get("attachment_note") or "").strip()
+            if sub_photos or note:
+                sub_photo_blocks.append({
+                    "company": s.get("company") or s.get("name") or "",
+                    "trade": s.get("trade") or "",
+                    "note": note,
+                    "photos": sub_photos,
+                })
+        section_html = _table(
+            ["Company", "Trade / Work", "Headcount", "Hours", "Notes"],
+            body_rows,
+        )
+        # iter250 · attachments per subcontractor (mirrors the Materials
+        # ticket-photos pattern further down · same `_resolve_photo_ref`
+        # helper · same inline-image rendering · no new storage path).
+        for block in sub_photo_blocks:
+            header_bits = []
+            if block["company"]:
+                header_bits.append(block["company"])
+            if block["trade"]:
+                header_bits.append(block["trade"])
+            header_text = " · ".join(header_bits) or "Subcontractor"
+            section_html += (
+                f'<div style="margin-top:8px;padding-top:6px;border-top:1px solid #ddd;">'
+                f'<div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#334;font-weight:bold;">{header_text}</div>'
+            )
+            if block["note"]:
+                section_html += (
+                    f'<div style="font-size:11px;color:#334;font-style:italic;margin-top:2px;">{block["note"]}</div>'
+                )
+            if block["photos"]:
+                section_html += '<div class="photos-grid" style="margin-top:6px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">'
+                for src in block["photos"]:
+                    resolved = _resolve_photo_ref(src) if isinstance(src, str) else ""
+                    if not resolved:
+                        continue
+                    section_html += f'<img src="{resolved}" style="width:100%;border:1px solid #ccc;border-radius:3px;" />'
+                section_html += "</div>"
+            section_html += "</div>"
         rows.append(
             _section(
                 "05 · Subcontractors",
-                _table(
-                    ["Company", "Trade / Work", "Headcount", "Hours", "Notes"],
-                    [
-                        [
-                            s.get("name") or s.get("company") or "",
-                            s.get("trade") or s.get("work") or "",
-                            s.get("count") or s.get("headcount") or "",
-                            s.get("hours") or "",
-                            s.get("notes") or "",
-                        ]
-                        for s in subs
-                    ],
-                ),
+                section_html,
             )
         )
 

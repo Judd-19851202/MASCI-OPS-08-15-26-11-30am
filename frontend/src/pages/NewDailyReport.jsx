@@ -530,6 +530,27 @@ export default function NewDailyReport({ publicMode = false }) {
   const photosCount = (data.photos || []).length;
   const photoMin = data.photo_min || 6;
 
+  // Soft payload-size warning · iter250. Mongo's 16 MB doc-size cap is the
+  // real ceiling for inline daily-report photos. We estimate total photo
+  // count across DR-level + all per-row photo arrays (materials, subs)
+  // and surface an amber awareness banner above the Submit button when
+  // the count crosses an operator-friendly threshold. NOT a hard block —
+  // just an awareness signal so foremen can split into multiple DRs if
+  // they're attaching truly extreme volumes of evidence.
+  const totalAttachmentCount = (
+    photosCount
+    + (data.materials || []).reduce(
+        (n, m) => n + ((m.ticket_photos || []).length), 0
+      )
+    + (data.subcontractors || []).reduce(
+        (n, s) => n + ((s.photos || []).length), 0
+      )
+  );
+  // ~300 KB per compressed JPEG data URL is a fair average; this is a
+  // soft estimate not a hard guarantee.
+  const estimatedPayloadMB = (totalAttachmentCount * 0.3).toFixed(1);
+  const payloadIsHeavy = totalAttachmentCount >= 30;
+
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
       <div className="caution-stripe" />
@@ -1187,6 +1208,8 @@ export default function NewDailyReport({ publicMode = false }) {
               count: "",
               hours: "",
               work_performed: "",
+              attachment_note: "",
+              photos: [],
             }}
             fields={[
               { key: "company", label: "Company", full: true, type: "supplier-combo" },
@@ -1200,6 +1223,13 @@ export default function NewDailyReport({ publicMode = false }) {
                 full: true,
                 type: "textarea",
               },
+              {
+                key: "attachment_note",
+                label: "Attachment Note (optional)",
+                full: true,
+                placeholder: "e.g. Flagger tickets — AM shift · Signed labor slips · QC issue",
+              },
+              { key: "photos", label: "Photos / Tickets", full: true, type: "photo" },
             ]}
             testIdBase="sub"
           />
@@ -1376,6 +1406,21 @@ export default function NewDailyReport({ publicMode = false }) {
         </Section>
 
         <div className="pt-4">
+          {payloadIsHeavy && (
+            <div
+              className="mb-3 rounded-md border-2 border-amber-300 bg-amber-50 p-3 text-amber-900 text-sm flex items-start gap-2"
+              data-testid="daily-payload-soft-warning"
+            >
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] font-black bg-amber-200 px-1.5 py-0.5 rounded shrink-0">
+                heads-up
+              </span>
+              <div>
+                {t("This report has")} <strong>{totalAttachmentCount}</strong>{" "}
+                {t("photo(s) attached (≈")}{estimatedPayloadMB} MB{t(" estimated).")}{" "}
+                {t("Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.")}
+              </div>
+            </div>
+          )}
           {photosCount < photoMin && (
             <p
               className="text-center text-sm text-red-700 font-bold mb-2"
