@@ -126,14 +126,13 @@ def dvir_truck_items() -> List[str]:
         "Oil pressure & coolant temp gauges OR equivalent ECM warning system functional",
         "Fuel gauge — functional · driver may estimate by miles · 7-day shop window",
         "Dash gauges (oil / temp) inop on units with ECM check-engine + fault display fully functional · 14-day shop window",
-        # Emergency equipment (carried on the truck)
+        # Emergency equipment / PPE (carried on the truck) — v1.3 cleanup
         "Fire extinguisher — present · charged · sealed · tag current",
-        "Fire extinguisher — minor scuff / tag near expiry",
         "Reflective triangles — 3 present · case intact",
-        "Reflective triangles — case scuffed (functional)",
         "Spare fuses — kit present",
         "First aid kit — present · sealed · contents not expired",
-        "Reflective safety vest — present in cab",
+        "Reflective safety vest — Type II for day · Type III for night · in cab",
+        "Hard hat — present in cab / accessible",
     ]
 
 
@@ -200,12 +199,13 @@ def dvir_emergency_items() -> List[str]:
         "Backup alarm — audible when reverse engaged",
         "Raised-bed alarm — audible when bed raised",
         "Horn — sounds at normal volume",
-        # On-board safety equipment
+        # On-board safety equipment / PPE — v1.3 wording aligned
         "Fire extinguisher — present · charged · sealed · tag current",
         "Reflective triangles — 3 present · case intact",
         "Spare fuses — kit present",
         "First aid kit — present · sealed · contents not expired",
-        "Reflective safety vest — present in cab",
+        "Reflective safety vest — Type II for day · Type III for night · in cab",
+        "Hard hat — present in cab / accessible",
     ]
 
 

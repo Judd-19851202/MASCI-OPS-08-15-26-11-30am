@@ -1,7 +1,7 @@
 # Fleet Defect Severity Review Package · iter251
 
-**Status:** v1.2-approved-2026-05-19
-**Approved:** 2026-05-19 · Operator (Jaymn) · v1 rulings + v1.1 CFR alignment + v1.2 commercial-DVIR coverage hardening
+**Status:** v1.3-approved-2026-05-19
+**Approved:** 2026-05-19 · Operator (Jaymn) · v1 rulings + v1.1 CFR alignment + v1.2 coverage hardening + v1.3 field-review cleanup
 **Approval record:** `/app/SEVERITY_RULINGS_iter251.md`
 **Generated from:** `/app/backend/fleet_defect_severity.py` + `/app/backend/checklists_fleet.py`
 **Audience:** Safety · Shop · Operations · Dispatch leadership
@@ -15,10 +15,10 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 
 ## Summary
 
-- **Total classified items:** 120
+- **Total classified items:** 119
 - **OUT OF SERVICE classifications:** 82
-- **MONITOR classifications:** 38
-- **OOS-to-monitor ratio:** 2.16 (conservative bias toward OOS)
+- **MONITOR classifications:** 37
+- **OOS-to-monitor ratio:** 2.22 (conservative bias toward OOS)
 - **Items flagged UNCERTAIN pending Safety review:** 0
 - **Items missing severity classification:** 0 (must be zero before deploy)
 - **Orphan severity entries (not used by any checklist):** 0
@@ -30,9 +30,9 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 
 | Inspection Kind | Truck Items | Trailer Items | Total | Classified | Coverage |
 |---|---|---|---|---|---|
-| `dvir` (Daily DVIR) | 93 | 27 | 120 | 120 | 100.0% |
+| `dvir` (Daily DVIR) | 92 | 27 | 119 | 119 | 100.0% |
 | `weekly_lead` (Weekly Lead Driver Inspection) | 9 | 0 | 9 | 9 | 100.0% |
-| `weekly_emergency` (Weekly Emergency Equipment Inspection) | 16 | 0 | 16 | 16 | 100.0% |
+| `weekly_emergency` (Weekly Emergency Equipment Inspection) | 17 | 0 | 17 | 17 | 100.0% |
 
 ---
 
@@ -537,37 +537,32 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 - **Rationale:** Comfort · monitor.
 
 
-### Emergency Equipment · 2 OOS · 5 MONITOR
+### Emergency Equipment · 2 OOS · 4 MONITOR
 
 #### 🛑 `Fire extinguisher — present · charged · sealed · tag current`
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.95(a) · CVSA OOS §4.c
-- **Rationale:** Federal-required equipment · missing/discharged is OOS.
+- **Rationale:** Federal-required equipment · missing/discharged is OOS. (v1.3 · 2026-05-19 PM/3 · consolidated · cosmetic-monitor pair removed as checkbox theater)
 
 #### 🛑 `Reflective triangles — 3 present · case intact`
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.95(f)
-- **Rationale:** Federal-required emergency equipment · missing is OOS.
-
-#### 👁 `Fire extinguisher — minor scuff / tag near expiry`
-- **Severity:** MONITOR
-- **Reference:** 49 CFR § 393.95(a)
-- **Rationale:** Functional but cosmetic/tag-renewal needed · monitor.
+- **Rationale:** Federal-required emergency equipment · missing is OOS. (v1.3 · 2026-05-19 PM/3 · consolidated · cosmetic-monitor pair removed as checkbox theater)
 
 #### 👁 `First aid kit — present · sealed · contents not expired`
 - **Severity:** MONITOR
 - **Reference:** OSHA 1910.151 · MASCI policy
 - **Rationale:** Operational + worker-comp expectation · monitor.
 
-#### 👁 `Reflective safety vest — present in cab`
+#### 👁 `Hard hat — present in cab / accessible`
 - **Severity:** MONITOR
-- **Reference:** OSHA 1926.651 · MUTCD
-- **Rationale:** Required PPE for work-zone exits · monitor.
+- **Reference:** OSHA 1926.100 · MASCI work-zone PPE policy
+- **Rationale:** Required for any cab exit on a worksite · airport ramp · MOT lane closure · paving train · emergency roadside. Driver must have one in the cab and put it on before leaving the vehicle on a jobsite. (v1.3 · 2026-05-19 PM/3 · operational addition for field access · airport ops · MOT entry)
 
-#### 👁 `Reflective triangles — case scuffed (functional)`
+#### 👁 `Reflective safety vest — Type II for day · Type III for night · in cab`
 - **Severity:** MONITOR
-- **Reference:** 49 CFR § 393.95(f)
-- **Rationale:** Equipment functional, cosmetic only · monitor.
+- **Reference:** MUTCD · ANSI/ISEA 107 · MASCI work-zone PPE policy
+- **Rationale:** Driver carries a Type II Class 2 vest for day operations and a Type III Class 3 vest for night / low-light operations (work-zone exits, roadside flagging, paving train). Either is acceptable for daytime; Type III is required when ambient light is reduced. (v1.3 · 2026-05-19 PM/3 · PPE clarification)
 
 #### 👁 `Spare fuses — kit present`
 - **Severity:** MONITOR
@@ -747,7 +742,7 @@ Before production reliance, each of the following must redline + sign:
 - [ ] **Operations** · confirms operational impact estimates (false-positive OOS productivity hit acceptable)
 - [ ] **Dispatch leadership** · confirms re-clearance authority + workflow
 
-Severity table currently stamped **`v1.2-approved-2026-05-19`**. After a re-rulings cycle, bump the version stamp + add a new dated rulings record (mirroring `/app/SEVERITY_RULINGS_iter251.md`) and re-run this generator + audit endpoint.
+Severity table currently stamped **`v1.3-approved-2026-05-19`**. After a re-rulings cycle, bump the version stamp + add a new dated rulings record (mirroring `/app/SEVERITY_RULINGS_iter251.md`) and re-run this generator + audit endpoint.
 
 ---
 

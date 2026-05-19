@@ -15,16 +15,37 @@ import fleet_defect_severity as _sev
 
 
 def test_severity_table_version_is_v1_approved():
-    # v1.2 commercial-DVIR coverage hardening pass · 2026-05-19 PM/2
-    assert _sev.SEVERITY_TABLE_VERSION == "v1.2-approved-2026-05-19"
+    # v1.3 field-review cleanup · 2026-05-19 PM/3
+    assert _sev.SEVERITY_TABLE_VERSION == "v1.3-approved-2026-05-19"
     assert _sev.SEVERITY_TABLE_APPROVAL["uncertainty_resolved"] is True
     assert _sev.SEVERITY_TABLE_APPROVAL["rulings_count"] == 9
-    # v1.1 changelog still present
+    # v1.1 + v1.2 changelogs still present
     assert "v1_1_refinements" in _sev.SEVERITY_TABLE_APPROVAL
     assert len(_sev.SEVERITY_TABLE_APPROVAL["v1_1_refinements"]) >= 4
-    # v1.2 changelog must be exposed
     assert "v1_2_coverage_hardening" in _sev.SEVERITY_TABLE_APPROVAL
     assert len(_sev.SEVERITY_TABLE_APPROVAL["v1_2_coverage_hardening"]) >= 3
+    # v1.3 changelog must be exposed
+    assert "v1_3_field_review_cleanup" in _sev.SEVERITY_TABLE_APPROVAL
+    assert len(_sev.SEVERITY_TABLE_APPROVAL["v1_3_field_review_cleanup"]) >= 3
+
+
+def test_v1_3_duplicates_removed():
+    """v1.3 · the 2 cosmetic-MONITOR pairs are gone."""
+    assert "Fire extinguisher — minor scuff / tag near expiry" not in _sev.FLEET_DEFECT_SEVERITY
+    assert "Reflective triangles — case scuffed (functional)" not in _sev.FLEET_DEFECT_SEVERITY
+    # ... and the original "present in cab" vest wording was upgraded
+    assert "Reflective safety vest — present in cab" not in _sev.FLEET_DEFECT_SEVERITY
+
+
+def test_v1_3_ppe_clarification():
+    """v1.3 · safety vest specifies Type II/III · hard hat added."""
+    vest = "Reflective safety vest — Type II for day · Type III for night · in cab"
+    hh = "Hard hat — present in cab / accessible"
+    assert _sev.classify(vest) == ("monitor", "emergency_equipment")
+    assert _sev.classify(hh) == ("monitor", "emergency_equipment")
+    # rationale must mention the day/night PPE policy
+    meta = _sev.FLEET_DEFECT_SEVERITY_META[vest]
+    assert "Type II" in meta["rationale"] and "Type III" in meta["rationale"]
 
 
 def test_no_uncertain_items_remain():
@@ -152,12 +173,12 @@ def test_ruling_9_tarp_load_haul_split():
 
 # ─── Table-wide health checks after rulings ─────────────────────────
 def test_table_size_grew_by_split_items():
-    """v1: 97→107 entries from 9 rulings.
-    v1.1: +5 commercial additions, -2 tire consolidations, -1 cab cleanliness
-    removal → 109 total.
-    v1.2: +9 truck engine/drivetrain + 2 trailer suspension → 120 total."""
-    assert len(_sev.FLEET_DEFECT_SEVERITY) == 120
-    assert len(_sev.FLEET_DEFECT_SEVERITY_META) == 120
+    """v1: 97→107.
+    v1.1: +5 / -2 / -1 = 109.
+    v1.2: +9 + 2 = 120.
+    v1.3: -2 cosmetic dupes / +1 hard hat = 119."""
+    assert len(_sev.FLEET_DEFECT_SEVERITY) == 119
+    assert len(_sev.FLEET_DEFECT_SEVERITY_META) == 119
 
 
 def test_oos_monitor_ratio_still_conservative():

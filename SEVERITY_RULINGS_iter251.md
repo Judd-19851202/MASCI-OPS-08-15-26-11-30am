@@ -389,3 +389,105 @@ Operator referenced a standard commercial-vehicle DVIR baseline and approved har
 
 🔒 **v1.2 is the current production-target version.** Coverage now aligned with standard commercial DVIR baseline · operationally defensible · field-realistic · no checkbox theater. No further severity-table edits without a new dated rulings record + version bump.
 
+---
+
+# v1.3 Field-Review Cleanup · 2026-05-19 PM/3
+
+**Status**: 🔒 LOCKED · operator-approved 2026-05-19 PM/3
+**Version stamp**: `v1.2-approved-2026-05-19` → **`v1.3-approved-2026-05-19`**
+**Audit verdict**: `READY_FOR_SAFETY_SIGNOFF` (preserved)
+
+## Operator brief (2026-05-19 PM/3)
+Field-review cleanup pass before production sign-off. Operator caught two duplicate inspection items and approved PPE clarifications.
+
+## v1.3 changes
+
+### Removed · 2 cosmetic-MONITOR pairs (checkbox theater)
+- ❌ `Fire extinguisher — minor scuff / tag near expiry` (MONITOR) — operational signal already captured by the strict OOS line · the OOS line lets drivers mark "FAIL" if the tag is near expiry or scuffed
+- ❌ `Reflective triangles — case scuffed (functional)` (MONITOR) — same · OOS line already captures any defect
+
+Operator decision: the pattern "strict OOS line + cosmetic MONITOR pair" should be reserved for items where the cosmetic distinction has real shop signal (e.g. body damage, tire wear, mirror chip, landing gear). For emergency equipment the binary present-and-functional-or-not is the only real signal.
+
+### Tightened · Safety vest PPE specification
+- ✏️ `Reflective safety vest — present in cab` → **`Reflective safety vest — Type II for day · Type III for night · in cab`**
+- Anchors the item to actual MASCI work-zone PPE policy (Type II Class 2 = daytime · Type III Class 3 = night / low-light · matches MUTCD + ANSI/ISEA 107)
+- Short and operational · no long-form training language
+
+### Added · 1 PPE item (Hard hat)
+- ➕ 👁 **MONITOR** · `Hard hat — present in cab / accessible` (OSHA 1926.100 · MASCI work-zone PPE policy)
+- Critical for: field access · airport ops · MOT/work-zone entry · paving train · emergency roadside response
+- Fits naturally in the Safety Equipment/PPE grouping
+
+## Duplicate audit results (full table scanned · 2026-05-19 PM/3)
+**Audit method**: grouped 119 items by pre-dash head token · examined every group with ≥ 2 items.
+
+**Legitimate tier splits** (operator-approved · NOT duplicates) — confirmed preserved:
+- Power steering (OOS active drip / MONITOR stable seep · ruling #1)
+- Headlights (3 tiers · ruling #2)
+- Strobes / beacons (3 tiers · ruling #3 work-zone OOS)
+- Wipers driver/passenger split (ruling #4)
+- Body 5-test rubric + cosmetic (ruling #5)
+- Hydraulic active-drip / stable-seep (ruling #6)
+- Defroster / Cab heater (ruling #7)
+- Tarp load-haul / empty (ruling #9)
+- Fifth wheel (2 items: locked + mounting bolts) — distinct checks, no overlap
+- Suspension (leaf-spring + air-bag · distinct truck systems)
+- Trailer suspension (parallel · v1.2)
+- Tire (sidewall / inflation / cosmetic · 3 distinct dimensions)
+- Trailer tire (tread / sidewall / inflation · 3 distinct)
+- Wheel (lugs present / lugs tight / hub seal / cosmetic rust · 4 distinct)
+- Windshield (line-of-sight crack / outside-line-of-sight pitting · distinct)
+- Landing gear (cranks-freely + cosmetic · valid)
+
+**Real duplicates removed** (this cycle):
+- Fire extinguisher cosmetic-pair (eliminated)
+- Reflective triangles cosmetic-pair (eliminated)
+
+**No other genuine duplicates found** across the 119-item table.
+
+## Final wording sweep audit (2026-05-19 PM/3)
+
+Reviewed all 119 items for: ambiguity · inconsistent terminology · legalistic wording · overlapping coverage · commercially clarity.
+
+**Findings — all clean post-v1.3**:
+✅ All items use objective field-readable thresholds (e.g. "≥ 4/32\"", "≤ 4 psi/min", "6\"×6\"", "50 ft", "Type II / Type III")
+✅ All items reference real driver-walkaround scope (not mechanic-only checks)
+✅ All wordings avoid "noncompliant" / "FAILED" / "VIOLATION" framing
+✅ Operationally consistent terminology ("OOS" · "Monitor" · "shop window") used throughout
+✅ Commercial-vehicle terminology accurate (CMV · CDL · MOT · DOT · CVSA OOS criteria · brake hose · slack adjuster · gladhand · kingpin · fifth wheel)
+✅ Bilingual-friendly · no item uses legal Latin or obscure DOT acronyms without context
+
+## Table stats (v1.2 → v1.3)
+
+| Metric | v1.2-approved | v1.3-approved |
+|---|---|---|
+| Total severity entries | 120 | **119** |
+| OOS classifications | 82 | **82** |
+| Monitor classifications | 38 | **37** |
+| OOS / Monitor ratio | 2.16 | **2.22** (slightly more conservative since 2 cosmetic Monitors removed) |
+| Uncertain items | 0 | **0** |
+| Truck checklist items | 93 | **92** |
+| Trailer checklist items | 27 | **27** |
+| Verdict | READY_FOR_SAFETY_SIGNOFF | **READY_FOR_SAFETY_SIGNOFF** |
+
+## Files touched in v1.3 cycle
+- MOD · `backend/fleet_defect_severity.py` (+v1.3 changelog · +SEVERITY_TABLE_APPROVAL.v1_3_field_review_cleanup · -2 cosmetic pairs · ✏️ vest wording · +1 hard hat · metadata adjusted)
+- MOD · `backend/checklists_fleet.py` (truck list -2 dupes + 1 hard hat + vest tighten · emergency form list vest tighten + hard hat)
+- MOD · `backend/tests/test_iter251_severity_v1_approved.py` (assertion v1.2 → v1.3 · size 120 → 119 · +2 new tests for v1.3 duplicates removed and v1.3 PPE spec)
+- MOD · `/app/SEVERITY_RULINGS_iter251.md` (appended this v1.3 section)
+- REGEN · `/app/FLEET_SEVERITY_REVIEW_PACKAGE_iter251.md` (now reflects v1.3 · 119 items)
+
+## Sign-off chain (preserved · approvals cumulative)
+
+- [x] Operator (Jaymn) · 2026-05-19 · all 9 v1 rulings approved
+- [x] Operator (Jaymn) · 2026-05-19 PM · v1.1 commercial-vehicle refinement pass approved
+- [x] Operator (Jaymn) · 2026-05-19 PM/2 · v1.2 commercial-DVIR coverage-hardening pass approved
+- [x] Operator (Jaymn) · 2026-05-19 PM/3 · v1.3 field-review cleanup approved
+- [ ] Safety · field-deployment sign-off (after Phase 2 driver UX shipped to mascidocs.com)
+- [ ] Shop · operational sign-off (after first 30 days of field DVIRs)
+- [ ] Dispatch · re-clearance authority sign-off (after first 30 days)
+
+---
+
+🔒 **v1.3 is the current production-target version.** Clean · non-duplicated · operationally clean · field-readable · commercially realistic · PPE policy specified. No further severity-table edits without a new dated rulings record + version bump.
+

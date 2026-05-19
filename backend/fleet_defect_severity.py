@@ -1,8 +1,22 @@
 """iter251 Phase A · Fleet Operations Foundation · Defect Severity Table.
 
-🔒  v1.2 APPROVED 2026-05-19 — Operator-ruled v1 + v1.1 commercial DVIR
-     refinements + v1.2 coverage-hardening pass against standard commercial
-     DVIR baseline. Safety field sign-off pending field deployment. 🔒
+🔒  v1.3 APPROVED 2026-05-19 — Operator field-review cleanup pass · duplicate
+     removal + PPE clarification. Safety field sign-off pending field
+     deployment. 🔒
+
+CHANGELOG (v1.2 → v1.3, 2026-05-19 PM/3 · field-review cleanup):
+  • Removed 2 redundant cosmetic-MONITOR pairs that were checkbox theater:
+      - "Fire extinguisher — minor scuff / tag near expiry" (REMOVED ·
+        signal already captured by the strict OOS line)
+      - "Reflective triangles — case scuffed (functional)" (REMOVED · same)
+  • Tightened safety vest with operational PPE specification:
+      - "Reflective safety vest — present in cab" →
+        "Reflective safety vest — Type II for day · Type III for night · in cab"
+  • Added 1 new PPE item:
+      - "Hard hat — present in cab / accessible" · MONITOR
+        (field access · airport ops · emergency roadside · MOT/work-zone)
+  • Net change: -2 cosmetic dupes + 1 hard hat = -1 item
+  • Final size: 120 → 119 items
 
 CHANGELOG (v1.1 → v1.2, 2026-05-19 PM/2):
   • 10 commercial-DVIR coverage additions (driver-walkaround scope only ·
@@ -79,11 +93,11 @@ VALID_SEVERITIES = (SEVERITY_OOS, SEVERITY_MONITOR)
 
 # Severity table version stamp · single source of truth.
 # Bump when the table changes · audit endpoint surfaces this for governance.
-SEVERITY_TABLE_VERSION = "v1.2-approved-2026-05-19"
+SEVERITY_TABLE_VERSION = "v1.3-approved-2026-05-19"
 SEVERITY_TABLE_APPROVAL = {
     "version": SEVERITY_TABLE_VERSION,
     "approved_at": "2026-05-19",
-    "approved_by": "Operator (Jaymn) · v1 rulings + v1.1 CFR alignment + v1.2 commercial-DVIR coverage hardening",
+    "approved_by": "Operator (Jaymn) · v1 rulings + v1.1 CFR alignment + v1.2 coverage hardening + v1.3 field-review cleanup",
     "approval_record": "/app/SEVERITY_RULINGS_iter251.md",
     "status": "approved · pending Safety field deployment",
     "rulings_count": 9,
@@ -99,6 +113,12 @@ SEVERITY_TABLE_APPROVAL = {
         "added: radiator · drive line / U-joints · front axle · fuel tank mounting",
         "added: transmission operation · clutch (manual trans) · trailer suspension",
         "skipped (operational reality): tire chains · enclosed trailer roof",
+    ],
+    "v1_3_field_review_cleanup": [
+        "removed: fire-extinguisher cosmetic-MONITOR pair (checkbox theater)",
+        "removed: reflective-triangles cosmetic-MONITOR pair (checkbox theater)",
+        "tightened: safety vest now specifies Type II day / Type III night",
+        "added: hard hat present / accessible in cab",
     ],
 }
 
@@ -277,13 +297,17 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     "Clutch (manual transmission only) — free play within range · engages smoothly":  (SEVERITY_OOS, CATEGORY_TRANSMISSION),
 
     # ─── TRUCK · EMERGENCY EQUIPMENT ──────────────────────────────
+    # v1.3 · 2026-05-19 PM/3 · removed cosmetic-MONITOR pairs for fire
+    # extinguisher + reflective triangles (checkbox theater · OOS line
+    # already captures any operational defect).
     "Fire extinguisher — present · charged · sealed · tag current":   (SEVERITY_OOS, CATEGORY_EMERGENCY_EQUIPMENT),
-    "Fire extinguisher — minor scuff / tag near expiry":              (SEVERITY_MONITOR, CATEGORY_EMERGENCY_EQUIPMENT),
     "Reflective triangles — 3 present · case intact":                 (SEVERITY_OOS, CATEGORY_EMERGENCY_EQUIPMENT),
-    "Reflective triangles — case scuffed (functional)":               (SEVERITY_MONITOR, CATEGORY_EMERGENCY_EQUIPMENT),
     "Spare fuses — kit present":                                      (SEVERITY_MONITOR, CATEGORY_EMERGENCY_EQUIPMENT),
     "First aid kit — present · sealed · contents not expired":        (SEVERITY_MONITOR, CATEGORY_EMERGENCY_EQUIPMENT),
-    "Reflective safety vest — present in cab":                        (SEVERITY_MONITOR, CATEGORY_EMERGENCY_EQUIPMENT),
+    # v1.3 · operational PPE specification per MASCI work-zone reality
+    "Reflective safety vest — Type II for day · Type III for night · in cab":  (SEVERITY_MONITOR, CATEGORY_EMERGENCY_EQUIPMENT),
+    # v1.3 · 2026-05-19 PM/3 · hard hat for field/airport/MOT/work-zone access
+    "Hard hat — present in cab / accessible":                         (SEVERITY_MONITOR, CATEGORY_EMERGENCY_EQUIPMENT),
 
     # ─── TRAILER · TIRES (re-use tire criteria) ───────────────────
     "Trailer tire tread — ≥ 2/32\" across full width":                (SEVERITY_OOS, CATEGORY_TIRES),
@@ -774,22 +798,12 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
     # ─── Emergency equipment ────────────────────────────────────────
     "Fire extinguisher — present · charged · sealed · tag current": {
         "regulation_ref": "49 CFR § 393.95(a) · CVSA OOS §4.c",
-        "rationale": "Federal-required equipment · missing/discharged is OOS.",
-        "uncertain": False,
-    },
-    "Fire extinguisher — minor scuff / tag near expiry": {
-        "regulation_ref": "49 CFR § 393.95(a)",
-        "rationale": "Functional but cosmetic/tag-renewal needed · monitor.",
+        "rationale": "Federal-required equipment · missing/discharged is OOS. (v1.3 · 2026-05-19 PM/3 · consolidated · cosmetic-monitor pair removed as checkbox theater)",
         "uncertain": False,
     },
     "Reflective triangles — 3 present · case intact": {
         "regulation_ref": "49 CFR § 393.95(f)",
-        "rationale": "Federal-required emergency equipment · missing is OOS.",
-        "uncertain": False,
-    },
-    "Reflective triangles — case scuffed (functional)": {
-        "regulation_ref": "49 CFR § 393.95(f)",
-        "rationale": "Equipment functional, cosmetic only · monitor.",
+        "rationale": "Federal-required emergency equipment · missing is OOS. (v1.3 · 2026-05-19 PM/3 · consolidated · cosmetic-monitor pair removed as checkbox theater)",
         "uncertain": False,
     },
     "Spare fuses — kit present": {
@@ -802,9 +816,14 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Operational + worker-comp expectation · monitor.",
         "uncertain": False,
     },
-    "Reflective safety vest — present in cab": {
-        "regulation_ref": "OSHA 1926.651 · MUTCD",
-        "rationale": "Required PPE for work-zone exits · monitor.",
+    "Reflective safety vest — Type II for day · Type III for night · in cab": {
+        "regulation_ref": "MUTCD · ANSI/ISEA 107 · MASCI work-zone PPE policy",
+        "rationale": "Driver carries a Type II Class 2 vest for day operations and a Type III Class 3 vest for night / low-light operations (work-zone exits, roadside flagging, paving train). Either is acceptable for daytime; Type III is required when ambient light is reduced. (v1.3 · 2026-05-19 PM/3 · PPE clarification)",
+        "uncertain": False,
+    },
+    "Hard hat — present in cab / accessible": {
+        "regulation_ref": "OSHA 1926.100 · MASCI work-zone PPE policy",
+        "rationale": "Required for any cab exit on a worksite · airport ramp · MOT lane closure · paving train · emergency roadside. Driver must have one in the cab and put it on before leaving the vehicle on a jobsite. (v1.3 · 2026-05-19 PM/3 · operational addition for field access · airport ops · MOT entry)",
         "uncertain": False,
     },
     # ─── Trailer items (sharing FMCSA criteria with truck side) ────

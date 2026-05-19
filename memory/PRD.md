@@ -2,6 +2,161 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 PM/3 — iter251 Phase 2 v1.3 · Field-review cleanup pass · ✅ DELIVERED (all 4 operator refinements applied · 119/119 cumulative tests green)
+
+Operator field-review caught 2 real duplicate inspection items and approved PPE clarifications + hard-hat addition. Severity table bumped v1.2 → v1.3-approved-2026-05-19. Audit verdict `READY_FOR_SAFETY_SIGNOFF` preserved.
+
+### 4 operator refinements (all delivered)
+
+**1. Removed 2 cosmetic-MONITOR duplicate pairs (checkbox theater)**
+- ❌ `Fire extinguisher — minor scuff / tag near expiry` (MONITOR)
+- ❌ `Reflective triangles — case scuffed (functional)` (MONITOR)
+- Rationale: the strict OOS line already captures any real defect on these emergency items. The cosmetic pair was checkbox theater.
+
+**2. Safety vest PPE specification tightened**
+- ✏️ `Reflective safety vest — present in cab` → **`Reflective safety vest — Type II for day · Type III for night · in cab`**
+- Anchors item to actual MASCI work-zone PPE policy (Type II Class 2 / Type III Class 3 · MUTCD · ANSI/ISEA 107)
+- Short and operational · no long-form training language
+
+**3. Added Hard Hat item**
+- ➕ 👁 MONITOR · `Hard hat — present in cab / accessible` (OSHA 1926.100)
+- Operational scope: field access · airport ramps · MOT/work-zone entry · paving train · emergency roadside response
+- Fits naturally in Safety Equipment / PPE grouping
+
+**4. Final duplicate audit + wording sweep**
+- Audited all 120 items grouped by pre-dash head token
+- Confirmed all other repeated heads are **legitimate operator-approved tier splits** (Power steering · Headlights · Strobes · Wipers · Body · Hydraulic · Tarp · Tire · Wheel · Suspension · Trailer suspension · Trailer tire · Fifth wheel · Windshield · Landing gear)
+- No other duplicates found · zero unclear wording · all thresholds objective
+
+### Table stats (v1.2 → v1.3)
+- Total: 120 → **119** (net -1: -2 cosmetic dupes + 1 hard hat)
+- OOS: 82 → **82** (no change · neither removed item was OOS)
+- Monitor: 38 → **37** (-2 removed + 1 hard hat = -1)
+- OOS / Monitor ratio: 2.16 → **2.22** (slightly more conservative)
+- Truck checklist: 93 → **92**
+- Trailer checklist: 27 → **27** (unchanged)
+- Uncertain: 0 → **0**
+- Audit verdict: `READY_FOR_SAFETY_SIGNOFF` (preserved)
+
+### Test coverage
+- **119/119 cumulative pytest** still green across iter248 + iter249 + iter250 + iter251 (added 2 new v1.3 tests: test_v1_3_duplicates_removed · test_v1_3_ppe_clarification)
+- Live `/api/fleet/_meta` verification: duplicates gone · new wordings present · rationales correct
+- Server-driven · driver UX picks up changes automatically (no frontend code change in v1.3 cycle)
+
+### Cultural verification (preserved per operator philosophy)
+✅ Calm operational tone preserved · ✅ Native MASCI · ✅ Mobile-first · ✅ Bilingual zero EN leakage · ✅ HelpTips short/collapsible/non-preachy · ✅ Cleanup not redesign · ✅ NOT compliance theater · ✅ Operationally realistic
+
+### Files touched (v1.3 cycle)
+- MOD · `backend/fleet_defect_severity.py` (+v1.3 changelog · +SEVERITY_TABLE_APPROVAL.v1_3_field_review_cleanup · -2 cosmetic dupes from table + metadata · ✏️ vest wording · +1 hard hat + metadata)
+- MOD · `backend/checklists_fleet.py` (truck list -2 dupes · ✏️ vest wording · +1 hard hat · emergency list vest tighten + hard hat)
+- MOD · `backend/tests/test_iter251_severity_v1_approved.py` (assertion v1.2 → v1.3 · size 120 → 119 · +2 new tests for v1.3)
+- MOD · `/app/SEVERITY_RULINGS_iter251.md` (appended v1.3 section · full duplicate-audit results · sign-off chain updated)
+- REGEN · `/app/FLEET_SEVERITY_REVIEW_PACKAGE_iter251.md` (now reflects v1.3 · 119 items)
+
+### Phase discipline (held)
+- ✅ Phase 1 (severity gate) · v1
+- ✅ Phase 2 (driver UX) · v1
+- ✅ Phase 2 v1.1 (refinement)
+- ✅ Phase 2 v1.2 (commercial-DVIR coverage hardening)
+- ✅ Phase 2 v1.3 (field-review cleanup) ← THIS CYCLE
+- ⏸ Phase 3 (Dispatch / Shop / Safety visibility) NOT started
+- ⏸ Phase 4 (repair lifecycle) NOT started
+- ⏸ Phase 5 (weekly forms) NOT started
+- ⏸ Phase 6 (Motive / MaintainX integration) NOT started
+
+### Next Action Items
+- ⏸ **Operator field-review** v1.3 on a real phone (verify duplicates gone · vest PPE spec readable · hard hat present in checklist)
+- ⏸ **Save to GitHub → Deploy mascidocs.com** (Phase 2 v1.3 is anon-public · ready for first field-use behind Safety field sign-off)
+- ⏸ Then **Phase 3 · Dispatch / Shop / Safety visibility** (operator-suggested "Driver Note thumbprint" + "group defects by truck" presentation patterns · also touch the pre-v1.2 splash overlay pointer-events bug)
+
+### Future / Backlog (unchanged)
+- iter249 Phase B Equipment Checkout pilot real-paperwork batch
+- iter250 Subcontractor photos field test
+- Phase K4b · K5 · Stage B.1 · F6 ES privacy fix · iter153 test-fragility decoupling
+
+🔒 iter251 Phase 2 v1.3 **COMPLETE** · field-review cleanup · clean / non-duplicated / operationally clean / field-readable / commercially realistic / PPE policy specified · `retest_needed: False` · ready for deployment + Safety field sign-off.
+
+---
+
+## 2026-05-19 PM/2 — iter251 Phase 2 v1.2 · Commercial-DVIR coverage hardening · ✅ DELIVERED (all 10 new items surface · retest_needed: False)
+
+Operator-approved coverage-hardening pass against standard commercial-vehicle DVIR baseline (the kind of form used industry-wide). MASCI Operations Platform was already operationally superior (severity governance · routing · photos · audit chain · bilingual · mobile · coaching) — this pass aligned the *inspection-item coverage* with commercial baseline categories without copying paper-form layout.
+
+### 10 commercial-DVIR coverage additions (driver-walkaround scope · v1.2)
+
+**Engine / Drivetrain block** (new section in truck checklist):
+- 🛑 OOS · Engine drive belts (§ 393.5)
+- 🛑 OOS · Engine hoses · coolant / heater (§ 393.5)
+- 🛑 OOS · Engine start-up (noise / smoke / vibration · driver judgment)
+- 👁 Monitor · Radiator (leak at neck/hoses · debris-fouled fins)
+- 👁 Monitor · Drive line / U-joints (walk-around visual)
+- 👁 Monitor · Front axle (spindle nuts · obvious damage)
+- 🛑 OOS · Fuel tank mounting (§ 393.65)
+- 🛑 OOS · Transmission operation
+- 🛑 OOS · Clutch · manual-trans only
+
+**Trailer suspension block** (parallel to truck · was missing in v1.1):
+- 🛑 OOS · Trailer leaf springs / u-bolts / shackles (§ 393.207)
+- 🛑 OOS · Trailer air bags · inflation / sag (§ 393.207)
+
+### Intentionally NOT added (operational reality · not checkbox theater)
+- ❌ Tire chains — FL/TX MASCI runs paving/haul ops · no snow chains required
+- ❌ Trailer roof — MASCI runs open dump / lowboy / equipment trailers · not enclosed vans
+
+### Coverage matrix · 37/39 commercial-DVIR baseline categories covered
+✅ Engine · Belts/hoses · Battery · Air compressor · Air lines · Drive line · Transmission · Clutch · Front axle · Fuel tanks · Brake accessories · Service/parking brakes · Coupling devices · Defroster/heater · Exhaust · Fifth wheel · Fluid levels · Frame · Horn · 7 light sub-types · Mirrors · Muffler · Oil pressure · Radiator · Reflectors · 5 safety equipment items · Steering · Suspension · Tires · Wheels/rims · Windshield · Wipers/washers · Trailer brake connections · Trailer brakes · Trailer coupling · Kingpin · Landing gear · 5 trailer light sub-types · Reflective tape · Trailer suspension · Tarp · Trailer tires · Trailer wheels/rims · Mudflaps
+⚠️ Partial: Rear end (covered by fluid-level no-major-leak) · Cab side/rear glass (windshield only · driver walk-around scope)
+❌ Skipped: Tire chains · Trailer roof (operational reality decisions)
+
+### Table stats (v1.1 → v1.2)
+- Total severity entries: 109 → **120**
+- OOS classifications: 74 → **82**
+- Monitor classifications: 35 → **38**
+- OOS / Monitor ratio: 2.11 → **2.16** (conservative bias preserved)
+- Uncertain items: 0 → **0**
+- Truck checklist items: 84 → **93**
+- Trailer checklist items: 25 → **27**
+- Audit verdict: `READY_FOR_SAFETY_SIGNOFF` (preserved)
+
+### Test coverage
+- **117/117 cumulative pytest** still green across iter248 + iter249 + iter250 + iter251
+- **NEW iter254 frontend verification** (testing_agent_v3_fork): all 10 new items surface correctly · 0 backend issues · 0 frontend ui_bugs · 0 integration_issues · 1 LOW pre-existing design note (splash overlay, not a v1.2 regression)
+- Server-driven `/api/fleet/_meta.severity_by_item` returns 120 entries · driver UX picks up new items automatically (no frontend changes needed in v1.2 cycle)
+
+### Cultural verification (preserved per operator philosophy)
+✅ Calm operational tone · ✅ Native MASCI · ✅ Mobile-first ≥ 44px targets · ✅ Bilingual zero EN leakage · ✅ HelpTips short/collapsible/non-preachy · ✅ PASS/FAIL/N/A simplicity · ✅ Server-side severity governance · ✅ Coverage hardening NOT checkbox theater · ✅ Operationally realistic decisions (skip tire chains/trailer roof)
+
+### Files touched (v1.2 cycle)
+- MOD · `backend/fleet_defect_severity.py` (+v1.2 changelog · +SEVERITY_TABLE_APPROVAL.v1_2_coverage_hardening · +11 new items + metadata · +4 new categories: engine · driveline · transmission · front_axle)
+- MOD · `backend/checklists_fleet.py` (truck list +9 engine/drivetrain · trailer list +2 trailer suspension)
+- MOD · `backend/tests/test_iter251_severity_v1_approved.py` (assertion v1.1 → v1.2 · size 109 → 120 · v1.2 changelog assertion)
+- MOD · `/app/SEVERITY_RULINGS_iter251.md` (appended v1.2 section · sign-off chain + coverage matrix)
+- REGEN · `/app/FLEET_SEVERITY_REVIEW_PACKAGE_iter251.md` (now reflects v1.2 · 120 items)
+
+### Phase discipline (held)
+- ✅ Phase 1 (severity gate) · v1 approved
+- ✅ Phase 2 (driver UX) · v1 delivered
+- ✅ Phase 2 v1.1 (refinement) · delivered
+- ✅ Phase 2 v1.2 (commercial-DVIR coverage hardening) · delivered
+- ⏸ Phase 3 (Dispatch / Shop / Safety visibility) NOT started
+- ⏸ Phase 4 (repair lifecycle) NOT started
+- ⏸ Phase 5 (weekly forms) NOT started
+- ⏸ Phase 6 (Motive / MaintainX integration) NOT started · external_refs stubs preserved
+
+### Next Action Items
+- ⏸ **Operator field-review** the v1.2 experience on preview · verify 9 new truck items + 2 trailer-suspension items render correctly on a real phone · verify ES translations + offline tolerance hold
+- ⏸ **Save to GitHub → Deploy mascidocs.com** (Phase 2 v1.2 is anon-public · ready for first field-use behind Safety field sign-off)
+- ⏸ Then **Phase 3 · Dispatch / Shop / Safety visibility** (operator suggested "Driver Note thumbprint on Shop queue" + "group defects by truck" presentation patterns)
+
+### Future / Backlog (unchanged)
+- iter249 Phase B Equipment Checkout pilot real-paperwork batch (HR/Safety scope · independent)
+- iter250 Subcontractor photos field test
+- Phase K4b · K5 · Stage B.1 · F6 ES privacy fix · iter153 test-fragility decoupling
+
+🔒 iter251 Phase 2 v1.2 **COMPLETE** · commercial-DVIR coverage hardened · 37/39 baseline categories covered · 2 intentionally skipped (operational reality) · `retest_needed: False` · ready for deployment + Safety field sign-off.
+
+---
+
 ## 2026-05-19 PM — iter251 Phase 2 v1.1 · Production-readiness refinement pass · ✅ DELIVERED (all 4 operator refinements PASS · retest_needed: False)
 
 Pre-production sign-off refinement cycle. Operator approved 4 enhancements before the DVIR is field-deployed. All 4 verified PASSING by the testing agent (iter253 report). Severity table bumped v1 → v1.1. Audit verdict `READY_FOR_SAFETY_SIGNOFF` preserved.
