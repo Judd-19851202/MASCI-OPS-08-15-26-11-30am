@@ -1,5 +1,92 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter245 · Request PO workflow refinement + vendors consolidation · ✅ DELIVERED (preview only)
+
+Operator-directed Field Leadership UX refinement. Two-part scope:
+
+1. **Workflow ergonomics** — Replace the free-text Job + Vendor inputs in the PO request dialog with searchable dropdowns and rename "Submit PO" → "Request PO" (matches the iter242 authority-boundary clarification: FL submits *requests*; PM/Co-PMs/HR/Admin issue official POs).
+2. **Vendor source consolidation** — Operator caught a mid-iter drift: an initial `vendors_master.py` collection was being created in parallel to the *existing* `/api/suppliers` master list that already feeds Daily Reports, Incidents, and QA/QC. Per operator: **"ONE operational vendor list reused platform-wide."** Pivoted to reuse `/api/suppliers` + the established `SupplierCombo` component everywhere. Retired the iter245-early `/api/vendors` endpoints and deleted `backend/vendors_master.py` before any production exposure.
+
+### What changed
+
+**Frontend — `frontend/src/pages/PoRequests.jsx` `AddDialog`**
+- "Submit PO" → "Request PO" on the trigger button, dialog title, submit button, validation toast, and success toast (`PO requested — <id>`)
+- Free-text `project_number` input → `<JobPicker allowCustom={false} emptyHint="I don't see this job — contact PM to add it.">` — active jobs only from `GET /api/jobs`, no custom fallback, helper text below: *"Active jobs only · maintained by PM / Admin."*
+- Free-text `vendor` input → `<SupplierCombo>` — the same reusable component used by Daily Reports / Incidents / QA/QC. Reads from `GET /api/suppliers`, inline Add-New posts to `POST /api/suppliers/add` (case-insensitive dedupe baked in: duplicate names soft-resolve to the existing record, no ugly error). Helper text below: *"Type to search the shared vendor list. New names are added to the master list for everyone."*
+- Local-only `project_name` state field (used for picker display) is stripped from the payload before `submitPo()` so the backend `PoRequestCreate` schema is unchanged
+- `DialogContent` now `max-h-[90vh] overflow-y-auto` for mobile keyboard handling
+
+**Frontend — `frontend/src/components/JobPicker.jsx`**
+- Added `allowCustom` (default `true`, preserves all existing callers) + `emptyHint` props. When `allowCustom={false}` the "Custom Job" CommandGroup is suppressed and `CommandEmpty` renders the provided hint.
+
+**Frontend — `frontend/src/lib/i18n.js`**
+- iter245 ES dictionary block (13 entries): `Request PO` → `Solicitar OC`, `PO requested` → `OC solicitada`, `Could not request PO`, validation toast, job helper + "contact PM" hint, vendor helper + placeholder, `Vendor / Subcontractor`, `Supervisor signature`. Existing duplicates (`Job`, `Description`, `Urgency`, `Category`, `Notes`, `Estimated amount`, `Needed by`, `Your name`) intentionally not re-added — resolve via their existing entries elsewhere in the dict.
+
+**Backend — `backend/server.py`**
+- REMOVED: `_require_any_authenticated_user` helper, `VendorInRequest` model, `GET /api/vendors`, `POST /api/vendors`, and the `_ensure_vendors_unique_index` startup hook. Replaced with a comment block noting the iter245 consolidation rationale.
+- DELETED: `backend/vendors_master.py` — never lived in production; safely retired.
+
+### Architecture invariants preserved
+- ❌ NOT touched: `routes/po_requests.py` (PoRequestCreate schema · approval chain · receipt lifecycle · role-stamping · authority gates)
+- ❌ NOT touched: PO numbering scheme (`MASCI-PO-YY-MM-NNN`, manual override)
+- ❌ NOT touched: iter238 email subject system / iter242 authority-boundary banner
+- ❌ NOT touched: `submitPo` API call name (internal, unchanged)
+- ❌ NOT touched: Daily Reports / Incidents / QA/QC SupplierCombo callsites — they automatically benefit from any vendor added via Request PO (single shared `suppliers` collection)
+- ❌ NOT touched: `/api/suppliers/add` endpoint — already case-insensitive dedupe via `$regex ^name$ /i`
+
+### Verification
+
+**Backend**
+- `tests/test_iter153_po_requests.py` — **19/19 pass** after orphan test-data cleanup
+- `GET /api/vendors` → **404** (retired) · `GET /api/suppliers` → 200 / 145 items · `GET /api/jobs` → 200 / 28 active
+- Backend starts cleanly · zero broken imports · no stale references to `vendors_master`
+
+**Frontend (testing agent iter245 E2E — 11/11 critical assertions pass)**
+- Trigger button + dialog title both read "Request PO"
+- JobPicker (allowCustom=false) renders 28 active jobs · no "Custom Job" option · "contact PM" hint shows on no-match
+- SupplierCombo loads 145+ real vendors · alphabetical · sortable · searchable
+- Inline Add-New: new vendor name → `POST /api/suppliers/add` → toast "Added X to vendor list" → vendor auto-selected
+- Case-insensitive dedupe UX: typing the same vendor in different case hides the +Add button (exactMatch is case-insensitive) → user routed to existing entry · no ugly error
+- Full E2E submit: pick job → pick/add vendor → fill description/amount → click "Request PO" → toast "PO requested — <id>" → dialog closes → new row in PO list with correct vendor + project_number persisted
+
+**Mobile (390×844 viewport)**
+- 0px horizontal overflow at any state (closed / dialog open / picker open)
+- JobPicker popover renders inside the dialog without clipping
+- SupplierCombo dropdown fits within the viewport
+- Dialog `max-h-[90vh] overflow-y-auto` keeps the form scrollable when the soft keyboard appears
+
+### Operator-surfaced known issue (deferred · NOT introduced by iter245)
+Pre-existing latent bug in `routes/po_requests.py:325-329`: the leadership scope filter uses `{"requested_by_user_id": actor.get("id")}` which, when `actor.get("id")` returns `None`, becomes a Mongo-wildcard match against documents that *also* lack a `user_id`. This was masked while leadership-token POs were the only ones lacking a `user_id`; the testing-agent fixture (which created an admin PO via test seed) exposed it. Iter245 changes do not touch this code path. Logged as P2 follow-up.
+
+### Files touched (4 surgical edits · 1 deletion)
+- MOD: `frontend/src/pages/PoRequests.jsx` (AddDialog refactor · localization)
+- MOD: `frontend/src/components/JobPicker.jsx` (+`allowCustom`, +`emptyHint` props · default behavior preserved)
+- MOD: `frontend/src/lib/i18n.js` (iter245 ES block · 13 entries)
+- MOD: `backend/server.py` (retired /api/vendors endpoints + startup hook + helper · replaced with consolidation comment)
+- DEL: `backend/vendors_master.py`
+- MOD: `memory/PRD.md` (this entry)
+
+🟢 Preview only · stabilization-phase posture preserved · awaiting operator deploy decision.
+
+### Next Action Items
+- ⏸ Operator review of iter245 batch
+- ⏸ Save to Github → Deploy on mascidocs.com
+- ⏸ Resume stabilization/observation posture
+
+### Future / Backlog (unchanged · all deferred)
+- 🟡 **P2 (iter245-surfaced)** · Fix leadership scope filter — guard against `None` user_id matching admin-created POs
+- Iter 246 · Dispatch/Shop delivery-payload parity gaps
+- Phase K4b · Unified User Management UI mutations (P2)
+- Phase K5 · Temp Password / Onboarding standardization (P2)
+- Stage B.1 · Owner Snapshot PDF (P2)
+- 🟡 Lesson-level `title_es` content-data localization
+- 🟡 Long legal-page paragraph translation (lawyer-reviewed)
+- Held · HelpTip helpfulness pulse telemetry
+- Strategic Hold · Operator mid-day-defect architectural decision
+
+---
+
+
 ## 2026-05-19 — iter243 · Safety Users admin welcome-email parity · ✅ DELIVERED (preview only)
 
 Operator-surfaced gap (recurring): Admin Portal → **Safety Users & Logins** did not offer the email-password-to-user option that PM / Shop / HR / Dispatch panels already had. The file's own header comment literally read *"Welcome email delivery is Phase 5 — for now the password is always revealed on screen"*. Never shipped.
