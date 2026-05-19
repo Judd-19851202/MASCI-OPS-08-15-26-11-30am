@@ -40,6 +40,8 @@ import NewDailyReport from "@/pages/NewDailyReport";
 import ViewDailyReport from "@/pages/ViewDailyReport";
 import EquipmentDashboard from "@/pages/EquipmentDashboard";
 import NewEquipmentInspection from "@/pages/NewEquipmentInspection";
+import NewFleetDVIR from "@/pages/NewFleetDVIR";
+import FleetDVIRConfirmation from "@/pages/FleetDVIRConfirmation";
 import ViewEquipmentInspection from "@/pages/ViewEquipmentInspection";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
@@ -284,6 +286,11 @@ function App() {
             <Route path="/equipment/new" element={<NewEquipmentInspection />} />
             <Route path="/equipment/submit" element={<NewEquipmentInspection publicMode />} />
             <Route path="/equipment/:id" element={<RedirectWithId base="/admin/equipment" />} />
+
+            {/* iter251 Phase 2 · Driver-facing Daily Vehicle Inspection */}
+            <Route path="/fleet/dvir/new" element={<NewFleetDVIR />} />
+            <Route path="/fleet/dvir/submit" element={<NewFleetDVIR />} />
+            <Route path="/fleet/dvir/submitted/:id" element={<FleetDVIRConfirmation />} />
 
             <Route path="/thank-you" element={<ThankYou />} />
             <Route path="/cheatsheet" element={<PosterErrorBoundary><CheatSheet /></PosterErrorBoundary>} />

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ClipboardList, Wrench, ArrowLeft, HardHat, Calculator,
+  ClipboardList, Wrench, ArrowLeft, HardHat, Calculator, Truck,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -85,6 +85,15 @@ export default function FieldSection() {
             accent="amber"
             ctaLabel={t("Open Tools")}
             testId="field-tile-calculators"
+          />
+          <SectionTile
+            to="/fleet/dvir/new"
+            icon={Truck}
+            title={t("Trucking · Daily DVIR")}
+            desc={t("Daily Vehicle Inspection for trucks and trailers. Walk-around · PASS / FAIL each item · Shop sees defects automatically.")}
+            accent="amber"
+            ctaLabel={t("Start DVIR")}
+            testId="field-tile-dvir"
           />
         </div>
       </main>
