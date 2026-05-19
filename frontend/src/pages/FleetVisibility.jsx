@@ -32,14 +32,21 @@ import { paletteFor } from "@/lib/portalPalette";
 import { getShopToken } from "@/lib/shopAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
+import { getAdminToken } from "@/lib/adminAuth";
 
 const API = process.env.REACT_APP_BACKEND_URL || "";
 
 function scopeTokenHeader(scope) {
-  if (scope === "shop") return { "X-Shop-Token": getShopToken() || "" };
-  if (scope === "dispatch") return { "X-Dispatch-Token": getDispatchToken() || "" };
-  if (scope === "safety") return { "X-Safety-Token": getSafetyToken() || "" };
-  return {};
+  // Always include X-Admin-Token when present · enables admin "view as
+  // Shop/Dispatch/Safety" impersonation without minting a portal token.
+  // The backend gates ALL three by-scope endpoints with admin OR portal
+  // token, so this is safe and operator-approved (test report iter255).
+  const admin = getAdminToken() || "";
+  const base = admin ? { "X-Admin-Token": admin } : {};
+  if (scope === "shop") return { ...base, "X-Shop-Token": getShopToken() || "" };
+  if (scope === "dispatch") return { ...base, "X-Dispatch-Token": getDispatchToken() || "" };
+  if (scope === "safety") return { ...base, "X-Safety-Token": getSafetyToken() || "" };
+  return base;
 }
 
 function scopeHomeRoute(scope) {

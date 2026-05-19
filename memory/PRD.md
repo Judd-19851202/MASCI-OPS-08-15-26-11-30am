@@ -2,6 +2,67 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 PM/4 — iter251 Phase 3 · Fleet Visibility · P0 fix delivered (test report iter255 resolved · 12/12 phase3 tests green · 72/72 cumulative fleet tests green)
+
+Acted on the iter255 testing-agent report. Four of the seven flagged issues were stale (App.js routes, hub links, and both auth gates were already correctly wired — verified by direct curl from external ingress). The one real regression was a backend/frontend field-name contract drift in `/api/shop/fleet/by-unit`.
+
+### P0 Backend fix · `routes/fleet_ops.py · shop_defects_grouped_by_unit`
+Defect rows are now PROJECTED to the operator-approved Phase 3 contract before they leave the endpoint:
+- `id` → `defect_id`
+- `item_text` → `checklist_item`
+- `note` → `driver_note`
+- `reported_by_name` → `reported_by_driver_name`
+- + `regulation_ref` and `rationale` enriched from `FLEET_DEFECT_SEVERITY_META` so Safety scope has the audit anchor.
+Group placeholders also now seed `truck_status`/`make_model`/`category`/`plate`/`year` as `None` so the frontend's defensive fallbacks behave predictably even when enrichment rows are missing.
+
+### Frontend QoL fix · `FleetVisibility.jsx · scopeTokenHeader`
+Admin tokens now ride alongside the scoped token on every fetch. Lets admins "view as Shop/Dispatch/Safety" without minting a portal token (operator-suggested in the test report). The backend already accepts admin-OR-scope on these three endpoints, so this is safe.
+
+### Test housekeeping
+The conftest.py admin-token auto-injection was making the two "anon must be rejected" tests false-negative. Fixed in `test_iter251_phase3_fleet_visibility.py` by passing `headers={"X-Admin-Token": ""}` explicitly on those two requests so the patch's `setdefault` skips injection. Result: 12/12 pass.
+
+### Live preview verification
+```
+✅ /shop/fleet renders · 3 unit cards · OOS-first ordering
+✅ Driver Note amber thumbprint surfaces real driver text
+✅ StatusPill shows "Out of Service" / "Repair Required" from truck_status
+✅ Make/model/year visible (Mack GU713 · Dump Trucks · 2010)
+✅ KPI chips: 2 OOS · 1 Monitor-only · 3 units · 3 defects
+✅ PDF reference card 200 with admin · 401 without
+✅ /api/shop/fleet/by-unit 200 with admin · 401 anonymous
+```
+
+### Test coverage
+- iter251 Phase 3: **12/12** (`test_iter251_phase3_fleet_visibility.py`)
+- Fleet cumulative: **72/72** (foundation + severity-audit + v1-approved + phase3)
+
+### Files touched (P0 cycle)
+- MOD · `backend/routes/fleet_ops.py` (~50 lines · defect projection + group enrichment placeholders)
+- MOD · `frontend/src/pages/FleetVisibility.jsx` (~12 lines · scopeTokenHeader admin-impersonation)
+- MOD · `backend/tests/test_iter251_phase3_fleet_visibility.py` (explicit X-Admin-Token="" on 2 anon tests)
+
+### Phase discipline (held)
+- ✅ Phase 1 v1.3 · severity table
+- ✅ Phase 2 v1.3 · driver UX
+- ✅ Phase 3 · Dispatch / Shop / Safety visibility (P0 closed)
+- ⏸ Phase 4 · Repair Lifecycle (NEXT · operator-bounded scope below)
+- ⏸ Phase 5 · Weekly / Emergency forms
+- ⏸ Phase 6 · Motive + MaintainX integration
+
+### Next Action Items
+- ▶ Phase 4 · Repair Lifecycle · operator-scoped to:
+  - Shop FleetVisibility · repair drawer per defect
+  - Mechanic (lightweight) · repair notes · repair photos · repaired timestamp
+  - Return-to-Service confirmation
+  - Audit trail entries on every transition
+  - Dispatch view reflects RTS
+- 🚫 NO CMMS expansion · NO parts inventory · NO mechanic timecards · NO Motive/MaintainX yet · NO KPI dashboards · NO punitive tone
+
+🔒 iter251 Phase 3 **P0 CLOSED** · ready to advance into Phase 4 on operator approval.
+
+---
+
+
 ## 2026-05-19 PM/3 — iter251 Phase 2 v1.3 · Field-review cleanup pass · ✅ DELIVERED (all 4 operator refinements applied · 119/119 cumulative tests green)
 
 Operator field-review caught 2 real duplicate inspection items and approved PPE clarifications + hard-hat addition. Severity table bumped v1.2 → v1.3-approved-2026-05-19. Audit verdict `READY_FOR_SAFETY_SIGNOFF` preserved.

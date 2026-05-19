@@ -55,7 +55,13 @@ class TestSeverityReferencePDF:
         assert "v1.3-approved-2026-05-19" in cd, f"Version not in filename header: {cd}"
 
     def test_pdf_requires_admin(self):
-        r = requests.get(f"{BASE_URL}/api/admin/fleet/severity-reference-card.pdf", timeout=15)
+        # Pass an empty X-Admin-Token to bypass conftest auto-injection · we
+        # want to simulate a truly anonymous request to verify the gate.
+        r = requests.get(
+            f"{BASE_URL}/api/admin/fleet/severity-reference-card.pdf",
+            headers={"X-Admin-Token": ""},
+            timeout=15,
+        )
         assert r.status_code in (401, 403), f"Unprotected PDF endpoint: {r.status_code}"
 
 
@@ -128,7 +134,13 @@ class TestFleetByUnit:
         assert d["severity"] in ("oos", "monitor"), f"unexpected severity {d['severity']}"
 
     def test_by_unit_requires_token(self):
-        r = requests.get(f"{BASE_URL}/api/shop/fleet/by-unit", timeout=15)
+        # Pass an empty X-Admin-Token to bypass conftest auto-injection · we
+        # want to simulate a truly anonymous request to verify the gate.
+        r = requests.get(
+            f"{BASE_URL}/api/shop/fleet/by-unit",
+            headers={"X-Admin-Token": ""},
+            timeout=15,
+        )
         assert r.status_code in (401, 403), f"Unprotected by-unit endpoint: {r.status_code}"
 
 

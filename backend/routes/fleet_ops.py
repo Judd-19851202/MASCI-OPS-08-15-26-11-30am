@@ -1189,9 +1189,38 @@ def build_router(
                 "open_monitor_count": 0,
                 "latest_inspection_at": None,
                 "latest_driver_name": None,
+                # Enrichment placeholders · populated below from
+                # fleet_status / equipment_master if rows exist
+                "truck_status": None,
+                "make_model": None,
+                "category": None,
+                "plate": None,
+                "year": None,
                 "defects": [],
             })
-            grp["defects"].append(d)
+            # Project to Phase 3 spec field names so the operator-approved
+            # Driver Note thumbprint, severity title, and Safety regulation_ref
+            # render correctly. Backend is the contract.
+            item_text = d.get("item_text") or ""
+            meta = _sev.FLEET_DEFECT_SEVERITY_META.get(item_text) or {}
+            projected = {
+                "defect_id": d.get("id"),
+                "doc_id": d.get("doc_id") or "",
+                "inspection_id": d.get("inspection_id"),
+                "checklist_item": item_text,
+                "category": d.get("category"),
+                "severity": d.get("severity"),
+                "status": d.get("status"),
+                "driver_note": d.get("note") or "",
+                "photos": d.get("photos") or [],
+                "reported_by_driver_name": d.get("reported_by_name") or "",
+                "reported_at": d.get("reported_at"),
+                "regulation_ref": meta.get("regulation_ref") or "",
+                "rationale": meta.get("rationale") or "",
+                "truck_unit_number": d.get("truck_unit_number") or "",
+                "trailer_unit_number": d.get("trailer_unit_number") or "",
+            }
+            grp["defects"].append(projected)
             if d.get("severity") == _sev.SEVERITY_OOS:
                 grp["open_oos_count"] += 1
             else:
@@ -1202,7 +1231,7 @@ def build_router(
                 or rep_at > grp["latest_inspection_at"]
             ):
                 grp["latest_inspection_at"] = rep_at
-                grp["latest_driver_name"] = d.get("reported_by_driver_name")
+                grp["latest_driver_name"] = d.get("reported_by_name")
 
         # Enrich with fleet_status (truck-state) + equipment_master snapshot
         units_list = list(by_unit.keys())
