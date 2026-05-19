@@ -689,3 +689,396 @@ def register_phase_b(legacy_imports_module) -> None:
         "[phase-b] equipment_checkout extractor + promoter registered · "
         f"pilot_cap={pilot_cap()} · model={ocr_model()}"
     )
+
+
+
+# ─── Pilot Debrief (read-only, admin-only verification tool) ───────────
+# Operator-approved scope: produces structured JSON evidence for the
+# 50-form Equipment Checkout pilot. NOT a dashboard. NOT a feature
+# surface. Curl-friendly. Powers the operator's READY / NEEDS_TUNING /
+# NOT_READY decision for scaling Phase B.
+async def compute_pilot_debrief(
+    db,
+    *,
+    document_type: str = "equipment_checkout",
+    diff_example_limit: int = 8,
+    failed_list_limit: int = 25,
+    unmatched_list_limit: int = 25,
+) -> Dict[str, Any]:
+    """Aggregate everything the operator needs to evaluate the pilot.
+    Read-only. Touches `legacy_imports`, `legacy_import_audit`, and
+    `field_leadership_records` (read).
+    """
+    base_filter = {"document_type": document_type}
+
+    # ── Status counts ─────────────────────────────────────────────────
+    status_counts: Dict[str, int] = {}
+    pipeline = [{"$match": base_filter},
+                {"$group": {"_id": "$status", "n": {"$sum": 1}}}]
+    async for row in db.legacy_imports.aggregate(pipeline):
+        status_counts[row["_id"]] = row["n"]
+
+    uploaded_count = sum(status_counts.values())
+    ocr_failed_count = status_counts.get("ocr_failed", 0)
+    approved_count = status_counts.get("approved", 0)
+    rejected_count = status_counts.get("rejected", 0)
+    promoted_count = status_counts.get("promoted", 0)
+
+    # ── OCR confidence stats (across rows where OCR completed) ────────
+    conf_pipeline = [
+        {"$match": {**base_filter, "ocr.confidence": {"$exists": True, "$gt": 0}}},
+        {"$group": {
+            "_id": None,
+            "avg": {"$avg": "$ocr.confidence"},
+            "min": {"$min": "$ocr.confidence"},
+            "max": {"$max": "$ocr.confidence"},
+            "n": {"$sum": 1},
+        }},
+    ]
+    conf_doc = await db.legacy_imports.aggregate(conf_pipeline).to_list(1)
+    if conf_doc:
+        c = conf_doc[0]
+        ocr_confidence = {
+            "avg": round(c["avg"], 3),
+            "min": round(c["min"], 3),
+            "max": round(c["max"], 3),
+            "sample_size": c["n"],
+        }
+    else:
+        ocr_confidence = {"avg": None, "min": None, "max": None, "sample_size": 0}
+
+    # ── Reviewer corrections summary ──────────────────────────────────
+    # Counts per field of how many imports had reviewer-edited values.
+    corrections_field_counts: Dict[str, int] = {}
+    diff_examples: List[Dict[str, Any]] = []
+    review_notes: List[Dict[str, Any]] = []
+    diff_seen = 0
+
+    async for row in db.legacy_imports.find(
+        {**base_filter, "review.decision": {"$in": ["approved", "rejected"]}},
+        {"_id": 0, "id": 1, "ocr.extracted_fields": 1,
+         "review.corrections": 1, "review.notes": 1,
+         "review.decision": 1, "review.reviewer_name": 1,
+         "review.reviewed_at": 1},
+    ):
+        corrections = (row.get("review") or {}).get("corrections") or {}
+        extracted = (row.get("ocr") or {}).get("extracted_fields") or {}
+        for k, corrected_v in corrections.items():
+            raw_v = extracted.get(k)
+            # Field counted as "corrected" if reviewer wrote a value
+            # that differs from what OCR returned (or filled when OCR
+            # returned nothing).
+            if corrected_v != raw_v:
+                corrections_field_counts[k] = corrections_field_counts.get(k, 0) + 1
+                if diff_seen < diff_example_limit:
+                    diff_examples.append({
+                        "import_id": row["id"],
+                        "field": k,
+                        "raw": raw_v,
+                        "corrected": corrected_v,
+                    })
+                    diff_seen += 1
+        # Reviewer free-text notes (operator-stated "reviewer friction
+        # notes" deliverable)
+        notes = ((row.get("review") or {}).get("notes") or "").strip()
+        if notes and len(review_notes) < 20:
+            review_notes.append({
+                "import_id": row["id"],
+                "reviewer": (row.get("review") or {}).get("reviewer_name"),
+                "decision": (row.get("review") or {}).get("decision"),
+                "notes": notes[:500],
+                "at": (row.get("review") or {}).get("reviewed_at"),
+            })
+
+    # ── Failed-extraction examples (operator-stated deliverable) ─────
+    failed_list: List[Dict[str, Any]] = []
+    async for row in db.legacy_imports.find(
+        {**base_filter, "status": "ocr_failed"},
+        {"_id": 0, "id": 1, "ocr.error": 1, "ocr.provider": 1,
+         "source_files": 1, "created_at": 1, "batch_id": 1},
+    ).sort("created_at", -1).limit(failed_list_limit):
+        sf = (row.get("source_files") or [{}])[0]
+        failed_list.append({
+            "import_id": row["id"],
+            "original_name": sf.get("original_name"),
+            "mime": sf.get("mime"),
+            "size_bytes": sf.get("size_bytes"),
+            "uploaded_at": sf.get("uploaded_at"),
+            "batch_id": row.get("batch_id"),
+            "provider": (row.get("ocr") or {}).get("provider"),
+            "error": (row.get("ocr") or {}).get("error"),
+        })
+
+    # ── Unmatched employee / equipment rows (low match confidence) ───
+    unmatched_employee: List[Dict[str, Any]] = []
+    unmatched_equipment: List[Dict[str, Any]] = []
+    duplicate_suspicion_count = 0
+
+    async for row in db.legacy_imports.find(
+        {**base_filter,
+         "status": {"$in": ["needs_review", "approved", "promoted"]}},
+        {"_id": 0, "id": 1, "matches": 1,
+         "ocr.extracted_fields.employee_name": 1,
+         "ocr.extracted_fields.equipment_lines": 1,
+         "status": 1, "created_at": 1},
+    ):
+        matches = row.get("matches") or {}
+        emp_m = matches.get("employee") or {}
+        eq_m = matches.get("equipment") or {}
+        dup = matches.get("duplicate_of")
+        if dup:
+            duplicate_suspicion_count += 1
+        if (not emp_m.get("suggested_id")
+                or (emp_m.get("confidence") or 0.0) < 0.7):
+            if len(unmatched_employee) < unmatched_list_limit:
+                ef = (row.get("ocr") or {}).get("extracted_fields") or {}
+                unmatched_employee.append({
+                    "import_id": row["id"],
+                    "status": row.get("status"),
+                    "extracted_name": ef.get("employee_name"),
+                    "top_suggestion": emp_m.get("suggested_name"),
+                    "top_confidence": emp_m.get("confidence"),
+                    "alt_count": len(emp_m.get("alternatives") or []),
+                })
+        # equipment match is on the FIRST equipment line · same threshold
+        if (not eq_m.get("suggested_id")
+                or (eq_m.get("confidence") or 0.0) < 0.7):
+            if len(unmatched_equipment) < unmatched_list_limit:
+                ef = (row.get("ocr") or {}).get("extracted_fields") or {}
+                first_line = ((ef.get("equipment_lines") or [{}])[0] or {})
+                unmatched_equipment.append({
+                    "import_id": row["id"],
+                    "status": row.get("status"),
+                    "extracted_name": first_line.get("name"),
+                    "extracted_serial": first_line.get("serial"),
+                    "top_suggestion": eq_m.get("suggested_name"),
+                    "top_confidence": eq_m.get("confidence"),
+                })
+
+    # ── Accountability round-trip verification ───────────────────────
+    # Every promoted legacy_import_id must map 1:1 to a native row in
+    # `field_leadership_records` carrying `source="legacy_imported"`.
+    promoted_verification: List[Dict[str, Any]] = []
+    accountability_roundtrip_ok = 0
+    accountability_roundtrip_missing = 0
+
+    async for row in db.legacy_imports.find(
+        {**base_filter, "status": "promoted"},
+        {"_id": 0, "id": 1, "promotion": 1,
+         "ocr.extracted_fields.employee_name": 1,
+         "review.reviewer_name": 1, "review.reviewed_at": 1},
+    ).sort("promotion.promoted_at", -1):
+        promo = row.get("promotion") or {}
+        rid = promo.get("promoted_record_id")
+        ef = (row.get("ocr") or {}).get("extracted_fields") or {}
+        emp = ef.get("employee_name")
+        native = None
+        if rid:
+            native = await db.field_leadership_records.find_one(
+                {"id": rid, "source": "legacy_imported"},
+                {"_id": 0, "id": 1, "kind": 1, "source": 1,
+                 "employee_name": 1, "legacy_import_id": 1,
+                 "deleted_at": 1, "details.equipment_lines": 1},
+            )
+        ok = bool(
+            native
+            and native.get("kind") == "equipment_checkout"
+            and native.get("source") == "legacy_imported"
+            and native.get("legacy_import_id") == row["id"]
+            and native.get("deleted_at") is None
+        )
+        if ok:
+            accountability_roundtrip_ok += 1
+        else:
+            accountability_roundtrip_missing += 1
+        promoted_verification.append({
+            "import_id": row["id"],
+            "native_record_id": rid,
+            "native_kind": (native or {}).get("kind"),
+            "native_source": (native or {}).get("source"),
+            "employee_name": emp,
+            "reviewer": (row.get("review") or {}).get("reviewer_name"),
+            "promoted_at": promo.get("promoted_at"),
+            "line_count": len((native or {}).get("details", {}).get("equipment_lines") or []),
+            "round_trip_ok": ok,
+        })
+
+    # ── Termination / accountability flag verification ──────────────
+    # For each promoted import's employee, check whether outstanding
+    # (un-returned) imported equipment lines participate in the live
+    # outstanding-equipment query (same shape the HR portal runs).
+    termination_flag_check: Dict[str, Any] = {
+        "checked_employees": 0,
+        "with_outstanding_imported_equipment": 0,
+        "with_native_termination_record": 0,
+        "samples": [],
+    }
+    seen_employees: set = set()
+    for pv in promoted_verification:
+        emp = pv.get("employee_name")
+        if not emp or emp in seen_employees:
+            continue
+        seen_employees.add(emp)
+        termination_flag_check["checked_employees"] += 1
+        rx = {"$regex": re.escape(emp), "$options": "i"}
+        # Outstanding imported equipment for this employee
+        outstanding = 0
+        async for rec in db.field_leadership_records.find(
+            {"kind": "equipment_checkout", "employee_name": rx,
+             "source": "legacy_imported", "deleted_at": None},
+            {"_id": 0, "details.equipment_lines": 1},
+        ):
+            for line in (rec.get("details") or {}).get("equipment_lines") or []:
+                if line and not line.get("returned"):
+                    outstanding += 1
+        # Existing termination record for this employee (native)
+        termination = await db.field_leadership_records.count_documents(
+            {"kind": "employee_termination", "employee_name": rx,
+             "deleted_at": None},
+        )
+        if outstanding > 0:
+            termination_flag_check["with_outstanding_imported_equipment"] += 1
+        if termination > 0:
+            termination_flag_check["with_native_termination_record"] += 1
+        if len(termination_flag_check["samples"]) < 10:
+            termination_flag_check["samples"].append({
+                "employee": emp,
+                "outstanding_imported_equipment_lines": outstanding,
+                "native_termination_records": termination,
+            })
+
+    # ── Evidence-access audit count ─────────────────────────────────
+    evidence_access_count = await db.legacy_import_audit.count_documents(
+        {"action": "evidence_accessed"}
+    )
+    # Audit action breakdown for completeness
+    audit_action_counts: Dict[str, int] = {}
+    async for row in db.legacy_import_audit.aggregate(
+        [{"$group": {"_id": "$action", "n": {"$sum": 1}}}]
+    ):
+        audit_action_counts[row["_id"]] = row["n"]
+
+    # ── Readiness verdict heuristic ─────────────────────────────────
+    # Conservative thresholds aligned with operator's "trustworthy
+    # historical operational data before full company rollout" goal.
+    verdict, reasons = _readiness_verdict(
+        uploaded_count=uploaded_count,
+        ocr_failed_count=ocr_failed_count,
+        approved_count=approved_count,
+        rejected_count=rejected_count,
+        promoted_count=promoted_count,
+        ocr_confidence=ocr_confidence,
+        roundtrip_missing=accountability_roundtrip_missing,
+    )
+
+    return {
+        "document_type": document_type,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "counts": {
+            "uploaded": uploaded_count,
+            "ocr_failed": ocr_failed_count,
+            "approved": approved_count,
+            "rejected": rejected_count,
+            "promoted": promoted_count,
+            "status_breakdown": status_counts,
+        },
+        "ocr_confidence": ocr_confidence,
+        "reviewer_corrections": {
+            "field_counts": corrections_field_counts,
+            "diff_examples": diff_examples,
+            "reviewer_notes": review_notes,
+        },
+        "failed_extractions": failed_list,
+        "unmatched_employee_rows": unmatched_employee,
+        "unmatched_equipment_rows": unmatched_equipment,
+        "duplicate_suspicion_count": duplicate_suspicion_count,
+        "evidence_access_audit_count": evidence_access_count,
+        "audit_action_counts": audit_action_counts,
+        "accountability_roundtrip": {
+            "promoted_native_records_ok": accountability_roundtrip_ok,
+            "promoted_native_records_missing": accountability_roundtrip_missing,
+            "samples": promoted_verification[:25],
+        },
+        "termination_flag_verification": termination_flag_check,
+        "readiness_verdict": verdict,
+        "readiness_reasons": reasons,
+        "scope_note": (
+            "iter249 Phase B Equipment Checkout pilot only · this debrief "
+            "is intentionally limited to document_type=equipment_checkout. "
+            "Other document types are NOT activated."
+        ),
+    }
+
+
+def _readiness_verdict(
+    *,
+    uploaded_count: int,
+    ocr_failed_count: int,
+    approved_count: int,
+    rejected_count: int,
+    promoted_count: int,
+    ocr_confidence: Dict[str, Any],
+    roundtrip_missing: int,
+) -> tuple:
+    """Heuristic only · operator makes the final call. Returns
+    (verdict, reasons[]). Conservative bias toward NEEDS_TUNING."""
+    reasons: List[str] = []
+    if uploaded_count == 0:
+        return "NOT_READY", ["No imports uploaded yet · cannot evaluate."]
+    if roundtrip_missing > 0:
+        reasons.append(
+            f"{roundtrip_missing} promoted import(s) missing matching "
+            f"native field_leadership_records · accountability chain broken."
+        )
+        return "NOT_READY", reasons
+
+    ocr_done = approved_count + rejected_count + promoted_count + ocr_failed_count
+    failed_rate = (ocr_failed_count / max(1, ocr_done)) if ocr_done else 1.0
+    rejected_rate = (rejected_count / max(1, ocr_done)) if ocr_done else 0.0
+    avg_conf = ocr_confidence.get("avg") or 0.0
+
+    if failed_rate > 0.30:
+        reasons.append(
+            f"OCR failure rate {failed_rate:.0%} > 30% threshold · "
+            f"extractor unreliable on real paperwork."
+        )
+    if avg_conf and avg_conf < 0.55:
+        reasons.append(
+            f"Average OCR confidence {avg_conf:.2f} below 0.55 threshold · "
+            f"reviewer load will be high."
+        )
+    if uploaded_count < 8:
+        reasons.append(
+            f"Pilot sample size {uploaded_count} is below operator-stated "
+            f"10-20 form minimum · insufficient evidence to scale."
+        )
+    if rejected_rate > 0.40:
+        reasons.append(
+            f"Reviewer rejection rate {rejected_rate:.0%} > 40% · "
+            f"extractor or upload-quality friction is too high."
+        )
+    if promoted_count == 0:
+        reasons.append(
+            "No imports promoted yet · cannot confirm end-to-end "
+            "operational integration."
+        )
+
+    if reasons:
+        # Anything below NOT_READY's hard fails → NEEDS_TUNING
+        return "NEEDS_TUNING", reasons
+
+    if (uploaded_count >= 8
+            and promoted_count >= 5
+            and avg_conf >= 0.65
+            and failed_rate <= 0.10):
+        return "READY", [
+            f"{promoted_count} imports promoted · avg confidence "
+            f"{avg_conf:.2f} · failure rate {failed_rate:.0%} · "
+            f"accountability round-trip clean. Recommend scaling pilot "
+            f"to a wider batch under continued reviewer oversight."
+        ]
+    return "NEEDS_TUNING", [
+        "Pilot signal is positive but below the operator-defined "
+        "READY thresholds. Recommend running another small batch with "
+        "operator-led friction review before scaling.",
+    ]

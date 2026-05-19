@@ -10057,6 +10057,43 @@ async def li_admin_audit(
     return {"count": len(items), "items": items}
 
 
+@app.get("/api/admin/legacy-imports/pilot-debrief")
+async def li_admin_pilot_debrief(
+    document_type: str = "equipment_checkout",
+    _: bool = Depends(require_admin_strict),
+):
+    """iter249 Phase B · Read-only operator verification tool for the
+    Equipment Checkout legacy-import pilot. Admin-strict · returns
+    structured JSON · NOT a dashboard · NOT a feature surface.
+
+    Aggregates: status counts · OCR confidence stats · reviewer
+    corrections summary + diff examples · failed-extraction list ·
+    unmatched employee/equipment rows · duplicate-suspicion count ·
+    evidence-access audit count · accountability round-trip
+    verification · termination-flag verification · readiness verdict
+    (READY / NEEDS_TUNING / NOT_READY).
+
+    Operator approval scope: document_type=equipment_checkout only.
+    """
+    if document_type != "equipment_checkout":
+        raise HTTPException(
+            400,
+            "Pilot debrief is currently scoped to "
+            "document_type=equipment_checkout only (operator-approved "
+            "Phase B scope · other doc types not yet activated).",
+        )
+    try:
+        import legacy_imports_equipment_checkout as _li_ec  # noqa: PLC0415
+        return await _li_ec.compute_pilot_debrief(
+            db, document_type=document_type
+        )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"[legacy-imports] pilot-debrief failed: {e}")
+        raise HTTPException(500, f"pilot debrief failed: {str(e)[:200]}")
+
+
 # ─── Backup verification (iter79 — weekly R2 health email) ──────────
 from routes.backup_verification_routes import build_backup_verification_router  # noqa: E402
 from backup_verification import verification_scheduler_loop  # noqa: E402

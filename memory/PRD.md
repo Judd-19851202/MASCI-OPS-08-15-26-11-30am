@@ -2,6 +2,131 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter249 Phase B follow-up · Pilot Debrief endpoint (Option A) · ✅ DELIVERED (preview only)
+
+Operator-approved tight-scope tooling addition so the upcoming 10-20 form real-paperwork pilot produces structured evidence on demand. **NOT a dashboard, NOT a feature surface.** One read-only admin-only JSON endpoint.
+
+### What shipped
+
+**Backend · `legacy_imports_equipment_checkout.py`** (+~280 lines · same module · keeps Phase B surface narrow)
+- `compute_pilot_debrief(db, document_type, ...)` aggregates everything the operator asked for:
+  - Status counts (uploaded · ocr_failed · approved · rejected · promoted · full breakdown)
+  - OCR confidence stats (avg · min · max · sample_size) — across rows where extraction completed
+  - Reviewer corrections summary: per-field count + up to 8 raw-vs-corrected diff examples + up to 20 reviewer free-text notes (`review.notes` from `legacy_imports`)
+  - Failed-extraction list (up to 25) with `error` text + file metadata
+  - Unmatched employee rows (up to 25) · employee match confidence < 0.7 OR no suggestion
+  - Unmatched equipment rows (up to 25) · same threshold on first equipment line
+  - Duplicate-suspicion count (from `matches.duplicate_of`)
+  - Evidence-access audit count (`legacy_import_audit.action=evidence_accessed`)
+  - Audit action breakdown (uploaded · ocr_completed · approved · rejected · evidence_accessed · etc.)
+  - Accountability round-trip verification: per-promoted-import check that `field_leadership_records` has `kind=equipment_checkout`, `source=legacy_imported`, matching `legacy_import_id`, `deleted_at=null` · counts `ok` vs `missing`
+  - Termination/accountability flag verification: per-employee count of outstanding imported equipment lines + presence of native termination records
+  - Readiness verdict heuristic: **READY · NEEDS_TUNING · NOT_READY** with explicit reasons array
+- `_readiness_verdict(...)` pure function · conservative thresholds:
+  - NOT_READY if zero uploads OR any promoted record missing its native record (accountability chain broken)
+  - NEEDS_TUNING if any of: OCR failure rate > 30%, avg confidence < 0.55, < 8 uploads, > 40% rejection rate, zero promoted, OR positive signal but below READY thresholds
+  - READY only if all of: ≥ 8 uploads, ≥ 5 promoted, avg confidence ≥ 0.65, failure rate ≤ 10%, zero roundtrip-missing
+
+**Backend wiring · `server.py`**
+- NEW endpoint `GET /api/admin/legacy-imports/pilot-debrief?document_type=equipment_checkout`
+- `require_admin_strict` gate (same pattern as `/audit`)
+- 400 if `document_type` is anything other than `equipment_checkout` (scope guard · enforces "pilot only · no expansion")
+- ~30 lines · zero schema/collection changes
+
+**Tests · NEW `backend/tests/test_iter249_pilot_debrief.py` — 12/12 pass**
+- Anon RBAC verification (urllib direct · bypasses conftest auto-admin · accepts 401 or 403)
+- Scope guard: `document_type=osha_card` returns 400 with operator-readable message
+- Live HTTP smoke: all 15 required JSON keys present in admin response · verdict ∈ {READY, NEEDS_TUNING, NOT_READY}
+- Empty-DB aggregation → counts=0, verdict=NOT_READY ("No imports uploaded yet")
+- Seeded-pilot aggregation (5 imports across all status types · 1 with roundtrip-broken):
+  - Counts correct
+  - Diff examples surface `project_number` correction
+  - Failed extraction surfaces `error="blank image"`
+  - Unmatched employee row surfaces (low-confidence match)
+  - Roundtrip ok=1 / missing=1 counted correctly
+  - Evidence-access audit count ≥ 3
+  - Verdict = NOT_READY with "accountability chain broken" reason
+- 5 unit tests of `_readiness_verdict` covering each verdict path
+
+### Live verification
+
+```
+✅ anon GET /api/admin/legacy-imports/pilot-debrief                       → 401
+✅ admin GET /api/admin/legacy-imports/pilot-debrief?document_type=osha_card → 400
+✅ admin GET /api/admin/legacy-imports/pilot-debrief                       → 200
+     · document_type=equipment_checkout
+     · counts {uploaded:0, ...} (empty pilot)
+     · readiness_verdict=NOT_READY · reason="No imports uploaded yet"
+     · scope_note explicitly limits debrief to equipment_checkout
+```
+
+### Pre-deploy gate
+
+```
+Phase 1 · Regression suite          PASS  624 passed, 1 skipped (23.0s)
+Phase 2 · Build verification        PASS
+Phase 4 · Production-safety         PASS  all anon-RBAC counts = 0
+Phase 5 · Deployment classification PASS  risk=HIGH · auth-sensitive=True · 6 changed files
+
+══ VERDICT: HOLD ══
+```
+HOLD is procedural · same auth-sensitive-classifier pattern as Phase A and Phase B · zero auth-logic deviation (the new endpoint reuses the existing `require_admin_strict` dep · no new auth code).
+
+### Operator-deliverable mapping (the 9 things you asked for)
+| Operator deliverable | Debrief JSON field |
+|---|---|
+| Accuracy summary | `counts` + `ocr_confidence` |
+| Corrections summary | `reviewer_corrections.field_counts` + `diff_examples` |
+| Failed extraction examples | `failed_extractions[]` |
+| Unmatched employee/equipment | `unmatched_employee_rows[]` + `unmatched_equipment_rows[]` |
+| Reviewer friction notes | `reviewer_corrections.reviewer_notes[]` |
+| Promoted-record verification | `accountability_roundtrip.samples[]` (each row has `round_trip_ok` bool) |
+| Termination-flag verification | `termination_flag_verification` |
+| Evidence-link verification | `evidence_access_audit_count` + `audit_action_counts` |
+| Readiness recommendation | `readiness_verdict` (READY/NEEDS_TUNING/NOT_READY) + `readiness_reasons[]` |
+
+### Stabilization posture preserved
+- ✅ NO new collection
+- ✅ NO new doc type activated (`ACTIVE_PROMOTERS` still contains only `equipment_checkout`)
+- ✅ NO frontend page · NO dashboard widget · NO chart · NO email
+- ✅ NO PM upload · NO bulk expansion · NO summary digest
+- ✅ NO change to any live read query in HR portal, Field Leadership, or equipment-master surfaces
+- ✅ Endpoint refuses any document_type ≠ `equipment_checkout` (architectural scope guard)
+- ✅ All existing tests still pass · Phase A (13/13) + Phase B (18/18) + Pilot Debrief (12/12) = 43/43 iter248-249 tests green
+
+### Files touched (this follow-up only)
+- MOD · `backend/legacy_imports_equipment_checkout.py` (~280 net new lines · debrief aggregator + verdict helper)
+- MOD · `backend/server.py` (~30 lines · one new endpoint)
+- NEW · `backend/tests/test_iter249_pilot_debrief.py` (12 tests · all pass)
+- MOD · `memory/PRD.md` (this entry)
+
+### Next Action Items (operator-side)
+- ⏸ **Acknowledge HOLD** (auth-sensitive classifier flag · zero auth-logic delta)
+- ⏸ **Save to GitHub** → **Deploy on mascidocs.com**
+- ⏸ **Run controlled pilot**: 10-20 real historical Equipment Checkout paper forms · upload via Admin Legacy Imports queue · review side-by-side · approve correct extractions · reject illegible/wrong-doc-type
+- ⏸ **Curl the debrief** after first batch: `curl -H "X-Admin-Token:$T" https://mascidocs.com/api/admin/legacy-imports/pilot-debrief | jq` → use the structured JSON to decide READY / NEEDS_TUNING / NOT_READY
+- ⏸ **Capture friction**: any reviewer-rejected import · any low-confidence OCR · any unmatched employee/equipment → operator decides whether prompt-tuning or matcher-tuning is needed before next batch
+- ⏸ **7-day zero-defect production observation window** before any Phase C consideration
+- ⏸ **NO automatic Phase C** · no OSHA / training / certification / onboarding / discipline / HR record import work until you explicitly approve after pilot proves operationally trustworthy
+
+### Future / Backlog (unchanged per operator brief)
+- Phase C · OSHA Cards (gated on Phase B pilot success)
+- Phase D-G · dashboard polish · bulk upload · remaining 12 doc types · PM intake
+- F2 · Leadership scope filter null-guard
+- F4 · Deeper-portal ES sweep
+- F5 · Lesson title_es content localization
+- F6 · Privacy policy ES leak
+- F7 · Backend observability dashboard
+- Phase K4b · Unified User Management UI mutations
+- Phase K5 · Temp Password / Onboarding standardization
+- Stage B.1 · Owner Snapshot PDF
+- P3 · iter153 test-fragility decoupling
+
+🟢 Pilot Debrief tool ready · awaiting operator deploy + real-paperwork pilot batch.
+
+---
+
+
 ## 2026-05-19 — iter249 Phase B · Equipment Checkout Pilot · ✅ DELIVERED (preview only)
 
 Operator-approved Phase B from the iter248 Legacy Records architecture. Equipment Checkout ONLY. Pilot cap 50. No other doc types touched. Stabilization posture preserved.
