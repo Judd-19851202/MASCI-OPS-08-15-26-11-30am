@@ -1,5 +1,91 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter246 F3 · Recipient hygiene polish (pre-deploy) · ✅ APPROVE
+
+Operator-directed hygiene fix on F3 recipient scoping before production deploy.
+
+**Operator concern:** Original F3 report showed **46 HR users** receiving the global digest — too many · risked weekly inbox noise from seeded `@masci.test` test accounts.
+
+**Tight surgical fix (3 code additions · 4 new tests · zero new features)**
+
+In `backend/po_digest.py`:
+1. **`_email_is_production(email)` helper** — excludes any email whose domain matches one of:
+   - Built-in non-production list: `.test`, `example.com`, `example.org`, `example.net`
+   - Operator-extensible via `PO_DIGEST_EXCLUDE_DOMAINS` env (comma-separated, case-insensitive, accepts `@noreply.example` or `.internal` or `contractor.tmp` etc.)
+2. **Recipient roster filter** — `_active_pm_recipients` and `_active_hr_recipients` now apply `_email_is_production()` after the existing `disabled`/`is_active` filters.
+3. **Empty-scope PM skip** — `send_po_digest_once()` now skips any PM with 0 assigned jobs by default. Result includes them in `skipped[]` with `reason=empty_scope_pm`. Override with `PO_DIGEST_SEND_EMPTY_SCOPE_PMS=true` if operator ever wants to enable.
+
+In `backend/tests/test_iter246_po_digest.py`:
+- `test_recipients_exclude_test_and_example_domains` — unit + live roster verification (no `.test` / `@example.*` ever leaks into PM or HR roster)
+- `test_excluded_domains_env_extends_list` — env extensibility verified
+- `test_empty_scope_pms_are_skipped_by_default` — default-skip behavior on dry-run
+- `test_empty_scope_pms_included_when_opt_in` — env override toggles cleanly
+
+**Tests:** 15/15 pass (was 11 · added 4 hygiene tests)
+
+**Live preview verification (`GET /api/admin/po-digest/preview` dry-run)**
+
+| Before hygiene fix | After hygiene fix |
+|---|---|
+| PMs: 6 (incl. 2 empty-scope) | **PMs: 4** (all real `@mascigc.com` · all with ≥ 2 jobs) |
+| HRs: 46 (incl. ~38 `@masci.test` seeded) | **HRs: 2** (`hrmanager@mascigc.com` + `jaymn.judd@mascigc.com`) |
+| Skipped: not tracked | **Skipped: 2 empty-scope PMs** (`asphaltpm`, `leomasci`) |
+
+Production recipient list now matches operator-stated criteria:
+- ✅ No seeded/test users receive production emails
+- ✅ No inactive HR users receive digest emails (existing `disabled` + `is_active` filter)
+- ✅ Only active real HR users receive the HR global digest
+- ✅ PM recipients scoped only to jobs where they're PM or co-PM
+- ✅ Empty-scope PMs do not receive noisy/unnecessary emails (default behavior)
+
+**Pre-deploy gate**
+
+```
+Phase 1 · Regression suite          PASS  624 passed, 1 skipped
+Phase 2 · Build verification        PASS
+Phase 4 · Production-safety         PASS  all anon-RBAC counts = 0
+Phase 5 · Deployment classification PASS
+
+══ VERDICT: APPROVE ══
+risk level: MEDIUM · auth-sensitive: False · 4 changed files (since baseline)
+```
+
+**Pre-existing test-fragility note (not a regression)**: When `test_iter246_po_digest.py` is run in the same pytest invocation as `test_iter153_po_requests.py`, two iter153 tests fail because they pass state via `pytest.po_approved_id` module attribute — that mechanism is sensitive to discovery ordering. Both tests pass individually and in the gate's standard ordered run (624/624). Logged as future P3 test-design polish (decouple via fixtures, not module-state).
+
+### Files touched in this hygiene pass
+- MOD · `backend/po_digest.py` (added `_email_is_production` · `_send_empty_scope_pms` · roster filter · empty-scope skip · ~40 net new lines)
+- MOD · `backend/tests/test_iter246_po_digest.py` (added 4 tests)
+- MOD · `memory/PRD.md` (this entry)
+
+### Verified ready for deploy
+- ✅ Recipient list clean (4 PMs · 2 HR · 2 skipped · 0 test domains)
+- ✅ Pre-deploy gate APPROVE
+- ✅ iter246 F3 tests 15/15 pass
+- ✅ iter153 PO regression suite passes in standard order
+- ✅ Cron armed in preview: `[po-digest] sleeping 155.2h until next send`
+- ✅ Admin endpoints respect auth: `GET /api/admin/po-digest/preview` requires admin token · `POST /api/admin/po-digest/run-now` requires admin-strict
+- ✅ Resend quota guard: AUTO_EMAIL_REPORTS gate honored (preview env log-only)
+
+### Next Action Items (operator-side only — agent is done)
+- ⏸ **Save to GitHub** (via Save-to-Github chat feature)
+- ⏸ **Deploy to mascidocs.com**
+- ⏸ Confirm `AUTO_EMAIL_REPORTS=true` on production env
+- ⏸ Confirm `RESEND_API_KEY` set on production env
+- ⏸ Visual spot-check `/admin/login` ES mode on production
+- ⏸ Visual spot-check `GET /api/admin/po-digest/preview` returns the 4-PM / 2-HR clean roster on production
+- ⏸ Wait for next Mon 14:00 UTC for the first live digest fire (or trigger early via `POST /api/admin/po-digest/run-now`)
+- ⏸ Enter extended observation / stabilization mode
+
+### Optional production knobs (all defaults are operator-friendly)
+- `PO_DIGEST_ENABLED=true` (default)
+- `PO_DIGEST_HOUR_UTC=14` (default · 9 AM ET non-DST · 10 AM ET DST · adjust if operator wants different time)
+- `PO_DIGEST_WEEKDAY=0` (default Monday · 6 = Sunday)
+- `PO_DIGEST_EXCLUDE_DOMAINS=` (default empty · operator can extend e.g. `noreply.example,.internal` to suppress more)
+- `PO_DIGEST_SEND_EMPTY_SCOPE_PMS=false` (default · set `true` if you ever want empty-scope PMs to receive "Clean slate" emails)
+
+---
+
+
 ## 2026-05-19 — iter246 F1 + F3 · Admin login ES polish + Weekly PO digest · ✅ DELIVERED (preview only)
 
 Operator-approved follow-ups to the iter246 audit. Final contained polish batch before extended observation period. **F2 (latent leadership scope filter null-guard) NOT included** per operator's "tightly scoped" directive — held as P2 backlog.

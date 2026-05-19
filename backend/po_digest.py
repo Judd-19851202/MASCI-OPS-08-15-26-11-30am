@@ -43,6 +43,44 @@ PO_OPEN_STATUSES = (
 
 DIGEST_SUBJECT = "[MASCI \u00b7 PO] Weekly Request PO Digest"
 
+# Default non-production / seeded test domains — never receive prod digests.
+# Operator can extend via PO_DIGEST_EXCLUDE_DOMAINS env (comma-separated,
+# case-insensitive, with or without leading dot/@).
+_BUILTIN_EXCLUDE_DOMAINS = (".test", "example.com", "example.org", "example.net")
+# Empty-scope PMs (zero assigned jobs) are skipped by default — silence
+# noise per operator directive. Override with PO_DIGEST_SEND_EMPTY_SCOPE_PMS=true.
+
+
+def _excluded_domains() -> tuple:
+    raw = os.environ.get("PO_DIGEST_EXCLUDE_DOMAINS") or ""
+    extras = tuple(
+        d.strip().lower().lstrip("@").lstrip(".")
+        for d in raw.split(",")
+        if d.strip()
+    )
+    return _BUILTIN_EXCLUDE_DOMAINS + extras
+
+
+def _email_is_production(email: str) -> bool:
+    em = (email or "").strip().lower()
+    if not em or "@" not in em:
+        return False
+    domain = em.split("@", 1)[1]
+    for bad in _excluded_domains():
+        bad = bad.lstrip("@").lstrip(".")
+        if not bad:
+            continue
+        if domain == bad or domain.endswith("." + bad) or domain.endswith(bad):
+            return False
+    return True
+
+
+def _send_empty_scope_pms() -> bool:
+    """Default False — skip noisy zero-job PM digests unless operator opts in."""
+    return (os.environ.get("PO_DIGEST_SEND_EMPTY_SCOPE_PMS") or "false").strip().lower() in (
+        "1", "true", "yes", "on",
+    )
+
 
 def _enabled() -> bool:
     return (os.environ.get("PO_DIGEST_ENABLED") or "true").strip().lower() in (
@@ -250,7 +288,7 @@ async def _active_pm_recipients(db) -> List[dict]:
     )
     async for d in cursor:
         em = (d.get("email") or "").strip().lower()
-        if em and "@" in em:
+        if em and "@" in em and _email_is_production(em):
             out.append({"id": d.get("id"), "name": d.get("name"), "email": em})
     return out
 
@@ -263,7 +301,7 @@ async def _active_hr_recipients(db) -> List[dict]:
     )
     async for d in cursor:
         em = (d.get("email") or "").strip().lower()
-        if em and "@" in em:
+        if em and "@" in em and _email_is_production(em):
             out.append({"id": d.get("id"), "name": d.get("name"), "email": em})
     return out
 
@@ -280,12 +318,22 @@ async def send_po_digest_once(
     Returns per-recipient summary so admin /preview endpoint + tests
     can verify exactly who got what without burning Resend quota.
     """
-    results = {"pm": [], "hr": [], "subject": DIGEST_SUBJECT, "dry_run": dry_run}
+    results = {"pm": [], "hr": [], "skipped": [], "subject": DIGEST_SUBJECT, "dry_run": dry_run}
 
+    send_empty = _send_empty_scope_pms()
     pms = await _active_pm_recipients(db)
     for pm in pms:
         try:
             payload = await build_pm_digest_payload(db, pm)
+            # Empty-scope PMs (0 assigned jobs) are skipped by default —
+            # silences inbox noise per operator directive. Override with
+            # PO_DIGEST_SEND_EMPTY_SCOPE_PMS=true.
+            if (payload.get("scoped_to_jobs") or 0) == 0 and not send_empty:
+                results["skipped"].append({
+                    "email": pm["email"], "role": "pm",
+                    "reason": "empty_scope_pm",
+                })
+                continue
             html = render_po_digest_html(payload, portal_url=portal_url)
             sent = False
             if send_email_fn and not dry_run:

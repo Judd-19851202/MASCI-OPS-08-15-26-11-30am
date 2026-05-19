@@ -174,3 +174,62 @@ def test_recipients_filtered_to_valid_emails_only():
             assert "@" in h["email"]
             assert h["email"] == h["email"].strip().lower()
     asyncio.run(_go())
+
+
+def test_recipients_exclude_test_and_example_domains():
+    """iter246 F3 hygiene · Seeded @masci.test, @example.com etc. must
+    never receive production digest emails."""
+    assert M._email_is_production("real@mascigc.com") is True
+    assert M._email_is_production("test@masci.test") is False
+    assert M._email_is_production("foo@example.com") is False
+    assert M._email_is_production("bar@example.org") is False
+    assert M._email_is_production("baz@example.net") is False
+    assert M._email_is_production("subdomain@apps.example.com") is False
+    assert M._email_is_production("") is False
+    assert M._email_is_production("no-at-sign") is False
+    # Also verify the live recipient roster never includes a .test domain
+    async def _go():
+        hrs = await M._active_hr_recipients(_db())
+        for h in hrs:
+            assert not h["email"].endswith(".test"), f"leak: {h['email']}"
+            assert "@example." not in h["email"], f"leak: {h['email']}"
+        pms = await M._active_pm_recipients(_db())
+        for p in pms:
+            assert not p["email"].endswith(".test"), f"leak: {p['email']}"
+            assert "@example." not in p["email"], f"leak: {p['email']}"
+    asyncio.run(_go())
+
+
+def test_excluded_domains_env_extends_list(monkeypatch):
+    monkeypatch.setenv("PO_DIGEST_EXCLUDE_DOMAINS", "@noreply.example, .internal, contractor.tmp")
+    assert M._email_is_production("foo@noreply.example") is False
+    assert M._email_is_production("bar@x.internal") is False
+    assert M._email_is_production("baz@contractor.tmp") is False
+    assert M._email_is_production("real@mascigc.com") is True
+
+
+def test_empty_scope_pms_are_skipped_by_default(monkeypatch):
+    """iter246 F3 hygiene · PM with 0 assigned jobs must NOT receive
+    a digest unless operator explicitly opts in via env."""
+    monkeypatch.delenv("PO_DIGEST_SEND_EMPTY_SCOPE_PMS", raising=False)
+    async def _go():
+        results = await M.send_po_digest_once(
+            _db(), send_email_fn=None, portal_url="", dry_run=True,
+        )
+        # Every PM in results["pm"] must have at least 1 assigned job
+        for r in results["pm"]:
+            assert r["scoped_jobs"] is None or r["scoped_jobs"] > 0, (
+                f"empty-scope PM leaked into results: {r}"
+            )
+        # If any PM was skipped, the reason must be empty_scope_pm
+        for s in results.get("skipped", []):
+            if s["role"] == "pm":
+                assert s["reason"] == "empty_scope_pm"
+    asyncio.run(_go())
+
+
+def test_empty_scope_pms_included_when_opt_in(monkeypatch):
+    monkeypatch.setenv("PO_DIGEST_SEND_EMPTY_SCOPE_PMS", "true")
+    assert M._send_empty_scope_pms() is True
+    monkeypatch.setenv("PO_DIGEST_SEND_EMPTY_SCOPE_PMS", "false")
+    assert M._send_empty_scope_pms() is False
