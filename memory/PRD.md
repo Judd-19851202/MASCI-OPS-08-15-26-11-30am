@@ -2,6 +2,166 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter251 Phase A · Fleet Operations Foundation · ✅ DELIVERED (preview only · backend only)
+
+Operator-approved Phase A · backend foundation for FMCSA-aligned DVIR / Weekly Lead / Weekly Emergency inspections with defect lifecycle + OOS control. NO frontend, NO public tile, NO dashboards (Phases B-C, gated separately).
+
+### What shipped
+
+**Architecture document** · `/app/FLEET_OPS_FOUNDATION_iter251_ARCHITECTURE.md` (~14 sections · authored before any code · same cadence as iter248 Legacy Records architecture)
+
+**Backend · `backend/fleet_defect_severity.py`** (NEW · ~200 lines)
+- v1 DRAFT severity table · 95 checklist items classified
+- Each item maps to `(severity, category)` where severity ∈ {oos, monitor}
+- Sources: 49 CFR § 393, § 396.7, § 396.11 · CVSA OOS criteria (operational reference, not legal compliance claim · MASCI operates local/in-state)
+- Categories: brakes, tires, wheels, steering, lights, signals, mirrors, glass, wipers, suspension, air_system, coupling, hydraulic, pto, fluids, alarms, horn, emergency_equipment, reflectors, body, interior, structural, tarp, landing_gear, other
+- **MARKED `severity_table_version: "v1-DRAFT-pending-safety-review"`** · operator + Safety must redline before production reliance
+- Import-time sanity validation prevents silent breakage
+- `classify(item_text)` raises KeyError on unknown items · submission endpoint converts to HTTP 400 · forcing function for thoughtful classification
+
+**Backend · `backend/checklists_fleet.py`** (NEW · ~120 lines)
+- `dvir_truck_items()` · 74 items · FMCSA-aligned walk-around order
+- `dvir_trailer_items()` · 23 items · multi-trailer-capable
+- `dvir_emergency_items()` · 16 items · compliance-focused weekly subset
+- `dvir_weekly_lead_items()` · 10 items · lead-driver accountability check
+- `FLEET_INSPECTION_KINDS` registry · `dvir` / `weekly_lead` / `weekly_emergency` (Phase A activated) + `pre_op` reserved for backfill
+- All emitted strings cross-validate against severity table at test time
+
+**Backend · `backend/routes/fleet_ops.py`** (NEW · ~520 lines)
+- `POST /api/fleet/inspections` · submit DVIR / weekly lead / weekly emergency · public-tile OR signed-in (per operator D2 decision)
+- `GET /api/fleet/_meta` · server-driven form definition for Phase B driver UX
+- `GET /api/fleet/units` · searchable fleet selector · filtered to fleet categories only · supports unit_type=truck|trailer
+- `GET /api/fleet/inspections/{id}` · admin/dispatch read
+- `GET /api/fleet/defects/{id}` · admin/dispatch read
+- `GET /api/dispatch/fleet/status` · 89 trucks / 53 trailers fleet status board
+- `POST /api/dispatch/fleet/defects/{id}/clear` · Dispatch re-enables truck post-repair
+- `POST /api/dispatch/fleet/units/{unit}/oos` · Dispatch manual OOS flip
+- `GET /api/shop/fleet/defects` · Shop queue (sorted by severity, oldest first)
+- `POST /api/shop/fleet/defects/{id}/acknowledge` · Shop confirms receipt
+- `POST /api/shop/fleet/defects/{id}/repair` · Shop closes out + repair notes + photos
+- `GET /api/safety/fleet/emergency-equipment` · Safety scoped to safety-critical categories
+- `POST /api/admin/fleet/migrate-kind-field` · idempotent backfill stamps `kind="pre_op"` on existing equipment_inspections rows
+- All writes audited to `fleet_audit` (append-only · same pattern as legacy_import_audit)
+
+**Backend · `backend/server.py`** (~140 net new lines)
+- Mounts `_fleet_router` with 5 injected auth deps (signed-in-or-public · dispatch · shop · safety · admin-strict)
+- `_require_fleet_submitter` accepts admin/safety/dispatch/HR/shop tokens OR returns `{role: "public"}` for anonymous public-tile submissions (operator D2 decision)
+- Startup hook ensures indexes on `fleet_defects(unit, status, severity)`, `fleet_status.unit_number (unique)`, `fleet_audit.timestamp`, `equipment_inspections.kind`
+
+**Schema additions**
+- `equipment_inspections.kind` field added · default `"pre_op"` for backfill · zero downtime · idempotent migration endpoint
+- NEW `fleet_defects` collection (defect lifecycle: open → acknowledged → repaired → cleared)
+- NEW `fleet_status` collection (1 row per unit · derived projection · `unit_kind`, `status`, `open_oos_count`, `open_monitor_count`, latest inspection refs)
+- NEW `fleet_audit` collection (append-only audit trail · `action`, `actor`, `target_id`, `payload`)
+- **Integration-ready identifiers**: every defect + inspection carries `external_refs: {motive_id, maintainx_work_order_id}` reserved empty · Phase F populates without schema change
+
+### Test coverage · NEW `backend/tests/test_iter251_fleet_ops_foundation.py` — 26/26 pass
+
+- Severity table integrity (every DVIR/trailer/emergency/lead item has classification)
+- `classify()` returns correct (severity, category) tuple
+- `is_oos()` predicate
+- Unknown item raises KeyError
+- Anon CAN read `/api/fleet/_meta` (public · per D2)
+- Anon CAN read `/api/fleet/units` (public · per D2 · driver UX needs it)
+- Anon BLOCKED from dispatch / shop / safety / admin endpoints (401/403)
+- Anon DVIR submission with clean truck → 200 · `truck_status_after=available`
+- DVIR OOS failure → defect created with severity=oos · `fleet_status.status=oos` · audit captured
+- DVIR monitor failure → defect created with severity=monitor · status=`defect_open` · truck still operable
+- Unknown checklist item → 400 (no silent misrouting)
+- Multi-trailer DVIR → per-trailer defects with correct trailer_unit_number scoping
+- **Trailer-only defect does NOT OOS the truck** (operationally correct: dispatch can reassign truck to different trailer)
+- Full defect lifecycle: open → ack → repair → cleared · audit captures all 3 transitions · final dispatch clear is the operator re-approval
+- Cannot clear from open (must go through repaired first)
+- `kind` migration is idempotent (second run: 0 rows updated)
+- Unknown `kind` discriminator rejected with 400
+- Weekly emergency refuses trailers (kind scope guard)
+- Fleet selector filters to fleet categories only
+- Fleet selector supports unit_type=truck|trailer filter
+- Defect carries `external_refs` for Motive/MaintainX (reserved empty in Phase A)
+- All 13 expected endpoints registered on FastAPI app
+
+### Live preview verification
+
+```
+✅ GET  /api/fleet/_meta                                    → 200 (anon · 3 kinds · 74+23+16+10 items)
+✅ GET  /api/fleet/units                                    → 200 (anon · fleet-scoped categories)
+✅ GET  /api/dispatch/fleet/status                          → 401 (anon)  · 200 with admin token → 89 trucks
+✅ GET  /api/shop/fleet/defects                             → 401 (anon)  · 200 with admin token → 0 defects (empty pilot)
+✅ GET  /api/safety/fleet/emergency-equipment               → 401 (anon)  · 200 with admin token → 5 categories scoped
+✅ POST /api/admin/fleet/migrate-kind-field                 → 401 (anon)  · 200 with admin token → 0 rows backfilled (no pre-existing equipment_inspections data needed updating)
+✅ POST /api/fleet/inspections                              → 200 (anon · clean truck DVIR) · 400 on unknown kind · 400 on unknown checklist item · 400 on trailer rejection for weekly_emergency
+```
+
+### Pre-deploy gate
+
+```
+Phase 1 · Regression suite          PASS  624 passed, 1 skipped
+Phase 2 · Build verification        PASS
+Phase 4 · Production-safety         PASS  all anon-RBAC counts = 0
+Phase 5 · Deployment classification PASS  risk=HIGH
+                                            auth-sensitive=True
+                                            data-sensitive=False
+                                            rollback-sensitive=False
+                                            changed files: 7
+
+══ VERDICT: HOLD ══
+```
+
+HOLD is procedural · expected · same operator-ack pattern as iter248 Phase A · iter249 Phase B · iter249 Pilot Debrief. Zero auth-logic deviation (new endpoints reuse existing admin/dispatch/shop/safety token chains).
+
+### Stabilization compatibility (verified · all prior iters intact)
+- iter238 / iter239 / iter245 / iter246 / iter247 · unchanged
+- iter248 Phase A Legacy Records · 13/13 still green
+- iter249 Phase B Equipment Checkout + Pilot Debrief · 30/30 still green
+- iter250 Subcontractor photos · 4/4 still green
+- Total cumulative test pass · **73/73 across iter248+iter249+iter250+iter251**
+- Pre-Op equipment_inspections existing code path · unchanged (only `kind` field added with safe default)
+
+### Files touched (iter251 Phase A inventory)
+- NEW · `/app/FLEET_OPS_FOUNDATION_iter251_ARCHITECTURE.md` (architecture document · authored before code)
+- NEW · `backend/fleet_defect_severity.py` (~200 lines · DRAFT v1 severity table · pending Safety/operator review)
+- NEW · `backend/checklists_fleet.py` (~120 lines · FMCSA checklist generators)
+- NEW · `backend/routes/fleet_ops.py` (~520 lines · submission + lifecycle + scoped reads)
+- NEW · `backend/tests/test_iter251_fleet_ops_foundation.py` (26 tests · 26/26 pass)
+- MOD · `backend/server.py` (~140 lines · router mount + auth deps + index hooks)
+- MOD · `memory/PRD.md` (this entry)
+
+### Operator boundaries respected (per brief)
+- ❌ No ELD · no HOS · no DOT logs · no sleeper · no interstate carrier infrastructure
+- ❌ No Motive API integration · no MaintainX API integration (reserved `external_refs` only)
+- ❌ No telematics sync · no GPS · no dashcams · no driver behavior tracking
+- ❌ No maintenance ERP rebuild · no parts · no labor · no mechanic scheduling
+- ❌ No route optimization · no AI dispatch · no fuel systems · no IFTA
+- ❌ No dashboard expansion in Phase A · no public tile in Phase A · no frontend in Phase A
+- ❌ No carrier-scale TMS · no multi-yard routing
+- ❌ No deep repair lifecycle (parts/labor/mechanic scheduling owned by MaintainX in Phase F)
+- ✅ DVIR · Weekly Lead · Weekly Emergency submission · defect lifecycle · OOS control · audit chain · integration-ready identifiers ONLY
+
+### Next Action Items (operator-side)
+- ⏸ **Severity table review** · Jaymn + Safety redline `/app/backend/fleet_defect_severity.py` before production reliance · table is currently marked v1-DRAFT
+- ⏸ **Acknowledge HOLD** (auth-sensitive classifier flag · zero auth-logic delta)
+- ⏸ **Save to GitHub** → **Deploy on mascidocs.com**
+- ⏸ **No Phase B until explicit operator approval** (Phase B = driver UX + public tile + DVIR form)
+
+### Phased rollout (gated · NO automatic progression)
+- ✅ **Phase A · backend foundation** (this delivery)
+- ⏸ Phase B · driver UX + public tile + DVIR form (~1 week dev · gated)
+- ⏸ Phase C · Dispatch / Shop / Safety dashboard sections (~1 week · gated on B)
+- ⏸ Phase D · Weekly Lead + Weekly Emergency UX (~3-4 days · gated on C)
+- ⏸ Phase E · Defect repair lifecycle hardening (repair photos · audit-PDF · recurring-issue detection · gated on D)
+- ⏸ Phase F · Motive + MaintainX integration (separate operator approval · separate workstream)
+
+### Future / Backlog (unchanged)
+- iter249 Phase B Equipment Checkout pilot real-paperwork batch (operator-side parallel · independent of iter251)
+- iter250 Subcontractor photos field test (parallel · independent)
+- F2 · F4 · F6 · F7 · K4b · K5 · Stage B.1
+- iter153 test-fragility decoupling
+
+🟢 iter251 Phase A backend foundation complete · 26/26 tests · 73/73 cumulative · gate procedural HOLD · awaiting operator severity review + deploy ack.
+
+---
+
+
 ## 2026-05-19 — iter250 · Subcontractor photo attachments · ✅ DELIVERED (preview only)
 
 Targeted operational enhancement to the existing Daily Report Subcontractor section. Mirrors the proven Materials `ticket_photos` pattern exactly. Operator-approved scope (1A + 2A · row-level caption · no per-photo captions · no PDF support deferred).

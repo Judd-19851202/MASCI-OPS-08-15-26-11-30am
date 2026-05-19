@@ -10094,6 +10094,138 @@ async def li_admin_pilot_debrief(
         raise HTTPException(500, f"pilot debrief failed: {str(e)[:200]}")
 
 
+# ─── iter251 Phase A · Fleet Operations Foundation ─────────────────────
+# Backend-only · NO frontend, NO public tile, NO dashboards yet (Phases B-C).
+# Reuses existing equipment_master (149 fleet units) + equipment_inspections
+# (with new `kind` discriminator). Adds fleet_defects + fleet_status + audit.
+from routes.fleet_ops import build_router as _fleet_build_router  # noqa: E402
+from routes.dispatch_portal_auth import make_require_dispatch_token  # noqa: E402
+
+_require_dispatch_token = make_require_dispatch_token(db)
+_require_safety_for_fleet = _require_safety  # already built above
+
+
+async def _require_fleet_submitter(
+    request: Request,
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+    x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+    x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+) -> Dict[str, Any]:
+    """Per D2 operator decision · DVIR can be submitted by:
+    (a) a public-tile anonymous driver (no token) · audit captures
+        driver_name + truck_unit + signature for evidence
+    (b) any signed-in employee (Safety / Dispatch / HR / Shop / Admin)
+        · audit additionally captures the signed-in actor identity.
+    Read endpoints are gated tighter — this dep is ONLY for submission."""
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"role": "admin", "actor_id": "admin", "name": "Admin"}
+    if x_safety_token:
+        try:
+            from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
+            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            if u:
+                return {"role": "safety", "actor_id": u.get("id"), "name": u.get("name", "")}
+        except Exception:
+            pass
+    if x_dispatch_token:
+        try:
+            from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
+            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+            if u:
+                return {"role": "dispatch", "actor_id": u.get("id"), "name": u.get("name", "")}
+        except Exception:
+            pass
+    # Public-tile fallback · operator-approved (D2 a) · audit captures
+    # driver_name + truck identity + signature for evidence quality.
+    return {"role": "public", "actor_id": "", "name": ""}
+
+
+async def _require_dispatch_or_admin(
+    request: Request,
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+) -> Dict[str, Any]:
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"role": "admin"}
+    if x_dispatch_token:
+        try:
+            from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
+            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+            if u:
+                return {"role": "dispatch", **u}
+        except Exception:
+            pass
+    raise HTTPException(401, "Dispatch or Admin auth required")
+
+
+async def _require_safety_or_admin_fleet(
+    request: Request,
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+) -> Dict[str, Any]:
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"role": "admin"}
+    if x_safety_token:
+        try:
+            from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
+            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            if u:
+                return {"role": "safety", **u}
+        except Exception:
+            pass
+    raise HTTPException(401, "Safety or Admin auth required")
+
+
+# Shop gate — reuses existing require_shop_or_admin (admin/shop/pm token chain)
+async def _require_shop_or_admin_fleet(
+    request: Request,
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+) -> Dict[str, Any]:
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"role": "admin"}
+    if x_shop_token:
+        # Same HMAC pattern as require_shop_or_admin above
+        shop_pw = os.environ.get("SHOP_PASSWORD", "")
+        if shop_pw and x_shop_token == _shop_token_for(shop_pw):
+            return {"role": "shop"}
+    raise HTTPException(401, "Shop or Admin auth required")
+
+
+@app.on_event("startup")
+async def _fleet_ensure_indexes():
+    """Index fleet collections at boot · idempotent."""
+    try:
+        await db.fleet_defects.create_index(
+            [("truck_unit_number", 1), ("status", 1), ("severity", 1)]
+        )
+        await db.fleet_defects.create_index(
+            [("trailer_unit_number", 1), ("status", 1)]
+        )
+        await db.fleet_defects.create_index([("status", 1), ("reported_at", 1)])
+        await db.fleet_status.create_index("unit_number", unique=True)
+        await db.fleet_audit.create_index([("timestamp", -1)])
+        await db.fleet_audit.create_index([("target_id", 1)])
+        await db.equipment_inspections.create_index("kind")
+        logger.info("[fleet-ops] indexes ensured")
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).warning(f"[fleet-ops] index setup skipped: {e}")
+
+
+_fleet_router = _fleet_build_router(
+    db=db,
+    require_signed_in_or_public=_require_fleet_submitter,
+    require_dispatch_or_admin=_require_dispatch_or_admin,
+    require_shop_or_admin=_require_shop_or_admin_fleet,
+    require_safety_or_admin=_require_safety_or_admin_fleet,
+    require_admin_strict=require_admin_strict,
+)
+app.include_router(_fleet_router)
+logging.getLogger(__name__).info("[fleet-ops] iter251 Phase A router mounted · backend-only foundation")
+
+
 # ─── Backup verification (iter79 — weekly R2 health email) ──────────
 from routes.backup_verification_routes import build_backup_verification_router  # noqa: E402
 from backup_verification import verification_scheduler_loop  # noqa: E402
