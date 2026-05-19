@@ -2,6 +2,106 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 PM — iter251 Phase 2 v1.1 · Production-readiness refinement pass · ✅ DELIVERED (all 4 operator refinements PASS · retest_needed: False)
+
+Pre-production sign-off refinement cycle. Operator approved 4 enhancements before the DVIR is field-deployed. All 4 verified PASSING by the testing agent (iter253 report). Severity table bumped v1 → v1.1. Audit verdict `READY_FOR_SAFETY_SIGNOFF` preserved.
+
+### 4 operator-approved refinements (all delivered)
+
+**Refinement 1 · Driver Name → searchable EmployeeCombo**
+- Reused existing `<EmployeeCombo>` component (same UX as Request PO forms) · zero new design language
+- Searchable dropdown of MASCI employee roster · type-to-filter · chevron toggle
+- "+ Add to roster" fallback for drivers not yet in roster · backed by existing `POST /api/employees/add` endpoint
+- Case-insensitive dedup (regex match) · trim whitespace · idempotent · public + rate-limited · no HR approval queue
+- Mobile-friendly · panel stays within viewport on 414px · bilingual placeholder via i18n
+
+**Refinement 2 · DOT/FMCSA commercial-vehicle compliance review (severity table v1.1)**
+- **5 new commercial items added**:
+  - 🛑 OOS · Exhaust system — leaks ahead of muffler / cab fumes (§ 393.83 · CO prevention)
+  - 🛑 OOS · Battery — securely mounted · no severe corrosion · cables tight (§ 393.30)
+  - 🛑 OOS · Cargo securement — chains / binders / straps per load (§ 393.100 · flatbed/service scope)
+  - 👁 Monitor · DOT number / company markings — legible at 50 ft (§ 390.21)
+  - 👁 Monitor · Trailer mudflaps / spray suppression (§ 393.86)
+- **2 tire consolidations** (4 redundant items → 2 precise items):
+  - "no exposed cord/belt/ply" + "no severe sidewall damage" → 1 OOS item
+  - "properly inflated" + "no audible air leak" → 1 OOS item
+- **4 wording tightens for commercial field clarity**:
+  - "Trailer air brakes — engage with hand valve · release fully" → "Trailer hand valve — applies trailer service brakes from tractor · releases fully"
+  - "Brake chamber / slack adjuster — proper stroke" → "Brake chamber / slack adjuster — slack adjuster travel within normal range"
+  - "Identification lights (3-light cluster)" → "Identification lights (3-light cluster · top of cab)"
+- **1 removal** (low operational value): "Cab — interior cleanliness" removed from severity table + daily DVIR + weekly lead
+
+**Refinement 3 · HelpTip density tuning (4 new collapsible tips · field-foreman tone)**
+- Truck Walk-Around: "How to walk a truck" (existing) + 2 new operational tips
+  - "Air brakes · what to listen for" (95 psi build · gladhand leaks · 4 psi/min rule)
+  - "Tires · quick check" (tread depth · wear bars · sidewall feel-test · audible hiss)
+- Trailer Walk-Around: 1 new conditional tip (only renders when ≥ 1 trailer added)
+  - "Coupling · the most common roadside finding" (kingpin seated · jaws closed · safety pin · tug-test)
+- All 4 tips: collapsed by default · ≤ 60 words each · operational not preachy · zero LMS drift
+- Testing agent tone audit: "all read as field-foreman tone (operational, short, non-preachy)"
+
+**Refinement 4 · Inspection wording pass**
+- Audited all 109 items for: field-clarity · commercial-vehicle accuracy · non-ambiguity · no overlap
+- 4 tightens applied (see Refinement 2) · 2 consolidations applied
+- Coverage matrix verified against 49 CFR § 396.11 mandatory inspection items: 11/11 covered + 6 additional CMV-specific categories (air brakes, suspension, exhaust, electrical, cargo securement, markings)
+
+### Table stats (v1 → v1.1)
+- Total severity entries: 107 → **109** (+5 new, -2 consolidated tire, -1 removed, but split into separate add/remove math)
+- OOS classifications: 73 → **74**
+- Monitor classifications: 34 → **35**
+- OOS / Monitor ratio: 2.15 → **2.11** (still conservative)
+- Uncertain items: 0 → **0**
+- Audit verdict: `READY_FOR_SAFETY_SIGNOFF` (preserved)
+
+### Test coverage
+- **117/117 cumulative pytest** still green across iter248 + iter249 + iter250 + iter251
+- **NEW iter253 frontend retest** (testing_agent_v3_fork): all 4 refinements PASS · 0 backend issues · 0 frontend ui_bugs · 0 integration_issues · 0 design_issues
+- Test data cleaned from preview DB (1 employee + 0 DVIR rows from v1.1 test cycle)
+
+### Files touched (v1.1 cycle)
+- MOD · `backend/fleet_defect_severity.py` (+v1.1 changelog comment · +SEVERITY_TABLE_APPROVAL.v1_1_refinements · +5 new items + meta · 2 consolidations · 4 tightens · 1 removal · 2 new categories)
+- MOD · `backend/checklists_fleet.py` (truck list +6 new items · trailer list +1 mudflap · weekly lead list -1 cleanliness · ID-cluster wording in emergency list)
+- MOD · `frontend/src/pages/NewFleetDVIR.jsx` (Driver name → EmployeeCombo · +3 truck helptips · +1 conditional coupling helptip)
+- MOD · `frontend/src/lib/i18n.js` (~8 new EN→ES entries for v1.1 driver-combo + 4 helptips)
+- MOD · `backend/tests/test_iter251_severity_v1_approved.py` (assertion v1 → v1.1 · size 107 → 109)
+- MOD · `/app/SEVERITY_RULINGS_iter251.md` (appended v1.1 refinement section · sign-off chain updated)
+- REGEN · `/app/FLEET_SEVERITY_REVIEW_PACKAGE_iter251.md` (now reflects v1.1 · 109 items)
+
+### Coverage matrix (verified vs. 49 CFR § 396.11)
+✅ Service brakes (incl. trailer connections) · Parking brake · Steering · Lighting + reflectors · Tires · Horn · Wipers · Mirrors · Coupling · Wheels/rims · Emergency equipment
+✅ Plus CMV-specific: air brake system · suspension · exhaust (v1.1) · electrical (v1.1) · cargo securement (v1.1) · DOT marking (v1.1) · mudflaps (v1.1)
+✅ Operationally defensible · not compliance theater · field-realistic
+
+### Cultural verification (preserved · operator philosophy)
+✅ Calm operational language · NOT punitive · NOT "FAILED/NONCOMPLIANT"
+✅ Native MASCI · all existing components reused (EmployeeCombo · Section · ChecklistRow · HelpTip · SignaturePad · PhotoUpload · LangToggle)
+✅ Mobile-first · ≥ 44px tap targets · no horizontal overflow
+✅ Bilingual EN↔ES with zero English leakage on new strings
+✅ HelpTips short · collapsible · field-foreman tone · zero LMS drift
+✅ PASS/FAIL/N/A simplicity preserved · server-side severity governance preserved
+
+### Phase discipline (held)
+- ✅ Phase 1 = Severity governance gate (v1-approved · 9 rulings · DONE)
+- ✅ Phase 2 = Driver UX (DONE) + v1.1 refinement pass (DONE)
+- ⏸ Phase 3 = Dispatch / Shop / Safety visibility (NOT started)
+- ⏸ Phase 4 = Repair lifecycle hardening (NOT started)
+- ⏸ Phase 5 = Weekly Lead / Weekly Emergency UX (NOT started)
+- ⏸ Phase 6 = Motive / MaintainX integration (NOT started · external_refs stubs preserved)
+
+### Next Action Items
+- ⏸ **Operator field-review** the v1.1 driver experience on preview · verify EmployeeCombo · the 4 new helptips · ES continuity on a real phone before deployment sign-off
+- ⏸ **Save to GitHub → Deploy mascidocs.com** (Phase 2 v1.1 is anon-public · drivers can hit `/fleet/dvir/new` directly · ready for first field-use behind Safety sign-off)
+- ⏸ Then **Phase 3 · Dispatch / Shop / Safety visibility** (role-scoped views · operational clarity only · no dashboard bloat · per operator's earlier note "Shop sees Driver Note thumbprint" suggestion may apply)
+
+### Future / Backlog (unchanged)
+- iter249 Phase B Equipment Checkout pilot real-paperwork batch (HR/Safety scope · independent)
+- iter250 Subcontractor photos field test
+- Phase K4b · K5 · Stage B.1 · F6 ES privacy fix · iter153 test-fragility decoupling
+
+🔒 iter251 Phase 2 v1.1 **COMPLETE** · production-readiness gate cleared · all 4 operator refinements PASS · `retest_needed: False` · ready for deployment + Safety field sign-off.
+
+---
+
 ## 2026-05-19 — iter251 Phase 2 · Driver DVIR UX · ✅ DELIVERED (preview · all retest items PASS · ready for field use)
 
 Phase 2 of the fleet operations workstream · operator-approved tile placement (a) · inherits all existing MASCI platform conventions verbatim · zero new design language.
