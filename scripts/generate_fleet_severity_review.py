@@ -62,7 +62,11 @@ def main() -> None:
     # ─── Header ───────────────────────────────────────────────────
     a("# Fleet Defect Severity Review Package · iter251")
     a("")
-    a("**Status:** v1-DRAFT-pending-safety-review")
+    a(f"**Status:** {_sev.SEVERITY_TABLE_VERSION}")
+    if _sev.SEVERITY_TABLE_APPROVAL.get("approved_at"):
+        a(f"**Approved:** {_sev.SEVERITY_TABLE_APPROVAL['approved_at']} · "
+          f"{_sev.SEVERITY_TABLE_APPROVAL.get('approved_by','')}")
+        a(f"**Approval record:** `{_sev.SEVERITY_TABLE_APPROVAL.get('approval_record','')}`")
     a("**Generated from:** `/app/backend/fleet_defect_severity.py` + `/app/backend/checklists_fleet.py`")
     a("**Audience:** Safety · Shop · Operations · Dispatch leadership")
     a("**Purpose:** Redline operational disagreements BEFORE production reliance.")
@@ -201,7 +205,7 @@ def main() -> None:
     a("- [ ] **Operations** · confirms operational impact estimates (false-positive OOS productivity hit acceptable)")
     a("- [ ] **Dispatch leadership** · confirms re-clearance authority + workflow")
     a("")
-    a("Once signed, update `severity_table_version` in `fleet_defect_severity.py` from `v1-DRAFT-pending-safety-review` to `v1-approved-YYYY-MM-DD` and re-run this generator + the audit endpoint.")
+    a(f"Severity table currently stamped **`{_sev.SEVERITY_TABLE_VERSION}`**. After a re-rulings cycle, bump the version stamp + add a new dated rulings record (mirroring `/app/SEVERITY_RULINGS_iter251.md`) and re-run this generator + audit endpoint.")
     a("")
     a("---")
     a("")

@@ -315,7 +315,8 @@ def build_router(
         return {
             "phase": "A",
             "kinds": kinds,
-            "severity_table_version": "v1-DRAFT-pending-safety-review",
+            "severity_table_version": _sev.SEVERITY_TABLE_VERSION,
+            "severity_table_approval": _sev.SEVERITY_TABLE_APPROVAL,
             "severity_categories": sorted({c for (_s, c) in
                                             _sev.FLEET_DEFECT_SEVERITY.values()}),
             "fleet_unit_categories": [
@@ -977,7 +978,8 @@ def build_router(
             "phase": "iter251 Phase A · severity governance cycle",
             "verdict": verdict,
             "verdict_reason": verdict_reason,
-            "severity_table_version": "v1-DRAFT-pending-safety-review",
+            "severity_table_version": _sev.SEVERITY_TABLE_VERSION,
+            "severity_table_approval": _sev.SEVERITY_TABLE_APPROVAL,
             "total_severity_entries": len(sev_keys),
             "total_oos": total_oos,
             "total_monitor": total_mon,

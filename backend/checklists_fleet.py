@@ -48,10 +48,12 @@ def dvir_truck_items() -> List[str]:
         # Steering
         "Steering wheel free play — within spec (≤ 10° on light truck · ≤ 30° on heavy)",
         "Steering linkage / drag link / pitman arm — no missing or broken parts",
-        "Power steering — no leaks · fluid at proper level · normal effort",
+        "Power steering — fluid AT or ABOVE MIN · normal effort · no active drip",
+        "Power steering — stable seep / weep · normal effort · fluid AT MIN or above",
         # Lights
         "Headlights — low beam · both sides functional",
-        "Headlights — high beam · both sides functional",
+        "Headlights — both low-beams functional · at least one high-beam functional",
+        "Headlights — single high-beam out · both low-beams functional · daylight-only ops",
         "Brake lights — both sides functional",
         "Tail lights — both sides functional",
         "Clearance / marker lights — all functional",
@@ -61,7 +63,8 @@ def dvir_truck_items() -> List[str]:
         # Signals / alarms / horn
         "Turn signals — left + right · front + rear functional",
         "4-way hazard flashers — operate · synchronized",
-        "Strobes / beacons — all flash patterns operational",
+        "Strobes / beacons — all flash patterns operational (work-zone / lane closure / paving / shoulder / airport ops)",
+        "Strobes / beacons — partial pattern acceptable for yard-only / shop-shuffle moves",
         "Strobes / beacons — at least one operational",
         "Backup alarm — audible when reverse engaged",
         "Raised-bed alarm — audible when bed raised",
@@ -71,13 +74,15 @@ def dvir_truck_items() -> List[str]:
         "Mirror — minor crack / chip with visible image",
         "Windshield — no cracks in driver line of sight",
         "Windshield — minor cracks / pitting outside line of sight",
-        "Wipers — both blades sweep windshield cleanly · no streaking",
+        "Driver-side wiper — sweeps cleanly · no streaking · no torn blade",
+        "Passenger-side wiper — sweeps cleanly when rain forecast in shift window",
+        "Passenger-side wiper — minor streak acceptable · dry forecast in shift window · 3-day shop window",
         "Washer fluid — sprays · reservoir not empty",
         # Suspension / frame / body
         "Suspension — leaf springs · u-bolts · shackles intact",
         "Suspension — air bags inflate · no leaks · no severe sag",
         "Frame — no cracks · no severe rust-through",
-        "Body — no severe damage affecting safe operation",
+        "Body — no frame/cab-mount fracture · no projecting metal or sharp edge · no loose panel/door · no rust-through on cab floor or fuel tank · no damage blocking mirror or windshield visibility",
         "Body — cosmetic dings · scrapes · paint",
         # Air system
         "Air pressure — builds to ≥ 95 psi within normal time",
@@ -90,7 +95,8 @@ def dvir_truck_items() -> List[str]:
         "Safety chains — attached · no broken links · proper rating",
         "Pintle hook — locked · safety pin in place",
         # Hydraulic / PTO
-        "Hydraulic system — no visible leaks",
+        "Hydraulic system — no active drip · no leak below MIN reservoir · no leak on bed-lift / boom / outrigger / brake-assist circuit",
+        "Hydraulic system — stable seep / film without active drip · reservoir AT or ABOVE MIN · not on load-supporting circuit",
         "Hydraulic — bed raise + lower smoothly · no drift",
         "PTO engages + disengages normally",
         # Fluids
@@ -101,9 +107,12 @@ def dvir_truck_items() -> List[str]:
         "Windshield washer fluid",
         # Interior / cab
         "Seat belt — present · functional · no fraying",
-        "Cab — heater / defroster operational (cold/wet weather)",
+        "Defroster — functional when ambient ≤ 40°F or precipitation forecast in shift window",
+        "Cab heater — functional · escalates to OOS if window fogging affects visibility",
         "Cab — interior cleanliness",
-        "Cab — dash gauges functional (oil pressure · temp · fuel)",
+        "Oil pressure & coolant temp gauges OR equivalent ECM warning system functional",
+        "Fuel gauge — functional · driver may estimate by miles · 7-day shop window",
+        "Dash gauges (oil / temp) inop on units with ECM check-engine + fault display fully functional · 14-day shop window",
         # Emergency equipment (carried on the truck)
         "Fire extinguisher — present · charged · sealed · tag current",
         "Fire extinguisher — minor scuff / tag near expiry",
@@ -142,7 +151,8 @@ def dvir_trailer_items() -> List[str]:
         "Landing gear — cranks freely · pads in place · no damage",
         "Landing gear — minor cosmetic wear",
         # Tarp / hydraulic
-        "Tarp system — deploys + retracts · no major tears",
+        "Tarp system — deploys + retracts · no tear > 6\"×6\" · functional on units assigned to aggregate / asphalt / dust-producing load haul",
+        "Tarp system — minor tear < 6\"×6\" OR unit assigned to empty / equipment / non-dust haul · 5-day shop window",
         "Trailer hydraulic system — no leaks · raises + lowers",
         # Structural
         "Trailer frame — no cracks · no severe rust",
@@ -161,7 +171,7 @@ def dvir_emergency_items() -> List[str]:
     return [
         # Lights (compliance-critical subset)
         "Headlights — low beam · both sides functional",
-        "Headlights — high beam · both sides functional",
+        "Headlights — both low-beams functional · at least one high-beam functional",
         "Brake lights — both sides functional",
         "Tail lights — both sides functional",
         "Clearance / marker lights — all functional",
@@ -193,7 +203,7 @@ def dvir_weekly_lead_items() -> List[str]:
         "Tire — minor sidewall scuff / cosmetic",
         "Mirror — minor crack / chip with visible image",
         # Cleanliness / organization (no severity entry · MONITOR-default)
-        "Cab — heater / defroster operational (cold/wet weather)",
+        "Cab heater — functional · escalates to OOS if window fogging affects visibility",
         "Wheel — no surface rust streaks (cosmetic)",
         "Landing gear — minor cosmetic wear",
         # Critical items the lead should re-verify even though daily DVIR covers them

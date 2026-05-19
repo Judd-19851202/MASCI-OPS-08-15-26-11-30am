@@ -198,7 +198,7 @@ REALISTIC_SCENARIOS = [
     },
     {
         "name": "hydraulic_leak_major",
-        "fail_items": ["Hydraulic system — no visible leaks"],
+        "fail_items": ["Hydraulic system — no active drip · no leak below MIN reservoir · no leak on bed-lift / boom / outrigger / brake-assist circuit"],
         "expected_severity": "oos",
         "expected_truck_status": "oos",
         "expected_category": "hydraulic",

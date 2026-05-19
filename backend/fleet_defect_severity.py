@@ -1,6 +1,6 @@
 """iter251 Phase A · Fleet Operations Foundation · Defect Severity Table.
 
-⚠️  DRAFT v1 — PENDING SAFETY / OPERATOR REVIEW BEFORE PRODUCTION RELIANCE ⚠️
+🔒  v1 APPROVED 2026-05-19 — Operator-ruled · Safety sign-off pending field deployment 🔒
 
 This module is the SINGLE SOURCE OF TRUTH for whether a failed DVIR
 checklist item puts a truck/trailer OUT OF SERVICE or merely flags it
@@ -44,6 +44,20 @@ from typing import Any, Dict, Tuple
 SEVERITY_OOS = "oos"
 SEVERITY_MONITOR = "monitor"
 VALID_SEVERITIES = (SEVERITY_OOS, SEVERITY_MONITOR)
+
+
+# Severity table version stamp · single source of truth.
+# Bump when the table changes · audit endpoint surfaces this for governance.
+SEVERITY_TABLE_VERSION = "v1-approved-2026-05-19"
+SEVERITY_TABLE_APPROVAL = {
+    "version": SEVERITY_TABLE_VERSION,
+    "approved_at": "2026-05-19",
+    "approved_by": "Operator (Jaymn) · per SEVERITY_RULINGS_iter251.md",
+    "approval_record": "/app/SEVERITY_RULINGS_iter251.md",
+    "status": "approved · pending Safety field deployment",
+    "rulings_count": 9,
+    "uncertainty_resolved": True,
+}
 
 
 # Defect categories — used by dashboards to scope queues
@@ -106,11 +120,15 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     # ─── TRUCK · STEERING ──────────────────────────────────────────
     "Steering wheel free play — within spec (≤ 10° on light truck · ≤ 30° on heavy)":  (SEVERITY_OOS, CATEGORY_STEERING),
     "Steering linkage / drag link / pitman arm — no missing or broken parts":          (SEVERITY_OOS, CATEGORY_STEERING),
-    "Power steering — no leaks · fluid at proper level · normal effort":               (SEVERITY_OOS, CATEGORY_STEERING),
+    # Power steering · ruling #1 · split by drip-rate threshold (2026-05-19)
+    "Power steering — fluid AT or ABOVE MIN · normal effort · no active drip":         (SEVERITY_OOS, CATEGORY_STEERING),
+    "Power steering — stable seep / weep · normal effort · fluid AT MIN or above":     (SEVERITY_MONITOR, CATEGORY_STEERING),
 
     # ─── TRUCK · LIGHTS ────────────────────────────────────────────
     "Headlights — low beam · both sides functional":                  (SEVERITY_OOS, CATEGORY_LIGHTS),
-    "Headlights — high beam · both sides functional":                 (SEVERITY_OOS, CATEGORY_LIGHTS),
+    # High-beam · ruling #2 · split by day/night assignment (2026-05-19)
+    "Headlights — both low-beams functional · at least one high-beam functional":  (SEVERITY_OOS, CATEGORY_LIGHTS),
+    "Headlights — single high-beam out · both low-beams functional · daylight-only ops":  (SEVERITY_MONITOR, CATEGORY_LIGHTS),
     "Brake lights — both sides functional":                           (SEVERITY_OOS, CATEGORY_LIGHTS),
     "Tail lights — both sides functional":                            (SEVERITY_OOS, CATEGORY_LIGHTS),
     "Clearance / marker lights — all functional":                     (SEVERITY_MONITOR, CATEGORY_LIGHTS),
@@ -121,7 +139,9 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     # ─── TRUCK · SIGNALS / ALARMS ─────────────────────────────────
     "Turn signals — left + right · front + rear functional":          (SEVERITY_OOS, CATEGORY_SIGNALS),
     "4-way hazard flashers — operate · synchronized":                 (SEVERITY_OOS, CATEGORY_SIGNALS),
-    "Strobes / beacons — all flash patterns operational":             (SEVERITY_MONITOR, CATEGORY_SIGNALS),
+    # Strobes / beacons · ruling #3 · OOS on work-zone ops · MONITOR on yard moves (2026-05-19)
+    "Strobes / beacons — all flash patterns operational (work-zone / lane closure / paving / shoulder / airport ops)":  (SEVERITY_OOS, CATEGORY_SIGNALS),
+    "Strobes / beacons — partial pattern acceptable for yard-only / shop-shuffle moves":  (SEVERITY_MONITOR, CATEGORY_SIGNALS),
     "Strobes / beacons — at least one operational":                   (SEVERITY_OOS, CATEGORY_SIGNALS),
     "Backup alarm — audible when reverse engaged":                    (SEVERITY_OOS, CATEGORY_ALARMS),
     "Raised-bed alarm — audible when bed raised":                     (SEVERITY_OOS, CATEGORY_ALARMS),
@@ -132,14 +152,18 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     "Mirror — minor crack / chip with visible image":                 (SEVERITY_MONITOR, CATEGORY_MIRRORS),
     "Windshield — no cracks in driver line of sight":                 (SEVERITY_OOS, CATEGORY_GLASS),
     "Windshield — minor cracks / pitting outside line of sight":      (SEVERITY_MONITOR, CATEGORY_GLASS),
-    "Wipers — both blades sweep windshield cleanly · no streaking":   (SEVERITY_OOS, CATEGORY_WIPERS),
+    # Wipers · ruling #4 · driver-side strict · passenger conditional on weather (2026-05-19)
+    "Driver-side wiper — sweeps cleanly · no streaking · no torn blade":  (SEVERITY_OOS, CATEGORY_WIPERS),
+    "Passenger-side wiper — sweeps cleanly when rain forecast in shift window":  (SEVERITY_OOS, CATEGORY_WIPERS),
+    "Passenger-side wiper — minor streak acceptable · dry forecast in shift window · 3-day shop window":  (SEVERITY_MONITOR, CATEGORY_WIPERS),
     "Washer fluid — sprays · reservoir not empty":                    (SEVERITY_MONITOR, CATEGORY_WIPERS),
 
     # ─── TRUCK · SUSPENSION / FRAME ───────────────────────────────
     "Suspension — leaf springs · u-bolts · shackles intact":          (SEVERITY_OOS, CATEGORY_SUSPENSION),
     "Suspension — air bags inflate · no leaks · no severe sag":       (SEVERITY_OOS, CATEGORY_SUSPENSION),
     "Frame — no cracks · no severe rust-through":                     (SEVERITY_OOS, CATEGORY_STRUCTURAL),
-    "Body — no severe damage affecting safe operation":               (SEVERITY_OOS, CATEGORY_BODY),
+    # Body damage rubric · ruling #5 · 5-test objective rubric replaces vague "severe damage" (2026-05-19)
+    "Body — no frame/cab-mount fracture · no projecting metal or sharp edge · no loose panel/door · no rust-through on cab floor or fuel tank · no damage blocking mirror or windshield visibility":  (SEVERITY_OOS, CATEGORY_BODY),
     "Body — cosmetic dings · scrapes · paint":                        (SEVERITY_MONITOR, CATEGORY_BODY),
 
     # ─── TRUCK · AIR SYSTEM ───────────────────────────────────────
@@ -155,7 +179,9 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     "Pintle hook — locked · safety pin in place":                     (SEVERITY_OOS, CATEGORY_COUPLING),
 
     # ─── TRUCK · HYDRAULIC / PTO ──────────────────────────────────
-    "Hydraulic system — no visible leaks":                            (SEVERITY_OOS, CATEGORY_HYDRAULIC),
+    # Hydraulic · ruling #6 · split by drip-rate + circuit role (2026-05-19)
+    "Hydraulic system — no active drip · no leak below MIN reservoir · no leak on bed-lift / boom / outrigger / brake-assist circuit":  (SEVERITY_OOS, CATEGORY_HYDRAULIC),
+    "Hydraulic system — stable seep / film without active drip · reservoir AT or ABOVE MIN · not on load-supporting circuit":  (SEVERITY_MONITOR, CATEGORY_HYDRAULIC),
     "Hydraulic — bed raise + lower smoothly · no drift":              (SEVERITY_OOS, CATEGORY_HYDRAULIC),
     "PTO engages + disengages normally":                              (SEVERITY_MONITOR, CATEGORY_PTO),
 
@@ -168,9 +194,14 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
 
     # ─── TRUCK · INTERIOR / CAB ───────────────────────────────────
     "Seat belt — present · functional · no fraying":                  (SEVERITY_OOS, CATEGORY_INTERIOR),
-    "Cab — heater / defroster operational (cold/wet weather)":        (SEVERITY_MONITOR, CATEGORY_INTERIOR),
+    # Heater/defroster · ruling #7 · defroster conditional OOS on visibility (2026-05-19)
+    "Defroster — functional when ambient ≤ 40°F or precipitation forecast in shift window":  (SEVERITY_OOS, CATEGORY_INTERIOR),
+    "Cab heater — functional · escalates to OOS if window fogging affects visibility":  (SEVERITY_MONITOR, CATEGORY_INTERIOR),
     "Cab — interior cleanliness":                                     (SEVERITY_MONITOR, CATEGORY_INTERIOR),
-    "Cab — dash gauges functional (oil pressure · temp · fuel)":      (SEVERITY_OOS, CATEGORY_INTERIOR),
+    # Dash gauges · ruling #8 · tiered by ECM presence (2026-05-19)
+    "Oil pressure & coolant temp gauges OR equivalent ECM warning system functional":  (SEVERITY_OOS, CATEGORY_INTERIOR),
+    "Fuel gauge — functional · driver may estimate by miles · 7-day shop window":  (SEVERITY_MONITOR, CATEGORY_INTERIOR),
+    "Dash gauges (oil / temp) inop on units with ECM check-engine + fault display fully functional · 14-day shop window":  (SEVERITY_MONITOR, CATEGORY_INTERIOR),
 
     # ─── TRUCK · EMERGENCY EQUIPMENT ──────────────────────────────
     "Fire extinguisher — present · charged · sealed · tag current":   (SEVERITY_OOS, CATEGORY_EMERGENCY_EQUIPMENT),
@@ -206,7 +237,9 @@ FLEET_DEFECT_SEVERITY: Dict[str, Tuple[str, str]] = {
     "Landing gear — minor cosmetic wear":                             (SEVERITY_MONITOR, CATEGORY_LANDING_GEAR),
 
     # ─── TRAILER · TARP / HYDRAULIC ───────────────────────────────
-    "Tarp system — deploys + retracts · no major tears":              (SEVERITY_MONITOR, CATEGORY_TARP),
+    # Tarp · ruling #9 · split by load-haul scope (2026-05-19)
+    "Tarp system — deploys + retracts · no tear > 6\"×6\" · functional on units assigned to aggregate / asphalt / dust-producing load haul":  (SEVERITY_OOS, CATEGORY_TARP),
+    "Tarp system — minor tear < 6\"×6\" OR unit assigned to empty / equipment / non-dust haul · 5-day shop window":  (SEVERITY_MONITOR, CATEGORY_TARP),
     "Trailer hydraulic system — no leaks · raises + lowers":          (SEVERITY_OOS, CATEGORY_HYDRAULIC),
 
     # ─── TRAILER · STRUCTURAL ─────────────────────────────────────
@@ -364,11 +397,15 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Missing or broken steering components = imminent loss of control. Always OOS.",
         "uncertain": False,
     },
-    "Power steering — no leaks · fluid at proper level · normal effort": {
-        "regulation_ref": "49 CFR § 393.209",
-        "rationale": "Loss of power steering mid-maneuver greatly increases driver effort and crash risk. OOS for major leaks or pump failure.",
-        "uncertain": True,
-        "uncertainty_note": "Borderline case: a minor weep with normal effort may be MONITOR. Safety to confirm threshold.",
+    "Power steering — fluid AT or ABOVE MIN · normal effort · no active drip": {
+        "regulation_ref": "49 CFR § 393.209 · CVSA OOS criteria",
+        "rationale": "Active drip / fluid below MIN / abnormal effort / pump whine = imminent steering loss · OOS. (Ruling #1 · 2026-05-19)",
+        "uncertain": False,
+    },
+    "Power steering — stable seep / weep · normal effort · fluid AT MIN or above": {
+        "regulation_ref": "49 CFR § 393.209 (operational threshold)",
+        "rationale": "Stable seep without active drip + normal steering effort + fluid at or above MIN is Monitor · 5-day shop window. Active drip, abnormal effort, pump squeal, or fluid below MIN escalates to OOS. (Ruling #1 · 2026-05-19)",
+        "uncertain": False,
     },
     # ─── Lights ─────────────────────────────────────────────────────
     "Headlights — low beam · both sides functional": {
@@ -376,11 +413,15 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Required lighting for night operation. Loss of either side compromises visibility. OOS for night ops.",
         "uncertain": False,
     },
-    "Headlights — high beam · both sides functional": {
-        "regulation_ref": "49 CFR § 393.24",
-        "rationale": "Required equipment. OOS if both inoperative.",
-        "uncertain": True,
-        "uncertainty_note": "Single high-beam out (low still functional) may be MONITOR in daytime ops. Safety to set policy.",
+    "Headlights — both low-beams functional · at least one high-beam functional": {
+        "regulation_ref": "49 CFR § 393.24 · CVSA OOS criteria",
+        "rationale": "Both low-beams must be operational at all times. At least one high-beam must function for night ops. Any low-beam failure or both high-beams out = OOS. (Ruling #2 · 2026-05-19)",
+        "uncertain": False,
+    },
+    "Headlights — single high-beam out · both low-beams functional · daylight-only ops": {
+        "regulation_ref": "49 CFR § 393.24 (operational tier)",
+        "rationale": "Single high-beam failure with both low-beams functional is Monitor for daylight-only paving/haul ops · 3-day shop window. Escalates to OOS if night work assigned. (Ruling #2 · 2026-05-19)",
+        "uncertain": False,
     },
     "Brake lights — both sides functional": {
         "regulation_ref": "49 CFR § 393.25 · CVSA OOS §8.a",
@@ -423,11 +464,15 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Required emergency warning device. OOS.",
         "uncertain": False,
     },
-    "Strobes / beacons — all flash patterns operational": {
-        "regulation_ref": "MASCI operational requirement",
-        "rationale": "Worksite visibility · partial pattern loss is monitor-level if at least one beacon still operates.",
-        "uncertain": True,
-        "uncertainty_note": "MASCI work zone exposure may justify OOS for any beacon loss. Safety + Ops to confirm.",
+    "Strobes / beacons — all flash patterns operational (work-zone / lane closure / paving / shoulder / airport ops)": {
+        "regulation_ref": "MASCI work-zone struck-by control · OSHA 1926 Subpart G",
+        "rationale": "Work-zone struck-by is a top OSHA fatality cause in highway construction. Strobe/beacon is a primary worker-protection control · partial pattern = degraded control. OOS for any unit assigned to MOT, paving train, lane closure, shoulder, or airport ops. (Ruling #3 · 2026-05-19)",
+        "uncertain": False,
+    },
+    "Strobes / beacons — partial pattern acceptable for yard-only / shop-shuffle moves": {
+        "regulation_ref": "MASCI operational tier",
+        "rationale": "Partial flash pattern acceptable for yard-only or shop-shuffle moves with no work-zone exposure · Monitor with 5-day shop window. Escalates to OOS the moment unit is assigned to work-zone ops. (Ruling #3 · 2026-05-19)",
+        "uncertain": False,
     },
     "Strobes / beacons — at least one operational": {
         "regulation_ref": "MASCI operational requirement",
@@ -470,11 +515,20 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Cosmetic damage outside vision area is monitor. Replace at next shop visit.",
         "uncertain": False,
     },
-    "Wipers — both blades sweep windshield cleanly · no streaking": {
+    "Driver-side wiper — sweeps cleanly · no streaking · no torn blade": {
+        "regulation_ref": "49 CFR § 393.78 · CVSA OOS criteria",
+        "rationale": "Driver-side visibility is non-negotiable · any streaking, torn blade, or inop wiper on driver side = OOS. Florida/Texas storms develop fast. (Ruling #4 · 2026-05-19)",
+        "uncertain": False,
+    },
+    "Passenger-side wiper — sweeps cleanly when rain forecast in shift window": {
         "regulation_ref": "49 CFR § 393.78",
-        "rationale": "Required for wet-weather visibility. Single-blade failure or severe streaking is OOS for wet/winter ops.",
-        "uncertain": True,
-        "uncertainty_note": "Dry-summer days a wiper issue is arguably monitor. Conservative OOS chosen.",
+        "rationale": "Passenger-side wiper must be functional if rain is forecast in the shift window. Driver checks forecast at DVIR submission. (Ruling #4 · 2026-05-19)",
+        "uncertain": False,
+    },
+    "Passenger-side wiper — minor streak acceptable · dry forecast in shift window · 3-day shop window": {
+        "regulation_ref": "49 CFR § 393.78 (operational tier)",
+        "rationale": "Minor streak on passenger-side with dry forecast is Monitor with 3-day shop window. Escalates to OOS if forecast updates to rain. (Ruling #4 · 2026-05-19)",
+        "uncertain": False,
     },
     "Washer fluid — sprays · reservoir not empty": {
         "regulation_ref": "operational",
@@ -497,11 +551,10 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Frame cracks are structural failures · always OOS.",
         "uncertain": False,
     },
-    "Body — no severe damage affecting safe operation": {
-        "regulation_ref": "operational",
-        "rationale": "Severe body damage that impairs safe operation (e.g. detached panel, hanging fender) is OOS.",
-        "uncertain": True,
-        "uncertainty_note": "Subjective threshold · Safety to define 'severe' rubric.",
+    "Body — no frame/cab-mount fracture · no projecting metal or sharp edge · no loose panel/door · no rust-through on cab floor or fuel tank · no damage blocking mirror or windshield visibility": {
+        "regulation_ref": "CVSA OOS criteria · 49 CFR § 393.201 (structural)",
+        "rationale": "Objective 5-test rubric replacing vague 'severe damage' wording. OOS only if damage meets one of: (a) frame/cab-mount fracture, (b) projecting metal hazardous to ground personnel, (c) loose panel/door/component at risk of falling, (d) rust-through on cab floor or fuel tank, (e) visibility-blocking damage to mirrors or windshield. Cosmetic damage = Monitor only. (Ruling #5 · 2026-05-19)",
+        "uncertain": False,
     },
     "Body — cosmetic dings · scrapes · paint": {
         "regulation_ref": "operational",
@@ -551,11 +604,15 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "uncertain": False,
     },
     # ─── Hydraulic / PTO ────────────────────────────────────────────
-    "Hydraulic system — no visible leaks": {
-        "regulation_ref": "operational · OSHA",
-        "rationale": "Major hydraulic leaks risk fire (oil on hot surfaces) + loss of bed control. OOS.",
-        "uncertain": True,
-        "uncertainty_note": "'Visible leak' threshold needs Shop guidance · pinhole vs active drip differs operationally.",
+    "Hydraulic system — no active drip · no leak below MIN reservoir · no leak on bed-lift / boom / outrigger / brake-assist circuit": {
+        "regulation_ref": "OSHA 1926.602 · operational",
+        "rationale": "Active drip (forms a drop within 60 sec), any leak from brake-assist line, any leak from bed-lift / boom / outrigger pressure circuit, or fluid below MIN reservoir = OOS. Bed-lift failure under load = OSHA-reportable crush hazard. (Ruling #6 · 2026-05-19)",
+        "uncertain": False,
+    },
+    "Hydraulic system — stable seep / film without active drip · reservoir AT or ABOVE MIN · not on load-supporting circuit": {
+        "regulation_ref": "OSHA 1926.602 (operational tier)",
+        "rationale": "Stable seep or film without drip formation + reservoir at or above MIN + not on a load-supporting / brake-assist circuit = Monitor with 5-day shop window. (Ruling #6 · 2026-05-19)",
+        "uncertain": False,
     },
     "Hydraulic — bed raise + lower smoothly · no drift": {
         "regulation_ref": "operational",
@@ -599,22 +656,35 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Required occupant restraint · OOS if non-functional.",
         "uncertain": False,
     },
-    "Cab — heater / defroster operational (cold/wet weather)": {
+    "Defroster — functional when ambient ≤ 40°F or precipitation forecast in shift window": {
         "regulation_ref": "49 CFR § 393.79",
-        "rationale": "Defroster needed for wet/cold visibility · monitor in dry summer but should be OOS in winter (driver discretion / dispatch policy).",
-        "uncertain": True,
-        "uncertainty_note": "Seasonal sensitivity · Safety to set wet/cold OOS policy.",
+        "rationale": "Defroster must be operational when ambient ≤ 40°F or precipitation forecast · driver cannot safely clear windshield/fogging without it. (Ruling #7 · 2026-05-19)",
+        "uncertain": False,
+    },
+    "Cab heater — functional · escalates to OOS if window fogging affects visibility": {
+        "regulation_ref": "49 CFR § 393.79 (operational tier)",
+        "rationale": "Cab heater inop is driver-comfort Monitor only when above 40°F + dry forecast + no fogging. Escalates to OOS if fogging conditions affect windshield visibility (visibility is the actual safety concern, not comfort). 7-day shop window. (Ruling #7 · 2026-05-19)",
+        "uncertain": False,
     },
     "Cab — interior cleanliness": {
         "regulation_ref": "operational",
         "rationale": "Accountability + lead-driver visibility · monitor.",
         "uncertain": False,
     },
-    "Cab — dash gauges functional (oil pressure · temp · fuel)": {
-        "regulation_ref": "49 CFR § 393.51",
-        "rationale": "Missing engine gauges mask catastrophic failures · OOS.",
-        "uncertain": True,
-        "uncertainty_note": "Modern trucks with computer-fault warning may be more permissive · Shop to confirm.",
+    "Oil pressure & coolant temp gauges OR equivalent ECM warning system functional": {
+        "regulation_ref": "49 CFR § 393.51 (spirit) · operational",
+        "rationale": "Engine protection signal (oil pressure + coolant temp) must be functional via dash gauge OR ECM warning system. Loss of both = engine destruction risk. OOS. (Ruling #8 · 2026-05-19)",
+        "uncertain": False,
+    },
+    "Fuel gauge — functional · driver may estimate by miles · 7-day shop window": {
+        "regulation_ref": "operational",
+        "rationale": "Fuel gauge inop is Monitor only · driver can estimate by miles + fuel-up records. 7-day shop window. (Ruling #8 · 2026-05-19)",
+        "uncertain": False,
+    },
+    "Dash gauges (oil / temp) inop on units with ECM check-engine + fault display fully functional · 14-day shop window": {
+        "regulation_ref": "49 CFR § 393.51 (operational tier · modern truck)",
+        "rationale": "On modern trucks (≥ 2010 model year) with functional ECM check-engine + fault display, analog dash gauges are supplemental · inop gauges acceptable for Monitor with 14-day shop window. Older / non-ECM trucks remain OOS for oil-pressure or temp gauge failure. (Ruling #8 · 2026-05-19)",
+        "uncertain": False,
     },
     # ─── Emergency equipment ────────────────────────────────────────
     "Fire extinguisher — present · charged · sealed · tag current": {
@@ -733,11 +803,15 @@ FLEET_DEFECT_SEVERITY_META: Dict[str, Dict[str, Any]] = {
         "rationale": "Cosmetic only · monitor.",
         "uncertain": False,
     },
-    "Tarp system — deploys + retracts · no major tears": {
-        "regulation_ref": "MASCI policy · state load-cover regs",
-        "rationale": "Load-loss potential is a haul-completion issue, not immediate roadway danger. Monitor unless tear is catastrophic.",
-        "uncertain": True,
-        "uncertainty_note": "State load-cover requirements may upgrade this to OOS for some loads · Safety/Ops to confirm.",
+    "Tarp system — deploys + retracts · no tear > 6\"×6\" · functional on units assigned to aggregate / asphalt / dust-producing load haul": {
+        "regulation_ref": "Tex. Transp. Code § 725.021 · 49 CFR § 393.100 (load securement)",
+        "rationale": "Functional tarp + no tear larger than 6\"×6\" is required for any unit assigned to aggregate, asphalt, or dust-producing load haul. Uncovered load = state ticket + struck-by debris on highway. OOS for load-haul ops. (Ruling #9 · 2026-05-19)",
+        "uncertain": False,
+    },
+    "Tarp system — minor tear < 6\"×6\" OR unit assigned to empty / equipment / non-dust haul · 5-day shop window": {
+        "regulation_ref": "MASCI operational tier",
+        "rationale": "Minor tear (< 6\"×6\") OR unit assigned to empty / equipment / non-dust haul = Monitor with 5-day shop window. Escalates to OOS the moment unit reassigned to aggregate / asphalt / dust haul. (Ruling #9 · 2026-05-19)",
+        "uncertain": False,
     },
     "Trailer hydraulic system — no leaks · raises + lowers": {
         "regulation_ref": "operational · OSHA",

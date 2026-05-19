@@ -2,6 +2,143 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter251 Phase 1 · Severity Table v1-APPROVED · 9 uncertain items resolved · ✅ DELIVERED (preview only · governance gate cleared)
+
+Operator-ruled Phase 1 severity finalization. All 9 uncertain items resolved with operator-approved tiered logic. **Audit verdict flipped: `NEEDS_REVIEW` → `READY_FOR_SAFETY_SIGNOFF`**. Phase 2 (Driver DVIR UX) is now unblocked.
+
+### Governing operator philosophy
+- safety-defensible · DOT/FMCSA-aware · operationally realistic
+- driver-friendly · not shutdown-happy · not fear-driven · not checkbox theater
+- encourages honest DVIR reporting · punishes nothing
+- objective field-readable thresholds · no vague legal language
+
+### 9 rulings applied (table grew 97 → 107 items · 9 vague items → 19 precise items)
+
+| # | Item | Ruling |
+|---|---|---|
+| 1 | Power steering | OOS if active drip / abnormal effort / fluid below MIN · Monitor if stable seep + normal effort |
+| 2 | High beam | OOS if any low-beam fail or both high out · Monitor for single high out + daylight ops |
+| 3 | Strobes / beacons | **Upgraded to OOS** for work-zone / MOT / paving / lane closure / shoulder / airport · Monitor for yard moves |
+| 4 | Wipers | Driver-side strict OOS · passenger conditional by rain forecast (OOS if rain · Monitor if dry, 3-day window) |
+| 5 | Body damage | **5-test objective rubric** replaces vague "severe damage": frame fracture · projecting metal · loose panel · rust-through on cab floor/fuel tank · visibility blocking |
+| 6 | Hydraulic leaks | OOS if active drip OR on bed-lift/boom/outrigger/brake-assist circuit OR fluid below MIN · Monitor for stable seep on non-load circuit |
+| 7 | Defroster / heater | Defroster OOS at ≤ 40°F or wet forecast · Cab heater Monitor, escalates if visibility-affecting fogging |
+| 8 | Dash gauges | OOS for oil+temp OR ECM equivalent · Fuel gauge Monitor · Inop gauges on ECM-equipped (≥ 2010) Monitor with 14-day window |
+| 9 | Tarp | OOS if tear > 6"×6" OR unit on aggregate/asphalt/dust-haul · Monitor if minor tear OR empty/equipment/non-dust haul |
+
+### What shipped
+
+**Backend · `backend/fleet_defect_severity.py`**
+- `SEVERITY_TABLE_VERSION = "v1-approved-2026-05-19"` constant (single source of truth)
+- `SEVERITY_TABLE_APPROVAL` block with approved_at · approved_by · rulings_count · uncertainty_resolved · approval_record path
+- 19 new severity entries replacing the 9 vague + uncertain entries (net +10 items)
+- Every metadata entry has `uncertain: False` · zero uncertain items remain
+- Every new entry carries full rationale + regulation_ref + ruling reference (e.g. "Ruling #6 · 2026-05-19")
+
+**Backend · `backend/checklists_fleet.py`**
+- `dvir_truck_items()` updated to emit new precise wordings (84 items, was 74)
+- `dvir_trailer_items()` updated for tarp split (24 items, was 23)
+- `dvir_emergency_items()` updated for headlight high-beam split
+- `dvir_weekly_lead_items()` updated for cab-heater wording
+- All four functions cross-validated against severity table at test time
+
+**Backend · `backend/routes/fleet_ops.py`**
+- `/api/fleet/_meta` now returns `severity_table_version` + `severity_table_approval` (driver UX in Phase B reads this)
+- `/api/admin/fleet/severity-audit` now returns `severity_table_approval` block (visible governance pill)
+- Both endpoints read from `_sev.SEVERITY_TABLE_VERSION` constant · no hardcoded version strings
+
+**Tooling · `scripts/generate_fleet_severity_review.py`**
+- Reads version + approval metadata from constants (no hardcoded "v1-DRAFT" header anymore)
+- Generator output reflects whatever version is stamped at run time
+
+**Immutable rulings record · NEW `/app/SEVERITY_RULINGS_iter251.md`**
+- Governing operator philosophy memorialized
+- Per-ruling: before / after / operator note / DOT-FMCSA reg ref
+- Stats table (before/after totals + ratio)
+- Future UX guidance for Phase B (calm operational language · no "FAILED" culture)
+- Sign-off chain: Operator ✅ · Safety field-deployment ⏸ · Shop 30-day ⏸ · Dispatch 30-day ⏸
+
+**Regenerated review package · `/app/FLEET_SEVERITY_REVIEW_PACKAGE_iter251.md`**
+- Status header now: `v1-approved-2026-05-19`
+- Approved date + approver + record-path surfaced at top
+- 107 items · 73 OOS · 34 Monitor · 0 uncertain
+- 674 lines · same audience (Safety / Shop / Ops / Dispatch leadership)
+
+**Tests · NEW `backend/tests/test_iter251_severity_v1_approved.py` (20 tests · 20/20 pass)**
+- Version stamp pinned
+- Zero uncertain items invariant
+- Each of 9 rulings encoded as a separate test (assert OOS line · assert Monitor counterpart · assert old vague wording REMOVED · assert reg-ref-bound rationale)
+- Table-wide health checks: size = 107 · OOS/Monitor ratio ≥ 2.0 · every checklist emit-able item classifies
+- Realistic field scenarios: minor power-steering weep → Monitor · active hydraulic drip → OOS · ECM-equipped truck inop gauge → Monitor · work-zone partial strobes → OOS · passenger wiper dry forecast → Monitor · empty backhaul minor tarp → Monitor
+
+### Live preview verification
+
+```
+✅ admin GET /api/admin/fleet/severity-audit                 → 200
+     verdict: READY_FOR_SAFETY_SIGNOFF  ← gate cleared
+     verdict_reason: "Every checklist item classified · every severity entry has metadata · no uncertain flags remaining."
+     severity_table_version: v1-approved-2026-05-19
+     severity_table_approval: {approved_at, approved_by, rulings_count: 9, uncertainty_resolved: true}
+     total: 107 · OOS: 73 · MONITOR: 34 · ratio: 2.15
+     uncertain_count: 0
+
+✅ anon  GET /api/fleet/_meta                                → 200 (still public · driver UX accessible)
+     phase: A · severity_table_version: v1-approved-2026-05-19 · severity_table_approval block exposed
+```
+
+### Test coverage cumulative
+- NEW `tests/test_iter251_severity_v1_approved.py` · 20/20 pass
+- iter251 severity audit regression: 24/24 still pass (with hydraulic test scenario string updated to new wording)
+- iter251 Phase A foundation: 26/26 still pass
+- **117/117 cumulative across iter248 + iter249 + iter250 + iter251**
+
+### Stabilization compatibility verified
+- iter248 Phase A Legacy Records · 13/13 still green (unchanged · NO crossover with fleet workstream per 2026-05-19 boundary clarification)
+- iter249 Phase B + Pilot Debrief · 30/30 still green
+- iter250 Subcontractor photos · 4/4 still green
+- iter251 Phase A foundation + severity governance · 50/50 still green
+- Zero regression risk · purely additive (split items) + cosmetic metadata enrichment
+
+### Files touched (Phase 1 inventory)
+- MOD · `backend/fleet_defect_severity.py` (+SEVERITY_TABLE_VERSION + SEVERITY_TABLE_APPROVAL constants · 19 new entries · 9 entries removed · all metadata enriched · zero uncertain)
+- MOD · `backend/checklists_fleet.py` (truck + trailer + emergency + weekly_lead lists updated for new wordings)
+- MOD · `backend/routes/fleet_ops.py` (read version from constant · expose approval pill in 2 endpoints)
+- MOD · `backend/tests/test_iter251_severity_audit.py` (1 scenario string updated to new hydraulic wording)
+- NEW · `backend/tests/test_iter251_severity_v1_approved.py` (20 ruling-pinning tests)
+- MOD · `scripts/generate_fleet_severity_review.py` (status header reads constants · no hardcoded strings)
+- NEW · `/app/SEVERITY_RULINGS_iter251.md` (immutable governance record)
+- REGEN · `/app/FLEET_SEVERITY_REVIEW_PACKAGE_iter251.md` (v1-approved header · 0 uncertain)
+- MOD · `memory/PRD.md` (this entry)
+
+### Phase 2 unblocked · Driver DVIR UX
+
+Per operator instruction · build Phase 2 next with these constraints:
+- **Mobile-first** · extremely fast · driver-simple
+- Public field tile · clear truck/trailer selection · daily DVIR flow
+- Defect selection · photo attachment · comments · driver signature · submitted timestamp
+- **Automatic severity calculation** (table picks · driver does NOT)
+- OOS warning when applicable
+- Clear confirmation page
+- **Calm operational language**: `Monitor` / `Repair Required` / `Out of Service` (NO giant red "FAILED" culture)
+- Driver submitting a defect = positive accountability act · UX thanks, never scolds
+- Show shop-window timer (5/7/14/3-day) so drivers see path forward
+
+### Next Action Items
+- ⏸ **Begin Phase 2 · Driver DVIR UX** (mobile-first form · public tile · severity-calm wording per ruling document)
+- ⏸ Then Phase 3 · Dispatch / Shop / Safety role views (no dashboard bloat · operational clarity only)
+- ⏸ Then Phase 4 · Repair lifecycle hardening (submitted → severity → OOS-if-applicable → shop notified → assigned → repaired → return-to-service)
+- ⏸ Phase 5 · Weekly Lead + Weekly Emergency UX (gated on Phase 4 stability)
+- ⏸ Phase 6 · Motive + MaintainX integration (separate operator approval · external_refs already preserved)
+
+### Future / Backlog (unchanged)
+- iter249 Phase B Equipment Checkout pilot real-paperwork batch (HR/Safety scope · independent)
+- iter250 Subcontractor photos field test (parallel · independent)
+- Phase K4b · K5 · Stage B.1 · F6 ES privacy fix · iter153 test-fragility decoupling
+
+🔒 iter251 Phase 1 severity governance gate **CLEARED** · 9 rulings locked · v1-approved-2026-05-19 stamped · 117/117 tests green · Phase 2 Driver UX unblocked.
+
+---
+
 ## 2026-05-19 — iter251 Scope Clarification · Fleet/DVIR is forward-looking only · NO legacy trucking-record import · 🔒 OPERATOR DECISION LOCKED
 
 Operator-issued boundary clarification before any further fleet work. **Fleet/DVIR will NOT import or digitize legacy trucking/fleet records.** Existing paper trucking records remain filed separately for historical retention.

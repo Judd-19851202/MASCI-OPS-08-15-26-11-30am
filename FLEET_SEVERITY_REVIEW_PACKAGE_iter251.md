@@ -1,6 +1,8 @@
 # Fleet Defect Severity Review Package · iter251
 
-**Status:** v1-DRAFT-pending-safety-review
+**Status:** v1-approved-2026-05-19
+**Approved:** 2026-05-19 · Operator (Jaymn) · per SEVERITY_RULINGS_iter251.md
+**Approval record:** `/app/SEVERITY_RULINGS_iter251.md`
 **Generated from:** `/app/backend/fleet_defect_severity.py` + `/app/backend/checklists_fleet.py`
 **Audience:** Safety · Shop · Operations · Dispatch leadership
 **Purpose:** Redline operational disagreements BEFORE production reliance.
@@ -13,36 +15,14 @@ Drivers do NOT pick severity in the field — this table picks it for them, elim
 
 ## Summary
 
-- **Total classified items:** 97
-- **OUT OF SERVICE classifications:** 69
-- **MONITOR classifications:** 28
-- **OOS-to-monitor ratio:** 2.46 (conservative bias toward OOS)
-- **Items flagged UNCERTAIN pending Safety review:** 9
+- **Total classified items:** 107
+- **OUT OF SERVICE classifications:** 73
+- **MONITOR classifications:** 34
+- **OOS-to-monitor ratio:** 2.15 (conservative bias toward OOS)
+- **Items flagged UNCERTAIN pending Safety review:** 0
 - **Items missing severity classification:** 0 (must be zero before deploy)
 - **Orphan severity entries (not used by any checklist):** 0
 - **Items missing metadata (rationale / regulation_ref):** 0
-
-### ⚠️ ITEMS PENDING SAFETY DECISION
-These items are classified but Safety must confirm the classification before production reliance. Each carries an `uncertainty_note` describing the operational tension.
-
-- **`Body — no severe damage affecting safe operation`** · current: **OOS** (body) · ref: `operational`
-  - *Subjective threshold · Safety to define 'severe' rubric.*
-- **`Cab — dash gauges functional (oil pressure · temp · fuel)`** · current: **OOS** (interior) · ref: `49 CFR § 393.51`
-  - *Modern trucks with computer-fault warning may be more permissive · Shop to confirm.*
-- **`Cab — heater / defroster operational (cold/wet weather)`** · current: **MONITOR** (interior) · ref: `49 CFR § 393.79`
-  - *Seasonal sensitivity · Safety to set wet/cold OOS policy.*
-- **`Headlights — high beam · both sides functional`** · current: **OOS** (lights) · ref: `49 CFR § 393.24`
-  - *Single high-beam out (low still functional) may be MONITOR in daytime ops. Safety to set policy.*
-- **`Hydraulic system — no visible leaks`** · current: **OOS** (hydraulic) · ref: `operational · OSHA`
-  - *'Visible leak' threshold needs Shop guidance · pinhole vs active drip differs operationally.*
-- **`Power steering — no leaks · fluid at proper level · normal effort`** · current: **OOS** (steering) · ref: `49 CFR § 393.209`
-  - *Borderline case: a minor weep with normal effort may be MONITOR. Safety to confirm threshold.*
-- **`Strobes / beacons — all flash patterns operational`** · current: **MONITOR** (signals) · ref: `MASCI operational requirement`
-  - *MASCI work zone exposure may justify OOS for any beacon loss. Safety + Ops to confirm.*
-- **`Tarp system — deploys + retracts · no major tears`** · current: **MONITOR** (tarp) · ref: `MASCI policy · state load-cover regs`
-  - *State load-cover requirements may upgrade this to OOS for some loads · Safety/Ops to confirm.*
-- **`Wipers — both blades sweep windshield cleanly · no streaking`** · current: **OOS** (wipers) · ref: `49 CFR § 393.78`
-  - *Dry-summer days a wiper issue is arguably monitor. Conservative OOS chosen.*
 
 ---
 
@@ -50,7 +30,7 @@ These items are classified but Safety must confirm the classification before pro
 
 | Inspection Kind | Truck Items | Trailer Items | Total | Classified | Coverage |
 |---|---|---|---|---|---|
-| `dvir` (Daily DVIR) | 74 | 23 | 97 | 97 | 100.0% |
+| `dvir` (Daily DVIR) | 83 | 24 | 107 | 107 | 100.0% |
 | `weekly_lead` (Weekly Lead Driver Inspection) | 10 | 0 | 10 | 10 | 100.0% |
 | `weekly_emergency` (Weekly Emergency Equipment Inspection) | 16 | 0 | 16 | 16 | 100.0% |
 
@@ -184,13 +164,12 @@ These items are classified but Safety must confirm the classification before pro
 - **Rationale:** Surface rust is cosmetic and doesn't impair function. Monitor for shop tracking.
 
 
-### Steering · 3 OOS · 0 MONITOR
+### Steering · 3 OOS · 1 MONITOR
 
-#### 🛑 ⚠️ `Power steering — no leaks · fluid at proper level · normal effort`
+#### 🛑 `Power steering — fluid AT or ABOVE MIN · normal effort · no active drip`
 - **Severity:** OOS
-- **Reference:** 49 CFR § 393.209
-- **Rationale:** Loss of power steering mid-maneuver greatly increases driver effort and crash risk. OOS for major leaks or pump failure.
-- **Uncertainty note:** *Borderline case: a minor weep with normal effort may be MONITOR. Safety to confirm threshold.*
+- **Reference:** 49 CFR § 393.209 · CVSA OOS criteria
+- **Rationale:** Active drip / fluid below MIN / abnormal effort / pump whine = imminent steering loss · OOS. (Ruling #1 · 2026-05-19)
 
 #### 🛑 `Steering linkage / drag link / pitman arm — no missing or broken parts`
 - **Severity:** OOS
@@ -201,6 +180,11 @@ These items are classified but Safety must confirm the classification before pro
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.209 · CVSA OOS §10
 - **Rationale:** Excessive steering free play indicates worn linkage and impaired directional control. OOS.
+
+#### 👁 `Power steering — stable seep / weep · normal effort · fluid AT MIN or above`
+- **Severity:** MONITOR
+- **Reference:** 49 CFR § 393.209 (operational threshold)
+- **Rationale:** Stable seep without active drip + normal steering effort + fluid at or above MIN is Monitor · 5-day shop window. Active drip, abnormal effort, pump squeal, or fluid below MIN escalates to OOS. (Ruling #1 · 2026-05-19)
 
 
 ### Suspension · 2 OOS · 0 MONITOR
@@ -313,18 +297,17 @@ These items are classified but Safety must confirm the classification before pro
 - **Rationale:** Cosmetic only · monitor.
 
 
-### Lights · 6 OOS · 6 MONITOR
+### Lights · 6 OOS · 7 MONITOR
 
 #### 🛑 `Brake lights — both sides functional`
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.25 · CVSA OOS §8.a
 - **Rationale:** Both-side brake light failure is an OOS criterion. Critical for trailing-vehicle awareness.
 
-#### 🛑 ⚠️ `Headlights — high beam · both sides functional`
+#### 🛑 `Headlights — both low-beams functional · at least one high-beam functional`
 - **Severity:** OOS
-- **Reference:** 49 CFR § 393.24
-- **Rationale:** Required equipment. OOS if both inoperative.
-- **Uncertainty note:** *Single high-beam out (low still functional) may be MONITOR in daytime ops. Safety to set policy.*
+- **Reference:** 49 CFR § 393.24 · CVSA OOS criteria
+- **Rationale:** Both low-beams must be operational at all times. At least one high-beam must function for night ops. Any low-beam failure or both high-beams out = OOS. (Ruling #2 · 2026-05-19)
 
 #### 🛑 `Headlights — low beam · both sides functional`
 - **Severity:** OOS
@@ -350,6 +333,11 @@ These items are classified but Safety must confirm the classification before pro
 - **Severity:** MONITOR
 - **Reference:** 49 CFR § 393.11
 - **Rationale:** Loss of one or two marker lights doesn't impair operational safety in daylight. Monitor; replace at next shop touch.
+
+#### 👁 `Headlights — single high-beam out · both low-beams functional · daylight-only ops`
+- **Severity:** MONITOR
+- **Reference:** 49 CFR § 393.24 (operational tier)
+- **Rationale:** Single high-beam failure with both low-beams functional is Monitor for daylight-only paving/haul ops · 3-day shop window. Escalates to OOS if night work assigned. (Ruling #2 · 2026-05-19)
 
 #### 👁 `Identification lights (3-light cluster) — all functional`
 - **Severity:** MONITOR
@@ -377,12 +365,17 @@ These items are classified but Safety must confirm the classification before pro
 - **Rationale:** Compliance lighting · monitor.
 
 
-### Signals · 4 OOS · 1 MONITOR
+### Signals · 5 OOS · 1 MONITOR
 
 #### 🛑 `4-way hazard flashers — operate · synchronized`
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.25(d)
 - **Rationale:** Required emergency warning device. OOS.
+
+#### 🛑 `Strobes / beacons — all flash patterns operational (work-zone / lane closure / paving / shoulder / airport ops)`
+- **Severity:** OOS
+- **Reference:** MASCI work-zone struck-by control · OSHA 1926 Subpart G
+- **Rationale:** Work-zone struck-by is a top OSHA fatality cause in highway construction. Strobe/beacon is a primary worker-protection control · partial pattern = degraded control. OOS for any unit assigned to MOT, paving train, lane closure, shoulder, or airport ops. (Ruling #3 · 2026-05-19)
 
 #### 🛑 `Strobes / beacons — at least one operational`
 - **Severity:** OOS
@@ -399,11 +392,10 @@ These items are classified but Safety must confirm the classification before pro
 - **Reference:** 49 CFR § 393.25
 - **Rationale:** Required for safe lane changes/turns. Total side failure is OOS.
 
-#### 👁 ⚠️ `Strobes / beacons — all flash patterns operational`
+#### 👁 `Strobes / beacons — partial pattern acceptable for yard-only / shop-shuffle moves`
 - **Severity:** MONITOR
-- **Reference:** MASCI operational requirement
-- **Rationale:** Worksite visibility · partial pattern loss is monitor-level if at least one beacon still operates.
-- **Uncertainty note:** *MASCI work zone exposure may justify OOS for any beacon loss. Safety + Ops to confirm.*
+- **Reference:** MASCI operational tier
+- **Rationale:** Partial flash pattern acceptable for yard-only or shop-shuffle moves with no work-zone exposure · Monitor with 5-day shop window. Escalates to OOS the moment unit is assigned to work-zone ops. (Ruling #3 · 2026-05-19)
 
 
 ### Alarms · 2 OOS · 0 MONITOR
@@ -453,13 +445,22 @@ These items are classified but Safety must confirm the classification before pro
 - **Rationale:** Cosmetic damage outside vision area is monitor. Replace at next shop visit.
 
 
-### Wipers · 1 OOS · 1 MONITOR
+### Wipers · 2 OOS · 2 MONITOR
 
-#### 🛑 ⚠️ `Wipers — both blades sweep windshield cleanly · no streaking`
+#### 🛑 `Driver-side wiper — sweeps cleanly · no streaking · no torn blade`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.78 · CVSA OOS criteria
+- **Rationale:** Driver-side visibility is non-negotiable · any streaking, torn blade, or inop wiper on driver side = OOS. Florida/Texas storms develop fast. (Ruling #4 · 2026-05-19)
+
+#### 🛑 `Passenger-side wiper — sweeps cleanly when rain forecast in shift window`
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.78
-- **Rationale:** Required for wet-weather visibility. Single-blade failure or severe streaking is OOS for wet/winter ops.
-- **Uncertainty note:** *Dry-summer days a wiper issue is arguably monitor. Conservative OOS chosen.*
+- **Rationale:** Passenger-side wiper must be functional if rain is forecast in the shift window. Driver checks forecast at DVIR submission. (Ruling #4 · 2026-05-19)
+
+#### 👁 `Passenger-side wiper — minor streak acceptable · dry forecast in shift window · 3-day shop window`
+- **Severity:** MONITOR
+- **Reference:** 49 CFR § 393.78 (operational tier)
+- **Rationale:** Minor streak on passenger-side with dry forecast is Monitor with 3-day shop window. Escalates to OOS if forecast updates to rain. (Ruling #4 · 2026-05-19)
 
 #### 👁 `Washer fluid — sprays · reservoir not empty`
 - **Severity:** MONITOR
@@ -467,13 +468,12 @@ These items are classified but Safety must confirm the classification before pro
 - **Rationale:** Comfort/maintenance · monitor.
 
 
-### Hydraulic · 3 OOS · 0 MONITOR
+### Hydraulic · 3 OOS · 1 MONITOR
 
-#### 🛑 ⚠️ `Hydraulic system — no visible leaks`
+#### 🛑 `Hydraulic system — no active drip · no leak below MIN reservoir · no leak on bed-lift / boom / outrigger / brake-assist circuit`
 - **Severity:** OOS
-- **Reference:** operational · OSHA
-- **Rationale:** Major hydraulic leaks risk fire (oil on hot surfaces) + loss of bed control. OOS.
-- **Uncertainty note:** *'Visible leak' threshold needs Shop guidance · pinhole vs active drip differs operationally.*
+- **Reference:** OSHA 1926.602 · operational
+- **Rationale:** Active drip (forms a drop within 60 sec), any leak from brake-assist line, any leak from bed-lift / boom / outrigger pressure circuit, or fluid below MIN reservoir = OOS. Bed-lift failure under load = OSHA-reportable crush hazard. (Ruling #6 · 2026-05-19)
 
 #### 🛑 `Hydraulic — bed raise + lower smoothly · no drift`
 - **Severity:** OOS
@@ -484,6 +484,11 @@ These items are classified but Safety must confirm the classification before pro
 - **Severity:** OOS
 - **Reference:** operational · OSHA
 - **Rationale:** Hydraulic dump-trailer failure is operational + fire risk. OOS.
+
+#### 👁 `Hydraulic system — stable seep / film without active drip · reservoir AT or ABOVE MIN · not on load-supporting circuit`
+- **Severity:** MONITOR
+- **Reference:** OSHA 1926.602 (operational tier)
+- **Rationale:** Stable seep or film without drip formation + reservoir at or above MIN + not on a load-supporting / brake-assist circuit = Monitor with 5-day shop window. (Ruling #6 · 2026-05-19)
 
 
 ### Pto · 0 OOS · 1 MONITOR
@@ -573,47 +578,63 @@ These items are classified but Safety must confirm the classification before pro
 - **Rationale:** Conspicuity tape · monitor.
 
 
-### Tarp · 0 OOS · 1 MONITOR
+### Tarp · 1 OOS · 1 MONITOR
 
-#### 👁 ⚠️ `Tarp system — deploys + retracts · no major tears`
-- **Severity:** MONITOR
-- **Reference:** MASCI policy · state load-cover regs
-- **Rationale:** Load-loss potential is a haul-completion issue, not immediate roadway danger. Monitor unless tear is catastrophic.
-- **Uncertainty note:** *State load-cover requirements may upgrade this to OOS for some loads · Safety/Ops to confirm.*
-
-
-### Interior · 2 OOS · 2 MONITOR
-
-#### 🛑 ⚠️ `Cab — dash gauges functional (oil pressure · temp · fuel)`
+#### 🛑 `Tarp system — deploys + retracts · no tear > 6"×6" · functional on units assigned to aggregate / asphalt / dust-producing load haul`
 - **Severity:** OOS
-- **Reference:** 49 CFR § 393.51
-- **Rationale:** Missing engine gauges mask catastrophic failures · OOS.
-- **Uncertainty note:** *Modern trucks with computer-fault warning may be more permissive · Shop to confirm.*
+- **Reference:** Tex. Transp. Code § 725.021 · 49 CFR § 393.100 (load securement)
+- **Rationale:** Functional tarp + no tear larger than 6"×6" is required for any unit assigned to aggregate, asphalt, or dust-producing load haul. Uncovered load = state ticket + struck-by debris on highway. OOS for load-haul ops. (Ruling #9 · 2026-05-19)
+
+#### 👁 `Tarp system — minor tear < 6"×6" OR unit assigned to empty / equipment / non-dust haul · 5-day shop window`
+- **Severity:** MONITOR
+- **Reference:** MASCI operational tier
+- **Rationale:** Minor tear (< 6"×6") OR unit assigned to empty / equipment / non-dust haul = Monitor with 5-day shop window. Escalates to OOS the moment unit reassigned to aggregate / asphalt / dust haul. (Ruling #9 · 2026-05-19)
+
+
+### Interior · 3 OOS · 4 MONITOR
+
+#### 🛑 `Defroster — functional when ambient ≤ 40°F or precipitation forecast in shift window`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.79
+- **Rationale:** Defroster must be operational when ambient ≤ 40°F or precipitation forecast · driver cannot safely clear windshield/fogging without it. (Ruling #7 · 2026-05-19)
+
+#### 🛑 `Oil pressure & coolant temp gauges OR equivalent ECM warning system functional`
+- **Severity:** OOS
+- **Reference:** 49 CFR § 393.51 (spirit) · operational
+- **Rationale:** Engine protection signal (oil pressure + coolant temp) must be functional via dash gauge OR ECM warning system. Loss of both = engine destruction risk. OOS. (Ruling #8 · 2026-05-19)
 
 #### 🛑 `Seat belt — present · functional · no fraying`
 - **Severity:** OOS
 - **Reference:** 49 CFR § 393.93
 - **Rationale:** Required occupant restraint · OOS if non-functional.
 
-#### 👁 ⚠️ `Cab — heater / defroster operational (cold/wet weather)`
+#### 👁 `Cab heater — functional · escalates to OOS if window fogging affects visibility`
 - **Severity:** MONITOR
-- **Reference:** 49 CFR § 393.79
-- **Rationale:** Defroster needed for wet/cold visibility · monitor in dry summer but should be OOS in winter (driver discretion / dispatch policy).
-- **Uncertainty note:** *Seasonal sensitivity · Safety to set wet/cold OOS policy.*
+- **Reference:** 49 CFR § 393.79 (operational tier)
+- **Rationale:** Cab heater inop is driver-comfort Monitor only when above 40°F + dry forecast + no fogging. Escalates to OOS if fogging conditions affect windshield visibility (visibility is the actual safety concern, not comfort). 7-day shop window. (Ruling #7 · 2026-05-19)
 
 #### 👁 `Cab — interior cleanliness`
 - **Severity:** MONITOR
 - **Reference:** operational
 - **Rationale:** Accountability + lead-driver visibility · monitor.
 
+#### 👁 `Dash gauges (oil / temp) inop on units with ECM check-engine + fault display fully functional · 14-day shop window`
+- **Severity:** MONITOR
+- **Reference:** 49 CFR § 393.51 (operational tier · modern truck)
+- **Rationale:** On modern trucks (≥ 2010 model year) with functional ECM check-engine + fault display, analog dash gauges are supplemental · inop gauges acceptable for Monitor with 14-day shop window. Older / non-ECM trucks remain OOS for oil-pressure or temp gauge failure. (Ruling #8 · 2026-05-19)
+
+#### 👁 `Fuel gauge — functional · driver may estimate by miles · 7-day shop window`
+- **Severity:** MONITOR
+- **Reference:** operational
+- **Rationale:** Fuel gauge inop is Monitor only · driver can estimate by miles + fuel-up records. 7-day shop window. (Ruling #8 · 2026-05-19)
+
 
 ### Body · 1 OOS · 2 MONITOR
 
-#### 🛑 ⚠️ `Body — no severe damage affecting safe operation`
+#### 🛑 `Body — no frame/cab-mount fracture · no projecting metal or sharp edge · no loose panel/door · no rust-through on cab floor or fuel tank · no damage blocking mirror or windshield visibility`
 - **Severity:** OOS
-- **Reference:** operational
-- **Rationale:** Severe body damage that impairs safe operation (e.g. detached panel, hanging fender) is OOS.
-- **Uncertainty note:** *Subjective threshold · Safety to define 'severe' rubric.*
+- **Reference:** CVSA OOS criteria · 49 CFR § 393.201 (structural)
+- **Rationale:** Objective 5-test rubric replacing vague 'severe damage' wording. OOS only if damage meets one of: (a) frame/cab-mount fracture, (b) projecting metal hazardous to ground personnel, (c) loose panel/door/component at risk of falling, (d) rust-through on cab floor or fuel tank, (e) visibility-blocking damage to mirrors or windshield. Cosmetic damage = Monitor only. (Ruling #5 · 2026-05-19)
 
 #### 👁 `Body — cosmetic dings · scrapes · paint`
 - **Severity:** MONITOR
@@ -637,7 +658,7 @@ Before production reliance, each of the following must redline + sign:
 - [ ] **Operations** · confirms operational impact estimates (false-positive OOS productivity hit acceptable)
 - [ ] **Dispatch leadership** · confirms re-clearance authority + workflow
 
-Once signed, update `severity_table_version` in `fleet_defect_severity.py` from `v1-DRAFT-pending-safety-review` to `v1-approved-YYYY-MM-DD` and re-run this generator + the audit endpoint.
+Severity table currently stamped **`v1-approved-2026-05-19`**. After a re-rulings cycle, bump the version stamp + add a new dated rulings record (mirroring `/app/SEVERITY_RULINGS_iter251.md`) and re-run this generator + audit endpoint.
 
 ---
 
