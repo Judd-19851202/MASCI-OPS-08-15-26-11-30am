@@ -1,18 +1,19 @@
 // AdminSafetyUsersPanel — manage MASCI Safety Portal accounts (Safety
 // Manager, Safety Coordinator, Safety Officer). Mirrors
-// AdminHRUsersPanel pattern but with the cyan-700 accent.
+// AdminHRUsersPanel pattern with the cyan-700 accent.
 //
-// Phase 1 scope: list / add / edit / disable / delete + issue
-// per-user passwords. Welcome email delivery is Phase 5 — for now the
-// password is always revealed on screen for the admin to hand off
-// securely (matches HR "Show on Screen" path).
+// iter243 — Welcome-email delivery parity with HR/PM/Shop/Dispatch.
+// "Add User" now defaults to emailing a branded Safety Portal welcome
+// with the temp password + sign-in link. "Reset Password" opens a
+// choice dialog where the admin picks Email-to-User vs Show-on-Screen,
+// optionally with an admin-typed custom password.
 //
 // Backend:
 //   GET    /api/admin/safety-users
-//   POST   /api/admin/safety-users        {name, email, phone?, role?}
+//   POST   /api/admin/safety-users        {name, email, phone?, role?, delivery, custom_password?}
 //   PATCH  /api/admin/safety-users/:id    (partial)
 //   DELETE /api/admin/safety-users/:id
-//   POST   /api/admin/safety-users/:id/reset-password
+//   POST   /api/admin/safety-users/:id/reset-password  {delivery, custom_password?}
 import React, { useEffect, useState } from "react";
 import {
   ShieldAlert, Plus, Trash2, RefreshCcw, Pencil, Save, X, KeyRound, Copy,
@@ -42,8 +43,13 @@ export default function AdminSafetyUsersPanel() {
   const [editDraft, setEditDraft] = useState({});
   const [form, setForm] = useState({ name: "", email: "", phone: "", role: "Safety Coordinator" });
 
+  // Password reveal modal (used when admin chose Show-on-Screen or set a custom pw)
   const [showPwReveal, setShowPwReveal] = useState(false);
   const [pwReveal, setPwReveal] = useState({ name: "", email: "", password: "" });
+
+  // Issue/reset-password choice modal (iter243)
+  const [pwChoice, setPwChoice] = useState({ open: false, user: null, sending: false });
+  const [customPw, setCustomPw] = useState("");
 
   const refresh = async () => {
     setLoading(true);
@@ -65,11 +71,11 @@ export default function AdminSafetyUsersPanel() {
     if (!form.email.trim() || !form.email.includes("@")) return toast.error("Valid email required");
     setAdding(true);
     try {
-      const r = await api.post("/admin/safety-users", form);
+      // iter243 — Default: email a branded welcome with auto-generated
+      // temp password. Mirrors the HR/PM/Shop/Dispatch pattern.
+      const r = await api.post("/admin/safety-users", { ...form, delivery: "email" });
       const u = r.data?.user || {};
-      const tempPw = r.data?.temp_password || "";
-      setPwReveal({ name: u.name, email: u.email, password: tempPw });
-      setShowPwReveal(true);
+      toast.success(`Safety user added — welcome email sent to ${u.email}`);
       setForm({ name: "", email: "", phone: "", role: "Safety Coordinator" });
       refresh();
     } catch (err) {
@@ -121,15 +127,41 @@ export default function AdminSafetyUsersPanel() {
     }
   };
 
-  const issuePassword = async (u) => {
+  const issueShowOnScreen = async (u) => {
+    const custom = customPw.trim();
+    setCustomPw("");
+    setPwChoice({ open: false, user: null, sending: false });
     try {
-      const r = await api.post(`/admin/safety-users/${u.id}/reset-password`);
-      const tempPw = r.data?.temp_password || "";
-      setPwReveal({ name: u.name, email: u.email, password: tempPw });
+      const payload = custom ? { delivery: "custom", custom_password: custom } : { delivery: "screen" };
+      const r = await api.post(`/admin/safety-users/${u.id}/reset-password`, payload);
+      setPwReveal({ name: u.name, email: u.email, password: r.data?.temp_password || custom || "" });
       setShowPwReveal(true);
       refresh();
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Could not set password");
+    }
+  };
+
+  const issueEmail = async (u) => {
+    setPwChoice((p) => ({ ...p, sending: true }));
+    try {
+      const custom = customPw.trim();
+      if (custom) {
+        // Custom passwords are revealed on screen — backend currently
+        // only emails auto-generated temp passwords. Matches HR.
+        await api.post(`/admin/safety-users/${u.id}/reset-password`, { delivery: "custom", custom_password: custom });
+        setPwReveal({ name: u.name, email: u.email, password: custom });
+        setShowPwReveal(true);
+      } else {
+        await api.post(`/admin/safety-users/${u.id}/reset-password`, { delivery: "email" });
+        toast.success(`Welcome email sent to ${u.email}`);
+      }
+      setCustomPw("");
+      setPwChoice({ open: false, user: null, sending: false });
+      refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Email send failed");
+      setPwChoice((p) => ({ ...p, sending: false }));
     }
   };
 
@@ -158,9 +190,10 @@ export default function AdminSafetyUsersPanel() {
             </h3>
             <p className="text-sm text-slate-600 mt-1 max-w-xl">
               Add or remove Safety personnel and issue per-user passwords. Safety
-              users sign in at <strong>/safety-portal/login</strong> and only see
-              Safety-scoped data (overview KPIs, corrective actions, and — in later
-              phases — fire extinguishers, training records, and document library).
+              users sign in at <strong>/safety-portal/login</strong>. New users
+              receive a branded Safety Portal welcome email containing their
+              temp password and sign-in link — they're prompted to choose their
+              own password on first login.
             </p>
           </div>
         </div>
@@ -182,8 +215,8 @@ export default function AdminSafetyUsersPanel() {
           </SelectContent>
         </Select>
         <Button onClick={addUser} disabled={adding} className="bg-cyan-700 hover:bg-cyan-800 text-white h-10" data-testid="admin-safety-add-submit">
-          {adding ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Plus className="w-4 h-4 mr-1" />}
-          Add User
+          {adding ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Mail className="w-4 h-4 mr-1" />}
+          Add &amp; Email Welcome
         </Button>
       </div>
 
@@ -265,7 +298,7 @@ export default function AdminSafetyUsersPanel() {
                     ) : (
                       <div className="inline-flex gap-1">
                         <Button size="sm" variant="outline" onClick={() => startEdit(u)} className="h-8" title="Edit" data-testid={`admin-safety-edit-${u.id}`}><Pencil className="w-3.5 h-3.5" /></Button>
-                        <Button size="sm" variant="outline" onClick={() => issuePassword(u)} className="h-8" title="Issue password" data-testid={`admin-safety-pw-${u.id}`}><KeyRound className="w-3.5 h-3.5" /></Button>
+                        <Button size="sm" variant="outline" onClick={() => setPwChoice({ open: true, user: u, sending: false })} className="h-8" title="Issue / reset password" data-testid={`admin-safety-pw-${u.id}`}><KeyRound className="w-3.5 h-3.5" /></Button>
                         <Button size="sm" variant="outline" onClick={() => removeUser(u)} className="border-red-300 text-red-700 hover:bg-red-50 h-8" title="Delete" data-testid={`admin-safety-delete-${u.id}`}><Trash2 className="w-3.5 h-3.5" /></Button>
                       </div>
                     )}
@@ -277,7 +310,7 @@ export default function AdminSafetyUsersPanel() {
         </table>
       </div>
 
-      {/* Password reveal */}
+      {/* Password reveal (show-on-screen or custom pw paths) */}
       <Dialog open={showPwReveal} onOpenChange={setShowPwReveal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -306,6 +339,59 @@ export default function AdminSafetyUsersPanel() {
           </div>
           <DialogFooter>
             <Button onClick={() => setShowPwReveal(false)} className="bg-slate-700 hover:bg-slate-800 text-white">Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* iter243 — Issue / reset password choice modal */}
+      <Dialog open={pwChoice.open} onOpenChange={(open) => {
+        if (pwChoice.sending) return;
+        if (!open) setCustomPw("");
+        setPwChoice({ open, user: pwChoice.user, sending: false });
+      }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {pwChoice.user?.has_password ? `Reset password for ${pwChoice.user?.name}` : `Issue password for ${pwChoice.user?.name}`}
+            </DialogTitle>
+            <DialogDescription className="leading-relaxed text-sm">
+              Two ways to issue (or reset) this Safety user's password. <strong>Email to User</strong> auto-generates a temp pw and sends a branded Safety Portal welcome email. <strong>Show on Screen</strong> reveals a temp pw in a copy dialog. Or type a <strong>custom</strong> password below. The user must rotate to their own on first login regardless.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 pt-1">
+            <div className="bg-slate-50 border border-slate-200 rounded p-3">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold mb-1">Account</div>
+              <div className="text-sm">
+                <span className="font-bold">{pwChoice.user?.name}</span>{" "}
+                <span className="font-mono text-slate-500">&lt;{pwChoice.user?.email}&gt;</span>
+              </div>
+            </div>
+            <div>
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
+                Custom password (optional — leave blank to auto-generate)
+              </Label>
+              <Input
+                type="text"
+                value={customPw}
+                onChange={(e) => setCustomPw(e.target.value)}
+                placeholder="At least 8 characters"
+                className="h-10 text-sm mt-1 font-mono"
+                data-testid="admin-safety-pw-custom"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-wrap gap-2 pt-2">
+            <Button variant="outline" onClick={() => { setCustomPw(""); setPwChoice({ open: false, user: null, sending: false }); }} disabled={pwChoice.sending} data-testid="admin-safety-pw-cancel">
+              Cancel
+            </Button>
+            <Button variant="outline" onClick={() => issueShowOnScreen(pwChoice.user)} disabled={pwChoice.sending} data-testid="admin-safety-pw-show">
+              <KeyRound className="w-4 h-4 mr-1" />
+              {customPw.trim() ? "Set custom · Show" : "Show on Screen"}
+            </Button>
+            <Button onClick={() => issueEmail(pwChoice.user)} disabled={pwChoice.sending || !pwChoice.user?.email} className="bg-cyan-700 hover:bg-cyan-800 text-white" data-testid="admin-safety-pw-email">
+              {pwChoice.sending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Mail className="w-4 h-4 mr-1" />}
+              {customPw.trim() ? "Set custom · Email" : "Email to User"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

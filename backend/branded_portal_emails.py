@@ -37,6 +37,14 @@ _PORTAL_THEMES: Dict[str, Dict[str, str]] = {
         "sub_eyebrow": "HR Portal · Account",
         "accent": "#7e22ce",         # purple — matches HR accent
     },
+    "Safety": {
+        "sub_eyebrow": "Safety Portal · Account",
+        "accent": "#0e7490",         # cyan-700 — matches Safety accent in the UI
+    },
+    "Dispatch": {
+        "sub_eyebrow": "Dispatch Portal · Account",
+        "accent": "#0891b2",         # cyan-600 — matches Dispatch accent
+    },
 }
 
 

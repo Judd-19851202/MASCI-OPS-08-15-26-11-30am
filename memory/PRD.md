@@ -1,5 +1,85 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 — iter243 · Safety Users admin welcome-email parity · ✅ DELIVERED (preview only)
+
+Operator-surfaced gap (recurring): Admin Portal → **Safety Users & Logins** did not offer the email-password-to-user option that PM / Shop / HR / Dispatch panels already had. The file's own header comment literally read *"Welcome email delivery is Phase 5 — for now the password is always revealed on screen"*. Never shipped.
+
+This iter brings Safety to **full feature parity** with HR/PM/Shop/Dispatch.
+
+### Backend changes
+- `branded_portal_emails.py` — added "Safety" theme to `_PORTAL_THEMES` (cyan-700 accent, matches Safety Portal UI).
+- `routes/safety_portal/_models.py` — added `delivery` and `custom_password` fields to `SafetyUserCreate`; added new `SafetyResetPasswordBody` with the same shape (mirrors HR pattern).
+- `routes/safety_portal/auth_users.py` — added `_send_safety_welcome_email()` helper that renders a branded Safety Portal welcome with temp password + sign-in URL + "Sign in & set password" CTA. Both `/admin/safety-users` (create) and `/admin/safety-users/:id/reset-password` (reset) now accept the same 3 delivery modes that every other portal supports:
+  - `delivery="email"` — sends the branded welcome, **suppresses `temp_password` from the response** so the admin UI doesn't double-deliver
+  - `delivery="screen"` — returns `temp_password` so the admin can copy/hand off in person (legacy behavior preserved)
+  - `delivery="custom"` — admin-typed password, revealed on screen for hand-off (email-of-custom passwords intentionally not supported; matches HR)
+
+### Frontend changes
+- `components/AdminSafetyUsersPanel.jsx` — full rewrite to mirror the HR panel's UX:
+  - "Add User" button now defaults to **"Add & Email Welcome"** with a Mail icon — auto-emails a branded welcome on creation
+  - "Issue / Reset Password" row action opens a choice dialog with **Email to User** (primary, cyan-700) / **Show on Screen** (secondary) / optional custom password input
+  - Password-reveal modal preserved for show-on-screen and custom paths
+  - Updated panel intro copy to explicitly mention the new welcome-email behavior so admins know what to expect
+  - Cyan-700 accent preserved throughout (matches Safety Portal theme)
+
+### Architecture invariants preserved
+- ❌ NOT touched: `safety_users.py` storage layer · password hashing · login endpoints · must_change semantics · auth gates
+- ❌ NOT touched: iter238 email subject system · iter242 PO workflow · any other portal's admin panel
+- ❌ NOT touched: existing endpoints' default behavior — callers that don't pass `delivery` still get `screen` (back-compat)
+
+### Files touched (4 surgical edits)
+- MOD: `backend/branded_portal_emails.py` (+1 theme entry for Safety)
+- MOD: `backend/routes/safety_portal/_models.py` (+`delivery`/`custom_password` on create model + new reset-password model)
+- MOD: `backend/routes/safety_portal/auth_users.py` (+welcome-email helper, +delivery wiring on both endpoints)
+- MOD: `frontend/src/components/AdminSafetyUsersPanel.jsx` (full UX rewrite mirroring HR pattern)
+- NEW: `backend/tests/test_iter243_safety_users_email_delivery.py` (6 tests covering all 3 delivery modes on create + reset, back-compat default, anon block)
+- MOD: `memory/PRD.md` (this entry)
+
+### Tests — 6/6 pass
+- `test_iter243_create_screen_delivery_returns_temp_password`
+- `test_iter243_create_email_delivery_suppresses_temp_password`
+- `test_iter243_create_custom_password_is_honored`
+- `test_iter243_reset_password_supports_all_delivery_modes` (all 3 modes in one test)
+- `test_iter243_reset_password_defaults_to_screen` (back-compat invariant)
+- `test_iter243_anon_blocked_on_create_and_reset` (auth invariant)
+
+### Gate verification
+`pre_deploy_verify.py --fast` →
+
+| Phase | Verdict | Detail |
+|---|---|---|
+| 1 · Regression | PASS | 624 passed · 1 skipped · 24s |
+| 2 · Build | PASS | requirements/package/env/lint clean |
+| 4 · Production-safety | PASS | All 7 anon-RBAC probes returned 0 tips |
+| 5 · Classification | MEDIUM · NOT auth-sensitive · NOT data-sensitive · NOT rollback-sensitive · affected portals: safety, admin |
+| **Overall** | **✅ APPROVE** | 25.8s · report `/app/deploy_reports/20260519_011309_deploy_summary.md` |
+
+### Operator-visible difference
+| Before | After |
+|---|---|
+| Safety Users panel: "Add User" creates account + always reveals temp password on screen | "Add & Email Welcome" creates account + emails branded welcome (with sign-in URL + CTA). Admin can also pick Show-on-Screen or set a Custom password from the password-issue dialog. |
+
+🟢 Preview only · gate APPROVE · iter238 email subject system explicitly untouched.
+
+### Next Action Items
+- ⏸ Operator review of iter243 batch
+- ⏸ Save to Github → Deploy on mascidocs.com (production currently lacks this feature — redeploy required for production parity)
+- ⏸ Resume stabilization/observation posture
+
+### Future / Backlog (unchanged)
+- 🟡 Deep-portal localization sweep (~544 strings · iter241 backlog)
+- 🟡 Lesson-level `title_es` content-data localization
+- 🟡 Long legal-page paragraph translation (lawyer-reviewed)
+- Phase K4b · Unified User Management UI mutations (P2)
+- Phase K5 · Temp Password / Onboarding standardization (P2)
+- Stage B.1 · Owner Snapshot PDF (P2)
+- Static orientation surfaces (P2 · iter231)
+- Held · HelpTip helpfulness pulse telemetry
+- Strategic Hold · Operator mid-day-defect architectural decision
+
+---
+
+
 ## 2026-05-18 — iter242 · PO Request authority-boundary clarification · ✅ DELIVERED (preview only)
 
 Operator-surfaced operational governance correction. Field Leadership UI/workflow was unintentionally implying that field supervisors could **create official Purchase Orders**, when the real authority chain is:

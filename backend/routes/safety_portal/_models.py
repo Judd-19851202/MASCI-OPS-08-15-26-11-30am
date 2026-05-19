@@ -42,6 +42,15 @@ class SafetyUserCreate(BaseModel):
     email: str
     phone: Optional[str] = ""
     role: Optional[str] = "Safety Coordinator"
+    # iter243 — Welcome-email delivery parity with HR/PM/Shop/Dispatch.
+    # delivery ∈ {email, screen, custom}. "email" sends a branded
+    # welcome email containing the temp password and a sign-in link.
+    # "screen" returns the temp password in the response for the admin
+    # to hand off securely. "custom" accepts an admin-typed password
+    # (revealed on screen, never emailed). Default stays "screen" for
+    # backward compatibility with any existing admin scripts.
+    delivery: Optional[str] = "screen"
+    custom_password: Optional[str] = None
 
 
 class SafetyUserUpdate(BaseModel):
@@ -51,6 +60,12 @@ class SafetyUserUpdate(BaseModel):
     role: Optional[str] = None
     is_active: Optional[bool] = None
     disabled: Optional[bool] = None
+
+
+# iter243 — Reset-password body for admin-issued password rotation.
+class SafetyResetPasswordBody(BaseModel):
+    delivery: Optional[str] = "screen"      # email | screen | custom
+    custom_password: Optional[str] = None
 
 
 # ── Phase 2 — Corrective Actions ─────────────────────────────────────

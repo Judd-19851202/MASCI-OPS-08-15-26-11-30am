@@ -38,6 +38,7 @@ from ._models import (
     ResetPasswordBody,
     SafetyLoginBody,
     SafetyLoginResponse,
+    SafetyResetPasswordBody,
     SafetyUserCreate,
     SafetyUserUpdate,
 )
@@ -149,6 +150,54 @@ def register_auth_routes(
     # ════════════════════════════════════════════════════════════════
     # Admin user management
     # ════════════════════════════════════════════════════════════════
+    #
+    # iter243 — Welcome-email delivery parity with HR/PM/Shop/Dispatch.
+    # Admin can now send the temp password via a branded Safety Portal
+    # welcome email (matching the HR/PM/Shop/Dispatch pattern), reveal
+    # it on screen for in-person handoff, or set a custom password.
+    async def _send_safety_welcome_email(
+        user_email: str, name: str, temp_password: str,
+    ) -> None:
+        if not send_email_fn:
+            logger.info(f"[safety welcome] {user_email} → {temp_password}")
+            return
+        import os  # noqa: PLC0415
+        from branded_portal_emails import render_portal_email  # noqa: PLC0415
+        base = os.environ.get("PUBLIC_APP_URL", "https://mascidocs.com").rstrip("/")
+        login_url = f"{base}/safety-portal/login"
+        accent = "#0e7490"  # Safety cyan-700 — matches portal theme + UI
+        body_html = (
+            f"<p style='margin:0 0 12px'>Hi {name},</p>"
+            f"<p style='margin:0 0 12px'>Your MASCI Safety Portal account has been created. "
+            f"Sign in with your work email and the temporary password below — "
+            f"<strong>you'll be asked to choose your own password on first login.</strong></p>"
+            f"<table style='margin:14px 0;border-collapse:collapse;width:100%;'>"
+            f"  <tr><td style='padding:6px 0;font-family:Courier New,monospace;text-transform:uppercase;letter-spacing:0.18em;font-size:10px;color:#475569;font-weight:bold;width:42%'>Sign-in URL</td>"
+            f"      <td style='padding:6px 0;font-size:13px;'><a href='{login_url}' style='color:{accent};font-weight:600'>{login_url}</a></td></tr>"
+            f"  <tr><td style='padding:6px 0;font-family:Courier New,monospace;text-transform:uppercase;letter-spacing:0.18em;font-size:10px;color:#475569;font-weight:bold;'>Email</td>"
+            f"      <td style='padding:6px 0;font-family:Courier New,monospace;font-size:13px;color:#0f172a'>{user_email}</td></tr>"
+            f"  <tr><td style='padding:6px 0;font-family:Courier New,monospace;text-transform:uppercase;letter-spacing:0.18em;font-size:10px;color:#475569;font-weight:bold;'>Temporary password</td>"
+            f"      <td style='padding:6px 0;font-family:Courier New,monospace;font-size:14px;color:#0f172a;background:#f8fafc;border:1px dashed #94a3b8;padding-left:8px;border-radius:4px'><strong>{temp_password}</strong></td></tr>"
+            f"</table>"
+            f"<p style='margin:14px 0 6px'>"
+            f"<a href='{login_url}' style='display:inline-block;padding:11px 22px;background:{accent};color:#fff;text-decoration:none;font-weight:700;border-radius:4px;font-size:13px'>Sign in &amp; set password</a>"
+            f"</p>"
+            f"<p style='margin:18px 0 0;font-size:12px;color:#94a3b8'>For security, please change your password immediately after signing in.</p>"
+        )
+        html = render_portal_email(
+            portal="Safety",
+            headline="Your MASCI Safety Portal account",
+            body_inner_html=body_html,
+        )
+        try:
+            await send_email_fn(
+                user_email,
+                "[MASCI] Your Safety Portal account — temporary password inside",
+                html,
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"safety welcome email failed: {e}")
+
     @api_router.get("/admin/safety-users", dependencies=[Depends(require_admin)])
     async def admin_list_safety_users():
         users = await list_safety_users(db)
@@ -157,12 +206,24 @@ def register_auth_routes(
     @api_router.post("/admin/safety-users", dependencies=[Depends(require_admin)])
     async def admin_create_safety_user(body: SafetyUserCreate):
         try:
-            user = await add_safety_user(db, body.dict())
+            user = await add_safety_user(db, body.dict(exclude={"delivery", "custom_password"}))
         except ValueError as e:
             raise HTTPException(400, str(e))
-        temp_pw = generate_temp_password()
+        delivery = (body.delivery or "screen").lower()
+        if delivery == "custom" and body.custom_password:
+            temp_pw = body.custom_password
+        else:
+            temp_pw = generate_temp_password()
         await set_safety_user_password(db, user["id"], temp_pw, must_change=True)
-        return {"user": public_safety_user_view(user), "temp_password": temp_pw}
+        if delivery == "email":
+            await _send_safety_welcome_email(user["email"], user["name"], temp_pw)
+        return {
+            "user": public_safety_user_view(user),
+            # iter243 — Suppress temp_password from the response when it
+            # was emailed, so the admin UI doesn't accidentally surface
+            # a password that was already delivered out-of-band.
+            "temp_password": temp_pw if delivery != "email" else None,
+        }
 
     @api_router.patch("/admin/safety-users/{user_id}", dependencies=[Depends(require_admin)])
     async def admin_update_safety_user(user_id: str, body: SafetyUserUpdate):
@@ -178,12 +239,26 @@ def register_auth_routes(
         "/admin/safety-users/{user_id}/reset-password",
         dependencies=[Depends(require_admin)],
     )
-    async def admin_reset_safety_password(user_id: str):
-        temp_pw = generate_temp_password()
+    async def admin_reset_safety_password(
+        user_id: str,
+        body: SafetyResetPasswordBody = SafetyResetPasswordBody(),
+    ):
+        delivery = (body.delivery or "screen").lower()
+        if delivery == "custom" and body.custom_password:
+            temp_pw = body.custom_password
+        else:
+            temp_pw = generate_temp_password()
         updated = await set_safety_user_password(db, user_id, temp_pw, must_change=True)
         if not updated:
             raise HTTPException(404, "Not found")
-        return {"user": public_safety_user_view(updated), "temp_password": temp_pw}
+        if delivery == "email":
+            await _send_safety_welcome_email(
+                updated["email"], updated["name"], temp_pw,
+            )
+        return {
+            "user": public_safety_user_view(updated),
+            "temp_password": temp_pw if delivery != "email" else None,
+        }
 
     @api_router.delete("/admin/safety-users/{user_id}", dependencies=[Depends(require_admin)])
     async def admin_delete_safety_user(user_id: str):
