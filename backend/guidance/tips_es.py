@@ -1280,6 +1280,229 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "primero es la evaluación; lo segundo es el papel tapiz.",
     },
 
+    # ── iter291 · Field-Leadership umbrella density lift ─────────────
+
+    # verbal_coaching
+    ("verbal_coaching", "why"): {
+        "title_es": "Por qué la asesoría verbal necesita una línea escrita",
+        "body_es":
+            "La asesoría verbal que nadie documentó es la asesoría "
+            "verbal que no pasó — desde la perspectiva de RH, del "
+            "siguiente super, y (si alguna vez sale el tema) de un "
+            "abogado. Una línea de 'hablé con X sobre Y el día Z' "
+            "lo protege a usted, protege al operador, y convierte "
+            "la misma conversación en un patrón de coaching en vez "
+            "de un evento aislado.",
+    },
+    ("verbal_coaching", "next"): {
+        "title_es": "Escriba el próximo paso acordado, no solo la charla",
+        "body_es":
+            "El seguimiento es lo que hace real la asesoría verbal. "
+            "Escriba lo que dijo, escriba lo que el operador acordó "
+            "hacer después, y póngale fecha. 'Hablé con Marcos "
+            "sobre el control de herramienta — acordó conteo diario "
+            "al checkout para el 2026-03-20' es un registro de "
+            "coaching. 'Hablé con Marcos' es una nota pegada que "
+            "nadie puede hacer cumplir.",
+    },
+
+    # attendance
+    ("attendance", "why"): {
+        "title_es": "Por qué la asistencia se registra cuando pasa",
+        "body_es":
+            "Un día de falta es un dato. Tres días en un mes es un "
+            "patrón. Cinco días en un trimestre es un problema. "
+            "Nada de eso existe si la asistencia solo se registra "
+            "cuando alguien está molesto — registre el dato el día "
+            "que pasa, neutralmente, para que el patrón hable por "
+            "sí mismo después en vez de depender de la memoria.",
+    },
+    ("attendance", "escalate"): {
+        "title_es": "Cuándo dejar de aguantarlo",
+        "body_es":
+            "Si lleva tres semanas pensando 'tal vez tiene algo "
+            "pasando', la respuesta es RH. Ellos tienen "
+            "herramientas — políticas de licencia, asistencia al "
+            "empleado, caminos de acomodo — que usted no, y la "
+            "única manera de que las usen es si lo saben. Aguantar "
+            "la asistencia no protege a nadie. Documente el patrón, "
+            "entrégueselo a RH, deje que el sistema correcto lo "
+            "maneje.",
+    },
+
+    # recognition
+    ("recognition", "why"): {
+        "title_es": "Por qué el reconocimiento pertenece al registro",
+        "body_es":
+            "El reconocimiento que vive solo en un texto del "
+            "viernes es reconocimiento que el operador no puede "
+            "llevar a su próxima conversación de aumento. La misma "
+            "línea que dijo en voz alta, archivada aquí, es lo que "
+            "RH ve a la hora de revisión y lo que el operador "
+            "carga adelante. No es burocracia — es hacer que el "
+            "reconocimiento valga después del momento.",
+    },
+    ("recognition", "mistake"): {
+        "title_es": "El elogio genérico es papel tapiz",
+        "body_es":
+            "'Trabaja duro.' 'Buena actitud.' 'Buen compañero.' Si "
+            "la línea de reconocimiento le queda a cualquier "
+            "operador de cualquier cuadrilla, no le ganó nada a "
+            "nadie. Nombre el momento específico — el día, la "
+            "unidad, la decisión, el resultado. El reconocimiento "
+            "específico es evidencia; el genérico es papel tapiz "
+            "que dice que no pasó nada.",
+    },
+
+    # new_employee_eval
+    ("new_employee_eval", "why"): {
+        "title_es": "Por qué los primeros 30 días son la ventana barata de corregir",
+        "body_es":
+            "Los primeros 30 días son la única ventana donde un "
+            "hábito se corrige como calibración en vez de como "
+            "corrección. Dígale a un operador nuevo el día 12 que "
+            "está callado en la radio y lo arregla. Dígale el día "
+            "412 y ya está teniendo una conversación de write-up. "
+            "Use esta evaluación para calibrar mientras todavía es "
+            "barato.",
+    },
+    ("new_employee_eval", "next"): {
+        "title_es": "Hacia dónde dirigir los próximos 30 días",
+        "body_es":
+            "Escoja una o dos cosas específicas que quiere "
+            "diferente el próximo mes. Dígaselo al operador. "
+            "Dígaselo a RH (si importa a la marca de 60 días). "
+            "Escriba la fecha en que va a re-revisar. Las "
+            "evaluaciones de nuevo ingreso que dicen 'bien, nos "
+            "vemos en 6 meses' son las que producen supers "
+            "sorprendidos en marzo.",
+    },
+
+    # promotion_recommendation
+    ("promotion_recommendation", "why"): {
+        "title_es": "Por qué esto necesita defenderse en 12 meses",
+        "body_es":
+            "Una recomendación de ascenso es una decisión de "
+            "contratar/promover de la que le van a preguntar un "
+            "año después cuando el operador o prospera o batalla. "
+            "Escríbala para que la respuesta esté en el registro: "
+            "qué evidencia respalda el rol del siguiente nivel, "
+            "qué huecos siguen, qué se comprometió a apoyar. Las "
+            "recomendaciones vagas envejecen mal.",
+    },
+    ("promotion_recommendation", "mistake"): {
+        "title_es": "Listo ≠ Caer bien",
+        "body_es":
+            "El error más común de ascenso es recomendar a un "
+            "operador porque le cae bien trabajar con él, no "
+            "porque ya demostró el trabajo del siguiente nivel. "
+            "Pregúntese: ¿esta persona ya ha estado haciendo el "
+            "trabajo más duro, solo sin el título? Si sí, "
+            "recomiende. Si no, está apostando al potencial — "
+            "dígalo explícitamente, no lo esconda detrás de "
+            "'gran actitud'.",
+    },
+
+    # training_deficiency
+    ("training_deficiency", "why"): {
+        "title_es": "Una deficiencia es un hueco, no una falla",
+        "body_es":
+            "La deficiencia de entrenamiento existe para que el "
+            "hueco se cierre, no para que se castigue al operador. "
+            "Enmárquelo así en el registro: qué habilidad o "
+            "certificado falta, qué trabajo depende de eso, cómo "
+            "se ve cerrarlo. Si la deficiencia del mismo operador "
+            "se queda abierta tres meses, la falla es la "
+            "programación, no el operador.",
+    },
+    ("training_deficiency", "next"): {
+        "title_es": "Nombre el entrenamiento y al responsable",
+        "body_es":
+            "Escriba el entrenamiento específico que cierra el "
+            "hueco — OSHA 10, Montacargas, Espacios Confinados, "
+            "lo que sea — y escriba quién es responsable de "
+            "programarlo (usualmente Seguridad, a veces RH). Las "
+            "deficiencias sin clase nombrada y responsable "
+            "nombrado no se cierran solas. Solo se convierten en "
+            "el hallazgo de auditoría del siguiente trimestre.",
+    },
+
+    # supervisor_notes
+    ("supervisor_notes", "why"): {
+        "title_es": "Por qué existen las notas del supervisor",
+        "body_es":
+            "El supervisor anterior sabía cosas de este operador "
+            "que usted va a tardar seis semanas en re-aprender si "
+            "no están escritas — que no corre la 320 después del "
+            "incidente de 2024, que su radio se queda callada en "
+            "la obra de McCray por una razón, que es al que el "
+            "Taller le confía las orugas nuevas. Las notas del "
+            "supervisor preservan ese contexto para el siguiente "
+            "super.",
+    },
+    ("supervisor_notes", "mistake"): {
+        "title_es": "No escriba lo que no leería en voz alta",
+        "body_es":
+            "Las notas del supervisor no son un archivo de quejas. "
+            "Si la nota no sobreviviría ser leída en voz alta al "
+            "operador, a RH, o a un abogado, no pertenece aquí. "
+            "Escriba el contexto que el siguiente super necesita "
+            "para hacer el trabajo — no la frustración que "
+            "necesitaba sacarse de la cabeza a las 9 PM un "
+            "jueves.",
+    },
+
+    # field-leadership.records.follow-through
+    ("field-leadership.records.follow-through", "why"): {
+        "title_es": "Por qué el seguimiento es el punto entero",
+        "body_es":
+            "Cada registro de FL — write-ups, asesorías, "
+            "reconocimientos, evaluaciones, deficiencias — solo "
+            "importa si el siguiente paso de verdad pasa. El "
+            "registro sin seguimiento es un archivo de papel que "
+            "el operador ya aprendió a ignorar. El registro CON "
+            "seguimiento es la razón por la que una cuadrilla "
+            "confía que el liderazgo está poniendo atención.",
+    },
+    ("field-leadership.records.follow-through", "next"): {
+        "title_es": "Cómo hacer visible el seguimiento",
+        "body_es":
+            "Cuando archive un registro que requiere seguimiento, "
+            "escriba en el registro mismo la fecha en que va a "
+            "re-revisar. Póngalo en su calendario. Cuando llegue "
+            "la fecha, archive el registro de seguimiento "
+            "(reconocimiento si fue bien, otra línea de "
+            "asesoría si no). La cuadrilla ve la diferencia "
+            "entre supers cuyos registros tienen fechas de "
+            "seguimiento y supers cuyos registros se quedan "
+            "solos. Esa visibilidad es la credibilidad.",
+    },
+
+    # field-leadership.records.documentation-discipline
+    ("field-leadership.records.documentation-discipline", "why"): {
+        "title_es": "Por qué algunas cosas van en el registro y otras no",
+        "body_es":
+            "El registro de FL es el archivo que lee el siguiente "
+            "super, RH y (si llega a eso) un abogado. Eso "
+            "significa que es para hechos, fechas, y lo acordado "
+            "— no para sentimientos que necesitaba expresar ese "
+            "día. La regla operacional: si la línea no "
+            "sobreviviría ser leída al operador, es una llamada "
+            "a su PM, no una entrada del registro.",
+    },
+    ("field-leadership.records.documentation-discipline", "mistake"): {
+        "title_es": "Errores comunes de documentación que envejecen mal",
+        "body_es":
+            "Escribir lo que cree en vez de lo que pasó. Saltarse "
+            "la fecha. Archivar el registro pero no decirle al "
+            "operador. Escribir en caliente el mismo día en vez "
+            "de dejar pasar un ciclo para tener claridad. Enterrar "
+            "una referencia de seguridad dentro de una nota "
+            "diaria en vez de archivar un incidente. Los "
+            "registros que envejecen bien son los que un "
+            "desconocido podría leer y entender sin contexto.",
+    },
+
     # ── iter218 · dispatch.idle-alerts ───────────────────────────────
     ("dispatch.idle-alerts", "why"): {
         "title_es": "Por qué las alertas de inactividad son oportunidad, no culpa",

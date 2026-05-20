@@ -1,5 +1,47 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 — iter291 · Field-Leadership umbrella coaching density lift · CLOSED
+
+Third and final closure of the iter288-audit sequence. Field-Leadership umbrella was matrix-yellow because 7 of 10 FL record kinds shipped with zero coaching mount. iter291 closes those orphans without restructuring the umbrella.
+
+### iter291 — FL umbrella density lift (CLOSED)
+- **Closed 7 orphan FL kinds** with focused 2-tip operational discipline families:
+  - `verbal_coaching` (why · documented follow-through · next: agreed next step + date)
+  - `attendance` (why: one day = data, three = pattern, five = problem · escalate: hand to HR)
+  - `recognition` (why: belongs on the record · mistake: generic praise is "wallpaper")
+  - `new_employee_eval` (why: first 30 days = cheap-correction window · next: name 1-2 specifics)
+  - `promotion_recommendation` (why: defends itself in 12 months · mistake: Ready ≠ Likable)
+  - `training_deficiency` (why: gap not fault · next: named class + named owner)
+  - `supervisor_notes` (why: context preservation for next super · mistake: NOT a vent file)
+- **2 new cross-cutting umbrella sub-keys:**
+  - `field-leadership.records.follow-through` (why + next · the discipline that ties every FL record together)
+  - `field-leadership.records.documentation-discipline` (why + mistake · what belongs on the record vs what belongs in a phone call)
+- **16 EN + 16 ES tips** authored, foreman/superintendent operational voice, zero LMS / management-theory drift.
+- **Zero new UI components** — `FL_KIND_HELPTIP_FORMKEY` map extended one-line per kind, existing FormPage mount auto-picks-up.
+- **Tests:** `test_iter291_field_leadership_density.py` — 38/38 ✅ (per-kind floor + why-tip + ES merge + scope + LMS-ban + ≥10 umbrella-namespace count + ≥30 workflow total + every-kind-coached + attendance pattern-framing + recognition wallpaper-anchor + supervisor_notes vent-file-ban — all in BOTH languages).
+- **Live verified:** 7 new families return ≥2 tips each via API · ES titles render · frontend smoke confirms tips render at `/leadership/attendance/new` + `/leadership/recognition/new`.
+- **Matrix row flipped:** Field-Leadership umbrella → `Coach ✅ 10 · Tests ✅ · Parity ✅ · Complete ✅`.
+
+### Milestone
+🟢 **Field & Safety section of the matrix is now fully green** — joining HR & People as the second complete section.
+
+### Combined regression
+- **243/243 unit pytests** across iter224 + iter225 + iter282 + iter283 + iter285 + iter286 + iter287 + iter288 + iter289 + iter290 + iter291.
+
+### iter288-audit sequence (CLOSED · 3-of-3 done)
+- iter289 → Safety Training Records ✅
+- iter290 → Safety Documents ✅
+- iter291 → Field-Leadership umbrella ✅
+
+### Files touched (iter291)
+- MOD · `/app/backend/guidance/tips.py` (+18 EN tips · 7 FL kinds + 2 umbrella sub-keys)
+- MOD · `/app/backend/guidance/tips_es.py` (+18 ES tips)
+- MOD · `/app/frontend/src/pages/FieldLeadershipFormPage.jsx` (FL_KIND_HELPTIP_FORMKEY map · +7 one-line entries)
+- NEW · `/app/backend/tests/test_iter291_field_leadership_density.py`
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (FL umbrella row flipped · ship-log entry)
+
+---
+
 ## 2026-05-20 — iter290 · Safety Documents coaching-family parity · CLOSED
 
 Second and final closure of the iter288-audit Safety-cluster pair. Workflow shipped since iter120 Phase 3 (magic-byte PDF validation + 15 MB cap) but matrix-tracked red on Coach/4-Kinds/Tests/Parity. iter290 closes the coaching parity gap without touching the upload pipeline.

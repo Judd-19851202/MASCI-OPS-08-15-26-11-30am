@@ -45,6 +45,17 @@ const FL_KIND_HELPTIP_FORMKEY = {
   // iter218 — Crew Eval: migrated from legacy WhyItMattersPanel.
   // Voice anchor: calibration beats scoring; specific examples beat generalizations.
   crew_eval: "crew_eval",
+  // iter291 — Field-Leadership umbrella coaching density lift.
+  // Each kind gets a focused 2-tip operational discipline family;
+  // the existing mount at line ~712 of this file picks them up
+  // automatically via this map. No new UI components.
+  verbal_coaching: "verbal_coaching",
+  attendance: "attendance",
+  recognition: "recognition",
+  new_employee_eval: "new_employee_eval",
+  promotion_recommendation: "promotion_recommendation",
+  training_deficiency: "training_deficiency",
+  supervisor_notes: "supervisor_notes",
 };
 
 // Phase C · contextual guidance map per FL form kind (iter194).

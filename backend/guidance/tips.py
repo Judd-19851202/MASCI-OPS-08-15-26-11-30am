@@ -1771,6 +1771,294 @@ _TIPS: list[dict] = [
     },
 
     # ─────────────────────────────────────────────────────────────────
+    # iter291 · Field-Leadership umbrella coaching density lift.
+    #
+    # Pre-iter291 state: 6 tips covering `field-leadership.records` +
+    # its review-tone sub-key, plus dedicated families for the 3 FL
+    # kinds wired through `FL_KIND_HELPTIP_FORMKEY` (`checkout`,
+    # `writeup`, `crew_eval`). The other 7 FL record kinds shipped
+    # with zero coaching mount — orphan workflows by every audit
+    # criterion.
+    #
+    # iter291 closes those orphans without restructuring the umbrella
+    # and without adding new UI components. Every new key is auto-
+    # picked up by the existing FormPage HelpTipBlock mount via a
+    # one-line addition to `FL_KIND_HELPTIP_FORMKEY`. Tip count per
+    # kind kept tight: 2 operationally-meaningful tips each, focused
+    # on the specific operational discipline that record requires.
+    # No canonical-4 inflation, no soft-leadership language, no
+    # culture-building rhetoric.
+    # ─────────────────────────────────────────────────────────────────
+
+    # ── verbal_coaching ──────────────────────────────────────────────
+    {
+        "form_key": "verbal_coaching",
+        "kind": "why",
+        "scopes": ["leadership", "admin"],
+        "title": "Why verbal coaching needs a written line",
+        "body":
+            "The verbal coaching that nobody documented is the verbal "
+            "coaching that didn't happen — from HR's perspective, "
+            "from the next super's perspective, and (if it ever "
+            "comes up) from a lawyer's perspective. A one-line "
+            "record of 'I talked to X about Y on Z' protects you, "
+            "protects the operator, and turns the same conversation "
+            "into a coaching pattern instead of a one-off.",
+    },
+    {
+        "form_key": "verbal_coaching",
+        "kind": "next",
+        "scopes": ["leadership", "admin"],
+        "title": "Write the agreed next step, not just the talk",
+        "body":
+            "The follow-through is what makes verbal coaching real. "
+            "Write what you said, write what the operator agreed to "
+            "do next, and give it a date. 'Talked to Marcus about "
+            "tool accountability — agreed to a daily checkout count "
+            "by 2026-03-20' is a coaching record. 'Talked to Marcus' "
+            "is a sticky note nobody can hold him to.",
+    },
+
+    # ── attendance ───────────────────────────────────────────────────
+    {
+        "form_key": "attendance",
+        "kind": "why",
+        "scopes": ["leadership", "admin"],
+        "title": "Why attendance gets recorded as it happens",
+        "body":
+            "One day off is a data point. Three days in a month is a "
+            "pattern. Five days in a quarter is a problem. None of "
+            "those exist if attendance only gets recorded when "
+            "someone is mad — record the data point the day it "
+            "happens, neutrally, so the pattern can speak for "
+            "itself later instead of relying on memory.",
+    },
+    {
+        "form_key": "attendance",
+        "kind": "escalate",
+        "scopes": ["leadership", "admin"],
+        "title": "When to stop sitting on it",
+        "body":
+            "If you're three weeks into 'maybe he's got something "
+            "going on,' the answer is HR. They have tools — leave "
+            "policies, employee assistance, accommodation paths — "
+            "that you don't, and the only way they can use those "
+            "tools is if they know. Sitting on attendance protects "
+            "nobody. Document the pattern, hand it to HR, let the "
+            "right system handle it.",
+    },
+
+    # ── recognition ──────────────────────────────────────────────────
+    {
+        "form_key": "recognition",
+        "kind": "why",
+        "scopes": ["leadership", "admin"],
+        "title": "Why recognition belongs on the record",
+        "body":
+            "Recognition that lives only in a Friday text message "
+            "is recognition the operator can't bring to their next "
+            "raise conversation. The same line you said out loud, "
+            "filed here, is what HR sees at review time and what "
+            "the operator carries forward. It's not bureaucracy — "
+            "it's making the recognition count past the moment.",
+    },
+    {
+        "form_key": "recognition",
+        "kind": "mistake",
+        "scopes": ["leadership", "admin"],
+        "title": "Generic praise is wallpaper",
+        "body":
+            "'Hard worker.' 'Good attitude.' 'Team player.' If the "
+            "recognition line fits any operator on any crew, it "
+            "didn't earn anybody anything. Name the specific moment "
+            "— the day, the unit, the decision, the outcome. "
+            "Specific recognition is evidence; generic recognition "
+            "is wallpaper that says nothing happened.",
+    },
+
+    # ── new_employee_eval ────────────────────────────────────────────
+    {
+        "form_key": "new_employee_eval",
+        "kind": "why",
+        "scopes": ["leadership", "admin"],
+        "title": "Why the first 30 days are the cheap-to-fix window",
+        "body":
+            "The first 30 days are the only window where a habit "
+            "gets corrected as calibration instead of as correction. "
+            "Tell a new operator on day 12 that they're radio-quiet "
+            "and they'll fix it. Tell them on day 412 and you're "
+            "having a write-up conversation. Use this eval to "
+            "calibrate while it's still cheap.",
+    },
+    {
+        "form_key": "new_employee_eval",
+        "kind": "next",
+        "scopes": ["leadership", "admin"],
+        "title": "Where to direct the next 30 days",
+        "body":
+            "Pick one or two specific things you want different next "
+            "month. Tell the operator. Tell HR (if it matters at the "
+            "60-day mark). Write the date you'll re-check. New-hire "
+            "evals that say 'doing fine, see you in 6 months' are "
+            "the ones that produce surprised supers in March.",
+    },
+
+    # ── promotion_recommendation ─────────────────────────────────────
+    {
+        "form_key": "promotion_recommendation",
+        "kind": "why",
+        "scopes": ["leadership", "admin"],
+        "title": "Why this needs to defend itself in 12 months",
+        "body":
+            "A promotion recommendation is a hire/promote decision "
+            "you'll be asked about a year from now when the operator "
+            "either thrives or struggles. Write it so the answer is "
+            "in the record: what evidence supports the next-level "
+            "role, what gaps still exist, what you committed to "
+            "support. Vague recommendations age badly.",
+    },
+    {
+        "form_key": "promotion_recommendation",
+        "kind": "mistake",
+        "scopes": ["leadership", "admin"],
+        "title": "Ready ≠ Likable",
+        "body":
+            "The most common promotion mistake is recommending an "
+            "operator because you like working with them, not "
+            "because they've demonstrated the next-level work. "
+            "Ask: has this person already been doing the harder "
+            "job, just without the title? If yes, recommend. If no, "
+            "you're betting on potential — say so explicitly, don't "
+            "hide it behind 'great attitude.'",
+    },
+
+    # ── training_deficiency ──────────────────────────────────────────
+    {
+        "form_key": "training_deficiency",
+        "kind": "why",
+        "scopes": ["leadership", "admin"],
+        "title": "A deficiency is a gap, not a fault",
+        "body":
+            "Training deficiency exists so the gap gets closed, not "
+            "so the operator gets punished. Frame it that way in "
+            "the record: what skill or cert is missing, what work "
+            "depends on it, what closing the gap looks like. If "
+            "the same operator's deficiency stays open for three "
+            "months, the failure is scheduling, not the operator.",
+    },
+    {
+        "form_key": "training_deficiency",
+        "kind": "next",
+        "scopes": ["leadership", "admin"],
+        "title": "Name the training and the owner",
+        "body":
+            "Write the specific training that closes the gap — "
+            "OSHA 10, Forklift, Confined Space, whatever it is — "
+            "and write who owns scheduling it (usually Safety, "
+            "sometimes HR). Deficiencies without a named class "
+            "and a named owner do not close on their own. They "
+            "just become next quarter's audit finding.",
+    },
+
+    # ── supervisor_notes ─────────────────────────────────────────────
+    {
+        "form_key": "supervisor_notes",
+        "kind": "why",
+        "scopes": ["leadership", "admin"],
+        "title": "Why supervisor notes exist",
+        "body":
+            "The supervisor before you knew things about this "
+            "operator that you'll spend six weeks relearning if "
+            "they aren't written down — that he won't run the 320 "
+            "after the 2024 incident, that his radio gets quiet on "
+            "the McCray site for a reason, that he's the one Shop "
+            "trusts with the new tracks. Supervisor notes preserve "
+            "that context for the next super.",
+    },
+    {
+        "form_key": "supervisor_notes",
+        "kind": "mistake",
+        "scopes": ["leadership", "admin"],
+        "title": "Don't write what you wouldn't read aloud",
+        "body":
+            "Supervisor notes are not a vent file. If the note "
+            "wouldn't survive being read aloud to the operator, "
+            "HR, or a lawyer, it doesn't belong here. Write context "
+            "the next super needs to do the job — not frustration "
+            "you needed to get out of your head at 9 PM on a "
+            "Thursday.",
+    },
+
+    # ── field-leadership.records.follow-through ──────────────────────
+    # Cross-cutting umbrella sub-key. Follow-through is the discipline
+    # that ties every FL record kind together: the record only matters
+    # if the next step happens. Author once at the umbrella; the
+    # records-list page already mounts the umbrella key, so this
+    # surface lights up without a new mount.
+    {
+        "form_key": "field-leadership.records.follow-through",
+        "kind": "why",
+        "scopes": ["leadership", "admin", "pm"],
+        "title": "Why follow-through is the whole point",
+        "body":
+            "Every FL record — write-ups, coaching, recognition, "
+            "evaluations, deficiencies — only matters if the next "
+            "step actually happens. The record without follow-"
+            "through is a paper file the operator already learned "
+            "to ignore. The record WITH follow-through is the "
+            "reason a crew trusts that leadership is paying "
+            "attention.",
+    },
+    {
+        "form_key": "field-leadership.records.follow-through",
+        "kind": "next",
+        "scopes": ["leadership", "admin", "pm"],
+        "title": "How to make the follow-through visible",
+        "body":
+            "When you file a record that requires a follow-up, "
+            "write the date you'll re-check on the record itself. "
+            "Put it on your calendar. When the date arrives, file "
+            "the follow-up record (recognition if it went well, "
+            "another coaching line if it didn't). The crew sees "
+            "the difference between supers whose records have "
+            "follow-up dates and supers whose records sit alone. "
+            "That visibility is the credibility.",
+    },
+
+    # ── field-leadership.records.documentation-discipline ────────────
+    # Cross-cutting umbrella sub-key. Discipline of WHAT goes in the
+    # record vs WHAT belongs in a phone call. Coached at the umbrella
+    # so every FL kind inherits the same line of reasoning.
+    {
+        "form_key": "field-leadership.records.documentation-discipline",
+        "kind": "why",
+        "scopes": ["leadership", "admin", "pm"],
+        "title": "Why some things belong on the record, and some don't",
+        "body":
+            "The FL record is the file the next super, HR, and (if "
+            "it ever comes to it) a lawyer reads. That means it's "
+            "for facts, dates, and what was agreed — not for "
+            "feelings you needed to express that day. The "
+            "operational rule: if the line wouldn't survive being "
+            "read back to the operator, it's a phone call to your "
+            "PM, not a record entry.",
+    },
+    {
+        "form_key": "field-leadership.records.documentation-discipline",
+        "kind": "mistake",
+        "scopes": ["leadership", "admin", "pm"],
+        "title": "Common documentation mistakes that age badly",
+        "body":
+            "Writing what you think instead of what happened. "
+            "Skipping the date. Filing the record but not telling "
+            "the operator. Writing in heat the same day instead of "
+            "letting one cycle pass for clarity. Burying a safety "
+            "reference inside a daily note instead of filing an "
+            "incident. Records that age well are the ones a "
+            "stranger could read and understand without context.",
+    },
+
+    # ─────────────────────────────────────────────────────────────────
     # iter218 · dispatch.idle-alerts — Tier-2 dispatcher coaching for
     # the Idle Alerts tab. Voice anchor: idle alerts aren't a "bad
     # foreman" detector — they're a routing-opportunity discovery
