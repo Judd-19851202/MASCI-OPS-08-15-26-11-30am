@@ -1542,3 +1542,10 @@ TRANSLATIONS_ES: dict[str, dict] = {
         ],
     },
 }
+
+
+# iter279 · Sequence #8 portals i18n closure — merge the 33 ES portal
+# entries authored in `translations_es_iter279.py`. Kept in a separate
+# module to keep this file manageable; same load-time effect.
+from .translations_es_iter279 import EXTRA_ES as _EXTRA_ES_ITER279  # noqa: E402
+TRANSLATIONS_ES.update(_EXTRA_ES_ITER279)
