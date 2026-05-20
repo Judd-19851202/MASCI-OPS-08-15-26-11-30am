@@ -1083,6 +1083,100 @@ export const TOPIC_LIBRARY = [
     action_items:
       "988 / EAP info posted · Crew check-in encouraged · Stigma reduction discussed",
   },
+
+  // ============================================================
+  // TRUCKING / FLEET · DUMP-BED STRIKE FAMILY · iter251 Phase B
+  // ------------------------------------------------------------
+  // Operator directive (2026-05-19): dump-bed strikes are an actively
+  // observed catastrophic-risk pattern. Five dedicated topics with the
+  // incident_pattern voice. Designed for drivers and yard leads, not
+  // foremen reading off a slide.
+  // ============================================================
+  {
+    key: "dump_bed_overhead_strike",
+    title: "Dump Bed Strikes — Overhead Lines, Bridges, Signs, Conveyors",
+    category: "Hazard-Specific",
+    domain: "trucking",
+    role_context: ["driver", "lead", "spotter"],
+    incident_pattern:
+      "Most overhead strikes happen at the dump site itself — not in transit. The driver finishes a load, the bed is still partially raised, and the truck rolls forward to clear the pile. Within three or four feet of forward travel, the raised bed catches an overhead line, a low bridge, a plant conveyor, or an overhead sign. By the time the driver realizes what happened, the line is on the ground or the conveyor is bent. Many of these strikes are fatal when the line is energized.",
+    hazards_reviewed:
+      "Electrocution from energized overhead lines · Bridge / sign / structure strike · Plant conveyor strike · Utility-strike outages · Roll-over from sudden stop with raised bed",
+    discussion_notes:
+      "• Before raising the bed — look up. Lines · bridges · signs · plant conveyors · overhead structures.\n• Maintain a 20-foot clearance from any energized line. If you can't be sure it's de-energized, treat it as live.\n• Set the parking brake before raising. The truck should NOT roll while the bed is in motion.\n• Do not move the truck until the bed is fully seated. Watch the in-cab indicator or the mirror — do not assume.\n• At unfamiliar dump sites (asphalt plants, MOT yards, customer sites), walk the area first. Know your overhead picture.\n• If a strike happens to an energized line: STAY IN THE CAB. Call 911. Wait for the utility to confirm the line is de-energized before stepping out. Stepping out with the truck energized has killed drivers.",
+    references_cited:
+      "OSHA 1926.601 · OSHA 1926.1408 (Power Line Clearance) · DOT FMCSA · Utility Strike Awareness",
+    action_items:
+      "Overhead walk-around discussed · Bed-up indicator reviewed · Energized-line response procedure reviewed · 20-foot clearance rule reinforced",
+  },
+  {
+    key: "dump_bed_traveling_raised",
+    title: "Traveling With the Bed Up — The Quiet Killer",
+    category: "Hazard-Specific",
+    domain: "trucking",
+    role_context: ["driver", "lead"],
+    incident_pattern:
+      "After dumping, the driver becomes task-focused on exiting the area — checking mirrors, looking for the next load, watching ground spotters. The bed is still partially raised. The truck pulls forward, the driver shifts focus to the road, and the bed is now 6, 8, sometimes 14 feet in the air for the entire drive out. The strike happens at the first overhead obstruction — usually within 50 feet of the dump pile. Drivers describe it the same way every time: 'I forgot the bed was up.'",
+    hazards_reviewed:
+      "Catastrophic overhead strike · Utility line contact · Rollover from raised CG at highway speed · Bridge / sign impact · License-revocation incident",
+    discussion_notes:
+      "• The bed-down check is the FIRST thing after dumping — not the last. Before mirrors. Before radio. Before the next move.\n• Watch the in-cab body-up indicator. If your truck doesn't have one, you check the side mirror BEFORE rolling forward. Period.\n• Body-up alarms are not optional — if yours is broken, that truck doesn't haul until it's fixed. Tell Shop.\n• Plant exits, yard exits, and job-site exits are the most common strike points. Slow down at the exit and re-check.\n• Highway speed with the bed even partially raised raises your center of gravity dangerously — a curve at 55 mph can become a rollover.\n• If you realize the bed is up mid-travel: do NOT brake hard. Slow steadily. Find a safe pullout. Lower the bed there.",
+    references_cited:
+      "OSHA 1926.601 · DOT FMCSA Pre-Trip · Manufacturer Operator Manual · Body-Up Alarm Spec",
+    action_items:
+      "Bed-down-first habit reinforced · Body-up alarm operational check verified · Plant/yard exit awareness reviewed",
+  },
+  {
+    key: "dump_bed_pto_habits",
+    title: "PTO Disengagement and Bed-Down Habits",
+    category: "Procedure / SOP",
+    domain: "trucking",
+    role_context: ["driver", "lead"],
+    incident_pattern:
+      "PTO-related bed-up incidents almost always trace back to habit, not equipment. The driver gets in a rhythm — dump, mirror check, roll. The bed-down step gets compressed or skipped. On hot days, fatigued drivers, busy plants with multiple trucks queueing, the muscle memory takes over. The truck moves before the PTO is disengaged and before the bed is fully seated. The next operation — backing under a conveyor, pulling into a yard, entering a plant scale — is when the strike happens.",
+    hazards_reviewed:
+      "Bed-up travel due to skipped PTO-down step · Hydraulic damage · Overhead strike · Mechanical failure from PTO-engaged transit · License-revocation incident",
+    discussion_notes:
+      "• PTO-down before truck-roll. Every dump. Every time. No exceptions.\n• Sequence: dump → bed-down → PTO-disengage → confirm indicator → mirror-check → roll.\n• If a queueing plant or busy customer site is making you compress the sequence, slow down. The plant will wait. The overhead line will not.\n• If your truck has an interlock (PTO-engaged prevents transmission engagement), do not bypass it. The interlock is the last defense.\n• Train new drivers on this sequence on Day 1. Make the bed-down step explicit and verbal.\n• After every dump, before moving — say out loud or to yourself: 'Bed down. PTO out. Mirror check.' Habit beats hurry.",
+    references_cited:
+      "OSHA 1926.601 · DOT FMCSA · Manufacturer PTO Spec · Plant Queueing SOP",
+    action_items:
+      "Dump sequence verbalized · PTO interlock function verified · Driver habit reinforcement discussed",
+  },
+  {
+    key: "dump_bed_soft_ground_tipover",
+    title: "Soft-Ground Tip-Overs — The Bed-Up Rollover",
+    category: "Hazard-Specific",
+    domain: "trucking",
+    role_context: ["driver", "lead", "spotter"],
+    incident_pattern:
+      "A raised dump bed makes the truck top-heavy. A loaded raised bed makes it dangerously top-heavy. The risk is highest at the moment the material starts releasing unevenly — sticky asphalt, frozen material, half a load that's bridged. The driver feels the truck list, often misreads it as the bed releasing, and lifts higher. The center of gravity moves further outboard, the soft side compresses, and the truck rolls. Most soft-ground tip-overs happen on the second or third dump of the morning when the ground hasn't been disturbed yet.",
+    hazards_reviewed:
+      "Rollover with raised bed · Driver crush in cab roll · Material avalanche onto crew · Adjacent equipment / spotter struck-by · Soft fill / wet fill / freshly-disturbed ground tip-over",
+    discussion_notes:
+      "• Dump on level, firm ground. If the ground gives under foot, it'll give under 80,000 lb with a raised bed.\n• Loads that don't release evenly — STOP RAISING. Lower the bed. Investigate. Hot asphalt, frozen material, and bridged loads are the warning signs.\n• If you feel the truck list to one side as the bed comes up — that's not normal release. Lower the bed immediately. Get out and check.\n• Freshly placed fill, recent rain, freeze-thaw days — assume the ground is soft until proven otherwise. Walk it before backing in.\n• Never sit in the cab with seatbelt unbuckled during a dump. If the truck rolls, the seatbelt is what keeps you alive.\n• Spotters stay outside the line of fall — including the SIDES, not just the rear. A bed-up rollover throws material 30+ feet sideways.",
+    references_cited:
+      "OSHA 1926.601 · OSHA Roll-Over Protection · Manufacturer Operator Manual",
+    action_items:
+      "Ground-firmness check discussed · Uneven-release response reviewed · Seatbelt-during-dump policy reinforced · Spotter line-of-fall reviewed",
+  },
+  {
+    key: "dump_bed_wind_raised",
+    title: "High-Wind Raised-Bed Operations",
+    category: "Hazard-Specific",
+    domain: "trucking",
+    role_context: ["driver", "lead"],
+    incident_pattern:
+      "A raised dump bed is a sail. At 30 mph sustained wind, an empty raised bed catches enough force to push the truck sideways or accelerate a tip-over that was already marginal. The worst incidents happen when crews are in a hurry to finish before a weather front arrives — bed up, gust hits, truck on three wheels before the driver can respond. The pattern repeats most often on exposed sites: bridge decks, levees, embankments, plant yards with open prevailing-wind exposure.",
+    hazards_reviewed:
+      "Wind-induced rollover with raised bed · Sustained-wind side load · Gust-front sudden load · Crew struck-by from uncontrolled tip · Material release in wind",
+    discussion_notes:
+      "• If sustained winds exceed 25–30 mph, consider whether the dump can wait. Empty raised beds at speed in side wind have rolled trucks.\n• Gusts are worse than sustained — a 50 mph gust into a raised bed is several thousand pounds of side load instantly.\n• Position the truck so the bed comes up INTO the wind, not crosswise to it. Reduces the sail effect.\n• Watch the sky and the radar. Weather fronts that move in fast (squall lines, summer thunderstorms) bring 50–70 mph gust fronts ahead of the rain.\n• If a gust hits with the bed up: hold the controls steady. Do NOT make sudden inputs. Most wind tip-overs are aggravated by panic steering.\n• On exposed sites — bridge decks, levees, plant yards with open exposure — set a wind threshold for the crew and call it before it gets bad.",
+    references_cited:
+      "OSHA 1926.601 · Manufacturer Wind-Operation Limits · NWS Gust-Front Awareness",
+    action_items:
+      "Crew wind threshold discussed · Bed-into-wind orientation reviewed · Weather-watch responsibility assigned",
+  },
 ];
 
 export const CUSTOM_TOPIC_KEY = "__custom__";
