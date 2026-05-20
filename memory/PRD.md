@@ -1,6 +1,53 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-20 — iter303 Airport-Domain Tone Benchmark · `airport_fod_control` · CLOSED
+
+### Scope (operator-approved v2 after one prompt-refined revision)
+Append the airport-domain tone benchmark to existing `airport` domain. 1 new topic shipped. NO new domain. NO TopicPicker chip changes. Voice template for the remaining 3 airport topics (night-work visibility · escort/badging/security · airfield electrical/lighting).
+
+### Voice template established
+**Mental-model-first framing** — parallels iter302's custody-first pattern. Operator-named core failure-pattern line: *"they treat the airfield like another paving job until something goes wrong."* Rhetorical anchor locked: *"The bolt didn't change. The pavement it sat on changed everything about what the bolt meant."*
+
+### v2 refinements from operator's iter303 prompt
+- Air France 4590 reference simplified to *"destroyed by debris left on a runway from a previous aircraft. The consequence was total."*
+- `nomás` removed per operator caution about regional slang (replaced with universal `No solamente`).
+- Airfield-authentic operational markers strengthened: "Tire-knock every trip · Not just end of shift · Every trip" · "Twelve in, twelve out · 'I think I had all' is how a wrench becomes an FAA report" · "Walk it. Don't drive it." · "FOD is live until it's in someone's hand." · "Airfield Ops" (not "the FAA") · "Your contract is on the line · Take it seriously the first time."
+
+### Integration
+- MOD · `/app/frontend/src/lib/topics/airport.js` (2 → 3 topics)
+- MOD · `/app/frontend/src/lib/topics/airport.es.js` (2 → 3 ES translations)
+- NO new domain, NO chip changes, NO existing-topic edits
+- Library: 140 → **141 topics**
+
+### Regression
+- **58/58 iter303 regression pytests green** (`test_iter303_airport_fod_control.py`).
+- **248/248 combined pytests green** across iter278/279/280/281/296/297/299/300/302/303.
+- ESLint clean.
+
+### Files touched
+- MOD · `/app/frontend/src/lib/topics/airport.js`
+- MOD · `/app/frontend/src/lib/topics/airport.es.js`
+- NEW · `/app/backend/tests/test_iter303_airport_fod_control.py` (58 tests)
+- MOD · `/app/backend/tests/test_iter302_lab_domain.py` (library-size sanity → range-tolerant `≥ 140`)
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md`
+- Tone-benchmark draft preserved at `/app/memory/AIRPORT_FOD_TONE_BENCHMARK_DRAFT.md`
+
+### Governance milestone
+The benchmark-first workflow worked a second time — one prompt-driven refinement cycle (v1 → v2 with surgical changes), then one bounded closure with zero re-work. Established repeatable pattern for content-domain expansion under stabilization-phase discipline.
+
+### Deferred per operator priority order
+- **Dump-bed strike family expansion** (operator's #2 priority · highest catastrophic-frequency family · currently 5 of 12 trucking topics already address dump-bed scenarios).
+- **Dewatering / Wellpoint division expansion** (operator's #3 priority · "build culture before incidents").
+- **Shop / Mechanic domain expansion** (operator's #4 priority · jack stands · grinder wheels · hydraulic injection · welding/fire watch · pinch points · LOTO realism).
+- **Airport expansion full 4-topic set** (operator's #5 priority · 3 remaining airport topics inheriting iter303's voice template: night-work visibility · escort/badging/security · airfield electrical/lighting).
+- Cluster E + F bilingual closure (~31 placeholder t()-wraps).
+- Lite-backup orphan cleanup decision (20 MB).
+- Lane B mobile/tablet validation.
+
+---
+
+
 ## 2026-05-20 — iter302 Dedicated `lab` Domain · Asphalt-Lab Topic Expansion · CLOSED
 
 ### Scope (operator-approved bounded closure)

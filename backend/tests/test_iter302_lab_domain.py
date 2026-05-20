@@ -350,15 +350,17 @@ def test_iter302_es_topic_count_locked():
 
 
 def test_iter302_total_library_size_grew_by_4():
-    """The aggregator EN library now contains 136 + 4 = 140 topics."""
-    # We can't import JS from Python — but we can count `key:` lines across
-    # all domain files for a structural sanity check.
+    """The aggregator EN library now contains at least 140 topics (136 + 4 lab).
+    Range-tolerant since later iterations (iter303 +1, etc.) legitimately grow
+    the library further. iter302's contribution is the +4 lab topics — that
+    delta is locked by `test_iter302_lab_topic_count_locked` above."""
     total = 0
     for jsfile in TOPICS_DIR.glob("*.js"):
         if jsfile.name.endswith(".es.js") or jsfile.name.startswith("index"):
             continue
         text = jsfile.read_text()
         total += len(re.findall(r'^\s*key:\s*"', text, re.MULTILINE))
-    assert total == 140, (
-        f"Total topic count drifted: expected 140 (136 pre-iter302 + 4 lab), got {total}"
+    assert total >= 140, (
+        f"Total topic count regressed below the iter302 floor: expected ≥ 140 "
+        f"(136 pre-iter302 + 4 lab), got {total}"
     )
