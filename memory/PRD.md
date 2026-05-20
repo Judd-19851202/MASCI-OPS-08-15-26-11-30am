@@ -1,5 +1,53 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 PM — iter269 Operational Alignment Maintenance · Sprint 2 · Philosophy Linkage · SHIPPED (testing agent 100% backend / 85% frontend code-review + main-agent ES live verify · 0 bugs)
+
+Second execution iteration under Operational Alignment Maintenance. Scope LOCKED to philosophy linkage findings K4·K5·K6·K7 from iter267 audit. Operational Value Gate held — no LMS drift, no onboarding additions, no redesign.
+
+### What shipped
+- **K4 · Visual CONTEXT vs ACTION split** — new helper `/app/frontend/src/lib/splitIncidentScaffold.js` parses the EN/ES scaffold header out of `discussion_notes` and returns `{header, pattern, bullets}`. `NewMeeting.jsx` (lines 662-684) and `ViewMeeting.jsx` (lines 271-310) now render the `incident_pattern` paragraph in a framed red-200 callout (`data-testid="incident-context-block"` / `record-incident-context`) labeled with the scaffold header (`WHAT HAPPENS · REAL-WORLD PATTERN` / `PATRÓN REAL · LO QUE SUELE PASAR`) and a muted micro-caption (`CONTEXT FOR THE CREW · THE BULLETS BELOW ARE THE ACTION DRILL` / `CONTEXTO PARA LA CUADRILLA · LOS PUNTOS DE ABAJO SON LA DISCIPLINA DE ACCIÓN`). The textarea below still holds the full composed scaffold for free editing — storage shape unchanged.
+- **K6 · Coaching strip above topic picker** — one-sentence field-foreman voice strip (`data-testid="meeting-coaching-strip"`) attached via `border-l-2 border-red-200 pl-3`. Live EN: *"After you pick a topic, read the WHAT HAPPENS paragraph to the crew first — that's the real-world pattern. Then walk through the bullets. That's the operational drill."* Live ES: *"Después de elegir un tema, lea primero el párrafo PATRÓN REAL a la cuadrilla — ese es el patrón del mundo real. Luego repase los puntos. Esa es la disciplina operacional."*
+- **K7 · Domain breadcrumb** — caption (`data-testid="meeting-domain-breadcrumb"`) shown only when a library topic is loaded and has a `domain`. Custom Topic does NOT render it. Uses `getDomainLabel(domain, lang)` exported from `TopicPicker.jsx` (line 54). Live EN: `DOMAIN · EXCAVATION`. Live ES: `DOMINIO · EXCAVACIÓN`.
+- **K5 · `/guidance/public-toolbox-talks` article rewrite** in `/app/backend/guidance/content.py` — now opens with the incident-pattern philosophy ("not a generic toolbox talk… built around a real-world incident pattern"), explains the WHAT HAPPENS / PATRÓN REAL convention for crews, and explicitly warns against foremen shortcutting the pattern paragraph. Title preserved as `Safety Meetings & Toolbox Talks`; Spanish title `Reuniones de Seguridad y Pláticas de Caja de Herramientas` preserved. Body length grew from a single string to a 7-block structured doc (intro · framing · steps · why · bullets · tip · warn).
+
+### Verification
+- Lint clean (`splitIncidentScaffold.js`, `NewMeeting.jsx`, `ViewMeeting.jsx`, `TopicPicker.jsx`, `guidance/content.py`) ✅
+- Backend restarted cleanly after `content.py` rewrite ✅
+- Testing agent (iter268.json) · backend 100% · frontend 85% code-review · 0 bugs · `retest_needed=false`
+- Main agent live verify · EN flow: trenching_shoring topic loaded → all 3 testids render with correct copy + framing ✅
+- Main agent live verify · ES flow (via `data-testid="lang-es"`) · same topic loaded → coaching strip, breadcrumb, and incident-context-block ALL flip to Spanish · `PATRÓN REAL · LO QUE SUELE PASAR` header confirmed · `DOMINIO EXCAVACIÓN` confirmed · `CONTEXTO PARA LA CUADRILLA · LOS PUNTOS DE ABAJO SON LA DISCIPLINA DE ACCIÓN` caption confirmed ✅
+- Custom Topic correctly suppresses the breadcrumb + incident-context-block ✅
+- `GET /api/guidance/articles/public-toolbox-talks` returns 200 with rewritten body; ES summary still references `PATRÓN REAL` ✅
+
+### Tone gate (operator directive)
+- No `training`, `course`, `module`, `completion`, `LMS`, `onboarding`, `certification` language anywhere in the new copy
+- The single occurrence of the word "training" inside the K5 article is the phrase *"doesn't sound like compliance training. That's intentional"* — explicitly distancing from LMS framing
+- Voice stays field-foreman / superintendent — incident-first, drill-second, brief
+
+### Out of scope this iteration (held per directive)
+- ❌ Sprint 3 terminology renames (K8·K13·K14·K15)
+- ❌ Guidance Center full audit (operator queued, separate sprint)
+- ❌ ViewIncident.jsx · ViewInspection.jsx i18n alignment (separate cluster)
+- ❌ Public read-only library (F1)
+- ❌ Onboarding standardization (K5 backend / Phase K)
+
+### Files touched
+- NEW · `/app/frontend/src/lib/splitIncidentScaffold.js`
+- MOD · `/app/frontend/src/pages/NewMeeting.jsx` (coaching strip + breadcrumb + context block + import)
+- MOD · `/app/frontend/src/pages/ViewMeeting.jsx` (context vs action split in saved record)
+- MOD · `/app/frontend/src/components/TopicPicker.jsx` (`getDomainLabel` already exported, consumed by NewMeeting)
+- MOD · `/app/backend/guidance/content.py` (K5 article body rewrite)
+
+### Sprint 2 closed · Operator gate required before next sprint
+- ⏸ **Sprint 3** — Role & terminology (K8·K13·K14·K15 from iter267 audit)
+- ⏸ **Guidance Center full audit** — review all `/guidance` articles for philosophy alignment + bilingual parity
+- ⏸ **ViewIncident.jsx + ViewInspection.jsx i18n audit & repair** (P2 cluster · same hardcoded-English flaws ViewMeeting had)
+
+🔒 iter269 Sprint 2 **SHIPPED** · operational philosophy linkage live in EN+ES across NewMeeting · ViewMeeting · Guidance · scope discipline held.
+
+---
+
+
 ## 2026-05-20 PM — iter268 Operational Alignment Maintenance · Sprint 1 · ViewMeeting + NewMeeting Bilingual Correctness · SHIPPED (testing agent + manual verify · 0 bugs)
 
 First execution iteration under the new Operational Alignment Maintenance category. Scope LOCKED to correctness fixes from iter267 audit findings K1·K2·K3·K9 — no philosophy, no terminology renames, no other view pages.
