@@ -2,6 +2,85 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 PM/8 — Fleet Guidance / Coaching Integration · COMPLETE (98/98 fleet+guidance tests green · bilingual · culturally aligned)
+
+Operator-bounded "connect Fleet to the brain of MASCI" pass · NOT an LMS expansion. Fleet operational workflows are now fully native to the Operations Guidance Center, the HelpTip contextual coaching engine, and the bilingual ecosystem.
+
+### 6 articles added to `backend/guidance/content.py` (EN) + `translations_es.py` (ES)
+- `fleet-daily-dvir` · Driver Daily DVIR · steps · why-it-matters · what-happens-next · mistakes
+- `fleet-weekly-lead` · Lead/super weekly recurring pass
+- `fleet-weekly-emergency` · Fire ext · triangles · PPE · first aid
+- `fleet-severity-oos-vs-monitor` · governance article — explicitly states **drivers do NOT assign severity** · explains Monitor ≠ punishment · OOS is an operational safety decision
+- `fleet-repair-lifecycle` · the four-step lifecycle Shop/Dispatch/Safety see together
+- `fleet-return-to-service` · why Dispatch RTS is intentional and timestamped
+
+All bodies hold the operator's culturally-required tone: experienced transportation-leadership coaching crews · NOT a compliance vendor product. Each article ≈30-50 lines · `steps` / `why` / `next` / `mistakes` / `tip` structure · no legal language · no LMS feel.
+
+### `portal-shop` article updated
+One bullet added noting Fleet DVIR + Weekly Lead + Weekly Emergency flow into the Shop queue with severity already attached, repairs flow through Phase 4 lifecycle. `related` array now includes `fleet-daily-dvir` + `fleet-repair-lifecycle` for cross-discovery.
+
+### 13 contextual tips added to `guidance/tips.py` + `tips_es.py`
+- `fleet.dvir` · why · who · mistake
+- `fleet.weekly-lead` · why · when
+- `fleet.weekly-emergency` · why · mistake
+- `fleet.repair` · why · next (shop+admin scope)
+- `fleet.rts` · why · mistake (dispatch+admin scope)
+- `fleet.visibility` · why · who (shop/dispatch/safety/admin scope)
+
+Public scope for driver-facing form_keys (DVIR / weekly-lead / weekly-emergency) so anonymous DVIR submitters see contextual coaching. Portal-scoped for Shop/Dispatch/Safety so each role gets its operationally-relevant tips.
+
+### Frontend wiring (minimal · uses existing `<HelpTipBlock>`)
+- `NewFleetDVIR.jsx` · `<HelpTipBlock formKey={formCopy.helpFormKey} />` inside Section 01 · adapts per kind (dvir / weekly-lead / weekly-emergency).
+- `FleetVisibility.jsx` · `<HelpTipBlock formKey="fleet.visibility" />` directly under KPI chips · surfaces severity-governance and scope-awareness tips on every Shop/Dispatch/Safety/Admin card view.
+- `FleetRepairDrawer.jsx`
+  - `<RepairDrawer>` · `<HelpTipBlock formKey="fleet.repair" />` reinforces "marking repaired = unit can't roll until Dispatch RTS."
+  - `<RtsDrawer>` · `<HelpTipBlock formKey="fleet.rts" />` reinforces intentional RTS confirmation + Shop-note review.
+
+All tips render collapsed by default · color-coded by kind (why / who / mistake / when / next) · never block the operational view. Same visual language as the rest of the platform.
+
+### Live verification (414px mobile, EN + ES)
+- `/fleet/dvir/new` (ES) · 3 ES coaching tips visible: "Por qué importa la DVIR" · "Quién ve lo que usted envía" · "Errores fáciles de evitar"
+- `/shop/fleet` · 2 coaching tips: "How severity works on these cards" · "What each scope sees here"
+- `/guidance/fleet-daily-dvir` · full article renders with "WHY THIS MATTERS" panel · summary, steps, mistakes
+- `/guidance/fleet-severity-oos-vs-monitor` (ES) · "Fuera de Servicio vs Monitoreo · cómo funciona la severidad" · 3 instances of "Fuera de Servicio" · 0 EN leakage
+
+### Test coverage
+- NEW · `test_iter251_fleet_guidance_integration.py` (6 tests):
+  - all 6 articles render in EN
+  - all 6 articles render in ES
+  - severity article explicitly states "drivers don't classify"
+  - 6 contextual tip form_keys serve ≥ expected tip counts
+  - 3 public driver-form tips work without auth
+  - portal-shop article mentions Fleet
+- **Cumulative: 98/98 fleet + guidance tests green**
+
+### Tone / culture upheld
+- ✅ Experienced transportation leadership coaching crews
+- 🚫 No corporate training fluff · no compliance theater · no LMS drift
+- 🚫 No quizzes · no certifications · no scoreboards · no progress tracking
+- ✅ Short · operational · field-readable · respectful · bilingual
+
+### Files touched
+- MOD · `backend/guidance/content.py` (+6 articles · +1 portal-shop bullet · +2 related links)
+- MOD · `backend/guidance/translations_es.py` (+6 article translations)
+- MOD · `backend/guidance/tips.py` (+13 contextual tips)
+- MOD · `backend/guidance/tips_es.py` (+13 tip translations)
+- MOD · `frontend/src/pages/NewFleetDVIR.jsx` (+`HelpTipBlock` + `helpFormKey` per kind)
+- MOD · `frontend/src/pages/FleetVisibility.jsx` (+`HelpTipBlock` for visibility scope)
+- MOD · `frontend/src/components/FleetRepairDrawer.jsx` (+`HelpTipBlock` in both drawers)
+- NEW · `backend/tests/test_iter251_fleet_guidance_integration.py` (6 tests)
+
+### Final recommendation
+**READY** · Fleet is now fully native to the MASCI Operations Platform guidance ecosystem. The Fleet side feels like:
+- a domain that grew up alongside the rest of the platform
+- driver-respectful · shop-actionable · dispatch-useful · safety-defensible
+- coached by experienced operators · NOT lectured by a vendor
+
+🔒 iter251 Fleet Operations module **PRODUCTION-READY** (Phases 1-5 + mobile polish + guidance integration).
+
+---
+
+
 ## 2026-05-19 PM/7 — Mobile / iOS layout polish (P0 system-wide bleed fix)
 
 Operator reported intermittent visual overlap between native Date/Time pickers inside the inspection forms on mobile, plus PASS / FAIL / N/A pill labels overflowing in Spanish ("APROBADO" / "FALLA" / "N/D"). Reproduced both at 320px and 414px viewport. Surgical fixes applied with **NO redesign**, **NO copy changes**.

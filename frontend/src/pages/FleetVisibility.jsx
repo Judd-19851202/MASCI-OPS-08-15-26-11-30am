@@ -35,6 +35,7 @@ import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 import { RepairDrawer, RtsDrawer } from "@/components/FleetRepairDrawer";
+import { HelpTipBlock } from "@/components/HelpTip";
 
 const API = process.env.REACT_APP_BACKEND_URL || "";
 
@@ -525,6 +526,9 @@ export default function FleetVisibility({ scope = "shop" }) {
           <Chip label={t("Total units with defects")} value={counts.units} tone="slate" testId="fleet-count-units" />
           <Chip label={t("Total open defects")} value={counts.defects} tone="slate" testId="fleet-count-defects" />
         </div>
+
+        {/* Phase 5 · contextual coaching for Shop/Dispatch/Safety scopes */}
+        <HelpTipBlock formKey="fleet.visibility" className="mb-4" />
 
         {scope === "safety" && (
           <div

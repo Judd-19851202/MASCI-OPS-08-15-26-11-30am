@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
 
 function ModalShell({ titleIcon, title, kicker, accent, onClose, children, testId }) {
@@ -154,6 +155,9 @@ export function RepairDrawer({ open, defect, accent, onClose, onSubmit }) {
     >
       <DefectContextStrip defect={defect} t={t} />
 
+      {/* Phase 5 · contextual coaching from /api/guidance/tips */}
+      <HelpTipBlock formKey="fleet.repair" className="mb-4" />
+
       <div className="space-y-3">
         <div>
           <label className="block text-[11px] font-mono uppercase tracking-wider font-bold text-slate-700 mb-1">
@@ -279,6 +283,9 @@ export function RtsDrawer({ open, defect, accent, onClose, onSubmit }) {
       testId="fleet-rts-drawer"
     >
       <DefectContextStrip defect={defect} t={t} />
+
+      {/* Phase 5 · contextual coaching from /api/guidance/tips */}
+      <HelpTipBlock formKey="fleet.rts" className="mb-4" />
 
       {defect.repair_notes && (
         <div className="bg-emerald-50 border-2 border-emerald-200 rounded-md px-3 py-2 mb-3">

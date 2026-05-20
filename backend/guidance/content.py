@@ -535,6 +535,7 @@ _ARTICLES: list[dict] = [
                 "reads from Dispatch (where equipment is going) and Field Leadership (who has it now)."},
             {"type": "bullets", "items": [
                 "Pre-Op review — every field Pre-Op lands here; failed Pre-Ops need action",
+                "Fleet DVIR + Weekly Lead + Weekly Emergency — driver/lead inspections route to Shop with severity already attached (OOS / Monitor); repairs flow through the Phase 4 lifecycle to Dispatch Return-to-Service",
                 "Damage reporting — what got bent, scraped, broken, by whom, when",
                 "Maintenance coordination — scheduled, preventive, emergency",
                 "Parts catalog & ordering — what's in stock, what's on order, lead times",
@@ -574,6 +575,8 @@ _ARTICLES: list[dict] = [
             "connect-shop-to-dispatch",
             "connect-equipment-lifecycle",
             "public-preop-basics",
+            "fleet-daily-dvir",
+            "fleet-repair-lifecycle",
         ],
     },
     {
@@ -3980,6 +3983,257 @@ _ARTICLES: list[dict] = [
         "related": [
             "public-cant-login",
         ],
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # FLEET / TRUCKING DVIR · iter251 · Phase 1-5 integration
+    # ─────────────────────────────────────────────────────────────────
+    # Operator directive (2026-05-19): connect Fleet operational
+    # workflows into the Operations Guidance Center. Tone: experienced
+    # transportation/fleet leadership coaching crews — NOT a compliance
+    # vendor product. Short, operational, field-readable. No LMS drift.
+    {
+        "id": "fleet-daily-dvir",
+        "section": "quickhelp",
+        "title": "Daily Driver Vehicle Inspection (DVIR)",
+        "summary": "Walk the truck before you roll. PASS / FAIL / N/A each item. The system handles severity.",
+        "scopes": ["public", "field", "leadership", "shop", "dispatch", "safety", "admin"],
+        "tags": ["fleet", "dvir", "driver", "truck", "trailer", "pre-trip"],
+        "body": [
+            {"type": "p", "text":
+                "The Daily DVIR is the driver's pre-trip walk-around. It exists so the driver, "
+                "Shop, and Dispatch are working from the same picture of the truck before it leaves "
+                "the yard. It is not paperwork — it is the moment the driver says 'this is what I see' "
+                "and the Shop hears it the same minute."},
+            {"type": "steps", "items": [
+                "Open Field · tap 'Trucking · Daily DVIR'",
+                "Type or pick your name · roster autocompletes after your first inspection",
+                "Pick your truck unit · plate / VIN / odometer / hour meter prefill",
+                "Walk the truck — front, driver side, rear, passenger side. Mark each item PASS, FAIL, or N/A",
+                "If you have a trailer, tap 'Add trailer' and walk that too",
+                "Anything you marked FAIL needs a short note (10+ characters) and a photo if you have one",
+                "Sign and submit",
+            ]},
+            {"type": "why", "text":
+                "An honest DVIR keeps the crew safe and keeps the truck on the road. A real defect "
+                "caught at 6:30 a.m. is a Shop ticket. The same defect caught at 50 mph is a tow bill, "
+                "a lost day, or worse."},
+            {"type": "next", "items": [
+                "Shop sees your defects grouped by truck within seconds",
+                "Severity is set automatically — drivers don't classify · the system does",
+                "If anything is Out of Service, Dispatch reassigns the load",
+                "If it's a Monitor item, Shop schedules a repair window",
+                "Your name stays on the inspection · accountability, not blame",
+            ]},
+            {"type": "mistakes", "items": [
+                "Marking N/A on items the truck actually has (axle without spare, missing triangle)",
+                "Skipping the trailer walk-around when pulling one",
+                "FAIL with no note · Shop can't act on 'something is wrong'",
+                "Holding the inspection until you're already on the road",
+            ]},
+            {"type": "tip", "text":
+                "Use the 'Why this matters' tip inside the form for each section — short coaching, no "
+                "compliance language."},
+        ],
+        "related": ["fleet-severity-oos-vs-monitor", "fleet-repair-lifecycle", "portal-shop"],
+    },
+    {
+        "id": "fleet-weekly-lead",
+        "section": "quickhelp",
+        "title": "Weekly Lead Inspection",
+        "summary": "Lead-driver / fleet-lead / superintendent quick weekly review. High-signal items only.",
+        "scopes": ["public", "field", "leadership", "shop", "dispatch", "safety", "admin"],
+        "tags": ["fleet", "weekly", "lead", "superintendent", "fleet-lead"],
+        "body": [
+            {"type": "p", "text":
+                "The Weekly Lead is a quick second-set-of-eyes pass by a lead driver, fleet lead, or "
+                "superintendent. It's not a re-do of the daily DVIR. It's the operational hygiene "
+                "check — recurring complaints, items the lead wants Shop to look at, the things a "
+                "driver who runs the same truck every day stops noticing."},
+            {"type": "steps", "items": [
+                "Open Field · tap 'Weekly · Lead Inspection'",
+                "Pick the truck and enter your name as the lead inspector",
+                "Walk it · 9 high-signal items (brakes, mirrors, lights, fluids, seat belts, emergency kit, fire extinguisher, triangles, body / paint)",
+                "Sign and submit",
+            ]},
+            {"type": "why", "text":
+                "Leads see patterns drivers miss because they swap trucks. A weekly lead pass catches "
+                "the slow leak, the gradual mirror crack, the door seal that's been letting in dust "
+                "for three weeks. Small problems · before they become OOS."},
+            {"type": "next", "items": [
+                "Defects route through the same Shop queue as the daily DVIR",
+                "Severity governance is identical · OOS / Monitor decided by the system",
+                "Shop sees the lead's note alongside the driver's note from the same morning",
+            ]},
+            {"type": "mistakes", "items": [
+                "Treating the weekly lead as a 'gotcha' on the driver — it's a partnership",
+                "Skipping the week because 'nothing's changed'",
+                "Reusing last week's signature instead of signing fresh",
+            ]},
+        ],
+        "related": ["fleet-daily-dvir", "fleet-severity-oos-vs-monitor", "fleet-repair-lifecycle"],
+    },
+    {
+        "id": "fleet-weekly-emergency",
+        "section": "quickhelp",
+        "title": "Weekly Emergency Equipment Check",
+        "summary": "Fire extinguisher · triangles · first aid · PPE · backup alarm. Present · charged · within date.",
+        "scopes": ["public", "field", "leadership", "shop", "dispatch", "safety", "admin"],
+        "tags": ["fleet", "weekly", "emergency", "fire extinguisher", "triangles", "ppe", "first aid"],
+        "body": [
+            {"type": "p", "text":
+                "The Weekly Emergency Equipment Check is the inspector's confirmation that everything "
+                "the truck carries for a roadside emergency is actually there, charged, and not expired. "
+                "It's quick — 17 items — and it matters more than its size suggests. The fire "
+                "extinguisher you don't notice missing in the yard is the one you reach for at 2 a.m. "
+                "in a work zone."},
+            {"type": "steps", "items": [
+                "Open Field · tap 'Weekly · Emergency Equipment'",
+                "Pick the truck",
+                "Verify each item: fire extinguisher (charged · sealed · tag current) · reflective triangles · first aid · spill kit · backup alarm · emergency lighting · PPE on board",
+                "Mark each PASS / FAIL / N/A",
+                "FAIL items need a short note · the item routes to Shop the same way a DVIR defect does",
+                "Sign and submit",
+            ]},
+            {"type": "why", "text":
+                "This is one of the few checks where missing equipment automatically classifies as "
+                "Out of Service — you can't run a job-site truck without a working extinguisher or "
+                "triangles. The check protects the crew, the public, and the company's ability to "
+                "respond to an incident professionally."},
+            {"type": "next", "items": [
+                "Failed items appear in the Shop queue with the right severity already attached",
+                "Dispatch sees the unit's status update instantly",
+                "Safety can review the audit trail for any DOT or work-zone documentation"
+            ]},
+            {"type": "mistakes", "items": [
+                "Marking 'present' without actually checking the extinguisher tag date",
+                "Skipping the spill kit on a truck that hauls hydraulic equipment",
+                "Treating an expired tag as a Monitor — system will classify correctly automatically",
+            ]},
+        ],
+        "related": ["fleet-daily-dvir", "fleet-severity-oos-vs-monitor", "fleet-repair-lifecycle"],
+    },
+    {
+        "id": "fleet-severity-oos-vs-monitor",
+        "section": "knowledge",
+        "title": "Out of Service vs Monitor · how severity works",
+        "summary": "Drivers do not assign severity. The system does. Honest reporting is what matters.",
+        "scopes": ["public", "field", "leadership", "shop", "dispatch", "safety", "admin"],
+        "tags": ["fleet", "severity", "oos", "monitor", "governance", "fmcsa", "dot"],
+        "body": [
+            {"type": "p", "text":
+                "Every defect on a DVIR, Weekly Lead, or Emergency Equipment check is automatically "
+                "classified as either Out of Service or Monitor. Drivers and inspectors don't make "
+                "that call — they just report what they saw. The classification comes from a fixed "
+                "severity table reviewed against FMCSA and DOT commercial-vehicle baselines and "
+                "approved by operations leadership."},
+            {"type": "p", "text":
+                "Out of Service means the truck does not roll until Shop verifies the repair and "
+                "Dispatch confirms Return-to-Service. Monitor means the truck is safe to operate but "
+                "Shop owns the repair on a planned cadence — no rush, no panic, but it is being tracked."},
+            {"type": "why", "text":
+                "Separating reporting from severity is intentional. It removes the pressure on a "
+                "driver to under-report ('it's probably fine') or over-report ('better safe…') and it "
+                "removes the temptation for anyone in the chain to argue severity after the fact. The "
+                "driver reports. The system classifies. The Shop acts."},
+            {"type": "bullets", "items": [
+                "Drivers and leads · honest reporting · short note · photo if you have one",
+                "System · severity based on the item and the description · published table",
+                "Shop · sees the truck grouped by unit · driver note + photo + severity in one place",
+                "Dispatch · sees availability (OOS / Repair-in-progress / Available)",
+                "Safety · reads the audit trail · repair record · regulatory ref where applicable",
+            ]},
+            {"type": "tip", "text":
+                "Monitor is not punishment. Monitor is 'we know about it · it's tracked · it's "
+                "scheduled.' A truck with three Monitor items can roll all day. A truck with one OOS "
+                "item parks until Shop says otherwise."},
+            {"type": "mistakes", "items": [
+                "Calling a defect Monitor 'because we need the truck today' · the system classifies, not the operator",
+                "Hiding a defect to avoid an OOS · puts the crew at risk and shows up later as a bigger repair",
+                "Arguing severity with Shop · severity is a published table · the conversation is about the repair, not the classification",
+            ]},
+        ],
+        "related": ["fleet-daily-dvir", "fleet-repair-lifecycle", "fleet-return-to-service"],
+    },
+    {
+        "id": "fleet-repair-lifecycle",
+        "section": "quickhelp",
+        "title": "Fleet Repair Lifecycle · Shop · Dispatch · Safety",
+        "summary": "Defect → Shop acknowledged → Repaired → Dispatch Return-to-Service. One trail · three scopes.",
+        "scopes": ["public", "field", "leadership", "shop", "dispatch", "safety", "admin"],
+        "tags": ["fleet", "repair", "lifecycle", "shop", "dispatch", "safety", "rts"],
+        "body": [
+            {"type": "p", "text":
+                "Every Fleet defect — DVIR, Weekly Lead, or Weekly Emergency — flows through the same "
+                "four-step lifecycle. Shop, Dispatch, and Safety see the same record at every step, "
+                "scoped to what each role actually does."},
+            {"type": "steps", "items": [
+                "Open · the defect is fresh from the driver/inspector. Shop sees it in the unit's queue.",
+                "Shop acknowledged · the mechanic opened the card. Optional — most shops skip this and go straight to repair.",
+                "Repaired · Shop logged the repair drawer (mechanic name · repair notes · photos if applicable · timestamp).",
+                "Returned to service · Dispatch confirmed the unit is safe to roll. Intentional · checkbox-confirmed.",
+            ]},
+            {"type": "why", "text":
+                "The four steps are deliberate. Shop owns the wrench. Dispatch owns the operational "
+                "decision to put the truck back in rotation. Safety reads the trail. No one person "
+                "closes the loop alone."},
+            {"type": "bullets", "items": [
+                "Shop · uses the driver's note and photo to know exactly what to look at",
+                "Dispatch · sees Available / OOS / Repair-in-progress without scanning a list",
+                "Safety · reads the full audit trail · who · when · what changed · before/after status",
+            ]},
+            {"type": "next", "items": [
+                "After Shop marks repaired · unit status becomes 'Repair in progress' (awaiting RTS)",
+                "Dispatch sees the unit on their visibility page with a 'Return to Service' button",
+                "After RTS · unit status returns to Available · audit log stamped with both names",
+            ]},
+            {"type": "mistakes", "items": [
+                "Shop marks repaired but Dispatch never confirms — unit sits in 'awaiting RTS' indefinitely",
+                "Repair note shorter than 'replaced part' — Safety has no record of what was inspected",
+                "Skipping the Shop drawer and editing the defect directly · breaks the audit trail",
+            ]},
+        ],
+        "related": ["fleet-daily-dvir", "fleet-severity-oos-vs-monitor", "fleet-return-to-service", "portal-shop"],
+    },
+    {
+        "id": "fleet-return-to-service",
+        "section": "quickhelp",
+        "title": "Return-to-Service · Dispatch confirmation",
+        "summary": "Shop fixed the truck. Dispatch confirms it can roll. Intentional · timestamped · audit-logged.",
+        "scopes": ["public", "field", "leadership", "shop", "dispatch", "safety", "admin"],
+        "tags": ["fleet", "rts", "return to service", "dispatch", "repair"],
+        "body": [
+            {"type": "p", "text":
+                "Return-to-Service is the moment Dispatch tells the system 'this truck is back in "
+                "rotation.' It happens only after Shop has logged a repair · never automatically · "
+                "never as a side effect of closing something else."},
+            {"type": "steps", "items": [
+                "Open the Fleet view from the Dispatch portal",
+                "Find the unit · it shows 'Awaiting RTS' alongside the Shop's repair record",
+                "Tap 'Return to Service' on the defect",
+                "Review the Shop repair note (and photos, if Shop attached any)",
+                "Enter your name · add an optional Dispatch note",
+                "Check the confirmation box — 'I have reviewed the Shop repair record and confirm this unit is safe to return to service'",
+                "Tap Return to Service",
+            ]},
+            {"type": "why", "text":
+                "The Shop owns the wrench but Dispatch owns the operational decision. Dispatch is the "
+                "role that knows whether the load is realistic, whether the route makes sense for a "
+                "freshly repaired unit, and whether anyone needs a heads-up. The intentional checkbox "
+                "is not red tape · it is the moment the platform records that a human made a decision, "
+                "not that a button got tapped on the way to somewhere else."},
+            {"type": "next", "items": [
+                "Unit status flips to Available · drivers can pick it up",
+                "Audit log captures: who · when · status_before · status_after · Shop note · Dispatch note",
+                "Safety can read the full trail · DVIR → Shop repair → Dispatch RTS",
+            ]},
+            {"type": "mistakes", "items": [
+                "Confirming RTS without reading the Shop note · you lose the operational context",
+                "Skipping the confirmation note when something is unusual · brief context helps Safety later",
+                "Trying to RTS a unit Shop hasn't repaired yet · system blocks this · for good reason",
+            ]},
+        ],
+        "related": ["fleet-repair-lifecycle", "fleet-severity-oos-vs-monitor", "fleet-daily-dvir"],
     },
 ]
 

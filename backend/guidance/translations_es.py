@@ -1321,4 +1321,224 @@ TRANSLATIONS_ES: dict[str, dict] = {
                 "rote también las concesiones de token de rol."},
         ],
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # FLEET / TRUCKING DVIR · iter251 · Phase 1-5 (ES)
+    # ─────────────────────────────────────────────────────────────────
+    "fleet-daily-dvir": {
+        "title_es": "Inspección Vehicular Diaria del Conductor (DVIR)",
+        "summary_es": "Recorra el camión antes de rodar. Marque APROBADO / FALLA / N/D. El sistema asigna la severidad.",
+        "body_es": [
+            {"type": "p", "text":
+                "La DVIR diaria es el recorrido pre-viaje del conductor. Existe para que el conductor, "
+                "el Taller y Despacho trabajen con la misma imagen del camión antes de salir del patio. "
+                "No es papeleo — es el momento en el que el conductor dice 'esto es lo que veo' y el "
+                "Taller lo escucha en el mismo minuto."},
+            {"type": "steps", "items": [
+                "Abra Campo · toque 'Camionería · DVIR Diaria'",
+                "Escriba o seleccione su nombre · la lista se autocompleta tras la primera inspección",
+                "Seleccione su unidad de camión · placa / VIN / odómetro / horómetro se prellenan",
+                "Recorra el camión — frente, lado del conductor, parte trasera, lado del pasajero. Marque cada elemento APROBADO, FALLA o N/D",
+                "Si lleva remolque, toque 'Agregar remolque' y recórralo también",
+                "Cualquier elemento marcado FALLA necesita una nota breve (10+ caracteres) y una foto si la tiene",
+                "Firme y envíe",
+            ]},
+            {"type": "why", "text":
+                "Una DVIR honesta mantiene segura a la cuadrilla y al camión en la ruta. Un defecto "
+                "real detectado a las 6:30 a.m. es un ticket de Taller. El mismo defecto detectado a "
+                "80 km/h es una factura de grúa, un día perdido — o peor."},
+            {"type": "next", "items": [
+                "El Taller ve sus defectos agrupados por camión en segundos",
+                "La severidad se asigna automáticamente — los conductores no clasifican · el sistema lo hace",
+                "Si algo está Fuera de Servicio, Despacho reasigna la carga",
+                "Si es un elemento de Monitoreo, el Taller programa una ventana de reparación",
+                "Su nombre queda en la inspección · responsabilidad, no culpa",
+            ]},
+            {"type": "mistakes", "items": [
+                "Marcar N/D en elementos que el camión sí tiene (eje sin refacción, triángulo faltante)",
+                "Saltar el recorrido del remolque cuando lleva uno",
+                "FALLA sin nota · el Taller no puede actuar sobre 'algo está mal'",
+                "Esperar a hacer la inspección cuando ya está en la ruta",
+            ]},
+            {"type": "tip", "text":
+                "Use el consejo 'Por qué importa' dentro del formulario en cada sección — coaching breve, "
+                "sin lenguaje de cumplimiento."},
+        ],
+    },
+    "fleet-weekly-lead": {
+        "title_es": "Inspección Semanal del Líder",
+        "summary_es": "Revisión semanal rápida por el conductor líder, líder de flota o superintendente. Solo elementos de alta señal.",
+        "body_es": [
+            {"type": "p", "text":
+                "La Inspección Semanal del Líder es un segundo par de ojos rápido a cargo de un "
+                "conductor líder, líder de flota o superintendente. No es una repetición de la DVIR "
+                "diaria. Es la revisión de higiene operacional — quejas recurrentes, elementos que "
+                "el líder quiere que el Taller revise, las cosas que un conductor que opera el mismo "
+                "camión todos los días deja de notar."},
+            {"type": "steps", "items": [
+                "Abra Campo · toque 'Semanal · Inspección del Líder'",
+                "Seleccione el camión e ingrese su nombre como inspector líder",
+                "Recórralo · 9 elementos de alta señal (frenos, espejos, luces, fluidos, cinturones, kit de emergencia, extintor, triángulos, carrocería / pintura)",
+                "Firme y envíe",
+            ]},
+            {"type": "why", "text":
+                "Los líderes ven patrones que los conductores no notan porque cambian de camión. Un "
+                "recorrido semanal del líder detecta la fuga lenta, la grieta progresiva del espejo, "
+                "el sello de puerta que ha estado dejando entrar polvo por tres semanas. Problemas "
+                "pequeños · antes de que sean Fuera de Servicio."},
+            {"type": "next", "items": [
+                "Los defectos pasan por la misma cola del Taller que la DVIR diaria",
+                "La gobernanza de severidad es idéntica · FDS / Monitoreo lo decide el sistema",
+                "El Taller ve la nota del líder junto a la nota del conductor de la misma mañana",
+            ]},
+            {"type": "mistakes", "items": [
+                "Tratar la inspección semanal del líder como una 'trampa' al conductor — es una alianza",
+                "Saltar la semana porque 'nada ha cambiado'",
+                "Reutilizar la firma de la semana pasada en vez de firmar nueva",
+            ]},
+        ],
+    },
+    "fleet-weekly-emergency": {
+        "title_es": "Revisión Semanal de Equipo de Emergencia",
+        "summary_es": "Extintor · triángulos · botiquín · EPP · alarma de retroceso. Presente · cargado · dentro de fecha.",
+        "body_es": [
+            {"type": "p", "text":
+                "La Revisión Semanal de Equipo de Emergencia es la confirmación del inspector de que "
+                "todo lo que el camión lleva para una emergencia en carretera está realmente ahí, "
+                "cargado y no vencido. Es rápida — 17 elementos — y importa más de lo que su tamaño "
+                "sugiere. El extintor que no nota faltante en el patio es el que busca a las 2 a.m. "
+                "en una zona de trabajo."},
+            {"type": "steps", "items": [
+                "Abra Campo · toque 'Semanal · Equipo de Emergencia'",
+                "Seleccione el camión",
+                "Verifique cada elemento: extintor (cargado · sellado · etiqueta vigente) · triángulos reflectivos · botiquín · kit de derrames · alarma de retroceso · luces de emergencia · EPP a bordo",
+                "Marque cada uno APROBADO / FALLA / N/D",
+                "Los elementos en FALLA necesitan una nota breve · el elemento se enruta al Taller igual que un defecto de DVIR",
+                "Firme y envíe",
+            ]},
+            {"type": "why", "text":
+                "Esta es una de las pocas revisiones donde equipo faltante se clasifica automáticamente "
+                "como Fuera de Servicio — no puede operar un camión de sitio sin un extintor funcional "
+                "o triángulos. La revisión protege a la cuadrilla, al público y la capacidad de la "
+                "empresa de responder a un incidente profesionalmente."},
+            {"type": "next", "items": [
+                "Los elementos fallidos aparecen en la cola del Taller con la severidad correcta ya adjunta",
+                "Despacho ve la actualización de estado de la unidad al instante",
+                "Seguridad puede revisar el registro de auditoría para cualquier documentación DOT o de zona de trabajo",
+            ]},
+            {"type": "mistakes", "items": [
+                "Marcar 'presente' sin verificar realmente la fecha de la etiqueta del extintor",
+                "Saltar el kit de derrames en un camión que transporta equipo hidráulico",
+                "Tratar una etiqueta vencida como Monitoreo — el sistema clasifica correctamente automáticamente",
+            ]},
+        ],
+    },
+    "fleet-severity-oos-vs-monitor": {
+        "title_es": "Fuera de Servicio vs Monitoreo · cómo funciona la severidad",
+        "summary_es": "Los conductores no asignan severidad. El sistema lo hace. Lo que importa es reportar con honestidad.",
+        "body_es": [
+            {"type": "p", "text":
+                "Cada defecto en una DVIR, Inspección Semanal del Líder o Revisión de Equipo de "
+                "Emergencia se clasifica automáticamente como Fuera de Servicio o Monitoreo. Los "
+                "conductores e inspectores no toman esa decisión — solo reportan lo que vieron. La "
+                "clasificación viene de una tabla de severidad fija revisada contra los lineamientos "
+                "comerciales de FMCSA y DOT, y aprobada por el liderazgo de operaciones."},
+            {"type": "p", "text":
+                "Fuera de Servicio significa que el camión no rueda hasta que el Taller verifique la "
+                "reparación y Despacho confirme el Regreso al Servicio. Monitoreo significa que el "
+                "camión es seguro para operar pero el Taller es dueño de la reparación en un ritmo "
+                "planificado — sin prisa, sin pánico, pero está siendo rastreado."},
+            {"type": "why", "text":
+                "Separar el reporte de la severidad es intencional. Quita la presión sobre el conductor "
+                "de subreportar ('probablemente está bien') o sobre-reportar ('mejor prevenir…') y quita "
+                "la tentación de cualquiera en la cadena de discutir severidad después del hecho. El "
+                "conductor reporta. El sistema clasifica. El Taller actúa."},
+            {"type": "bullets", "items": [
+                "Conductores y líderes · reporte honesto · nota breve · foto si la tiene",
+                "Sistema · severidad según el elemento y la descripción · tabla publicada",
+                "Taller · ve el camión agrupado por unidad · nota del conductor + foto + severidad en un solo lugar",
+                "Despacho · ve la disponibilidad (FDS / Reparación en curso / Disponible)",
+                "Seguridad · lee el registro de auditoría · registro de reparación · referencia regulatoria cuando aplica",
+            ]},
+            {"type": "tip", "text":
+                "Monitoreo no es castigo. Monitoreo es 'lo sabemos · está rastreado · está programado'. "
+                "Un camión con tres elementos de Monitoreo puede rodar todo el día. Un camión con un "
+                "elemento FDS se queda estacionado hasta que el Taller diga lo contrario."},
+            {"type": "mistakes", "items": [
+                "Llamar a un defecto Monitoreo 'porque necesitamos el camión hoy' · el sistema clasifica, no el operador",
+                "Ocultar un defecto para evitar FDS · pone en riesgo a la cuadrilla y aparece después como una reparación mayor",
+                "Discutir severidad con el Taller · la severidad es una tabla publicada · la conversación es sobre la reparación, no la clasificación",
+            ]},
+        ],
+    },
+    "fleet-repair-lifecycle": {
+        "title_es": "Ciclo de Reparación de Flota · Taller · Despacho · Seguridad",
+        "summary_es": "Defecto → Taller reconocido → Reparado → Regreso al Servicio por Despacho. Un registro · tres ámbitos.",
+        "body_es": [
+            {"type": "p", "text":
+                "Cada defecto de Flota — DVIR, Inspección Semanal del Líder o Equipo de Emergencia — "
+                "fluye por el mismo ciclo de cuatro pasos. Taller, Despacho y Seguridad ven el mismo "
+                "registro en cada paso, con el alcance que cada rol realmente ejerce."},
+            {"type": "steps", "items": [
+                "Abierto · el defecto está recién del conductor/inspector. El Taller lo ve en la cola de la unidad.",
+                "Taller reconocido · el mecánico abrió la tarjeta. Opcional — la mayoría de los talleres se saltan esto y van directo a la reparación.",
+                "Reparado · el Taller registró el panel de reparación (nombre del mecánico · notas · fotos si aplica · marca de tiempo).",
+                "Regresado al servicio · Despacho confirmó que la unidad es segura para rodar. Intencional · confirmado con casilla de verificación.",
+            ]},
+            {"type": "why", "text":
+                "Los cuatro pasos son deliberados. El Taller es dueño de la llave inglesa. Despacho es "
+                "dueño de la decisión operacional de poner el camión de vuelta en rotación. Seguridad "
+                "lee el registro. Ninguna persona cierra el ciclo sola."},
+            {"type": "bullets", "items": [
+                "Taller · usa la nota y la foto del conductor para saber exactamente qué revisar",
+                "Despacho · ve Disponible / FDS / Reparación-en-curso sin escanear una lista",
+                "Seguridad · lee el registro de auditoría completo · quién · cuándo · qué cambió · estado anterior/nuevo",
+            ]},
+            {"type": "next", "items": [
+                "Después de que el Taller marque reparado · el estado de la unidad pasa a 'Reparación en curso' (esperando RTS)",
+                "Despacho ve la unidad en su página de visibilidad con un botón 'Regresar al Servicio'",
+                "Después del RTS · el estado de la unidad regresa a Disponible · el registro de auditoría queda sellado con ambos nombres",
+            ]},
+            {"type": "mistakes", "items": [
+                "El Taller marca reparado pero Despacho nunca confirma — la unidad se queda en 'esperando RTS' indefinidamente",
+                "Nota de reparación más corta que 'cambié la pieza' — Seguridad no tiene registro de qué se inspeccionó",
+                "Saltar el panel del Taller y editar el defecto directamente · rompe el registro de auditoría",
+            ]},
+        ],
+    },
+    "fleet-return-to-service": {
+        "title_es": "Regreso al Servicio · confirmación de Despacho",
+        "summary_es": "El Taller arregló el camión. Despacho confirma que puede rodar. Intencional · con marca de tiempo · auditado.",
+        "body_es": [
+            {"type": "p", "text":
+                "El Regreso al Servicio es el momento en que Despacho le dice al sistema 'este camión "
+                "está de vuelta en rotación'. Sucede solo después de que el Taller haya registrado una "
+                "reparación · nunca automáticamente · nunca como efecto secundario de cerrar algo más."},
+            {"type": "steps", "items": [
+                "Abra la vista de Flota desde el portal de Despacho",
+                "Encuentre la unidad · muestra 'Esperando RTS' junto con el registro de reparación del Taller",
+                "Toque 'Regresar al Servicio' en el defecto",
+                "Revise la nota de reparación del Taller (y las fotos, si el Taller las adjuntó)",
+                "Ingrese su nombre · agregue una nota opcional de Despacho",
+                "Marque la casilla de confirmación — 'He revisado el registro de reparación del Taller y confirmo que esta unidad es segura para regresar al servicio'",
+                "Toque Regresar al Servicio",
+            ]},
+            {"type": "why", "text":
+                "El Taller es dueño de la llave inglesa pero Despacho es dueño de la decisión operacional. "
+                "Despacho es el rol que sabe si la carga es realista, si la ruta tiene sentido para una "
+                "unidad recién reparada, y si alguien necesita un aviso. La casilla de confirmación "
+                "intencional no es burocracia · es el momento en el que la plataforma registra que un "
+                "humano tomó una decisión, no que un botón se tocó camino a otro lugar."},
+            {"type": "next", "items": [
+                "El estado de la unidad pasa a Disponible · los conductores pueden tomarla",
+                "El registro de auditoría captura: quién · cuándo · estado_anterior · estado_nuevo · nota del Taller · nota de Despacho",
+                "Seguridad puede leer el registro completo · DVIR → reparación del Taller → RTS de Despacho",
+            ]},
+            {"type": "mistakes", "items": [
+                "Confirmar RTS sin leer la nota del Taller · pierde el contexto operacional",
+                "Saltar la nota de confirmación cuando algo es inusual · el contexto breve ayuda a Seguridad después",
+                "Intentar RTS en una unidad que el Taller aún no ha reparado · el sistema bloquea esto · por una buena razón",
+            ]},
+        ],
+    },
 }

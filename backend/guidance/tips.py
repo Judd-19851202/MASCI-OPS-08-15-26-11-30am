@@ -2921,6 +2921,158 @@ _TIPS: list[dict] = [
             "super. Sending the change as 'FYI' when it actually "
             "requires a decision the foreman should weigh in on.",
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # FLEET / TRUCKING DVIR · iter251 · Phase 1-5 contextual coaching
+    # ─────────────────────────────────────────────────────────────────
+    # form_key hierarchy:
+    #   fleet.dvir              · Daily Driver Vehicle Inspection
+    #   fleet.weekly-lead       · Weekly Lead Inspection
+    #   fleet.weekly-emergency  · Weekly Emergency Equipment Check
+    #   fleet.repair            · Shop repair drawer (Phase 4)
+    #   fleet.rts               · Dispatch Return-to-Service drawer
+    #   fleet.visibility        · Shop / Dispatch / Safety unit cards
+    # Public scope · drivers and inspectors are often anonymous-submit.
+    {
+        "form_key": "fleet.dvir",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why the DVIR matters",
+        "body":
+            "An honest DVIR is the moment the driver, the Shop, and "
+            "Dispatch are looking at the same truck. Caught at 6:30 a.m. "
+            "it's a Shop ticket. Caught at 50 mph it's a tow bill.",
+    },
+    {
+        "form_key": "fleet.dvir",
+        "kind": "who",
+        "scopes": ["public"],
+        "title": "Who sees what you submit",
+        "body":
+            "Shop sees every defect grouped by your truck within seconds. "
+            "Dispatch sees the unit's status (OOS / Available). Safety "
+            "reads the audit trail. Your name stays on the inspection "
+            "for accountability, not blame.",
+    },
+    {
+        "form_key": "fleet.dvir",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Easy mistakes to avoid",
+        "body":
+            "Marking N/A on items the truck actually has. FAIL with no "
+            "note (Shop can't act on 'something is wrong'). Skipping the "
+            "trailer walk-around when pulling one. Holding the inspection "
+            "until you're already on the road.",
+    },
+    {
+        "form_key": "fleet.weekly-lead",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why the Weekly Lead pass",
+        "body":
+            "Leads see patterns drivers stop noticing because they swap "
+            "trucks. The slow leak, the gradual mirror crack, the door "
+            "seal that's been letting in dust for three weeks. Small "
+            "problems · before they become Out of Service.",
+    },
+    {
+        "form_key": "fleet.weekly-lead",
+        "kind": "when",
+        "scopes": ["public"],
+        "title": "When to complete it",
+        "body":
+            "Once per week per active unit · ideally a day the truck is "
+            "in the yard. Doesn't replace the daily DVIR · complements it.",
+    },
+    {
+        "form_key": "fleet.weekly-emergency",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why emergency equipment matters",
+        "body":
+            "The fire extinguisher you don't notice missing in the yard "
+            "is the one you reach for at 2 a.m. in a work zone. Missing "
+            "or expired emergency equipment automatically classifies as "
+            "Out of Service · this isn't paperwork, it's readiness.",
+    },
+    {
+        "form_key": "fleet.weekly-emergency",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Easy mistakes to avoid",
+        "body":
+            "Marking 'present' without checking the extinguisher tag "
+            "date. Skipping the spill kit on a truck that hauls "
+            "hydraulics. Treating an expired tag as Monitor · the system "
+            "classifies correctly automatically.",
+    },
+    {
+        "form_key": "fleet.repair",
+        "kind": "why",
+        "scopes": ["shop", "admin"],
+        "title": "Why log the repair here",
+        "body":
+            "Marking the defect repaired flips the unit to 'Repair in "
+            "progress · awaiting RTS'. The truck doesn't roll until "
+            "Dispatch confirms Return-to-Service. Your note and timestamp "
+            "are the audit trail Safety reads.",
+    },
+    {
+        "form_key": "fleet.repair",
+        "kind": "next",
+        "scopes": ["shop", "admin"],
+        "title": "What happens after you log a repair",
+        "body":
+            "Dispatch sees the unit appear in their Awaiting-RTS queue. "
+            "When they confirm, the unit returns to Available and the "
+            "audit log stamps both names — yours and the dispatcher's.",
+    },
+    {
+        "form_key": "fleet.rts",
+        "kind": "why",
+        "scopes": ["dispatch", "admin"],
+        "title": "Why this confirmation is intentional",
+        "body":
+            "The Shop owns the wrench, but Dispatch owns the operational "
+            "decision to put the truck back in rotation. The intentional "
+            "checkbox is the moment the platform records that a human "
+            "made a decision · not that a button got tapped on the way "
+            "to somewhere else.",
+    },
+    {
+        "form_key": "fleet.rts",
+        "kind": "mistake",
+        "scopes": ["dispatch", "admin"],
+        "title": "Easy mistakes to avoid",
+        "body":
+            "Confirming RTS without reading the Shop note · you lose the "
+            "operational context. Skipping the Dispatch note when "
+            "something's unusual · brief context helps Safety later.",
+    },
+    {
+        "form_key": "fleet.visibility",
+        "kind": "why",
+        "scopes": ["shop", "dispatch", "safety", "admin"],
+        "title": "How severity works on these cards",
+        "body":
+            "Drivers don't classify severity · the system does, from a "
+            "published table reviewed against FMCSA and DOT baselines. "
+            "Out of Service means the unit doesn't roll. Monitor means "
+            "Shop owns the repair on a planned cadence · the unit can "
+            "operate safely until then.",
+    },
+    {
+        "form_key": "fleet.visibility",
+        "kind": "who",
+        "scopes": ["shop", "dispatch", "safety", "admin"],
+        "title": "What each scope sees here",
+        "body":
+            "Shop sees the unit grouped with the driver note, photos, "
+            "and severity · acts on the repair. Dispatch sees availability "
+            "and confirms RTS. Safety reads the full audit trail with "
+            "the regulatory reference where applicable.",
+    },
 ]
 
 

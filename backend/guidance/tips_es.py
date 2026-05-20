@@ -2119,4 +2119,121 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "realidad requiere una decisión en la que el foreman "
             "debería opinar.",
     },
+
+    # ── FLEET / TRUCKING DVIR · iter251 · Phase 1-5 (ES) ─────────────
+    ("fleet.dvir", "why"): {
+        "title_es": "Por qué importa la DVIR",
+        "body_es":
+            "Una DVIR honesta es el momento en que el conductor, el "
+            "Taller y Despacho miran el mismo camión. Detectado a "
+            "las 6:30 a.m. es un ticket de Taller. Detectado a 80 "
+            "km/h es una factura de grúa.",
+    },
+    ("fleet.dvir", "who"): {
+        "title_es": "Quién ve lo que usted envía",
+        "body_es":
+            "El Taller ve cada defecto agrupado por su camión en "
+            "segundos. Despacho ve el estado de la unidad (FDS / "
+            "Disponible). Seguridad lee el registro de auditoría. "
+            "Su nombre queda en la inspección · responsabilidad, "
+            "no culpa.",
+    },
+    ("fleet.dvir", "mistake"): {
+        "title_es": "Errores fáciles de evitar",
+        "body_es":
+            "Marcar N/D en elementos que el camión sí tiene. FALLA "
+            "sin nota (el Taller no puede actuar sobre 'algo está "
+            "mal'). Saltar el recorrido del remolque cuando lleva "
+            "uno. Esperar a hacer la inspección cuando ya está en "
+            "la ruta.",
+    },
+    ("fleet.weekly-lead", "why"): {
+        "title_es": "Por qué el recorrido semanal del líder",
+        "body_es":
+            "Los líderes ven patrones que los conductores dejan de "
+            "notar porque cambian de camión. La fuga lenta, la "
+            "grieta progresiva del espejo, el sello de puerta que "
+            "ha estado dejando entrar polvo por tres semanas. "
+            "Problemas pequeños · antes de que sean Fuera de Servicio.",
+    },
+    ("fleet.weekly-lead", "when"): {
+        "title_es": "Cuándo completarlo",
+        "body_es":
+            "Una vez por semana por cada unidad activa · "
+            "idealmente un día que el camión esté en el patio. "
+            "No reemplaza la DVIR diaria · la complementa.",
+    },
+    ("fleet.weekly-emergency", "why"): {
+        "title_es": "Por qué importa el equipo de emergencia",
+        "body_es":
+            "El extintor que no nota faltante en el patio es el "
+            "que busca a las 2 a.m. en una zona de trabajo. El "
+            "equipo de emergencia faltante o vencido se clasifica "
+            "automáticamente como Fuera de Servicio · esto no es "
+            "papeleo, es preparación.",
+    },
+    ("fleet.weekly-emergency", "mistake"): {
+        "title_es": "Errores fáciles de evitar",
+        "body_es":
+            "Marcar 'presente' sin verificar la fecha de la "
+            "etiqueta del extintor. Saltar el kit de derrames en "
+            "un camión que transporta equipo hidráulico. Tratar "
+            "una etiqueta vencida como Monitoreo · el sistema "
+            "clasifica correctamente automáticamente.",
+    },
+    ("fleet.repair", "why"): {
+        "title_es": "Por qué registrar la reparación aquí",
+        "body_es":
+            "Marcar el defecto como reparado pasa la unidad a "
+            "'Reparación en curso · esperando RTS'. El camión no "
+            "rueda hasta que Despacho confirme el Regreso al "
+            "Servicio. Su nota y marca de tiempo son el registro "
+            "de auditoría que lee Seguridad.",
+    },
+    ("fleet.repair", "next"): {
+        "title_es": "Qué pasa después de registrar una reparación",
+        "body_es":
+            "Despacho ve la unidad aparecer en su cola de "
+            "Esperando-RTS. Cuando confirman, la unidad regresa a "
+            "Disponible y el registro de auditoría queda sellado "
+            "con ambos nombres — el suyo y el del despachador.",
+    },
+    ("fleet.rts", "why"): {
+        "title_es": "Por qué esta confirmación es intencional",
+        "body_es":
+            "El Taller es dueño de la llave inglesa, pero Despacho "
+            "es dueño de la decisión operacional de poner el "
+            "camión de vuelta en rotación. La casilla intencional "
+            "es el momento en el que la plataforma registra que "
+            "un humano tomó una decisión · no que un botón se "
+            "tocó camino a otro lugar.",
+    },
+    ("fleet.rts", "mistake"): {
+        "title_es": "Errores fáciles de evitar",
+        "body_es":
+            "Confirmar RTS sin leer la nota del Taller · pierde "
+            "el contexto operacional. Saltar la nota de Despacho "
+            "cuando algo es inusual · el contexto breve ayuda a "
+            "Seguridad después.",
+    },
+    ("fleet.visibility", "why"): {
+        "title_es": "Cómo funciona la severidad en estas tarjetas",
+        "body_es":
+            "Los conductores no clasifican severidad · el sistema "
+            "lo hace, desde una tabla publicada revisada contra "
+            "los lineamientos de FMCSA y DOT. Fuera de Servicio "
+            "significa que la unidad no rueda. Monitoreo significa "
+            "que el Taller es dueño de la reparación en un ritmo "
+            "planificado · la unidad puede operar con seguridad "
+            "hasta entonces.",
+    },
+    ("fleet.visibility", "who"): {
+        "title_es": "Qué ve cada ámbito aquí",
+        "body_es":
+            "El Taller ve la unidad agrupada con la nota del "
+            "conductor, las fotos y la severidad · actúa en la "
+            "reparación. Despacho ve la disponibilidad y confirma "
+            "el RTS. Seguridad lee el registro de auditoría "
+            "completo con la referencia regulatoria cuando aplica.",
+    },
 }

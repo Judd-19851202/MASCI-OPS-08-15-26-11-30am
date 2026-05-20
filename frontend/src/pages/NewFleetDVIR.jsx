@@ -41,7 +41,7 @@ import { Section, ChecklistRow } from "@/components/Section";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { LangToggle } from "@/components/LangToggle";
-import { HelpTip } from "@/components/HelpTip";
+import { HelpTip, HelpTipBlock } from "@/components/HelpTip";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -150,6 +150,12 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
       : isWeeklyEmergency
       ? t("Emergency equipment & safety systems check. Verify each item is present, charged, and within date.")
       : null,
+    // Phase 5 · contextual tip form_key + Guidance Center article slug
+    helpFormKey: isWeeklyLead
+      ? "fleet.weekly-lead"
+      : isWeeklyEmergency
+      ? "fleet.weekly-emergency"
+      : "fleet.dvir",
   };
 
   // ─── Meta + units (pre-fetched + cached for offline tolerance) ───
@@ -502,6 +508,8 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
 
         {/* SECTION 01 — Driver & Truck */}
         <Section number="01" title={t("Driver & Truck")}>
+          {/* Phase 5 · contextual coaching from /api/guidance/tips */}
+          <HelpTipBlock formKey={formCopy.helpFormKey} className="mb-3" />
           <HelpTip
             kind="why"
             title={t("Why we ask for your name")}
