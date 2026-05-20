@@ -3358,6 +3358,465 @@ _TIPS: list[dict] = [
             "the place to track follow-up; it's the place that triggered "
             "the follow-up.",
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter273 · Site Safety Inspection coaching family
+    # Sequence #2 from PLATFORM_OPERATIONAL_MATURITY_MATRIX.md.
+    # Mirrors iter270 meeting pattern. Voice: superintendent walking
+    # the site with a clipboard and a stop-work radio in their pocket —
+    # observational discipline, not regulatory theater.
+    # ─────────────────────────────────────────────────────────────────
+
+    # ── inspection (form-root) ───────────────────────────────────────
+    {
+        "form_key": "inspection",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why a site inspection is operational evidence",
+        "body":
+            "An inspection is a snapshot of how the site behaves when "
+            "nobody thinks the camera is on. The score isn't the point. "
+            "The pattern across the score is. PMs read these to see if "
+            "the same Yes/No items drift week over week — that's where "
+            "real risk lives.",
+    },
+    {
+        "form_key": "inspection",
+        "kind": "who",
+        "scopes": ["public"],
+        "title": "Who reads this inspection",
+        "body":
+            "Safety reviews against trend. PM reviews against contract "
+            "compliance. The GC or owner may pull it on audit. The "
+            "foreman whose site this is reads it first — that's the "
+            "operational handshake. Inspection without that handshake "
+            "is filing, not coaching.",
+    },
+    {
+        "form_key": "inspection",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens after submit",
+        "body":
+            "Score and auto-fails compute on save. A FAIL or any "
+            "auto-fail triggers Safety review. Hazards Observed + Stop "
+            "Work flags route the record into the corrective-action "
+            "queue. The PDF attaches to the project. Edits after "
+            "submit are tracked — finish the walk before you sign.",
+    },
+    {
+        "form_key": "inspection",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When to stop the walk and call",
+        "body":
+            "Imminent danger — open trench without a box, lift over "
+            "people, energized work without lockout. Stop the work "
+            "first. Call the foreman. Call Safety. THEN come back and "
+            "document the corrective action and what got fixed. The "
+            "inspection is the receipt of the call, not the substitute.",
+    },
+
+    # ── inspection.context (Section 01 — project / inspection info) ──
+    {
+        "form_key": "inspection.context",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why every context field matters",
+        "body":
+            "Date, time, operation, weather, and crew make the "
+            "inspection comparable to the one held last month and next "
+            "month. A 6am PPE walk in 38°F rain reads different than a "
+            "1pm sunny check. Trend review needs context to mean "
+            "anything.",
+    },
+    {
+        "form_key": "inspection.context",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Recording 'Operation' as just 'Construction' (use the "
+            "actual task — paving station 4+50, lift on east tower, "
+            "excavation 6-ft trench). Skipping subs from the personnel "
+            "list because they're not MASCI. Skipping GPS because the "
+            "field has cell coverage today.",
+    },
+    {
+        "form_key": "inspection.context",
+        "kind": "when",
+        "scopes": ["public"],
+        "title": "Timing",
+        "body":
+            "Hold the walk while the work is actually happening — not "
+            "before crews mobilize, not after they break for lunch. "
+            "What you see is the operational state under load. A site "
+            "inspected during pre-task brief or cleanup tells you less "
+            "than one inspected at peak production.",
+    },
+
+    # ── inspection.ppe (Section 03 — PPE compliance) ─────────────────
+    {
+        "form_key": "inspection.ppe",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why PPE is the first read on culture",
+        "body":
+            "PPE compliance shows yesterday's culture, not today's "
+            "policy. If hard hats are inconsistent, the conversation "
+            "isn't a memo — it's the foreman, today, before the next "
+            "shift. PPE drift is the early warning for everything else "
+            "this inspection will surface.",
+    },
+    {
+        "form_key": "inspection.ppe",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Marking PPE Yes because the gear was on the truck. Yes "
+            "means worn correctly, on every worker, during the work — "
+            "not stored. Marking N/A when an item simply wasn't seen — "
+            "if it wasn't seen, write it in the notes and follow up. "
+            "N/A is for genuinely-doesn't-apply, not skipped.",
+    },
+    {
+        "form_key": "inspection.ppe",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When PPE itself is the stop-work",
+        "body":
+            "Missing fall arrest at height. Missing eye/ear in active "
+            "drilling, cutting, grinding. Missing respirator in known "
+            "silica or chemical exposure. Don't finish the walk — fix "
+            "it first. Note the gap, the fix, and who confirmed it. "
+            "Then continue.",
+    },
+
+    # ── inspection.findings (Section 12 — safety issues + corrective) ─
+    {
+        "form_key": "inspection.findings",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why this section is the inspection's spine",
+        "body":
+            "A clean PPE row and a clean hazard row can still hide a "
+            "real finding. The findings section is where the "
+            "inspector says what the score can't: what was actually "
+            "happening, what got corrected on site, what's still "
+            "open, and who owns the close-out.",
+    },
+    {
+        "form_key": "inspection.findings",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Writing 'see PPE section' as the corrective note — be "
+            "specific. Naming a 'Responsible Party' as the crew "
+            "instead of one name. Marking Corrected On Site = Yes "
+            "without saying what changed. Leaving the description "
+            "blank because the row count looks clean.",
+    },
+    {
+        "form_key": "inspection.findings",
+        "kind": "example",
+        "scopes": ["public"],
+        "title": "A finding that does the job",
+        "body":
+            "'Trench at station 12+50 had no protective system. Stop "
+            "Work issued 7:18am. Trench box delivered and seated by "
+            "7:55am. Foreman J. Cruz acknowledged. Photo attached. "
+            "Corrected on site. No further action — coaching captured "
+            "in toolbox-talk tomorrow.' Specific. Time-stamped. "
+            "Closed.",
+    },
+    {
+        "form_key": "inspection.findings",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "How findings become actions",
+        "body":
+            "Photos here travel with the PDF — frame the hazard "
+            "clearly. If Corrected On Site = No, the finding becomes "
+            "an open Safety Corrective Action — open one from the "
+            "Safety portal so the close-out is tracked separately. "
+            "Don't let an open finding hide in an old inspection.",
+    },
+
+    # ── inspection.signoff (Section 13 — signatures) ─────────────────
+    {
+        "form_key": "inspection.signoff",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why both signatures matter",
+        "body":
+            "The inspector signs the observation. The foreman signs "
+            "the acknowledgment. Two signatures on the same record "
+            "mean both sides saw the same site at the same time. "
+            "One-sided records read like surveillance reports — "
+            "useful, but not coaching.",
+    },
+    {
+        "form_key": "inspection.signoff",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Inspector signs and submits without the foreman present. "
+            "Foreman signs without reviewing the findings (they should "
+            "see the score and read every Open / No / Auto-Fail row "
+            "before signing). A signature dated days after the walk.",
+    },
+    {
+        "form_key": "inspection.signoff",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "After both signatures",
+        "body":
+            "PDF generates with score, photos, and both signatures. "
+            "It attaches to the project. AUTO_EMAIL ships it if "
+            "enabled. The next inspection on this project starts with "
+            "this record in the trend view — that's how patterns "
+            "become visible across walks.",
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter273 · QA/QC Inspection coaching family
+    # Quality discipline cousin of the safety inspection. Voice:
+    # superintendent who's seen the punch list come back to bite the
+    # project twice and will not let it happen a third time.
+    # ─────────────────────────────────────────────────────────────────
+
+    # ── qaqc (form-root) ─────────────────────────────────────────────
+    {
+        "form_key": "qaqc",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why catch it before it sets",
+        "body":
+            "QA/QC is the cheapest correction the project will ever "
+            "make. Pre-pour, pre-cover, pre-close-out — every "
+            "inspection caught here saves 10× the cost it takes to "
+            "fix it after concrete cures, drywall closes, or the "
+            "subgrade gets paved over.",
+    },
+    {
+        "form_key": "qaqc",
+        "kind": "who",
+        "scopes": ["public"],
+        "title": "Who reads QA/QC",
+        "body":
+            "PM tracks contract compliance. The owner / engineer may "
+            "pull it on punch walks. The sub whose work is inspected "
+            "reads the deficiencies before they invoice. Future "
+            "warranty claims start here — incomplete QA/QC records "
+            "become incomplete defenses.",
+    },
+    {
+        "form_key": "qaqc",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens after submit",
+        "body":
+            "Photos and deficiencies attach to the project. Any FAIL "
+            "or deficiency note routes for PM review. The PDF emails "
+            "if AUTO_EMAIL is on. Open deficiencies should also be "
+            "tracked on the punch list — the QA/QC record is the "
+            "evidence, the punch list is the action.",
+    },
+    {
+        "form_key": "qaqc",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When to stop the work",
+        "body":
+            "Subgrade fails compaction and the paver is staged. "
+            "Concrete slump fails and the truck is in the chute. "
+            "Footing dimensions wrong and forms aren't stripped yet. "
+            "Stop the work, call PM and the sub foreman, document, "
+            "THEN restart. A QA/QC fail caught mid-pour is the cheap "
+            "version of next month's tear-out.",
+    },
+
+    # ── qaqc.context (Job + Sub + Inspection meta) ───────────────────
+    {
+        "form_key": "qaqc.context",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why job + sub + location all matter here",
+        "body":
+            "Quality issues cluster by sub crew, by station, by "
+            "weather window. PMs and engineers reading a year of QA/QC "
+            "should be able to filter to 'crew X, station 4+00 to "
+            "8+00, summer pours' and see the pattern. Generic location "
+            "kills that lens.",
+    },
+    {
+        "form_key": "qaqc.context",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Naming the subcontractor as 'sub' or 'the concrete guys' "
+            "— use the company name and the foreman. Location as just "
+            "'east side' — use the station, grid, or floor. Mix "
+            "designs / quantities left blank because the truck ticket "
+            "is in your other pocket. Stop and get it.",
+    },
+    {
+        "form_key": "qaqc.context",
+        "kind": "when",
+        "scopes": ["public"],
+        "title": "Timing",
+        "body":
+            "Pre-pour, pre-cover, pre-close-out — never after. "
+            "Inspections done after the work is buried prove nothing "
+            "and protect nothing. If you're inspecting it for "
+            "deficiencies you can no longer see, the inspection is "
+            "ceremonial.",
+    },
+
+    # ── qaqc.checklist (Checklist section) ───────────────────────────
+    {
+        "form_key": "qaqc.checklist",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why every item gets answered",
+        "body":
+            "Skipped items become assumed-passes when someone reads "
+            "this later. Every Pass / Fail / N/A is a deliberate "
+            "statement. N/A is reserved for items that genuinely don't "
+            "apply to this discipline today — not items you didn't "
+            "look at.",
+    },
+    {
+        "form_key": "qaqc.checklist",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Marking Pass without verifying — visual + measurement + "
+            "spec match. Marking Fail without writing the deficiency "
+            "note (the form blocks this, don't fight it). Using N/A "
+            "to make a clean row when the right answer is Fail. "
+            "Calling 'within tolerance' a pass when you didn't pull a "
+            "tape.",
+    },
+    {
+        "form_key": "qaqc.checklist",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When a Fail isn't an inspection problem anymore",
+        "body":
+            "Repeat Fails on the same item from the same sub crew on "
+            "the same project — that's a contract conversation, not "
+            "an inspection note. Document the deficiency, but also "
+            "flag the pattern to PM. One Fail is a finding. Three is "
+            "a meeting.",
+    },
+
+    # ── qaqc.corrective (Notes & Corrective Action) ──────────────────
+    {
+        "form_key": "qaqc.corrective",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why corrective notes belong on the record",
+        "body":
+            "The deficiency is the finding. The corrective note is "
+            "what someone reading this 6 months from now needs to "
+            "know happened. 'Sub re-tied at station 6+20, "
+            "re-inspected, photo attached' is a closed loop. "
+            "'Will retie' is a future tense and a future problem.",
+    },
+    {
+        "form_key": "qaqc.corrective",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Vague verbs (will fix, will address, will follow up). "
+            "Passive voice that hides who owns the correction. Listing "
+            "the corrective as a future task without an owner. Saying "
+            "'see photo' when the photo doesn't show the corrective "
+            "action — only the original deficiency.",
+    },
+    {
+        "form_key": "qaqc.corrective",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "How corrective notes link to the punch list",
+        "body":
+            "If the correction will happen later (sub returns "
+            "tomorrow, materials ordered, engineer review needed), the "
+            "corrective belongs ALSO on the punch list — not just "
+            "here. The QA/QC record is the evidence. The punch list "
+            "is the tracking system. Use both.",
+    },
+
+    # ── qaqc.photos (Photos section) ─────────────────────────────────
+    {
+        "form_key": "qaqc.photos",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why photos prove the location, not the effort",
+        "body":
+            "A QA/QC photo should let an engineer 18 months from now "
+            "tell exactly where on the project this was, what spec it "
+            "was supposed to meet, and what the visual condition was. "
+            "Frame for that reader — include a tape, a grid mark, a "
+            "station tag if there is one.",
+    },
+    {
+        "form_key": "qaqc.photos",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Photos taken from too far away to see the deficiency. "
+            "Photos with no reference point (no tape, no grid, no "
+            "station). Four photos of the same angle. A clean photo "
+            "of the work and no photo of the deficiency. After the "
+            "correction, no follow-up photo of the closed item.",
+    },
+    {
+        "form_key": "qaqc.photos",
+        "kind": "example",
+        "scopes": ["public"],
+        "title": "A photo set that does the job",
+        "body":
+            "(1) Wide shot showing station and surrounding work. "
+            "(2) Close-up of the deficiency with a tape in frame. "
+            "(3) After the correction — same angle as #2 — showing "
+            "the deficiency closed. Three frames prove the finding, "
+            "the spec gap, and the resolution.",
+    },
+
+    # ── qaqc.signoff (Sign-Off section) ──────────────────────────────
+    {
+        "form_key": "qaqc.signoff",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why the inspector signs last",
+        "body":
+            "Your signature certifies the checklist, deficiencies, "
+            "and photos are accurate AS SUBMITTED. If a deficiency "
+            "closes after you sign, that's a punch-list event — open "
+            "a new entry, don't re-edit this record. Edits after "
+            "submit are tracked and reviewed.",
+    },
+    {
+        "form_key": "qaqc.signoff",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens after sign-off",
+        "body":
+            "PDF generates, attaches to the project, emails per "
+            "AUTO_EMAIL. PM and engineer reviewers see the record in "
+            "the QA/QC queue. Open deficiencies should now exist on "
+            "the punch list — if they don't, this record is incomplete "
+            "operationally even though it's complete legally.",
+    },
 ]
 
 

@@ -2456,4 +2456,353 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "Seguridad. La reunión no es el lugar para rastrear el "
             "seguimiento; es el lugar que disparó el seguimiento.",
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter273 · Inspección de Seguridad del Sitio
+    # Voz: superintendente recorriendo el sitio con tabla y radio
+    # de paro de trabajo en el bolsillo. Disciplina observacional.
+    # ─────────────────────────────────────────────────────────────────
+
+    ("inspection", "why"): {
+        "title_es": "Por qué una inspección de sitio es evidencia operacional",
+        "body_es":
+            "Una inspección es una foto de cómo se comporta el sitio cuando "
+            "nadie cree que hay cámara. El puntaje no es el punto. El patrón "
+            "a través del puntaje sí. Los PMs leen esto para ver si los mismos "
+            "Sí/No se mueven semana tras semana — ahí vive el riesgo real.",
+    },
+    ("inspection", "who"): {
+        "title_es": "Quién lee esta inspección",
+        "body_es":
+            "Seguridad la revisa contra tendencia. El PM la revisa contra "
+            "cumplimiento de contrato. El GC o dueño la pueden jalar en "
+            "auditoría. El capataz del sitio la lee primero — ese es el "
+            "apretón de manos operacional. Inspección sin ese apretón es "
+            "archivar, no entrenar.",
+    },
+    ("inspection", "next"): {
+        "title_es": "Qué pasa después de enviar",
+        "body_es":
+            "El puntaje y los auto-fallos se calculan al guardar. Un FALLO "
+            "o cualquier auto-fallo activa revisión de Seguridad. Las "
+            "banderas de Peligros Observados + Paro de Trabajo enrutan el "
+            "registro a la cola de acción correctiva. El PDF se adjunta al "
+            "proyecto. Las ediciones después del envío se rastrean — "
+            "termine el recorrido antes de firmar.",
+    },
+    ("inspection", "escalate"): {
+        "title_es": "Cuándo parar el recorrido y llamar",
+        "body_es":
+            "Peligro inminente — zanja abierta sin caja, izaje sobre gente, "
+            "trabajo energizado sin bloqueo. Pare el trabajo primero. Llame "
+            "al capataz. Llame a Seguridad. DESPUÉS vuelva y documente la "
+            "acción correctiva y qué se arregló. La inspección es el "
+            "recibo de la llamada, no el sustituto.",
+    },
+
+    ("inspection.context", "why"): {
+        "title_es": "Por qué importa cada campo de contexto",
+        "body_es":
+            "Fecha, hora, operación, clima y cuadrilla hacen que la "
+            "inspección se compare con la del mes pasado y el próximo. "
+            "Un recorrido de EPP a las 6am con 38°F y lluvia se lee distinto "
+            "que una revisión solaeada a la 1pm. La revisión de tendencia "
+            "necesita contexto para significar algo.",
+    },
+    ("inspection.context", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Anotar 'Operación' como solo 'Construcción' (use la tarea "
+            "real — pavimento estación 4+50, izaje en torre este, "
+            "excavación de zanja de 6 pies). Saltar subs del listado de "
+            "personal porque no son MASCI. Saltar GPS porque el sitio "
+            "tiene cobertura celular hoy.",
+    },
+    ("inspection.context", "when"): {
+        "title_es": "Tiempo",
+        "body_es":
+            "Sostenga el recorrido mientras el trabajo realmente pasa — "
+            "no antes de que las cuadrillas se movilicen, no después del "
+            "almuerzo. Lo que ve es el estado operacional bajo carga. Un "
+            "sitio inspeccionado durante la junta pre-tarea o la limpieza "
+            "le dice menos que uno inspeccionado en producción máxima.",
+    },
+
+    ("inspection.ppe", "why"): {
+        "title_es": "Por qué EPP es la primera lectura de la cultura",
+        "body_es":
+            "El cumplimiento de EPP muestra la cultura de ayer, no la "
+            "política de hoy. Si los cascos son inconsistentes, la "
+            "conversación no es un memo — es el capataz, hoy, antes del "
+            "próximo turno. La deriva de EPP es la alerta temprana para "
+            "todo lo demás que esta inspección va a sacar.",
+    },
+    ("inspection.ppe", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Marcar EPP Sí porque el equipo estaba en el camión. Sí "
+            "significa usado correctamente, en cada trabajador, durante "
+            "el trabajo — no guardado. Marcar N/A cuando un ítem "
+            "simplemente no se vio — si no se vio, póngalo en las notas "
+            "y dé seguimiento. N/A es para genuinamente-no-aplica, no "
+            "saltado.",
+    },
+    ("inspection.ppe", "escalate"): {
+        "title_es": "Cuando el EPP mismo es el paro de trabajo",
+        "body_es":
+            "Sin protección contra caídas en altura. Sin protección ojos/"
+            "oídos en perforación, corte o esmerilado activo. Sin "
+            "respirador en exposición conocida a sílice o químico. No "
+            "termine el recorrido — arréglelo primero. Anote el hueco, "
+            "el arreglo y quién lo confirmó. Después siga.",
+    },
+
+    ("inspection.findings", "why"): {
+        "title_es": "Por qué esta sección es la columna vertebral de la inspección",
+        "body_es":
+            "Una fila limpia de EPP y una de peligros pueden esconder un "
+            "hallazgo real. La sección de hallazgos es donde el inspector "
+            "dice lo que el puntaje no puede: qué estaba pasando "
+            "realmente, qué se corrigió en sitio, qué sigue abierto, y "
+            "quién es dueño del cierre.",
+    },
+    ("inspection.findings", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Escribir 'ver sección de EPP' como nota correctiva — sea "
+            "específico. Nombrar 'Responsable' como la cuadrilla en vez "
+            "de un nombre. Marcar Corregido en Sitio = Sí sin decir qué "
+            "cambió. Dejar la descripción en blanco porque el conteo de "
+            "filas se ve limpio.",
+    },
+    ("inspection.findings", "example"): {
+        "title_es": "Un hallazgo que sí hace el trabajo",
+        "body_es":
+            "'Zanja en estación 12+50 sin sistema protector. Paro de "
+            "Trabajo emitido 7:18am. Caja de zanja entregada y asentada "
+            "a las 7:55am. Capataz J. Cruz reconoció. Foto adjunta. "
+            "Corregido en sitio. Sin acción adicional — capacitación "
+            "capturada en plática de caja mañana.' Específico. Con "
+            "marca de tiempo. Cerrado.",
+    },
+    ("inspection.findings", "next"): {
+        "title_es": "Cómo los hallazgos se vuelven acciones",
+        "body_es":
+            "Las fotos aquí viajan con el PDF — encuadre el peligro "
+            "claramente. Si Corregido en Sitio = No, el hallazgo se "
+            "vuelve una Acción Correctiva de Seguridad abierta — abra "
+            "una desde el portal de Seguridad para que el cierre se "
+            "rastree por separado. No deje que un hallazgo abierto se "
+            "esconda en una inspección vieja.",
+    },
+
+    ("inspection.signoff", "why"): {
+        "title_es": "Por qué importan ambas firmas",
+        "body_es":
+            "El inspector firma la observación. El capataz firma el "
+            "reconocimiento. Dos firmas en el mismo registro significan "
+            "que ambos lados vieron el mismo sitio al mismo tiempo. Los "
+            "registros de un solo lado se leen como reportes de "
+            "vigilancia — útiles, pero no entrenan.",
+    },
+    ("inspection.signoff", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "El inspector firma y envía sin el capataz presente. El "
+            "capataz firma sin revisar los hallazgos (debe ver el "
+            "puntaje y leer cada fila Abierto / No / Auto-Fallo antes "
+            "de firmar). Una firma fechada días después del recorrido.",
+    },
+    ("inspection.signoff", "next"): {
+        "title_es": "Después de ambas firmas",
+        "body_es":
+            "El PDF se genera con puntaje, fotos y ambas firmas. Se "
+            "adjunta al proyecto. AUTO_EMAIL lo envía si está activo. "
+            "La próxima inspección de este proyecto arranca con este "
+            "registro en la vista de tendencia — así es como los "
+            "patrones se vuelven visibles a través de los recorridos.",
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter273 · Inspección de Control de Calidad (QA/QC)
+    # Voz: superintendente que ha visto la lista de pendientes volver
+    # a morder al proyecto dos veces y no lo permitirá una tercera.
+    # ─────────────────────────────────────────────────────────────────
+
+    ("qaqc", "why"): {
+        "title_es": "Por qué cacharlo antes de que se fragüe",
+        "body_es":
+            "El control de calidad es la corrección más barata que el "
+            "proyecto hará jamás. Antes del colado, antes de tapar, "
+            "antes del cierre — cada inspección cachada aquí ahorra "
+            "10× lo que cuesta arreglarlo después de que el concreto "
+            "frague, el drywall cierre o la subrasante se pavimente.",
+    },
+    ("qaqc", "who"): {
+        "title_es": "Quién lee QA/QC",
+        "body_es":
+            "El PM rastrea cumplimiento de contrato. El dueño / "
+            "ingeniero la puede jalar en recorridos de pendientes. El "
+            "sub cuyo trabajo se inspecciona lee las deficiencias antes "
+            "de facturar. Los reclamos futuros de garantía arrancan "
+            "aquí — registros de QA/QC incompletos se vuelven "
+            "defensas incompletas.",
+    },
+    ("qaqc", "next"): {
+        "title_es": "Qué pasa después de enviar",
+        "body_es":
+            "Las fotos y deficiencias se adjuntan al proyecto. "
+            "Cualquier FALLO o nota de deficiencia se enruta a revisión "
+            "del PM. El PDF se envía si AUTO_EMAIL está activo. Las "
+            "deficiencias abiertas también deben estar en la lista de "
+            "pendientes — el registro de QA/QC es la evidencia, la "
+            "lista de pendientes es la acción.",
+    },
+    ("qaqc", "escalate"): {
+        "title_es": "Cuándo parar el trabajo",
+        "body_es":
+            "La subrasante falla compactación y el pavimentador está "
+            "listo. El revenimiento del concreto falla y el camión está "
+            "en el canal. Dimensiones de la cimentación equivocadas y "
+            "las formas no se han desencofrado. Pare el trabajo, llame "
+            "al PM y al capataz del sub, documente, DESPUÉS reinicie. "
+            "Un fallo de QA/QC cachado a mitad del colado es la "
+            "versión barata del demolición del próximo mes.",
+    },
+
+    ("qaqc.context", "why"): {
+        "title_es": "Por qué trabajo + sub + ubicación importan aquí",
+        "body_es":
+            "Los problemas de calidad se agrupan por cuadrilla sub, por "
+            "estación, por ventana de clima. Los PMs e ingenieros "
+            "leyendo un año de QA/QC deben poder filtrar 'cuadrilla X, "
+            "estación 4+00 a 8+00, colados de verano' y ver el patrón. "
+            "Una ubicación genérica mata ese lente.",
+    },
+    ("qaqc.context", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Nombrar al subcontratista como 'sub' o 'los del concreto' — "
+            "use el nombre de la empresa y del capataz. Ubicación como "
+            "solo 'lado este' — use la estación, malla o piso. Diseño "
+            "de mezcla / cantidades en blanco porque el ticket está en "
+            "su otra bolsa. Pare y vaya por él.",
+    },
+    ("qaqc.context", "when"): {
+        "title_es": "Tiempo",
+        "body_es":
+            "Antes del colado, antes de tapar, antes del cierre — nunca "
+            "después. Las inspecciones hechas después de que el trabajo "
+            "se enterró no prueban ni protegen nada. Si está "
+            "inspeccionando por deficiencias que ya no puede ver, la "
+            "inspección es ceremonial.",
+    },
+
+    ("qaqc.checklist", "why"): {
+        "title_es": "Por qué cada ítem se responde",
+        "body_es":
+            "Los ítems saltados se vuelven pases asumidos cuando alguien "
+            "lee esto después. Cada Aprobado / Falló / N/A es una "
+            "declaración deliberada. N/A está reservado para ítems que "
+            "genuinamente no aplican a esta disciplina hoy — no para "
+            "ítems que no miró.",
+    },
+    ("qaqc.checklist", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Marcar Aprobado sin verificar — visual + medición + "
+            "coincidencia con la especificación. Marcar Falló sin "
+            "escribir la nota de deficiencia (el formulario lo bloquea, "
+            "no pelee). Usar N/A para tener una fila limpia cuando la "
+            "respuesta correcta es Falló. Llamar 'dentro de "
+            "tolerancia' un aprobado cuando no jaló cinta.",
+    },
+    ("qaqc.checklist", "escalate"): {
+        "title_es": "Cuando un Falló ya no es problema de inspección",
+        "body_es":
+            "Fallos repetidos en el mismo ítem por la misma cuadrilla "
+            "sub en el mismo proyecto — eso es una conversación de "
+            "contrato, no una nota de inspección. Documente la "
+            "deficiencia, pero también marque el patrón al PM. Un "
+            "Falló es un hallazgo. Tres es una junta.",
+    },
+
+    ("qaqc.corrective", "why"): {
+        "title_es": "Por qué las notas correctivas pertenecen al registro",
+        "body_es":
+            "La deficiencia es el hallazgo. La nota correctiva es lo "
+            "que alguien leyendo esto en 6 meses necesita saber que "
+            "pasó. 'El sub volvió a amarrar en la estación 6+20, "
+            "re-inspeccionado, foto adjunta' es un ciclo cerrado. "
+            "'Va a re-amarrar' es tiempo futuro y problema futuro.",
+    },
+    ("qaqc.corrective", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Verbos vagos (va a arreglar, va a atender, va a dar "
+            "seguimiento). Voz pasiva que esconde a quién pertenece la "
+            "corrección. Listar la corrección como tarea futura sin "
+            "dueño. Decir 'ver foto' cuando la foto no muestra la "
+            "acción correctiva — solo la deficiencia original.",
+    },
+    ("qaqc.corrective", "next"): {
+        "title_es": "Cómo las notas correctivas se ligan a la lista de pendientes",
+        "body_es":
+            "Si la corrección va a pasar después (el sub vuelve mañana, "
+            "materiales pedidos, revisión de ingeniero necesaria), la "
+            "correctiva también pertenece a la lista de pendientes — no "
+            "solo aquí. El registro de QA/QC es la evidencia. La lista "
+            "es el sistema de rastreo. Use ambos.",
+    },
+
+    ("qaqc.photos", "why"): {
+        "title_es": "Por qué las fotos prueban la ubicación, no el esfuerzo",
+        "body_es":
+            "Una foto de QA/QC debe permitirle a un ingeniero, dentro "
+            "de 18 meses, decir exactamente dónde en el proyecto fue "
+            "esto, qué especificación debía cumplir, y cuál era la "
+            "condición visual. Encuadre para ese lector — incluya una "
+            "cinta, una marca de malla, una etiqueta de estación si la hay.",
+    },
+    ("qaqc.photos", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Fotos tomadas demasiado lejos para ver la deficiencia. "
+            "Fotos sin punto de referencia (sin cinta, sin malla, sin "
+            "estación). Cuatro fotos del mismo ángulo. Una foto "
+            "limpia del trabajo y ninguna de la deficiencia. Después "
+            "de la corrección, sin foto de seguimiento del ítem "
+            "cerrado.",
+    },
+    ("qaqc.photos", "example"): {
+        "title_es": "Un set de fotos que sí hace el trabajo",
+        "body_es":
+            "(1) Toma amplia mostrando estación y trabajo circundante. "
+            "(2) Acercamiento de la deficiencia con cinta en encuadre. "
+            "(3) Después de la corrección — mismo ángulo que #2 — "
+            "mostrando la deficiencia cerrada. Tres encuadres prueban "
+            "el hallazgo, la brecha con la especificación y la "
+            "resolución.",
+    },
+
+    ("qaqc.signoff", "why"): {
+        "title_es": "Por qué el inspector firma al final",
+        "body_es":
+            "Su firma certifica que la lista de verificación, las "
+            "deficiencias y las fotos están exactas COMO SE ENVIARON. "
+            "Si una deficiencia se cierra después de que firma, eso es "
+            "un evento de la lista de pendientes — abra una entrada "
+            "nueva, no re-edite este registro. Las ediciones después "
+            "del envío se rastrean y se revisan.",
+    },
+    ("qaqc.signoff", "next"): {
+        "title_es": "Qué pasa después de la firma",
+        "body_es":
+            "El PDF se genera, se adjunta al proyecto, se envía por "
+            "correo según AUTO_EMAIL. Los revisores PM e ingeniero ven "
+            "el registro en la cola de QA/QC. Las deficiencias "
+            "abiertas ahora deben existir en la lista de pendientes — "
+            "si no, este registro está incompleto operacionalmente "
+            "aunque esté completo legalmente.",
+    },
 }

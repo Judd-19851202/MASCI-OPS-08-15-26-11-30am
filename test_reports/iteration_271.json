@@ -1,0 +1,38 @@
+{
+  "iteration": 271,
+  "iter_under_test": "iter273 — NewInspection + NewQaqcInspection coaching-family parity (sequence #2)",
+  "summary": "Validated iter273 end-to-end: backend pytest 65/65 (in-process registry shape/kinds/prefix-ladder/bilingual/concise/public-scope/LMS-tone/operator-priority/validator) + 37/37 NEW HTTP-level tests against public guidance API for inspection.* and qaqc.* families + regression intact for incident/meeting/writeup/daily-report. Frontend UI verified after Safety Portal login (jaymn.judd@mascigc.com / Maddix123!): 5/5 helptip-block-inspection-* testids on /safety/inspections/new and 6/6 helptip-block-qaqc-* testids on /qaqc/concrete-form/new. Counter renders '4 coaching tips available · tap to expand' on both root blocks. EN→ES toggle flips titles correctly to canonical Spanish ('Por qué una inspección de sitio es evidencia operacional' / 'Por qué cacharlo antes de que se fragüe'). Body expansion works on first toggle. qaqc-submit button still present (regression OK). No layout breakage observed. iter270 cloning pattern landed exactly as specified.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/guidance/tips", "issue": "Public HTTP response strips internal fields (id, scopes, kind_meta). Scope/id enforcement is only verifiable in-process via backend/tests/test_iter273_inspection_qaqc_coaching.py — not via the public API contract. Not a regression vs prior iters; flagged for awareness."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter273_inspection_qaqc_coaching.py",
+    "/app/backend/tests/test_iter273_api_http.py",
+    "/app/test_reports/pytest/iter273_results.xml",
+    "/app/test_reports/pytest/iter273_http_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "iter273 implementation faithfully clones iter270 meeting pattern: 1 HelpTipBlock import + N mounts per page, no new component, no new endpoint, no new schema — strict scope honored.",
+    "NewInspection.jsx (5 mounts) and NewQaqcInspection.jsx (6 mounts) wire to existing /api/guidance/tips registry via formKey props; no per-mount data fetch coupling.",
+    "Pytest test_iter273_inspection_qaqc_coaching.py only resolves the 'guidance' package when pytest is invoked with cwd=/app/backend. Recommend either adding /app/backend to sys.path inside the test file or wiring a /app/conftest.py — would let CI run pytest from repo root without 6 spurious ModuleNotFoundError failures. Not a code bug, but a developer-experience snag."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter273_api_http.py (NEW — HTTP smoke against public registry)"
+  ],
+  "success_rate": {"backend": "100% (65/65 in-process + 37/37 HTTP)", "frontend": "100% (5/5 inspection testids + 6/6 qaqc testids + counter + EN body + ES title flip)"},
+  "test_credentials": "Safety Portal login: jaymn.judd@mascigc.com / Maddix123! (super admin satisfies the safety/admin gate). Routes: /safety/inspections/new and /qaqc/concrete-form/new (note: actual qaqc slugs are concrete-form / rebar / subcontractor-work per /app/frontend/src/lib/qaqcSchema.js — the review request mentioned /qaqc-inspections/new/<kind> which is stale; current router is /qaqc/:slug/new).",
+  "seed_data_creation": "None required — guidance tips are baked into the registry at backend boot.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend HTTP test at /app/backend/tests/test_iter273_api_http.py is now part of the regression set — cheap (~3s) and exercises the public registry exactly as the UI consumes it. To run iter273 in-process: cd /app/backend && pytest tests/test_iter273_inspection_qaqc_coaching.py. For UI: log into /safety-portal/login as jaymn.judd@mascigc.com / Maddix123!, then visit /safety/inspections/new and /qaqc/concrete-form/new. Language toggle testids are lang-en / lang-es; HelpTipBlock pattern is helptip-block-<form_key with dots→dashes>. iter270 meeting family remains the canonical reference template.",
+  "rca of the issue": "N/A — no defects found."
+}

@@ -20,6 +20,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { LangToggle } from "@/components/LangToggle";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { useT, getLang } from "@/lib/i18n";
 import { formatApiError } from "@/lib/apiErrors";
 import {
@@ -225,6 +226,9 @@ export default function NewInspection({ publicMode = false }) {
 
         {/* Section 1: Project / Inspection Information */}
         <Section number="01" title={t("Project / Inspection Information")}>
+          {/* iter273 · form-root + Section 01 coaching */}
+          <HelpTipBlock formKey="inspection" className="mb-3" showCounter />
+          <HelpTipBlock formKey="inspection.context" className="mb-3" />
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               {t("MASCI Job")}
@@ -417,6 +421,8 @@ export default function NewInspection({ publicMode = false }) {
 
         {/* Section 3: PPE Compliance */}
         <Section number="03" title="PPE Compliance">
+          {/* iter273 · Section 03 PPE coaching */}
+          <HelpTipBlock formKey="inspection.ppe" className="mb-3" />
           {PPE_ITEMS.map((item) => (
             <ChecklistRow
               key={item.key}
@@ -504,6 +510,8 @@ export default function NewInspection({ publicMode = false }) {
 
         {/* Section 12: Corrective Actions */}
         <Section number="12" title={t("Safety Issues / Corrective Actions")}>
+          {/* iter273 · Section 12 findings coaching · the densest surface */}
+          <HelpTipBlock formKey="inspection.findings" className="mb-3" />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
@@ -591,6 +599,8 @@ export default function NewInspection({ publicMode = false }) {
 
         {/* Section 13: Signatures */}
         <Section number="13" title={t("Signatures")}>
+          {/* iter273 · Section 13 sign-off coaching */}
+          <HelpTipBlock formKey="inspection.signoff" className="mb-3" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
               <div>

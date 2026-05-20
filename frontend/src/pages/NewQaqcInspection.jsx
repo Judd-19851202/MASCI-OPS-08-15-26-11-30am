@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { JobPicker } from "@/components/JobPicker";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -240,6 +241,9 @@ export default function NewQaqcInspection() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-5" data-testid="qaqc-form">
+          {/* iter273 · form-root + Job/Sub/Inspection context coaching */}
+          <HelpTipBlock formKey="qaqc" className="mb-3" showCounter />
+          <HelpTipBlock formKey="qaqc.context" className="mb-3" />
           <Section title={t("Job")}>
             <JobPicker
               projectName={data.project_name}
@@ -407,6 +411,8 @@ export default function NewQaqcInspection() {
           )}
 
           <Section title={t("Checklist")}>
+            {/* iter273 · Checklist coaching · the densest QA/QC surface */}
+            <HelpTipBlock formKey="qaqc.checklist" className="mb-3" />
             <p className="text-xs text-slate-500 mb-2">
               {t("Mark each item Pass, Fail, or N/A. Fails require a note.")}
             </p>
@@ -443,6 +449,8 @@ export default function NewQaqcInspection() {
           </Section>
 
           <Section title={t("Notes & Corrective Action")}>
+            {/* iter273 · Corrective notes coaching · closes-loop discipline */}
+            <HelpTipBlock formKey="qaqc.corrective" className="mb-3" />
             <Field label={t("Inspection Notes / Description")} required>
               <Textarea
                 className="min-h-[110px] border-2 border-slate-300"
@@ -470,6 +478,8 @@ export default function NewQaqcInspection() {
           </Section>
 
           <Section title={t("Photos")} desc={t("Upload at least 4 photos of the work area.")}>
+            {/* iter273 · Photos coaching · prove location, not effort */}
+            <HelpTipBlock formKey="qaqc.photos" className="mb-3" />
             <PhotoUpload
               photos={data.photos}
               onChange={(photos) => update({ photos })}
@@ -492,6 +502,8 @@ export default function NewQaqcInspection() {
           </Section>
 
           <Section title={t("Sign-Off")}>
+            {/* iter273 · Inspector sign-off coaching */}
+            <HelpTipBlock formKey="qaqc.signoff" className="mb-3" />
             <Field label={t("Inspector Signature")} required>
               <SignaturePad
                 value={data.inspector_signature}
