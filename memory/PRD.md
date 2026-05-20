@@ -1,6 +1,59 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-20 — iter300 Bilingual Continuity ES Dictionary Closure · CLOSED
+
+### Scope (operator-approved, dictionary-only)
+Cluster bundle A + B + C + D + G + I + J from the iter298 audit. NO JSX changes. NO routing changes. NO workflow alterations.
+
+### What shipped
+- **162 unique ES dictionary entries** added to `/app/frontend/src/lib/i18n.js` in a single tagged block.
+- 11 Safety/HR/Shop/Field-Leadership/Daily-Report cluster surfaces now resolve every `t("...")` call to a proper Spanish translation.
+- "Sign out" already keyed since iter199 — no action needed for universal chrome.
+
+### Translation tone discipline
+- Calm operational voice (not corporate, not LMS, not motivational).
+- Canonical platform terminology preserved: Cumple/No Cumple · Acción Correctiva · Reporte Diario · Cuadrilla · Capacitación · Extintor · Casi-Accidente · Auditoría · Inspección · EPP.
+- Regulatory anchors kept as-is: OSHA · NFPA 10 · MSHA · CPR.
+- Zero LMS-drift hits (banned phrases checked in regression).
+
+### Combined regression
+- **62/62 iter300 regression pytests green** (per-file all-t-calls-resolve · sample translation exact-match · canonical anchors present · LMS-drift ban scoped to iter300 block · no-JSX-files-modified scope guards).
+- **150/150 combined pytests green** across iter278/279/280/281/296/297/299/300.
+- ESLint clean.
+
+### Audit re-run post-iter300
+- Unresolved `t()` keys across the 11 approved cluster files: **162 → 0**.
+- Bilingual-leak gap reduced from iter298's 137 🔴 sites to ~26 remaining (NewIncident + NewInspection placeholder attrs — clusters E + F, explicitly deferred per operator scope).
+
+### Operational impact
+The Safety Coordinator's daily entry surface (`/safety-portal`) now renders correctly in Spanish. The Corrective Actions queue, Training Records, Fire Extinguishers, Safety Documents, and the Safety Incidents review surface no longer leak EN to Spanish users.
+
+### Lite-backup orphan observation (per operator direction — NO autonomous cleanup)
+- 300 lite files · **only 20.4 MB total** (avg 69.6 KB each)
+- Heaviest May 13–16 (iter182-era backup-email testing days · `test_iter182_backup_email_storm_fix.py`)
+- **Retention purpose verified**: `server.py:6836` references lite-backups in `_backup_watchdog_check` fallback (the watchdog reads newest lite for liveness signal when no full backup exists).
+- Real disk pressure dominated by 2 full backups (~1.5 GB) + 2 complete-r2 backups (~300 MB). Lite cluster is <1% of backup footprint.
+- Three viable postures captured in `/app/memory/LITE_BACKUP_ORPHAN_OBSERVATION_iter300.md`. ALL deferred to operator decision.
+
+### Files touched (iter300)
+- MOD · `/app/frontend/src/lib/i18n.js` (+162 ES dictionary entries · single tagged block)
+- NEW · `/app/backend/tests/test_iter300_bilingual_continuity_closure.py` (62 tests)
+- NEW · `/app/memory/LITE_BACKUP_ORPHAN_OBSERVATION_iter300.md` (observation deliverable)
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (ship-log + section-health timestamp)
+
+### Deferred per operator scope
+- Clusters E + F (NewIncident.jsx 18 placeholders · NewInspection.jsx 13 placeholders · require JSX placeholder t()-wrapping).
+- Cluster H (MeetingsDashboard.jsx · needs `useT()` install).
+- Cluster Z (DispatchHub.jsx universal chrome · matrix footnote ⁱⁱⁱ EN-first by design).
+- Lite-backup orphan cleanup decision.
+
+### Governance milestone
+First stabilization-phase iteration where a **single bounded closure delivered measurable bilingual trust improvement on the highest-impact operational surface** (Safety cluster) with **zero JSX churn**. The audit-first → dictionary-only → regression-locked pattern is now a repeatable template for future bilingual closure work.
+
+---
+
+
 ## 2026-05-20 — Stabilization phase entry · iter298 (Lane A audit) + iter299 (Lane D hygiene) · CLOSED
 
 ### Phase shift
