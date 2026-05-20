@@ -1554,3 +1554,8 @@ TRANSLATIONS_ES.update(_EXTRA_ES_ITER279)
 # knowledge-section entries.
 from .translations_es_iter280 import EXTRA_ES as _EXTRA_ES_ITER280  # noqa: E402
 TRANSLATIONS_ES.update(_EXTRA_ES_ITER280)
+
+# iter281 · Sequence #8 roles + reliability i18n closure (final cluster) —
+# merge the 4 ES entries: 3 roles + 1 reliability.
+from .translations_es_iter281 import EXTRA_ES as _EXTRA_ES_ITER281  # noqa: E402
+TRANSLATIONS_ES.update(_EXTRA_ES_ITER281)
