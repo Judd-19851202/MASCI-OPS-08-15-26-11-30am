@@ -52,11 +52,11 @@
 | **Crew Evaluations** | ✅ | ✅ 8 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | 🟡 | ✅ |
 | **Field-Leadership umbrella (10 FL kinds)** | ✅ | 🟡 6 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | 🟡 | 🟡 |
 | **Safety Corrective Actions** | ✅ | ✅ 11 | ✅ | ✅ | — | ✅ | 🟡 | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Fire Extinguishers** | 🟡 | ❌ | ❌ | ✅ | 🟡 | ✅ | 🟡 | — | 🟡 | ❌ | — | ✅ | ❌ | 🟡 |
-| **Safety Equipment Issuance** | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | ❌ | — | ✅ | ❌ | 🟡 |
-| **Safety Equipment Training** | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | ❌ | — | ✅ | ❌ | 🟡 |
-| **Safety Topic Library (F2-A)** | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | — | ✅ | 🟡 | — | ✅ | ❌ | 🟡 |
-| **JHA Plans** | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ❌ | — | ✅ | ❌ | 🟡 |
+| **Fire Extinguishers** | 🟡 | ✅ 19 | ✅ | ✅ | 🟡 | ✅ | 🟡 | — | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 |
+| **Safety Equipment Issuance** | ✅ | ✅ 25 | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Safety Equipment Training** | ✅ | ✅ 19 | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Safety Topic Library (F2-A)** | ✅ | ✅ 19 | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **JHA Plans** | ✅ | ✅ 13 | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Trench Boxes (reference)** | ✅ | — | — | ✅ | — | ✅ | ✅ | — | ✅ | — | — | ✅ | — | ✅ |
 | **Material Calculators** | ✅ | ✅ 10 | ✅ | ✅ | — | ✅ | ✅ | — | ✅ | 🟡 | ✅ | ✅ | ✅ | ✅ |
 
@@ -90,10 +90,10 @@
 ## Highest-risk operational gaps (act on these first)
 
 1. ~~**Legacy View-Surface i18n cluster**~~ — **CLOSED iter272.** `ViewIncident.jsx` · `ViewDailyReport.jsx` · `ViewInspection.jsx` now wire 145 `t()` calls + `useT()` against 70 new ES keys in `i18n.js`. testing_agent_v3_fork frontend 100%.
-2. **Field-Safety forms with NO coaching family** (partial closure in progress)
+2. **Field-Safety forms with NO coaching family** — **CLOSED iter275**
    - ~~`NewInspection`~~ · ~~`NewQaqcInspection`~~ — **CLOSED iter273** (Sequence #2). 35 tips across 11 form-keys.
    - ~~`SafetyCorrectiveActions`~~ — **CLOSED iter274** (Sequence #3). 11 tips across 3 form-keys · 3 dialog/page mounts · Create/Edit mode gating verified live.
-   - **Still open:** `SafetyFireExtinguishers`, `NewSafetyEquipmentIssuance`, `NewSafetyEquipmentTraining`, `SafetyTopicLibrary`, `JhaPlansHub` (5 surfaces remaining — Sequences #5, #6 in this matrix).
+   - ~~`SafetyFireExtinguishers`, `NewSafetyEquipmentIssuance`, `NewSafetyEquipmentTraining`, `SafetyTopicLibrary`, `JhaPlansHub`~~ — **CLOSED iter275** (Sequences #5 + #6). 95 tips across 13 form-keys · 14 HelpTipBlock mounts · canonical 4-kinds present in all 5 top families · testing_agent_v3_fork frontend 14/14 mounts verified · EN/ES parity confirmed · mobile-safe (390w).
 3. ~~**Canonical 4-kind holes**~~ — **CLOSED iter274** (Sequence #4). `fleet.dvir` `escalate` and `material-calculator` `who` filled. Both aggregates now ✅ on all 4 canonical kinds.
 4. **`Fleet DVIR` ⇄ `fleet` registry split** — DVIR form mounts only 2 HelpTipBlocks; the `fleet` registry concentrates on visibility/repair/RTS/dvir/weekly-lead. Looks complete from the registry; field experience shows partial coverage. (Re-evaluate after Sequence #5–#8 close.)
 5. **`DocumentExpirations` page is hardcoded English** — 0 `t()` calls despite the workflow having a full bilingual coaching family. Page consumes English-only.
@@ -139,3 +139,4 @@
 - `iter272` Legacy View-Surface i18n Closure Cluster · ViewIncident · ViewDailyReport · ViewInspection · 145 t() strings · 70 ES keys · testing agent frontend 100% · gap #1 from matrix CLOSED
 - `iter273` NewInspection + NewQaqcInspection coaching family (Sequence #2) · 35 tips · 11 form-keys · EN+ES · 65/65 in-process + 37/37 HTTP pytest · 5/5 + 6/6 frontend testids · gap #2 first cluster CLOSED
 - `iter274` SafetyCorrectiveActions coaching family (Sequence #3) bundled with canonical-4 hole fills (Sequence #4) · 11 corrective tips + 2 canonical fills (fleet.dvir escalate · material-calculator who) · 31/31 pytest including 6 regression cases · 3/3 frontend mounts live-verified with Create/Edit gating · gap #3 CLOSED · gap #2 second cluster CLOSED
+- `iter275` Bundled Sequences #5 + #6 · coaching families for Safety Equipment Issuance, Safety Equipment Training, Safety Topic Library, Fire Extinguishers, JHA Hub · 95 EN+95 ES tips across 13 form-keys · 14 HelpTipBlock mounts (incl. 3 dialog-embedded) · testing_agent_v3_fork frontend 14/14 mounts verified · EN/ES parity 4/4 sampled · canonical 4-kinds present in all 5 top families · mobile 390w no overflow · gap #2 third (final) cluster CLOSED · 5 matrix rows flipped to ✅
