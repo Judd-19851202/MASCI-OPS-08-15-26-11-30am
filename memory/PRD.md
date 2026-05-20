@@ -1,5 +1,43 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 — iter294 audit + iter295 Fleet Visibility convergence · CLOSED
+
+### iter294 — Fleet Visibility audit (visibility-only, no code)
+Classified all 4 active matrix-yellow markers on the Fleet Visibility row.
+
+| Marker | Disposition |
+| --- | --- |
+| EN/ES ❌ + ES-vrfy ❌ | originally classified as micro-close — **but audit discovered already-done** |
+| 4-Kinds 🟡 ❌esc | stale (iter274/iter276 already closed) → matrix-only flip |
+| Mobile 🟡 | intentional desktop/tablet review surface → footnote ⁱⱽ |
+| Tests 🟡 | stale (87 tests across 7 iter251 files) → matrix-only flip |
+
+### iter295 — Fleet Visibility convergence closure (CLOSED)
+- **Zero code shipped on the Fleet Visibility surface itself.**
+- Audit-discovered reality: all 18 visible Fleet status/badge/audit-trail strings are already `t()`-wrapped AND already have ES entries in `i18n.js`. The `EN/ES ❌` marker was completely stale.
+- Live preview screenshot in ES locale confirmed full Spanish rendering: title, description, all 5 summary chips, all status badges, defect chips, action buttons, coaching tips — **everything renders as fluent Spanish**.
+- Authored `test_iter295_fleet_visibility_convergence.py` — 24 tests **locking** the bilingual state, the canonical-4 coaching coverage, the single-PDF-endpoint surface, and 9 banned `fleet.*` namespaces (telematics/gps/inventory/maintenance-schedule/dispatch-automation/fuel-tracking/mechanic-workflow/assignment/scheduling) so future iterations cannot silently regress or sprawl.
+
+### Combined regression
+- **293/293 unit pytests** across iter224→iter295.
+
+### Matrix impact
+- Fleet Visibility row flipped end-to-end via **classification + defensive regression** with **zero Fleet code**.
+- New footnote **ⁱⱽ** established for intentionally desktop/tablet-first dense review surfaces.
+
+### Milestone
+🟢 **Fleet & Equipment section of the matrix is now fully green** — third complete-section milestone, joining HR & People (iter290) and Field & Safety (iter291).
+
+### Governance milestone
+**First iteration where the entire bounded closure target turned out to be already done.** iter295 shipped as pure matrix-truth alignment + defensive regression instead of manufacturing work that the audit would never have caught without evidence-first discipline. Strongest possible validation of the iter292 principle that **yellow ≠ incomplete**.
+
+### Files touched (iter295)
+- NEW · `/app/backend/tests/test_iter295_fleet_visibility_convergence.py`
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (Fleet Visibility row flipped end-to-end · ship-log entries for iter294 + iter295 · footnote ⁱⱽ added to legend)
+- **Zero changes** to `FleetVisibility.jsx`, `i18n.js`, or any other Fleet surface.
+
+---
+
 ## 2026-05-20 — iter292 audit + iter293 Fire Extinguishers convergence · CLOSED
 
 ### iter292 — Remaining matrix-yellow audit (visibility-only, no code)
