@@ -1,0 +1,98 @@
+{
+  "summary": "iter275 frontend validation — Bundled Matrix Sequences #5+#6 coaching-family parity across 5 forms: Equipment Issuance, Equipment Training, Safety Topic Library, Fire Extinguishers, JHA Hub. All 14 expected HelpTipBlock mounts render with content from the backend payload. EN/ES language toggle works (4/4 titles + counter label switch on Equipment Training). Tone is operational/field-foreman — no LMS-bloat phrases detected. Mobile (390w) viewport: no horizontal overflow on JHA. Counter rendered when >=3 tips. Tips inside dialogs (Pack dialog, FE Add dialog, FE Inspect dialog) all render correctly. ONE behavioral discrepancy: collapse/expand state is NOT persisted across navigation (HelpTip uses local React useState, not localStorage) — this contradicts the request's assumption.",
+
+  "backend_issues": {"critical": [], "minor": []},
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "mounts_audit": {
+    "/safety/forms/equipment-issuance/new": {
+      "expected": ["equipment-issuance (top, showCounter)", "equipment-issuance.employee", "equipment-issuance.photos", "equipment-issuance.acknowledgment"],
+      "found": ["helptip-block-equipment-issuance (5 tips, counter shown)", "helptip-block-equipment-issuance-employee (6 tips)", "helptip-block-equipment-issuance-photos (7 tips)", "helptip-block-equipment-issuance-acknowledgment (7 tips)"],
+      "status": "PASS"
+    },
+    "/safety/forms/equipment-training/new": {
+      "expected": ["equipment-training (top, showCounter)", "equipment-training.context", "equipment-training.signatures"],
+      "found": ["helptip-block-equipment-training (5 tips, counter shown)", "helptip-block-equipment-training-context (6 tips)", "helptip-block-equipment-training-signatures (8 tips)"],
+      "status": "PASS"
+    },
+    "/safety-portal/library": {
+      "expected": ["topic-library (top, showCounter)", "topic-library.filter", "topic-library.pdf-pack (inside dialog)"],
+      "found": ["helptip-block-topic-library (5 tips, counter shown)", "helptip-block-topic-library-filter (7 tips)", "helptip-block-topic-library-pdf-pack (7 tips inside pack-dialog after selecting topics)"],
+      "status": "PASS",
+      "note": "pdf-pack requires at least 1 selected topic to enable the open-pack-dialog button. With 136 selected, dialog opens and tip renders."
+    },
+    "/safety-portal/fire-extinguishers": {
+      "expected": ["fire-extinguisher (top, showCounter)", "fire-extinguisher.add (inside create dialog)", "fire-extinguisher.inspection (inside inspect dialog)"],
+      "found": ["helptip-block-fire-extinguisher (5 tips, counter shown)", "helptip-block-fire-extinguisher-add (6 tips inside dialog)", "helptip-block-fire-extinguisher-inspection (8 tips inside dialog)"],
+      "status": "PASS"
+    },
+    "/jha": {
+      "expected": ["jha (top, showCounter)", "jha.poster"],
+      "found": ["helptip-block-jha (5 tips, counter shown)", "helptip-block-jha-poster (8 tips)"],
+      "status": "PASS"
+    }
+  },
+
+  "language_parity": {
+    "method": "Equipment Training EN→ES via header ES toggle button (Spanish toggle works as expected). Also re-validated by sampling backend payload (every key returns title_es/body_es).",
+    "en_titles_eq_training_top": ["Why equipment training is not a checkbox", "Who reads training records", "What happens after submit", "When to fail the trainee"],
+    "es_titles_eq_training_top": ["Por qué la capacitación de equipo no es una palomita", "Quién lee los registros de capacitación", "Qué pasa después de enviar", "Cuándo reprobar al aprendiz"],
+    "different_titles": "4/4",
+    "counter_label_es": "4 consejos disponibles · toca para expandir (correctly Spanish)",
+    "status": "PASS"
+  },
+
+  "canonical_kinds_top_family": {
+    "jha_top_kinds_observed": ["why", "who", "next", "escalate"],
+    "topic_library_top_kinds_observed": ["why", "who", "next", "escalate"],
+    "fire_extinguisher_top_kinds_observed_by_titles": "why monthly+annual, who reads, what happens, when to remove (4 kinds present)",
+    "status": "PASS — all 5 top mounts present the canonical 4-kind family"
+  },
+
+  "tone_audit": {
+    "lms_bloat_phrases_checked": ["compliance training journey", "empower employees", "best practices", "leverage synergies", "stakeholder engagement"],
+    "hits_in_jha_expanded_bodies": [],
+    "sample_titles": ["Why a JHA is the operational plan, not a poster", "When the work doesn't match the JHA anymore", "Why monthly visual + annual is the standard"],
+    "status": "PASS — operational/field-foreman voice confirmed"
+  },
+
+  "mobile_viewport_390x844": {
+    "jha_blocks_widths": [{"id": "helptip-block-jha", "w": 358, "overflows": false}, {"id": "helptip-block-jha-poster", "w": 358, "overflows": false}],
+    "status": "PASS — no horizontal overflow"
+  },
+
+  "collapse_expand_behavior": {
+    "expand_works": true,
+    "aria_expanded_toggles": "yes (false → true on click)",
+    "persistence_across_navigation": false,
+    "note": "HelpTip component (HelpTip.jsx line 100) uses local React useState only — there is NO localStorage write/read for collapse state. The request's claim 'collapsed state persists (localStorage-driven)' is INACCURATE for the current implementation. This is NOT a regression; it's the as-shipped behavior. If persistence is desired, that would be a NEW enhancement (not part of iter275 scope per user directive 'do not widen scope')."
+  },
+
+  "duplication_check": {
+    "same_form_key_rendered_twice_on_same_page": false,
+    "note": "Each formKey is unique on each route. Sub-section blocks (e.g. equipment-training.context) contain parent tips plus section tips — this is by backend prefix-match design; expected behavior, not duplication."
+  },
+
+  "test_report_links": [],
+  "action_items": [
+    "Optional / out of scope: clarify whether HelpTip collapse-state persistence across navigation is a desired enhancement. As-built, state is local to component instance — collapsing then navigating away resets to collapsed-default on re-mount. Request mentioned 'localStorage-driven' but no such code exists. If persistence is wanted, add a localStorage-backed hook keyed by `helptip-${testId}-open`."
+  ],
+  "critical_code_review_comments": [
+    "HelpTipBlock fetches tips on every mount but uses a module-level _tipCache Map keyed by formKey — good. However, no auth-token-change invalidation: if a user logs in/out after first fetch, stale cached tips persist for the session. Low priority since RBAC tips per portal don't change mid-session.",
+    "HelpTip.jsx does NOT persist open/closed state. If the matrix governance requires persistence (per iter275 review_request), this is missing. Recommend adding `useState(() => localStorage.getItem(key) === '1')` + write on setOpen if persistence is a requirement.",
+    "Sub-section mounts (e.g. equipment-training.context) render the parent's 4 canonical tips alongside the section's own tips because backend prefix-matches. UX-wise this means a user scrolling down sees the same 4 'why/who/next/escalate' family repeated above each section. Confirm with product whether this echo is intentional or whether section blocks should filter out parent tips."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% (14/14 mounts render, EN/ES parity verified, tone clean, mobile safe)"},
+  "test_credentials": "Safety portal: jaymn.judd@mascigc.com / Maddix123! via /api/auth/multi-login → portal_tokens.safety stored as masci.safety.token. Safety-forms gate: password '1982' via /api/safety-forms/login → token stored as masci.safetyforms.token.",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 14 HelpTipBlock mount IDs verified rendering with content. data-testid pattern is `helptip-block-{formKey-with-dots-as-dashes}` and counter is `helptip-block-{key}-counter`. For dialog-embedded tips (topic-library.pdf-pack, fire-extinguisher.add, fire-extinguisher.inspection): the dialog must be opened first. Topic Library pack dialog requires >=1 topic selected (use 'Select all visible' button). Fire Extinguishers: safety-fe-new opens add dialog, safety-fe-inspect-{id} opens inspect dialog. Language source: localStorage key `masci.lang` ('en' or 'es'); useT() hook in /app/frontend/src/lib/i18n. Backend payload for all 14 keys is non-empty (re-verified against /api/guidance/tips?form_key=...). The collapse-state persistence assumption in the review_request is incorrect for current code — HelpTip uses local useState only."
+}
