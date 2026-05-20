@@ -184,7 +184,7 @@ const StatusBtn = ({ active, color, label, onClick, testId }) => (
     type="button"
     onClick={onClick}
     data-testid={testId}
-    className={`flex-1 h-10 rounded font-mono text-xs font-black uppercase tracking-[0.15em] border-2 transition-colors ${
+    className={`flex-1 min-w-0 h-10 rounded font-mono text-[10px] sm:text-xs font-black uppercase tracking-tight sm:tracking-[0.15em] border-2 transition-colors truncate px-1 ${
       active
         ? `${color} text-white border-transparent`
         : "bg-white text-slate-500 border-slate-300 hover:border-slate-500"

@@ -10,16 +10,16 @@ export const Section = ({ number, title, aside, children, className = "" }) => {
       )}
       data-testid={`section-${number}`}
     >
-      <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b-2 border-slate-200">
-        <div className="flex items-baseline gap-3">
+      <div className="flex items-start sm:items-center justify-between gap-3 mb-5 pb-3 border-b-2 border-slate-200 flex-wrap">
+        <div className="flex items-baseline gap-3 min-w-0">
           <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
             Section {number}
           </span>
-          <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900">
+          <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900 min-w-0 break-words">
             {title}
           </h2>
         </div>
-        {aside && <div className="shrink-0">{aside}</div>}
+        {aside && <div className="shrink-0 max-w-full">{aside}</div>}
       </div>
       <div className="space-y-5">{children}</div>
     </section>

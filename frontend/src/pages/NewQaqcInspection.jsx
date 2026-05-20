@@ -600,7 +600,7 @@ function ChecklistRow({ item, onChange, testid, t }) {
         <div className="flex-1 min-w-0 text-sm font-medium text-slate-900">
           {t(item.label)}
         </div>
-        <div className="inline-flex rounded border-2 border-slate-300 overflow-hidden text-xs">
+        <div className="inline-flex rounded border-2 border-slate-300 overflow-hidden text-[10px] sm:text-xs shrink-0">
           {[
             ["pass", t("PASS"), "bg-emerald-600 text-white"],
             ["fail", t("FAIL"), "bg-red-600 text-white"],
@@ -611,7 +611,7 @@ function ChecklistRow({ item, onChange, testid, t }) {
               type="button"
               onClick={() => onChange({ result: v })}
               className={
-                "px-2 h-9 font-mono font-bold uppercase tracking-[0.1em] " +
+                "px-1.5 sm:px-2 h-9 font-mono font-bold uppercase tracking-tight sm:tracking-[0.1em] " +
                 (item.result === v ? on : "bg-white text-slate-600")
               }
               data-testid={`${testid}-${v}`}

@@ -68,7 +68,7 @@ function PassFailNaButtons({ value, onChange, testId, t }) {
             type="button"
             onClick={() => onChange(o.v)}
             data-testid={`${testId}-${o.v}`}
-            className={`h-11 sm:h-12 px-1 rounded-md text-sm font-bold uppercase tracking-wide transition-colors border-2 ${
+            className={`h-11 sm:h-12 px-0.5 sm:px-1 rounded-md text-[11px] sm:text-sm font-bold uppercase tracking-tight sm:tracking-wide transition-colors border-2 min-w-0 truncate ${
               active
                 ? `${o.bg} ${o.text} border-transparent shadow-sm`
                 : "bg-white text-slate-700 border-slate-300 hover:border-slate-500"
@@ -523,7 +523,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div>
+              <div className="min-w-0">
                 <Label className="text-sm font-semibold text-slate-800">{t("Date")}</Label>
                 <Input
                   type="date"
@@ -533,7 +533,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                   data-testid="dvir-date"
                 />
               </div>
-              <div>
+              <div className="min-w-0">
                 <Label className="text-sm font-semibold text-slate-800">{t("Time")}</Label>
                 <Input
                   type="time"
@@ -763,7 +763,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
               type="button"
               onClick={submit}
               disabled={!!blockReason || submitting}
-              className="h-14 px-8 text-base font-bold bg-amber-600 hover:bg-amber-700 text-white disabled:bg-slate-300 disabled:text-slate-500"
+              className="h-14 px-4 sm:px-8 text-sm sm:text-base font-bold bg-amber-600 hover:bg-amber-700 text-white disabled:bg-slate-300 disabled:text-slate-500 w-full sm:w-auto"
               data-testid="dvir-submit"
             >
               {submitting ? (

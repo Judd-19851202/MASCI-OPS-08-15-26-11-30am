@@ -2,6 +2,65 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 PM/7 — Mobile / iOS layout polish (P0 system-wide bleed fix)
+
+Operator reported intermittent visual overlap between native Date/Time pickers inside the inspection forms on mobile, plus PASS / FAIL / N/A pill labels overflowing in Spanish ("APROBADO" / "FALLA" / "N/D"). Reproduced both at 320px and 414px viewport. Surgical fixes applied with **NO redesign**, **NO copy changes**.
+
+### Root cause
+1. **iOS native `<input type="date">` / `<input type="time">` chrome enforces a min-width equal to formatted text width.** Inside narrow `grid-cols-2` tracks (Date + Time pair at 414px or smaller), the inputs couldn't shrink below their iOS-imposed min-width and their borders visibly crossed.
+2. **PASS / FAIL / N/A pill buttons** used `text-sm uppercase tracking-wide` which makes ES labels ("APROBADO" = 8 chars) exceed the 1/3-column width on mobile.
+3. **`<Section>` aside** (e.g. "Add trailer" / "Agregar remolque") used a fixed-position flex header without `flex-wrap`, pushing past 320px viewport on iPhone SE.
+4. **Submit button** with `px-8 text-base whitespace-nowrap` couldn't shrink at 320px when ES copy got long ("Enviar Revisión de Emergencia" = 30 chars).
+
+### Surgical fixes
+- `components/ui/input.jsx` · added `min-w-0` to base classes so EVERY `<Input>` system-wide can shrink properly inside narrow grid/flex containers. Single-line patch · cascades to ALL date/time/text inputs throughout the platform.
+- `pages/NewFleetDVIR.jsx`
+  - `PassFailNaButtons` · `text-[11px] sm:text-sm`, `tracking-tight sm:tracking-wide`, `px-0.5 sm:px-1`, `min-w-0 truncate` so ES labels fit in 77px buttons at 320px.
+  - Date / Time grid cells get `min-w-0` so iOS native picker respects the parent column width.
+  - Submit button · `px-4 sm:px-8 text-sm sm:text-base w-full sm:w-auto` so long ES button copy reflows to full-width on mobile.
+- `pages/NewEquipmentInspection.jsx` · `StatusBtn` pills get the same mobile-tightening treatment.
+- `pages/NewQaqcInspection.jsx` · same treatment for QA/QC `[PASS][FAIL][N/A]` cluster.
+- `components/Section.jsx` · header row now uses `flex-wrap` + `items-start sm:items-center` + `min-w-0` on title block + `max-w-full` on aside · the title and aside CAN wrap below each other on narrow screens without bleeding past viewport.
+
+### Verification matrix (live preview)
+```
+                                  320px EN   320px ES   414px EN   414px ES
+/                                 no-overflow  no-overflow  no-overflow  no-overflow
+/shop/login                       no-overflow  no-overflow  -            -
+/dispatch-portal/login            no-overflow  no-overflow  -            -
+/safety-portal/login              no-overflow  no-overflow  -            -
+/shop/fleet                       no-overflow  no-overflow  no-overflow  no-overflow
+/fleet/dvir/new                   no-overflow  no-overflow  no-overflow  no-overflow
+/fleet/weekly-lead/new            no-overflow  no-overflow  -            -
+/fleet/weekly-emergency/new       no-overflow  no-overflow  -            -
+/admin/dashboard                  no-overflow  no-overflow  -            -
+
+Date / Time pair at 414px ES (Fecha · Hora) · 12px clean gap · no border crossover.
+PASS / FAIL / N/A pills at 320px ES · 77.3px each · all 3 ES labels fit (APROBADO · FALLA · N/D).
+```
+
+### Test integrity
+- 92/92 cumulative fleet backend tests still green (no regressions).
+- All edited frontend files pass eslint clean.
+- No new files. No copy changes. Pure CSS / Tailwind class polish.
+
+### Files touched
+- MOD · `frontend/src/components/ui/input.jsx` (+1 class · `min-w-0`)
+- MOD · `frontend/src/components/Section.jsx` (header row · flex-wrap + min-w-0)
+- MOD · `frontend/src/pages/NewFleetDVIR.jsx` (PassFailNaButtons sizing + Date/Time grid + Submit button responsive width)
+- MOD · `frontend/src/pages/NewEquipmentInspection.jsx` (`StatusBtn` mobile sizing)
+- MOD · `frontend/src/pages/NewQaqcInspection.jsx` (PassFail pill container mobile sizing)
+
+### Phase discipline upheld
+- 🚫 No redesign · no new components · no new features
+- 🚫 No copy changes (ES wording preserved platform-wide)
+- ✅ Targeted production-readiness polish only
+
+🔒 iter251 Mobile polish pass **CLOSED**. Phase 1-5 + system-wide mobile polish complete.
+
+---
+
+
 ## 2026-05-19 PM/6 — iter251 Phase 5 · Weekly Lead + Weekly Emergency · COMPLETE (92/92 fleet tests green · bilingual · mobile-verified)
 
 Operator-approved Phase 5 landed cleanly. NO form multiplication, NO calendar bloat, NO recurring-notification spam. Just two high-signal recurring forms reusing the entire Phase 1-4 stack (severity table, defect lifecycle, repair drawer, audit trail).
