@@ -1,5 +1,76 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 PM/13 — iter260 Safety Meeting Structural Cycle · COMPLETE (D1·D2·D3·D4+E5·E1 + ES i18n nit · 100% testing-agent pass)
+
+Operator-approved structural pass before Phase H Batch 2 content. All P0/P1 defects resolved + library split by domain + 5 operational context captures added end-to-end.
+
+### Defects fixed
+- **D1** · `conducted_by` collected once (Section 01). Section 05 now shows a read-only card consuming the same state via single source of truth.
+- **D2** · `composeNotes` extracted to `/app/frontend/src/lib/composeIncidentScaffold.js` with `SCAFFOLD_HEADER_EN` / `SCAFFOLD_HEADER_ES` constants. NewMeeting.jsx imports the helper for both apply-template and submit-time swap-back paths.
+- **D3** · Backend `MeetingCreate` (safety.py L106-135) promoted 4 previously-hidden fields to first-class: `gps_lat`, `gps_lng`, `gps_accuracy`, `topic_template_key`, `submit_language` (plus 5 new E1 fields below). All typed, all visible in OpenAPI / response shapes.
+- **D4** · Topic library shape drift resolved alongside E5: both EN and ES now use the same per-domain file pattern. The EN aggregator exposes `TOPIC_LIBRARY` (array) and `findTopic()`; the ES aggregator exposes `TOPIC_LIBRARY_ES` (object keyed by topic key). Each domain has matching `.js` + `.es.js` files.
+
+### E5 · Topic library split by domain
+- Old: `meetingTopicLibrary.js` (2050 lines) + `meetingTopicLibrary.es.js` (1559 lines) — both deleted.
+- New: `/app/frontend/src/lib/topics/` directory with **21 EN files + 21 ES files + 2 aggregators** (index.js and index.es.js).
+- Files in field-workflow order: pipe · excavation · grading · concrete · paving · milling · mot · trucking · dewatering · shop · plant · airport · utilities · rigging · fall_protection · electrical · confined_space · environmental · wellness · office · general.
+- 128 EN ↔ 128 ES topics preserved exactly. All 22 chip counts verified by testing agent against operator's expected numbers.
+- Importers updated: `NewMeeting.jsx`, `TopicPicker.jsx`. No behavior change.
+- Adding a new topic to a domain now means editing one ~50-200 line file instead of the monolith.
+
+### E1 · Five new operational context captures
+All low-friction, all optional, all bilingual.
+1. `crew_size` (number input) — "Total on crew today / Total de la cuadrilla hoy"
+2. `shift` (dropdown · Day / Swing / Night → Día / Tarde / Noche)
+3. `weather` (multi-select chip row · 6 options: clear, hot, cold, rain, wind, storm_risk)
+4. `subcontractor_present` (toggle) + `subcontractor_name` (conditional input · appears when toggled on)
+5. `high_risk_activity` (toggle) — when checked, ViewMeeting shows a red-bordered callout flag
+
+All five are plumbed end-to-end:
+- Frontend form (`NewMeeting.jsx` Section 01)
+- Backend model (`MeetingCreate` accepts and persists)
+- View / PDF surface (`ViewMeeting.jsx` Section 01 renders KV rows when present, hides when empty/null/false)
+- ES i18n entries added for all new labels (initially missed in testing agent's minor design gap — fixed post-test)
+
+### Testing
+- **iter260 testing-agent**: backend 100% (3/3 pytest in `/app/backend/tests/test_meeting_iter260.py`) · frontend 100% structural acceptance · 1 minor i18n gap (now fixed) · retest_needed=false
+- Chip counts verified EXACT MATCH against operator spec across all 22 domains
+- Sample topics in 3 different domains verified loading with incident_pattern scaffold (live_traffic / dewatering_diesel_pump_fueling_fires / shop_jack_stand_failure)
+- D1 real-time sync confirmed (Section 01 input → Section 05 read-only card)
+- D2 EN + ES header injection confirmed
+- D3 all 10 promoted/new fields echoed in POST + GET responses
+- E1 all five fields visible with correct testids, ES labels render correctly, conditional sub-name input shows/hides correctly, mobile responsive at 320 / 414 / 1280, 0 console errors
+
+### Files touched
+- NEW · `/app/frontend/src/lib/composeIncidentScaffold.js` (D2 shared helper)
+- NEW · `/app/frontend/src/lib/topics/*.js` (21 EN domain files)
+- NEW · `/app/frontend/src/lib/topics/*.es.js` (21 ES domain files)
+- NEW · `/app/frontend/src/lib/topics/index.js` (EN aggregator)
+- NEW · `/app/frontend/src/lib/topics/index.es.js` (ES aggregator)
+- NEW · `/app/backend/tests/test_meeting_iter260.py` (regression test for D3 + E1)
+- DEL · `/app/frontend/src/lib/meetingTopicLibrary.js` (replaced by topics/)
+- DEL · `/app/frontend/src/lib/meetingTopicLibrary.es.js` (replaced by topics/)
+- MOD · `/app/frontend/src/lib/meetingSchema.js` (SHIFT_OPTIONS, WEATHER_OPTIONS, E1 defaults)
+- MOD · `/app/frontend/src/pages/NewMeeting.jsx` (E1 fields in Section 01, D1 readonly in Section 05, D2 helper imported)
+- MOD · `/app/frontend/src/pages/ViewMeeting.jsx` (E1 KV rendering + high-risk callout)
+- MOD · `/app/frontend/src/components/TopicPicker.jsx` (import path → topics/index.es)
+- MOD · `/app/backend/routes/safety.py` (D3 + E1 on MeetingCreate model)
+- MOD · `/app/frontend/src/lib/i18n.js` (+12 ES strings for E1 + D1 labels)
+
+### Phase H content batches remaining (unchanged scope)
+- ⏸ **Batch 2** · Paving (3 uplift + 4 new) · Milling (1 uplift + 1 new) · Pipe (3 uplift) · Concrete (12 uplift) — **NEXT**
+- ⏸ **Batch 3** · Grading · Utilities · Rigging · Fall Protection
+- ⏸ **Batch 4** · Electrical · Confined Space · Environmental · Wellness
+- ⏸ **Batch 5** · General (18 uplift + 2 new) · final dedup · final testing
+
+### Public Safety Topic Library (F1)
+- Strategic approval confirmed (iter260 operator)
+- Implementation deferred until after Phase H Batch 5 completes
+
+🔒 iter260 Structural Cycle **CLOSED** · 128-topic library now organized as 21 per-domain files · 5 new operational context captures live · all P0/P1 defects fixed · ready for Phase H Batch 2 content uplift.
+
+---
+
 ## 2026-05-19 PM/12 — iter251 Safety Meeting Evolution · Phase H Batch 1 · COMPLETE (full 81-topic domain reclassification + 22-chip filter + 17 incident-pattern uplifts + 3 new topics · bilingual · 100% testing-agent pass)
 
 Operator-approved Phase H Batch 1 — the first quality pass on the legacy 81-topic "General" bucket, restructured into the 21 approved operational domains. The system is now a fully-domain-organized field-leadership library, not a flat compliance archive.
