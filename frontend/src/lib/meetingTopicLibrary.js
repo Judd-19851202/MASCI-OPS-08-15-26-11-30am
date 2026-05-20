@@ -1177,6 +1177,116 @@ export const TOPIC_LIBRARY = [
     action_items:
       "Crew wind threshold discussed · Bed-into-wind orientation reviewed · Weather-watch responsibility assigned",
   },
+
+  // ============================================================
+  // TRUCKING / FLEET · PHASE C EXPANSION · iter251
+  // ------------------------------------------------------------
+  // Operator directive (2026-05-19): 6 driver-oriented topics
+  // beyond dump-bed strikes. Same incident_pattern voice. For
+  // drivers, dispatchers, yard leads — not foremen on a slide.
+  // ============================================================
+  {
+    key: "trucking_backing_struck_by",
+    title: "Backing Accidents — Spotter Use and the Last 10 Feet",
+    category: "Hazard-Specific",
+    domain: "trucking",
+    role_context: ["driver", "spotter", "lead"],
+    incident_pattern:
+      "Backing-related incidents are the single most common type of truck accident in heavy civil — and almost every fatality happens in the final 10 feet of the maneuver. The driver has already cleared the wide swing, is creeping back to position, and stops checking mirrors as confidently as they should. A laborer steps behind to grab a tool. A bucket is set down where the driver can't see it. A spotter walks out of the visual frame to take a call. The truck contacts something — a person, a piece of equipment, a wall — at 1 to 3 mph. That's enough to kill someone, total a pickup, or take a leg off.",
+    hazards_reviewed:
+      "Struck-by / run-over of ground workers · Crushing pinch with adjacent equipment · Property damage at the dump pile / loading pad · Spotter struck while signaling · Pedestrian worker on the blind side",
+    discussion_notes:
+      "• Use a spotter any time you are backing in a congested area, around personnel, or at any dock / pile / scale where you can't see your path clearly.\n• G-O-A-L: Get Out And Look. Before backing into a tight space, get out, walk the path, look up and look down. Then back.\n• Agree on hand signals BEFORE backing — the spotter should know YOUR signals and YOU should know what their stop-signal looks like.\n• If you lose sight of the spotter for ANY reason — stop. Don't guess. Don't keep rolling. Wait until you see them again.\n• Use the horn — one tap before motion, two taps for reverse. Wakes up anyone in the area before the wheels move.\n• The last 10 feet is when you slow DOWN, not speed up to finish. That's where the strike happens.\n• Spotters: stay outside the swing radius and the run-over path. Never stand directly behind the wheels. Stay where the driver can SEE you in the mirror.",
+    references_cited:
+      "OSHA 1926.601 · OSHA 1926.602 · FMCSA Backing SOP · MASCI Spotter Field Card",
+    action_items:
+      "G-O-A-L habit discussed · Spotter hand signals reviewed · Lost-sight-of-spotter rule reinforced · Last-10-feet slow-down reinforced",
+  },
+  {
+    key: "trucking_shoulder_pulloff_struck_by",
+    title: "Roadway Pull-Offs and Shoulder Positioning",
+    category: "Hazard-Specific",
+    domain: "trucking",
+    role_context: ["driver", "lead"],
+    incident_pattern:
+      "Most struck-by-vehicle fatalities of professional drivers don't happen in transit — they happen after the truck is already stopped on the shoulder. The driver pulls off for a tire check, a load adjustment, a phone call, or a mechanical problem. They step out, walk around the cab, and are hit by a passing motorist who drifted onto the shoulder. The combination of a lit shoulder, a phone-distracted public driver, and a truck driver in a dark uniform makes this pattern terrible and predictable. It happens at night more than day, and on rural two-lanes more than interstates.",
+    hazards_reviewed:
+      "Struck by passing motorist on shoulder · Cab-side door opens into live traffic · Tire blowout debris from passing vehicle · Trapped between truck and barrier · Fall from cab onto loose shoulder",
+    discussion_notes:
+      "• Pull off as far right as the shoulder allows. If the shoulder is narrow, find the next exit, mile marker pullout, or wide spot — don't stop on a 6-foot shoulder if you can avoid it.\n• Hazards on the moment you stop. Triangles or flares deployed per FMCSA (10 ft behind · 100 ft behind · 100 ft ahead within 10 minutes). On a divided road, all three behind.\n• Exit on the PASSENGER side whenever possible. Never step out of the cab into a live traffic lane.\n• Reflective vest on BEFORE you open the door — Type II Class 2 minimum, Type III Class 3 at night. Vest in the cab, not under the seat.\n• At night: cab dome light on, four-way flashers on, headlights set so you don't blind oncoming traffic. Don't stand between your truck and oncoming headlights — drivers literally cannot see you in that silhouette.\n• Phone call, paperwork, GPS, food — none of those is worth doing on the shoulder. Take the next exit.\n• If a tire blew and you have to be near the rim — stand on the BARRIER side of the truck, never the traffic side. A second blow-out throws debris a long way.",
+    references_cited:
+      "FMCSA 49 CFR 392.22 (warning devices) · FMCSA 392.71 · OSHA 1926.201 · ANSI/ISEA 107 (PPE)",
+    action_items:
+      "Shoulder-positioning preference reinforced · Triangle / flare placement reviewed · Passenger-side exit habit discussed · Reflective vest at-the-door rule reinforced",
+  },
+  {
+    key: "trucking_tarp_load_securement",
+    title: "Tarp and Load Securement on the Road",
+    category: "Hazard-Specific",
+    domain: "trucking",
+    role_context: ["driver", "lead"],
+    incident_pattern:
+      "Lost-load and lost-tarp incidents follow a tight pattern: the driver does a careful load check at the yard, then runs the first 5–10 miles on a slow road. Once they hit the highway and the wind load comes up, anything that wasn't tied tight enough starts to walk. A loose tarp lifts, slips a strap, and either becomes a parachute on the next vehicle behind or releases material across two lanes. Aggregate, asphalt millings, demo debris — once a chunk hits a car at 70 mph it's a lawsuit at best and a fatality at worst. Most of these failures are traceable to a single skipped strap or a tarp clip that was already cracked.",
+    hazards_reviewed:
+      "Material released into live traffic · Tarp ripped off — windshield strike on following vehicle · Load shift causing rollover or off-tracking · Strap failure from chafing or pre-existing damage · Backhaul material left in bed releasing on bumps",
+    discussion_notes:
+      "• Pre-trip the load AND the tarp. Walk all four sides. Look at every strap, every binder, every clip. Replace anything cracked, frayed, or worn — do not wait for it to fail on the road.\n• Tarp coverage is required for any haul that can lose material — aggregate, millings, dirt, sand, demo. 'Empty' beds still hold dust and small debris that flies out at speed.\n• Strap pattern: per FMCSA, at least one tie-down for the first 5 ft of cargo length and one more every 10 ft after. Heavy / awkward loads need more, not less.\n• Re-check at the first stop. The first 5–10 highway miles are where everything settles. Pull off (legally), walk it, retighten anything that loosened.\n• Tarp clips and corner ties — these are the most common failure point. Inspect them like they matter. They do.\n• If you lose a tarp at speed: pull off safely, hazards on, do NOT chase the tarp on foot into traffic. Call dispatch. Call the highway patrol. Get back-up before retrieving.\n• Backhaul tip: a 'clean' truck is not clean. Sweep the bed and check the corners before you leave the dump pile. A handful of millings at 70 mph is a windshield strike.",
+    references_cited:
+      "FMCSA 49 CFR 393 Subpart I (cargo securement) · FMCSA Driver Handbook · NACS Tarp Inspection · MASCI Tarp SOP",
+    action_items:
+      "Tarp and strap pre-trip discussed · First-stop re-check habit reinforced · Backhaul sweep reinforced · Tarp-clip replacement threshold reviewed",
+  },
+  {
+    key: "trucking_kingpin_coupling_failure",
+    title: "Trailer Kingpin and Coupling Failures",
+    category: "Hazard-Specific",
+    domain: "trucking",
+    role_context: ["driver", "lead", "shop"],
+    incident_pattern:
+      "Trailer drops follow a recognizable sequence: the driver couples in a hurry — visual check only, no tug-test, jaws look closed, safety pin gets eyeballed. The first 100 feet of motion goes fine because the trailer is sitting on the fifth wheel by gravity. Then a slight grade, a bump, a turn, and the kingpin slides forward out of unsealed jaws. The trailer drops onto the deck plate or onto the pavement. If anyone is between the cab and the trailer at that moment — a yard worker, another driver doing a walk-around, a mechanic — the result is catastrophic. The pattern is older than most drivers in the seat, and it still kills people every year.",
+    hazards_reviewed:
+      "Trailer drop / unintended decoupling · Crush between dropped trailer and cab · Landing-gear collapse with shifting load · Wrong-pin engagement / false-lock · Glad-hand and electrical disconnect during run",
+    discussion_notes:
+      "• Coupling check is THREE checks, not one: visual (jaws closed around the kingpin) · safety latch / locking-pin engaged · TUG-TEST in low gear against trailer brakes.\n• Tug-test means: trailer brakes set, low gear, gently pull forward. The pin grabs the jaws. NO motion = good. ANY motion = recouple immediately.\n• Visual inspection: get UNDER the fifth wheel with a flashlight. You want to SEE the jaws closed around the kingpin, not just the lock handle 'in.' Locking handles can be 'in' on a false-lock.\n• Landing gear up all the way and crank handle stowed. A landing leg riding even slightly down can catch on rough pavement and shear off.\n• Glad hands seated · safety chains or rigging where required · electrical pigtail latched. These are walk-around items, not 'I'll check after lunch' items.\n• Never stand between the cab and the trailer during coupling/uncoupling. Communicate with anyone in the area — make sure they're clear. Yard fatalities almost always involve a person in this space.\n• If you feel anything weird on the road — vibration, a clunk, a sudden movement — pull off NOW. Don't run another five miles to the next exit. Drops have happened on the highway.",
+    references_cited:
+      "FMCSA 49 CFR 393.70 (coupling devices) · CVSA Out-Of-Service Criteria · OEM fifth-wheel manual · MASCI Coupling Card",
+    action_items:
+      "Three-step coupling check reinforced · Tug-test method reviewed · Under-the-trailer visual habit reinforced · Stay-out-of-the-pinch-zone rule discussed",
+  },
+  {
+    key: "trucking_overweight_axle_law",
+    title: "Overweight, Axle Loading and Bridge Law",
+    category: "Procedure / SOP",
+    domain: "trucking",
+    role_context: ["driver", "lead", "dispatch"],
+    incident_pattern:
+      "Overweight tickets and axle violations almost never come from a driver who DECIDED to run heavy. They come from a driver who got loaded by a plant operator, didn't check the ticket, didn't scale on the way out, and rolled past a portable weigh team. The pattern repeats most often in two scenarios: hot-mix asphalt out of a busy plant where loader operators are running long days and over-pouring 'just a little,' and aggregate hauls where the customer is paying by the ton and the supplier loads to the rim. The driver eats the ticket, the company eats the points on its DOT score, and a state-level Bridge Law violation can shut a job down.",
+    hazards_reviewed:
+      "Brake fade / brake fire on grades from overload · Tire blowout from over-axle loading · Bridge / culvert structural damage · DOT points on operating authority · License-affecting citations · Steering loss from front-axle overload",
+    discussion_notes:
+      "• Know your truck's tare, your axle ratings, and your gross. Have them written down in the cab — not in your head, not 'about,' but exact.\n• Check the ticket at the plant BEFORE you leave the scale. If the numbers don't add up or the truck feels heavy on the suspension, ask the loader to take a scoop off.\n• Federal bridge law is not just gross weight — it's how the weight is distributed. A legal-gross truck can still be illegal on a tandem or on the steer axle. Spread loads, slide the fifth wheel, slide the trailer axle.\n• If you go through a CAT scale or a state portable on the route, USE IT. Better to know you're 800 lb over and slide the axle than to find out at the chicken coop.\n• Overload on the steer axle is the most dangerous — that's where steering authority lives. An overloaded steer in a corner can wash out and become a rollover.\n• Hot mix out of a plant: the temperature affects the way the load settles. A perfect scale at the plant can shift on the road. Drive accordingly — softer braking, longer following distance.\n• Dispatch tip: if a customer is consistently asking for over-axle hauls, document it and escalate. Don't let it become 'the way we run that customer.'",
+    references_cited:
+      "FMCSA 49 CFR 393 · Federal Bridge Formula (23 USC 127) · State DOT axle tables · MASCI Plant Loading SOP",
+    action_items:
+      "Tare / rating / gross verified in cab · Scale-on-the-way-out habit reinforced · Steer-axle awareness discussed · Overload escalation path discussed",
+  },
+  {
+    key: "trucking_blind_spots_pedestrian",
+    title: "Blind Spots and Pedestrian Workers Around Trucks",
+    category: "Hazard-Specific",
+    domain: "trucking",
+    role_context: ["driver", "lead", "spotter", "office"],
+    incident_pattern:
+      "Pedestrian-strike fatalities on heavy civil sites almost always happen in a specific zone — the front quarter on the passenger side, or the immediate area in front of the cab — and they almost always happen during the first 2 seconds of vehicle motion. A laborer is checking a tire, picking up a tool, signaling another piece of equipment, or simply standing in the wrong place. The driver checks mirrors, sees nothing, and engages. The truck rolls forward 5 to 10 feet before the driver sees a hi-vis vest hit the ground. The fix is not better mirrors — it's a hard pre-motion habit and a job-site culture where ground workers know not to stand in those zones.",
+    hazards_reviewed:
+      "Pedestrian struck-by / run-over from cab blind spot · Right-side mirror gap on wide cab trucks · Pedestrian behind truck during reverse · Worker in pinch zone during turn · New-driver unfamiliarity with mirror coverage",
+    discussion_notes:
+      "• Before any motion — driver does a 360 walk-around or a full mirror + over-the-shoulder sweep. Eye contact with anyone visible.\n• Use the horn. One tap before forward motion, two taps for reverse. If someone is close, roll the window down and call out before moving.\n• The blind spots: directly in front of the bumper (the 'kill zone'), the front-right quarter, the area immediately behind the trailer, and the right-side turn pinch zone. Ground workers should NEVER stand in those.\n• Hi-vis vest is a tool, not a permission slip. A vest does not let you stand in a blind spot.\n• On a busy site — plant yards, paving trains, dump piles — make eye contact with the driver before you walk near the truck. If you don't get acknowledgment, don't move into the zone.\n• New drivers: take 15 minutes with each truck and KNOW where every mirror covers and where it doesn't. Right-side mirrors on day cabs vs sleepers vs cabovers all differ — do not assume.\n• Site supervisors and office personnel visiting the field: same rule applies. Stay out of cab blind spots, especially around running equipment.\n• If you're the spotter or ground worker, position yourself where the DRIVER can see YOU in the mirror — not where you can see the truck. They are different things.",
+    references_cited:
+      "OSHA 1926.601 · OSHA 1926.602 · NIOSH Internal Traffic Control · MASCI Site Pedestrian SOP",
+    action_items:
+      "Pre-motion walk-around habit reinforced · Kill-zone awareness for ground crew reviewed · New-driver mirror-coverage check assigned · Office-visitor blind-spot rule discussed",
+  },
 ];
 
 export const CUSTOM_TOPIC_KEY = "__custom__";

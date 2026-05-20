@@ -878,4 +878,162 @@ export const TOPIC_LIBRARY_ES = {
     action_items:
       "Info 988 / EAP publicada · Check-in de cuadrilla · Reducción de estigma discutida",
   },
+
+  // ============================================================
+  // TRUCKING / FLEET · FAMILIA DE GOLPES DE CAJA · iter251 Fase B
+  // ------------------------------------------------------------
+  // Traducciones espejo de las 5 cápsulas en inglés. Voz de
+  // patrón-real. Hechas para choferes y líderes de patio, no para
+  // foremen leyendo diapositivas.
+  // ============================================================
+  dump_bed_overhead_strike: {
+    title: "Golpes de Caja Volcadora — Líneas Aéreas, Puentes, Letreros, Bandas",
+    incident_pattern:
+      "La mayoría de los golpes aéreos suceden en el sitio de descarga mismo — no en tránsito. El chofer termina una carga, la caja sigue parcialmente levantada y el camión avanza para despejar la pila. En tres o cuatro pies de avance, la caja levantada engancha una línea aérea, un puente bajo, un letrero o una banda transportadora de planta. Para cuando el chofer se da cuenta de lo que pasó, la línea está en el suelo o la banda está doblada. Muchos de estos golpes son fatales cuando la línea está energizada.",
+    hazards_reviewed:
+      "Electrocución por línea aérea energizada · Golpe contra puente / letrero / estructura · Golpe contra banda transportadora de planta · Corte de servicio público · Volcadura por frenada con caja levantada",
+    discussion_notes:
+      "• Antes de levantar la caja — mire arriba. Líneas · puentes · letreros · bandas transportadoras de planta · estructuras aéreas.\n• Mantenga 20 pies de espacio libre de cualquier línea energizada. Si no puede confirmar que está desenergizada, trátela como viva.\n• Ponga el freno de estacionamiento antes de levantar. El camión NO debe rodar mientras la caja se mueve.\n• No mueva el camión hasta que la caja esté totalmente abajo. Mire el indicador en cabina o el espejo — no asuma.\n• En sitios desconocidos (plantas de asfalto, patios MOT, sitios de cliente), camine el área primero. Conozca el panorama aéreo.\n• Si toca una línea energizada: QUÉDESE EN LA CABINA. Llame al 911. Espere a que el servicio público confirme que la línea está desenergizada antes de bajarse. Bajarse con el camión energizado ha matado choferes.",
+    references_cited:
+      "OSHA 1926.601 · OSHA 1926.1408 (distancia a líneas eléctricas) · DOT FMCSA · Concientización de golpe a servicios",
+    action_items:
+      "Caminata aérea discutida · Indicador de caja arriba revisado · Procedimiento ante línea energizada revisado · Regla de 20 pies reforzada",
+  },
+  dump_bed_traveling_raised: {
+    title: "Viajar Con la Caja Arriba — El Asesino Silencioso",
+    incident_pattern:
+      "Después de descargar, el chofer se enfoca en salir del área — checando espejos, buscando la siguiente carga, vigilando spotters en tierra. La caja sigue parcialmente arriba. El camión avanza, el chofer cambia su atención al camino, y la caja ahora va 6, 8, a veces 14 pies en el aire por todo el trayecto de salida. El golpe sucede en la primera obstrucción aérea — usualmente dentro de 50 pies de la pila. Los choferes lo describen igual cada vez: 'Se me olvidó que la caja estaba arriba.'",
+    hazards_reviewed:
+      "Golpe aéreo catastrófico · Contacto con línea eléctrica · Volcadura por centro de gravedad elevado a velocidad de carretera · Impacto contra puente / letrero · Incidente que cuesta la licencia",
+    discussion_notes:
+      "• La verificación de caja-abajo es LO PRIMERO después de descargar — no lo último. Antes que los espejos. Antes que la radio. Antes del siguiente movimiento.\n• Vigile el indicador en cabina de caja arriba. Si su camión no tiene uno, revise el espejo lateral ANTES de rodar adelante. Punto.\n• Las alarmas de caja arriba no son opcionales — si la suya está rota, ese camión no acarrea hasta que se arregle. Avise al Taller.\n• Las salidas de planta, de patio y de obra son los puntos de golpe más comunes. Reduzca velocidad en la salida y vuelva a revisar.\n• Velocidad de carretera con la caja levantada aunque sea parcialmente eleva su centro de gravedad peligrosamente — una curva a 55 mph puede volverse una volcadura.\n• Si nota a media ruta que la caja está arriba: NO frene fuerte. Reduzca de manera constante. Encuentre un costado seguro. Baje la caja allí.",
+    references_cited:
+      "OSHA 1926.601 · Pre-Viaje DOT FMCSA · Manual del fabricante · Especificación de alarma de caja arriba",
+    action_items:
+      "Hábito de caja-abajo-primero reforzado · Función de alarma de caja arriba verificada · Conciencia en salida de planta/patio revisada",
+  },
+  dump_bed_pto_habits: {
+    title: "Desconexión del PTO y Hábitos de Bajar la Caja",
+    incident_pattern:
+      "Los incidentes de caja arriba relacionados con el PTO casi siempre se rastrean al hábito, no al equipo. El chofer entra en ritmo — descargar, revisar espejos, rodar. El paso de bajar la caja se comprime o se salta. En días calurosos, choferes fatigados, plantas ocupadas con varios camiones haciendo fila, la memoria muscular toma el control. El camión se mueve antes de que el PTO esté desconectado y antes de que la caja esté totalmente asentada. La siguiente operación — retroceder bajo una banda, entrar a un patio, entrar a la báscula de planta — es cuando ocurre el golpe.",
+    hazards_reviewed:
+      "Viaje con caja arriba por saltarse el paso de bajar PTO · Daño hidráulico · Golpe aéreo · Falla mecánica por traslado con PTO conectado · Incidente que cuesta la licencia",
+    discussion_notes:
+      "• PTO desconectado antes de rodar el camión. Cada descarga. Cada vez. Sin excepciones.\n• Secuencia: descargar → caja abajo → desconectar PTO → confirmar indicador → revisar espejos → rodar.\n• Si una planta llena o un sitio de cliente ocupado lo está apresurando, baje el ritmo. La planta esperará. La línea aérea no.\n• Si su camión tiene interlock (PTO conectado impide engranar la transmisión), no lo brinque. El interlock es la última defensa.\n• Capacite a choferes nuevos en esta secuencia el Día 1. Haga el paso de caja abajo explícito y verbal.\n• Después de cada descarga, antes de moverse — dígalo en voz alta o para usted: 'Caja abajo. PTO afuera. Espejos.' El hábito le gana a la prisa.",
+    references_cited:
+      "OSHA 1926.601 · DOT FMCSA · Especificación PTO del fabricante · SOP de fila en planta",
+    action_items:
+      "Secuencia de descarga verbalizada · Función de interlock PTO verificada · Refuerzo de hábito del chofer discutido",
+  },
+  dump_bed_soft_ground_tipover: {
+    title: "Volcaduras en Terreno Blando — La Volcadura Con Caja Arriba",
+    incident_pattern:
+      "Una caja volcadora levantada hace al camión pesado de arriba. Una caja cargada y levantada lo hace peligrosamente pesado de arriba. El riesgo es mayor en el momento en que el material empieza a soltarse disparejo — asfalto pegajoso, material congelado, media carga atascada. El chofer siente que el camión se inclina, lo malinterpreta como la caja liberándose, y la sube más. El centro de gravedad se mueve hacia afuera, el lado blando se compacta, y el camión se voltea. La mayoría de las volcaduras en terreno blando suceden en la segunda o tercera descarga de la mañana cuando el terreno aún no se ha trabajado.",
+    hazards_reviewed:
+      "Volcadura con caja arriba · Aplastamiento del chofer en cabina al volcarse · Avalancha de material sobre la cuadrilla · Equipo adyacente / spotter golpeado · Volcadura en relleno blando / mojado / recién movido",
+    discussion_notes:
+      "• Descargue en terreno nivelado y firme. Si el suelo cede bajo el pie, va a ceder bajo 80,000 lb con la caja arriba.\n• Cargas que no se sueltan parejo — DEJE DE SUBIR. Baje la caja. Investigue. Asfalto caliente, material congelado y cargas atascadas son las señales de aviso.\n• Si siente que el camión se inclina hacia un lado mientras sube la caja — eso no es liberación normal. Baje la caja de inmediato. Bájese y revise.\n• Relleno recién puesto, lluvia reciente, días de hielo-deshielo — asuma que el terreno está blando hasta probar lo contrario. Camínelo antes de retroceder.\n• Nunca permanezca en la cabina con el cinturón sin abrochar durante una descarga. Si el camión se voltea, el cinturón es lo que lo mantiene vivo.\n• Los spotters se quedan fuera de la línea de caída — incluyendo los LADOS, no solo la parte trasera. Una volcadura con caja arriba lanza material 30+ pies de lado.",
+    references_cited:
+      "OSHA 1926.601 · Protección OSHA contra volcaduras · Manual del fabricante",
+    action_items:
+      "Revisión de firmeza del terreno discutida · Respuesta ante liberación dispareja revisada · Política de cinturón durante descarga reforzada · Línea de caída de spotter revisada",
+  },
+  dump_bed_wind_raised: {
+    title: "Operación con Caja Arriba en Viento Fuerte",
+    incident_pattern:
+      "Una caja volcadora levantada es una vela. A 30 mph de viento sostenido, una caja vacía levantada atrapa suficiente fuerza para empujar el camión de lado o acelerar una volcadura que ya iba marginal. Los peores incidentes pasan cuando las cuadrillas tienen prisa por terminar antes de que llegue un frente — caja arriba, ráfaga golpea, camión en tres ruedas antes de que el chofer reaccione. El patrón se repite más en sitios expuestos: losas de puente, terraplenes, taludes, patios de planta con exposición al viento predominante.",
+    hazards_reviewed:
+      "Volcadura inducida por viento con caja arriba · Carga lateral por viento sostenido · Carga repentina de ráfaga · Cuadrilla golpeada por volcadura sin control · Liberación de material por viento",
+    discussion_notes:
+      "• Si los vientos sostenidos pasan de 25–30 mph, considere si la descarga puede esperar. Cajas vacías levantadas a velocidad con viento lateral han volteado camiones.\n• Las ráfagas son peores que el viento sostenido — una ráfaga de 50 mph contra una caja levantada son varios miles de libras de carga lateral instantánea.\n• Posicione el camión para que la caja suba HACIA el viento, no atravesada. Reduce el efecto vela.\n• Vigile el cielo y el radar. Frentes que entran rápido (líneas de tormenta, tormentas de verano) traen ráfagas de 50–70 mph antes de la lluvia.\n• Si una ráfaga golpea con la caja arriba: mantenga los controles firmes. NO haga movimientos bruscos. La mayoría de las volcaduras por viento se agravan con dirección de pánico.\n• En sitios expuestos — losas de puente, terraplenes, patios de planta con exposición abierta — fije un umbral de viento para la cuadrilla y llámelo antes de que se ponga feo.",
+    references_cited:
+      "OSHA 1926.601 · Límites de operación del fabricante en viento · Concientización NWS sobre frentes de ráfaga",
+    action_items:
+      "Umbral de viento de la cuadrilla discutido · Orientación caja-hacia-viento revisada · Responsable de vigilancia del clima asignado",
+  },
+
+  // ============================================================
+  // TRUCKING / FLEET · FASE C EXPANSIÓN · iter251
+  // ------------------------------------------------------------
+  // 6 temas adicionales para choferes, dispatchers y líderes de
+  // patio. Misma voz de patrón-real. Plain-spoken. Field-facing.
+  // ============================================================
+  trucking_backing_struck_by: {
+    title: "Accidentes al Retroceder — Uso de Spotter y los Últimos 10 Pies",
+    incident_pattern:
+      "Los incidentes al retroceder son el tipo más común de accidente de camión en obra civil pesada — y casi cada fatalidad ocurre en los últimos 10 pies de la maniobra. El chofer ya pasó el giro amplio, va arrastrándose para posicionarse, y deja de checar espejos con la atención que debería. Un peón se mete atrás a recoger una herramienta. Un cucharón se deja donde el chofer no lo ve. Un spotter sale del marco visual para tomar una llamada. El camión toca algo — una persona, un equipo, una pared — a 1 o 3 mph. Eso es suficiente para matar a alguien, destruir una pickup, o arrancar una pierna.",
+    hazards_reviewed:
+      "Golpe / atropello a trabajadores en tierra · Aplastamiento contra equipo adyacente · Daño a propiedad en la pila / plataforma de carga · Spotter golpeado mientras señaliza · Trabajador peatón en el lado ciego",
+    discussion_notes:
+      "• Use un spotter siempre que retroceda en área congestionada, alrededor de personal, o en cualquier muelle / pila / báscula donde no vea con claridad su trayecto.\n• G-O-A-L: Get Out And Look · Bájese, Camine y Mire. Antes de retroceder a un espacio estrecho, bájese, camine el trayecto, mire arriba y abajo. Luego retroceda.\n• Acuerde las señales de mano ANTES de retroceder — el spotter debe conocer SUS señales y USTED debe conocer cómo se ve su señal de alto.\n• Si pierde de vista al spotter por CUALQUIER razón — pare. No adivine. No siga rodando. Espere hasta verlo de nuevo.\n• Use el claxon — un toque antes de moverse, dos toques para reversa. Despierta a cualquiera en el área antes de que las ruedas se muevan.\n• Los últimos 10 pies es cuando se reduce la velocidad, no cuando se acelera para terminar. Ahí es donde ocurre el golpe.\n• Spotters: manténganse fuera del radio de giro y de la línea de atropello. Nunca paren directamente detrás de las ruedas. Manténganse donde el chofer pueda VERLOS en el espejo.",
+    references_cited:
+      "OSHA 1926.601 · OSHA 1926.602 · SOP de retroceso FMCSA · Tarjeta de Spotter MASCI",
+    action_items:
+      "Hábito G-O-A-L discutido · Señales de mano de spotter revisadas · Regla de pérdida-de-vista reforzada · Reducción de velocidad en los últimos 10 pies reforzada",
+  },
+  trucking_shoulder_pulloff_struck_by: {
+    title: "Estacionamiento en el Acotamiento y Posicionamiento en el Hombro",
+    incident_pattern:
+      "La mayoría de las fatalidades de choferes profesionales por ser golpeados no suceden en tránsito — suceden después de que el camión ya está parado en el acotamiento. El chofer se hace a un lado para revisar una llanta, ajustar la carga, una llamada, o un problema mecánico. Se baja, camina alrededor de la cabina, y un automovilista que se desvió al acotamiento lo golpea. La combinación de un acotamiento iluminado, un automovilista distraído con el celular, y un chofer con uniforme oscuro hace este patrón terrible y predecible. Pasa más de noche que de día, y en carreteras rurales de dos carriles más que en autopistas.",
+    hazards_reviewed:
+      "Golpeado por automovilista en el acotamiento · Puerta del lado del chofer abre hacia tráfico vivo · Escombros de llanta reventada de vehículo en marcha · Atrapado entre camión y barrera · Caída desde la cabina al acotamiento suelto",
+    discussion_notes:
+      "• Hágase a un lado lo más a la derecha que el acotamiento permita. Si el acotamiento es estrecho, busque la siguiente salida, marcador de milla o lugar amplio — no pare en un acotamiento de 6 pies si puede evitarlo.\n• Intermitentes desde el momento que para. Triángulos o bengalas conforme FMCSA (10 pies atrás · 100 pies atrás · 100 pies adelante dentro de 10 minutos). En carretera dividida, los tres atrás.\n• Salga por el lado del PASAJERO siempre que sea posible. Nunca salga de la cabina hacia un carril vivo.\n• Chaleco reflectivo PUESTO antes de abrir la puerta — Tipo II Clase 2 mínimo, Tipo III Clase 3 de noche. Chaleco en la cabina, no debajo del asiento.\n• De noche: luz de domo encendida, intermitentes de 4 puestos, faros ajustados para no encandilar al tráfico. No pare entre su camión y los faros que vienen — los choferes literalmente no pueden verlo en esa silueta.\n• Llamada telefónica, papeleo, GPS, comida — ninguno vale la pena hacerlo en el acotamiento. Tome la próxima salida.\n• Si una llanta reventó y tiene que estar cerca del rin — párese del lado de la BARRERA, nunca del lado del tráfico. Una segunda reventada lanza escombros muy lejos.",
+    references_cited:
+      "FMCSA 49 CFR 392.22 (dispositivos de aviso) · FMCSA 392.71 · OSHA 1926.201 · ANSI/ISEA 107 (PPE)",
+    action_items:
+      "Preferencia de posición en acotamiento reforzada · Colocación de triángulos / bengalas revisada · Hábito de salida por lado pasajero discutido · Regla de chaleco-en-la-puerta reforzada",
+  },
+  trucking_tarp_load_securement: {
+    title: "Lona y Aseguramiento de Carga en la Carretera",
+    incident_pattern:
+      "Los incidentes de pérdida de carga y pérdida de lona siguen un patrón apretado: el chofer hace una revisión cuidadosa en el patio, luego corre las primeras 5–10 millas en camino lento. Una vez que pega la carretera y la carga de viento sube, cualquier cosa que no quedó bien apretada empieza a moverse. Una lona suelta se levanta, suelta una cincha, y se convierte en paracaídas para el siguiente vehículo o libera material a través de dos carriles. Agregado, millings de asfalto, escombros de demolición — una vez que un pedazo le pega a un carro a 70 mph es un pleito legal en el mejor caso y una fatalidad en el peor. La mayoría de estas fallas se rastrean a una sola cincha saltada o un clip de lona que ya estaba agrietado.",
+    hazards_reviewed:
+      "Material liberado hacia tráfico vivo · Lona arrancada — golpe al parabrisas de vehículo trasero · Desplazamiento de carga causando volcadura o salida de carril · Falla de cincha por roce o daño previo · Material de retorno en la caja liberándose con los baches",
+    discussion_notes:
+      "• Pre-trip la carga Y la lona. Camine los cuatro lados. Mire cada cincha, cada tensor, cada clip. Reemplace cualquier cosa agrietada, deshilachada o desgastada — no espere a que falle en la carretera.\n• La cobertura con lona es requerida para cualquier acarreo que pueda perder material — agregado, millings, tierra, arena, demolición. Las cajas 'vacías' aún guardan polvo y escombros pequeños que vuelan a velocidad.\n• Patrón de cinchas: conforme FMCSA, mínimo una sujeción para los primeros 5 pies de carga y otra cada 10 pies después. Cargas pesadas / asimétricas requieren más, no menos.\n• Re-revise en la primera parada. Las primeras 5–10 millas de carretera son donde todo se asienta. Hágase a un lado (legalmente), camine, vuelva a apretar lo que se aflojó.\n• Clips de lona y amarres de esquina — son el punto de falla más común. Inspecciónelos como si importaran. Sí importan.\n• Si pierde una lona a velocidad: hágase a un lado de manera segura, intermitentes, NO persiga la lona a pie hacia el tráfico. Llame al dispatch. Llame a la patrulla. Pida respaldo antes de recuperar.\n• Tip de retorno: un camión 'limpio' no está limpio. Barra la caja y revise las esquinas antes de salir de la pila de descarga. Un puñado de millings a 70 mph es un golpe al parabrisas.",
+    references_cited:
+      "FMCSA 49 CFR 393 Subparte I (aseguramiento de carga) · Manual del Chofer FMCSA · Inspección de Lona NACS · SOP de Lona MASCI",
+    action_items:
+      "Pre-trip de lona y cinchas discutido · Hábito de re-revisión en primera parada reforzado · Barrido de retorno reforzado · Umbral de reemplazo de clip de lona revisado",
+  },
+  trucking_kingpin_coupling_failure: {
+    title: "Fallas de Kingpin y Acoplamiento del Trailer",
+    incident_pattern:
+      "Las caídas de trailer siguen una secuencia reconocible: el chofer acopla con prisa — solo inspección visual, sin tug-test, las mordazas se ven cerradas, el pasador de seguridad se mira por encima. Los primeros 100 pies de movimiento van bien porque el trailer está sentado sobre la quinta rueda por gravedad. Luego un leve declive, un bache, un giro, y el kingpin se desliza fuera de mordazas que no sellaron. El trailer cae sobre la placa de cubierta o sobre el pavimento. Si alguien está entre la cabina y el trailer en ese momento — un trabajador de patio, otro chofer haciendo walk-around, un mecánico — el resultado es catastrófico. El patrón es más viejo que la mayoría de los choferes al volante, y sigue matando gente cada año.",
+    hazards_reviewed:
+      "Caída de trailer / desacoplamiento accidental · Aplastamiento entre trailer caído y cabina · Colapso de patas de aterrizaje con carga que se desplaza · Falso bloqueo del kingpin · Desconexión de glad-hands y eléctrico en ruta",
+    discussion_notes:
+      "• La revisión de acoplamiento son TRES revisiones, no una: visual (mordazas cerradas sobre el kingpin) · seguro / pasador de bloqueo enganchado · TUG-TEST en marcha baja contra frenos del trailer.\n• Tug-test significa: frenos del trailer puestos, marcha baja, jalar suavemente hacia adelante. El pin agarra las mordazas. SIN movimiento = bien. CUALQUIER movimiento = re-acoplar inmediatamente.\n• Inspección visual: métase BAJO la quinta rueda con una linterna. Quiere VER las mordazas cerradas alrededor del kingpin, no solo la palanca de bloqueo 'adentro.' Las palancas pueden estar 'adentro' en un falso bloqueo.\n• Patas de aterrizaje totalmente arriba y manivela guardada. Una pata aunque sea ligeramente abajo puede engancharse en pavimento rugoso y arrancarse.\n• Glad-hands asentadas · cadenas o aparejo de seguridad donde se requieran · pigtail eléctrico enganchado. Estos son ítems de walk-around, no de 'reviso después del almuerzo.'\n• Nunca se pare entre la cabina y el trailer durante acoplamiento / desacoplamiento. Comuníquese con cualquiera en el área — asegúrese que estén despejados. Las fatalidades en patio casi siempre involucran a una persona en este espacio.\n• Si siente algo raro en la carretera — vibración, golpe seco, movimiento súbito — hágase a un lado YA. No siga otras cinco millas a la próxima salida. Los desacoplamientos han ocurrido en autopista.",
+    references_cited:
+      "FMCSA 49 CFR 393.70 (dispositivos de acoplamiento) · Criterios OOS de CVSA · Manual OEM de quinta rueda · Tarjeta de Acoplamiento MASCI",
+    action_items:
+      "Revisión de acoplamiento de tres pasos reforzada · Método de tug-test revisado · Hábito visual bajo el trailer reforzado · Regla de mantenerse-fuera-de-la-zona-pinch discutida",
+  },
+  trucking_overweight_axle_law: {
+    title: "Sobrepeso, Carga por Eje y Ley de Puentes",
+    incident_pattern:
+      "Las multas por sobrepeso y violaciones de eje casi nunca vienen de un chofer que DECIDIÓ correr pesado. Vienen de un chofer al que el operador de planta le cargó, no revisó el ticket, no se pesó al salir, y pasó frente a un equipo portátil de pesaje. El patrón se repite más en dos escenarios: hot-mix saliendo de planta ocupada donde los operadores de loader llevan días largos y sobre-cargan 'un poquito,' y acarreos de agregado donde el cliente paga por tonelada y el proveedor carga al ras. El chofer come la multa, la compañía come los puntos en su DOT score, y una violación de Bridge Law a nivel estatal puede detener un trabajo.",
+    hazards_reviewed:
+      "Pérdida de frenos / fuego de frenos en bajadas por sobrecarga · Reventón de llanta por sobrecarga de eje · Daño estructural a puente / alcantarilla · Puntos DOT en autorización operativa · Citaciones que afectan la licencia · Pérdida de dirección por sobrecarga del eje delantero",
+    discussion_notes:
+      "• Conozca la tara de su camión, las clasificaciones de eje y el bruto. Téngalo escrito en la cabina — no en su cabeza, no 'aproximado,' sino exacto.\n• Revise el ticket en la planta ANTES de salir de la báscula. Si los números no cuadran o el camión se siente pesado en la suspensión, pídale al loader que quite una pala.\n• La ley federal de puentes no es solo peso bruto — es cómo se distribuye el peso. Un camión legal en bruto puede ser ilegal en el tándem o en el eje delantero. Distribuya cargas, deslice la quinta rueda, deslice el eje del trailer.\n• Si pasa por una báscula CAT o una portátil estatal en la ruta, ÚSELA. Mejor saber que va 800 lb arriba y deslizar el eje, que descubrirlo en el chicken coop.\n• Sobrecarga en el eje de dirección es la más peligrosa — ahí vive la autoridad de dirección. Un eje de dirección sobrecargado en una curva puede irse de largo y volverse volcadura.\n• Hot mix de planta: la temperatura afecta cómo se asienta la carga. Una báscula perfecta en la planta puede correrse en la carretera. Maneje en consecuencia — frenado más suave, mayor distancia de seguimiento.\n• Tip de dispatch: si un cliente pide consistentemente acarreos sobre eje, documéntelo y escálelo. No deje que se vuelva 'así corremos a ese cliente.'",
+    references_cited:
+      "FMCSA 49 CFR 393 · Fórmula Federal de Puentes (23 USC 127) · Tablas de eje del DOT estatal · SOP de Carga en Planta MASCI",
+    action_items:
+      "Tara / clasificación / bruto verificados en cabina · Hábito de báscula-de-salida reforzado · Conciencia del eje de dirección discutida · Ruta de escalación de sobrecarga discutida",
+  },
+  trucking_blind_spots_pedestrian: {
+    title: "Puntos Ciegos y Trabajadores Peatones Alrededor de Camiones",
+    incident_pattern:
+      "Las fatalidades por golpe a peatón en obras de civil pesada casi siempre ocurren en una zona específica — el cuarto delantero del lado pasajero, o el área inmediata frente a la cabina — y casi siempre pasan durante los primeros 2 segundos de movimiento del vehículo. Un peón está revisando una llanta, levantando una herramienta, señalando a otro equipo, o simplemente parado en el lugar equivocado. El chofer mira los espejos, no ve nada, y arranca. El camión avanza 5 a 10 pies antes de que el chofer vea un chaleco hi-vis caer al suelo. El arreglo no son mejores espejos — es un hábito fuerte de pre-movimiento y una cultura de sitio donde los trabajadores de tierra saben no pararse en esas zonas.",
+    hazards_reviewed:
+      "Peatón golpeado / atropellado desde el punto ciego de la cabina · Brecha del espejo lateral derecho en cabinas anchas · Peatón detrás del camión durante reversa · Trabajador en zona de pinch durante un giro · Falta de familiaridad de chofer nuevo con cobertura de espejos",
+    discussion_notes:
+      "• Antes de cualquier movimiento — el chofer hace un walk-around de 360 o un barrido completo de espejos + por encima del hombro. Contacto visual con cualquiera que sea visible.\n• Use el claxon. Un toque antes del movimiento adelante, dos toques para reversa. Si alguien está cerca, baje el vidrio y avise antes de moverse.\n• Los puntos ciegos: directamente al frente del bumper (la 'zona de muerte'), el cuarto delantero derecho, el área inmediatamente detrás del trailer, y la zona de pinch al girar a la derecha. Los trabajadores en tierra NUNCA deben pararse ahí.\n• El chaleco hi-vis es una herramienta, no un permiso. Un chaleco no le permite pararse en un punto ciego.\n• En sitio ocupado — patios de planta, trenes de pavimento, pilas de descarga — haga contacto visual con el chofer antes de caminar cerca del camión. Si no recibe reconocimiento, no entre a la zona.\n• Choferes nuevos: tomen 15 minutos con cada camión y SEPAN qué cubre cada espejo y qué no. Los espejos del lado derecho en cabinas día vs sleeper vs cab-over son diferentes — no asuman.\n• Supervisores de sitio y personal de oficina visitando el campo: misma regla. Manténganse fuera de los puntos ciegos de la cabina, especialmente alrededor de equipo en marcha.\n• Si usted es el spotter o trabajador en tierra, póngase donde el CHOFER pueda VERLO a USTED en el espejo — no donde usted pueda ver el camión. Son cosas diferentes.",
+    references_cited:
+      "OSHA 1926.601 · OSHA 1926.602 · Control Interno de Tráfico NIOSH · SOP de Peatones en Sitio MASCI",
+    action_items:
+      "Hábito de walk-around pre-movimiento reforzado · Conciencia de zona-de-muerte para cuadrilla en tierra revisada · Revisión de cobertura de espejos para chofer nuevo asignada · Regla de punto-ciego para visitantes de oficina discutida",
+  },
 };

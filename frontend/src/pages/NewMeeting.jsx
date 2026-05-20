@@ -80,12 +80,32 @@ export default function NewMeeting({ publicMode = false }) {
     if (!tpl) return;
     // Use Spanish version if user is in ES, else English canonical.
     const es = lang === "es" ? TOPIC_LIBRARY_ES[key] : null;
+    // If the topic carries an incident_pattern, prepend it to the
+    // discussion notes as a labelled "real-world pattern" paragraph
+    // so the driver/foreman reads the story before the bullets.
+    // The field stays freely editable in the textarea below.
+    const headerEn = "WHAT HAPPENS · real-world pattern";
+    const headerEs = "PATRÓN REAL · lo que suele pasar";
+    const composeNotes = (pattern, bullets, isEs) => {
+      const body = bullets || "";
+      if (!pattern) return body;
+      const header = isEs ? headerEs : headerEn;
+      return `${header}\n${pattern}\n\n${body}`;
+    };
+    const enNotes = composeNotes(
+      tpl.incident_pattern,
+      tpl.discussion_notes,
+      false
+    );
+    const esNotes = es
+      ? composeNotes(es.incident_pattern, es.discussion_notes, true)
+      : null;
     setData((p) => ({
       ...p,
       topic: es?.title || tpl.title,
       topic_category: tpl.category,
       hazards_reviewed: es?.hazards_reviewed || tpl.hazards_reviewed,
-      discussion_notes: es?.discussion_notes || tpl.discussion_notes,
+      discussion_notes: esNotes || enNotes,
       references_cited: es?.references_cited || tpl.references_cited,
       action_items: es?.action_items || tpl.action_items,
       topic_template_key: tpl.key,
@@ -190,6 +210,28 @@ export default function NewMeeting({ publicMode = false }) {
       if (tpl && es) {
         const swapIfPristine = (currentVal, esVal, enVal) =>
           currentVal === esVal ? enVal : currentVal;
+        // Mirror the composeNotes logic used at template-load time so
+        // an unedited bilingual discussion_notes (with the incident
+        // pattern header prepended) swaps cleanly back to the English
+        // canonical composed form on submit.
+        const headerEn = "WHAT HAPPENS · real-world pattern";
+        const headerEs = "PATRÓN REAL · lo que suele pasar";
+        const composeNotes = (pattern, bullets, isEs) => {
+          const body = bullets || "";
+          if (!pattern) return body;
+          const header = isEs ? headerEs : headerEn;
+          return `${header}\n${pattern}\n\n${body}`;
+        };
+        const esComposedNotes = composeNotes(
+          es.incident_pattern,
+          es.discussion_notes,
+          true
+        );
+        const enComposedNotes = composeNotes(
+          tpl.incident_pattern,
+          tpl.discussion_notes,
+          false
+        );
         payload = {
           ...data,
           topic: swapIfPristine(data.topic, es.title, tpl.title),
@@ -200,8 +242,8 @@ export default function NewMeeting({ publicMode = false }) {
           ),
           discussion_notes: swapIfPristine(
             data.discussion_notes,
-            es.discussion_notes,
-            tpl.discussion_notes
+            esComposedNotes,
+            enComposedNotes
           ),
           references_cited: swapIfPristine(
             data.references_cited,
