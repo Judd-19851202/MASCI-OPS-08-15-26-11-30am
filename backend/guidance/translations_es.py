@@ -1559,3 +1559,10 @@ TRANSLATIONS_ES.update(_EXTRA_ES_ITER280)
 # merge the 4 ES entries: 3 roles + 1 reliability.
 from .translations_es_iter281 import EXTRA_ES as _EXTRA_ES_ITER281  # noqa: E402
 TRANSLATIONS_ES.update(_EXTRA_ES_ITER281)
+
+# iter297 · Operational `why-*` knowledge ES translation pass — merge the
+# 7 `why-*` knowledge-section entries (operational philosophy surfaces
+# re-classified from "explicit-leave" to "translated" per operator
+# direction in the iter296+iter297 bundle).
+from .translations_es_iter297 import EXTRA_ES as _EXTRA_ES_ITER297  # noqa: E402
+TRANSLATIONS_ES.update(_EXTRA_ES_ITER297)

@@ -405,18 +405,18 @@ export default function OperationalGuidanceCenter() {
   // ── Render: searching ─────────────────────────────────────────────
   if (searchResults !== null) {
     return (
-      <Shell title="Search results">
+      <Shell title={t("Search results")}>
         <button
           onClick={() => { setSearchResults(null); setQuery(""); }}
           className="inline-flex items-center gap-1 text-[12px] font-bold uppercase tracking-wider text-amber-700 hover:underline mb-3"
           data-testid="guidance-search-back"
         >
-          <ChevronLeft className="w-4 h-4" /> All guidance
+          <ChevronLeft className="w-4 h-4" /> {t("All guidance")}
         </button>
         <SearchBox onResults={setSearchResults} query={query} setQuery={setQuery} />
         {searchResults.length === 0 ? (
           <div className="text-center text-slate-500 py-10" data-testid="guidance-search-empty">
-            No matching guidance available for your access level.
+            {t("No matching guidance available for your access level.")}
           </div>
         ) : (
           <ul className="mt-4 space-y-2">
@@ -446,11 +446,11 @@ export default function OperationalGuidanceCenter() {
     if (loading) return <Shell><Loader2 className="w-6 h-6 animate-spin mx-auto my-12 text-slate-400" /></Shell>;
     if (!article) {
       return (
-        <Shell title="Not available">
+        <Shell title={t("Not available")}>
           <div className="text-center text-slate-500 py-10" data-testid="guidance-article-not-found">
-            This guidance isn't available for your access level.
+            {t("This guidance isn't available for your access level.")}
             <div className="mt-4">
-              <Link to="/guidance" className="text-amber-700 hover:underline">Back to Guidance</Link>
+              <Link to="/guidance" className="text-amber-700 hover:underline">{t("Back to Guidance")}</Link>
             </div>
           </div>
         </Shell>
@@ -474,7 +474,7 @@ export default function OperationalGuidanceCenter() {
           className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 mb-3"
           data-testid="guidance-back-btn"
         >
-          <ChevronLeft className="w-4 h-4" /> Back
+          <ChevronLeft className="w-4 h-4" /> {t("Back")}
         </button>
         <h1 className="font-display text-3xl font-black tracking-tight text-slate-900" data-testid="guidance-article-title">
           {displayTitle}
@@ -488,7 +488,7 @@ export default function OperationalGuidanceCenter() {
         {(article.related || []).length > 0 && (
           <div className="mt-8 border-t border-slate-200 pt-4">
             <strong className="block text-[11px] uppercase tracking-wider text-slate-600 mb-2">
-              {lang === "es" ? "Guía relacionada" : "Related guidance"}
+              {t("Related guidance")}
             </strong>
             <ul className="space-y-1">
               {article.related.map((r) => {
@@ -518,20 +518,20 @@ export default function OperationalGuidanceCenter() {
   if (sectionId) {
     const sec = sections.find((s) => s.id === sectionId);
     return (
-      <Shell title={sec?.title || "Section"}>
+      <Shell title={sec?.title ? t(sec.title) : t("Section")}>
         <button
           type="button"
           onClick={() => navigate("/guidance")}
           className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 mb-3"
           data-testid="guidance-back-to-home"
         >
-          <ChevronLeft className="w-4 h-4" /> All guidance
+          <ChevronLeft className="w-4 h-4" /> {t("All guidance")}
         </button>
         <SearchBox onResults={setSearchResults} query={query} setQuery={setQuery} />
         {loading ? (
           <Loader2 className="w-6 h-6 animate-spin mx-auto my-12 text-slate-400" />
         ) : articles.length === 0 ? (
-          <div className="text-center text-slate-500 py-10">No articles in this section for your access level.</div>
+          <div className="text-center text-slate-500 py-10">{t("No articles in this section for your access level.")}</div>
         ) : (
           <ul className="mt-4 space-y-2" data-testid="guidance-section-list">
             {articles.map((a) => (

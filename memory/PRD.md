@@ -1,5 +1,50 @@
 # MASCI Safety Hub — PRD
 
+
+## 2026-05-20 — iter296 + iter297 Guidance Center visibility-first audit closure bundle · CLOSED
+
+### Audit (preceding)
+Visibility-first audit of `OperationalGuidanceCenter.jsx` (853 lines) against the live `/api/guidance/*` registries (124 articles). Operator constraint: **continuity · bilingual integrity · routing — no LMS drift**. Five concrete findings surfaced, two approved for closure, three explicitly deferred.
+
+### iter296 — Shell-chrome i18n closure (CLOSED)
+- Wrapped 11 previously-hardcoded EN strings in `t()` on the Guidance Center page (shell titles for Search/Article/Section views, both "All guidance" back labels, two empty-state strings, "Back to Guidance" link, "Back" article-reader return).
+- Normalized the inline `lang === "es" ? "Guía relacionada" : "Related guidance"` ternary to the standard `t("Related guidance")` pattern — file is now self-consistent.
+- Added 9 new ES entries to `/app/frontend/src/lib/i18n.js`. "Back" was already keyed since iter199.
+
+### iter297 — Operational `why-*` knowledge ES translation pass (CLOSED)
+- Re-classified the 7 `why-*` knowledge articles from iter281's "explicit-leave terse stubs" to "operational philosophy surfaces" per operator direction.
+- Translated all 7 with calm, operational, foreman-grade Spanish — NOT machine-translated corporate text.
+- EN/ES block count + block type parity locked in regression. Canonical platform terminology preserved (Reporte Diario · Acción Correctiva · Tiempo Verificado · etc.).
+- Authored in `/app/backend/guidance/translations_es_iter297.py` (same modular pattern as iter279–281). Merged into TRANSLATIONS_ES at import time.
+- ES translation coverage: **106 → 113 / 124 (85% → 91%)**.
+
+### Combined regression
+- **54/54** new tests in `test_iter296_iter297_guidance_center_closure.py`.
+- **26/26** prior iter278/279/280/281 ES tests still green.
+- ESLint clean on `OperationalGuidanceCenter.jsx`.
+
+### Matrix impact
+- Guidance Center row: `Parity 🟡 → ✅` · `Complete 🟡 → ✅`.
+- Bilingual gap reduced to 11 truly-terse stubs (5 role-* identity rows, 3 task-* quickhelp single-line directives, 3 tshoot-* terminal error stubs) — these remain "explicit-leave" per iter281 governance unless operator re-classifies them.
+
+### Deferred per operator constraint
+- iter298 classification review of remaining terse stubs.
+- Section-catalog title verification (no concrete gaps surfaced).
+- Two-portal-surface cognitive-duplication merge (would risk visual regression on the iter203 directory pattern).
+
+### Files touched (iter296 + iter297)
+- MOD · `/app/frontend/src/pages/guidance/OperationalGuidanceCenter.jsx` (11 sites wrapped in `t()`, 1 ternary normalized)
+- MOD · `/app/frontend/src/lib/i18n.js` (+9 ES chrome keys)
+- NEW · `/app/backend/guidance/translations_es_iter297.py` (7 article ES translations)
+- MOD · `/app/backend/guidance/translations_es.py` (+1 import + update line for iter297)
+- NEW · `/app/backend/tests/test_iter296_iter297_guidance_center_closure.py` (54 tests)
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (Guidance Center row · ship-log entries · static section-health timestamp)
+
+### Governance milestone
+The audit→bounded-closure→verification→matrix-update lifecycle ran cleanly twice in one bundle without scope drift. The Guidance Center has matured into a coherent operational knowledge ecosystem (operator characterization), not a disconnected article dump.
+
+---
+
 ## 2026-05-20 — iter294 audit + iter295 Fleet Visibility convergence · CLOSED
 
 ### iter294 — Fleet Visibility audit (visibility-only, no code)

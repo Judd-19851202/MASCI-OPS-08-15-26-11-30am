@@ -3373,6 +3373,16 @@ const ES = {
   "Delete failed": "Falló al borrar",
   "e.g. Truck 12 / Job 220 / Shop": "ej. Camión 12 / Obra 220 / Taller",
 
+  // iter296 · Operational Guidance Center shell-chrome i18n closure
+  "Search results": "Resultados de búsqueda",
+  "All guidance": "Toda la guía",
+  "No matching guidance available for your access level.": "No hay guía coincidente disponible para su nivel de acceso.",
+  "Not available": "No disponible",
+  "This guidance isn't available for your access level.": "Esta guía no está disponible para su nivel de acceso.",
+  "Back to Guidance": "Regresar a la Guía",
+  "Section": "Sección",
+  "No articles in this section for your access level.": "No hay artículos en esta sección para su nivel de acceso.",
+  "Related guidance": "Guía relacionada",
 };
 
 const DICTS = { es: ES, en: {} };
