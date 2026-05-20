@@ -52,6 +52,7 @@ import { HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
 
 const SEPARATION_TYPES = ["voluntary", "involuntary", "layoff"];
+const DRIVER_STATUSES = ["active", "suspended", "restricted", "inactive"];
 
 const STATUS_COLORS = LIFECYCLE_STATUS_TINTS;
 
@@ -459,6 +460,48 @@ function EmployeeDrawer({ id, onClose }) {
                       <span className="font-mono text-slate-900 font-bold uppercase">{t(employee.separation_type)}</span>
                     </div>
                   )}
+
+                  {/* iter286 · Driver Qualification card */}
+                  <div className="pt-3 mt-3 border-t border-slate-200" data-testid="hremp-driver-qualification">
+                    <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">{t("Driver Qualification")}</h4>
+                    <HelpTipBlock formKey="driver-qualification" />
+                    <HelpTipBlock formKey="driver-qualification.cdl-vs-approved" />
+
+                    <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                      <Label htmlFor="cdl-holder-switch" className="text-sm">{t("CDL Holder")}</Label>
+                      <Switch
+                        id="cdl-holder-switch"
+                        checked={Boolean(employee.cdl_holder)}
+                        onCheckedChange={(v) => submitEdit({ cdl_holder: v })}
+                        data-testid="hremp-cdl-holder"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                      <Label htmlFor="approved-driver-switch" className="text-sm">{t("Approved Company Driver")}</Label>
+                      <Switch
+                        id="approved-driver-switch"
+                        checked={Boolean(employee.approved_company_driver)}
+                        onCheckedChange={(v) => submitEdit({ approved_company_driver: v })}
+                        data-testid="hremp-approved-driver"
+                      />
+                    </div>
+                    {employee.approved_company_driver && (
+                      <div className="py-2">
+                        <Label className="text-sm">{t("Driver Status")}</Label>
+                        <Select value={employee.driver_status || ""} onValueChange={(v) => submitEdit({ driver_status: v })}>
+                          <SelectTrigger data-testid="hremp-driver-status"><SelectValue placeholder={t("Pick a status")} /></SelectTrigger>
+                          <SelectContent>
+                            {DRIVER_STATUSES.map((s) => (<SelectItem key={s} value={s}>{t(s)}</SelectItem>))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    <EditField label={t("CDL License Number")} value={employee.cdl_license_number} save={(v) => submitEdit({ cdl_license_number: v })} testid="hremp-cdl-number" />
+                    <EditField label={t("CDL State")} value={employee.cdl_state} save={(v) => submitEdit({ cdl_state: v })} testid="hremp-cdl-state" />
+                    <HelpTipBlock formKey="driver-qualification.expirations" />
+                    <EditField label={t("CDL Expiration Date")} value={employee.cdl_expiration_date} save={(v) => submitEdit({ cdl_expiration_date: v })} testid="hremp-cdl-exp" />
+                    <EditField label={t("Medical Card Expiration Date")} value={employee.medical_card_expiration_date} save={(v) => submitEdit({ medical_card_expiration_date: v })} testid="hremp-med-card-exp" />
+                  </div>
                 </TabsContent>
                 <TabsContent value="status" className="mt-0 space-y-3">
                   <HelpTipBlock formKey="employee-lifecycle.separation" />

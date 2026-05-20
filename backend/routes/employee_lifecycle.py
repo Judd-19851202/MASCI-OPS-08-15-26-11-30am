@@ -56,6 +56,30 @@ _OFFBOARDING_STATUSES = {"Terminated", "Resigned", "Retired"}
 # iter285 · employment separation taxonomy.
 ALLOWED_SEPARATION_TYPES = {"voluntary", "involuntary", "layoff"}
 
+# iter286 · driver qualification taxonomy. Only meaningful when the
+# employee is flagged as an `approved_company_driver`. The semantic
+# distinction below is the entire reason CDL Holder and Approved
+# Company Driver are independent fields:
+#   - cdl_holder = "this person legally holds a CDL"
+#   - approved_company_driver = "MASCI has authorized this person
+#     to operate company vehicles/equipment"
+# A person may hold a CDL and NOT be approved internally (suspended,
+# under restriction, never cleared) — and vice versa is operationally
+# uncommon but structurally legal.
+ALLOWED_DRIVER_STATUSES = {"active", "suspended", "restricted", "inactive"}
+
+# iter286 · driver qualification field set used by validators + the
+# document-expirations linkage helper below.
+_DRIVER_QUALIFICATION_FIELDS = (
+    "cdl_holder",
+    "approved_company_driver",
+    "driver_status",
+    "cdl_license_number",
+    "cdl_state",
+    "cdl_expiration_date",
+    "medical_card_expiration_date",
+)
+
 # iter285 · lifecycle date field names · used by write-once enforcement
 # and status-transition auto-population helpers below.
 _LIFECYCLE_DATE_FIELDS = (
@@ -120,6 +144,71 @@ def _tenure_days(employee: Dict[str, Any]) -> Optional[int]:
             pass
     today = date.today()
     return max(0, (today - hire).days)
+
+
+async def _mirror_driver_doc_expirations(
+    db, employee_id: str, incoming: Dict[str, Any], existing: Dict[str, Any]
+) -> None:
+    """iter286 · keep `db.document_expirations` in sync with
+    driver-qualification expiration dates on the employee record.
+
+    Why: the platform already runs an expiration scanner over the
+    `document_expirations` collection (routes/document_expirations.py
+    iter225). Mirroring CDL + medical card expiration dates into that
+    collection means the existing scanner picks up the work without a
+    second expiration system being introduced. The employee record
+    stays the structured source of truth; the doc-expiration row is a
+    derived projection keyed by `(linked_employee_id, document_type)`.
+
+    Behavior:
+      - When `cdl_expiration_date` is non-empty in the incoming patch
+        AND the value changed, upsert a row in `document_expirations`
+        with `document_type='cdl_license'`, category 'safety'.
+      - Same for `medical_card_expiration_date` (doc_type
+        'medical_card').
+      - Empty / null incoming values are NOT mirrored — clearing a
+        date on the employee record does NOT delete the historical
+        document_expirations row (the doc-expirations surface is the
+        right place to manage / archive those rows).
+    """
+    mirror_map = (
+        ("cdl_expiration_date", "cdl_license", "CDL license"),
+        ("medical_card_expiration_date", "medical_card", "Medical card"),
+    )
+    for field, doc_type, title_hint in mirror_map:
+        new_val = (incoming.get(field) or "").strip() if isinstance(incoming.get(field), str) else None
+        if not new_val:
+            continue
+        old_val = (existing.get(field) or "").strip() if isinstance(existing.get(field), str) else None
+        if new_val == old_val:
+            continue
+        # Upsert by (linked_employee_id, document_type) — one canonical
+        # row per employee per qualification document type.
+        now_iso = datetime.now(timezone.utc).isoformat()
+        await db.document_expirations.update_one(
+            {
+                "linked_employee_id": employee_id,
+                "document_type": doc_type,
+            },
+            {
+                "$set": {
+                    "expiration_date": new_val,
+                    "updated_at": now_iso,
+                    "category": "safety",
+                    "title": title_hint,
+                    "source": "employee.driver_qualification",
+                },
+                "$setOnInsert": {
+                    "id": str(uuid.uuid4()),
+                    "linked_employee_id": employee_id,
+                    "document_type": doc_type,
+                    "status": "Current",
+                    "created_at": now_iso,
+                    "deleted_at": None,
+                },
+            },
+            upsert=True,
+        )
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -203,6 +292,17 @@ class EmployeeCreate(BaseModel):
     expected_return_date: Optional[str] = None
     separation_type: Optional[str] = None
 
+    # iter286 · driver qualification structure
+    # CDL Holder ≠ Approved Company Driver. The two flags are
+    # intentionally independent — see ALLOWED_DRIVER_STATUSES doc above.
+    cdl_holder: Optional[bool] = None
+    approved_company_driver: Optional[bool] = None
+    driver_status: Optional[str] = None
+    cdl_license_number: Optional[str] = Field(default=None, max_length=40)
+    cdl_state: Optional[str] = Field(default=None, max_length=4)
+    cdl_expiration_date: Optional[str] = None
+    medical_card_expiration_date: Optional[str] = None
+
     @field_validator("lifecycle_status")
     @classmethod
     def _v_status(cls, v: str) -> str:
@@ -213,6 +313,7 @@ class EmployeeCreate(BaseModel):
     @field_validator(
         "original_hire_date", "last_day_worked", "termination_date",
         "leave_start_date", "expected_return_date",
+        "cdl_expiration_date", "medical_card_expiration_date",
     )
     @classmethod
     def _v_date(cls, v: Optional[str]) -> Optional[str]:
@@ -229,6 +330,15 @@ class EmployeeCreate(BaseModel):
             return v
         if v not in ALLOWED_SEPARATION_TYPES:
             raise ValueError(f"separation_type must be one of {sorted(ALLOWED_SEPARATION_TYPES)}")
+        return v
+
+    @field_validator("driver_status")
+    @classmethod
+    def _v_driver_status(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if v not in ALLOWED_DRIVER_STATUSES:
+            raise ValueError(f"driver_status must be one of {sorted(ALLOWED_DRIVER_STATUSES)}")
         return v
 
 
@@ -253,9 +363,19 @@ class EmployeePatch(BaseModel):
     expected_return_date: Optional[str] = None
     separation_type: Optional[str] = None
 
+    # iter286 · driver qualification (mirror of create-time fields)
+    cdl_holder: Optional[bool] = None
+    approved_company_driver: Optional[bool] = None
+    driver_status: Optional[str] = None
+    cdl_license_number: Optional[str] = Field(default=None, max_length=40)
+    cdl_state: Optional[str] = Field(default=None, max_length=4)
+    cdl_expiration_date: Optional[str] = None
+    medical_card_expiration_date: Optional[str] = None
+
     @field_validator(
         "original_hire_date", "last_day_worked", "termination_date",
         "leave_start_date", "expected_return_date",
+        "cdl_expiration_date", "medical_card_expiration_date",
     )
     @classmethod
     def _v_date(cls, v: Optional[str]) -> Optional[str]:
@@ -272,6 +392,15 @@ class EmployeePatch(BaseModel):
             return v
         if v not in ALLOWED_SEPARATION_TYPES:
             raise ValueError(f"separation_type must be one of {sorted(ALLOWED_SEPARATION_TYPES)}")
+        return v
+
+    @field_validator("driver_status")
+    @classmethod
+    def _v_driver_status(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if v not in ALLOWED_DRIVER_STATUSES:
+            raise ValueError(f"driver_status must be one of {sorted(ALLOWED_DRIVER_STATUSES)}")
         return v
 
 
@@ -463,6 +592,17 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "leave_start_date": (body.leave_start_date or None),
             "expected_return_date": (body.expected_return_date or None),
             "separation_type": (body.separation_type or None),
+            # iter286 · driver qualification structure
+            "cdl_holder": (body.cdl_holder if body.cdl_holder is not None else False),
+            "approved_company_driver": (
+                body.approved_company_driver
+                if body.approved_company_driver is not None else False
+            ),
+            "driver_status": (body.driver_status or None),
+            "cdl_license_number": (body.cdl_license_number or None),
+            "cdl_state": (body.cdl_state or None),
+            "cdl_expiration_date": (body.cdl_expiration_date or None),
+            "medical_card_expiration_date": (body.medical_card_expiration_date or None),
             "lifecycle_status": body.lifecycle_status,
             "is_active": _is_active_for_status(body.lifecycle_status),
             "added_via": "hr-portal",
@@ -517,6 +657,14 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         for k, v in incoming.items():
             update[k] = v
         await db.employees.update_one({"id": employee_id}, {"$set": update})
+
+        # iter286 · mirror CDL + medical-card expirations into the
+        # existing `document_expirations` collection so the platform's
+        # expiration scanner (routes/document_expirations.py) treats
+        # driver-qualification expirations the same as every other
+        # tracked document. NEVER create a second expiration system.
+        await _mirror_driver_doc_expirations(db, employee_id, incoming, existing)
+
         doc = await db.employees.find_one(
             {"id": employee_id}, {"_id": 0})
         out = _strip_id(doc) or {}
@@ -765,4 +913,5 @@ __all__ = [
     "ensure_employee_lifecycle_indexes",
     "ALLOWED_LIFECYCLE_STATUSES",
     "ALLOWED_SEPARATION_TYPES",
+    "ALLOWED_DRIVER_STATUSES",
 ]

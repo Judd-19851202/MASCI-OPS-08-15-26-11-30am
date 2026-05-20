@@ -1897,6 +1897,123 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "decisión correcta la primera vez.",
     },
 
+    # ── iter286 · driver-qualification (top family) ──────────────────
+    ("driver-qualification", "why"): {
+        "title_es": "Por qué la calificación de conductor es estructurada, no notas",
+        "body_es":
+            "Hoy, quién puede manejar qué es conocimiento tribal — "
+            "RH se acuerda, despacho asume, el capataz llama "
+            "cuando no está seguro. Eso funciona hasta el día que "
+            "no — y 'no' usualmente significa un conductor sin "
+            "calificación en la carretera o un activo asignado a "
+            "alguien cuya CDL venció la semana pasada. Los campos "
+            "estructurados hacen la respuesta consultable; el "
+            "conocimiento tribal la hace de suerte.",
+    },
+    ("driver-qualification", "who"): {
+        "title_es": "Quién es dueño de cada campo",
+        "body_es":
+            "RH es dueño del registro de calificación en sí: titular "
+            "de CDL, número/estado de licencia, fechas de "
+            "vencimiento, tarjeta médica. Admin es dueño del campo "
+            "Conductor Aprobado por la Compañía — esa es la decisión "
+            "interna, separada de lo que diga el DMV del estado. "
+            "Despacho y flota leen el resultado; no lo editan. "
+            "Mantener la propiedad de escritura estrecha es lo que "
+            "hace que el registro de calificación sea defendible.",
+    },
+    ("driver-qualification", "next"): {
+        "title_es": "Qué alimentan los datos de calificación",
+        "body_es":
+            "Las fechas de vencimiento de CDL + tarjeta médica "
+            "fluyen automáticamente al rastreador de vencimientos "
+            "existente, así el mismo escáner que avisa de cualquier "
+            "documento vencido avisa de estos. El estatus del "
+            "conductor sale en revisión de RH. Iteraciones "
+            "futuras traen endosos (Tanker, Hazmat, etc.) y las "
+            "superficies de lectura de despacho / flota — pero la "
+            "base son los siete campos que fija aquí.",
+    },
+    ("driver-qualification", "escalate"): {
+        "title_es": "Cuándo el registro y la realidad no concuerdan",
+        "body_es":
+            "Si un operador dice que tiene CDL pero el campo está "
+            "vacío, O el sistema dice aprobado pero el operador le "
+            "dice al capataz que lo acaban de suspender — eso no "
+            "es un error tipográfico, es un conflicto estructural. "
+            "Saque la licencia física, escanee la tarjeta médica, "
+            "arregle el registro con los documentos reales en mano. "
+            "Involucre a Admin para que el campo Conductor Aprobado "
+            "por la Compañía coincida con la decisión que sí se tomó.",
+    },
+
+    # ── iter286 · driver-qualification.cdl-vs-approved ───────────────
+    ("driver-qualification.cdl-vs-approved", "why"): {
+        "title_es": "Por qué son dos campos separados",
+        "body_es":
+            "Tener una CDL es un hecho sobre la licencia de la "
+            "persona. Ser Conductor Aprobado por la Compañía es "
+            "una decisión que MASCI toma — basada en su historial, "
+            "su rating de seguro, su desempeño interno, en qué "
+            "equipo está aprobado, si está bajo restricción. Esas "
+            "dos cosas se ven igual de afuera; no son iguales. "
+            "Modelarlas como un solo campo borraría la distinción "
+            "que protege a la compañía.",
+    },
+    ("driver-qualification.cdl-vs-approved", "mistake"): {
+        "title_es": "La combinación que lastima gente",
+        "body_es":
+            "La combinación a vigilar: Titular de CDL = sí, "
+            "Conductor Aprobado por la Compañía = no. Eso no es "
+            "un bug — es el estado operacionalmente más importante, "
+            "y significa 'esta persona tiene licencia pero MASCI no "
+            "la está poniendo al volante'. Suspendido por "
+            "violaciones de telemática, bajo restricción del "
+            "doctor, cualquier número de razones legítimas. No "
+            "deje que nadie lo convenza de marcar los dos en "
+            "verdadero 'porque tienen CDL'.",
+    },
+
+    # ── iter286 · driver-qualification.expirations ───────────────────
+    ("driver-qualification.expirations", "why"): {
+        "title_es": "Por qué los vencimientos viven en el escáner de documentos",
+        "body_es":
+            "MASCI ya corre un escáner de vencimientos sobre la "
+            "colección de document-expirations (el mismo que vigila "
+            "OSHA 30, DOT anual, etc.). Cuando fija un vencimiento "
+            "de CDL o tarjeta médica en el registro del empleado, "
+            "el sistema espeja una fila en esa colección "
+            "automáticamente. No maneja dos listas — maneja una "
+            "fecha canónica, y las alertas existentes funcionan "
+            "gratis.",
+    },
+    ("driver-qualification.expirations", "next"): {
+        "title_es": "Qué significa 'vencido' aguas abajo",
+        "body_es":
+            "Una vez que el escáner de vencimientos marca una CDL "
+            "o tarjeta médica como vencida, la fila sale en el "
+            "rastreador de cumplimiento existente igual que "
+            "cualquier otro documento vencido. Hoy la plataforma "
+            "NO revoca automáticamente el campo Conductor Aprobado "
+            "por la Compañía — esa decisión se queda humana, a "
+            "propósito. Pero la alerta es suficientemente fuerte "
+            "que RH la va a ver antes que despacho, que es el "
+            "orden correcto.",
+    },
+    ("driver-qualification.expirations", "escalate"): {
+        "title_es": "Cuándo un vencimiento se pasa",
+        "body_es":
+            "Si se descubre una CDL o tarjeta médica vencida "
+            "después de que el operador ya estuvo manejando, "
+            "detenga la asignación inmediatamente, ponga Conductor "
+            "Aprobado por la Compañía en no hasta que el registro "
+            "esté al día, y documente el hueco factualmente — "
+            "cuándo venció, cuándo lo notó MASCI, qué se estaba "
+            "operando mientras tanto. La ventana del hueco es lo "
+            "que importa para el seguro después.",
+    },
+
+
 
     # ── iter225 · document-expirations (Tier-2 hr+safety+admin) ──────
     # Operator-stated anchor (verbatim · test-enforced):

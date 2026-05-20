@@ -3262,6 +3262,21 @@ const ES = {
   "Employee updated": "Empleado actualizado",
   "Update failed": "Falló la actualización",
 
+  // ─── HR Driver Qualification (iter286) ────────────────────────
+  "Driver Qualification": "Calificación del Conductor",
+  "CDL Holder": "Titular de CDL",
+  "Approved Company Driver": "Conductor Aprobado por la Compañía",
+  "Driver Status": "Estatus del Conductor",
+  "Pick a status": "Escoja un estatus",
+  "active": "activo",
+  "suspended": "suspendido",
+  "restricted": "restringido",
+  "inactive": "inactivo",
+  "CDL License Number": "Número de Licencia CDL",
+  "CDL State": "Estado de CDL",
+  "CDL Expiration Date": "Fecha de Vencimiento de CDL",
+  "Medical Card Expiration Date": "Fecha de Vencimiento de Tarjeta Médica",
+
 };
 
 const DICTS = { es: ES, en: {} };

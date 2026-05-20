@@ -2628,6 +2628,164 @@ _TIPS: list[dict] = [
 
 
     # ═════════════════════════════════════════════════════════════════
+    # iter286 · driver-qualification coaching family.
+    # Top family: the canonical 4 (why/who/next/escalate) anchored on
+    # the operational distinction that the iter284 audit identified as
+    # the single most important structural absence:
+    #
+    #     CDL Holder ≠ Approved Company Driver.
+    #
+    # Section keys:
+    #   .cdl-vs-approved  — the distinction itself, in coaching form
+    #   .expirations      — why CDL + medical card expirations matter
+    #                       and how they reach the platform's
+    #                       expiration scanner
+    #
+    # Scope: hr + admin (this surface is HR portal only; dispatch &
+    # fleet will consume the data later — that's iter288, not now).
+    # Tone anchor: this is not compliance theatre. It is operational
+    # risk control. A foreman should never have to ask HR whether
+    # someone can operate a truck.
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "form_key": "driver-qualification",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why driver qualification is structured data, not notes",
+        "body":
+            "Today, who can drive what is tribal knowledge — HR "
+            "remembers, dispatch assumes, the foreman calls when "
+            "they're not sure. That works until the day it doesn't, "
+            "and 'doesn't' usually means an unqualified driver on "
+            "the road or an asset assigned to someone whose CDL "
+            "expired last week. Structured fields make the answer "
+            "queryable; tribal knowledge makes it lucky.",
+    },
+    {
+        "form_key": "driver-qualification",
+        "kind": "who",
+        "scopes": ["hr", "admin"],
+        "title": "Who owns each field",
+        "body":
+            "HR owns the qualification record itself: CDL holder, "
+            "license number/state, expiration dates, medical card. "
+            "Admin owns the Approved Company Driver flag — that's "
+            "the internal decision separate from whatever the state "
+            "DMV says. Dispatch and fleet read the result; they "
+            "don't edit it. Keeping write ownership narrow is what "
+            "keeps the qualification record defensible.",
+    },
+    {
+        "form_key": "driver-qualification",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What the qualification data feeds",
+        "body":
+            "CDL + medical card expiration dates auto-flow into the "
+            "existing document-expirations tracker, so the same "
+            "scanner that warns about every other expiring doc warns "
+            "about these. Driver status surfaces in HR review. Later "
+            "iterations bring endorsements (Tanker, Hazmat, etc.) "
+            "and the dispatch / fleet read surfaces — but the "
+            "foundation is the seven fields you set here.",
+    },
+    {
+        "form_key": "driver-qualification",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When the record and the reality disagree",
+        "body":
+            "If an operator says they have a CDL but the field is "
+            "empty, OR the system says approved but the operator "
+            "tells the foreman they were just suspended — that's "
+            "not a typo, that's a structural conflict. Pull the "
+            "physical license, scan the medical card, fix the "
+            "record with the actual documents in hand. Loop in "
+            "Admin so the Approved Company Driver flag matches the "
+            "decision that was actually made.",
+    },
+
+    # ── driver-qualification.cdl-vs-approved ─────────────────────────
+    {
+        "form_key": "driver-qualification.cdl-vs-approved",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why these are two separate fields",
+        "body":
+            "Holding a CDL is a fact about the person's license. "
+            "Being an Approved Company Driver is a decision MASCI "
+            "makes — based on their record, their insurance "
+            "rating, their internal performance, what equipment "
+            "they're cleared on, whether they're under restriction. "
+            "Those two things look the same from outside; they are "
+            "not the same. Modelling them as one field would erase "
+            "the distinction that protects the company.",
+    },
+    {
+        "form_key": "driver-qualification.cdl-vs-approved",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "The combination that gets people hurt",
+        "body":
+            "The combination to watch: CDL Holder = yes, Approved "
+            "Company Driver = no. That's not a bug — it's the "
+            "single most operationally important state, and it "
+            "means 'this person has a license but MASCI is not "
+            "putting them behind the wheel.' Suspended for "
+            "telematics violations, under a doctor's restriction, "
+            "any number of legitimate reasons. Don't let anyone "
+            "talk you into clicking both true 'because they have "
+            "a CDL.'",
+    },
+
+    # ── driver-qualification.expirations ─────────────────────────────
+    {
+        "form_key": "driver-qualification.expirations",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why expirations live in the document scanner",
+        "body":
+            "MASCI already runs an expiration scanner over the "
+            "document-expirations collection (the same one that "
+            "watches OSHA 30s, DOT annuals, etc.). When you set a "
+            "CDL or medical-card expiration on the employee record, "
+            "the system mirrors a row into that collection "
+            "automatically. You don't manage two lists — you manage "
+            "one canonical date, and the existing alerts work for "
+            "free.",
+    },
+    {
+        "form_key": "driver-qualification.expirations",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What 'expired' actually means downstream",
+        "body":
+            "Once the expiration scanner flags a CDL or medical "
+            "card as expired, the row shows up in the existing "
+            "compliance tracker just like any other expired doc. "
+            "Today the platform doesn't auto-revoke the Approved "
+            "Company Driver flag — that decision stays human, "
+            "intentionally. But the alert is loud enough that HR "
+            "will see it before dispatch does, which is the right "
+            "order.",
+    },
+    {
+        "form_key": "driver-qualification.expirations",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When an expiration sneaks past",
+        "body":
+            "If an expired CDL or medical card is discovered after "
+            "the operator has already been driving, stop the "
+            "assignment immediately, flip Approved Company Driver "
+            "off until the record is current, and document the gap "
+            "factually — when it expired, when MASCI noticed, what "
+            "was being operated in between. The gap window is the "
+            "thing that matters for insurance later.",
+    },
+
+
+    # ═════════════════════════════════════════════════════════════════
     # iter225 · document-expirations · Tier-2 (hr + safety + admin).
     #
     # Document-expiration handling is one of the clearest operational
