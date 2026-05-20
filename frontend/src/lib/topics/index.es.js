@@ -12,6 +12,7 @@ import { TOPICS_TRUCKING_ES } from "./trucking.es.js";
 import { TOPICS_DEWATERING_ES } from "./dewatering.es.js";
 import { TOPICS_SHOP_ES } from "./shop.es.js";
 import { TOPICS_PLANT_ES } from "./plant.es.js";
+import { TOPICS_LAB_ES } from "./lab.es.js";
 import { TOPICS_AIRPORT_ES } from "./airport.es.js";
 import { TOPICS_UTILITIES_ES } from "./utilities.es.js";
 import { TOPICS_RIGGING_ES } from "./rigging.es.js";
@@ -35,6 +36,7 @@ export const TOPIC_LIBRARY_ES = {
   ...TOPICS_DEWATERING_ES,
   ...TOPICS_SHOP_ES,
   ...TOPICS_PLANT_ES,
+  ...TOPICS_LAB_ES,
   ...TOPICS_AIRPORT_ES,
   ...TOPICS_UTILITIES_ES,
   ...TOPICS_RIGGING_ES,

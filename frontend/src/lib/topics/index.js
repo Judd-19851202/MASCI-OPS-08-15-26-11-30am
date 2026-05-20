@@ -14,6 +14,7 @@ import { TOPICS_TRUCKING } from "./trucking.js";
 import { TOPICS_DEWATERING } from "./dewatering.js";
 import { TOPICS_SHOP } from "./shop.js";
 import { TOPICS_PLANT } from "./plant.js";
+import { TOPICS_LAB } from "./lab.js";
 import { TOPICS_AIRPORT } from "./airport.js";
 import { TOPICS_UTILITIES } from "./utilities.js";
 import { TOPICS_RIGGING } from "./rigging.js";
@@ -37,6 +38,7 @@ export const TOPIC_LIBRARY = [
   ...TOPICS_DEWATERING,
   ...TOPICS_SHOP,
   ...TOPICS_PLANT,
+  ...TOPICS_LAB,
   ...TOPICS_AIRPORT,
   ...TOPICS_UTILITIES,
   ...TOPICS_RIGGING,

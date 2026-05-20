@@ -1,6 +1,65 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-20 — iter302 Dedicated `lab` Domain · Asphalt-Lab Topic Expansion · CLOSED
+
+### Scope (operator-approved bounded closure)
+- Option α from iter301 audit: new dedicated `lab` domain, NOT extension of `plant`.
+- Tone benchmark `lab_nuclear_gauge_handling` reviewed and approved by operator before code landed.
+- Compressed discussion_notes envelope: 1150–1250 chars (operator approved +70 buffer for benchmark).
+
+### 4 topics shipped
+| Key | Severity | dn chars | Anchor line |
+| --- | --- | ---: | --- |
+| `lab_nuclear_gauge_handling` | fatal_risk | 1270 | "In nuclear gauge work, custody IS the safety." |
+| `lab_oven_burns_chemistry` | fatal_risk | 1229 | "The oven didn't do it. The vapor did." |
+| `lab_core_drilling_silica` | serious_injury | 1190 | "Five years of that … silicosis at fifty-eight." |
+| `lab_solvent_handling_ppe` | serious_injury | 1252 | "They happen one shift at a time." |
+
+### Integration
+- NEW · `/app/frontend/src/lib/topics/lab.js` (4 EN topics)
+- NEW · `/app/frontend/src/lib/topics/lab.es.js` (4 ES translations · field-Spanish: troca · string-line · cuadrilla del screed)
+- MOD · `index.js` + `index.es.js` (registered between plant and airport)
+- MOD · `TopicPicker.jsx` (new `Lab` / `Laboratorio` chip · `plant` renamed from "Plant / Lab" → "Plant" / "Planta")
+- MOD · `SafetyTopicLibrary.jsx` (same chip + rename)
+- `plant_lab_solvents_ignition` LEFT IN PLACE — iter302 is purely additive
+
+### Tone discipline (operator-approved benchmark)
+- Custody-first / chemistry-first framing — NOT radiation panic, NOT OSHA boilerplate.
+- 10-bullet EN/ES parity locked across all 4 topics.
+- Regulatory anchors preserved as-is (NRC · 10 CFR 30/71 · ANSI N43.3 · OSHA · NFPA 45 · ASTM · AASHTO · NIOSH · EPA TSCA).
+- Field-Spanish: troca, string-line (untranslated), cuadrilla del screed, RSO gloss on first use.
+- Zero LMS-drift hits in EN or ES (banned-phrase scan).
+
+### Regression
+- **40/40 iter302 regression pytests green** (`test_iter302_lab_domain.py`).
+- **190/190 combined pytests green** across iter278/279/280/281/296/297/299/300/302.
+- ESLint clean on all 6 touched files.
+- Total library: **136 → 140 topics**.
+
+### Files touched
+- NEW · `/app/frontend/src/lib/topics/lab.js`
+- NEW · `/app/frontend/src/lib/topics/lab.es.js`
+- MOD · `/app/frontend/src/lib/topics/index.js`
+- MOD · `/app/frontend/src/lib/topics/index.es.js`
+- MOD · `/app/frontend/src/components/TopicPicker.jsx`
+- MOD · `/app/frontend/src/pages/SafetyTopicLibrary.jsx`
+- NEW · `/app/backend/tests/test_iter302_lab_domain.py` (40 tests)
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md`
+- Tone-benchmark draft preserved at `/app/memory/LAB_TOPIC_TONE_BENCHMARK_DRAFT.md`
+
+### Governance milestone
+The tone-benchmark-first workflow worked exactly as designed — operator reviewed prose-only deliverable, approved tone + compression target + architectural option, then iter302 shipped as one bounded closure with the remaining 3 topics built to the approved voice template. This is the repeatable pattern for any future content-domain expansion (airport · future verticals) under stabilization-phase discipline.
+
+### Deferred per operator scope
+- Airport topic expansion (iter303 candidate · 4 topics · awaiting operator approval).
+- Cluster E + F bilingual closure (NewIncident · NewInspection placeholder t()-wrap).
+- Lite-backup orphan cleanup decision.
+- Lane B mobile/tablet validation (held until you direct).
+
+---
+
+
 ## 2026-05-20 — iter301 Safety Topic Library Audit (Lane E · visibility-only · NO code) · CLOSED
 
 ### Scope
