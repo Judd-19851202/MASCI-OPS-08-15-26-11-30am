@@ -1,5 +1,57 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 PM/12 — iter251 Safety Meeting Evolution · Phase H Batch 1 · COMPLETE (full 81-topic domain reclassification + 22-chip filter + 17 incident-pattern uplifts + 3 new topics · bilingual · 100% testing-agent pass)
+
+Operator-approved Phase H Batch 1 — the first quality pass on the legacy 81-topic "General" bucket, restructured into the 21 approved operational domains. The system is now a fully-domain-organized field-leadership library, not a flat compliance archive.
+
+### Domain reclassification (all 81 legacy topics → 21 domains, ZERO untagged)
+- Metadata-only pass via Node script (`/tmp/reclassify_phase_h.js`) → 80 legacy topics tagged + 1 legacy `dewatering` topic merged-and-deleted per operator decision
+- All 128 topics now carry a `domain` field; no topic falls through to the "General" chip by default — only the 18 truly-general ones do
+- Domain breakdown: pipe 3 · excavation 4 (was 2 + 2 new) · grading 5 · concrete 12 · paving 3 · milling 1 · mot 13 (was 12 + 1 new) · trucking 12 (was 11 + 1 legacy dump_truck reclassified) · dewatering 8 (Phase D, legacy dewatering deleted) · shop 8 · plant 8 · airport 2 · utilities 2 · rigging 2 · fall_protection 5 · electrical 4 · confined_space 1 · environmental 3 · wellness 6 · office 8 · general 18 — total 128
+
+### TopicPicker chip row expanded 8 → 22
+- New order (operator-approved field-workflow grouping): All · Pipe · Excavation · Grading · Concrete · Paving · Milling · MOT/Traffic · Trucking · Dewatering · Shop · Plant/Lab · Airport · Utilities · Rigging/Crane · Fall Protection · Electrical · Confined Space · Environmental · Heat/Fatigue/MH · Office · General
+- Bilingual labels for all 22 chips
+- Counts shown per chip; native scrollbar hidden on mobile WebKit; horizontal scroll on narrow viewports (verified at 320 / 414 / 1280)
+
+### Phase H Batch 1 content — 17 topics fully uplifted with incident_pattern + EN+ES voice
+- **Excavation** (4): `trenching_shoring`, `soil_classification`, **NEW** `excavation_potholing_daylight`, **NEW** `excavation_spoil_placement`
+- **MOT** (13): `mot_setup`, `flaggers`, `live_traffic`, `mot_moving_trucks`, `lane_closures`, `shoulder_closures`, `detour_routing`, `pavement_marking`, `sign_installation`, `crash_cushion`, `vms_signs`, `barrier_placement`, **NEW** `mot_survey_crew_exposure`
+
+### Legacy `dewatering` topic — merged and deleted
+- Unique GFCI/bonding/electrical-submersible bullet added to `dewatering_diesel_pump_fueling_fires` (EN + ES)
+- Legacy `dewatering` key removed from both EN and ES libraries — Phase D's 8 topics fully replace it
+
+### Voice / tone — verified by testing agent
+- Sampled phrases include "Highway struck-by is the leading cause of construction fatalities, and the worker rarely sees it coming" / "Flagger fatalities are remembered by name in this industry" / "A 14-inch fiber line, a 6-inch gas main, a high-voltage feeder — all of them live within an inch or two of where the bucket is digging" — testing agent rated this "field-superintendent voice confirmed · well above LMS/corporate bar"
+- EN headers `WHAT HAPPENS · real-world pattern` and ES `PATRÓN REAL · lo que suele pasar` prepend cleanly · zero EN leakage in ES
+
+### Testing
+- iter259 frontend testing-agent: **100% pass · 0 ui_bugs · 0 integration_issues · 0 design_issues · retest_needed: false**
+- 12 acceptance criteria all verified · chip counts exact-match × 22 · all 17 Batch 1 topics + 3 new gap-fill topics + 4 critical ES samples + 2 regression untouched topics · responsive at 320 / 414 / 1280 · 0 console errors
+
+### Files touched
+- MOD · `frontend/src/components/TopicPicker.jsx` (DOMAIN_CHIPS now 22 entries with EN+ES labels in field-workflow order)
+- MOD · `frontend/src/lib/meetingTopicLibrary.js` (81 legacy topics now domain-tagged · 14 uplifted with `incident_pattern` · 3 new topics added · 1 legacy `dewatering` topic deleted · 1957 → 2050 lines)
+- MOD · `frontend/src/lib/meetingTopicLibrary.es.js` (same 14 ES incident_pattern translations · 3 new ES entries · 1 legacy ES dewatering entry deleted · 1504 → 1559 lines)
+- MOD · `frontend/src/lib/meetingTopicLibrary.js` (dewatering_diesel_pump_fueling_fires gained GFCI/bonding bullet · EN + ES mirror)
+
+### Operator UX feedback logged for future cycle
+- **Mobile review-pattern observation (operator, 2026-05-19)**: The `ask_human` modal-driven approval flow is feeling heavy on phones for operational review workflows. Suggested future pattern: single lightweight action row (Approve All · Approve Except Selected · Edit Specific · Reject) with inline expansion. NOT a redesign request now — logged as future operational UX refinement. Current flow continues to work functionally for batch handoffs.
+
+### Phase H batches remaining (operator-approved scope)
+- ⏸ **Batch 2** · Paving (3 uplift + 4 new) · Milling (1 uplift + 1 new) · Pipe (3 uplift) · Concrete (12 uplift — biggest single domain)
+- ⏸ **Batch 3** · Grading (5 uplift + 1 new) · Utilities (2 uplift) · Rigging (2 uplift) · Fall Protection (5 uplift)
+- ⏸ **Batch 4** · Electrical (4 uplift) · Confined Space (1 uplift) · Environmental (3 uplift) · Wellness (6 uplift)
+- ⏸ **Batch 5** · General (18 uplift + 2 new: `general_lone_worker_field`, `general_line_of_fire`) · final tone sweep · dedup pass · final testing
+
+### Testing-agent code-health flag (non-blocking, decision needed before Batch 2)
+- `meetingTopicLibrary.js` now 2050 lines, `.es.js` 1559 lines. Both growing fast. Testing agent suggests a per-domain file split (e.g. `/topics/mot.js`, `/topics/excavation.js`, plus index aggregator) before Batch 2 ships — keeps batch diffs reviewable. Operator-approved boundary in prior cycle: "no topic-library refactor yet, no domain splitting until later." Possible inflection point: ask operator if "later" = now that Batch 1 has landed, or = after all 5 batches.
+
+🔒 iter251 Safety Meeting Evolution Phase H Batch 1 **CLOSED** · 128 topics across 21 fully-populated domains · 22-chip filter · 17 incident-pattern uplifts · bilingual · production-quality voice · operator field-review pending.
+
+---
+
 ## 2026-05-19 PM/11 — iter251 Safety Meeting Evolution · Domain Filter + Phases D/E/F/G · COMPLETE (126 topics · 7 domains · bilingual · 100% testing-agent pass)
 
 Operator-approved continuation of the Safety Meeting evolution. Domain Filter UI enhancement plus four operational-domain expansions delivered in a single disciplined cycle.
