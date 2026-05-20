@@ -48,6 +48,15 @@ const DOMAIN_CHIPS = [
   { key: "general", en: "General", es: "General" },
 ];
 
+// iter269 · Sprint 2 · K7 helper · resolve a domain key to its display
+// label for the chosen language. Exposed for NewMeeting's domain-breadcrumb
+// caption. Tiny wrapper — kept here so the chip vocabulary stays single-source.
+export function getDomainLabel(domainKey, lang) {
+  const chip = DOMAIN_CHIPS.find((d) => d.key === domainKey);
+  if (!chip) return domainKey || "";
+  return lang === "es" ? chip.es : chip.en;
+}
+
 /**
  * Searchable topic picker for the Site Safety Meeting form.
  *

@@ -26,7 +26,9 @@ import { formatApiError } from "@/lib/apiErrors";
 import { TOPIC_CATEGORIES, SHIFT_OPTIONS, WEATHER_OPTIONS, buildMeetingDefaults } from "@/lib/meetingSchema";
 import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/topics";
 import { TOPIC_LIBRARY_ES } from "@/lib/topics/index.es";
+import { getDomainLabel } from "@/components/TopicPicker";
 import { composeIncidentScaffold } from "@/lib/composeIncidentScaffold";
+import { splitIncidentScaffold } from "@/lib/splitIncidentScaffold";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
@@ -604,6 +606,29 @@ export default function NewMeeting({ publicMode = false }) {
               {TOPIC_LIBRARY.length}+ {t("heavy civil / highway topics with prefilled hazards, key points, references, and action items. Type to search — or choose")}{" "}
               <span className="font-bold">{t("Custom Topic")}</span> {t("to write your own.")}
             </p>
+            {/* iter269 · Sprint 2 · K6 · one-sentence coaching strip · field-foreman voice */}
+            <p
+              className="text-xs text-slate-700 mt-3 leading-relaxed border-l-2 border-red-200 pl-3"
+              data-testid="meeting-coaching-strip"
+            >
+              {t("After you pick a topic, read the WHAT HAPPENS paragraph to the crew first — that's the real-world pattern. Then walk through the bullets. That's the operational drill.")}
+            </p>
+            {/* iter269 · Sprint 2 · K7 · domain breadcrumb (shown only when a library topic is loaded) */}
+            {templateKey && templateKey !== CUSTOM_TOPIC_KEY && (() => {
+              const tpl = findTopic(templateKey);
+              if (!tpl?.domain) return null;
+              return (
+                <div
+                  className="mt-3 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] font-mono text-slate-500"
+                  data-testid="meeting-domain-breadcrumb"
+                >
+                  <span>{t("Domain")}</span>
+                  <span className="text-slate-900 font-bold">
+                    {getDomainLabel(tpl.domain, lang)}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
 
           <div>
@@ -634,6 +659,29 @@ export default function NewMeeting({ publicMode = false }) {
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               {t("Discussion Notes / Minutes")}
             </Label>
+            {/* iter269 · Sprint 2 · K4 · visual separation of CONTEXT (incident pattern)
+                from ACTION (bullets). Read-only callout · the textarea below still
+                holds the full scaffold for free editing. */}
+            {(() => {
+              const split = splitIncidentScaffold(data.discussion_notes);
+              if (!split.header || !split.pattern) return null;
+              return (
+                <div
+                  className="mt-2 mb-2 rounded-md border-2 border-red-200 bg-red-50/60 p-3"
+                  data-testid="incident-context-block"
+                >
+                  <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-700 font-bold mb-1">
+                    {split.header.trim()}
+                  </div>
+                  <p className="text-sm text-slate-900 leading-snug whitespace-pre-wrap">
+                    {split.pattern}
+                  </p>
+                  <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-slate-500 mt-2">
+                    {t("Context for the crew · the bullets below are the action drill")}
+                  </div>
+                </div>
+              );
+            })()}
             <Textarea
               value={data.discussion_notes}
               onChange={(e) => set("discussion_notes", e.target.value)}

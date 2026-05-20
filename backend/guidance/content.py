@@ -1159,28 +1159,52 @@ _ARTICLES: list[dict] = [
         "id": "public-toolbox-talks",
         "section": "onboarding",
         "title": "Safety Meetings & Toolbox Talks",
-        "summary": "Sign in. Listen. Sign out. That's the record of your attendance.",
+        "summary": "Real-world incident pattern first. Then the action drill. Sign the roster — that's your acknowledgement.",
         "scopes": ["public"],
-        "tags": ["public", "toolbox talk", "safety meeting", "field crew"],
+        "tags": ["public", "toolbox talk", "safety meeting", "field crew", "incident pattern"],
         "body": [
             {"type": "p", "text":
-                "A toolbox talk (or safety meeting) is a short stand-up at the start of "
-                "the day or shift. Topic of the day, hazards, anything new. You sign the "
-                "roster — that's how it gets recorded that you attended and acknowledged."},
+                "A MASCI Safety Meeting is not a generic toolbox talk. It runs from a "
+                "curated library of 130+ heavy-civil and highway topics — each one "
+                "written around a real-world incident pattern that has actually killed "
+                "or seriously hurt construction workers. The foreman picks the topic, "
+                "reads the WHAT HAPPENS paragraph to the crew, then walks through the "
+                "action drill. That's the format. Same in English. Same in Spanish."},
+            {"type": "p", "text":
+                "If you've been to a MASCI Safety Meeting before, you've already "
+                "noticed it doesn't sound like compliance training. That's intentional. "
+                "The topics are written in the voice of experienced superintendents "
+                "and foremen describing what actually happens on jobsites — not what a "
+                "policy says should happen."},
             {"type": "steps", "items": [
-                "Show up on time — they're usually 5-15 minutes",
-                "Listen to the topic. Ask if anything is unclear",
-                "Sign the attendance form when it comes around (or scan the QR / submit through the public meeting form)",
-                "If you spotted a hazard during the talk, speak up before the crew breaks",
+                "Show up on time — most meetings run 5–15 minutes",
+                "Listen to the WHAT HAPPENS / PATRÓN REAL paragraph first — that's the real incident pattern the topic is built around",
+                "Then the bullets — those are the action steps for today's work",
+                "If anything's unclear, ask before the crew breaks. The foreman would rather answer now than read about it later",
+                "Sign the attendance form (paper or digital) — that's the record you were there",
+                "If you spotted a hazard during the talk, speak up. Stop Work Authority belongs to every person on the crew",
             ]},
             {"type": "why", "text":
-                "Your signature is the record that you heard the safety topic. If "
-                "something later happens that was covered in the meeting, that signature "
-                "protects everyone — you knew, the crew knew, the company can prove it. "
-                "Skipping the signature does the opposite."},
+                "The incident-pattern format exists because compliance language doesn't "
+                "stick. A worker hearing \"maintain situational awareness during backing \"\n                \"operations\" forgets it by lunch. A worker hearing \"the spotter was on his "
+                "phone for four seconds — the dump truck rolled over the laborer behind "
+                "it — that's the pattern\" remembers it for a career. The signature on "
+                "the roster says you heard the pattern AND the action drill."},
+            {"type": "bullets", "items": [
+                "Every English topic has a 1:1 Spanish version, written in field Spanish — not Google-translated. Field voice in both languages.",
+                "Topics are organized into 21 operational domains: Concrete · Paving · Milling · MOT · Trucking · Excavation · Dewatering · Shop · Plant · Fall Protection · Confined Space · Electrical · Wellness · and more",
+                "Wellness topics (heat, fatigue, mental health) are written operationally — judgment-degradation framing, not corporate wellness language",
+                "Severity classification is internal Safety/Admin metadata — it does not appear on the crew-facing meeting",
+            ]},
             {"type": "tip", "text":
-                "If you can't make it (medical, late shift change), tell your supervisor. "
-                "They can sometimes have you acknowledge separately."},
+                "If you can't make a meeting (medical, late shift, off-site task), "
+                "tell your supervisor. Acknowledgement can sometimes be captured "
+                "separately — but it has to be captured. Missing the meeting is fine; "
+                "skipping the acknowledgement is not."},
+            {"type": "warn", "text":
+                "If the foreman ever shortcuts the WHAT HAPPENS paragraph to save time "
+                "and jumps straight to the bullets — speak up. The incident pattern IS "
+                "the lesson. The bullets are how you avoid becoming the next one."},
         ],
         "related": ["public-incident-basics", "public-why-documentation", "public-tools-map"],
     },

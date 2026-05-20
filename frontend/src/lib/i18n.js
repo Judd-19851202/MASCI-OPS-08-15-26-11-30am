@@ -939,6 +939,13 @@ const ES = {
   "Shift": "Turno",
   "Select shift": "Seleccionar turno",
   "High-risk activity today": "Actividad de alto riesgo hoy",
+  /* iter269 · Sprint 2 · K4 · K6 · K7 · philosophy linkage strings */
+  "After you pick a topic, read the WHAT HAPPENS paragraph to the crew first — that's the real-world pattern. Then walk through the bullets. That's the operational drill.":
+    "Después de elegir un tema, lea primero el párrafo PATRÓN REAL a la cuadrilla — ese es el patrón del mundo real. Luego repase los puntos. Esa es la disciplina operacional.",
+  "Domain": "Dominio",
+  "Context for the crew · the bullets below are the action drill":
+    "Contexto para la cuadrilla · los puntos de abajo son la disciplina de acción",
+
   "Auto-fills when you pick a topic below": "Se autocompleta al elegir un tema abajo",
 
   /* iter268 · Sprint 1 · K1·K2·K3·K9 · ViewMeeting + NewMeeting bilingual alignment */

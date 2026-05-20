@@ -21,6 +21,7 @@ import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { BilingualConsent } from "@/components/BilingualConsent";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { useT } from "@/lib/i18n";
+import { splitIncidentScaffold } from "@/lib/splitIncidentScaffold";
 
 // iter268 · K2 · Weather chip code → bilingual label.
 // Used in ViewMeeting summary and in the printed/PDF record so the
@@ -267,7 +268,46 @@ export default function ViewMeeting() {
           <div className="space-y-4">
             <KV label={t("Topic / Subject")} value={data.topic} full />
             <KV label={t("Hazards Reviewed")} value={data.hazards_reviewed} full />
-            <KV label={t("Discussion Notes")} value={data.discussion_notes} full />
+            {/* iter269 · Sprint 2 · K4 · visual separation of CONTEXT vs ACTION
+                in the saved record. Read-only render of whatever was submitted.
+                If the discussion notes were composed via the topic library, the
+                incident_pattern paragraph renders in its own framed block and
+                the action bullets render in the normal field below. If the
+                notes are freeform, falls back to a single KV block (no header
+                detected). */}
+            {(() => {
+              const split = splitIncidentScaffold(data.discussion_notes);
+              const labelText = t("Discussion Notes");
+              if (!split.header || !split.pattern) {
+                return <KV label={labelText} value={data.discussion_notes} full />;
+              }
+              return (
+                <div className="sm:col-span-2" data-testid="record-discussion-block">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
+                    {labelText}
+                  </div>
+                  <div
+                    className="rounded-md border-2 border-red-200 bg-red-50/60 p-3 mb-3"
+                    data-testid="record-incident-context"
+                  >
+                    <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-700 font-bold mb-1">
+                      {split.header.trim()}
+                    </div>
+                    <p className="text-base text-slate-900 leading-snug whitespace-pre-wrap">
+                      {split.pattern}
+                    </p>
+                  </div>
+                  {split.bullets && (
+                    <div
+                      className="text-base text-slate-900 mt-1 whitespace-pre-wrap"
+                      data-testid="record-discussion-bullets"
+                    >
+                      {split.bullets}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             <KV label={t("References Cited")} value={data.references_cited} full />
             <KV label={t("Action Items / Follow-Up")} value={data.action_items} full />
           </div>
