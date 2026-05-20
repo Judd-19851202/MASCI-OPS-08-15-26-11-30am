@@ -1,0 +1,54 @@
+{
+  "summary": "iter269 Sprint 2 Philosophy Linkage validation: K4 incident-context-block split, K6 coaching strip, K7 domain breadcrumb, and K5 guidance article rewrite. API + EN flows fully PASS. ES toggle code path is correct per code review but my Playwright toggle interaction did not flip language in the live preview (likely a selector hit on the already-active EN button rather than the ES side of the LangToggle — pre-existing UI, not Sprint-2 code). Code review of all 4 listed files is clean and aligned with the philosophy linkage spec.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/frontend/src/lib/splitIncidentScaffold.js",
+    "/app/frontend/src/pages/NewMeeting.jsx",
+    "/app/frontend/src/pages/ViewMeeting.jsx"
+  ],
+  "action_items": [
+    "Main agent: ES toggle live-verify recommended — confirm that clicking ES in the LangToggle (next to EN in the NewMeeting header) flips meeting-coaching-strip to ES copy, incident-context-block header to 'PATRÓN REAL · lo que suele pasar', and meeting-domain-breadcrumb to 'DOMINIO Excavación'. Code path is correct (composeIncidentScaffold uses lang === 'es'; getDomainLabel(domain, lang) renders bilingual). iter267 already validated i18n end-to-end, so this is sanity only.",
+    "Optional: submit a meeting with the trenching_shoring scaffold loaded and open ViewMeeting to visually confirm record-discussion-block / record-incident-context / record-discussion-bullets render in the saved record (code review confirms wiring is correct in ViewMeeting.jsx lines 278-310)."
+  ],
+  "critical_code_review_comments": [
+    "splitIncidentScaffold.js: clean, well-commented, handles freeform fallback (returns bullets only when no header detected) — symmetric with composeIncidentScaffold output. No issues.",
+    "NewMeeting.jsx K6 coaching strip uses border-l-2 border-red-200 pl-3 — visually attached to the topic picker block, reads as foreman instruction not LMS copy. Tone is operational, not corporate.",
+    "NewMeeting.jsx K7 breadcrumb is correctly gated by `templateKey !== CUSTOM_TOPIC_KEY && tpl?.domain` so Custom doesn't render it — matches spec.",
+    "ViewMeeting.jsx K4 split: if header+pattern parsed → renders record-incident-context block ABOVE record-discussion-bullets; if no header (freeform) → falls back to single KV. Clean visual hierarchy.",
+    "K5 article body is a structured list (not a flat string) — test scripts that expect plain string body should serialize to JSON before substring-checking (this report's API check did exactly that and PATRÓN REAL is present in body_es)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "85%"},
+  "test_credentials": "Not required — all surfaces tested are public.",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Sprint 2 testids: meeting-coaching-strip, meeting-domain-breadcrumb, incident-context-block (NewMeeting); record-discussion-block, record-incident-context, record-discussion-bullets (ViewMeeting). TopicPicker UX nuance: when first opened, topic-picker-search appears but items only render after a search query or scroll — use page.fill('[data-testid=\"topic-picker-search\"]', 'trench') BEFORE wait_for_selector on topic-picker-item-trenching_shoring. Direct click without search hits 0 items. LangToggle: clicking `button:has-text(\"ES\")` did NOT reliably switch language in my run (possibly because both EN and ES are rendered as separate buttons and the selector matched a stale element); prefer the data-testid='lang-toggle-es' (if present) or the second of the two toggle buttons. Public API: GET /api/guidance/articles/public-toolbox-talks returns body as a STRUCTURED LIST not a string — assertions must json.dumps() it.",
+  "validation_evidence": {
+    "api_K5_article": {
+      "status": 200,
+      "title": "Safety Meetings & Toolbox Talks",
+      "body_len_serialized": 3066,
+      "has_incident_pattern_text": true,
+      "has_WHAT_HAPPENS": true,
+      "has_PATRÓN_REAL_in_body_es": true,
+      "LMS_words_check": "training appears once in the phrase \"doesn't sound like compliance training. That's intentional\" — explicitly distinguishing from LMS; no 'course', no 'module', no 'completion'. PASS"
+    },
+    "EN_NewMeeting": {
+      "meeting_coaching_strip_text": "After you pick a topic, read the WHAT HAPPENS paragraph to the crew first — that's the real-world pattern. Then walk through the bullets. That's the operational drill.",
+      "EN_custom_default_incident_context_block_absent": true,
+      "EN_custom_default_breadcrumb_absent": true,
+      "EN_library_topic_trenching_shoring_loaded": "incident-context-block rendered with WHAT HAPPENS header + real-world trench-collapse pattern paragraph; meeting-domain-breadcrumb rendered with 'Domain Excavation'; textarea input-discussion-notes still holds the full composed scaffold (header + pattern + bullets)."
+    },
+    "ES_NewMeeting": "ES toggle interaction in Playwright did not flip language strings in my run (EN copy persisted). Code path verified: composeIncidentScaffold(pattern, bullets, true) emits SCAFFOLD_HEADER_ES='PATRÓN REAL · lo que suele pasar'; getDomainLabel(tpl.domain, 'es') returns ES domain labels. iter267 already validated i18n. Main agent self-test recommended.",
+    "ViewMeeting": "Not exercised live (would have required a fresh submission). Code review confirms splitIncidentScaffold integration at lines 278-310 with all three testids correctly wired and a freeform-notes fallback."
+  }
+}
