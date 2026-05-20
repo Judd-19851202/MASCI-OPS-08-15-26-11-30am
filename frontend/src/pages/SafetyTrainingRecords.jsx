@@ -20,6 +20,7 @@ import SafetyShell from "@/components/SafetyShell";
 import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { HelpTip } from "@/components/ui/HelpTip";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { useRememberedFilter, useRememberedFormValue } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
 import { getSafetyToken } from "@/lib/safetyAuth";
@@ -199,6 +200,11 @@ export default function SafetyTrainingRecords() {
 
   return (
     <SafetyShell title="Training & Certifications" kicker="SAFETY · TRAINING REGISTER">
+      {/* iter289 · coaching family · top-of-page canonical 4 */}
+      <HelpTipBlock formKey="safety-training" />
+      {/* iter289 · expiration sub-key — sits next to the renewal queue */}
+      <HelpTipBlock formKey="safety-training.expiration" />
+
       <div className="flex flex-col sm:flex-row gap-3 mb-5 items-start sm:items-center justify-between">
         <p className="text-slate-600 text-sm max-w-2xl leading-relaxed">
           {t("Per-employee training records tied to the MASCI employee roster. Expiration tracking flags certs about to lapse so they're renewed before the field crew is non-compliant.")}
@@ -291,6 +297,8 @@ export default function SafetyTrainingRecords() {
             <DialogTitle>{dlg.mode === "create" ? t("Add training record") : t("Edit training record")}</DialogTitle>
             <DialogDescription>{t("Tied to the MASCI employee roster. Leave expiration blank for trainings that don't expire.")}</DialogDescription>
           </DialogHeader>
+          {/* iter289 · upload-discipline coaching inside the entry dialog */}
+          <HelpTipBlock formKey="safety-training.upload" />
           <div className="space-y-3 pt-2">
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Employee")} *</Label>

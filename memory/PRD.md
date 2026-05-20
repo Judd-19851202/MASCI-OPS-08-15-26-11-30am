@@ -1,5 +1,29 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 — iter289 · Safety Training Records coaching-family parity · CLOSED
+
+First closure of the iter288-audit Safety-cluster. Workflow shipped since iter120 Phase 4 but matrix-tracked red on Coach/4-Kinds/Tests/Parity. iter289 closes the coaching parity gap. NO redesign, NO new routes.
+
+### iter289 — Safety Training Records coaching-family parity (CLOSED)
+- **Coaching family** authored: `safety-training` (canonical 4: why/who/next/escalate) + `safety-training.expiration` (why/escalate · OSHA renewal anchor) + `safety-training.upload` (why/mistake · cert-type structure + entry errors).
+- **8 EN tips + 8 ES tips** · Safety+Admin scope · operational tone · zero LMS drift.
+- **3 HelpTipBlock mounts** in `SafetyTrainingRecords.jsx`: page top (canonical 4) · just below (expiration) · inside create/edit dialog (upload).
+- **Tests:** `test_iter289_safety_training_coaching.py` — 13/13 ✅ (taxonomy lock + 4-kinds + ES parity + Safety/Admin scope + LMS-drift ban + OSHA-anchor + 30-day-anchor + HR-cross-portal-read pattern + no-collision with `equipment-training`/`document-expirations`).
+- **Live verified:** top family returns 4 tips · sub-families return 6 each (prefix-merge: 4 top + 2 sub) · ES titles render via `?lang=es` · frontend smoke confirms all 3 mounts render in Safety session.
+- **Matrix row flipped:** Safety Training Records → `Coach ✅ 8 · 4-Kinds ✅ · Guide ✅ · Tests ✅ · Parity ✅ · Complete ✅`.
+
+### Combined regression
+- **191/191 unit pytests** across iter224 + iter225 + iter282 + iter283 + iter285 + iter286 + iter287 + iter288 + iter289.
+
+### Files touched (iter289)
+- MOD · `/app/backend/guidance/tips.py` (+8 EN tips · `safety-training.*` family)
+- MOD · `/app/backend/guidance/tips_es.py` (+8 ES tips)
+- MOD · `/app/frontend/src/pages/SafetyTrainingRecords.jsx` (+1 import · +3 HelpTipBlock mounts)
+- NEW · `/app/backend/tests/test_iter289_safety_training_coaching.py`
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (Safety Training Records row flipped · ship-log entry)
+
+---
+
 ## 2026-05-20 — iter288 · Driver Qualification Lightweight Operational Dashboard · CLOSED
 
 Capstone iteration of the iter284 §8.2 Driver Qualification cluster. Read-only operational visibility surface — NOT a dispatch system, NOT a compliance platform.

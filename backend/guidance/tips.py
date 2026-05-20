@@ -2967,6 +2967,138 @@ _TIPS: list[dict] = [
             "management product, which is exactly what we said no to.",
     },
 
+    # ─────────────────────────────────────────────────────────────────
+    # iter289 · safety-training coaching family.
+    #
+    # The Safety Training Records workflow has been shipped since
+    # iter120 (Phase 4 of the Safety Portal). Backend routes
+    # (/api/safety/training-records) exist, the collection is mature,
+    # the UI ships. But the workflow is operationally orphan:
+    #
+    #   - no in-context coaching
+    #   - no canonical 4
+    #   - no ES coaching parity
+    #   - no regression protection
+    #
+    # iter289 closes those gaps without redesigning the workflow.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "safety-training",
+        "kind": "why",
+        "scopes": ["safety", "admin"],
+        "title": "Why training records live as structured data",
+        "body":
+            "OSHA 10s, OSHA 30s, CPR/First Aid, Confined Space, "
+            "Fall Protection, Forklift, Aerial — every one of those "
+            "is a credential that expires, and the person it belongs "
+            "to is on a crew that depends on the renewal happening "
+            "before the lapse. Tribal knowledge ('I think Carlos is "
+            "OSHA-30') doesn't survive a single audit. Structured "
+            "records keep the company in front of the renewal "
+            "instead of behind the violation.",
+    },
+    {
+        "form_key": "safety-training",
+        "kind": "who",
+        "scopes": ["safety", "admin"],
+        "title": "Who owns this list",
+        "body":
+            "Safety owns entry — every record comes from a real "
+            "completion certificate, not a verbal claim. HR reads "
+            "the list cross-portal at /hr/safety-records for "
+            "compliance review. PMs and supervisors do not edit "
+            "these rows. If someone calls in a missing cert, "
+            "Safety verifies against the source document before "
+            "the row exists.",
+    },
+    {
+        "form_key": "safety-training",
+        "kind": "next",
+        "scopes": ["safety", "admin"],
+        "title": "What the 30-day filter is for",
+        "body":
+            "The 'Expiring 30d' tab is the renewal queue. Call the "
+            "operator, schedule the refresh class, pay for it if "
+            "MASCI pays, attach the new cert when it lands. The "
+            "list shrinks because the work happens — not because "
+            "rows got deleted. Empty 30-day tab on a Monday morning "
+            "is the operational signal that the program is healthy.",
+    },
+    {
+        "form_key": "safety-training",
+        "kind": "escalate",
+        "scopes": ["safety", "admin"],
+        "title": "When a cert lapses while the operator is still on a crew",
+        "body":
+            "Stop the assignment, escalate to the supervisor, "
+            "document the gap factually (when it expired, when "
+            "Safety noticed, what tasks were performed in between). "
+            "Do not delete the row. Update the record once the "
+            "refresh class lands — the gap window is what matters "
+            "if an inspector ever asks.",
+    },
+
+    # ── safety-training.expiration ───────────────────────────────────
+    {
+        "form_key": "safety-training.expiration",
+        "kind": "why",
+        "scopes": ["safety", "admin"],
+        "title": "Why expiration dates matter operationally",
+        "body":
+            "An expired credential is exactly the same as no "
+            "credential at all in front of an OSHA inspector. The "
+            "expiration date is the renewal pressure on the calendar. "
+            "Leave it blank only for trainings that genuinely don't "
+            "expire (orientation, MASCI-internal toolbox topics) — "
+            "everything OSHA-related, every refresh-required cert, "
+            "every state-mandated card gets a date.",
+    },
+    {
+        "form_key": "safety-training.expiration",
+        "kind": "escalate",
+        "scopes": ["safety", "admin"],
+        "title": "What to do when 'Expired' rows pile up",
+        "body":
+            "Expired pile-up usually means renewals stopped being "
+            "scheduled, not that operators stopped caring. Call the "
+            "training provider, book a batch refresh, sequence the "
+            "crews so the field doesn't go dark. Escalate to the "
+            "Safety Director if the pile-up survives one cycle — "
+            "the program needs budget or scheduling authority, not "
+            "just another reminder email.",
+    },
+
+    # ── safety-training.upload ───────────────────────────────────────
+    {
+        "form_key": "safety-training.upload",
+        "kind": "why",
+        "scopes": ["safety", "admin"],
+        "title": "Why certification type is structured",
+        "body":
+            "OSHA 10 and OSHA 30 are different credentials. CPR and "
+            "First Aid are sometimes bundled, sometimes separate. "
+            "Confined Space and Trench/Excavation read similar but "
+            "OSHA treats them as distinct. The Type field uses a "
+            "fixed list so the eventual audit query ('show me every "
+            "current OSHA-30') returns the right people. Free-text "
+            "training names live next to it; the structured Type is "
+            "what the system filters on.",
+    },
+    {
+        "form_key": "safety-training.upload",
+        "kind": "mistake",
+        "scopes": ["safety", "admin"],
+        "title": "Common entry errors to avoid",
+        "body":
+            "Putting the provider name in the Training name field "
+            "and leaving Issued By blank. Setting Completed Date "
+            "to today when the cert was earned years ago. Leaving "
+            "Expiration blank on a credential that actually expires. "
+            "Marking a refresher as a fresh completion rather than "
+            "updating the existing row (creates two rows for one "
+            "person and the audit query double-counts).",
+    },
+
 
     # ═════════════════════════════════════════════════════════════════
     # iter225 · document-expirations · Tier-2 (hr + safety + admin).

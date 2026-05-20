@@ -2157,6 +2157,107 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "exactamente a lo que dijimos no.",
     },
 
+    # ── iter289 · safety-training ────────────────────────────────────
+    ("safety-training", "why"): {
+        "title_es": "Por qué los registros de entrenamiento viven como datos estructurados",
+        "body_es":
+            "OSHA 10, OSHA 30, CPR/Primeros Auxilios, Espacios "
+            "Confinados, Protección Contra Caídas, Montacargas, "
+            "Aéreo — cada uno es una credencial que vence, y la "
+            "persona a la que pertenece está en una cuadrilla que "
+            "depende de la renovación antes del vencimiento. El "
+            "conocimiento tribal ('creo que Carlos tiene OSHA-30') "
+            "no sobrevive ni una sola auditoría. Los registros "
+            "estructurados mantienen a la empresa por delante de la "
+            "renovación en vez de detrás de la violación.",
+    },
+    ("safety-training", "who"): {
+        "title_es": "Quién es dueño de esta lista",
+        "body_es":
+            "Seguridad es dueño de la captura — cada registro viene "
+            "de un certificado real, no de un dicho. RH lee la "
+            "lista cruzando portales en /hr/safety-records para "
+            "revisión de cumplimiento. PMs y supervisores no editan "
+            "estas filas. Si alguien llama por un certificado "
+            "faltante, Seguridad verifica contra el documento "
+            "fuente antes de que la fila exista.",
+    },
+    ("safety-training", "next"): {
+        "title_es": "Para qué sirve el filtro de 30 días",
+        "body_es":
+            "La pestaña 'Vence 30d' es la fila de renovación. Llame "
+            "al operador, programe la clase de actualización, "
+            "páguela si MASCI paga, adjunte el nuevo certificado "
+            "cuando llegue. La lista se encoge porque el trabajo "
+            "ocurre — no porque se borraron filas. Una pestaña de "
+            "30 días vacía un lunes en la mañana es la señal "
+            "operacional de que el programa está saludable.",
+    },
+    ("safety-training", "escalate"): {
+        "title_es": "Cuándo un certificado vence con el operador todavía en cuadrilla",
+        "body_es":
+            "Detenga la asignación, escale al supervisor, documente "
+            "el hueco factualmente (cuándo venció, cuándo lo notó "
+            "Seguridad, qué tareas se hicieron mientras tanto). No "
+            "borre la fila. Actualice el registro cuando llegue la "
+            "clase de actualización — la ventana del hueco es lo "
+            "que importa si un inspector pregunta después.",
+    },
+
+    # ── iter289 · safety-training.expiration ─────────────────────────
+    ("safety-training.expiration", "why"): {
+        "title_es": "Por qué importan las fechas de vencimiento operacionalmente",
+        "body_es":
+            "Una credencial vencida es exactamente lo mismo que no "
+            "tener credencial frente a un inspector de OSHA. La "
+            "fecha de vencimiento es la presión de renovación en el "
+            "calendario. Déjela en blanco solo para entrenamientos "
+            "que genuinamente no vencen (orientación, charlas "
+            "internas de MASCI) — todo lo de OSHA, todo certificado "
+            "que requiere refresco, toda credencial mandada por el "
+            "estado, lleva fecha.",
+    },
+    ("safety-training.expiration", "escalate"): {
+        "title_es": "Qué hacer cuando se acumulan filas 'Vencido'",
+        "body_es":
+            "La acumulación de vencidos generalmente significa que "
+            "se dejaron de programar renovaciones, no que los "
+            "operadores dejaron de importar. Llame al proveedor de "
+            "entrenamiento, agende un refresco por lotes, "
+            "secuencie las cuadrillas para que el campo no se "
+            "quede oscuro. Escale al Director de Seguridad si la "
+            "acumulación sobrevive un ciclo — el programa necesita "
+            "presupuesto o autoridad de programación, no otro "
+            "correo recordatorio.",
+    },
+
+    # ── iter289 · safety-training.upload ─────────────────────────────
+    ("safety-training.upload", "why"): {
+        "title_es": "Por qué el tipo de certificación es estructurado",
+        "body_es":
+            "OSHA 10 y OSHA 30 son credenciales diferentes. CPR y "
+            "Primeros Auxilios a veces vienen juntos, a veces "
+            "separados. Espacios Confinados y Trinchera/Excavación "
+            "se leen parecido pero OSHA los trata como distintos. "
+            "El campo Tipo usa una lista fija para que la consulta "
+            "de auditoría eventual ('muéstreme todos los OSHA-30 "
+            "vigentes') regrese a la gente correcta. El nombre "
+            "libre del entrenamiento vive junto; el Tipo "
+            "estructurado es por el que filtra el sistema.",
+    },
+    ("safety-training.upload", "mistake"): {
+        "title_es": "Errores comunes de captura a evitar",
+        "body_es":
+            "Poner el nombre del proveedor en el campo Nombre del "
+            "Entrenamiento y dejar Emitido Por en blanco. Poner la "
+            "Fecha de Completado en hoy cuando el certificado se "
+            "obtuvo hace años. Dejar Vencimiento en blanco en una "
+            "credencial que sí vence. Marcar un refresco como una "
+            "completación nueva en vez de actualizar la fila "
+            "existente (crea dos filas para una persona y la "
+            "consulta de auditoría cuenta doble).",
+    },
+
 
 
 
