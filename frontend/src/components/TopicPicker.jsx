@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
-import { TOPIC_LIBRARY_ES } from "@/lib/meetingTopicLibrary.es";
+import { TOPIC_LIBRARY_ES } from "@/lib/topics/index.es";
 
 // Domain chip labels (EN + ES). Keep this list short and operational.
 // `key` matches the `domain` field on each topic in meetingTopicLibrary.js.

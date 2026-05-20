@@ -23,9 +23,10 @@ import { LangToggle } from "@/components/LangToggle";
 import { BilingualConsent } from "@/components/BilingualConsent";
 import { useT, getLang } from "@/lib/i18n";
 import { formatApiError } from "@/lib/apiErrors";
-import { TOPIC_CATEGORIES, buildMeetingDefaults } from "@/lib/meetingSchema";
-import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/meetingTopicLibrary";
-import { TOPIC_LIBRARY_ES } from "@/lib/meetingTopicLibrary.es";
+import { TOPIC_CATEGORIES, SHIFT_OPTIONS, WEATHER_OPTIONS, buildMeetingDefaults } from "@/lib/meetingSchema";
+import { TOPIC_LIBRARY, CUSTOM_TOPIC_KEY, findTopic } from "@/lib/topics";
+import { TOPIC_LIBRARY_ES } from "@/lib/topics/index.es";
+import { composeIncidentScaffold } from "@/lib/composeIncidentScaffold";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
@@ -84,21 +85,13 @@ export default function NewMeeting({ publicMode = false }) {
     // discussion notes as a labelled "real-world pattern" paragraph
     // so the driver/foreman reads the story before the bullets.
     // The field stays freely editable in the textarea below.
-    const headerEn = "WHAT HAPPENS · real-world pattern";
-    const headerEs = "PATRÓN REAL · lo que suele pasar";
-    const composeNotes = (pattern, bullets, isEs) => {
-      const body = bullets || "";
-      if (!pattern) return body;
-      const header = isEs ? headerEs : headerEn;
-      return `${header}\n${pattern}\n\n${body}`;
-    };
-    const enNotes = composeNotes(
+    const enNotes = composeIncidentScaffold(
       tpl.incident_pattern,
       tpl.discussion_notes,
       false
     );
     const esNotes = es
-      ? composeNotes(es.incident_pattern, es.discussion_notes, true)
+      ? composeIncidentScaffold(es.incident_pattern, es.discussion_notes, true)
       : null;
     setData((p) => ({
       ...p,
@@ -210,24 +203,16 @@ export default function NewMeeting({ publicMode = false }) {
       if (tpl && es) {
         const swapIfPristine = (currentVal, esVal, enVal) =>
           currentVal === esVal ? enVal : currentVal;
-        // Mirror the composeNotes logic used at template-load time so
+        // Mirror the scaffold composition used at template-load time so
         // an unedited bilingual discussion_notes (with the incident
         // pattern header prepended) swaps cleanly back to the English
         // canonical composed form on submit.
-        const headerEn = "WHAT HAPPENS · real-world pattern";
-        const headerEs = "PATRÓN REAL · lo que suele pasar";
-        const composeNotes = (pattern, bullets, isEs) => {
-          const body = bullets || "";
-          if (!pattern) return body;
-          const header = isEs ? headerEs : headerEn;
-          return `${header}\n${pattern}\n\n${body}`;
-        };
-        const esComposedNotes = composeNotes(
+        const esComposedNotes = composeIncidentScaffold(
           es.incident_pattern,
           es.discussion_notes,
           true
         );
-        const enComposedNotes = composeNotes(
+        const enComposedNotes = composeIncidentScaffold(
           tpl.incident_pattern,
           tpl.discussion_notes,
           false
@@ -466,6 +451,138 @@ export default function NewMeeting({ publicMode = false }) {
               </p>
             </div>
           </div>
+
+          {/* E1 · operational context captures (crew, shift, weather,
+              subcontractor, high-risk flag). Lightweight, single-tap. */}
+          <div
+            className="mt-6 pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4"
+            data-testid="meeting-context-row"
+          >
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                {t("Crew Size")}
+              </Label>
+              <Input
+                type="number"
+                min="0"
+                inputMode="numeric"
+                value={data.crew_size ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  set("crew_size", v === "" ? null : Math.max(0, parseInt(v, 10) || 0));
+                }}
+                className={inputCls}
+                placeholder={t("Total on crew today")}
+                data-testid="input-crew-size"
+              />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                {t("Shift")}
+              </Label>
+              <Select value={data.shift || ""} onValueChange={(v) => set("shift", v)}>
+                <SelectTrigger className={inputCls} data-testid="select-shift">
+                  <SelectValue placeholder={t("Select shift")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {SHIFT_OPTIONS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {lang === "es"
+                        ? { Day: "Día", Swing: "Tarde", Night: "Noche" }[s]
+                        : s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="sm:col-span-1 flex items-end">
+              <label
+                className="flex items-center gap-2 h-14 cursor-pointer select-none"
+                data-testid="toggle-high-risk-label"
+              >
+                <input
+                  type="checkbox"
+                  checked={!!data.high_risk_activity}
+                  onChange={(e) => set("high_risk_activity", e.target.checked)}
+                  className="w-5 h-5 accent-red-700"
+                  data-testid="toggle-high-risk"
+                />
+                <span className="text-sm font-medium text-slate-900">
+                  {t("High-risk activity today")}
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {/* Weather chip row */}
+          <div className="mt-4">
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+              {t("Weather")}
+            </Label>
+            <div
+              className="mt-2 flex flex-wrap gap-2"
+              data-testid="meeting-weather-chips"
+            >
+              {WEATHER_OPTIONS.map((w) => {
+                const active = (data.weather || []).includes(w.key);
+                return (
+                  <button
+                    key={w.key}
+                    type="button"
+                    onClick={() => {
+                      const cur = data.weather || [];
+                      set(
+                        "weather",
+                        active
+                          ? cur.filter((k) => k !== w.key)
+                          : [...cur, w.key]
+                      );
+                    }}
+                    className={
+                      "px-3 py-1.5 rounded-full text-sm font-medium border transition-colors " +
+                      (active
+                        ? "bg-red-700 text-white border-red-700"
+                        : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50")
+                    }
+                    data-testid={`weather-chip-${w.key}`}
+                  >
+                    {lang === "es" ? w.es : w.en}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Subcontractor toggle + optional name */}
+          <div className="mt-4">
+            <label
+              className="flex items-center gap-2 cursor-pointer select-none"
+              data-testid="toggle-sub-label"
+            >
+              <input
+                type="checkbox"
+                checked={!!data.subcontractor_present}
+                onChange={(e) => {
+                  set("subcontractor_present", e.target.checked);
+                  if (!e.target.checked) set("subcontractor_name", "");
+                }}
+                className="w-5 h-5 accent-red-700"
+                data-testid="toggle-sub"
+              />
+              <span className="text-sm font-medium text-slate-900">
+                {t("Subcontractor crew present")}
+              </span>
+            </label>
+            {data.subcontractor_present && (
+              <Input
+                value={data.subcontractor_name}
+                onChange={(e) => set("subcontractor_name", e.target.value)}
+                className={inputCls + " mt-2"}
+                placeholder={t("Subcontractor name (optional)")}
+                data-testid="input-sub-name"
+              />
+            )}
+          </div>
         </Section>
 
         <Section number="02" title={t("Topic & Discussion")}>
@@ -627,16 +744,22 @@ export default function NewMeeting({ publicMode = false }) {
           <p className="text-sm text-slate-600">
             {t("The person who ran the meeting signs to confirm the record is accurate.")}
           </p>
-          <div>
-            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              {t("Conducted By (Typed) *")}
-            </Label>
-            <Input
-              value={data.conducted_by}
-              onChange={(e) => set("conducted_by", e.target.value)}
-              className={inputCls}
-              data-testid="input-conducted-by-typed"
-            />
+          {/* D1 · conducted_by is captured in Section 01. Show read-only
+              here so foreman doesn't retype on mobile. */}
+          <div
+            className="rounded-lg border-2 border-slate-200 bg-slate-50 px-4 py-3"
+            data-testid="conducted-by-readonly"
+          >
+            <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
+              {t("Conducted By")}
+            </div>
+            <div className="mt-1 text-base font-medium text-slate-900">
+              {data.conducted_by || (
+                <span className="italic text-slate-400">
+                  {t("— enter in Section 01 —")}
+                </span>
+              )}
+            </div>
           </div>
           <BilingualConsent variant="meeting" />
           <SignaturePad

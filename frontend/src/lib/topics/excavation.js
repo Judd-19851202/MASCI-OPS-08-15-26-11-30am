@@ -1,0 +1,52 @@
+// Auto-split from monolithic meetingTopicLibrary.js · iter260
+// Domain: excavation · 4 topics
+// Edit content here; index.js aggregates all domains.
+
+export const TOPICS_EXCAVATION = [
+  {
+    key: "trenching_shoring",
+    domain: "excavation",
+    title: "Trenching, Shoring & Excavation Safety",
+    category: "Hazard-Specific",
+    incident_pattern: "Trench collapse fatalities follow the same pattern almost every time: a 4-to-6-foot trench, a worker steps in 'just for a minute' to check grade or pull a stuck pipe, and the wall fails. The trench is below 5 feet only by inches, the crew didn't pull the box for that short of a span, and the spoil pile sits a foot off the edge. The wall comes in as a single slab — not a slow slump. The worker is buried to the chest in 2 seconds, and a cubic yard of dirt weighs ~3,000 lbs. Even if the head is clear, chest compression kills in under 5 minutes. We have lost workers in this exact pattern in our region. Five feet is not a magic number — depth, soil, water, and traffic all matter.",
+    hazards_reviewed: "Cave-in / collapse · Engulfment · Falls into excavation · Struck-by spoil or material · Hazardous atmospheres · Water accumulation · Underground utilities · Equipment falling into trench",
+    discussion_notes: "• Competent person inspects every excavation daily, after rain, and after any change in conditions.\n• Protective system required at 5 ft+: slope, shore, shield, or bench.\n• Spoil pile and equipment kept ≥2 ft back from edge.\n• Ladder/ramp/steps required within 25 ft of any worker in a 4 ft+ trench.\n• Atmospheric testing required where hazardous atmosphere is suspected.\n• Crews stay clear of equipment swing radius and out from under suspended loads.\n• No one enters a trench without protective system in place — period.",
+    references_cited: "OSHA 29 CFR 1926 Subpart P · OSHA 1926.651 · OSHA 1926.652 · OSHA Trenching Quick Card",
+    action_items: "Confirm competent person on site daily · Verify protective system matches soil type · Check 811 ticket valid · Daily inspection logged · Rescue plan reviewed",
+  },
+  {
+    key: "soil_classification",
+    domain: "excavation",
+    title: "Soil Classification (Type A / B / C)",
+    category: "Procedure / SOP",
+    incident_pattern: "Bad soil classification kills more often than no classification at all — because the box or slope was chosen confidently for the WRONG type. A trench gets called 'Type A clay' at the morning brief, the box matches that, and the wall fails because last week's rain saturated the upper 18 inches into effective Type C. The competent person walked it dry, did the manual test on day-old material, and the calculus changed overnight. The fix is recurring reclassification — after rain, after freeze-thaw, after vibration, after any disturbance. When uncertain, classify DOWN, not up. The cost of an extra slope is a few cubic yards; the cost of being wrong is a fatality.",
+    hazards_reviewed: "Wrong protective system used · Trench collapse from unrecognized soil weakness · Layered soils acting as weakest type · Saturated soil reclassified after rain",
+    discussion_notes: "• Type A: most stable (e.g. clay, hardpan) — slope 3/4:1.\n• Type B: medium (silty soils) — slope 1:1.\n• Type C: least stable (gravel, sand, submerged) — slope 1.5:1.\n• Layered soil = classify as the weakest layer.\n• Previously disturbed soil is automatically Type C.\n• Visual + manual tests by competent person; soil reclassified after rain or freeze/thaw.\n• When in doubt, classify lower (more conservative).",
+    references_cited: "OSHA 1926 Subpart P Appendix A · OSHA Soil Classification Chart",
+    action_items: "Soil type recorded daily · Competent person performs visual & manual test · System adjusted after weather change",
+  },
+  {
+    key: "excavation_potholing_daylight",
+    domain: "excavation",
+    title: "Potholing & Daylighting Before Mechanical Excavation",
+    category: "Procedure / SOP",
+    role_context: ["operator","lead","groundman"],
+    incident_pattern: "Underground-utility strikes that the 811 ticket did NOT prevent almost always trace back to the same shortcut: the crew got a locate, the marks were imperfect, and the operator hit something with the bucket trying to 'find it.' The marks are advisory — the tolerance zone around them is 18-24 inches in most states, and within that zone, mechanical excavation is supposed to STOP and daylighting starts. A 14-inch fiber line, a 6-inch gas main, a high-voltage feeder — all of them live within an inch or two of where the bucket is digging. The fix is air or vacuum potholing before the bucket comes within the tolerance zone of any located mark. It costs an hour. The alternative costs a life or a city block of service.",
+    hazards_reviewed: "Strike on energized power · Gas main rupture / explosion · Fiber / comm strike with service impact · Water main blowout · Operator caught in flash from electrical strike · Crew exposure during search-by-bucket",
+    discussion_notes: "• 811 ticket valid AND current. Re-call before the bucket starts if the ticket is older than the state's expiration window.\n• Walk the marks BEFORE the operator climbs in. Match marks to the ticket. Anything missing or contradictory — stop, recall.\n• Tolerance zone is typically 18-24 inches each side of the mark. Inside that zone, no mechanical excavation. Period.\n• Daylight with air-knife, vacuum excavator, or hand-dig until the utility is exposed and confirmed. Then mechanical can resume.\n• Vacuum excavator: keep the wand moving, watch suction strength, eye protection for grit-blowback.\n• Operator and ground crew agree on signals BEFORE digging. Bucket motion through the tolerance zone needs explicit ground-crew acknowledgment.\n• If you hit something unexpected — STOP. Don't try to clear it. Identify what it is from a safe distance.\n• Gas hit: clear upwind, no ignition sources, call 911 and the utility. Do not try to plug or stop the leak yourself.\n• Power hit: stay back. Treat anything metal in the trench as energized. Call 911 and the utility. Do not enter the trench until the utility confirms de-energization.",
+    references_cited: "Common Ground Alliance Best Practices · OSHA 1926.651(b) · State 811 / One-Call statutes · MASCI Locate SOP",
+    action_items: "811 ticket verified current · Tolerance zone explained to operator · Daylighting tools on-site · Hit-response procedure reviewed",
+  },
+  {
+    key: "excavation_spoil_placement",
+    domain: "excavation",
+    title: "Spoil Pile Placement Around Open Trenches",
+    category: "Hazard-Specific",
+    role_context: ["operator","lead","groundman"],
+    incident_pattern: "Spoil-related trench collapses are predictable and preventable. The spoil pile sits 18 inches from the edge because the available footprint is tight, the excavator is running parallel to the trench because the work demands it, and the soil has been sitting in the sun losing moisture content all morning. By 2 p.m. the surcharge load on the trench edge plus the vibration of running equipment plus the natural slumping of saturated original ground undermines the wall. The wall slides in. A worker in the trench bottom checking grade is buried. Same pattern as wellpoint trenches, but on every-day pipe and utility work it happens more often because crews are less alert to it.",
+    hazards_reviewed: "Trench collapse from spoil surcharge · Equipment vibration loosening trench wall · Worker engulfment · Spoil material avalanche onto crew · Tripping over spoil pile at trench edge",
+    discussion_notes: "• Spoil minimum 2 feet from trench edge. For trenches deeper than 5 feet, push it back to one trench-depth or more. If you can't, the box gets called in immediately.\n• Equipment paths kept back one trench-depth from the edge. Excavators running parallel to a trench transmit vibration through the spoil into the wall.\n• If spoil HAS to sit close, install plywood or steel road plates at the edge to distribute the load.\n• Watch the spoil pile through the day. A pile that was firm at 7 a.m. can be loose-flowing by 2 p.m. as it dries out — or saturated and heavier after rain.\n• Tension cracks at the edge are your last warning. If you see one, pull workers out NOW and reset the protection before re-entry.\n• Spoil-pile face slopes — if a pile is heaped at the edge, the side facing the trench can avalanche into the bottom on its own. Keep piles spread, not heaped.\n• Workers stepping off the trench edge over a spoil pile — trip hazard, ankle-twist hazard. Maintain a clear access route at every ladder location.\n• Talk it through every morning. The pile changes daily — yesterday's plan isn't today's plan.",
+    references_cited: "OSHA 29 CFR 1926.651(j) · OSHA 1926.652 · NIOSH Trenching · MASCI Trench SOP",
+    action_items: "Spoil setback verified · Equipment path moved off edge · Daily edge inspection assigned · Tension-crack response reviewed",
+  },
+];

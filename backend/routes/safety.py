@@ -120,6 +120,19 @@ class MeetingCreate(BaseModel):
     attendees: List[Dict[str, Any]] = Field(default_factory=list)
     photos: List[str] = Field(default_factory=list)
     conductor_signature: Optional[str] = ""
+    # iter256 · GPS + topic provenance + submit language (promoted from extra="allow")
+    gps_lat: Optional[float] = None
+    gps_lng: Optional[float] = None
+    gps_accuracy: Optional[float] = None
+    topic_template_key: Optional[str] = ""
+    submit_language: Optional[str] = ""
+    # iter260 · E1 · operational context captures
+    crew_size: Optional[int] = None
+    shift: Optional[str] = ""              # "" | "Day" | "Swing" | "Night"
+    weather: List[str] = Field(default_factory=list)
+    subcontractor_present: Optional[bool] = False
+    subcontractor_name: Optional[str] = ""
+    high_risk_activity: Optional[bool] = False
 
 
 class Meeting(MeetingCreate):

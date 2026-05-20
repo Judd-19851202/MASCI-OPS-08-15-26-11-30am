@@ -216,6 +216,44 @@ export default function ViewMeeting() {
             <KV label="Time" value={data.meeting_time} />
             <KV label="Conducted By" value={data.conducted_by} />
             <KV label="Category" value={data.topic_category} />
+            {/* iter260 · E1 · operational context */}
+            {data.crew_size != null && (
+              <KV label="Crew Size" value={String(data.crew_size)} />
+            )}
+            {data.shift && <KV label="Shift" value={data.shift} />}
+            {Array.isArray(data.weather) && data.weather.length > 0 && (
+              <KV
+                label="Weather"
+                value={data.weather
+                  .map((w) =>
+                    ({
+                      clear: "Clear",
+                      hot: "Hot",
+                      cold: "Cold",
+                      rain: "Rain",
+                      wind: "Wind",
+                      storm_risk: "Storm Risk",
+                    }[w] || w)
+                  )
+                  .join(" · ")}
+              />
+            )}
+            {data.subcontractor_present && (
+              <KV
+                label="Subcontractor"
+                value={data.subcontractor_name || "Yes (unnamed)"}
+              />
+            )}
+            {data.high_risk_activity && (
+              <div className="sm:col-span-2">
+                <div
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-red-50 border-2 border-red-300 text-red-800 font-mono text-xs uppercase tracking-[0.2em] font-bold"
+                  data-testid="high-risk-flag"
+                >
+                  <span>High-Risk Activity Today</span>
+                </div>
+              </div>
+            )}
           </div>
         </ReportSection>
 

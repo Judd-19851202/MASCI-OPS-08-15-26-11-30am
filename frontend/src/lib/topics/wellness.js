@@ -1,0 +1,66 @@
+// Auto-split from monolithic meetingTopicLibrary.js · iter260
+// Domain: wellness · 6 topics
+// Edit content here; index.js aggregates all domains.
+
+export const TOPICS_WELLNESS = [
+  {
+    key: "heat_stress",
+    domain: "wellness",
+    title: "Heat Stress / Hydration",
+    category: "Hazard-Specific",
+    hazards_reviewed: "Heat exhaustion · Heat stroke (medical emergency) · Dehydration · Reduced reaction time · Sunburn / UV exposure",
+    discussion_notes: "• Water, rest, shade — the OSHA-NIOSH heat protocol.\n• 1 cup of water every 15-20 minutes during heavy work in heat.\n• Acclimatize new and returning workers — 20% workload day 1, increase 20% per day.\n• Buddy system — watch your partner for confusion, slurred speech, hot dry skin = heat stroke = 911.\n• Schedule heaviest work for cooler hours when feasible.\n• Heat index posted daily; protocol triggers at 80°F+ heat index.\n• Cool-down breaks in shade or AC every hour during high-heat days.",
+    references_cited: "OSHA Heat Illness Campaign · NIOSH Criteria · OSHA-NIOSH Heat Tool",
+    action_items: "Water and ice staged · Shade structure on site · Heat-index protocol posted · Acclimatization plan",
+  },
+  {
+    key: "cold_stress",
+    domain: "wellness",
+    title: "Cold Stress / Hypothermia",
+    category: "Hazard-Specific",
+    hazards_reviewed: "Hypothermia · Frostbite · Reduced manual dexterity · Slips on ice · Cold shock from contact with ice water · Buried in collapsed snow",
+    discussion_notes: "• Layered clothing: wicking base, insulating mid, wind/water-resistant outer.\n• Cover head, neck, hands, feet — most heat loss is from extremities.\n• Buddy system — frostbite first signs are subtle (numbness, white skin).\n• Warming area within 100 ft, hot drinks (no alcohol, limit caffeine).\n• Shorter work intervals at lower temps; rotate crew.\n• Watch for hypothermia: confusion, slurred speech, shivering — 911 + warm + stable.\n• De-ice walking surfaces before shift.",
+    references_cited: "OSHA Cold Stress Bulletin · NIOSH Cold Stress · CDC Hypothermia",
+    action_items: "Cold-weather PPE issued · Warming area set · Buddy system · De-icing supplies staged",
+  },
+  {
+    key: "fatigue",
+    domain: "wellness",
+    title: "Fatigue & Drowsy Driving",
+    category: "Hazard-Specific",
+    hazards_reviewed: "Drowsy driving (commute) · Reduced reaction time on equipment · Decision-making errors · Microsleep · Increased injury rate at end of long shifts",
+    discussion_notes: "• Most likely fatal injury cause in our industry isn't on-site — it's the drive home.\n• 7-9 hours sleep is non-negotiable for safe operation.\n• Long shifts, night shifts, and consecutive 10s/12s elevate risk significantly.\n• Buddy system — say something if a coworker is showing signs of fatigue.\n• Pull over and nap if drowsy on the drive home — coffee + cold AC is a myth.\n• Report fatigue to foreman — better than a crash.",
+    references_cited: "NIOSH Fatigue at Work · NHTSA Drowsy Driving · NSC",
+    action_items: "Crew briefed on fatigue signs · Buddy check at end of shift · Sleep before long shifts emphasized",
+  },
+  {
+    key: "drug_alcohol",
+    domain: "wellness",
+    title: "Drug & Alcohol Policy / Fit for Duty",
+    category: "Procedure / SOP",
+    hazards_reviewed: "Impaired operation of equipment / vehicle · Reduced reaction time · Poor decision-making · Increased injury rate · Legal / DOT violations",
+    discussion_notes: "• Zero tolerance for alcohol or drugs (including marijuana) on company time or DOT-covered roles.\n• Prescription meds — disclose to supervisor if they may impair operation.\n• Random testing per DOT and MASCI policy.\n• 'Fit for duty' = clear-headed, well-rested, healthy enough to do the work.\n• Reasonable suspicion testing if behavior, smell, or eyes suggest impairment.\n• Self-report and EAP referral protected — get help, don't hide.",
+    references_cited: "DOT 49 CFR Part 40 · MASCI Substance Abuse Policy · OSHA Drug-Free Workplace",
+    action_items: "Policy posted · Random testing schedule current · EAP contact info available",
+  },
+  {
+    key: "bloodborne",
+    domain: "wellness",
+    title: "Bloodborne Pathogens & First Aid Response",
+    category: "Procedure / SOP",
+    hazards_reviewed: "Exposure to blood / OPIM · HIV / Hep B / Hep C · Improper PPE during response · Improper sharps handling · Failure to report exposure",
+    discussion_notes: "• Treat ALL blood and body fluids as potentially infectious — universal precautions.\n• Disposable gloves, eye protection, mask if splash risk.\n• Clean spill with approved disinfectant; sharps in puncture-resistant container.\n• Wash hands thoroughly after any response, glove or no glove.\n• Report any exposure incident immediately — Hep B vaccine and follow-up available.\n• First-aid kit stocked, location known, trained responders identified.",
+    references_cited: "OSHA 1910.1030 · OSHA 1926.50 (First Aid) · CDC BBP",
+    action_items: "First-aid kit checked · Trained responders identified · Spill kit available · Reporting procedure briefed",
+  },
+  {
+    key: "mental_health",
+    domain: "wellness",
+    title: "Mental Health & Suicide Prevention",
+    category: "Other",
+    hazards_reviewed: "Construction industry has elevated suicide rate · Stigma preventing help-seeking · Substance abuse · Family / financial stress · Co-worker grief",
+    discussion_notes: "• Construction workers have one of the highest suicide rates of any industry — this matters.\n• Look out for each other: changes in mood, withdrawal, increased substance use, talk of hopelessness.\n• It's OK to ask: 'Are you OK? Are you thinking about hurting yourself?' Asking does NOT plant the idea — it can save a life.\n• 988 — Suicide & Crisis Lifeline (call or text). MASCI EAP for confidential help.\n• Reduce stigma — talking about mental health is strength, not weakness.\n• Encourage healthy coping: sleep, exercise, time off, peer support.",
+    references_cited: "CDC Construction Suicide Data · 988 Lifeline · MASCI EAP · CIASP",
+    action_items: "988 / EAP info posted · Crew check-in encouraged · Stigma reduction discussed",
+  },
+];
