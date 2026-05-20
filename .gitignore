@@ -963,3 +963,12 @@ credentials.json
 *.key
 .credentials
 backend/backups/MASCI_full_backup_2026-05-19_205819Z.zip
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials

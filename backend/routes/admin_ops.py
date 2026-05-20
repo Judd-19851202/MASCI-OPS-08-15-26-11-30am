@@ -313,8 +313,17 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 return qs in blob
             rows = [r for r in rows if matches(r)]
 
-        # Sort by timestamp desc
-        rows.sort(key=lambda r: r.get("at") or "", reverse=True)
+        # Sort by timestamp desc · normalize datetime → ISO string so mixed
+        # rows (older entries with `at` stored as datetime, newer ones as
+        # ISO string) don't crash the comparator with a TypeError.
+        def _ts(r):
+            at = r.get("at")
+            if not at:
+                return ""
+            if hasattr(at, "isoformat"):
+                return at.isoformat()
+            return str(at)
+        rows.sort(key=_ts, reverse=True)
         total = len(rows)
         paged = rows[offset: offset + limit]
 
