@@ -1,5 +1,65 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 PM — iter270 Operational Coaching Parity · Safety Meeting Coaching Family · SHIPPED (pytest 36/36 + testing agent backend 100% / frontend 100% · 0 bugs · 0 regressions)
+
+Operator correction received post-Sprint 2: philosophy framing was not the gap — **operational coaching parity** was. The Safety Meeting workflow was the only high-cadence safety surface on the platform without an embedded `HelpTip` coaching family. Every other mature workflow (incident, writeup, daily-report, preop, checkout, time-verification, crew_eval, employee-lifecycle, document-expirations, dispatch.*, fleet.*) already had one through the proven `/app/backend/guidance/tips.py` + `tips_es.py` registry. iter270 closes that gap in one pass.
+
+### What shipped
+- **22 EN coaching tips** appended to `_TIPS` in `/app/backend/guidance/tips.py` across 6 form-keys (`meeting`, `meeting.context`, `meeting.topic`, `meeting.attendees`, `meeting.photos`, `meeting.signoff`). Same parity-density as `incident`. All `scopes: ["public"]` (matches field-form contract).
+- **22 ES counterparts** appended to `TIPS_ES` in `/app/backend/guidance/tips_es.py`. Field Spanish, NOT machine-translated. Voice benchmarked against iter269 K5 article (`PATRÓN REAL · lo que suele pasar`, "la cuadrilla", "el patrón del mundo real"). All bodies ≤90 ES words.
+- **5 `<HelpTipBlock>` mounts** in `/app/frontend/src/pages/NewMeeting.jsx`:
+  - Section 01 root: `formKey="meeting"` with `showCounter` (form-root canonical Why/Who/Next/Escalate)
+  - Section 01 context grid: `formKey="meeting.context"` (crew/shift/weather/high-risk discipline)
+  - Section 02 topic: `formKey="meeting.topic"` (the densest surface — 5 tips)
+  - Section 03 attendees: `formKey="meeting.attendees"` (roster + refusal handling)
+  - Section 04 photos: `formKey="meeting.photos"` (proves meeting happened where work happened)
+  - Section 05 signoff: `formKey="meeting.signoff"` (conductor-last discipline + follow-up handoff)
+- **K6 Sprint-2 coaching strip removed** — the new `meeting.topic` HelpTipBlock above the TopicPicker delivers richer coaching (5 kinds: why/mistake/example/next/escalate) and supersedes the one-sentence strip. K4 `incident-context-block` and K7 `meeting-domain-breadcrumb` from Sprint 2 are preserved (they're data-driven affordances, not coaching).
+
+### Tone discipline (operator gate)
+- All bodies match `incident.*` / `writeup.*` voice — field-foreman, incident-pattern oriented, calm-specific-realistic
+- Pytest `test_meeting_tips_tone_not_lms` guards 12 banned phrases (training module, course completion, learning objective, best practices, leverage, empower, stakeholders, módulo de capacitación, objetivos de aprendizaje, mejores prácticas, etc.) — all passing
+- Coaching themes verbatim from operator directive: don't pencil-whip · tie to today's work · use incident pattern as conversation starter · make crews participate · escalate hazards · photos prove the meeting happened where work happened · conductor signs last
+- ViewMeeting stays coaching-free (matches incident / daily-report pattern — coaching belongs on the action surface, not the record)
+
+### Verification
+- **Pytest** `/app/backend/tests/test_iter270_meeting_coaching_family.py` · **36/36 PASSED** (registry seed count · canonical-four kinds · anon-readability · parent-prefix-ladder · bilingual contract · ≤80/≤90 word concise contract · kind validity · LMS tone guardrail · operator-priority surface coverage · public-scope contract · validate_tips_registry post-seed)
+- **testing_agent_v3_fork** iter269.json · **backend 100% · frontend 100% · 0 bugs · 0 regressions** · all 6 HelpTipBlock mounts confirmed rendering in EN+ES · K6 strip count=0 · K4+K7 from Sprint 2 still rendering after `trenching_shoring` topic load · root-block counter visible ("4 coaching tips available · tap to expand") · ES titles flip correctly ("Por qué las Reuniones de Seguridad son disciplina operacional")
+- **Regression** · `incident` family unchanged · K5 article `/api/guidance/articles/public-toolbox-talks` unchanged · ViewMeeting source confirmed coaching-free (0 HelpTip references)
+- Lint clean across `tips.py`, `tips_es.py`, `NewMeeting.jsx`, pytest file
+- Backend hot-reloaded cleanly · no startup errors
+
+### Out of scope (operator directive · not touched)
+- ❌ Sprint 3 terminology renames
+- ❌ Guidance Center full audit
+- ❌ ViewIncident.jsx · ViewInspection.jsx i18n cluster
+- ❌ Public read-only safety library (F1)
+- ❌ Onboarding standardization (K5 backend / Phase K)
+- ❌ New components, new endpoints, new schemas — everything reused
+
+### Files touched
+- MOD · `/app/backend/guidance/tips.py` (+~240 lines · 22 tip dicts appended to `_TIPS`)
+- MOD · `/app/backend/guidance/tips_es.py` (+~240 lines · 22 `(form_key, kind)` ES entries appended to `TIPS_ES`)
+- MOD · `/app/frontend/src/pages/NewMeeting.jsx` (+8 lines net · 1 import + 5 mounts − 7 lines K6 strip removed)
+- NEW · `/app/backend/tests/test_iter270_meeting_coaching_family.py` (~230 lines · 36 parametrized tests across 10 contracts)
+- NEW · `/app/memory/SAFETY_MEETING_COACHING_FAMILY_iter270.md` (blueprint · operator-approved before implementation)
+
+### Coaching family inventory (final)
+| Form key | Tips | Kinds |
+| --- | --- | --- |
+| `meeting` (root) | 4 | why · who · next · escalate |
+| `meeting.context` | 3 | why · mistake · when |
+| `meeting.topic` | 5 | why · mistake · example · next · escalate |
+| `meeting.attendees` | 4 | why · mistake · who · escalate |
+| `meeting.photos` | 3 | why · mistake · example |
+| `meeting.signoff` | 3 | why · mistake · next |
+| **Total** | **22** | (44 entries EN+ES) |
+
+🔒 iter270 Safety Meeting Coaching Family **SHIPPED** · operational coaching parity achieved · platform-wide coaching consistency restored · scope discipline held · 0 regressions.
+
+---
+
+
 ## 2026-05-20 PM — iter269 Operational Alignment Maintenance · Sprint 2 · Philosophy Linkage · SHIPPED (testing agent 100% backend / 85% frontend code-review + main-agent ES live verify · 0 bugs)
 
 Second execution iteration under Operational Alignment Maintenance. Scope LOCKED to philosophy linkage findings K4·K5·K6·K7 from iter267 audit. Operational Value Gate held — no LMS drift, no onboarding additions, no redesign.
