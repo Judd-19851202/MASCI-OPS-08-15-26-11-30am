@@ -95,6 +95,24 @@ export default function FieldSection() {
             ctaLabel={t("Start DVIR")}
             testId="field-tile-dvir"
           />
+          <SectionTile
+            to="/fleet/weekly-lead/new"
+            icon={Truck}
+            title={t("Weekly · Lead Inspection")}
+            desc={t("Quick weekly check by the lead — operational hygiene, recurring issues, key safety items. Reuses the DVIR flow.")}
+            accent="amber"
+            ctaLabel={t("Start Lead Inspection")}
+            testId="field-tile-weekly-lead"
+          />
+          <SectionTile
+            to="/fleet/weekly-emergency/new"
+            icon={Truck}
+            title={t("Weekly · Emergency Equipment")}
+            desc={t("Fire extinguishers, triangles, first aid, PPE, alarms. Present · charged · within date.")}
+            accent="amber"
+            ctaLabel={t("Start Emergency Check")}
+            testId="field-tile-weekly-emergency"
+          />
         </div>
       </main>
 

@@ -291,6 +291,9 @@ function App() {
             {/* iter251 Phase 2 · Driver-facing Daily Vehicle Inspection */}
             <Route path="/fleet/dvir/new" element={<NewFleetDVIR />} />
             <Route path="/fleet/dvir/submit" element={<NewFleetDVIR />} />
+            {/* Phase 5 · Weekly Lead + Emergency Equipment forms */}
+            <Route path="/fleet/weekly-lead/new" element={<NewFleetDVIR kind="weekly_lead" />} />
+            <Route path="/fleet/weekly-emergency/new" element={<NewFleetDVIR kind="weekly_emergency" />} />
             <Route path="/fleet/dvir/submitted/:id" element={<FleetDVIRConfirmation />} />
 
             <Route path="/thank-you" element={<ThankYou />} />

@@ -2,6 +2,82 @@
 
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 PM/6 — iter251 Phase 5 · Weekly Lead + Weekly Emergency · COMPLETE (92/92 fleet tests green · bilingual · mobile-verified)
+
+Operator-approved Phase 5 landed cleanly. NO form multiplication, NO calendar bloat, NO recurring-notification spam. Just two high-signal recurring forms reusing the entire Phase 1-4 stack (severity table, defect lifecycle, repair drawer, audit trail).
+
+### Approach · ADDITIVE reuse, zero new subsystems
+Phase A (foundation) had already stubbed `weekly_lead` + `weekly_emergency` kinds in `checklists_fleet.py` with their item lists and registry entries. `/api/fleet/_meta` already advertised them. Phase 5 just had to:
+1. Wire the frontend to consume the new kinds.
+2. Make `NewFleetDVIR.jsx` `kind`-parameterised so the SAME form powers all three flows.
+3. Surface tiles in Field hub.
+4. Verify the defect-creation path still routes through the Phase 1 severity table and Phase 4 repair lifecycle.
+
+### Frontend changes
+- **`pages/NewFleetDVIR.jsx`** — now accepts `{ kind = "dvir" }` prop. Adapts:
+  - Kicker / page title / submitter label (Driver vs Lead vs Inspector) / submit button / help banner.
+  - `meta?.kinds?.[kind]` drives the checklist + `allows_trailers`.
+  - Trailers section + trailers validation conditioned on `allowsTrailers`.
+  - Section 02 retitled "Truck Walk-Around" / "Lead Walk-Around" / "Emergency Equipment Check" per kind.
+  - Default behavior unchanged when `kind` omitted — Phase 2 DVIR regression-safe (verified live: 92 items, trailers section visible, "Daily Vehicle Inspection" title).
+- **`App.js`** — two new routes:
+  - `/fleet/weekly-lead/new` → `<NewFleetDVIR kind="weekly_lead" />`
+  - `/fleet/weekly-emergency/new` → `<NewFleetDVIR kind="weekly_emergency" />`
+- **`pages/FieldSection.jsx`** — two new tiles next to the Daily DVIR tile (`field-tile-weekly-lead`, `field-tile-weekly-emergency`).
+- **`lib/i18n.js`** — 25+ new ES translations for Phase 5 strings.
+
+### Backend reuse · zero new endpoints
+- The existing `/api/fleet/inspections` already validates `kind` against `is_fleet_kind` and handles all three kinds.
+- The existing `_meta` already returns all three kinds with their checklists + `allows_trailers` flag.
+- Severity table covers every Phase 5 item that should be OOS (fire extinguisher, triangles, etc.).
+- Defects created from Phase 5 forms flow through the SAME Phase 4 lifecycle (open → ack → repaired → cleared) — no special-casing.
+
+### Operational philosophy upheld
+- 🚫 No giant scheduling system · no calendar UI · no recurring reminders
+- 🚫 No notification spam · no escalation engine · no scorecards
+- ✅ Quick · structured · high-signal · operationally valuable
+- ✅ Lead Inspection: 9 items (operational hygiene + recurring-issue awareness)
+- ✅ Emergency Equipment: 17 items (lights · signals · alarms · PPE · fire ext · triangles · first aid)
+- ✅ Driver-respectful · Lead-respectful · same calm PASS / FAIL / NA pattern
+- ✅ Mobile-first verified at 414px · no overflow · no clipping
+
+### Test coverage
+- iter251 Phase 5: **4/4** (`test_iter251_phase5_weekly_emergency.py`)
+  - `_meta` advertises all three kinds with correct `allows_trailers`.
+  - Weekly Lead all-PASS submission creates 0 defects.
+  - Weekly Emergency fail on "Fire extinguisher … tag current" creates an OOS defect that shows up in `/api/shop/fleet/by-unit` with `truck_status="oos"`.
+  - Unknown `kind` rejected with 4xx.
+- iter251 Phase 4: 4/4 · Phase 3: 12/12 · Foundation + v1: 72/72
+- **Cumulative fleet: 92/92 green**
+
+### Mobile / field verification (414px viewport · ES toggle ON)
+- `/fleet/weekly-lead/new` → "Inspección Semanal del Líder" · 9 items · no trailers section · no overflow
+- `/fleet/weekly-emergency/new` → "Equipo de Emergencia Semanal" · 17 items · no trailers section · no overflow
+- `/fleet/dvir/new` → "Daily Vehicle Inspection" · 92 items · trailers section present · backward-compat preserved
+
+### Files touched
+- MOD · `frontend/src/pages/NewFleetDVIR.jsx` (~80 lines · `kind` prop + `allowsTrailers` conditional + kind-specific copy)
+- MOD · `frontend/src/App.js` (+2 routes)
+- MOD · `frontend/src/pages/FieldSection.jsx` (+2 tiles)
+- MOD · `frontend/src/lib/i18n.js` (~25 new ES entries)
+- NEW · `backend/tests/test_iter251_phase5_weekly_emergency.py` (4 tests)
+
+### Phase discipline (held)
+- ✅ Phase 1 v1.3 · severity table
+- ✅ Phase 2 v1.3 · driver UX
+- ✅ Phase 3 · Dispatch / Shop / Safety visibility
+- ✅ Phase 4 · Repair Lifecycle
+- ✅ Phase 5 · Weekly Lead + Weekly Emergency
+- ⏸ Phase 6 · Motive + MaintainX integration (separate operator approval required)
+
+### Approved-future enhancement (not yet built)
+- "Back in rotation" Dispatch toast on RTS confirmation · auto-dismiss · calm · no banner culture · no spam. Operator-approved as a future lightweight enhancement.
+
+🔒 iter251 Phase 5 **CLOSED**. Fleet operations module is now functionally complete through Phase 5 of the operator's roadmap.
+
+---
+
+
 ## 2026-05-19 PM/5 — iter251 Phase 4 · Repair Lifecycle · COMPLETE (88/88 fleet tests · ES/EN verified)
 
 Operator-bounded Phase 4 delivered. Defect now flows cleanly from driver submission → Shop acknowledged/repaired → Dispatch Return-to-Service. Calm, native MASCI tone. No CMMS bloat. No KPI theater. No Motive/MaintainX integration. Mobile-first. Bilingual EN/ES end-to-end.

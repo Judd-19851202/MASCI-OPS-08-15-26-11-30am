@@ -2962,6 +2962,32 @@ const ES = {
   "Driver": "Conductor",
   "Trailer": "Remolque",
 
+  // ─── Phase 5 · Weekly Lead + Emergency Equipment ──────────────
+  "Weekly · Lead Inspection": "Semanal · Inspección del Líder",
+  "Quick weekly check by the lead — operational hygiene, recurring issues, key safety items. Reuses the DVIR flow.": "Revisión semanal rápida por el líder — higiene operativa, problemas recurrentes, elementos clave de seguridad. Reutiliza el flujo DVIR.",
+  "Start Lead Inspection": "Iniciar Inspección del Líder",
+  "Weekly · Emergency Equipment": "Semanal · Equipo de Emergencia",
+  "Fire extinguishers, triangles, first aid, PPE, alarms. Present · charged · within date.": "Extintores, triángulos, botiquín, EPP, alarmas. Presentes · cargados · dentro de fecha.",
+  "Start Emergency Check": "Iniciar Revisión de Emergencia",
+  "Fleet · Weekly Lead Inspection": "Flota · Inspección Semanal del Líder",
+  "Fleet · Weekly Emergency Equipment": "Flota · Equipo de Emergencia Semanal",
+  "Fleet · Driver Vehicle Inspection": "Flota · Inspección Vehicular del Conductor",
+  "Weekly Lead Inspection": "Inspección Semanal del Líder",
+  "Weekly Emergency Equipment": "Equipo de Emergencia Semanal",
+  "Daily Vehicle Inspection": "Inspección Vehicular Diaria",
+  "Lead inspector": "Inspector Líder",
+  "Inspector": "Inspector",
+  "Lead inspector signature": "Firma del inspector líder",
+  "Inspector signature": "Firma del inspector",
+  "Submit Lead Inspection": "Enviar Inspección del Líder",
+  "Submit Emergency Check": "Enviar Revisión de Emergencia",
+  "Quick weekly check by the lead. High-signal items only — operational hygiene, recurring issues, critical safety items the daily DVIR also covers.": "Revisión semanal rápida por el líder. Solo elementos de alta señal — higiene operativa, problemas recurrentes, elementos críticos de seguridad que la DVIR diaria también cubre.",
+  "Emergency equipment & safety systems check. Verify each item is present, charged, and within date.": "Revisión de equipo de emergencia y sistemas de seguridad. Verifique que cada elemento esté presente, cargado y dentro de fecha.",
+  "Type or pick name…": "Escriba o seleccione nombre…",
+  "If you're new to MASCI, type your full name and tap '+ Add to roster'. Future inspections will autocomplete.": "Si es nuevo en MASCI, escriba su nombre completo y toque '+ Agregar a la lista'. Las futuras inspecciones se autocompletarán.",
+  "Lead Walk-Around": "Recorrido del Líder",
+  "Emergency Equipment Check": "Revisión de Equipo de Emergencia",
+
 };
 
 const DICTS = { es: ES, en: {} };

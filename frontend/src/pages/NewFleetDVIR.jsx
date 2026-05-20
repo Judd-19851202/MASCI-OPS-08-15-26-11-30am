@@ -12,10 +12,20 @@
 //   • Public submission path (driver_name + signature) OR signed-in driver
 //
 // EXPLICITLY OUT OF SCOPE in Phase 2 (do NOT drift):
-//   • Dispatch / Shop / Safety dashboards (Phase 3)
-//   • Repair lifecycle hardening (Phase 4)
-//   • Weekly Lead / Weekly Emergency UX (Phase 5)
+//   • Dispatch / Shop / Safety dashboards (Phase 3) — landed in Phase 3
+//   • Repair lifecycle hardening (Phase 4) — landed in Phase 4
 //   • Motive / MaintainX integration (Phase 6)
+//
+// Phase 5 reuse · iter251 2026-05-19
+//   This component now accepts a `kind` prop so the same form can power
+//   "dvir" (daily driver), "weekly_lead" (lead driver / fleet lead
+//   recurring), and "weekly_emergency" (emergency-equipment audit).
+//   The server's `/api/fleet/_meta` advertises the checklist + whether
+//   trailers are allowed for that kind. The form adapts copy, hides
+//   trailers when `allows_trailers === false`, and re-labels the
+//   submitter (Driver vs Lead vs Inspector).
+//   NOTHING about defect severity, audit trail, or repair lifecycle
+//   changes — those continue to flow through the same Phase 1/4 paths.
 
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -102,9 +112,45 @@ function SeverityRationale({ rationale, regulationRef, severity, t }) {
   );
 }
 
-export default function NewFleetDVIR() {
+export default function NewFleetDVIR({ kind = "dvir" } = {}) {
   const nav = useNavigate();
   const { t, lang } = useT();
+
+  // Phase 5 · kind-specific copy. Defaults preserve Phase 2 behavior.
+  const isWeeklyLead = kind === "weekly_lead";
+  const isWeeklyEmergency = kind === "weekly_emergency";
+  const formCopy = {
+    kicker: isWeeklyLead
+      ? t("Fleet · Weekly Lead Inspection")
+      : isWeeklyEmergency
+      ? t("Fleet · Weekly Emergency Equipment")
+      : t("Fleet · Driver Vehicle Inspection"),
+    pageTitle: isWeeklyLead
+      ? t("Weekly Lead Inspection")
+      : isWeeklyEmergency
+      ? t("Weekly Emergency Equipment")
+      : t("Daily Vehicle Inspection"),
+    submitterLabel: isWeeklyLead
+      ? t("Lead inspector")
+      : isWeeklyEmergency
+      ? t("Inspector")
+      : t("Driver name"),
+    submitterTestId: isWeeklyLead
+      ? "fleet-weekly-lead-name"
+      : isWeeklyEmergency
+      ? "fleet-weekly-emergency-name"
+      : "fleet-dvir-driver-name",
+    submitButton: isWeeklyLead
+      ? t("Submit Lead Inspection")
+      : isWeeklyEmergency
+      ? t("Submit Emergency Check")
+      : t("Submit DVIR"),
+    helpHeader: isWeeklyLead
+      ? t("Quick weekly check by the lead. High-signal items only — operational hygiene, recurring issues, critical safety items the daily DVIR also covers.")
+      : isWeeklyEmergency
+      ? t("Emergency equipment & safety systems check. Verify each item is present, charged, and within date.")
+      : null,
+  };
 
   // ─── Meta + units (pre-fetched + cached for offline tolerance) ───
   const [meta, setMeta] = useState(null);
@@ -164,9 +210,10 @@ export default function NewFleetDVIR() {
     return () => { alive = false; };
   }, [t]);
 
-  const dvir = useMemo(() => meta?.kinds?.dvir || null, [meta]);
+  const dvir = useMemo(() => meta?.kinds?.[kind] || null, [meta, kind]);
   const truckItems = dvir?.truck_items || [];
   const trailerItems = dvir?.trailer_items || [];
+  const allowsTrailers = !!dvir?.allows_trailers;
 
   // ─── Form state ──────────────────────────────────────────────────
   const today = new Date();
@@ -243,7 +290,7 @@ export default function NewFleetDVIR() {
 
   const allTruckAnswered = truckItems.length > 0 &&
     truckProgress.answered === truckProgress.total;
-  const allTrailersAnswered = trailers.every((tr) =>
+  const allTrailersAnswered = !allowsTrailers || trailers.every((tr) =>
     trailerItems.every((it) => tr.checklist?.[it])
   );
 
@@ -252,12 +299,12 @@ export default function NewFleetDVIR() {
     if (!truckUnit.trim()) return t("Please pick your truck.");
     if (!signature) return t("Please sign before submitting.");
     if (!allTruckAnswered) return t("Mark every truck item PASS, FAIL, or N/A.");
-    if (!allTrailersAnswered) return t("Mark every trailer item PASS, FAIL, or N/A.");
+    if (allowsTrailers && !allTrailersAnswered) return t("Mark every trailer item PASS, FAIL, or N/A.");
     if (failsMissingDetail.length > 0) {
       return t("Each FAIL needs a short note (10+ characters).");
     }
     return "";
-  }, [driverName, truckUnit, signature, allTruckAnswered, allTrailersAnswered, failsMissingDetail, t]);
+  }, [driverName, truckUnit, signature, allTruckAnswered, allTrailersAnswered, allowsTrailers, failsMissingDetail, t]);
 
   // ─── Trailer ops ────────────────────────────────────────────────
   const addTrailer = () => {
@@ -292,7 +339,7 @@ export default function NewFleetDVIR() {
     }
     setSubmitting(true);
     const payload = {
-      kind: "dvir",
+      kind,
       driver_name: driverName.trim(),
       inspection_date: date,
       inspection_time: time,
@@ -433,13 +480,13 @@ export default function NewFleetDVIR() {
           </div>
           <div className="flex-1 min-w-0">
             <span className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.25em] text-amber-700 font-bold">
-              {t("Trucking · Daily DVIR")}
+              {formCopy.kicker}
             </span>
             <h1 className="font-display text-2xl sm:text-4xl font-black tracking-tight text-slate-900 mt-0.5 leading-tight">
-              {t("Daily Vehicle Inspection")}
+              {formCopy.pageTitle}
             </h1>
             <p className="text-slate-600 text-sm sm:text-base mt-1.5">
-              {t("Walk around your truck before you roll. Mark every item. Anything FAIL gets logged so Shop can keep us on the road.")}
+              {formCopy.helpHeader || t("Walk around your truck before you roll. Mark every item. Anything FAIL gets logged so Shop can keep us on the road.")}
             </p>
           </div>
         </div>
@@ -463,16 +510,16 @@ export default function NewFleetDVIR() {
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label className="text-sm font-semibold text-slate-800">{t("Driver name")}</Label>
+              <Label className="text-sm font-semibold text-slate-800">{formCopy.submitterLabel}</Label>
               <EmployeeCombo
                 value={driverName}
                 onChange={setDriverName}
-                placeholder={t("Type or pick driver name…")}
-                testId="dvir-driver-combo"
+                placeholder={t("Type or pick name…")}
+                testId={formCopy.submitterTestId + "-combo"}
                 className="mt-1"
               />
               <p className="text-[11px] text-slate-500 mt-1">
-                {t("If you're new to MASCI, type your full name and tap '+ Add to roster'. Future DVIRs will autocomplete.")}
+                {t("If you're new to MASCI, type your full name and tap '+ Add to roster'. Future inspections will autocomplete.")}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -538,8 +585,14 @@ export default function NewFleetDVIR() {
           )}
         </Section>
 
-        {/* SECTION 02 — Truck Walk-Around */}
-        <Section number="02" title={t("Truck Walk-Around")} className="mt-5">
+        {/* SECTION 02 — Truck Walk-Around (or kind-appropriate checklist) */}
+        <Section
+          number="02"
+          title={isWeeklyEmergency ? t("Emergency Equipment Check")
+                 : isWeeklyLead ? t("Lead Walk-Around")
+                 : t("Truck Walk-Around")}
+          className="mt-5"
+        >
           <HelpTip
             kind="example"
             title={t("How to walk a truck")}
@@ -578,7 +631,8 @@ export default function NewFleetDVIR() {
           </div>
         </Section>
 
-        {/* SECTION 03 — Trailer Walk-Around (optional, repeating) */}
+        {/* SECTION 03 — Trailer Walk-Around (only when kind allows trailers) */}
+        {allowsTrailers && (
         <Section
           number="03"
           title={t("Trailer Walk-Around")}
@@ -663,6 +717,7 @@ export default function NewFleetDVIR() {
             </>
           )}
         </Section>
+        )}
 
         {/* SECTION 04 — Sign & Submit */}
         <Section number="04" title={t("Sign & Submit")} className="mt-5">
@@ -683,7 +738,11 @@ export default function NewFleetDVIR() {
             />
           </div>
           <div>
-            <Label className="text-sm font-semibold text-slate-800">{t("Driver signature")}</Label>
+            <Label className="text-sm font-semibold text-slate-800">
+              {isWeeklyLead ? t("Lead inspector signature")
+                : isWeeklyEmergency ? t("Inspector signature")
+                : t("Driver signature")}
+            </Label>
             <div className="mt-1">
               <SignaturePad value={signature} onChange={setSignature} testId="dvir-signature" />
             </div>
@@ -710,7 +769,7 @@ export default function NewFleetDVIR() {
               {submitting ? (
                 <><Loader2 className="w-5 h-5 mr-2 animate-spin" />{t("Submitting…")}</>
               ) : (
-                <><Save className="w-5 h-5 mr-2" />{t("Submit DVIR")}</>
+                <><Save className="w-5 h-5 mr-2" />{formCopy.submitButton}</>
               )}
             </Button>
             {approvalVersion && (
