@@ -43,20 +43,22 @@ import EmptyState from "@/components/EmptyState";
 import GlobalSearch from "@/components/GlobalSearch";
 import { DOC_EXP_STATUS_TINTS } from "@/lib/statusBadges";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { useT } from "@/lib/i18n";
 
 const STATUS_COLORS = DOC_EXP_STATUS_TINTS;
 
 const CATEGORIES = [
-  { value: "employee", label: "Employee documents" },
-  { value: "training_cert", label: "Training certifications" },
-  { value: "safety", label: "Safety compliance" },
-  { value: "equipment", label: "Equipment / asset" },
-  { value: "company", label: "Company / admin" },
-  { value: "project", label: "Project / job" },
+  { value: "employee", labelKey: "Employee documents" },
+  { value: "training_cert", labelKey: "Training certifications" },
+  { value: "safety", labelKey: "Safety compliance" },
+  { value: "equipment", labelKey: "Equipment / asset" },
+  { value: "company", labelKey: "Company / admin" },
+  { value: "project", labelKey: "Project / job" },
 ];
 
 export default function DocumentExpirations() {
   const nav = useNavigate();
+  const { t } = useT();
   const [status, setStatus] = useRememberedFilter("docexp.status", "all");
   const [category, setCategory] = useRememberedFilter("docexp.category", "all");
   const [q, setQ] = useState("");
@@ -87,9 +89,9 @@ export default function DocumentExpirations() {
       const s = await summary().catch(() => ({}));
       setSumm(s);
     } catch (e) {
-      toast.error(friendlyError(e, "Could not load expirations"));
+      toast.error(friendlyError(e, t("Could not load expirations")));
     } finally { setLoading(false); }
-  }, [status, category, q, signedIn]);
+  }, [status, category, q, signedIn, t]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -98,11 +100,11 @@ export default function DocumentExpirations() {
   const onCreate = async (payload) => {
     try {
       await createExpiration(payload);
-      toast.success("Expiration record added");
+      toast.success(t("Expiration record added"));
       setAddOpen(false);
       fetchAll();
     } catch (e) {
-      toast.error(friendlyError(e, "Could not save expiration"));
+      toast.error(friendlyError(e, t("Could not save expiration")));
     }
   };
 
@@ -114,12 +116,12 @@ export default function DocumentExpirations() {
       const fired = data?.fired?.length ?? 0;
       toast.success(
         preview
-          ? `Preview: ${fired} threshold(s) would fire`
-          : `Scan complete: ${fired} threshold(s) fired`,
+          ? `${t("Preview")}: ${fired} ${t("threshold(s) would fire")}`
+          : `${t("Scan complete")}: ${fired} ${t("threshold(s) fired")}`,
       );
       if (!preview) fetchAll();
     } catch (e) {
-      toast.error(friendlyError(e, "Scan failed"));
+      toast.error(friendlyError(e, t("Scan failed")));
     }
   };
 
@@ -131,12 +133,12 @@ export default function DocumentExpirations() {
             <Home className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Home</span>
           </Link>
           <button onClick={() => nav(-1)} className="inline-flex items-center text-white hover:text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="docexp-nav-back">
-            <ArrowLeft className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Back</span>
+            <ArrowLeft className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">{t("Back")}</span>
           </button>
           <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
           <div className="flex-1 min-w-0">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400 font-bold">Document Expirations</div>
-            <div className="font-display text-lg sm:text-xl font-black text-white leading-tight">Compliance Tracker</div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400 font-bold">{t("Document Expirations")}</div>
+            <div className="font-display text-lg sm:text-xl font-black text-white leading-tight">{t("Compliance Tracker")}</div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <GlobalSearch accent="dark" />
@@ -151,10 +153,10 @@ export default function DocumentExpirations() {
             email blast." Tier-2: hr + safety + admin. */}
         <HelpTipBlock formKey="document-expirations" showCounter />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <SummaryTile label="Current" value={summ.by_status?.Current ?? 0} icon={CheckCircle2} accent="emerald" />
-          <SummaryTile label="Expiring Soon" value={summ.expiring_30d ?? 0} icon={CalendarClock} accent="amber" />
-          <SummaryTile label="Expired" value={summ.expired ?? 0} icon={AlertOctagon} accent="red" />
-          <SummaryTile label="Archived" value={summ.by_status?.Archived ?? 0} icon={Archive} accent="slate" />
+          <SummaryTile label={t("Current")} value={summ.by_status?.Current ?? 0} icon={CheckCircle2} accent="emerald" testIdSuffix="current" />
+          <SummaryTile label={t("Expiring Soon")} value={summ.expiring_30d ?? 0} icon={CalendarClock} accent="amber" testIdSuffix="expiring-soon" />
+          <SummaryTile label={t("Expired")} value={summ.expired ?? 0} icon={AlertOctagon} accent="red" testIdSuffix="expired" />
+          <SummaryTile label={t("Archived")} value={summ.by_status?.Archived ?? 0} icon={Archive} accent="slate" testIdSuffix="archived" />
         </div>
 
         <div className="bg-white border-2 border-slate-200 rounded-md p-3 sm:p-4 mb-4 flex flex-wrap items-center gap-2.5">
@@ -163,11 +165,11 @@ export default function DocumentExpirations() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="Current">Current</SelectItem>
-              <SelectItem value="Expiring Soon">Expiring Soon</SelectItem>
-              <SelectItem value="Expired">Expired</SelectItem>
-              <SelectItem value="Archived">Archived</SelectItem>
+              <SelectItem value="all">{t("All statuses")}</SelectItem>
+              <SelectItem value="Current">{t("Current")}</SelectItem>
+              <SelectItem value="Expiring Soon">{t("Expiring Soon")}</SelectItem>
+              <SelectItem value="Expired">{t("Expired")}</SelectItem>
+              <SelectItem value="Archived">{t("Archived")}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={category} onValueChange={setCategory}>
@@ -175,9 +177,9 @@ export default function DocumentExpirations() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
+              <SelectItem value="all">{t("All categories")}</SelectItem>
               {CATEGORIES.map((c) => (
-                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                <SelectItem key={c.value} value={c.value}>{t(c.labelKey)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -185,7 +187,7 @@ export default function DocumentExpirations() {
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
             <Input
               value={q} onChange={(e) => setQ(e.target.value)}
-              placeholder="Search document type or title…"
+              placeholder={t("Search document type or title…")}
               className="pl-8 h-9 text-xs"
               data-testid="docexp-search-input"
             />
@@ -193,10 +195,10 @@ export default function DocumentExpirations() {
           {admin && (
             <>
               <Button variant="outline" size="sm" onClick={() => onScan(true)} className="text-xs" data-testid="docexp-scan-preview">
-                <Eye className="w-3.5 h-3.5 mr-1" /> Preview Scan
+                <Eye className="w-3.5 h-3.5 mr-1" /> {t("Preview Scan")}
               </Button>
               <Button variant="outline" size="sm" onClick={() => onScan(false)} className="text-xs" data-testid="docexp-scan-run">
-                <Play className="w-3.5 h-3.5 mr-1" /> Run Scan
+                <Play className="w-3.5 h-3.5 mr-1" /> {t("Run Scan")}
               </Button>
             </>
           )}
@@ -207,12 +209,12 @@ export default function DocumentExpirations() {
         </div>
 
         {loading ? (
-          <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">Loading…</div>
+          <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">{t("Loading…")}</div>
         ) : items.length === 0 ? (
           <EmptyState
             icon={CalendarClock}
-            title="No expiration records"
-            hint="Documents you upload with an expiration date will appear here. Try clearing filters."
+            title={t("No expiration records")}
+            hint={t("Documents you upload with an expiration date will appear here. Try clearing filters.")}
             testId="docexp-empty"
           />
         ) : (
@@ -220,12 +222,12 @@ export default function DocumentExpirations() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50">
                 <tr className="text-left text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Document</th>
-                  <th className="px-4 py-2.5">Category</th>
-                  <th className="px-4 py-2.5">Linked To</th>
-                  <th className="px-4 py-2.5">Expires</th>
-                  <th className="px-4 py-2.5">Days</th>
+                  <th className="px-4 py-2.5">{t("Status")}</th>
+                  <th className="px-4 py-2.5">{t("Document")}</th>
+                  <th className="px-4 py-2.5">{t("Category")}</th>
+                  <th className="px-4 py-2.5">{t("Linked To")}</th>
+                  <th className="px-4 py-2.5">{t("Expires")}</th>
+                  <th className="px-4 py-2.5">{t("Days")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -241,7 +243,7 @@ export default function DocumentExpirations() {
   );
 }
 
-function SummaryTile({ label, value, icon: Icon, accent }) {
+function SummaryTile({ label, value, icon: Icon, accent, testIdSuffix }) {
   const palette = {
     emerald: "border-emerald-300 text-emerald-900",
     amber: "border-amber-300 text-amber-900",
@@ -249,7 +251,7 @@ function SummaryTile({ label, value, icon: Icon, accent }) {
     slate: "border-slate-300 text-slate-700",
   }[accent] || "border-slate-300 text-slate-900";
   return (
-    <div className={`bg-white border-2 ${palette} rounded-md p-3`} data-testid={`docexp-summary-${label.toLowerCase().replace(/\s/g,'-')}`}>
+    <div className={`bg-white border-2 ${palette} rounded-md p-3`} data-testid={`docexp-summary-${testIdSuffix || label.toLowerCase().replace(/\s/g,'-')}`}>
       <div className="flex items-center gap-2">
         <Icon className="w-4 h-4 opacity-70" />
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] opacity-80 font-bold">{label}</span>
@@ -290,6 +292,7 @@ function DocRow({ doc }) {
 }
 
 function AddDialog({ open, setOpen, onSubmit }) {
+  const { t } = useT();
   const [form, setForm] = useState({
     document_type: "", category: "employee", title: "",
     linked_employee_id: "", linked_equipment_id: "",
@@ -300,7 +303,7 @@ function AddDialog({ open, setOpen, onSubmit }) {
     const payload = { ...form };
     Object.keys(payload).forEach((k) => { if (payload[k] === "") payload[k] = null; });
     if (!payload.document_type || !payload.expiration_date) {
-      toast.error("Document type and expiration date are required");
+      toast.error(t("Document type and expiration date are required"));
       return;
     }
     onSubmit(payload);
@@ -309,51 +312,51 @@ function AddDialog({ open, setOpen, onSubmit }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" className="text-xs" data-testid="docexp-add-trigger">
-          <Plus className="w-3.5 h-3.5 mr-1" /> Add
+          <Plus className="w-3.5 h-3.5 mr-1" /> {t("Add")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md" data-testid="docexp-add-dialog">
         <DialogHeader>
-          <DialogTitle>Add Expiration Record</DialogTitle>
+          <DialogTitle>{t("Add Expiration Record")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
           <div>
-            <Label htmlFor="dt">Document type *</Label>
-            <Input id="dt" value={form.document_type} onChange={(e) => setForm({ ...form, document_type: e.target.value })} placeholder="e.g. OSHA 30, TWIC, CDL Medical" data-testid="docexp-add-type" />
+            <Label htmlFor="dt">{t("Document type *")}</Label>
+            <Input id="dt" value={form.document_type} onChange={(e) => setForm({ ...form, document_type: e.target.value })} placeholder={t("e.g. OSHA 30, TWIC, CDL Medical")} data-testid="docexp-add-type" />
           </div>
           <div>
-            <Label>Category *</Label>
+            <Label>{t("Category *")}</Label>
             <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
               <SelectTrigger data-testid="docexp-add-category"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map((c) => (<SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>))}
+                {CATEGORIES.map((c) => (<SelectItem key={c.value} value={c.value}>{t(c.labelKey)}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="title">Title / Reference</Label>
-            <Input id="title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. John Doe — Driver License" data-testid="docexp-add-title" />
+            <Label htmlFor="title">{t("Title / Reference")}</Label>
+            <Input id="title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t("e.g. John Doe — Driver License")} data-testid="docexp-add-title" />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label htmlFor="issue">Issue date</Label>
+              <Label htmlFor="issue">{t("Issue date")}</Label>
               <Input id="issue" type="date" value={form.issue_date} onChange={(e) => setForm({ ...form, issue_date: e.target.value })} data-testid="docexp-add-issue" />
             </div>
             <div>
-              <Label htmlFor="exp">Expiration date *</Label>
+              <Label htmlFor="exp">{t("Expiration date *")}</Label>
               <Input id="exp" type="date" value={form.expiration_date} onChange={(e) => setForm({ ...form, expiration_date: e.target.value })} data-testid="docexp-add-exp" />
             </div>
           </div>
           <div>
-            <Label htmlFor="emp">Linked employee ID</Label>
-            <Input id="emp" value={form.linked_employee_id} onChange={(e) => setForm({ ...form, linked_employee_id: e.target.value })} placeholder="Optional" data-testid="docexp-add-emp" />
+            <Label htmlFor="emp">{t("Linked employee ID")}</Label>
+            <Input id="emp" value={form.linked_employee_id} onChange={(e) => setForm({ ...form, linked_employee_id: e.target.value })} placeholder={t("Optional")} data-testid="docexp-add-emp" />
           </div>
           <div>
-            <Label htmlFor="eqp">Linked equipment ID</Label>
-            <Input id="eqp" value={form.linked_equipment_id} onChange={(e) => setForm({ ...form, linked_equipment_id: e.target.value })} placeholder="Optional" data-testid="docexp-add-eqp" />
+            <Label htmlFor="eqp">{t("Linked equipment ID")}</Label>
+            <Input id="eqp" value={form.linked_equipment_id} onChange={(e) => setForm({ ...form, linked_equipment_id: e.target.value })} placeholder={t("Optional")} data-testid="docexp-add-eqp" />
           </div>
           <DialogFooter>
-            <Button type="submit" data-testid="docexp-add-submit">Save</Button>
+            <Button type="submit" data-testid="docexp-add-submit">{t("Save")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

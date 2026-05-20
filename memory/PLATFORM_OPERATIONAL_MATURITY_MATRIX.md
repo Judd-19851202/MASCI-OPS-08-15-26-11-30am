@@ -46,7 +46,7 @@
 | **Pre-Op (Equipment Inspection)** | ✅ | ✅ 16 | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 |
 | **Site Inspection (`NewInspection`)** | ✅ | ✅ 17 | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **QA/QC Inspection** | ✅ | ✅ 18 | ✅ | ✅ | ✅ | ✅ | 🟡 | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Fleet DVIR** | ✅ | 🟡 13 | 🟡 ❌esc | ✅ | ✅ | ✅ | ✅ | — | ✅ | 🟡 | ✅ | ✅ | ✅ | 🟡 |
+| **Fleet DVIR** | ✅ | ✅ 14 | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | 🟡 | ✅ | ✅ | ✅ | ✅ |
 | **Field Write-Ups** | ✅ | ✅ 11 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Equipment Checkout** | ✅ | ✅ 14 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | ✅ | ✅ |
 | **Crew Evaluations** | ✅ | ✅ 8 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | 🟡 | ✅ |
@@ -68,7 +68,7 @@
 | **Time-Off Review** | ✅ | ✅ 14 | ✅ | 🟡 | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Employee Accountability** | ✅ | ✅ 12 | ✅ | 🟡 | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Employee Lifecycle** | ✅ | ✅ 12 | ✅ | 🟡 | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Document Expirations** | ❌ EN-only | ✅ 12 | ✅ | 🟡 | — | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | 🟡 |
+| **Document Expirations** | ✅ | ✅ 12 | ✅ | 🟡 | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Safety Training Records** | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | 🟡 | — | ✅ | ❌ | — | ✅ | ❌ | 🟡 |
 | **Safety Documents** | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | 🟡 | — | ✅ | ❌ | — | ✅ | ❌ | 🟡 |
 | **HR Safety Records (cross-portal read)** | ✅ | — | — | ✅ | — | ✅ | ✅ | — | ✅ | ✅ | — | ✅ | — | ✅ |
@@ -95,8 +95,8 @@
    - ~~`SafetyCorrectiveActions`~~ — **CLOSED iter274** (Sequence #3). 11 tips across 3 form-keys · 3 dialog/page mounts · Create/Edit mode gating verified live.
    - ~~`SafetyFireExtinguishers`, `NewSafetyEquipmentIssuance`, `NewSafetyEquipmentTraining`, `SafetyTopicLibrary`, `JhaPlansHub`~~ — **CLOSED iter275** (Sequences #5 + #6). 95 tips across 13 form-keys · 14 HelpTipBlock mounts · canonical 4-kinds present in all 5 top families · testing_agent_v3_fork frontend 14/14 mounts verified · EN/ES parity confirmed · mobile-safe (390w).
 3. ~~**Canonical 4-kind holes**~~ — **CLOSED iter274** (Sequence #4). `fleet.dvir` `escalate` and `material-calculator` `who` filled. Both aggregates now ✅ on all 4 canonical kinds.
-4. **`Fleet DVIR` ⇄ `fleet` registry split** — DVIR form mounts only 2 HelpTipBlocks; the `fleet` registry concentrates on visibility/repair/RTS/dvir/weekly-lead. Looks complete from the registry; field experience shows partial coverage. (Re-evaluate after Sequence #5–#8 close.)
-5. **`DocumentExpirations` page is hardcoded English** — 0 `t()` calls despite the workflow having a full bilingual coaching family. Page consumes English-only.
+4. ~~**`Fleet DVIR` ⇄ `fleet` registry split**~~ — **CLOSED iter276** (matrix-correctness pass). iter274 added fleet.dvir escalate tip; family aggregate `fleet.*` now carries all 4 canonical kinds (why/who/next/escalate present across the 6 fleet form-keys with 14 total tips). Row flipped from 🟡 ❌esc to ✅; Complete from 🟡 to ✅.
+5. ~~**`DocumentExpirations` page is hardcoded English**~~ — **CLOSED iter276** (Sequence #7). 46 `t()` calls + 36 new ES keys in `i18n.js`. Page now bilingual to match its already-bilingual coaching family. EN/ES column flipped to ✅, ES-vrfy to ✅, Complete to ✅.
 
 ---
 
@@ -140,3 +140,4 @@
 - `iter273` NewInspection + NewQaqcInspection coaching family (Sequence #2) · 35 tips · 11 form-keys · EN+ES · 65/65 in-process + 37/37 HTTP pytest · 5/5 + 6/6 frontend testids · gap #2 first cluster CLOSED
 - `iter274` SafetyCorrectiveActions coaching family (Sequence #3) bundled with canonical-4 hole fills (Sequence #4) · 11 corrective tips + 2 canonical fills (fleet.dvir escalate · material-calculator who) · 31/31 pytest including 6 regression cases · 3/3 frontend mounts live-verified with Create/Edit gating · gap #3 CLOSED · gap #2 second cluster CLOSED
 - `iter275` Bundled Sequences #5 + #6 · coaching families for Safety Equipment Issuance, Safety Equipment Training, Safety Topic Library, Fire Extinguishers, JHA Hub · 95 EN+95 ES tips across 13 form-keys · 14 HelpTipBlock mounts (incl. 3 dialog-embedded) · testing_agent_v3_fork frontend 14/14 mounts verified · EN/ES parity 4/4 sampled · canonical 4-kinds present in all 5 top families · mobile 390w no overflow · gap #2 third (final) cluster CLOSED · 5 matrix rows flipped to ✅
+- `iter276` Bundled Sequence #7 + Fleet DVIR matrix-correctness pass · DocumentExpirations page i18n closure (46 t() calls · 36 new ES keys) · Fleet DVIR row flipped to ✅ (iter274 escalate fill confirmed at family aggregate · `fleet.*` carries all 4 canonical kinds across 14 total tips) · gap #4 CLOSED · gap #5 CLOSED · 2 matrix rows flipped to ✅
