@@ -1,5 +1,92 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-19 PM/11 — iter251 Safety Meeting Evolution · Domain Filter + Phases D/E/F/G · COMPLETE (126 topics · 7 domains · bilingual · 100% testing-agent pass)
+
+Operator-approved continuation of the Safety Meeting evolution. Domain Filter UI enhancement plus four operational-domain expansions delivered in a single disciplined cycle.
+
+### Domain Filter UI (TopicPicker chip row)
+- Lightweight horizontal chip row inside the popover, above the search input
+- 8 chips: `All` (default) · `Trucking` · `Dewatering` · `Shop` · `Plant / Lab` · `Airport` · `Office` · `General`
+- Each chip shows its EN+ES label and the count of topics in that domain (count computed over the FULL list — counts stay stable when filtering)
+- Active chip: red-700 background, white text. Inactive: white with slate border
+- `overflow-x-auto` + `[scrollbar-width:none]` + `[&::-webkit-scrollbar]:hidden` → chips scroll horizontally on narrow viewports without bleeding past the popover edge AND without showing the ugly native mobile scrollbar
+- Default = `null` (all topics shown). Filter combines with the existing search input
+- Untagged legacy topics fall under `General` (81 of them)
+
+### Phase D · Dewatering / Wellpoint (8 topics)
+- `dewatering_jetting_rig_overhead_strike` · jet-rig powerline contact during reposition
+- `dewatering_suction_line_entrapment` · vacuum-on hand/limb engulfment
+- `dewatering_diesel_pump_fueling_fires` · hot-engine refuel fire pattern
+- `dewatering_wellpoint_trench_collapse` · dewatered-soil wall failure
+- `dewatering_rotating_shaft_belt` · belt / coupling entanglement
+- `dewatering_discharge_hose_whip` · pressurized-coupling failure
+- `dewatering_spoil_edge_instability` · surcharge / vibration trench collapse
+- `dewatering_night_work_struck_by` · visibility-cone struck-by
+
+### Phase E · Shop / Mechanic (8 topics)
+- `shop_jack_stand_failure` · under-truck crush fatality
+- `shop_lockout_tagout_bypass` · one-worker-one-lock
+- `shop_brake_spring_energy` · spring caging
+- `shop_tire_cage_explosion` · multi-piece rim separation
+- `shop_welding_fire_watch` · post-spark smolder fires
+- `shop_hydraulic_stored_energy` · hydraulic injection injury
+- `shop_under_bed_crush_zone` · body-prop pin
+- `shop_battery_explosion` · hydrogen ignition during boost
+
+### Phase F · Plant / Crusher / Lab / Airport (10 topics)
+- `plant_conveyor_entanglement` · tail-pulley pinch
+- `plant_baghouse_silo_hazards` · confined-space + engulfment
+- `plant_asphalt_burns_oil_exposure` · 300°F+ asphalt + bitumen vapor
+- `plant_burner_systems` · light-off explosion + flameout
+- `plant_loader_blind_spots_haul_road` · pad traffic discipline
+- `plant_crusher_clearing_jams` · LOTO + stored energy
+- `plant_lab_solvents_ignition` · TCE/perc + ovens
+- `plant_silo_burn_avalanche` · drag-slat + load-out gate
+- `airport_movement_area_awareness` · ATC clearance discipline
+- `airport_jet_blast_fueling` · prop wash + Jet-A static ignition
+
+### Phase G · Office / Admin (8 topics)
+- `office_distracted_driving` · phone + nav + coffee + schedule margin
+- `office_site_visit_ppe` · PPE-in-vehicle, find-foreman-by-radio
+- `office_parking_lot_struck_by` · phone-down-while-walking
+- `office_heat_stress_visits` · unacclimatized site visitors
+- `office_lone_worker_checkin` · check-in time + 'clear' text
+- `office_severe_weather_accountability` · weather POC + roll call
+- `office_slips_trips_falls` · spills, cords, stair lighting
+- `office_fatigue_mental_load` · sleep debt + 988 / EAP
+
+### Tone / culture upheld
+- ✅ Every new topic carries the `incident_pattern` field — real-world story first, then bullets
+- ✅ Voice: experienced superintendent · shop wrench · lab tech · office vet (verified by testing-agent tone sample)
+- ✅ Phrases like 'sickeningly predictable pattern', 'almost every jack-stand fatality follows the same sequence', 'office staff drive MORE between jobs' — NOT LMS speak
+- ✅ Bilingual EN+ES parity across all 34 new topics (126/126 ES coverage, 0 mismatches)
+- ✅ Mobile-first (320 / 414 / 1280 verified)
+- ✅ No new form fields · no new panels · no LMS drift · no quizzes / certs / gamification
+- ✅ Domain tagging applied at creation time (no deferred classification cleanup)
+
+### Library growth
+- 92 → **126 topics** (+5 dump-bed B, +6 trucking C, +8 dewatering D, +8 shop E, +10 plant/airport F, +8 office G — already counted with B+C from prior cycle, so net of this cycle = +34)
+- Domain breakdown: trucking 11 · dewatering 8 · shop 8 · plant 8 · airport 2 · office 8 · general (legacy untagged) 81
+
+### Testing
+- iter258 frontend testing-agent verdict: **100% pass · 0 ui_bugs · 0 integration_issues · 0 design_issues · retest_needed: false**
+- 14 acceptance criteria all met — chip-row order + counts + active styling + ES labels + filtering + EN/ES header injection on 11 sampled topics + legacy regression + responsive at 3 viewports + tone sample + 0 console errors
+- Cosmetic nit applied post-test: scrollbar-hide CSS so mobile WebKit doesn't show an ugly native scrollbar under the chip row
+
+### Files touched
+- MOD · `frontend/src/components/TopicPicker.jsx` (DOMAIN_CHIPS const + domainFilter state + chip-row JSX + filteredTopics memo + scrollbar-hide)
+- MOD · `frontend/src/lib/meetingTopicLibrary.js` (+34 topics across D/E/F/G)
+- MOD · `frontend/src/lib/meetingTopicLibrary.es.js` (+34 ES translations with incident_pattern)
+
+### Operator-approved future work (unchanged)
+- ⏸ Phase H · Voice-uplift of legacy 81 'General' topics to incident-pattern voice (largest single content effort remaining)
+- ⏸ Topic-library domain-split refactor (post-Phase-H)
+- ⏸ Phase K4b · K5 · Stage B.1 (Fleet/HR backlog)
+
+🔒 iter251 Safety Meeting Evolution Domain Filter + Phases D/E/F/G **CLOSED** · 126 bilingual operational topics · 7 domains · production-ready · field-foreman voice preserved end-to-end.
+
+---
+
 ## 2026-05-19 PM/10 — iter251 Safety Meeting Evolution · Phase A + B + C · COMPLETE (incident_pattern schema · 11 new topics · bilingual · 100% testing-agent pass)
 
 Operator directive (2026-05-19): evolve the Safety Meeting / Toolbox Talk system into operationally intelligent topic packs based on real-world incident patterns. Phase A schema enrichment, Phase B Dump-bed strike family, and Phase C Trucking/Fleet expansion all landed in this cycle.

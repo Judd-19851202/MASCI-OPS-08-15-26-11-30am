@@ -139,7 +139,7 @@ export function TopicPicker({
       >
         {/* Domain filter chip row */}
         <div
-          className="flex gap-1.5 overflow-x-auto px-3 pt-3 pb-2 border-b border-slate-100"
+          className="flex gap-1.5 overflow-x-auto px-3 pt-3 pb-2 border-b border-slate-100 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           data-testid="topic-picker-domain-row"
         >
           {visibleChips.map((chip) => {
