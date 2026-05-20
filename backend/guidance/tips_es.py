@@ -622,6 +622,155 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "supervisor, no una corrección silenciosa aquí.",
     },
 
+
+    # ── iter282 · Payroll Variance (HR Exact CSV cross-check) ────────
+    ("payroll-variance", "why"): {
+        "title_es": "Por qué corremos este cruce",
+        "body_es":
+            "Exact es lo que la nómina pagó. Los Reportes Diarios de "
+            "MASCI son lo que el supervisor en el campo dijo que "
+            "trabajó la cuadrilla. Cuando los dos no coinciden, alguien "
+            "— nómina, el supervisor o el empleado — tiene un número "
+            "equivocado. El lote de variación es como RH atrapa ese "
+            "hueco antes de que se vuelva un cheque disputado.",
+    },
+    ("payroll-variance", "who"): {
+        "title_es": "Quién depende de esto",
+        "body_es":
+            "RH corre el cruce cada ciclo de nómina. El supervisor es "
+            "quien tiene que responder cuando una fila se disputa — su "
+            "Reporte Diario es el lado MASCI de la comparación. Nómina "
+            "aguas abajo necesita las decisiones de aprobar/disputar de "
+            "RH para cerrar la corrida. Admin ve el registro de "
+            "auditoría de cada aprobación y disputa.",
+    },
+    ("payroll-variance", "next"): {
+        "title_es": "Qué pasa después de decidir",
+        "body_es":
+            "Cada fila se guarda con su decisión: aprobada, disputada "
+            "o pendiente. Las aprobadas limpian la variación. Las "
+            "disputadas llevan la nota de RH de regreso al supervisor "
+            "para la corrección del Reporte Diario. Las pendientes son "
+            "lo que sigue debiéndose al cierre del ciclo — el tablero "
+            "las muestra para que nada se pase en silencio antes de la "
+            "corrida de pago.",
+    },
+    ("payroll-variance", "escalate"): {
+        "title_es": "Cuándo la variación es más grande que una fila",
+        "body_es":
+            "Un solo descuadre de 30 minutos es una conversación a "
+            "nivel fila. Una cuadrilla entera con horas faltantes, el "
+            "mismo supervisor con filas faltantes dos semanas seguidas, "
+            "o un patrón de filas de Exact sin horas MASCI — eso no se "
+            "arregla fila por fila. Escale a Admin y al PM del "
+            "supervisor; la variación le está diciendo algo que las "
+            "decisiones de fila no pueden resolver.",
+    },
+
+    # ── payroll-variance.upload ──────────────────────────────────────
+    ("payroll-variance.upload", "why"): {
+        "title_es": "Por qué importa el umbral",
+        "body_es":
+            "El umbral es la línea entre 'ruido de redondeo' y "
+            "'variación real'. 15 minutos es el predeterminado porque "
+            "es aproximadamente un ciclo de redondeo de reloj — por "
+            "debajo usualmente es un artefacto del marcaje, por encima "
+            "usualmente es un desacuerdo real que vale una "
+            "conversación. Suba el umbral solo si sabe qué está "
+            "ajustando.",
+    },
+    ("payroll-variance.upload", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Pegar la exportación de Exact de la semana pasada contra "
+            "la fecha de cierre de esta semana — las filas no van a "
+            "coincidir con nada en MASCI. Pegar un CSV con horas en "
+            "una columna que el sistema no encuentra (el formato de "
+            "Exact sí cambia). Poner el umbral en 1 minuto y después "
+            "ahogarse en filas 'marcadas' que son todas ruido de "
+            "redondeo.",
+    },
+
+    # ── payroll-variance.batches ─────────────────────────────────────
+    ("payroll-variance.batches", "why"): {
+        "title_es": "Por qué guardamos cada lote",
+        "body_es":
+            "Cada lote es el registro del cruce para una semana "
+            "específica. Cuando un cheque se disputa dos meses después, "
+            "el lote guardado es la evidencia de que RH miró la "
+            "variación, tomó una decisión y la dejó registrada. "
+            "Re-correr el cruce después no reemplaza el lote original — "
+            "los dos quedan en el registro.",
+    },
+    ("payroll-variance.batches", "next"): {
+        "title_es": "Qué pasa el domingo 18:00 UTC",
+        "body_es":
+            "El cron semanal envía el lote más reciente a "
+            "hrmanager@mascigc.com y jaymn.judd@mascigc.com. Ese correo "
+            "es un respaldo, no el canal principal de revisión — RH "
+            "debió haber trabajado el lote en la plataforma durante la "
+            "semana. El correo existe para que un lote olvidado "
+            "todavía se vea antes de que cierre la corrida de pago.",
+    },
+
+    # ── payroll-variance.row-decision ────────────────────────────────
+    ("payroll-variance.row-decision", "why"): {
+        "title_es": "Por qué cada fila necesita una decisión",
+        "body_es":
+            "Las filas pendientes son una pregunta abierta. Aprobar "
+            "dice 'vi esta variación y es aceptable'. Disputar dice "
+            "'esto necesita una corrección del supervisor antes del "
+            "cierre de nómina'. Una fila dejada pendiente es RH sin "
+            "decir nada — y el silencio aguas abajo se ve igual que "
+            "una aprobación, que es exactamente el problema que el "
+            "cruce debe prevenir.",
+    },
+    ("payroll-variance.row-decision", "next"): {
+        "title_es": "Qué significa realmente aprobar",
+        "body_es":
+            "Aprobar no es 'los números son iguales' — es 'RH miró "
+            "esta fila, conoce la variación y la acepta'. Use aprobar "
+            "en ruido de redondeo, en diferencias legítimas "
+            "(capacitación, traslado, etc.) y en filas que ya "
+            "reconcilió fuera de la plataforma. Úselo deliberadamente, "
+            "no como una forma de limpiar la pantalla.",
+    },
+    ("payroll-variance.row-decision", "escalate"): {
+        "title_es": "Cuándo la fila no es suya para decidir",
+        "body_es":
+            "Si la fila de Exact tiene horas que el Reporte Diario del "
+            "supervisor no cubre, RH no puede arreglar eso en esta "
+            "pantalla — eso es un problema del Reporte Diario que el "
+            "supervisor tiene que resolver. Dispute la fila con una "
+            "nota que nombre el día o el proyecto faltante, después "
+            "avísele al supervisor. No apruebe una fila cuya causa "
+            "raíz vive en otro portal.",
+    },
+
+    # ── payroll-variance.dispute ─────────────────────────────────────
+    ("payroll-variance.dispute", "why"): {
+        "title_es": "Por qué la nota de disputa es la evidencia",
+        "body_es":
+            "La nota de disputa viaja con la fila. Es lo que ve el "
+            "supervisor, lo que ve Admin cuando audita, y lo que RH "
+            "recuerda seis semanas después cuando la pregunta regresa. "
+            "Una nota que dice 'horas equivocadas' no le dice nada a "
+            "nadie. Una nota que dice 'Exact muestra 42.5; RD del "
+            "03/17 falta — supervisor confirmó que la cuadrilla se "
+            "fue temprano' es un registro defendible.",
+    },
+    ("payroll-variance.dispute", "escalate"): {
+        "title_es": "Cuándo el volumen de disputas es la señal",
+        "body_es":
+            "Una fila disputada por semana es fricción operacional "
+            "normal. Un patrón — el mismo supervisor, la misma "
+            "cuadrilla, el mismo tipo de variación semana tras semana "
+            "— no es un problema de fila, es un problema de disciplina "
+            "de documentación. Involucre al PM del supervisor y a "
+            "Admin; el arreglo vive aguas arriba del export de Exact, "
+            "no dentro de esta pantalla.",
+    },
+
     # ── iter214 · Write-Ups (FL disciplinary documentation) ──────────
     ("writeup", "why"): {
         "title_es": "Por qué importa un Write-Up",

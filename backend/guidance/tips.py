@@ -947,6 +947,198 @@ _TIPS: list[dict] = [
             "here.",
     },
 
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter282 · Payroll Variance (HR Exact CSV cross-check)
+    # Tone anchor: payroll variance review is not blame work — it is
+    # reconciliation between two independent records of the same
+    # workweek. Exact says one thing; the supervisor's Daily Reports
+    # say another. The variance row is the conversation, not the
+    # verdict. Coach toward documentation discipline, threshold-aware
+    # decisions, and the truth that disputes are how HR proves the
+    # cross-check is real rather than a silent rubber stamp. Scope:
+    # hr + admin (this surface is HR portal only).
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "payroll-variance",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why we run this cross-check",
+        "body":
+            "Exact is what payroll paid. MASCI's Daily Reports are what "
+            "the supervisor in the field said the crew worked. When the "
+            "two disagree, somebody — payroll, the supervisor or the "
+            "employee — has a wrong number. The variance batch is how "
+            "HR catches that gap before it becomes a disputed paycheck.",
+    },
+    {
+        "form_key": "payroll-variance",
+        "kind": "who",
+        "scopes": ["hr", "admin"],
+        "title": "Who depends on this",
+        "body":
+            "HR runs the cross-check every payroll cycle. The supervisor "
+            "is the person who has to answer when a row gets disputed — "
+            "their Daily Report is the MASCI side of the comparison. "
+            "Payroll downstream needs HR's approve/dispute decisions to "
+            "finalize the run. Admin sees the audit trail of every "
+            "approval and dispute.",
+    },
+    {
+        "form_key": "payroll-variance",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What happens after you decide",
+        "body":
+            "Every row is persisted with its decision: approve, dispute "
+            "or pending. Approved rows clear the variance. Disputed rows "
+            "carry the HR note back to the supervisor for the Daily "
+            "Report correction. Pending rows are what's still owed by "
+            "the close of the cycle — the dashboard surfaces them so "
+            "nothing slips silently past the pay run.",
+    },
+    {
+        "form_key": "payroll-variance",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When the variance is bigger than a row",
+        "body":
+            "A single 30-minute miss is a row-level conversation. A "
+            "whole crew that's off by hours, the same supervisor "
+            "missing rows two weeks in a row, or a pattern of Exact "
+            "rows with no MASCI hours at all — those are not "
+            "row-level fixes. Escalate to Admin and the supervisor's "
+            "PM; the variance is telling you something the row "
+            "decisions can't resolve.",
+    },
+
+    # ── payroll-variance.upload ──────────────────────────────────────
+    {
+        "form_key": "payroll-variance.upload",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why the threshold matters",
+        "body":
+            "The threshold is the line between 'rounding noise' and "
+            "'real variance.' 15 minutes is the default because that's "
+            "roughly a clock-rounding cycle — anything under it is "
+            "usually a punch artifact, anything over it is usually a "
+            "real disagreement worth a conversation. Move the "
+            "threshold up only if you know what you're tuning for.",
+    },
+    {
+        "form_key": "payroll-variance.upload",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common mistakes",
+        "body":
+            "Pasting last week's Exact export against this week's "
+            "ending date — the rows won't match anything in MASCI. "
+            "Pasting a CSV with hours in a column the system can't "
+            "find (Exact's export format does change). Setting the "
+            "threshold to 1 minute and then drowning in 'flagged' "
+            "rows that are all rounding noise.",
+    },
+
+    # ── payroll-variance.batches ─────────────────────────────────────
+    {
+        "form_key": "payroll-variance.batches",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why we keep every batch",
+        "body":
+            "Every batch is the cross-check record for a specific "
+            "week. When a paycheck is disputed two months later, the "
+            "stored batch is the evidence that HR looked at the "
+            "variance, made a call and persisted the decision. "
+            "Re-running the cross-check later is not a replacement "
+            "for the original batch — both stay on the record.",
+    },
+    {
+        "form_key": "payroll-variance.batches",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What happens on Sunday at 18:00 UTC",
+        "body":
+            "The weekly cron emails the most recent batch to "
+            "hrmanager@mascigc.com and jaymn.judd@mascigc.com. That "
+            "email is a backstop, not the primary review channel — "
+            "HR should have already worked the batch in-platform "
+            "during the week. The email exists so a forgotten batch "
+            "still gets seen before the pay run closes.",
+    },
+
+    # ── payroll-variance.row-decision ────────────────────────────────
+    {
+        "form_key": "payroll-variance.row-decision",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why each row needs a decision",
+        "body":
+            "Pending rows are an open question. Approve says 'I saw "
+            "this variance and it's acceptable.' Dispute says 'this "
+            "needs a supervisor correction before payroll closes.' "
+            "A row left pending is HR saying nothing — and silence "
+            "downstream looks the same as approval, which is "
+            "exactly the problem the cross-check is supposed to "
+            "prevent.",
+    },
+    {
+        "form_key": "payroll-variance.row-decision",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What approval actually means",
+        "body":
+            "Approve is not 'the numbers are equal' — it's 'HR has "
+            "looked at this row, knows the variance and accepts it.' "
+            "Use approve on rounding noise, on legitimate "
+            "differences (training time, travel, etc.) and on rows "
+            "you have already reconciled offline. Use it deliberately, "
+            "not as a way to clear the screen.",
+    },
+    {
+        "form_key": "payroll-variance.row-decision",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When the row is not yours to decide",
+        "body":
+            "If the Exact row has hours that the supervisor's Daily "
+            "Report doesn't cover, HR can't fix that in this surface "
+            "— that's a Daily Report problem the supervisor has to "
+            "resolve. Dispute the row with a note that names the "
+            "missing day or job, then ping the supervisor. Don't "
+            "approve a row whose root cause lives in another portal.",
+    },
+
+    # ── payroll-variance.dispute ─────────────────────────────────────
+    {
+        "form_key": "payroll-variance.dispute",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why a dispute note is the evidence",
+        "body":
+            "The dispute note travels with the row. It's what the "
+            "supervisor sees, what Admin sees when they audit and "
+            "what HR remembers six weeks later when the question "
+            "comes back. A note that says 'wrong hours' tells "
+            "nobody anything. A note that says 'Exact shows 42.5; "
+            "DR for 03/17 missing — supervisor confirmed crew left "
+            "early' is a defensible record.",
+    },
+    {
+        "form_key": "payroll-variance.dispute",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When dispute volume is the signal",
+        "body":
+            "One disputed row a week is normal operational friction. "
+            "A pattern — the same supervisor, the same crew, the "
+            "same kind of variance week after week — is not a row "
+            "problem, it's a documentation discipline problem. Loop "
+            "in the supervisor's PM and Admin; the fix lives "
+            "upstream of the Exact export, not inside this screen.",
+    },
+
     # ─────────────────────────────────────────────────────────────────
     # iter214 · Write-Ups (Field Leadership disciplinary documentation)
     # Tone anchor: a write-up is the record of a conversation that

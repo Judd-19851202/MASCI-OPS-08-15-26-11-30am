@@ -27,6 +27,7 @@ import HrPageShell from "@/components/HrPageShell";
 import { getHrToken } from "@/lib/hrAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { HelpTipBlock } from "@/components/HelpTip";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-purple-600";
 
@@ -145,6 +146,7 @@ export default function HrPayrollVariance() {
 
   return (
     <HrPageShell title="Payroll Variance" kicker="HR · Exact CSV Cross-Check">
+      <HelpTipBlock formKey="payroll-variance" showCounter />
       {/* Upload panel */}
       <Card className="p-5 mb-6 border-2 border-purple-200 bg-purple-50/30" data-testid="hr-pv-upload-card">
         <div className="flex items-start gap-3 mb-3">
@@ -156,6 +158,7 @@ export default function HrPayrollVariance() {
             </p>
           </div>
         </div>
+        <HelpTipBlock formKey="payroll-variance.upload" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
           <div>
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Week Ending")}</Label>
@@ -194,6 +197,7 @@ export default function HrPayrollVariance() {
             {loadingRecent ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCcw className="w-3.5 h-3.5" />}
           </Button>
         </div>
+        <HelpTipBlock formKey="payroll-variance.batches" />
         {recent.length === 0 ? (
           <div className="text-sm text-slate-500 py-3 text-center" data-testid="hr-pv-recent-empty">
             {t("No variance batches yet. Paste a CSV above to create the first one.")}
@@ -252,6 +256,11 @@ export default function HrPayrollVariance() {
             <Stat label={t("Matched")} value={summary.matched} cls="text-emerald-700" />
             <Stat label={t("Flagged")} value={summary.flagged} cls={summary.flagged > 0 ? "text-red-700" : ""} />
             <Stat label={t("Pending Review")} value={summary.pending} cls={summary.pending > 0 ? "text-amber-700" : ""} />
+          </div>
+
+          <div className="px-4 pt-4">
+            <HelpTipBlock formKey="payroll-variance.row-decision" />
+            <HelpTipBlock formKey="payroll-variance.dispute" />
           </div>
 
           <div className="overflow-x-auto">
