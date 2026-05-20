@@ -21,13 +21,29 @@ import { TOPIC_LIBRARY_ES } from "@/lib/meetingTopicLibrary.es";
 // Domain chip labels (EN + ES). Keep this list short and operational.
 // `key` matches the `domain` field on each topic in meetingTopicLibrary.js.
 // Topics with no `domain` fall under "general".
+// Ordering: All first, then operational domains roughly grouped by
+// field workflow (earth → vertical → roadway → fleet/support → admin).
 const DOMAIN_CHIPS = [
   { key: null, en: "All", es: "Todos" },
+  { key: "pipe", en: "Pipe", es: "Tubería" },
+  { key: "excavation", en: "Excavation", es: "Excavación" },
+  { key: "grading", en: "Grading", es: "Movimiento" },
+  { key: "concrete", en: "Concrete", es: "Concreto" },
+  { key: "paving", en: "Paving", es: "Pavimento" },
+  { key: "milling", en: "Milling", es: "Milling" },
+  { key: "mot", en: "MOT / Traffic", es: "MOT / Tráfico" },
   { key: "trucking", en: "Trucking", es: "Camiones" },
   { key: "dewatering", en: "Dewatering", es: "Desagüe" },
   { key: "shop", en: "Shop", es: "Taller" },
   { key: "plant", en: "Plant / Lab", es: "Planta / Lab" },
   { key: "airport", en: "Airport", es: "Aeropuerto" },
+  { key: "utilities", en: "Utilities", es: "Servicios" },
+  { key: "rigging", en: "Rigging / Crane", es: "Aparejo / Grúa" },
+  { key: "fall_protection", en: "Fall Protection", es: "Caídas" },
+  { key: "electrical", en: "Electrical", es: "Eléctrico" },
+  { key: "confined_space", en: "Confined Space", es: "Esp. Confinado" },
+  { key: "environmental", en: "Environmental", es: "Ambiental" },
+  { key: "wellness", en: "Heat / Fatigue / MH", es: "Calor / Fatiga / SM" },
   { key: "office", en: "Office", es: "Oficina" },
   { key: "general", en: "General", es: "General" },
 ];

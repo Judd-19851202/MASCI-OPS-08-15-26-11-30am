@@ -8,8 +8,11 @@ export const TOPIC_LIBRARY = [
   // ============================================================
   {
     key: "trenching_shoring",
+    domain: "excavation",
     title: "Trenching, Shoring & Excavation Safety",
     category: "Hazard-Specific",
+    incident_pattern:
+      "Trench collapse fatalities follow the same pattern almost every time: a 4-to-6-foot trench, a worker steps in 'just for a minute' to check grade or pull a stuck pipe, and the wall fails. The trench is below 5 feet only by inches, the crew didn't pull the box for that short of a span, and the spoil pile sits a foot off the edge. The wall comes in as a single slab — not a slow slump. The worker is buried to the chest in 2 seconds, and a cubic yard of dirt weighs ~3,000 lbs. Even if the head is clear, chest compression kills in under 5 minutes. We have lost workers in this exact pattern in our region. Five feet is not a magic number — depth, soil, water, and traffic all matter.",
     hazards_reviewed:
       "Cave-in / collapse · Engulfment · Falls into excavation · Struck-by spoil or material · Hazardous atmospheres · Water accumulation · Underground utilities · Equipment falling into trench",
     discussion_notes:
@@ -21,8 +24,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "soil_classification",
+    domain: "excavation",
     title: "Soil Classification (Type A / B / C)",
     category: "Procedure / SOP",
+    incident_pattern:
+      "Bad soil classification kills more often than no classification at all — because the box or slope was chosen confidently for the WRONG type. A trench gets called 'Type A clay' at the morning brief, the box matches that, and the wall fails because last week's rain saturated the upper 18 inches into effective Type C. The competent person walked it dry, did the manual test on day-old material, and the calculus changed overnight. The fix is recurring reclassification — after rain, after freeze-thaw, after vibration, after any disturbance. When uncertain, classify DOWN, not up. The cost of an extra slope is a few cubic yards; the cost of being wrong is a fatality.",
     hazards_reviewed:
       "Wrong protective system used · Trench collapse from unrecognized soil weakness · Layered soils acting as weakest type · Saturated soil reclassified after rain",
     discussion_notes:
@@ -34,6 +40,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "underground_utilities",
+    domain: "utilities",
     title: "Underground Utilities / 811 Locates",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -47,6 +54,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "confined_space",
+    domain: "confined_space",
     title: "Confined Space Entry — Manholes, Vaults, Lift Stations",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -60,6 +68,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "earthmoving_equipment",
+    domain: "grading",
     title: "Earthmoving Equipment & Heavy Iron",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -73,6 +82,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "backing_spotters",
+    domain: "grading",
     title: "Backing Operations & Spotters",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -86,6 +96,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "drilled_shaft",
+    domain: "concrete",
     title: "Drilled Shaft / Caisson Operations",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -99,6 +110,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "pipe_installation",
+    domain: "pipe",
     title: "Pipe Installation — RCP / DI / HDPE",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -112,6 +124,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "compaction",
+    domain: "grading",
     title: "Compaction Operations",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -124,20 +137,8 @@ export const TOPIC_LIBRARY = [
       "Anti-vibration gloves issued · Roller no-go zones marked · Hearing protection required · Operator rotation",
   },
   {
-    key: "dewatering",
-    title: "Dewatering / Wellpoint Operations",
-    category: "Procedure / SOP",
-    hazards_reviewed:
-      "Electrical hazards from pumps in water · Trench instability from over-pumping or under-pumping · Discharge hose whip · Slip/trip on wet surfaces · Environmental violation from improper discharge",
-    discussion_notes:
-      "• GFCI required on all electrical pumps; cords inspected daily for damage.\n• Bond and ground submersible pumps to prevent shock.\n• Pump rate set to maintain stable trench conditions.\n• Discharge directed to approved location — never into wetlands or unprotected slopes without permit.\n• Secure discharge hoses to prevent whip.\n• Pump fuel handling: bonded containers, no smoking, fire extinguisher within 50 ft.",
-    references_cited:
-      "OSHA 1926.405 · EPA / FDEP discharge regulations · NPDES permit conditions",
-    action_items:
-      "GFCI verified · Pump bonded · Discharge location approved · Fuel handling area set up · SDS for pump fuel",
-  },
-  {
     key: "manhole_work",
+    domain: "pipe",
     title: "Manhole Work & Lift Stations",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -151,6 +152,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "saw_cutting",
+    domain: "concrete",
     title: "Pavement Saw Cutting",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -164,6 +166,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "curb_gutter",
+    domain: "concrete",
     title: "Curb & Gutter Operations",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -177,6 +180,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "mse_wall",
+    domain: "concrete",
     title: "MSE Wall / Retaining Wall Construction",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -190,6 +194,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "boring_drilling",
+    domain: "pipe",
     title: "Boring / Directional Drilling (HDD)",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -203,6 +208,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "demolition",
+    domain: "general",
     title: "Demolition Operations",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -220,8 +226,11 @@ export const TOPIC_LIBRARY = [
   // ============================================================
   {
     key: "mot_setup",
+    domain: "mot",
     title: "MOT Setup & Work Zone Traffic Control",
     category: "Procedure / SOP",
+    incident_pattern:
+      "Work-zone struck-by fatalities cluster at two specific moments: SETUP and TAKEDOWN. Crews tend to be safest in the middle of the day with the zone fully installed. But at 6 a.m. when the cones go down, and at 8 p.m. when they come up, the workers are inside the live lane, the buffer isn't built yet, and the public hasn't been conditioned to slow. The pattern is a single distracted driver, a 6-foot worker placing a cone, and a closing speed of 65+. The fix is upstream-to-downstream setup, downstream-to-upstream takedown — and treating the FIRST cone and the LAST cone as the deadliest objects on the job.",
     hazards_reviewed:
       "Struck-by vehicles entering work zone · Driver inattention / impaired drivers · Inadequate buffer / taper length · Worker exposure during setup and takedown · Night-time visibility · Equipment / vehicle interface inside work zone",
     discussion_notes:
@@ -233,8 +242,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "flaggers",
+    domain: "mot",
     title: "Flaggers & Public Traffic Exposure",
     category: "Procedure / SOP",
+    incident_pattern:
+      "Flagger fatalities are remembered by name in this industry, and the pattern is almost always the same: lone position, no shadow vehicle behind them, a single distracted or impaired driver coming through the taper at speed. The flagger doesn't see the truck soon enough to step off — or they freeze. Sun-glare on the stop paddle, dark uniforms at dusk, and a long shift without rotation amplify it. The fix is positioning the flagger so they have an ESCAPE ROUTE — never trapped between barrier and traffic — and a shadow vehicle behind them in any zone with speed or volume. A flagger is the highest-exposure position on the entire crew.",
     hazards_reviewed:
       "Struck by passing motorist · Distracted / impaired drivers · Driver running stop paddle · Lone-worker exposure · Sun glare blinding flagger · Heat / cold stress",
     discussion_notes:
@@ -246,8 +258,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "live_traffic",
+    domain: "mot",
     title: "Live Traffic Exposure / Struck-By",
     category: "Hazard-Specific",
+    incident_pattern:
+      "Highway struck-by is the leading cause of construction fatalities, and the worker rarely sees it coming. The pattern: a crew member is heads-down on a task — sweeping, marking, holding a tape — and a single vehicle drifts through the taper. By the time the worker hears the tires, they have less than 1 second of reaction time. Most fatal intrusions happen at the BUFFER, not the work area, because the buffer is empty and drivers cut through it. The fix is positioning workers on the SHIELDED side of any barrier or equipment, never standing in an open lane, and treating the buffer as if a vehicle is already coming through it — because eventually one will.",
     hazards_reviewed:
       "Worker struck by vehicle · Distracted driver · Speeding · Vehicle intrusion through tapers · Limited reaction time at night · Lone worker exposure",
     discussion_notes:
@@ -259,8 +274,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "mot_moving_trucks",
+    domain: "mot",
     title: "MOT Placement from Moving Trucks",
     category: "Procedure / SOP",
+    incident_pattern:
+      "Falls and ejections from MOT placement trucks happen in a very specific moment: the truck hits an unexpected bump, the worker on the back loses footing, and the tie-off either fails or wasn't on a rated anchor. The crews that have lost workers to this universally describe the same thing — they had been doing it the same way for years, the anchor was 'good enough,' and one bad pothole at 8 mph turned it into a fatality. The truck doesn't have to be going fast. The worker doesn't have to be careless. The fix is engineered anchors only, 5 mph hard cap, and zero mounting/dismounting while the truck is moving.",
     hazards_reviewed:
       "Falls from moving truck · Struck-by passing vehicle · Loss of grip / footing · Improper anchor for tie-off · Communication breakdown · Heat / fatigue",
     discussion_notes:
@@ -272,8 +290,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "lane_closures",
+    domain: "mot",
     title: "Lane Closures — Single & Multiple",
     category: "Procedure / SOP",
+    incident_pattern:
+      "Lane-closure intrusions follow a predictable curve: the first hour after setup, the public hasn't conditioned to the new pattern, and 3-5 drivers will blow through cones before settling. That first hour is where intrusion fatalities happen. Multi-lane closures add a second pattern — drivers who realize too late they're in the wrong lane, swerve across the closed lane, and clip a worker or a piece of equipment. The fix is a shadow truck with TMA on the first hour at minimum, knockdown response (replace the cone, walk the line), and never letting the cone gap on a knocked-down section sit open for more than a minute.",
     hazards_reviewed:
       "Driver running closure · Crew exposed during setup · Inadequate taper for posted speed · Confusing signs · Cone knockover from wind / vehicle wake",
     discussion_notes:
@@ -285,8 +306,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "shoulder_closures",
+    domain: "mot",
     title: "Shoulder Closures",
     category: "Procedure / SOP",
+    incident_pattern:
+      "Crews treat shoulder work as 'safer' than lane work. It is not. Errant drivers leave the travel lane at speed for exactly the reasons shoulders exist — distraction, drowsiness, mechanical issue, evasion of a hazard ahead. The shoulder is where they aim when they leave the lane. A worker in a shoulder closure with no positive barrier is taking an open-lane exposure. Combine with edge drop-offs from milling or trenching and a single errant vehicle becomes a multi-fatality. The fix is treating shoulder work as live-traffic exposure: shadow truck with TMA at high speed, positive barrier on the travel-lane side, and workers shielded by equipment when possible.",
     hazards_reviewed:
       "Errant vehicle striking shoulder workers · Tight working area · Vehicles using shoulder as escape lane · Edge drop-off hazards",
     discussion_notes:
@@ -298,8 +322,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "detour_routing",
+    domain: "mot",
     title: "Detour Routing & Road Closures",
     category: "Procedure / SOP",
+    incident_pattern:
+      "Detour failures rarely cause a single big incident — they cause dozens of small ones. The pattern: a missing arrow at an intersection, a vandalized trailblazer, or contradictory signage sends drivers into the closure or onto a residential street that wasn't designed for the volume. Frustrated motorists then ignore the next round of signs, run cones, and create exposure for the next crew. Emergency response is the highest-stakes failure mode — a fire truck or ambulance hits the closure at speed because the detour wasn't communicated to dispatch. The fix is daily sign walks, advance coordination with local PD/Fire/EMS, and treating sign theft / vandalism as a same-day repair.",
     hazards_reviewed:
       "Drivers ignoring detour signs · Inadequate advance warning · Confusing or contradictory signage · Emergency vehicle access blocked · Local resident frustration / hostility",
     discussion_notes:
@@ -311,8 +338,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "pavement_marking",
+    domain: "mot",
     title: "Pavement Marking Operations (Striping)",
     category: "Hazard-Specific",
+    incident_pattern:
+      "Striping crews are the slowest-moving rolling work zone on the road, and the public is conditioned to faster traffic. The pattern of incidents: a thermoplastic truck rolling at 3-5 mph, a paint operator walking behind, and a motorist who closes from 70 mph in seconds without registering the speed differential. The strike happens at the trailing worker — the one watching the line, not the traffic. Secondary pattern is hot-thermoplastic burns to the operator's legs and feet when material splashes or a line breaks. The fix is multiple TMA shadow vehicles, a tail spotter watching only traffic, and burn-rated PPE that covers ankles up.",
     hazards_reviewed:
       "Struck-by traffic at low operating speed · Methylene chloride / MMA exposure · Hot thermoplastic burns · Glass bead splatter · Slips on wet paint · Fire / explosion (MMA)",
     discussion_notes:
@@ -324,8 +354,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "sign_installation",
+    domain: "mot",
     title: "Sign Installation & Removal",
     category: "Procedure / SOP",
+    incident_pattern:
+      "Sign-install incidents split between two patterns: utility strikes on post drilling, and falls from aerial lifts on overhead truss installs. The first happens when an 811 ticket is skipped or the marks are misread — a fiber, gas, or power line lives 18 inches below where the auger is set, and the strike costs a worker's eyesight or starts a fire. The second happens when a crew member climbs out of the bucket to reach 'just a little further' on a guide-sign install. Buckets exist because the climb-out is what kills people. The fix is no-exceptions 811 + spotter on every drill, and no climbing the truss — reposition the bucket.",
     hazards_reviewed:
       "Struck-by traffic during install · Lifting strain · Falls from sign-mount aerial · Caught between auger and obstacles · Underground utility strike during post drilling",
     discussion_notes:
@@ -337,8 +370,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "crash_cushion",
+    domain: "mot",
     title: "Crash Cushion / Attenuator Setup",
     category: "Procedure / SOP",
+    incident_pattern:
+      "Crash cushions exist to absorb an errant vehicle so the worker behind them lives. The pattern of failure in installation is rushing it — modules placed on the wrong anchor pattern, bolts driven before a locate is cleared, or a damaged module from a prior strike redeployed because it 'looks fine.' A used attenuator with internal damage will let a vehicle through at half the design speed. The installation crew is also exposed during install — they're working at the leading edge of the work zone with no attenuator yet protecting them. Treat the install itself as the highest-exposure task of the day, and don't redeploy a damaged module — ever.",
     hazards_reviewed:
       "Struck-by traffic during install · Pinch points between modules · Anchor bolt strikes · Heavy module lifts · Hidden damage on used attenuators",
     discussion_notes:
@@ -350,8 +386,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "vms_signs",
+    domain: "mot",
     title: "Variable Message Signs (VMS / DMS)",
     category: "Tool / Equipment Specific",
+    incident_pattern:
+      "VMS incidents fall into two patterns: trailer tip-overs during mast raise, and overhead-line strikes when the mast catches what nobody looked up at first. The tip-overs happen when outriggers aren't fully extended or the ground gives — a 4,000-lb trailer with mast extended catches a gust of wind, the leading outrigger sinks 4 inches into soft asphalt, and the trailer goes over with the mast still up. The overhead strike pattern is identical to dump-bed strikes: someone raises a mast without looking up because the sky 'looked clear.' The fix is the same: walk it, look up, confirm clearance before any vertical motion.",
     hazards_reviewed:
       "Struck-by traffic during placement · Trailer tipping during lift / level · Electric shock from solar/battery system · Pinch points raising mast · Overhead clearance contact",
     discussion_notes:
@@ -363,8 +402,11 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "barrier_placement",
+    domain: "mot",
     title: "Concrete / Water-Filled Barrier Placement",
     category: "Hazard-Specific",
+    incident_pattern:
+      "Barrier-placement incidents follow two patterns. First — struck-by during install, because the barrier isn't there yet to protect the installers from the live lane. The crew is at maximum exposure for the 30-60 minutes it takes to place a run. Second — crush from suspended barrier when a pin isn't fully seated or a sling lets go. A 6,000-lb concrete segment dropping 18 inches will kill anyone underneath. The fix is the crew on the OFFSET side of the placement equipment (never between barrier and live traffic), pin engagement verified before the next lift, and a hard rule that nobody stands under a suspended load — no exceptions.",
     hazards_reviewed:
       "Struck-by passing traffic during placement · Crush from suspended barrier · Pinch points connecting segments · Lifting strain on water-filled units · Failure of improperly connected barrier",
     discussion_notes:
@@ -374,12 +416,64 @@ export const TOPIC_LIBRARY = [
     action_items:
       "Slings rated · Connection pins verified · Deflection zone marked · Reflective delineators in place",
   },
+  {
+    key: "mot_survey_crew_exposure",
+    domain: "mot",
+    title: "Survey Crew Live-Traffic Exposure",
+    category: "Hazard-Specific",
+    role_context: ["surveyor", "rodman", "lead"],
+    incident_pattern:
+      "Survey crew struck-by incidents have a recognizable shape: a two-person crew running cross-sections or staking centerline, no closure in place because 'we're just here for an hour,' rodman in the lane reading the prism, instrument operator focused on the gun. The crew is heads-down on the work and conditions the public to expect them to move out of the way. A distracted driver — phone, radio, sun — closes the gap in 3 seconds. Most fatal hits are the rodman, not the instrument operator, because the rodman is the one in or near the lane. The fix is treating ANY survey work in the road shoulder or live lane as a closure-grade exposure: cones, hi-vis Class 3, a tail spotter, and a lawful pull-off whenever possible.",
+    hazards_reviewed:
+      "Rodman struck by passing motorist · Instrument operator struck on shoulder · Distracted driver crossing the line · Sun-glare blinding · Survey vehicle parked partly in lane",
+    discussion_notes:
+      "• Any survey shot in or near a live lane gets a real closure — cones to MUTCD spacing, advance warning sign upstream, and a tail spotter watching only traffic.\n• Hi-vis Class 3 on both crew members. Rodman with reflective tape on legs and arms — that's where headlights catch the eye.\n• Tail spotter has a radio AND a whistle. If they see a closing vehicle, they call AND blast — auditory cue is faster than visual recognition.\n• Survey vehicle parked OFF the pavement when possible. If the vehicle has to be on shoulder, hazards on and angle the wheels away from traffic so a hit doesn't push the vehicle into the crew.\n• Sun-glare matters. If the sun is behind your work zone in the morning or afternoon, schedule those shots when the sun is overhead. Cars literally cannot see you with sun in their eyes.\n• No 'just one more shot' if a closure is starting to break down. Pull, reset, then continue.\n• Lone survey work in live traffic — don't. Two-person minimum on any roadway exposure.\n• In the absence of true positive protection, your TAIL SPOTTER is the protection. Treat that position seriously.",
+    references_cited:
+      "MUTCD Part 6 · FHWA Work Zone Safety · ATSSA Best Practices · MASCI Survey SOP",
+    action_items:
+      "Cones / advance warning verified for survey window · Tail spotter assigned · Class 3 hi-vis confirmed · Sun-glare timing reviewed · Lone-work prohibition reinforced",
+  },
+  {
+    key: "excavation_potholing_daylight",
+    domain: "excavation",
+    title: "Potholing & Daylighting Before Mechanical Excavation",
+    category: "Procedure / SOP",
+    role_context: ["operator", "lead", "groundman"],
+    incident_pattern:
+      "Underground-utility strikes that the 811 ticket did NOT prevent almost always trace back to the same shortcut: the crew got a locate, the marks were imperfect, and the operator hit something with the bucket trying to 'find it.' The marks are advisory — the tolerance zone around them is 18-24 inches in most states, and within that zone, mechanical excavation is supposed to STOP and daylighting starts. A 14-inch fiber line, a 6-inch gas main, a high-voltage feeder — all of them live within an inch or two of where the bucket is digging. The fix is air or vacuum potholing before the bucket comes within the tolerance zone of any located mark. It costs an hour. The alternative costs a life or a city block of service.",
+    hazards_reviewed:
+      "Strike on energized power · Gas main rupture / explosion · Fiber / comm strike with service impact · Water main blowout · Operator caught in flash from electrical strike · Crew exposure during search-by-bucket",
+    discussion_notes:
+      "• 811 ticket valid AND current. Re-call before the bucket starts if the ticket is older than the state's expiration window.\n• Walk the marks BEFORE the operator climbs in. Match marks to the ticket. Anything missing or contradictory — stop, recall.\n• Tolerance zone is typically 18-24 inches each side of the mark. Inside that zone, no mechanical excavation. Period.\n• Daylight with air-knife, vacuum excavator, or hand-dig until the utility is exposed and confirmed. Then mechanical can resume.\n• Vacuum excavator: keep the wand moving, watch suction strength, eye protection for grit-blowback.\n• Operator and ground crew agree on signals BEFORE digging. Bucket motion through the tolerance zone needs explicit ground-crew acknowledgment.\n• If you hit something unexpected — STOP. Don't try to clear it. Identify what it is from a safe distance.\n• Gas hit: clear upwind, no ignition sources, call 911 and the utility. Do not try to plug or stop the leak yourself.\n• Power hit: stay back. Treat anything metal in the trench as energized. Call 911 and the utility. Do not enter the trench until the utility confirms de-energization.",
+    references_cited:
+      "Common Ground Alliance Best Practices · OSHA 1926.651(b) · State 811 / One-Call statutes · MASCI Locate SOP",
+    action_items:
+      "811 ticket verified current · Tolerance zone explained to operator · Daylighting tools on-site · Hit-response procedure reviewed",
+  },
+  {
+    key: "excavation_spoil_placement",
+    domain: "excavation",
+    title: "Spoil Pile Placement Around Open Trenches",
+    category: "Hazard-Specific",
+    role_context: ["operator", "lead", "groundman"],
+    incident_pattern:
+      "Spoil-related trench collapses are predictable and preventable. The spoil pile sits 18 inches from the edge because the available footprint is tight, the excavator is running parallel to the trench because the work demands it, and the soil has been sitting in the sun losing moisture content all morning. By 2 p.m. the surcharge load on the trench edge plus the vibration of running equipment plus the natural slumping of saturated original ground undermines the wall. The wall slides in. A worker in the trench bottom checking grade is buried. Same pattern as wellpoint trenches, but on every-day pipe and utility work it happens more often because crews are less alert to it.",
+    hazards_reviewed:
+      "Trench collapse from spoil surcharge · Equipment vibration loosening trench wall · Worker engulfment · Spoil material avalanche onto crew · Tripping over spoil pile at trench edge",
+    discussion_notes:
+      "• Spoil minimum 2 feet from trench edge. For trenches deeper than 5 feet, push it back to one trench-depth or more. If you can't, the box gets called in immediately.\n• Equipment paths kept back one trench-depth from the edge. Excavators running parallel to a trench transmit vibration through the spoil into the wall.\n• If spoil HAS to sit close, install plywood or steel road plates at the edge to distribute the load.\n• Watch the spoil pile through the day. A pile that was firm at 7 a.m. can be loose-flowing by 2 p.m. as it dries out — or saturated and heavier after rain.\n• Tension cracks at the edge are your last warning. If you see one, pull workers out NOW and reset the protection before re-entry.\n• Spoil-pile face slopes — if a pile is heaped at the edge, the side facing the trench can avalanche into the bottom on its own. Keep piles spread, not heaped.\n• Workers stepping off the trench edge over a spoil pile — trip hazard, ankle-twist hazard. Maintain a clear access route at every ladder location.\n• Talk it through every morning. The pile changes daily — yesterday's plan isn't today's plan.",
+    references_cited:
+      "OSHA 29 CFR 1926.651(j) · OSHA 1926.652 · NIOSH Trenching · MASCI Trench SOP",
+    action_items:
+      "Spoil setback verified · Equipment path moved off edge · Daily edge inspection assigned · Tension-crack response reviewed",
+  },
 
   // ============================================================
   // CONCRETE / PAVING / HOT WORK
   // ============================================================
   {
     key: "concrete_silica",
+    domain: "concrete",
     title: "Concrete Operations & Respirable Silica",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -393,6 +487,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "concrete_pumping",
+    domain: "concrete",
     title: "Concrete Pumping",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -406,6 +501,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "formwork",
+    domain: "concrete",
     title: "Formwork Safety",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -419,6 +515,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "bridge_deck_pour",
+    domain: "concrete",
     title: "Bridge Deck Pours",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -432,6 +529,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "curing_sealing",
+    domain: "concrete",
     title: "Curing & Sealing Operations",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -445,6 +543,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "cold_weather_concrete",
+    domain: "concrete",
     title: "Cold Weather Concrete Operations",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -458,6 +557,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "asphalt_paving",
+    domain: "paving",
     title: "Hot Asphalt & Paving Operations",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -471,6 +571,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "milling_operations",
+    domain: "milling",
     title: "Milling Operations (Cold Planing)",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -484,6 +585,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "tack_prime_coat",
+    domain: "paving",
     title: "Tack Coat / Prime Coat Application",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -497,6 +599,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "joint_sealing",
+    domain: "paving",
     title: "Joint Sealing — Hot & Cold Pour",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -510,6 +613,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "diamond_grinding",
+    domain: "concrete",
     title: "Diamond Grinding & Grooving",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -523,6 +627,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "sound_wall",
+    domain: "concrete",
     title: "Sound Wall / Noise Wall Construction",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -536,6 +641,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "hot_work",
+    domain: "general",
     title: "Hot Work — Welding, Cutting, Grinding",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -553,6 +659,7 @@ export const TOPIC_LIBRARY = [
   // ============================================================
   {
     key: "fall_protection",
+    domain: "fall_protection",
     title: "Fall Protection — General",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -566,6 +673,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "ladder_safety",
+    domain: "fall_protection",
     title: "Ladder Safety",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -579,6 +687,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "aerial_lift",
+    domain: "fall_protection",
     title: "Aerial Lift / Boom Lift Operations",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -592,6 +701,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "scaffold",
+    domain: "fall_protection",
     title: "Scaffold Safety",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -605,6 +715,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "bridge_overpass",
+    domain: "fall_protection",
     title: "Bridge / Overpass Work",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -618,6 +729,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "cranes_hoisting",
+    domain: "rigging",
     title: "Crane Lift Operations",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -631,6 +743,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "rigging_load_securement",
+    domain: "rigging",
     title: "Rigging & Load Securement",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -648,6 +761,7 @@ export const TOPIC_LIBRARY = [
   // ============================================================
   {
     key: "electrical_safety",
+    domain: "electrical",
     title: "Electrical Safety & Energized Equipment",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -661,6 +775,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "loto",
+    domain: "electrical",
     title: "Lockout / Tagout (LOTO)",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -674,6 +789,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "overhead_power",
+    domain: "utilities",
     title: "Working Near Overhead Power Lines",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -687,6 +803,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "generator_temp_power",
+    domain: "electrical",
     title: "Generator / Temporary Power Setup",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -700,6 +817,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "light_tower",
+    domain: "electrical",
     title: "Light Tower Operations",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -713,6 +831,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "lightning",
+    domain: "environmental",
     title: "Lightning & Severe Storms",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -730,6 +849,7 @@ export const TOPIC_LIBRARY = [
   // ============================================================
   {
     key: "excavator_safety",
+    domain: "grading",
     title: "Excavator Safety",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -743,6 +863,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "skid_steer",
+    domain: "grading",
     title: "Skid Steer / CTL Safety",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -756,6 +877,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "forklift_telehandler",
+    domain: "general",
     title: "Forklift / Telehandler Operations",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -769,6 +891,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "dump_truck",
+    domain: "trucking",
     title: "Dump Truck Operations",
     category: "Tool / Equipment Specific",
     hazards_reviewed:
@@ -786,6 +909,7 @@ export const TOPIC_LIBRARY = [
   // ============================================================
   {
     key: "ppe_general",
+    domain: "general",
     title: "PPE — Daily Compliance Review",
     category: "Stretch & Flex",
     hazards_reviewed:
@@ -799,6 +923,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "stop_work",
+    domain: "general",
     title: "Stop Work Authority",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -812,6 +937,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "heat_stress",
+    domain: "wellness",
     title: "Heat Stress / Hydration",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -825,6 +951,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "cold_stress",
+    domain: "wellness",
     title: "Cold Stress / Hypothermia",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -838,6 +965,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "near_miss",
+    domain: "general",
     title: "Near-Miss Reporting",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -851,6 +979,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "stretch_flex",
+    domain: "general",
     title: "Stretch & Flex / Daily Huddle",
     category: "Stretch & Flex",
     hazards_reviewed:
@@ -864,6 +993,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "slips_trips",
+    domain: "general",
     title: "Slips, Trips & Falls (Same-Level)",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -877,6 +1007,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "hand_injury",
+    domain: "general",
     title: "Hand Injury Prevention",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -890,6 +1021,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "hearing_conservation",
+    domain: "general",
     title: "Hearing Conservation",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -903,6 +1035,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "respiratory_protection",
+    domain: "general",
     title: "Respiratory Protection",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -916,6 +1049,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "fatigue",
+    domain: "wellness",
     title: "Fatigue & Drowsy Driving",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -929,6 +1063,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "drug_alcohol",
+    domain: "wellness",
     title: "Drug & Alcohol Policy / Fit for Duty",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -942,6 +1077,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "bloodborne",
+    domain: "wellness",
     title: "Bloodborne Pathogens & First Aid Response",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -955,6 +1091,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "hazcom_sds",
+    domain: "general",
     title: "Hazard Communication / SDS",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -968,6 +1105,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "wildlife_insects",
+    domain: "environmental",
     title: "Wildlife / Insect Bites & Stings",
     category: "Hazard-Specific",
     hazards_reviewed:
@@ -981,6 +1119,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "site_walk",
+    domain: "general",
     title: "Daily Site Walk / Hazard Assessment",
     category: "Stretch & Flex",
     hazards_reviewed:
@@ -994,6 +1133,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "housekeeping_cleanup",
+    domain: "general",
     title: "End-of-Shift Cleanup & Housekeeping",
     category: "Stretch & Flex",
     hazards_reviewed:
@@ -1007,6 +1147,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "new_hire_orientation",
+    domain: "general",
     title: "New Hire / New-to-Site Orientation",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -1020,6 +1161,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "subcontractor_coordination",
+    domain: "general",
     title: "Subcontractor Coordination",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -1033,6 +1175,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "emergency_action_plan",
+    domain: "general",
     title: "Emergency Action Plan / Evacuation",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -1046,6 +1189,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "fire_prevention",
+    domain: "general",
     title: "Fire Prevention & Extinguisher Use",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -1059,6 +1203,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "spill_response",
+    domain: "environmental",
     title: "Spill Response & Environmental Compliance",
     category: "Procedure / SOP",
     hazards_reviewed:
@@ -1072,6 +1217,7 @@ export const TOPIC_LIBRARY = [
   },
   {
     key: "mental_health",
+    domain: "wellness",
     title: "Mental Health & Suicide Prevention",
     category: "Other",
     hazards_reviewed:
@@ -1340,7 +1486,7 @@ export const TOPIC_LIBRARY = [
     hazards_reviewed:
       "Fuel splash onto hot exhaust / turbo · Static discharge ignition during transfer · Spill creating slip + fire hazard · Burn injury to fueler · Equipment loss · Environmental release",
     discussion_notes:
-      "• Shut the pump OFF before fueling. Allow 5–10 minutes of cooldown if the engine has been running hard. The exhaust manifold and turbo stay hot long after shutdown.\n• No smoking · no cell-phone calls · no open flames within 25 feet of fueling. This is not optional.\n• Maintain bond between the fuel container or hose and the pump frame during transfer. Static is a real ignition source.\n• Don't top off. The expansion when fuel warms can push fuel out the vent and onto the engine.\n• Fuel transfer at night with a flashlight — not with a hot work-light propped on the pump. Lights run hot.\n• Spill kit on every dewatering site. Absorbent pads, sock, drain mat. Drain mat goes UNDER the fill point every time.\n• If a fire starts: ABC extinguisher within reach (within 10 ft of fueling point). Pull the operator clear FIRST. Then fight the fire. Never fight a fire alone.",
+      "• Shut the pump OFF before fueling. Allow 5–10 minutes of cooldown if the engine has been running hard. The exhaust manifold and turbo stay hot long after shutdown.\n• No smoking · no cell-phone calls · no open flames within 25 feet of fueling. This is not optional.\n• Maintain bond between the fuel container or hose and the pump frame during transfer. Static is a real ignition source.\n• Don't top off. The expansion when fuel warms can push fuel out the vent and onto the engine.\n• Fuel transfer at night with a flashlight — not with a hot work-light propped on the pump. Lights run hot.\n• Spill kit on every dewatering site. Absorbent pads, sock, drain mat. Drain mat goes UNDER the fill point every time.\n• If a fire starts: ABC extinguisher within reach (within 10 ft of fueling point). Pull the operator clear FIRST. Then fight the fire. Never fight a fire alone.\n• Electric submersibles: GFCI on every electrical pump, cords inspected daily for damage, bonding + grounding verified at the pump frame. A failing seal turns the whole trench into a shock hazard for anyone working in the water.",
     references_cited:
       "NFPA 30 · OSHA 1926.152 · EPA SPCC · DOT 49 CFR 173 · MASCI Fueling SOP",
     action_items:

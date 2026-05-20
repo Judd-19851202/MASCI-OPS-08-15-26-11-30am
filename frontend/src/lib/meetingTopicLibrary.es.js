@@ -11,6 +11,8 @@ export const TOPIC_LIBRARY_ES = {
   // EARTHWORK / EXCAVATION / UNDERGROUND
   trenching_shoring: {
     title: "Seguridad en Zanjas, Apuntalamiento y Excavación",
+    incident_pattern:
+      "Las fatalidades por colapso de zanja siguen el mismo patrón casi siempre: una zanja de 4 a 6 pies, un trabajador baja 'nomás un minuto' a revisar grado o jalar un tubo atorado, y la pared falla. La zanja está apenas debajo de 5 pies, la cuadrilla no jaló la caja por un tramo tan corto, y la pila de spoil queda a un pie del borde. La pared entra como una sola losa — no como un hundimiento lento. El trabajador queda enterrado hasta el pecho en 2 segundos, y una yarda cúbica de tierra pesa ~3,000 lb. Aun si la cabeza queda libre, la compresión del pecho mata en menos de 5 minutos. Hemos perdido trabajadores en este mismo patrón en nuestra región. Cinco pies no es un número mágico — profundidad, suelo, agua y tráfico todos importan.",
     hazards_reviewed:
       "Derrumbe / colapso · Sepultamiento · Caídas a la excavación · Golpe por material o tierra apilada · Atmósferas peligrosas · Acumulación de agua · Servicios subterráneos · Equipo cayendo a la zanja",
     discussion_notes:
@@ -22,6 +24,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   soil_classification: {
     title: "Clasificación de Suelos (Tipo A / B / C)",
+    incident_pattern:
+      "La mala clasificación del suelo mata más seguido que ninguna clasificación — porque la caja o el talud se eligió con confianza para el tipo EQUIVOCADO. Una zanja se clasifica como 'arcilla Tipo A' en la junta matutina, la caja coincide con eso, y la pared falla porque la lluvia de la semana pasada saturó las 18 pulgadas superiores a Tipo C efectivo. La persona competente lo caminó seco, hizo la prueba manual con material de un día, y la cuenta cambió de la noche a la mañana. El arreglo es reclasificación recurrente — después de lluvia, después de congelación-deshielo, después de vibración, después de cualquier disturbio. Cuando hay duda, clasifique HACIA ABAJO, no hacia arriba. El costo de un talud extra son unas yardas cúbicas; el costo de equivocarse es una fatalidad.",
     hazards_reviewed:
       "Sistema de protección equivocado · Colapso por debilidad no detectada · Suelos en capas comportándose como el más débil · Suelo saturado reclasificado tras lluvia",
     discussion_notes:
@@ -30,6 +34,32 @@ export const TOPIC_LIBRARY_ES = {
       "OSHA 1926 Subparte P Apéndice A · OSHA Tabla de Clasificación de Suelos",
     action_items:
       "Tipo de suelo registrado diariamente · Persona competente realiza prueba · Sistema ajustado tras cambio de clima",
+  },
+  excavation_potholing_daylight: {
+    title: "Potholing y Daylight Antes de Excavación Mecánica",
+    incident_pattern:
+      "Los golpes a servicios subterráneos que el ticket 811 NO previno casi siempre se rastrean al mismo atajo: la cuadrilla obtuvo un locate, las marcas estaban imperfectas, y el operador golpeó algo con el cucharón tratando de 'encontrarlo.' Las marcas son orientativas — la zona de tolerancia alrededor de ellas es 18-24 pulgadas en la mayoría de los estados, y dentro de esa zona, la excavación mecánica debe PARAR y comienza el daylight. Una línea de fibra de 14 pulgadas, un main de gas de 6 pulgadas, un alimentador de alto voltaje — todos viven a una o dos pulgadas de donde el cucharón está excavando. El arreglo es potholing con aire o vacío antes de que el cucharón entre a la zona de tolerancia de cualquier marca. Cuesta una hora. La alternativa cuesta una vida o una cuadra entera de servicio.",
+    hazards_reviewed:
+      "Golpe a energía energizada · Ruptura de main de gas / explosión · Golpe a fibra / comm con impacto de servicio · Reventón de main de agua · Operador atrapado en flash por golpe eléctrico · Exposición de cuadrilla durante búsqueda-con-cucharón",
+    discussion_notes:
+      "• Ticket 811 válido Y vigente. Vuelva a llamar antes de que el cucharón empiece si el ticket pasó la ventana de expiración estatal.\n• Camine las marcas ANTES de que el operador se suba. Coteje marcas con el ticket. Cualquier cosa faltante o contradictoria — pare, vuelva a llamar.\n• Zona de tolerancia es típicamente 18-24 pulgadas a cada lado de la marca. Dentro de esa zona, no excavación mecánica. Punto.\n• Daylight con air-knife, excavador de vacío, o pala hasta que el servicio esté expuesto y confirmado. Luego mecánica puede reanudar.\n• Excavador de vacío: mantenga la varilla en movimiento, vigile la fuerza de succión, protección ocular contra rebote.\n• Operador y cuadrilla acuerdan señales ANTES de excavar. Movimiento del cucharón por la zona de tolerancia necesita reconocimiento explícito de la cuadrilla.\n• Si pega algo inesperado — PARE. No trate de despejarlo. Identifique qué es desde distancia segura.\n• Golpe de gas: despeje viento arriba, sin fuentes de ignición, llame al 911 y al servicio. No trate de tapar o detener la fuga usted mismo.\n• Golpe de energía: manténgase atrás. Trate cualquier cosa metálica en la zanja como energizada. Llame al 911 y al servicio. No entre a la zanja hasta que el servicio confirme desenergización.",
+    references_cited:
+      "Mejores Prácticas CGA · OSHA 1926.651(b) · Estatutos estatales 811 / One-Call · SOP de Locate MASCI",
+    action_items:
+      "Ticket 811 verificado vigente · Zona de tolerancia explicada al operador · Herramientas de daylight en sitio · Procedimiento de respuesta a golpe revisado",
+  },
+  excavation_spoil_placement: {
+    title: "Colocación de Pila de Spoil Alrededor de Zanjas Abiertas",
+    incident_pattern:
+      "Los colapsos de zanja relacionados con spoil son predecibles y prevenibles. La pila de spoil queda a 18 pulgadas del borde porque el espacio disponible es apretado, el excavador corre paralelo a la zanja porque el trabajo lo demanda, y el suelo ha estado en el sol perdiendo humedad toda la mañana. Para las 2 p.m. la carga de sobrepeso en el borde de la zanja más la vibración del equipo corriendo más el asentamiento natural del terreno original saturado mina la pared. La pared se desliza adentro. Un trabajador en el fondo revisando grado queda enterrado. Mismo patrón que las zanjas de wellpoint, pero en trabajo diario de tubería y servicios pasa más seguido porque las cuadrillas están menos alerta.",
+    hazards_reviewed:
+      "Colapso de zanja por sobrecarga de spoil · Vibración de equipo aflojando pared · Engullimiento de trabajador · Avalancha de material de spoil sobre cuadrilla · Tropezón con pila en el borde",
+    discussion_notes:
+      "• Spoil mínimo 2 pies del borde de la zanja. Para zanjas más profundas que 5 pies, empújela atrás a una profundidad-de-zanja o más. Si no puede, la caja se llama inmediatamente.\n• Trayectos de equipo a una profundidad-de-zanja atrás del borde. Excavadores corriendo paralelos a una zanja transmiten vibración a través del spoil hacia la pared.\n• Si el spoil TIENE que quedarse cerca, instale plywood o placas de acero en el borde para distribuir la carga.\n• Vigile la pila a través del día. Una pila firme a las 7 a.m. puede estar suelta-flujo a las 2 p.m. al secarse — o saturada y más pesada después de lluvia.\n• Grietas de tensión en el borde son su última advertencia. Si ve una, saque trabajadores AHORA y reinstale protección antes de re-entrar.\n• Caras de pila de spoil — si una pila está amontonada en el borde, el lado que ve a la zanja puede avalanzar al fondo por sí solo. Mantenga pilas extendidas, no amontonadas.\n• Trabajadores pasando el borde sobre una pila — riesgo de tropezón, torcedura de tobillo. Mantenga ruta de acceso limpia en cada escalera.\n• Hablen cada mañana. La pila cambia diariamente — el plan de ayer no es el plan de hoy.",
+    references_cited:
+      "OSHA 29 CFR 1926.651(j) · OSHA 1926.652 · NIOSH Trinchera · SOP de Zanja MASCI",
+    action_items:
+      "Setback de spoil verificado · Trayecto de equipo movido del borde · Inspección diaria de borde asignada · Respuesta a grieta de tensión revisada",
   },
   underground_utilities: {
     title: "Servicios Subterráneos / Localización 811",
@@ -106,17 +136,6 @@ export const TOPIC_LIBRARY_ES = {
     action_items:
       "Guantes anti-vibración · Zonas prohibidas marcadas · Protección auditiva · Rotación de operadores",
   },
-  dewatering: {
-    title: "Desagüe / Wellpoint",
-    hazards_reviewed:
-      "Riesgo eléctrico de bombas en agua · Inestabilidad de zanja por bombeo excesivo o insuficiente · Latigazo de manguera · Resbalones · Violación ambiental por descarga inadecuada",
-    discussion_notes:
-      "• GFCI obligatorio en bombas eléctricas; cables inspeccionados a diario.\n• Bonding y aterrizaje de bombas sumergibles para prevenir choque.\n• Tasa de bombeo fijada para mantener zanja estable.\n• Descarga dirigida a ubicación aprobada — nunca a humedales o pendientes sin permiso.\n• Asegurar mangueras de descarga para evitar latigazo.\n• Manejo de combustible: contenedores con bonding, no fumar, extintor a 50 pies.",
-    references_cited:
-      "OSHA 1926.405 · Regulaciones EPA / FDEP · Permiso NPDES",
-    action_items:
-      "GFCI verificado · Bomba con bonding · Descarga aprobada · Área de combustible · SDS disponible",
-  },
   manhole_work: {
     title: "Trabajo en Pozos de Inspección y Estaciones de Bombeo",
     hazards_reviewed:
@@ -186,6 +205,8 @@ export const TOPIC_LIBRARY_ES = {
   // TRAFFIC / MOT
   mot_setup: {
     title: "Configuración MOT y Control de Tráfico en Zona de Trabajo",
+    incident_pattern:
+      "Las fatalidades por golpe-por en zona de trabajo se concentran en dos momentos: MONTAJE y DESMONTAJE. Las cuadrillas suelen estar más seguras a media tarde con la zona totalmente instalada. Pero a las 6 a.m. cuando los conos se ponen, y a las 8 p.m. cuando se levantan, los trabajadores están dentro del carril vivo, el buffer no está armado, y el público no se ha condicionado a reducir velocidad. El patrón es un solo chofer distraído, un trabajador de 6 pies colocando un cono, y una velocidad de cierre de 65+. El arreglo es montaje upstream-a-downstream, desmontaje downstream-a-upstream — y tratar el PRIMER cono y el ÚLTIMO cono como los objetos más mortales del trabajo.",
     hazards_reviewed:
       "Golpe por vehículos · Conductor distraído / impedido · Buffer / conicidad inadecuados · Exposición durante montaje y desmontaje · Visibilidad nocturna · Interfase equipo / vehículo dentro de zona",
     discussion_notes:
@@ -197,6 +218,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   flaggers: {
     title: "Banderilleros y Exposición a Tráfico Público",
+    incident_pattern:
+      "Las fatalidades de banderilleros se recuerdan por nombre en esta industria, y el patrón casi siempre es el mismo: posición solitaria, sin camión sombra detrás, un solo chofer distraído o impedido cruzando el taper a velocidad. El banderillero no ve el camión a tiempo para hacerse a un lado — o se congela. Brillo del sol en el paddle, uniformes oscuros al atardecer, y un turno largo sin rotación lo amplifican. El arreglo es posicionar al banderillero para que tenga RUTA DE ESCAPE — nunca atrapado entre barrera y tráfico — y un camión sombra detrás en cualquier zona con velocidad o volumen. Un banderillero es la posición de mayor exposición de toda la cuadrilla.",
     hazards_reviewed:
       "Golpe por motorista · Conductor distraído / impedido · Conductor ignorando paleta · Trabajador solo · Deslumbramiento solar · Estrés por calor / frío",
     discussion_notes:
@@ -207,6 +230,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   live_traffic: {
     title: "Exposición a Tráfico Vivo / Atropello",
+    incident_pattern:
+      "El atropello en carretera es la causa principal de fatalidades de construcción, y el trabajador rara vez lo ve venir. El patrón: un trabajador está cabeza-abajo en una tarea — barriendo, marcando, sosteniendo una cinta — y un solo vehículo se desvía por el taper. Para cuando el trabajador escucha las llantas, tiene menos de 1 segundo de reacción. La mayoría de intrusiones fatales pasan en el BUFFER, no en el área de trabajo, porque el buffer está vacío y los choferes lo cortan. El arreglo es posicionar trabajadores en el lado PROTEGIDO de cualquier barrera o equipo, nunca pararse en un carril abierto, y tratar el buffer como si un vehículo ya estuviera entrando — porque eventualmente uno lo hará.",
     hazards_reviewed:
       "Trabajador atropellado · Conductor distraído · Exceso de velocidad · Intrusión por conicidades · Tiempo limitado de reacción de noche · Trabajador solo",
     discussion_notes:
@@ -218,6 +243,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   mot_moving_trucks: {
     title: "Colocación MOT desde Camiones en Movimiento",
+    incident_pattern:
+      "Las caídas y eyecciones desde camiones de colocación MOT pasan en un momento muy específico: el camión pega un bache inesperado, el trabajador en la caja pierde pisada, y el tie-off o falla o no estaba en un anclaje calificado. Las cuadrillas que han perdido trabajadores a esto universalmente describen lo mismo — habían estado haciéndolo igual por años, el anclaje era 'suficiente,' y un mal bache a 8 mph lo convirtió en fatalidad. El camión no tiene que ir rápido. El trabajador no tiene que ser descuidado. El arreglo es solo anclajes diseñados, tope duro de 5 mph, y cero subir/bajar mientras el camión está en movimiento.",
     hazards_reviewed:
       "Caídas desde camión en movimiento · Golpe por vehículo · Pérdida de agarre · Anclaje inadecuado · Falla de comunicación · Calor / fatiga",
     discussion_notes:
@@ -228,6 +255,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   lane_closures: {
     title: "Cierres de Carril — Únicos y Múltiples",
+    incident_pattern:
+      "Las intrusiones en cierres de carril siguen una curva predecible: la primera hora después del montaje, el público no se ha acondicionado al nuevo patrón, y 3-5 choferes van a pasar por encima de los conos antes de que se asiente. Esa primera hora es donde pasan las fatalidades por intrusión. Los cierres multi-carril añaden un segundo patrón — choferes que se dan cuenta tarde de que están en el carril equivocado, se barren al carril cerrado, y rozan un trabajador o equipo. El arreglo es un camión sombra con TMA durante la primera hora como mínimo, respuesta a derribos (reemplace el cono, camine la línea), y nunca dejar que el hueco de un cono derribado quede abierto más de un minuto.",
     hazards_reviewed:
       "Conductor atravesando cierre · Cuadrilla expuesta durante montaje · Conicidad inadecuada · Letreros confusos · Tumbado de conos por viento / estela",
     discussion_notes:
@@ -239,6 +268,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   shoulder_closures: {
     title: "Cierres de Acotamiento",
+    incident_pattern:
+      "Las cuadrillas tratan el trabajo en acotamiento como 'más seguro' que el trabajo en carril. No lo es. Los choferes errantes dejan el carril a velocidad por exactamente las razones por las que existen los acotamientos — distracción, somnolencia, problema mecánico, evasión de un peligro adelante. El acotamiento es a donde apuntan cuando dejan el carril. Un trabajador en cierre de acotamiento sin barrera positiva está tomando exposición de carril abierto. Combine con drop-offs de borde por milling o trinchera y un solo vehículo errante se vuelve multi-fatalidad. El arreglo es tratar el trabajo en acotamiento como exposición de tráfico vivo: camión sombra con TMA a alta velocidad, barrera positiva del lado del carril vivo, y trabajadores protegidos por equipo cuando se pueda.",
     hazards_reviewed:
       "Vehículo errante golpeando trabajadores · Área estrecha · Vehículos usando acotamiento como escape · Riesgos de borde",
     discussion_notes:
@@ -250,6 +281,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   detour_routing: {
     title: "Rutas de Desvío y Cierres de Carretera",
+    incident_pattern:
+      "Las fallas de desvío rara vez causan un solo incidente grande — causan docenas de pequeños. El patrón: una flecha faltante en una intersección, un trailblazer vandalizado, o señalización contradictoria manda choferes hacia el cierre o a una calle residencial que no fue diseñada para el volumen. Los automovilistas frustrados luego ignoran la siguiente ronda de señales, pasan conos, y crean exposición para la siguiente cuadrilla. La respuesta de emergencia es el modo de falla de mayor riesgo — un camión de bomberos o ambulancia pega el cierre a velocidad porque el desvío no se comunicó al dispatch. El arreglo es caminatas diarias de letreros, coordinación previa con PD/Bomberos/EMS locales, y tratar el robo / vandalismo de letreros como reparación del mismo día.",
     hazards_reviewed:
       "Conductores ignorando letreros · Aviso anticipado inadecuado · Letreros confusos · Acceso de emergencia bloqueado · Frustración de residentes",
     discussion_notes:
@@ -261,6 +294,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   pavement_marking: {
     title: "Operaciones de Marcado de Pavimento (Striping)",
+    incident_pattern:
+      "Las cuadrillas de striping son la zona de trabajo rodante más lenta en la carretera, y el público está condicionado a tráfico más rápido. El patrón de incidentes: un camión de termoplástico rodando a 3-5 mph, un operador de pintura caminando atrás, y un automovilista que cierra desde 70 mph en segundos sin registrar la diferencia de velocidad. El golpe pasa al trabajador trasero — el que ve la línea, no el tráfico. El patrón secundario es quemaduras de termoplástico caliente en piernas y pies del operador cuando el material salpica o una línea se rompe. El arreglo son múltiples camiones sombra con TMA, un spotter trasero vigilando solo el tráfico, y PPE calificado para quemadura que cubra de los tobillos hacia arriba.",
     hazards_reviewed:
       "Golpe por tráfico a baja velocidad · Exposición a cloruro de metileno / MMA · Quemaduras por termoplástico caliente · Salpicaduras de cuentas de vidrio · Resbalones en pintura · Incendio / explosión (MMA)",
     discussion_notes:
@@ -272,6 +307,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   sign_installation: {
     title: "Instalación y Remoción de Letreros",
+    incident_pattern:
+      "Los incidentes de instalación de letreros se dividen entre dos patrones: golpes a servicios subterráneos al taladrar postes, y caídas desde plataformas aéreas en instalaciones de truss aéreo. El primero pasa cuando se salta un ticket 811 o las marcas se malinterpretan — una línea de fibra, gas o energía vive a 18 pulgadas debajo de donde se pone el auger, y el golpe cuesta la vista de un trabajador o inicia un fuego. El segundo pasa cuando un miembro de la cuadrilla se sale del bucket para alcanzar 'un poquito más' en una instalación de letrero guía. Los buckets existen porque el salirse es lo que mata gente. El arreglo es 811 sin excepciones + spotter en cada taladrado, y no subirse al truss — reposicione el bucket.",
     hazards_reviewed:
       "Golpe por tráfico durante instalación · Esfuerzo al levantar · Caídas desde plataforma aérea · Atrapado entre auger y obstáculos · Golpe a servicio subterráneo al perforar",
     discussion_notes:
@@ -283,6 +320,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   crash_cushion: {
     title: "Instalación de Atenuador de Impacto",
+    incident_pattern:
+      "Los atenuadores de impacto existen para absorber un vehículo errante de modo que el trabajador detrás de ellos viva. El patrón de falla en instalación es apurarlo — módulos colocados en patrón de anclaje equivocado, pernos clavados antes de que se libere un locate, o un módulo dañado de un golpe previo redesplegado porque 'se ve bien.' Un atenuador usado con daño interno dejará pasar un vehículo a la mitad de la velocidad de diseño. La cuadrilla de instalación también está expuesta durante el montaje — están trabajando al filo de la zona de trabajo sin atenuador aún protegiéndolos. Trate el montaje mismo como la tarea de mayor exposición del día, y no redespliegue un módulo dañado — jamás.",
     hazards_reviewed:
       "Golpe por tráfico · Pellizcos entre módulos · Golpe por tornillo de anclaje · Levantamientos pesados · Daño oculto en atenuadores usados",
     discussion_notes:
@@ -293,6 +332,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   vms_signs: {
     title: "Letreros de Mensaje Variable (VMS / DMS)",
+    incident_pattern:
+      "Los incidentes de VMS caen en dos patrones: volcaduras del trailer al subir el mástil, y golpes a líneas aéreas cuando el mástil atrapa lo que nadie miró arriba primero. Las volcaduras pasan cuando los outriggers no están totalmente extendidos o el terreno cede — un trailer de 4,000 lb con mástil extendido atrapa una ráfaga, el outrigger delantero se hunde 4 pulgadas en asfalto blando, y el trailer se voltea con el mástil arriba. El patrón de golpe aéreo es idéntico al de cajas volcadoras: alguien sube un mástil sin mirar arriba porque el cielo 'se veía despejado.' El arreglo es el mismo: camínelo, mire arriba, confirme distancia antes de cualquier movimiento vertical.",
     hazards_reviewed:
       "Golpe por tráfico durante colocación · Volcadura del trailer · Choque eléctrico de sistema solar/batería · Pellizcos al subir mástil · Contacto con altura libre",
     discussion_notes:
@@ -303,6 +344,8 @@ export const TOPIC_LIBRARY_ES = {
   },
   barrier_placement: {
     title: "Colocación de Barrera de Concreto / Llena de Agua",
+    incident_pattern:
+      "Los incidentes de colocación de barrera siguen dos patrones. Primero — golpe-por durante instalación, porque la barrera no está ahí todavía para proteger a los instaladores del carril vivo. La cuadrilla está en máxima exposición por los 30-60 minutos que toma colocar un tramo. Segundo — aplastamiento por barrera suspendida cuando un pasador no está totalmente asentado o un sling se suelta. Un segmento de concreto de 6,000 lb cayendo 18 pulgadas matará a cualquiera debajo. El arreglo es la cuadrilla del lado OPUESTO del equipo de colocación (nunca entre barrera y tráfico vivo), enganche de pasador verificado antes del siguiente levante, y regla dura de que nadie se para bajo una carga suspendida — sin excepciones.",
     hazards_reviewed:
       "Golpe por tráfico durante colocación · Aplastamiento por barrera suspendida · Pellizcos al conectar segmentos · Esfuerzo al levantar barrera con agua · Falla por conexión incorrecta",
     discussion_notes:
@@ -310,6 +353,19 @@ export const TOPIC_LIBRARY_ES = {
     references_cited: "Niveles de Prueba MASH · MUTCD Parte 6 · OSHA 1926.251",
     action_items:
       "Eslingas certificadas · Pasadores verificados · Zona de deflexión marcada · Delineadores",
+  },
+  mot_survey_crew_exposure: {
+    title: "Exposición de Cuadrilla de Topografía a Tráfico Vivo",
+    incident_pattern:
+      "Los incidentes de golpe-por a cuadrillas de topografía tienen una forma reconocible: una cuadrilla de dos personas corriendo secciones transversales o estacando línea central, sin cierre instalado porque 'nomás venimos por una hora,' el rodman en el carril leyendo el prisma, el operador de instrumento enfocado en la estación. La cuadrilla está cabeza-abajo en el trabajo y condiciona al público a esperar que se quiten del camino. Un chofer distraído — celular, radio, sol — cierra la distancia en 3 segundos. La mayoría de golpes fatales son al rodman, no al operador, porque el rodman es el que está en o cerca del carril. El arreglo es tratar CUALQUIER trabajo de topografía en el acotamiento o carril vivo como exposición nivel-cierre: conos, hi-vis Clase 3, un spotter trasero, y una desviación legal siempre que sea posible.",
+    hazards_reviewed:
+      "Rodman golpeado por automovilista · Operador de instrumento golpeado en acotamiento · Chofer distraído cruzando la línea · Cegado por brillo del sol · Vehículo de topografía estacionado parcialmente en carril",
+    discussion_notes:
+      "• Cualquier shot en o cerca de un carril vivo lleva un cierre real — conos a espaciado MUTCD, letrero de aviso previo upstream, y un spotter trasero vigilando solo tráfico.\n• Hi-vis Clase 3 en ambos miembros. Rodman con cinta reflectiva en piernas y brazos — ahí es donde los faros atrapan el ojo.\n• Spotter trasero tiene radio Y silbato. Si ven un vehículo cerrando, llaman Y soplan — la señal auditiva es más rápida que el reconocimiento visual.\n• Vehículo de topografía estacionado FUERA del pavimento cuando sea posible. Si tiene que estar en acotamiento, intermitentes puestas y ruedas en ángulo lejos del tráfico para que un golpe no empuje el vehículo hacia la cuadrilla.\n• El brillo del sol importa. Si el sol está detrás de su zona en la mañana o tarde, agende esos shots cuando el sol esté arriba. Los carros literalmente no pueden verlo con sol en los ojos.\n• Sin 'nomás un shot más' si un cierre se empieza a romper. Pare, reinicie, luego continúe.\n• Topografía solitaria en tráfico vivo — no. Mínimo dos personas en cualquier exposición vial.\n• En ausencia de protección positiva verdadera, su SPOTTER TRASERO es la protección. Tome esa posición en serio.",
+    references_cited:
+      "MUTCD Parte 6 · Seguridad de Zona de Trabajo FHWA · Mejores Prácticas ATSSA · SOP de Topografía MASCI",
+    action_items:
+      "Conos / aviso previo verificados para ventana de topografía · Spotter trasero asignado · Hi-vis Clase 3 confirmado · Tiempo por brillo del sol revisado · Prohibición de trabajo solo reforzada",
   },
   // CONCRETE / PAVING
   concrete_silica: {
@@ -1076,7 +1132,7 @@ export const TOPIC_LIBRARY_ES = {
     hazards_reviewed:
       "Salpicón de combustible sobre escape / turbo caliente · Ignición por descarga estática durante transferencia · Derrame creando riesgo de resbalón + incendio · Quemadura al que recarga · Pérdida del equipo · Liberación ambiental",
     discussion_notes:
-      "• Apague la bomba ANTES de recargar. Permita 5–10 minutos de enfriamiento si el motor ha corrido fuerte. El múltiple de escape y el turbo siguen calientes mucho después del apagado.\n• No fumar · sin llamadas de celular · sin llamas abiertas dentro de 25 pies del punto de recarga. Esto no es opcional.\n• Mantenga el bonding entre el contenedor o manguera y el chasis de la bomba durante transferencia. La estática es una fuente real de ignición.\n• No llene de más. La expansión cuando el combustible se calienta puede empujar combustible por el venteo sobre el motor.\n• Transferir combustible de noche con linterna — no con una lámpara de trabajo caliente apoyada en la bomba. Las luces se calientan.\n• Kit de derrames en cada sitio de desagüe. Almohadillas absorbentes, calcetín, tapete de drenaje. El tapete va DEBAJO del punto de llenado cada vez.\n• Si arranca un fuego: extintor ABC al alcance (dentro de 10 pies del punto de recarga). Saque al operador PRIMERO. Luego combata el fuego. Nunca combata un fuego solo.",
+      "• Apague la bomba ANTES de recargar. Permita 5–10 minutos de enfriamiento si el motor ha corrido fuerte. El múltiple de escape y el turbo siguen calientes mucho después del apagado.\n• No fumar · sin llamadas de celular · sin llamas abiertas dentro de 25 pies del punto de recarga. Esto no es opcional.\n• Mantenga el bonding entre el contenedor o manguera y el chasis de la bomba durante transferencia. La estática es una fuente real de ignición.\n• No llene de más. La expansión cuando el combustible se calienta puede empujar combustible por el venteo sobre el motor.\n• Transferir combustible de noche con linterna — no con una lámpara de trabajo caliente apoyada en la bomba. Las luces se calientan.\n• Kit de derrames en cada sitio de desagüe. Almohadillas absorbentes, calcetín, tapete de drenaje. El tapete va DEBAJO del punto de llenado cada vez.\n• Si arranca un fuego: extintor ABC al alcance (dentro de 10 pies del punto de recarga). Saque al operador PRIMERO. Luego combata el fuego. Nunca combata un fuego solo.\n• Sumergibles eléctricos: GFCI en cada bomba eléctrica, cables inspeccionados diariamente por daño, bonding + conexión a tierra verificados en el chasis. Un sello que falla convierte toda la zanja en peligro de descarga para cualquiera trabajando en el agua.",
     references_cited:
       "NFPA 30 · OSHA 1926.152 · EPA SPCC · DOT 49 CFR 173 · SOP de Recarga MASCI",
     action_items:
