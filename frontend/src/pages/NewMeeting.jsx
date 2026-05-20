@@ -57,7 +57,7 @@ export default function NewMeeting({ publicMode = false }) {
       // Only prefill location if user hasn't entered one yet
       location: p.location || (job && job.location) || "",
     }));
-    if (job) toast.success(`Job loaded: #${job.project_number}`);
+    if (job) toast.success(t("Job loaded: #{n}").replace("{n}", job.project_number));
   };
 
   const applyTemplate = (key) => {
@@ -124,16 +124,16 @@ export default function NewMeeting({ publicMode = false }) {
       try {
         const r = await reverseGeocode(latitude, longitude);
         setData((p) => ({ ...p, location: r.display }));
-        toast.success("Location captured from GPS");
+        toast.success(t("Location captured from GPS"));
       } catch {
         setData((p) => ({
           ...p,
           location: formatCoords(latitude, longitude, accuracy),
         }));
-        toast.warning("Got GPS coordinates, but couldn't look up address");
+        toast.warning(t("Got GPS coordinates, but couldn't look up address"));
       }
     } catch (e) {
-      toast.error(e?.message || "Could not get GPS location");
+      toast.error(e?.message || t("Could not get GPS location"));
     } finally {
       setLocating(false);
     }
@@ -166,16 +166,16 @@ export default function NewMeeting({ publicMode = false }) {
     ];
     for (const [k, l] of required) {
       if (!String(data[k] || "").trim()) {
-        toast.error(`${l} is required`);
+        toast.error(t("{field} is required").replace("{field}", t(l)));
         return false;
       }
     }
     if (!data.conductor_signature) {
-      toast.error("Conductor signature is required");
+      toast.error(t("Conductor signature is required"));
       return false;
     }
     if (data.attendees.length === 0) {
-      toast.error("Add at least one attendee");
+      toast.error(t("Add at least one attendee"));
       return false;
     }
     // Photos required — toolbox-talk photos confirm the meeting actually
@@ -247,13 +247,13 @@ export default function NewMeeting({ publicMode = false }) {
     try {
       const lang = getLang();
       if (lang === "es") {
-        toast.info("Translating to English…");
+        toast.info(t("Translating to English…"));
         const { translateUserInput } = await import("@/lib/translateOnSubmit");
         payload = await translateUserInput(payload, "es");
       }
       payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/meetings", payload);
-      toast.success("Meeting saved");
+      toast.success(t("Meeting saved"));
       if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
           state: {
@@ -268,7 +268,7 @@ export default function NewMeeting({ publicMode = false }) {
       }
     } catch (e) {
       console.error(e);
-      toast.error(formatApiError(e, "Could not save meeting"), { duration: 7000 });
+      toast.error(formatApiError(e, t("Could not save meeting")), { duration: 7000 });
     } finally {
       setSaving(false);
     }

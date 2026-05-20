@@ -940,6 +940,61 @@ const ES = {
   "Select shift": "Seleccionar turno",
   "High-risk activity today": "Actividad de alto riesgo hoy",
   "Auto-fills when you pick a topic below": "Se autocompleta al elegir un tema abajo",
+
+  /* iter268 · Sprint 1 · K1·K2·K3·K9 · ViewMeeting + NewMeeting bilingual alignment */
+  "Topic": "Tema",
+  "Pick a topic — Category & all fields below auto-fill":
+    "Elija un tema — Categoría y los campos de abajo se autocompletan",
+  "Add every person who attended":
+    "Añada a todas las personas que asistieron",
+
+  /* Weather chip values (used in ViewMeeting summary AND PDF) */
+  "Clear": "Despejado",
+  "Hot": "Calor",
+  "Cold": "Frío",
+  "Rain": "Lluvia",
+  "Wind": "Viento",
+  "Storm Risk": "Riesgo de Tormenta",
+
+  /* ViewMeeting header + chrome */
+  "Site Safety Meeting Record": "Registro de Reunión de Seguridad del Sitio",
+  "Doc ID": "ID de Doc.",
+  "Report ID": "ID de Reporte",
+  "Meetings": "Reuniones",
+  "Print / PDF": "Imprimir / PDF",
+  "Email": "Correo",
+  "Loading…": "Cargando…",
+
+  /* ViewMeeting field labels not already covered */
+  "Topic / Subject": "Tema / Asunto",
+  "Discussion Notes": "Notas de Discusión",
+  "Open in Maps": "Abrir en Mapas",
+  "Subcontractor": "Subcontratista",
+  "Yes (unnamed)": "Sí (sin nombre)",
+  "No attendees listed.": "No hay asistentes registrados.",
+  "Attendee": "Asistente",
+  "No signature": "Sin firma",
+  "Safety Meeting": "Reunión de Seguridad",
+  "Generated": "Generado",
+
+  /* ViewMeeting toasts / confirm dialogs */
+  "Meeting not found": "Reunión no encontrada",
+  "Delete this meeting? This cannot be undone.":
+    "¿Eliminar esta reunión? Esto no se puede deshacer.",
+  "Delete failed": "Error al eliminar",
+
+  /* NewMeeting toasts (K3) */
+  "Job loaded: #{n}": "Trabajo cargado: #{n}",
+  "Location captured from GPS": "Ubicación capturada por GPS",
+  "Got GPS coordinates, but couldn't look up address":
+    "Se obtuvieron coordenadas GPS, pero no se pudo buscar la dirección",
+  "Could not get GPS location": "No se pudo obtener la ubicación GPS",
+  "{field} is required": "{field} es obligatorio",
+  "Conductor signature is required": "La firma del conductor es obligatoria",
+  "Add at least one attendee": "Añada al menos un asistente",
+  "Translating to English…": "Traduciendo al inglés…",
+  "Meeting saved": "Reunión guardada",
+  "Could not save meeting": "No se pudo guardar la reunión",
   "Weather": "Clima",
   "Subcontractor crew present": "Cuadrilla subcontratista presente",
   "Subcontractor name (optional)": "Nombre del subcontratista (opcional)",

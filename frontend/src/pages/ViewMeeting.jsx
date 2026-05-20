@@ -20,6 +20,22 @@ import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { BilingualConsent } from "@/components/BilingualConsent";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
+import { useT } from "@/lib/i18n";
+
+// iter268 · K2 · Weather chip code → bilingual label.
+// Used in ViewMeeting summary and in the printed/PDF record so the
+// language the record was submitted in is honored on output.
+function weatherLabel(code, t) {
+  const MAP = {
+    clear: t("Clear"),
+    hot: t("Hot"),
+    cold: t("Cold"),
+    rain: t("Rain"),
+    wind: t("Wind"),
+    storm_risk: t("Storm Risk"),
+  };
+  return MAP[code] || code;
+}
 
 const ReportSection = ({ number, title, children }) => (
   <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
@@ -47,6 +63,7 @@ const KV = ({ label, value, full = false }) => (
 );
 
 export default function ViewMeeting() {
+  const { t } = useT();
   const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
@@ -63,7 +80,7 @@ export default function ViewMeeting() {
         const res = await api.get(`/meetings/${id}`);
         if (alive) setData(res.data);
       } catch {
-        toast.error("Meeting not found");
+        toast.error(t("Meeting not found"));
         navigate(listUrl);
       } finally {
         if (alive) setLoading(false);
@@ -72,7 +89,7 @@ export default function ViewMeeting() {
     return () => {
       alive = false;
     };
-  }, [id, navigate, listUrl]);
+  }, [id, navigate, listUrl, t]);
 
   // Auto-print after the page renders if we landed here via ?autoprint=1
   useEffect(() => {
@@ -80,20 +97,20 @@ export default function ViewMeeting() {
   }, [loading, data]);
 
   const handleDelete = async () => {
-    if (!window.confirm("Delete this meeting? This cannot be undone.")) return;
+    if (!window.confirm(t("Delete this meeting? This cannot be undone."))) return;
     try {
       await api.delete(`/meetings/${id}`);
-      toast.success("Deleted");
+      toast.success(t("Deleted"));
       navigate(listUrl);
     } catch {
-      toast.error("Delete failed");
+      toast.error(t("Delete failed"));
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-500">
-        <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
+        <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading…")}
       </div>
     );
   }
@@ -107,7 +124,7 @@ export default function ViewMeeting() {
       <div className="caution-stripe no-print" />
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <BackLink to={listUrl} label="Meetings" variant="header" testId="back-link" />
+          <BackLink to={listUrl} label={t("Meetings")} variant="header" testId="back-link" />
           <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
             <EditProjectDialog
@@ -131,14 +148,14 @@ export default function ViewMeeting() {
               className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
               data-testid="email-btn"
             >
-              <Mail className="w-4 h-4 mr-1" /> Email
+              <Mail className="w-4 h-4 mr-1" /> {t("Email")}
             </Button>
             <Button
               onClick={printReport}
               className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
               data-testid="print-btn"
             >
-              <Printer className="w-4 h-4 mr-1" /> Print / PDF
+              <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
             </Button>
           </div>
         </div>
@@ -150,7 +167,7 @@ export default function ViewMeeting() {
             <MasciLogo variant="mark" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink={hubHome} />
             <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
-              Site Safety Meeting Record
+              {t("Site Safety Meeting Record")}
             </h1>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
               {data.doc_id && (
@@ -158,11 +175,11 @@ export default function ViewMeeting() {
                   className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide"
                   data-testid="record-doc-id-badge"
                 >
-                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">Doc ID</span>
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
                   {data.doc_id}
                 </span>
               )}
-              <span>Report ID · {data.id?.slice(0, 8).toUpperCase()}</span>
+              <span>{t("Report ID")} · {data.id?.slice(0, 8).toUpperCase()}</span>
             </div>
             {data.submit_language === "es" && (
               <div className="mt-2">
@@ -179,13 +196,13 @@ export default function ViewMeeting() {
           </div>
         </div>
 
-        <ReportSection number="01" title="Meeting Information">
+        <ReportSection number="01" title={t("Meeting Information")}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <KV label="Project Name" value={data.project_name} />
-            <KV label="Project Number" value={data.project_number} />
+            <KV label={t("Project Name")} value={data.project_name} />
+            <KV label={t("Project Number")} value={data.project_number} />
             <div className="sm:col-span-2">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                Location
+                {t("Location")}
               </div>
               <div className="text-base text-slate-900 mt-1 whitespace-pre-wrap">
                 {data.location || "—"}
@@ -200,7 +217,7 @@ export default function ViewMeeting() {
                     rel="noopener noreferrer"
                     className="text-red-700 hover:text-red-800 font-bold no-print"
                   >
-                    · Open in Maps
+                    · {t("Open in Maps")}
                   </a>
                 </div>
               )}
@@ -212,36 +229,25 @@ export default function ViewMeeting() {
                 />
               )}
             </div>
-            <KV label="Date" value={formatDateLong(data.meeting_date)} />
-            <KV label="Time" value={data.meeting_time} />
-            <KV label="Conducted By" value={data.conducted_by} />
-            <KV label="Category" value={data.topic_category} />
+            <KV label={t("Date")} value={formatDateLong(data.meeting_date)} />
+            <KV label={t("Time")} value={data.meeting_time} />
+            <KV label={t("Conducted By")} value={data.conducted_by} />
+            <KV label={t("Category")} value={data.topic_category} />
             {/* iter260 · E1 · operational context */}
             {data.crew_size != null && (
-              <KV label="Crew Size" value={String(data.crew_size)} />
+              <KV label={t("Crew Size")} value={String(data.crew_size)} />
             )}
-            {data.shift && <KV label="Shift" value={data.shift} />}
+            {data.shift && <KV label={t("Shift")} value={data.shift} />}
             {Array.isArray(data.weather) && data.weather.length > 0 && (
               <KV
-                label="Weather"
-                value={data.weather
-                  .map((w) =>
-                    ({
-                      clear: "Clear",
-                      hot: "Hot",
-                      cold: "Cold",
-                      rain: "Rain",
-                      wind: "Wind",
-                      storm_risk: "Storm Risk",
-                    }[w] || w)
-                  )
-                  .join(" · ")}
+                label={t("Weather")}
+                value={data.weather.map((w) => weatherLabel(w, t)).join(" · ")}
               />
             )}
             {data.subcontractor_present && (
               <KV
-                label="Subcontractor"
-                value={data.subcontractor_name || "Yes (unnamed)"}
+                label={t("Subcontractor")}
+                value={data.subcontractor_name || t("Yes (unnamed)")}
               />
             )}
             {data.high_risk_activity && (
@@ -250,26 +256,26 @@ export default function ViewMeeting() {
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-red-50 border-2 border-red-300 text-red-800 font-mono text-xs uppercase tracking-[0.2em] font-bold"
                   data-testid="high-risk-flag"
                 >
-                  <span>High-Risk Activity Today</span>
+                  <span>{t("High-risk activity today")}</span>
                 </div>
               </div>
             )}
           </div>
         </ReportSection>
 
-        <ReportSection number="02" title="Topic & Discussion">
+        <ReportSection number="02" title={t("Topic & Discussion")}>
           <div className="space-y-4">
-            <KV label="Topic / Subject" value={data.topic} full />
-            <KV label="Hazards Reviewed" value={data.hazards_reviewed} full />
-            <KV label="Discussion Notes" value={data.discussion_notes} full />
-            <KV label="References Cited" value={data.references_cited} full />
-            <KV label="Action Items / Follow-Up" value={data.action_items} full />
+            <KV label={t("Topic / Subject")} value={data.topic} full />
+            <KV label={t("Hazards Reviewed")} value={data.hazards_reviewed} full />
+            <KV label={t("Discussion Notes")} value={data.discussion_notes} full />
+            <KV label={t("References Cited")} value={data.references_cited} full />
+            <KV label={t("Action Items / Follow-Up")} value={data.action_items} full />
           </div>
         </ReportSection>
 
-        <ReportSection number="03" title={`Attendees (${data.attendees?.length || 0})`}>
+        <ReportSection number="03" title={`${t("Attendees")} (${data.attendees?.length || 0})`}>
           {data.attendees?.length === 0 ? (
-            <div className="text-slate-500 text-sm">No attendees listed.</div>
+            <div className="text-slate-500 text-sm">{t("No attendees listed.")}</div>
           ) : (
             <>
               <BilingualConsent variant="meeting" />
@@ -280,7 +286,7 @@ export default function ViewMeeting() {
                     className="border-2 border-slate-200 rounded-md p-3 print-row"
                   >
                     <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                      Attendee {i + 1}
+                      {t("Attendee")} {i + 1}
                     </div>
                     <div className="font-bold text-slate-900 mt-1">{a.name || "—"}</div>
                     {a.signature && (
@@ -299,7 +305,7 @@ export default function ViewMeeting() {
         </ReportSection>
 
         {data.photos?.length > 0 && (
-          <ReportSection number="04" title={`Photos (${data.photos.length})`}>
+          <ReportSection number="04" title={`${t("Photos")} (${data.photos.length})`}>
             <div className="flex justify-end mb-2 print:hidden">
               <PhotoZipDownload
                 photos={data.photos}
@@ -324,9 +330,9 @@ export default function ViewMeeting() {
           </ReportSection>
         )}
 
-        <ReportSection number="05" title="Conductor Signature">
+        <ReportSection number="05" title={t("Conductor Signature")}>
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
-            Conducted By
+            {t("Conducted By")}
           </div>
           <div className="text-base font-bold text-slate-900 mb-2">{data.conducted_by || "—"}</div>
           <BilingualConsent variant="meeting" />
@@ -334,13 +340,13 @@ export default function ViewMeeting() {
             {data.conductor_signature ? (
               <img src={resolvePhotoSrc(data.conductor_signature)} alt="Conductor signature" className="max-h-[120px]" />
             ) : (
-              <span className="text-slate-400 text-sm">No signature</span>
+              <span className="text-slate-400 text-sm">{t("No signature")}</span>
             )}
           </div>
         </ReportSection>
 
         <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8 print-section">
-          Generated {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || "MASCI"} Safety Meeting
+          {t("Generated")} {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || "MASCI"} {t("Safety Meeting")}
         </div>
         {(company.address || company.phone || company.email) && (
           <div className="print-only border-t-2 border-black pt-3 mt-2 text-[9pt] leading-snug print-section">
