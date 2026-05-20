@@ -222,16 +222,16 @@ export default function SafetyFireExtinguishers() {
       toast.success("Deleted");
       refresh();
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Delete failed");
+      toast.error(err?.response?.data?.detail || t("Delete failed"));
     }
   };
 
   const TABS = [
-    { id: "All", label: "All", count: counts.All },
-    { id: "Pass", label: "Pass", count: counts.Pass || 0 },
-    { id: "Fail", label: "Fail", count: counts.Fail || 0 },
-    { id: "Needs Service", label: "Needs Service", count: counts["Needs Service"] || 0 },
-    { id: "Overdue", label: "Overdue", count: counts.Overdue || 0, danger: true },
+    { id: "All", label: t("All"), count: counts.All },
+    { id: "Pass", label: t("Pass"), count: counts.Pass || 0 },
+    { id: "Fail", label: t("Fail"), count: counts.Fail || 0 },
+    { id: "Needs Service", label: t("Needs Service"), count: counts["Needs Service"] || 0 },
+    { id: "Overdue", label: t("Overdue"), count: counts.Overdue || 0, danger: true },
   ];
 
   return (
@@ -284,13 +284,13 @@ export default function SafetyFireExtinguishers() {
           <table className="w-full text-sm">
             <thead className="bg-slate-100 text-slate-700 text-xs uppercase tracking-[0.15em] font-mono">
               <tr>
-                <th className="text-left px-3 py-2">Unit</th>
-                <th className="text-left px-3 py-2">Location</th>
-                <th className="text-left px-3 py-2">Type / Size</th>
-                <th className="text-left px-3 py-2">Last Inspect</th>
-                <th className="text-left px-3 py-2">Next Due</th>
-                <th className="text-center px-3 py-2">Status</th>
-                <th className="text-right px-3 py-2">Actions</th>
+                <th className="text-left px-3 py-2">{t("Unit")}</th>
+                <th className="text-left px-3 py-2">{t("Location")}</th>
+                <th className="text-left px-3 py-2">{t("Type / Size")}</th>
+                <th className="text-left px-3 py-2">{t("Last Inspect")}</th>
+                <th className="text-left px-3 py-2">{t("Next Due")}</th>
+                <th className="text-center px-3 py-2">{t("Status")}</th>
+                <th className="text-right px-3 py-2">{t("Actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -298,7 +298,7 @@ export default function SafetyFireExtinguishers() {
                 <tr key={fe.id} className={`border-t border-slate-100 ${isOverdue(fe) ? "bg-red-50" : ""}`} data-testid={`safety-fe-row-${fe.id}`}>
                   <td className="px-3 py-2 font-semibold">{fe.unit_id}</td>
                   <td className="px-3 py-2">
-                    <span className="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-mono uppercase mr-1">{fe.location_kind}</span>
+                    <span className="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-mono uppercase mr-1">{t(fe.location_kind)}</span>
                     {fe.location_value || "—"}
                   </td>
                   <td className="px-3 py-2">{fe.type} {fe.size ? <span className="text-slate-500">· {fe.size}</span> : null}</td>
@@ -309,15 +309,15 @@ export default function SafetyFireExtinguishers() {
                   </td>
                   <td className="px-3 py-2 text-center">
                     <span className={`inline-block px-2 py-0.5 rounded border text-[11px] font-mono uppercase tracking-[0.15em] font-bold ${STATUS_COLOR[fe.last_status] || ""}`}>
-                      {fe.last_status || "—"}
+                      {fe.last_status ? t(fe.last_status) : "—"}
                     </span>
                   </td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex gap-1">
-                      <Button size="sm" variant="outline" onClick={() => openInspect(fe)} className="h-8 border-cyan-300 text-cyan-800" data-testid={`safety-fe-inspect-${fe.id}`} title="Log inspection">
+                      <Button size="sm" variant="outline" onClick={() => openInspect(fe)} className="h-8 border-cyan-300 text-cyan-800" data-testid={`safety-fe-inspect-${fe.id}`} title={t("Log inspection")}>
                         <ClipboardCheck className="w-3.5 h-3.5" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => setManageDlg({ open: true, fe })} className="h-8 border-slate-300" data-testid={`safety-fe-manage-${fe.id}`} title="Attachments & PDF history">
+                      <Button size="sm" variant="outline" onClick={() => setManageDlg({ open: true, fe })} className="h-8 border-slate-300" data-testid={`safety-fe-manage-${fe.id}`} title={t("Attachments & PDF history")}>
                         <Paperclip className="w-3.5 h-3.5" />
                         {(fe.attachments || []).length > 0 && (
                           <span className="ml-1 text-[10px] font-bold text-cyan-700">{(fe.attachments || []).length}</span>
@@ -362,12 +362,12 @@ export default function SafetyFireExtinguishers() {
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Location kind")}</Label>
                 <Select value={editDlg.form.location_kind} onValueChange={(v) => setEditDlg((d) => ({ ...d, form: { ...d.form, location_kind: v } }))}>
                   <SelectTrigger className={`${inputCls} mt-1`} data-testid="safety-fe-form-loc-kind"><SelectValue /></SelectTrigger>
-                  <SelectContent>{LOCATION_KINDS.map((lk) => <SelectItem key={lk.value} value={lk.value}>{lk.label}</SelectItem>)}</SelectContent>
+                  <SelectContent>{LOCATION_KINDS.map((lk) => <SelectItem key={lk.value} value={lk.value}>{t(lk.label)}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Location value")}</Label>
-                <Input value={editDlg.form.location_value} onChange={(e) => setEditDlg((d) => ({ ...d, form: { ...d.form, location_value: e.target.value } }))} className={`${inputCls} mt-1`} placeholder="e.g. Truck 12 / Job 220 / Shop" data-testid="safety-fe-form-loc-val" />
+                <Input value={editDlg.form.location_value} onChange={(e) => setEditDlg((d) => ({ ...d, form: { ...d.form, location_value: e.target.value } }))} className={`${inputCls} mt-1`} placeholder={t("e.g. Truck 12 / Job 220 / Shop")} data-testid="safety-fe-form-loc-val" />
               </div>
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Size")}</Label>
@@ -377,7 +377,7 @@ export default function SafetyFireExtinguishers() {
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Last status")}</Label>
                 <Select value={editDlg.form.last_status} onValueChange={(v) => setEditDlg((d) => ({ ...d, form: { ...d.form, last_status: v } }))}>
                   <SelectTrigger className={`${inputCls} mt-1`}><SelectValue /></SelectTrigger>
-                  <SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  <SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{t(s)}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
@@ -442,7 +442,7 @@ export default function SafetyFireExtinguishers() {
               <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Status")} *</Label>
               <Select value={inspectDlg.form.status} onValueChange={(v) => setInspectDlg((d) => ({ ...d, form: { ...d.form, status: v } }))}>
                 <SelectTrigger className={`${inputCls} mt-1`} data-testid="safety-fe-inspect-status"><SelectValue /></SelectTrigger>
-                <SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                <SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{t(s)}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>

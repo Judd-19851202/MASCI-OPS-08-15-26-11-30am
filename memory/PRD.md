@@ -1,5 +1,44 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 — iter292 audit + iter293 Fire Extinguishers convergence · CLOSED
+
+### iter292 — Remaining matrix-yellow audit (visibility-only, no code)
+Classified 5 yellow areas into the five required dispositions. Key governance insight: **yellow ≠ incomplete**. Some yellows are intentional bounded operational decisions.
+
+| Row | Disposition |
+| --- | --- |
+| Fire Extinguishers | micro-close → iter293 |
+| Pre-Op View | intentional yellow → matrix-only flip |
+| QA/QC View | intentional yellow → matrix-only flip |
+| Material Calculator Tests | leave (stale marker) → matrix-only flip |
+| Dispatch / Admin EN-only | intentional EN-first → matrix-only flip |
+
+### iter293 — Fire Extinguishers convergence closure (CLOSED)
+- **Audit-discovered reality:** coaching family + PDF endpoint were already complete (iter275 + iter135). Matrix yellows were stale.
+- **Real gap:** EN/ES UI parity on the page itself — most visible labels hardcoded EN despite `useT` imported.
+- **Wrapped** table headers, tab labels, location-kind chip rendering, select option labels, error toasts, tooltip titles, placeholders.
+- **Reused** the established `Pass=Cumple` / `Fail=No Cumple` / `Status=Estado` translations rather than duplicating — convergence > drift.
+- **27 new ES UI keys** in `i18n.js` (only the genuinely-missing labels).
+- **Bounded-scope guard test** explicitly bans drift into `fire-extinguisher.inventory` / `.qr` / `.geo` / `.maintenance-schedule` / `.assignment` / `.compliance-workflow` form_keys.
+- **Tests:** `test_iter293_fire_extinguishers_convergence.py` — 26/26 ✅ (coaching family stability + `history.pdf` route surface protection + 16 ES-key parametrized presence + 8-pair ES-not-EN sanity + 6 banned-namespace drift guards + no-collision with safety-document/safety-training).
+- **Live verified:** preview screenshot in ES locale shows full ES rendering — page title, description, all 5 tab labels, all 7 table headers, both action buttons, location chip, status chips, coaching strip.
+- **Matrix rows flipped this iteration:** Fire Extinguishers EN/ES+PDF+Guide+Complete · Pre-Op View `View 🟡→— ⁱ` · QA/QC `Guide 🟡→✅ + View 🟡→— ⁱ` · Material Calculators `Tests 🟡→✅ ⁱⁱ` · Dispatch/Admin/Backup `EN/ES ❌→— ⁱⁱⁱ`.
+- **Footnote legend established** for future intentionality classification.
+
+### Combined regression
+- **269/269 unit pytests** across the full convergence cluster (iter224→iter293).
+
+### Governance milestone
+First iteration where **≥4 matrix rows flipped via classification rather than code**, validating the iter292 principle that yellow ≠ incomplete without turning the matrix into perfection theater.
+
+### Files touched (iter293)
+- MOD · `/app/frontend/src/pages/SafetyFireExtinguishers.jsx` (~12 hardcoded-EN strings wrapped with `t()`)
+- MOD · `/app/frontend/src/lib/i18n.js` (+27 ES UI keys; reused existing translations for shared vocab)
+- NEW · `/app/backend/tests/test_iter293_fire_extinguishers_convergence.py`
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (5 matrix rows flipped · ship-log entries for iter292 + iter293 · footnote legend ⁱ/ⁱⁱ/ⁱⁱⁱ established)
+
+---
+
 ## 2026-05-20 — iter291 · Field-Leadership umbrella coaching density lift · CLOSED
 
 Third and final closure of the iter288-audit sequence. Field-Leadership umbrella was matrix-yellow because 7 of 10 FL record kinds shipped with zero coaching mount. iter291 closes those orphans without restructuring the umbrella.

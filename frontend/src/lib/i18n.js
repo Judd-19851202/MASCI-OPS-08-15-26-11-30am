@@ -3321,6 +3321,58 @@ const ES = {
   "Expiring soon": "Vence pronto",
   "Could not load driver qualification dashboard": "No se pudo cargar el tablero de calificación de conductor",
 
+  // ─── Fire Extinguishers (iter293) ──────────────────────────────
+  // Keys NOT duplicated below already exist with established
+  // translations (Pass="Cumple" · Fail="No Cumple" · Status="Estado" ·
+  // Notes="Notas" · Cancel · Save · Loading… · Type · Size · Unit ID ·
+  // Inspection date · Inspector name · Last status · Last inspection
+  // date · Next due date · Next due date (optional) · How is next-due
+  // calculated? · Leave blank … · Defaults to signed-in safety user ·
+  // Linked equipment (optional) · etc). iter293 adds ONLY the labels
+  // that were genuinely missing from the registry.
+  "Fire Extinguishers": "Extintores",
+  "SAFETY · FIRE EXTINGUISHER REGISTER": "SEGURIDAD · REGISTRO DE EXTINTORES",
+  "Track every fire extinguisher unit across trucks, jobsites, and facilities. Monthly inspections push status + next-due date + the inspection log automatically.":
+    "Lleve el control de cada extintor en camiones, obras e instalaciones. Las inspecciones mensuales actualizan estatus, próxima fecha y bitácora automáticamente.",
+  "Bulk Import": "Importación Masiva",
+  "Add Extinguisher": "Agregar Extintor",
+  "Add fire extinguisher": "Agregar extintor",
+  "Edit extinguisher": "Editar extintor",
+  "One record per physical unit. Logging inspections later updates this row + adds to history.":
+    "Un registro por unidad física. Registrar inspecciones después actualiza esta fila y agrega al historial.",
+  "Filter by unit, location, type…": "Filtrar por unidad, ubicación, tipo…",
+  "No extinguishers": "No hay extintores",
+  "Add the first one above.": "Agregue el primero arriba.",
+  "Try a different filter.": "Pruebe un filtro diferente.",
+  // Tabs (Pass / Fail / Status already translated — Cumple / No Cumple / Estado)
+  "All": "Todos",
+  "Needs Service": "Necesita Servicio",
+  "Overdue": "Vencido",
+  // Table headers
+  "Unit": "Unidad",
+  "Location": "Ubicación",
+  "Type / Size": "Tipo / Tamaño",
+  "Last Inspect": "Última Inspección",
+  "Next Due": "Próximo Vence",
+  "Actions": "Acciones",
+  // Row chip — location_kind values
+  "truck": "camión",
+  "job": "obra",
+  "facility": "instalación",
+  // Form Select labels for location-kind
+  "Location kind": "Tipo de ubicación",
+  "Location value": "Ubicación",
+  "Truck #": "Camión #",
+  "Job # / Project": "Obra # / Proyecto",
+  "Facility": "Instalación",
+  // Inspect dialog
+  "Log inspection": "Registrar inspección",
+  "Saves the result + auto-stamps next due date (defaults to +30 days).":
+    "Guarda el resultado y auto-marca la próxima fecha (por defecto +30 días).",
+  "Attachments & PDF history": "Adjuntos e historial PDF",
+  "Delete failed": "Falló al borrar",
+  "e.g. Truck 12 / Job 220 / Shop": "ej. Camión 12 / Obra 220 / Taller",
+
 };
 
 const DICTS = { es: ES, en: {} };
