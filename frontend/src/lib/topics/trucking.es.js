@@ -4,6 +4,8 @@
 export const TOPICS_TRUCKING_ES = {
   dump_truck: {
     title: "Operaciones de Camión de Volteo",
+    incident_pattern:
+      "Las fatalidades de camión de volteo siguen tres patrones que los choferes experimentados reconocen a primera vista. Uno — la volcadura por suelo blando durante la descarga: el chofer se mete a un área de relleno sin verificar compactación, la caja levantada mueve el centro de gravedad, la rueda exterior del lado alto se hunde, todo el camión se vuelca con la caja arriba. Dos — atropello a un trabajador a pie cerca de la parte trasera: el chofer suelta la carga, avanza para despejar, y un peón que pisó atrás para revisar material queda atrapado en el punto ciego. Tres — golpe aéreo con la caja todavía levantada. Los tres se abordan con la misma disciplina pre-turno: caminar el sitio de descarga, revisar arriba, poner el freno, contacto visual con el spotter antes de cualquier movimiento.",
     hazards_reviewed: "Volcadura al descargar (suelo desigual / suave) · Golpe por caja levantada o portón · Contacto con línea aérea al descargar · Atropello al hacer spotter · Quemaduras por motor / escape",
     discussion_notes: "• Descargar solo en suelo nivelado y firme.\n• Verificar SIN obstáculos aéreos (líneas, ramas, estructuras) antes de levantar caja.\n• Conductor permanece en cabina al descargar; spotter fuera de la línea de caída.\n• Portón despejado de obstrucciones antes de levantar.\n• Nadie entre el camión y el equipo cargándolo.\n• Inspección pre-viaje diaria.",
     references_cited: "OSHA 1926.601 · DOT FMCSA Pre-Trip · Manual del Fabricante",
