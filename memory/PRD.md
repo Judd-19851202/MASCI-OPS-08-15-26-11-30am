@@ -1,5 +1,38 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 — iter288 · Driver Qualification Lightweight Operational Dashboard · CLOSED
+
+Capstone iteration of the iter284 §8.2 Driver Qualification cluster. Read-only operational visibility surface — NOT a dispatch system, NOT a compliance platform.
+
+### iter288 — Lightweight Operational Dashboard (CLOSED)
+- **Backend:** `GET /api/hr/driver-qualification/dashboard` returns `{ items, count, summary, as_of }`. HR/Admin scope only. Read-only (no insert/update/delete calls in the handler — test-enforced).
+- **Filters:** `cdl_holder`, `approved`, `driver_status`, `endorsement`, `expiring_cdl_30d`, `expiring_medical_30d`, `q`.
+- **Summary cards (5):** CDL expiring 30d · medical card expiring 30d · restricted · suspended · **tanker-capable (N OR X)** — MASCI asphalt-oil operational anchor.
+- **Boundary discipline coached:** new `driver-qualification.dashboard` family carries canonical 4 + a **mistake (boundary) tip** that explicitly names what the dashboard is NOT (dispatch, compliance, auto-revoke, assignment automation, trucking-management product). Test enforces the boundary words in both EN and ES bodies.
+- **Frontend:** `/hr/driver-qualification` page (`HrDriverQualificationDashboard.jsx`) reuses `HrPageShell` + dense table + status chip filters + endorsement chip filters + tri-toggle Yes/No/Any. HR Hub tile added (emerald-800).
+- **Data discipline:** zero new collections, zero new schema fields, zero second-expiration-engine. Reads from the same `employees` rows iter286/iter287 populated; the iter286 mirror still owns the `document_expirations` projection for the existing scanner.
+- **Tests:** `test_iter288_driver_qualification_dashboard.py` — 13/13 ✅.
+- **Live verified:** 6/6 endpoint behaviors green; frontend smoke confirms all 5 summary cards + N-filter + status chips + 8 coaching tips render.
+
+### Combined regression
+- **178/178 unit pytests** across iter224 / iter225 / iter282 / iter283 / iter285 / iter286 / iter287 / iter288.
+
+### Governance note
+The Driver Qualification audit cluster (iter285 → iter288) is now operationally closed: lifecycle dates · CDL/approved foundation · endorsements/restrictions · operational visibility dashboard. No widening. The matrix row split for "Driver Qualification" as its own workflow remains deferred per governance principle 4 (minimal symbols, no PMO bureaucracy).
+
+### Files touched (iter288)
+- MOD · `/app/backend/routes/employee_lifecycle.py` (+ dashboard endpoint, ~125 lines)
+- MOD · `/app/backend/guidance/tips.py` (+5 EN tips · `driver-qualification.dashboard` family)
+- MOD · `/app/backend/guidance/tips_es.py` (+5 ES tips)
+- NEW · `/app/frontend/src/pages/HrDriverQualificationDashboard.jsx`
+- MOD · `/app/frontend/src/App.js` (route + import)
+- MOD · `/app/frontend/src/pages/HrHub.jsx` (+1 tile · Truck icon import)
+- MOD · `/app/frontend/src/lib/i18n.js` (+32 ES UI keys)
+- NEW · `/app/backend/tests/test_iter288_driver_qualification_dashboard.py`
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (ship-log entry)
+
+---
+
 ## 2026-05-20 — iter286 + iter287 · Driver Qualification cluster · CLOSED
 
 Two bounded closure iterations executed back-to-back under the governance loop. Both verified against unit tests, live API, and frontend smoke.

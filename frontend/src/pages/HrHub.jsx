@@ -2,7 +2,7 @@
 // Employee Accountability · Time Verification · Training Records.
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck, Calculator, CalendarOff, KeyRound, Home, ArrowLeft, BookOpen, Receipt } from "lucide-react";
+import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck, Calculator, CalendarOff, KeyRound, Home, ArrowLeft, BookOpen, Receipt, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -56,6 +56,9 @@ const TILES = [
   { to: "/hr/training-records", icon: GraduationCap, label: "Training Records",
     desc: "Completed tracks · certifications · training compliance roster",
     accent: "border-purple-500 bg-purple-50", btn: "bg-purple-700 hover:bg-purple-800" },
+  { to: "/hr/driver-qualification", icon: Truck, label: "Driver Qualification",
+    desc: "Read-only operational visibility · CDL holders · approved drivers · endorsements · expirations · tanker-capable list",
+    accent: "border-emerald-600 bg-emerald-50", btn: "bg-emerald-800 hover:bg-emerald-900" },
   { to: "/hr/safety-records", icon: ShieldCheck, label: "Safety Records",
     desc: "Read-only · safety document library (OSHA, SDS, EAPs) and per-employee training & certifications maintained by Safety",
     accent: "border-cyan-700 bg-cyan-50", btn: "bg-cyan-700 hover:bg-cyan-800" },

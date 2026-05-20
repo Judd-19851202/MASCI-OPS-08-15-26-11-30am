@@ -2889,6 +2889,84 @@ _TIPS: list[dict] = [
             "both worth recording.",
     },
 
+    # ─────────────────────────────────────────────────────────────────
+    # iter288 · driver-qualification.dashboard coaching family.
+    #
+    # The dashboard is operational visibility — it answers questions
+    # at-a-glance, it does not assign work. Coaching here protects
+    # the boundary: the page is a list, not a workflow engine.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "driver-qualification.dashboard",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why this dashboard exists",
+        "body":
+            "Driver qualification used to live in tribal knowledge — "
+            "who has a CDL, who's tanker-capable, whose medical card "
+            "is about to lapse. This dashboard puts those questions "
+            "on one page so HR can answer them at a glance. It is "
+            "visibility, not assignment logic. Dispatch and Fleet "
+            "read this same data, but the decision to put someone "
+            "on a route stays with the people who already make that "
+            "decision today.",
+    },
+    {
+        "form_key": "driver-qualification.dashboard",
+        "kind": "who",
+        "scopes": ["hr", "admin"],
+        "title": "Who uses this page and how",
+        "body":
+            "HR uses it daily — who's expiring, who's restricted, "
+            "who's suspended. Dispatch uses it before assignment — "
+            "who has Tanker (N or X), who's approved, who's not. "
+            "Safety uses it during incident review — was this "
+            "operator legitimately cleared at the time. Read-only "
+            "for everyone. Edits happen on the Employee record in "
+            "the HR portal, never here.",
+    },
+    {
+        "form_key": "driver-qualification.dashboard",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What to do with the 30-day expiration cards",
+        "body":
+            "Two cards count CDLs and medical cards expiring in 30 "
+            "days. Call those operators. The document-expirations "
+            "scanner already alerts on the same dates, but the "
+            "card here is the gut-check: is the number zero, one, "
+            "or ten? A phone call beats a bulk email — that is the "
+            "operator-stated standard and it holds here too.",
+    },
+    {
+        "form_key": "driver-qualification.dashboard",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When a row tells you to stop an assignment",
+        "body":
+            "If you see Suspended, or Restricted with an active "
+            "assignment, or an expired CDL/medical card with someone "
+            "still running, that is the escalation point. Phone "
+            "call to the supervisor, flip Approved Company Driver "
+            "off, document why and when. The dashboard surfaces "
+            "the row — the human still makes the call.",
+    },
+    {
+        "form_key": "driver-qualification.dashboard",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "What this dashboard is NOT",
+        "body":
+            "It is not a dispatch system. It is not a compliance "
+            "platform. It does not auto-revoke approved-driver "
+            "status when something expires (that decision stays "
+            "human, intentionally). It does not assign loads. It "
+            "does not enforce qualification at the moment of "
+            "assignment. Read those guardrails — building any of "
+            "that here would mean MASCI now owns a trucking-"
+            "management product, which is exactly what we said no to.",
+    },
+
 
     # ═════════════════════════════════════════════════════════════════
     # iter225 · document-expirations · Tier-2 (hr + safety + admin).

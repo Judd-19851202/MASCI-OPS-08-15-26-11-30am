@@ -2095,6 +2095,68 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "valen la pena registrarse.",
     },
 
+    # ── iter288 · driver-qualification.dashboard ──────────────────────
+    ("driver-qualification.dashboard", "why"): {
+        "title_es": "Por qué existe este tablero",
+        "body_es":
+            "La calificación de conductor antes vivía en el "
+            "conocimiento tribal — quién tiene CDL, quién puede "
+            "manejar tanque, a quién se le vence la tarjeta "
+            "médica pronto. Este tablero pone esas preguntas en "
+            "una sola página para que RH las responda de un "
+            "vistazo. Es visibilidad, no lógica de asignación. "
+            "Despacho y Flota leen los mismos datos, pero la "
+            "decisión de poner a alguien en una ruta se queda con "
+            "las personas que ya toman esa decisión hoy.",
+    },
+    ("driver-qualification.dashboard", "who"): {
+        "title_es": "Quién usa esta página y cómo",
+        "body_es":
+            "RH la usa a diario — quién está por vencerse, quién "
+            "está restringido, quién está suspendido. Despacho la "
+            "usa antes de asignar — quién tiene Tanque (N o X), "
+            "quién está aprobado, quién no. Seguridad la usa "
+            "durante la revisión de un incidente — ¿este operador "
+            "estaba legítimamente autorizado en ese momento? Solo "
+            "lectura para todos. Las ediciones se hacen en el "
+            "registro del Empleado en el portal de RH, nunca aquí.",
+    },
+    ("driver-qualification.dashboard", "next"): {
+        "title_es": "Qué hacer con las tarjetas de vencimiento a 30 días",
+        "body_es":
+            "Dos tarjetas cuentan CDLs y tarjetas médicas que "
+            "vencen en 30 días. Llame a esos operadores. El "
+            "escáner de document-expirations ya alerta sobre las "
+            "mismas fechas, pero la tarjeta aquí es el chequeo "
+            "rápido: ¿el número es cero, uno, o diez? Una llamada "
+            "telefónica le gana a un correo masivo — ese es el "
+            "estándar operacional indicado y aplica aquí también.",
+    },
+    ("driver-qualification.dashboard", "escalate"): {
+        "title_es": "Cuándo una fila le dice que detenga una asignación",
+        "body_es":
+            "Si ve Suspendido, o Restringido con una asignación "
+            "activa, o una CDL/tarjeta médica vencida con alguien "
+            "todavía manejando, ese es el punto de escalación. "
+            "Llamada al supervisor, ponga Conductor Aprobado por "
+            "la Compañía en no, documente por qué y cuándo. El "
+            "tablero saca la fila — el humano sigue tomando la "
+            "decisión.",
+    },
+    ("driver-qualification.dashboard", "mistake"): {
+        "title_es": "Lo que este tablero NO es",
+        "body_es":
+            "No es un sistema de despacho. No es una plataforma "
+            "de cumplimiento. No revoca automáticamente el "
+            "estatus de conductor aprobado cuando algo vence (esa "
+            "decisión se queda humana, a propósito). No asigna "
+            "cargas. No fuerza la calificación en el momento de "
+            "asignar. Lea esas barreras — construir cualquiera de "
+            "esas cosas aquí significaría que MASCI ahora es dueña "
+            "de un producto de gestión de transporte, que es "
+            "exactamente a lo que dijimos no.",
+    },
+
 
 
 

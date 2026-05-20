@@ -3289,6 +3289,38 @@ const ES = {
   "Air Brake Restriction": "Restricción de Freno de Aire",
   "Manual Transmission Restriction": "Restricción de Transmisión Manual",
 
+  // ─── HR Driver Qualification Dashboard (iter288) ──────────────
+  "Driver Qualification Dashboard": "Tablero de Calificación de Conductores",
+  "HR · Operational Visibility": "RH · Visibilidad Operacional",
+  "CDL Expiring 30d": "CDL Vence 30d",
+  "Medical Card Expiring 30d": "Tarjeta Médica Vence 30d",
+  "Restricted": "Restringido",
+  "Suspended": "Suspendido",
+  "Tanker-Capable": "Capaz de Tanque",
+  "Read-only operational visibility · CDL holders · approved drivers · endorsements · expirations · tanker-capable list":
+    "Visibilidad operacional de solo lectura · titulares de CDL · conductores aprobados · endosos · vencimientos · lista capaz de tanque",
+  "Name · ID · CDL #": "Nombre · ID · # de CDL",
+  "Any": "Cualquiera",
+  "Yes": "Sí",
+  "No": "No",
+  "Endorsement": "Endoso",
+  "No matching drivers": "No hay conductores que coincidan",
+  "Adjust filters above, or add driver qualification data on an employee record in the HR portal.":
+    "Ajuste los filtros arriba, o agregue datos de calificación de conductor en el registro de un empleado en el portal de RH.",
+  "Driver": "Conductor",
+  "CDL": "CDL",
+  "Approved": "Aprobado",
+  "Endorsements": "Endosos",
+  "Restrictions": "Restricciones",
+  "CDL Exp": "Venc. CDL",
+  "Medical Exp": "Venc. Médica",
+  "Drivers": "Conductores",
+  "Air Brake": "Freno de Aire",
+  "Manual": "Manual",
+  "Expired": "Vencido",
+  "Expiring soon": "Vence pronto",
+  "Could not load driver qualification dashboard": "No se pudo cargar el tablero de calificación de conductor",
+
 };
 
 const DICTS = { es: ES, en: {} };

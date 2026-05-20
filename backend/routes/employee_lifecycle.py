@@ -1001,6 +1001,131 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             ),
         }
 
+    # ── iter288 · Driver Qualification operational dashboard ──────
+    # Read-only visibility surface for HR/Admin. Filterable list +
+    # tiny summary counts. NOT a compliance-management system. NOT
+    # a dispatch-assignment tool. Just answers operational questions:
+    #   - Who can legally drive?
+    #   - Who is approved internally?
+    #   - Who has restricted/suspended status?
+    #   - What expires soon?
+    #   - Who can haul tanker?
+    @router.get("/api/hr/driver-qualification/dashboard")
+    async def driver_qualification_dashboard(
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+        cdl_holder: Optional[bool] = Query(default=None),
+        approved: Optional[bool] = Query(default=None),
+        driver_status: Optional[str] = Query(default=None),
+        endorsement: Optional[str] = Query(default=None),
+        expiring_cdl_30d: Optional[bool] = Query(default=None),
+        expiring_medical_30d: Optional[bool] = Query(default=None),
+        q: Optional[str] = Query(default=None, max_length=80),
+        limit: int = Query(default=500, ge=1, le=2000),
+    ) -> Dict[str, Any]:
+        from datetime import date, timedelta
+        today = date.today()
+        cutoff_30d = (today + timedelta(days=30)).isoformat()
+        today_iso = today.isoformat()
+
+        # Base scope: non-deleted, employees who have any
+        # driver-qualification signal at all (cdl_holder=True OR
+        # approved=True OR any expiration date set). Avoids showing
+        # the entire roster on the driver-visibility surface.
+        base: Dict[str, Any] = {
+            "deleted_at": None,
+            "$or": [
+                {"cdl_holder": True},
+                {"approved_company_driver": True},
+                {"cdl_expiration_date": {"$ne": None, "$exists": True}},
+                {"medical_card_expiration_date": {"$ne": None, "$exists": True}},
+            ],
+        }
+
+        clauses: List[Dict[str, Any]] = [base]
+        if cdl_holder is not None:
+            clauses.append({"cdl_holder": cdl_holder})
+        if approved is not None:
+            clauses.append({"approved_company_driver": approved})
+        if driver_status:
+            if driver_status not in ALLOWED_DRIVER_STATUSES:
+                raise HTTPException(
+                    400,
+                    f"driver_status must be one of {sorted(ALLOWED_DRIVER_STATUSES)}",
+                )
+            clauses.append({"driver_status": driver_status})
+        if endorsement:
+            if endorsement not in ALLOWED_CDL_ENDORSEMENTS:
+                raise HTTPException(
+                    400,
+                    f"endorsement must be one of {sorted(ALLOWED_CDL_ENDORSEMENTS)}",
+                )
+            clauses.append({"cdl_endorsements": endorsement})
+        if expiring_cdl_30d:
+            clauses.append({
+                "cdl_expiration_date": {"$gte": today_iso, "$lte": cutoff_30d}
+            })
+        if expiring_medical_30d:
+            clauses.append({
+                "medical_card_expiration_date": {"$gte": today_iso, "$lte": cutoff_30d}
+            })
+        if q:
+            clauses.append({"$or": [
+                {"name": {"$regex": q, "$options": "i"}},
+                {"employee_id": {"$regex": q, "$options": "i"}},
+                {"cdl_license_number": {"$regex": q, "$options": "i"}},
+            ]})
+
+        # Projection trims the document to just what the dashboard
+        # needs — keeps the response small and the surface read-only.
+        projection = {
+            "_id": 0,
+            "id": 1, "name": 1, "employee_id": 1,
+            "trade": 1, "supervisor": 1, "lifecycle_status": 1,
+            "cdl_holder": 1, "approved_company_driver": 1,
+            "driver_status": 1, "cdl_license_number": 1, "cdl_state": 1,
+            "cdl_expiration_date": 1, "medical_card_expiration_date": 1,
+            "cdl_endorsements": 1, "cdl_restrictions": 1,
+        }
+
+        final = {"$and": clauses}
+        cur = db.employees.find(final, projection).sort("name", 1).limit(limit)
+        items: List[Dict[str, Any]] = []
+        async for d in cur:
+            items.append(d)
+
+        # Tiny summary cards — computed over the SAME base scope (NOT
+        # over the filtered slice). The cards exist to give the
+        # operational picture independent of whatever the user is
+        # currently filtering on; if you filtered them, the counts
+        # would just mirror the table length and add no value.
+        async def _count(extra: Dict[str, Any]) -> int:
+            return await db.employees.count_documents({"$and": [base, extra]})
+
+        summary = {
+            "cdl_expiring_30d": await _count({
+                "cdl_expiration_date": {"$gte": today_iso, "$lte": cutoff_30d}
+            }),
+            "medical_card_expiring_30d": await _count({
+                "medical_card_expiration_date": {"$gte": today_iso, "$lte": cutoff_30d}
+            }),
+            "restricted": await _count({"driver_status": "restricted"}),
+            "suspended": await _count({"driver_status": "suspended"}),
+            # MASCI-operational anchor: Tanker-capable means the
+            # employee carries an N endorsement OR an X (combined)
+            # endorsement on their CDL. Either one legally permits
+            # tanker operation.
+            "tanker_capable": await _count({
+                "cdl_endorsements": {"$in": ["N", "X"]}
+            }),
+        }
+
+        return {
+            "items": items,
+            "count": len(items),
+            "summary": summary,
+            "as_of": today_iso,
+        }
+
     # ── Lifecycle index bootstrap helper ─────────────────────────────
     return router
 
@@ -1020,4 +1145,6 @@ __all__ = [
     "ALLOWED_LIFECYCLE_STATUSES",
     "ALLOWED_SEPARATION_TYPES",
     "ALLOWED_DRIVER_STATUSES",
+    "ALLOWED_CDL_ENDORSEMENTS",
+    "ALLOWED_CDL_RESTRICTIONS",
 ]

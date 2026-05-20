@@ -96,6 +96,7 @@ import HrFieldLeadership from "@/pages/HrFieldLeadership";
 import HrEmployeeAccountability from "@/pages/HrEmployeeAccountability";
 import HrTrainingRecords from "@/pages/HrTrainingRecords";
 import HrPayrollVariance from "@/pages/HrPayrollVariance";
+import HrDriverQualificationDashboard from "@/pages/HrDriverQualificationDashboard";
 import HrTimeOff from "@/pages/HrTimeOff";
 import PublicTimeOff from "@/pages/PublicTimeOff";
 import SafetyLogin from "@/pages/SafetyLogin";
@@ -468,6 +469,7 @@ function App() {
             <Route path="/hr/time-off" element={H(<HrTimeOff />)} />
             <Route path="/hr/payroll-variance" element={H(<HrPayrollVariance />)} />
             <Route path="/hr/training-records" element={H(<HrTrainingRecords />)} />
+            <Route path="/hr/driver-qualification" element={H(<HrDriverQualificationDashboard />)} />
             <Route path="/time-off/public/:token" element={<PublicTimeOff />} />
 
             {/* ============================================================
