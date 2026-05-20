@@ -1,6 +1,56 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-20 — Stabilization phase entry · iter298 (Lane A audit) + iter299 (Lane D hygiene) · CLOSED
+
+### Phase shift
+Platform entered **operational stabilization mode** per operator direction: stop feature expansion, prioritize real-world observation + bilingual continuity + infrastructure hygiene. No new modules, no telemetry expansion, no UI redesigns, no analytics, no dashboards.
+
+### iter298 — Bilingual Continuity Audit (Lane A · visibility-only · NO code)
+Read-only sweep across 8 named operational surfaces. Headline:
+- **165 unresolved `t("...")` calls** across 13 surfaces silently fall back to EN in Spanish locale.
+- 🔴 **137 Leak sites** · 🟡 23 Awkward sites · 🟢 acceptable rest.
+- Highest concentration: **Safety cluster** (`SafetyHub.jsx` 44 keys, `SafetyCorrectiveActions.jsx` 36, `SafetyTrainingRecords.jsx` 17, `SafetyFireExtinguishers.jsx` 13, `SafetyDocuments.jsx` 10, `SafetyIncidents.jsx` 8, `NewIncident.jsx` 18 placeholders, `NewInspection.jsx` 13 placeholders).
+- Audit deliverable: `/app/memory/BILINGUAL_CONTINUITY_AUDIT_iter298.md`.
+- 10 bounded closures proposed (A–J) all DEFERRED to operator approval. No code shipped.
+
+### iter299 — Lane D Operational Hygiene Visibility Log
+Three pre-approved items bundled into one async helper `_log_operational_hygiene(reason, db)`:
+1. Disk-pressure warning at 85% (new `BACKUP_DISK_WARN_WATERMARK=85` env var, strictly between existing 75% prune and 90% abort lines)
+2. Backup retention verification (single log line shows configured retention + oldest/newest age + per-mode counts)
+3. Backup health logging (separate log line reports last successful `backup_health` row)
+
+Fired from: startup event · post-full-backup · post-lite-backup. NO new endpoints, NO new collections, NO new alerts, NO new prune behavior.
+
+**Live verification post-restart:**
+```
+[ops-hygiene] startup · disk=88% (warn≥85% prune≥75%) · backups: total=304 (2290.5 MB) ·
+   full=2 lite=300 complete=2 · retention_days=14 keep_max_full=3 ·
+   oldest_age_days=9.4 newest_age_hours=3.2 · DISK_PRESSURE
+[ops-hygiene] last_backup_health: ok=True mode=complete-r2 filename='MASCI_complete_backup_2026-05-20_202112Z.zip' records=272 size_mb=0.2 ...
+```
+
+The boot log **surfaced** a real operator-visible finding: 300 lite-backup files accumulated since May 11–12 testing — the existing prune logic targets `MASCI_full_backup_*.zip` only. Surfaced as operator signal rather than autonomously cleaned (per stabilization-phase discipline).
+
+### Combined regression
+- **88/88 pytests green** (54 iter296+iter297 · 8 iter299 · 26 iter278–281)
+- Backend ruff clean
+- Helper signature locked + scope guards locked (no new endpoints, no new collections, no write calls, no prune-default changes)
+
+### Files touched (this entry)
+- MOD · `/app/backend/server.py` (+`BACKUP_DISK_WARN_WATERMARK` const · +`_log_operational_hygiene` helper · +startup event handler · +2 in-backup invocations)
+- NEW · `/app/backend/tests/test_iter299_lane_d_operational_hygiene.py` (8 tests)
+- NEW · `/app/memory/BILINGUAL_CONTINUITY_AUDIT_iter298.md` (audit deliverable)
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (ship-log entries for iter298 + iter299)
+
+### Deferred (awaiting operator approval — DO NOT autonomously close)
+- iter298 closure clusters A–J (Safety/HR ES dict population · NewIncident/NewInspection placeholder t()-wrap)
+- Lite-backup orphan cleanup decision (operator-visible signal, not autonomous fix)
+- iter298 still-deferred items from iter296 audit (terse-stub re-classification · section-catalog verification · portal-surface merge)
+
+---
+
+
 ## 2026-05-20 — iter296 + iter297 Guidance Center visibility-first audit closure bundle · CLOSED
 
 ### Audit (preceding)

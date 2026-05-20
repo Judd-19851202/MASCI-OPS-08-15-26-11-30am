@@ -5438,6 +5438,13 @@ BACKUP_KEEP_MAX = int(os.environ.get("BACKUP_KEEP_MAX", "3"))
 # percentage at boot OR right before a backup write, aggressively purge
 # backups down to BACKUP_KEEP_MAX-1. Acts as an emergency brake.
 BACKUP_DISK_HIGH_WATERMARK = int(os.environ.get("BACKUP_DISK_HIGH_WATERMARK", "75"))
+# iter299 · Lane D operational hygiene — visibility-only warning threshold.
+# When disk crosses this percentage we log a WARN line (NOT an alert email,
+# NOT a new collection, NOT a dashboard). Operator surfaces this in logs
+# to decide whether manual intervention is needed. Strictly LESS than the
+# 90% hard-abort threshold inside _run_scheduled_backup so the warning
+# fires earlier than the abort.
+BACKUP_DISK_WARN_WATERMARK = int(os.environ.get("BACKUP_DISK_WARN_WATERMARK", "85"))
 
 
 def _disk_pct_used(path: str = "/app") -> int:
@@ -5448,6 +5455,100 @@ def _disk_pct_used(path: str = "/app") -> int:
         return int((used / total) * 100) if total else 0
     except Exception:
         return 0
+
+
+
+async def _log_operational_hygiene(reason: str = "startup", db=None) -> None:
+    """iter299 · Lane D · Operational hygiene visibility log.
+
+    Lightweight, visibility-only. Emits a structured log line summarizing:
+      - Disk usage % (with WARN-level severity at ≥ BACKUP_DISK_WARN_WATERMARK).
+      - Backup file inventory (count + total MB, broken down by full/lite/complete).
+      - Configured retention (BACKUP_RETENTION_DAYS · BACKUP_KEEP_MAX).
+      - Oldest and newest backup ages so retention windows can be verified.
+      - Last `backup_health` row (mode/ok/filename/size/records/ts).
+
+    Strict scope per operator direction:
+      - NO new endpoints. NO new collections. NO new alerts/emails.
+      - NO new prune behavior (existing _emergency_prune_backups logic untouched).
+      - This is a LOG LINE intended for the operator to surface manually.
+
+    Async — fired from `@app.on_event("startup")` and from inside the scheduled
+    backup runner. Never raises into the caller.
+    """
+    try:
+        pct = _disk_pct_used()
+        full_count = lite_count = complete_count = 0
+        full_bytes = lite_bytes = complete_bytes = 0
+        oldest_ts = newest_ts = None
+        try:
+            BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+            for p in BACKUPS_DIR.glob("MASCI_*backup*.zip"):
+                try:
+                    st = p.stat()
+                except Exception:
+                    continue
+                name = p.name
+                size = st.st_size
+                mtime = st.st_mtime
+                if name.startswith("MASCI_full_backup_"):
+                    full_count += 1
+                    full_bytes += size
+                elif name.startswith("MASCI_lite_backup_"):
+                    lite_count += 1
+                    lite_bytes += size
+                elif name.startswith("MASCI_complete_backup_"):
+                    complete_count += 1
+                    complete_bytes += size
+                if oldest_ts is None or mtime < oldest_ts:
+                    oldest_ts = mtime
+                if newest_ts is None or mtime > newest_ts:
+                    newest_ts = mtime
+        except Exception:
+            pass
+
+        now_ts = datetime.now(timezone.utc).timestamp()
+        oldest_age_days = f"{(now_ts - oldest_ts) / 86400.0:.1f}" if oldest_ts else "n/a"
+        newest_age_hours = f"{(now_ts - newest_ts) / 3600.0:.1f}" if newest_ts else "n/a"
+        total_count = full_count + lite_count + complete_count
+        total_mb = (full_bytes + lite_bytes + complete_bytes) / (1024 * 1024)
+
+        msg = (
+            f"[ops-hygiene] {reason} · disk={pct}% "
+            f"(warn≥{BACKUP_DISK_WARN_WATERMARK}% prune≥{BACKUP_DISK_HIGH_WATERMARK}%) · "
+            f"backups: total={total_count} ({total_mb:.1f} MB) · "
+            f"full={full_count} lite={lite_count} complete={complete_count} · "
+            f"retention_days={BACKUP_RETENTION_DAYS} keep_max_full={BACKUP_KEEP_MAX} · "
+            f"oldest_age_days={oldest_age_days} newest_age_hours={newest_age_hours}"
+        )
+        if pct >= BACKUP_DISK_WARN_WATERMARK:
+            logger.warning(msg + " · DISK_PRESSURE")
+        else:
+            logger.info(msg)
+
+        if db is not None:
+            try:
+                latest = await db.backup_health.find_one(
+                    {"ok": True}, sort=[("ts", -1)], projection={"_id": 0},
+                )
+                if latest:
+                    logger.info(
+                        f"[ops-hygiene] last_backup_health: "
+                        f"ok={latest.get('ok')} mode={latest.get('mode')} "
+                        f"filename={latest.get('filename')!r} "
+                        f"records={latest.get('records', 0)} "
+                        f"size_mb={(latest.get('size_bytes', 0) or 0) / (1024*1024):.1f} "
+                        f"ts={latest.get('ts')}"
+                    )
+                else:
+                    logger.info("[ops-hygiene] last_backup_health: <no rows yet>")
+            except Exception as e:  # noqa: BLE001
+                logger.info(f"[ops-hygiene] last_backup_health read skipped ({e})")
+    except Exception as e:  # noqa: BLE001
+        try:
+            logger.warning(f"[ops-hygiene] log emit failed (non-fatal): {e}")
+        except Exception:
+            pass
 
 
 def _emergency_prune_backups(reason: str) -> int:
@@ -5677,6 +5778,11 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
                 records=stats.get("total_records", 0), emailed_to=emailed_to,
                 mode="lite",
             )
+            # iter299 · Lane D — hygiene log line after lite-backup run.
+            try:
+                await _log_operational_hygiene(reason="post_lite_backup", db=db)
+            except Exception:
+                pass
             return {
                 "filename": slim_out.name,
                 "size_bytes": slim_size,
@@ -5713,6 +5819,13 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
             db, ok=True, filename=out.name, size_bytes=size_bytes,
             records=total_records, emailed_to=emailed_to, mode="full",
         )
+        # iter299 · Lane D — emit a hygiene log line after every successful
+        # full backup so operators can verify retention + disk pressure
+        # without hitting any endpoint.
+        try:
+            await _log_operational_hygiene(reason="post_full_backup", db=db)
+        except Exception:
+            pass
         return {
             "filename": out.name,
             "size_bytes": size_bytes,
@@ -8903,6 +9016,16 @@ async def _seed_shop_users():
 async def _seed_hr_users():
     from hr_users import seed_hr_users
     await seed_hr_users(db)
+
+
+# iter299 · Lane D operational hygiene — visibility-only log line at boot.
+# Emits a single structured line under tag `[ops-hygiene]` so operators can
+# grep startup logs for disk pressure + backup inventory + retention config.
+# NO new endpoints, NO new collections, NO alerts.
+@app.on_event("startup")
+async def _log_operational_hygiene_at_startup():
+    await _log_operational_hygiene(reason="startup", db=db)
+
 
 
 @app.on_event("startup")
