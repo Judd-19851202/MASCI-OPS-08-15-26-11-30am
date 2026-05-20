@@ -32,6 +32,7 @@ import SignatureCapture from "@/components/SignatureCapture";
 import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { HelpTip } from "@/components/ui/HelpTip";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { useRememberedFilter } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
 import { Link } from "react-router-dom";
@@ -310,6 +311,8 @@ export default function SafetyCorrectiveActions() {
       </div>
 
       {/* Filter tabs */}
+      {/* iter274 · page-root coaching · canonical 4 kinds */}
+      <HelpTipBlock formKey="corrective" className="mb-3" showCounter />
       <div className="flex flex-wrap gap-2 mb-4 border-b-2 border-slate-200 pb-3">
         {TABS.map((t) => (
           <button
@@ -629,6 +632,8 @@ export default function SafetyCorrectiveActions() {
             </div>
             {dlg.mode === "edit" && (
               <div>
+                {/* iter274 · close-out coaching (edit mode only) */}
+                <HelpTipBlock formKey="corrective.close" className="mb-2" />
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Completion notes")}</Label>
                 <Textarea
                   value={dlg.form.completion_notes || ""}

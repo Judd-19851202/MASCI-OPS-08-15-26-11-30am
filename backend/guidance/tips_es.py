@@ -2805,4 +2805,140 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "si no, este registro está incompleto operacionalmente "
             "aunque esté completo legalmente.",
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter274 · Acciones Correctivas de Seguridad
+    # Voz: coordinador de seguridad que ha visto demasiados hallazgos
+    # de 'ya le caemos' morir en reportes viejos.
+    # ─────────────────────────────────────────────────────────────────
+
+    ("corrective", "why"): {
+        "title_es": "Por qué las acciones correctivas son su propio registro",
+        "body_es":
+            "Un hallazgo en un incidente, inspección o auditoría es una "
+            "foto. Una acción correctiva es el trabajo que la cierra. "
+            "Registro separado porque el hallazgo y el cierre rara vez "
+            "pertenecen a la misma persona, la misma semana, o a veces "
+            "la misma fase del proyecto.",
+    },
+    ("corrective", "who"): {
+        "title_es": "Quién lee esta cola",
+        "body_es":
+            "Seguridad revisa las pestañas Abierto y Vencido a diario. "
+            "El PM busca los ítems amarrados a su número de proyecto. "
+            "El dueño asignado la lee porque su nombre está ahí. Las "
+            "auditorías de Admin o del dueño jalan la cola para ver "
+            "cómo los hallazgos realmente se resuelven — no solo cuánto "
+            "se encuentran.",
+    },
+    ("corrective", "next"): {
+        "title_es": "Qué pasa mientras la CA se mueve en el pipeline",
+        "body_es":
+            "Abierto = dueño asignado, trabajo no iniciado. En Progreso "
+            "= trabajo en curso. Pendiente Revisión = el dueño dice que "
+            "está hecho — Seguridad verifica antes de cerrar. Cerrado = "
+            "evidencia en el registro + firma reconocida. Saltar "
+            "Pendiente Revisión rompe el rastro de auditoría.",
+    },
+    ("corrective", "escalate"): {
+        "title_es": "Cuándo escalar o parar el trabajo",
+        "body_es":
+            "CA crítica vencida. Hallazgo repetido en el mismo equipo, "
+            "empleado o cuadrilla sub — la tercera ocurrencia es una "
+            "conversación de contrato, no otra CA. CA abierta sin dueño "
+            "por 48+ horas. Llame a Seguridad, súbalo al PM, documente "
+            "la escalación en el campo de notas.",
+    },
+
+    ("corrective.create", "why"): {
+        "title_es": "Por qué cada campo de este diálogo importa",
+        "body_es":
+            "El título es lo que alguien escaneando la cola lee. La "
+            "descripción es lo que el dueño lee cuando está confundido. "
+            "La liga de origen es lo que el auditor lee en 18 meses. "
+            "Saltar cualquiera no ahorra tiempo — empuja el trabajo a "
+            "la siguiente persona.",
+    },
+    ("corrective.create", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Títulos como 'Seguimiento de seguridad' o 'Arreglar "
+            "asunto' — inútiles en una lista de 80. Asignar a 'la "
+            "cuadrilla' en vez de a un dueño con nombre. Sin liga al "
+            "registro de origen. Fecha límite a 30 días para una "
+            "prioridad Crítica. Número de proyecto en blanco porque "
+            "el origen ya lo tiene.",
+    },
+    ("corrective.create", "example"): {
+        "title_es": "Una CA que se cierra sola",
+        "body_es":
+            "Título: 'Instalar estación lavaojos en remolque de descanso "
+            "del trabajo 220'. Origen: Inspección 4A2C-… Prioridad: "
+            "Alta. Dueño: J. Cruz (nombre + correo). Vence: 5 días. "
+            "Descripción: 'Requerido por OSHA por exposición química en "
+            "el plan de trabajo. Enviar al trabajo el viernes, foto de "
+            "confirmación requerida.' Una lectura, un dueño, una fecha.",
+    },
+    ("corrective.create", "escalate"): {
+        "title_es": "Disciplina de prioridad",
+        "body_es":
+            "Crítica = peligro inminente o exposición regulatoria. "
+            "Fechas del mismo día o el siguiente turno. Alta = riesgo "
+            "real, esta semana. Media = dentro de 2 semanas. Baja = "
+            "dentro del mes. Marcar todo Alto aplana la señal — el "
+            "siguiente lector no puede decir qué arreglar primero.",
+    },
+
+    ("corrective.close", "why"): {
+        "title_es": "Por qué el cierre requiere evidencia",
+        "body_es":
+            "Una CA cerrada con 'hecho' en las notas es una CA que no "
+            "está cerrada — está archivada. Las notas de completado "
+            "describen qué realmente cambió, con fecha y referencia. "
+            "La firma del empleado es el reconocimiento de que la "
+            "persona afectada vio el cierre. Ambas hacen el registro "
+            "listo para auditoría.",
+    },
+    ("corrective.close", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Cerrar la CA antes de que el trabajo realmente se "
+            "verifique en sitio (marque Pendiente Revisión en su lugar "
+            "— Seguridad cierra después de verificar). Notas de "
+            "completado que solo dicen 'completado' o 'hecho'. Saltar "
+            "la firma del empleado porque 'ya lo sabe'. Cerrar en "
+            "viernes sin confirmar el traspaso del siguiente turno.",
+    },
+    ("corrective.close", "next"): {
+        "title_es": "Qué pasa después de Cerrado",
+        "body_es":
+            "La CA se queda en el registro de cumplimiento del "
+            "proyecto. La revisión de tendencia la usa para rastrear la "
+            "velocidad de cierre por dueño, prioridad y tipo de origen. "
+            "Si el mismo hallazgo se repite después, el registro "
+            "cerrado prueba qué se hizo la última vez — y expone qué "
+            "no quedó.",
+    },
+
+    # iter274 · canonical-4 fills (ES)
+    ("fleet.dvir", "escalate"): {
+        "title_es": "Cuándo un defecto DVIR para la unidad",
+        "body_es":
+            "Defectos críticos — frenos, dirección, luces de noche, "
+            "fugas de fluido bajo la cabina, llantas bajo el banda — "
+            "significan Fuera de Servicio. No ruede. No 'solo hasta el "
+            "otro lado del patio.' Llame al Taller, llame a Despacho, "
+            "documente el defecto con foto. El DVIR es el registro "
+            "legal de que la llamada se hizo.",
+    },
+    ("material-calculator", "who"): {
+        "title_es": "Quién lee los números del cómputo",
+        "body_es":
+            "El PM los usa para presupuesto y compra. El PE los revisa "
+            "contra planos. El Super los lee para planear las entregas "
+            "del día y el tamaño de cuadrilla. El dueño / GC puede ver "
+            "las cantidades acumuladas en la facturación mensual. Un "
+            "número equivocado aquí cascadea en una orden equivocada, "
+            "una factura equivocada y un pronóstico equivocado.",
+    },
 }

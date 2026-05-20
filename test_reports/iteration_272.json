@@ -1,0 +1,31 @@
+{
+  "summary": "iter274 — Safety Corrective Actions coaching family + Canonical-4 hole fills (fleet.dvir escalate, material-calculator who). Backend pytest 31/31 PASS against the public preview URL — covers density, root canonical kinds (why/who/next/escalate), prefix-ladder inheritance, bilingual contract (title_es+body_es non-empty), conciseness (≤80 EN/≤90 ES words), public-scope, operator-priority surfaces, LMS-tone guard, validator clean, and 6 regression cases on incident/meeting/writeup/daily-report/inspection/qaqc. Spot-checked Spanish titles match spec exactly ('Cuándo un defecto DVIR para la unidad', 'Quién lee los números del cómputo', 'Por qué las acciones correctivas son su propio registro'). Code review of SafetyCorrectiveActions.jsx found ONLY 2 of the 3 spec'd HelpTipBlock mounts wired — corrective.create mount inside the Create dialog is MISSING. Browser-driven UI render verification was blocked by the /safety-portal portal-token guard (403 'You don't have access to Safety Portal') even after multi-login as super admin and using the Switch Portal dropdown.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "SafetyCorrectiveActions.jsx (Create dialog)", "issue": "Spec requires helptip-block-corrective-create mounted at top of the New Corrective Action dialog. Source contains only 2 HelpTipBlock imports/mounts: line 315 (formKey='corrective') and line 636 (formKey='corrective.close'). NO HelpTipBlock with formKey='corrective.create' is rendered anywhere in the dialog (verified via `grep -n HelpTipBlock`). Backend tip data IS available (GET /api/guidance/tips?form_key=corrective.create returns tips), so this is a frontend mount gap, not a data gap.", "selector": "[data-testid='helptip-block-corrective-create']", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter274_corrective_canonical_fills.py",
+    "/app/test_reports/pytest/iter274_results.xml"
+  ],
+  "action_items": [
+    "Add a 3rd HelpTipBlock mount inside the Create-mode branch of the Dialog in /app/frontend/src/pages/SafetyCorrectiveActions.jsx — render <HelpTipBlock formKey='corrective.create' className='mb-2' /> at top of dialog body, gated by dlg.mode === 'create'. The existing mount for corrective.close at line 636 should remain edit-only. After this is added, all 3 spec'd data-testids will render: helptip-block-corrective (page-root, already wired), helptip-block-corrective-create (Create dialog top, MISSING), helptip-block-corrective-close (Edit dialog above Completion notes, already wired)."
+  ],
+  "critical_code_review_comments": [
+    "Frontend mount count mismatch with spec (2 of 3) — corrective.create missing in Create dialog.",
+    "Backend tips registry quality is excellent: bilingual entries match Spanish voice spec verbatim, no LMS tone phrases, all under word caps, prefix-ladder inheritance verified for corrective.close → corrective.",
+    "Backend test file test_iter274_corrective_canonical_fills.py is well-structured: parametrized, public-API-driven (httpx against PUBLIC_API_URL), includes regression sweep on 6 prior families. Healthy template for next iter."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (31/31 pytest)", "frontend": "UI render verification blocked by Safety Portal 403 guard; source code review identifies 1 missing mount (2 of 3 spec'd mounts present)"},
+  "test_credentials": "Super Admin jaymn.judd@mascigc.com / Maddix123! (from /app/memory/test_credentials.md). Multi-login at /sign-in succeeds and returns ADMIN·PM·SHOP·HR·SAFETY·DISPATCH on the welcome toast, but /safety-portal/corrective-actions route still 403s — even after using the Switch Portal dropdown → Safety Portal. The directory session token does not appear to be persisting a Safety portal token that satisfies the route guard. May be a pre-existing portal-guard interaction (out of iter274 scope) or may need a stale-token clear / specific localStorage key.",
+  "seed_data_creation": "None — relied on existing CAs visible to a true Safety user (could not reach the UI to verify edit-row presence).",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend is GREEN (31/31 with the public preview URL — re-run with PUBLIC_API_URL=https://safety-audit-mobile-1.preview.emergentagent.com pytest tests/test_iter274_corrective_canonical_fills.py -v). The remaining blocker is frontend mount of helptip-block-corrective-create — once main agent adds the 3rd HelpTipBlock mount, the UI can be re-verified. For UI access: super-admin multi-login alone does NOT clear the /safety-portal route guard in this preview; consider logging in via the direct Safety Portal sign-in page (https://safety-audit-mobile-1.preview.emergentagent.com/sign-in → Safety Portal single-portal link, or directly POST /api/auth/multi-login and inspect which localStorage key the SafetyPortal route guard expects). The page-root mount and corrective.close mount are correctly wired per source — only the create-dialog mount is missing.",
+  "rca of the issue": "Spec for iter274 explicitly enumerates 3 mounts: (1) page-root corrective, (2) dialog-top corrective.create in Create dialog, (3) edit-only corrective.close above Completion notes. Source review of /app/frontend/src/pages/SafetyCorrectiveActions.jsx via `grep -n HelpTipBlock` yields exactly 3 hits: import (line 35), corrective at line 315, corrective.close at line 636 — i.e. 2 mounts, not 3. The Create dialog body (lines 452–680 region) renders form fields directly with no HelpTipBlock at the top. Fix: insert `{dlg.mode === 'create' && <HelpTipBlock formKey='corrective.create' className='mb-2' />}` immediately after the DialogDescription / before the form `space-y-3 pt-2` div, around line 463."
+}

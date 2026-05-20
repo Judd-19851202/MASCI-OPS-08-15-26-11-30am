@@ -3817,7 +3817,186 @@ _TIPS: list[dict] = [
             "the punch list — if they don't, this record is incomplete "
             "operationally even though it's complete legally.",
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter274 · Safety Corrective Actions coaching family
+    # Sequence #3 from PLATFORM_OPERATIONAL_MATURITY_MATRIX.md.
+    # Mirrors iter270/iter273 pattern. Voice: safety coordinator who
+    # has seen too many "we'll get to it" findings die in old reports.
+    # ─────────────────────────────────────────────────────────────────
+
+    # ── corrective (page-root) ───────────────────────────────────────
+    {
+        "form_key": "corrective",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why corrective actions exist as their own record",
+        "body":
+            "A finding in an incident, inspection, or audit is a "
+            "snapshot. A corrective action is the work that closes it. "
+            "Separate record because the finding and the close-out "
+            "rarely belong to the same person, the same week, or "
+            "sometimes the same project phase.",
+    },
+    {
+        "form_key": "corrective",
+        "kind": "who",
+        "scopes": ["public"],
+        "title": "Who reads this queue",
+        "body":
+            "Safety reviews the Open and Overdue tabs daily. PM checks "
+            "for items tied to their project number. The assigned "
+            "owner reads it because their name is on it. Admin or "
+            "owner audits pull the queue to see how findings actually "
+            "resolve — not just how often they're found.",
+    },
+    {
+        "form_key": "corrective",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens as the CA moves through the pipeline",
+        "body":
+            "Open means owner assigned, work not started. In Progress "
+            "means work is underway. Pending Review means the owner "
+            "says it's done — Safety verifies before closing. Closed "
+            "means evidence on the record + signature acknowledged. "
+            "Skipping Pending Review breaks the audit trail.",
+    },
+    {
+        "form_key": "corrective",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When to escalate or stop the work",
+        "body":
+            "Critical priority CA past due. Repeat finding on the same "
+            "equipment, employee, or sub crew — third occurrence is a "
+            "contract conversation, not another CA. Open CA with no "
+            "owner for 48+ hours. Call Safety, raise to PM, document "
+            "the escalation in the notes field.",
+    },
+
+    # ── corrective.create (dialog · new CA) ──────────────────────────
+    {
+        "form_key": "corrective.create",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why every field on this dialog matters",
+        "body":
+            "The title is what someone scanning the queue reads. The "
+            "description is what the owner reads when they're confused. "
+            "The source link is what the auditor reads in 18 months. "
+            "Skipping any of them isn't saving time — it's pushing the "
+            "work onto the next person.",
+    },
+    {
+        "form_key": "corrective.create",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Titles like 'Safety follow-up' or 'Fix issue' — useless in "
+            "a list of 80. Assigning to 'the crew' instead of one named "
+            "owner. No source link to the originating record. Due date "
+            "30 days out for a Critical priority. Project number left "
+            "blank because the source already has it.",
+    },
+    {
+        "form_key": "corrective.create",
+        "kind": "example",
+        "scopes": ["public"],
+        "title": "A CA that closes itself",
+        "body":
+            "Title: 'Install eye-wash station at job 220 break trailer'. "
+            "Source: Inspection 4A2C-… Priority: High. Owner: J. Cruz "
+            "(name + email). Due: 5 days. Description: 'Required by "
+            "OSHA per chemical exposure on the work plan. Ship to job "
+            "by Friday, photo confirmation required.' One read, one "
+            "owner, one deadline.",
+    },
+    {
+        "form_key": "corrective.create",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "Priority discipline",
+        "body":
+            "Critical = imminent danger or regulatory exposure. Same-"
+            "day or next-shift due dates. High = real risk, this week. "
+            "Medium = within 2 weeks. Low = within the month. Marking "
+            "everything High flattens the signal — the next reader "
+            "can't tell what to fix first.",
+    },
+
+    # ── corrective.close (dialog · edit mode close-out) ──────────────
+    {
+        "form_key": "corrective.close",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why closure requires evidence",
+        "body":
+            "A CA closed with 'done' in the notes is a CA that's not "
+            "closed — it's archived. Completion notes describe what "
+            "actually changed, with date and reference. The employee "
+            "signature is the acknowledgment that the person affected "
+            "saw the close-out. Both make the record audit-ready.",
+    },
+    {
+        "form_key": "corrective.close",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Closing the CA before the work is actually verified on "
+            "site (mark Pending Review instead — Safety closes after "
+            "verification). Completion notes that say only 'completed' "
+            "or 'done'. Skipping the employee signature because 'they "
+            "already know'. Closing on a Friday without confirming "
+            "the next-shift handoff.",
+    },
+    {
+        "form_key": "corrective.close",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens after Closed",
+        "body":
+            "The CA stays on the project's compliance record. Trend "
+            "review uses it to track close-out velocity by owner, "
+            "priority, and source type. If the same finding recurs "
+            "later, the closed record proves what was done last time — "
+            "and exposes what didn't stick.",
+    },
 ]
+
+
+# ─────────────────────────────────────────────────────────────────────
+# iter274 · Canonical-4 fills (Sequence #4)
+# Plug two small holes flagged by the maturity matrix:
+#   * fleet family missing kind=escalate (added under fleet.dvir)
+#   * material-calculator missing kind=who (added at root)
+# ─────────────────────────────────────────────────────────────────────
+_TIPS.append({
+    "form_key": "fleet.dvir",
+    "kind": "escalate",
+    "scopes": ["public"],
+    "title": "When a DVIR defect stops the unit",
+    "body":
+        "Critical defects — brakes, steering, lights at night, fluid "
+        "leaks under the cab, tires below tread — mean Out-of-Service. "
+        "Don't roll. Don't 'just take it across the yard.' Call Shop, "
+        "call Dispatch, document the defect with photo. The DVIR is "
+        "the legal record that the call was made.",
+})
+_TIPS.append({
+    "form_key": "material-calculator",
+    "kind": "who",
+    "scopes": ["public"],
+    "title": "Who reads the takeoff numbers",
+    "body":
+        "PM uses them for budget and procurement. PE checks them "
+        "against drawings. Super reads them to plan the day's "
+        "deliveries and crew sizing. Owner / GC may see the rolled-up "
+        "quantities on monthly billing. A wrong number here cascades "
+        "into a wrong order, a wrong invoice, and a wrong forecast.",
+})
 
 
 def all_tips() -> list[dict]:
