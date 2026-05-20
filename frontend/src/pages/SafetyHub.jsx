@@ -7,7 +7,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   ShieldAlert, AlertOctagon, ClipboardCheck, Users, FileText,
-  Award, Flame, FolderArchive, BarChart3, Loader2, Mail, GraduationCap, Truck,
+  Award, Flame, FolderArchive, BarChart3, Loader2, Mail, GraduationCap, Truck, BookOpen,
 } from "lucide-react";
 import { SectionTile } from "@/components/SectionTile";
 import SafetyShell from "@/components/SafetyShell";
@@ -227,6 +227,15 @@ export default function SafetyHub() {
           accent="amber"
           ctaLabel={t("Open Fleet View")}
           testId="safety-tile-fleet"
+        />
+        <SectionTile
+          to="/safety-portal/library"
+          icon={BookOpen}
+          title={t("Topic Library · Operational Prep")}
+          desc={t("Filter the 136-topic safety library by severity and domain · build a multi-topic PDF pack for kickoffs, mobilizations, and high-risk job prep. Internal use only.")}
+          accent="red"
+          ctaLabel={t("Open Library")}
+          testId="safety-tile-topic-library"
         />
         <SectionTile
           to="/guidance"

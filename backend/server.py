@@ -9019,6 +9019,17 @@ _require_safety_hr_admin = make_require_safety_or_hr_or_admin(db, _is_valid_admi
 app.include_router(build_safety_exports_router(db, _require_safety_hr_admin))
 
 
+# ─── F2-A · Safety Topic Library PDF Pack endpoint (iter266) ────────
+# Safety/Admin-only operational prep tool. Generates multi-topic PDF
+# packs from the front-end topic library. NO public surface. NO
+# analytics. NO LMS. See /app/memory/SAFETY_MEETING_POST_PHASE_H_EVAL_iter265.md §5.
+from routes.safety_topic_library import build_router as build_safety_topic_library_router  # noqa: E402
+from routes.safety_portal._deps import make_require_safety_or_admin  # noqa: E402
+
+_require_safety_or_admin_library = make_require_safety_or_admin(db, _is_valid_admin_token)
+app.include_router(build_safety_topic_library_router(_require_safety_or_admin_library))
+
+
 # ─── Admin Weekly Digest Config (iter133) ──────────────────────────
 from routes.admin_digest_config import build_admin_digest_router  # noqa: E402
 

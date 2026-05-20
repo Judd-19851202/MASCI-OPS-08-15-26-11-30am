@@ -119,6 +119,7 @@ import SafetyDigest from "@/pages/SafetyDigest";
 import SafetyIncidents from "@/pages/SafetyIncidents";
 import SafetyAudits from "@/pages/SafetyAudits";
 import SafetyReports from "@/pages/SafetyReports";
+import SafetyTopicLibrary from "@/pages/SafetyTopicLibrary";
 import HrSafetyRecords from "@/pages/HrSafetyRecords";
 import TrainingHub from "@/pages/TrainingHub";
 import AdminDeployReadiness from "@/pages/AdminDeployReadiness";
@@ -491,6 +492,7 @@ function App() {
             <Route path="/safety-portal/incidents" element={SF(<SafetyIncidents />)} />
             <Route path="/safety-portal/audits" element={SF(<SafetyAudits />)} />
             <Route path="/safety-portal/reports" element={SF(<SafetyReports />)} />
+            <Route path="/safety-portal/library" element={SF(<SafetyTopicLibrary />)} />
             <Route path="/safety-portal/employees" element={SF(<SafetyEmployeeProfiles />)} />
             <Route path="/safety-portal/digest" element={SF(<SafetyDigest />)} />
 
