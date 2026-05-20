@@ -115,9 +115,10 @@ def test_articles_received_translation_at_import_time():
 
 
 def test_total_es_count_grew_by_33():
-    """Sanity: 50 (pre-iter279) + 33 (iter279) = 83 entries."""
-    assert len(guidance_es.TRANSLATIONS_ES) == 83, \
-        f"Expected 83 ES entries, got {len(guidance_es.TRANSLATIONS_ES)}"
+    """Sanity: 50 (pre-iter279) + 33 (iter279) = at least 83 entries.
+    Inequality lets later iterations grow the dict without breaking the lock."""
+    assert len(guidance_es.TRANSLATIONS_ES) >= 83, \
+        f"Expected >=83 ES entries, got {len(guidance_es.TRANSLATIONS_ES)}"
 
 
 def test_no_stale_terminology_in_new_es_entries():

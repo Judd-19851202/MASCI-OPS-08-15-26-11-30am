@@ -1549,3 +1549,8 @@ TRANSLATIONS_ES: dict[str, dict] = {
 # module to keep this file manageable; same load-time effect.
 from .translations_es_iter279 import EXTRA_ES as _EXTRA_ES_ITER279  # noqa: E402
 TRANSLATIONS_ES.update(_EXTRA_ES_ITER279)
+
+# iter280 · Sequence #8 knowledge i18n closure — merge the 19 ES
+# knowledge-section entries.
+from .translations_es_iter280 import EXTRA_ES as _EXTRA_ES_ITER280  # noqa: E402
+TRANSLATIONS_ES.update(_EXTRA_ES_ITER280)
