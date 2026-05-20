@@ -974,3 +974,4 @@ credentials.json
 .credentials
 frontend/node_modules/.cache/default-development/64.pack
 frontend/node_modules/.cache/default-development/68.pack
+backend/backups/MASCI_full_backup_2026-05-20_165423Z.zip

@@ -1958,7 +1958,9 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "equipo está aprobado, si está bajo restricción. Esas "
             "dos cosas se ven igual de afuera; no son iguales. "
             "Modelarlas como un solo campo borraría la distinción "
-            "que protege a la compañía.",
+            "que protege a la compañía. Por eso CDL y Conductor "
+            "Aprobado viven como campos separados — y deben "
+            "permanecer separados.",
     },
     ("driver-qualification.cdl-vs-approved", "mistake"): {
         "title_es": "La combinación que lastima gente",
@@ -2012,6 +2014,87 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "operando mientras tanto. La ventana del hueco es lo "
             "que importa para el seguro después.",
     },
+
+    # ── iter287 · driver-qualification.endorsements ──────────────────
+    ("driver-qualification.endorsements", "why"): {
+        "title_es": "Por qué los endosos son estructurados, no notas",
+        "body_es":
+            "Un endoso no es un dato curioso — es una capacidad de "
+            "asignación. Tanque (N) significa que una persona está "
+            "legalmente autorizada a operar un tanque de asfalto "
+            "líquido; nadie más lo está. Hazmat (H) abre otro tipo "
+            "de cargas. Poner eso en el campo de notas obliga al "
+            "despachador a leer prosa antes de asignar una ruta. "
+            "Ponerlo en una lista de códigos estructurada le "
+            "permite a la plataforma hacer la pregunta directo: "
+            "¿quién tiene N? ¿quién tiene H? ¿quién tiene X? Esa "
+            "respuesta es el punto entero.",
+    },
+    ("driver-qualification.endorsements", "who"): {
+        "title_es": "Quién mantiene esta lista",
+        "body_es":
+            "RH es dueño de la captura de endosos — la fuente de "
+            "la verdad es el documento físico de la CDL. Cuando se "
+            "agrega o quita un endoso en la licencia, RH espeja el "
+            "cambio aquí. Despacho y Flota leen estos datos "
+            "después (visibilidad aguas abajo, iter288). Ellos no "
+            "lo editan. Los operadores no lo editan. El flujo es: "
+            "licencia actualizada → RH registra → todos los demás "
+            "consumen.",
+    },
+    ("driver-qualification.endorsements", "next"): {
+        "title_es": "Qué desbloquean operacionalmente los endosos",
+        "body_es":
+            "N = tanque (la asignación de carga de asfalto líquido "
+            "en MASCI). H = hazmat. X = los dos, como un endoso "
+            "combinado en la tarjeta. T = dobles/triples. P = "
+            "pasajeros. S = autobús escolar (raro aquí, se registra "
+            "si está presente). Registre exactamente lo que muestra "
+            "la licencia — si al operador le emitieron X, registre "
+            "X, no lo divida en N+H. La entrada de la licencia es "
+            "la fuente legal de la verdad.",
+    },
+    ("driver-qualification.endorsements", "escalate"): {
+        "title_es": "Cuándo la licencia y el registro no concuerdan",
+        "body_es":
+            "Si un despachador encuentra a un operador corriendo "
+            "una ruta de tanque pero no hay N (ni X) registrado "
+            "aquí, detenga la asignación, escale a RH, y verifique "
+            "contra la CDL física. O el registro está atrasado "
+            "(RH corrige) o al operador se le asignó una carga para "
+            "la que no está endosado (revisión Seguridad/RH). De "
+            "cualquier manera la asignación no se reanuda hasta "
+            "que el registro y la licencia concuerden.",
+    },
+
+    # ── iter287 · driver-qualification.restrictions ──────────────────
+    ("driver-qualification.restrictions", "why"): {
+        "title_es": "Por qué las restricciones se rastrean estructuradamente",
+        "body_es":
+            "Una restricción es lo opuesto a un endoso — es lo que "
+            "el titular de la CDL NO está autorizado a hacer. "
+            "Restricción de freno de aire significa que el operador "
+            "no puede manejar vehículos con frenos de aire. "
+            "Restricción de transmisión manual significa que solo "
+            "puede manejar automáticas. Ambas decisiones importan "
+            "en el momento de asignar el equipo, no después. "
+            "Rastrearlas como códigos estructurados mantiene ese "
+            "momento honesto.",
+    },
+    ("driver-qualification.restrictions", "mistake"): {
+        "title_es": "Restricciones ≠ Estatus del Conductor",
+        "body_es":
+            "Es fácil confundirlas, importante no hacerlo. Estatus "
+            "del Conductor = la decisión interna de MASCI sobre si "
+            "alguien puede operar (activo / suspendido / "
+            "restringido / inactivo). Restricciones = limitaciones "
+            "a nivel federal en la licencia (freno de aire, "
+            "transmisión manual). Un conductor puede estar Activo "
+            "con restricciones; un conductor puede estar Suspendido "
+            "sin restricciones. Son dos capas independientes, ambas "
+            "valen la pena registrarse.",
+    },
+
 
 
 

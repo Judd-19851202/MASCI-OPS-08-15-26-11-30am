@@ -68,6 +68,27 @@ ALLOWED_SEPARATION_TYPES = {"voluntary", "involuntary", "layoff"}
 # uncommon but structurally legal.
 ALLOWED_DRIVER_STATUSES = {"active", "suspended", "restricted", "inactive"}
 
+# iter287 · CDL endorsements & restrictions taxonomy. Structured codes
+# only — no free-form notes. Codes follow FMCSA letter conventions so
+# Dispatch / Fleet / future Motive linkage can consume the data without
+# translation. MASCI-operational note: Tanker (N) is the endorsement
+# most frequently surfaced for asphalt-oil tanker assignments.
+#   N = Tanker
+#   H = Hazardous Materials
+#   X = Tanker + Hazmat (combined endorsement)
+#   T = Doubles / Triples
+#   P = Passenger
+#   S = School Bus
+# The schema does NOT auto-collapse {N,H} into {X} or vice-versa — the
+# entry on the CDL is the source of truth; we record exactly what the
+# license shows.
+ALLOWED_CDL_ENDORSEMENTS = {"N", "H", "X", "T", "P", "S"}
+
+# iter287 · Restrictions. Two operationally-relevant restrictions
+# tracked structurally. Anything beyond these belongs on the CDL
+# document scan, not in structured fields.
+ALLOWED_CDL_RESTRICTIONS = {"air_brake", "manual_transmission"}
+
 # iter286 · driver qualification field set used by validators + the
 # document-expirations linkage helper below.
 _DRIVER_QUALIFICATION_FIELDS = (
@@ -78,6 +99,15 @@ _DRIVER_QUALIFICATION_FIELDS = (
     "cdl_state",
     "cdl_expiration_date",
     "medical_card_expiration_date",
+)
+
+# iter287 · endorsements + restrictions field set. Kept separate from
+# the iter286 foundation set because iter286 owns
+# document_expirations mirroring and iter287 owns operational
+# capability flags only.
+_DRIVER_ENDORSEMENT_FIELDS = (
+    "cdl_endorsements",
+    "cdl_restrictions",
 )
 
 # iter285 · lifecycle date field names · used by write-once enforcement
@@ -112,6 +142,44 @@ def _is_date_string(v: Any) -> bool:
         return False
     head = v[:10]
     return head[4] == "-" and head[7] == "-" and head.replace("-", "").isdigit()
+
+
+def _validate_code_list(
+    value: Optional[List[str]], allowed: set, field_name: str
+) -> Optional[List[str]]:
+    """iter287 · structured-code list validator.
+
+    Used for `cdl_endorsements` and `cdl_restrictions` — both are lists
+    of letter codes / short tokens drawn from a fixed taxonomy. Each
+    incoming list is:
+      - normalized (stripped, deduped, preserves first-seen order)
+      - rejected outright if any element is not in `allowed`
+      - left as `None` if the caller omitted the field
+      - accepted as `[]` to explicitly clear the field
+
+    This is the same shape we use for enum scalars elsewhere — empty
+    string / None / [] all valid "clear" signals — keeping the
+    operator-facing semantics consistent.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, list):
+        raise ValueError(f"{field_name} must be a list of codes")
+    seen: List[str] = []
+    for raw in value:
+        if not isinstance(raw, str):
+            raise ValueError(f"{field_name} entries must be strings")
+        code = raw.strip()
+        if code == "":
+            continue
+        if code not in allowed:
+            raise ValueError(
+                f"{field_name} contains invalid code {code!r}; "
+                f"allowed: {sorted(allowed)}"
+            )
+        if code not in seen:
+            seen.append(code)
+    return seen
 
 
 def _tenure_days(employee: Dict[str, Any]) -> Optional[int]:
@@ -194,7 +262,7 @@ async def _mirror_driver_doc_expirations(
                 "$set": {
                     "expiration_date": new_val,
                     "updated_at": now_iso,
-                    "category": "safety",
+                    "category": "employee",
                     "title": title_hint,
                     "source": "employee.driver_qualification",
                 },
@@ -303,6 +371,10 @@ class EmployeeCreate(BaseModel):
     cdl_expiration_date: Optional[str] = None
     medical_card_expiration_date: Optional[str] = None
 
+    # iter287 · CDL endorsements + restrictions (structured codes only)
+    cdl_endorsements: Optional[List[str]] = None
+    cdl_restrictions: Optional[List[str]] = None
+
     @field_validator("lifecycle_status")
     @classmethod
     def _v_status(cls, v: str) -> str:
@@ -341,6 +413,16 @@ class EmployeeCreate(BaseModel):
             raise ValueError(f"driver_status must be one of {sorted(ALLOWED_DRIVER_STATUSES)}")
         return v
 
+    @field_validator("cdl_endorsements")
+    @classmethod
+    def _v_endorsements(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        return _validate_code_list(v, ALLOWED_CDL_ENDORSEMENTS, "cdl_endorsements")
+
+    @field_validator("cdl_restrictions")
+    @classmethod
+    def _v_restrictions(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        return _validate_code_list(v, ALLOWED_CDL_RESTRICTIONS, "cdl_restrictions")
+
 
 class EmployeePatch(BaseModel):
     name: Optional[str] = None
@@ -372,6 +454,10 @@ class EmployeePatch(BaseModel):
     cdl_expiration_date: Optional[str] = None
     medical_card_expiration_date: Optional[str] = None
 
+    # iter287 · CDL endorsements + restrictions (mirror of create-time)
+    cdl_endorsements: Optional[List[str]] = None
+    cdl_restrictions: Optional[List[str]] = None
+
     @field_validator(
         "original_hire_date", "last_day_worked", "termination_date",
         "leave_start_date", "expected_return_date",
@@ -402,6 +488,16 @@ class EmployeePatch(BaseModel):
         if v not in ALLOWED_DRIVER_STATUSES:
             raise ValueError(f"driver_status must be one of {sorted(ALLOWED_DRIVER_STATUSES)}")
         return v
+
+    @field_validator("cdl_endorsements")
+    @classmethod
+    def _v_endorsements(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        return _validate_code_list(v, ALLOWED_CDL_ENDORSEMENTS, "cdl_endorsements")
+
+    @field_validator("cdl_restrictions")
+    @classmethod
+    def _v_restrictions(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        return _validate_code_list(v, ALLOWED_CDL_RESTRICTIONS, "cdl_restrictions")
 
 
 class StatusChange(BaseModel):
@@ -603,6 +699,9 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "cdl_state": (body.cdl_state or None),
             "cdl_expiration_date": (body.cdl_expiration_date or None),
             "medical_card_expiration_date": (body.medical_card_expiration_date or None),
+            # iter287 · CDL endorsements + restrictions (structured codes)
+            "cdl_endorsements": (body.cdl_endorsements or []),
+            "cdl_restrictions": (body.cdl_restrictions or []),
             "lifecycle_status": body.lifecycle_status,
             "is_active": _is_active_for_status(body.lifecycle_status),
             "added_via": "hr-portal",
@@ -617,6 +716,13 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "deleted_at": None,
         }
         await db.employees.insert_one(doc)
+
+        # iter286 · mirror CDL + medical-card expirations on create too
+        # (PATCH path also mirrors). Same scope discipline: only mirror
+        # when a non-empty date was supplied. `existing` is empty so any
+        # supplied value is treated as a change.
+        await _mirror_driver_doc_expirations(db, doc["id"], doc, {})
+
         out = _strip_id(doc) or {}
         out["tenure_days"] = _tenure_days(out)
         return out

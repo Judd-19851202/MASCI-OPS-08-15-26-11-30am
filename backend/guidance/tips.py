@@ -2784,6 +2784,111 @@ _TIPS: list[dict] = [
             "thing that matters for insurance later.",
     },
 
+    # ─────────────────────────────────────────────────────────────────
+    # iter287 · driver-qualification endorsements + restrictions.
+    #
+    # Endorsements (N · H · X · T · P · S) and restrictions (air-brake,
+    # manual-transmission) live as STRUCTURED CODES, not notes. Why:
+    #   - Dispatch / Fleet visibility needs them filterable later.
+    #   - Future Motive linkage will read these by code; if they sit in
+    #     a free-text field nobody can build a clean map.
+    #   - For MASCI specifically: Tanker (N) is the endorsement most
+    #     frequently surfaced for asphalt-oil tanker assignments.
+    #
+    # The schema does NOT auto-collapse {N,H} into {X}; we record what
+    # the license actually shows. Conflation is exactly the kind of
+    # "helpful" logic that hides operator decisions later.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "driver-qualification.endorsements",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why endorsements are structured, not notes",
+        "body":
+            "An endorsement isn't trivia — it's an assignment "
+            "capability. Tanker (N) means a person is legally cleared "
+            "to operate an asphalt-oil tanker; nobody else is. "
+            "Hazmat (H) opens a different set of loads. Putting that "
+            "in the notes field means a dispatcher has to read prose "
+            "before assigning a route. Putting it in a structured "
+            "code list means the platform can ask the question "
+            "directly: who has N? who has H? who has X? That answer "
+            "is the whole point.",
+    },
+    {
+        "form_key": "driver-qualification.endorsements",
+        "kind": "who",
+        "scopes": ["hr", "admin"],
+        "title": "Who maintains this list",
+        "body":
+            "HR owns endorsement entry — the source of truth is the "
+            "physical CDL document. When an endorsement is added or "
+            "removed on the license, HR mirrors the change here. "
+            "Dispatch and Fleet read this data later (downstream "
+            "visibility, iter288). They do not edit it. Operators "
+            "do not edit it. The flow is: license updated → HR "
+            "records → everyone else consumes.",
+    },
+    {
+        "form_key": "driver-qualification.endorsements",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What endorsements unlock operationally",
+        "body":
+            "N = tanker (the asphalt-oil load assignment for MASCI). "
+            "H = hazmat. X = both, as one combined endorsement on "
+            "the card. T = doubles/triples. P = passenger. S = "
+            "school bus (rare here, recorded if present). Record "
+            "exactly what the license shows — if the operator was "
+            "issued X, record X, do not split it into N+H. The "
+            "license entry is the legal source of truth.",
+    },
+    {
+        "form_key": "driver-qualification.endorsements",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When the license and the record disagree",
+        "body":
+            "If a dispatcher finds an operator running a tanker "
+            "route but no N (or X) is recorded here, stop the "
+            "assignment, escalate to HR, and verify against the "
+            "physical CDL. Either the record is stale (HR fix) or "
+            "the operator was assigned a load they aren't endorsed "
+            "for (Safety/HR review). Either way the assignment "
+            "doesn't resume until the record and the license match.",
+    },
+
+    # ── driver-qualification.restrictions ────────────────────────────
+    {
+        "form_key": "driver-qualification.restrictions",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why restrictions are tracked structurally",
+        "body":
+            "A restriction is the inverse of an endorsement — it's "
+            "what a CDL holder is NOT cleared to do. Air-brake "
+            "restriction means the operator can't run vehicles with "
+            "air brakes. Manual-transmission restriction means they "
+            "can only run automatics. Both decisions matter at the "
+            "moment of equipment assignment, not later. Tracking "
+            "them as structured codes keeps that moment honest.",
+    },
+    {
+        "form_key": "driver-qualification.restrictions",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Restrictions ≠ Driver Status",
+        "body":
+            "Easy to conflate, important not to. Driver Status = "
+            "MASCI's internal call on whether someone may operate "
+            "(active / suspended / restricted / inactive). "
+            "Restrictions = federal license-level constraints "
+            "(air-brake, manual-transmission). A driver can be "
+            "Active with restrictions; a driver can be Suspended "
+            "with no restrictions. They are two independent layers, "
+            "both worth recording.",
+    },
+
 
     # ═════════════════════════════════════════════════════════════════
     # iter225 · document-expirations · Tier-2 (hr + safety + admin).

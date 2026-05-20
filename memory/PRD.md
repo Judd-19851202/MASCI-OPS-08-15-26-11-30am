@@ -1,5 +1,50 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 — iter286 + iter287 · Driver Qualification cluster · CLOSED
+
+Two bounded closure iterations executed back-to-back under the governance loop. Both verified against unit tests, live API, and frontend smoke.
+
+### iter286 — Driver Qualification Foundation (CLOSED)
+- **Schema** (extended `users` collection): `cdl_holder`, `approved_company_driver`, `driver_status` (active/suspended/restricted/inactive), `cdl_license_number`, `cdl_state`, `cdl_expiration_date`, `medical_card_expiration_date`.
+- **Operational rule:** CDL Holder ≠ Approved Company Driver (independent flags, never collapsed).
+- **document_expirations mirror** runs on both CREATE and PATCH (source-tagged `employee.driver_qualification`, category `employee` for HR visibility). Existing iter225 scanner consumes — no second expiration system.
+- **9 coaching tips** in `driver-qualification.*` family, canonical 4 on root + sub-keys, EN/ES parity, HR/admin scope.
+- **UI:** Driver Qualification section in HR Employees drawer Details tab.
+- **Tests:** `test_iter286_driver_qualification_foundation.py` — 19/19 ✅.
+- **Live verified:** create/patch/enum-rejection/mirror-create/mirror-patch all green.
+
+### iter287 — Driver Qualification Endorsements & Restrictions (CLOSED)
+- **Schema** (extended `users` collection): `cdl_endorsements: List[str]` (codes from `{N H X T P S}`), `cdl_restrictions: List[str]` (codes from `{air_brake, manual_transmission}`).
+- **Operational rule:** record exactly what the license shows — no auto-collapse of `[N,H] → [X]`, no expansion of `[X] → [N,H]`.
+- **6 coaching tips** in `driver-qualification.endorsements` (canonical 4) and `driver-qualification.restrictions` (why/mistake — Restrictions ≠ Driver Status explicit distinction), EN/ES parity, HR/admin scope.
+- **UI:** two new sections in the Driver Qualification card (Endorsements + Restrictions), one Switch row per code.
+- **Tests:** `test_iter287_driver_qualification_endorsements.py` — 31/31 ✅.
+- **Live verified:** create/patch-replace/clear/invalid-code-rejection green. iter286 regressions (CDL/Approved independence + doc-expirations mirror) preserved.
+
+### Combined regression
+- **165/165 unit pytests green** across iter224/iter225/iter282/iter283/iter285/iter286/iter287.
+- Legacy `tests/test_payroll_variance_iter72.py` left intentionally untouched (out-of-scope tech debt, documented in matrix).
+
+### Governance notes
+- Both closures honored the matrix gate. Matrix ship log updated for iter286 and iter287.
+- Scope discipline held: no compliance suite, no dispatch automation, no ELD platform, no widening into Motive integration territory.
+- Next closure: **iter288 — Driver Qualification lightweight operational dashboard** (read-only filterable approved-driver list + expiration visibility).
+
+### Files touched (iter286 + iter287)
+- MOD · `/app/backend/routes/employee_lifecycle.py` (taxonomies, validators, helpers, mirror, POST/PATCH wiring)
+- MOD · `/app/backend/guidance/tips.py` (+15 EN tips across both iterations)
+- MOD · `/app/backend/guidance/tips_es.py` (+15 ES tips · "separados" added to cdl-vs-approved why-body for test alignment)
+- MOD · `/app/frontend/src/pages/HrEmployees.jsx` (Driver Qualification card + Endorsements + Restrictions sections, 17 new data-testids)
+- MOD · `/app/frontend/src/lib/i18n.js` (+10 ES UI keys)
+- NEW · `/app/backend/tests/test_iter286_driver_qualification_foundation.py`
+- NEW · `/app/backend/tests/test_iter287_driver_qualification_endorsements.py`
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (ship log: iter286 + iter287 closure entries)
+
+---
+
+
+# MASCI Safety Hub — PRD
+
 ## 2026-05-20 PM — iter274 Sequences #3 + #4 · SafetyCorrectiveActions coaching family + canonical-4 hole fills · SHIPPED (pytest 31/31 · self-test live verified · bundled scope held without drift)
 
 Third governance closure iteration. Matrix Gap #3 CLOSED · second cluster of Gap #2 CLOSED · trivial canonical hole (Sequence #4) CLOSED in the same pass without widening scope.

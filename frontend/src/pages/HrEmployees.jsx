@@ -54,6 +54,22 @@ import { useT } from "@/lib/i18n";
 const SEPARATION_TYPES = ["voluntary", "involuntary", "layoff"];
 const DRIVER_STATUSES = ["active", "suspended", "restricted", "inactive"];
 
+// iter287 · CDL endorsements + restrictions — structured codes only.
+// Order is operator-facing display order (N first because MASCI uses
+// Tanker most often for asphalt-oil tanker assignments).
+const CDL_ENDORSEMENTS = [
+  { code: "N", label: "Tanker (N)" },
+  { code: "H", label: "Hazmat (H)" },
+  { code: "X", label: "Tanker + Hazmat (X)" },
+  { code: "T", label: "Doubles/Triples (T)" },
+  { code: "P", label: "Passenger (P)" },
+  { code: "S", label: "School Bus (S)" },
+];
+const CDL_RESTRICTIONS = [
+  { code: "air_brake", label: "Air Brake Restriction" },
+  { code: "manual_transmission", label: "Manual Transmission Restriction" },
+];
+
 const STATUS_COLORS = LIFECYCLE_STATUS_TINTS;
 
 export default function HrEmployees() {
@@ -501,6 +517,54 @@ function EmployeeDrawer({ id, onClose }) {
                     <HelpTipBlock formKey="driver-qualification.expirations" />
                     <EditField label={t("CDL Expiration Date")} value={employee.cdl_expiration_date} save={(v) => submitEdit({ cdl_expiration_date: v })} testid="hremp-cdl-exp" />
                     <EditField label={t("Medical Card Expiration Date")} value={employee.medical_card_expiration_date} save={(v) => submitEdit({ medical_card_expiration_date: v })} testid="hremp-med-card-exp" />
+
+                    {/* iter287 · CDL Endorsements (structured codes) */}
+                    <div className="pt-3 mt-3 border-t border-slate-100" data-testid="hremp-cdl-endorsements">
+                      <h5 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">{t("CDL Endorsements")}</h5>
+                      <HelpTipBlock formKey="driver-qualification.endorsements" />
+                      {CDL_ENDORSEMENTS.map(({ code, label }) => {
+                        const current = Array.isArray(employee.cdl_endorsements) ? employee.cdl_endorsements : [];
+                        const checked = current.includes(code);
+                        return (
+                          <div key={code} className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                            <Label htmlFor={`endorsement-${code}`} className="text-sm">{t(label)}</Label>
+                            <Switch
+                              id={`endorsement-${code}`}
+                              checked={checked}
+                              onCheckedChange={(v) => {
+                                const next = v ? [...current.filter((c) => c !== code), code] : current.filter((c) => c !== code);
+                                submitEdit({ cdl_endorsements: next });
+                              }}
+                              data-testid={`hremp-endorsement-${code}`}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* iter287 · CDL Restrictions (structured codes) */}
+                    <div className="pt-3 mt-3 border-t border-slate-100" data-testid="hremp-cdl-restrictions">
+                      <h5 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">{t("CDL Restrictions")}</h5>
+                      <HelpTipBlock formKey="driver-qualification.restrictions" />
+                      {CDL_RESTRICTIONS.map(({ code, label }) => {
+                        const current = Array.isArray(employee.cdl_restrictions) ? employee.cdl_restrictions : [];
+                        const checked = current.includes(code);
+                        return (
+                          <div key={code} className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                            <Label htmlFor={`restriction-${code}`} className="text-sm">{t(label)}</Label>
+                            <Switch
+                              id={`restriction-${code}`}
+                              checked={checked}
+                              onCheckedChange={(v) => {
+                                const next = v ? [...current.filter((c) => c !== code), code] : current.filter((c) => c !== code);
+                                submitEdit({ cdl_restrictions: next });
+                              }}
+                              data-testid={`hremp-restriction-${code}`}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </TabsContent>
                 <TabsContent value="status" className="mt-0 space-y-3">

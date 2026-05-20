@@ -3277,6 +3277,18 @@ const ES = {
   "CDL Expiration Date": "Fecha de Vencimiento de CDL",
   "Medical Card Expiration Date": "Fecha de Vencimiento de Tarjeta Médica",
 
+  // ─── HR CDL Endorsements + Restrictions (iter287) ─────────────
+  "CDL Endorsements": "Endosos de CDL",
+  "CDL Restrictions": "Restricciones de CDL",
+  "Tanker (N)": "Tanque (N)",
+  "Hazmat (H)": "Hazmat (H)",
+  "Tanker + Hazmat (X)": "Tanque + Hazmat (X)",
+  "Doubles/Triples (T)": "Dobles/Triples (T)",
+  "Passenger (P)": "Pasajeros (P)",
+  "School Bus (S)": "Autobús Escolar (S)",
+  "Air Brake Restriction": "Restricción de Freno de Aire",
+  "Manual Transmission Restriction": "Restricción de Transmisión Manual",
+
 };
 
 const DICTS = { es: ES, en: {} };
