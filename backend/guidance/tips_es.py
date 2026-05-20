@@ -1822,6 +1822,82 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "del primer día.",
     },
 
+    # ── iter285 · employee-lifecycle.lifecycle-dates ─────────────────
+    ("employee-lifecycle.lifecycle-dates", "why"): {
+        "title_es": "Por qué guardamos estas fechas estructuradas",
+        "body_es":
+            "Fecha de contratación, último día trabajado, fecha de "
+            "terminación, inicio de incapacidad — esto no es papeleo "
+            "de RH. Es como la plataforma contesta preguntas "
+            "operacionales sin que nadie tenga que buscar en una hoja "
+            "de cálculo: cuánto tiempo lleva alguien en la empresa, "
+            "cuándo dejó de trabajar de verdad, cuándo lo esperamos "
+            "de regreso de su incapacidad. Manténgalas en los "
+            "campos, no en las notas.",
+    },
+    ("employee-lifecycle.lifecycle-dates", "mistake"): {
+        "title_es": "La trampa de sobrescribir la fecha de contratación",
+        "body_es":
+            "En una recontratación, el instinto es actualizar la "
+            "fecha de contratación al nuevo día de inicio. No lo "
+            "haga. La plataforma trata `original_hire_date` como "
+            "una sola escritura a propósito — su reloj de "
+            "antigüedad, su historial de lealtad, su registro "
+            "histórico viven ahí. Las fechas de recontratación van "
+            "en su propio campo (en una iteración futura); la "
+            "original se conserva.",
+    },
+    ("employee-lifecycle.lifecycle-dates", "next"): {
+        "title_es": "Qué alimentan las fechas aguas abajo",
+        "body_es":
+            "La antigüedad aparece automáticamente en el cajón del "
+            "empleado (derivada de la fecha de contratación — nunca "
+            "se guarda por separado, así no se vuelve obsoleta). El "
+            "inicio de incapacidad + el regreso esperado hacen que "
+            "el estatus Permiso por Ausencia sirva en lugar de ser "
+            "decorativo. La fecha de terminación + último día "
+            "trabajado son los anclas para las tareas de desvínculo, "
+            "las ventanas de devolución de equipo y la eventual "
+            "conversación con desempleo.",
+    },
+
+    # ── iter285 · employee-lifecycle.separation ──────────────────────
+    ("employee-lifecycle.separation", "why"): {
+        "title_es": "Por qué el tipo de separación es estructurado, no texto libre",
+        "body_es":
+            "Voluntaria, involuntaria, despido — esas tres categorías "
+            "manejan todo aguas abajo. La respuesta a un reclamo de "
+            "desempleo se ve diferente para cada una. La política "
+            "de recontratación se ve diferente para cada una. Seis "
+            "meses después, cuando RH tenga que recordar por qué se "
+            "fue alguien, las razones en texto libre no filtran. Un "
+            "enum estructurado sí.",
+    },
+    ("employee-lifecycle.separation", "mistake"): {
+        "title_es": "Errores comunes en la transición de desvínculo",
+        "body_es":
+            "Marcar a alguien como Terminado sin escoger un tipo de "
+            "separación — el sistema ahora lo bloquea, pero en el "
+            "pasado fue la razón #1 por la que RH no podía sacar un "
+            "reporte limpio. Usar 'razón' para codificar el tipo "
+            "('renunció', 'despedido', 'recorte de personal') — el "
+            "campo razón está bien para contexto, pero NO es la "
+            "señal estructurada. Escoja uno de los tres; escriba "
+            "el contexto en la razón si lo quiere.",
+    },
+    ("employee-lifecycle.separation", "escalate"): {
+        "title_es": "Cuándo la separación se disputa",
+        "body_es":
+            "Si el empleado que se va disputa el tipo de separación "
+            "(común: 'renuncié antes de que me despidieran'), "
+            "documéntelo factualmente en la razón e involucre a "
+            "Admin antes de finalizar. El campo estructurado es la "
+            "respuesta de registro; una vez fijado, carga peso real "
+            "en cualquier audiencia de desempleo después. Tome la "
+            "decisión correcta la primera vez.",
+    },
+
+
     # ── iter225 · document-expirations (Tier-2 hr+safety+admin) ──────
     # Operator-stated anchor (verbatim · test-enforced):
     #   "Phone call beats email blast."

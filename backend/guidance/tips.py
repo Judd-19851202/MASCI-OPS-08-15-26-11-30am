@@ -2527,6 +2527,107 @@ _TIPS: list[dict] = [
     },
 
     # ═════════════════════════════════════════════════════════════════
+    # iter285 · employee-lifecycle.lifecycle-dates · structured
+    # employment lifecycle dates (hire / leave / termination).
+    # The audit (iter284) proved 0% hire_date coverage across 251
+    # employees and ZERO leave-date / termination-date / separation-type
+    # adoption. Coaching here exists to anchor the operational mindset:
+    # these dates are not paperwork. They are how the platform answers
+    # "how long has X been here?" and "is so-and-so back from leave
+    # yet?" without HR pulling a spreadsheet. Tone anchor: structured
+    # data IS the protection — for the employee and for the company.
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "form_key": "employee-lifecycle.lifecycle-dates",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why we keep these dates structured",
+        "body":
+            "Hire date, last day worked, termination date, leave start "
+            "— these aren't HR paperwork. They are how the platform "
+            "answers operational questions without anyone digging "
+            "through a spreadsheet: how long has someone been with "
+            "the company, when did they actually stop working, when "
+            "do we expect them back from leave. Keep them in the "
+            "fields, not in notes.",
+    },
+    {
+        "form_key": "employee-lifecycle.lifecycle-dates",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "The hire-date overwrite trap",
+        "body":
+            "On a rehire, people instinctively want to update the "
+            "hire date to the new start day. Don't. The platform "
+            "treats `original_hire_date` as write-once on purpose — "
+            "your tenure clock, your loyalty data, your historical "
+            "record all live there. Rehire dates belong on their own "
+            "field (coming later); the original stays preserved.",
+    },
+    {
+        "form_key": "employee-lifecycle.lifecycle-dates",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "What the dates feed downstream",
+        "body":
+            "Tenure shows up automatically in the employee drawer "
+            "(derived from the hire date — never stored separately, "
+            "so it can't go stale). Leave start + expected return "
+            "make the Leave-of-Absence status useful instead of "
+            "ornamental. Termination date + last day worked are the "
+            "anchors for offboarding tasks, equipment return windows "
+            "and the eventual unemployment-claim conversation.",
+    },
+
+    # ═════════════════════════════════════════════════════════════════
+    # iter285 · employee-lifecycle.separation · separation type and
+    # the offboarding transition. Tone anchor: documentation discipline
+    # protects everyone, especially in the moments when nobody wants
+    # to be careful about paperwork.
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "form_key": "employee-lifecycle.separation",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why separation type is structured, not free-text",
+        "body":
+            "Voluntary, involuntary, layoff — those three categories "
+            "drive everything downstream. Unemployment-claim "
+            "responses look different for each one. Rehire policy "
+            "looks different for each one. Six months from now when "
+            "HR has to remember why someone left, free-text reasons "
+            "don't filter. A structured enum does.",
+    },
+    {
+        "form_key": "employee-lifecycle.separation",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Common offboarding-transition mistakes",
+        "body":
+            "Marking someone Terminated without picking a separation "
+            "type — the system will block it now, but in the past "
+            "this was the #1 reason HR couldn't run a clean report. "
+            "Using 'reason' to encode the type ('quit', 'fired', "
+            "'reduction in force') — the reason field is fine for "
+            "context, but it's NOT the structured signal. Pick one "
+            "of the three; write context in the reason if you want.",
+    },
+    {
+        "form_key": "employee-lifecycle.separation",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When the separation is contested",
+        "body":
+            "If the departing employee disputes the separation type "
+            "(common: 'I quit before I got fired'), document it "
+            "factually in the reason and loop in Admin before "
+            "finalizing. The structured field is the answer of "
+            "record; once set it carries real weight in any later "
+            "unemployment hearing. Get the call right the first time.",
+    },
+
+
+    # ═════════════════════════════════════════════════════════════════
     # iter225 · document-expirations · Tier-2 (hr + safety + admin).
     #
     # Document-expiration handling is one of the clearest operational

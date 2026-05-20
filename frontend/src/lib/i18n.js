@@ -3237,6 +3237,31 @@ const ES = {
   "Approve": "Aprobar",
   "Dispute": "Disputar",
 
+  // ─── HR Employee Lifecycle Dates (iter285) ────────────────────
+  "Original Hire Date": "Fecha Original de Contratación",
+  "write-once · already set": "una sola escritura · ya fijada",
+  "Tenure": "Antigüedad",
+  "days": "días",
+  "yr": "año",
+  "Last Day Worked": "Último Día Trabajado",
+  "Termination Date": "Fecha de Terminación",
+  "Leave Start Date": "Inicio de Permiso",
+  "Expected Return Date": "Fecha Esperada de Regreso",
+  "Separation Type": "Tipo de Separación",
+  "voluntary": "voluntaria",
+  "involuntary": "involuntaria",
+  "layoff": "despido",
+  "New status": "Nuevo estatus",
+  "Pick a type": "Escoja un tipo",
+  "Reason / note": "Razón / nota",
+  "Optional context recorded in status history": "Contexto opcional registrado en el historial de estatus",
+  "Pick a separation type — voluntary, involuntary, or layoff": "Escoja un tipo de separación — voluntaria, involuntaria o despido",
+  "Status updated": "Estatus actualizado",
+  "offboarding tasks created": "tareas de desvínculo creadas",
+  "Status change failed": "Falló el cambio de estatus",
+  "Employee updated": "Empleado actualizado",
+  "Update failed": "Falló la actualización",
+
 };
 
 const DICTS = { es: ES, en: {} };

@@ -38,9 +38,14 @@ export async function patchHrEmployee(id, patch) {
   const r = await axios.patch(`${API}/hr/employees/${id}`, patch, { headers: authHeaders() });
   return r.data;
 }
-export async function changeHrEmployeeStatus(id, lifecycle_status, reason) {
+export async function changeHrEmployeeStatus(id, lifecycle_status, reason, extra) {
+  const body = { lifecycle_status, reason, ...(extra || {}) };
+  // The caller may pass `extra` containing lifecycle_status/reason — the
+  // explicit args take precedence so the API contract stays stable.
+  body.lifecycle_status = lifecycle_status;
+  body.reason = reason;
   const r = await axios.post(`${API}/hr/employees/${id}/status`,
-    { lifecycle_status, reason }, { headers: authHeaders() });
+    body, { headers: authHeaders() });
   return r.data;
 }
 export async function offboardingSummary(id) {

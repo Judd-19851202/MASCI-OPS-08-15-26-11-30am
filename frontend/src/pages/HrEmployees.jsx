@@ -49,6 +49,9 @@ import EmptyState from "@/components/EmptyState";
 import GlobalSearch from "@/components/GlobalSearch";
 import { LIFECYCLE_STATUS_TINTS } from "@/lib/statusBadges";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { useT } from "@/lib/i18n";
+
+const SEPARATION_TYPES = ["voluntary", "involuntary", "layoff"];
 
 const STATUS_COLORS = LIFECYCLE_STATUS_TINTS;
 
@@ -316,10 +319,19 @@ function AddDialog({ open, setOpen, onSaved }) {
 }
 
 function EmployeeDrawer({ id, onClose }) {
+  const { t } = useT();
   const [employee, setEmployee] = useState(null);
   const [summary, setSummary] = useState(null);
   const [tab, setTab] = useState("details");
-  const [statusForm, setStatusForm] = useState({ lifecycle_status: "Active", reason: "" });
+  const [statusForm, setStatusForm] = useState({
+    lifecycle_status: "Active",
+    reason: "",
+    separation_type: "",
+    termination_date: "",
+    last_day_worked: "",
+    leave_start_date: "",
+    expected_return_date: "",
+  });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -330,26 +342,46 @@ function EmployeeDrawer({ id, onClose }) {
       setStatusForm({
         lifecycle_status: s.lifecycle_status || "Active",
         reason: "",
+        separation_type: "",
+        termination_date: "",
+        last_day_worked: "",
+        leave_start_date: "",
+        expected_return_date: "",
       });
     }).catch(() => setEmployee(null));
   }, [id]);
 
   const submitStatusChange = async () => {
     if (!employee) return;
+    const isOffboarding = ["Terminated", "Resigned", "Retired"].includes(statusForm.lifecycle_status);
+    const wasOffboarded = ["Terminated", "Resigned", "Retired"].includes(summary?.lifecycle_status);
+    const offboardingTransition = isOffboarding && !wasOffboarded;
+    if (offboardingTransition && !statusForm.separation_type && !employee.separation_type) {
+      toast.error(t("Pick a separation type — voluntary, involuntary, or layoff"));
+      return;
+    }
     setSaving(true);
     try {
-      const r = await changeHrEmployeeStatus(
-        employee.id, statusForm.lifecycle_status, statusForm.reason);
+      const payload = {
+        lifecycle_status: statusForm.lifecycle_status,
+        reason: statusForm.reason,
+      };
+      if (statusForm.separation_type) payload.separation_type = statusForm.separation_type;
+      if (statusForm.termination_date) payload.termination_date = statusForm.termination_date;
+      if (statusForm.last_day_worked) payload.last_day_worked = statusForm.last_day_worked;
+      if (statusForm.leave_start_date) payload.leave_start_date = statusForm.leave_start_date;
+      if (statusForm.expected_return_date) payload.expected_return_date = statusForm.expected_return_date;
+      const r = await changeHrEmployeeStatus(employee.id, statusForm.lifecycle_status, statusForm.reason, payload);
       if (r.playbook_fired) {
-        toast.success(`Status updated · ${r.tasks_created} offboarding tasks created`);
+        toast.success(`${t("Status updated")} · ${r.tasks_created} ${t("offboarding tasks created")}`);
       } else {
-        toast.success("Status updated");
+        toast.success(t("Status updated"));
       }
       const s = await offboardingSummary(employee.id);
       setSummary(s);
       setEmployee(s.employee);
     } catch (e) {
-      toast.error(friendlyError(e, "Status change failed"));
+      toast.error(friendlyError(e, t("Status change failed")));
     } finally { setSaving(false); }
   };
 
@@ -359,8 +391,8 @@ function EmployeeDrawer({ id, onClose }) {
     try {
       const r = await patchHrEmployee(employee.id, patch);
       setEmployee(r);
-      toast.success("Employee updated");
-    } catch (e) { toast.error(friendlyError(e, "Update failed")); }
+      toast.success(t("Employee updated"));
+    } catch (e) { toast.error(friendlyError(e, t("Update failed"))); }
     finally { setSaving(false); }
   };
 
@@ -396,10 +428,42 @@ function EmployeeDrawer({ id, onClose }) {
                   <EditField label="Email" value={employee.email} save={(v) => submitEdit({ email: v })} />
                   <EditField label="Phone" value={employee.phone} save={(v) => submitEdit({ phone: v })} />
                   <EditField label="Hire Date" value={employee.hire_date} save={(v) => submitEdit({ hire_date: v })} />
+
+                  <div className="pt-3 border-t border-slate-200">
+                    <HelpTipBlock formKey="employee-lifecycle.lifecycle-dates" />
+                  </div>
+                  <EditField
+                    label={t("Original Hire Date") + (employee.original_hire_date ? " · " + t("write-once · already set") : "")}
+                    value={employee.original_hire_date}
+                    save={(v) => submitEdit({ original_hire_date: v })}
+                    testid="hremp-edit-original-hire"
+                  />
+                  {employee.tenure_days != null && (
+                    <div className="flex items-center justify-between py-1 text-sm" data-testid="hremp-tenure">
+                      <span className="text-slate-600">{t("Tenure")}</span>
+                      <span className="font-mono text-slate-900 font-bold">
+                        {employee.tenure_days} {t("days")}
+                        {employee.tenure_days >= 365 && (
+                          <span className="text-slate-500 ml-2">({Math.floor(employee.tenure_days / 365)} {t("yr")})</span>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                  <EditField label={t("Last Day Worked")} value={employee.last_day_worked} save={(v) => submitEdit({ last_day_worked: v })} testid="hremp-edit-last-day" />
+                  <EditField label={t("Termination Date")} value={employee.termination_date} save={(v) => submitEdit({ termination_date: v })} testid="hremp-edit-term-date" />
+                  <EditField label={t("Leave Start Date")} value={employee.leave_start_date} save={(v) => submitEdit({ leave_start_date: v })} testid="hremp-edit-leave-start" />
+                  <EditField label={t("Expected Return Date")} value={employee.expected_return_date} save={(v) => submitEdit({ expected_return_date: v })} testid="hremp-edit-leave-return" />
+                  {employee.separation_type && (
+                    <div className="flex items-center justify-between py-1 text-sm" data-testid="hremp-separation-type-display">
+                      <span className="text-slate-600">{t("Separation Type")}</span>
+                      <span className="font-mono text-slate-900 font-bold uppercase">{t(employee.separation_type)}</span>
+                    </div>
+                  )}
                 </TabsContent>
                 <TabsContent value="status" className="mt-0 space-y-3">
+                  <HelpTipBlock formKey="employee-lifecycle.separation" />
                   <div>
-                    <Label>New status</Label>
+                    <Label>{t("New status")}</Label>
                     <Select value={statusForm.lifecycle_status} onValueChange={(v) => setStatusForm({ ...statusForm, lifecycle_status: v })}>
                       <SelectTrigger data-testid="hremp-status-new"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -407,13 +471,50 @@ function EmployeeDrawer({ id, onClose }) {
                       </SelectContent>
                     </Select>
                   </div>
+                  {["Terminated", "Resigned", "Retired"].includes(statusForm.lifecycle_status) && (
+                    <div data-testid="hremp-separation-section" className="space-y-2 bg-slate-50 border border-slate-200 rounded-md p-3">
+                      <div>
+                        <Label>{t("Separation Type")} *</Label>
+                        <Select value={statusForm.separation_type} onValueChange={(v) => setStatusForm({ ...statusForm, separation_type: v })}>
+                          <SelectTrigger data-testid="hremp-separation-type"><SelectValue placeholder={t("Pick a type")} /></SelectTrigger>
+                          <SelectContent>
+                            {SEPARATION_TYPES.map((s) => (<SelectItem key={s} value={s}>{t(s)}</SelectItem>))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label>{t("Last Day Worked")}</Label>
+                          <Input type="date" value={statusForm.last_day_worked} onChange={(e) => setStatusForm({ ...statusForm, last_day_worked: e.target.value })} data-testid="hremp-tx-last-day" />
+                        </div>
+                        <div>
+                          <Label>{t("Termination Date")}</Label>
+                          <Input type="date" value={statusForm.termination_date} onChange={(e) => setStatusForm({ ...statusForm, termination_date: e.target.value })} data-testid="hremp-tx-term-date" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {statusForm.lifecycle_status === "Leave of Absence" && (
+                    <div data-testid="hremp-leave-section" className="space-y-2 bg-slate-50 border border-slate-200 rounded-md p-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label>{t("Leave Start Date")}</Label>
+                          <Input type="date" value={statusForm.leave_start_date} onChange={(e) => setStatusForm({ ...statusForm, leave_start_date: e.target.value })} data-testid="hremp-tx-leave-start" />
+                        </div>
+                        <div>
+                          <Label>{t("Expected Return Date")}</Label>
+                          <Input type="date" value={statusForm.expected_return_date} onChange={(e) => setStatusForm({ ...statusForm, expected_return_date: e.target.value })} data-testid="hremp-tx-leave-return" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div>
-                    <Label>Reason / note</Label>
+                    <Label>{t("Reason / note")}</Label>
                     <Textarea
                       rows={3}
                       value={statusForm.reason}
                       onChange={(e) => setStatusForm({ ...statusForm, reason: e.target.value })}
-                      placeholder="Optional context recorded in status history"
+                      placeholder={t("Optional context recorded in status history")}
                       data-testid="hremp-status-reason"
                     />
                   </div>

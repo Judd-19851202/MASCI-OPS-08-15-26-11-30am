@@ -53,6 +53,74 @@ _ACTIVE_STATUSES = {"Active", "Pending Hire", "Seasonal", "Leave of Absence"}
 # Statuses that trigger the offboarding playbook.
 _OFFBOARDING_STATUSES = {"Terminated", "Resigned", "Retired"}
 
+# iter285 · employment separation taxonomy.
+ALLOWED_SEPARATION_TYPES = {"voluntary", "involuntary", "layoff"}
+
+# iter285 · lifecycle date field names · used by write-once enforcement
+# and status-transition auto-population helpers below.
+_LIFECYCLE_DATE_FIELDS = (
+    "original_hire_date",
+    "last_day_worked",
+    "termination_date",
+    "leave_start_date",
+    "expected_return_date",
+)
+# Once `original_hire_date` is set to a non-empty string on an employee
+# document, no subsequent PATCH may change it. Audit (iter284 · §2.2 +
+# §6 risk #1) flagged unprotected hire-date overwrite as the highest
+# structural risk in the employee schema.
+_WRITE_ONCE_FIELDS = ("original_hire_date",)
+
+
+def _is_date_string(v: Any) -> bool:
+    """Light validation: ISO-style YYYY-MM-DD prefix.
+
+    Mongo stores dates as ISO strings in this collection per existing
+    convention. We don't enforce calendar correctness here — that's
+    the frontend date picker's job; this just keeps obviously bad
+    values out.
+    """
+    if v is None or v == "":
+        return True  # empty / null is fine; caller decides if required
+    if not isinstance(v, str):
+        return False
+    if len(v) < 10:
+        return False
+    head = v[:10]
+    return head[4] == "-" and head[7] == "-" and head.replace("-", "").isdigit()
+
+
+def _tenure_days(employee: Dict[str, Any]) -> Optional[int]:
+    """Derive tenure in days from `original_hire_date` (preferred) or
+    legacy `hire_date`. Returns None when neither is set.
+
+    Strictly read-time — NEVER stored. Single source of truth is the
+    authoritative date field itself.
+    """
+    from datetime import datetime, date
+    raw = (employee.get("original_hire_date") or employee.get("hire_date") or "").strip()
+    if not raw or len(raw) < 10:
+        return None
+    try:
+        hire = datetime.strptime(raw[:10], "%Y-%m-%d").date()
+    except ValueError:
+        return None
+    # If terminated/resigned/retired, freeze tenure at termination date
+    # when available, otherwise last_day_worked, otherwise today.
+    end_raw = (
+        employee.get("termination_date")
+        or employee.get("last_day_worked")
+        or ""
+    ).strip()
+    if end_raw and employee.get("lifecycle_status") in _OFFBOARDING_STATUSES:
+        try:
+            end = datetime.strptime(end_raw[:10], "%Y-%m-%d").date()
+            return max(0, (end - hire).days)
+        except ValueError:
+            pass
+    today = date.today()
+    return max(0, (today - hire).days)
+
 
 # ──────────────────────────────────────────────────────────────────
 # Canned offboarding task playbook
@@ -127,11 +195,40 @@ class EmployeeCreate(BaseModel):
     lifecycle_status: str = Field(default="Active")
     hire_date: Optional[str] = None
 
+    # iter285 · lifecycle date structure
+    original_hire_date: Optional[str] = None
+    last_day_worked: Optional[str] = None
+    termination_date: Optional[str] = None
+    leave_start_date: Optional[str] = None
+    expected_return_date: Optional[str] = None
+    separation_type: Optional[str] = None
+
     @field_validator("lifecycle_status")
     @classmethod
     def _v_status(cls, v: str) -> str:
         if v not in ALLOWED_LIFECYCLE_STATUSES:
             raise ValueError(f"lifecycle_status must be one of {sorted(ALLOWED_LIFECYCLE_STATUSES)}")
+        return v
+
+    @field_validator(
+        "original_hire_date", "last_day_worked", "termination_date",
+        "leave_start_date", "expected_return_date",
+    )
+    @classmethod
+    def _v_date(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if not _is_date_string(v):
+            raise ValueError("date must be YYYY-MM-DD")
+        return v
+
+    @field_validator("separation_type")
+    @classmethod
+    def _v_sep(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if v not in ALLOWED_SEPARATION_TYPES:
+            raise ValueError(f"separation_type must be one of {sorted(ALLOWED_SEPARATION_TYPES)}")
         return v
 
 
@@ -148,16 +245,75 @@ class EmployeePatch(BaseModel):
     default_project_number: Optional[str] = None
     hire_date: Optional[str] = None
 
+    # iter285 · lifecycle date structure (mirror of create-time fields)
+    original_hire_date: Optional[str] = None
+    last_day_worked: Optional[str] = None
+    termination_date: Optional[str] = None
+    leave_start_date: Optional[str] = None
+    expected_return_date: Optional[str] = None
+    separation_type: Optional[str] = None
+
+    @field_validator(
+        "original_hire_date", "last_day_worked", "termination_date",
+        "leave_start_date", "expected_return_date",
+    )
+    @classmethod
+    def _v_date(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if not _is_date_string(v):
+            raise ValueError("date must be YYYY-MM-DD")
+        return v
+
+    @field_validator("separation_type")
+    @classmethod
+    def _v_sep(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if v not in ALLOWED_SEPARATION_TYPES:
+            raise ValueError(f"separation_type must be one of {sorted(ALLOWED_SEPARATION_TYPES)}")
+        return v
+
 
 class StatusChange(BaseModel):
     lifecycle_status: str
     reason: Optional[str] = Field(default=None, max_length=2000)
+
+    # iter285 · dates that may accompany a status transition. The route
+    # also accepts these via PATCH, but allowing them on the dedicated
+    # status-change endpoint keeps the lifecycle event atomic.
+    last_day_worked: Optional[str] = None
+    termination_date: Optional[str] = None
+    leave_start_date: Optional[str] = None
+    expected_return_date: Optional[str] = None
+    separation_type: Optional[str] = None
 
     @field_validator("lifecycle_status")
     @classmethod
     def _v_status(cls, v: str) -> str:
         if v not in ALLOWED_LIFECYCLE_STATUSES:
             raise ValueError("invalid status")
+        return v
+
+    @field_validator(
+        "last_day_worked", "termination_date",
+        "leave_start_date", "expected_return_date",
+    )
+    @classmethod
+    def _v_date(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if not _is_date_string(v):
+            raise ValueError("date must be YYYY-MM-DD")
+        return v
+
+    @field_validator("separation_type")
+    @classmethod
+    def _v_sep(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if v not in ALLOWED_SEPARATION_TYPES:
+            raise ValueError(f"separation_type must be one of {sorted(ALLOWED_SEPARATION_TYPES)}")
         return v
 
 
@@ -266,7 +422,11 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             ]})
         final = {"$and": clauses}
         cur = db.employees.find(final, {"_id": 0}).sort("name", 1).limit(limit)
-        items = [_strip_id(d) async for d in cur]
+        items = []
+        async for d in cur:
+            d = _strip_id(d) or {}
+            d["tenure_days"] = _tenure_days(d)
+            items.append(d)
         return {"items": items, "count": len(items)}
 
     @router.post("/api/hr/employees")
@@ -296,6 +456,13 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "department": body.department or "",
             "default_project_number": body.default_project_number or "",
             "hire_date": body.hire_date or None,
+            # iter285 · lifecycle date structure
+            "original_hire_date": (body.original_hire_date or None),
+            "last_day_worked": (body.last_day_worked or None),
+            "termination_date": (body.termination_date or None),
+            "leave_start_date": (body.leave_start_date or None),
+            "expected_return_date": (body.expected_return_date or None),
+            "separation_type": (body.separation_type or None),
             "lifecycle_status": body.lifecycle_status,
             "is_active": _is_active_for_status(body.lifecycle_status),
             "added_via": "hr-portal",
@@ -310,7 +477,9 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "deleted_at": None,
         }
         await db.employees.insert_one(doc)
-        return _strip_id(doc)
+        out = _strip_id(doc) or {}
+        out["tenure_days"] = _tenure_days(out)
+        return out
 
     @router.patch("/api/hr/employees/{employee_id}")
     async def patch_employee(
@@ -322,15 +491,37 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             {"id": employee_id, "deleted_at": None}, {"_id": 0})
         if not existing:
             raise HTTPException(404, "Employee not found")
+        incoming = body.model_dump(exclude_none=True)
+
+        # iter285 · write-once enforcement for original_hire_date (and
+        # any future write-once fields enumerated in _WRITE_ONCE_FIELDS).
+        # Audit iter284 §2.2 / §6 risk #1: hire-date overwrite was the
+        # highest structural risk in the schema. Once persisted as a
+        # non-empty value, the field cannot be re-set to a different
+        # value via PATCH. Re-sending the same value is a no-op (so
+        # idempotent UI re-saves don't error).
+        for fname in _WRITE_ONCE_FIELDS:
+            cur = (existing.get(fname) or "").strip() if isinstance(existing.get(fname), str) else existing.get(fname)
+            incoming_v = (incoming.get(fname) or "").strip() if isinstance(incoming.get(fname), str) else incoming.get(fname)
+            if cur and incoming_v and cur != incoming_v:
+                raise HTTPException(
+                    409,
+                    f"{fname} is write-once and is already set to {cur!r}; "
+                    f"refusing to overwrite with {incoming_v!r}. Rehire "
+                    f"flows are not supported in this surface.",
+                )
+
         update: Dict[str, Any] = {
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
-        for k, v in body.model_dump(exclude_none=True).items():
+        for k, v in incoming.items():
             update[k] = v
         await db.employees.update_one({"id": employee_id}, {"$set": update})
         doc = await db.employees.find_one(
             {"id": employee_id}, {"_id": 0})
-        return _strip_id(doc)
+        out = _strip_id(doc) or {}
+        out["tenure_days"] = _tenure_days(out)
+        return out
 
     @router.post("/api/hr/employees/{employee_id}/status")
     async def change_status(
@@ -348,6 +539,62 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         if prev_status == body.lifecycle_status:
             return {"ok": True, "employee": existing, "tasks_created": 0,
                     "noop": True}
+
+        # iter285 · status transitions that require / auto-populate
+        # lifecycle dates. The route accepts these in the request body
+        # (preferred) and back-fills sensible defaults from "today"
+        # (date-only) when omitted. Separation type is REQUIRED for any
+        # offboarding transition so the historical record can be
+        # filtered/audited later without parsing free-text reasons.
+        from datetime import date
+        today_iso = date.today().isoformat()
+        date_updates: Dict[str, Any] = {}
+        is_offboarding = (
+            body.lifecycle_status in _OFFBOARDING_STATUSES
+            and prev_status not in _OFFBOARDING_STATUSES
+        )
+        is_going_on_leave = (
+            body.lifecycle_status == "Leave of Absence"
+            and prev_status != "Leave of Absence"
+        )
+        if is_offboarding:
+            # Separation type is operationally required to keep
+            # downstream reporting honest. Reject the transition
+            # if the existing record + the request together don't
+            # supply one. (Accept either the request body OR a
+            # value already present on the employee.)
+            existing_sep = (existing.get("separation_type") or "").strip()
+            incoming_sep = (body.separation_type or "").strip()
+            if not (existing_sep or incoming_sep):
+                raise HTTPException(
+                    400,
+                    "separation_type is required when transitioning to "
+                    f"{body.lifecycle_status} "
+                    "(one of: voluntary, involuntary, layoff)",
+                )
+            if incoming_sep:
+                date_updates["separation_type"] = incoming_sep
+            # Termination date + last day worked default to today if
+            # not provided. Both are stored so reporting can use
+            # whichever makes sense; HR can edit either via PATCH
+            # after the transition.
+            date_updates["termination_date"] = (
+                body.termination_date or existing.get("termination_date") or today_iso
+            )
+            date_updates["last_day_worked"] = (
+                body.last_day_worked or existing.get("last_day_worked") or today_iso
+            )
+        if is_going_on_leave:
+            # Leave of Absence without a leave_start_date is the
+            # iter284 §6 risk #6 anti-pattern. Default to today;
+            # accept an explicit value when provided. Expected
+            # return is optional but kept structured when present.
+            date_updates["leave_start_date"] = (
+                body.leave_start_date or existing.get("leave_start_date") or today_iso
+            )
+            if body.expected_return_date:
+                date_updates["expected_return_date"] = body.expected_return_date
+
         now = datetime.now(timezone.utc).isoformat()
         entry = {
             "at": now,
@@ -356,14 +603,16 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "to": body.lifecycle_status,
             "reason": body.reason,
         }
+        set_block: Dict[str, Any] = {
+            "lifecycle_status": body.lifecycle_status,
+            "is_active": _is_active_for_status(body.lifecycle_status),
+            "updated_at": now,
+        }
+        set_block.update(date_updates)
         await db.employees.update_one(
             {"id": employee_id},
             {
-                "$set": {
-                    "lifecycle_status": body.lifecycle_status,
-                    "is_active": _is_active_for_status(body.lifecycle_status),
-                    "updated_at": now,
-                },
+                "$set": set_block,
                 "$push": {"status_history": entry},
             },
         )
@@ -380,9 +629,11 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 db, employee or {}, body.lifecycle_status, body.reason, actor)
         doc = await db.employees.find_one(
             {"id": employee_id}, {"_id": 0})
+        out = _strip_id(doc) or {}
+        out["tenure_days"] = _tenure_days(out)
         return {
             "ok": True,
-            "employee": _strip_id(doc),
+            "employee": out,
             "tasks_created": len(tasks_created),
             "task_ids": tasks_created,
             "playbook_fired": triggers_playbook,
@@ -513,4 +764,5 @@ __all__ = [
     "build_employee_lifecycle_router",
     "ensure_employee_lifecycle_indexes",
     "ALLOWED_LIFECYCLE_STATUSES",
+    "ALLOWED_SEPARATION_TYPES",
 ]
