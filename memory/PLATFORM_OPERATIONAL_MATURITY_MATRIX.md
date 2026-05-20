@@ -81,7 +81,7 @@
 | **Dispatch (8 sub-families)** | ❌ EN-only | ✅ 49 | ✅ | 🟡 | — | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Fleet Visibility** | ❌ EN-only | ✅ in `fleet` | 🟡 ❌esc | ✅ | 🟡 | ✅ | ✅ | — | ❌ | 🟡 | ✅ | ✅ | ✅ | 🟡 |
 | **Legacy Imports (OCR)** | ❌ EN-only | ❌ | ❌ | ❌ desktop | — | ✅ | ✅ | — | ❌ | 🟡 | — | ✅ | ❌ | 🟡 |
-| **Guidance Center** | ✅ | — | — | ✅ | — | 🟡 | ✅ | — | ✅ | 🟡 | ✅ | ✅ | 🟡 | 🟡 |
+| **Guidance Center** | ✅ | — | — | ✅ | — | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | 🟡 | 🟡 |
 | **Admin Console (system)** | ❌ EN-only | ❌ | ❌ | ❌ desktop | — | ✅ | ✅ | — | ❌ | ✅ | — | ✅ | — | ✅ |
 | **Backup / Restore / Deploy Readiness** | ❌ EN-only | ❌ | ❌ | ❌ desktop | — | ✅ | ✅ | — | ❌ | ✅ | — | ✅ | — | ✅ |
 
@@ -142,3 +142,4 @@
 - `iter275` Bundled Sequences #5 + #6 · coaching families for Safety Equipment Issuance, Safety Equipment Training, Safety Topic Library, Fire Extinguishers, JHA Hub · 95 EN+95 ES tips across 13 form-keys · 14 HelpTipBlock mounts (incl. 3 dialog-embedded) · testing_agent_v3_fork frontend 14/14 mounts verified · EN/ES parity 4/4 sampled · canonical 4-kinds present in all 5 top families · mobile 390w no overflow · gap #2 third (final) cluster CLOSED · 5 matrix rows flipped to ✅
 - `iter276` Bundled Sequence #7 + Fleet DVIR matrix-correctness pass · DocumentExpirations page i18n closure (46 t() calls · 36 new ES keys) · Fleet DVIR row flipped to ✅ (iter274 escalate fill confirmed at family aggregate · `fleet.*` carries all 4 canonical kinds across 14 total tips) · gap #4 CLOSED · gap #5 CLOSED · 2 matrix rows flipped to ✅
 - `iter277` Guidance Center pre-audit inventory · 124 articles scanned (title + summary + flattened body blocks) · heuristic detection of LMS drift / stale terminology / Phase-H alignment / ES coverage · 0 LMS hits · 0 corporate-framing hits · 5 stale-terminology hits (Toolbox Talk survivors) · 50/124 (40%) ES-translated · output `/app/memory/GUIDANCE_CENTER_PREAUDIT_iter277.md` + raw audit `/app/memory/guidance_audit_iter277.json` · NO content changes yet — visibility/targeting infrastructure for Sequence #8 awaiting user gate
+- `iter278` Sequence #8 Terminology Cluster · Toolbox Talk → Safety Meeting rename across 5 articles (`portal-safety` · `public-toolbox-talks` · `public-tools-map` · `onboard-leadership-first-week` · `onboard-safety-first-week`) · 7 EN edits + 7 ES edits (Charla → Reunión de Seguridad per iter270 canonical) · 7/7 regression pytests green · 229/229 prior guidance pytests still green · live API endpoints verified · 0 stale-term hits remaining across 124 articles · Guidance Center Term column flipped 🟡 → ✅

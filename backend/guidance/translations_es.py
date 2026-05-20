@@ -73,7 +73,7 @@ TRANSLATIONS_ES: dict[str, dict] = {
                 "Día 2 — Envíe su primer Reporte Diario en un trabajo real (no de prueba). Fotos. Cuadrillas. Horas. Condiciones.",
                 "Día 2-3 — Recorra el ciclo completo de un Pre-Op de equipo desde el operador → taller → de vuelta al campo. Entienda qué pasa cuando usted firma.",
                 "Día 3-4 — Entregue una pieza de EPP / equipo usando Equipment Checkout. El registro es la prueba.",
-                "Día 4-5 — Dirija una Charla de Seguridad / Toolbox Talk y envíe el formulario de asistencia.",
+                "Día 4-5 — Dirija una Reunión de Seguridad y envíe el formulario de asistencia.",
                 "Fin de Semana 1 — Si tuvo cualquier evento de documentación (amonestación verbal, escrita, reconocimiento), regístrelo el mismo día. La documentación tardía es documentación débil.",
             ]},
             {"type": "why", "text":
@@ -238,7 +238,7 @@ TRANSLATIONS_ES: dict[str, dict] = {
                 "Día 2 — Siéntese con su gerente y revise los últimos 30 días de incidentes, casi-incidentes y acciones correctivas. Los patrones importan más que los eventos individuales.",
                 "Día 2-3 — Observe un incidente completo desde reporte → investigación → acción correctiva → cierre. No lo dirija. Observe la cadencia.",
                 "Día 3-4 — Lea los artículos profundos de capacitación de Seguridad una vez. Márquelos. Están escritos para releerse cada trimestre.",
-                "Día 4-5 — Dirija una Charla de Seguridad bajo la supervisión de su gerente. Acostúmbrese al ritmo de dirigir una reunión.",
+                "Día 4-5 — Dirija una Reunión de Seguridad bajo la supervisión de su gerente. Acostúmbrese al ritmo de dirigir una reunión.",
                 "Fin de la semana 1 — Identifique el proyecto que más le preocupa. Ahí pertenece su atención en la semana 2.",
             ]},
             {"type": "why", "text":
@@ -786,15 +786,15 @@ TRANSLATIONS_ES: dict[str, dict] = {
 
     # ── public-toolbox-talks ─────────────────────────────────────────
     "public-toolbox-talks": {
-        "title_es": "Reuniones de Seguridad y Charlas",
+        "title_es": "Reuniones de Seguridad",
         "summary_es": "Firme. Escuche. El registro es su firma.",
         "body_es": [
-            {"type": "p", "text": "Una charla de seguridad (o reunión de seguridad) es una junta corta al inicio del día o turno. Tema del día, peligros, cualquier cosa nueva. Usted firma la lista — así queda registrado que asistió y entendió."},
+            {"type": "p", "text": "Una reunión de seguridad es una junta corta al inicio del día o turno. Tema del día, peligros, cualquier cosa nueva. Usted firma la lista — así queda registrado que asistió y entendió."},
             {"type": "steps", "items": [
                 "Llegue a tiempo — usualmente son 5 a 15 minutos.",
                 "Escuche el tema. Pregunte si algo no le quedó claro.",
                 "Firme la lista de asistencia cuando le llegue (o escanee el QR / envíe por el formulario público).",
-                "Si vio un peligro durante la charla, hable antes de que la cuadrilla se separe.",
+                "Si vio un peligro durante la reunión, hable antes de que la cuadrilla se separe.",
             ]},
             {"type": "why", "text": "Su firma es el registro de que escuchó el tema de seguridad. Si después pasa algo que se cubrió en la reunión, esa firma protege a todos — usted supo, la cuadrilla supo, la empresa puede demostrarlo. Saltarse la firma hace lo contrario."},
             {"type": "tip", "text": "Si no puede llegar (médico, cambio de turno), avise al supervisor. A veces le dejan reconocer aparte."},
@@ -849,7 +849,7 @@ TRANSLATIONS_ES: dict[str, dict] = {
             {"type": "bullets", "items": [
                 "Reporte Diario — Lo que pasó hoy en el sitio (cuadrillas, equipo, materiales, fotos)",
                 "Inspección Pre-Op de Equipo — Recorrido OSHA diario por unidad",
-                "Reunión de Seguridad / Charla — Firma + lista de asistencia",
+                "Reunión de Seguridad — Firma + lista de asistencia",
                 "Reporte de Accidente / Incidente — Si pasa algo, pequeño o grande",
                 "Inspección del Sitio — Revisión general de seguridad en el lugar",
                 "QA/QC — Inspecciones de calidad por etapa",
@@ -1085,7 +1085,7 @@ TRANSLATIONS_ES: dict[str, dict] = {
                 "Auditorías — recorridos de sitio, auditorías de obra, de subcontratistas",
                 "Extintores — inventario, inspecciones mensuales, recarga",
                 "Cumplimiento de capacitación — OSHA-10, OSHA-30, equipo, primeros auxilios",
-                "Charlas de seguridad — temas, asistencia, firmas",
+                "Reuniones de seguridad — temas, asistencia, firmas",
                 "Planes JHA — Análisis de Riesgo de Trabajo autorizados",
             ]},
             {"type": "why", "text":
@@ -1103,7 +1103,7 @@ TRANSLATIONS_ES: dict[str, dict] = {
                 "Cerrar un incidente sin una causa raíz documentada + acción correctiva",
                 "Registrar una acción correctiva sin fecha de cierre firmada",
                 "Dejar que vencimientos de OSHA-10 pasen en la cuadrilla activa (riesgo de cierre)",
-                "Archivar una charla sin las firmas de asistencia",
+                "Archivar una reunión de seguridad sin las firmas de asistencia",
                 "Especular sobre la causa en un reporte de incidente — registre solo hechos observados",
             ]},
             {"type": "tip", "text":

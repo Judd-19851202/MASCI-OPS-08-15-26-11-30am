@@ -476,7 +476,7 @@ _ARTICLES: list[dict] = [
                 "Audits — site walks, jobsite safety audits, sub-contractor audits",
                 "Fire extinguishers — inventory, monthly inspections, recharge tracking",
                 "Training compliance — who's current on OSHA-10, OSHA-30, equipment, first-aid",
-                "Toolbox talks — meeting topics, attendance, signatures",
+                "Safety Meetings — meeting topics, attendance, signatures",
                 "JHA plans — Job Hazard Analyses authored and approved",
             ]},
             {"type": "why", "text":
@@ -1158,13 +1158,13 @@ _ARTICLES: list[dict] = [
     {
         "id": "public-toolbox-talks",
         "section": "onboarding",
-        "title": "Safety Meetings & Toolbox Talks",
+        "title": "Safety Meetings",
         "summary": "Real-world incident pattern first. Then the action drill. Sign the roster — that's your acknowledgement.",
         "scopes": ["public"],
-        "tags": ["public", "toolbox talk", "safety meeting", "field crew", "incident pattern"],
+        "tags": ["public", "safety meeting", "field crew", "incident pattern"],
         "body": [
             {"type": "p", "text":
-                "A MASCI Safety Meeting is not a generic toolbox talk. It runs from a "
+                "A MASCI Safety Meeting is not a generic safety briefing. It runs from a "
                 "curated library of 130+ heavy-civil and highway topics — each one "
                 "written around a real-world incident pattern that has actually killed "
                 "or seriously hurt construction workers. The foreman picks the topic, "
@@ -1289,7 +1289,7 @@ _ARTICLES: list[dict] = [
                 "Equipment Pre-Op submit — sign off that equipment is safe to run",
                 "Incident submit — report an injury / near-miss / damage",
                 "Site Inspection submit — public safety walk inspection",
-                "Safety Meeting / Toolbox Talk submit — sign attendance, log the topic",
+                "Safety Meeting submit — sign attendance, log the topic",
                 "QA/QC checklists — quality records by trade / stage",
                 "Material Calculator — quick quantity math",
                 "JHA / Trench Box reference — printable hazard reference",
@@ -1573,7 +1573,7 @@ _ARTICLES: list[dict] = [
                 "Day 2 — Submit your first Daily Report on the actual job (not a test). Photos. Crews. Hours. Conditions.",
                 "Day 2-3 — Walk the lifecycle of one equipment Pre-Op from operator → shop → back to field. Understand what your sign-off triggers.",
                 "Day 3-4 — Issue one piece of PPE / equipment using Equipment Checkout. The record is the proof.",
-                "Day 4-5 — Run a Toolbox Talk / Safety Meeting and submit the attendance form.",
+                "Day 4-5 — Run a Safety Meeting and submit the attendance form.",
                 "End of Week 1 — If you have any documentation event (verbal coaching, write-up, recognition), enter it the same day. Late documentation is weaker documentation.",
             ]},
             {"type": "why", "text":
@@ -1788,7 +1788,7 @@ _ARTICLES: list[dict] = [
                 "Day 2 — Sit with your manager and review the last 30 days of incidents, near-misses, and corrective actions. Patterns matter more than individual events.",
                 "Day 2-3 — Shadow one full incident from report → investigation → corrective action → close. Don't lead it. Watch the cadence.",
                 "Day 3-4 — Read the deep Safety training articles once. Bookmark them. They're authored to be re-read every quarter.",
-                "Day 4-5 — Lead one Toolbox Talk under your manager's supervision. Get comfortable with the rhythm of running a meeting.",
+                "Day 4-5 — Lead one Safety Meeting under your manager's supervision. Get comfortable with the rhythm of running a meeting.",
                 "End of week 1 — Identify the one project that worries you most. That's where your attention belongs in week 2.",
             ]},
             {"type": "why", "text":
