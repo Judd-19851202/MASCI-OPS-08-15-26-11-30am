@@ -1,5 +1,59 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 PM — iter267 Operational Alignment Maintenance · Safety Meeting Workflow Audit · DELIVERED (no code changes)
+
+First iteration under the operator's new **Operational Alignment Maintenance** category. Audit-only document with concrete, file/line/string-level findings — no rewrites, no redesign initiatives.
+
+### Deliverable
+- `/app/memory/SAFETY_MEETING_ALIGNMENT_AUDIT_iter267.md` · 362 lines · 13 sections · **52 concrete findings**
+
+### Sections delivered (Approval B + Mobile section M)
+- §A · Coaching gaps (6 findings · post-Phase-H framing misses)
+- §B · Help-surface staleness (4 findings · `/guidance/public-toolbox-talks` pre-dates Phase H)
+- §C · Terminology consistency (5 findings · "Site Safety Meeting" canonical, others to rename)
+- §D · Bilingual alignment (11 findings · ViewMeeting has ZERO `t()` calls; 9 NewMeeting toasts hardcoded English)
+- §E · PDF / output consistency (9 findings comparing meeting record vs F2-A pack)
+- §F · Role expectation gaps (4 findings · `conducted_by` is free-text, `role_context` ignored)
+- §G · Linkage to safety-library philosophy (5 findings · incident_pattern not visually framed in the form)
+- §H · Onboarding gaps (5 findings · no first-load orientation, no photo rationale)
+- §I · ViewMeeting alignment (11 findings · weather rendered EN even on ES records — real bug)
+- §J · Cross-platform consistency (table · ViewMeeting/ViewIncident/ViewInspection cluster of 3 un-translated legacy pages)
+- §K · Inventory · 21 prioritized items (K1-K21 across P0/P1/P2/Out-of-scope)
+- §L · Recommended sequencing · 4 sprints, Sprint 1 = data correctness for ES users TODAY
+- §M · Mobile-specific operational alignment (8 sub-sections, 25+ field-realistic findings · 414px, gloves, sunlight, one-hand, real foreman usage)
+
+### Key concrete findings worth highlighting
+- 🔴 `ViewMeeting.jsx` has zero `t()` calls — Spanish reviewer of an ES-submitted meeting sees English layout. Peer `ViewEquipmentInspection.jsx` has 15 `t()` calls. Single biggest alignment gap.
+- 🔴 Weather chips render English in ViewMeeting even when meeting was submitted in ES (data-correctness bug, not just i18n nit)
+- 🔴 9 toasts in `NewMeeting.jsx` are hardcoded English ("Meeting saved", "Location captured from GPS", validation errors) — ES foremen get EN errors today
+- 🟡 Terminology fragmented: "Toolbox Talk" (6 refs) · "Site Safety Meeting" (8 refs · canonical) · "Tailgate" · "Safety Meeting" (33 refs). 4 specific rename targets named.
+- 🟡 Incident-pattern philosophy not visually framed in the form — the `WHAT HAPPENS · real-world pattern` header sits inside the textarea as plain text mixed with bullets. Same in ViewMeeting + PDF.
+- 🟡 `/guidance/public-toolbox-talks` article is from a pre-Phase-H worldview ("topic of the day, hazards") — no mention of incident-pattern, no mention of 136-topic library, no mention of bilingual parity
+- 🟢 Mobile § found the form IS field-usable today; main mobile gap is ES toast leakage (overlaps the P0 above)
+
+### Recommended Sprint 1 (one focused iteration · operator green-light required to begin)
+- K1 · ViewMeeting i18n pass (~30 strings)
+- K2 · Weather label i18n (overlaps E9, I5)
+- K3 · NewMeeting toasts i18n (~9 hardcoded calls)
+- K9 · Two missing i18n strings (`Pick a topic — Category & all fields below auto-fill`, `Add every person who attended...`)
+- M-P0 · Mobile-jobsite-ES error visibility (overlaps K3)
+
+This Sprint 1 is **data correctness for Spanish-speaking field foremen TODAY** — passes the Operational Value Gate cleanly.
+
+### Out of scope (flagged for separate audits when operator chooses)
+- `ViewIncident.jsx` and `ViewInspection.jsx` have same i18n gap as ViewMeeting — cluster of 3 legacy view pages for a follow-on alignment audit
+- "Continue from last meeting" pre-fill is a feature, not alignment work — logged as future consideration only
+
+### Operator gate before any code
+1. Review document
+2. Confirm Sprint 1 scope
+3. Confirm cluster follow-on (ViewIncident + ViewInspection i18n)
+4. Decide whether Sprint 2 (philosophy linkage) ships in same window or after Sprint 1 signal
+
+🔒 iter267 Audit **DELIVERED** · 52 concrete findings · 4-sprint sequencing recommended · awaiting operator review.
+
+---
+
 ## 2026-05-20 PM — iter266 F2-A · Safety Topic Library MVP · SHIPPED (testing agent 100% pass · 10/10 backend + 15/15 frontend)
 
 Following the iter265 post-Phase-H evaluation's F2-first recommendation. Internal-only operational tool for Safety/Admin — first production surface that exposes the `severity` metadata, anywhere.
