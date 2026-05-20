@@ -1,5 +1,57 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 PM — iter268 Operational Alignment Maintenance · Sprint 1 · ViewMeeting + NewMeeting Bilingual Correctness · SHIPPED (testing agent + manual verify · 0 bugs)
+
+First execution iteration under the new Operational Alignment Maintenance category. Scope LOCKED to correctness fixes from iter267 audit findings K1·K2·K3·K9 — no philosophy, no terminology renames, no other view pages.
+
+### What shipped
+- **K1 · ViewMeeting full i18n pass** — `ViewMeeting.jsx` rewritten from 0 `t()` calls to fully bilingual. ~30 hardcoded English labels now use `useT()`. Page H1 "Registro de Reunión de Seguridad del Sitio" · breadcrumb "Reuniones" · all section labels · all KV field labels · `Sin firma` empty-state · `Correo` + `Imprimir / PDF` buttons · `Generado · Reunión de Seguridad` footer · `Loading…` → `Cargando…` · delete confirm `¿Eliminar esta reunión?...`
+- **K2 · Weather label i18n** — new `weatherLabel(code, t)` helper in `ViewMeeting.jsx`. Weather chip codes (`clear|hot|cold|rain|wind|storm_risk`) now translate to `Despejado · Calor · Frío · Lluvia · Viento · Riesgo de Tormenta` in ES, English in EN. Fixes real data-correctness bug: ES-submitted records previously rendered weather in English.
+- **K3 · NewMeeting toasts i18n** — all 9 hardcoded toast strings now wrapped in `t()`:
+  - `Job loaded: #{n}` (with project number interpolation)
+  - `Location captured from GPS` · `Got GPS coordinates, but couldn't look up address` · `Could not get GPS location`
+  - Validation: `{field} is required` (with field-label interpolation) · `Conductor signature is required` · `Add at least one attendee`
+  - Submission flow: `Translating to English…` · `Meeting saved` · `Could not save meeting`
+- **K9 · 2 missing i18n strings** — `Pick a topic — Category & all fields below auto-fill` → `Elija un tema — Categoría y los campos de abajo se autocompletan`. Plus `Topic` field-label for the validation interpolation. The longer Section 03 helper string already existed.
+
+### Out of scope this iteration (held per directive)
+- ❌ Philosophy linkage (visual `incident_pattern` separation, coaching strips, domain breadcrumbs) → Sprint 2
+- ❌ Terminology renames (`Toolbox Talk` → `Site Safety Meeting`) → Sprint 3
+- ❌ ViewIncident.jsx · ViewInspection.jsx i18n → separate audit
+- ❌ `/guidance` overhaul → operator deferred
+- ❌ Topic category Select option translations → out of Sprint 1 scope
+
+### Verification
+- iter267 testing agent · **85% verified passing · 0 bugs · retest_needed=false**
+  - K1 ES rendering · K2 weather chips ES · K9 helper text ES all confirmed via DOM
+  - K3 toast literal text via code review (sonner DOM selector mismatch was a test-environment issue, not a code issue)
+- Manual smoke test by main agent · **ViewMeeting in ES on a real saved record · 6 ES strings rendered · 0 EN leaks**
+- Lint clean · supervisor running · no regressions
+
+### Files touched
+- MOD · `/app/frontend/src/pages/ViewMeeting.jsx` (full rewrite — 370 lines, all t()-wrapped)
+- MOD · `/app/frontend/src/pages/NewMeeting.jsx` (9 toast wrap-ups + validate() interpolation)
+- MOD · `/app/frontend/src/lib/i18n.js` (~30 new ES keys inside `iter268 · Sprint 1` block; one accidental duplicate `Subcontractor` removed)
+
+### Pre-existing i18n duplicate-key note
+Testing agent flagged ~6 pre-existing duplicate keys in `i18n.js` (e.g. `Weather`, `Attendee`, `Conducted By` appear 2-3× from earlier iterations). All resolve to identical ES values · JS object-literal last-value-wins · no behavior impact. Flagged for a future small cleanup iteration; out of Sprint 1 correctness scope.
+
+### Sprint 1 closed · Next under Operational Alignment Maintenance
+- ⏸ **Sprint 2** — Philosophy linkage (K4·K5·K6·K7 from iter267 audit): visual separation of `incident_pattern` vs bullets in form + ViewMeeting · coaching strip above topic picker · domain breadcrumb after topic load · `/guidance/public-toolbox-talks` article rewrite. **Operator gate required.**
+- ⏸ **Sprint 3** — Role & terminology (K8·K13·K14·K15). Operator gate required.
+- ⏸ **Sprint 4** — Onboarding & PDF polish. Operator gate required.
+- ⏸ Cluster follow-on: ViewIncident.jsx + ViewInspection.jsx i18n audit & repair
+- ⏸ `/guidance` Operational Guidance Center audit (operator named as directionally valuable)
+
+### Other roadmap (unchanged)
+- F1-A · Public Read-Only Library MVP · cleared to begin on operator green-light
+- F2-B · Presets + bilingual side-by-side PDF · deferred per Operational Value Gate
+- i18n duplicate-key cleanup pass (small housekeeping)
+
+🔒 iter268 Sprint 1 **SHIPPED** · Operational correctness for Spanish field foremen live · 4 audit findings closed · scope discipline held · ready for Sprint 2 on operator go-ahead.
+
+---
+
 ## 2026-05-20 PM — iter267 Operational Alignment Maintenance · Safety Meeting Workflow Audit · DELIVERED (no code changes)
 
 First iteration under the operator's new **Operational Alignment Maintenance** category. Audit-only document with concrete, file/line/string-level findings — no rewrites, no redesign initiatives.

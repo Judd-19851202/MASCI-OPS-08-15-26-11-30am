@@ -969,7 +969,6 @@ const ES = {
   "Topic / Subject": "Tema / Asunto",
   "Discussion Notes": "Notas de Discusión",
   "Open in Maps": "Abrir en Mapas",
-  "Subcontractor": "Subcontratista",
   "Yes (unnamed)": "Sí (sin nombre)",
   "No attendees listed.": "No hay asistentes registrados.",
   "Attendee": "Asistente",
