@@ -1,6 +1,54 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-20 — iter301 Safety Topic Library Audit (Lane E · visibility-only · NO code) · CLOSED
+
+### Scope
+Read-only audit of `/app/frontend/src/lib/topics/*.js` (21 domain files · 136 topics) against the 8 operator-named operational verticals. Goal: understand the actual gap landscape before any topic-add work.
+
+### Headline finding
+The Safety Meeting / Toolbox Topic Library is **structurally healthy**:
+- **136 topics across 21 operationally-organized domains.**
+- **100% ES coverage (136/136).** Spot-checked translations read as operationally written, not machine-generated.
+- **Zero "thin" topics** anywhere. Average `discussion_notes` 600–960 chars per topic.
+- **63% fatal_risk · 30% serious_injury · 7% lost_time** — realistic heavy-civil contractor risk profile.
+- Tone discipline intact: every topic uses the canonical `incident_pattern → hazards → discussion → references → action_items` structure with foreman-grade narrative voice.
+- **Zero LMS-drift / zero corporate framing / zero machine-translation awkwardness.**
+
+### Per-named-vertical verdict
+| Vertical | Topics | Verdict |
+| --- | ---: | --- |
+| Trucking / Fleet | 12 | 🟢 Deepest in library — model voice |
+| Dump-bed strike prevention | 5 (within trucking) | 🟢 Fully covered sub-vertical |
+| Dewatering / Wellpoint | 8 | 🟢 Operationally comprehensive |
+| Plant / Crusher | 8 | 🟢 Crusher-jam clearing covers THE crusher fatality pattern |
+| Shop / Mechanic | 8 | 🟢 Operationally complete |
+| Office / Admin | 8 | 🟢 Correctly led by commute + site-visit risks |
+| **Airport Operations** | **2** | 🟡 **THIN — operator-named gap** |
+| **Asphalt Lab** | **1 (buried in plant)** | 🔴 **REAL GAP — operator-named priority** |
+
+### Proposed bounded additions (DEFERRED to operator approval)
+- **4 asphalt-lab topics**: `lab_nuclear_gauge_handling` · `lab_oven_burns_chemistry` · `lab_core_drilling_silica` · `lab_solvent_handling_ppe` (Option α: new `lab` domain · Option β: extend `plant` domain)
+- **4 airport topics**: `airport_fod_control` · `airport_night_work_visibility` · `airport_security_badging_escort` · `airport_airfield_electrical_lighting`
+- **1 optional crusher refinement**: `plant_crusher_screen_deck_cleaning`
+
+### Operational impact assessment
+- The library is **NOT the next-priority gap** in the stabilization phase.
+- Operator's instinct to focus on "real-world friction observation" rather than aggressive content expansion is **validated by the evidence**.
+- The library's operational realism (office leading with distracted_driving · trucking leading with bed-up overhead strikes · plant leading with conveyor entanglement) is its most valuable asset.
+
+### Files touched
+- NEW · `/app/memory/SAFETY_TOPIC_LIBRARY_AUDIT_iter301.md` (full audit deliverable with per-domain inventory + bounded recommendations + non-recommendations)
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (ship-log entry + section-health timestamp)
+
+### Deferred per operator scope
+- Topic additions (4 asphalt-lab · 4 airport · 1 optional crusher) — DEFERRED to operator approval.
+- Domain-architecture decisions (Option α new `lab` domain vs Option β extend `plant`) — DEFERRED to operator preference.
+- All other library structural changes — explicitly NOT recommended.
+
+---
+
+
 ## 2026-05-20 — iter300 Bilingual Continuity ES Dictionary Closure · CLOSED
 
 ### Scope (operator-approved, dictionary-only)
