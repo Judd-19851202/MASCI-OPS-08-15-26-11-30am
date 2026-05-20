@@ -1,5 +1,70 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 PM — iter266 F2-A · Safety Topic Library MVP · SHIPPED (testing agent 100% pass · 10/10 backend + 15/15 frontend)
+
+Following the iter265 post-Phase-H evaluation's F2-first recommendation. Internal-only operational tool for Safety/Admin — first production surface that exposes the `severity` metadata, anywhere.
+
+### What shipped
+- **Backend** · new modular route `/app/backend/routes/safety_topic_library.py`
+  - `POST /api/safety/library/pack` · Safety/Admin only · returns `application/pdf`
+  - Body: `{languages: 'en'|'es'|'both', topics: [{en: {...}, es?: {...}}]}` (frontend POSTs only the topics the user selected — backend is a pure render service, no parallel topic library on backend)
+  - Validation: 401 unauth/bad token · 400 empty topics · 400 invalid language · 400 ES required-but-missing
+  - PDF: ReportLab BaseDocTemplate, one topic per page, single MASCI red eyebrow rule, "MASCI Safety · Internal Use" footer + page X of Y
+  - Severity caption is the ONLY surface in the app where severity is rendered
+- **Frontend** · new page `/app/frontend/src/pages/SafetyTopicLibrary.jsx` at route `/safety-portal/library`
+  - RequireSafety-gated; reuses existing portal-scope architecture
+  - Filter UI: 3 severity chips (with counts), 22 domain chips (with counts), EN/ES/text search
+  - Multi-select with `Select all visible` / `Clear selection`
+  - `Generate PDF Pack` button → modal with 3 language radio options (en / es / both) → server PDF download with timestamped filename `MASCI_Safety_Topic_Pack_YYYY-MM-DD.pdf`
+  - Empty-state card when zero results
+  - All interactive elements carry distinct `data-testid` values
+- **SafetyHub** · added `Topic Library · Operational Prep` tile (red accent, `data-testid="safety-tile-topic-library"`) so Safety leadership can discover it
+
+### Restraint held (per Operational Value Gate)
+- ❌ No analytics, no usage tracking, no popularity counters
+- ❌ No saved presets / favorites / recently-viewed (deferred to F2-B at operator's discretion)
+- ❌ No recommendation engine
+- ❌ No quizzes, no completion tracking, no LMS scaffolding
+- ❌ No engagement dashboards
+- ❌ No customization theater
+- ✅ Filter → select → PDF · the entire feature
+
+### Boundary integrity
+- Severity is JS-only across the entire app EXCEPT this one Safety/Admin page (verified by testing agent's body-text scan of `/meetings/new` — 0 severity strings found)
+- Public/private matrix from §7 of the iter265 eval is now enforced by code, not just by policy
+- F2-A is the **proving ground** for the F1 public/private discipline — and the boundary held
+
+### iter266 testing-agent verdict
+- Backend: **10/10 pass** (RBAC × 4, validation × 3, PDF magic-bytes × 3)
+- Frontend: **15/15 pass** (route render, 3 sev chips, 22 domain chips × concrete-12 verified, fatal_risk-88 verified, empty state, multi-select, dialog, EN/ES/Both PDF download, SafetyHub tile, severity-leak scan, unauth redirect)
+- One cosmetic testid disambiguation flagged and fixed post-test (`select-all-visible` → `library-select-all`, `select-{key}` → `row-select-{key}`)
+- Test file: `/app/backend/tests/test_iter266_safety_topic_library.py`
+- 0 bugs · 0 LMS drift · 0 corporate-tone drift
+
+### Files touched
+- NEW · `/app/backend/routes/safety_topic_library.py` (~340 lines)
+- MOD · `/app/backend/server.py` (router registration block)
+- NEW · `/app/frontend/src/pages/SafetyTopicLibrary.jsx` (~430 lines)
+- MOD · `/app/frontend/src/pages/SafetyHub.jsx` (1 icon import + 1 tile)
+- MOD · `/app/frontend/src/App.js` (import + route)
+- MOD · `/app/memory/test_credentials.md` (master-directory bootstrap noted for rotation-stale safety creds)
+- NEW · `/app/backend/tests/test_iter266_safety_topic_library.py` (testing agent created)
+
+### F2-A closed · Next on roadmap (operator-approved sequencing from iter265 §9)
+- ⏸ **F2-B** · Filter presets + bilingual side-by-side PDF (deferred until operator explicitly green-lights — Operational Value Gate suggests waiting to see if real usage demands these before building)
+- ⏸ **F1-A** · Public Read-Only Library MVP (next major workstream — F2-A's boundary proof is the prerequisite that's now in place)
+- ⏸ **F1-B** · Print topic cards
+- ⏸ **F1-C** · About page + cultural statement (per §11.6)
+
+### Cultural / governance posture (iter265 §11 active)
+- Section 11.4 editorial guardrails are binding (operator confirmation)
+- All future topic content additions/revisions must clear the field-voice rule, sequence-of-events rule, bullets-are-action rule, bilingual parity rule
+- Operator retains explicit veto on register-changing edits
+
+🔒 iter266 F2-A **SHIPPED** · Severity Hot-Filter MVP live for Safety/Admin · public/private boundary proven in production code · F1 cleared to begin on operator go-ahead.
+
+---
+
 ## 2026-05-20 PM — iter265 Safety Meeting · Post-Phase-H Evaluation Pass · DOCUMENT DELIVERED (no code changes)
 
 Per operator directive: now that Phase H closed, this was the right moment for a maturity-and-protection blueprint before F1 or F2 implementation begins.

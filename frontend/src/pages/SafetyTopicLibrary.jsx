@@ -369,7 +369,7 @@ export default function SafetyTopicLibrary() {
               type="button"
               variant="outline"
               onClick={selectAllVisible}
-              data-testid="select-all-visible"
+              data-testid="library-select-all"
             >
               {t("Select all visible")} ({filtered.length})
             </Button>
@@ -439,7 +439,7 @@ export default function SafetyTopicLibrary() {
                   <Checkbox
                     checked={isSelected}
                     onCheckedChange={() => toggleSelect(topic.key)}
-                    data-testid={`select-${topic.key}`}
+                    data-testid={`row-select-${topic.key}`}
                     className="mt-1"
                   />
                   <div className="min-w-0 flex-1">
