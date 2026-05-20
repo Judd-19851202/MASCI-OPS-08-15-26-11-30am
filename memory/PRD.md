@@ -1,5 +1,73 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 PM — iter264 Safety Meeting · Phase H FULLY CLOSED · 100% incident-pattern + severity coverage across 136 topics (Batch 4 + Batch 5 + Stabilization Sweep · testing-agent 100% pass)
+
+Two more batches landed this session — closing Phase H end-to-end.
+
+### Phase H Batch 4 · Electrical + Confined Space + Environmental + Wellness (14 topics)
+- **Electrical (4)** · electrical_safety, loto, generator_temp_power, light_tower — EN+ES incident_pattern + severity (3 fatal_risk + 1 serious_injury)
+- **Confined Space (1)** · confined_space (rescuer-dies-too pattern, fatal_risk)
+- **Environmental (3)** · lightning (fatal_risk), wildlife_insects (serious_injury), spill_response (serious_injury)
+- **Wellness (6)** · heat_stress (serious_injury), cold_stress (serious_injury), fatigue (fatal_risk), drug_alcohol (fatal_risk), bloodborne (serious_injury), mental_health (fatal_risk) — explicit operational/judgment-degradation voice, NOT corporate-wellness
+- iter263 testing-agent verdict: **100% pass · explicit Wellness tone audit confirmed**
+
+### Phase H Batch 5 · General uplift + 2 NEW topics (20 topics)
+- All 18 existing General topics uplifted with EN+ES incident_pattern and EN severity
+- **NEW** · `general_line_of_fire` (fatal_risk) · universal mental-discipline framing — 'where does it go if energy releases right now?'
+- **NEW** · `general_lone_worker_field` (fatal_risk) · check-in protocol failure scenarios (surveyor not found until next morning, etc.)
+- Note: `stretch_flex` and `site_walk` overlap conceptually — preserved for now, flagged for future merger consideration
+
+### Phase H Stabilization Sweep · severity backfill (63 topics)
+- Wrote one-shot `/tmp/add_severity.mjs` script that inserted `severity:` after `title:` for every previously-uplifted topic in mot · trucking · excavation · dewatering · shop · plant · airport · office
+- Severity mapping was operator-realistic: live-traffic and heavy-iron topics → `fatal_risk`; ergonomic/exposure → `serious_injury`; admin/office routine → `lost_time`
+- Also fixed the single library-wide hole: `dump_truck` (trucking) was missing incident_pattern entirely — both EN and ES patterns added
+
+### Phase H final library state (post-iter264)
+- **136 EN === 136 ES** (full key parity, 0 missing in either direction)
+- **136/136** topics carry `incident_pattern` in EN
+- **136/136** topics carry `incident_pattern` in ES
+- **136/136** topics carry `severity` in EN (JS-only — 0 DOM exposure)
+- **21 operational domains**, 22 picker chips (including "All")
+- Severity distribution: **88 fatal_risk · 42 serious_injury · 6 lost_time**
+
+### Voice / culture upheld
+- ✅ Field-foreman / superintendent voice across all 136 topics
+- ✅ Wellness explicitly NOT corporate-wellness (verified by tone audit) — operational/judgment-degradation framing
+- ✅ 'PATRÓN REAL · lo que suele pasar' ES header injection working across all 136 ES translations
+- ✅ Zero EN leakage in ES mode
+- ✅ Severity remains JS-only — operator order respected — F2 Severity Hot-Filter approved conceptually but deferred per directive
+- ✅ Hard-edged content preserved: 'multi-victim fatalities in this exact pattern,' '60% of confined-space fatalities are would-be rescuers,' 'the drive home is the #1 way you die from this job'
+
+### Minor i18n cleanup (bonus, not Phase H scope)
+- ES translation added for 'Auto-fills when you pick a topic below' → 'Se autocompleta al elegir un tema abajo' (pre-existing miss flagged by testing agent, NOT a Phase H regression)
+
+### Phase H Closed · Roadmap forward
+- 🟢 **F2 — Safety/Admin Operational Severity Filter** · operator-approved CONCEPTUALLY, deferred until after metadata is fully stabilized — which it now is. Implementation gated on operator go-ahead.
+- 🟢 **Public Read-Only Safety Topic Library (F1)** · architectural evaluation can begin (permalink structure, public routing, printable topic cards, mobile read-only rendering, PDF consistency, public-safe metadata boundaries). NO implementation yet.
+- ⏸ Future Mobile UX Refinement for approval workflows (chip-based)
+- ⏸ Phase K4b — Unified User Management UI Mutations
+- ⏸ Phase K5 — Temp Password / Onboarding Standardization
+
+### Files touched this session (cumulative across iter261-264)
+- MOD · `frontend/src/lib/topics/concrete.es.js` (+12 ES incident_pattern)
+- MOD · `frontend/src/lib/topics/grading.{js,es.js}` (5 topics × 2 languages)
+- MOD · `frontend/src/lib/topics/utilities.{js,es.js}` (2 × 2)
+- MOD · `frontend/src/lib/topics/rigging.{js,es.js}` (2 × 2)
+- MOD · `frontend/src/lib/topics/fall_protection.{js,es.js}` (5 × 2)
+- MOD · `frontend/src/lib/topics/electrical.{js,es.js}` (4 × 2)
+- MOD · `frontend/src/lib/topics/confined_space.{js,es.js}` (1 × 2)
+- MOD · `frontend/src/lib/topics/environmental.{js,es.js}` (3 × 2)
+- MOD · `frontend/src/lib/topics/wellness.{js,es.js}` (6 × 2)
+- MOD · `frontend/src/lib/topics/general.{js,es.js}` (20 × 2, includes 2 new)
+- MOD · `frontend/src/lib/topics/{mot,trucking,excavation,dewatering,shop,plant,airport,office}.js` (severity backfill 63 topics)
+- MOD · `frontend/src/lib/topics/trucking.{js,es.js}` (dump_truck pattern fix)
+- MOD · `frontend/src/lib/i18n.js` (+1 ES string)
+- NEW · `/tmp/add_severity.mjs` (one-shot backfill script, idempotent)
+
+🔒 iter264 Phase H **CLOSED** · 136 topics · full incident-pattern + severity coverage · EN/ES parity intact · operational tone verified · F2 + F1 future work primed.
+
+---
+
 ## 2026-05-20 AM — iter261 Safety Meeting · Phase H Batch 2 ES finish + Batch 3 uplift · COMPLETE (26 topics uplifted · 134 EN === 134 ES · 100% testing-agent pass on both batches)
 
 Two clean batches landed this session.

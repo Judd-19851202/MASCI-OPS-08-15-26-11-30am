@@ -939,6 +939,7 @@ const ES = {
   "Shift": "Turno",
   "Select shift": "Seleccionar turno",
   "High-risk activity today": "Actividad de alto riesgo hoy",
+  "Auto-fills when you pick a topic below": "Se autocompleta al elegir un tema abajo",
   "Weather": "Clima",
   "Subcontractor crew present": "Cuadrilla subcontratista presente",
   "Subcontractor name (optional)": "Nombre del subcontratista (opcional)",
