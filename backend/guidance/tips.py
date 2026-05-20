@@ -3998,6 +3998,440 @@ _TIPS.append({
         "into a wrong order, a wrong invoice, and a wrong forecast.",
 })
 
+# ─────────────────────────────────────────────────────────────────────
+# iter275 · Bundled Sequences #5 + #6 from MATURITY MATRIX
+# Five surfaces in one closure pass. Same HelpTipBlock architecture,
+# same registry pattern, same tone gates. No new architecture.
+#   • equipment-issuance   (PPE / gear handed to a worker)
+#   • equipment-training   (toolbox-talk-grade equipment training)
+#   • topic-library        (admin/safety topic library + PDF pack)
+#   • fire-extinguisher    (NFPA 10 inspection cadence)
+#   • jha                  (Job Hazard Analysis posting + working plan)
+# ─────────────────────────────────────────────────────────────────────
+
+# ── equipment-issuance ────────────────────────────────────────────────
+_TIPS.extend([
+    {"form_key": "equipment-issuance", "kind": "why", "scopes": ["public"],
+     "title": "Why an issuance record is the operational handshake",
+     "body": "Gear without a signature is gear that walked off the yard. "
+             "The issuance record is the paper trail that proves the "
+             "worker received it, was shown how to use it, and accepted "
+             "responsibility for its condition. No record = no defense "
+             "if it shows up damaged, missing, or in someone else's hands."},
+    {"form_key": "equipment-issuance", "kind": "who", "scopes": ["public"],
+     "title": "Who reads issuance records",
+     "body": "Safety on returns and damage. HR on separations (the "
+             "checkout list against the return list). Admin on inventory. "
+             "If the same employee shows three damaged hard hats in six "
+             "months, that's a pattern worth investigating — not another "
+             "replacement."},
+    {"form_key": "equipment-issuance", "kind": "next", "scopes": ["public"],
+     "title": "What happens after submit",
+     "body": "Record attaches to the employee profile. Acknowledgment "
+             "signature is captured with the gear list. PDF generates "
+             "and attaches to the project. On separation, this record "
+             "is the basis for the return checklist — anything not "
+             "returned can become a payroll deduction with proper notice."},
+    {"form_key": "equipment-issuance", "kind": "escalate", "scopes": ["public"],
+     "title": "When to refuse issuance",
+     "body": "Worker has no current orientation. Equipment is the "
+             "wrong size or fit (hard hat won't sit, harness won't "
+             "cinch). PPE shows visible damage in the issuance moment "
+             "— don't issue damaged gear and write 'as is'. Pull from "
+             "stock, document the damage, replace the unit."},
+    {"form_key": "equipment-issuance.employee", "kind": "why", "scopes": ["public"],
+     "title": "Why the employee record link matters",
+     "body": "Linking to the master employee record means future "
+             "issuances, returns, and damage events line up under one "
+             "name. Typing the name freeform breaks that lens. If "
+             "the employee isn't in the master, that's the gap to "
+             "fix first — not a workaround for today."},
+    {"form_key": "equipment-issuance.employee", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "Issuing to 'the crew' instead of a named person. "
+             "Skipping the employee link because the picker is slow. "
+             "Issuing to an employee on the wrong project. Forgetting "
+             "to confirm the trade — the gear list should match the "
+             "work the person actually does."},
+    {"form_key": "equipment-issuance.equipment", "kind": "why", "scopes": ["public"],
+     "title": "Why every item is its own line",
+     "body": "One item per line means each unit is trackable on "
+             "return. 'Standard PPE kit' as a single line means six "
+             "months later nobody knows whether the harness came "
+             "back. Hard hat, safety glasses, harness, lanyard, "
+             "boots, vest — each gets a row."},
+    {"form_key": "equipment-issuance.equipment", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "Bulk-listing 'PPE set'. Skipping the serial number on "
+             "items that have one (harnesses, hearing protection, "
+             "respirators). Using 'Other' as a catch-all when the "
+             "real item is in the master list. Quantity left blank "
+             "because 'they only get one anyway'."},
+    {"form_key": "equipment-issuance.equipment", "kind": "example", "scopes": ["public"],
+     "title": "A clean issuance line",
+     "body": "Hard hat · Class E · sz L · qty 1 · serial 224-887. "
+             "Six months from now an auditor or replacement supervisor "
+             "can answer: who got it, when, which one, in what size. "
+             "That's the standard, not 'hat issued'."},
+    {"form_key": "equipment-issuance.photos", "kind": "why", "scopes": ["public"],
+     "title": "Why photos at issuance",
+     "body": "Condition at handoff is the only fact that closes "
+             "the 'it was already broken' argument later. A photo of "
+             "the harness webbing, the hat shell, the boot tread — "
+             "captured today — is what protects both the worker and "
+             "the company when the equipment comes back damaged."},
+    {"form_key": "equipment-issuance.photos", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "One photo of the pile. No photo of the serial number. "
+             "Photos taken in poor light that hide defects. Skipping "
+             "photos because the worker is in a hurry — that's "
+             "exactly the moment to slow down. The handoff is when "
+             "the record is set."},
+    {"form_key": "equipment-issuance.photos", "kind": "example", "scopes": ["public"],
+     "title": "A photo set that does the job",
+     "body": "(1) Each item laid out flat on a clean surface. (2) "
+             "Close-up of serial numbers / size tags. (3) Any "
+             "pre-existing wear, scuff, or repair clearly framed. "
+             "Three to five frames covering the whole issuance — "
+             "that's the standard."},
+    {"form_key": "equipment-issuance.acknowledgment", "kind": "why", "scopes": ["public"],
+     "title": "Why the acknowledgment language is legal",
+     "body": "The bilingual paragraph above the signature is what "
+             "makes this a contract instead of a receipt. The worker "
+             "accepts responsibility for the gear, agrees to report "
+             "damage, and acknowledges the company's right to deduct "
+             "for unreturned items. Skip reading it to the worker and "
+             "the contract weakens."},
+    {"form_key": "equipment-issuance.acknowledgment", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "Signing without reading the acknowledgment aloud to the "
+             "worker. Capturing the signature on the wrong side of "
+             "the language. Letting the worker sign in pencil or in "
+             "an unreadable scrawl — the signature has to look like "
+             "the one on file."},
+    {"form_key": "equipment-issuance.acknowledgment", "kind": "escalate", "scopes": ["public"],
+     "title": "When a worker refuses to sign",
+     "body": "Don't issue. Document the refusal in the notes field "
+             "with the date and time. Tell Safety verbally before "
+             "the day ends. A signature refusal during issuance is "
+             "an early signal — investigate the cause, don't escalate "
+             "to discipline as the first move."},
+])
+
+# ── equipment-training ────────────────────────────────────────────────
+_TIPS.extend([
+    {"form_key": "equipment-training", "kind": "why", "scopes": ["public"],
+     "title": "Why equipment training is not a checkbox",
+     "body": "A worker who runs a piece of equipment they were trained "
+             "on yesterday will, statistically, do it the way they were "
+             "trained. If the training was paperwork — they'll work "
+             "from paperwork understanding. If the training was hands-on "
+             "— they'll work from hands-on muscle memory. Pick which "
+             "worker you want on site tomorrow."},
+    {"form_key": "equipment-training", "kind": "who", "scopes": ["public"],
+     "title": "Who reads training records",
+     "body": "Safety on incident review (was the operator actually "
+             "trained on this unit?). HR on hire/transfer eligibility. "
+             "PM when a sub asks for proof of competency. OSHA, on "
+             "audit. The trainee themselves — their name is on the "
+             "record, this is part of their employment history."},
+    {"form_key": "equipment-training", "kind": "next", "scopes": ["public"],
+     "title": "What happens after submit",
+     "body": "Record attaches to the employee profile and equipment "
+             "competency list. Expiration date (per OSHA / manufacturer) "
+             "tracks forward — Safety gets notice 30 / 7 days out. The "
+             "signed acknowledgment becomes the legal record that "
+             "training happened on this date for this person on this gear."},
+    {"form_key": "equipment-training", "kind": "escalate", "scopes": ["public"],
+     "title": "When to fail the trainee",
+     "body": "Hands-on demonstration fails. Trainee can't articulate "
+             "the top three hazards of the equipment. Trainee skipped "
+             "the toolbox walk-around. Don't sign. Reschedule, retrain, "
+             "document the gap, and notify Safety + PM. A failed "
+             "training is operational — a falsified one is a liability."},
+    {"form_key": "equipment-training.context", "kind": "why", "scopes": ["public"],
+     "title": "Why every context field matters",
+     "body": "Trainer, date, duration, location, equipment — these "
+             "are what make the record audit-defensible. 'Training "
+             "happened sometime in Q3' is not a record. 'Conducted "
+             "by J. Cruz on 3/14 at the yard, 90 min, on Skid Steer "
+             "234-A' is."},
+    {"form_key": "equipment-training.context", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "Duration as 'classroom' with no minutes — OSHA "
+             "expects time-on-task. Location as 'yard' with no project "
+             "number — training tied to a specific project is more "
+             "defensible than 'somewhere'. Trainer name as the company "
+             "instead of a person."},
+    {"form_key": "equipment-training.acknowledgment", "kind": "why", "scopes": ["public"],
+     "title": "Why the trainee acknowledges in writing",
+     "body": "The signature is the trainee's statement that the "
+             "training happened and was understood. Without it, the "
+             "record is the trainer's word against the trainee's. With "
+             "it, the trainee owns the competency claim on their own "
+             "employment record."},
+    {"form_key": "equipment-training.acknowledgment", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "Signing for the trainee 'because they had to leave'. "
+             "Capturing the signature before the hands-on portion is "
+             "complete. Letting the trainee sign without first reading "
+             "the acknowledgment language. Bilingual is required — "
+             "use the language the trainee actually understands."},
+    {"form_key": "equipment-training.acknowledgment", "kind": "escalate", "scopes": ["public"],
+     "title": "When the trainee can't sign in their working language",
+     "body": "Stop. Get a bilingual translator (foreman, peer, "
+             "supervisor — anyone fluent). Re-deliver the key safety "
+             "points in the trainee's language. Document who "
+             "translated and confirm comprehension before signing. "
+             "Don't continue with a language gap — that's an incident "
+             "waiting to happen."},
+    {"form_key": "equipment-training.signatures", "kind": "why", "scopes": ["public"],
+     "title": "Why both signatures matter",
+     "body": "Trainer signs that the training was delivered. Trainee "
+             "signs that it was received and understood. Two signatures "
+             "= a closed loop. One signature = an open question for "
+             "the next investigator to ask."},
+    {"form_key": "equipment-training.signatures", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "Trainer signs and forgets the trainee. Trainee signs "
+             "on the trainer line. Both signatures captured before "
+             "the hands-on demo. Either signature dated wrong (back-"
+             "dating training is a falsification — not a paperwork "
+             "shortcut)."},
+    {"form_key": "equipment-training.signatures", "kind": "next", "scopes": ["public"],
+     "title": "What happens after both signatures",
+     "body": "PDF generates, attaches to the project and employee "
+             "record. Competency window starts today. Renewal notice "
+             "schedules per the equipment-specific expiration rule. "
+             "If a refresh is required (manufacturer or OSHA), Safety "
+             "gets a heads-up 30 days out."},
+    {"form_key": "equipment-training.signatures", "kind": "escalate", "scopes": ["public"],
+     "title": "When training expires mid-project",
+     "body": "Don't let the operator run on expired training. "
+             "Schedule a renewal before the expiration date. If a "
+             "renewal is missed and the operator runs anyway, that's "
+             "a Safety Corrective Action — not a 'we'll catch up' "
+             "moment. Document the gap, the renewal, and the bridge."},
+])
+
+# ── topic-library ─────────────────────────────────────────────────────
+_TIPS.extend([
+    {"form_key": "topic-library", "kind": "why", "scopes": ["public"],
+     "title": "Why the library exists separate from meetings",
+     "body": "A topic library is a curated catalog of incident-pattern "
+             "talks. A safety meeting is the operational delivery of "
+             "one of those talks today. Separate so the library can be "
+             "maintained, versioned, and exported as packs — without "
+             "depending on whether a specific meeting was held."},
+    {"form_key": "topic-library", "kind": "who", "scopes": ["public"],
+     "title": "Who reads the library",
+     "body": "Admin / Safety manages it. Foremen pull from it via "
+             "the New Meeting topic picker — they never browse the "
+             "library directly. The PDF pack is read by Safety on "
+             "client requests, OSHA audits, or training rotations. "
+             "Subs and visiting trades may receive a pack at orientation."},
+    {"form_key": "topic-library", "kind": "next", "scopes": ["public"],
+     "title": "What happens when a topic moves to a meeting",
+     "body": "Foreman selects the topic in New Meeting. The incident "
+             "pattern, hazards, key points, and references prefill. "
+             "Action items become the discussion drill. Meeting "
+             "submits → record attaches to project + topic key — so "
+             "the library knows which topics were actually delivered."},
+    {"form_key": "topic-library", "kind": "escalate", "scopes": ["public"],
+     "title": "When a library topic is missing or wrong",
+     "body": "Don't write around it in a custom meeting. File the "
+             "gap with Safety/Admin. New topics go through review — "
+             "voice, incident-pattern accuracy, bilingual parity. "
+             "Custom Topic exists for genuinely one-off situations, "
+             "not for missing library coverage."},
+    {"form_key": "topic-library.filter", "kind": "why", "scopes": ["public"],
+     "title": "Why filters drive operational selection",
+     "body": "21 domains × 6 severity levels × incident-pattern tags = "
+             "a library that responds to today's work. Filter by domain "
+             "for the trade you're running. Filter by severity to focus "
+             "on high-consequence items. The library is built to be "
+             "queried, not browsed."},
+    {"form_key": "topic-library.filter", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "Browsing the full library instead of filtering. Always "
+             "exporting High-severity only and missing the everyday "
+             "frequent topics. Forgetting the language filter when "
+             "preparing for a Spanish-primary crew. Pulling the same "
+             "5 topics repeatedly because the filter never changed."},
+    {"form_key": "topic-library.filter", "kind": "example", "scopes": ["public"],
+     "title": "A filter that surfaces today's risk",
+     "body": "Domain = Excavation · Severity = High + Medium · "
+             "Language = ES · Incident-pattern = trench collapse / "
+             "spoil-pile encroachment. Three filter clicks. Result: "
+             "the 4-6 talks that actually match the work the crew "
+             "is doing this week."},
+    {"form_key": "topic-library.pdf-pack", "kind": "why", "scopes": ["public"],
+     "title": "Why the PDF pack is generated, not stored",
+     "body": "Packs are generated on demand against the live library "
+             "so the content is never stale. A pack you print today "
+             "reflects every uplift, terminology fix, and ES correction "
+             "merged through last night's deploy. Stored PDFs go stale "
+             "the first time the library is updated."},
+    {"form_key": "topic-library.pdf-pack", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "Picking 30 topics to 'cover everything' — packs over 12 "
+             "topics rarely get read. Mixing severities without context "
+             "— the reader can't tell what to prioritize. Forgetting "
+             "to set the language explicitly. Generating a pack for a "
+             "Spanish crew but leaving the language toggle at EN."},
+    {"form_key": "topic-library.pdf-pack", "kind": "next", "scopes": ["public"],
+     "title": "What the pack is good for",
+     "body": "OSHA audits (what topics were covered this quarter). "
+             "New-hire orientation (here's the canon for your first "
+             "30 days). Client requests (proof of coverage). "
+             "Subcontractor onboarding. NOT a substitute for actual "
+             "safety meetings — the pack is the receipt, the meeting "
+             "is the work."},
+])
+
+# ── fire-extinguisher (NFPA 10 cadence) ───────────────────────────────
+_TIPS.extend([
+    {"form_key": "fire-extinguisher", "kind": "why", "scopes": ["public"],
+     "title": "Why monthly visual + annual is the standard",
+     "body": "NFPA 10 says monthly visual inspection, annual "
+             "maintenance, 6-year teardown, 12-year hydrostatic. The "
+             "tag on the bottle is the legal record that the "
+             "inspections happened on schedule. Miss a month, the "
+             "bottle is technically out of service until the next "
+             "monthly is documented."},
+    {"form_key": "fire-extinguisher", "kind": "who", "scopes": ["public"],
+     "title": "Who reads extinguisher records",
+     "body": "Safety on monthly walk-downs. PM on project handover. "
+             "The fire marshal during inspection. Insurance auditors "
+             "after any incident — the tag history is one of the first "
+             "documents pulled. Sloppy tag history doesn't just "
+             "embarrass — it raises premiums."},
+    {"form_key": "fire-extinguisher", "kind": "next", "scopes": ["public"],
+     "title": "What happens after an inspection log",
+     "body": "Inspection date attaches to the unit. The next due "
+             "date computes automatically — monthly visual, annual, "
+             "6-year, 12-year. Safety dashboard shows the units due "
+             "soon. The PDF history reflects every inspection in "
+             "order, with inspector name and tag photo."},
+    {"form_key": "fire-extinguisher", "kind": "escalate", "scopes": ["public"],
+     "title": "When the bottle goes OUT-OF-SERVICE",
+     "body": "Pressure gauge in the red. Pin missing or seal broken. "
+             "Visible damage to the shell or hose. Past the annual "
+             "service tag date. Tag the unit Out-of-Service, pull it "
+             "from the wall/truck, requisition a replacement. Don't "
+             "leave a non-functional bottle in service position."},
+    {"form_key": "fire-extinguisher.add", "kind": "why", "scopes": ["public"],
+     "title": "Why every field on the new-bottle dialog matters",
+     "body": "Unit ID is what the tag will reference for the life of "
+             "the bottle. Manufacture date sets the 12-year hydro "
+             "schedule. Type (ABC, K, CO2) determines what hazards "
+             "this bottle covers. Location is what the next inspector "
+             "uses to find it. Skipping any of these breaks the "
+             "lifetime audit trail."},
+    {"form_key": "fire-extinguisher.add", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "Unit ID free-typed with inconsistent format. Location "
+             "as 'office' when the building has 6 offices. Type wrong "
+             "(common: marking a Class K kitchen unit as ABC). "
+             "Manufacture date left blank because the bottle is new "
+             "and 'we'll add it later'. The clock starts at manufacture."},
+    {"form_key": "fire-extinguisher.inspection", "kind": "why", "scopes": ["public"],
+     "title": "Why monthly inspections must be photographed",
+     "body": "A tag that says 'monthly visual · OK' was filled out, "
+             "not inspected. A photo of the gauge in the green, the "
+             "pin in place, the seal unbroken, the unit in position — "
+             "that's the inspection. The tag is the receipt, the "
+             "photo is the audit."},
+    {"form_key": "fire-extinguisher.inspection", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "Photo of the tag instead of the bottle. Backdating "
+             "monthly inspections at the end of the quarter (this is "
+             "falsification). Marking 'OK' on a bottle with a dirty "
+             "gauge glass — clean it and re-check, don't skip. Logging "
+             "an inspection without inspector name."},
+    {"form_key": "fire-extinguisher.inspection", "kind": "example", "scopes": ["public"],
+     "title": "An inspection log that does the job",
+     "body": "Date · 3/14/25 · Inspector: J. Cruz · Type: Monthly "
+             "Visual · Gauge: Green · Pin: in · Seal: intact · "
+             "Hose: clean · Location: confirmed · Photos: 2 (gauge + "
+             "wall mount). 30 seconds of work · 6 years of audit "
+             "defensibility."},
+    {"form_key": "fire-extinguisher.inspection", "kind": "escalate", "scopes": ["public"],
+     "title": "When a monthly turns into a repair order",
+     "body": "Gauge red or missing. Pin pulled or seal broken. "
+             "Damage to shell, valve, or hose. Past annual service. "
+             "Don't log this as a routine monthly — log it as a "
+             "Failure and open a Safety Corrective Action to "
+             "service/replace. The bottle is out-of-service starting "
+             "now."},
+])
+
+# ── jha ───────────────────────────────────────────────────────────────
+_TIPS.extend([
+    {"form_key": "jha", "kind": "why", "scopes": ["public"],
+     "title": "Why a JHA is the operational plan, not a poster",
+     "body": "A JHA written before the work names the steps, the "
+             "hazards, and the controls — in that order. Crews work "
+             "from it. A JHA written after the work is a wall "
+             "decoration. The one that gets posted is the one the "
+             "crew was supposed to operate under — make sure they "
+             "actually did."},
+    {"form_key": "jha", "kind": "who", "scopes": ["public"],
+     "title": "Who reads the JHA",
+     "body": "Foreman on pre-task brief. Crew on the day. Safety "
+             "during audits. The next investigator if something goes "
+             "wrong — the JHA is one of the first documents pulled. "
+             "A vague JHA in an incident packet reads as 'this crew "
+             "didn't have a plan'."},
+    {"form_key": "jha", "kind": "next", "scopes": ["public"],
+     "title": "What happens with a submitted JHA",
+     "body": "PDF generates, attaches to the project. The JHA "
+             "Poster (large-format printable) goes up at the work "
+             "area where the crew gathers. Anyone joining the work "
+             "mid-day reads the poster before starting. Updates to "
+             "the JHA mid-project mean a new poster — don't redline "
+             "the printed copy."},
+    {"form_key": "jha", "kind": "escalate", "scopes": ["public"],
+     "title": "When the work doesn't match the JHA anymore",
+     "body": "Conditions changed (weather, scope, sequence). New "
+             "hazard surfaced (utility hit, adjacent crew, equipment "
+             "swap). Stop the work, update the JHA, re-brief the "
+             "crew, post the new version. A JHA that doesn't match "
+             "today's work is more dangerous than no JHA at all — "
+             "the crew is operating on stale information."},
+    {"form_key": "jha.poster", "kind": "why", "scopes": ["public"],
+     "title": "Why the poster format is large and visual",
+     "body": "The poster lives at the work area, not in a binder. "
+             "Crews read it on the wall, at a distance, in poor "
+             "light, with dirty gloves. Large type, color-coded "
+             "hazards, sequenced steps. Bilingual if the crew is "
+             "bilingual. The poster is the operational reminder, "
+             "not the legal record (that's the PDF)."},
+    {"form_key": "jha.poster", "kind": "mistake", "scopes": ["public"],
+     "title": "Common mistakes",
+     "body": "Printing the standard JHA PDF and calling it the "
+             "poster. Posting in a place the crew never walks past. "
+             "Posting in EN only when the crew speaks ES. Letting "
+             "the poster get rained on, faded, or torn — replace it. "
+             "A faded poster reads as 'this safety doesn't matter'."},
+    {"form_key": "jha.poster", "kind": "example", "scopes": ["public"],
+     "title": "A poster that does the job",
+     "body": "Work area: trench at station 12+50. Steps: 1) Spot "
+             "and avoid utilities. 2) Set box. 3) Excavate within "
+             "box footprint. 4) Spoil pile 4 ft minimum from edge. "
+             "Hazards: collapse, falling debris, equipment swing. "
+             "Controls: protective system, hard hats, spotter. "
+             "Bilingual. Posted at the toolbox. Read at 6:30 AM."},
+    {"form_key": "jha.poster", "kind": "escalate", "scopes": ["public"],
+     "title": "When the poster needs to come down",
+     "body": "Work area shifted (the trench moved). Crew rotated "
+             "with significantly different competency mix. Major "
+             "scope change. Don't leave yesterday's poster up for "
+             "today's work. Take it down, file the PDF, post the "
+             "current version. The wall reflects what's happening "
+             "today, not what was planned last week."},
+])
+
 
 def all_tips() -> list[dict]:
     return list(_TIPS)

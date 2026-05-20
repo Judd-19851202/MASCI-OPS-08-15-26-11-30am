@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { JobPicker } from "@/components/JobPicker";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -222,8 +223,11 @@ export default function NewSafetyEquipmentIssuance() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-5" data-testid="iss-form">
+          {/* iter275 · form-root coaching · canonical 4 kinds */}
+          <HelpTipBlock formKey="equipment-issuance" className="mb-3" showCounter />
           {/* Employee */}
           <Section title={t("Employee")}>
+            <HelpTipBlock formKey="equipment-issuance.employee" className="mb-3" />
             <Row>
               <Field label={t("Employee Name")} required>
                 <Input
@@ -489,6 +493,7 @@ export default function NewSafetyEquipmentIssuance() {
 
           {/* Photos */}
           <Section title={t("Photos")} desc={t("Required — capture serial number and/or condition.")}>
+            <HelpTipBlock formKey="equipment-issuance.photos" className="mb-3" />
             <PhotoUpload
               photos={data.photos}
               onChange={(photos) => update({ photos })}
@@ -509,6 +514,7 @@ export default function NewSafetyEquipmentIssuance() {
 
           {/* Acknowledgment */}
           <Section title={t("Acknowledgment & Legal")}>
+            <HelpTipBlock formKey="equipment-issuance.acknowledgment" className="mb-3" />
             <div className="bg-amber-50 border-l-4 border-amber-600 p-4 rounded space-y-3">
               <p className="text-sm text-slate-800 leading-relaxed">
                 {t(ISSUANCE_LEGAL)}

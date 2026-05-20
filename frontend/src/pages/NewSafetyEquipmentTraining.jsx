@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { JobPicker } from "@/components/JobPicker";
 import { SignaturePad } from "@/components/SignaturePad";
 import { SearchableSelect } from "@/components/SearchableSelect";
@@ -162,6 +163,8 @@ export default function NewSafetyEquipmentTraining() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-5" data-testid="trn-form">
+          {/* iter275 · form-root coaching */}
+          <HelpTipBlock formKey="equipment-training" className="mb-3" showCounter />
           <Section title={t("Employee")}>
             <Row>
               <Field label={t("Employee Name")} required>
@@ -207,6 +210,7 @@ export default function NewSafetyEquipmentTraining() {
           </Section>
 
           <Section title={t("Training Information")}>
+            <HelpTipBlock formKey="equipment-training.context" className="mb-3" />
             <Row>
               <Field label={t("Training Date")} required>
                 <Input
@@ -423,6 +427,7 @@ export default function NewSafetyEquipmentTraining() {
           </Section>
 
           <Section title={t("Signatures")}>
+            <HelpTipBlock formKey="equipment-training.signatures" className="mb-3" />
             <Field label={t("Employee Signature")} required>
               <SignaturePad
                 value={data.employee_signature}

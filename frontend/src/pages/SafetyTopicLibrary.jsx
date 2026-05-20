@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useT } from "@/lib/i18n";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { getAdminToken } from "@/lib/adminAuth";
@@ -290,11 +291,16 @@ export default function SafetyTopicLibrary() {
           </p>
         </header>
 
+        {/* iter275 · page-root coaching · canonical 4 kinds */}
+        <HelpTipBlock formKey="topic-library" className="-mt-2" showCounter />
+
         {/* Filters */}
         <section
           className="bg-white rounded-2xl border border-slate-200 p-4 space-y-4"
           data-testid="library-filters"
         >
+          {/* iter275 · filter coaching · why filtering drives selection */}
+          <HelpTipBlock formKey="topic-library.filter" />
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-wider text-slate-500">
               {t("Severity")} ·{" "}
@@ -489,6 +495,8 @@ export default function SafetyTopicLibrary() {
                 {selected.size} {t("topics selected")}
               </DialogDescription>
             </DialogHeader>
+            {/* iter275 · pack coaching · live-generation discipline */}
+            <HelpTipBlock formKey="topic-library.pdf-pack" className="mb-2" />
             <div className="space-y-2">
               {[
                 { v: "en", label: t("English only") },

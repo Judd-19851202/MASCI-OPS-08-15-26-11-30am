@@ -24,6 +24,7 @@ import SafetyFireExtManageDialog from "@/components/SafetyFireExtManageDialog";
 import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { HelpTip } from "@/components/ui/HelpTip";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { useRememberedFilter, useRememberedFormValue } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
 import { getSafetyToken } from "@/lib/safetyAuth";
@@ -235,6 +236,8 @@ export default function SafetyFireExtinguishers() {
 
   return (
     <SafetyShell title="Fire Extinguishers" kicker="SAFETY · FIRE EXTINGUISHER REGISTER">
+      {/* iter275 · page-root coaching · NFPA 10 cadence discipline */}
+      <HelpTipBlock formKey="fire-extinguisher" className="mb-4" showCounter />
       <div className="flex flex-col sm:flex-row gap-3 mb-5 items-start sm:items-center justify-between">
         <p className="text-slate-600 text-sm max-w-2xl leading-relaxed">
           {t("Track every fire extinguisher unit across trucks, jobsites, and facilities. Monthly inspections push status + next-due date + the inspection log automatically.")}
@@ -339,6 +342,10 @@ export default function SafetyFireExtinguishers() {
             <DialogDescription>{t("One record per physical unit. Logging inspections later updates this row + adds to history.")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 pt-2">
+            {/* iter275 · add-bottle coaching · Create mode only */}
+            {editDlg.mode === "create" && (
+              <HelpTipBlock formKey="fire-extinguisher.add" className="mb-1" />
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Unit ID")} *</Label>
@@ -425,6 +432,8 @@ export default function SafetyFireExtinguishers() {
             <DialogDescription>{t("Saves the result + auto-stamps next due date (defaults to +30 days).")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 pt-2">
+            {/* iter275 · inspection-log coaching · NFPA discipline */}
+            <HelpTipBlock formKey="fire-extinguisher.inspection" className="mb-1" />
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Inspection date")} *</Label>
               <Input type="date" value={inspectDlg.form.inspection_date} onChange={(e) => setInspectDlg((d) => ({ ...d, form: { ...d.form, inspection_date: e.target.value } }))} className={`${inputCls} mt-1`} data-testid="safety-fe-inspect-date" />

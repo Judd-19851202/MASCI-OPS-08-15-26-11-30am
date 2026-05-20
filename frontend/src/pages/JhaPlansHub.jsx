@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
 import { JOB_LIBRARY as JOBS } from "@/lib/jobLibrary";
 import { api } from "@/lib/api";
@@ -112,6 +113,11 @@ export default function JhaPlansHub() {
             )}
           </p>
         </div>
+
+        {/* iter275 · page-root coaching · canonical 4 kinds */}
+        <HelpTipBlock formKey="jha" className="mb-4" showCounter />
+        {/* iter275 · poster coaching · how the JHA reaches the crew */}
+        <HelpTipBlock formKey="jha.poster" className="mb-4" />
 
         <div className="relative mb-5">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
