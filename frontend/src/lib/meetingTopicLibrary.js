@@ -1287,6 +1287,614 @@ export const TOPIC_LIBRARY = [
     action_items:
       "Pre-motion walk-around habit reinforced · Kill-zone awareness for ground crew reviewed · New-driver mirror-coverage check assigned · Office-visitor blind-spot rule discussed",
   },
+
+  // ============================================================
+  // DEWATERING / WELLPOINT · PHASE D · iter251
+  // ------------------------------------------------------------
+  // Catastrophic-risk operational lessons for dewatering crews.
+  // Voice: experienced superintendent. Drivers, jet-rig operators,
+  // ground crew, foremen. Real incidents, not LMS theory.
+  // ============================================================
+  {
+    key: "dewatering_jetting_rig_overhead_strike",
+    title: "Jetting Rig Overhead Powerline Strikes",
+    category: "Hazard-Specific",
+    domain: "dewatering",
+    role_context: ["operator", "lead", "spotter"],
+    incident_pattern:
+      "Jetting-rig powerline contacts almost never happen during steady jetting — they happen during repositioning. The rig is set, the operator finishes a header, and now needs to move to the next stab. They retract a little, swing the boom, and the boom mast — usually fully extended from the last header — sweeps into the overhead line. The driver is focused on the ground crew and the next stab, not on what's 30 feet above. Around utility yards, behind grocery stores, on the back side of pump stations — overhead lines are everywhere and the masts on jet rigs are tall enough to find them.",
+    hazards_reviewed:
+      "Electrocution of operator or ground crew · Mast contact with energized line during reposition · Step potential around energized rig · Outage / fire from utility damage · Burns from arc flash",
+    discussion_notes:
+      "• Before the rig comes off the trailer — walk the site. Look up. Identify EVERY overhead line within 50 feet of any place the mast will travel.\n• 20-foot minimum clearance from energized lines under OSHA 1926.1408. If the line is below 50 kV. Bigger voltage = bigger clearance.\n• Lower the mast BEFORE you reposition. Every time. The 30 seconds it costs you is the cheapest insurance you'll buy.\n• Designate a spotter whose ONLY job is watching the mast and the lines during any reposition. Not multitasking. Not also signaling ground crew. Just the mast and the lines.\n• If you don't know whether a line is energized, treat it as live. Call the utility. Get a confirmed de-energize and ground BEFORE you work close to it.\n• Contact happens: STAY ON THE RIG. Keep ground crew back at least one rig-length plus the line. Call 911 and the utility. Step-potential has killed more people than the initial contact.\n• If you HAVE to exit: bunny-hop with feet together. Never have two body parts on the ground at the same time until 30 feet clear.",
+    references_cited:
+      "OSHA 29 CFR 1926.1408 · OSHA 1926.416 · NESC clearances · MASCI Jet Rig Setup SOP",
+    action_items:
+      "Overhead walk-around done · Mast-down-before-reposition habit reinforced · Designated mast-spotter assigned · Contact-response procedure reviewed",
+  },
+  {
+    key: "dewatering_suction_line_entrapment",
+    title: "Suction-Line Entrapment and Engulfment",
+    category: "Hazard-Specific",
+    domain: "dewatering",
+    role_context: ["operator", "lead"],
+    incident_pattern:
+      "Suction-line engulfment is one of the least talked-about fatalities in dewatering, and one of the most preventable. A wellpoint header gets clogged, the operator pulls a stinger to check the screen, and water rushes through the open line. Anyone within a few feet — boots in the trench bottom, hand reaching for the screen, kneeling beside the line — can be pulled into the suction by hydraulic action. Even a 6-inch suction at full vacuum will hold a hand or a boot to the inlet hard enough that the worker cannot self-release. Several documented fatalities in our region trace back to a single 'just gonna check the screen' action.",
+    hazards_reviewed:
+      "Hand or limb pulled into suction inlet · Engulfment in collapsing wellpoint trench · Drowning in unscreened sump · Hose-whip injury · Pinch / amputation at strainer",
+    discussion_notes:
+      "• Vacuum off BEFORE anyone touches a suction line, header, stinger, screen, or strainer. Period. No exceptions. No 'I'll be quick about it.'\n• Lockout the pump at the controls AND verify zero pressure at the gauge before anyone gets near the inlet.\n• If you must work near a flowing line, use a long-handled tool. Never put a hand or arm in the suction zone.\n• Strainer screens prevent entrapment AND prevent screen failures — inspect them daily, replace any cracked or worn one.\n• Wellpoint trenches should be properly shored or sloped. Engulfment risk is real if the trench wall fails while someone is at the bottom servicing a header.\n• Sump pits with open suction inlets need barriers or grates. A kid, a worker, a dog — anything that falls in is in trouble immediately.\n• Train new crew on suction physics — explain why a 6-inch hose at 25 inches Hg will not let go of a hand. Make it real, not theoretical.",
+    references_cited:
+      "OSHA 29 CFR 1926 Subpart P · OSHA 1910.147 (LOTO) · Manufacturer pump operation manual · MASCI Dewatering SOP",
+    action_items:
+      "Vacuum-off-before-touch rule reinforced · Lockout at pump controls verified · Strainer inspection assigned · New-crew suction physics briefing scheduled",
+  },
+  {
+    key: "dewatering_diesel_pump_fueling_fires",
+    title: "Diesel Pump Fueling Fires",
+    category: "Hazard-Specific",
+    domain: "dewatering",
+    role_context: ["operator", "lead", "driver"],
+    incident_pattern:
+      "Diesel pump fires almost never happen at the fuel station — they happen on-site during refueling of running or recently-shut-down equipment. The pump has been running 12 hours, the muffler and turbo are at 800–1000°F, the operator is rushing to fuel up before the next storm, and a fuel splash hits hot metal. The fire is instant and immediately threatens the operator standing 18 inches from the fill spout. Most of these fires turn into burn injuries, not fatalities — but they ruin a worker's life and shut a job down. The pattern is preventable with one simple discipline: cool-down time and clean fueling.",
+    hazards_reviewed:
+      "Fuel splash onto hot exhaust / turbo · Static discharge ignition during transfer · Spill creating slip + fire hazard · Burn injury to fueler · Equipment loss · Environmental release",
+    discussion_notes:
+      "• Shut the pump OFF before fueling. Allow 5–10 minutes of cooldown if the engine has been running hard. The exhaust manifold and turbo stay hot long after shutdown.\n• No smoking · no cell-phone calls · no open flames within 25 feet of fueling. This is not optional.\n• Maintain bond between the fuel container or hose and the pump frame during transfer. Static is a real ignition source.\n• Don't top off. The expansion when fuel warms can push fuel out the vent and onto the engine.\n• Fuel transfer at night with a flashlight — not with a hot work-light propped on the pump. Lights run hot.\n• Spill kit on every dewatering site. Absorbent pads, sock, drain mat. Drain mat goes UNDER the fill point every time.\n• If a fire starts: ABC extinguisher within reach (within 10 ft of fueling point). Pull the operator clear FIRST. Then fight the fire. Never fight a fire alone.",
+    references_cited:
+      "NFPA 30 · OSHA 1926.152 · EPA SPCC · DOT 49 CFR 173 · MASCI Fueling SOP",
+    action_items:
+      "Cooldown-before-fueling habit discussed · Extinguisher within 10 ft verified · Spill kit + drain mat at every pump · Bonding-during-transfer reviewed",
+  },
+  {
+    key: "dewatering_wellpoint_trench_collapse",
+    title: "Wellpoint Trench Collapse Around Headers",
+    category: "Hazard-Specific",
+    domain: "dewatering",
+    role_context: ["operator", "lead", "ground_crew"],
+    incident_pattern:
+      "Wellpoint trench collapses follow a tight pattern: the trench is dug to a moderate depth (4–8 ft), the header laid, the wellpoints jetted. Three days into pumping, the soil between points has been pulled tighter and the trench walls look stable. A worker steps down into the trench to service a clogged point or repair a leak. The dewatering has actually changed the soil structure — saturated material above an now-dry section creates a sliding plane. The wall fails inward with no warning. The worker, even if they live, is buried to the chest in seconds. Once-stable trenches are not stable forever when water content changes.",
+    hazards_reviewed:
+      "Burial / suffocation from collapsed trench wall · Crush injury from wall failure · Drowning in trench bottom from sudden inrush · Struck-by from falling header / equipment · Hypothermia in long-duration burial",
+    discussion_notes:
+      "• Trench protection at 5 ft+ is not optional — slope, bench, shore, or trench box. Dewatering does NOT replace shoring.\n• Trenches over 4 ft need a ladder or ramp within 25 ft of any worker.\n• Reclassify the soil after dewatering has been running. Saturated-to-dry transitions create unstable layers. Talk to your competent person.\n• Spoil pile at least 2 ft from the edge. Equipment paths at least one trench-depth back. Vibration from running pumps loosens edge material over hours.\n• Service a wellpoint from ABOVE the trench whenever possible. The risk of being in the trench to fix a point is not worth the time saved.\n• Never work alone in a wellpoint trench. The first 60 seconds after a collapse is when survival happens — only if someone topside sees it.\n• Daily inspection by a competent person — and after any rain, freeze-thaw, or vibration event.",
+    references_cited:
+      "OSHA 29 CFR 1926 Subpart P · OSHA 1926.651 · OSHA 1926.652 · MASCI Dewatering Trench SOP",
+    action_items:
+      "Trench protection reviewed for current depth · Soil reclassification done after pumping start · Above-trench service habit reinforced · Daily competent-person inspection assigned",
+  },
+  {
+    key: "dewatering_rotating_shaft_belt",
+    title: "Rotating Shaft and Belt Entanglement",
+    category: "Hazard-Specific",
+    domain: "dewatering",
+    role_context: ["operator", "lead", "mechanic"],
+    incident_pattern:
+      "Belt and shaft entanglement injuries on dewatering pumps usually happen when a guard is off for a service task and the engine gets bumped or restarted by someone who didn't know a crew member was working on it. A glove, a sleeve, a shirt tail, a hood drawstring catches a v-belt or a coupling. The pump engine is making 1800 RPM at the coupling — the entire arm is in before the worker can react. Hoodies, loose sleeves, and unbuttoned cuffs are the leading factor in nearly every documented incident. The second factor is missing LOTO when a guard is off.",
+    hazards_reviewed:
+      "Arm / hand pulled into v-belt or coupling · Crush / amputation from rotating shaft · Death from clothing caught in PTO · Burn from belt friction · Eye injury from belt failure",
+    discussion_notes:
+      "• Guards in place ANY time the engine is running. No exceptions. If the guard is broken, the pump doesn't run until it's fixed.\n• Lockout the engine at the kill switch AND remove the key before any guard comes off. Verify with a start-attempt before reaching in.\n• Sleeves buttoned · shirts tucked · NO hoodie drawstrings · NO loose jewelry near rotating equipment.\n• Snug gloves only — and consider gloves OFF when working close to rotating shafts. Loose glove fingers grab v-belts.\n• Train new operators to identify EVERY pinch point on the pump before they ever touch it running. Walk it down. Point at each one.\n• Belt service is engine-OFF service. Tensioning, alignment, replacement — all engine-off, with the key in your pocket.\n• If a guard is off for inspection — assign one person as the lock holder. Their key stays in their pocket. No one else can start.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 (LOTO) · OSHA 1910.219 · ANSI B11 · Manufacturer pump operation manual",
+    action_items:
+      "Guards-in-place rule reinforced · LOTO before guard removal verified · Clothing standards (no drawstrings) discussed · New-operator pinch-point walk-down assigned",
+  },
+  {
+    key: "dewatering_discharge_hose_whip",
+    title: "Discharge Hose Whip and Pressure Release",
+    category: "Hazard-Specific",
+    domain: "dewatering",
+    role_context: ["operator", "lead", "ground_crew"],
+    incident_pattern:
+      "Discharge-hose whip incidents happen because a hose connection fails or a section breaks free under pressure. A 6 or 8-inch discharge hose at 60–80 psi carries enormous stored energy. When a coupling lets go, the hose end becomes a whip — moving fast enough to break bones, throw workers, or knock someone off a trench bank. The pattern is usually a worn cam-lock or quick-connect coupling, a missing safety pin or clip, or a hose that wasn't restrained where it should have been. The whip travels along the path of least resistance — usually toward whoever is nearest.",
+    hazards_reviewed:
+      "Hose-whip strike to head / chest · Pressure release knocking worker into trench · Slip injury from sudden water release · Coupling failure projectile · Burns from heated discharge (hot oil pumps)",
+    discussion_notes:
+      "• Inspect every cam-lock and coupling on every shift. Look for worn cams, missing safety clips, deformed gaskets. Replace anything questionable.\n• Safety pins / clips on every coupling. They are not optional. They are what keeps the hose connected when a cam fatigues.\n• Restrain discharge hoses where they change direction, where they cross a path, where they go over a bank. Use rope ties, sandbags, or proper restraints — not stacked rocks.\n• When pressurizing a line, no one stands in line with the hose. Everyone steps off-axis BEFORE the pump starts.\n• If a hose lets go: KILL THE PUMP from the control side first. Don't try to grab the hose. Hose ends weigh enough to break a hand at 60 psi.\n• Whip-checks (woven safety cables) on every coupling on long discharge runs. Standard equipment, not optional.\n• Daily walk of the entire discharge run — look for stress points, kinks, abrasion, exposed restraint, leaks. Catch the failure BEFORE the whip.",
+    references_cited:
+      "OSHA 29 CFR 1926.302 · ASME B31.3 · Manufacturer hose / coupling ratings · MASCI Discharge SOP",
+    action_items:
+      "Coupling inspection assigned to each shift · Safety pins verified on all couplings · Whip-checks deployed on long runs · Pump-off-before-touch reinforced",
+  },
+  {
+    key: "dewatering_spoil_edge_instability",
+    title: "Spoil Placement Around Wellpoint Trench Edges",
+    category: "Hazard-Specific",
+    domain: "dewatering",
+    role_context: ["operator", "lead", "equipment_operator"],
+    incident_pattern:
+      "Most wellpoint trench-edge failures don't start with the trench wall — they start with the spoil pile. Spoil placed too close to the edge adds surcharge load. Equipment running parallel to the trench transmits vibration through the spoil into the wall. Three days of pumping plus the static load of a 4-foot spoil pile plus the dynamic load of a passing excavator equals a wall section that slides into the trench with no warning. The crew member servicing a header at the bottom never sees it coming. The fix is unglamorous and known: keep spoil back, keep equipment back, and inspect daily.",
+    hazards_reviewed:
+      "Trench collapse from spoil surcharge · Engulfment of worker in trench bottom · Equipment slide into trench · Struck-by from spoil avalanche · Hose / header damage from collapsed wall",
+    discussion_notes:
+      "• Spoil pile minimum 2 feet from trench edge. For deeper trenches, push it farther — 1 trench-depth back is the safer benchmark.\n• No equipment paths within one trench-depth of the edge. Excavators, loaders, dump trucks — all back from the lip.\n• Use plywood or steel road plates if you must cross or work near the edge. Distributes load and reduces local stress.\n• Equipment running parallel to a wellpoint trench transmits vibration. Vibration loosens edge soil. Move the equipment path or stop running it for the duration.\n• Compounding effect: pumping pulls water from the trench wall. Loss of pore pressure makes wet soil settle and dry soil crack. The wall you set yesterday is not the wall you have today.\n• Daily competent-person inspection of the spoil and edge, not just the trench bottom. The edge tells you the future.\n• If you see ANY tension crack, fissure, or slumping at the edge — pull workers OUT immediately. Re-inspect before letting anyone back in.",
+    references_cited:
+      "OSHA 29 CFR 1926.651(j) · OSHA 1926.652 Appendix B · MASCI Trench Edge SOP",
+    action_items:
+      "Spoil setback verified · Equipment path moved back · Daily edge inspection assigned · Tension-crack response reviewed",
+  },
+  {
+    key: "dewatering_night_work_struck_by",
+    title: "Nighttime Dewatering Visibility and Struck-By",
+    category: "Hazard-Specific",
+    domain: "dewatering",
+    role_context: ["operator", "lead", "ground_crew", "driver"],
+    incident_pattern:
+      "Nighttime dewatering work is more dangerous than day work for one specific reason: visibility cones. Operators see the area lit by their work-lights and assume everyone else does too. The truck driver pulling onto the site sees a halo of glare and a black field beyond. The ground worker servicing a header in the unlit zone is invisible. Most nighttime struck-by incidents on dewatering jobs happen when a delivery truck, a transfer rig, or a customer vehicle enters a lit work zone and the driver does not see a worker outside the lit cone. The pattern repeats because lighting is set up for the WORK, not for the visibility of the workers.",
+    hazards_reviewed:
+      "Struck-by from vehicle entering site at night · Worker in unlit zone invisible to driver · Trip / fall in unlit area · Equipment contact with poorly-lit obstructions · Fatigue + reduced reaction time",
+    discussion_notes:
+      "• Light the work AND the worker paths. A single tower light on the pump is not enough. Light the routes between the trailer, the pumps, and the trench.\n• Hi-vis reflective Class 3 at night — not Class 2. Sleeves, vest, pants. The reflective tape is what makes you visible in a headlight beam.\n• Every worker has a personal light — headlamp or chest light — that turns toward incoming vehicles. Driver's eye-tracking goes to motion of light. Use that.\n• Designated entry / exit lane for vehicles. Marked with cones or barricades. No driver freelances through a dewatering work area at night.\n• Driver of any incoming vehicle: stop at the site edge. Make radio or eye contact with the lead before entering. NEVER assume the area is clear.\n• Fatigue is real. Night shifts after long days produce reaction times like blood alcohol over the legal limit. Watch each other. Force breaks. Send people home.\n• Severe weather at night — call it earlier than you would in daylight. You cannot see what's coming.",
+    references_cited:
+      "OSHA 29 CFR 1926.56 · ANSI/ISEA 107 (Class 3) · MUTCD nighttime work zones · MASCI Night Work SOP",
+    action_items:
+      "Worker-path lighting reviewed · Class 3 hi-vis required for night shift · Personal lights distributed · Entry lane defined and marked · Fatigue check-in time set",
+  },
+
+  // ============================================================
+  // SHOP / MECHANIC · PHASE E · iter251
+  // ------------------------------------------------------------
+  // Shop-floor incident patterns. Voice: long-tenured wrench
+  // talking to younger mechanics. Real injuries. No LMS gloss.
+  // ============================================================
+  {
+    key: "shop_jack_stand_failure",
+    title: "Jack-Stand Failures — Under-the-Truck Fatalities",
+    category: "Hazard-Specific",
+    domain: "shop",
+    role_context: ["mechanic", "lead"],
+    incident_pattern:
+      "Almost every jack-stand fatality follows the same sequence: a mechanic raises a heavy truck or trailer on the floor jack, sets two stands, slides under to start work, and the truck shifts. Sometimes it's because the stands were placed on a rusted frame member, sometimes because the ground sloped just enough, sometimes because they were undersized for the load. The truck doesn't fall all the way — it just settles 2 inches. That's enough to crush a chest. There is no warning. The mechanic is alone, often at end-of-shift, and no one finds them for an hour. We have lost mechanics in this industry to this exact pattern more times than anyone wants to count.",
+    hazards_reviewed:
+      "Crush fatality from vehicle drop · Stand sinking into soft floor · Wrong stand rating for load · Single stand instead of pair · Working alone under load · Hydraulic jack creep / failure",
+    discussion_notes:
+      "• Floor jack is for LIFTING, never for HOLDING. The moment the load is at height, jack stands rated to the load go under PROPER lift points.\n• Stands rated to AT LEAST the load weight, with margin. A 40,000-lb truck doesn't go on 6-ton stands. Read the rating, do the math.\n• Both stands engaged — not just one with the jack still under as the second hold. A bumped jack handle drops the truck.\n• Wheels chocked on the OPPOSITE end. Trans in gear or park. Parking brake ON. Belt-and-suspenders.\n• Place stands on the FRAME, not on plastic skirts, not on body panels, not on rusted-through structure. Tap and look before you set.\n• Concrete floor only. Asphalt soft-spots can fail under a single stand. If you have to work on asphalt, use a steel plate to spread the load.\n• Tug-test BEFORE you slide under. Lean on the truck, shake it. If anything moves more than the rocking of suspension, redo the lift.\n• Don't work alone under a vehicle. If you must, set a check-in time with someone who will look for you if you don't text back.",
+    references_cited:
+      "OSHA 29 CFR 1910.244 · ANSI/PASE 5/MH29 (jack stands) · OEM lift-point manuals · MASCI Shop Lift SOP",
+    action_items:
+      "Lift-point map for common units posted · Stand rating check assigned · Tug-test habit reinforced · Solo-under-vehicle check-in protocol set",
+  },
+  {
+    key: "shop_lockout_tagout_bypass",
+    title: "Lockout / Tagout — The Bypass That Kills",
+    category: "Procedure / SOP",
+    domain: "shop",
+    role_context: ["mechanic", "lead", "operator"],
+    incident_pattern:
+      "LOTO failures don't kill the worker who set the lockout — they kill the worker who DIDN'T. The pattern: a piece of equipment is in the shop for hydraulic service. The lead mechanic locks it out properly. A second mechanic, helping out, doesn't have a personal lock on it. A third mechanic, finishing his shift, sees the equipment and decides to 'just bump' the controls to check something. The second mechanic, hand inside the cylinder area, gets crushed. The first mechanic's lock was correct. The system failed because not every person under the equipment had their own lock on it.",
+    hazards_reviewed:
+      "Stored hydraulic energy release · Crush from cylinder collapse · Electrical re-energization during service · Belt restart during alignment · Pneumatic release of stored air · Counterweight drop",
+    discussion_notes:
+      "• One worker, one lock. EVERY person who has any part of their body in or near the danger zone hangs THEIR OWN lock. No 'I'll share a lock' shortcuts.\n• Tag the lock with who set it and when. So the third mechanic walking up knows whose lockout this is and doesn't undo it.\n• Verify zero energy: cycle the controls, check the gauges, drop hydraulic pressure to zero, drain stored air. EVERY service.\n• Block hydraulic cylinders mechanically. A cylinder support, a wood block, a chain — something that holds the load if the seal fails.\n• Don't trust 'the boss said it's locked.' Verify with your own eyes. Put your own lock on it. Try to start it.\n• Removing a lockout: ONLY the worker who set it. If they're not on-site, follow the lock-removal procedure — usually requires supervisor authorization and a documented attempt to reach the original locker.\n• New mechanics: walk a LOTO procedure with the lead on Day 1. Every. Single. Time.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 · OEM service manuals · MASCI Shop LOTO Standard",
+    action_items:
+      "One-worker-one-lock rule reinforced · Lock tagging discussed · Zero-energy verification reviewed · Cylinder blocking practice assigned · New-mechanic LOTO walkthrough scheduled",
+  },
+  {
+    key: "shop_brake_spring_energy",
+    title: "Brake Spring Stored Energy Release",
+    category: "Hazard-Specific",
+    domain: "shop",
+    role_context: ["mechanic", "lead"],
+    incident_pattern:
+      "Brake chamber spring releases have killed and blinded mechanics for decades, and they keep doing it. The pattern is always the same: a mechanic is replacing a brake chamber or working a slack adjuster on a unit with no caged spring. They strike a stuck pin with a hammer, or unbolt a chamber that's still holding its spring force, and the chamber comes apart with the energy of a small explosion. The internal spring is rated to 2,000 lb of force. When that releases six inches from a face, it's a fatal facial impact. Caging the spring is not optional and never has been.",
+    hazards_reviewed:
+      "Spring brake chamber release projectile · Facial / chest trauma from chamber component · Eye loss from spring shrapnel · Hearing damage from release · Pinch injury during caging",
+    discussion_notes:
+      "• ALWAYS cage the spring before touching a brake chamber service bolt, slack adjuster, or pushrod. Caging tools are cheap. New mechanics cost more.\n• Use the chamber's caging port — slide the caging tool in, turn it 90°, pull tight. Verify the cage is engaged before removing any service bolt.\n• Stand to the SIDE during release verification. Not in front, not behind — to the side. The release path is straight out.\n• Eye protection is non-negotiable. Not safety glasses — a full face shield over safety glasses for brake work.\n• If you can't cage it because the port is rusted shut, treat the unit as out-of-service for shop work. Cut the chamber off as a unit and replace it with the spring still caged in the OLD chamber.\n• Pop-off plugs on the chamber pushrod end — never tamper with them. They are PRESSURE-rated, not service-rated.\n• Train every new shop hand on cage installation in the first week. Make them do it with a chamber in their hands.",
+    references_cited:
+      "FMCSA Brake Service · OEM brake chamber manuals · OSHA 1910.132 (PPE) · MASCI Brake Shop SOP",
+    action_items:
+      "Spring caging tool inventory verified · Caging-before-service habit reinforced · Face-shield requirement reviewed · New-hand training scheduled",
+  },
+  {
+    key: "shop_tire_cage_explosion",
+    title: "Tire Cage Explosions and Multi-Piece Rims",
+    category: "Hazard-Specific",
+    domain: "shop",
+    role_context: ["mechanic", "tire_tech", "lead"],
+    incident_pattern:
+      "Tire-cage incidents are not what people think. The famous old fatalities — multi-piece rims separating during inflation — are still happening because some equipment still runs on those rims. A loader rim, a road-grader rim, an older over-the-road rim. The mechanic deflates, dismounts, reassembles, inflates without a cage, and the lock ring separates at 80 psi. The energy is equivalent to a small explosive charge. There is video. We have all seen it. The fix is older than most of the people working in shops today — and people are still dying because the cage was 'just for a second' set aside.",
+    hazards_reviewed:
+      "Lock-ring separation projectile during inflation · Mechanic in line of fire · Multi-piece rim corrosion failure · Single-piece rim cracking · Inflation hose recoil · Tire bead explosion",
+    discussion_notes:
+      "• Tire cage for EVERY inflation, every time. Single-piece rims included — bead failures happen on those too.\n• Stand to the SIDE during inflation. Never in front of the rim. Long inflation hose with in-line gauge so you stand outside the trajectory.\n• Inspect rims BEFORE you mount. Lock rings, side rings, gutters — look for cracks, corrosion, deformation. If the ring doesn't seat clean, the rim doesn't go back in service.\n• Multi-piece rims need to match. Mixing manufacturers or sizes is what causes most separations. If you're not sure it matches, scrap it.\n• Inflate in stages. Bead seat at lower pressure, verify seating, then take it up to running pressure.\n• Bead lubricant — water and soap only. NEVER use solvent-based lubricants. They can ignite under high heat.\n• Old hands sometimes skip the cage because they 'know' the rim. The rim does not know them. Use the cage.",
+    references_cited:
+      "OSHA 29 CFR 1910.177 · OEM rim service manuals · TIA tire service standards · MASCI Tire Shop SOP",
+    action_items:
+      "Cage-every-inflation rule reinforced · Rim inspection step verified · Bead lubricant policy reviewed · Multi-piece rim policy discussed",
+  },
+  {
+    key: "shop_welding_fire_watch",
+    title: "Welding Fire Watch and Hot-Work Cleanup",
+    category: "Hazard-Specific",
+    domain: "shop",
+    role_context: ["welder", "fire_watch", "lead"],
+    incident_pattern:
+      "Shop fires from welding almost never happen during the weld — they happen 20 to 60 minutes AFTER. The welder cuts a brace, grinds the bead, blows the slag away, and walks off. A spark that landed in oily rags on a shelf, behind a 55-gallon drum, or in cardboard packaging smolders. The shop is empty by then. The smoke detector kicks at 1:30 a.m. and the fire department arrives to a fully-involved building. The fix is decades-old: cleanup, fire watch, post-weld inspection. We know this. We keep losing buildings to skipped fire watches.",
+    hazards_reviewed:
+      "Slow-smolder fire in oily / dusty materials · Hidden fire behind / under equipment · Burn / smoke injury · Total-loss building fire · Spark ignition of flammable liquid · Vapor ignition during cutting",
+    discussion_notes:
+      "• Hot-work permit for every welding / cutting / grinding job. Old habit, still right. Permit names the welder, the location, the fire watch, and the end time.\n• Clear a 35-foot radius before sparks fly. Move oily rags, fuel containers, cardboard, sawdust, hydraulic fluid drums. EVERYTHING combustible.\n• Wet down what you can't move. Welding blankets over what you can. Steel shields over openings into adjacent rooms.\n• Fire watch STAYS for 30 minutes after the last spark. Phone in hand. Eyes on every place a spark could have landed.\n• Check ABOVE and BELOW grates, into floor drains, behind any equipment within the 35-ft radius. Sparks travel.\n• Charged extinguisher within arm's reach during AND after. Confirm it's not the empty one from the last drill.\n• Last welder out at end of shift: walk the whole shop. Touch surfaces, smell the air. Smoke and heat tell you what eyes don't.",
+    references_cited:
+      "NFPA 51B · OSHA 29 CFR 1910.252 · NFPA 241 · MASCI Hot Work Permit SOP",
+    action_items:
+      "Hot-work permits required + posted · 35-ft clear-zone enforced · Fire-watch duration verified · End-of-shift walk discussed",
+  },
+  {
+    key: "shop_hydraulic_stored_energy",
+    title: "Hydraulic Stored Energy in Cylinders, Hoses, and Accumulators",
+    category: "Hazard-Specific",
+    domain: "shop",
+    role_context: ["mechanic", "lead"],
+    incident_pattern:
+      "Hydraulic injection injuries look minor and kill people. A pinhole in a hose at 2,500 psi sprays oil through skin like a hypodermic needle. The mechanic sees a tiny puncture in their hand, washes it, bandages it, goes home. Within 24 hours the hand is swollen, the tissue is dying from oil contamination, and the emergency room is amputating. Compounded with raw cylinder pressure release — a loose fitting backs off and the cylinder discharges across the shop — and a fitting becomes a projectile. Stored hydraulic energy is invisible. It kills mechanics who don't respect it.",
+    hazards_reviewed:
+      "Hydraulic injection injury through skin · Fitting / hose projectile · Cylinder uncontrolled extension at energy release · Crush from load drop when pressure bleeds · Burn from hot oil · Eye injury from sprayed oil",
+    discussion_notes:
+      "• Never search for a hydraulic leak with your hand. Use cardboard, paper, or a piece of wood. If you find a leak, replace the hose — don't band-aid it.\n• Drop pressure to zero BEFORE disconnecting any fitting. Cycle the controls with the engine off. Watch the gauge. Verify ZERO.\n• Hydraulic accumulators stay pressurized AFTER zero on the system gauge. Discharge them per the OEM procedure before touching any line connected to them.\n• If oil contacts skin under pressure — ER NOW. Even if it 'looks like nothing.' Tell them it was a hydraulic injection. Surgery clock starts immediately.\n• Long-handled tools when working close to a pressurized hose. Stand off-axis when cracking a fitting.\n• Hose inspections weekly. Cracks, abrasion, bulges, leaks. Replace before failure.\n• Eye protection AND face shield for any open hydraulic work. Closed system is a different rule — open system is full PPE.\n• Block cylinders mechanically before working on them. Hydraulic pressure can disappear and the load can still drop if a seal lets go.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 · Fluid Power Society safety · OEM service manuals · MASCI Hydraulic Service SOP",
+    action_items:
+      "Pinhole-search-with-cardboard rule discussed · Accumulator discharge procedure reviewed · ER-immediately-for-injection policy reinforced · Cylinder blocking verified",
+  },
+  {
+    key: "shop_under_bed_crush_zone",
+    title: "Crush Zones Under Beds, Booms, and Equipment",
+    category: "Hazard-Specific",
+    domain: "shop",
+    role_context: ["mechanic", "operator", "lead"],
+    incident_pattern:
+      "The body-prop pin on a dump bed exists for one reason: to keep mechanics alive when the bed comes down unexpectedly. Most under-bed fatalities happen because the prop was 'just for a minute' set aside while the mechanic reached up to free a stuck pin or grease a pivot. A hydraulic seal lets go. A control switch is bumped. A leak that's been minor finally gives. The bed comes down. The mechanic, hands raised, gets pinned between bed and frame. There is no escape from that pinch — it's measured in fractions of a second, not seconds.",
+    hazards_reviewed:
+      "Crush between bed and frame on dump trucks · Under-boom crush on excavators / cranes · Pinch in counterweight rotation · Crush under unsupported attachment · Drop of bucket / blade with engine off",
+    discussion_notes:
+      "• Body-prop pin engaged ANY time a mechanic is under a raised bed. Not 'most of the time.' EVERY time. Even for 30 seconds of grease work.\n• Boom or arm: lower it ALL THE WAY DOWN before any service. If you must work under one raised, block it with cribbing rated for the load.\n• Stinger pins on stinger steer / tag-axles — pin them in or out, do not work under them in mid-position. Hydraulic cushion will not hold.\n• Counterweight rotation on excavators — clear the swing radius before service. Even with the engine off, hydraulics can creep.\n• Bucket / blade — drop to ground or block before service. Hydraulic seal failures drop loads. Mechanical blocks don't.\n• Communicate at shift change. New mechanic taking over a job needs to know what's blocked, what's pinned, what's pressurized.\n• If a body prop doesn't engage cleanly, the truck doesn't go under work. Fix the prop first.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 · OEM body prop manuals · ANSI / SAE blocking standards · MASCI Shop SOP",
+    action_items:
+      "Body-prop-pin-always rule reinforced · Cribbing inventory verified · Counterweight clear-zone reviewed · Shift-handoff communication discussed",
+  },
+  {
+    key: "shop_battery_explosion",
+    title: "Battery Charging, Boost, and Hydrogen Explosion",
+    category: "Hazard-Specific",
+    domain: "shop",
+    role_context: ["mechanic", "lead", "driver"],
+    incident_pattern:
+      "Battery explosions look like a movie effect and they happen in real life. A mechanic is boosting a dead truck, the dead battery has been discharged for weeks, and the cells have outgassed hydrogen into the case. The boost clamp arcs at the post, the spark ignites the hydrogen, and the battery case bursts. Acid and plastic fragment fly in every direction — into the mechanic's face, eyes, arms. The injuries are sometimes blinding and always burning. The fix is older than the truck: connect last to a ground, not to the battery, and check for case bulging or off-gassing before you touch it.",
+    hazards_reviewed:
+      "Hydrogen explosion during boost / charge · Acid burn to eyes / skin · Acid spray from cracked case · Boost-cable arc / fire · Battery case rupture from internal short · Lifting injury from heavy commercial batteries",
+    discussion_notes:
+      "• Look at the battery BEFORE you connect. Bulging case = OUT OF SERVICE. Replace, do not boost.\n• Boost connection sequence: red-positive to dead-positive · red-positive to live-positive · black-negative to live-negative · black-negative to DEAD-VEHICLE GROUND (frame), NOT to the dead battery post.\n• That last connection is where the arc happens. Putting it on a frame ground keeps the arc AWAY from hydrogen at the cells.\n• Eye protection on. Acid is not survivable in the eyes without immediate flushing — 15+ minutes at the eyewash station.\n• Ventilation during charging. Open the hood. Don't charge a sealed truck in a closed bay without ventilation.\n• Disconnect negative FIRST when removing a battery. Connect negative LAST when installing. Reduces arc risk at the cell.\n• Commercial batteries are HEAVY — 70+ lbs. Two-person carry or proper lifter. Backs and toes are typical injuries.\n• Acid spill kit and eye-wash station tested every month. Untested eye-wash is a useless eye-wash.",
+    references_cited:
+      "OSHA 29 CFR 1910.151 · OSHA 1910.305 · OEM battery service manuals · MASCI Battery Service SOP",
+    action_items:
+      "Battery visual inspection step added · Boost-to-ground-not-battery sequence reinforced · Eyewash monthly test scheduled · Two-person lift policy reviewed",
+  },
+
+  // ============================================================
+  // ASPHALT PLANT / CRUSHER / LAB / AIRPORT · PHASE F · iter251
+  // ------------------------------------------------------------
+  // Plant, crusher pad, lab bench, and airport movement areas.
+  // Voice: experienced plant operator / lab tech / airfield lead.
+  // ============================================================
+  {
+    key: "plant_conveyor_entanglement",
+    title: "Conveyor Belt Entanglement — Tail Pulleys and Pinch Points",
+    category: "Hazard-Specific",
+    domain: "plant",
+    role_context: ["plant_operator", "groundman", "lead"],
+    incident_pattern:
+      "Conveyor entanglement fatalities at aggregate and asphalt plants follow a sickeningly predictable pattern. A laborer goes near a running tail pulley to clear a buildup of fines or a piece of tramp metal. They reach in with a shovel, the shovel catches the belt, and they're pulled into the pinch point between belt and pulley. The conveyor doesn't stop on its own. By the time the operator hits the e-stop from the control house, the worker is already gone. EVERY conveyor incident report we've ever read includes the line 'guard was off' or 'I was just going to grab it real quick.'",
+    hazards_reviewed:
+      "Entanglement at tail / head / take-up pulley · Pinch at idler rollers · Loose clothing catching belt · Climbing on running belt · Cleaning under running belt · Crush from belt stops/starts during service",
+    discussion_notes:
+      "• NO ONE near a running tail pulley or head pulley. Period. Build-up is cleared with the belt LOCKED OUT, not running.\n• Guards on all pinch points whenever the conveyor runs. If a guard is off for service, the conveyor is LOCKED OUT.\n• Tramp metal cleared with the belt off, not 'I'll grab it before the next dump.' Magnets and metal detectors are there to prevent that very situation.\n• No reaching into a running belt with a shovel, broom, bar, hand. No exceptions.\n• Pull-cord e-stops along the full length, tested weekly. Operators should know exactly where the closest cord is.\n• Walking under a belt — wear hard hat, watch for material drop, never stand under a belt that's being cleaned upstream.\n• Climbing on a belt — only with belt locked out and tagged. Never on a running belt.\n• New plant workers: walk the conveyor system on Day 1 with the lead. Point at every pinch point. Show every e-stop.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 · MSHA 30 CFR Part 56 · NSSGA conveyor safety · MASCI Plant SOP",
+    action_items:
+      "No-touch-running-belt rule reinforced · Guard inspection assigned · Pull-cord function tested · New-worker conveyor walkthrough scheduled",
+  },
+  {
+    key: "plant_baghouse_silo_hazards",
+    title: "Baghouse Cleanout and Silo Entry Hazards",
+    category: "Hazard-Specific",
+    domain: "plant",
+    role_context: ["plant_operator", "lead", "mechanic"],
+    incident_pattern:
+      "Silo and baghouse fatalities almost always involve someone going inside without a confined-space permit. The pattern: a baghouse is plugging up, production is dropping, and someone climbs into the housing to break the bridge of material. They don't tell anyone exactly where they are. The bridge fails, material avalanches down, and they're engulfed. Asphalt silos add hot bitumen vapors and the risk of falling into hot material. Aggregate silos add fine dust at suffocation densities. Both have killed plant workers in the last 5 years across this industry. The fix is the same fix it's always been: confined-space permit, atmospheric testing, attendant, retrieval line.",
+    hazards_reviewed:
+      "Engulfment in flowing material · Asphyxiation from low O2 in silo atmosphere · Burn from hot bitumen contact · Bridge collapse on workers · Crush from rotating clean-out equipment · Falls from baghouse access platforms",
+    discussion_notes:
+      "• Confined-space entry permit BEFORE anyone enters a silo, baghouse, or storage vessel. No 'just gonna pop in real quick.'\n• Atmospheric testing — O2, LEL, CO, H2S minimum. Continuous monitoring while occupied. Asphalt silos: also test for VOCs.\n• Attendant outside at all times. They DO NOT enter to rescue. They call rescue. They maintain communication.\n• Retrieval line and full-body harness for the entrant. Asphalt silos add heat-resistant PPE.\n• Material isolation BEFORE entry. Lockout the silo feed. Lockout the discharge. Verify the bridge is broken from OUTSIDE if possible.\n• Bridge-breaking from outside whenever possible — long bars, air lances, vibrators. Going inside should be the last option, not the first.\n• Baghouse access platforms — full guardrails, fall protection above 6 ft, never trust a platform with corroded grating.\n• Asphalt silo emergencies: the worker is on the hot side. Get them out FAST. Have rescue plan written and rehearsed.",
+    references_cited:
+      "OSHA 29 CFR 1926 Subpart AA · OSHA 1910.146 · NIOSH silo entry · MASCI Confined Space SOP",
+    action_items:
+      "Confined-space permit policy reinforced · Atmospheric monitor calibrated · Bridge-from-outside tools available · Rescue plan reviewed",
+  },
+  {
+    key: "plant_asphalt_burns_oil_exposure",
+    title: "Hot Asphalt Burns and Bitumen Vapor Exposure",
+    category: "Hazard-Specific",
+    domain: "plant",
+    role_context: ["plant_operator", "driver", "lab_tech", "lead"],
+    incident_pattern:
+      "Asphalt burns are not like normal burns. The material is 300–350°F when it hits skin and it STICKS — it doesn't run off like hot water. The worker cannot get it off in time to prevent third-degree burns. The most common scenario is a sampler at the load-out, a driver climbing on the truck, or a lab tech at the kettle. A splash, a contact with a hot line, a sudden release of trapped material — and what would have been a flinch is now a hospital trip with skin grafts. Bitumen vapors at the plant compound the issue with respiratory irritation and long-term exposure concerns.",
+    hazards_reviewed:
+      "Third-degree burn from hot asphalt contact · Burn from steam release at load-out · Vapor inhalation (PAH exposure) · Eye burn from splash · Slip on cooled spilled binder · Burn through clothing",
+    discussion_notes:
+      "• Long sleeves, long pants, gloves with cuffs. Asphalt-rated boots — leather, not synthetic. Synthetic boots melt INTO the foot.\n• Face shield over safety glasses for any load-out work, sampling, or kettle work. Splashes go for the face.\n• Stand UPWIND of the spout when loading. Drivers: stay in the cab during load-out where allowed. If you must be out, eye protection.\n• Never use water to wash hot asphalt off skin. Cool with cold compresses if possible, then to the ER. Water can drive the heat in deeper.\n• Sampling: long-handled samplers. Never reach into a kettle or load-out chute with a short tool. The splash distance is real.\n• Bitumen vapors — work upwind, take breaks, report symptoms (headache, eye burning, throat irritation). Long-term monitoring matters.\n• Eye-wash and emergency shower within 25 feet of asphalt operations. Tested monthly.\n• If a worker is burned: cover the burn with a clean dry cloth (do NOT try to remove asphalt from skin). To ER immediately.",
+    references_cited:
+      "OSHA 29 CFR 1910.132 · ACGIH TLV for bitumen · NIOSH asphalt fume guidance · MASCI Plant Burn SOP",
+    action_items:
+      "PPE for plant work verified · Long-handle sampler usage discussed · Eye wash / shower tested · Burn response procedure reviewed",
+  },
+  {
+    key: "plant_burner_systems",
+    title: "Burner Systems — Light-Off and Flameout Hazards",
+    category: "Hazard-Specific",
+    domain: "plant",
+    role_context: ["plant_operator", "lead"],
+    incident_pattern:
+      "Burner-related incidents at hot-mix plants follow two patterns. The first is light-off explosion: the burner cycles through ignition, fails to light, but fuel keeps feeding. The unburned fuel pools in the drum. When ignition finally catches, the accumulated fuel explodes — blowing the drum end out, throwing flame across the plant pad, and injuring anyone nearby. The second is flameout during operation: the flame goes out, fuel continues, and the next light-off behaves the same. Both are caused by skipped purge cycles, weak ignition sources, or operating outside the control envelope. Modern flame-safeguard systems prevent this — IF they're maintained and not bypassed.",
+    hazards_reviewed:
+      "Light-off explosion in drum · Flashback to fuel line · Burn from drum-end blowout · Hearing damage from explosion · CO buildup in plant operating area · Fuel leak ignition",
+    discussion_notes:
+      "• Purge cycle EVERY light-off. Not 'when I think about it.' EVERY time. The purge clears any unburned fuel from prior attempts.\n• Don't bypass the flame-safeguard system. If it's tripping repeatedly, FIX the cause — don't jumper around it.\n• Light-off sequence: purge → pilot ignition → main burner ignition → flame detected → full fire. Each step verified before next.\n• If the flame goes out during operation: shut fuel off IMMEDIATELY, complete a purge cycle, then re-light. Do not just keep feeding.\n• Burner area clear of personnel during light-off. Set the rule, enforce it. If something fails, you don't want anyone in the line of fire.\n• Daily inspection of fuel lines, valves, pilot, flame scanner. Leaks at the burner are catastrophic if they pool and find ignition.\n• CO monitoring in the plant pad area. Inversions and tight wind conditions trap exhaust. Workers need to know if it's accumulating.\n• If you smell unburned fuel near the burner — STOP. Shut down. Investigate before relighting.",
+    references_cited:
+      "NFPA 86 · OSHA 29 CFR 1910.106 · OEM burner manuals · MASCI Plant Burner SOP",
+    action_items:
+      "Purge cycle protocol reinforced · Flame-safeguard tampering policy discussed · Daily fuel-line inspection assigned · CO monitor verified",
+  },
+  {
+    key: "plant_loader_blind_spots_haul_road",
+    title: "Loader Blind Spots and Haul-Road Interactions",
+    category: "Hazard-Specific",
+    domain: "plant",
+    role_context: ["loader_operator", "driver", "lead"],
+    incident_pattern:
+      "Plant pad and haul-road incidents almost always involve a loader and a haul truck or a pickup. The loader operator has good visibility in the direction the bucket is facing — and poor visibility BEHIND and to the right. A truck driver pulls into position, a foreman walks the pad to inspect material, or a sales rep wanders out from the office. The loader backs up to reposition for the next dump, and the gap between the bucket and the truck closes. The pattern is constant traffic, constant motion, and a loader operator who can't see everyone all the time. Pad supervision and traffic discipline are what prevent these.",
+    hazards_reviewed:
+      "Struck-by from backing loader · Pickup driver in loader blind spot · Crushed between loader and stockpile · Sales / visitor in active pad area · Material avalanche during loader operation",
+    discussion_notes:
+      "• Loader operators: backup-alarm functional, EVERY shift. If it's broken, the loader doesn't run.\n• Pull-up/pull-out lane for haul trucks — defined and signed. Drivers stay in cab during load whenever possible.\n• Visitors / sales / management on the pad: hi-vis vest + hard hat, escorted, never in active loader path. If you're not loading, you're somewhere else.\n• Loader operator does NOT load if anyone is in the backing zone. Pause, signal them clear, then operate.\n• Haul road has a posted speed limit and a one-way pattern. Enforce it. Side-by-side traffic on a haul road is a head-on waiting to happen.\n• Watch the stockpile face. A loader undercutting a face creates an overhang that can collapse without warning. Keep faces sloped to the angle of repose.\n• Foremen on the pad: stand where you can see the loader's eyes through the cab glass. If you can't, the operator can't see you either.\n• Night plant operations: loader operator with cab-light off, drivers with headlights aimed away from the operator. Glare blinds the loader to ground workers.",
+    references_cited:
+      "OSHA 29 CFR 1926.602 · MSHA 30 CFR Part 56 · NSSGA Plant Safety · MASCI Pad Traffic SOP",
+    action_items:
+      "Backup-alarm shift-check verified · Visitor escort policy reviewed · Stockpile face slope inspected · Night-glare procedure discussed",
+  },
+  {
+    key: "plant_crusher_clearing_jams",
+    title: "Crusher Jams — Clearing Blocked Crushers Safely",
+    category: "Hazard-Specific",
+    domain: "plant",
+    role_context: ["crusher_operator", "lead", "mechanic"],
+    incident_pattern:
+      "Crusher clearing incidents are some of the worst injuries in the aggregate industry. A piece of tramp metal or oversize feed jams the crusher. The operator climbs onto the feed conveyor or into the crusher mouth with a pry bar to free the material. The crusher is still energized, the operator is in a tight space with stored hydraulic / mechanical energy, and either the jam releases violently (throwing the material and the worker) or someone bumps a control and the crusher starts. Limbs are lost. Workers are killed. The pattern is the same one shop people see with LOTO — but worse, because crushers have enormous stored energy.",
+    hazards_reviewed:
+      "Crusher start-up while occupied · Sudden jam release projectile · Crush in feed throat · Falls from feed conveyor · Stored hydraulic / spring energy release · Tramp metal projectile",
+    discussion_notes:
+      "• LOTO the crusher before ANY jam-clearing work. Main motor disconnect. Hydraulic isolation. Personal lock for every worker involved.\n• Verify zero energy. Try-start at the control. Drop hydraulic pressure. Block any movable component mechanically.\n• Never clear a jam by hand from the feed throat. Use long-handled tools from OUTSIDE the crushing zone.\n• If you must enter — confined-space treatment. Attendant. Retrieval. Communication.\n• Tramp metal management — magnet, metal detector, scalper. PREVENT the jam before it happens.\n• Oversized material — kicked off at the scalper, not allowed to reach the crusher mouth.\n• When releasing a jam, stand off-axis from the throat. Released material can shoot back fast.\n• Crusher operators: train new hands on jam-clearing procedure with the crusher locked out, walking through every step BEFORE they encounter a real jam.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 · MSHA 30 CFR Part 56 · NSSGA Crusher Safety · OEM crusher manual",
+    action_items:
+      "Crusher LOTO procedure reviewed · Long-handle tools available · Tramp metal management discussed · New-hand jam-clearing training scheduled",
+  },
+  {
+    key: "plant_lab_solvents_ignition",
+    title: "Asphalt Lab — Solvents, Ovens, and Ignition Risk",
+    category: "Hazard-Specific",
+    domain: "plant",
+    role_context: ["lab_tech", "lead"],
+    incident_pattern:
+      "Asphalt-lab fires usually involve solvents and ovens. A tech runs an extraction using trichloroethylene or perchloroethylene, vents to the hood, sets the rotovap, and walks away. A backflow into the oven, a hot spot in the heating element, an arcing motor — and the solvent vapor finds ignition. The fire is fast and the smoke is toxic. Lab techs working alone are at the highest risk because no one sees the early warning signs. The other pattern is the ignition-point apparatus during AC ignition-loss testing — open flame, hot solids, near combustibles. These labs are tighter than people think.",
+    hazards_reviewed:
+      "Solvent vapor ignition · Burn from heated apparatus · Inhalation of TCE / perc / fumes · Glass breakage with hot oil · Eye splash from extracted binder · Slip on solvent spill",
+    discussion_notes:
+      "• Ventilation hood operational and tested. EVERY extraction run uses the hood. If the hood is down, the test waits.\n• Solvent containers labeled, capped, stored in a flammable cabinet between uses.\n• Hot work — ovens, ignition-point apparatus, kettles — kept physically separate from solvent work. Hot side / cold side discipline.\n• PPE: nitrile gloves, eye protection, lab coat. NO loose hair, NO scarves, NO lab coats with strings or ties.\n• Eye wash and emergency shower within 10 seconds of any apparatus. Tested weekly.\n• Solvent waste containers metal, capped, grounded. Not glass, not open jars on a shelf.\n• No eating, drinking, or storing food in the lab. Bitumen and solvents transfer to hands and into mouths.\n• Lab tech working alone after hours — call-in protocol. Someone knows you're in there. They check in if you don't text out.",
+    references_cited:
+      "OSHA 29 CFR 1910.1450 (Lab Standard) · NFPA 45 · ACGIH TLVs · MASCI Lab SOP",
+    action_items:
+      "Hood function test verified · Solvent storage audit done · Hot side / cold side layout discussed · After-hours check-in protocol set",
+  },
+  {
+    key: "plant_silo_burn_avalanche",
+    title: "Asphalt Silo Drag Slat and Material Avalanche",
+    category: "Hazard-Specific",
+    domain: "plant",
+    role_context: ["plant_operator", "driver", "lead"],
+    incident_pattern:
+      "Asphalt silo loadout is a dangerous interface — hot material at 300°F+ sitting in a silo, released through a gate, falling 8–15 feet into a truck bed below. The pattern of injury is two-fold: drivers under the silo during a drop get burns from splash or overflow, and drag-slat conveyors above the silo can throw material if a buildup releases unexpectedly. The classic incident is a driver climbing the silo platform to check the load level, leaning over, and getting hit by a sudden material release as the gate opens. Or a maintenance worker on the drag slat platform when an upstream jam clears.",
+    hazards_reviewed:
+      "Burn from sudden material release at gate · Fall from silo platform · Crush from drag-slat chain · Burn from drag-slat oil leak · Toxic vapor inhalation at top of silo · Stuck driver under hot silo",
+    discussion_notes:
+      "• Driver under the silo: in the cab during load. Always. Climb out only after the gate has closed and the chute drained.\n• Silo top access: harness and tie-off above 6 ft. Even on a railed platform, fall protection during any task that involves leaning.\n• Drag-slat conveyors are LOTO whenever a worker is on the platform for service or inspection. Walking past for visual check from a safe distance is one thing — service work needs full LOTO.\n• Communication between loadout operator and driver — radio or horn signal. Driver knows when the gate is about to open.\n• Silo gate misfires — if a gate isn't sealing, take the silo OUT OF SERVICE for repair. Do not work around a misfiring gate.\n• Vapors at the silo top — bitumen vapors collect in the top space. Don't open the inspection hatch in calm wind without ventilation. Take a break upwind after exposure.\n• Truck bed under the silo: visual confirmation before opening the gate. Empty bed, properly positioned. Foreman gives the OK.",
+    references_cited:
+      "OSHA 29 CFR 1926.501 · MSHA Silo Safety · OEM silo / drag-slat manuals · MASCI Loadout SOP",
+    action_items:
+      "Driver-in-cab-at-loadout rule reinforced · Silo top fall protection verified · Drag-slat LOTO procedure reviewed · Gate-misfire OOS rule discussed",
+  },
+  {
+    key: "airport_movement_area_awareness",
+    title: "Airport Movement Areas — Runway, Taxiway, and ATC Discipline",
+    category: "Hazard-Specific",
+    domain: "airport",
+    role_context: ["operator", "driver", "lead", "spotter"],
+    incident_pattern:
+      "Airport-job incidents involve aircraft, not just ground equipment. The pattern repeats: a crew is doing paving or pavement repair at the edge of a runway or taxiway. The lead has cleared the work zone with ATC. The clearance was for one hour. The crew runs over the clearance because a piece of equipment broke down. ATC, assuming the zone is clear at the agreed time, releases the runway. An aircraft is rolling in 90 seconds. The worker pulling a piece of equipment off doesn't know the clearance has lapsed. The most consistent finding in airport-related fatalities is communication breakdown — between ATC, the lead, and the workers on the ground.",
+    hazards_reviewed:
+      "Aircraft strike of worker or equipment in active movement area · Jet blast / prop wash · FOD created by site debris · Equipment incursion into active runway · Communication breakdown with ATC · Confusion at low-vis or night operations",
+    discussion_notes:
+      "• Movement-area work requires ATC clearance and a CONFIRMED window. The lead has the radio. The lead is on it.\n• If the work window is about to expire — STOP. Pull everyone and everything out. Do NOT push the time. ATC will re-clear; aircraft cannot land twice.\n• Workers all carry radios on the operations frequency the airport authority assigns. Listen first, talk second.\n• FOD discipline — every wrench, every cone, every scrap of debris accounted for before clearing the area. A loose bolt destroys a jet engine.\n• Hi-vis at airfield specs — not the same as construction hi-vis. ANSI 207 Public Safety colors where required. Read the contract spec.\n• Equipment in active zone — escorted, marked, and on ATC radio. Pickups too. No one freelances onto a taxiway.\n• Jet blast / prop wash zones — even small aircraft create wind that can throw a person or a cone. Stay clear of holding aircraft.\n• Night / low-vis ops — extra coordination, extra lighting, extra check-ins. Don't push through bad-vis without authority alignment.",
+    references_cited:
+      "FAA AC 150/5210-5 · FAA AC 150/5370-2 · TSA / airport-specific procedures · MASCI Airport Operations SOP",
+    action_items:
+      "ATC clearance protocol reinforced · FOD accountability reviewed · Radio discipline discussed · Window-expiry pullout drill assigned",
+  },
+  {
+    key: "airport_jet_blast_fueling",
+    title: "Jet Blast, Prop Wash, and Airfield Fueling Awareness",
+    category: "Hazard-Specific",
+    domain: "airport",
+    role_context: ["operator", "driver", "lead"],
+    incident_pattern:
+      "Workers underestimate jet blast and prop wash. A regional turboprop spooling up generates 100+ mph of wash behind it. A commercial jet at idle thrust generates winds capable of flipping a pickup. The pattern: a crew is positioning equipment near a holding aircraft, the pilot bumps thrust to begin taxi, and a worker, a cone, or a piece of equipment gets thrown. Combine that with the airfield fueling environment — Jet-A is everywhere, ignition sources must be controlled, and a static spark is a Class B fire instantly. Airfield work has its own hazards that don't exist anywhere else.",
+    hazards_reviewed:
+      "Worker / equipment thrown by jet blast · Prop wash injury to ground crew · Jet-A static ignition · Vapor cloud ignition near fueling ops · Hearing damage from aircraft noise · FOD from blown debris",
+    discussion_notes:
+      "• Stay clear of holding aircraft. A 100-foot clearance is a starting point, not a maximum. If you can see the engine, the engine can hit you with blast.\n• Hearing protection in any active movement area. Aircraft noise damages hearing in minutes of exposure.\n• Jet-A fueling areas — no spark sources within 50 feet. No cell phones, no flashlights without intrinsic safety rating, no metal-on-metal.\n• Tie down or weigh down EVERYTHING near a taxiway. Cones, sawhorses, equipment. What stays put in normal wind blows away in prop wash.\n• Fueling operations have their own crew. Construction crews don't intersect with fueling ops. Stay clear of fuel trucks and refueling aircraft.\n• Static grounding for any fueling-adjacent work. Bonding cables, grounding rods. Static is the silent ignition source.\n• If you feel wind suddenly — look around. An aircraft is moving somewhere you didn't expect. Verify position before continuing.\n• Eye protection — debris in airfield work is everywhere. Open faceshields aren't enough at busy airfields.",
+    references_cited:
+      "FAA AC 150/5230-4 · NFPA 407 (aircraft fuel servicing) · OSHA 1926.101 (hearing) · MASCI Airfield SOP",
+    action_items:
+      "Aircraft clearance distance reinforced · Hearing protection verified · Fueling-adjacent ignition control discussed · Tie-down policy for cones / equipment reviewed",
+  },
+
+  // ============================================================
+  // OFFICE / ADMIN · PHASE G · iter251
+  // ------------------------------------------------------------
+  // Operationally realistic topics for non-field staff who
+  // still touch the work — site visits, parking lots, severe
+  // weather accountability, lone-worker realities.
+  // ============================================================
+  {
+    key: "office_distracted_driving",
+    title: "Distracted Driving — Phones, Coffee, and the Commute",
+    category: "Hazard-Specific",
+    domain: "office",
+    role_context: ["office", "manager", "estimator", "sales"],
+    incident_pattern:
+      "Distracted-driving crashes hit office staff at a rate the field doesn't see, because office staff drive MORE — between jobs, between meetings, to lunches and back. The pattern is benign individually: a quick text from a PM, a glance at the navigation, a sip of coffee while merging. Stack three of those small things in 10 seconds and you've crossed a centerline at 65 mph. The most consistent factor in office-staff crashes isn't impairment — it's the cumulative inattention of a busy person doing six things while driving. The fix is policy and habit, not technology.",
+    hazards_reviewed:
+      "Head-on / off-road crash from inattention · Rear-end at signal change · Phone-handling violation citation · Speeding in school / construction zones · Fatigue from over-scheduled days · Eating / drinking while driving",
+    discussion_notes:
+      "• Phone face-down or in a holder, in DRIVE-DO-NOT-DISTURB mode. Calls go to voicemail. Texts wait.\n• Hands-free is still distracted. Cognitive load matters, not just hand position. Save the call for the parking lot.\n• Navigation set BEFORE you put the truck in gear. Re-routing while driving is a leading cause of office-related crashes.\n• Coffee, food, paperwork — pull over. The 90 seconds it costs is the cheapest insurance you'll buy.\n• Schedule margin. If your day has zero margin, every late meeting becomes a speeding trip. Build slack into your calendar.\n• Construction zones — both ways. Slow down through MASCI's OWN zones first. Lead the culture.\n• Severe weather — pull over and wait. Rain at 70 mph is not driving, it's gambling.\n• If you're tired, you're driving impaired. Pull over for 20 minutes. The meeting will wait.",
+    references_cited:
+      "NHTSA Distracted Driving · State hands-free laws · MASCI Fleet Vehicle Policy",
+    action_items:
+      "DND-while-driving policy reinforced · Hands-free still risky message discussed · Schedule-margin discipline reviewed · Severe-weather pull-over rule discussed",
+  },
+  {
+    key: "office_site_visit_ppe",
+    title: "Site Visit PPE and Visitor Expectations",
+    category: "Procedure / SOP",
+    domain: "office",
+    role_context: ["office", "manager", "estimator", "sales", "visitor"],
+    incident_pattern:
+      "Most office-staff site injuries happen in the first 5 minutes of arriving at a jobsite. The pattern: arrive in office clothes, no hi-vis, no hard hat, walk toward the foreman to find them, and step into the swing radius of an excavator or into a backing dump truck path. The visitor doesn't know the site, the operators don't know the visitor is coming, and the foreman is 200 feet away. Office staff often think 'I'm just popping in for 5 minutes' justifies skipping PPE. The crew has worked all morning building a culture of PPE and the visitor undermines it instantly. The fix is PPE in the vehicle, no exceptions.",
+    hazards_reviewed:
+      "Struck-by equipment on first arrival · Trip / fall on rough site terrain · Eye injury from blown debris · Head injury from low overhead · Heat stress without water / shade · Visitor undermining crew PPE culture",
+    discussion_notes:
+      "• PPE kit in every office vehicle: hard hat, Class 2 hi-vis vest, safety glasses, leather gloves, safety boots (or shoe covers as a fallback for ONE site visit).\n• Put PPE on BEFORE you exit the vehicle. Not after you walk 50 feet across the parking area. Before.\n• Find the foreman by RADIO or PHONE before walking. The foreman comes to YOU at a safe meeting point — not the other way around.\n• Stay in marked walking paths. Do not cut across active work zones, even if it adds 100 feet.\n• Sign in at the gangbox / sign-in sheet. The site knows who's on-site.\n• Don't show up at lunch with no announcement. Schedule the visit. Let the foreman tell the crew.\n• Heat / cold — bring water, dress for the weather, know where the break trailer is.\n• Lead by example. The crew sees if YOUR PPE is right. They follow that signal.",
+    references_cited:
+      "OSHA 1926.95 / .96 / .100 / .102 (PPE) · ANSI/ISEA 107 · MASCI Visitor SOP",
+    action_items:
+      "PPE kit in every office vehicle verified · Find-the-foreman-first habit reinforced · Scheduled-visit policy reviewed · Visitor sign-in enforced",
+  },
+  {
+    key: "office_parking_lot_struck_by",
+    title: "Parking Lots, Backing, and Pedestrian Awareness",
+    category: "Hazard-Specific",
+    domain: "office",
+    role_context: ["office", "visitor", "driver"],
+    incident_pattern:
+      "Parking-lot incidents at MASCI sites and customer offices happen at the slowest speeds and still produce the most ankle, knee, and back injuries on the admin side. The pattern: an admin or PM is walking from a vehicle to the office door, looking at their phone for the meeting confirmation. A backing pickup driver, also distracted, never sees them. The contact is at 3–5 mph. The pedestrian doesn't go down hard but twists out of the way — knee, ankle, back. Other variant: stepping out of a cab into a parked vehicle next to yours. Door-edge meets the next door, owner is upset, claim filed. Slow speeds, big outcomes.",
+    hazards_reviewed:
+      "Backing vehicle struck-by · Slip on wet / icy parking lot · Step off curb into vehicle path · Door-strike to adjacent vehicle · Tripping on parking blocks · Visibility issues in winter / low-light",
+    discussion_notes:
+      "• Phone DOWN while walking. Eyes on the lot, on backup lights, on movement. The text waits.\n• Walk in marked crosswalks where they exist. Where they don't, pick the safest path and stick to it.\n• When backing — back BEFORE the kids and pedestrians come out. Or pull through if available. Or back camera, mirror sweep, AND quick over-the-shoulder. Cameras alone are not enough.\n• Step out of your vehicle into a CLEAR space — don't open the door blind into the next lane.\n• Winter / wet — boots with grip on the soles, not dress shoes. A slip in the parking lot still happens at MASCI age.\n• Park in lit spaces at night. Visibility of YOUR vehicle matters as much as visibility from YOUR vehicle.\n• Watch for office staff and visitors at customer sites — they're not used to construction-vehicle scale. Slow down extra in customer parking.",
+    references_cited:
+      "OSHA General Duty · NHTSA Pedestrian Safety · MASCI Fleet Policy",
+    action_items:
+      "Phone-down-while-walking habit discussed · Backing-camera-plus-mirror rule reviewed · Winter footwear discussion · Customer-lot extra-caution reinforced",
+  },
+  {
+    key: "office_heat_stress_visits",
+    title: "Heat Stress on Summer Site Visits",
+    category: "Hazard-Specific",
+    domain: "office",
+    role_context: ["office", "manager", "estimator", "visitor"],
+    incident_pattern:
+      "Heat injuries to office staff during site visits in summer follow a specific pattern. The visitor arrives in business-casual clothes, doesn't have water, walks the site for 30–45 minutes in 95°F+ heat, and only realizes they're in trouble when they're already symptomatic — headache, lightheadedness, nausea. They drove themselves to the site, and now they have to drive themselves home while heat-symptomatic, which is its own crash risk. Office staff have lower heat tolerance than the field crew because they're not heat-acclimatized. A 20-minute walk for a field hand is a serious health risk for someone who sat in AC all morning.",
+    hazards_reviewed:
+      "Heat exhaustion progressing to heat stroke · Crash from driving while heat-symptomatic · Dehydration · Sunburn / eye damage from prolonged exposure · Underestimating heat without acclimation",
+    discussion_notes:
+      "• Water bottle in the vehicle, every site visit, May through October. Drink before, during, and after the visit.\n• Schedule summer site visits in the morning or late afternoon. Avoid 11 a.m. to 3 p.m. heat peak.\n• Hat that shades the face and neck. Sunscreen. Long sleeves are actually cooler than bare skin in direct sun.\n• Take breaks in the break trailer or in your vehicle with AC. Don't 'tough it out.'\n• Watch for symptoms in yourself and others: headache, nausea, irritability, dizziness, sudden quietness. Heat exhaustion progresses to heat stroke FAST.\n• If symptoms appear: get into shade or AC, drink water with electrolytes, cool the body. If symptoms don't resolve in 15 minutes — ER.\n• Driving while heat-symptomatic is impaired driving. Get someone to drive you. Call dispatch. Wait it out at the break trailer.\n• New hires and visitors are NOT acclimatized. Treat them more conservatively than the field crew.",
+    references_cited:
+      "OSHA Heat Stress · NIOSH Heat Stress · CDC Heat Illness · MASCI Heat Policy",
+    action_items:
+      "Water-in-vehicle habit reinforced · Morning-visit scheduling reviewed · Symptom-awareness discussed · Don't-drive-impaired rule reinforced",
+  },
+  {
+    key: "office_lone_worker_checkin",
+    title: "Lone Worker / Site Check-In Realities",
+    category: "Procedure / SOP",
+    domain: "office",
+    role_context: ["office", "manager", "estimator", "visitor"],
+    incident_pattern:
+      "Lone-worker incidents at MASCI typically involve a PM, an estimator, or a sales rep who drove to a remote jobsite, parked, walked the project alone, and either had a medical event (heart, stroke, fall) or got into a tense interaction with a customer or trespasser. No one knew exactly where they were. The phone hadn't moved for 45 minutes. By the time someone followed up, the situation had become serious. The fix is unglamorous: tell someone where you're going, set a check-in time, and follow through. We have not had a fatality from this — but we've had close calls that have changed how seriously we take check-ins.",
+    hazards_reviewed:
+      "Medical event with no one to respond · Slip / fall with no observer · Tense interaction with trespasser · Vehicle breakdown in low-signal area · Hostile customer / dispute escalation · Lost / disoriented in unfamiliar area",
+    discussion_notes:
+      "• Tell someone — dispatch, an admin, your manager — where you're going and when you expect to be back. Text works.\n• Set a check-in TIME, not just an intent. 'I'll text by 2:30.' If 2:30 passes with no text, that person calls you.\n• Phone charged before leaving the office. Bring a charger and a charged power bank for longer trips.\n• Don't enter a hostile situation alone. Customer dispute escalating? Pull back, call your manager, return with a partner.\n• Trespassers / unknown people on the site — don't engage alone. Call site security or local LE. You are not a security guard.\n• Vehicle breakdown in a remote area — stay with the vehicle if it's safe. Walking out can put you in worse trouble.\n• Medical history — if you have any condition that could leave you unresponsive, the check-in protocol is twice as important.\n• At the end of the visit, text the same person 'clear.' Closes the loop.",
+    references_cited:
+      "OSHA Lone Worker · ANSI/ASSP Z490 · MASCI Field Visit Policy",
+    action_items:
+      "Check-in time discipline reinforced · Phone-charging habit discussed · Hostile-interaction de-escalation policy reviewed · End-of-visit 'clear' text habit set",
+  },
+  {
+    key: "office_severe_weather_accountability",
+    title: "Severe Weather Accountability for Crews and Visitors",
+    category: "Procedure / SOP",
+    domain: "office",
+    role_context: ["office", "manager", "dispatch", "lead"],
+    incident_pattern:
+      "Severe-weather events catch office staff at the worst time — driving back from a site visit, midway through a customer meeting, or as the office is closing for the day. The pattern of failure is accountability: the office assumes all crews are pulled in, but two trucks are still out. The field assumes the office has called everyone, but three site visitors are still on site. When a tornado warning hits or a lightning storm rolls in, no one knows for sure who is where. The fix is one person — usually dispatch or admin — owning a check-the-roll process during weather events.",
+    hazards_reviewed:
+      "Worker / visitor caught in tornado / severe thunderstorm · Lightning strike on site · Flash flooding of low-lying jobsites · Hail damage to crew and equipment · Hypothermia / heat from extended exposure during storm",
+    discussion_notes:
+      "• One person is the weather POC during a severe-weather event. Usually dispatch or admin. They have the list. They make the calls.\n• Check the radar BEFORE leaving the office in summer thunderstorm season. Watch for fast-moving fronts.\n• Lightning rule: when you SEE lightning OR HEAR thunder, the field crew pulls in. 30/30 rule — 30 minutes after the last strike before resuming.\n• Tornado warning: into the safest available structure. Field crew into the office or substantial building, NOT into a vehicle, NOT into a trailer.\n• Severe rain / flash flood: avoid low-lying jobsites until conditions clear. Many heavy-civil sites are designed to flood — they're channels.\n• Hail: get vehicles under cover where possible. People away from windows.\n• Account for ALL personnel during a severe event. Office, field, drivers, visitors. The POC checks every name on the list.\n• Site visitors: notify them before they leave the office that weather is coming. Tell them to head straight back when conditions degrade.",
+    references_cited:
+      "NWS Severe Weather Awareness · OSHA Lightning Safety · MASCI Severe Weather SOP",
+    action_items:
+      "Weather POC designated · 30/30 lightning rule reviewed · Tornado-shelter mapping verified · Visitor weather-notify habit discussed",
+  },
+  {
+    key: "office_slips_trips_falls",
+    title: "Slips, Trips, and Falls in the Office Environment",
+    category: "Hazard-Specific",
+    domain: "office",
+    role_context: ["office"],
+    incident_pattern:
+      "Office slip-and-fall incidents are unglamorous and very real. The pattern: spilled coffee in the kitchenette goes uncleaned for an hour, someone steps in it in dress shoes, and goes down. Or a power cord run across a doorway during a temporary setup, never picked up. Or a stairway with one bulb burned out, and someone misses the last step in the dim corner. None of these are dramatic — but they account for more lost-time office injuries than any other cause. Knees, ankles, hips, wrists. People work injured for weeks because they're embarrassed by a hallway fall.",
+    hazards_reviewed:
+      "Slip on spilled liquid · Trip over power cord / mat edge · Fall on stairs in low light · Slip on icy entryway · Fall from chair / step stool used as ladder · Slip in restroom",
+    discussion_notes:
+      "• Clean up spills immediately. Don't wait for someone else. The person who walks through it next might be you.\n• Wet-floor signs when something can't be cleaned right away. They actually work.\n• Power cords during temporary setups — taped down or routed around the path. No cords across walking surfaces.\n• Stairway lighting — report burned-out bulbs the same day. Office facilities replace them.\n• Winter entry mats — kept in place, replaced when worn out. The first 6 feet inside the door is where most winter slips happen.\n• Step stool, not chair, for reaching anything high. We have step stools. Use them.\n• Restroom floor cleanliness — report wet floors to facilities. The person who slipped in there last month was you.\n• Holding 4 things and walking? You're going to drop one or fall over one. Two trips is better than one fall.",
+    references_cited:
+      "OSHA 1910.22 · NSC slips/trips guidance · MASCI Office Safety Policy",
+    action_items:
+      "Spill-cleanup-now habit reinforced · Stair-lighting reporting reviewed · Cord-management for temp setups discussed · Step-stool-not-chair rule reinforced",
+  },
+  {
+    key: "office_fatigue_mental_load",
+    title: "Fatigue and Mental Load — When You're Tired, You're Impaired",
+    category: "Hazard-Specific",
+    domain: "office",
+    role_context: ["office", "manager", "estimator", "pm"],
+    incident_pattern:
+      "Mental fatigue is the office equivalent of heat stress in the field — slower to develop, easier to ignore, just as dangerous. The pattern: a PM works 11-hour days for two weeks during a busy season, sleeps badly, lives on coffee. Errors creep in — a job number transposed, a quote that's missing a line item, a critical email that doesn't get sent. The PM blames themselves for not being sharp. The real cause is sustained sleep debt and decision fatigue. Long-term, this pattern leads to depression, family stress, and physical illness. We have lost good people to burnout that started this exact way.",
+    hazards_reviewed:
+      "Decision errors from sleep deprivation · Crash from driving fatigued · Email / contract errors with downstream impact · Burnout / mental health decline · Family stress · Physical illness from sustained sleep debt",
+    discussion_notes:
+      "• Sleep is not optional. Seven hours minimum. Less than that for a week is impaired-driving-level cognitive impact.\n• Take your time off. Vacation accruing doesn't help anyone — used vacation does.\n• Decision fatigue is real. The decisions you make at 5 p.m. after 10 hours of meetings are not your best decisions. Batch important calls earlier in the day.\n• When you catch yourself making errors, don't push harder — stop. Walk. Hydrate. Eat. Come back.\n• Mental health is not weakness. Talk to someone. EAP is confidential and useful. Coworkers are useful. Family is useful.\n• Watch your coworkers. Withdrawn, irritable, error-prone — these are the early signs. Check in on each other.\n• Phone off after hours when you can. The job will be there tomorrow. Your mental reserves won't if you don't rebuild them.\n• 988 — Suicide & Crisis Lifeline (call or text). MASCI EAP for confidential help. Construction has one of the highest suicide rates of any industry. This matters.",
+    references_cited:
+      "CDC Fatigue · NIOSH Total Worker Health · 988 Suicide & Crisis Lifeline · MASCI EAP",
+    action_items:
+      "Sleep priority discussed · Vacation use policy reviewed · Decision-fatigue awareness raised · 988 / EAP info shared",
+  },
 ];
 
 export const CUSTOM_TOPIC_KEY = "__custom__";

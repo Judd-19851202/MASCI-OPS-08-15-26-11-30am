@@ -1036,4 +1036,468 @@ export const TOPIC_LIBRARY_ES = {
     action_items:
       "Hábito de walk-around pre-movimiento reforzado · Conciencia de zona-de-muerte para cuadrilla en tierra revisada · Revisión de cobertura de espejos para chofer nuevo asignada · Regla de punto-ciego para visitantes de oficina discutida",
   },
+
+  // ============================================================
+  // DESAGÜE / WELLPOINT · FASE D · iter251
+  // ------------------------------------------------------------
+  // Lecciones operativas de riesgo catastrófico para cuadrillas
+  // de desagüe. Voz de superintendente con experiencia.
+  // ============================================================
+  dewatering_jetting_rig_overhead_strike: {
+    title: "Golpes de Equipo Jet a Líneas Eléctricas Aéreas",
+    incident_pattern:
+      "Los contactos con líneas eléctricas en equipos jet casi nunca pasan durante el jetting constante — pasan durante el reposicionamiento. El equipo está puesto, el operador termina un header, y ahora necesita moverse al siguiente stab. Retrae un poco, gira el brazo, y el mástil — usualmente totalmente extendido del último header — barre hacia la línea aérea. El operador está enfocado en la cuadrilla y el siguiente stab, no en lo que está 30 pies arriba. Alrededor de patios de servicio, detrás de tiendas, en la parte trasera de estaciones de bombeo — las líneas aéreas están en todas partes y los mástiles en equipos jet son suficientemente altos para encontrarlas.",
+    hazards_reviewed:
+      "Electrocución del operador o cuadrilla en tierra · Contacto del mástil con línea energizada durante reposicionamiento · Potencial de paso alrededor del equipo energizado · Corte de servicio / incendio por daño a línea · Quemaduras por arco eléctrico",
+    discussion_notes:
+      "• Antes de bajar el equipo del trailer — camine el sitio. Mire arriba. Identifique CADA línea aérea dentro de 50 pies de cualquier lugar por donde el mástil viajará.\n• Distancia mínima 20 pies de líneas energizadas bajo OSHA 1926.1408. Si la línea es menor a 50 kV. Voltaje mayor = distancia mayor.\n• Baje el mástil ANTES de reposicionarse. Cada vez. Los 30 segundos que cuesta es el seguro más barato que comprará.\n• Asigne un spotter cuya ÚNICA tarea sea vigilar el mástil y las líneas durante cualquier reposicionamiento. No multitarea. No también señalar a la cuadrilla. Solo el mástil y las líneas.\n• Si no sabe si una línea está energizada, trátela como viva. Llame al servicio. Obtenga una desenergización confirmada y conexión a tierra ANTES de trabajar cerca.\n• Sucede contacto: QUÉDESE EN EL EQUIPO. Mantenga la cuadrilla atrás al menos un largo de equipo más la línea. Llame al 911 y al servicio. El potencial de paso ha matado más gente que el contacto inicial.\n• Si TIENE que salir: salte con los pies juntos. Nunca tenga dos partes del cuerpo en el suelo al mismo tiempo hasta estar a 30 pies de distancia.",
+    references_cited:
+      "OSHA 29 CFR 1926.1408 · OSHA 1926.416 · Distancias NESC · SOP de Equipo Jet MASCI",
+    action_items:
+      "Walk-around aéreo hecho · Hábito de mástil-abajo-antes-de-reposicionar reforzado · Spotter de mástil designado · Procedimiento de respuesta a contacto revisado",
+  },
+  dewatering_suction_line_entrapment: {
+    title: "Atrapamiento y Engullimiento por Línea de Succión",
+    incident_pattern:
+      "El engullimiento por línea de succión es una de las fatalidades menos discutidas en desagüe, y una de las más prevenibles. Un header de wellpoint se tapa, el operador jala un stinger para revisar la criba, y el agua corre por la línea abierta. Cualquiera dentro de unos pies — botas en el fondo de la zanja, mano alcanzando la criba, arrodillado junto a la línea — puede ser jalado a la succión por acción hidráulica. Aun una succión de 6 pulgadas a vacío total sostendrá una mano o una bota al inlet con tanta fuerza que el trabajador no puede liberarse. Varias fatalidades documentadas en nuestra región se rastrean a una sola acción de 'nomás voy a revisar la criba.'",
+    hazards_reviewed:
+      "Mano o brazo jalado al inlet de succión · Engullimiento en zanja wellpoint colapsada · Ahogamiento en sump sin criba · Lesión por latigazo de manguera · Pellizco / amputación en strainer",
+    discussion_notes:
+      "• Vacío APAGADO antes de que alguien toque línea de succión, header, stinger, criba o strainer. Punto. Sin excepciones. Sin 'voy a ser rápido.'\n• Lockout de la bomba en los controles Y verificar cero presión en el manómetro antes de que alguien se acerque al inlet.\n• Si debe trabajar cerca de una línea con flujo, use herramienta de mango largo. Nunca meta una mano o brazo en la zona de succión.\n• Las cribas previenen atrapamiento Y previenen fallas de criba — inspecciónelas diariamente, reemplace cualquier agrietada o desgastada.\n• Zanjas de wellpoint deben estar bien apuntaladas o con talud. El riesgo de engullimiento es real si la pared falla mientras alguien está al fondo dando servicio a un header.\n• Pozos sump con inlets de succión abiertos necesitan barreras o rejillas. Un niño, un trabajador, un perro — cualquier cosa que caiga ahí está en problemas inmediatos.\n• Capacite a cuadrilla nueva sobre física de succión — explique por qué una manguera de 6 pulgadas a 25 inHg no soltará una mano. Hágalo real, no teórico.",
+    references_cited:
+      "OSHA 29 CFR 1926 Subparte P · OSHA 1910.147 (LOTO) · Manual del fabricante de la bomba · SOP de Desagüe MASCI",
+    action_items:
+      "Regla de vacío-apagado-antes-de-tocar reforzada · Lockout en controles de bomba verificado · Inspección de cribas asignada · Charla de física de succión para cuadrilla nueva programada",
+  },
+  dewatering_diesel_pump_fueling_fires: {
+    title: "Incendios al Recargar Bombas Diésel",
+    incident_pattern:
+      "Los incendios de bomba diésel casi nunca pasan en la gasolinera — pasan en sitio durante la recarga de equipo corriendo o recién apagado. La bomba ha corrido 12 horas, el mofle y el turbo están a 800–1000°F, el operador tiene prisa por recargar antes de la siguiente tormenta, y un salpicón de combustible toca metal caliente. El fuego es instantáneo y amenaza de inmediato al operador parado a 18 pulgadas del tubo de llenado. La mayoría de estos fuegos se convierten en quemaduras, no fatalidades — pero arruinan la vida del trabajador y paran un trabajo. El patrón se previene con una disciplina simple: tiempo de enfriamiento y recarga limpia.",
+    hazards_reviewed:
+      "Salpicón de combustible sobre escape / turbo caliente · Ignición por descarga estática durante transferencia · Derrame creando riesgo de resbalón + incendio · Quemadura al que recarga · Pérdida del equipo · Liberación ambiental",
+    discussion_notes:
+      "• Apague la bomba ANTES de recargar. Permita 5–10 minutos de enfriamiento si el motor ha corrido fuerte. El múltiple de escape y el turbo siguen calientes mucho después del apagado.\n• No fumar · sin llamadas de celular · sin llamas abiertas dentro de 25 pies del punto de recarga. Esto no es opcional.\n• Mantenga el bonding entre el contenedor o manguera y el chasis de la bomba durante transferencia. La estática es una fuente real de ignición.\n• No llene de más. La expansión cuando el combustible se calienta puede empujar combustible por el venteo sobre el motor.\n• Transferir combustible de noche con linterna — no con una lámpara de trabajo caliente apoyada en la bomba. Las luces se calientan.\n• Kit de derrames en cada sitio de desagüe. Almohadillas absorbentes, calcetín, tapete de drenaje. El tapete va DEBAJO del punto de llenado cada vez.\n• Si arranca un fuego: extintor ABC al alcance (dentro de 10 pies del punto de recarga). Saque al operador PRIMERO. Luego combata el fuego. Nunca combata un fuego solo.",
+    references_cited:
+      "NFPA 30 · OSHA 1926.152 · EPA SPCC · DOT 49 CFR 173 · SOP de Recarga MASCI",
+    action_items:
+      "Hábito de enfriamiento-antes-de-recargar discutido · Extintor dentro de 10 ft verificado · Kit de derrames + tapete en cada bomba · Bonding-durante-transferencia revisado",
+  },
+  dewatering_wellpoint_trench_collapse: {
+    title: "Colapso de Zanja Wellpoint Alrededor de Headers",
+    incident_pattern:
+      "Los colapsos de zanja wellpoint siguen un patrón apretado: la zanja se cava a profundidad moderada (4–8 pies), se pone el header, se jetting los wellpoints. Tres días después de bombear, el suelo entre puntos ha sido jalado más apretado y las paredes lucen estables. Un trabajador baja a la zanja para dar servicio a un punto tapado o reparar una fuga. El desagüe en realidad ha cambiado la estructura del suelo — material saturado encima de una sección ya seca crea un plano de deslizamiento. La pared falla hacia adentro sin aviso. El trabajador, aun si vive, está enterrado al pecho en segundos. Zanjas antes estables no son estables para siempre cuando el contenido de agua cambia.",
+    hazards_reviewed:
+      "Enterramiento / asfixia por pared de zanja colapsada · Lesión por aplastamiento al fallar la pared · Ahogamiento en fondo de zanja por entrada súbita · Golpe por header / equipo cayendo · Hipotermia en enterramiento prolongado",
+    discussion_notes:
+      "• La protección de zanja a 5 pies+ no es opcional — talud, banco, apuntalamiento o trench box. El desagüe NO reemplaza el apuntalamiento.\n• Zanjas mayores a 4 pies necesitan escalera o rampa dentro de 25 pies de cualquier trabajador.\n• Reclasifique el suelo después de que el desagüe ha estado corriendo. Las transiciones saturado-a-seco crean capas inestables. Hable con su persona competente.\n• Pila de spoil al menos a 2 pies del borde. Trayectos de equipo al menos a una profundidad-de-zanja atrás. La vibración de bombas corriendo afloja material del borde durante horas.\n• Dé servicio a un wellpoint desde ARRIBA de la zanja siempre que sea posible. El riesgo de estar en la zanja para arreglar un punto no vale el tiempo ahorrado.\n• Nunca trabaje solo en una zanja wellpoint. Los primeros 60 segundos después de un colapso es cuando ocurre la supervivencia — solo si alguien arriba lo ve.\n• Inspección diaria por persona competente — y después de cualquier lluvia, congelación-deshielo o evento de vibración.",
+    references_cited:
+      "OSHA 29 CFR 1926 Subparte P · OSHA 1926.651 · OSHA 1926.652 · SOP de Zanja de Desagüe MASCI",
+    action_items:
+      "Protección de zanja revisada para profundidad actual · Reclasificación de suelo hecha después de iniciar bombeo · Hábito de servicio sobre-zanja reforzado · Inspección diaria de persona competente asignada",
+  },
+  dewatering_rotating_shaft_belt: {
+    title: "Enredamiento en Eje Rotatorio y Banda",
+    incident_pattern:
+      "Las lesiones por enredamiento en banda y eje en bombas de desagüe usualmente pasan cuando una guarda está fuera por una tarea de servicio y alguien que no sabía que un compañero estaba trabajando golpea o vuelve a arrancar el motor. Un guante, una manga, un faldón de camisa, un cordón de capucha agarra una banda en V o un cople. El motor de la bomba va a 1800 RPM en el cople — el brazo entero está adentro antes de que el trabajador reaccione. Sudaderas, mangas sueltas y puños desabrochados son el factor principal en casi cada incidente documentado. El segundo factor es falta de LOTO cuando una guarda está fuera.",
+    hazards_reviewed:
+      "Brazo / mano jalado a banda en V o cople · Aplastamiento / amputación por eje rotatorio · Muerte por ropa atrapada en PTO · Quemadura por fricción de banda · Lesión ocular por falla de banda",
+    discussion_notes:
+      "• Guardas puestas CUALQUIER vez que el motor corre. Sin excepciones. Si la guarda está rota, la bomba no corre hasta que se arregle.\n• Lockout del motor en el interruptor Y quitar la llave antes de que cualquier guarda salga. Verifique con intento de arranque antes de meter la mano.\n• Mangas abrochadas · camisas fajadas · SIN cordones de capucha · SIN joyas sueltas cerca de equipo rotatorio.\n• Solo guantes ajustados — y considere guantes FUERA al trabajar cerca de ejes rotatorios. Dedos sueltos de guante agarran bandas.\n• Capacite a operadores nuevos para identificar CADA punto de pellizco en la bomba antes de tocarla corriendo. Camínenlo. Apunten a cada uno.\n• Servicio de banda es servicio con motor APAGADO. Tensión, alineación, reemplazo — todo motor-apagado, con la llave en su bolsillo.\n• Si una guarda está fuera por inspección — asigne una persona como dueño del candado. Su llave se queda en su bolsillo. Nadie más puede arrancar.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 (LOTO) · OSHA 1910.219 · ANSI B11 · Manual del fabricante de la bomba",
+    action_items:
+      "Regla de guardas-puestas reforzada · LOTO antes de quitar guarda verificado · Estándares de ropa (sin cordones) discutidos · Recorrido de puntos de pellizco para operador nuevo asignado",
+  },
+  dewatering_discharge_hose_whip: {
+    title: "Latigazo de Manguera de Descarga y Liberación de Presión",
+    incident_pattern:
+      "Los incidentes de latigazo de manguera de descarga pasan porque una conexión falla o una sección se suelta bajo presión. Una manguera de descarga de 6 u 8 pulgadas a 60–80 psi carga energía almacenada enorme. Cuando un cople se suelta, el extremo de la manguera se vuelve un látigo — moviéndose lo suficientemente rápido para romper huesos, lanzar trabajadores o tirar a alguien del talud de una zanja. El patrón usualmente es un cam-lock o quick-connect desgastado, un pasador o clip de seguridad faltante, o una manguera que no estaba restringida donde debía. El látigo viaja por el camino de menor resistencia — usualmente hacia quien esté más cerca.",
+    hazards_reviewed:
+      "Latigazo de manguera a cabeza / pecho · Liberación de presión tirando trabajador a la zanja · Lesión por resbalón por liberación súbita de agua · Proyectil por falla de cople · Quemaduras por descarga caliente (bombas de aceite caliente)",
+    discussion_notes:
+      "• Inspeccione cada cam-lock y cople en cada turno. Busque levas desgastadas, clips de seguridad faltantes, empaques deformados. Reemplace cualquier cosa dudosa.\n• Pasadores / clips de seguridad en cada cople. No son opcionales. Son lo que mantiene la manguera conectada cuando una leva se fatiga.\n• Restrinja las mangueras de descarga donde cambian de dirección, donde cruzan un trayecto, donde pasan por un talud. Use amarres de cuerda, sacos de arena, o restricciones apropiadas — no piedras apiladas.\n• Al presurizar una línea, nadie se para en línea con la manguera. Todos se hacen fuera-de-eje ANTES de que la bomba arranque.\n• Si una manguera se suelta: APAGUE LA BOMBA desde el lado de control primero. No intente agarrar la manguera. Los extremos de manguera pesan suficiente para romper una mano a 60 psi.\n• Whip-checks (cables de seguridad trenzados) en cada cople en corridas largas de descarga. Equipo estándar, no opcional.\n• Caminata diaria de toda la corrida de descarga — busque puntos de estrés, dobleces, abrasión, restricción expuesta, fugas. Atrape la falla ANTES del latigazo.",
+    references_cited:
+      "OSHA 29 CFR 1926.302 · ASME B31.3 · Capacidades de manguera / cople del fabricante · SOP de Descarga MASCI",
+    action_items:
+      "Inspección de coples asignada a cada turno · Pasadores de seguridad verificados en todos los coples · Whip-checks desplegados en corridas largas · Bomba-apagada-antes-de-tocar reforzada",
+  },
+  dewatering_spoil_edge_instability: {
+    title: "Colocación de Spoil en Bordes de Zanja Wellpoint",
+    incident_pattern:
+      "La mayoría de fallas de borde en zanjas wellpoint no empiezan con la pared — empiezan con la pila de spoil. Spoil colocado muy cerca del borde añade carga de sobrepeso. Equipo corriendo paralelo a la zanja transmite vibración a través del spoil hacia la pared. Tres días de bombeo más la carga estática de una pila de spoil de 4 pies más la carga dinámica de un excavador pasando equivale a una sección de pared que se desliza a la zanja sin aviso. El trabajador dando servicio a un header al fondo nunca lo ve venir. El arreglo no es glamoroso y se conoce: mantenga el spoil atrás, mantenga el equipo atrás, inspeccione diariamente.",
+    hazards_reviewed:
+      "Colapso de zanja por sobrecarga de spoil · Engullimiento de trabajador en fondo de zanja · Deslizamiento de equipo a la zanja · Golpe por avalancha de spoil · Daño a manguera / header por pared colapsada",
+    discussion_notes:
+      "• Pila de spoil mínimo 2 pies del borde de la zanja. Para zanjas más profundas, empújela más — 1 profundidad-de-zanja atrás es el referente más seguro.\n• Sin trayectos de equipo dentro de una profundidad-de-zanja del borde. Excavadores, cargadores, dump trucks — todos atrás del filo.\n• Use plywood o placas de acero si debe cruzar o trabajar cerca del borde. Distribuye carga y reduce estrés local.\n• Equipo corriendo paralelo a una zanja wellpoint transmite vibración. La vibración afloja el suelo del borde. Mueva el trayecto del equipo o pare de correrlo por la duración.\n• Efecto compuesto: el bombeo jala agua de la pared. La pérdida de presión de poros hace que el suelo húmedo se asiente y el suelo seco se agriete. La pared que armó ayer no es la pared que tiene hoy.\n• Inspección diaria de persona competente del spoil y el borde, no solo el fondo de la zanja. El borde le dice el futuro.\n• Si ve CUALQUIER grieta de tensión, fisura o hundimiento en el borde — saque a los trabajadores YA. Re-inspeccione antes de dejar que alguien vuelva a entrar.",
+    references_cited:
+      "OSHA 29 CFR 1926.651(j) · OSHA 1926.652 Apéndice B · SOP de Borde de Zanja MASCI",
+    action_items:
+      "Setback de spoil verificado · Trayecto de equipo movido atrás · Inspección diaria de borde asignada · Respuesta a grieta de tensión revisada",
+  },
+  dewatering_night_work_struck_by: {
+    title: "Visibilidad y Golpe-por en Trabajo Nocturno de Desagüe",
+    incident_pattern:
+      "El trabajo nocturno de desagüe es más peligroso que el de día por una razón específica: conos de visibilidad. Los operadores ven el área iluminada por sus luces de trabajo y asumen que todos los demás también. El chofer del camión entrando al sitio ve un halo de brillo y un campo negro más allá. El trabajador en tierra dando servicio a un header en la zona sin luz es invisible. La mayoría de los incidentes nocturnos de golpe-por en obras de desagüe pasan cuando un camión de entrega, un equipo de transferencia, o un vehículo de cliente entra a una zona iluminada y el chofer no ve a un trabajador afuera del cono iluminado. El patrón se repite porque la iluminación se instala para el TRABAJO, no para la visibilidad de los trabajadores.",
+    hazards_reviewed:
+      "Golpe-por de vehículo entrando al sitio de noche · Trabajador en zona sin luz invisible al chofer · Tropezón / caída en área sin luz · Contacto de equipo con obstrucciones mal iluminadas · Fatiga + tiempo de reacción reducido",
+    discussion_notes:
+      "• Ilumine el trabajo Y los trayectos de los trabajadores. Una sola torre de luz en la bomba no es suficiente. Ilumine las rutas entre el trailer, las bombas y la zanja.\n• Hi-vis reflectivo Clase 3 de noche — no Clase 2. Mangas, chaleco, pantalón. La cinta reflectiva es lo que lo hace visible en un haz de faros.\n• Cada trabajador tiene una luz personal — frontal o pectoral — que voltea hacia vehículos entrantes. El seguimiento de ojo del chofer va al movimiento de luz. Use eso.\n• Carril designado de entrada / salida para vehículos. Marcado con conos o barricadas. Ningún chofer entra libremente por un área de trabajo de desagüe de noche.\n• Chofer de cualquier vehículo entrante: pare en el borde del sitio. Haga contacto por radio o visual con el líder antes de entrar. NUNCA asuma que el área está libre.\n• La fatiga es real. Turnos de noche después de días largos producen tiempos de reacción como alcohol en sangre arriba del límite legal. Cuídense unos a otros. Forcen descansos. Manden gente a casa.\n• Clima severo de noche — llámelo antes de lo que lo haría de día. No puede ver lo que viene.",
+    references_cited:
+      "OSHA 29 CFR 1926.56 · ANSI/ISEA 107 (Clase 3) · MUTCD zonas de trabajo nocturno · SOP de Trabajo Nocturno MASCI",
+    action_items:
+      "Iluminación de trayectos de trabajadores revisada · Hi-vis Clase 3 requerida para turno noche · Luces personales distribuidas · Carril de entrada definido y marcado · Hora de check-in de fatiga fijada",
+  },
+
+  // ============================================================
+  // TALLER / MECÁNICO · FASE E · iter251
+  // ------------------------------------------------------------
+  // Patrones de incidentes en piso de taller. Voz de mecánico
+  // experimentado hablando con los más nuevos.
+  // ============================================================
+  shop_jack_stand_failure: {
+    title: "Fallas de Caballetes — Fatalidades Bajo el Camión",
+    incident_pattern:
+      "Casi cada fatalidad de caballete sigue la misma secuencia: un mecánico levanta un camión o trailer pesado con el gato de piso, pone dos caballetes, se mete a empezar el trabajo, y el camión se mueve. A veces es porque los caballetes se pusieron en un miembro de chasis oxidado, a veces porque el piso tenía pendiente, a veces porque eran de capacidad menor a la carga. El camión no cae todo lo que puede — solo se asienta 2 pulgadas. Eso es suficiente para aplastar un pecho. No hay aviso. El mecánico está solo, frecuentemente al final del turno, y nadie lo encuentra por una hora. Hemos perdido mecánicos en esta industria a este patrón más veces de las que nadie quiere contar.",
+    hazards_reviewed:
+      "Aplastamiento fatal por caída de vehículo · Caballete hundiéndose en piso blando · Capacidad de caballete equivocada para la carga · Un solo caballete en vez de par · Trabajar solo bajo carga · Deslizamiento / falla de gato hidráulico",
+    discussion_notes:
+      "• Gato de piso es para LEVANTAR, nunca para SOSTENER. En el momento que la carga está arriba, caballetes de la capacidad de la carga van bajo PUNTOS DE LEVANTE APROPIADOS.\n• Caballetes con capacidad AL MENOS al peso de la carga, con margen. Un camión de 40,000 lb no va en caballetes de 6 toneladas. Lea la capacidad, haga las cuentas.\n• Ambos caballetes enganchados — no solo uno con el gato todavía debajo como segundo sostén. Un mango golpeado tira el camión.\n• Cuñas en las ruedas del EXTREMO OPUESTO. Trans en velocidad o parking. Freno de mano PUESTO. Cinturón y tirantes.\n• Coloque caballetes en el CHASIS, no en faldones de plástico, no en paneles de carrocería, no en estructura oxidada. Toque y mire antes de poner.\n• Solo piso de concreto. Puntos blandos de asfalto pueden fallar bajo un solo caballete. Si debe trabajar sobre asfalto, use una placa de acero para distribuir la carga.\n• Tug-test ANTES de meterse abajo. Empuje el camión, sacúdalo. Si algo se mueve más que la oscilación de la suspensión, rehaga el levante.\n• No trabaje solo bajo un vehículo. Si debe, fije una hora de check-in con alguien que lo busque si no contesta el mensaje.",
+    references_cited:
+      "OSHA 29 CFR 1910.244 · ANSI/PASE 5/MH29 (caballetes) · Manuales OEM de puntos de levante · SOP de Levante en Taller MASCI",
+    action_items:
+      "Mapa de puntos de levante para unidades comunes publicado · Verificación de capacidad de caballete asignada · Hábito de tug-test reforzado · Protocolo de check-in solo-bajo-vehículo fijado",
+  },
+  shop_lockout_tagout_bypass: {
+    title: "Lockout / Tagout — El Bypass Que Mata",
+    incident_pattern:
+      "Las fallas de LOTO no matan al trabajador que puso el lockout — matan al trabajador que NO lo puso. El patrón: una pieza de equipo está en el taller para servicio hidráulico. El mecánico líder hace lockout correctamente. Un segundo mecánico, ayudando, no tiene su candado personal en él. Un tercer mecánico, terminando su turno, ve el equipo y decide 'nomás picar' los controles para revisar algo. El segundo mecánico, con la mano dentro del área del cilindro, queda aplastado. El candado del primer mecánico estaba correcto. El sistema falló porque no cada persona bajo el equipo tenía su propio candado.",
+    hazards_reviewed:
+      "Liberación de energía hidráulica almacenada · Aplastamiento por colapso de cilindro · Re-energización eléctrica durante servicio · Arranque de banda durante alineación · Liberación neumática de aire almacenado · Caída de contrapeso",
+    discussion_notes:
+      "• Un trabajador, un candado. CADA persona que tenga cualquier parte del cuerpo en o cerca de la zona de peligro pone SU PROPIO candado. Sin atajos de 'comparto candado.'\n• Etiquete el candado con quién lo puso y cuándo. Así el tercer mecánico que llega sabe de quién es este lockout y no lo quita.\n• Verifique energía cero: ciclar los controles, revisar los manómetros, bajar presión hidráulica a cero, drenar aire almacenado. CADA servicio.\n• Bloquee cilindros hidráulicos mecánicamente. Un soporte de cilindro, un bloque de madera, una cadena — algo que sostenga la carga si el sello falla.\n• No confíe en 'el jefe dijo que está bloqueado.' Verifique con sus propios ojos. Ponga su propio candado. Trate de arrancar.\n• Quitar un lockout: SOLO el trabajador que lo puso. Si no está en sitio, siga el procedimiento de retiro — usualmente requiere autorización del supervisor e intento documentado de localizar al dueño original.\n• Mecánicos nuevos: caminen un procedimiento LOTO con el líder el Día 1. Cada. Sola. Vez.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 · Manuales de servicio OEM · Estándar LOTO de Taller MASCI",
+    action_items:
+      "Regla de un-trabajador-un-candado reforzada · Etiquetado de candado discutido · Verificación de energía cero revisada · Práctica de bloqueo de cilindro asignada · Recorrido LOTO para mecánico nuevo programado",
+  },
+  shop_brake_spring_energy: {
+    title: "Liberación de Energía Almacenada en Resorte de Freno",
+    incident_pattern:
+      "Las liberaciones de cámara de freno han matado y cegado mecánicos por décadas, y siguen haciéndolo. El patrón es siempre el mismo: un mecánico reemplaza una cámara de freno o trabaja un ajustador de holgura en una unidad sin resorte enjaulado. Golpean un pasador atascado con martillo, o desatornillan una cámara que todavía sostiene la fuerza del resorte, y la cámara se desarma con la energía de una pequeña explosión. El resorte interno tiene capacidad de 2,000 lb de fuerza. Cuando eso se libera a seis pulgadas de una cara, es un impacto facial fatal. Enjaular el resorte no es opcional y nunca lo ha sido.",
+    hazards_reviewed:
+      "Proyectil de liberación de cámara de freno · Trauma facial / pectoral por componente de cámara · Pérdida de ojo por metralla de resorte · Daño auditivo por liberación · Pellizco durante enjaulamiento",
+    discussion_notes:
+      "• SIEMPRE enjaule el resorte antes de tocar un perno de servicio de cámara de freno, ajustador de holgura, o vástago. Las herramientas de enjaular son baratas. Los mecánicos nuevos cuestan más.\n• Use el puerto de enjaular de la cámara — deslice la herramienta, gírela 90°, jale apretado. Verifique que la jaula esté enganchada antes de quitar cualquier perno de servicio.\n• Párese al LADO durante la verificación de liberación. No al frente, no atrás — al lado. La trayectoria de liberación es derecho hacia afuera.\n• Protección ocular es no-negociable. No solo lentes de seguridad — careta completa sobre lentes para trabajo de freno.\n• Si no puede enjaular porque el puerto está oxidado, considere la unidad fuera-de-servicio para trabajo de taller. Corte la cámara como unidad y reemplácela con el resorte todavía enjaulado en la cámara VIEJA.\n• Tapones pop-off en el extremo del vástago — nunca los manipule. Son calificados para PRESIÓN, no para servicio.\n• Capacite a cada mecánico nuevo en instalación de jaula la primera semana. Hágalos hacerlo con una cámara en sus manos.",
+    references_cited:
+      "Servicio de Frenos FMCSA · Manuales OEM de cámara de freno · OSHA 1910.132 (PPE) · SOP de Taller de Frenos MASCI",
+    action_items:
+      "Inventario de herramienta de jaula verificado · Hábito de enjaular-antes-de-servicio reforzado · Requisito de careta revisado · Capacitación para mecánico nuevo programada",
+  },
+  shop_tire_cage_explosion: {
+    title: "Explosiones de Jaula de Llanta y Rines de Múltiples Piezas",
+    incident_pattern:
+      "Los incidentes de jaula de llanta no son lo que la gente piensa. Las famosas fatalidades viejas — rines de múltiples piezas separándose durante inflado — siguen pasando porque algún equipo todavía corre en esos rines. Un rin de cargador, un rin de motoconformadora, un rin viejo de carretera. El mecánico desinfla, desmonta, vuelve a armar, infla sin jaula, y el anillo de cierre se separa a 80 psi. La energía es equivalente a una pequeña carga explosiva. Hay video. Todos lo hemos visto. El arreglo es más viejo que la mayoría de la gente en talleres hoy — y la gente sigue muriendo porque la jaula 'nada más por un segundo' se dejó a un lado.",
+    hazards_reviewed:
+      "Proyectil de separación de anillo de cierre durante inflado · Mecánico en línea de fuego · Falla de rin múltiple por corrosión · Agrietamiento de rin de una pieza · Recogida de manguera de inflado · Explosión de talón de llanta",
+    discussion_notes:
+      "• Jaula de llanta para CADA inflado, cada vez. Incluidos rines de una pieza — las fallas de talón pasan ahí también.\n• Párese al LADO durante el inflado. Nunca al frente del rin. Manguera de inflado larga con manómetro en línea para que esté afuera de la trayectoria.\n• Inspeccione rines ANTES de montar. Anillos de cierre, anillos laterales, canales — busque grietas, corrosión, deformación. Si el anillo no asienta limpio, el rin no vuelve a servicio.\n• Rines de múltiples piezas deben coincidir. Mezclar fabricantes o tamaños es lo que causa la mayoría de las separaciones. Si no está seguro que coincide, dispóngalo.\n• Infle en etapas. Asiente el talón a menor presión, verifique asentado, luego suba a presión de operación.\n• Lubricante de talón — solo agua y jabón. NUNCA use lubricantes con solvente. Pueden inflamarse bajo alta temperatura.\n• Los veteranos a veces saltan la jaula porque 'conocen' el rin. El rin no los conoce a ellos. Use la jaula.",
+    references_cited:
+      "OSHA 29 CFR 1910.177 · Manuales OEM de servicio de rin · Estándares de servicio de llanta TIA · SOP de Taller de Llantas MASCI",
+    action_items:
+      "Regla de jaula-cada-inflado reforzada · Paso de inspección de rin verificado · Política de lubricante de talón revisada · Política de rin de múltiples piezas discutida",
+  },
+  shop_welding_fire_watch: {
+    title: "Fire Watch de Soldadura y Limpieza Post-Trabajo en Caliente",
+    incident_pattern:
+      "Los incendios de taller por soldadura casi nunca pasan durante la soldadura — pasan 20 a 60 minutos DESPUÉS. El soldador corta un soporte, esmerila el cordón, sopla la escoria, y se va. Una chispa que cayó en trapos aceitosos en una repisa, atrás de un tambo de 55 galones, o en cartón empaque arde lento. El taller está vacío para entonces. El detector de humo se dispara a la 1:30 a.m. y los bomberos llegan a un edificio totalmente envuelto. El arreglo es de décadas: limpieza, fire watch, inspección post-soldadura. Lo sabemos. Seguimos perdiendo edificios a fire watches saltadas.",
+    hazards_reviewed:
+      "Fuego de arder-lento en materiales aceitosos / con polvo · Fuego escondido tras / bajo equipo · Lesión por quemadura / humo · Incendio total del edificio · Ignición por chispa de líquido inflamable · Ignición de vapor durante corte",
+    discussion_notes:
+      "• Permiso de trabajo en caliente para cada trabajo de soldadura / corte / esmerilado. Hábito viejo, todavía correcto. El permiso nombra al soldador, la ubicación, el fire watch, y la hora de fin.\n• Despeje un radio de 35 pies antes de que vuelen chispas. Mueva trapos aceitosos, contenedores de combustible, cartón, aserrín, tambos de aceite hidráulico. TODO lo combustible.\n• Moje lo que no pueda mover. Cobijas de soldadura sobre lo que sí. Escudos de acero sobre aberturas a cuartos adyacentes.\n• El fire watch SE QUEDA por 30 minutos después de la última chispa. Teléfono en mano. Ojos en cada lugar donde pudo haber caído una chispa.\n• Revise ARRIBA y ABAJO de rejillas, en drenajes de piso, atrás de cualquier equipo dentro del radio de 35 ft. Las chispas viajan.\n• Extintor cargado al alcance del brazo durante Y después. Confirme que no es el vacío del último simulacro.\n• Último soldador al cierre de turno: camine todo el taller. Toque superficies, huela el aire. El humo y calor dicen lo que los ojos no.",
+    references_cited:
+      "NFPA 51B · OSHA 29 CFR 1910.252 · NFPA 241 · SOP de Permiso de Trabajo en Caliente MASCI",
+    action_items:
+      "Permisos de trabajo en caliente requeridos + publicados · Zona-libre de 35 ft aplicada · Duración del fire watch verificada · Caminata de fin de turno discutida",
+  },
+  shop_hydraulic_stored_energy: {
+    title: "Energía Hidráulica Almacenada en Cilindros, Mangueras y Acumuladores",
+    incident_pattern:
+      "Las lesiones por inyección hidráulica se ven menores y matan gente. Un agujero pinhole en una manguera a 2,500 psi atomiza aceite a través de la piel como aguja hipodérmica. El mecánico ve un piquete diminuto en su mano, lo lava, lo venda, se va a casa. Dentro de 24 horas la mano está hinchada, el tejido se está muriendo por contaminación de aceite, y la sala de emergencias está amputando. Compuesto con la liberación de presión cruda de cilindro — un acople se afloja y el cilindro descarga a través del taller — y un acople se vuelve proyectil. La energía hidráulica almacenada es invisible. Mata mecánicos que no la respetan.",
+    hazards_reviewed:
+      "Lesión por inyección hidráulica a través de piel · Proyectil de acople / manguera · Extensión sin control de cilindro al liberar energía · Aplastamiento por caída de carga al despresurizar · Quemadura por aceite caliente · Lesión ocular por aceite atomizado",
+    discussion_notes:
+      "• Nunca busque una fuga hidráulica con la mano. Use cartón, papel o un pedazo de madera. Si encuentra una fuga, reemplace la manguera — no la parche.\n• Baje la presión a cero ANTES de desconectar cualquier acople. Cicle los controles con el motor apagado. Mire el manómetro. Verifique CERO.\n• Los acumuladores hidráulicos quedan presurizados DESPUÉS de cero en el manómetro del sistema. Descárguelos por el procedimiento OEM antes de tocar cualquier línea conectada.\n• Si aceite contacta piel bajo presión — ER YA. Aun si 'se ve como nada.' Dígales que fue inyección hidráulica. El reloj de cirugía empieza inmediato.\n• Herramientas de mango largo al trabajar cerca de una manguera presurizada. Párese fuera-de-eje al aflojar un acople.\n• Inspecciones de manguera semanales. Grietas, abrasión, bultos, fugas. Reemplace antes de la falla.\n• Protección ocular Y careta para cualquier trabajo hidráulico abierto. Sistema cerrado es regla distinta — sistema abierto es PPE completo.\n• Bloquee cilindros mecánicamente antes de trabajar en ellos. La presión hidráulica puede desaparecer y la carga puede caer si un sello falla.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 · Seguridad de Fluid Power Society · Manuales de servicio OEM · SOP de Servicio Hidráulico MASCI",
+    action_items:
+      "Regla de buscar-pinhole-con-cartón discutida · Procedimiento de descarga de acumulador revisado · Política de ER-inmediato-para-inyección reforzada · Bloqueo de cilindro verificado",
+  },
+  shop_under_bed_crush_zone: {
+    title: "Zonas de Aplastamiento Bajo Cajas, Brazos y Equipo",
+    incident_pattern:
+      "El pasador de body-prop en una caja volcadora existe por una razón: mantener vivos a los mecánicos cuando la caja baja inesperadamente. La mayoría de fatalidades bajo cajas pasan porque el prop se 'nomás por un minuto' dejó a un lado mientras el mecánico alcanzaba para liberar un pasador atorado o engrasar un pivote. Un sello hidráulico falla. Un interruptor de control se golpea. Una fuga que ha sido menor finalmente cede. La caja baja. El mecánico, manos arriba, queda atrapado entre caja y chasis. No hay escape de ese pellizco — se mide en fracciones de segundo, no segundos.",
+    hazards_reviewed:
+      "Aplastamiento entre caja y chasis en dump trucks · Aplastamiento bajo brazo en excavadores / grúas · Pellizco en rotación de contrapeso · Aplastamiento bajo attachment sin apoyo · Caída de cucharón / cuchilla con motor apagado",
+    discussion_notes:
+      "• Pasador de body-prop enganchado CUALQUIER vez que un mecánico esté bajo una caja levantada. No 'la mayoría del tiempo.' CADA vez. Aun por 30 segundos de engrase.\n• Brazo o pluma: BÁJELO HASTA EL FONDO antes de cualquier servicio. Si debe trabajar bajo uno levantado, bloquéelo con cribbing calificado para la carga.\n• Pasadores de stinger en stinger steer / tag-axles — póngalos adentro o afuera, no trabaje bajo ellos en posición media. El amortiguamiento hidráulico no sostendrá.\n• Rotación de contrapeso en excavadores — despeje el radio de giro antes de servicio. Aun con motor apagado, los hidráulicos pueden deslizar.\n• Cucharón / cuchilla — baje al suelo o bloquee antes de servicio. Las fallas de sello hidráulico tiran cargas. Los bloques mecánicos no.\n• Comuníquense en cambio de turno. El mecánico nuevo que toma un trabajo necesita saber qué está bloqueado, qué está pasador, qué está presurizado.\n• Si un body prop no engancha limpio, el camión no entra a trabajo. Arregle el prop primero.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 · Manuales OEM de body prop · Estándares ANSI / SAE de bloqueo · SOP de Taller MASCI",
+    action_items:
+      "Regla de pasador-de-prop-siempre reforzada · Inventario de cribbing verificado · Zona-libre de contrapeso revisada · Comunicación de cambio de turno discutida",
+  },
+  shop_battery_explosion: {
+    title: "Carga, Boost y Explosión de Hidrógeno de Batería",
+    incident_pattern:
+      "Las explosiones de batería se ven como efecto de película y pasan en la vida real. Un mecánico está dando boost a un camión muerto, la batería muerta ha estado descargada por semanas, y las celdas han desgasificado hidrógeno al gabinete. La pinza de boost arquea al borne, la chispa enciende el hidrógeno, y el gabinete revienta. Ácido y fragmentos de plástico vuelan en cada dirección — a la cara, ojos, brazos del mecánico. Las lesiones son a veces cegadoras y siempre con quemaduras. El arreglo es más viejo que el camión: conecte último a tierra, no a la batería, y revise abultamiento de gabinete o desgasificación antes de tocarla.",
+    hazards_reviewed:
+      "Explosión de hidrógeno durante boost / carga · Quemadura por ácido en ojos / piel · Salpicón de ácido por gabinete agrietado · Arco / fuego de cable de boost · Ruptura de gabinete por corto interno · Lesión por levantar baterías comerciales pesadas",
+    discussion_notes:
+      "• Mire la batería ANTES de conectar. Gabinete abultado = FUERA DE SERVICIO. Reemplace, no boostee.\n• Secuencia de conexión de boost: rojo-positivo a positivo-muerto · rojo-positivo a positivo-vivo · negro-negativo a negativo-vivo · negro-negativo a TIERRA DE VEHÍCULO MUERTO (chasis), NO al borne de batería muerta.\n• Esa última conexión es donde sucede el arco. Ponerlo en una tierra de chasis mantiene el arco LEJOS del hidrógeno en las celdas.\n• Protección ocular puesta. El ácido no es sobrevivible en los ojos sin enjuague inmediato — 15+ minutos en la estación de lavaojos.\n• Ventilación durante carga. Abra el cofre. No cargue un camión sellado en una bahía cerrada sin ventilación.\n• Desconecte el negativo PRIMERO al quitar una batería. Conecte negativo ÚLTIMO al instalar. Reduce riesgo de arco en la celda.\n• Las baterías comerciales son PESADAS — 70+ lbs. Cargar entre dos o levantador apropiado. Espaldas y dedos del pie son lesiones típicas.\n• Kit de derrames de ácido y estación de lavaojos probados cada mes. Lavaojos sin probar es lavaojos inútil.",
+    references_cited:
+      "OSHA 29 CFR 1910.151 · OSHA 1910.305 · Manuales OEM de servicio de batería · SOP de Servicio de Batería MASCI",
+    action_items:
+      "Paso de inspección visual de batería agregado · Secuencia de boost-a-tierra-no-batería reforzada · Prueba mensual de lavaojos programada · Política de levante entre dos revisada",
+  },
+
+  // ============================================================
+  // PLANTA / TRITURADOR / LAB / AEROPUERTO · FASE F · iter251
+  // ------------------------------------------------------------
+  plant_conveyor_entanglement: {
+    title: "Enredamiento en Banda Transportadora — Poleas de Cola y Puntos de Pellizco",
+    incident_pattern:
+      "Las fatalidades por enredamiento en banda en plantas de agregado y asfalto siguen un patrón terriblemente predecible. Un peón se acerca a una polea de cola corriendo para limpiar acumulación de finos o un pedazo de metal extraño. Mete una pala, la pala agarra la banda, y es jalado al punto de pellizco entre banda y polea. La banda no para sola. Para cuando el operador pega al paro de emergencia desde la caseta, el trabajador ya se fue. CADA reporte de incidente de banda que hemos leído incluye la línea 'la guarda estaba quitada' o 'iba a agarrarlo nomás rapidito.'",
+    hazards_reviewed:
+      "Enredamiento en polea de cola / cabeza / take-up · Pellizco en rodillos idler · Ropa suelta atrapada por banda · Subirse a banda corriendo · Limpiar bajo banda corriendo · Aplastamiento por arranque/paro durante servicio",
+    discussion_notes:
+      "• NADIE cerca de una polea de cola o cabeza corriendo. Punto. La acumulación se limpia con la banda BLOQUEADA, no corriendo.\n• Guardas en todos los puntos de pellizco cuando la banda corre. Si una guarda está fuera por servicio, la banda está BLOQUEADA.\n• Metal extraño removido con la banda apagada, no 'lo agarro antes de la siguiente descarga.' Los imanes y detectores están para prevenir esa situación.\n• Sin meter mano a banda corriendo con pala, escoba, barra, mano. Sin excepciones.\n• Cuerdas de paro de emergencia a lo largo de toda la longitud, probadas semanalmente. Los operadores deben saber exactamente dónde está la cuerda más cercana.\n• Caminar bajo una banda — casco puesto, vigilar caída de material, nunca pararse bajo una banda que está siendo limpiada río arriba.\n• Subirse a una banda — solo con banda bloqueada y etiquetada. Nunca en banda corriendo.\n• Trabajadores nuevos de planta: caminen el sistema de bandas el Día 1 con el líder. Apunten a cada punto de pellizco. Muestren cada paro de emergencia.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 · MSHA 30 CFR Parte 56 · Seguridad de bandas NSSGA · SOP de Planta MASCI",
+    action_items:
+      "Regla de no-tocar-banda-corriendo reforzada · Inspección de guardas asignada · Función de cuerdas de paro probada · Recorrido de bandas para trabajador nuevo programado",
+  },
+  plant_baghouse_silo_hazards: {
+    title: "Limpieza de Baghouse y Riesgos de Entrada a Silos",
+    incident_pattern:
+      "Las fatalidades en silos y baghouse casi siempre involucran a alguien entrando sin permiso de espacio confinado. El patrón: un baghouse se está tapando, la producción cae, y alguien se sube al gabinete para romper el puente de material. No le dicen a nadie exactamente dónde están. El puente cede, el material cae en avalancha, y quedan engullidos. Los silos de asfalto añaden vapores de bitumen caliente y el riesgo de caer en material caliente. Los silos de agregado añaden polvo fino a densidades de asfixia. Ambos han matado trabajadores de planta en los últimos 5 años en esta industria. El arreglo es el mismo que siempre ha sido: permiso de espacio confinado, prueba atmosférica, asistente, línea de recuperación.",
+    hazards_reviewed:
+      "Engullimiento en material fluyente · Asfixia por bajo O2 en atmósfera de silo · Quemadura por contacto con bitumen caliente · Colapso de puente sobre trabajadores · Aplastamiento por equipo de limpieza rotatorio · Caídas desde plataformas de baghouse",
+    discussion_notes:
+      "• Permiso de entrada a espacio confinado ANTES de que alguien entre a silo, baghouse o tanque de almacenamiento. Sin 'nomás voy a meterme rápido.'\n• Prueba atmosférica — O2, LEL, CO, H2S mínimo. Monitoreo continuo mientras esté ocupado. Silos de asfalto: también probar VOCs.\n• Asistente afuera todo el tiempo. NO entran a rescatar. Llaman al rescate. Mantienen comunicación.\n• Línea de recuperación y arnés completo para el entrante. Silos de asfalto añaden PPE resistente al calor.\n• Aislamiento de material ANTES de entrada. Lockout de alimentación. Lockout de descarga. Verifique que el puente esté roto desde AFUERA si es posible.\n• Romper puente desde afuera siempre que sea posible — barras largas, lanzas de aire, vibradores. Entrar debe ser la última opción, no la primera.\n• Plataformas de acceso de baghouse — barandales completos, protección contra caídas arriba de 6 ft, nunca confíe en una plataforma con rejilla corroída.\n• Emergencias en silo de asfalto: el trabajador está del lado caliente. Sáquenlo RÁPIDO. Tengan plan de rescate escrito y ensayado.",
+    references_cited:
+      "OSHA 29 CFR 1926 Subparte AA · OSHA 1910.146 · NIOSH entrada a silos · SOP de Espacio Confinado MASCI",
+    action_items:
+      "Política de permiso de espacio confinado reforzada · Monitor atmosférico calibrado · Herramientas para romper desde afuera disponibles · Plan de rescate revisado",
+  },
+  plant_asphalt_burns_oil_exposure: {
+    title: "Quemaduras de Asfalto Caliente y Exposición a Vapor de Bitumen",
+    incident_pattern:
+      "Las quemaduras de asfalto no son como quemaduras normales. El material está a 300–350°F cuando toca la piel y SE PEGA — no escurre como agua caliente. El trabajador no puede quitárselo a tiempo para prevenir quemaduras de tercer grado. El escenario más común es un muestreador en el load-out, un chofer subiéndose al camión, o un técnico de lab en la caldera. Un salpicón, un contacto con una línea caliente, una liberación súbita de material atrapado — y lo que habría sido un susto ahora es un viaje al hospital con injertos de piel. Los vapores de bitumen en la planta complican el asunto con irritación respiratoria y preocupaciones de exposición a largo plazo.",
+    hazards_reviewed:
+      "Quemadura de tercer grado por contacto con asfalto caliente · Quemadura por liberación de vapor en load-out · Inhalación de vapor (exposición PAH) · Quemadura ocular por salpicón · Resbalón en binder derramado y frío · Quemadura a través de ropa",
+    discussion_notes:
+      "• Mangas largas, pantalones largos, guantes con puños. Botas calificadas para asfalto — cuero, no sintéticas. Las botas sintéticas se derriten DENTRO del pie.\n• Careta sobre lentes de seguridad para cualquier trabajo de load-out, muestreo o caldera. Los salpicones van a la cara.\n• Párese A FAVOR DEL VIENTO del tubo al cargar. Choferes: quédense en la cabina durante el load-out donde se permita. Si debe estar afuera, protección ocular.\n• Nunca use agua para lavar asfalto caliente de la piel. Enfríe con compresas frías si es posible, luego al ER. El agua puede meter el calor más profundo.\n• Muestreo: muestreadores de mango largo. Nunca alcance dentro de una caldera o chute de load-out con herramienta corta. La distancia de salpicón es real.\n• Vapores de bitumen — trabaje a favor del viento, tome descansos, reporte síntomas (dolor de cabeza, ardor de ojos, irritación de garganta). El monitoreo a largo plazo importa.\n• Lavaojos y ducha de emergencia dentro de 25 pies de operaciones de asfalto. Probadas mensualmente.\n• Si un trabajador se quema: cubra la quemadura con paño limpio y seco (NO trate de quitar el asfalto de la piel). Al ER inmediatamente.",
+    references_cited:
+      "OSHA 29 CFR 1910.132 · TLV ACGIH para bitumen · Guía NIOSH para humos de asfalto · SOP de Quemadura en Planta MASCI",
+    action_items:
+      "PPE para trabajo en planta verificado · Uso de muestreador de mango largo discutido · Lavaojos / ducha probados · Procedimiento de respuesta a quemadura revisado",
+  },
+  plant_burner_systems: {
+    title: "Sistemas de Quemador — Riesgos de Encendido y Apagado de Flama",
+    incident_pattern:
+      "Los incidentes relacionados con el quemador en plantas de hot-mix siguen dos patrones. El primero es explosión de encendido: el quemador cicla por ignición, no enciende, pero el combustible sigue alimentándose. El combustible sin quemar se acumula en el tambor. Cuando la ignición finalmente prende, el combustible acumulado explota — volando el extremo del tambor, lanzando flama a través del patio de planta, y lesionando a cualquiera cerca. El segundo es apagón durante operación: la flama se va, el combustible continúa, y el siguiente encendido se comporta igual. Ambos son causados por ciclos de purga saltados, fuentes de ignición débiles, u operación fuera del sobre de control. Los sistemas modernos de flame-safeguard previenen esto — SI están mantenidos y no son bypaseados.",
+    hazards_reviewed:
+      "Explosión de encendido en tambor · Flashback a línea de combustible · Quemadura por blowout de extremo del tambor · Daño auditivo por explosión · Acumulación de CO en área de operación de planta · Ignición de fuga de combustible",
+    discussion_notes:
+      "• Ciclo de purga CADA encendido. No 'cuando me acuerde.' CADA vez. La purga limpia cualquier combustible sin quemar de intentos previos.\n• No bypasee el sistema de flame-safeguard. Si está disparándose repetidamente, ARREGLE la causa — no lo brinquee.\n• Secuencia de encendido: purga → ignición piloto → ignición de quemador principal → flama detectada → fuego completo. Cada paso verificado antes del siguiente.\n• Si la flama se va durante operación: corte combustible INMEDIATAMENTE, complete un ciclo de purga, luego re-encienda. No solo siga alimentando.\n• Área del quemador libre de personal durante encendido. Fije la regla, hágala cumplir. Si algo falla, no quiere a nadie en línea de fuego.\n• Inspección diaria de líneas de combustible, válvulas, piloto, escaneador de flama. Las fugas en el quemador son catastróficas si se acumulan y encuentran ignición.\n• Monitoreo de CO en el área del patio de planta. Inversiones y condiciones de viento apretadas atrapan el escape. Los trabajadores necesitan saber si se está acumulando.\n• Si huele a combustible sin quemar cerca del quemador — PARE. Apague. Investigue antes de re-encender.",
+    references_cited:
+      "NFPA 86 · OSHA 29 CFR 1910.106 · Manuales OEM del quemador · SOP del Quemador de Planta MASCI",
+    action_items:
+      "Protocolo de ciclo de purga reforzado · Política de manipular flame-safeguard discutida · Inspección diaria de línea de combustible asignada · Monitor de CO verificado",
+  },
+  plant_loader_blind_spots_haul_road: {
+    title: "Puntos Ciegos de Cargador y Interacciones en el Haul Road",
+    incident_pattern:
+      "Los incidentes en el patio de planta y haul road casi siempre involucran un cargador y un camión de acarreo o una pickup. El operador de cargador tiene buena visibilidad en la dirección que apunta el cucharón — y mala visibilidad ATRÁS y a la derecha. Un chofer entra a posición, un foreman camina el patio a inspeccionar material, o un vendedor sale de la oficina. El cargador retrocede para reposicionarse a la siguiente descarga, y el espacio entre el cucharón y el camión se cierra. El patrón es tráfico constante, movimiento constante, y un operador de cargador que no puede ver a todos todo el tiempo. La supervisión del patio y la disciplina de tráfico son lo que previene esto.",
+    hazards_reviewed:
+      "Golpe-por de cargador retrocediendo · Chofer de pickup en punto ciego del cargador · Aplastado entre cargador y pila · Vendedor / visitante en área activa de patio · Avalancha de material durante operación del cargador",
+    discussion_notes:
+      "• Operadores de cargador: alarma de reversa funcional, CADA turno. Si está rota, el cargador no corre.\n• Carril de entrada/salida para camiones de acarreo — definido y señalizado. Los choferes se quedan en cabina durante carga siempre que sea posible.\n• Visitantes / ventas / gerencia en el patio: chaleco hi-vis + casco, escoltados, nunca en la trayectoria activa del cargador. Si no está cargando, está en otro lado.\n• El operador NO carga si alguien está en la zona de retroceso. Pause, indíqueles que despejen, luego opere.\n• El haul road tiene límite de velocidad publicado y patrón de un solo sentido. Háganlo cumplir. Tráfico lado-a-lado en un haul road es un choque frontal esperando suceder.\n• Vigile la cara de la pila. Un cargador socavando una cara crea un voladizo que puede colapsar sin aviso. Mantenga las caras al ángulo de reposo.\n• Foremen en el patio: párese donde pueda ver los ojos del operador a través del vidrio de cabina. Si no puede, el operador no lo puede ver a usted tampoco.\n• Operaciones nocturnas de planta: operador con luz de cabina apagada, choferes con faros apuntando lejos del operador. El brillo ciega al cargador hacia trabajadores en tierra.",
+    references_cited:
+      "OSHA 29 CFR 1926.602 · MSHA 30 CFR Parte 56 · Seguridad de Planta NSSGA · SOP de Tráfico de Patio MASCI",
+    action_items:
+      "Verificación de alarma de reversa por turno verificada · Política de escolta de visitantes revisada · Pendiente de cara de pila inspeccionada · Procedimiento de brillo nocturno discutido",
+  },
+  plant_crusher_clearing_jams: {
+    title: "Atascos de Triturador — Cómo Liberar Trituradores Bloqueados con Seguridad",
+    incident_pattern:
+      "Los incidentes al liberar trituradores son algunas de las peores lesiones en la industria del agregado. Un pedazo de metal extraño o alimentación de tamaño excesivo atasca el triturador. El operador se sube a la banda de alimentación o entra a la boca del triturador con una barra para liberar el material. El triturador sigue energizado, el operador está en un espacio apretado con energía hidráulica / mecánica almacenada, y o el atasco se libera violentamente (lanzando el material y al trabajador) o alguien golpea un control y el triturador arranca. Se pierden extremidades. Los trabajadores mueren. El patrón es el mismo que la gente de taller ve con LOTO — pero peor, porque los trituradores tienen energía almacenada enorme.",
+    hazards_reviewed:
+      "Arranque de triturador mientras está ocupado · Proyectil por liberación súbita de atasco · Aplastamiento en la garganta de alimentación · Caídas de banda de alimentación · Liberación de energía hidráulica / de resorte almacenada · Proyectil de metal extraño",
+    discussion_notes:
+      "• LOTO el triturador antes de CUALQUIER trabajo de liberación. Desconexión del motor principal. Aislamiento hidráulico. Candado personal por cada trabajador involucrado.\n• Verifique energía cero. Try-start en el control. Baje presión hidráulica. Bloquee cualquier componente móvil mecánicamente.\n• Nunca libere un atasco con la mano desde la garganta de alimentación. Use herramientas de mango largo desde AFUERA de la zona de trituración.\n• Si debe entrar — trato de espacio confinado. Asistente. Recuperación. Comunicación.\n• Manejo de metal extraño — imán, detector de metal, scalper. PREVENGA el atasco antes de que pase.\n• Material sobre-tamaño — sacado en el scalper, no permitido llegar a la boca del triturador.\n• Al liberar un atasco, párese fuera-de-eje de la garganta. El material liberado puede salir disparado rápido.\n• Operadores de triturador: capaciten a los nuevos en procedimiento de liberación con el triturador bloqueado, caminando cada paso ANTES de que encuentren un atasco real.",
+    references_cited:
+      "OSHA 29 CFR 1910.147 · MSHA 30 CFR Parte 56 · Seguridad de Triturador NSSGA · Manual OEM del triturador",
+    action_items:
+      "Procedimiento LOTO de triturador revisado · Herramientas de mango largo disponibles · Manejo de metal extraño discutido · Capacitación de liberación para nuevo asignada",
+  },
+  plant_lab_solvents_ignition: {
+    title: "Lab de Asfalto — Solventes, Hornos y Riesgo de Ignición",
+    incident_pattern:
+      "Los incendios en lab de asfalto usualmente involucran solventes y hornos. Un técnico corre una extracción usando tricloroetileno o percloroetileno, ventila a la campana, pone el rotovap, y se va. Un reflujo al horno, un punto caliente en el elemento, un motor que arquea — y el vapor de solvente encuentra ignición. El fuego es rápido y el humo es tóxico. Los técnicos de lab trabajando solos están en el mayor riesgo porque nadie ve los avisos tempranos. El otro patrón es el aparato de punto de ignición durante prueba de pérdida por ignición — flama abierta, sólidos calientes, cerca de combustibles. Estos labs son más apretados de lo que la gente piensa.",
+    hazards_reviewed:
+      "Ignición de vapor de solvente · Quemadura por aparato calentado · Inhalación de TCE / perc / humos · Rotura de vidrio con aceite caliente · Salpicón ocular de binder extraído · Resbalón en derrame de solvente",
+    discussion_notes:
+      "• Campana de ventilación operativa y probada. CADA corrida de extracción usa la campana. Si la campana está abajo, la prueba espera.\n• Contenedores de solvente etiquetados, tapados, almacenados en gabinete inflamable entre usos.\n• Trabajo caliente — hornos, aparato de punto de ignición, calderas — mantenido físicamente separado del trabajo de solvente. Disciplina de lado caliente / lado frío.\n• PPE: guantes de nitrilo, protección ocular, bata de lab. Sin cabello suelto, sin bufandas, sin batas con cordones o lazos.\n• Lavaojos y ducha de emergencia dentro de 10 segundos de cualquier aparato. Probados semanalmente.\n• Contenedores de desecho de solvente metálicos, tapados, conectados a tierra. No vidrio, no jarras abiertas en repisa.\n• Sin comer, beber o guardar comida en el lab. El bitumen y los solventes se transfieren a las manos y a las bocas.\n• Técnico de lab trabajando solo fuera de horas — protocolo de llamada. Alguien sabe que está adentro. Revisan si no envía mensaje de salida.",
+    references_cited:
+      "OSHA 29 CFR 1910.1450 (Estándar de Lab) · NFPA 45 · TLVs ACGIH · SOP de Lab MASCI",
+    action_items:
+      "Prueba de función de campana verificada · Auditoría de almacenamiento de solventes hecha · Layout lado-caliente / lado-frío discutido · Protocolo de check-in fuera de horas fijado",
+  },
+  plant_silo_burn_avalanche: {
+    title: "Drag Slat de Silo de Asfalto y Avalancha de Material",
+    incident_pattern:
+      "El load-out de silo de asfalto es una interfaz peligrosa — material caliente a 300°F+ sentado en un silo, liberado por una compuerta, cayendo 8–15 pies a la caja de un camión abajo. El patrón de lesiones es doble: los choferes bajo el silo durante una caída se queman por salpicón o derrame, y los drag-slat sobre el silo pueden lanzar material si una acumulación se libera inesperadamente. El incidente clásico es un chofer subiendo a la plataforma del silo para revisar el nivel de carga, asomándose, y siendo golpeado por una liberación súbita de material cuando la compuerta abre. O un trabajador de mantenimiento en la plataforma del drag-slat cuando un atasco río arriba se libera.",
+    hazards_reviewed:
+      "Quemadura por liberación súbita de material en compuerta · Caída desde plataforma de silo · Aplastamiento por cadena de drag-slat · Quemadura por fuga de aceite de drag-slat · Inhalación de vapor tóxico en parte alta del silo · Chofer atorado bajo silo caliente",
+    discussion_notes:
+      "• Chofer bajo el silo: en la cabina durante carga. Siempre. Suba solo después de que la compuerta cerró y el chute drenó.\n• Acceso a parte alta del silo: arnés y atado arriba de 6 ft. Aun en plataforma con barandal, protección contra caídas durante cualquier tarea que involucre asomarse.\n• Los drag-slat son LOTO siempre que un trabajador esté en la plataforma para servicio o inspección. Pasar caminando para revisión visual desde distancia segura es una cosa — trabajo de servicio necesita LOTO completo.\n• Comunicación entre operador de load-out y chofer — radio o señal de claxon. El chofer sabe cuándo la compuerta está por abrir.\n• Fallas de compuerta de silo — si una compuerta no sella, ponga el silo FUERA DE SERVICIO para reparar. No trabaje alrededor de una compuerta con falla.\n• Vapores en parte alta del silo — los vapores de bitumen se acumulan en el espacio superior. No abra la escotilla de inspección en viento calmo sin ventilación. Tome descanso a favor del viento después de exposición.\n• Caja del camión bajo el silo: confirmación visual antes de abrir la compuerta. Caja vacía, posicionada apropiadamente. El foreman da el OK.",
+    references_cited:
+      "OSHA 29 CFR 1926.501 · MSHA Seguridad de Silos · Manuales OEM de silo / drag-slat · SOP de Load-out MASCI",
+    action_items:
+      "Regla de chofer-en-cabina-en-load-out reforzada · Protección contra caídas en parte alta verificada · Procedimiento LOTO de drag-slat revisado · Regla OOS por falla de compuerta discutida",
+  },
+  airport_movement_area_awareness: {
+    title: "Áreas de Movimiento de Aeropuerto — Disciplina de Pista, Taxiway y ATC",
+    incident_pattern:
+      "Los incidentes en trabajos de aeropuerto involucran aeronaves, no solo equipo de tierra. El patrón se repite: una cuadrilla está pavimentando o reparando pavimento al borde de una pista o taxiway. El líder ha despejado la zona de trabajo con ATC. La autorización era por una hora. La cuadrilla se pasa de la autorización porque un equipo se descompuso. ATC, asumiendo que la zona está despejada en el tiempo acordado, libera la pista. Una aeronave está rodando en 90 segundos. El trabajador sacando un equipo no sabe que la autorización venció. El hallazgo más consistente en fatalidades relacionadas con aeropuerto es ruptura de comunicación — entre ATC, el líder, y los trabajadores en tierra.",
+    hazards_reviewed:
+      "Golpe de aeronave a trabajador o equipo en área de movimiento activa · Jet blast / prop wash · FOD creado por escombros del sitio · Incursión de equipo a pista activa · Ruptura de comunicación con ATC · Confusión en operaciones de baja visibilidad o noche",
+    discussion_notes:
+      "• El trabajo en área de movimiento requiere autorización de ATC y ventana CONFIRMADA. El líder tiene la radio. El líder está en ello.\n• Si la ventana de trabajo está por expirar — PARE. Saque a todos y todo. NO empuje el tiempo. ATC va a re-autorizar; las aeronaves no pueden aterrizar dos veces.\n• Los trabajadores todos cargan radios en la frecuencia de operaciones que la autoridad del aeropuerto asigna. Escuchen primero, hablen segundo.\n• Disciplina de FOD — cada llave, cada cono, cada escombro contado antes de despejar el área. Un perno suelto destruye un motor de jet.\n• Hi-vis a especificación de aeropuerto — no igual que hi-vis de construcción. ANSI 207 colores de Seguridad Pública donde se requiera. Lea la especificación del contrato.\n• Equipo en zona activa — escoltado, marcado, y en radio ATC. Pickups también. Nadie freelancea sobre un taxiway.\n• Zonas de jet blast / prop wash — aun aeronaves pequeñas crean viento que puede lanzar a una persona o un cono. Manténgase lejos de aeronaves en espera.\n• Operaciones de noche / baja visibilidad — coordinación extra, iluminación extra, check-ins extra. No empuje a través de mala visibilidad sin alineación con autoridad.",
+    references_cited:
+      "FAA AC 150/5210-5 · FAA AC 150/5370-2 · Procedimientos TSA / específicos del aeropuerto · SOP de Operaciones de Aeropuerto MASCI",
+    action_items:
+      "Protocolo de autorización ATC reforzado · Responsabilidad de FOD revisada · Disciplina de radio discutida · Simulacro de retirada por expiración de ventana asignado",
+  },
+  airport_jet_blast_fueling: {
+    title: "Jet Blast, Prop Wash y Conciencia de Recarga en Aeropuerto",
+    incident_pattern:
+      "Los trabajadores subestiman el jet blast y prop wash. Un turbohélice regional encendiendo genera 100+ mph de viento atrás. Un jet comercial en thrust de ralenti genera vientos capaces de voltear una pickup. El patrón: una cuadrilla está posicionando equipo cerca de una aeronave en espera, el piloto sube thrust para empezar a taxiar, y un trabajador, un cono, o un equipo es lanzado. Combine eso con el ambiente de recarga de aeropuerto — Jet-A está en todas partes, las fuentes de ignición deben controlarse, y una chispa estática es un fuego Clase B instantáneo. El trabajo en aeropuerto tiene sus propios riesgos que no existen en ningún otro lado.",
+    hazards_reviewed:
+      "Trabajador / equipo lanzado por jet blast · Lesión por prop wash a cuadrilla en tierra · Ignición estática de Jet-A · Ignición de nube de vapor cerca de operaciones de combustible · Daño auditivo por ruido de aeronave · FOD por escombros lanzados",
+    discussion_notes:
+      "• Manténgase lejos de aeronaves en espera. Una distancia de 100 pies es un punto de partida, no un máximo. Si puede ver el motor, el motor lo puede golpear con blast.\n• Protección auditiva en cualquier área de movimiento activa. El ruido de aeronaves daña la audición en minutos de exposición.\n• Áreas de recarga Jet-A — sin fuentes de chispa dentro de 50 pies. Sin celulares, sin linternas sin clasificación intrínseca, sin metal-contra-metal.\n• Amarre o ponga peso a TODO cerca de un taxiway. Conos, caballetes, equipo. Lo que se queda en viento normal se vuela en prop wash.\n• Las operaciones de recarga tienen su propia cuadrilla. Las cuadrillas de construcción no intersectan con ops de recarga. Manténgase lejos de camiones de combustible y aeronaves recargando.\n• Conexión a tierra estática para cualquier trabajo adyacente a recarga. Cables de bonding, varillas de tierra. La estática es la fuente de ignición silenciosa.\n• Si siente viento de repente — mire alrededor. Una aeronave se está moviendo en un lugar que no esperaba. Verifique posición antes de continuar.\n• Protección ocular — escombros en trabajo de aeropuerto están en todas partes. Caretas abiertas no son suficiente en aeropuertos ocupados.",
+    references_cited:
+      "FAA AC 150/5230-4 · NFPA 407 (servicio de combustible de aeronaves) · OSHA 1926.101 (audición) · SOP de Aeropuerto MASCI",
+    action_items:
+      "Distancia de despeje de aeronave reforzada · Protección auditiva verificada · Control de ignición adyacente a recarga discutido · Política de amarre para conos / equipo revisada",
+  },
+
+  // ============================================================
+  // OFICINA / ADMIN · FASE G · iter251
+  // ------------------------------------------------------------
+  office_distracted_driving: {
+    title: "Manejar Distraído — Teléfonos, Café y el Trayecto",
+    incident_pattern:
+      "Los choques por manejo distraído golpean al personal de oficina a una tasa que el campo no ve, porque el personal de oficina maneja MÁS — entre obras, entre juntas, a comidas y de regreso. El patrón es benigno individualmente: un texto rápido de un PM, un vistazo a la navegación, un sorbo de café mientras te incorporas. Apila tres de esas cosas pequeñas en 10 segundos y cruzaste una línea central a 65 mph. El factor más consistente en choques de personal de oficina no es estado de embriaguez — es la inatención acumulada de una persona ocupada haciendo seis cosas mientras maneja. El arreglo es política y hábito, no tecnología.",
+    hazards_reviewed:
+      "Choque frontal / fuera de camino por inatención · Choque trasero en cambio de semáforo · Multa por uso de celular · Velocidad en zona escolar / construcción · Fatiga por días sobre-agendados · Comer / beber mientras maneja",
+    discussion_notes:
+      "• Teléfono boca abajo o en holder, en modo NO MOLESTAR. Las llamadas van al buzón. Los textos esperan.\n• Manos-libres sigue siendo distraído. La carga cognitiva importa, no solo la posición de las manos. Guarde la llamada para el estacionamiento.\n• Navegación fijada ANTES de poner el camión en marcha. Re-rutear mientras maneja es causa principal de choques relacionados con oficina.\n• Café, comida, papeleo — hágase a un lado. Los 90 segundos que cuesta es el seguro más barato que comprará.\n• Margen de horario. Si su día tiene cero margen, cada junta tarde se vuelve un viaje con exceso de velocidad. Construya holgura en su calendario.\n• Zonas de construcción — en ambas direcciones. Baje velocidad por las zonas PROPIAS de MASCI primero. Lidere la cultura.\n• Clima severo — hágase a un lado y espere. Lluvia a 70 mph no es manejar, es apostar.\n• Si está cansado, está manejando impedido. Hágase a un lado por 20 minutos. La junta esperará.",
+    references_cited:
+      "NHTSA Manejo Distraído · Leyes estatales de manos-libres · Política de Vehículo de Flota MASCI",
+    action_items:
+      "Política de NO-MOLESTAR-al-manejar reforzada · Mensaje de manos-libres-sigue-siendo-riesgoso discutido · Disciplina de margen de horario revisada · Regla de hacerse-a-un-lado por clima severo discutida",
+  },
+  office_site_visit_ppe: {
+    title: "PPE de Visita a Obra y Expectativas para Visitantes",
+    incident_pattern:
+      "La mayoría de las lesiones a personal de oficina en sitios pasan en los primeros 5 minutos de llegar al jobsite. El patrón: llegar con ropa de oficina, sin hi-vis, sin casco, caminar hacia el foreman para encontrarlo, y meterse al radio de giro de un excavador o a la trayectoria de un dump truck retrocediendo. El visitante no conoce el sitio, los operadores no saben que el visitante viene, y el foreman está a 200 pies. El personal de oficina frecuentemente piensa que 'nomás vengo 5 minutos' justifica saltarse el PPE. La cuadrilla ha trabajado toda la mañana construyendo una cultura de PPE y el visitante la mina instantáneamente. El arreglo es PPE en el vehículo, sin excepciones.",
+    hazards_reviewed:
+      "Golpe-por de equipo en primera llegada · Tropezón / caída en terreno rugoso · Lesión ocular por escombros lanzados · Lesión de cabeza por bajo aéreo · Estrés por calor sin agua / sombra · Visitante minando la cultura de PPE de la cuadrilla",
+    discussion_notes:
+      "• Kit de PPE en cada vehículo de oficina: casco, chaleco hi-vis Clase 2, lentes de seguridad, guantes de cuero, botas de seguridad (o cubre-zapatos como respaldo para UNA visita).\n• Póngase el PPE ANTES de salir del vehículo. No después de caminar 50 pies por el estacionamiento. Antes.\n• Encuentre al foreman por RADIO o TELÉFONO antes de caminar. El foreman viene a USTED a un punto de encuentro seguro — no al revés.\n• Quédese en trayectos marcados. No corte por zonas de trabajo activas, aunque agregue 100 pies.\n• Firme en la caja de herramientas / hoja de firma. El sitio sabe quién está en sitio.\n• No aparezca a la hora de comida sin anuncio. Agende la visita. Deje que el foreman le avise a la cuadrilla.\n• Calor / frío — traiga agua, vístase para el clima, sepa dónde está el trailer de descanso.\n• Dé el ejemplo. La cuadrilla ve si SU PPE está bien. Siguen esa señal.",
+    references_cited:
+      "OSHA 1926.95 / .96 / .100 / .102 (PPE) · ANSI/ISEA 107 · SOP de Visitante MASCI",
+    action_items:
+      "Kit de PPE en cada vehículo de oficina verificado · Hábito de encontrar-al-foreman-primero reforzado · Política de visita-agendada revisada · Firma de visitante aplicada",
+  },
+  office_parking_lot_struck_by: {
+    title: "Estacionamientos, Reversa y Conciencia Peatonal",
+    incident_pattern:
+      "Los incidentes de estacionamiento en sitios MASCI y oficinas de clientes pasan a las velocidades más lentas y aun así producen las lesiones de tobillo, rodilla y espalda más comunes del lado administrativo. El patrón: un admin o PM camina del vehículo a la puerta de oficina, mirando su teléfono por la confirmación de junta. Un chofer de pickup retrocediendo, también distraído, nunca lo ve. El contacto es a 3–5 mph. El peatón no cae duro pero se tuerce al esquivar — rodilla, tobillo, espalda. Otra variante: salir de una cabina hacia un vehículo estacionado junto al suyo. El filo de la puerta toca la siguiente puerta, el dueño se molesta, reclamo presentado. Velocidades lentas, grandes resultados.",
+    hazards_reviewed:
+      "Vehículo retrocediendo golpea-por · Resbalón en estacionamiento mojado / con hielo · Bajarse de banqueta a trayectoria de vehículo · Golpe de puerta a vehículo adyacente · Tropezón con topes · Problemas de visibilidad en invierno / poca luz",
+    discussion_notes:
+      "• Teléfono ABAJO al caminar. Ojos en el estacionamiento, en luces de reversa, en movimiento. El texto espera.\n• Camine en cruces marcados donde existan. Donde no, escoja la trayectoria más segura y manténgala.\n• Al retroceder — retroceda ANTES de que salgan los niños y peatones. O pase de paso si está disponible. O cámara de reversa, barrido de espejos, Y vistazo rápido sobre el hombro. Las cámaras solas no son suficiente.\n• Salga de su vehículo a un espacio LIBRE — no abra la puerta a ciegas al carril siguiente.\n• Invierno / mojado — botas con agarre en la suela, no zapatos de vestir. Un resbalón en el estacionamiento sí pasa a edad MASCI.\n• Estaciónese en espacios iluminados de noche. La visibilidad de SU vehículo importa tanto como la visibilidad desde SU vehículo.\n• Cuidado con personal de oficina y visitantes en sitios de cliente — no están acostumbrados a la escala de vehículos de construcción. Reduzca velocidad extra en estacionamientos de cliente.",
+    references_cited:
+      "OSHA Deber General · NHTSA Seguridad Peatonal · Política de Flota MASCI",
+    action_items:
+      "Hábito de teléfono-abajo-al-caminar discutido · Regla de cámara-más-espejo revisada · Discusión de calzado de invierno · Precaución-extra en estacionamiento de cliente reforzada",
+  },
+  office_heat_stress_visits: {
+    title: "Estrés por Calor en Visitas de Verano a Obra",
+    incident_pattern:
+      "Las lesiones por calor a personal de oficina durante visitas de verano siguen un patrón específico. El visitante llega en ropa de oficina-casual, sin agua, camina el sitio por 30–45 minutos en calor de 95°F+, y solo se da cuenta que está en problemas cuando ya está sintomático — dolor de cabeza, mareo, náusea. Manejaron solos al sitio, y ahora tienen que manejar solos a casa mientras están sintomáticos por calor, lo cual es su propio riesgo de choque. El personal de oficina tiene menor tolerancia al calor que la cuadrilla de campo porque no están aclimatados al calor. Una caminata de 20 minutos para un trabajador de campo es un riesgo serio de salud para alguien que estuvo en AC toda la mañana.",
+    hazards_reviewed:
+      "Agotamiento por calor progresando a golpe de calor · Choque por manejar con síntomas de calor · Deshidratación · Quemadura solar / daño ocular por exposición prolongada · Subestimar el calor sin aclimatación",
+    discussion_notes:
+      "• Botella de agua en el vehículo, cada visita a obra, mayo a octubre. Beba antes, durante y después.\n• Agende visitas de verano en la mañana o tarde noche. Evite el pico de calor de 11 a.m. a 3 p.m.\n• Sombrero que sombree cara y cuello. Bloqueador solar. Las mangas largas son más frescas que la piel descubierta al sol directo.\n• Tome descansos en el trailer o en su vehículo con AC. No 'aguante.'\n• Vigile síntomas en usted y otros: dolor de cabeza, náusea, irritabilidad, mareo, silencio súbito. El agotamiento por calor progresa a golpe de calor RÁPIDO.\n• Si aparecen síntomas: a sombra o AC, beba agua con electrolitos, enfríe el cuerpo. Si los síntomas no resuelven en 15 minutos — ER.\n• Manejar con síntomas de calor es manejar impedido. Que alguien lo lleve. Llame a dispatch. Espere en el trailer.\n• Los nuevos contratados y visitantes NO están aclimatados. Trátelos más conservadoramente que la cuadrilla de campo.",
+    references_cited:
+      "OSHA Estrés por Calor · NIOSH Estrés por Calor · CDC Enfermedad por Calor · Política de Calor MASCI",
+    action_items:
+      "Hábito de agua-en-vehículo reforzado · Agendar visitas matutinas revisado · Conciencia de síntomas discutida · Regla de no-manejar-impedido reforzada",
+  },
+  office_lone_worker_checkin: {
+    title: "Trabajador Solo / Realidades de Check-In en Obra",
+    incident_pattern:
+      "Los incidentes de trabajador solo en MASCI típicamente involucran un PM, un estimador o un vendedor que manejó a un jobsite remoto, se estacionó, caminó el proyecto solo, y o tuvo un evento médico (corazón, derrame, caída) o entró en interacción tensa con un cliente o un intruso. Nadie sabía exactamente dónde estaban. El teléfono no se había movido por 45 minutos. Para cuando alguien dio seguimiento, la situación se había vuelto seria. El arreglo no es glamoroso: dígale a alguien adónde va, fije una hora de check-in, y cumpla. No hemos tenido una fatalidad de esto — pero hemos tenido casi-accidentes que han cambiado qué tan seriamente tomamos los check-ins.",
+    hazards_reviewed:
+      "Evento médico sin nadie que responda · Resbalón / caída sin observador · Interacción tensa con intruso · Falla de vehículo en área de baja señal · Cliente hostil / escalada de disputa · Perdido / desorientado en área desconocida",
+    discussion_notes:
+      "• Dígale a alguien — dispatch, un admin, su gerente — adónde va y cuándo espera regresar. Texto funciona.\n• Fije una HORA de check-in, no solo intención. 'Mando texto para las 2:30.' Si pasa 2:30 sin texto, esa persona le llama.\n• Teléfono cargado antes de salir de oficina. Traiga cargador y power bank cargado para viajes más largos.\n• No entre a una situación hostil solo. ¿Disputa con cliente escalando? Retírese, llame a su gerente, regrese con compañero.\n• Intrusos / personas desconocidas en el sitio — no se enfrente solo. Llame a seguridad del sitio o policía local. Usted no es guardia de seguridad.\n• Falla de vehículo en área remota — quédese con el vehículo si es seguro. Salir caminando lo puede meter en peor problema.\n• Historial médico — si tiene cualquier condición que pueda dejarlo sin respuesta, el protocolo de check-in es doblemente importante.\n• Al final de la visita, mande texto 'libre' a la misma persona. Cierra el loop.",
+    references_cited:
+      "OSHA Trabajador Solo · ANSI/ASSP Z490 · Política de Visita de Campo MASCI",
+    action_items:
+      "Disciplina de hora de check-in reforzada · Hábito de cargar teléfono discutido · Política de des-escalación de interacción hostil revisada · Hábito de texto 'libre' al final fijado",
+  },
+  office_severe_weather_accountability: {
+    title: "Responsabilidad por Clima Severo para Cuadrillas y Visitantes",
+    incident_pattern:
+      "Los eventos de clima severo agarran al personal de oficina en el peor momento — manejando de regreso de una visita, a media junta con cliente, o mientras la oficina cierra al final del día. El patrón de falla es contabilidad: la oficina asume que todas las cuadrillas están adentro, pero dos camiones siguen afuera. El campo asume que la oficina ha llamado a todos, pero tres visitantes siguen en sitio. Cuando un aviso de tornado llega o una tormenta eléctrica entra, nadie sabe con certeza quién está dónde. El arreglo es una persona — usualmente dispatch o admin — siendo dueña del proceso de revisar la lista durante eventos de clima.",
+    hazards_reviewed:
+      "Trabajador / visitante atrapado en tornado / tormenta severa · Golpe de rayo en sitio · Inundación súbita de sitios bajos · Daño por granizo a cuadrilla y equipo · Hipotermia / calor por exposición prolongada durante tormenta",
+    discussion_notes:
+      "• Una persona es el POC de clima durante un evento de clima severo. Usualmente dispatch o admin. Tienen la lista. Hacen las llamadas.\n• Revise el radar ANTES de salir de oficina en temporada de tormentas. Vigile frentes que se mueven rápido.\n• Regla de rayo: cuando VEA un rayo o ESCUCHE trueno, la cuadrilla de campo se mete. Regla 30/30 — 30 minutos después del último rayo antes de reanudar.\n• Aviso de tornado: a la estructura más segura disponible. Cuadrilla de campo a la oficina o edificio sólido, NO en vehículo, NO en trailer.\n• Lluvia severa / inundación súbita: evite sitios bajos hasta que las condiciones despejen. Muchos sitios de obra civil pesada están diseñados para inundarse — son canales.\n• Granizo: ponga vehículos bajo techo donde se pueda. Personas lejos de ventanas.\n• Contabilice TODO el personal durante un evento severo. Oficina, campo, choferes, visitantes. El POC revisa cada nombre en la lista.\n• Visitantes en sitio: avísenles antes de que salgan de la oficina que viene clima. Díganles que regresen directo cuando las condiciones se degraden.",
+    references_cited:
+      "NWS Conciencia de Clima Severo · OSHA Seguridad de Rayo · SOP de Clima Severo MASCI",
+    action_items:
+      "POC de clima designado · Regla 30/30 de rayo revisada · Mapeo de refugio de tornado verificado · Hábito de avisar a visitante sobre clima discutido",
+  },
+  office_slips_trips_falls: {
+    title: "Resbalones, Tropezones y Caídas en el Ambiente de Oficina",
+    incident_pattern:
+      "Los incidentes de resbalón y caída en oficina son nada glamorosos y muy reales. El patrón: café derramado en la cocineta queda sin limpiar por una hora, alguien lo pisa con zapatos de vestir, y se cae. O un cable de poder cruzando una puerta durante un setup temporal, nunca recogido. O una escalera con un foco fundido, y alguien falla el último escalón en la esquina oscura. Ninguno de estos es dramático — pero juntos suman más lesiones de tiempo perdido de oficina que cualquier otra causa. Rodillas, tobillos, caderas, muñecas. La gente trabaja lesionada por semanas porque les da vergüenza una caída en el pasillo.",
+    hazards_reviewed:
+      "Resbalón en líquido derramado · Tropezón con cable de poder / orilla de tapete · Caída en escalera con poca luz · Resbalón en entrada con hielo · Caída de silla / banquito usado como escalera · Resbalón en baño",
+    discussion_notes:
+      "• Limpie derrames inmediatamente. No espere a alguien más. La siguiente persona que pase puede ser usted.\n• Señales de piso mojado cuando algo no puede limpiarse de inmediato. De verdad funcionan.\n• Cables de poder en setups temporales — pegados con cinta o ruteados alrededor del paso. Sin cables atravesando superficies de caminata.\n• Iluminación de escalera — reporte focos fundidos el mismo día. Facilidades los reemplaza.\n• Tapetes de entrada de invierno — mantenidos en su lugar, reemplazados cuando gastados. Los primeros 6 pies dentro de la puerta son donde pasan la mayoría de resbalones de invierno.\n• Banquito, no silla, para alcanzar algo alto. Tenemos banquitos. Úsenlos.\n• Limpieza del piso de baño — reporte pisos mojados a facilidades. La persona que se resbaló ahí el mes pasado fue usted.\n• ¿Cargando 4 cosas y caminando? Va a tirar una o caerse por una. Dos viajes es mejor que una caída.",
+    references_cited:
+      "OSHA 1910.22 · Guía NSC de resbalones/tropezones · Política de Seguridad de Oficina MASCI",
+    action_items:
+      "Hábito de limpiar-derrame-ya reforzado · Reporte de iluminación de escalera revisado · Manejo de cables en setups temporales discutido · Regla de banquito-no-silla reforzada",
+  },
+  office_fatigue_mental_load: {
+    title: "Fatiga y Carga Mental — Cuando Está Cansado, Está Impedido",
+    incident_pattern:
+      "La fatiga mental es el equivalente de oficina al estrés por calor en campo — más lenta para desarrollarse, más fácil de ignorar, igual de peligrosa. El patrón: un PM trabaja días de 11 horas por dos semanas durante temporada ocupada, duerme mal, vive de café. Los errores se cuelan — un número de obra invertido, una cotización que le falta un renglón, un correo crítico que no se manda. El PM se culpa de no estar agudo. La causa real es deuda sostenida de sueño y fatiga de decisión. A largo plazo, este patrón lleva a depresión, estrés familiar y enfermedad física. Hemos perdido buena gente al burnout que empezó exactamente así.",
+    hazards_reviewed:
+      "Errores de decisión por privación de sueño · Choque por manejar fatigado · Errores en correo / contrato con impacto río abajo · Burnout / decline de salud mental · Estrés familiar · Enfermedad física por deuda sostenida de sueño",
+    discussion_notes:
+      "• El sueño no es opcional. Siete horas mínimo. Menos de eso por una semana es impacto cognitivo nivel manejar-impedido.\n• Tome sus vacaciones. Vacaciones acumuladas no ayudan a nadie — vacaciones usadas sí.\n• La fatiga de decisión es real. Las decisiones que toma a las 5 p.m. después de 10 horas de juntas no son sus mejores decisiones. Junte llamadas importantes más temprano en el día.\n• Cuando se cache cometiendo errores, no empuje más — pare. Camine. Hidrátese. Coma. Vuelva.\n• La salud mental no es debilidad. Hable con alguien. EAP es confidencial y útil. Los compañeros son útiles. La familia es útil.\n• Vigile a sus compañeros. Retirados, irritables, propensos a error — son las señales tempranas. Pregúntense unos a otros.\n• Teléfono apagado después de horas cuando se pueda. El trabajo estará ahí mañana. Sus reservas mentales no si no las reconstruye.\n• 988 — Línea de Crisis y Suicidio (llamar o textear). EAP MASCI para ayuda confidencial. La construcción tiene una de las tasas de suicidio más altas de cualquier industria. Esto importa.",
+    references_cited:
+      "CDC Fatiga · NIOSH Total Worker Health · 988 Línea de Suicidio y Crisis · EAP MASCI",
+    action_items:
+      "Prioridad de sueño discutida · Política de uso de vacaciones revisada · Conciencia de fatiga de decisión levantada · Info 988 / EAP compartida",
+  },
 };

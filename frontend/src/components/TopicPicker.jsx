@@ -18,13 +18,27 @@ import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { TOPIC_LIBRARY_ES } from "@/lib/meetingTopicLibrary.es";
 
+// Domain chip labels (EN + ES). Keep this list short and operational.
+// `key` matches the `domain` field on each topic in meetingTopicLibrary.js.
+// Topics with no `domain` fall under "general".
+const DOMAIN_CHIPS = [
+  { key: null, en: "All", es: "Todos" },
+  { key: "trucking", en: "Trucking", es: "Camiones" },
+  { key: "dewatering", en: "Dewatering", es: "Desagüe" },
+  { key: "shop", en: "Shop", es: "Taller" },
+  { key: "plant", en: "Plant / Lab", es: "Planta / Lab" },
+  { key: "airport", en: "Airport", es: "Aeropuerto" },
+  { key: "office", en: "Office", es: "Oficina" },
+  { key: "general", en: "General", es: "General" },
+];
+
 /**
  * Searchable topic picker for the Site Safety Meeting form.
  *
  * Props:
  *   value          - current selected key (CUSTOM_TOPIC_KEY or topic key)
  *   onChange(key)  - called when user picks an option
- *   topics         - array of topic objects { key, title, category }
+ *   topics         - array of topic objects { key, title, category, domain? }
  *   customKey      - special key representing "Custom Topic"
  *   placeholder    - placeholder text for trigger
  */
@@ -36,6 +50,7 @@ export function TopicPicker({
   placeholder = "Select a topic...",
 }) {
   const [open, setOpen] = useState(false);
+  const [domainFilter, setDomainFilter] = useState(null); // null = all
   const { t, lang } = useT();
 
   // Helper: returns the topic title in the active language.
@@ -53,16 +68,41 @@ export function TopicPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, topics, customKey, lang]);
 
+  // Domain counts (over the full topic list, ignoring current filter)
+  const domainCounts = useMemo(() => {
+    const counts = { __all: topics.length };
+    topics.forEach((tt) => {
+      const d = tt.domain || "general";
+      counts[d] = (counts[d] || 0) + 1;
+    });
+    return counts;
+  }, [topics]);
+
+  // Only show chips that have at least one topic
+  const visibleChips = useMemo(
+    () =>
+      DOMAIN_CHIPS.filter(
+        (c) => c.key === null || (domainCounts[c.key] || 0) > 0
+      ),
+    [domainCounts]
+  );
+
+  // Apply domain filter
+  const filteredTopics = useMemo(() => {
+    if (!domainFilter) return topics;
+    return topics.filter((tt) => (tt.domain || "general") === domainFilter);
+  }, [topics, domainFilter]);
+
   // Group topics by category for nicer scanning
   const grouped = useMemo(() => {
     const map = new Map();
-    topics.forEach((t) => {
-      const cat = t.category || "Other";
+    filteredTopics.forEach((tt) => {
+      const cat = tt.category || "Other";
       if (!map.has(cat)) map.set(cat, []);
-      map.get(cat).push(t);
+      map.get(cat).push(tt);
     });
     return Array.from(map.entries());
-  }, [topics]);
+  }, [filteredTopics]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -97,6 +137,45 @@ export function TopicPicker({
         align="start"
         data-testid="topic-picker-content"
       >
+        {/* Domain filter chip row */}
+        <div
+          className="flex gap-1.5 overflow-x-auto px-3 pt-3 pb-2 border-b border-slate-100"
+          data-testid="topic-picker-domain-row"
+        >
+          {visibleChips.map((chip) => {
+            const isActive = domainFilter === chip.key;
+            const count =
+              chip.key === null
+                ? domainCounts.__all
+                : domainCounts[chip.key] || 0;
+            const label = lang === "es" ? chip.es : chip.en;
+            return (
+              <button
+                key={chip.key || "all"}
+                type="button"
+                onClick={() => setDomainFilter(chip.key)}
+                className={cn(
+                  "shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors",
+                  isActive
+                    ? "bg-red-700 text-white border-red-700"
+                    : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                )}
+                data-testid={`topic-picker-domain-${chip.key || "all"}`}
+              >
+                <span>{label}</span>
+                <span
+                  className={cn(
+                    "text-[10px] font-semibold",
+                    isActive ? "text-white/90" : "text-slate-500"
+                  )}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <Command
           filter={(itemValue, search) => {
             // itemValue is "<title> <category>" lowercased — match on substring
