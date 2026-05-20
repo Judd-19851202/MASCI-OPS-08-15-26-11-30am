@@ -44,8 +44,8 @@
 | **Safety Incidents** | ✅ | ✅ 18 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Daily Reports** | ✅ | ✅ 21 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Pre-Op (Equipment Inspection)** | ✅ | ✅ 16 | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 |
-| **Site Inspection (`NewInspection`)** | ✅ | ❌ | ❌ | ✅ | ✅ | 🟡 | 🟡 | ✅ | ✅ | ❌ | — | 🟡 | ❌ | 🟡 |
-| **QA/QC Inspection** | 🟡 | ❌ | ❌ | ✅ | ✅ | ✅ | 🟡 | 🟡 | 🟡 | ❌ | — | 🟡 | ❌ | ❌ |
+| **Site Inspection (`NewInspection`)** | ✅ | ✅ 17 | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **QA/QC Inspection** | ✅ | ✅ 18 | ✅ | ✅ | ✅ | ✅ | 🟡 | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Fleet DVIR** | ✅ | 🟡 13 | 🟡 ❌esc | ✅ | ✅ | ✅ | ✅ | — | ✅ | 🟡 | ✅ | ✅ | ✅ | 🟡 |
 | **Field Write-Ups** | ✅ | ✅ 11 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Equipment Checkout** | ✅ | ✅ 14 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | ✅ | ✅ |
@@ -90,7 +90,9 @@
 ## Highest-risk operational gaps (act on these first)
 
 1. ~~**Legacy View-Surface i18n cluster**~~ — **CLOSED iter272.** `ViewIncident.jsx` · `ViewDailyReport.jsx` · `ViewInspection.jsx` now wire 145 `t()` calls + `useT()` against 70 new ES keys in `i18n.js`. testing_agent_v3_fork frontend 100%.
-2. **Field-Safety forms with NO coaching family** — `NewInspection`, `NewQaqcInspection`, `SafetyCorrectiveActions`, `SafetyFireExtinguishers`, `NewSafetyEquipmentIssuance`, `NewSafetyEquipmentTraining`, `SafetyTopicLibrary`, `JhaPlansHub` ship without ANY HelpTip family. Same gap that Safety Meeting just closed in iter270, repeated 8×.
+2. **Field-Safety forms with NO coaching family** (partial closure in progress)
+   - ~~`NewInspection`~~ · ~~`NewQaqcInspection`~~ — **CLOSED iter273** (Sequence #2). 35 tips across 11 form-keys · canonical 4 kinds at root · EN+ES · public-scope · 65/65 in-process pytest + 37/37 HTTP regression + 5/5 + 6/6 frontend testid coverage.
+   - **Still open:** `SafetyCorrectiveActions`, `SafetyFireExtinguishers`, `NewSafetyEquipmentIssuance`, `NewSafetyEquipmentTraining`, `SafetyTopicLibrary`, `JhaPlansHub` (6 surfaces remaining — Sequences #3, #5, #6 in this matrix).
 3. **Canonical 4-kind holes** — `fleet` family is missing `escalate`; `material-calculator` family is missing `who`. Trivial 2-tip fills, but they're real breaks of the canonical surface contract.
 4. **`Fleet DVIR` ⇄ `fleet` registry split** — DVIR form mounts only 2 HelpTipBlocks; the `fleet` registry concentrates on visibility/repair/RTS/dvir/weekly-lead, but DVIR-specific section coaching (defects/fluids/tires/controls/signoff) is thinner than the comparable Pre-Op family. Looks complete from the registry; field experience shows partial coverage.
 5. **`DocumentExpirations` page is hardcoded English** — 0 `t()` calls despite the workflow having a full bilingual coaching family. Page consumes English-only.
@@ -134,3 +136,4 @@
 - `iter270` Safety Meeting Coaching Family · operational coaching parity achieved
 - `iter271` This matrix authored · 19 workflows audited · 5 highest-risk gaps surfaced
 - `iter272` Legacy View-Surface i18n Closure Cluster · ViewIncident · ViewDailyReport · ViewInspection · 145 t() strings · 70 ES keys · testing agent frontend 100% · gap #1 from matrix CLOSED
+- `iter273` NewInspection + NewQaqcInspection coaching family (Sequence #2) · 35 tips · 11 form-keys · EN+ES · 65/65 in-process + 37/37 HTTP pytest · 5/5 + 6/6 frontend testids · gap #2 first cluster CLOSED

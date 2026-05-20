@@ -1,5 +1,61 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 PM — iter273 Sequence #2 · NewInspection + NewQaqcInspection coaching-family parity · SHIPPED (pytest 65/65 in-process + 37/37 HTTP · testing agent frontend 100% · 0 bugs · 0 regressions)
+
+Second governance closure iteration. Matrix Gap #2 first cluster CLOSED. iter270 meeting pattern cloned exactly — no new component, no new endpoint, no new schema, no new philosophy layer.
+
+### What shipped
+- **inspection.* family** (5 form-keys, 17 tips) — `inspection` (4 root: why/who/next/escalate) · `inspection.context` (3: why/mistake/when) · `inspection.ppe` (3: why/mistake/escalate) · `inspection.findings` (4: why/mistake/example/next · the densest surface) · `inspection.signoff` (3: why/mistake/next)
+- **qaqc.* family** (6 form-keys, 18 tips) — `qaqc` (4 root) · `qaqc.context` · `qaqc.checklist` · `qaqc.corrective` · `qaqc.photos` · `qaqc.signoff`
+- **35 EN tips appended** to `_TIPS` in `/app/backend/guidance/tips.py` · **35 ES counterparts** appended to `TIPS_ES` in `/app/backend/guidance/tips_es.py`. All `scopes: ["public"]`. All bodies ≤80 EN / ≤90 ES words.
+- **5 `<HelpTipBlock>` mounts** in `/app/frontend/src/pages/NewInspection.jsx` (form-root with `showCounter` at Section 01 + section-aligned context/ppe/findings/signoff blocks)
+- **6 `<HelpTipBlock>` mounts** in `/app/frontend/src/pages/NewQaqcInspection.jsx` (form-root + context + checklist + corrective + photos + signoff)
+- **New pytest** `/app/backend/tests/test_iter273_inspection_qaqc_coaching.py` (10 contracts × parametrized = 65 cases)
+- **HTTP regression test** `/app/backend/tests/test_iter273_api_http.py` added by testing agent (37 cases against the public registry — cheap regression for future iters)
+
+### Tone discipline (operator gate)
+- Voice: superintendent walking the site with a clipboard and stop-work radio. Cousin of incident.* and writeup.*. No LMS / training / module / motivational drift.
+- Pytest `test_tips_tone_not_lms` guards 12 banned phrases (EN+ES). All passing.
+- Operator-priority themes covered: don't pencil-whip · stop-work is a tool not a punishment · PPE shows yesterday's culture · findings need owners + close-out · catch-it-before-it-sets · punch-list is hidden contract risk · plans are the truth · photos prove location not effort
+
+### Verification
+- **Pytest in-process** · 65/65 PASSED
+- **Pytest HTTP** · 37/37 PASSED (created by testing agent for ongoing regression)
+- **testing_agent_v3_fork** iter271.json · **backend 100% · frontend 100% · 0 bugs · 0 regressions** · all 11 helptip-block-* testids confirmed live · counter renders ("4 coaching tips available · tap to expand") · EN/ES toggle confirmed live ("Por qué una inspección de sitio es evidencia operacional" / "Por qué cacharlo antes de que se fragüe")
+- **Regression** · existing families (incident · meeting · writeup · daily-report) unchanged
+- Lint clean across all 5 modified/new files
+- Backend hot-reloaded cleanly
+
+### Files touched
+- MOD · `/app/backend/guidance/tips.py` (+35 tip dicts)
+- MOD · `/app/backend/guidance/tips_es.py` (+35 ES entries)
+- MOD · `/app/frontend/src/pages/NewInspection.jsx` (+6 lines net · 1 import + 5 mounts)
+- MOD · `/app/frontend/src/pages/NewQaqcInspection.jsx` (+7 lines net · 1 import + 6 mounts)
+- NEW · `/app/backend/tests/test_iter273_inspection_qaqc_coaching.py` (~230 lines · 65 cases)
+- NEW · `/app/backend/tests/test_iter273_api_http.py` (HTTP regression · added by testing agent · 37 cases)
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (Site Inspection + QA/QC rows promoted · gap #2 partial close noted · ship-log appended)
+
+### Coaching family inventory (new + cumulative)
+| Family | Tips | Kinds |
+| --- | --- | --- |
+| `inspection` (5 form-keys) | 17 | why · who · next · escalate · mistake · when · example |
+| `qaqc` (6 form-keys) | 18 | why · who · next · escalate · mistake · when · example |
+| **iter273 total** | **35** | |
+| **Cumulative coaching families on platform** | **17 workflows** | |
+
+### Open from Gap #2 (Sequence #3, #5, #6 in matrix · operator gate required)
+- `SafetyCorrectiveActions` · `SafetyFireExtinguishers` · `NewSafetyEquipmentIssuance` · `NewSafetyEquipmentTraining` · `SafetyTopicLibrary` · `JhaPlansHub`
+- 6 surfaces remaining. Same iter270/iter273 clone pattern applies. Operator decides which to attack first.
+
+### Testing-agent code-review notes (deferred · not blockers)
+- pytest only resolves the `guidance` package when invoked with `cwd=/app/backend` · proposal to add `/app/conftest.py` for repo-root invocation (low-priority dev-experience polish)
+- public `/api/guidance/tips` response strips internal fields (`id`, `scopes`, `kind_meta`) — verified only in-process · not a regression vs prior iters · flagged for awareness
+
+🔒 iter273 Sequence #2 **SHIPPED** · 2 of 8 field-safety surfaces from gap #2 closed · governance discipline held · clone-pattern continues to scale at near-zero cost per workflow.
+
+---
+
+
 ## 2026-05-20 PM — iter272 Sequence #1 · Legacy View-Surface i18n Closure Cluster · SHIPPED (testing agent frontend 100% · 0 bugs)
 
 First closure iteration under Platform Operational Maturity Governance. Matrix Gap #1 closed.
