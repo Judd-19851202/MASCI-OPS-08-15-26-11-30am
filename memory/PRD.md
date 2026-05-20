@@ -1,6 +1,61 @@
 # MASCI Safety Hub — PRD
 
-# MASCI Safety Hub — PRD
+## 2026-05-19 PM/10 — iter251 Safety Meeting Evolution · Phase A + B + C · COMPLETE (incident_pattern schema · 11 new topics · bilingual · 100% testing-agent pass)
+
+Operator directive (2026-05-19): evolve the Safety Meeting / Toolbox Talk system into operationally intelligent topic packs based on real-world incident patterns. Phase A schema enrichment, Phase B Dump-bed strike family, and Phase C Trucking/Fleet expansion all landed in this cycle.
+
+### Phase A · Schema enrichment
+- New optional field `incident_pattern` on a topic in `meetingTopicLibrary.js`. Holds the real-world story / "what actually happens" paragraph in field-foreman voice.
+- `NewMeeting.jsx · applyTemplate()` prepends `incident_pattern` to `discussion_notes` as a labelled paragraph:
+  - EN header: `WHAT HAPPENS · real-world pattern`
+  - ES header: `PATRÓN REAL · lo que suele pasar`
+  - Format: `<HEADER>\n<incident_pattern paragraph>\n\n<bullet discussion_notes>`
+- `NewMeeting.jsx · submit()` swap-back logic mirrors composeNotes so an unedited ES bilingual scaffold swaps cleanly back to the EN canonical at save time.
+- Legacy topics WITHOUT `incident_pattern` are unaffected — the header is only prepended when the pattern exists. Regression preserved.
+
+### Phase B · 5 Dump-bed strike topics (EN + ES parity)
+- `dump_bed_overhead_strike` — Overhead Lines, Bridges, Signs, Conveyors
+- `dump_bed_traveling_raised` — Traveling With the Bed Up · The Quiet Killer
+- `dump_bed_pto_habits` — PTO Disengagement and Bed-Down Habits
+- `dump_bed_soft_ground_tipover` — Soft-Ground Tip-Overs · The Bed-Up Rollover
+- `dump_bed_wind_raised` — High-Wind Raised-Bed Operations
+
+### Phase C · 6 Trucking / Fleet topics (EN + ES parity)
+- `trucking_backing_struck_by` — Backing Accidents · Spotter Use and the Last 10 Feet
+- `trucking_shoulder_pulloff_struck_by` — Roadway Pull-Offs and Shoulder Positioning
+- `trucking_tarp_load_securement` — Tarp and Load Securement on the Road
+- `trucking_kingpin_coupling_failure` — Trailer Kingpin and Coupling Failures
+- `trucking_overweight_axle_law` — Overweight, Axle Loading and Bridge Law
+- `trucking_blind_spots_pedestrian` — Blind Spots and Pedestrian Workers Around Trucks
+
+### Tone / culture upheld
+- ✅ Real-world incident pattern paragraph first, then bullet discussion
+- ✅ Field-foreman voice · plainspoken · NOT corporate compliance theater
+- ✅ Drivers, leads, spotters, yard, dispatch — operationally relevant
+- ✅ EN + ES parity · zero EN leakage
+- ✅ Mobile-first (verified at 414px) · existing form UI unchanged
+- ✅ No new form fields · no new panels · no LMS drift
+
+### Testing
+- iter257 frontend testing-agent verdict: **100% pass · 0 ui_bugs · 0 integration_issues · 0 design_issues · retest_needed: false**
+- All 11 topics verified loading with correct EN/ES headers · 2 legacy topics verified header absent · 0 console errors · 414px + 1280px viewports both green
+- ES title rendering verified for 3 sampled topics · pattern paragraphs verified plain-spoken / field-realistic
+
+### Files touched
+- MOD · `frontend/src/lib/meetingTopicLibrary.js` (+5 Phase B + 6 Phase C topics with incident_pattern · 1187 → ~1342 lines)
+- MOD · `frontend/src/lib/meetingTopicLibrary.es.js` (+11 ES translations with incident_pattern · 882 → ~1030 lines)
+- MOD · `frontend/src/pages/NewMeeting.jsx` (composeNotes helper in applyTemplate + submit-time swap-back)
+
+### Future work (operator-approved roadmap)
+- ⏸ Phase D · Dewatering / Wellpoint topics (catastrophic-risk · operator-promoted earlier)
+- ⏸ Phase E · Shop / Mechanic (lockout, jack-stand, tire-cage, brake-spring)
+- ⏸ Phase F · Asphalt Lab + Plant/Crusher/Airport
+- ⏸ Phase G · Office/Admin personnel
+- ⏸ Phase H · Voice uplift of legacy 81 topics to incident-pattern voice
+
+🔒 iter251 Safety Meeting Evolution Phase A + B + C **CLOSED** · production-ready · bilingual · field-tested by testing agent · ready for operator field-review on preview, then deploy to mascidocs.com.
+
+---
 
 ## 2026-05-19 PM/9 — Pre-Deploy Readiness Audit · VERDICT: APPROVE
 
