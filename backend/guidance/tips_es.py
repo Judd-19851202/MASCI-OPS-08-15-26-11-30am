@@ -2258,6 +2258,116 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "consulta de auditoría cuenta doble).",
     },
 
+    # ── iter290 · safety-document ────────────────────────────────────
+    ("safety-document", "why"): {
+        "title_es": "Por qué la biblioteca de documentos es centralizada",
+        "body_es":
+            "Registros OSHA 300, hojas SDS, Planes de Acción de "
+            "Emergencia, designaciones de Persona Competente, "
+            "planes de Protección Contra Caídas, políticas — "
+            "cuando un inspector o un abogado los pide, la empresa "
+            "tiene minutos, no horas, para producirlos. "
+            "Centralizar la biblioteca significa que MASCI nunca "
+            "tiene que preguntar 'quién tiene una copia' — la fila "
+            "está en el sistema o no, y esa respuesta es la misma "
+            "un martes en la mañana que durante un incidente.",
+    },
+    ("safety-document", "who"): {
+        "title_es": "Quién sube, quién lee, quién edita",
+        "body_es":
+            "Seguridad sube — cada documento pasa por Seguridad "
+            "para que la categoría, el título y el rastro de "
+            "auditoría se mantengan consistentes. RH lee cruzando "
+            "portales en /hr/safety-records (sin acceso de edición "
+            "— ese límite es a propósito). Admin lee para gobierno. "
+            "PMs y supervisores no editan. El registro de "
+            "auditoría en cada carga es el sistema de récord, no "
+            "un dicho.",
+    },
+    ("safety-document", "next"): {
+        "title_es": "Qué hacer una vez subido un documento",
+        "body_es":
+            "Verifique que se cargó el archivo correcto "
+            "(descárguelo una vez, ábralo). Confirme que la "
+            "categoría es correcta — el filtro de esta página lee "
+            "el campo categoría. Agregue una etiqueta si el "
+            "documento pertenece a un proyecto, proveedor o "
+            "incidente específico para que la búsqueda lo "
+            "encuentre después. Reemplace, no duplique: si llega "
+            "una versión nueva de una SDS, borre la fila vieja "
+            "antes de subir el reemplazo.",
+    },
+    ("safety-document", "escalate"): {
+        "title_es": "Cuándo se pide el documento en tiempo real",
+        "body_es":
+            "OSHA aparece sin avisar, empieza una investigación "
+            "por lesión, llega una auditoría de seguro — esos son "
+            "los momentos para los que existe la biblioteca. Si el "
+            "documento no se puede producir en 5 minutos, ese es "
+            "el punto de escalación. O la fila está faltando "
+            "(Seguridad sube de la fuente inmediatamente) o la "
+            "categoría está mal (corríjala y marque el hueco como "
+            "lección aprendida de proceso).",
+    },
+
+    # ── iter290 · safety-document.upload ─────────────────────────────
+    ("safety-document.upload", "why"): {
+        "title_es": "Por qué el formulario de subida tiene reglas",
+        "body_es":
+            "El límite de 15 MB y la validación de bytes mágicos "
+            "no son arbitrarios — protegen a la biblioteca de ser "
+            "usada como vertedero genérico de archivos y protegen "
+            "las descargas de ser armadas (un no-PDF disfrazado "
+            "de PDF sería un vector de XSS). Use el formulario "
+            "para documentos reales, no para borradores de trabajo "
+            "ni archivos de prueba. Los archivos grandes (>15 MB) "
+            "casi siempre son escaneos multipágina que deben ser "
+            "divididos o comprimidos primero.",
+    },
+    ("safety-document.upload", "mistake"): {
+        "title_es": "Errores de subida que importan después",
+        "body_es":
+            "Dejar el Título en blanco para que la fila lea "
+            "'IMG_4783.pdf'. Escoger Categoría = General cuando "
+            "el documento es en realidad una SDS o un OSHA 300 "
+            "(el filtro de auditoría no lo va a encontrar). "
+            "Subir el mismo documento dos veces en vez de "
+            "reemplazar. Subir un borrador de trabajo en vez del "
+            "final firmado. Olvidar borrar una versión superada — "
+            "la biblioteca nunca debe cargar dos copias del "
+            "documento 'vigente'.",
+    },
+
+    # ── iter290 · safety-document.classification ─────────────────────
+    ("safety-document.classification", "why"): {
+        "title_es": "Por qué la categoría y las etiquetas son estructuradas",
+        "body_es":
+            "Categoría es una lista fija — OSHA 300, SDS, Plan de "
+            "Acción de Emergencia, Persona Competente, Protección "
+            "Contra Caídas, Certificado de Entrenamiento, Hoja de "
+            "Firmas, Reporte de Inspección, Política/Manual, "
+            "General. El filtro de auditoría la lee; la vista "
+            "cruzada de RH agrupa por ella. Las etiquetas son de "
+            "texto libre y sirven para los cortes que de verdad "
+            "busca (número de proyecto, nombre del proveedor, año, "
+            "ID de incidente). Etiquetar por conocimiento tribal "
+            "derrota el propósito — mantenga pocas y con "
+            "significado.",
+    },
+    ("safety-document.classification", "next"): {
+        "title_es": "Cómo mantener la biblioteca encontrable",
+        "body_es":
+            "Cada trimestre, abra la categoría General y "
+            "reclasifique lo que haya caído ahí por atajo. Revise "
+            "tres filas al azar en OSHA 300 y SDS para asegurarse "
+            "de que el título de verdad corresponde al archivo. "
+            "Corra la barra de búsqueda contra unas consultas "
+            "comunes (el número de proyecto de un trabajo activo, "
+            "un nombre de proveedor) — si la búsqueda está rota, "
+            "arréglela antes de que la próxima auditoría fuerce "
+            "la respuesta.",
+    },
+
 
 
 

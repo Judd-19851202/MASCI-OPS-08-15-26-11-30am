@@ -1,5 +1,32 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 — iter290 · Safety Documents coaching-family parity · CLOSED
+
+Second and final closure of the iter288-audit Safety-cluster pair. Workflow shipped since iter120 Phase 3 (magic-byte PDF validation + 15 MB cap) but matrix-tracked red on Coach/4-Kinds/Tests/Parity. iter290 closes the coaching parity gap without touching the upload pipeline.
+
+### iter290 — Safety Documents coaching-family parity (CLOSED)
+- **Coaching family** authored: `safety-document` (canonical 4: why/who/next/escalate) + `safety-document.upload` (why/mistake · 15 MB cap + magic-byte rationale + common upload mistakes) + `safety-document.classification` (why/next · fixed category list + tag discipline + quarterly findability review).
+- **8 EN tips + 8 ES tips** · Safety+Admin scope · operational tone · zero LMS drift.
+- **3 HelpTipBlock mounts** in `SafetyDocuments.jsx`: page top (canonical 4) · just below (classification) · inside upload Dialog (upload).
+- **Tests:** `test_iter290_safety_documents_coaching.py` — 14/14 ✅ (taxonomy + sub-key kinds + ES parity + scope + LMS-drift ban + **15 MB cap coached in EN+ES** + OSHA/inspector/audit/lawyer/incident anchor in top family + HR cross-portal read coached + no-collision with `safety-training`/`safety-library`/`document-expirations`).
+- **Live verified:** top family 4 tips · upload sub-family 6 via prefix-merge · ES titles render · frontend smoke confirms all 3 mounts render in Safety session.
+- **Matrix row flipped:** Safety Documents → `Coach ✅ 8 · 4-Kinds ✅ · Guide ✅ · Tests ✅ · Parity ✅ · Complete ✅`.
+
+### Milestone
+**HR & People section of the matrix is now fully green** — first complete-section milestone in the convergence governance phase.
+
+### Combined regression
+- **205/205 unit pytests** across iter224 + iter225 + iter282 + iter283 + iter285 + iter286 + iter287 + iter288 + iter289 + iter290.
+
+### Files touched (iter290)
+- MOD · `/app/backend/guidance/tips.py` (+8 EN tips · `safety-document.*` family)
+- MOD · `/app/backend/guidance/tips_es.py` (+8 ES tips)
+- MOD · `/app/frontend/src/pages/SafetyDocuments.jsx` (+1 import · +3 HelpTipBlock mounts)
+- NEW · `/app/backend/tests/test_iter290_safety_documents_coaching.py`
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (Safety Documents row flipped · ship-log entry)
+
+---
+
 ## 2026-05-20 — iter289 · Safety Training Records coaching-family parity · CLOSED
 
 First closure of the iter288-audit Safety-cluster. Workflow shipped since iter120 Phase 4 but matrix-tracked red on Coach/4-Kinds/Tests/Parity. iter289 closes the coaching parity gap. NO redesign, NO new routes.

@@ -3099,6 +3099,141 @@ _TIPS: list[dict] = [
             "person and the audit query double-counts).",
     },
 
+    # ─────────────────────────────────────────────────────────────────
+    # iter290 · safety-document coaching family.
+    #
+    # The Safety Documents library has been shipped since Phase 3
+    # (iter120) with magic-byte PDF validation and inline 15 MB cap.
+    # Backend routes exist, upload + download work, cross-portal read
+    # is mature. But coaching parity has been red: no canonical 4,
+    # no ES coaching, no regression. iter290 closes that without
+    # touching the upload pipeline, the retention rules, or the
+    # category taxonomy.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "form_key": "safety-document",
+        "kind": "why",
+        "scopes": ["safety", "admin"],
+        "title": "Why the document library is centralized",
+        "body":
+            "OSHA 300 logs, SDS sheets, Emergency Action Plans, "
+            "Competent Person designations, Fall Protection plans, "
+            "policies — when an inspector or a lawyer asks for these, "
+            "the company has minutes, not hours, to produce them. "
+            "Centralizing the library means MASCI never has to "
+            "ask 'who has a copy' — the row is in the system or it "
+            "isn't, and that answer is the same on a Tuesday morning "
+            "as it is during an incident.",
+    },
+    {
+        "form_key": "safety-document",
+        "kind": "who",
+        "scopes": ["safety", "admin"],
+        "title": "Who uploads, who reads, who edits",
+        "body":
+            "Safety uploads — every document goes through Safety so "
+            "the category, the title, and the audit trail stay "
+            "consistent. HR reads cross-portal at "
+            "/hr/safety-records (no edit access — that boundary is "
+            "intentional). Admin reads for governance. PMs and "
+            "supervisors do not edit. The audit log on each upload "
+            "is the system of record, not a verbal claim.",
+    },
+    {
+        "form_key": "safety-document",
+        "kind": "next",
+        "scopes": ["safety", "admin"],
+        "title": "What to do once a document is uploaded",
+        "body":
+            "Verify the right file landed (download it once, open "
+            "it). Check the category is correct — the filter on "
+            "this page reads the category field. Add a tag if the "
+            "document belongs to a specific project, vendor, or "
+            "incident so search finds it later. Replace, don't "
+            "duplicate: if a newer version of an SDS arrives, "
+            "delete the old row before uploading the replacement.",
+    },
+    {
+        "form_key": "safety-document",
+        "kind": "escalate",
+        "scopes": ["safety", "admin"],
+        "title": "When the document is asked for in real time",
+        "body":
+            "OSHA shows up unannounced, an injury investigation "
+            "starts, an insurance audit lands — these are the "
+            "moments the library exists for. If the document "
+            "cannot be produced inside 5 minutes, that is the "
+            "escalation point. Either the row is missing (Safety "
+            "uploads from the source immediately) or the category "
+            "is wrong (correct it and tag the gap as a process "
+            "lesson learned).",
+    },
+
+    # ── safety-document.upload ───────────────────────────────────────
+    {
+        "form_key": "safety-document.upload",
+        "kind": "why",
+        "scopes": ["safety", "admin"],
+        "title": "Why the upload form has rules",
+        "body":
+            "The 15 MB cap and the magic-byte validation are not "
+            "arbitrary — they protect the library from being used "
+            "as a generic file dump and protect downloads from "
+            "being weaponized (a non-PDF masquerading as a PDF "
+            "would be an XSS vector). Use the upload form for "
+            "real documents, not for working drafts or scratch "
+            "files. Large files (>15 MB) usually mean a multi-page "
+            "scan that should be split or compressed first.",
+    },
+    {
+        "form_key": "safety-document.upload",
+        "kind": "mistake",
+        "scopes": ["safety", "admin"],
+        "title": "Upload mistakes that matter later",
+        "body":
+            "Leaving Title blank so the row reads 'IMG_4783.pdf'. "
+            "Picking Category = General when the document is "
+            "actually an SDS or an OSHA 300 (the audit filter "
+            "won't find it). Uploading the same document twice "
+            "instead of replacing. Uploading a working draft "
+            "instead of the signed final. Forgetting to delete a "
+            "superseded version — the library should never carry "
+            "two copies of the 'current' document.",
+    },
+
+    # ── safety-document.classification ───────────────────────────────
+    {
+        "form_key": "safety-document.classification",
+        "kind": "why",
+        "scopes": ["safety", "admin"],
+        "title": "Why category and tags are structured",
+        "body":
+            "Category is a fixed list — OSHA 300, SDS, Emergency "
+            "Action Plan, Competent Person, Fall Protection, "
+            "Training Certificate, Sign-In Sheet, Inspection "
+            "Report, Policy/Manual, General. The audit filter "
+            "reads it; the cross-portal HR view groups by it. "
+            "Tags are free-text and meant for the specific cuts "
+            "you actually search by (project number, vendor name, "
+            "year, incident ID). Tribal-knowledge tagging defeats "
+            "the purpose — keep tags few and meaningful.",
+    },
+    {
+        "form_key": "safety-document.classification",
+        "kind": "next",
+        "scopes": ["safety", "admin"],
+        "title": "How to keep the library findable",
+        "body":
+            "Every quarter, pull up the General category and "
+            "reclassify anything that landed there as a shortcut. "
+            "Spot-check three random rows in OSHA 300 and SDS to "
+            "make sure the title actually matches the file. Run "
+            "the search bar against a few common queries (the "
+            "project number for an active job, a vendor name) — "
+            "if findability is broken, fix it before the next "
+            "audit forces the answer.",
+    },
+
 
     # ═════════════════════════════════════════════════════════════════
     # iter225 · document-expirations · Tier-2 (hr + safety + admin).

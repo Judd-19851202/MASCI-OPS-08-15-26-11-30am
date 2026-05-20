@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import SafetyShell from "@/components/SafetyShell";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -134,6 +135,11 @@ export default function SafetyDocuments() {
 
   return (
     <SafetyShell title="Safety Document Library" kicker="SAFETY · DOCUMENT LIBRARY">
+      {/* iter290 · coaching family · top-of-page canonical 4 */}
+      <HelpTipBlock formKey="safety-document" />
+      {/* iter290 · classification sub-key — sits next to the category filter */}
+      <HelpTipBlock formKey="safety-document.classification" />
+
       <div className="flex flex-col sm:flex-row gap-3 mb-5 items-start sm:items-center justify-between">
         <p className="text-slate-600 text-sm max-w-2xl leading-relaxed">
           {t("Centralized storage for OSHA records, SDS, emergency action plans, training certificates, sign-in sheets, and policies. Visible to Safety, HR, and Admin.")}
@@ -207,6 +213,8 @@ export default function SafetyDocuments() {
             <DialogTitle>{t("Upload safety document")}</DialogTitle>
             <DialogDescription>{t("Max 15 MB. Visible to Safety, HR, and Admin once uploaded.")}</DialogDescription>
           </DialogHeader>
+          {/* iter290 · upload-discipline coaching inside the upload dialog */}
+          <HelpTipBlock formKey="safety-document.upload" />
           <div className="space-y-3 pt-2">
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("File")} *</Label>
