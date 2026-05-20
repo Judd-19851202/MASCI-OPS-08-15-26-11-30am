@@ -1,5 +1,48 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 PM — iter272 Sequence #1 · Legacy View-Surface i18n Closure Cluster · SHIPPED (testing agent frontend 100% · 0 bugs)
+
+First closure iteration under Platform Operational Maturity Governance. Matrix Gap #1 closed.
+
+### What shipped
+- `/app/frontend/src/pages/ViewIncident.jsx` · 0 → **67** `t()` calls · `useT()` added · all labels, toasts, confirm dialogs, signature placeholders, footer + section headers wired
+- `/app/frontend/src/pages/ViewInspection.jsx` · 0 → **42** `t()` calls · `useT()` added · same coverage discipline
+- `/app/frontend/src/pages/ViewDailyReport.jsx` · 0 → **53** `t()` calls · `useT()` added · 11 sections wrapped including MASCI Crews table headers, Total Hours, Subcontractors, Visitors, Equipment, Materials, Activity Log, Sign-Off
+- `/app/frontend/src/lib/i18n.js` · **70 new ES keys** appended in `iter272 · Legacy View-Surface i18n Closure Cluster` section · field Spanish, voice consistent with iter268
+- **145/145 unique `t()` strings have ES coverage** (verified via Python audit)
+- Word "Section" intentionally left in EN to match the ViewMeeting Sprint 1 precedent (iter268)
+- ViewMeeting and other surfaces UNTOUCHED — pure additive closure
+
+### Verification
+- Lint clean across all 4 modified files
+- `testing_agent_v3_fork` · iter270 report · **frontend 100% · 0 functional bugs · 0 regressions**
+- Spanish strings verified live on all 3 View pages: *Reporte de Accidente/Incidente · Reporte de Inspección de Seguridad del Sitio · Reporte Diario del Trabajo* with section sub-labels confirmed (*Nombre del Proyecto · Fecha del Incidente · Severidad · Clasificación · Registrable por OSHA · Trabajo Detenido · Información General · Clima · Retrasos de Programación · Impacto del Clima · Preparado Por · Superintendente · Cuadrilla / Personal de MASCI · Subcontratistas*)
+- Round-trip integrity: existing records (incident `871016d6-…`, inspection `d3d1efd0-…`, daily-report `890e66f3-…`) render cleanly in both languages
+- Matrix updated: rows for Safety Incidents · Daily Reports · Site Inspection now show ✅ in View · ES-verified · Complete columns
+
+### Out of scope (governance held)
+- ❌ No layout changes
+- ❌ No new coaching
+- ❌ No philosophy layers
+- ❌ No new components
+- ❌ No language toggle added to View page headers (matches ViewMeeting precedent · operator-approved)
+
+### Files touched
+- MOD · `/app/frontend/src/pages/ViewIncident.jsx`
+- MOD · `/app/frontend/src/pages/ViewInspection.jsx`
+- MOD · `/app/frontend/src/pages/ViewDailyReport.jsx`
+- MOD · `/app/frontend/src/lib/i18n.js` (+70 keys)
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (3 rows promoted to ✅ · gap #1 marked CLOSED · ship-log appended)
+
+### Testing-agent code-review notes (deferred · not blockers for this iter)
+- `i18n.js` is now 3180 lines · governance suggestion: future iter to split into `es/incident.js · es/inspection.js · es/daily.js` and compose into `DICTS` (operator gate before any restructure)
+- Several ES keys appear in multiple places (`Equipment`, `Weather`, `Signatures`, `Supervisor`) · JS object-literal silently dedups · functional but flagged for a future hygiene pass
+
+🔒 iter272 Sequence #1 **SHIPPED** · matrix gap #1 CLOSED · field foremen reading Spanish-submitted records now see Spanish labels · governance discipline held · 0 scope drift.
+
+---
+
+
 ## 2026-05-20 PM — iter270 Operational Coaching Parity · Safety Meeting Coaching Family · SHIPPED (pytest 36/36 + testing agent backend 100% / frontend 100% · 0 bugs · 0 regressions)
 
 Operator correction received post-Sprint 2: philosophy framing was not the gap — **operational coaching parity** was. The Safety Meeting workflow was the only high-cadence safety surface on the platform without an embedded `HelpTip` coaching family. Every other mature workflow (incident, writeup, daily-report, preop, checkout, time-verification, crew_eval, employee-lifecycle, document-expirations, dispatch.*, fleet.*) already had one through the proven `/app/backend/guidance/tips.py` + `tips_es.py` registry. iter270 closes that gap in one pass.

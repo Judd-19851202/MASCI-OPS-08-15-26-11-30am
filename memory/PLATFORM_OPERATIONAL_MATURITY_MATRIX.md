@@ -41,10 +41,10 @@
 | Workflow | EN/ES | Coach | 4-Kinds | Mobile | PDF | Term | Guide | View | ES-vrfy | Tests | LMS | Role | Parity | Complete |
 | --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
 | **Safety Meetings** | ✅ | ✅ 22 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Safety Incidents** | ✅ | ✅ 18 | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 |
-| **Daily Reports** | ✅ | ✅ 21 | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 |
+| **Safety Incidents** | ✅ | ✅ 18 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Daily Reports** | ✅ | ✅ 21 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Pre-Op (Equipment Inspection)** | ✅ | ✅ 16 | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 |
-| **Site Inspection (`NewInspection`)** | 🟡 | ❌ | ❌ | ✅ | ✅ | 🟡 | 🟡 | ❌ | 🟡 | ❌ | — | 🟡 | ❌ | ❌ |
+| **Site Inspection (`NewInspection`)** | ✅ | ❌ | ❌ | ✅ | ✅ | 🟡 | 🟡 | ✅ | ✅ | ❌ | — | 🟡 | ❌ | 🟡 |
 | **QA/QC Inspection** | 🟡 | ❌ | ❌ | ✅ | ✅ | ✅ | 🟡 | 🟡 | 🟡 | ❌ | — | 🟡 | ❌ | ❌ |
 | **Fleet DVIR** | ✅ | 🟡 13 | 🟡 ❌esc | ✅ | ✅ | ✅ | ✅ | — | ✅ | 🟡 | ✅ | ✅ | ✅ | 🟡 |
 | **Field Write-Ups** | ✅ | ✅ 11 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -89,7 +89,7 @@
 
 ## Highest-risk operational gaps (act on these first)
 
-1. **Legacy View-Surface i18n cluster** — `ViewIncident.jsx`, `ViewDailyReport.jsx`, `ViewInspection.jsx` all show **0 `t()` calls** and **0 `useT()`** despite the New forms being fully bilingual. Spanish-submitted records render with English labels on the read-back surface. This breaks the same parity contract `ViewMeeting` had fixed in Sprint 1.
+1. ~~**Legacy View-Surface i18n cluster**~~ — **CLOSED iter272.** `ViewIncident.jsx` · `ViewDailyReport.jsx` · `ViewInspection.jsx` now wire 145 `t()` calls + `useT()` against 70 new ES keys in `i18n.js`. testing_agent_v3_fork frontend 100%.
 2. **Field-Safety forms with NO coaching family** — `NewInspection`, `NewQaqcInspection`, `SafetyCorrectiveActions`, `SafetyFireExtinguishers`, `NewSafetyEquipmentIssuance`, `NewSafetyEquipmentTraining`, `SafetyTopicLibrary`, `JhaPlansHub` ship without ANY HelpTip family. Same gap that Safety Meeting just closed in iter270, repeated 8×.
 3. **Canonical 4-kind holes** — `fleet` family is missing `escalate`; `material-calculator` family is missing `who`. Trivial 2-tip fills, but they're real breaks of the canonical surface contract.
 4. **`Fleet DVIR` ⇄ `fleet` registry split** — DVIR form mounts only 2 HelpTipBlocks; the `fleet` registry concentrates on visibility/repair/RTS/dvir/weekly-lead, but DVIR-specific section coaching (defects/fluids/tires/controls/signoff) is thinner than the comparable Pre-Op family. Looks complete from the registry; field experience shows partial coverage.
@@ -133,3 +133,4 @@
 - `iter269` NewMeeting/ViewMeeting K4 split + K6 strip + K7 breadcrumb + K5 article · Sprint 2 closed
 - `iter270` Safety Meeting Coaching Family · operational coaching parity achieved
 - `iter271` This matrix authored · 19 workflows audited · 5 highest-risk gaps surfaced
+- `iter272` Legacy View-Surface i18n Closure Cluster · ViewIncident · ViewDailyReport · ViewInspection · 145 t() strings · 70 ES keys · testing agent frontend 100% · gap #1 from matrix CLOSED
