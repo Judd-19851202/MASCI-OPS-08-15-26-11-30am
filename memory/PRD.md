@@ -1,5 +1,56 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 AM — iter261 Safety Meeting · Phase H Batch 2 ES finish + Batch 3 uplift · COMPLETE (26 topics uplifted · 134 EN === 134 ES · 100% testing-agent pass on both batches)
+
+Two clean batches landed this session.
+
+### Phase H Batch 2 · Concrete ES finish (12 topics)
+- Previous session shipped `concrete.js` (EN) with 12 topics carrying `incident_pattern` + `severity`.
+- Spanish file `concrete.es.js` was MISSING the `incident_pattern` field on every entry — only titles, hazards, notes, refs, actions were translated. This session added 12 field-foreman Spanish `incident_pattern` paragraphs in plainspoken operational voice.
+- All 12 keys covered: `drilled_shaft` · `saw_cutting` · `curb_gutter` · `mse_wall` · `concrete_silica` · `concrete_pumping` · `formwork` · `bridge_deck_pour` · `curing_sealing` · `cold_weather_concrete` · `diamond_grinding` · `sound_wall`.
+- iter261 testing-agent verdict: **100% pass · 0 ui_bugs · 0 integration_issues · 0 design_issues · retest_needed: false**
+
+### Phase H Batch 3 · Grading + Utilities + Rigging + Fall Protection uplift (14 topics)
+- **Grading (5)** · `earthmoving_equipment` · `backing_spotters` · `compaction` · `excavator_safety` · `skid_steer` — full EN+ES `incident_pattern` rewrite + `severity` (4 `fatal_risk` + 1 `serious_injury`)
+- **Utilities (2)** · `underground_utilities` · `overhead_power` — full EN+ES rewrite + `severity` (2 `fatal_risk`)
+- **Rigging (2)** · `cranes_hoisting` · `rigging_load_securement` — full EN+ES rewrite + `severity` (2 `fatal_risk`)
+- **Fall Protection (5)** · `fall_protection` · `ladder_safety` · `aerial_lift` · `scaffold` · `bridge_overpass` — full EN+ES rewrite + `severity` (4 `fatal_risk` + 1 `serious_injury`)
+- iter262 testing-agent verdict: **100% pass · 0 ui_bugs · 0 integration_issues · 0 design_issues · retest_needed: false**
+
+### Library state after this session
+- 134 EN topics === 134 ES topics (full parity preserved)
+- **101 topics** now carry `incident_pattern` in BOTH languages (up from 87)
+- **39 EN topics** carry `severity` (12 from Concrete Batch 2 + 14 from Batch 3 + 13 from Batch 1)
+- Severity stays JS-only — testing-agent confirmed **0 DOM exposure** (no testids, no classes, no visible text containing 'fatal_risk' / 'serious_injury' / 'severity')
+- 22 domain chips intact · all counts verified · all responsive at 320/414/1280
+
+### Voice / culture upheld
+- ✅ Real-world incident pattern paragraphs in field-foreman / experienced-superintendent voice
+- ✅ Operational, plainspoken, no LMS jargon
+- ✅ EN+ES parity with zero English leakage in ES mode
+- ✅ Pattern style consistent across batches — e.g., "Pattern one — …", "The fix is …", with named industry conditions
+- ✅ Hard-edged content respected: `Fall fatalities are #1 in construction`, `100% of these fatalities are preventable through …`, `Multi-victim fatalities have happened from this exact pattern`
+
+### Files touched
+- MOD · `frontend/src/lib/topics/concrete.es.js` (+12 incident_pattern paragraphs)
+- MOD · `frontend/src/lib/topics/grading.js` + `.es.js` (5 topics × 2 languages — full rewrite with pattern + severity)
+- MOD · `frontend/src/lib/topics/utilities.js` + `.es.js` (2 topics × 2 languages)
+- MOD · `frontend/src/lib/topics/rigging.js` + `.es.js` (2 topics × 2 languages)
+- MOD · `frontend/src/lib/topics/fall_protection.js` + `.es.js` (5 topics × 2 languages)
+
+### Phase H remaining
+- ⏸ **Batch 4** · Electrical (4) · Confined Space (1) · Environmental (3) · Wellness (6) — NEXT
+- ⏸ **Batch 5** · General (18 uplift + 2 new: `general_lone_worker_field`, `general_line_of_fire`) · final dedup · final tone sweep · final testing
+
+### Future / Backlog (unchanged)
+- Public Read-Only Safety Topic Library (F1) · deferred until Phase H complete
+- Mobile UX refinement for approval workflows (chip-based)
+- Phase K4b · K5 (Unified User Management / Temp Password Onboarding)
+
+🔒 iter261 Phase H Batch 2 ES + Batch 3 **CLOSED** · 26 operational topics uplifted · 101 of 134 topics now incident-pattern voiced · bilingual · field-tested by testing agent both passes · ready for Batch 4 on operator go-ahead.
+
+---
+
 ## 2026-05-19 PM/13 — iter260 Safety Meeting Structural Cycle · COMPLETE (D1·D2·D3·D4+E5·E1 + ES i18n nit · 100% testing-agent pass)
 
 Operator-approved structural pass before Phase H Batch 2 content. All P0/P1 defects resolved + library split by domain + 5 operational context captures added end-to-end.
