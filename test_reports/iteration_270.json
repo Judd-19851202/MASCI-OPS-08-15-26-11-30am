@@ -1,0 +1,33 @@
+{
+  "summary": "iter272 Legacy View-Surface i18n Closure Cluster — Verified EN/ES translation parity on ViewIncident, ViewInspection, ViewDailyReport. Translation infrastructure (useT + i18n.js ES keys) works correctly. All visible labels flip to Spanish in ES mode. No EN-label leakage observed on rendered sections.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "ViewIncident / ViewInspection / ViewDailyReport — top header",
+        "issues": [
+          "No language toggle (data-testid=lang-en / lang-es) is rendered in the View page header. The toggle is only present on list pages. User must flip language on a list page (or any page with the toggle) before navigating to the View page. localStorage 'masci.lang' persists the choice so the View page does render in ES correctly. This matches the iter268 ViewMeeting precedent (operator-approved), so flagging as informational only — not a blocker."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "OPTIONAL: Consider whether to expose the language toggle on the View page headers for parity with list pages (not required by this iteration's scope — matches ViewMeeting precedent intentionally).",
+    "No code fixes required for iter272. Translation parity is achieved per the AC."
+  ],
+  "critical_code_review_comments": [
+    "i18n.js is now 3180 lines and growing. Consider splitting into per-feature ES dictionaries (e.g., es/incident.js, es/inspection.js, es/daily.js) and composing in DICTS — file size > 700-line guideline.",
+    "Several duplicate ES keys exist across the file (e.g., 'Equipment', 'Weather', 'Signatures', 'Supervisor' appear multiple times). JS object-literal silently overwrites — works, but lint should flag for dedup hygiene.",
+    "No-op observations: ViewIncident, ViewInspection, ViewDailyReport correctly added useT() + t() wiring matching the ViewMeeting iter268 pattern. Lint clean per main agent."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "None — used existing records: incident 871016d6-..., inspection d3d1efd0-..., daily report 890e66f3-...",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Login: jaymn.judd@mascigc.com / Maddix123! at /sign-in. Language toggle (data-testid=lang-en / lang-es) lives in the TOP HEADER but is hidden on read-only View pages (Incident/Inspection/DailyReport/Meeting). To verify ES on View pages, set localStorage['masci.lang']='es' before navigating, OR toggle ES on a list page first then click into the record. Verified ES translations rendered correctly in all 3 View pages: Reporte de Accidente/Incidente, Reporte de Inspección de Seguridad del Sitio, Reporte Diario del Trabajo — including section sub-labels (Nombre del Proyecto, Número de Proyecto, Fecha del Incidente, Severidad, Clasificación, Registrable por OSHA, Trabajo Detenido, Información General, Clima, Retrasos de Programación, Impacto del Clima, Preparado Por, Superintendente, Capataz / Supervisor, Cuadrilla / Personal de MASCI, Subcontratistas, Condiciones Climáticas, etc.). Conditional sections (Open in Maps button, Safety Escalation, Sign-Off, Total Hours) only render when underlying data exists in the record — not a translation bug. innerText in Chromium respects CSS text-transform: uppercase so case-insensitive substring matching is required for label-presence assertions.",
+  "rca of the issue": "N/A — no functional bug found. Scope of iter272 (translation parity on 3 View pages) is satisfied. Initial false-negatives in automated label scan were caused by (a) CSS text-transform:uppercase rendering all section sub-labels in caps which innerText returns uppercased, and (b) View pages not exposing the lang toggle in their own header — pre-setting localStorage['masci.lang']='es' resolved both and visual screenshots confirm complete ES translation."
+}

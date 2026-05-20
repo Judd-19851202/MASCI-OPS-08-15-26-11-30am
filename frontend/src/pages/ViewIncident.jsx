@@ -19,6 +19,7 @@ import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
+import { useT } from "@/lib/i18n";
 import {
   SEVERITY_LEVELS,
   ROOT_CAUSE_CATEGORIES,
@@ -53,6 +54,7 @@ const severityOf = (key) =>
   SEVERITY_LEVELS.find((s) => s.key === key) || SEVERITY_LEVELS[0];
 
 export default function ViewIncident() {
+  const { t } = useT();
   const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
@@ -69,7 +71,7 @@ export default function ViewIncident() {
         const res = await api.get(`/incidents/${id}`);
         if (alive) setData(res.data);
       } catch {
-        toast.error("Incident not found");
+        toast.error(t("Incident not found"));
         navigate(listUrl);
       } finally {
         if (alive) setLoading(false);
@@ -78,7 +80,7 @@ export default function ViewIncident() {
     return () => {
       alive = false;
     };
-  }, [id, navigate, listUrl]);
+  }, [id, navigate, listUrl, t]);
 
   // Auto-print after the page renders if we landed here via ?autoprint=1
   useEffect(() => {
@@ -86,21 +88,21 @@ export default function ViewIncident() {
   }, [loading, data]);
 
   const handleDelete = async () => {
-    if (!window.confirm("Delete this incident report? This cannot be undone."))
+    if (!window.confirm(t("Delete this incident report? This cannot be undone.")))
       return;
     try {
       await api.delete(`/incidents/${id}`);
-      toast.success("Deleted");
+      toast.success(t("Deleted"));
       navigate(listUrl);
     } catch {
-      toast.error("Delete failed");
+      toast.error(t("Delete failed"));
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-500">
-        <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
+        <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading…")}
       </div>
     );
   }
@@ -118,7 +120,7 @@ export default function ViewIncident() {
       <div className="caution-stripe no-print" />
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <BackLink to={listUrl} label="Incidents" variant="header" testId="back-link" />
+          <BackLink to={listUrl} label={t("Incidents")} variant="header" testId="back-link" />
           <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
             <EditProjectDialog
@@ -142,14 +144,14 @@ export default function ViewIncident() {
               className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
               data-testid="email-btn"
             >
-              <Mail className="w-4 h-4 mr-1" /> Email
+              <Mail className="w-4 h-4 mr-1" /> {t("Email")}
             </Button>
             <Button
               onClick={printReport}
               className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
               data-testid="print-btn"
             >
-              <Printer className="w-4 h-4 mr-1" /> Print / PDF
+              <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
             </Button>
           </div>
         </div>
@@ -166,7 +168,7 @@ export default function ViewIncident() {
             homeLink={hubHome} />
             <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
-              Accident / Incident Report
+              {t("Accident / Incident Report")}
             </h1>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
               {data.doc_id && (
@@ -174,11 +176,11 @@ export default function ViewIncident() {
                   className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide"
                   data-testid="record-doc-id-badge"
                 >
-                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">Doc ID</span>
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
                   {data.doc_id}
                 </span>
               )}
-              <span>Report ID · {data.id?.slice(0, 8).toUpperCase()}</span>
+              <span>{t("Report ID")} · {data.id?.slice(0, 8).toUpperCase()}</span>
             </div>
             {data.submit_language === "es" && (
               <div className="mt-2">
@@ -194,7 +196,7 @@ export default function ViewIncident() {
               </span>
               {data.osha_recordable === "Yes" && (
                 <span className="inline-flex items-center px-2.5 py-1 bg-red-900 text-white text-[11px] font-mono uppercase tracking-wider rounded font-bold">
-                  OSHA Recordable
+                  {t("OSHA Recordable")}
                 </span>
               )}
               <span className="inline-flex items-center px-2.5 py-1 bg-slate-800 text-white text-[11px] font-mono uppercase tracking-wider rounded">
@@ -204,13 +206,13 @@ export default function ViewIncident() {
           </div>
         </div>
 
-        <ReportSection number="01" title="Report Information">
+        <ReportSection number="01" title={t("Report Information")}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <KV label="Project Name" value={data.project_name} />
-            <KV label="Project Number" value={data.project_number} />
+            <KV label={t("Project Name")} value={data.project_name} />
+            <KV label={t("Project Number")} value={data.project_number} />
             <div className="sm:col-span-2">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                Location
+                {t("Location")}
               </div>
               <div className="text-base text-slate-900 mt-1 whitespace-pre-wrap">
                 {data.location || "—"}
@@ -227,7 +229,7 @@ export default function ViewIncident() {
                     rel="noopener noreferrer"
                     className="text-red-700 hover:text-red-800 font-bold no-print"
                   >
-                    · Open in Maps
+                    · {t("Open in Maps")}
                   </a>
                 </div>
               )}
@@ -240,67 +242,67 @@ export default function ViewIncident() {
               )}
             </div>
             <KV
-              label="Incident Date"
+              label={t("Incident Date")}
               value={formatDateLong(data.incident_date)}
             />
-            <KV label="Incident Time" value={data.incident_time} />
+            <KV label={t("Incident Time")} value={data.incident_time} />
             <KV
-              label="Reported Date"
+              label={t("Reported Date")}
               value={formatDateLong(data.reported_date)}
             />
-            <KV label="Reported By" value={data.reported_by} />
-            <KV label="Supervisor" value={data.supervisor_name} />
+            <KV label={t("Reported By")} value={data.reported_by} />
+            <KV label={t("Supervisor")} value={data.supervisor_name} />
           </div>
         </ReportSection>
 
-        <ReportSection number="02" title="Classification">
+        <ReportSection number="02" title={t("Classification")}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <KV label="Incident Type" value={data.incident_type} />
-            <KV label="Severity" value={sev.label} />
-            <KV label="OSHA Recordable" value={data.osha_recordable} />
-            <KV label="Work Stopped" value={data.work_stopped} />
+            <KV label={t("Incident Type")} value={data.incident_type} />
+            <KV label={t("Severity")} value={sev.label} />
+            <KV label={t("OSHA Recordable")} value={data.osha_recordable} />
+            <KV label={t("Work Stopped")} value={data.work_stopped} />
           </div>
         </ReportSection>
 
         {(data.person_name || data.body_part || data.injury_nature) && (
-          <ReportSection number="03" title="Person Involved">
+          <ReportSection number="03" title={t("Person Involved")}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <KV label="Name" value={data.person_name} />
-              <KV label="Role / Trade" value={data.person_role} />
-              <KV label="Employer" value={data.person_employer} />
+              <KV label={t("Name")} value={data.person_name} />
+              <KV label={t("Role / Trade")} value={data.person_role} />
+              <KV label={t("Employer")} value={data.person_employer} />
               <KV
-                label="Years Experience"
+                label={t("Years Experience")}
                 value={data.person_years_experience}
               />
-              <KV label="Body Part" value={data.body_part} />
-              <KV label="Injury Nature" value={data.injury_nature} />
+              <KV label={t("Body Part")} value={data.body_part} />
+              <KV label={t("Injury Nature")} value={data.injury_nature} />
               <KV
-                label="Treatment Provided"
+                label={t("Treatment Provided")}
                 value={data.treatment_provided}
                 full
               />
-              <KV label="Medical Facility" value={data.medical_facility} />
-              <KV label="Sent Home / Off Site" value={data.sent_home} />
+              <KV label={t("Medical Facility")} value={data.medical_facility} />
+              <KV label={t("Sent Home / Off Site")} value={data.sent_home} />
             </div>
           </ReportSection>
         )}
 
-        <ReportSection number="04" title="What Happened">
+        <ReportSection number="04" title={t("What Happened")}>
           <div className="space-y-4">
-            <KV label="Description" value={data.description} full />
-            <KV label="Immediate Cause" value={data.immediate_cause} full />
+            <KV label={t("Description")} value={data.description} full />
+            <KV label={t("Immediate Cause")} value={data.immediate_cause} full />
             <KV
-              label="Contributing Factors"
+              label={t("Contributing Factors")}
               value={data.contributing_factors}
               full
             />
           </div>
         </ReportSection>
 
-        <ReportSection number="05" title="Root Cause Analysis">
+        <ReportSection number="05" title={t("Root Cause Analysis")}>
           {checkedRootCauses.length === 0 ? (
             <div className="text-slate-500 text-sm">
-              No root cause categories selected.
+              {t("No root cause categories selected.")}
             </div>
           ) : (
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -317,17 +319,17 @@ export default function ViewIncident() {
           )}
           {data.root_cause_notes && (
             <div className="mt-4">
-              <KV label="Notes" value={data.root_cause_notes} full />
+              <KV label={t("Notes")} value={data.root_cause_notes} full />
             </div>
           )}
         </ReportSection>
 
         <ReportSection
           number="06"
-          title={`Witnesses (${data.witnesses?.length || 0})`}
+          title={`${t("Witnesses")} (${data.witnesses?.length || 0})`}
         >
           {data.witnesses?.length === 0 ? (
-            <div className="text-slate-500 text-sm">No witnesses listed.</div>
+            <div className="text-slate-500 text-sm">{t("No witnesses listed.")}</div>
           ) : (
             <div className="space-y-3">
               {(data.witnesses || []).map((w, i) => (
@@ -336,7 +338,7 @@ export default function ViewIncident() {
                   className="border-2 border-slate-200 rounded-md p-3 print-row"
                 >
                   <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                    Witness {i + 1}
+                    {t("Witness")} {i + 1}
                   </div>
                   <div className="font-bold text-slate-900 mt-1">
                     {w.name || "—"}
@@ -352,22 +354,22 @@ export default function ViewIncident() {
           )}
         </ReportSection>
 
-        <ReportSection number="07" title="Corrective Actions & Follow-Up">
+        <ReportSection number="07" title={t("Corrective Actions & Follow-Up")}>
           <div className="space-y-4">
             <KV
-              label="Immediate Actions Taken"
+              label={t("Immediate Actions Taken")}
               value={data.immediate_actions_taken}
               full
             />
             <KV
-              label="Long-Term Corrective Actions"
+              label={t("Long-Term Corrective Actions")}
               value={data.corrective_actions}
               full
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <KV label="Responsible Party" value={data.responsible_party} />
+              <KV label={t("Responsible Party")} value={data.responsible_party} />
               <KV
-                label="Target Completion"
+                label={t("Target Completion")}
                 value={
                   data.target_completion_date
                     ? formatDateLong(data.target_completion_date)
@@ -378,19 +380,19 @@ export default function ViewIncident() {
           </div>
         </ReportSection>
 
-        <ReportSection number="08" title="Notifications">
+        <ReportSection number="08" title={t("Notifications")}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <KV label="Safety Manager" value={data.notified_safety_manager} />
-            <KV label="Project Manager" value={data.notified_pm} />
-            <KV label="General Contractor" value={data.notified_gc} />
-            <KV label="Owner / Agency" value={data.notified_owner} />
-            <KV label="OSHA" value={data.notified_osha} />
-            <KV label="Other" value={data.notified_other} />
+            <KV label={t("Safety Manager")} value={data.notified_safety_manager} />
+            <KV label={t("Project Manager")} value={data.notified_pm} />
+            <KV label={t("General Contractor")} value={data.notified_gc} />
+            <KV label={t("Owner / Agency")} value={data.notified_owner} />
+            <KV label={t("OSHA")} value={data.notified_osha} />
+            <KV label={t("Other")} value={data.notified_other} />
           </div>
         </ReportSection>
 
         {data.photos?.length > 0 && (
-          <ReportSection number="09" title={`Photos (${data.photos.length})`}>
+          <ReportSection number="09" title={`${t("Photos")} (${data.photos.length})`}>
             <div className="flex justify-end mb-2 print:hidden">
               <PhotoZipDownload
                 photos={data.photos}
@@ -419,11 +421,11 @@ export default function ViewIncident() {
           </ReportSection>
         )}
 
-        <ReportSection number="10" title="Signatures">
+        <ReportSection number="10" title={t("Signatures")}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
-                Reporter
+                {t("Reporter")}
               </div>
               <div className="text-base font-bold text-slate-900 mb-2">
                 {data.reported_by || "—"}
@@ -436,13 +438,13 @@ export default function ViewIncident() {
                     className="max-h-[120px]"
                   />
                 ) : (
-                  <span className="text-slate-400 text-sm">No signature</span>
+                  <span className="text-slate-400 text-sm">{t("No signature")}</span>
                 )}
               </div>
             </div>
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
-                Supervisor
+                {t("Supervisor")}
               </div>
               <div className="text-base font-bold text-slate-900 mb-2">
                 {data.supervisor_name || "—"}
@@ -455,7 +457,7 @@ export default function ViewIncident() {
                     className="max-h-[120px]"
                   />
                 ) : (
-                  <span className="text-slate-400 text-sm">No signature</span>
+                  <span className="text-slate-400 text-sm">{t("No signature")}</span>
                 )}
               </div>
             </div>
@@ -463,9 +465,9 @@ export default function ViewIncident() {
         </ReportSection>
 
         <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8 print-section">
-          Generated{" "}
+          {t("Generated")}{" "}
           {data.created_at ? new Date(data.created_at).toLocaleString() : ""} ·{" "}
-          {company.company_name || "MASCI"} Incident Report
+          {company.company_name || "MASCI"} {t("Incident Report")}
         </div>
         {(company.address ||
           company.phone ||

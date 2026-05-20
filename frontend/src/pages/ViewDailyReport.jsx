@@ -26,6 +26,7 @@ import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
+import { useT } from "@/lib/i18n";
 
 // 24-hour HH:MM → 12-hour h:MM AM/PM (returns the original string if
 // it can't be parsed so we never silently drop user-typed data).
@@ -122,6 +123,7 @@ const Table = ({ headers, rows, emptyText }) => {
 };
 
 export default function ViewDailyReport() {
+  const { t } = useT();
   const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
@@ -159,21 +161,21 @@ export default function ViewDailyReport() {
   }, [loading, data]);
 
   const handleDelete = async () => {
-    if (!window.confirm("Delete this daily report? This cannot be undone."))
+    if (!window.confirm(t("Delete this daily report? This cannot be undone.")))
       return;
     try {
       await api.delete(`/daily-reports/${id}`);
-      toast.success("Deleted");
+      toast.success(t("Deleted"));
       navigate(listUrl);
     } catch {
-      toast.error("Delete failed");
+      toast.error(t("Delete failed"));
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-500">
-        <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
+        <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading…")}
       </div>
     );
   }
@@ -192,7 +194,7 @@ export default function ViewDailyReport() {
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="back-link"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Daily Reports
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Daily Reports")}
           </Link>
           <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
@@ -217,14 +219,14 @@ export default function ViewDailyReport() {
               className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-white hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
               data-testid="email-btn"
             >
-              <Mail className="w-4 h-4 mr-1" /> Email
+              <Mail className="w-4 h-4 mr-1" /> {t("Email")}
             </Button>
             <Button
               onClick={printReport}
               className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
               data-testid="print-btn"
             >
-              <Printer className="w-4 h-4 mr-1" /> Print / PDF
+              <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
             </Button>
           </div>
         </div>
@@ -241,7 +243,7 @@ export default function ViewDailyReport() {
             homeLink={hubHome} />
             <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
-              Daily Job Report
+              {t("Daily Job Report")}
             </h1>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
               {data.doc_id && (
@@ -249,11 +251,11 @@ export default function ViewDailyReport() {
                   className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide"
                   data-testid="record-doc-id-badge"
                 >
-                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">Doc ID</span>
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
                   {data.doc_id}
                 </span>
               )}
-              <span>Report ID · {data.id?.slice(0, 8).toUpperCase()}</span>
+              <span>{t("Report ID")} · {data.id?.slice(0, 8).toUpperCase()}</span>
               {data.report_number ? <span>· #{data.report_number}</span> : null}
             </div>
             {data.submit_language === "es" && (
@@ -264,13 +266,13 @@ export default function ViewDailyReport() {
           </div>
         </div>
 
-        <ReportSection number="01" title="Report Information">
+        <ReportSection number="01" title={t("Report Information")}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <KV label="Project Name" value={data.project_name} />
-            <KV label="Project Number" value={data.project_number} />
+            <KV label={t("Project Name")} value={data.project_name} />
+            <KV label={t("Project Number")} value={data.project_number} />
             <div className="sm:col-span-2">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                Location
+                {t("Location")}
               </div>
               <div className="text-base text-slate-900 mt-1 whitespace-pre-wrap">
                 {data.location || "—"}
@@ -289,13 +291,13 @@ export default function ViewDailyReport() {
                 />
               )}
             </div>
-            <KV label="Date" value={formatDateLong(data.report_date)} />
-            <KV label="Prepared By" value={data.prepared_by} />
-            <KV label="Superintendent" value={data.superintendent} />
+            <KV label={t("Date")} value={formatDateLong(data.report_date)} />
+            <KV label={t("Prepared By")} value={data.prepared_by} />
+            <KV label={t("Superintendent")} value={data.superintendent} />
           </div>
         </ReportSection>
 
-        <ReportSection number="02" title="Weather">
+        <ReportSection number="02" title={t("Weather")}>
           {data.weather_summary && (
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 font-bold flex items-center gap-2">
               <CloudSun className="w-4 h-4 text-amber-600" />
@@ -321,44 +323,44 @@ export default function ViewDailyReport() {
               ))}
             </div>
           ) : (
-            <div className="text-slate-500 text-sm">No weather captured.</div>
+            <div className="text-slate-500 text-sm">{t("No weather captured.")}</div>
           )}
         </ReportSection>
 
-        <ReportSection number="03" title="General Information">
+        <ReportSection number="03" title={t("General Information")}>
           <div className="grid grid-cols-2 gap-4">
-            <KV label="Schedule Delays" value={data.schedule_delays} />
-            <KV label="Weather Impact" value={data.weather_impact} />
-            <KV label="Accidents on Site" value={data.safety_incidents_today} />
-            <KV label="Injuries Reported" value={data.injuries_reported} />
+            <KV label={t("Schedule Delays")} value={data.schedule_delays} />
+            <KV label={t("Weather Impact")} value={data.weather_impact} />
+            <KV label={t("Accidents on Site")} value={data.safety_incidents_today} />
+            <KV label={t("Injuries Reported")} value={data.injuries_reported} />
             {data.incident_notes && (
-              <KV label="Detail" value={data.incident_notes} full />
+              <KV label={t("Detail")} value={data.incident_notes} full />
             )}
             {(data.safety_incidents_today === "Yes" ||
               data.injuries_reported === "Yes") && (
               <div className="sm:col-span-2 mt-2 border-2 border-red-600 bg-red-50 rounded-md p-3">
                 <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold mb-2">
-                  Safety Escalation
+                  {t("Safety Escalation")}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <KV label="Safety Notified" value={data.safety_notified} />
+                  <KV label={t("Safety Notified")} value={data.safety_notified} />
                   {data.safety_notified === "Yes" && (
                     <>
                       <KV
-                        label="Contacted"
+                        label={t("Contacted")}
                         value={data.safety_contact_person}
                       />
                       <KV
-                        label="Time of Contact"
+                        label={t("Time of Contact")}
                         value={data.safety_contact_time}
                       />
                       <KV
-                        label="Incident Report Filed"
+                        label={t("Incident Report Filed")}
                         value={data.incident_report_filled}
                       />
                       {data.incident_report_filled === "Yes" && (
                         <KV
-                          label="Incident Report Time"
+                          label={t("Incident Report Time")}
                           value={data.incident_report_time}
                         />
                       )}
@@ -368,14 +370,14 @@ export default function ViewDailyReport() {
               </div>
             )}
             {data.general_notes && (
-              <KV label="General Notes" value={data.general_notes} full />
+              <KV label={t("General Notes")} value={data.general_notes} full />
             )}
           </div>
         </ReportSection>
 
-        <ReportSection number="04" title={`MASCI Crews (${data.masci_crews?.length || 0})`}>
+        <ReportSection number="04" title={`${t("MASCI Crews")} (${data.masci_crews?.length || 0})`}>
           <Table
-            headers={["Name", "Trade / Role", "Start", "Stop", "Lunch", "Hrs", "Work Performed"]}
+            headers={[t("Name"), t("Trade / Role"), t("Start"), t("Stop"), t("Lunch"), t("Hrs"), t("Work Performed")]}
             rows={[
               ...(data.masci_crews || []).map((r, i) => {
                 // Build a small inline gross/net math line shown
@@ -408,7 +410,7 @@ export default function ViewDailyReport() {
                     "",
                     "",
                     "",
-                    <strong key="tl">Total Hours</strong>,
+                    <strong key="tl">{t("Total Hours")}</strong>,
                     <strong key="th">
                       {(data.masci_crews || [])
                         .reduce((s, r) => s + (parseFloat(r.hours) || 0), 0)
@@ -418,13 +420,13 @@ export default function ViewDailyReport() {
                   ]]
                 : []),
             ]}
-            emptyText="No MASCI crews on site."
+            emptyText={t("No MASCI crews on site.")}
           />
         </ReportSection>
 
-        <ReportSection number="05" title={`Subcontractors (${data.subcontractors?.length || 0})`}>
+        <ReportSection number="05" title={`${t("Subcontractors")} (${data.subcontractors?.length || 0})`}>
           <Table
-            headers={["Company", "Trade", "Lead", "#", "Hrs", "Work Performed"]}
+            headers={[t("Company"), t("Trade"), t("Lead"), t("#"), t("Hrs"), t("Work Performed")]}
             rows={(data.subcontractors || []).map((r) => [
               r.company,
               r.trade,
@@ -433,7 +435,7 @@ export default function ViewDailyReport() {
               r.hours,
               r.work_performed,
             ])}
-            emptyText="No subcontractors on site."
+            emptyText={t("No subcontractors on site.")}
           />
           {(data.subcontractors || []).some((s) => (s.photos?.length || 0) > 0 || s.attachment_note) && (
             <div className="mt-4 space-y-4" data-testid="dr-sub-attachments">
@@ -447,7 +449,7 @@ export default function ViewDailyReport() {
                     data-testid={`dr-sub-attachment-${idx}`}
                   >
                     <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">
-                      {s.company || `Subcontractor #${idx + 1}`}
+                      {s.company || `${t("Subcontractor")} #${idx + 1}`}
                       {s.trade ? ` · ${s.trade}` : ""}
                     </div>
                     {s.attachment_note && (
@@ -485,9 +487,9 @@ export default function ViewDailyReport() {
           )}
         </ReportSection>
 
-        <ReportSection number="06" title={`Visitors (${data.visitors?.length || 0})`}>
+        <ReportSection number="06" title={`${t("Visitors")} (${data.visitors?.length || 0})`}>
           <Table
-            headers={["Name", "Company", "In", "Out", "Purpose"]}
+            headers={[t("Name"), t("Company"), t("In"), t("Out"), t("Purpose")]}
             rows={(data.visitors || []).map((r) => [
               r.name,
               r.company,
@@ -495,13 +497,13 @@ export default function ViewDailyReport() {
               fmt12h(r.time_out),
               r.purpose,
             ])}
-            emptyText="No site visitors."
+            emptyText={t("No site visitors.")}
           />
         </ReportSection>
 
-        <ReportSection number="07" title={`Equipment (${data.equipment?.length || 0})`}>
+        <ReportSection number="07" title={`${t("Equipment")} (${data.equipment?.length || 0})`}>
           <Table
-            headers={["Description", "Hrs", "Delivered", "Removed", "Notes"]}
+            headers={[t("Description"), t("Hrs"), t("Delivered"), t("Removed"), t("Notes")]}
             rows={(data.equipment || []).map((r) => [
               r.description,
               r.hours_used,
@@ -509,13 +511,13 @@ export default function ViewDailyReport() {
               fmt12h(r.time_removed),
               r.notes,
             ])}
-            emptyText="No equipment logged."
+            emptyText={t("No equipment logged.")}
           />
         </ReportSection>
 
-        <ReportSection number="08" title={`Materials (${data.materials?.length || 0})`}>
+        <ReportSection number="08" title={`${t("Materials")} (${data.materials?.length || 0})`}>
           <Table
-            headers={["Description", "Qty", "Unit", "Supplier", "Ticket #", "Notes"]}
+            headers={[t("Description"), t("Qty"), t("Unit"), t("Supplier"), t("Ticket #"), t("Notes")]}
             rows={(data.materials || []).map((r) => [
               r.description,
               r.quantity,
@@ -524,13 +526,13 @@ export default function ViewDailyReport() {
               r.ticket_number,
               r.notes,
             ])}
-            emptyText="No material deliveries."
+            emptyText={t("No material deliveries.")}
           />
         </ReportSection>
 
-        <ReportSection number="09" title={`Activity Log (${data.activities?.length || 0})`}>
+        <ReportSection number="09" title={`${t("Activity Log")} (${data.activities?.length || 0})`}>
           <Table
-            headers={["Activity", "% Done", "From", "To", "Notes"]}
+            headers={[t("Activity"), t("% Done"), t("From"), t("To"), t("Notes")]}
             rows={(data.activities || []).map((r) => [
               r.activity,
               r.percent_complete != null && r.percent_complete !== ""
@@ -540,12 +542,12 @@ export default function ViewDailyReport() {
               r.station_to,
               r.notes,
             ])}
-            emptyText="No activities logged."
+            emptyText={t("No activities logged.")}
           />
         </ReportSection>
 
         {data.photos?.length > 0 && (
-          <ReportSection number="10" title={`Photos (${data.photos.length})`}>
+          <ReportSection number="10" title={`${t("Photos")} (${data.photos.length})`}>
             <div className="flex justify-end mb-2 print:hidden">
               <PhotoZipDownload
                 photos={data.photos}

@@ -26,6 +26,7 @@ import {
 } from "@/lib/inspectionSchema";
 import { formatDateLong } from "@/lib/utils";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
+import { useT } from "@/lib/i18n";
 
 const StatusBadge = ({ value }) => {
   const v = (value || "").toString().toLowerCase();
@@ -96,6 +97,7 @@ const ReportSection = ({ number, title, children }) => (
 );
 
 export default function ViewInspection() {
+  const { t } = useT();
   const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
@@ -112,7 +114,7 @@ export default function ViewInspection() {
         const res = await api.get(`/inspections/${id}`);
         if (alive) setData(res.data);
       } catch {
-        toast.error("Inspection not found");
+        toast.error(t("Inspection not found"));
         navigate(listUrl);
       } finally {
         if (alive) setLoading(false);
@@ -121,7 +123,7 @@ export default function ViewInspection() {
     return () => {
       alive = false;
     };
-  }, [id, navigate, listUrl]);
+  }, [id, navigate, listUrl, t]);
 
   // Auto-print after the page renders if we landed here via ?autoprint=1
   useEffect(() => {
@@ -129,20 +131,20 @@ export default function ViewInspection() {
   }, [loading, data]);
 
   const handleDelete = async () => {
-    if (!window.confirm("Delete this inspection? This cannot be undone.")) return;
+    if (!window.confirm(t("Delete this inspection? This cannot be undone."))) return;
     try {
       await api.delete(`/inspections/${id}`);
-      toast.success("Deleted");
+      toast.success(t("Deleted"));
       navigate(listUrl);
     } catch {
-      toast.error("Delete failed");
+      toast.error(t("Delete failed"));
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-500">
-        <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
+        <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading…")}
       </div>
     );
   }
@@ -172,7 +174,7 @@ export default function ViewInspection() {
       <div className="caution-stripe no-print" />
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <BackLink to={listUrl} label="Reports" variant="header" testId="back-link" />
+          <BackLink to={listUrl} label={t("Reports")} variant="header" testId="back-link" />
           <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
             <EditProjectDialog
@@ -196,14 +198,14 @@ export default function ViewInspection() {
               className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
               data-testid="email-btn"
             >
-              <Mail className="w-4 h-4 mr-1" /> Email
+              <Mail className="w-4 h-4 mr-1" /> {t("Email")}
             </Button>
             <Button
               onClick={printReport}
               className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
               data-testid="print-btn"
             >
-              <Printer className="w-4 h-4 mr-1" /> Print / PDF
+              <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
             </Button>
           </div>
         </div>
@@ -216,7 +218,7 @@ export default function ViewInspection() {
             <MasciLogo variant="mark" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink={hubHome} />
             <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
-              Job Site Safety Inspection Report
+              {t("Job Site Safety Inspection Report")}
             </h1>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
               {data.doc_id && (
@@ -224,11 +226,11 @@ export default function ViewInspection() {
                   className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide"
                   data-testid="record-doc-id-badge"
                 >
-                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">Doc ID</span>
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
                   {data.doc_id}
                 </span>
               )}
-              <span>Report ID · {data.id?.slice(0, 8).toUpperCase()}</span>
+              <span>{t("Report ID")} · {data.id?.slice(0, 8).toUpperCase()}</span>
             </div>
             {data.submit_language === "es" && (
               <div className="mt-2">
@@ -247,7 +249,7 @@ export default function ViewInspection() {
             <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-red-700 text-white rounded-md self-start">
               <AlertTriangle className="w-5 h-5" />
               <span className="font-bold uppercase tracking-wide text-sm">
-                {data.stop_work_issued === "Yes" ? "Stop Work" : "Hazard Found"}
+                {data.stop_work_issued === "Yes" ? t("Stop Work") : t("Hazard Found")}
               </span>
             </div>
           )}
@@ -256,13 +258,13 @@ export default function ViewInspection() {
         {/* Grade banner */}
         <GradeBanner grade={grade} />
 
-        <ReportSection number="01" title="Project / Inspection Information">
+        <ReportSection number="01" title={t("Project / Inspection Information")}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <KV label="Project Name" value={data.project_name} />
-            <KV label="Project Number" value={data.project_number} />
+            <KV label={t("Project Name")} value={data.project_name} />
+            <KV label={t("Project Number")} value={data.project_number} />
             <div className="sm:col-span-2">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                Location
+                {t("Location")}
               </div>
               <div className="text-base text-slate-900 mt-1 whitespace-pre-wrap">
                 {data.location || "—"}
@@ -281,7 +283,7 @@ export default function ViewInspection() {
                     className="text-red-700 hover:text-red-800 font-bold no-print"
                     data-testid="view-gps-map-link"
                   >
-                    · Open in Maps
+                    · {t("Open in Maps")}
                   </a>
                 </div>
               )}
@@ -293,24 +295,24 @@ export default function ViewInspection() {
                 />
               )}
             </div>
-            <KV label="Date" value={formatDateLong(data.inspection_date)} />
-            <KV label="Time" value={data.inspection_time} />
-            <KV label="Operation" value={data.operation} />
-            <KV label="Inspector" value={data.inspector_name} />
-            <KV label="Foreman / Supervisor" value={data.foreman_name} />
-            <KV label="Crew / MASCI Personnel" value={data.crew_personnel} full />
-            <KV label="Subcontractors" value={data.subcontractors} full />
-            <KV label="Weather Conditions" value={data.weather_conditions} full />
+            <KV label={t("Date")} value={formatDateLong(data.inspection_date)} />
+            <KV label={t("Time")} value={data.inspection_time} />
+            <KV label={t("Operation")} value={data.operation} />
+            <KV label={t("Inspector")} value={data.inspector_name} />
+            <KV label={t("Foreman / Supervisor")} value={data.foreman_name} />
+            <KV label={t("Crew / MASCI Personnel")} value={data.crew_personnel} full />
+            <KV label={t("Subcontractors")} value={data.subcontractors} full />
+            <KV label={t("Weather Conditions")} value={data.weather_conditions} full />
           </div>
         </ReportSection>
 
-        <ReportSection number="02" title="Work Activity Taking Place Onsite">
+        <ReportSection number="02" title={t("Work Activity Taking Place Onsite")}>
           <p className="text-base text-slate-900 whitespace-pre-wrap">
             {data.work_activity || "—"}
           </p>
         </ReportSection>
 
-        <ReportSection number="03" title="PPE Compliance">
+        <ReportSection number="03" title={t("PPE Compliance")}>
           {PPE_ITEMS.map((item) => (
             <ReadRow
               key={item.key}
@@ -339,7 +341,7 @@ export default function ViewInspection() {
                   {block.notes && (
                     <div className="mt-3">
                       <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                        Notes
+                        {t("Notes")}
                       </div>
                       <p className="text-sm text-slate-900 whitespace-pre-wrap">
                         {block.notes}
@@ -352,7 +354,7 @@ export default function ViewInspection() {
           );
         })}
 
-        <ReportSection number="11" title="General Site Hazards & Housekeeping">
+        <ReportSection number="11" title={t("General Site Hazards & Housekeeping")}>
           {SITE_HAZARD_ITEMS.map((item) => (
             <ReadRow
               key={item.key}
@@ -362,16 +364,16 @@ export default function ViewInspection() {
           ))}
         </ReportSection>
 
-        <ReportSection number="12" title="Safety Issues / Corrective Actions">
+        <ReportSection number="12" title={t("Safety Issues / Corrective Actions")}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-            <KV label="Hazards Observed" value={data.hazards_observed} />
-            <KV label="Stop Work Issued" value={data.stop_work_issued} />
-            <KV label="Corrected On Site" value={data.corrected_on_site} />
+            <KV label={t("Hazards Observed")} value={data.hazards_observed} />
+            <KV label={t("Stop Work Issued")} value={data.stop_work_issued} />
+            <KV label={t("Corrected On Site")} value={data.corrected_on_site} />
           </div>
-          <KV label="Responsible Party" value={data.responsible_party} full />
+          <KV label={t("Responsible Party")} value={data.responsible_party} full />
           <div className="mt-3">
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-              Description / Corrective Action Notes
+              {t("Description / Corrective Action Notes")}
             </div>
             <p className="text-base text-slate-900 mt-1 whitespace-pre-wrap">
               {data.corrective_action_notes || "—"}
@@ -381,7 +383,7 @@ export default function ViewInspection() {
             <div className="mt-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                  Photo Documentation ({data.photos.length})
+                  {t("Photo Documentation")} ({data.photos.length})
                 </div>
                 <PhotoZipDownload
                   photos={data.photos}
@@ -411,11 +413,11 @@ export default function ViewInspection() {
           )}
         </ReportSection>
 
-        <ReportSection number="13" title="Signatures">
+        <ReportSection number="13" title={t("Signatures")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
-                Inspector
+                {t("Inspector")}
               </div>
               <div className="text-base font-bold text-slate-900 mb-2">
                 {data.inspector_name || "—"}
@@ -429,13 +431,13 @@ export default function ViewInspection() {
                     data-testid="view-inspector-sig"
                   />
                 ) : (
-                  <span className="text-slate-400 text-sm">No signature</span>
+                  <span className="text-slate-400 text-sm">{t("No signature")}</span>
                 )}
               </div>
             </div>
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
-                Foreman / Supervisor
+                {t("Foreman / Supervisor")}
               </div>
               <div className="text-base font-bold text-slate-900 mb-2">
                 {data.foreman_name || "—"}
@@ -449,7 +451,7 @@ export default function ViewInspection() {
                     data-testid="view-foreman-sig"
                   />
                 ) : (
-                  <span className="text-slate-400 text-sm">No signature</span>
+                  <span className="text-slate-400 text-sm">{t("No signature")}</span>
                 )}
               </div>
             </div>
@@ -457,7 +459,7 @@ export default function ViewInspection() {
         </ReportSection>
 
         <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8 print-section">
-          Generated {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || "MASCI"} Job Site Safety
+          {t("Generated")} {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || "MASCI"} {t("Job Site Safety")}
         </div>
 
         {/* Print-only company info footer */}

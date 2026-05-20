@@ -3062,6 +3062,104 @@ const ES = {
   "Lead Walk-Around": "Recorrido del Líder",
   "Emergency Equipment Check": "Revisión de Equipo de Emergencia",
 
+  // ─── iter272 · Legacy View-Surface i18n Closure Cluster ─────────
+  // ViewIncident · ViewInspection · ViewDailyReport — translation parity
+  // closure. Mirrors the ViewMeeting Sprint 1 (iter268) pattern.
+
+  /* shared chrome */
+  "Reports": "Reportes",
+  "Incidents": "Incidentes",
+
+  /* delete confirmations + toasts */
+  "Incident not found": "Incidente no encontrado",
+  "Delete this incident report? This cannot be undone.":
+    "¿Eliminar este reporte de incidente? Esto no se puede deshacer.",
+  "Delete this inspection? This cannot be undone.":
+    "¿Eliminar esta inspección? Esto no se puede deshacer.",
+  "Delete this daily report? This cannot be undone.":
+    "¿Eliminar este reporte diario? Esto no se puede deshacer.",
+
+  /* ViewIncident — header + sections */
+  "Job Site Safety Inspection Report": "Reporte de Inspección de Seguridad del Sitio",
+  "Job Site Safety": "Seguridad del Sitio",
+  "OSHA Recordable": "Registrable por OSHA",
+  "OSHA": "OSHA",
+  "Stop Work": "Paro de Trabajo",
+  "Hazard Found": "Peligro Encontrado",
+  "Classification": "Clasificación",
+  "Incident Type": "Tipo de Incidente",
+  "Incident Date": "Fecha del Incidente",
+  "Incident Time": "Hora del Incidente",
+  "Reported Date": "Fecha de Reporte",
+  "Reported By": "Reportado Por",
+  "Work Stopped": "Trabajo Detenido",
+  "Body Part": "Parte del Cuerpo",
+  "Injury Nature": "Naturaleza de la Lesión",
+  "Sent Home / Off Site": "Enviado a Casa / Fuera del Sitio",
+  "No root cause categories selected.": "No se seleccionaron categorías de causa raíz.",
+  "No witnesses listed.": "No hay testigos registrados.",
+  "Notifications": "Notificaciones",
+  "Immediate Actions Taken": "Acciones Inmediatas Tomadas",
+  "Target Completion": "Finalización Objetivo",
+
+  /* ViewInspection — sections + labels */
+  "Work Activity Taking Place Onsite": "Actividad de Trabajo en el Sitio",
+  "General Site Hazards & Housekeeping": "Peligros Generales del Sitio y Orden y Limpieza",
+  "Safety Issues / Corrective Actions": "Asuntos de Seguridad / Acciones Correctivas",
+  "Description / Corrective Action Notes": "Descripción / Notas de Acción Correctiva",
+  "Operation": "Operación",
+  "Crew / MASCI Personnel": "Cuadrilla / Personal de MASCI",
+
+  /* ViewDailyReport — sections + tables */
+  "Schedule Delays": "Retrasos de Programación",
+  "Weather Impact": "Impacto del Clima",
+  "Accidents on Site": "Accidentes en el Sitio",
+  "Injuries Reported": "Lesiones Reportadas",
+  "Detail": "Detalle",
+  "Safety Escalation": "Escalación de Seguridad",
+  "Safety Notified": "Seguridad Notificada",
+  "Contacted": "Contactado",
+  "Time of Contact": "Hora del Contacto",
+  "Incident Report Filed": "Reporte de Incidente Presentado",
+  "Incident Report Time": "Hora del Reporte de Incidente",
+  "MASCI Crews": "Cuadrillas de MASCI",
+  "Subcontractors": "Subcontratistas",
+  "Subcontractor": "Subcontratista",
+  "Visitors": "Visitantes",
+  "Materials": "Materiales",
+  "Activity Log": "Bitácora de Actividades",
+  "No MASCI crews on site.": "No hay cuadrillas de MASCI en el sitio.",
+  "No subcontractors on site.": "No hay subcontratistas en el sitio.",
+  "No site visitors.": "No hay visitantes en el sitio.",
+  "No equipment logged.": "No hay equipo registrado.",
+  "No material deliveries.": "No hay entregas de materiales.",
+  "No activities logged.": "No hay actividades registradas.",
+  "No weather captured.": "No se capturó el clima.",
+  "Total Hours": "Horas Totales",
+  "Trade / Role": "Oficio / Rol",
+  "Trade": "Oficio",
+  "Lead": "Líder",
+  "Start": "Inicio",
+  "Stop": "Fin",
+  "Hrs": "Hrs",
+  "Work Performed": "Trabajo Realizado",
+  "In": "Entrada",
+  "Out": "Salida",
+  "Purpose": "Propósito",
+  "Delivered": "Entregado",
+  "Removed": "Retirado",
+  "Qty": "Cant.",
+  "Unit": "Unidad",
+  "Supplier": "Proveedor",
+  "Ticket #": "Ticket #",
+  "% Done": "% Hecho",
+  "From": "Desde",
+  "To": "Hasta",
+  "#": "#",
+  "Activity": "Actividad",
+  "Sign-Off": "Firma de Cierre",
+  "Daily Report": "Reporte Diario",
+
 };
 
 const DICTS = { es: ES, en: {} };
