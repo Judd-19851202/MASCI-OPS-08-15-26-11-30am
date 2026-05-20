@@ -4,6 +4,16 @@
 **Purpose:** Make hidden incompleteness visible. One row per operational workflow, one column per maturity standard. No prose. No scoring. No dashboards.
 **Authored from:** direct codebase audit (grep + import + tip-registry + test-file + i18n-call enumeration), not assumptions.
 
+## Section health (static · last updated iter295 · governance signal only · NOT live)
+
+- HR & People ✅
+- Field & Safety ✅
+- Fleet & Equipment ✅
+- Operations 🟡
+- Admin & System 🟡
+
+*Updated only when a section's last yellow/red row resolves. No automation. No scoring. Future-inheritance clarity only.*
+
 ---
 
 ## Legend
