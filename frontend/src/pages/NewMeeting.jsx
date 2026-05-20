@@ -29,6 +29,7 @@ import { TOPIC_LIBRARY_ES } from "@/lib/topics/index.es";
 import { getDomainLabel } from "@/components/TopicPicker";
 import { composeIncidentScaffold } from "@/lib/composeIncidentScaffold";
 import { splitIncidentScaffold } from "@/lib/splitIncidentScaffold";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
@@ -319,6 +320,8 @@ export default function NewMeeting({ publicMode = false }) {
         </div>
 
         <Section number="01" title={t("Meeting Information")}>
+          {/* iter270 · form-root coaching · counter shown above the meeting form */}
+          <HelpTipBlock formKey="meeting" className="mb-3" showCounter />
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               {t("MASCI Job")}
@@ -456,8 +459,10 @@ export default function NewMeeting({ publicMode = false }) {
 
           {/* E1 · operational context captures (crew, shift, weather,
               subcontractor, high-risk flag). Lightweight, single-tap. */}
+          {/* iter270 · Section 01 context coaching (crew/shift/weather/high-risk) */}
+          <HelpTipBlock formKey="meeting.context" className="mt-6 mb-3" />
           <div
-            className="mt-6 pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4"
+            className="mt-2 pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4"
             data-testid="meeting-context-row"
           >
             <div>
@@ -588,6 +593,8 @@ export default function NewMeeting({ publicMode = false }) {
         </Section>
 
         <Section number="02" title={t("Topic & Discussion")}>
+          {/* iter270 · Section 02 coaching family · supersedes the K6 strip */}
+          <HelpTipBlock formKey="meeting.topic" className="mb-3" />
           <div className="bg-red-50 border-2 border-red-200 rounded-md p-4">
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold flex items-center gap-2">
               <span className="inline-flex w-5 h-5 items-center justify-center rounded bg-red-700 text-white text-[10px] font-black">
@@ -606,13 +613,9 @@ export default function NewMeeting({ publicMode = false }) {
               {TOPIC_LIBRARY.length}+ {t("heavy civil / highway topics with prefilled hazards, key points, references, and action items. Type to search — or choose")}{" "}
               <span className="font-bold">{t("Custom Topic")}</span> {t("to write your own.")}
             </p>
-            {/* iter269 · Sprint 2 · K6 · one-sentence coaching strip · field-foreman voice */}
-            <p
-              className="text-xs text-slate-700 mt-3 leading-relaxed border-l-2 border-red-200 pl-3"
-              data-testid="meeting-coaching-strip"
-            >
-              {t("After you pick a topic, read the WHAT HAPPENS paragraph to the crew first — that's the real-world pattern. Then walk through the bullets. That's the operational drill.")}
-            </p>
+            {/* iter270 · K6 coaching strip removed — `meeting.topic` HelpTipBlock above
+                this Section already delivers the WHAT-HAPPENS-first coaching with
+                richer kinds (why/mistake/example/next/escalate). */}
             {/* iter269 · Sprint 2 · K7 · domain breadcrumb (shown only when a library topic is loaded) */}
             {templateKey && templateKey !== CUSTOM_TOPIC_KEY && (() => {
               const tpl = findTopic(templateKey);
@@ -717,6 +720,8 @@ export default function NewMeeting({ publicMode = false }) {
         </Section>
 
         <Section number="03" title={t("Attendees")}>
+          {/* iter270 · Section 03 attendees coaching */}
+          <HelpTipBlock formKey="meeting.attendees" className="mb-3" />
           <p className="text-sm text-slate-600">
             {t("Add every person who attended. Each attendee signs to confirm they were present and understood the topic.")}
           </p>
@@ -768,6 +773,8 @@ export default function NewMeeting({ publicMode = false }) {
         </Section>
 
         <Section number="04" title={t("Photos")}>
+          {/* iter270 · Section 04 photos coaching */}
+          <HelpTipBlock formKey="meeting.photos" className="mb-3" />
           <p className="text-xs text-slate-600 -mt-2 mb-2">
             {t("Photos: ")}
             <span
@@ -789,6 +796,8 @@ export default function NewMeeting({ publicMode = false }) {
         </Section>
 
         <Section number="05" title={t("Conductor Signature")}>
+          {/* iter270 · Section 05 conductor sign-off coaching */}
+          <HelpTipBlock formKey="meeting.signoff" className="mb-3" />
           <p className="text-sm text-slate-600">
             {t("The person who ran the meeting signs to confirm the record is accurate.")}
           </p>

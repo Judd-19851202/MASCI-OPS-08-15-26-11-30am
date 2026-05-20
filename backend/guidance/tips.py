@@ -3073,6 +3073,291 @@ _TIPS: list[dict] = [
             "and confirms RTS. Safety reads the full audit trail with "
             "the regulatory reference where applicable.",
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter270 · Safety Meeting / Toolbox Talk coaching family
+    # Operator directive: close the operational coaching parity gap.
+    # Highest-cadence safety artifact on the platform · 130+ topic
+    # library across 21 domains · bilingual. The Safety Meeting form
+    # was the only major workflow without an embedded coaching family.
+    # Tone benchmark: incident.* and writeup.* — field-foreman voice,
+    # incident-pattern oriented, NOT compliance-robot or LMS.
+    # ─────────────────────────────────────────────────────────────────
+
+    # ── meeting (top-level / form-root) ──────────────────────────────
+    {
+        "form_key": "meeting",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why Safety Meetings are operational discipline",
+        "body":
+            "If the meeting doesn't change what happens on the work, "
+            "you held a meeting that didn't happen. The roster proves "
+            "presence; the discussion proves the pattern was heard. "
+            "Build it like the next incident investigator will read it — "
+            "because if something goes wrong, they will.",
+    },
+    {
+        "form_key": "meeting",
+        "kind": "who",
+        "scopes": ["public"],
+        "title": "Who reads this",
+        "body":
+            "Safety reviews the roster and topic against site patterns. "
+            "PM uses it for project compliance. HR cross-checks the crew "
+            "count against the Daily Report. Admin pulls it on owner "
+            "audits. The signed roster is the legal record someone was "
+            "there and heard the topic.",
+    },
+    {
+        "form_key": "meeting",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens after you submit",
+        "body":
+            "The meeting attaches to the project, GPS, weather, and crew "
+            "context. If crew_size here doesn't match the Daily Report "
+            "headcount, HR sees the discrepancy. Edits after submit are "
+            "tracked. If a real hazard surfaced, open a Safety Corrective "
+            "Action — the meeting record alone won't close the loop.",
+    },
+    {
+        "form_key": "meeting",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When to stop the meeting and call",
+        "body":
+            "Crew refusing to sign. A hazard surfaced you can't control "
+            "today. A language barrier you can't bridge with the bilingual "
+            "topic. Stop the meeting, call Safety on the phone, and don't "
+            "submit until it's handled. The form is the record; the call "
+            "is the response.",
+    },
+
+    # ── meeting.context (Section 01 — crew, shift, weather, high-risk) ───
+    {
+        "form_key": "meeting.context",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why crew, shift, weather, and high-risk matter",
+        "body":
+            "Safety's pattern review filters by these fields. A heat-stress "
+            "topic on a 95°F day with high-risk set surfaces for trend "
+            "review. Wind 25+ during crane work gets flagged. The fields "
+            "aren't paperwork — they're how this meeting gets compared to "
+            "the next one in the same conditions.",
+    },
+    {
+        "form_key": "meeting.context",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Leaving crew size blank 'to come back later'. Marking weather "
+            "Clear when it was 40°F and raw at 5am. Not flipping high-risk "
+            "on a critical lift, confined-space entry, shoring inspection, "
+            "or live-traffic MOT setup. These flags drive Safety attention "
+            "later — under-flagging buries the meeting in the noise.",
+    },
+    {
+        "form_key": "meeting.context",
+        "kind": "when",
+        "scopes": ["public"],
+        "title": "Timing — hold the meeting before the work",
+        "body":
+            "Pre-shift means the bullets land before the first cut, dig, or "
+            "rollout. Holding it at lunch means half the crew already did "
+            "the work the topic was supposed to cover. If you can't hold it "
+            "before, hold it as a reset and say so in the discussion notes.",
+    },
+
+    # ── meeting.topic (Section 02 — the densest coaching surface) ────
+    {
+        "form_key": "meeting.topic",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why the WHAT HAPPENS paragraph IS the meeting",
+        "body":
+            "The incident-pattern paragraph is the lesson. The bullets are "
+            "how the crew avoids becoming the next one. Read the pattern "
+            "first, out loud, in full. Skipping it to save 90 seconds and "
+            "jumping to the bullets is pencil-whipping with bullet points.",
+    },
+    {
+        "form_key": "meeting.topic",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Reading bullets without reading the pattern. Picking a generic "
+            "topic instead of one tied to today's actual work sequence. "
+            "Saying 'everybody knows this' and moving on. Using Custom "
+            "Topic three weeks running when a library topic fits — that "
+            "pattern flags for Safety review.",
+    },
+    {
+        "form_key": "meeting.topic",
+        "kind": "example",
+        "scopes": ["public"],
+        "title": "Example of a meeting that actually landed",
+        "body":
+            "'6-ft trench on west side today. Read the trenching pattern. "
+            "Asked Carlos to walk the crew through the spoil-pile rule. "
+            "Mike pointed out where the box stops if the utility crosses. "
+            "Three questions came up — answered before we broke.' That's "
+            "a meeting that changed how the work happened.",
+    },
+    {
+        "form_key": "meeting.topic",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens with your discussion notes",
+        "body":
+            "Discussion notes feed Safety's pattern review. They look for "
+            "topics tied to today's work versus generic. They look for "
+            "actual crew questions in the notes versus 'reviewed and "
+            "understood.' Notes that show participation get weighted "
+            "higher when the next incident review pulls history.",
+    },
+    {
+        "form_key": "meeting.topic",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When the topic surfaces a hazard you didn't know about",
+        "body":
+            "Silica meeting, but no respirators on the truck. Confined-space "
+            "topic, but no rescue plan posted. Heat topic, but no shade or "
+            "water on site. Stop the meeting, fix the gap before the crew "
+            "starts, restart the talk. Note the gap and the fix in the "
+            "discussion. Safety wants to see that you caught it.",
+    },
+
+    # ── meeting.attendees (Section 03) ───────────────────────────────
+    {
+        "form_key": "meeting.attendees",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why every attendee signs",
+        "body":
+            "The signature is the worker's acknowledgment they heard the "
+            "pattern and the action drill. Without it, the record is your "
+            "word against theirs. With it, the meeting becomes a defensible "
+            "operational fact. Same standard in English or Spanish — the "
+            "bilingual consent line above the pad says so explicitly.",
+    },
+    {
+        "form_key": "meeting.attendees",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Signing for someone who stepped away. Adding a name without a "
+            "signature 'to come back later' and never doing it. Skipping "
+            "subcontractor crews because 'they're not ours' — for this "
+            "meeting on this site, they are. Letting two people share one "
+            "row to save time.",
+    },
+    {
+        "form_key": "meeting.attendees",
+        "kind": "who",
+        "scopes": ["public"],
+        "title": "Who's required to be on the roster",
+        "body":
+            "Every person on the work today. That includes subs on your "
+            "crew assignment and PMs who are on site for the meeting. "
+            "Visitors who walked through (deliveries, inspectors, owners) "
+            "don't sign. If you're not sure, add them — over-documenting "
+            "presence is never the problem.",
+    },
+    {
+        "form_key": "meeting.attendees",
+        "kind": "escalate",
+        "scopes": ["public"],
+        "title": "When someone refuses to sign",
+        "body":
+            "Document the refusal in the discussion notes, don't pressure, "
+            "and tell Safety verbally before the day ends. Stop Work "
+            "Authority belongs to every signer; a refusal is a signal "
+            "worth investigating — not a discipline trigger. Safety handles "
+            "it from there.",
+    },
+
+    # ── meeting.photos (Section 04) ──────────────────────────────────
+    {
+        "form_key": "meeting.photos",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why two photos minimum",
+        "body":
+            "One photo of the crew gathered proves the meeting happened "
+            "with density. One photo of the work area or hazard discussed "
+            "proves it happened where it mattered. A trenching meeting "
+            "with a parking-lot photo doesn't tell that story. Frame the "
+            "photo so it would convince someone six months from now.",
+    },
+    {
+        "form_key": "meeting.photos",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Selfie of just the foreman. Blurry photo of the sign-in sheet "
+            "with no context. Photos of unrelated equipment. Taking the "
+            "photos an hour after the crew dispersed. The timestamp on the "
+            "photo is also part of the record — it should match the "
+            "meeting time, not lunch.",
+    },
+    {
+        "form_key": "meeting.photos",
+        "kind": "example",
+        "scopes": ["public"],
+        "title": "A frame that does the job",
+        "body":
+            "Crew of 7 around the toolbox, trench behind them at station "
+            "12+50, timestamp 6:42 AM. One frame proves where, when, and "
+            "with whom. Add a second of the spoil pile and the trench box "
+            "in position — that ties the topic to the work the crew "
+            "actually walked into.",
+    },
+
+    # ── meeting.signoff (Section 05 — conductor signature) ───────────
+    {
+        "form_key": "meeting.signoff",
+        "kind": "why",
+        "scopes": ["public"],
+        "title": "Why the conductor signs last",
+        "body":
+            "Your signature certifies the record is accurate as submitted — "
+            "attendees, photos, discussion, all of it. Edits after submit "
+            "are tracked and reviewed. Signing first and filling in after "
+            "is the wrong order; the signature is the last act, not the "
+            "first.",
+    },
+    {
+        "form_key": "meeting.signoff",
+        "kind": "mistake",
+        "scopes": ["public"],
+        "title": "Common mistakes",
+        "body":
+            "Signing before photos and attendees are complete. Letting a "
+            "non-foreman sign as conductor because the foreman left early. "
+            "Forgetting to verify the Conducted By name in Section 01 "
+            "matches who actually ran the meeting. Mismatches surface on "
+            "Safety audits and slow the next review.",
+    },
+    {
+        "form_key": "meeting.signoff",
+        "kind": "next",
+        "scopes": ["public"],
+        "title": "What happens after you sign and submit",
+        "body":
+            "PDF generates, attaches to the project, emails go out if "
+            "AUTO_EMAIL is on. If a corrective action came out of the "
+            "meeting — order respirators, fix shoring, retrain on backing "
+            "— open a Safety Corrective Action. The meeting record is not "
+            "the place to track follow-up; it's the place that triggered "
+            "the follow-up.",
+    },
 ]
 
 

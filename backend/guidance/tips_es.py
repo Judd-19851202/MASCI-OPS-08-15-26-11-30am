@@ -2236,4 +2236,224 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "el RTS. Seguridad lee el registro de auditoría "
             "completo con la referencia regulatoria cuando aplica.",
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter270 · Reunión de Seguridad / Plática de Caja de Herramientas
+    # Misma voz de capataz / superintendente de campo. Patrón real,
+    # no entrenamiento corporativo.
+    # ─────────────────────────────────────────────────────────────────
+
+    # ── meeting (raíz) ───────────────────────────────────────────────
+    ("meeting", "why"): {
+        "title_es": "Por qué las Reuniones de Seguridad son disciplina operacional",
+        "body_es":
+            "Si la reunión no cambia lo que pasa en la obra, fue una reunión "
+            "que no pasó. La lista prueba presencia; la discusión prueba que "
+            "el patrón se escuchó. Constrúyala como si el próximo investigador "
+            "de incidente la fuera a leer — porque si algo sale mal, la leerá.",
+    },
+    ("meeting", "who"): {
+        "title_es": "Quién lo lee",
+        "body_es":
+            "Seguridad revisa la lista y el tema contra patrones del sitio. "
+            "El PM la usa para cumplimiento del proyecto. RH compara el conteo "
+            "de la cuadrilla contra el Reporte Diario. Admin la jala en "
+            "auditorías. La lista firmada es el registro legal de que "
+            "alguien estuvo y escuchó el tema.",
+    },
+    ("meeting", "next"): {
+        "title_es": "Qué pasa después de enviar",
+        "body_es":
+            "La reunión se adjunta al proyecto, GPS, clima y contexto de "
+            "cuadrilla. Si el tamaño de cuadrilla aquí no coincide con el "
+            "Reporte Diario, RH ve la discrepancia. Las ediciones después "
+            "del envío se rastrean. Si surgió un peligro real, abra una "
+            "Acción Correctiva de Seguridad — la reunión sola no cierra el ciclo.",
+    },
+    ("meeting", "escalate"): {
+        "title_es": "Cuándo parar la reunión y llamar",
+        "body_es":
+            "La cuadrilla se niega a firmar. Surgió un peligro que no puede "
+            "controlar hoy. Una barrera de idioma que no puede salvar con el "
+            "tema bilingüe. Pare la reunión, llame a Seguridad por teléfono, "
+            "y no envíe hasta que se atienda. El formulario es el registro; "
+            "la llamada es la respuesta.",
+    },
+
+    # ── meeting.context ──────────────────────────────────────────────
+    ("meeting.context", "why"): {
+        "title_es": "Por qué importan cuadrilla, turno, clima y alto riesgo",
+        "body_es":
+            "La revisión de patrones de Seguridad filtra por estos campos. "
+            "Un tema de estrés por calor en un día de 95°F con alto riesgo "
+            "marcado sale en revisión de tendencias. Viento de 25+ con grúa "
+            "se marca. Los campos no son papeleo — son cómo esta reunión se "
+            "compara con la siguiente bajo las mismas condiciones.",
+    },
+    ("meeting.context", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Dejar tamaño de cuadrilla en blanco 'para volver después'. "
+            "Marcar Despejado cuando estaba a 40°F y crudo a las 5am. No "
+            "marcar alto riesgo en un izaje crítico, espacio confinado, "
+            "inspección de apuntalamiento, o trabajo MOT con tráfico vivo. "
+            "Estas banderas dirigen la atención de Seguridad — sub-marcar "
+            "entierra la reunión en el ruido.",
+    },
+    ("meeting.context", "when"): {
+        "title_es": "Tiempo — sostenga la reunión antes del trabajo",
+        "body_es":
+            "Antes del turno significa que los puntos llegan antes del primer "
+            "corte, excavación o despliegue. Sostenerla al almuerzo significa "
+            "que media cuadrilla ya hizo el trabajo que el tema iba a cubrir. "
+            "Si no puede sostenerla antes, sostenga un reset y dígalo así en "
+            "las notas de discusión.",
+    },
+
+    # ── meeting.topic ────────────────────────────────────────────────
+    ("meeting.topic", "why"): {
+        "title_es": "Por qué el párrafo PATRÓN REAL ES la reunión",
+        "body_es":
+            "El párrafo del patrón es la lección. Los puntos son cómo la "
+            "cuadrilla evita ser el próximo. Lea el patrón primero, en voz "
+            "alta, completo. Saltarlo para ahorrar 90 segundos y brincar a "
+            "los puntos es firmar nomás con balas.",
+    },
+    ("meeting.topic", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Leer los puntos sin leer el patrón. Elegir un tema genérico en "
+            "vez de uno amarrado al trabajo de hoy. Decir 'todos saben esto' "
+            "y seguir. Usar Tema Personalizado tres semanas seguidas cuando "
+            "un tema de la biblioteca encaja — ese patrón se marca para "
+            "revisión de Seguridad.",
+    },
+    ("meeting.topic", "example"): {
+        "title_es": "Ejemplo de una reunión que sí aterrizó",
+        "body_es":
+            "'Zanja de 6 pies en el lado oeste hoy. Leí el patrón de zanjas. "
+            "Le pedí a Carlos que le caminara a la cuadrilla la regla de la "
+            "pila de spoil. Mike apuntó dónde para la caja si cruza el "
+            "servicio. Salieron tres preguntas — contestadas antes de "
+            "soltar.' Eso es una reunión que cambió cómo pasó el trabajo.",
+    },
+    ("meeting.topic", "next"): {
+        "title_es": "Qué pasa con sus notas de discusión",
+        "body_es":
+            "Las notas de discusión alimentan la revisión de patrones de "
+            "Seguridad. Buscan temas amarrados al trabajo de hoy versus "
+            "genéricos. Buscan preguntas reales de la cuadrilla en las "
+            "notas versus 'revisado y entendido.' Las notas que muestran "
+            "participación pesan más cuando la próxima revisión jala historial.",
+    },
+    ("meeting.topic", "escalate"): {
+        "title_es": "Cuando el tema saca un peligro que no sabía que estaba",
+        "body_es":
+            "Tema de sílice, pero sin respiradores en el camión. Espacio "
+            "confinado, pero sin plan de rescate publicado. Tema de calor, "
+            "pero sin sombra ni agua en sitio. Pare la reunión, cierre el "
+            "hueco antes de que arranque la cuadrilla, reinicie la plática. "
+            "Anote el hueco y la corrección en la discusión. Seguridad "
+            "quiere ver que lo cachó.",
+    },
+
+    # ── meeting.attendees ────────────────────────────────────────────
+    ("meeting.attendees", "why"): {
+        "title_es": "Por qué firma cada asistente",
+        "body_es":
+            "La firma es el reconocimiento del trabajador de que escuchó el "
+            "patrón y el drill de acción. Sin ella, el registro es su "
+            "palabra contra la de él. Con ella, la reunión se vuelve un "
+            "hecho operacional defendible. El mismo estándar en inglés o "
+            "español — la línea de consentimiento bilingüe sobre el pad lo dice.",
+    },
+    ("meeting.attendees", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Firmar por alguien que se apartó. Agregar un nombre sin firma "
+            "'para volver después' y nunca hacerlo. Saltar cuadrillas de "
+            "subcontratistas porque 'no son nuestros' — para esta reunión "
+            "en este sitio, sí lo son. Dejar que dos personas compartan "
+            "una fila para ahorrar tiempo.",
+    },
+    ("meeting.attendees", "who"): {
+        "title_es": "Quién debe estar en la lista",
+        "body_es":
+            "Toda persona en el trabajo hoy. Eso incluye subs en su "
+            "asignación de cuadrilla y PMs que están en sitio para la "
+            "reunión. Visitantes que pasaron caminando (entregas, "
+            "inspectores, dueños) no firman. Si no está seguro, agréguelos — "
+            "sobre-documentar presencia nunca es el problema.",
+    },
+    ("meeting.attendees", "escalate"): {
+        "title_es": "Cuando alguien se niega a firmar",
+        "body_es":
+            "Documente el rechazo en las notas de discusión, no presione, "
+            "y dígale a Seguridad verbalmente antes de que termine el día. "
+            "La Autoridad de Parar el Trabajo le pertenece a cada firmante; "
+            "un rechazo es una señal que vale investigar — no un disparador "
+            "de disciplina. Seguridad lo maneja de ahí.",
+    },
+
+    # ── meeting.photos ───────────────────────────────────────────────
+    ("meeting.photos", "why"): {
+        "title_es": "Por qué mínimo dos fotos",
+        "body_es":
+            "Una foto de la cuadrilla reunida prueba que la reunión pasó "
+            "con densidad. Una foto del área de trabajo o el peligro "
+            "discutido prueba que pasó donde importaba. Una reunión de "
+            "zanjas con foto del estacionamiento no cuenta esa historia. "
+            "Encuadre la foto como si convenciera a alguien dentro de "
+            "seis meses.",
+    },
+    ("meeting.photos", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Selfie de nomás el capataz. Foto borrosa de la hoja de "
+            "asistencia sin contexto. Fotos de equipo no relacionado. "
+            "Tomar las fotos una hora después de que se dispersó la "
+            "cuadrilla. La marca de tiempo de la foto también es parte "
+            "del registro — debe coincidir con la hora de la reunión, "
+            "no con el almuerzo.",
+    },
+    ("meeting.photos", "example"): {
+        "title_es": "Un encuadre que hace el trabajo",
+        "body_es":
+            "Cuadrilla de 7 alrededor de la caja de herramientas, zanja "
+            "detrás de ellos en estación 12+50, marca de tiempo 6:42 AM. "
+            "Un encuadre prueba dónde, cuándo y con quién. Agregue una "
+            "segunda de la pila de spoil y la caja en posición — eso amarra "
+            "el tema al trabajo que la cuadrilla realmente caminó.",
+    },
+
+    # ── meeting.signoff ──────────────────────────────────────────────
+    ("meeting.signoff", "why"): {
+        "title_es": "Por qué el conductor firma al final",
+        "body_es":
+            "Su firma certifica que el registro está exacto como se envió — "
+            "asistentes, fotos, discusión, todo. Las ediciones después del "
+            "envío se rastrean y se revisan. Firmar primero y llenar "
+            "después es el orden equivocado; la firma es el último acto, "
+            "no el primero.",
+    },
+    ("meeting.signoff", "mistake"): {
+        "title_es": "Errores comunes",
+        "body_es":
+            "Firmar antes de que fotos y asistentes estén completos. Dejar "
+            "que un no-capataz firme como conductor porque el capataz se "
+            "fue temprano. Olvidar verificar que el nombre de Realizada Por "
+            "en Sección 01 coincide con quién corrió la reunión. Las "
+            "discrepancias salen en auditorías de Seguridad y atrasan la "
+            "siguiente revisión.",
+    },
+    ("meeting.signoff", "next"): {
+        "title_es": "Qué pasa después de firmar y enviar",
+        "body_es":
+            "Se genera el PDF, se adjunta al proyecto, los correos salen "
+            "si AUTO_EMAIL está activo. Si salió una acción correctiva de "
+            "la reunión — pedir respiradores, arreglar apuntalamiento, "
+            "reentrenar en reversa — abra una Acción Correctiva de "
+            "Seguridad. La reunión no es el lugar para rastrear el "
+            "seguimiento; es el lugar que disparó el seguimiento.",
+    },
 }
