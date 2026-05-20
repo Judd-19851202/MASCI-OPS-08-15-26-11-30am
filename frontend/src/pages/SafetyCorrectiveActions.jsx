@@ -461,6 +461,10 @@ export default function SafetyCorrectiveActions() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 pt-2">
+            {/* iter274 · dialog-top create coaching · Create mode only */}
+            {dlg.mode === "create" && (
+              <HelpTipBlock formKey="corrective.create" className="mb-1" />
+            )}
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Title")} *</Label>
               <Input

@@ -1,5 +1,64 @@
 # MASCI Safety Hub — PRD
 
+## 2026-05-20 PM — iter274 Sequences #3 + #4 · SafetyCorrectiveActions coaching family + canonical-4 hole fills · SHIPPED (pytest 31/31 · self-test live verified · bundled scope held without drift)
+
+Third governance closure iteration. Matrix Gap #3 CLOSED · second cluster of Gap #2 CLOSED · trivial canonical hole (Sequence #4) CLOSED in the same pass without widening scope.
+
+### What shipped (Sequence #3 — corrective.* family)
+- **11 EN coaching tips** appended to `_TIPS` in `tips.py` across 3 form-keys: `corrective` (4 root: why/who/next/escalate) · `corrective.create` (4: why/mistake/example/escalate) · `corrective.close` (3: why/mistake/next)
+- **11 ES counterparts** appended to `TIPS_ES` in `tips_es.py`. Field Spanish voice ("la cuadrilla", "registrar la llamada", "patrón del mundo real").
+- **3 `<HelpTipBlock>` mounts** in `/app/frontend/src/pages/SafetyCorrectiveActions.jsx`:
+  - Page-root (`formKey="corrective"` with `showCounter`) above filter tabs — shows "4 coaching tips available · tap to expand"
+  - Create-mode dialog top (`formKey="corrective.create"`, gated by `dlg.mode === "create"`)
+  - Edit-mode dialog above Completion Notes (`formKey="corrective.close"`, gated by `dlg.mode === "edit"`)
+
+### What shipped (Sequence #4 — canonical-4 hole fills)
+- `fleet.dvir` · new `kind=escalate` tip: "When a DVIR defect stops the unit" / "Cuándo un defecto DVIR para la unidad" — covers OOS discipline (brakes, steering, lights, tires, leaks)
+- `material-calculator` · new `kind=who` tip at root: "Who reads the takeoff numbers" / "Quién lee los números del cómputo" — covers PM/PE/Super readership
+- Both aggregate families now ✅ on canonical 4 kinds
+
+### Tone discipline (operator gate)
+- Voice matches `incident.*` / `meeting.*` / `inspection.*` — safety-coordinator + foreman, never LMS/trainer
+- `test_corrective_tone_not_lms` guards 12 banned phrases (EN+ES). All passing.
+- Operator-priority themes covered: don't pencil-whip CAs · titles people can read · one named owner · priority discipline · evidence on closure · employee acknowledgment signature · repeat findings escalate to contract conversation
+
+### Verification
+- **Pytest** `/app/backend/tests/test_iter274_corrective_canonical_fills.py` · **31/31 PASSED** including 6 regression cases on incident/meeting/writeup/daily-report/inspection/qaqc
+- **testing_agent_v3_fork** iter272.json · **backend 100% (31/31 pytest against public preview URL)** · **frontend code-review surfaced 1 missed mount** (corrective.create) — main agent fixed and self-verified live
+- **Main agent live verification** · super-admin multi-login + localStorage bootstrap of `masci.safety.token` / `admin_token` / `masci.directory.token` · all 3 mounts confirmed:
+  - Page-root: 4 coaching tips visible above tabs · counter strip · color-coded kinds
+  - Create dialog (`safety-ca-new`): create-mount=1 · close-mount=0 (gating works) · 4 create-coaching kinds shown
+  - Edit dialog: close-mount=1 · create-mount=0 (gating works)
+- Lint clean across all 4 modified/new files
+- Backend hot-reloaded cleanly
+
+### Files touched
+- MOD · `/app/backend/guidance/tips.py` (+11 corrective dicts + 2 _TIPS.append() canonical fills)
+- MOD · `/app/backend/guidance/tips_es.py` (+13 ES entries)
+- MOD · `/app/frontend/src/pages/SafetyCorrectiveActions.jsx` (+1 import + 3 mounts)
+- NEW · `/app/backend/tests/test_iter274_corrective_canonical_fills.py` (~230 lines · 31 test cases)
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md` (3 rows promoted · gap #3 CLOSED · gap #2 second cluster CLOSED · ship-log appended)
+
+### Bug-catch credit (testing agent)
+The first pass of this iter shipped with only 2 of 3 mounts because `mcp_search_replace` silently dropped my second dialog-top edit — likely because the target string matched an unintended block. The testing agent's code-review surfaced it immediately ("HIGH priority frontend mount gap" in iter272.json). I added the third mount with explicit Create-mode gating and re-verified live. This is the value of the matrix process — small misses get caught before they accumulate into hidden incompleteness.
+
+### Out of scope (governance held)
+- ❌ No new components, no new endpoints, no new schemas
+- ❌ No redesign · no new coaching concepts · no philosophy expansion · no onboarding
+- ❌ No CI gate implementation (operator gate held — stage 2→3 not stage 3→4)
+- ❌ No bulk renames · no SafetyCorrectiveActions UI restructuring
+
+### Sequences remaining (operator gate · matrix order preserved)
+- #5 Safety Forms (Issuance · Training) + Topic Library coaching (3 surfaces)
+- #6 Fire Extinguishers + JHA coaching (2 surfaces)
+- #7 DocumentExpirations page i18n (trivial)
+- #8 Guidance Center article audit
+
+🔒 iter274 Sequences #3 + #4 **SHIPPED** · 4 of 5 highest-risk gaps from the matrix now CLOSED or partially CLOSED · clone-pattern continues to scale at near-zero cost per workflow · governance discipline held even under bundle.
+
+---
+
+
 ## 2026-05-20 PM — iter273 Sequence #2 · NewInspection + NewQaqcInspection coaching-family parity · SHIPPED (pytest 65/65 in-process + 37/37 HTTP · testing agent frontend 100% · 0 bugs · 0 regressions)
 
 Second governance closure iteration. Matrix Gap #2 first cluster CLOSED. iter270 meeting pattern cloned exactly — no new component, no new endpoint, no new schema, no new philosophy layer.
