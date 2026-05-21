@@ -2,6 +2,67 @@
 
 
 
+## 2026-05-21 — iter317-C Part 2 · HR Portal Visual-Hierarchy Refinement · CLOSED
+
+### Scope (operator-mandated · bounded calm-down pass · no IA redesign)
+Closes Part 2 of `iter317-C` after the Driver Qualification guidance backend work in Part 1. Refines the HR Hub from a 14-tile flat grid of hot-bordered colored cards into a calmer, grouped-card surface organized into 4 named operational sections. NO sidebar, NO IA redesign, NO route changes, NO tile additions/removals, NO architecture refactor. Pure visual hierarchy work to reduce cognitive load on the HR Portal.
+
+### Four operational groups (tile order WITHIN groups preserved · muscle-memory contract)
+
+| Group | Heading | Tiles |
+|---|---|---|
+| Primary HR Actions | Day-to-day employee operations | Employee Lifecycle · Tasks & Actions · Document Expirations · Time Off Requests |
+| Compliance & Accountability | Field leadership · accountability · safety · driver qualification | Field Leadership Records · Field Leadership Portal Accounts · Employee Accountability · Driver Qualification · Safety Records |
+| Payroll / Time | Time, payroll variance, expense tracking, training compliance | PO Requests & Receipts · Time Verification · Payroll Variance · Training Records |
+| Integrations & Systems (visually demoted · top-border separator · muted heading) | Supporting tools · guides · cross-portal integration visibility | Training Center & Guides + Integration Health / Events cards strip |
+
+### Visual calm pass (bounded · no animation gimmicks · no accordions)
+- Border treatment: tiles now use `border border-slate-200` + `border-l-4 border-l-<accent>` left-edge stripe + white background instead of legacy `border-2 border-<accent>-500 bg-<accent>-50` full hot border. Identity recognition preserved via the stripe; page becomes dramatically calmer.
+- Section headings: small uppercase mono kicker (`font-mono text-xs uppercase tracking-[0.22em]`) + thin slate divider + muted italic subtitle on the right. Matches the existing `HR PORTAL · HR MANAGER` kicker style for visual cohesion.
+- Description text softened from `text-slate-700` → `text-slate-600`.
+- Integrations & Systems group rendered with muted heading color + top-border separator so it visually supports the page rather than competing with operational sections.
+- Hover micro-interaction (`hover:shadow-md hover:-translate-y-0.5`) PRESERVED — operator mandate.
+- All 14 tile destinations, testids, badges, icons, button colors, bilingual `t()` calls PRESERVED.
+
+### Verification (all PASSED)
+- ✅ `test_iter317c_hr_hub_grouped_cards.py` (8 tests):
+  - 4 named groups present (TILE_GROUPS structure + all 4 headings)
+  - All 14 tile routes preserved (no tile lost in refinement)
+  - Left-edge stripe pattern in place (`border-l-4`); legacy hot border removed
+  - No sidebar introduced (regex guard on `<aside`, `Sidebar`, `sidebar-nav`, `drawer-nav`)
+  - All `hr-tile-*` + `hr-tile-badge-*` testids preserved; new `hr-group-*` testids surfaced
+  - Integrations section visually demoted (`muted: true` + `border-t border-slate-200`)
+  - Hover-translate behavior preserved (muscle-memory contract)
+  - Bilingual `t()` calls preserved for labels, descriptions, group headings, group subtitles, OPEN button
+- ✅ Live preview screenshots (Desktop 1920 · iPad 1024 · Mobile 390):
+  - Desktop: 4 sections render with subtle headings; tiles stack 2-col cleanly; left-edge stripes provide identity recognition without visual noise
+  - iPad: identical layout, no overflow
+  - Mobile: groups stack vertically, tiles drop to 1-col, badge intact, touch targets preserved
+- ✅ Combined regression: **84/84 green** across iter314 + iter316 + iter317-A + iter317-B + iter317-C Part 1 (driver qualification convergence) + iter317-C Part 2 (HR Hub grouping)
+- ✅ ESLint clean on `HrHub.jsx`
+
+### Files touched (iter317-C Part 2)
+- MOD · `/app/frontend/src/pages/HrHub.jsx` (TILES → TILE_DEFS + TILE_GROUPS · grouped render · left-edge stripe pattern · muted Integrations section)
+- NEW · `/app/backend/tests/test_iter317c_hr_hub_grouped_cards.py` (8 tests)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO sidebar · NO IA redesign · NO new navigation layer
+- ❌ NO route changes · NO tile additions / removals / reorders within groups
+- ❌ NO change to OperationsCenter, header chrome, NotificationBell, or PortalSwitcher
+- ❌ NO testid renames or removals
+- ❌ NO animated transitions / collapsible accordions / "modern dashboard" gimmicks
+- ❌ NO change to other HR pages, backend, routes, permissions
+- ❌ NO change to pre-existing legacy fixture debt (test_iter152 × 4, test_payroll_variance_iter72, test_rebrand_iter41)
+
+### Operational impact
+HR Manager opens `/hr` and the same 14 surfaces are present in the same relative positions — but the page reads as 4 calmly-grouped operational sections instead of a wall of hot-bordered colored cards. Cognitive load is reduced; the muted Integrations & Systems section supports the page instead of competing with it; the operational directness of the original surface is preserved.
+
+### Production impact
+**Preview has it. Production at mascidocs.com still missing until next redeploy.** Zero backend / DB / API / permissions changes. Pure CSS / layout refinement. Ships the moment the redeploy lands.
+
+
+
 ## 2026-05-21 — iter317-B FL Guidance Article Convergence · CLOSED
 
 ### Scope (operator-mandated · surgical disambiguation refinement)

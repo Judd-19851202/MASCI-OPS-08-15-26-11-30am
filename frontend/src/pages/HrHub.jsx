@@ -24,51 +24,93 @@ const HR_PAL = paletteFor("hr");
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const TILES = [
-  { to: "/hr/employees", icon: Users, label: "Employee Lifecycle",
+// iter317-C Part 2 · HR Portal Visual-Hierarchy Refinement.
+// Tiles are now organized into 4 operational groups (no sidebar, no IA
+// redesign, no route changes). Tile order WITHIN each group preserved
+// from the prior flat array for muscle-memory protection. Per-tile
+// `accent` now drives a left-edge stripe (border-l-4) instead of a full
+// hot border, calming the page while preserving identity recognition.
+const TILE_DEFS = {
+  employees: { to: "/hr/employees", icon: Users, label: "Employee Lifecycle",
     desc: "Add new employees · status changes · offboarding summary · auto-playbook on termination",
-    accent: "border-emerald-500 bg-emerald-50", btn: "bg-emerald-700 hover:bg-emerald-800" },
-  { to: "/tasks", icon: GraduationCap, label: "Tasks & Actions",
+    stripe: "border-l-emerald-500", btn: "bg-emerald-700 hover:bg-emerald-800" },
+  tasks: { to: "/tasks", icon: GraduationCap, label: "Tasks & Actions",
     desc: "Cross-portal accountability · employee documentation tasks · offboarding follow-ups",
-    accent: "border-amber-500 bg-amber-50", btn: "bg-amber-700 hover:bg-amber-800" },
-  { to: "/document-expirations", icon: GraduationCap, label: "Document Expirations",
+    stripe: "border-l-amber-500", btn: "bg-amber-700 hover:bg-amber-800" },
+  docExpirations: { to: "/document-expirations", icon: GraduationCap, label: "Document Expirations",
     desc: "OSHA · TWIC · CDL · Driver License · Training Certifications — expiring soon & overdue.",
-    accent: "border-rose-500 bg-rose-50", btn: "bg-rose-700 hover:bg-rose-800" },
-  { to: "/po-requests", icon: Receipt, label: "PO Requests & Receipts",
+    stripe: "border-l-rose-500", btn: "bg-rose-700 hover:bg-rose-800" },
+  poRequests: { to: "/po-requests", icon: Receipt, label: "PO Requests & Receipts",
     desc: "Approve / reject / clarify PO requests · assign PO numbers · track missing receipts · employee-linked spending visibility · CSV export",
-    accent: "border-indigo-500 bg-indigo-50", btn: "bg-indigo-700 hover:bg-indigo-800" },
-  { to: "/hr/field-leadership", icon: Users, label: "Field Leadership Records",
+    stripe: "border-l-indigo-500", btn: "bg-indigo-700 hover:bg-indigo-800" },
+  flRecords: { to: "/hr/field-leadership", icon: Users, label: "Field Leadership Records",
     desc: "Write-ups · coaching · attendance · recognition · evaluations · terminations · equipment checkout",
-    accent: "border-blue-500 bg-blue-50", btn: "bg-blue-700 hover:bg-blue-800" },
-  { to: "/hr/field-leadership-users", icon: KeyRound, label: "Field Leadership Portal Accounts",
+    stripe: "border-l-blue-500", btn: "bg-blue-700 hover:bg-blue-800" },
+  flUsers: { to: "/hr/field-leadership-users", icon: KeyRound, label: "Field Leadership Portal Accounts",
     desc: "Issue per-user logins for Superintendents · Foremen · Truck Bosses · Working Supervisors · reset passwords · deactivate users (governed identity, iter314)",
-    accent: "border-purple-600 bg-purple-50", btn: "bg-purple-700 hover:bg-purple-800" },
-  { to: "/hr/time-off", icon: CalendarOff, label: "Time Off Requests",
+    stripe: "border-l-purple-600", btn: "bg-purple-700 hover:bg-purple-800" },
+  timeOff: { to: "/hr/time-off", icon: CalendarOff, label: "Time Off Requests",
     desc: "Vacation · Sick · Medical · Family Emergency · Bereavement · approve, deny, or request more info · send public form to office staff",
-    accent: "border-cyan-500 bg-cyan-50", btn: "bg-cyan-700 hover:bg-cyan-800",
+    stripe: "border-l-cyan-500", btn: "bg-cyan-700 hover:bg-cyan-800",
     badgeKey: "pending" },
-  { to: "/hr/employee-accountability", icon: Search, label: "Employee Accountability",
+  accountability: { to: "/hr/employee-accountability", icon: Search, label: "Employee Accountability",
     desc: "Search an employee · all records · outstanding equipment · disciplinary history · clearance for offboarding",
-    accent: "border-amber-500 bg-amber-50", btn: "bg-amber-700 hover:bg-amber-800" },
-  { to: "/hr/time-verification", icon: Clock, label: "Time Verification",
+    stripe: "border-l-amber-500", btn: "bg-amber-700 hover:bg-amber-800" },
+  timeVerification: { to: "/hr/time-verification", icon: Clock, label: "Time Verification",
     desc: "Daily Report labor hours · lunch tracking · payroll cross-check (Exact-ready)",
-    accent: "border-emerald-500 bg-emerald-50", btn: "bg-emerald-700 hover:bg-emerald-800" },
-  { to: "/hr/payroll-variance", icon: Calculator, label: "Payroll Variance",
+    stripe: "border-l-emerald-500", btn: "bg-emerald-700 hover:bg-emerald-800" },
+  payrollVariance: { to: "/hr/payroll-variance", icon: Calculator, label: "Payroll Variance",
     desc: "Paste Exact payroll CSV · auto-match to MASCI hours · approve / dispute each variance · weekly email summary",
-    accent: "border-red-500 bg-red-50", btn: "bg-red-700 hover:bg-red-800" },
-  { to: "/hr/training-records", icon: GraduationCap, label: "Training Records",
+    stripe: "border-l-red-500", btn: "bg-red-700 hover:bg-red-800" },
+  trainingRecords: { to: "/hr/training-records", icon: GraduationCap, label: "Training Records",
     desc: "Completed tracks · certifications · training compliance roster",
-    accent: "border-purple-500 bg-purple-50", btn: "bg-purple-700 hover:bg-purple-800" },
-  { to: "/hr/driver-qualification", icon: Truck, label: "Driver Qualification",
+    stripe: "border-l-purple-500", btn: "bg-purple-700 hover:bg-purple-800" },
+  driverQual: { to: "/hr/driver-qualification", icon: Truck, label: "Driver Qualification",
     desc: "Read-only operational visibility · CDL holders · approved drivers · endorsements · expirations · tanker-capable list",
-    accent: "border-emerald-600 bg-emerald-50", btn: "bg-emerald-800 hover:bg-emerald-900" },
-  { to: "/hr/safety-records", icon: ShieldCheck, label: "Safety Records",
+    stripe: "border-l-emerald-600", btn: "bg-emerald-800 hover:bg-emerald-900" },
+  safetyRecords: { to: "/hr/safety-records", icon: ShieldCheck, label: "Safety Records",
     desc: "Read-only · safety document library (OSHA, SDS, EAPs) and per-employee training & certifications maintained by Safety",
-    accent: "border-cyan-700 bg-cyan-50", btn: "bg-cyan-700 hover:bg-cyan-800" },
-  { to: "/guidance", icon: BookOpen, label: "Training Center & Guides",
+    stripe: "border-l-cyan-700", btn: "bg-cyan-700 hover:bg-cyan-800" },
+  guidance: { to: "/guidance", icon: BookOpen, label: "Training Center & Guides",
     desc: "Step-by-step operator guides for the HR Portal · onboarding · payroll · cross-portal safety access · downloadable PDFs",
-    accent: "border-indigo-500 bg-indigo-50", btn: "bg-indigo-700 hover:bg-indigo-800" },
+    stripe: "border-l-indigo-500", btn: "bg-indigo-700 hover:bg-indigo-800" },
+};
+
+// Grouped tile layout. Each group renders its own section heading +
+// 2-col tile grid. Tile order WITHIN groups preserved from prior flat
+// TILES array (muscle-memory contract).
+const TILE_GROUPS = [
+  {
+    key: "primary",
+    heading: "Primary HR Actions",
+    sub: "Day-to-day employee operations",
+    tiles: ["employees", "tasks", "docExpirations", "timeOff"],
+  },
+  {
+    key: "compliance",
+    heading: "Compliance & Accountability",
+    sub: "Field leadership · accountability · safety · driver qualification",
+    tiles: ["flRecords", "flUsers", "accountability", "driverQual", "safetyRecords"],
+  },
+  {
+    key: "payroll",
+    heading: "Payroll / Time",
+    sub: "Time, payroll variance, expense tracking, training compliance",
+    tiles: ["poRequests", "timeVerification", "payrollVariance", "trainingRecords"],
+  },
+  {
+    key: "integrations",
+    heading: "Integrations & Systems",
+    sub: "Supporting tools · guides · cross-portal integration visibility",
+    tiles: ["guidance"],
+    muted: true,
+  },
 ];
+
+// Flat list for any consumer that still expects all tiles (regression
+// safety net — preserves iter285+ test discoverability semantics if
+// anything imports HrHub internals).
+const TILES = TILE_GROUPS.flatMap((g) => g.tiles.map((k) => TILE_DEFS[k]));
 
 export default function HrHub() {
   usePageTitle("HR · MASCI");
@@ -141,43 +183,71 @@ export default function HrHub() {
 
         <OperationsCenter compact className="mt-6" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-          {TILES.map((tile) => {
-            const badge = tile.badgeKey ? stats[tile.badgeKey] : 0;
+        <div className="mt-8 space-y-10">
+          {TILE_GROUPS.map((group) => {
+            const isMuted = !!group.muted;
             return (
-              <Link
-                key={tile.to}
-                to={tile.to}
-                className={`block rounded-lg border-2 ${tile.accent} p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 relative`}
-                data-testid={`hr-tile-${tile.to.split('/').pop()}`}
+              <section
+                key={group.key}
+                data-testid={`hr-group-${group.key}`}
+                className={isMuted ? "pt-6 border-t border-slate-200" : ""}
               >
-                {badge > 0 && (
-                  <span
-                    className="absolute top-3 right-3 inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full bg-red-600 text-white text-xs font-black border-2 border-white shadow"
-                    data-testid={`hr-tile-badge-${tile.to.split('/').pop()}`}
+                <div className="mb-4 flex items-baseline gap-3 flex-wrap">
+                  <h2
+                    className={`font-mono text-xs uppercase tracking-[0.22em] ${
+                      isMuted ? "text-slate-500" : "text-slate-700"
+                    }`}
+                    data-testid={`hr-group-heading-${group.key}`}
                   >
-                    {badge}
-                  </span>
-                )}
-                <div className="flex items-start gap-3">
-                  <tile.icon className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-display text-lg font-black">{t(tile.label)}</h3>
-                    <p className="text-sm text-slate-700 mt-1">{t(tile.desc)}</p>
-                    <span className={`mt-3 inline-flex items-center h-9 px-3 rounded-md ${tile.btn} text-white font-bold uppercase tracking-wide text-xs`}>
-                      {t("OPEN →")}
-                    </span>
-                  </div>
+                    {t(group.heading)}
+                  </h2>
+                  <span className="hidden sm:inline-block h-px flex-1 bg-slate-200" aria-hidden="true" />
+                  <span className="text-xs text-slate-500 italic">{t(group.sub)}</span>
                 </div>
-              </Link>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {group.tiles.map((tileKey) => {
+                    const tile = TILE_DEFS[tileKey];
+                    const badge = tile.badgeKey ? stats[tile.badgeKey] : 0;
+                    return (
+                      <Link
+                        key={tile.to}
+                        to={tile.to}
+                        className={`block rounded-lg border border-slate-200 border-l-4 ${tile.stripe} bg-white p-5 hover:shadow-md hover:-translate-y-0.5 hover:border-slate-300 transition-all duration-150 relative`}
+                        data-testid={`hr-tile-${tile.to.split('/').pop()}`}
+                      >
+                        {badge > 0 && (
+                          <span
+                            className="absolute top-3 right-3 inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full bg-red-600 text-white text-xs font-black border-2 border-white shadow"
+                            data-testid={`hr-tile-badge-${tile.to.split('/').pop()}`}
+                          >
+                            {badge}
+                          </span>
+                        )}
+                        <div className="flex items-start gap-3">
+                          <tile.icon className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-display text-lg font-black">{t(tile.label)}</h3>
+                            <p className="text-sm text-slate-600 mt-1">{t(tile.desc)}</p>
+                            <span className={`mt-3 inline-flex items-center h-9 px-3 rounded-md ${tile.btn} text-white font-bold uppercase tracking-wide text-xs`}>
+                              {t("OPEN →")}
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
             );
           })}
         </div>
 
         {/* Cross-portal integration strip — Motive driver-safety roll-up
-            for HR review. Empty until Motive credentials land or
-            Admin flips Demo mode. */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+            for HR review. Lives inside the Integrations & Systems group
+            visually (after the section divider above) to keep it from
+            competing with the operational HR sections. Empty until
+            Motive credentials land or Admin flips Demo mode. */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6" data-testid="hr-integrations-strip">
           <IntegrationHealthCard
             tokenHeader={{ "X-HR-Token": getHrToken() || "" }}
             accent="purple"
