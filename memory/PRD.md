@@ -2,6 +2,77 @@
 
 
 
+## 2026-05-21 — iter312 Driver Qualification CSV Export · CLOSED
+
+### Scope (bounded operational-visibility export)
+Sibling endpoint to the existing `/api/hr/driver-qualification/dashboard` so HR/Dispatch/Fleet can ship the current qualification slice to FDOT / insurance carriers / attorneys / auditors without screen-scraping. NOT a reporting framework, NOT analytics, NOT BI tooling, NOT a new export architecture.
+
+### Endpoint
+`GET /api/hr/driver-qualification/dashboard.csv`
+
+- Auth gate: `require_hr_or_admin` (identical to JSON sibling)
+- Same query parameters: `cdl_holder`, `approved`, `driver_status`, `endorsement`, `expiring_cdl_30d`, `expiring_medical_30d`, `q`, `limit`
+- Reuses the JSON dashboard handler verbatim — **zero query drift** (CSV slice = JSON slice)
+- Response headers:
+  - `Content-Type: text/csv; charset=utf-8`
+  - `Content-Disposition: attachment; filename="MASCI_driver_qualification_<YYYY-MM-DD>.csv"`
+  - `Cache-Control: no-store` (personnel data, never persist a snapshot)
+
+### CSV body shape (HR-friendly · audit-archive-ready)
+- 14-column header: Name · Employee ID · Trade · Supervisor · Lifecycle Status · Approved Company Driver · CDL Holder · Driver Status · CDL License # · CDL State · CDL Expiration · Medical Card Expiration · Endorsements · Restrictions
+- Yes/No booleans (not true/false)
+- Endorsements + restrictions joined with `; ` for spreadsheet readability
+- Summary tail: operational rollup (total drivers, CDL expiring 30d, medical expiring 30d, restricted count, suspended count, tanker-capable count)
+- Audit attribution: `GENERATED FOR <email>` line so re-shared exports always carry operator provenance
+- `AS OF <date>` line
+
+### Verification (all PASSED)
+- ✅ Full export · 92 lines (1 header + 80 data + 11 summary) — matches dashboard `count=80`
+- ✅ Filter `cdl_holder=true` · 53 lines (1 header + 41 data + 11 summary) — matches sheet (43 sheet CDLs − 2 skipped = 41) and dashboard JSON `count=41`
+- ✅ Filter `q=Hoffman` · returns Brett T Hoffman row only
+- ✅ Anonymous access · HTTP 401 (verified with raw urllib to bypass conftest auto-token injection)
+- ✅ HR-token access · HTTP 200
+- ✅ `Cache-Control: no-store` present
+- ✅ `Content-Disposition: attachment; filename="MASCI_driver_qualification_..."` correct
+- ✅ Summary tail rendered with all 6 rollup metrics
+
+### Regression (all PASSED)
+- NEW · `test_iter312_driver_qualification_csv.py` (8 tests · 4 static-code + 4 runtime)
+  - Endpoint registered with `.csv` extension
+  - Reuses JSON dashboard handler (zero query drift)
+  - Same `require_hr_or_admin` auth gate
+  - `Cache-Control: no-store` header
+  - Anonymous access blocked (urllib bypass)
+  - 200 + correct media type + attachment disposition
+  - Header row + summary tail + audit attribution
+  - JSON count = CSV row count for same filter (zero query drift)
+- ✅ 89/89 combined driver-qualification + CSV regression tests green (iter285 + iter286 + iter287 + iter288 + iter312)
+
+### Files touched
+- MOD · `/app/backend/routes/employee_lifecycle.py` (+~100 lines · single endpoint, reuses dashboard handler)
+- NEW · `/app/backend/tests/test_iter312_driver_qualification_csv.py` (8 tests)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO new collections · NO new query path · NO duplicate filter logic
+- ❌ NO reporting framework · NO BI tooling · NO analytics
+- ❌ NO frontend code (HR can curl/browser-fetch the CSV directly; UI download button is a future iteration if operator wants it)
+- ❌ NO new permissions model · NO weakening of auth gate
+- ❌ NO breaking change to dashboard JSON endpoint
+- ❌ NO change to driver_qualification_audit collection
+
+### Operational impact
+HR can now:
+- Hand a CSV to FDOT/insurance carriers for compliance documentation requests
+- Filter by CDL-only / approved-only / suspended / restricted / expiring-30d and export just that slice
+- Search-filter by name/license-number then export
+- Archive snapshots in document management without screenshot stitching
+
+### Production impact
+Preview environment now serves `dashboard.csv`. **Production at https://mascidocs.com still missing the endpoint until next redeploy** — operator needs to redeploy to ship iter312 to production.
+
+
+
 ## 2026-05-21 — iter311 Drivers-on-Insurance Roster Backfill · CLOSED
 
 ### Scope (operational data population · bounded · verification-first)

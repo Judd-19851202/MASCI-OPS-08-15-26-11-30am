@@ -1126,6 +1126,113 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "as_of": today_iso,
         }
 
+    # ── iter312 · Driver Qualification CSV export ──────────────────
+    # Bounded operational-visibility export. Reuses the EXACT same
+    # filters as `/driver-qualification/dashboard` so the CSV
+    # represents the same slice the user just saw on screen — no
+    # second filter implementation, no new query path, no analytics
+    # framework. HR/Dispatch can hand the CSV to FDOT, insurance
+    # carriers, or attorneys without screen-scraping. Same auth gate
+    # (`require_hr_or_admin`), same audit trail surface.
+    @router.get("/api/hr/driver-qualification/dashboard.csv")
+    async def driver_qualification_dashboard_csv(
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+        cdl_holder: Optional[bool] = Query(default=None),
+        approved: Optional[bool] = Query(default=None),
+        driver_status: Optional[str] = Query(default=None),
+        endorsement: Optional[str] = Query(default=None),
+        expiring_cdl_30d: Optional[bool] = Query(default=None),
+        expiring_medical_30d: Optional[bool] = Query(default=None),
+        q: Optional[str] = Query(default=None, max_length=80),
+        limit: int = Query(default=2000, ge=1, le=5000),
+    ):
+        import csv as _csv
+        import io as _io
+        from fastapi.responses import Response
+        from datetime import date as _date
+
+        # Reuse the dashboard handler verbatim. Same filters · same
+        # auth · same projection · zero query drift.
+        data = await driver_qualification_dashboard(
+            actor=actor,
+            cdl_holder=cdl_holder, approved=approved,
+            driver_status=driver_status, endorsement=endorsement,
+            expiring_cdl_30d=expiring_cdl_30d,
+            expiring_medical_30d=expiring_medical_30d,
+            q=q, limit=limit,
+        )
+
+        buf = _io.StringIO()
+        w = _csv.writer(buf)
+        # Header row matches the dashboard table columns one-for-one
+        # (operational discipline: what HR sees on screen is what the
+        # CSV ships — no extra fields, no hidden fields).
+        w.writerow([
+            "Name", "Employee ID", "Trade", "Supervisor", "Lifecycle Status",
+            "Approved Company Driver", "CDL Holder", "Driver Status",
+            "CDL License #", "CDL State", "CDL Expiration",
+            "Medical Card Expiration", "Endorsements", "Restrictions",
+        ])
+
+        def _yn(v: Any) -> str:
+            if v is True:
+                return "Yes"
+            if v is False:
+                return "No"
+            return ""
+
+        def _list(v: Any) -> str:
+            if isinstance(v, list):
+                return "; ".join(str(x) for x in v if x)
+            return v or ""
+
+        for r in data["items"]:
+            w.writerow([
+                r.get("name") or "",
+                r.get("employee_id") or "",
+                r.get("trade") or "",
+                r.get("supervisor") or "",
+                r.get("lifecycle_status") or "",
+                _yn(r.get("approved_company_driver")),
+                _yn(r.get("cdl_holder")),
+                r.get("driver_status") or "",
+                r.get("cdl_license_number") or "",
+                r.get("cdl_state") or "",
+                r.get("cdl_expiration_date") or "",
+                r.get("medical_card_expiration_date") or "",
+                _list(r.get("cdl_endorsements")),
+                _list(r.get("cdl_restrictions")),
+            ])
+
+        # Summary tail — same rollup numbers HR sees in the
+        # summary-card row at the top of the dashboard. Keeps the
+        # CSV self-contained for archival/audit purposes.
+        s = data.get("summary") or {}
+        w.writerow([])
+        w.writerow(["SUMMARY (operational rollup)"])
+        w.writerow(["Total drivers in scope", data.get("count", 0)])
+        w.writerow(["CDL expiring within 30 days", s.get("cdl_expiring_30d", 0)])
+        w.writerow(["Medical card expiring within 30 days", s.get("medical_card_expiring_30d", 0)])
+        w.writerow(["Restricted", s.get("restricted", 0)])
+        w.writerow(["Suspended", s.get("suspended", 0)])
+        w.writerow(["Tanker-capable (N or X endorsement)", s.get("tanker_capable", 0)])
+        w.writerow([])
+        w.writerow(["AS OF", data.get("as_of", "")])
+        w.writerow(["GENERATED FOR", actor.get("email") or actor.get("name") or "hr-user"])
+
+        filename = f"MASCI_driver_qualification_{data.get('as_of', _date.today().isoformat())}.csv"
+        return Response(
+            content=buf.getvalue().encode("utf-8"),
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                # Cache-control: never let a browser/proxy keep a
+                # qualification snapshot beyond the request — it's
+                # personnel data.
+                "Cache-Control": "no-store",
+            },
+        )
+
     # ── Lifecycle index bootstrap helper ─────────────────────────────
     return router
 
