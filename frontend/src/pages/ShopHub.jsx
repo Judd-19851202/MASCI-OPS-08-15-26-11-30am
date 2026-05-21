@@ -111,7 +111,7 @@ export default function ShopHub() {
             <OfflineIndicator />
             <LangToggle />
             <Link
-              to="/guidance"
+              to="/guidance?from=shop"
               className="hidden sm:inline-flex items-center h-10 px-3 rounded-md border-2 border-amber-400 text-amber-400 hover:bg-amber-500 hover:text-white bg-transparent font-bold uppercase tracking-wide text-xs"
               data-testid="shop-training-link"
             >

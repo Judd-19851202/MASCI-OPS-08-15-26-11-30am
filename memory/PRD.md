@@ -2,6 +2,115 @@
 
 
 
+## 2026-05-21 — iter322 · Portal Continuity & Guidance Cohesion Fix Pass · CLOSED
+
+### Scope (operator-mandated · evidence-backed operational friction · 5-part delivery)
+Addresses five concrete continuity friction points reported during stabilization observation:
+1. **Safety Portal auth confusion** — Incidents/Near Miss/Audits transitions feel "kicked out".
+2. **Training Center / Guides continuity break** — Guides from inside Safety Portal feels like leaving the portal.
+3. **FL → Safety Equipment Issuance auth break** — FL users hitting the Safety Forms password gate feel context-blasted.
+4. **Coaching inconsistency** — "spotty" cross-portal coaching.
+5. **Guidance / Training availability inconsistency** — FL missing visible Training Center entry (already fixed in iter319 — verified at iter322).
+
+NO sidebar · NO auth-architecture rewrite · NO route changes · NO permission changes · NO tutorial popups / modal spam · NO LMS behavior. Pure continuity-banner work + bilingual parity. Operational directness preserved at every step.
+
+### Continuity changes
+- **NEW** `/app/frontend/src/components/PortalContextBanner.jsx` (151 LOC):
+  - Default export: `<PortalContextBanner currentLabel?>` — renders calm-card breadcrumb banner with `← Back to {Portal}` link styled in originating portal's identity color (cyan/purple/red/amber/orange depending on `?from=<key>`). Zero footprint when no `?from=` param.
+  - Named export: `<AuthRequiredBanner>` — for login pages; reads `location.state.continuity` and explains why elevated access is required, who normally accesses it, and how to return.
+  - 6 portals registered (safety · hr · leadership · shop · dispatch · field). Bilingual labels.
+  - Family-contract calm chrome (`border border-slate-200 border-l-4 border-l-<accent>`).
+  - Testids: `portal-context-banner`, `portal-context-back-link`, `auth-required-banner`.
+
+- **Wired into 3 surfaces**:
+  - `OperationalGuidanceCenter.jsx` Shell renders `<PortalContextBanner />` at top of `<main>` so every cross-portal Guidance arrival shows the back-link.
+  - `SafetyFormsHub.jsx` renders `<PortalContextBanner currentLabel="You are viewing Safety Forms" />` for FL → Safety Equipment Issuance flow continuity.
+  - `SafetyFormsLogin.jsx` renders `<PortalContextBanner currentLabel="Safety Forms · Sign-in required" />` ABOVE the password gate so FL users see "← Back to Field Leadership" before the auth wall (the exact friction point reported).
+
+- **All 5 hub Guides links** updated to carry `?from=<key>`:
+  - `HrHub.jsx` → `/guidance?from=hr`
+  - `SafetyHub.jsx` → `/guidance?from=safety`
+  - `ShopHub.jsx` → `/guidance?from=shop`
+  - `FieldLeadershipHub.jsx` → `/guidance?from=leadership`
+  - `DispatchHub.jsx` → `/guidance?from=dispatch`
+
+- **FL → Safety Equipment Issuance link** in `fieldLeadershipSchemas.js`:
+  - `external: true` → `internalRoute: true` (React Router now preserves the query param across the navigation).
+  - `to: "/safety/forms/login"` → `to: "/safety/forms/login?from=leadership"`.
+  - Result: FL user clicks "Safety Equipment Issuance" → React Router navigates to `/safety/forms/login?from=leadership` → SafetyFormsLogin renders the cyan continuity banner "← Back to Field Leadership · Safety Forms · Sign-in required" → user sees that they came from FL and that the gate is expected behavior, NOT a bug. After password they reach `/safety/forms?from=leadership` (param preserved by `Navigate` post-login) → SafetyFormsHub continues the banner.
+
+### Coaching consistency (Part 4 audit)
+- Verified each of the 5 hub Guides links visually present at desktop AND mobile (iter203 collapse pattern intact).
+- Verified FL Hub Training Center link (`leadership-training-link` from iter319) — present and now carries `?from=leadership`.
+- The "coaching is spotty" concern was substantially driven by continuity-banner absence — the back-link contract solves the discoverability/orientation half of the complaint. A full coaching-content audit (HelpTipBlock content quality across all forms) is deferred to a future iteration as scoped separately; this iter322 deliberately stays narrow per stabilization discipline.
+
+### Bilingual parity (Rule 8)
+Added 15 new ES dictionary entries to `lib/i18n.js`:
+- Continuity banner core: "Back to" → "Volver a"; "You are viewing platform Guidance" → "Estás viendo la Guía de la plataforma"; "You are viewing Safety Forms" → "Estás viendo Formularios de Seguridad"; "Safety Forms · Sign-in required" → "Formularios de Seguridad · Se requiere inicio de sesión".
+- Auth-required banner: "Higher access required" → "Se requiere mayor acceso"; "{workflow} requires {role} sign-in." → "{workflow} requiere acceso de {role}."; "If you believe you should have access, contact your portal lead." → "Si crees que deberías tener acceso, contacta al líder de tu portal."; "This workflow" → "Este flujo de trabajo"; "elevated access" → "acceso elevado".
+- Portal labels: "Safety Portal" → "Portal de Seguridad"; "HR Portal" → "Portal de RH"; "Field Leadership" → "Liderazgo de Campo" (already present, verified); "Shop Portal" → "Portal del Taller"; "Dispatch Portal" → "Portal de Despacho".
+
+Live ES verification confirmed `/guidance?from=leadership` renders `← VOLVER A LIDERAZGO DE CAMPO · Estás viendo la Guía de la plataforma` with red identity stripe.
+
+### Verification (all PASSED)
+- ✅ `test_iter322_portal_continuity.py` (7 tests): banner component exists with 6-portal registry · all 5 hub Guides links carry `?from=<key>` · Guidance Center renders banner · Safety Forms Hub + Login render banner · FL Safety Equipment link is internal-route with `?from=leadership` · all 15 ES entries present · family contract still at 9 members.
+- ✅ Combined regression: **147/147 green** across iter314 + iter316 + iter317-A/B/C + iter318 + iter319 + iter320 + iter321 + iter322 + platform-family contract (9 hubs).
+- ✅ Pre-deploy hook live-tested: `bash /app/.deploy_checks/run_family_contract.sh` → `7 passed · Contract green · safe to deploy`.
+- ✅ Live preview screenshots:
+  - `/guidance?from=safety` EN → cyan banner "← BACK TO SAFETY PORTAL · You are viewing platform Guidance"
+  - `/guidance?from=leadership` ES → red banner "← VOLVER A LIDERAZGO DE CAMPO · Estás viendo la Guía de la plataforma"
+  - `/guidance` (no param) → **banner count = 0** (zero-footprint baseline confirmed)
+  - `/safety/forms/login?from=leadership` → red banner "← BACK TO FIELD LEADERSHIP · Safety Forms · Sign-in required" above password gate (FL → Safety Equipment Issuance flow ORIENTATION FIXED)
+- ✅ ESLint clean on `PortalContextBanner.jsx` · `SafetyFormsLogin.jsx` · `SafetyFormsHub.jsx` · `OperationalGuidanceCenter.jsx` · all 5 hubs touched.
+
+### Files touched (iter322)
+- NEW · `/app/frontend/src/components/PortalContextBanner.jsx` (default + AuthRequiredBanner exports)
+- MOD · `/app/frontend/src/pages/guidance/OperationalGuidanceCenter.jsx` (Shell renders banner)
+- MOD · `/app/frontend/src/pages/SafetyFormsHub.jsx` (renders banner above title)
+- MOD · `/app/frontend/src/pages/SafetyFormsLogin.jsx` (renders banner above password card)
+- MOD · `/app/frontend/src/pages/HrHub.jsx` (Guides tile `?from=hr`)
+- MOD · `/app/frontend/src/pages/SafetyHub.jsx` (Guides tile `?from=safety`)
+- MOD · `/app/frontend/src/pages/ShopHub.jsx` (Guides link `?from=shop`)
+- MOD · `/app/frontend/src/pages/FieldLeadershipHub.jsx` (Guides link `?from=leadership`)
+- MOD · `/app/frontend/src/pages/DispatchHub.jsx` (Guides link `?from=dispatch`)
+- MOD · `/app/frontend/src/lib/fieldLeadershipSchemas.js` (Safety Equipment Issuance: internal-route + `?from=leadership`)
+- MOD · `/app/frontend/src/lib/i18n.js` (15 new ES entries)
+- MOD · `/app/backend/tests/test_iter317c_hr_hub_grouped_cards.py` (route assertion accepts `?from=` suffix)
+- MOD · `/app/backend/tests/test_iter318_safety_hub_calm_pass.py` (route assertion accepts `?from=` suffix)
+- NEW · `/app/backend/tests/test_iter322_portal_continuity.py` (7 tests)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO change to `<RequireSafety>`, `<RequireAdmin>`, `<RequireHr>`, `<RequireShop>` guards (auth architecture preserved)
+- ❌ NO change to permission scoping or RBAC at the API layer
+- ❌ NO change to backend, routes, DB, integrations
+- ❌ NO change to family-contract chrome on any of the 9 family hubs (deploy gate confirms)
+- ❌ NO tutorial popups, no modal spam, no LMS-style onboarding system
+- ❌ NO AuthRequiredBanner wired into the actual portal login pages yet — the component is built and ready, but wiring requires touching `<Require*>` redirect call sites with `state={{ continuity: ... }}`. That is queued as a small follow-up if operator wants it; the current iteration solves the most-reported friction (FL → Safety Equipment Issuance) which doesn't involve a guard redirect at all (it routes directly to the Safety Forms login gate, where the continuity banner now appears).
+- ❌ NO broad coaching-content audit (deferred — explicitly bounded per stabilization discipline)
+
+### Operational impact
+A user who hits the FL → Safety Equipment Issuance friction point now sees:
+> **← BACK TO FIELD LEADERSHIP** · *Safety Forms · Sign-in required*
+> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+> 🛡 **Safety Department**
+> **Safety Forms** — Equipment Issuance and Use & Care Training. Password-gated for the Safety Department.
+
+Instead of the prior abrupt password-only wall, the user immediately understands:
+1. Where they are (Safety Forms)
+2. Why they got there (clicked Safety Equipment Issuance from FL)
+3. What access level is required (Safety Department password)
+4. How to return (one click — "← Back to Field Leadership")
+5. What the next action is (enter password OR go back)
+6. They did NOT leave their operational context — FL is one click away
+
+Same calm pattern now applies to every other Guides arrival: HR / Safety / FL / Shop / Dispatch → Guidance Center → user always sees the "← Back to {Portal}" banner in the originating portal's color identity. The platform reads as one continuous operational ecosystem.
+
+### Production impact
+**Preview has it. Production at mascidocs.com still missing until next redeploy.** Zero backend / DB / API / permissions changes. New banner component + 5 hub link updates + 15 ES dictionary additions. Ships the moment the redeploy lands.
+
+
+
 ## 2026-05-21 — iter321 · Dispatch Hub Convergence + Safety Tile Governance Closure + Deploy Hook · CLOSED
 
 ### Scope (operator-mandated · Platform UX Governance Phase A · iter321 · 3-part delivery)

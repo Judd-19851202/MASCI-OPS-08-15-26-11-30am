@@ -54,7 +54,11 @@ def test_iter318_all_existing_tile_routes_preserved():
         "/safety-portal/change-password",
     ]
     for route in required_routes:
-        assert f'"{route}"' in src, f"Safety Hub must preserve tile route {route}"
+        # iter322 — guidance route may carry a `?from=safety` suffix
+        # for portal-continuity. Accept either form.
+        assert f'"{route}"' in src or f'"{route}?from=' in src, (
+            f"Safety Hub must preserve tile route {route}"
+        )
 
 
 def test_iter318_all_tile_testids_preserved():

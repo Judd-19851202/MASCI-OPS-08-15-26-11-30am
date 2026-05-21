@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
+import PortalContextBanner from "@/components/PortalContextBanner";
 
 const SECTION_ICONS = {
   "user-cog": UserCog,
@@ -840,6 +841,10 @@ function Shell({ title, children }) {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
+        {/* iter322 · Portal continuity banner — shows when user arrived
+            from a sibling portal via `?from=<key>`. Zero-footprint when
+            no param is present. */}
+        <PortalContextBanner />
         {title && (
           <h1 className="font-display text-2xl font-black tracking-tight text-slate-900 mb-4">
             {title}

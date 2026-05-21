@@ -3617,6 +3617,22 @@ const ES = {
   "OPEN CARDS": "ABRIR TARJETAS",
   "OPEN FORMS": "ABRIR FORMULARIOS",
 
+  // iter322 · Portal continuity banner + auth-required banner
+  "Back to": "Volver a",
+  "You are viewing platform Guidance": "Estás viendo la Guía de la plataforma",
+  "You are viewing Safety Forms": "Estás viendo Formularios de Seguridad",
+  "Safety Forms · Sign-in required": "Formularios de Seguridad · Se requiere inicio de sesión",
+  "Higher access required": "Se requiere mayor acceso",
+  "{workflow} requires {role} sign-in.": "{workflow} requiere acceso de {role}.",
+  "If you believe you should have access, contact your portal lead.": "Si crees que deberías tener acceso, contacta al líder de tu portal.",
+  "This workflow": "Este flujo de trabajo",
+  "elevated access": "acceso elevado",
+  "Safety Portal": "Portal de Seguridad",
+  "HR Portal": "Portal de RH",
+  "Field Leadership": "Liderazgo de Campo",
+  "Shop Portal": "Portal del Taller",
+  "Dispatch Portal": "Portal de Despacho",
+
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",

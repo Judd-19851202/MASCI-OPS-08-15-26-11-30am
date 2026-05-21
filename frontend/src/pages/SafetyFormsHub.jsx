@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
+import PortalContextBanner from "@/components/PortalContextBanner";
 import { isSafetyForms, clearSafetyFormsToken } from "@/lib/safetyFormsAuth";
 import { useT } from "@/lib/i18n";
 
@@ -92,6 +93,10 @@ export default function SafetyFormsHub() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+        {/* iter322 · Portal continuity — if user arrived from FL with
+            `?from=leadership`, show the back-to-FL banner. Zero
+            footprint when no `?from=` is present. */}
+        <PortalContextBanner currentLabel={t("You are viewing Safety Forms")} />
         <div className="mb-8 flex items-start gap-4">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white shrink-0">
             <ShieldCheck className="w-6 h-6" />

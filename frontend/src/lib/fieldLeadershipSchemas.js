@@ -554,12 +554,15 @@ export const FIELD_LEADERSHIP_FORMS = [
 
 // Existing Safety Equipment Issuance form — links out to /safety/forms/login.
 // Listed in the Field Leadership hub but not part of the schema-driven flow.
+// iter322 — append `?from=leadership` so the Safety Forms gate + hub
+// render the portal-continuity banner ("← Back to Field Leadership").
 export const SAFETY_EQUIPMENT_ISSUANCE_LINK = {
   kind: "safety_equipment_issuance",
   icon: ShieldCheck,
   accent: "red",
-  external: true,
-  to: "/safety/forms/login",
+  external: false,
+  internalRoute: true,
+  to: "/safety/forms/login?from=leadership",
   title: { en: "Safety Equipment Issuance", es: "Entrega de Equipo de Seguridad" },
   desc: {
     en: "Existing PPE and safety-equipment accountability form. Submitted records are shared with the Safety section.",

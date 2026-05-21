@@ -48,7 +48,11 @@ def test_iter317c2_all_existing_tiles_preserved():
         "/guidance",
     ]
     for route in required_routes:
-        assert f'"{route}"' in src, f"HR Hub must preserve tile route {route}"
+        # iter322 — guidance route may carry a `?from=hr` suffix for
+        # portal-continuity. Accept either form.
+        assert f'"{route}"' in src or f'"{route}?from=' in src, (
+            f"HR Hub must preserve tile route {route}"
+        )
 
 
 def test_iter317c2_left_edge_stripe_pattern_in_place():

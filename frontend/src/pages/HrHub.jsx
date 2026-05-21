@@ -71,7 +71,7 @@ const TILE_DEFS = {
   safetyRecords: { to: "/hr/safety-records", icon: ShieldCheck, label: "Safety Records",
     desc: "Read-only · safety document library (OSHA, SDS, EAPs) and per-employee training & certifications maintained by Safety",
     stripe: "border-l-cyan-700", btn: "bg-cyan-700 hover:bg-cyan-800" },
-  guidance: { to: "/guidance", icon: BookOpen, label: "Training Center & Guides",
+  guidance: { to: "/guidance?from=hr", icon: BookOpen, label: "Training Center & Guides",
     desc: "Step-by-step operator guides for the HR Portal · onboarding · payroll · cross-portal safety access · downloadable PDFs",
     stripe: "border-l-indigo-500", btn: "bg-indigo-700 hover:bg-indigo-800" },
 };

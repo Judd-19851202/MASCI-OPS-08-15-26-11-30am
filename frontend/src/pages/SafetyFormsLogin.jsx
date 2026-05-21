@@ -7,6 +7,7 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { LangToggle } from "@/components/LangToggle";
+import PortalContextBanner from "@/components/PortalContextBanner";
 import { api } from "@/lib/api";
 import { setSafetyFormsToken, clearSafetyFormsToken } from "@/lib/safetyFormsAuth";
 import { toast } from "sonner";
@@ -72,7 +73,12 @@ export default function SafetyFormsLogin() {
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
+      <main className="flex-1 flex flex-col items-center justify-center px-5 sm:px-8 py-12">
+        {/* iter322 · continuity banner when arriving from another
+            portal via `?from=<key>`. Zero footprint when absent. */}
+        <div className="w-full max-w-md">
+          <PortalContextBanner currentLabel={t("Safety Forms · Sign-in required")} />
+        </div>
         <div className="w-full max-w-md bg-white border-2 border-slate-300 rounded-md p-7 sm:p-9 shadow-xl">
           <div className="flex items-center gap-3 mb-2">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white">

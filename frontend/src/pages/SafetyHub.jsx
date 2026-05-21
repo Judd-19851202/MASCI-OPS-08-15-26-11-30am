@@ -343,7 +343,7 @@ export default function SafetyHub() {
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <SafetyTile
-            to="/guidance"
+            to="/guidance?from=safety"
             icon={GraduationCap}
             title={t("Training Center & Guides")}
             desc={t("Step-by-step operator guides for Safety Portal workflows — Corrective Actions, Incidents, Fire Extinguisher Bulk Import, Weekly Digest. Download any guide as PDF.")}
