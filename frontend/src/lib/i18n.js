@@ -3638,6 +3638,12 @@ const ES = {
   "You selected {workflow} from {origin}.": "Seleccionaste {workflow} desde {origin}.",
   "This workflow requires {role} access.": "Este flujo requiere acceso de {role}.",
   "After sign-in, you'll continue to {workflow}.": "Después de iniciar sesión, continuarás a {workflow}.",
+
+  // iter322-C · Job Site Safety Inspection surfacing
+  "New Site Inspection": "Nueva Inspección de Sitio",
+  "Every site safety audit and Job Site Safety Inspection — the records the field submits through": "Cada auditoría de seguridad de sitio e Inspección de Seguridad del Sitio de Trabajo — los registros que el campo envía a través de",
+  "— organized for Safety review and corrective-action close-out.": "— organizados para revisión de Seguridad y cierre de acciones correctivas.",
+  "Review every Job Site Safety Inspection submitted from the field · filter, search, drill in · start a new inspection from the same page.": "Revisa cada Inspección de Seguridad del Sitio enviada desde el campo · filtra, busca, profundiza · comienza una nueva inspección desde la misma página.",
   // Workflow labels (i18n keys = English label; t() falls back to EN
   // when an entry isn't present so this only needs the most-hit names).
   "Incident Reports": "Reportes de Incidentes",

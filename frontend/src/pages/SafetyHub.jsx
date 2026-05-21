@@ -214,7 +214,7 @@ export default function SafetyHub() {
             to="/safety-portal/audits"
             icon={ShieldAlert}
             title={t("Audits & Inspections")}
-            desc={t("Site safety audits and jobsite inspections — same records the field submits, organized for Safety review and close-out.")}
+            desc={t("Review every Job Site Safety Inspection submitted from the field · filter, search, drill in · start a new inspection from the same page.")}
             accent="emerald"
             ctaLabel={t("OPEN")}
             testId="safety-tile-audits"

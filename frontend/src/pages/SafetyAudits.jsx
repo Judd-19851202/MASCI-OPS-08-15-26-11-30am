@@ -6,7 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import {
-  ShieldAlert, Search, Loader2, ChevronRight, CheckCircle2, AlertTriangle,
+  ShieldAlert, Search, Loader2, ChevronRight, CheckCircle2, AlertTriangle, Plus,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -69,21 +69,33 @@ export default function SafetyAudits() {
   return (
     <SafetyShell title={t("Audits & Inspections")} kicker={t("Safety Review")}>
       <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-4" data-testid="safety-audits-page">
-        <header className="bg-white border-2 border-slate-300 rounded-md p-5 flex items-start gap-3">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-emerald-700 text-white shrink-0">
-            <ShieldAlert className="w-6 h-6" />
+        <header className="bg-white border border-slate-200 border-l-4 border-l-emerald-600 rounded-md p-5 flex flex-col sm:flex-row sm:items-start gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <ShieldAlert className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <span className="font-mono text-xs uppercase tracking-[0.22em] text-emerald-700 font-bold">
+                {t("Safety Portal")}
+              </span>
+              <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight mt-0.5">
+                {t("Audits & Inspections")}
+              </h1>
+              <p className="text-sm text-slate-600 mt-1">
+                {t("Every site safety audit and Job Site Safety Inspection — the records the field submits through")} <code className="text-xs">/safety/inspections</code> {t("— organized for Safety review and corrective-action close-out.")}
+              </p>
+            </div>
           </div>
-          <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-700 font-bold">
-              Safety Portal
-            </span>
-            <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">
-              {t("Audits & Inspections")}
-            </h1>
-            <p className="text-sm text-slate-600 mt-1">
-              {t("Site safety audits and jobsite inspections — same records the field submits, organized for Safety review and close-out. Linked deficiencies open a corrective-action workflow.")}
-            </p>
-          </div>
+          {/* iter322-C · Start new Site Inspection — surfacing the
+              authenticated form path directly inside the Safety Portal
+              review surface so signed-in Safety users never have to
+              hunt for the entry point. */}
+          <Link
+            to="/safety/inspections/new"
+            data-testid="audits-start-new-inspection"
+            className="shrink-0 inline-flex items-center justify-center h-10 px-4 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white font-bold uppercase tracking-wide text-xs"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            {t("New Site Inspection")}
+          </Link>
         </header>
 
         {/* Summary cards */}
