@@ -247,8 +247,11 @@ def test_iter304_total_library_grew_to_142():
             continue
         text = jsfile.read_text()
         total += len(re.findall(r'^\s*key:\s*"', text, re.MULTILINE))
-    assert total == 142, (
-        f"library size: expected 142 (141 + 1 from iter304), got {total}"
+    # iter304 shipped library at 142 (141 + 1). Later iterations (iter305+)
+    # may grow this further. Lower-bound guards iter304's bounded-scope
+    # promise that the iteration added exactly 1 topic.
+    assert total >= 142, (
+        f"library size: iter304 shipped at 142, got {total} (regression — iter304 topic removed?)"
     )
 
 

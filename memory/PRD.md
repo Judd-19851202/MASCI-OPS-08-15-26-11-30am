@@ -1,6 +1,95 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-21 — iter305 Dewatering Family Tone Benchmark · `dewatering_invisible_force_discipline` · CLOSED
+
+### Scope (operator-approved v1 · one sentence revision)
+Operator's #3 priority from iter301 audit (dewatering / wellpoint family · operator-named "invisible-force" gap). One new topic appended to existing `dewatering` domain. NO new domain. NO chip changes. **Fourth and final philosophical template** locked in for the Safety Topic ecosystem.
+
+### Operator-revised sentence (final anchor)
+Operator selected option **a** over the alternative *"realize it too late"*:
+> *"and the operators who get hurt usually never recognized the force that was already there."*
+
+Operator rationale: *"that wording best matches the invisible-force discipline philosophy. It reinforces that the real failure is not simply reacting too late — it is failing to recognize the force that was already present but not visible."*
+
+### Voice template established: **Invisible-Force Discipline**
+The platform now carries FOUR distinct operational-cognition templates — the structural backbone of the institutional operational memory is now complete:
+1. **Custody-first** (iter302 · lab nuclear gauge) — *"Who has the dangerous thing right now?"*
+2. **Mental-model-first** (iter303 · airport FOD) — *"What mental model are we operating from?"*
+3. **Default-state discipline** (iter304 · dump-bed transition) — *"What is the system's required default state?"*
+4. **Invisible-force discipline** (iter305 · dewatering) — *"What force is acting that we cannot see?"*
+
+### Philosophical anchor
+*"Dewatering is a discipline of forces you can feel before you can see them — and the operators who get hurt usually never recognized the force that was already there."*
+
+Names the cognitive failure that produces all 8 existing scenario-driven dewatering topics. The veteran walks the system reading invisible forces (vacuum · stored pressure · subsurface saturation · couplings under tension) before instruments confirm them; the new operator watches the pump and gets hurt by the seconds in between. The existing 8 `dewatering_*` topics now become symptoms of this one underlying failure to read invisible-force.
+
+### Veteran-voice authenticity signals
+- *"The veteran walks the system. The new operator watches the pump."* (cognitive difference between experience levels)
+- *"Wellpoints don't pop straight up. They pop sideways toward whoever's closest."* (failure-direction knowledge only field experience produces)
+- *"Vacuum holds in wellpoint headers for thirty to ninety seconds after shutdown."* (concrete time window — real operators know this)
+- *"Treat suction lines like they're under pressure even when nothing looks like it's happening."* (the cognitive flip)
+- *"The 'temporary' fitting has been there for three weeks. Treat it as permanent or remove it."* (temp-becomes-permanent without scolding)
+- *"Light it like a job, not a campground."* (veteran cadence)
+- *"If the pump stops on its own, something else is wrong before you restart it."* (root-cause discipline)
+
+### ES discipline
+- ✅ `dewatering` kept untranslated (industry term used as-is in field Spanish)
+- ✅ `wellpoint` kept untranslated (same convention)
+- ✅ `Vapor lock` kept untranslated (diesel-pump failure mode named this way by operators in both languages)
+- ✅ `cuadrilla` (cross-region universal)
+- ✅ `camina el sistema` preserves the veteran/new contrast in ES
+- ✅ `Trátela como permanente o quítela` (direct imperative, field-natural in ES across regions)
+- ✅ `Ilumínelo como obra, no como campamento` (preserves night-lighting comparison)
+- ✅ `fuerzas que se sienten antes de verse` (rhetorical anchor in Spanish)
+- ✅ **NO `nomás`** — universal Spanish throughout per iter303 universality discipline
+
+### Integration
+- MOD · `/app/frontend/src/lib/topics/dewatering.js` (8 → 9 topics)
+- MOD · `/app/frontend/src/lib/topics/dewatering.es.js` (8 → 9 ES translations)
+- NO new domain, NO chip changes, NO existing-topic edits
+- Library: 142 → **143 topics**
+
+### Regression
+- **69/69 iter305 regression pytests green** (`test_iter305_dewatering_invisible_force.py`)
+- **241/241 combined pytests green** across iter266/iter302/iter303/iter304/iter305 (topic library suite)
+- Cross-template structural confirmation test: all four philosophical templates verified present in their respective domain files (custody-first in lab.js · mental-model in airport.js · default-state in trucking.js · invisible-force in dewatering.js)
+- All 8 existing dewatering topics verified untouched (bounded-scope guard parametrized across all keys)
+- ESLint clean
+
+### Files touched
+- MOD · `/app/frontend/src/lib/topics/dewatering.js`
+- MOD · `/app/frontend/src/lib/topics/dewatering.es.js`
+- NEW · `/app/backend/tests/test_iter305_dewatering_invisible_force.py` (69 tests)
+- MOD · `/app/backend/tests/test_iter304_dump_bed_transition.py` (library-size sanity → range-tolerant `≥ 142`)
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md`
+- Tone-benchmark draft preserved at `/app/memory/DEWATERING_TONE_BENCHMARK_DRAFT.md`
+
+### Strategic milestone — PAUSE MAJOR TOOLBOX EXPANSION
+Operator's explicit direction following iter305 ship:
+> *"After iter305: pause major Toolbox expansion as previously directed. Then shift posture to: operational observation · crew usage · discussion-quality observation · stabilization. No new topic families after this without a fresh operator decision."*
+
+The platform's operational-cognition vocabulary is structurally complete for now. Quality over quantity from here forward. iter306 onward focuses on real-world friction observation rather than content expansion.
+
+### Stabilization-phase posture activated
+- **NO** new topic families to be proposed
+- **NO** new content domains without fresh operator decision
+- **Observe**: crew usage · discussion quality · operational friction · mobile usability pain points · repeated clicks
+
+### Deferred per operator stabilization direction
+- **Future dewatering expansion** (operator explicitly said NOT proposed) — DEFERRED.
+- **#4 · Shop / Mechanic** (jack stands · grinder wheels · hydraulic injection · welding/fire watch · pinch points · LOTO realism) — DEFERRED pending observation-phase outcomes.
+- **#5 · Airport full 4-topic set** (3 remaining topics inheriting iter303's voice template) — DEFERRED pending observation-phase outcomes.
+- Future dump-bed family expansion (post-dump distraction · windrow-clearing complacency · plant-exit body-angle discipline) — DEFERRED, no current scope.
+- Cluster E + F bilingual closure (~31 placeholder t()-wraps).
+- Lite-backup orphan cleanup decision (operator instructed: NO autonomous cleanup).
+- Lane B mobile/tablet validation.
+- F1: Motive / MaintainX integrations (operator hold).
+- F2: Post-stabilization CI gate for `t()` calls on new view surfaces.
+
+---
+
+
 ## 2026-05-20 — iter304 Dump-Bed Family Tone Benchmark · `dump_bed_transition_discipline` · CLOSED
 
 ### Scope (operator-approved v1 · zero revision cycles)
