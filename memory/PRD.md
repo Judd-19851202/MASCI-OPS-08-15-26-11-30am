@@ -2,6 +2,95 @@
 
 
 
+## 2026-05-21 — iter306 (post-deploy) + iter307 Disk Hygiene Cleanup · CLOSED
+
+### Scope (operator-approved Option A · bounded operational hygiene)
+Pre-deploy disk audit (iter306-extension) identified three zero-risk safe-cleanup targets totaling ~1.89 GB. Operator approved Option A: perform the three surgical deletions, then add one ops-hygiene log line to surface future orphan accumulation. NO automation, NO daemon, NO architecture change.
+
+### Pre-cleanup state
+- `/app` partition: **8.6 GB used / 9.8 GB total = 89%** (1.2 GB free)
+- `git fsck --no-dangling`: clean (zero references to `tmp_*` files confirmed)
+- `.git/objects`: 1.7 GB
+- `node_modules/.cache/default-development/`: 885 MB
+
+### Three deletions executed (in order)
+1. `rm /app/.git/objects/pack/tmp_pack_glFlTc` — **934 MB freed** (orphan git pack tmp from interrupted May-19 op)
+2. `rm /app/.git/objects/df/tmp_obj_KGxhTX` — **71 MB freed** (orphan git object tmp from same op)
+3. `rm -rf /app/frontend/node_modules/.cache/default-development/` — **885 MB freed** (webpack dev cache; auto-regenerates)
+
+### Post-cleanup state
+- `/app` partition: **6.8 GB used / 9.8 GB total = 70%** ✅ (3.1 GB free) — exactly at operator's target
+- `.git/objects`: 1.7 GB → **685 MB** (orphans gone, real packfiles preserved)
+- `git fsck --no-dangling`: still clean (no corruption introduced)
+- `[ops-hygiene]` startup log now reads `disk=69%` with NO `DISK_PRESSURE` flag (below 85% watermark)
+
+### Preserved (NEVER-TOUCH list verified intact)
+- `MASCI_full_backup_*.zip` (2 files · 2.3 GB) — DR backbone untouched
+- `MASCI_complete_backup_*.zip` (2 files · 260 KB) — R2-replicated copies untouched
+- `MASCI_lite_*.zip` (300 files · 21 MB) — operator-flagged orphans preserved per direction
+- `/app/backend/storage/project_docs/` (533 MB) — user uploads untouched
+- `/app/backend/static/training-videos/` (281 MB) — operational content untouched
+- `/app/.git/objects/pack/pack-*.pack` (real packfiles) — platform history untouched
+- `/app/memory/` (1.7 MB) — institutional memory untouched
+- `/app/backend/tests/` (11 MB) — regression infrastructure untouched
+- `.cache/.eslintcache` (161 KB) + `.cache/babel-loader/` (827 KB) — preserved per scope
+
+### iter307 · Ops-hygiene one-line addition (operator-approved follow-up)
+Added a **conditional** log line inside the existing `_log_operational_hygiene()` helper (server.py):
+
+```python
+[ops-hygiene] git_tmp_orphans: count=N size_mb=X.Y
+```
+
+- Globs `/app/.git/objects/pack/tmp_pack_*`, `tmp_idx_*`, and `??/tmp_obj_*`
+- **Signal-not-noise**: emits ONLY when at least one orphan exists (guarded by `if tmp_paths:`)
+- **No autonomous cleanup**: visibility-only — operator gets to decide if/when to clean
+- Currently the log line does NOT print (zero orphans), confirming clean state
+
+### Regression coverage
+- NEW · `test_iter307_git_tmp_orphan_visibility.py` (5 tests)
+  - `git_tmp_orphans` log line present in server.py
+  - Globs cover all 3 patterns (tmp_pack_*, tmp_idx_*, tmp_obj_*)
+  - Signal-not-noise guard present (`if tmp_paths:`)
+  - No autonomous cleanup introduced (no os.remove / unlink near logging)
+  - Globs scoped to `/app/.git/objects/` only (no FS traversal risk)
+- 87/87 combined pytests green (iter299 + iter305 + iter306 + iter307)
+
+### Verification post-cleanup
+- ✅ Backend health: `/api/health` returns 200 in 0.4s
+- ✅ Mongo: banners=0, employees=236, daily_reports=104 (all expected)
+- ✅ Frontend hot reload: `/` renders correctly, SIGN IN button present, no banner leaks
+- ✅ Service supervisor: backend / frontend / mongodb all RUNNING
+- ✅ No startup errors in backend.err.log
+- ✅ Backup count integrity: total=304 (full=2 lite=300 complete=2) — identical pre/post
+- ✅ `[ops-hygiene]` log now INFO-level (was WARNING under DISK_PRESSURE)
+
+### Files touched
+- DEL · `/app/.git/objects/pack/tmp_pack_glFlTc`
+- DEL · `/app/.git/objects/df/tmp_obj_KGxhTX`
+- DEL · `/app/frontend/node_modules/.cache/default-development/` (200+ webpack pack files)
+- MOD · `/app/backend/server.py` (one bounded addition inside `_log_operational_hygiene`)
+- NEW · `/app/backend/tests/test_iter307_git_tmp_orphan_visibility.py` (5 tests)
+
+### Stabilization-phase posture · ACTIVATED
+Per operator direction:
+- 🟢 Operational observation
+- 🟢 Crew usage monitoring
+- 🟢 Trust refinement
+- 🟢 Discussion-quality observation
+- 🟢 Infrastructure hygiene (validated by this iteration)
+- ⛔ NO major feature expansion
+- ⛔ NO new topic families
+- ⛔ NO automation / daemons / monitoring subsystems
+
+### Final disk-hygiene posture
+- Disk at 70% with 3.1 GB free
+- Healthy retention working (`BACKUP_KEEP_MAX=3`, `BACKUP_RETENTION_DAYS=14`)
+- Future orphan accumulation will surface automatically via the new conditional log line
+- Full DR backups preserved · zero data loss · zero operational disruption
+
+
+
 ## 2026-05-21 — iter306 Hub Banner Cleanup Invariant (Pre-Deploy Gate) · CLOSED
 
 ### Scope (operator-flagged operational-trust hazard · bounded fix)

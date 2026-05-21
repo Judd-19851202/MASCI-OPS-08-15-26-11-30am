@@ -5526,6 +5526,35 @@ async def _log_operational_hygiene(reason: str = "startup", db=None) -> None:
         else:
             logger.info(msg)
 
+        # iter307 · git tmp orphan visibility — interrupted git gc/pack
+        # operations leave `tmp_pack_*` and `tmp_obj_*` files in
+        # `.git/objects/` that git itself never references but never
+        # cleans up either. iter306-era audit found ~1 GB of these
+        # orphans from a single May-19 interrupted pack op. Surface the
+        # count + total size on every ops-hygiene log so the next
+        # accumulation is visible operationally, not buried in a future
+        # pre-deploy disk audit. NO autonomous cleanup — just visibility.
+        try:
+            import glob as _g
+            tmp_paths = (
+                _g.glob("/app/.git/objects/pack/tmp_pack_*")
+                + _g.glob("/app/.git/objects/pack/tmp_idx_*")
+                + _g.glob("/app/.git/objects/??/tmp_obj_*")
+            )
+            if tmp_paths:
+                tmp_bytes = 0
+                for p in tmp_paths:
+                    try:
+                        tmp_bytes += os.path.getsize(p)
+                    except Exception:
+                        pass
+                logger.info(
+                    f"[ops-hygiene] git_tmp_orphans: count={len(tmp_paths)} "
+                    f"size_mb={tmp_bytes / (1024 * 1024):.1f}"
+                )
+        except Exception as e:  # noqa: BLE001
+            logger.info(f"[ops-hygiene] git_tmp_orphans read skipped ({e})")
+
         if db is not None:
             try:
                 latest = await db.backup_health.find_one(
