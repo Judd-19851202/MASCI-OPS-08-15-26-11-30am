@@ -2,6 +2,62 @@
 
 
 
+## 2026-05-21 — iter313 Driver Qualification Export Current View Button · CLOSED
+
+### Scope (UI closure of iter312 · strictly bounded)
+Single "Export Current View → CSV" button on the existing Driver Qualification Dashboard. Reuses the iter312 endpoint with **zero new backend infrastructure**. NOT a reporting framework, NOT a new endpoint, NOT a dashboard redesign.
+
+### Button behavior
+- **Endpoint**: `GET /api/hr/driver-qualification/dashboard.csv` (iter312 endpoint ONLY)
+- **Filter state**: passes the exact same `filters` object to the CSV request as the dashboard JSON fetch — CSV slice = JSON slice = visible table (zero query drift contract from iter312 preserved)
+- **Download mechanism**: axios `responseType: "blob"` + `Blob` + anchor click + `URL.revokeObjectURL`
+- **Filename**: extracted from server-side `Content-Disposition` (iter312 ships canonical `MASCI_driver_qualification_YYYY-MM-DD.csv`); client-side fallback only if header missing
+- **Disabled when**: exporting in flight, dashboard loading, OR `items.length === 0` (no accidental empty-CSV downloads)
+- **Failure handling**: `console.error` + `toast.error` (per iter308 "admin surfaces fail loudly" principle)
+- **Bilingual**: 4 new ES translations added to `lib/i18n.js`
+- **Testid**: `data-testid="dq-export-csv"`
+
+### Verification (all PASSED)
+- ✅ Button visible on dashboard with EN label "Export Current View → CSV"
+- ✅ Click triggers browser download: `MASCI_driver_qualification_2026-05-21.csv` (3399 bytes)
+- ✅ Downloaded CSV byte-identical to direct iter312 endpoint call with same filters
+- ✅ ESLint clean on `HrDriverQualificationDashboard.jsx`
+- ✅ ES translations registered (Export Current View → CSV → "Exportar Vista Actual → CSV"; etc.)
+
+### Regression (all PASSED)
+- NEW · `test_iter313_driver_qualification_export_button.py` (9 static-code invariants):
+  - Button present with testid `dq-export-csv`
+  - Calls iter312 endpoint ONLY (`/hr/driver-qualification/dashboard.csv`)
+  - Uses `responseType: "blob"` for proper browser download
+  - Passes ALL 7 filter keys (cdl_holder, approved, driver_status, endorsement, expiring_cdl_30d, expiring_medical_30d, q) — zero query drift contract
+  - Disabled while `exporting || loading || items.length === 0`
+  - Filename extracted from server Content-Disposition + client fallback
+  - ES translations present
+  - No new backend endpoint introduced (regex scan: only iter312 endpoint in JSX)
+  - Failure surfaces via `console.error` + `toast.error`
+- ✅ 98/98 combined regression tests green (iter285 + iter286 + iter287 + iter288 + iter312 + iter313)
+
+### Files touched
+- MOD · `/app/frontend/src/pages/HrDriverQualificationDashboard.jsx` (+~55 lines · single button + handler)
+- MOD · `/app/frontend/src/lib/i18n.js` (+4 ES translations)
+- NEW · `/app/backend/tests/test_iter313_driver_qualification_export_button.py` (9 tests)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO new backend endpoint · NO duplicate filter logic · NO new query path
+- ❌ NO reporting framework · NO BI tooling · NO analytics
+- ❌ NO dashboard redesign · NO new permissions model · NO new collections
+- ❌ NO change to iter312 endpoint · NO change to JSON dashboard endpoint
+- ❌ NO change to other HR/Dispatch/Fleet visibility surfaces
+
+### Operational impact
+HR can now click "Export Current View → CSV" while looking at any filter combination (CDL-only · approved-only · suspended · restricted · expiring-30d · endorsement-filtered · name-search) and the resulting CSV represents EXACTLY what's on screen. Same audit trail as iter312 (`GENERATED FOR <email>`).
+
+### Production impact
+Preview environment has the button now. **Production at https://mascidocs.com still missing it until next redeploy** — operator needs to redeploy to ship iter313.
+
+
+
 ## 2026-05-21 — iter312 Driver Qualification CSV Export · CLOSED
 
 ### Scope (bounded operational-visibility export)

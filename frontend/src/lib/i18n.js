@@ -3297,6 +3297,10 @@ const ES = {
   "Restricted": "Restringido",
   "Suspended": "Suspendido",
   "Tanker-Capable": "Capaz de Tanque",
+  "Export Current View → CSV": "Exportar Vista Actual → CSV",
+  "Export the current filtered view to CSV": "Exportar la vista filtrada actual a CSV",
+  "Driver qualification CSV downloaded": "CSV de calificación de conductores descargado",
+  "Could not export driver qualification CSV": "No se pudo exportar el CSV de calificación de conductores",
   "Read-only operational visibility · CDL holders · approved drivers · endorsements · expirations · tanker-capable list":
     "Visibilidad operacional de solo lectura · titulares de CDL · conductores aprobados · endosos · vencimientos · lista capaz de tanque",
   "Name · ID · CDL #": "Nombre · ID · # de CDL",

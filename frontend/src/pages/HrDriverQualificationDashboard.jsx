@@ -3,7 +3,7 @@
 // + 5 tiny summary cards. NOT a dispatch system, NOT a compliance
 // platform — read the coaching family for the boundary discipline.
 import React, { useCallback, useEffect, useState } from "react";
-import { Loader2, Search, Truck, AlertTriangle, Clock, Ban, ShieldX } from "lucide-react";
+import { Loader2, Search, Truck, AlertTriangle, Clock, Ban, ShieldX, Download } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +104,51 @@ export default function HrDriverQualificationDashboard() {
     setFilters((f) => ({ ...f, driver_status: f.driver_status === s ? "" : s }));
   };
 
+  // iter313 · Export Current View → CSV.
+  // Reuses the iter312 endpoint with the CURRENT filter state so the
+  // exported file is EXACTLY what the user is looking at. No new
+  // backend, no new query path, no analytics drift. The button stays
+  // disabled while a fetch is in flight and surfaces failures via
+  // toast (admin-visible discipline — HR knows when it doesn't work).
+  const [exporting, setExporting] = useState(false);
+  const exportCurrentView = async () => {
+    setExporting(true);
+    try {
+      const params = { limit: 5000 };
+      if (filters.cdl_holder !== "") params.cdl_holder = filters.cdl_holder;
+      if (filters.approved !== "") params.approved = filters.approved;
+      if (filters.driver_status) params.driver_status = filters.driver_status;
+      if (filters.endorsement) params.endorsement = filters.endorsement;
+      if (filters.expiring_cdl_30d) params.expiring_cdl_30d = true;
+      if (filters.expiring_medical_30d) params.expiring_medical_30d = true;
+      if (filters.q.trim()) params.q = filters.q.trim();
+      const r = await api.get("/hr/driver-qualification/dashboard.csv", {
+        params,
+        responseType: "blob",
+      });
+      // Extract filename from Content-Disposition if present, else
+      // fall back to a sensible client-side default.
+      const cd = r.headers?.["content-disposition"] || r.headers?.["Content-Disposition"] || "";
+      const match = /filename="?([^"]+)"?/i.exec(cd);
+      const filename = match ? match[1] : `MASCI_driver_qualification_${new Date().toISOString().slice(0, 10)}.csv`;
+      const blob = new Blob([r.data], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(t("Driver qualification CSV downloaded"));
+    } catch (err) {
+      console.error("[hr/driver-qualification] csv export failed:", err);
+      toast.error(err?.response?.data?.detail || t("Could not export driver qualification CSV"));
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <HrPageShell title="Driver Qualification Dashboard" kicker="HR · Operational Visibility">
       <HelpTipBlock formKey="driver-qualification.dashboard" />
@@ -184,6 +229,17 @@ export default function HrDriverQualificationDashboard() {
           <Button onClick={fetchRows} disabled={loading} className="h-7 text-xs bg-purple-700 hover:bg-purple-800 text-white ml-auto" data-testid="dq-apply">
             {loading ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Search className="w-3.5 h-3.5 mr-1" />}
             {t("Apply")}
+          </Button>
+          <Button
+            onClick={exportCurrentView}
+            disabled={exporting || loading || items.length === 0}
+            variant="outline"
+            className="h-7 text-xs border-purple-700 text-purple-700 hover:bg-purple-50"
+            title={t("Export the current filtered view to CSV")}
+            data-testid="dq-export-csv"
+          >
+            {exporting ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Download className="w-3.5 h-3.5 mr-1" />}
+            {t("Export Current View → CSV")}
           </Button>
         </div>
       </Card>
