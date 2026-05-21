@@ -4,6 +4,7 @@ import { isHr } from "@/lib/hrAuth";
 import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 import { isSignedInAnywhere } from "@/lib/permissions";
+import { buildContinuity } from "@/lib/portalContinuity";
 import AccessDenied from "@/pages/AccessDenied";
 
 /**
@@ -31,7 +32,10 @@ export function RequireHr({ children }) {
     <Navigate
       to="/hr/login"
       replace
-      state={{ from: location.pathname + location.search }}
+      state={{
+        from: location.pathname + location.search,
+        continuity: buildContinuity(location.pathname + location.search),
+      }}
     />
   );
 }

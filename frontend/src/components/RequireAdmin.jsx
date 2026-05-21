@@ -4,6 +4,7 @@ import { isAdmin } from "@/lib/adminAuth";
 import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 import { isSignedInAnywhere } from "@/lib/permissions";
+import { buildContinuity } from "@/lib/portalContinuity";
 import AccessDenied from "@/pages/AccessDenied";
 
 /**
@@ -30,7 +31,10 @@ export function RequireAdmin({ children }) {
     <Navigate
       to="/admin/login"
       replace
-      state={{ from: location.pathname + location.search }}
+      state={{
+        from: location.pathname + location.search,
+        continuity: buildContinuity(location.pathname + location.search),
+      }}
     />
   );
 }

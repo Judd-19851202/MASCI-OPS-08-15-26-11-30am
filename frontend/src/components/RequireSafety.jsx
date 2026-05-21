@@ -8,6 +8,7 @@ import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { isSafety } from "@/lib/safetyAuth";
 import { isSignedInAnywhere } from "@/lib/permissions";
+import { buildContinuity } from "@/lib/portalContinuity";
 import AccessDenied from "@/pages/AccessDenied";
 
 export function RequireSafety({ children }) {
@@ -16,11 +17,16 @@ export function RequireSafety({ children }) {
   if (isSignedInAnywhere()) {
     return <AccessDenied attemptedPortal="safety" />;
   }
+  const intended = location.pathname + location.search;
   return (
     <Navigate
       to="/safety-portal/login"
       replace
-      state={{ from: location.pathname + location.search }}
+      state={{
+        from: intended,
+        // iter322-B · rich continuity descriptor for AuthRequiredBanner
+        continuity: buildContinuity(intended),
+      }}
     />
   );
 }

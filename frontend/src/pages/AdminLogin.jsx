@@ -21,6 +21,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { PortalLoginHelp } from "@/components/PortalLoginHelp";
+import { AuthRequiredBanner } from "@/components/PortalContextBanner";
 import { api } from "@/lib/api";
 import { applyMultiLoginResponse, landingFor } from "@/lib/directoryAuth";
 import { clearAdminToken } from "@/lib/adminAuth";
@@ -135,7 +136,9 @@ export default function AdminLogin() {
       </header>
 
       <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md bg-white border-2 border-slate-300 rounded-md p-7 sm:p-9 shadow-xl">
+        <div className="w-full max-w-md">
+          <AuthRequiredBanner />
+          <div className="bg-white border-2 border-slate-300 rounded-md p-7 sm:p-9 shadow-xl">
           <div className="flex items-center gap-3 mb-2">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white">
               <ShieldAlert className="w-6 h-6" />
@@ -238,6 +241,7 @@ export default function AdminLogin() {
             </Link>{" "}
             {t("to land on any portal in one step.")}
           </p>
+          </div>
         </div>
       </main>
 

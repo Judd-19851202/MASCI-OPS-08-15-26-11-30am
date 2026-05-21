@@ -3,7 +3,7 @@
 // safetyAuth.setSafetyToken so the rest of the portal can hit
 // /api/safety/* with `X-Safety-Token` headers.
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Loader2, ShieldAlert, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { LangToggle } from "@/components/LangToggle";
+import { AuthRequiredBanner } from "@/components/PortalContextBanner";
 import { toast } from "sonner";
 import axios from "axios";
 import { useT } from "@/lib/i18n";
@@ -27,6 +28,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 export default function SafetyLogin() {
   const { t } = useT();
   const nav = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -48,10 +50,18 @@ export default function SafetyLogin() {
       setSafetyToken(r.data.token, remember);
       setSafetyUser(r.data.user);
       toast.success(t("Welcome to the Safety Portal"));
+      // iter322-B · honor redirect intent — bounce user back to the
+      // protected workflow they originally clicked, not the hub root.
+      const intended = location.state?.continuity?.continueTo
+        || location.state?.from
+        || "/safety-portal";
       if (r.data.must_change_password) {
-        nav("/safety-portal/change-password", { replace: true });
+        nav("/safety-portal/change-password", {
+          replace: true,
+          state: { from: intended },
+        });
       } else {
-        nav("/safety-portal", { replace: true });
+        nav(intended, { replace: true });
       }
     } catch (err) {
       const detail = err?.response?.data?.detail;
@@ -80,7 +90,12 @@ export default function SafetyLogin() {
       </header>
 
       <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md bg-white border-2 border-slate-300 rounded-md p-7 sm:p-9 shadow-xl">
+        <div className="w-full max-w-md">
+          {/* iter322-B · context-aware banner when redirected from a
+              protected workflow (rendered only when state.continuity
+              is present — zero footprint otherwise). */}
+          <AuthRequiredBanner />
+          <div className="bg-white border-2 border-slate-300 rounded-md p-7 sm:p-9 shadow-xl">
           <div className="flex items-center gap-3 mb-2">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-cyan-700 text-white">
               <ShieldAlert className="w-6 h-6" />
@@ -166,6 +181,7 @@ export default function SafetyLogin() {
             </Button>
           </form>
           <PortalLoginHelp portal="safety" />
+          </div>
         </div>
       </main>
 

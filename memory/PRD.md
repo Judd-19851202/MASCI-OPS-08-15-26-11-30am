@@ -2,6 +2,140 @@
 
 
 
+## 2026-05-21 — iter322-B · Workflow Continuity Wiring Completion · CLOSED
+
+### Root cause of why iter322 didn't fully solve the operator complaint
+iter322 shipped the `PortalContextBanner` + `AuthRequiredBanner` components, but did NOT wire them through the `<Require*>` guards or the portal login pages. Result: Safety Hub → Incidents/Audits/Training STILL hit a cold login wall because:
+1. Guards passed only `state.from`, not `state.continuity` (the rich descriptor `AuthRequiredBanner` reads).
+2. Login pages did not render `<AuthRequiredBanner />`.
+3. `SafetyLogin` + `DispatchLogin` did not honor `state.from` for post-login redirect (always bounced to hub root).
+
+iter322-B closes all three gaps with bounded surgical wiring. No new infrastructure; no auth changes; no redesign; no LMS behavior. RBAC strictly preserved — protected workflows still require correct portal sign-in.
+
+### iter322-B wiring (6 surfaces · 6 guards · 1 new helper)
+**NEW** `/app/frontend/src/lib/portalContinuity.js` — pure data helper:
+- `buildContinuity(pathWithSearch)` returns `{ workflow, role, from, returnTo, continueTo }` for any protected path.
+- Registry maps the most-hit Safety workflows explicitly with operational language: "Incident Reports" · "Audits & Inspections" · "Corrective Actions" · "Training & Certifications" · "Employee Safety Profiles" · "Fire Extinguishers" · "Safety Document Library" · "Weekly Digest" · "Reports & Exports" · "Trucking · Fleet" · "Topic Library" · "Change Password". Same for HR/Shop/Dispatch/PM/Admin paths.
+- Every Safety path is tagged `from: "safety"` + `role: "Safety Portal"` — NEVER "PM/Admin" (the prior wording bug the operator called out).
+
+**MODIFIED** 6 guards — all attach `state.continuity = buildContinuity(...)`:
+- `RequireSafety.jsx` · `RequireHr.jsx` · `RequireShop.jsx` · `RequireAdmin.jsx` · `RequireDispatch.jsx` · `RequirePm.jsx`
+
+**MODIFIED** 6 portal login pages — all render `<AuthRequiredBanner />` above the form card:
+- `SafetyLogin.jsx` + `DispatchLogin.jsx` ALSO now honor `state.continuity.continueTo` (or `state.from` fallback) for post-login redirect — bouncing the user back to their originally intended workflow, not the hub root.
+- `HrLogin.jsx` · `ShopLogin.jsx` · `AdminLogin.jsx` · `PmLogin.jsx` already honored `state.from`; iter322-B adds the banner so users SEE why they're at the login screen.
+
+**ENRICHED** `AuthRequiredBanner` copy — now renders the rich variant:
+> **SIGN-IN REQUIRED**
+> You selected **{Workflow}** from {Originating Portal}.
+> This workflow requires {Role} access.
+> *After sign-in, you'll continue to {Workflow}.*
+> **← BACK TO {ORIGIN}**
+
+### Live operator-scenario reproduction (all PASSED)
+Replayed the exact friction points the operator reported. Anonymous user, Safety Hub workflow clicks:
+
+**Safety Hub → Incidents** →
+```
+SIGN-IN REQUIRED
+You selected Incident Reports from Safety Portal.
+This workflow requires Safety Portal access.
+After sign-in, you'll continue to Incident Reports.
+← BACK TO SAFETY PORTAL
+```
+
+**Safety Hub → Audits & Inspections** →
+```
+SIGN-IN REQUIRED
+You selected Audits & Inspections from Safety Portal.
+This workflow requires Safety Portal access.
+After sign-in, you'll continue to Audits & Inspections.
+← BACK TO SAFETY PORTAL
+```
+
+**Safety Hub → Training (ES locale)** →
+```
+SE REQUIERE INICIAR SESIÓN
+Seleccionaste Capacitación y Certificaciones desde Portal de Seguridad.
+Este flujo requiere acceso de Portal de Seguridad.
+Después de iniciar sesión, continuarás a Capacitación y Certificaciones.
+← VOLVER A PORTAL DE SEGURIDAD
+```
+
+All five operator-required UX bullets satisfied: WHAT they clicked · WHY login is needed · WHICH access · HOW to return · WHERE they'll continue. Wording is **Safety Portal** — never PM/Admin — for every Safety path (verified by `test_iter322b_wording_no_pm_admin_leak_for_safety`).
+
+### Bilingual parity (Rule 8)
+Added 31 new ES dictionary entries to `lib/i18n.js`:
+- New banner copy (4 phrases with parameterized placeholders): "Sign-in required", "You selected {workflow} from {origin}.", "This workflow requires {role} access.", "After sign-in, you'll continue to {workflow}."
+- Portal labels: Admin Portal, PM Portal (others already present from iter322).
+- 25 workflow labels: Incident Reports, Audits & Inspections, Corrective Actions, Training & Certifications, Employee Safety Profiles, Fire Extinguishers, Safety Document Library, Weekly Digest, Reports & Exports, Trucking · Fleet, Topic Library, Change Password, Employee Lifecycle, Field Leadership Records, Field Leadership Accounts, Time Off Requests, Employee Accountability, Time Verification, Payroll Variance, Training Records, Driver Qualification, Safety Records, Fleet Repair Queue, Admin Console.
+
+Live ES verification confirmed full Spanish render with zero English leakage.
+
+### Verification (all PASSED)
+- ✅ `test_iter322b_workflow_continuity_wiring.py` (9 tests):
+  - portalContinuity.js exists · exports buildContinuity · maps Incidents/Audits/CA/Training explicitly · 7 portals registered.
+  - All 6 `<Require*>` guards import + attach `continuity: buildContinuity(...)`.
+  - All 6 login pages import + render `<AuthRequiredBanner />`.
+  - SafetyLogin + DispatchLogin honor `state.continuity.continueTo` for post-login redirect.
+  - Banner uses the rich copy variants (NOT the prior generic one).
+  - All 10 priority ES dictionary entries present.
+  - Wording correctness: every `/safety-portal/*` path returns `role: "Safety Portal"`, never "PM/Admin".
+  - Family contract still at 9 hubs (no chrome regression).
+- ✅ Combined regression: **156/156 green** across iter314 + iter316 + iter317-A/B/C + iter318 + iter319 + iter320 + iter321 + iter322 + iter322-B + platform-family contract.
+- ✅ Pre-deploy hook: `7 passed · Contract green · safe to deploy`.
+- ✅ Live preview reproduction confirmed for all 4 reported scenarios (Incidents, Audits, Training EN, Training ES).
+- ✅ ESLint clean on all 13 touched files.
+
+### Files touched (iter322-B)
+- NEW · `/app/frontend/src/lib/portalContinuity.js` (workflow registry + buildContinuity helper)
+- MOD · `/app/frontend/src/components/PortalContextBanner.jsx` (AuthRequiredBanner enriched copy + back-link)
+- MOD · `/app/frontend/src/components/RequireSafety.jsx` (attach continuity)
+- MOD · `/app/frontend/src/components/RequireHr.jsx` (attach continuity)
+- MOD · `/app/frontend/src/components/RequireShop.jsx` (attach continuity)
+- MOD · `/app/frontend/src/components/RequireAdmin.jsx` (attach continuity)
+- MOD · `/app/frontend/src/components/RequireDispatch.jsx` (attach continuity)
+- MOD · `/app/frontend/src/components/RequirePm.jsx` (attach continuity)
+- MOD · `/app/frontend/src/pages/SafetyLogin.jsx` (banner + honor continueTo)
+- MOD · `/app/frontend/src/pages/HrLogin.jsx` (banner)
+- MOD · `/app/frontend/src/pages/ShopLogin.jsx` (banner)
+- MOD · `/app/frontend/src/pages/AdminLogin.jsx` (banner)
+- MOD · `/app/frontend/src/pages/DispatchLogin.jsx` (banner + honor continueTo)
+- MOD · `/app/frontend/src/pages/PmLogin.jsx` (banner)
+- MOD · `/app/frontend/src/lib/i18n.js` (31 new ES entries)
+- NEW · `/app/backend/tests/test_iter322b_workflow_continuity_wiring.py` (9 tests)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO RBAC / permission change — protected workflows STILL require correct portal sign-in.
+- ❌ NO change to `<RequireField>`, `<RequireSafetyForms>`, `<RequirePmOrAdmin>` (lower friction — fewer reports; can wire later if needed)
+- ❌ NO change to `AccessDenied.jsx` — the signed-in-elsewhere case has its own dedicated screen; that's a separate friction class.
+- ❌ NO change to backend, routes, DB, integrations.
+- ❌ NO change to family-contract hubs' chrome (deploy gate confirms).
+- ❌ NO modal/popup/tutorial spam · NO LMS behavior · NO auth-architecture rewrite.
+- ❌ NO new banner system — the existing iter322 `AuthRequiredBanner` is what got wired through.
+
+### Operational impact — the operator complaint, resolved
+Before iter322-B: Anonymous user on Safety Hub clicks Incidents → cold `/safety-portal/login` wall with no context, post-login bounces to hub root losing intent.
+
+After iter322-B: Same click → calm explainer banner immediately visible above the login form:
+> *"You selected Incident Reports from Safety Portal. This workflow requires Safety Portal access. After sign-in, you'll continue to Incident Reports. ← BACK TO SAFETY PORTAL"*
+
+User answers exactly the operator's checklist in one glance:
+1. ✓ Where they are (Safety Portal Sign In)
+2. ✓ Why they got there (clicked Incident Reports)
+3. ✓ Which access is needed (Safety Portal — not PM, not Admin)
+4. ✓ How to return (one-click back to Safety hub)
+5. ✓ What happens next (continue to Incident Reports after sign-in)
+6. ✓ Did NOT leave operational context
+
+The platform now feels like **one operational ecosystem with role-aware access boundaries** — protected access is understandable and professional, not random exits from the hub.
+
+### Production impact
+**Preview has it. Production at mascidocs.com still missing until next redeploy.** Zero backend / DB / API / permissions changes. New helper + 6 guard updates + 6 login wire-ups + 31 ES dictionary additions. Ships the moment the redeploy lands.
+
+
+
 ## 2026-05-21 — iter322 · Portal Continuity & Guidance Cohesion Fix Pass · CLOSED
 
 ### Scope (operator-mandated · evidence-backed operational friction · 5-part delivery)

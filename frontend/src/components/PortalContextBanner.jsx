@@ -106,40 +106,59 @@ export default function PortalContextBanner({ currentLabel }) {
 
 /**
  * AuthRequiredBanner — shown on login pages when the user arrived via
- * a redirect from a protected workflow. Explains WHY higher access is
- * required, WHO normally accesses it, and how to return. Uses
- * react-router `location.state.continuity` — supply when redirecting:
+ * a redirect from a protected workflow. Reads `location.state.continuity`
+ * (populated by `<Require*>` guards via `buildContinuity()`). Renders:
  *
- *   <Navigate to="/safety-portal/login"
- *             state={{ continuity: { from: '/safety-portal/incidents',
- *                                    workflow: 'Incident Management',
- *                                    role: 'Safety Admin' } }} />
+ *   ▌ Sign-in required
+ *   ▌ You selected {workflow} from the {originating portal hub}.
+ *   ▌ This workflow requires {role} access.
+ *   ▌ After sign-in, you'll continue to {workflow}.
+ *   ▌ ← Back to {origin portal}
  *
- * Renders nothing when no continuity state is present.
+ * Renders nothing when no continuity state is present (zero footprint).
  */
 export function AuthRequiredBanner() {
-  const { t } = useT();
+  const { t, lang } = useT();
   const loc = useLocation();
   const continuity = loc.state?.continuity;
   if (!continuity) return null;
   const workflow = continuity.workflow || t("This workflow");
   const role = continuity.role || t("elevated access");
+  const origin = continuity.from ? PORTAL_REGISTRY[continuity.from] : null;
+  const originLabel = origin ? (origin.label[lang] || origin.label.en) : null;
   return (
     <div
       className="mb-6 rounded-md border border-slate-200 border-l-4 border-l-amber-500 bg-white p-4"
       data-testid="auth-required-banner"
     >
       <div className="font-mono text-xs uppercase tracking-[0.22em] text-amber-700 font-bold">
-        {t("Higher access required")}
+        {t("Sign-in required")}
       </div>
-      <p className="mt-2 text-sm text-slate-700 leading-relaxed">
-        {t("{workflow} requires {role} sign-in.")
-          .replace("{workflow}", workflow)
-          .replace("{role}", role)}
+      {originLabel ? (
+        <p className="mt-2 text-sm text-slate-700 leading-relaxed">
+          {t("You selected {workflow} from {origin}.")
+            .replace("{workflow}", t(workflow))
+            .replace("{origin}", originLabel)}
+        </p>
+      ) : null}
+      <p className="mt-1 text-sm text-slate-700 leading-relaxed">
+        {t("This workflow requires {role} access.")
+          .replace("{role}", t(role))}
       </p>
       <p className="mt-1 text-xs text-slate-500 italic">
-        {t("If you believe you should have access, contact your portal lead.")}
+        {t("After sign-in, you'll continue to {workflow}.")
+          .replace("{workflow}", t(workflow))}
       </p>
+      {origin ? (
+        <Link
+          to={origin.to}
+          className={`mt-3 inline-flex items-center gap-1 font-mono text-xs uppercase tracking-[0.22em] font-bold ${origin.kickerClass} hover:underline`}
+          data-testid="auth-required-back-link"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          {t("Back to")} {originLabel}
+        </Link>
+      ) : null}
     </div>
   );
 }
