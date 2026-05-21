@@ -3567,6 +3567,26 @@ const ES = {
   "Guides": "Guías",
   "Integrations": "Integraciones",
 
+  // iter317-C Part 2 · HR Hub grouped-card refinement
+  "Primary HR Actions": "Acciones Principales de RH",
+  "Day-to-day employee operations": "Operaciones diarias del personal",
+  "Compliance & Accountability": "Cumplimiento y Rendición de Cuentas",
+  "Field leadership · accountability · safety · driver qualification": "Liderazgo de campo · rendición de cuentas · seguridad · calificación de conductor",
+  "Payroll / Time": "Nómina / Tiempo",
+  "Time, payroll variance, expense tracking, training compliance": "Tiempo, variación de nómina, seguimiento de gastos, cumplimiento de capacitación",
+  "Integrations & Systems": "Integraciones y Sistemas",
+  "Supporting tools · guides · cross-portal integration visibility": "Herramientas de apoyo · guías · visibilidad de integraciones entre portales",
+
+  // iter318 · Safety Hub Calm Pass (grouped sections)
+  "Primary Safety Operations": "Operaciones Principales de Seguridad",
+  "Day-to-day safety workflows": "Flujos diarios de seguridad",
+  "Compliance & Records": "Cumplimiento y Registros",
+  "Training, certifications, documents, expirations": "Capacitación, certificaciones, documentos, vencimientos",
+  "Operational Output": "Producción Operacional",
+  "Digests, reports, topic prep, fleet visibility": "Resúmenes, reportes, preparación de temas, visibilidad de flota",
+  "Guidance & Systems": "Guía y Sistemas",
+  "Supporting tools · operator guides · cross-portal integration visibility": "Herramientas de apoyo · guías para operadores · visibilidad de integraciones entre portales",
+
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",

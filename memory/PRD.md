@@ -2,6 +2,86 @@
 
 
 
+## 2026-05-21 — iter318 Safety Hub Calm Pass · CLOSED
+
+### Scope (operator-mandated · Platform UX Governance Phase A · iter318)
+First implementation pass from the approved Platform-Wide Visual Governance & UX Coherence audit. Applies the iter317-C HR Hub calm pattern to the Safety Hub: grouped operational sections, left-edge stripe tile chrome, neutral KPI strip, integration cards demoted to a bottom Systems group. NO sidebar, NO IA redesign, NO route changes, NO permission changes, NO new features. All 15 tile testids + `SafetyShell` chrome preserved. NO touching the other 5 deferred hubs (Phase A iter319–iter322 remain queued).
+
+### Four operational groups (UX_GOVERNANCE_RULES Rule 4)
+
+| Group | Heading | Tiles |
+|---|---|---|
+| 01 · Primary Safety Operations | Day-to-day safety workflows | Tasks & Actions · Corrective Actions · Incidents & Near Misses · Audits & Inspections |
+| 02 · Compliance & Records | Training, certifications, documents, expirations | Document Expirations · Training & Certifications · Employee Safety Profiles · Fire Extinguishers · Safety Document Library |
+| 03 · Operational Output | Digests, reports, topic prep, fleet visibility | Weekly Digest · Reports & Exports · Topic Library · Trucking · Fleet |
+| 04 · Guidance & Systems *(demoted · top-border separator · muted slate-500 heading)* | Supporting tools · operator guides · cross-portal integration visibility | Training Center & Guides · Change Password · IntegrationHealthCard · IntegrationEventsCard |
+
+### Visual calm pass (UX_GOVERNANCE_RULES Rules 1, 3, 5, 6)
+- **Tile chrome**: replaced shared `SectionTile` (`border-2 border-slate-300` + colored top bar + `text-3xl/4xl` titles) with inline calm `SafetyTile` (Rule 1 left-edge stripe `border-l-4 border-l-<accent>` + `border border-slate-200` + white bg + `text-lg` titles). Identity recognition preserved via stripe.
+- **KPI chrome**: replaced custom `KPI` component (`border-2 border-<accent>-700` hot fills) with neutral Rule-5 chrome (`border border-slate-200 bg-white`). Colored value text (`text-red-700` for incidents/CA-overdue, `text-emerald-700` for meetings, `text-amber-700` for CA-open) preserves operational emphasis without dominating.
+- **Section headings**: `font-mono text-xs uppercase tracking-[0.22em] text-slate-700` kicker + thin slate divider + muted italic subtitle. Systems section heading uses `text-slate-500` muted color + top-border separator (Rule 6 — demoted).
+- **Integration cards moved** from above the tile grid to inside the demoted Systems group at the bottom — they now support the hub instead of competing with operational workflows (Rule 6).
+- **Color semantic corrections** (Rule 2):
+  - Incidents & Near Misses: amber → **red** (Rule 2 fix — incidents are danger, not caution).
+  - Reports & Exports: purple → **slate** (Rule 2 fix — purple is HR identity; non-HR usage retired).
+  - Training Center & Guides: indigo → **slate** (Rule 2 — guidance/supporting goes slate).
+  - All other accents preserved (already passed Rule 2 semantic check).
+
+### Bilingual parity closure (UX_GOVERNANCE_RULES Rule 8)
+Added 12 ES dictionary entries to `lib/i18n.js`:
+- 4 iter318 group headings (Primary Safety Operations · Compliance & Records · Operational Output · Guidance & Systems) + 4 subtitles
+- 4 iter317-C HR group headings (Primary HR Actions · Compliance & Accountability · Payroll / Time · Integrations & Systems) + 4 subtitles — closed a pre-existing gap from iter317-C Part 2
+
+Bilingual verification: live preview at `localStorage.masci.lang=es` renders all 4 Safety + 4 HR group headings in correct Spanish; all body content already translated.
+
+### Verification (all PASSED)
+- ✅ `test_iter318_safety_hub_calm_pass.py` (12 tests):
+  - 4 named groups present
+  - All 15 tile routes preserved (no tile lost)
+  - All 15 tile testids preserved (regression contract with iter120/iter192)
+  - 8 group testids surfaced (4 sections + 4 headings)
+  - Calm tile pattern in place (`border-l-4`); legacy `SectionTile` import removed; no `bg-<accent>-50` tile fills
+  - KPI chrome neutralized (`border border-slate-200` + no `border-2 border-<accent>-700`)
+  - Integration cards demoted to Systems group (positional assertion + top-border separator)
+  - No sidebar markers introduced (regex guard)
+  - Bilingual `t()` calls preserved on all new strings
+  - SafetyShell chrome preserved (header / nav / sign-out untouched)
+  - ES dictionary entries present for all 4 iter318 group headings
+  - ES dictionary entries present for all 4 iter317-C HR group headings (closed gap)
+- ✅ Live preview screenshots (Desktop 1920 · iPad 1024 · Mobile 390 · ES locale):
+  - Desktop: 4 sections render with clean hierarchy; KPI strip neutral; left-edge stripes carry identity
+  - iPad: identical layout at 3-col grid
+  - Mobile: KPI grid drops to 2-col; tiles drop to 1-col; touch targets preserved
+  - ES locale: all 4 group headings translated (`OPERACIONES PRINCIPALES DE SEGURIDAD`, `CUMPLIMIENTO Y REGISTROS`, `PRODUCCIÓN OPERACIONAL`, `GUÍA Y SISTEMAS`); zero English leakage
+  - Programmatic verification: 15 tiles rendered (matches pre-iter318 count exactly)
+- ✅ Combined regression: **96/96 green** across iter314 + iter316 + iter317-A/B/C + iter318
+- ✅ ESLint clean on `SafetyHub.jsx` and `lib/i18n.js`
+
+### Files touched (iter318)
+- MOD · `/app/frontend/src/pages/SafetyHub.jsx` (full file · `SectionTile` → inline `SafetyTile` with calm chrome · 4 grouped sections · KPI calmed · integrations demoted)
+- MOD · `/app/frontend/src/lib/i18n.js` (12 new ES entries · iter318 + iter317-C HR backfill)
+- NEW · `/app/backend/tests/test_iter318_safety_hub_calm_pass.py` (12 tests)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO sidebar · NO IA redesign · NO route changes · NO permission changes
+- ❌ NO change to `SafetyShell` (header chrome stays as-is · iter203 mobile collapse already correct)
+- ❌ NO change to shared `SectionTile.jsx` (other hubs that still use it are untouched — iter319 / iter320 / iter321 will visit them in turn)
+- ❌ NO change to `IntegrationHealthCard` / `IntegrationEventsCard` internals (only their placement)
+- ❌ NO change to backend, routes, permissions, DB, integrations behavior
+- ❌ NO change to color tokens at the global level — semantic fixes were per-tile-accent only
+- ❌ NO change to OperationsCenter, NotificationBell, GlobalSearch, PortalSwitcher
+- ❌ NO change to pre-existing legacy fixture debt
+- ❌ NO Phase A continuation (iter319 FL Hub · iter320 Shop Hub · iter321 Dispatch Hub · iter322 FL Portal) — those queue behind operator approval per the roadmap
+
+### Operational impact
+A signed-in Safety user opening `/safety-portal` now reads the same 15 surfaces as before, in the same relative positions — but the page reads as 4 calmly-grouped operational sections instead of a wall of equal-weight hot-bordered tiles with mid-page integration cards competing for attention. The KPI strip informs without dominating. The Motive integration cards live in the demoted Systems group at the bottom, supporting the page rather than competing with operational workflows. Bilingual parity is intact for every new string. The change is visually consistent with HR Hub (post iter317-C), establishing the platform-wide calm pattern.
+
+### Production impact
+**Preview has it. Production at mascidocs.com still missing until next redeploy.** Zero backend / DB / API / permissions changes. Pure CSS / layout refinement + 12 i18n dictionary additions. Ships the moment the redeploy lands.
+
+
+
 ## 2026-05-21 — iter317-C Part 2 · HR Portal Visual-Hierarchy Refinement · CLOSED
 
 ### Scope (operator-mandated · bounded calm-down pass · no IA redesign)
