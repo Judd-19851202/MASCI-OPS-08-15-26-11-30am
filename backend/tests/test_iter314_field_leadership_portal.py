@@ -356,10 +356,15 @@ def test_iter314_admin_panel_mounted_in_admin_people():
 
 
 def test_iter314_hr_hub_exposes_field_leadership_users_tile():
-    """HR Hub must surface the management tile linking to the panel."""
+    """HR Hub must surface the management tile linking to the panel.
+
+    The tile is intentionally adjacent to the existing Field Leadership
+    Records tile and uses a label distinct from it ("Portal Accounts")
+    so HR users can find the user-management surface unambiguously
+    (iter315 visibility closure)."""
     src = HR_HUB.read_text()
     assert '/hr/field-leadership-users' in src
-    assert 'Field Leadership Users' in src
+    assert 'Field Leadership Portal Accounts' in src
 
 
 def test_iter314_hr_field_leadership_users_page_renders_panel():

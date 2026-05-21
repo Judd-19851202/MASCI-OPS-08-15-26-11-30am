@@ -13,7 +13,7 @@ import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
 
 export default function HrFieldLeadershipUsers() {
-  const t = useT();
+  const { t } = useT();
   const navigate = useNavigate();
   usePageTitle("Field Leadership Users · HR");
   return (

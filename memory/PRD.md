@@ -2,6 +2,62 @@
 
 
 
+## 2026-05-21 — iter315 HR Field Leadership User-Management Visibility · CLOSED
+
+### Scope (bounded visibility/debug closure of iter314)
+Operator reported the HR-side Field Leadership user-management surface was not clearly accessible after iter314. Verification revealed two distinct issues — one functional bug, one UX-visibility issue. Both fixed with minimum bounded edits. NO redesign, NO route restructure, NO consolidation, NO permissions change.
+
+### Root cause #1 · `t is not a function` runtime error on `/hr/field-leadership-users`
+- `HrFieldLeadershipUsers.jsx` called `const t = useT();` — but `useT()` returns `{ t, lang, setLang }`, not a callable function.
+- Symptom: the route loaded but the page rendered completely blank (React error boundary caught the throw silently).
+- Fix: destructure correctly — `const { t } = useT();` — same pattern every other HR page uses.
+
+### Root cause #2 · HR Hub tile buried & label too similar to legacy tile
+- The new tile was at TILES position #12 (below the fold on standard desktop viewports).
+- Label "Field Leadership Users" was visually indistinguishable from the existing tile "Field Leadership Records" → HR users could not tell them apart.
+- Fix (bounded · single TILES-array reorder + label clarification):
+  - Moved the new tile from position #12 to position #6 — immediately after the legacy "Field Leadership Records" tile so the two FL surfaces are visually paired.
+  - Renamed "Field Leadership Users" → **"Field Leadership Portal Accounts"** so the distinction (records vs. accounts/access) is obvious at a glance.
+  - Updated the description to explicitly say "Issue per-user logins for Superintendents · Foremen · Truck Bosses · Working Supervisors · reset passwords · deactivate users".
+  - KeyRound icon retained (signals account/access surface, contrasts with Users icon on the Records tile).
+- Tile is now ABOVE the fold and unmistakably distinct from the records surface.
+
+### Verification (all PASSED)
+- ✅ HR login as `hrmanager@mascigc.com` → HR Hub renders both "Field Leadership Records" (blue, Users icon) and "Field Leadership Portal Accounts" (purple, KeyRound icon) side-by-side, both visible without scrolling beyond the 4th row
+- ✅ Clicking the new tile routes to `/hr/field-leadership-users`
+- ✅ Page renders fully: header "FIELD LEADERSHIP USERS" · context blurb · "Field Leadership Users & Logins" panel · Add User form · Field Leader / Superintendent / ACTIVE seed row · Edit/Set/Delete action buttons · Refresh button · "HR Hub" back button · Sign Out
+- ✅ HR token authenticates `GET /api/admin/field-leadership-users` (HTTP 200)
+- ✅ Admin token still authenticates the same endpoint (HTTP 200) — no regression
+- ✅ Legacy shared-password gate at `POST /api/field-leadership/login` still returns 200 — untouched
+- ✅ ESLint clean on `HrFieldLeadershipUsers.jsx` and `HrHub.jsx`
+
+### Regression
+- 58/58 combined regression green (iter306 + iter307 + iter310 + iter312 + iter313 + iter314)
+- iter314 regression test updated to lock the new label (`Field Leadership Portal Accounts`) and the adjacency invariant. Same 24-test count.
+
+### Files touched (iter315)
+- MOD · `/app/frontend/src/pages/HrFieldLeadershipUsers.jsx` (1-char fix: `const { t } = useT()` instead of `const t = useT()`)
+- MOD · `/app/frontend/src/pages/HrHub.jsx` (single TILES-array reposition + label/description clarification)
+- MOD · `/app/backend/tests/test_iter314_field_leadership_portal.py` (lock new label as the invariant)
+- MOD · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO HR Hub redesign · NO navigation reorganization · NO new IA layer
+- ❌ NO route renaming · NO route creation · NO permission widening
+- ❌ NO consolidation of identity portals · NO auth refactor
+- ❌ NO translation/i18n key changes beyond what was needed for the label
+- ❌ NO change to AdminFieldLeadershipUsersPanel.jsx (shared panel · unchanged)
+- ❌ NO change to backend routes or DB schema
+- ❌ NO touching the legacy `/field-leadership/login` shared-password gate
+
+### Operational impact
+HR users now find the Field Leadership user-management surface as the second tile in the Field Leadership column on `/hr`. The tile name "Field Leadership Portal Accounts" + purple key icon makes it visually unambiguous against the legacy "Field Leadership Records" tile. Clicking the tile loads the full management panel — no more blank screen.
+
+### Production impact
+Preview environment has the fix. **Production at https://mascidocs.com still missing it until next redeploy** — operator needs to redeploy to ship iter315 (no DB migrations required).
+
+
+
 ## 2026-05-21 — iter314 Field Leadership Portal · CLOSED
 
 ### Scope (operator-approved · governed per-user operational identity)
