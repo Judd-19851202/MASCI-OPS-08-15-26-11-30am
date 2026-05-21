@@ -1536,6 +1536,20 @@ _ARTICLES: list[dict] = [
             {"type": "p", "text":
                 "Field Leadership is the daily-operations surface for supers, foremen, and "
                 "crew leads. Everything you document here flows into HR, Safety, and PM review."},
+            # iter317-B · "Which door do I use?" disambiguation. Two
+            # operational doors exist side-by-side; both are valid;
+            # they do different jobs. Surface the answer at the top
+            # so a new Super/Foreman never bounces between them.
+            {"type": "tip", "text":
+                "Which door do I use? There are two Field Leadership "
+                "doors: (1) /field-leadership/portal/login — your "
+                "per-user account, where everything you submit is "
+                "signed under your name; (2) /field-leadership/login "
+                "— the shared-password gate for read-only crew "
+                "documents. Day-to-day operations work happens in "
+                "(1). The shared gate stays in place for crew "
+                "document access; it does not unlock the workflows "
+                "below."},
             {"type": "bullets", "items": [
                 "Daily Reports",
                 "Write-Ups / Verbal Coaching / Attendance",
@@ -1548,7 +1562,8 @@ _ARTICLES: list[dict] = [
                 "Use the mobile home-screen shortcut. The portal is built mobile-first because "
                 "most documentation happens on a phone in the field."},
         ],
-        "related": ["field-daily-report-howto", "field-coaching-documentation", "role-foreman"],
+        "related": ["field-daily-report-howto", "field-coaching-documentation", "role-foreman",
+                    "portal-field-leadership-portal-accounts"],
     },
     # ── Pass 4 — Field Leadership Operational Identity (iter200) ─────────
     # New articles supporting the first-class /leadership/login URL + the
@@ -1567,8 +1582,24 @@ _ARTICLES: list[dict] = [
                 "Welcome to Field Leadership. This portal is the daily operations surface "
                 "for Superintendents, Foremen, Field Leaders, and Operations Oversight. "
                 "Here is what to do your first week."},
+            # iter317-B · "Which door do I use?" disambiguation at the
+            # top so the rest of the article isn't ambiguous. The
+            # per-user portal (iter314) is the operational door; the
+            # shared-password gate stays in place for read-only crew
+            # documents only.
+            {"type": "tip", "text":
+                "Which door do I use? Two valid doors exist. The "
+                "operational one — where your Daily Reports, "
+                "write-ups, equipment sign-outs, and crew "
+                "evaluations live — is /field-leadership/portal/"
+                "login (your per-user company email + password, "
+                "issued by HR or Admin). The legacy shared-"
+                "password door at /field-leadership/login is read-"
+                "only for crew documents. If HR or Admin has "
+                "given you a per-user account, that is the door "
+                "you use day-to-day."},
             {"type": "steps", "items": [
-                "Day 1 — Visit /leadership/login and get the leadership password from the office or your direct supervisor.",
+                "Day 1 — Find out which door HR/Admin set you up with. If you have a per-user account, sign in at /field-leadership/portal/login with your company email and the temporary password you were issued; the portal will force you to change it on first sign-in. If you only have the shared crew password, the office can issue you a per-user account in a few minutes.",
                 "Day 1 — Read the 'What does Field Leadership do?' article (linked at the bottom of the login page).",
                 "Day 2 — Submit your first Daily Report on the actual job (not a test). Photos. Crews. Hours. Conditions.",
                 "Day 2-3 — Walk the lifecycle of one equipment Pre-Op from operator → shop → back to field. Understand what your sign-off triggers.",
@@ -1583,21 +1614,32 @@ _ARTICLES: list[dict] = [
                 "The first week is about understanding that everything you document touches "
                 "another team. Get the rhythm right and the rest of the platform works around you."},
             {"type": "tip", "text":
-                "Add /leadership to your phone home screen on Day 1. Almost every Field Leadership "
-                "task is done on a phone in the field — installing the shortcut early saves you "
-                "5-10 taps per submission for the rest of your career here."},
+                "Add the per-user portal to your phone home screen on Day 1. Almost every Field "
+                "Leadership task is done on a phone in the field — installing the shortcut early "
+                "saves you 5-10 taps per submission for the rest of your career here."},
+            # iter317-B · the original article said "Field Leadership
+            # uses a SHARED leadership password." That is no longer
+            # universally true after iter314; replace the warning
+            # with the per-user accountability message that fits the
+            # current operational model.
             {"type": "warn", "text":
-                "Field Leadership uses a SHARED leadership password — same as a crew dispatch code. "
-                "Do not share the password outside the leadership team. Accountability for every "
-                "record happens at the record level (your signature on the form), not at the door."},
+                "Your per-user portal password is yours alone — not "
+                "the crew's. Every action you submit is signed in "
+                "your name in the audit trail. Don't text the "
+                "password to a foreman or share it 'just so they "
+                "can pull a report.' If a teammate needs access, "
+                "that's an HR/Admin account-issuance conversation, "
+                "not a password-sharing workaround."},
             {"type": "next", "items": [
                 "Bookmark this article — it's also the answer to 'what do I do next' for the first month",
                 "Read 'Submitting a Defensible Daily Report' — referenced more than any other guide here",
+                "Read 'Field Leadership Portal Accounts' (the per-user identity overview)",
                 "Talk to your PM about which projects you'll be assigned",
             ]},
         ],
         "related": [
             "portal-leadership-identity",
+            "portal-field-leadership-portal-accounts",
             "tshoot-leadership-login",
             "field-daily-report-howto",
             "role-superintendent",
@@ -1608,38 +1650,65 @@ _ARTICLES: list[dict] = [
         "id": "tshoot-leadership-login",
         "section": "troubleshooting",
         "title": "Can't sign in to Field Leadership",
-        "summary": "Quick fixes when /leadership/login isn't working.",
+        "summary": "Quick fixes for both Field Leadership doors — per-user portal and legacy shared-password gate.",
         "scopes": ["public"],
-        "tags": ["troubleshooting", "leadership", "login", "supervisor"],
+        "tags": ["troubleshooting", "leadership", "login", "supervisor", "portal"],
         "body": [
+            # iter317-B · two-doors guidance at the top so users
+            # don't troubleshoot the wrong door for ten minutes.
             {"type": "p", "text":
-                "Field Leadership uses a shared leadership password (not your individual email + "
-                "password). If you can't get in, walk through these in order."},
+                "There are two Field Leadership doors and they need "
+                "different things at sign-in. Figure out which one "
+                "you're at, then follow the matching checklist."},
+            {"type": "tip", "text":
+                "Which door am I at? If the form asks for an EMAIL "
+                "and a password, you're at the per-user portal "
+                "(/field-leadership/portal/login). If it asks for "
+                "only a password, you're at the legacy shared-"
+                "password gate (/field-leadership/login)."},
+            {"type": "p", "text":
+                "Per-user Portal — /field-leadership/portal/login "
+                "(your company email + your individual password):"},
             {"type": "steps", "items": [
-                "Confirm you're at /leadership/login (the dedicated portal door). The shared password works there.",
-                "Verify your spelling and the caps lock state — leadership passwords are case-sensitive.",
-                "If you already have an Admin or PM token (you've signed in to /admin/login or /pm/login earlier in this session), the leadership gate accepts those automatically — no need for the leadership password.",
-                "Clear sessionStorage and reload the page if a previous token is interfering — close the browser tab and reopen /leadership/login.",
-                "Ask your direct supervisor or the office for the current leadership password. The password may have been rotated.",
+                "Confirm you're at /field-leadership/portal/login (not /field-leadership/login).",
+                "Use the company email HR or Admin issued you — not a coworker's, not a personal email.",
+                "If you were issued a temporary password and never signed in, the portal will force you to change it on first sign-in.",
+                "Forgot the password? Use the Forgot Password link on the login page, or ask HR/Admin to reset it. The reset issues a fresh temporary password and invalidates the old one immediately.",
+                "Still rejected? Ask HR/Admin to confirm your account is active. Deactivated accounts cannot sign in.",
+            ]},
+            {"type": "p", "text":
+                "Legacy Shared-Password Gate — /field-leadership/login "
+                "(crew-wide password for read-only crew documents only):"},
+            {"type": "steps", "items": [
+                "Confirm you're at /field-leadership/login (the shared-password door).",
+                "Verify spelling and caps-lock state — the shared password is case-sensitive.",
+                "If you already have an Admin or PM token (you've signed in to /admin/login or /pm/login earlier in this session), the legacy gate accepts those automatically.",
+                "Close the browser tab and reopen if a previous token is interfering.",
+                "Ask your direct supervisor or the office for the current shared password if it has been rotated.",
             ]},
             {"type": "why", "text":
-                "The shared leadership password is the right model for crews because it works "
-                "the same way as a crew dispatch code or a shop key — every leader needs to enter, "
-                "and individual identity is captured at the form-signature level. If you've lost "
-                "the password, it's almost always something the office can give you in 30 seconds."},
+                "Both doors exist on purpose. The per-user portal "
+                "carries operational accountability — every action "
+                "is signed in your name. The shared-password gate "
+                "exists for crew read-only document access where "
+                "individual identity isn't needed. Most "
+                "operational work belongs at the per-user door."},
             {"type": "warn", "text":
-                "Do NOT type the leadership password into any other portal's login form "
-                "(/hr/login, /pm/login, etc.) — those expect individual email + password, "
-                "and pasting the shared password there can lock your individual account "
-                "temporarily after a few attempts."},
+                "Do NOT type the shared crew password into the "
+                "per-user portal (or vice versa). Wrong door + "
+                "wrong password is what causes most repeat sign-in "
+                "failures. Look at the form first; if it asks for "
+                "an email, you need your per-user credentials."},
             {"type": "tip", "text":
-                "Once you sign in successfully, your browser tab holds a 12-hour token. You "
-                "don't need to re-enter the password again that same shift unless you close "
-                "the browser tab."},
+                "Once you sign in successfully at either door, "
+                "your browser holds a session token. You don't need "
+                "to re-enter credentials again that same shift "
+                "unless you close the tab or the session expires."},
         ],
         "related": [
             "onboard-leadership-first-week",
             "portal-leadership-identity",
+            "portal-field-leadership-portal-accounts",
             "tshoot-session-timeout",
             "public-cant-login",
         ],
@@ -1648,7 +1717,7 @@ _ARTICLES: list[dict] = [
         "id": "portal-leadership-identity",
         "section": "portals",
         "title": "Field Leadership Portal — Overview",
-        "summary": "What Field Leadership is for and how to access it. Operational training requires leadership sign-in.",
+        "summary": "What Field Leadership is for, who uses it, and which of the two doors to use.",
         "scopes": ["public"],
         "tags": ["leadership", "identity", "portal", "supervisor"],
         "body": [
@@ -1657,25 +1726,142 @@ _ARTICLES: list[dict] = [
                 "Foremen, Field Leaders, and Operations Oversight — the people running crews on "
                 "the ground."},
             {"type": "p", "text":
-                "Who uses it: Superintendents, Foremen, Field Leaders, Operations Oversight."},
+                "Who uses it: Superintendents, Foremen, Truck Bosses, Working Supervisors, "
+                "Field Supervisors. Operations Oversight (HR/Admin) issues and manages the "
+                "accounts but works inside their own portals."},
+            # iter317-B · disambiguate the two doors at the top of
+            # the overview. The per-user portal is the operational
+            # door; the shared-password gate is a read-only crew
+            # document surface.
+            {"type": "tip", "text":
+                "Which door do I use? Two valid doors exist. "
+                "(1) /field-leadership/portal/login — per-user "
+                "accounts (your company email + individual "
+                "password). This is the operational door; "
+                "everything you submit is signed in your name. "
+                "(2) /field-leadership/login — legacy shared-"
+                "password gate for read-only crew documents. Both "
+                "work; they do different jobs."},
             {"type": "p", "text":
-                "How to access it: sign in at /leadership/login with the shared leadership "
-                "password issued by the office or your direct supervisor. Admin and PM tokens "
-                "also satisfy the leadership gate."},
+                "How to get a per-user account: HR or Admin issues "
+                "Field Leadership Portal accounts. You receive a "
+                "company email account and a temporary password; "
+                "the portal forces you to change it on first sign-"
+                "in. After that, your email and your individual "
+                "password sign you in."},
             {"type": "warn", "text":
                 "Operational Field Leadership training (procedures, workflows, internal SOPs) "
                 "is restricted to authenticated leadership users. Workflow-level content is "
                 "not visible to anonymous users."},
             {"type": "next", "items": [
+                "Read 'Field Leadership Portal Accounts' for the full per-user identity walkthrough",
                 "If you can't sign in — read 'Can't sign in to Field Leadership' (public)",
             ]},
         ],
         "related": [
             "onboard-leadership-first-week",
+            "portal-field-leadership-portal-accounts",
             "tshoot-leadership-login",
             "public-cant-login",
         ],
     },
+
+    # ── iter317-B · NEW per-user FL Portal accounts article ──────────
+    # Operational disambiguation deliverable for iter317-B. Public
+    # scope (readable BEFORE login) so a Super/Foreman who doesn't
+    # yet know which door to use can find this answer first.
+    {
+        "id": "portal-field-leadership-portal-accounts",
+        "section": "portals",
+        "title": "Field Leadership Portal Accounts (per-user)",
+        "summary": "Per-user Field Leadership Portal accounts — what they are, who issues them, and when the legacy shared-password gate still applies.",
+        "scopes": ["public"],
+        "tags": ["leadership", "identity", "portal", "accounts", "per-user", "fl portal"],
+        "body": [
+            {"type": "p", "text":
+                "A Field Leadership Portal account is your individual "
+                "operational identity inside MASCI. It is a company "
+                "email + an individual password — not a shared crew "
+                "code. Every Daily Report, write-up, equipment "
+                "sign-out, and crew evaluation you submit is signed "
+                "in your name in the audit trail."},
+            {"type": "tip", "text":
+                "Which door do I use? Two valid doors exist. The "
+                "per-user portal at /field-leadership/portal/login "
+                "is the operational door — your day-to-day "
+                "workflows live there. The legacy shared-password "
+                "gate at /field-leadership/login still exists for "
+                "read-only crew documents; it does not unlock "
+                "operational workflows. Most leadership work "
+                "happens at the per-user door."},
+            {"type": "p", "text":
+                "Who issues accounts: HR or Admin. They create your "
+                "account, set a temporary password, and hand the "
+                "temporary password to you through the channel HR "
+                "uses for credentials. The portal forces you to "
+                "change the temporary password the first time you "
+                "sign in — that is the handoff from 'issued' to "
+                "'in use'."},
+            {"type": "p", "text":
+                "Who gets accounts: Superintendents, Foremen, Truck "
+                "Bosses, Working Supervisors, Field Supervisors. "
+                "Accounts are issued to people who actually need "
+                "them — not 'just in case' accounts, not training "
+                "accounts that never get cleaned up."},
+            {"type": "p", "text":
+                "Password resets: HR or Admin resets the password "
+                "if you forget it, or you can use the Forgot "
+                "Password link on the login page. Either path "
+                "issues a fresh temporary password and invalidates "
+                "the prior password immediately. Old sessions die "
+                "at the same moment."},
+            {"type": "why", "text":
+                "Per-user accounts exist because operational "
+                "actions need operational accountability. A signed "
+                "Daily Report carries your name into payroll and "
+                "Safety review; a write-up carries your name into "
+                "the employee record HR keeps. A shared crew "
+                "password cannot deliver that — everyone signed in "
+                "looks the same. The per-user portal is how the "
+                "platform connects what happens in the field to "
+                "who actually did it."},
+            {"type": "warn", "text":
+                "Your password is yours — not the crew's. Don't "
+                "text it to a foreman, write it on a clipboard, or "
+                "share it 'just so they can pull a report.' Every "
+                "action signed under your name is yours "
+                "operationally — including the ones you didn't "
+                "actually do because someone borrowed your login. "
+                "If a teammate needs access, that's an HR/Admin "
+                "account-issuance conversation."},
+            {"type": "p", "text":
+                "When does the legacy shared-password gate still "
+                "apply? Read-only crew document access at "
+                "/field-leadership/login — drawings, plan sets, "
+                "and similar documents the whole crew needs to "
+                "see. The shared gate does NOT unlock Daily "
+                "Reports, write-ups, equipment checkout, "
+                "evaluations, or any other per-user workflow. Both "
+                "doors are intentional; they do different jobs."},
+            {"type": "next", "items": [
+                "Don't have an account yet? Ask HR or Admin — they issue Field Leadership Portal accounts.",
+                "Got a temporary password? Sign in at /field-leadership/portal/login and change it on first sign-in.",
+                "Can't sign in? Read 'Can't sign in to Field Leadership' (public).",
+                "Already in? Read 'Field Leadership — First Week' for the operational rhythm.",
+                "Not sure which door you should be using? Ask HR or Admin. The answer is fast (usually 'whichever account we set you up with'). Don't bounce between the two doors troubleshooting on your own.",
+            ]},
+        ],
+        "related": [
+            "onboard-leadership-first-week",
+            "portal-leadership-identity",
+            "tshoot-leadership-login",
+            "portal-leadership",
+            "role-superintendent",
+            "role-foreman",
+        ],
+    },
+
+
 
     # ═════════════════════════════════════════════════════════════════
     # PASS 5a · HR + SAFETY + PM ONBOARDING + LOGIN TROUBLESHOOTING

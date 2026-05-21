@@ -25,6 +25,18 @@ EXTRA_ES: dict[str, dict] = {
         "summary_es": "Superficie de operaciones diarias para supers, capataces y líderes de cuadrilla.",
         "body_es": [
             {"type": "p", "text": "Liderazgo de Campo es la superficie de operaciones diarias para superintendentes, capataces y líderes de cuadrilla. Todo lo que documenta aquí fluye a RH, Seguridad y revisión de PM."},
+            # iter317-B · two-doors disambiguation (ES parity)
+            {"type": "tip", "text":
+                "¿Cuál puerta uso? Existen dos puertas de "
+                "Liderazgo de Campo: (1) /field-leadership/portal/"
+                "login — su cuenta por usuario, donde todo lo que "
+                "envía queda firmado con su nombre; (2) /field-"
+                "leadership/login — la puerta con contraseña "
+                "compartida para documentos de cuadrilla de solo "
+                "lectura. El trabajo operacional del día a día "
+                "ocurre en (1). La puerta compartida sigue para "
+                "acceso a documentos de cuadrilla; no desbloquea "
+                "los flujos abajo."},
             {"type": "bullets", "items": [
                 "Reportes Diarios",
                 "Amonestaciones / Coaching Verbal / Asistencia",

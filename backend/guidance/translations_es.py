@@ -59,6 +59,9 @@ TRANSLATIONS_ES: dict[str, dict] = {
     },
 
     # ── Pass 4 — Field Leadership Operational Identity (public articles) ──
+    # iter317-B · two-doors disambiguation added to all three articles
+    # so EN/ES parity reflects the live per-user portal alongside the
+    # legacy shared-password gate.
     "onboard-leadership-first-week": {
         "title_es": "Liderazgo de Campo — Primera Semana",
         "summary_es": "Qué hace un nuevo Superintendente o Capataz en su primera semana en MASCI.",
@@ -67,8 +70,19 @@ TRANSLATIONS_ES: dict[str, dict] = {
                 "Bienvenido al Liderazgo de Campo. Este portal es la superficie de operaciones diarias "
                 "para Superintendentes, Capataces, Líderes de Campo y Supervisión de Operaciones. "
                 "Esto es lo que debe hacer su primera semana."},
+            {"type": "tip", "text":
+                "¿Cuál puerta uso? Existen dos puertas válidas. La "
+                "operacional — donde viven sus Reportes Diarios, "
+                "amonestaciones, salidas de equipo y evaluaciones "
+                "de cuadrilla — es /field-leadership/portal/login "
+                "(su correo de la empresa + contraseña individual, "
+                "emitida por RH o Admin). La puerta legacy con "
+                "contraseña compartida en /field-leadership/login "
+                "es solo lectura para documentos de cuadrilla. Si "
+                "RH o Admin le dio una cuenta por usuario, esa es "
+                "la puerta que usa día a día."},
             {"type": "steps", "items": [
-                "Día 1 — Visite /leadership/login y pida la contraseña de liderazgo a la oficina o a su supervisor directo.",
+                "Día 1 — Averigüe qué puerta le configuró RH/Admin. Si tiene cuenta por usuario, inicie sesión en /field-leadership/portal/login con su correo de empresa y la contraseña temporal que le dieron; el portal le obliga a cambiarla en el primer inicio. Si solo tiene la contraseña compartida de la cuadrilla, la oficina puede emitirle una cuenta por usuario en pocos minutos.",
                 "Día 1 — Lea el artículo '¿Qué hace el Liderazgo de Campo?' (enlace en la parte inferior de la página de inicio de sesión).",
                 "Día 2 — Envíe su primer Reporte Diario en un trabajo real (no de prueba). Fotos. Cuadrillas. Horas. Condiciones.",
                 "Día 2-3 — Recorra el ciclo completo de un Pre-Op de equipo desde el operador → taller → de vuelta al campo. Entienda qué pasa cuando usted firma.",
@@ -84,17 +98,23 @@ TRANSLATIONS_ES: dict[str, dict] = {
                 "de entender que todo lo que documenta afecta a otro equipo. Si toma el ritmo "
                 "correcto, el resto de la plataforma trabaja a su favor."},
             {"type": "tip", "text":
-                "Agregue /leadership a la pantalla de inicio de su teléfono el Día 1. Casi toda "
-                "tarea de Liderazgo de Campo se hace en un teléfono en el sitio — instalar el "
-                "atajo temprano le ahorra 5-10 toques por envío el resto de su carrera aquí."},
+                "Agregue el portal por usuario a la pantalla de inicio de su teléfono el Día 1. "
+                "Casi toda tarea de Liderazgo de Campo se hace en un teléfono en el sitio — "
+                "instalar el atajo temprano le ahorra 5-10 toques por envío el resto de su "
+                "carrera aquí."},
             {"type": "warn", "text":
-                "El Liderazgo de Campo usa una CONTRASEÑA COMPARTIDA — igual que un código de "
-                "despacho de cuadrilla. No comparta la contraseña fuera del equipo de liderazgo. "
-                "La rendición de cuentas por cada registro pasa al nivel del registro (su firma "
-                "en el formulario), no en la puerta."},
+                "Su contraseña del portal por usuario es suya — no "
+                "de la cuadrilla. Cada acción que envía queda "
+                "firmada con su nombre en el rastro de auditoría. "
+                "No le mande la contraseña por mensaje a un "
+                "capataz ni la comparta 'nada más para que jale un "
+                "reporte.' Si un compañero necesita acceso, eso es "
+                "una conversación de RH/Admin para emitir una "
+                "cuenta, no un atajo de compartir contraseña."},
             {"type": "next", "items": [
                 "Marque este artículo — también es la respuesta a 'qué hago después' durante el primer mes",
                 "Lea 'Enviando un Reporte Diario Defendible' — el más referenciado de todos",
+                "Lea 'Cuentas del Portal de Liderazgo de Campo' (resumen de identidad por usuario)",
                 "Hable con su PM sobre los proyectos a los que será asignado",
             ]},
         ],
@@ -102,56 +122,189 @@ TRANSLATIONS_ES: dict[str, dict] = {
 
     "tshoot-leadership-login": {
         "title_es": "No puedo iniciar sesión en Liderazgo de Campo",
-        "summary_es": "Soluciones rápidas cuando /leadership/login no funciona.",
+        "summary_es": "Soluciones rápidas para las dos puertas de Liderazgo de Campo — el portal por usuario y la puerta legacy con contraseña compartida.",
         "body_es": [
             {"type": "p", "text":
-                "El Liderazgo de Campo usa una contraseña compartida (no su correo + contraseña "
-                "individual). Si no puede entrar, siga estos pasos en orden."},
+                "Existen dos puertas de Liderazgo de Campo y "
+                "necesitan cosas distintas al iniciar sesión. "
+                "Averigüe en cuál está y siga la lista que "
+                "corresponde."},
+            {"type": "tip", "text":
+                "¿En cuál puerta estoy? Si el formulario le pide un "
+                "CORREO y una contraseña, está en el portal por "
+                "usuario (/field-leadership/portal/login). Si pide "
+                "solo una contraseña, está en la puerta legacy con "
+                "contraseña compartida (/field-leadership/login)."},
+            {"type": "p", "text":
+                "Portal por usuario — /field-leadership/portal/login "
+                "(su correo de empresa + su contraseña individual):"},
             {"type": "steps", "items": [
-                "Confirme que está en /leadership/login (la puerta dedicada del portal). La contraseña compartida funciona ahí.",
-                "Verifique la ortografía y el estado de mayúsculas — las contraseñas de liderazgo distinguen mayúsculas.",
-                "Si ya tiene un token Admin o PM (inició sesión en /admin/login o /pm/login antes en esta sesión), la puerta de liderazgo los acepta automáticamente — no necesita la contraseña de liderazgo.",
-                "Borre sessionStorage y recargue la página si un token previo está interfiriendo — cierre la pestaña del navegador y vuelva a abrir /leadership/login.",
-                "Pida la contraseña de liderazgo actual a su supervisor directo o a la oficina. La contraseña puede haber rotado.",
+                "Confirme que está en /field-leadership/portal/login (no /field-leadership/login).",
+                "Use el correo de empresa que RH o Admin le asignó — no el de un compañero, no un correo personal.",
+                "Si le dieron una contraseña temporal y nunca inició sesión, el portal le obligará a cambiarla en el primer inicio.",
+                "¿Olvidó la contraseña? Use el enlace de Olvidé Mi Contraseña en la página de inicio, o pida a RH/Admin que la reinicie. Ambos caminos emiten una nueva contraseña temporal e invalidan la anterior de inmediato.",
+                "¿Sigue rechazado? Pida a RH/Admin que confirme que su cuenta está activa. Las cuentas desactivadas no pueden iniciar sesión.",
+            ]},
+            {"type": "p", "text":
+                "Puerta Legacy con Contraseña Compartida — "
+                "/field-leadership/login (contraseña de cuadrilla "
+                "para documentos de solo lectura solamente):"},
+            {"type": "steps", "items": [
+                "Confirme que está en /field-leadership/login (la puerta con contraseña compartida).",
+                "Verifique la ortografía y el estado de mayúsculas — la contraseña compartida distingue mayúsculas.",
+                "Si ya tiene un token Admin o PM (inició sesión en /admin/login o /pm/login antes en esta sesión), la puerta legacy los acepta automáticamente.",
+                "Cierre la pestaña del navegador y vuelva a abrir si un token previo está interfiriendo.",
+                "Pida la contraseña compartida actual a su supervisor directo o a la oficina si la rotaron.",
             ]},
             {"type": "why", "text":
-                "La contraseña compartida de liderazgo es el modelo correcto para cuadrillas "
-                "porque funciona igual que un código de despacho o una llave del taller — todo "
-                "líder necesita entrar, y la identidad individual queda capturada al nivel de "
-                "firma del formulario. Si perdió la contraseña, casi siempre la oficina puede "
-                "dársela en 30 segundos."},
+                "Las dos puertas existen a propósito. El portal por "
+                "usuario carga la rendición de cuentas operacional "
+                "— cada acción queda firmada con su nombre. La "
+                "puerta con contraseña compartida existe para "
+                "acceso de solo lectura a documentos de cuadrilla "
+                "donde no se necesita identidad individual. La "
+                "mayor parte del trabajo operacional va en la "
+                "puerta por usuario."},
             {"type": "warn", "text":
-                "NO escriba la contraseña de liderazgo en el formulario de inicio de sesión de "
-                "otro portal (/hr/login, /pm/login, etc.) — esos esperan correo + contraseña "
-                "individual, y pegar la contraseña compartida ahí puede bloquear su cuenta "
-                "individual temporalmente después de varios intentos."},
+                "NO escriba la contraseña compartida de cuadrilla "
+                "en el portal por usuario (ni al revés). Puerta "
+                "equivocada + contraseña equivocada es lo que "
+                "causa la mayoría de los fallos repetidos. Vea el "
+                "formulario primero; si pide correo, necesita sus "
+                "credenciales por usuario."},
             {"type": "tip", "text":
-                "Una vez que inicie sesión correctamente, su pestaña del navegador guarda un "
-                "token de 12 horas. No necesita volver a escribir la contraseña ese mismo "
-                "turno a menos que cierre la pestaña."},
+                "Una vez que inicie sesión en cualquiera de las "
+                "dos puertas, su navegador guarda un token de "
+                "sesión. No necesita volver a escribir las "
+                "credenciales ese mismo turno a menos que cierre "
+                "la pestaña o expire la sesión."},
         ],
     },
 
     "portal-leadership-identity": {
         "title_es": "Portal de Liderazgo de Campo — Resumen",
-        "summary_es": "Para qué es el Liderazgo de Campo y cómo accederlo. La capacitación operacional requiere inicio de sesión de liderazgo.",
+        "summary_es": "Para qué es el Liderazgo de Campo, quién lo usa, y cuál de las dos puertas usar.",
         "body_es": [
             {"type": "p", "text":
                 "El Portal de Liderazgo de Campo es la superficie de operaciones diarias para "
                 "Superintendentes, Capataces, Líderes de Campo y Supervisión de Operaciones — "
                 "la gente que dirige las cuadrillas en el campo."},
             {"type": "p", "text":
-                "Quién lo usa: Superintendentes, Capataces, Líderes de Campo, Supervisión de Operaciones."},
+                "Quién lo usa: Superintendentes, Capataces, Truck "
+                "Bosses, Working Supervisors, Field Supervisors. La "
+                "Supervisión de Operaciones (RH/Admin) emite y "
+                "gestiona las cuentas pero trabaja dentro de sus "
+                "propios portales."},
+            {"type": "tip", "text":
+                "¿Cuál puerta uso? Existen dos puertas válidas. "
+                "(1) /field-leadership/portal/login — cuentas por "
+                "usuario (su correo de empresa + contraseña "
+                "individual). Esta es la puerta operacional; todo "
+                "lo que envía queda firmado con su nombre. "
+                "(2) /field-leadership/login — puerta legacy con "
+                "contraseña compartida para documentos de cuadrilla "
+                "de solo lectura. Las dos funcionan; hacen trabajos "
+                "diferentes."},
             {"type": "p", "text":
-                "Cómo accederlo: inicie sesión en /leadership/login con la contraseña de "
-                "liderazgo compartida que le da la oficina o su supervisor directo. Los "
-                "tokens de Admin y PM también satisfacen la puerta de liderazgo."},
+                "Cómo conseguir una cuenta por usuario: RH o Admin "
+                "emite cuentas del Portal de Liderazgo de Campo. "
+                "Recibe un correo de empresa y una contraseña "
+                "temporal; el portal le obliga a cambiarla en el "
+                "primer inicio de sesión. Después de eso, su correo "
+                "y su contraseña individual le hacen entrar."},
             {"type": "warn", "text":
                 "La capacitación operacional de Liderazgo de Campo (procedimientos, flujos, "
                 "SOPs internos) está restringida a usuarios autenticados de liderazgo. El "
                 "contenido a nivel de flujo no es visible para usuarios anónimos."},
             {"type": "next", "items": [
+                "Lea 'Cuentas del Portal de Liderazgo de Campo' para el recorrido completo de identidad por usuario",
                 "Si no puede iniciar sesión — lea 'No puedo iniciar sesión en Liderazgo de Campo' (público)",
+            ]},
+        ],
+    },
+
+    # iter317-B · NEW per-user FL Portal accounts article (ES parity).
+    "portal-field-leadership-portal-accounts": {
+        "title_es": "Cuentas del Portal de Liderazgo de Campo (por usuario)",
+        "summary_es": "Cuentas por usuario del Portal de Liderazgo de Campo — qué son, quién las emite, y cuándo aplica todavía la puerta legacy con contraseña compartida.",
+        "body_es": [
+            {"type": "p", "text":
+                "Una cuenta del Portal de Liderazgo de Campo es su "
+                "identidad operacional individual dentro de MASCI. "
+                "Es un correo de empresa + una contraseña "
+                "individual — no un código compartido de cuadrilla. "
+                "Cada Reporte Diario, amonestación, salida de "
+                "equipo y evaluación de cuadrilla que envíe queda "
+                "firmado con su nombre en el rastro de auditoría."},
+            {"type": "tip", "text":
+                "¿Cuál puerta uso? Existen dos puertas válidas. El "
+                "portal por usuario en /field-leadership/portal/"
+                "login es la puerta operacional — sus flujos día a "
+                "día viven ahí. La puerta legacy con contraseña "
+                "compartida en /field-leadership/login sigue "
+                "existiendo para documentos de cuadrilla de solo "
+                "lectura; no desbloquea flujos operacionales. La "
+                "mayor parte del trabajo de liderazgo va en la "
+                "puerta por usuario."},
+            {"type": "p", "text":
+                "Quién emite las cuentas: RH o Admin. Le crean la "
+                "cuenta, ponen una contraseña temporal, y se la "
+                "entregan por el canal que RH usa para "
+                "credenciales. El portal le obliga a cambiar la "
+                "contraseña temporal en el primer inicio de sesión "
+                "— ese es el traspaso de 'emitida' a 'en uso.'"},
+            {"type": "p", "text":
+                "Quién recibe cuentas: Superintendentes, Capataces, "
+                "Truck Bosses, Working Supervisors, Field "
+                "Supervisors. Las cuentas se emiten a personas que "
+                "realmente las necesitan — no cuentas 'por si "
+                "acaso', no cuentas de capacitación que nunca se "
+                "limpian."},
+            {"type": "p", "text":
+                "Reinicios de contraseña: RH o Admin reinicia la "
+                "contraseña si la olvida, o puede usar el enlace "
+                "Olvidé Mi Contraseña en la página de inicio. "
+                "Ambos caminos emiten una contraseña temporal "
+                "nueva e invalidan la anterior de inmediato. Las "
+                "sesiones viejas mueren en el mismo momento."},
+            {"type": "why", "text":
+                "Las cuentas por usuario existen porque las "
+                "acciones operacionales necesitan rendición de "
+                "cuentas operacional. Un Reporte Diario firmado "
+                "carga su nombre a nómina y a la revisión de "
+                "Seguridad; una amonestación carga su nombre al "
+                "registro del empleado que mantiene RH. Una "
+                "contraseña compartida de cuadrilla no puede "
+                "hacer eso — todos los que entran se ven iguales. "
+                "El portal por usuario es como la plataforma "
+                "conecta lo que pasa en el campo con quién "
+                "realmente lo hizo."},
+            {"type": "warn", "text":
+                "Su contraseña es suya — no de la cuadrilla. No la "
+                "mande por mensaje a un capataz, no la escriba en "
+                "un portapapeles, no la comparta 'nada más para "
+                "que jale un reporte.' Cada acción firmada con su "
+                "nombre es suya operacionalmente — incluyendo las "
+                "que no hizo porque alguien le pidió prestado su "
+                "inicio. Si un compañero necesita acceso, eso es "
+                "una conversación de RH/Admin para emitir una "
+                "cuenta."},
+            {"type": "p", "text":
+                "¿Cuándo aplica todavía la puerta legacy con "
+                "contraseña compartida? Acceso de solo lectura a "
+                "documentos de cuadrilla en /field-leadership/"
+                "login — planos, juegos de planos y documentos "
+                "similares que toda la cuadrilla necesita ver. La "
+                "puerta compartida NO desbloquea Reportes Diarios, "
+                "amonestaciones, salidas de equipo, evaluaciones "
+                "ni ningún otro flujo por usuario. Las dos puertas "
+                "son a propósito; hacen trabajos diferentes."},
+            {"type": "next", "items": [
+                "¿No tiene cuenta todavía? Pídala a RH o Admin — ellos emiten cuentas del Portal de Liderazgo de Campo.",
+                "¿Le dieron una contraseña temporal? Inicie sesión en /field-leadership/portal/login y cámbiela en el primer inicio.",
+                "¿No puede iniciar sesión? Lea 'No puedo iniciar sesión en Liderazgo de Campo' (público).",
+                "¿Ya entró? Lea 'Liderazgo de Campo — Primera Semana' para el ritmo operacional.",
+                "¿No está seguro de cuál puerta debería usar? Pregunte a RH o Admin. La respuesta es rápida (normalmente 'la cuenta que le configuramos'). No ande rebotando entre las dos puertas resolviendo solo.",
             ]},
         ],
     },

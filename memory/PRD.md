@@ -2,6 +2,83 @@
 
 
 
+## 2026-05-21 — iter317-B FL Guidance Article Convergence · CLOSED
+
+### Scope (operator-mandated · surgical disambiguation refinement)
+Closes the second-highest gap from the iter317 audit: 4 stale Field Leadership Guidance Center articles still steered new Supers/Foremen to the legacy `/leadership/login` shared-password gate without mentioning the iter314 per-user portal that ships alongside it. Iter317-B converges those 4 articles + adds 1 new public article so users land at the right door on the first attempt. NO IA redesign, NO auth redesign, NO route restructuring, NO permissions change, NO portal redesign, NO coaching-system expansion.
+
+### Articles refreshed (4)
+
+| Article ID | Change | Bilingual? |
+|---|---|---|
+| `portal-leadership` | Added `tip` block at top with "Which door do I use?" two-doors disambiguation. Added new related-article cross-link to `portal-field-leadership-portal-accounts`. | EN + ES |
+| `onboard-leadership-first-week` | Replaced Day-1 step (was "Visit /leadership/login and get the leadership password") with branched guidance for both per-user and shared-password doors. Added "Which door do I use?" tip at top. Replaced the "Field Leadership uses a SHARED leadership password" warning with the per-user accountability message. Updated home-screen-shortcut tip to reference the per-user portal. Added related-article link. | EN + ES |
+| `tshoot-leadership-login` | Reorganized into two explicit checklists (per-user portal · legacy shared-password gate) with a "Which door am I at?" detector tip at top. Added forgot-password / `must_change_password` / account-deactivation troubleshooting steps for the new portal. Refreshed warning to reflect "wrong door + wrong password" as the common failure mode. | EN + ES |
+| `portal-leadership-identity` | Refreshed summary, role list (added Truck Bosses, Working Supervisors, Field Supervisors), added "Which door do I use?" tip, added "How to get a per-user account" paragraph. | EN + ES |
+
+### Article added (1)
+
+| Article ID | Scope | Body blocks | Bilingual? |
+|---|---|---|---|
+| `portal-field-leadership-portal-accounts` | **public** (readable before login) | 9 (EN) + 9 (ES) | EN + ES |
+
+Covers per-user portal accounts plainly: what they are, who issues them, password-reset expectations, account ownership/responsibility, when legacy shared-password access still applies, escalation path if login confusion exists. Linked from each of the 4 refreshed articles via `related`. Reachable as the destination of multiple new "next-step" CTAs.
+
+### Two-doors disambiguation contract (regression-locked)
+
+Every refreshed/new article now:
+- References **both** URLs (`/field-leadership/portal/login` and `/field-leadership/login`)
+- Carries an explicit "Which door do I use?" / "two doors" / "Two valid doors" marker
+- Never mentions the legacy gate URL in isolation (regression test scans for orphans)
+- EN and ES both pass the same disambiguation contract
+
+### Identity-layer isolation
+- Legacy `/field-leadership/login` shared-password gate behavior verified untouched (HTTP 200 on stub login).
+- Legacy `field-leadership.records.*` coaching family preserved unchanged.
+- Iter317-A coaching families (5 families · 18 tips) explicitly verified intact by iter317-B regression — articles-only refresh did not disturb the coaching block.
+
+### Verification (all PASSED)
+- ✅ `test_iter317b_fl_guidance_article_convergence.py` (10 tests):
+  - All 5 articles present in the live-merged `_articles_by_id` map
+  - No duplicate article IDs in `content.py`
+  - Each article carries both URLs + "Which door" marker (EN and ES)
+  - Tone discipline scan (LMS/corporate-training banned phrases) — clean
+  - No orphaned legacy URL mentions — every legacy URL appears alongside the per-user portal URL
+  - New article linked from all 4 refreshed articles + each refreshed article links back to it (`related` bidirectional)
+  - New article is `public` scope (readable before login)
+  - Iter317-A coaching families remain intact (non-regression)
+  - iter317-B marker comments present in all three touched source files for future grep discoverability
+- ✅ Live preview verification:
+  - `GET /api/guidance/articles/portal-field-leadership-portal-accounts` (anonymous) → 200 with title, 9 body blocks, 3 cross-linked related articles
+  - Article body carries the "Which door do I use?" tip + both URLs
+  - Cross-link titles render with EN + ES (related-article serialization includes `title_es`)
+- ✅ Combined regression: **148/148 green** across iter314 + iter316 + iter317-A + iter317-B + iter196 (guidance public · field+crew) + iter205 (tiered guidance RBAC) — no drift introduced
+- ✅ ruff clean on every touched file
+
+### Files touched (iter317-B)
+- MOD · `/app/backend/guidance/content.py` (4 article refreshes + 1 new article)
+- MOD · `/app/backend/guidance/translations_es.py` (3 ES article refreshes + 1 new ES article)
+- MOD · `/app/backend/guidance/translations_es_iter279.py` (1 ES article refresh — `portal-leadership`)
+- NEW · `/app/backend/tests/test_iter317b_fl_guidance_article_convergence.py` (10 tests)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO IA redesign / Guidance Center navigation overhaul
+- ❌ NO auth, route, or permissions changes
+- ❌ NO change to other (unrelated) guidance articles
+- ❌ NO change to `field-leadership.records.*` coaching family
+- ❌ NO change to legacy `/field-leadership/login` gate or `RequireFl` / `RequireHr` etc. route guards
+- ❌ NO coaching-system expansion (iter317-A families remain unchanged)
+- ❌ Steps iter317-C (Driver Qualification articles) / iter317-D (Lifecycle/Rehire articles) / iter317-E (AddDialog coaching mount) deferred per operator approval flow
+
+### Operational impact
+A confused Super or Foreman now reads exactly one tip at the top of every Field Leadership guidance article that answers "Which door do I use?" — with both URLs and the operational distinction stated plainly. The new `portal-field-leadership-portal-accounts` article (public scope) gives them the full per-user identity walkthrough without requiring sign-in. Bilingual parity is intact for every change.
+
+### Production impact
+**Preview has it. Production at mascidocs.com still missing until next redeploy.** No data migration. No new permissions. No new endpoints. The disambiguation lands the moment the redeploy ships.
+
+
+
 ## 2026-05-21 — iter317-A FL Portal Coaching Parity · CLOSED
 
 ### Scope (operator-mandated · operational coaching convergence)
