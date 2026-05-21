@@ -9114,6 +9114,25 @@ _hr_portal_router = build_hr_portal_router(db, require_admin, _hr_send_email)
 app.include_router(_hr_portal_router)
 
 
+# ──────── Field Leadership Portal (iter314) ────────
+# Clones the HR/PM/Shop/Safety auth pattern exactly. Reuses the
+# `_hr_send_email` Resend wrapper for welcome/reset emails — same
+# Resend key, same preview-stub behavior, same sender address.
+from routes.field_leadership_portal import build_field_leadership_portal_router  # noqa: E402
+
+
+@app.on_event("startup")
+async def _seed_field_leadership_users():
+    from field_leadership_users import seed_field_leadership_users
+    await seed_field_leadership_users(db)
+
+
+_fl_portal_router = build_field_leadership_portal_router(
+    db, require_admin, _hr_send_email
+)
+app.include_router(_fl_portal_router)
+
+
 # ─── Safety Portal (iter119 + iter120 Phase 3/4/5) ───────────────────
 # Mirrors the HR portal pattern exactly so it slots cleanly into the
 # existing auth/router architecture. Reads existing incident/inspection/
