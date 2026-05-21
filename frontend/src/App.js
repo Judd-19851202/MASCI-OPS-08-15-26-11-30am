@@ -155,6 +155,7 @@ import GlobalFooter from "@/components/GlobalFooter";
 import ScrollToTop from "@/components/ScrollToTop";
 import { RequireAdmin } from "@/components/RequireAdmin";
 import { RequireAdminOrPm } from "@/components/RequireAdminOrPm";
+import { RequireAdminPmOrSafety } from "@/components/RequireAdminPmOrSafety";
 import { RequirePm } from "@/components/RequirePm";
 import { RequireShop } from "@/components/RequireShop";
 import { RequireHr } from "@/components/RequireHr";
@@ -191,6 +192,10 @@ const InspectionLegacyRedirect = () => (
 
 const A = (el) => <RequireAdmin>{el}</RequireAdmin>;
 const AP = (el) => <RequireAdminOrPm>{el}</RequireAdminOrPm>;
+// iter322 — Admin · PM · Safety read-only review for the three
+// Safety detail views (inspections / meetings / incidents). All
+// other /admin/* routes stay on the stricter AP guard.
+const APS = (el) => <RequireAdminPmOrSafety>{el}</RequireAdminPmOrSafety>;
 const P = (el) => <RequirePm>{el}</RequirePm>;
 const S = (el) => <RequireShop>{el}</RequireShop>;
 const H = (el) => <RequireHr>{el}</RequireHr>;
@@ -364,10 +369,10 @@ function App() {
             <Route path="/admin/pnl" element={AP(<ProjectPnlPage />)} />
 
             <Route path="/admin/inspections" element={AP(<Dashboard />)} />
-            <Route path="/admin/inspections/:id" element={AP(<ViewInspection />)} />
+            <Route path="/admin/inspections/:id" element={APS(<ViewInspection />)} />
 
             <Route path="/admin/meetings" element={AP(<MeetingsDashboard />)} />
-            <Route path="/admin/meetings/:id" element={AP(<ViewMeeting />)} />
+            <Route path="/admin/meetings/:id" element={APS(<ViewMeeting />)} />
 
             <Route path="/admin/jha-plans" element={AP(<JhaPlansAdmin />)} />
             <Route path="/admin/jha" element={<Navigate to="/admin/jha-plans" replace />} />
@@ -381,7 +386,7 @@ function App() {
             <Route path="/admin/posters/print-all" element={AP(<PosterErrorBoundary><AllPostersPrint /></PosterErrorBoundary>)} />
 
             <Route path="/admin/incidents" element={AP(<IncidentsDashboard />)} />
-            <Route path="/admin/incidents/:id" element={AP(<ViewIncident />)} />
+            <Route path="/admin/incidents/:id" element={APS(<ViewIncident />)} />
 
             <Route path="/admin/daily" element={AP(<DailyReportsDashboard />)} />
             <Route path="/admin/daily/:id" element={AP(<ViewDailyReport />)} />

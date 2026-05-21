@@ -2765,6 +2765,13 @@ register_safety_routes(
     require_safety_or_admin=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_or_admin"]
     ).make_require_safety_or_admin(db, _is_valid_admin_token),
+    # iter322 · Safety-side READ gate. Closes the operator bug where
+    # X-Safety-Token requests to /api/incidents, /inspections, /meetings,
+    # /jhas were rejected with "Admin or PM login required". Accepts
+    # Safety + Admin + PM. Destructive endpoints stay on require_admin.
+    require_safety_admin_or_pm=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
 )
 
 

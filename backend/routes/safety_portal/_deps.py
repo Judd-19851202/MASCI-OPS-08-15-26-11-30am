@@ -47,6 +47,59 @@ def make_require_safety_or_admin(
     return _require_safety_or_admin
 
 
+def make_require_safety_admin_or_pm(
+    db, is_valid_admin_token: Optional[Callable[[str], bool]] = None,
+    is_valid_pm_token: Optional[Callable[[str], bool]] = None,
+) -> Callable[..., Awaitable[object]]:
+    """iter322 · Safety-side **read** gate.
+
+    Closes the operator bug where signed-in Safety reviewers were
+    rejected with ``"Admin or PM login required"`` on
+    ``GET /api/incidents``, ``/inspections``, ``/meetings``, ``/jhas``.
+
+    Read-only — wires into list/detail surfaces inside ``routes/safety.py``
+    so Safety reviewers can perform their core review duty without an
+    Admin/PM gate. Destructive endpoints (DELETE) intentionally keep
+    the stricter ``require_admin`` dep — RBAC is **not** weakened.
+
+    Accepts:
+      • ``X-Safety-Token`` → returns the safety user dict tagged with
+        ``_actor_kind="safety_user"`` so :func:`compute_pm_scope` grants
+        cross-job review visibility (mirrors the shop-user pattern).
+      • ``X-Admin-Token``  → returns ``True`` (admin bypass).
+      • ``X-PM-Token``     → returns the PM doc for project scoping
+        (preserves existing PM data-scoping behaviour).
+
+    Returns 401 ``"Safety, Admin, or PM login required"`` if no valid
+    token is present.
+    """
+
+    async def _require_safety_admin_or_pm(
+        request: Request,
+        x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
+    ):
+        if x_safety_token:
+            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            if u:
+                return {**u, "_actor_kind": "safety_user", "_actor": "safety"}
+        if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
+            return True
+        if x_pm_token:
+            # Per-PM token (has ".") → DB lookup; legacy shared PM → env bypass.
+            if "." in x_pm_token:
+                from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
+                pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
+                if pm_doc:
+                    return pm_doc
+            elif is_valid_pm_token and is_valid_pm_token(x_pm_token):
+                return True
+        raise HTTPException(401, "Safety, Admin, or PM login required")
+
+    return _require_safety_admin_or_pm
+
+
 def make_require_safety_or_hr_or_admin(
     db, is_valid_admin_token: Optional[Callable[[str], bool]] = None
 ) -> Callable[..., Awaitable[dict]]:

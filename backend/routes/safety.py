@@ -277,8 +277,16 @@ class IncidentSummary(BaseModel):
 # ============================================================
 # Route registration
 # ============================================================
-def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_public_post, schedule_auto_email, require_safety_or_admin=None):
+def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_public_post, schedule_auto_email, require_safety_or_admin=None, require_safety_admin_or_pm=None):
     """Attach Inspection / Meeting / JHP / Incident endpoints to the router."""
+
+    # iter322 — read-side gate that accepts Safety, Admin, or PM tokens.
+    # Falls back to ``require_admin`` if not provided (legacy callers).
+    # ``require_admin`` itself accepts Admin + PM, so the only behaviour
+    # change is that Safety reviewers now get cross-job read access on
+    # incidents / inspections / meetings / JHAs. Writes & deletes are
+    # NOT changed by this fix.
+    _read_gate = require_safety_admin_or_pm or require_admin
 
     # ---------- Inspections ----------
     # iter236 · Site Inspection moved fully into Safety portal ownership.
@@ -388,7 +396,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return inspection
 
     @api_router.get("/inspections", response_model=List[InspectionSummary])
-    async def list_inspections(actor=Depends(require_admin)):
+    async def list_inspections(actor=Depends(_read_gate)):
         scope = await compute_pm_scope(db, actor)
         pipeline = [
             {"$match": scope.filter({})},
@@ -427,7 +435,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/inspections/{inspection_id}")
-    async def get_inspection(inspection_id: str, actor=Depends(require_admin)):
+    async def get_inspection(inspection_id: str, actor=Depends(_read_gate)):
         doc = await db.inspections.find_one({"id": inspection_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="Inspection not found")
@@ -457,7 +465,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return meeting
 
     @api_router.get("/meetings", response_model=List[MeetingSummary])
-    async def list_meetings(actor=Depends(require_admin)):
+    async def list_meetings(actor=Depends(_read_gate)):
         scope = await compute_pm_scope(db, actor)
         cursor = db.meetings.find(
             scope.filter({}),
@@ -481,7 +489,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/meetings/{meeting_id}")
-    async def get_meeting(meeting_id: str, actor=Depends(require_admin)):
+    async def get_meeting(meeting_id: str, actor=Depends(_read_gate)):
         doc = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="Meeting not found")
@@ -511,7 +519,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return jha
 
     @api_router.get("/jhas", response_model=List[JhaSummary])
-    async def list_jhas(actor=Depends(require_admin)):
+    async def list_jhas(actor=Depends(_read_gate)):
         scope = await compute_pm_scope(db, actor)
         cursor = db.jhas.find(
             scope.filter({}),
@@ -535,7 +543,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/jhas/{jha_id}")
-    async def get_jha(jha_id: str, actor=Depends(require_admin)):
+    async def get_jha(jha_id: str, actor=Depends(_read_gate)):
         doc = await db.jhas.find_one({"id": jha_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="JHP not found")
@@ -642,7 +650,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return await with_idempotency(db, key, {"role": "public"}, _do_create)
 
     @api_router.get("/incidents", response_model=List[IncidentSummary])
-    async def list_incidents(actor=Depends(require_admin)):
+    async def list_incidents(actor=Depends(_read_gate)):
         scope = await compute_pm_scope(db, actor)
         pipeline = [
             {"$match": scope.filter({})},
@@ -674,7 +682,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/incidents/{incident_id}")
-    async def get_incident(incident_id: str, actor=Depends(require_admin)):
+    async def get_incident(incident_id: str, actor=Depends(_read_gate)):
         doc = await db.incidents.find_one({"id": incident_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="Incident not found")

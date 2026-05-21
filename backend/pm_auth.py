@@ -323,6 +323,12 @@ async def compute_pm_scope(db, actor) -> PmScope:
     # Shop users (cross-job, not project-scoped)
     if actor.get("_actor_kind") == "shop_user":
         return PmScope(is_admin=True)
+    # iter322 — Safety reviewers are cross-job by design (incidents,
+    # inspections, meetings, JHAs all need full review visibility). They
+    # are NOT admins; this only widens read scope for safety review,
+    # destructive endpoints stay on the stricter ``require_admin`` gate.
+    if actor.get("_actor_kind") == "safety_user":
+        return PmScope(is_admin=True)
     email = (actor.get("email") or "").strip().lower()
     if not email:
         return PmScope(is_admin=True)
