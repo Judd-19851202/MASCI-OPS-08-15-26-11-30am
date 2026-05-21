@@ -4,6 +4,7 @@ import AdminShell from "@/components/AdminShell";
 import AdminPMPanel from "@/components/AdminPMPanel";
 import AdminShopUsersPanel from "@/components/AdminShopUsersPanel";
 import AdminHRUsersPanel from "@/components/AdminHRUsersPanel";
+import AdminFieldLeadershipUsersPanel from "@/components/AdminFieldLeadershipUsersPanel";
 import AdminSafetyUsersPanel from "@/components/AdminSafetyUsersPanel";
 import AdminDispatchUsersPanel from "@/components/AdminDispatchUsersPanel";
 import AdminAccessControlPanel from "@/components/AdminAccessControlPanel";
@@ -29,6 +30,7 @@ export default function AdminPeople() {
         <AdminPMPanel />
         <AdminShopUsersPanel />
         <AdminHRUsersPanel />
+        <AdminFieldLeadershipUsersPanel />
         <AdminSafetyUsersPanel />
         <AdminDispatchUsersPanel />
         <EmployeeMasterPanel />

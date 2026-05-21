@@ -62,7 +62,7 @@ export default function FieldLeadershipPortalLogin() {
       if (!tok) throw new Error("missing-token");
       setFlToken(tok, true);
       setFlUser(user);
-      toast.success(t("Welcome, {name}", { name: user?.name || "Field Leader" }));
+      toast.success(`${t("Welcome,")} ${user?.name || t("Field Leader")}`);
       if (r?.data?.must_change_password) {
         navigate("/field-leadership/portal/change-password", { replace: true });
       } else {

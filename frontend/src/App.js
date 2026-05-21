@@ -97,6 +97,7 @@ import HrResetPassword from "@/pages/HrResetPassword";
 import HrForgotPassword from "@/pages/HrForgotPassword";
 import HrTimeVerification from "@/pages/HrTimeVerification";
 import HrFieldLeadership from "@/pages/HrFieldLeadership";
+import HrFieldLeadershipUsers from "@/pages/HrFieldLeadershipUsers";
 import HrEmployeeAccountability from "@/pages/HrEmployeeAccountability";
 import HrTrainingRecords from "@/pages/HrTrainingRecords";
 import HrPayrollVariance from "@/pages/HrPayrollVariance";
@@ -469,6 +470,7 @@ function App() {
             <Route path="/hr/change-password" element={H(<HrChangePassword />)} />
             <Route path="/hr" element={H(<HrHub />)} />
             <Route path="/hr/field-leadership" element={H(<HrFieldLeadership />)} />
+            <Route path="/hr/field-leadership-users" element={H(<HrFieldLeadershipUsers />)} />
             <Route path="/hr/employee-accountability" element={H(<HrEmployeeAccountability />)} />
             <Route path="/hr/time-verification" element={H(<HrTimeVerification />)} />
             <Route path="/hr/time-off" element={H(<HrTimeOff />)} />

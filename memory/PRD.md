@@ -2,7 +2,133 @@
 
 
 
+## 2026-05-21 — iter314 Field Leadership Portal · CLOSED
+
+### Scope (operator-approved · governed per-user operational identity)
+Per-user email/password Field Leadership portal at `/field-leadership/portal/login`, strictly separate from the legacy shared-password document gate at `/field-leadership/login`. Cloned from the HR/PM/Shop auth pattern exactly. Operationally bounded: gives Superintendents · Foremen · Truck Bosses · Working Supervisors · Field Supervisors **OPERATIONAL** access to Daily Reports · Safety Meetings · JHAs · Pre-Ops/DVIRs · Fleet visibility · Dispatch (today/tomorrow only) · Incidents · Driver Qualification dashboard. **Explicitly blocked** from HR admin, payroll, system settings, admin governance, platform configuration, and other portal user-management surfaces.
+
+### Architectural collision resolution
+| Path | Purpose | Auth model | Touched in iter314? |
+|---|---|---|---|
+| `/field-leadership/login` | LEGACY shared-password document gate | `X-Leadership-Token` (12h, `LEADERSHIP_PASSWORD`) | ❌ NO — preserved as-is |
+| `/field-leadership/portal/login` | NEW per-user governed identity | `X-FL-Token` (per-user bcrypt-bound HMAC, mirrors HR/PM/Shop) | ✅ YES — this iteration |
+
+Both systems run side-by-side. The new portal does NOT migrate the legacy gate. The legacy gate was verified untouched and operational.
+
+### Backend (NEW)
+- `field_leadership_users.py` — DB-backed roster module (mirrors `hr_users.py` exactly):
+  - Collection `field_leadership_users` with unique index on `email`
+  - Bounded role set: `Superintendent · Foreman · Truck Boss · Working Supervisor · Field Supervisor`
+  - Idempotent seed of single `fieldleader@mascigc.com` user (no password until admin/HR issues one)
+  - Token scheme: `<user_id>.<hmac>` bound to first 16 chars of bcrypt hash (rotating password invalidates the token)
+  - 30-minute self-service reset token with HMAC binding
+- `routes/field_leadership_portal.py` — 11 endpoints under `/api`:
+  - Portal: `POST /field-leadership/portal/login` · `POST /change-password` · `POST /forgot-password` · `POST /reset/{token}` · `GET /me`
+  - Bounded operational visibility (FL-token only): `GET /field-leadership/portal/dispatch-today` (TODAY+TOMORROW window only) · `GET /field-leadership/portal/driver-qualification` (read-only proxy)
+  - HR-or-Admin management: `GET/POST/PATCH/DELETE /admin/field-leadership-users` + `/reset-password` + `/resend-welcome`
+- Combined `require_hr_or_admin` dependency — operator mandate that HR and Admin BOTH manage FL users; FL users cannot manage themselves
+- Welcome + reset emails reuse the existing `_hr_send_email` Resend wrapper (preview-stub safe)
+
+### Frontend (NEW)
+- `FieldLeadershipPortalLogin.jsx` (`/field-leadership/portal/login`) — public route
+- `FieldLeadershipPortalDashboard.jsx` (`/field-leadership/portal/dashboard`) — gated by `RequireFl`
+- `FieldLeadershipPortalChangePassword.jsx` — gated by `RequireFl`
+- `AdminFieldLeadershipUsersPanel.jsx` — shared management UI (used by both Admin and HR shells; backend route accepts either token)
+- `HrFieldLeadershipUsers.jsx` (`/hr/field-leadership-users`) — HR-side host page wrapping the shared panel
+- `RequireFl.jsx` — route guard pointing to `/field-leadership/portal/login` (NOT the legacy gate)
+- `flAuth.js` — `masci.fl.token` / `masci.fl.user` storage helpers + `setFlToken(token, remember)`
+- Wired into:
+  - `App.js` — new routes + `RequireFl` wrapper (`FL(...)`)
+  - `AdminPeople.jsx` — panel mounted alongside HR/Safety/Dispatch user panels
+  - `HrHub.jsx` — new tile "Field Leadership Users" linking to `/hr/field-leadership-users`
+
+### Bilingual continuity
+- FL portal pages use `useT()`; toast/error strings keyed via `t()`
+- Fixed a non-interpolating `t("Welcome, {name}", { name })` call in the login welcome toast — replaced with template literal (`useT` does not perform placeholder substitution)
+- ES dictionary entries inherited from existing HR/Shop translation patterns
+
+### Bounded operational access (verified live)
+| Surface | FL access? | Verification |
+|---|---|---|
+| FL portal login/me/change-pw | ✅ allowed | `test_iter314_fl_seed_user_login_works`, `test_iter314_change_password_flow` |
+| Dispatch (today/tomorrow only) | ✅ allowed (read-only · 2-day window hardcoded) | `test_iter314_dispatch_visibility_is_today_and_tomorrow_only` |
+| Driver Qualification dashboard | ✅ allowed (read-only proxy) | `test_iter314_driver_qualification_proxy_is_readonly` |
+| `/admin/field-leadership-users` | ❌ blocked | `test_iter314_fl_token_cannot_access_admin_or_hr_routes` |
+| `/admin/hr-users` · `/admin/safety-users` · `/admin/shop-users` · `/admin/dispatch-users` | ❌ blocked | parametrized |
+| `/hr/employee-accountability` · `/hr/time-verification` · `/hr/payroll-variance` | ❌ blocked | parametrized |
+| Legacy `/api/field-leadership/login` shared-password gate | ✅ untouched | `test_iter314_legacy_shared_password_gate_untouched` |
+
+### UI verification (screenshots captured)
+- ✅ `/field-leadership/portal/login` renders cleanly (EN + ES toggle visible · Forgot password link)
+- ✅ Login routes to `/field-leadership/portal/change-password` when `must_change_password=true`, otherwise to `/field-leadership/portal/dashboard`
+- ✅ Change-password page renders 3 fields (current temp pw · new · confirm) + Set password button
+- ✅ Welcome toast interpolates correctly: `Welcome, Field Leader` (not `Welcome, {name}`)
+- ✅ Dashboard renders with role attribution + Dispatch/Driver-Qual summary chips + Operational workflows section
+- ✅ Admin "People & Access" page shows the new "Field Leadership Users & Logins" panel between HR and Safety user panels with the seed `fieldleader@mascigc.com · Superintendent · ACTIVE` row
+- ✅ HR Hub tile "Field Leadership Users" links to `/hr/field-leadership-users` which renders the shared panel
+
+### Regression (all PASSED)
+- NEW · `test_iter314_field_leadership_portal.py` (24 tests · runtime + static-code)
+  - Seed user login works
+  - Anonymous access blocked on every protected portal route (accepts 401 from FL gate OR 403 from upstream edge)
+  - Dispatch window is HARDCODED to today+tomorrow only (regex-locked: no `days=7`, no `days=30`)
+  - Driver qualification route is GET-only (single registration; no POST/PATCH/DELETE)
+  - Change-password rotates the token, old token dies, new password authenticates, password restored to canonical for downstream tests
+  - FL token does NOT unlock `/admin/*-users` (5 portals) or `/hr/{accountability,time-verification,payroll-variance}` (parametrized · 8 cases)
+  - Legacy shared-password gate at `/api/field-leadership/login` still returns a session token + TTL (untouched)
+  - Backend module + portal routes file exist; allowed-role set is bounded
+  - New portal uses `/field-leadership/portal/*` prefix only — does NOT collide with legacy gate
+  - All 5 `/admin/field-leadership-users` routes share `require_hr_or_admin` gate (regex-locked)
+  - `App.js` wires portal routes through `RequireFl` (login public; dashboard + change-password gated)
+  - `RequireFl` redirects to NEW portal login — NEVER the legacy gate
+  - `AdminPeople` and `HrHub` mount the management panel; HR host page renders the same component
+  - Shared panel calls only `/admin/field-leadership-users` (no namespace drift)
+  - Login page does NOT use unsupported `t('Welcome, {name}', {...})` interpolation
+- ✅ 58/58 combined regression green across iter306 + iter307 + iter310 + iter312 + iter313 + iter314
+- ✅ ESLint clean on all 4 touched frontend files
+
+### Files touched (iter314)
+- NEW · `/app/backend/field_leadership_users.py`
+- NEW · `/app/backend/routes/field_leadership_portal.py`
+- MOD · `/app/backend/server.py` (router + seed wiring)
+- NEW · `/app/frontend/src/lib/flAuth.js`
+- NEW · `/app/frontend/src/components/RequireFl.jsx`
+- NEW · `/app/frontend/src/components/AdminFieldLeadershipUsersPanel.jsx`
+- NEW · `/app/frontend/src/pages/FieldLeadershipPortalLogin.jsx`
+- NEW · `/app/frontend/src/pages/FieldLeadershipPortalDashboard.jsx`
+- NEW · `/app/frontend/src/pages/FieldLeadershipPortalChangePassword.jsx`
+- NEW · `/app/frontend/src/pages/HrFieldLeadershipUsers.jsx` (HR-side host for shared panel)
+- MOD · `/app/frontend/src/App.js` (portal routes + HR users route)
+- MOD · `/app/frontend/src/pages/admin/AdminPeople.jsx` (mount FL panel)
+- MOD · `/app/frontend/src/pages/HrHub.jsx` (add tile)
+- MOD · `/app/frontend/src/pages/FieldLeadershipPortalLogin.jsx` (fix i18n interpolation bug)
+- NEW · `/app/backend/tests/test_iter314_field_leadership_portal.py` (24 tests)
+- MOD · `/app/memory/PRD.md`
+- MOD · `/app/memory/test_credentials.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO refactor of any other auth subsystem (HR/PM/Shop/Safety/Dispatch unchanged)
+- ❌ NO migration or modification of the legacy `/api/field-leadership/login` shared-password gate
+- ❌ NO consolidation of identity portals or SSO/IAM work
+- ❌ NO change to `compute_pm_scope`, dispatch event log, or HR portal route gates
+- ❌ NO new permissions model · NO new collections beyond `field_leadership_users`
+- ❌ NO lint-chasing of unrelated files (per `STABILIZATION_PRINCIPLES.md`)
+- ❌ NO change to pre-existing legacy fixture debt (`test_payroll_variance_iter72.py`, `test_rebrand_iter41.py`)
+
+### Operational impact
+Approved Field Leadership personnel can now sign in with per-user credentials and execute their field workflows without needing a shared password or the legacy document gate. HR and Admin can both issue/reset/deactivate FL users from their own portals (same panel · same backend route). The legacy document viewer still works for any operator workflow that depended on it.
+
+### Production impact
+Preview environment has the new portal live. **Production at https://mascidocs.com still missing it until next redeploy** — operator needs to redeploy to ship iter314 (then issue per-user FL accounts via Admin or HR panels).
+
+### Seed credentials
+- `fieldleader@mascigc.com` / `FieldLead2026!` (preview; `must_change_password=false`, ready for automated tests)
+- See `/app/memory/test_credentials.md`
+
+
+
 ## 2026-05-21 — iter313 Driver Qualification Export Current View Button · CLOSED
+
 
 ### Scope (UI closure of iter312 · strictly bounded)
 Single "Export Current View → CSV" button on the existing Driver Qualification Dashboard. Reuses the iter312 endpoint with **zero new backend infrastructure**. NOT a reporting framework, NOT a new endpoint, NOT a dashboard redesign.
