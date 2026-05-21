@@ -34,7 +34,6 @@ import { getPmToken } from "@/lib/pmAuth";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
-import { SectionTile } from "@/components/SectionTile";
 import { usePageTitle } from "@/lib/usePageTitle";
 import {
   getLeadershipToken,
@@ -47,6 +46,38 @@ import {
 } from "@/lib/fieldLeadershipSchemas";
 
 const FL_PAL = paletteFor("leadership");
+
+// iter319 · Calm tile palette — mirrors HR/Safety pattern. Left-edge
+// stripe + soft slate border + white background. Identity preserved
+// via the stripe, never via a hot bg fill.
+const STRIPE = {
+  red:     "border-l-red-600",
+  redDeep: "border-l-red-900",
+  amber:   "border-l-amber-500",
+  orange:  "border-l-orange-600",
+  yellow:  "border-l-yellow-500",
+  lime:    "border-l-lime-600",
+  emerald: "border-l-emerald-600",
+  cyan:    "border-l-cyan-600",
+  blue:    "border-l-blue-600",
+  indigo:  "border-l-indigo-600",
+  purple:  "border-l-purple-600",
+  slate:   "border-l-slate-500",
+};
+const BTN = {
+  red:     "bg-red-700 hover:bg-red-800",
+  redDeep: "bg-red-900 hover:bg-red-950",
+  amber:   "bg-amber-700 hover:bg-amber-800",
+  orange:  "bg-orange-700 hover:bg-orange-800",
+  yellow:  "bg-yellow-600 hover:bg-yellow-700",
+  lime:    "bg-lime-700 hover:bg-lime-800",
+  emerald: "bg-emerald-700 hover:bg-emerald-800",
+  cyan:    "bg-cyan-700 hover:bg-cyan-800",
+  blue:    "bg-blue-700 hover:bg-blue-800",
+  indigo:  "bg-indigo-700 hover:bg-indigo-800",
+  purple:  "bg-purple-700 hover:bg-purple-800",
+  slate:   "bg-slate-700 hover:bg-slate-800",
+};
 
 // Tiles that link to other in-app surfaces (not "/leadership/{kind}/new"
 // forms). Currently only PO Requests — but the structure scales to any
@@ -117,17 +148,48 @@ const GROUPS = [
   },
 ];
 
-function SectionHeader({ kicker, title, subtitle }) {
+function SectionHeader({ title, subtitle }) {
+  // iter319 · matches HR (iter317-C) + Safety (iter318) section heading
+  // style: mono kicker · thin slate-200 divider · italic muted subtitle.
   return (
-    <div className="flex items-baseline gap-3 mb-4 sm:mb-5 mt-10 sm:mt-12 first:mt-0">
-      <span className={`font-mono text-[11px] uppercase tracking-[0.3em] ${FL_PAL.hubKicker} font-black`}>{kicker}</span>
-      <span className="h-px flex-1 bg-slate-300 max-w-6" />
+    <div className="mb-4 flex items-baseline gap-3 flex-wrap">
+      <h2 className={`font-mono text-xs uppercase tracking-[0.22em] ${FL_PAL.hubKicker}`}>
+        {title}
+      </h2>
+      <span className="hidden sm:inline-block h-px flex-1 bg-slate-200" aria-hidden="true" />
+      <span className="text-xs text-slate-500 italic">{subtitle}</span>
+    </div>
+  );
+}
+
+// iter319 · Calm tile. Mirrors HR/Safety calm tile shape. Handles the
+// SectionTile feature set we actually use: disabled (admin-only forms
+// for non-admins), internal `to`, external `href`, accent color, testId.
+function LeadershipTile({ to, href, icon: Icon, title, desc, accent = "red", ctaLabel = "OPEN", disabled = false, disabledLabel, testId }) {
+  const stripe = STRIPE[accent] || STRIPE.red;
+  const btn = BTN[accent] || BTN.red;
+  const base = `block rounded-lg border border-slate-200 border-l-4 ${stripe} bg-white p-5 transition-all duration-150 relative ${
+    disabled
+      ? "opacity-60 cursor-not-allowed"
+      : "hover:shadow-md hover:-translate-y-0.5 hover:border-slate-300"
+  }`;
+  const inner = (
+    <div className="flex items-start gap-3">
+      <Icon className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
       <div className="flex-1 min-w-0">
-        <h2 className="font-display text-lg sm:text-xl font-black tracking-tight text-slate-900">{title}</h2>
-        {subtitle && <p className="text-xs sm:text-sm text-slate-500 mt-0.5">{subtitle}</p>}
+        <h3 className="font-display text-lg font-black">{title}</h3>
+        <p className="text-sm text-slate-600 mt-1">{desc}</p>
+        <span className={`mt-3 inline-flex items-center h-9 px-3 rounded-md ${
+          disabled ? "bg-slate-300 text-slate-600" : `${btn} text-white`
+        } font-bold uppercase tracking-wide text-xs`}>
+          {disabled ? (disabledLabel || "Locked") : `${ctaLabel} →`}
+        </span>
       </div>
     </div>
   );
+  if (disabled) return <div className={base} data-testid={testId} aria-disabled="true">{inner}</div>;
+  if (href) return <a href={href} className={base} data-testid={testId}>{inner}</a>;
+  return <Link to={to} className={base} data-testid={testId}>{inner}</Link>;
 }
 
 function PasswordGate({ onAuthed }) {
@@ -289,7 +351,7 @@ export default function FieldLeadershipHub() {
     <div className="min-h-screen blueprint-bg">
       <div className="caution-stripe" />
       <header className={`bg-slate-900 border-b-4 ${FL_PAL.hubHeaderBar}`}>
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-5 sm:py-7 flex items-center gap-3 flex-wrap">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3 flex-wrap">
           {/* iter145 — Home + Back text-links for parity with HR / Shop /
               Dispatch sub-hub headers. On small screens the labels
               collapse and only the icons render so the right-hand
@@ -312,19 +374,23 @@ export default function FieldLeadershipHub() {
             <ArrowLeft className="w-4 h-4 sm:mr-1" />
             <span className="hidden sm:inline">{t("Back")}</span>
           </button>
-          <MasciLogo variant="mark" size="2xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
+          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
+          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
           <div className="flex-1" />
-          <div className="flex items-center gap-2 flex-wrap">
-            <GlobalSearch accent="dark" />
+          {/* iter319 — Mobile header collapse (matches HR/Safety iter203). */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="hidden sm:flex items-center gap-2">
+              <GlobalSearch accent="dark" />
+            </div>
             <NotificationBell accent="white" />
             <OfflineIndicator />
             <LangToggle />
-            <CompanyInfoDialog />
+            <div className="hidden sm:flex"><CompanyInfoDialog /></div>
             <Button
               asChild
               variant="outline"
-              className="h-10 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-indigo-400 hover:text-white text-xs font-bold uppercase tracking-wide"
+              size="sm"
+              className="hidden sm:inline-flex h-9 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-indigo-400 hover:text-white text-xs font-bold uppercase tracking-wide"
               data-testid="leadership-training-link"
             >
               <Link to="/guidance">
@@ -335,7 +401,8 @@ export default function FieldLeadershipHub() {
             <Button
               asChild
               variant="outline"
-              className="h-10 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-amber-500 hover:text-white text-xs font-bold uppercase tracking-wide"
+              size="sm"
+              className="hidden sm:inline-flex h-9 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-amber-500 hover:text-white text-xs font-bold uppercase tracking-wide"
               data-testid="leadership-records-link"
             >
               <Link to="/leadership/records">
@@ -346,8 +413,10 @@ export default function FieldLeadershipHub() {
             <Button
               onClick={signOut}
               variant="outline"
-              className="h-10 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-white text-xs font-bold uppercase tracking-wide"
+              size="sm"
+              className="text-xs h-8 px-2 sm:px-2.5"
               data-testid="leadership-signout"
+              title="Sign out"
             >
               {t("Sign Out")}
             </Button>
@@ -355,62 +424,63 @@ export default function FieldLeadershipHub() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
-        <div className="mb-8 sm:mb-10">
-          <span className={`font-mono text-xs uppercase tracking-[0.25em] ${FL_PAL.hubKicker} font-bold`}>
+      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+        <div className="mb-8">
+          <span className={`font-mono text-xs uppercase tracking-[0.2em] ${FL_PAL.hubKicker} font-bold`}>
             {t("Restricted · Crew Documentation")}
           </span>
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">
+          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
             {t("Field Leadership")}
           </h1>
-          <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
+          <p className="text-slate-600 text-base mt-2 max-w-2xl">
             {t("Crew accountability, employee documentation, equipment responsibility, recognition, and workforce-management tools for MASCI field leadership.")}
           </p>
-          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-amber-50 border border-amber-300 text-amber-900 text-xs font-mono uppercase tracking-[0.18em] font-bold">
-            <Lock className="w-3.5 h-3.5" />
+          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200 text-slate-700 text-xs font-mono uppercase tracking-[0.18em] font-bold">
+            <Lock className="w-3.5 h-3.5 text-slate-500" />
             {t("All forms must be factual, professional, and compliant with employment-documentation best practices.")}
           </div>
         </div>
 
-        {GROUPS.map((group) => (
-          <section key={group.kicker} className="mb-2">
-            <SectionHeader
-              kicker={group.kicker}
-              title={t(group.title[lang] || group.title.en)}
-              subtitle={t(group.subtitle[lang] || group.subtitle.en)}
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              {group.kinds.map((kind) => {
-                const form = resolveForm(kind);
-                if (!form) return null;
-                const title = form.title[lang] || form.title.en;
-                const desc = form.desc[lang] || form.desc.en;
-                const locked = Boolean(form.admin_only) && !admin;
-                const isExternal = Boolean(form.external);
-                const isInternalRoute = Boolean(form.internalRoute);
-                return (
-                  <SectionTile
-                    key={kind}
-                    to={isExternal
-                      ? undefined
-                      : (isInternalRoute ? form.to : `/leadership/${kind}/new`)}
-                    href={isExternal ? form.to : undefined}
-                    icon={form.icon}
-                    title={title}
-                    desc={desc}
-                    accent={form.accent}
-                    ctaLabel={isExternal
-                      ? t("Open form")
-                      : (isInternalRoute ? t("Open") : t("New entry"))}
-                    disabled={locked}
-                    disabledLabel={t("Sign in as Admin to unlock")}
-                    testId={`leadership-tile-${kind}`}
-                  />
-                );
-              })}
-            </div>
-          </section>
-        ))}
+        <div className="space-y-10">
+          {GROUPS.map((group) => (
+            <section key={group.kicker} data-testid={`leadership-group-${group.kicker}`}>
+              <SectionHeader
+                title={t(group.title[lang] || group.title.en)}
+                subtitle={t(group.subtitle[lang] || group.subtitle.en)}
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {group.kinds.map((kind) => {
+                  const form = resolveForm(kind);
+                  if (!form) return null;
+                  const title = form.title[lang] || form.title.en;
+                  const desc = form.desc[lang] || form.desc.en;
+                  const locked = Boolean(form.admin_only) && !admin;
+                  const isExternal = Boolean(form.external);
+                  const isInternalRoute = Boolean(form.internalRoute);
+                  return (
+                    <LeadershipTile
+                      key={kind}
+                      to={isExternal
+                        ? undefined
+                        : (isInternalRoute ? form.to : `/leadership/${kind}/new`)}
+                      href={isExternal ? form.to : undefined}
+                      icon={form.icon}
+                      title={title}
+                      desc={desc}
+                      accent={form.accent}
+                      ctaLabel={isExternal
+                        ? t("OPEN FORM")
+                        : (isInternalRoute ? t("OPEN") : t("NEW ENTRY"))}
+                      disabled={locked}
+                      disabledLabel={t("Sign in as Admin to unlock")}
+                      testId={`leadership-tile-${kind}`}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
       </main>
     </div>
   );

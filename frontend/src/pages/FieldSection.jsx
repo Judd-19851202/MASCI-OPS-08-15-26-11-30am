@@ -1,3 +1,10 @@
+// iter319 · Field Hub Calm Pass (Platform UX Governance Phase A).
+//
+// Apply the iter317-C / iter318 / iter319-FL calm pattern: left-edge
+// stripe tiles, H1 toned down to interior-hub size, three lightweight
+// operational groups (Daily Ops · Weekly Checks · Tools). NO sidebar,
+// NO IA redesign, NO route changes. All 6 tile testids preserved.
+
 import React from "react";
 import { Link } from "react-router-dom";
 import {
@@ -6,8 +13,58 @@ import {
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
-import { SectionTile } from "@/components/SectionTile";
 import { useT } from "@/lib/i18n";
+
+const STRIPE = {
+  red:     "border-l-red-600",
+  amber:   "border-l-amber-500",
+  emerald: "border-l-emerald-600",
+  slate:   "border-l-slate-500",
+};
+const BTN = {
+  red:     "bg-red-700 hover:bg-red-800",
+  amber:   "bg-amber-700 hover:bg-amber-800",
+  emerald: "bg-emerald-700 hover:bg-emerald-800",
+  slate:   "bg-slate-700 hover:bg-slate-800",
+};
+
+function FieldTile({ to, icon: Icon, title, desc, accent = "amber", ctaLabel, testId }) {
+  const stripe = STRIPE[accent] || STRIPE.amber;
+  const btn = BTN[accent] || BTN.amber;
+  return (
+    <Link
+      to={to}
+      className={`block rounded-lg border border-slate-200 border-l-4 ${stripe} bg-white p-5 hover:shadow-md hover:-translate-y-0.5 hover:border-slate-300 transition-all duration-150 relative`}
+      data-testid={testId}
+    >
+      <div className="flex items-start gap-3">
+        <Icon className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <h3 className="font-display text-lg font-black">{title}</h3>
+          <p className="text-sm text-slate-600 mt-1">{desc}</p>
+          <span className={`mt-3 inline-flex items-center h-9 px-3 rounded-md ${btn} text-white font-bold uppercase tracking-wide text-xs`}>
+            {ctaLabel} →
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function SectionHeading({ title, sub, testId }) {
+  return (
+    <div className="mb-4 flex items-baseline gap-3 flex-wrap">
+      <h2
+        className="font-mono text-xs uppercase tracking-[0.22em] text-slate-700"
+        data-testid={testId}
+      >
+        {title}
+      </h2>
+      <span className="hidden sm:inline-block h-px flex-1 bg-slate-200" aria-hidden="true" />
+      <span className="text-xs text-slate-500 italic">{sub}</span>
+    </div>
+  );
+}
 
 /**
  * FieldSection — landing for the /field sub-hub. Daily operational logs
@@ -30,89 +87,124 @@ export default function FieldSection() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
         <div className="mb-6">
           <Link
             to="/"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-amber-600 font-bold"
+            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-amber-700 font-bold"
             data-testid="field-back-link"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> {t("Home")}
           </Link>
         </div>
 
-        <div className="mb-10 sm:mb-14 flex items-start gap-4">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-amber-600 text-white shrink-0">
-            <HardHat className="w-7 h-7" />
+        <div className="mb-8 flex items-start gap-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">
+            <HardHat className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-amber-700 font-bold">
+            <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-700 font-bold">
               {t("Field · Daily Ops")}
             </span>
-            <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-1">
+            <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
               {t("Field")}
             </h1>
-            <p className="text-slate-600 text-base sm:text-lg mt-2 max-w-2xl">
+            <p className="text-slate-600 text-base mt-2 max-w-2xl">
               {t("What the crew fills out every day, before and after the shift.")}
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-12">
-          <SectionTile
-            to="/daily/submit"
-            icon={ClipboardList}
-            title={t("Daily Reports")}
-            desc={t("End-of-day site log: crews, subs, visitors, equipment, materials, weather, photos. Replaces Fieldwire.")}
-            accent="red"
-            ctaLabel={t("Start Form")}
-            testId="field-tile-daily"
-          />
-          <SectionTile
-            to="/equipment/submit"
-            icon={Wrench}
-            title={t("Equipment Pre-Op")}
-            desc={t("Daily OSHA walk-around inspections for Heavy Equipment. PASS / FAIL each item — fail tags the unit out of service.")}
-            accent="slate"
-            ctaLabel={t("Start Form")}
-            testId="field-tile-equipment"
-          />
-          <SectionTile
-            to="/field/calculators"
-            icon={Calculator}
-            title={t("Material Calculators")}
-            desc={t("Quickly estimate aggregate, asphalt, concrete, truck loads, yield, waste, and tons-to-cubic-yard conversions from the field.")}
-            accent="amber"
-            ctaLabel={t("Open Tools")}
-            testId="field-tile-calculators"
-          />
-          <SectionTile
-            to="/fleet/dvir/new"
-            icon={Truck}
-            title={t("Trucking · Daily DVIR")}
-            desc={t("Daily Vehicle Inspection for trucks and trailers. Walk-around · PASS / FAIL each item · Shop sees defects automatically.")}
-            accent="amber"
-            ctaLabel={t("Start DVIR")}
-            testId="field-tile-dvir"
-          />
-          <SectionTile
-            to="/fleet/weekly-lead/new"
-            icon={Truck}
-            title={t("Weekly · Lead Inspection")}
-            desc={t("Quick weekly check by the lead — operational hygiene, recurring issues, key safety items. Reuses the DVIR flow.")}
-            accent="amber"
-            ctaLabel={t("Start Lead Inspection")}
-            testId="field-tile-weekly-lead"
-          />
-          <SectionTile
-            to="/fleet/weekly-emergency/new"
-            icon={Truck}
-            title={t("Weekly · Emergency Equipment")}
-            desc={t("Fire extinguishers, triangles, first aid, PPE, alarms. Present · charged · within date.")}
-            accent="amber"
-            ctaLabel={t("Start Emergency Check")}
-            testId="field-tile-weekly-emergency"
-          />
+        <div className="space-y-10 mb-12">
+          {/* Group 01 · Daily Operations */}
+          <section data-testid="field-group-daily">
+            <SectionHeading
+              title={t("Daily Operations")}
+              sub={t("Start-of-shift and end-of-shift submissions")}
+              testId="field-group-heading-daily"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <FieldTile
+                to="/daily/submit"
+                icon={ClipboardList}
+                title={t("Daily Reports")}
+                desc={t("End-of-day site log: crews, subs, visitors, equipment, materials, weather, photos. Replaces Fieldwire.")}
+                accent="red"
+                ctaLabel={t("START FORM")}
+                testId="field-tile-daily"
+              />
+              <FieldTile
+                to="/equipment/submit"
+                icon={Wrench}
+                title={t("Equipment Pre-Op")}
+                desc={t("Daily OSHA walk-around inspections for Heavy Equipment. PASS / FAIL each item — fail tags the unit out of service.")}
+                accent="slate"
+                ctaLabel={t("START FORM")}
+                testId="field-tile-equipment"
+              />
+              <FieldTile
+                to="/fleet/dvir/new"
+                icon={Truck}
+                title={t("Trucking · Daily DVIR")}
+                desc={t("Daily Vehicle Inspection for trucks and trailers. Walk-around · PASS / FAIL each item · Shop sees defects automatically.")}
+                accent="amber"
+                ctaLabel={t("START DVIR")}
+                testId="field-tile-dvir"
+              />
+            </div>
+          </section>
+
+          {/* Group 02 · Weekly Checks */}
+          <section data-testid="field-group-weekly">
+            <SectionHeading
+              title={t("Weekly Checks")}
+              sub={t("Lead-driven recurring inspections")}
+              testId="field-group-heading-weekly"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <FieldTile
+                to="/fleet/weekly-lead/new"
+                icon={Truck}
+                title={t("Weekly · Lead Inspection")}
+                desc={t("Quick weekly check by the lead — operational hygiene, recurring issues, key safety items. Reuses the DVIR flow.")}
+                accent="amber"
+                ctaLabel={t("START LEAD INSPECTION")}
+                testId="field-tile-weekly-lead"
+              />
+              <FieldTile
+                to="/fleet/weekly-emergency/new"
+                icon={Truck}
+                title={t("Weekly · Emergency Equipment")}
+                desc={t("Fire extinguishers, triangles, first aid, PPE, alarms. Present · charged · within date.")}
+                accent="amber"
+                ctaLabel={t("START EMERGENCY CHECK")}
+                testId="field-tile-weekly-emergency"
+              />
+            </div>
+          </section>
+
+          {/* Group 03 · Tools (demoted — supporting calculators) */}
+          <section
+            data-testid="field-group-tools"
+            className="pt-6 border-t border-slate-200"
+          >
+            <SectionHeading
+              title={t("Calculators & Tools")}
+              sub={t("Supporting field calculators")}
+              testId="field-group-heading-tools"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <FieldTile
+                to="/field/calculators"
+                icon={Calculator}
+                title={t("Material Calculators")}
+                desc={t("Quickly estimate aggregate, asphalt, concrete, truck loads, yield, waste, and tons-to-cubic-yard conversions from the field.")}
+                accent="slate"
+                ctaLabel={t("OPEN TOOLS")}
+                testId="field-tile-calculators"
+              />
+            </div>
+          </section>
         </div>
       </main>
 

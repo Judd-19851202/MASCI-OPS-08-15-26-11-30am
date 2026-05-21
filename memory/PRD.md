@@ -2,6 +2,97 @@
 
 
 
+## 2026-05-21 — iter319 · FL Hub + Field Hub Calm Pass · Platform Family Reference Pack · CLOSED
+
+### Scope (operator-mandated · Platform UX Governance Phase A · iter319)
+Continues the calm-hierarchy convergence pass started by iter317-C (HR) and iter318 (Safety). Applies the same calm-tile + grouped-section + interior-H1 pattern to:
+1. **Field Leadership Hub** (`FieldLeadershipHub.jsx`) — refactor `SectionTile` → inline `LeadershipTile`, H1 tone-down, iter203 mobile header collapse, calm legal banner.
+2. **Field Hub** (`FieldSection.jsx`) — full calm rewrite + 3 lightweight operational groups (Daily Operations · Weekly Checks · Calculators & Tools demoted).
+3. **Safety Hub** validation only — no changes; iter318 already meets the contract.
+
+Plus deliverable: **`/app/memory/UX_PLATFORM_FAMILY_REFERENCE.md`** — the official platform family visual reference standard for all future hub convergence work.
+
+NO sidebar · NO IA redesign · NO route changes · NO permission changes · NO new features. All 14 FL tile testids + 6 Field tile testids preserved. All bilingual `t()` calls preserved.
+
+### FL Hub changes
+- Removed `SectionTile` import; added inline `LeadershipTile` (mirrors HR/Safety inline pattern).
+- 12-color stripe palette to support every FL accent (red · redDeep · amber · orange · yellow · lime · emerald · cyan · blue · indigo · purple · slate).
+- Disabled-tile state preserved (admin-only forms for non-admin users — calm gray chrome instead of locked colored chrome).
+- `SectionHeader`: mono kicker (`tracking-[0.22em] text-FL-kicker`) + thin slate-200 divider + italic muted subtitle. Matches HR + Safety exactly.
+- H1: `text-4xl sm:text-5xl lg:text-6xl` → `text-3xl sm:text-4xl` (Rule 3 interior hub).
+- Header right-cluster: applied iter203 mobile collapse (`hidden sm:inline-flex` on Guides + Records + GlobalSearch + CompanyInfo).
+- Legal-compliance banner: `bg-amber-50 border-amber-300` → `bg-slate-50 border-slate-200` (Rule 1 calm).
+- All 5 numbered group sections preserved (DAILY CREW DOCUMENTATION · EVALUATIONS & CAREER PATH · TRAINING ACCOUNTABILITY · EQUIPMENT & SAFETY EQUIPMENT · TIME & WORKFORCE MGMT).
+
+### Field Hub changes
+- Full rewrite of `FieldSection.jsx` to inline calm tile pattern.
+- 3 new lightweight operational groups:
+  - **Daily Operations** — Daily Reports (red) · Equipment Pre-Op (slate) · Daily DVIR (amber)
+  - **Weekly Checks** — Weekly Lead (amber) · Weekly Emergency (amber)
+  - **Calculators & Tools** *(demoted · top-border separator)* — Material Calculators (slate)
+- H1: `text-4xl sm:text-5xl` → `text-3xl sm:text-4xl`.
+- All 6 prior tile testids preserved (`field-tile-daily/equipment/calculators/dvir/weekly-lead/weekly-emergency`).
+- 6 new group testids surfaced (`field-group-daily/weekly/tools` + heading testids).
+
+### Bilingual parity (Rule 8)
+Added 11 new ES dictionary entries to `lib/i18n.js`:
+- Group headings: "Daily Operations" → "Operaciones Diarias" · "Weekly Checks" → "Inspecciones Semanales" · "Calculators & Tools" → "Calculadoras y Herramientas"
+- Subtitles: "Start-of-shift and end-of-shift submissions" → "Envíos al inicio y al final del turno" · "Lead-driven recurring inspections" → "Inspecciones recurrentes dirigidas por el líder" · "Supporting field calculators" → "Calculadoras de apoyo para el campo"
+- CTAs: START FORM · START DVIR · START LEAD INSPECTION · START EMERGENCY CHECK · OPEN TOOLS · OPEN · OPEN FORM · NEW ENTRY · OPEN LIBRARY · OPEN FLEET VIEW
+- Live ES verification confirmed: FL Hub renders "Liderazgo de Campo · Documentación Diaria del Personal"; Field Hub renders "Campo · Operaciones Diarias · Inspecciones Semanales · Calculadoras y Herramientas".
+
+### Verification (all PASSED)
+- ✅ `test_iter319_fl_and_field_calm_pass.py` (12 tests):
+  - FL Hub: calm tile pattern in place · H1 toned · legal banner calmed · iter203 mobile collapse applied · 14 tile testids preserved · group testids surfaced
+  - Field Hub: calm tile pattern · H1 toned · 3 operational groups present · Tools group demoted with top-border · 6 tile testids preserved
+  - ES dictionary entries present for all new strings
+- ✅ Live preview screenshots (Desktop 1920 · Mobile 390 · ES locale):
+  - FL Hub Desktop EN: 14 tiles, 5 groups, calm chrome, header has Guides/Records visible
+  - FL Hub Mobile EN: groups stack vertically, Guides/Records/GlobalSearch/CompanyInfo collapse correctly, only Bell/Lang/SignOut visible — iter203 working
+  - FL Hub Desktop ES: H1 "Liderazgo de Campo" · subtitle ES · group headings ES · tile titles ES
+  - Field Hub Desktop EN: 3 sections, Calculators visually demoted with top-border separator
+  - Field Hub Mobile EN: clean single-column stack at 390px
+  - Field Hub Desktop ES: "CAMPO" + all 3 groups in ES + all 6 CTAs in ES
+  - Programmatic checks: 14 FL tiles + 6 Field tiles + 4 ES group headings all confirmed
+- ✅ Combined regression: **108/108 green** across iter314 + iter316 + iter317-A/B/C + iter318 + iter319
+- ✅ ESLint clean on `FieldLeadershipHub.jsx` · `FieldSection.jsx` · `lib/i18n.js`
+
+### Files touched (iter319)
+- MOD · `/app/frontend/src/pages/FieldLeadershipHub.jsx` (SectionTile → inline LeadershipTile · H1 · header · legal banner · SectionHeader style)
+- MOD · `/app/frontend/src/pages/FieldSection.jsx` (full rewrite · 3 operational groups · calm chrome)
+- MOD · `/app/frontend/src/lib/i18n.js` (11 new ES entries)
+- NEW · `/app/backend/tests/test_iter319_fl_and_field_calm_pass.py` (12 tests)
+- NEW · `/app/memory/UX_PLATFORM_FAMILY_REFERENCE.md` (the platform family contract doc)
+- DOC · `/app/memory/PRD.md`
+
+### Platform Family Reference Pack deliverable
+The pack lives at `/app/memory/UX_PLATFORM_FAMILY_REFERENCE.md`. Contains:
+- Visual contract (calm tile · section heading · demoted section · H1 · KPI · header right-cluster) with copy-pasteable JSX.
+- Hub-by-hub reference summary for HR · Safety · Field Leadership · Field — accent palettes, tile counts, reference iterations.
+- Re-verify recipe (multi-login token fetch · per-hub URL + locale + viewport matrix · pytest command).
+- iter319 changelog.
+- Outstanding backlog (iter320 Shop · iter321 Dispatch · iter322 FL Portal · Phases B-E).
+
+The pack is the platform's official visual reference standard going forward. iter320 / iter321 / iter322 must converge against it.
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO sidebar · NO IA redesign · NO route changes · NO permission changes
+- ❌ NO change to shared `SectionTile.jsx` (other hubs that still use it — Hub.jsx · QaqcSection.jsx — are untouched; iter319 only refines FL + Field which now use inline calm tiles)
+- ❌ NO change to Safety Hub (iter318 already meets the contract — validation only)
+- ❌ NO change to backend, routes, permissions, DB, integrations behavior
+- ❌ NO change to GROUPS schema in FieldLeadershipHub (only chrome refined)
+- ❌ NO change to `OperationsCenter`, `NotificationBell`, `GlobalSearch`, `PortalSwitcher`, `MasciLogo`, `LangToggle`, `CompanyInfoDialog`
+- ❌ NO change to pre-existing legacy fixture debt
+- ❌ NO Phase A continuation (iter320 Shop · iter321 Dispatch · iter322 FL Portal still queued)
+
+### Operational impact
+A user opening any of HR · Safety · FL · Field now sees the same visual rhythm — same section headings, same tile chrome, same hover behavior, same H1 sizing, same color semantics, same mobile collapse pattern. The platform reads as **one operational ecosystem** instead of separate hubs. Operational directness preserved at every step; muscle memory protected; no workflow change anywhere.
+
+### Production impact
+**Preview has all of HR + Safety + FL + Field calm passes. Production at mascidocs.com still missing until next redeploy.** Zero backend / DB / API / permissions changes. Pure CSS / layout refinement + 11 i18n dictionary additions + 1 new reference doc + 1 new invariant test file. Ships the moment the redeploy lands.
+
+
+
 ## 2026-05-21 — iter318 Safety Hub Calm Pass · CLOSED
 
 ### Scope (operator-mandated · Platform UX Governance Phase A · iter318)

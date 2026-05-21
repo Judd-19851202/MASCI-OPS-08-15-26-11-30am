@@ -3587,6 +3587,24 @@ const ES = {
   "Guidance & Systems": "Guía y Sistemas",
   "Supporting tools · operator guides · cross-portal integration visibility": "Herramientas de apoyo · guías para operadores · visibilidad de integraciones entre portales",
 
+  // iter319 · Field Hub Calm Pass (grouped sections + new CTAs)
+  "Daily Operations": "Operaciones Diarias",
+  "Start-of-shift and end-of-shift submissions": "Envíos al inicio y al final del turno",
+  "Weekly Checks": "Inspecciones Semanales",
+  "Lead-driven recurring inspections": "Inspecciones recurrentes dirigidas por el líder",
+  "Calculators & Tools": "Calculadoras y Herramientas",
+  "Supporting field calculators": "Calculadoras de apoyo para el campo",
+  "START FORM": "INICIAR FORMULARIO",
+  "START DVIR": "INICIAR DVIR",
+  "START LEAD INSPECTION": "INICIAR INSPECCIÓN DEL LÍDER",
+  "START EMERGENCY CHECK": "INICIAR CHEQUEO DE EMERGENCIA",
+  "OPEN TOOLS": "ABRIR HERRAMIENTAS",
+  "OPEN": "ABRIR",
+  "OPEN FORM": "ABRIR FORMULARIO",
+  "NEW ENTRY": "NUEVO REGISTRO",
+  "OPEN LIBRARY": "ABRIR BIBLIOTECA",
+  "OPEN FLEET VIEW": "VER FLOTA",
+
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",
