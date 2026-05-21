@@ -825,10 +825,20 @@ function WizardTab() {
   const [decisions, setDecisions] = useState({}); // row_index → {action, masci_equipment_id?, force_overwrite?}
   const [runs, setRuns] = useState([]);
   const [lastRun, setLastRun] = useState(null);
+  const [runsLoadError, setRunsLoadError] = useState("");
 
   const loadRuns = async () => {
-    try { setRuns((await api.get("/admin/integrations/mappings/wizard/runs?limit=10")).data || []); }
-    catch { /* ignore */ }
+    try {
+      setRuns((await api.get("/admin/integrations/mappings/wizard/runs?limit=10")).data || []);
+      setRunsLoadError("");
+    } catch (err) {
+      // iter308 · admin-visible failure handling (per stabilization-posture
+      // trust-refinement principle: admin surfaces should fail loudly, never
+      // crew surfaces). Was previously a silent swallow that hid integration
+      // outages from the only operator who can fix them.
+      console.error("[admin/integrations] wizard runs load failed:", err);
+      setRunsLoadError(err?.response?.data?.detail || err?.message || "Failed to load recent runs");
+    }
   };
   useEffect(() => { loadRuns(); }, []);
 
@@ -1171,7 +1181,14 @@ function WizardTab() {
         <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">
           Recent wizard runs (audit)
         </h4>
-        {runs.length === 0 ? (
+        {runsLoadError ? (
+          <p
+            className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded px-2 py-1.5"
+            data-testid="ic-wizard-runs-load-error"
+          >
+            {runsLoadError}
+          </p>
+        ) : runs.length === 0 ? (
           <p className="text-xs text-slate-500 italic">No wizard runs yet.</p>
         ) : (
           <ul className="divide-y divide-slate-100" data-testid="ic-wizard-runs-list">

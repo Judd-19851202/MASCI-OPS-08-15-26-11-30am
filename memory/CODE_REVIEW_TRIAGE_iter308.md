@@ -48,9 +48,23 @@
 
 ### 🟢 GENUINELY SURGICAL (could apply if operator approves)
 
-| Finding | Effort | Risk | Stabilization-fit |
-|---|---|---|---|
-| `AdminIntegrationCenter.jsx:831` — admin wizard-runs load swallows errors silently | 2 lines · console.error in DEV | Trivially zero | Aligns with "trust refinement" (admin failures should fail loudly) |
+| Finding | Effort | Risk | Stabilization-fit | Status |
+|---|---|---|---|---|
+| `AdminIntegrationCenter.jsx:831` — admin wizard-runs load swallows errors silently | 2 lines + admin-visible error UI | Trivially zero | Aligns with "trust refinement" (admin failures should fail loudly) | ✅ **APPLIED iter308** |
+
+### Applied iter308 closure (operator-approved option A)
+
+**Change:** `/app/frontend/src/pages/admin/AdminIntegrationCenter.jsx`
+
+- Added `runsLoadError` state alongside existing `runs` state
+- Replaced silent `catch { /* ignore */ }` with `console.error(...)` + admin-visible inline error banner inside the "Recent wizard runs (audit)" section
+- Error banner uses `data-testid="ic-wizard-runs-load-error"` for test access
+- Pattern: admin surfaces fail loudly (visible rose error chip); crew surfaces still fail silently (scope-based UX preserved everywhere else)
+- ESLint clean · 79/79 regression tests green (iter305 · iter306 · iter307 dewatering + banner + git-tmp suites)
+- Frontend smoke screenshot confirms landing page renders correctly after edit
+
+### Triage doc status: FINAL — back to stabilization posture
+
 
 That is the **only** finding in the entire report that:
 1. Is genuinely real (not a false positive)
