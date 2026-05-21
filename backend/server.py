@@ -775,7 +775,7 @@ async def _guidance_caller_scopes(request: Request) -> set:
             is_dispatch = row is not None
         except Exception:
             is_dispatch = False
-    # Field leadership
+    # Field leadership · legacy shared-password gate
     is_leadership = False
     leadership_tok = hdr("x-leadership-token") or ""
     if leadership_tok:
@@ -784,6 +784,21 @@ async def _guidance_caller_scopes(request: Request) -> set:
             is_leadership = bool(_check_leadership_token(leadership_tok))
         except Exception:
             is_leadership = False
+    # iter317-A · Field Leadership PORTAL (per-user, iter314).
+    # Distinct token (X-FL-Token, masci.fl.token) but same `leadership`
+    # guidance scope — FL Portal coaching is what surfaces on the new
+    # portal pages, so map a valid FL-portal token to is_leadership=True.
+    if not is_leadership:
+        fl_tok = hdr("x-fl-token") or ""
+        if fl_tok:
+            try:
+                from field_leadership_users import (
+                    is_valid_fl_user_token_async,
+                )
+                row = await is_valid_fl_user_token_async(db, fl_tok)
+                is_leadership = row is not None
+            except Exception:
+                is_leadership = False
 
     return caller_scopes(
         is_admin=is_admin,

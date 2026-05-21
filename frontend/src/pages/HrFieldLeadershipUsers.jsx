@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import AdminFieldLeadershipUsersPanel from "@/components/AdminFieldLeadershipUsersPanel";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { clearHrToken } from "@/lib/hrAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
@@ -53,7 +54,8 @@ export default function HrFieldLeadershipUsers() {
         </div>
       </header>
       <main className="max-w-7xl mx-auto px-4 sm:px-8 py-6">
-        <div className="mb-4 flex items-center gap-2 text-sm text-slate-600">
+        <HelpTipBlock formKey="field-leadership.user-management" showCounter />
+        <div className="mb-4 mt-3 flex items-center gap-2 text-sm text-slate-600">
           <Users className="h-4 w-4 text-purple-700" />
           <span>
             {t(

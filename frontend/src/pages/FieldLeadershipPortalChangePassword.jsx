@@ -7,6 +7,7 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { useT } from "@/lib/i18n";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { api } from "@/lib/api";
 import { setFlToken, getFlUser } from "@/lib/flAuth";
 import { toast } from "sonner";
@@ -66,6 +67,7 @@ export default function FieldLeadershipPortalChangePassword() {
           </p>
         </div>
         <form onSubmit={submit} className="bg-white border border-slate-200 rounded-lg p-5 space-y-3">
+          <HelpTipBlock formKey="field-leadership.change-password" />
           <div>
             <Label className="text-xs uppercase tracking-wider text-slate-600">
               {t("Current temporary password")}

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { LangToggle } from "@/components/LangToggle";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { getFlUser, clearFlToken } from "@/lib/flAuth";
@@ -81,6 +82,7 @@ export default function FieldLeadershipPortalDashboard() {
         </div>
       </div>
       <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 space-y-4">
+        <HelpTipBlock formKey="field-leadership.portal-dashboard" showCounter />
         {error && (
           <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded p-3 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" /> {error}
@@ -99,6 +101,7 @@ export default function FieldLeadershipPortalDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
+                <HelpTipBlock formKey="field-leadership.dispatch-visibility" />
                 <div className="text-xs text-slate-500 mb-2">
                   {dispatch.window
                     ? `${dispatch.window.today} → ${dispatch.window.tomorrow}`

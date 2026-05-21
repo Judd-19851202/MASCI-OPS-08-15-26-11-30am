@@ -8,6 +8,7 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { LangToggle } from "@/components/LangToggle";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setFlToken, setFlUser, clearFlToken } from "@/lib/flAuth";
@@ -172,6 +173,9 @@ export default function FieldLeadershipPortalLogin() {
             {t("Forgot password?")}
           </button>
         </form>
+        <div className="mt-4">
+          <HelpTipBlock formKey="field-leadership.portal-login" />
+        </div>
         <p className="mt-4 text-[11px] text-slate-500 text-center">
           {t("This portal is for governed operational identity access. The legacy field-leadership document viewer is unchanged.")}
         </p>

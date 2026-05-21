@@ -2,6 +2,89 @@
 
 
 
+## 2026-05-21 — iter317-A FL Portal Coaching Parity · CLOSED
+
+### Scope (operator-mandated · operational coaching convergence)
+Closes the highest-priority gap from the iter317 audit: the iter314 Field Leadership Portal shipped with **zero coaching families** and **zero HelpTipBlock mounts**. Iter317-A converges coaching with the live portal behavior — five bounded families + five UI surfaces + full bilingual parity. NO architecture changes, NO auth redesign, NO permission widening, NO workflow expansion.
+
+### Coaching families added (18 tips · EN + ES parity verified)
+
+| Family | Tips | Scope | Mount surface |
+|---|---|---|---|
+| `field-leadership.portal-login` | 4 (canonical why/mistake/next/escalate) | leadership · hr · admin | `FieldLeadershipPortalLogin.jsx` (below sign-in form) |
+| `field-leadership.portal-dashboard` | 4 (canonical) | leadership only | `FieldLeadershipPortalDashboard.jsx` (top of dashboard, `showCounter`) |
+| `field-leadership.change-password` | 3 (why/mistake/next) | leadership · hr · admin | `FieldLeadershipPortalChangePassword.jsx` (above form) |
+| `field-leadership.user-management` | 4 (canonical · HR/Admin) | hr · admin | `AdminFieldLeadershipUsersPanel.jsx` (top, `showCounter`) + `HrFieldLeadershipUsers.jsx` (top, `showCounter`) |
+| `field-leadership.dispatch-visibility` | 3 (why/next/escalate) | leadership only | `FieldLeadershipPortalDashboard.jsx` (inside dispatch card) |
+
+### Voice anchor (operator-mandated)
+Tone matches the existing iter285/iter286/iter287/iter288/iter316 families — operational, concise, workflow-linked, accountability-oriented, escalation-aware, field-realistic. No "best practices" / "empower" / "journey" / "stakeholders" / "culture of" / LMS / compliance-suite language. Regression test enforces this with a banned-phrase scan.
+
+### Identity-layer disambiguation
+- `field-leadership.portal-login` family explicitly references the legacy `/field-leadership/login` shared-password gate so users at the wrong door get redirected (regression-locked).
+- Legacy `field-leadership.records.*` coaching (write-ups/coaching/attendance workflow) is preserved unchanged — both families share the `field-leadership.*` namespace but never collide (regression-locked).
+- Legacy `/field-leadership/login` shared-password gate behavior verified untouched (HTTP 200 on stub login).
+
+### Backend changes
+- **`server.py` · `_guidance_caller_scopes`**: extended to recognize `X-FL-Token` (iter314 per-user portal) and grant the `leadership` guidance scope. Falls back gracefully on lookup failure. Anonymous callers still receive 0 leadership-scoped tips (RBAC preserved).
+- **`tips.py`**: added 5 family blocks (18 EN tips) with explicit operational scopes and iter317-A block marker comment.
+- **`tips_es.py`**: added 18 ES translations keyed on `(form_key, kind)` tuples.
+
+### Frontend changes
+- **`HelpTip.jsx`**: added `masci.fl.token` → `X-FL-Token` header passthrough so FL Portal pages fetch their RBAC-scoped tips.
+- **5 mount points** wired (login footer, dashboard top, dashboard dispatch-card inline, change-password above form, admin panel top, HR host page top — replacing the previous hardcoded text blurb).
+
+### Verification (all PASSED)
+- ✅ `test_iter317a_fl_portal_coaching_parity.py` (15 tests):
+  - All 5 families present with expected kinds
+  - 18 total iter317-A tips (count exact)
+  - Bilingual parity — every EN tip has non-empty ES title+body
+  - Operational scopes correctly bounded (portal-dashboard + dispatch-visibility = leadership only; user-management = HR+Admin only; login + change-password = all three)
+  - HelpTipBlock mounts present at all 5 frontend surfaces
+  - Voice discipline — banned-phrase scan rejects LMS/corporate drift
+  - Legacy `field-leadership.records` family intact (4 sub-families, 10+ tips preserved)
+  - Portal-login tips reference `/field-leadership/login` for door disambiguation
+  - Audit doc lives at `/app/memory/iter317_coaching_guidance_parity_audit.md`
+  - `iter317-A` marker comment present in tips.py + tips_es.py
+  - All 18 ES anchors present with non-empty title_es+body_es
+- ✅ Live preview verification:
+  - FL user signed in → dashboard shows "4 COACHING TIPS AVAILABLE · TAP TO EXPAND" counter + 4 collapsed portal-dashboard tips above the cards
+  - Dispatch card shows 3 collapsed dispatch-visibility tips above the date range
+  - Expanding "What the portal actually unlocks" reveals the operational body
+  - Anonymous fetch returns 0 leadership-scoped tips (RBAC preserved)
+- ✅ Combined regression: **84/84 green** across iter306 + iter310 + iter312 + iter313 + iter314 + iter316 + iter317-A
+- ✅ ESLint + ruff clean on all touched files
+
+### Files touched (iter317-A)
+- MOD · `/app/backend/server.py` (FL token → leadership scope mapping in `_guidance_caller_scopes`)
+- MOD · `/app/backend/guidance/tips.py` (5 new families, 18 EN tips)
+- MOD · `/app/backend/guidance/tips_es.py` (18 ES translations)
+- MOD · `/app/frontend/src/components/HelpTip.jsx` (FL token passthrough)
+- MOD · `/app/frontend/src/pages/FieldLeadershipPortalLogin.jsx` (coaching mount)
+- MOD · `/app/frontend/src/pages/FieldLeadershipPortalDashboard.jsx` (2 coaching mounts)
+- MOD · `/app/frontend/src/pages/FieldLeadershipPortalChangePassword.jsx` (coaching mount)
+- MOD · `/app/frontend/src/pages/HrFieldLeadershipUsers.jsx` (coaching mount above hardcoded blurb)
+- MOD · `/app/frontend/src/components/AdminFieldLeadershipUsersPanel.jsx` (coaching mount)
+- NEW · `/app/backend/tests/test_iter317a_fl_portal_coaching_parity.py` (15 tests)
+- DOC · `/app/memory/PRD.md` · `/app/memory/iter317_coaching_guidance_parity_audit.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO architecture changes, auth redesign, permission widening, workflow expansion
+- ❌ NO LMS / onboarding academy / curriculum / certifications
+- ❌ NO HR policy manual / compliance suite drift / legal-advice tone
+- ❌ NO new IA layer / Guidance Center redesign
+- ❌ NO change to legacy `/field-leadership/login` shared-password gate or `field-leadership.records.*` coaching family
+- ❌ NO change to pre-existing legacy fixture debt (`test_iter152` × 4, `test_payroll_variance_iter72`, `test_rebrand_iter41`)
+- ❌ Steps iter317-B/C/D/E (FL articles, Driver Qualification articles, Lifecycle/Rehire articles, AddDialog coaching mount) deferred per operator approval flow
+
+### Operational impact
+A new Superintendent issued a per-user FL Portal account today now sees inline operational coaching at every surface — login, dashboard, change-password, dispatch-visibility window — and HR/Admin see the same coaching above the user-management panel. The "wrong door" risk (FL Portal vs legacy `/field-leadership/login` shared-password gate) is now explicitly disambiguated in the portal-login coaching. Bilingual parity is intact for every tip.
+
+### Production impact
+**Preview has it. Production at mascidocs.com still missing until next redeploy.** No data migration. No new permissions. No new endpoints. The new tips appear on the live portal the moment the redeploy lands.
+
+
+
 ## 2026-05-21 — iter316 Rehire Eligibility + Reactivation Closure · CLOSED
 
 ### Scope (operator-mandated · employment lifecycle completion)

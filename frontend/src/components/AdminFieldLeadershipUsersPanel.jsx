@@ -36,6 +36,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
+import { HelpTipBlock } from "@/components/HelpTip";
 import { toast } from "sonner";
 
 const ROLE_OPTIONS = ["Superintendent", "Foreman", "Truck Boss", "Working Supervisor", "Field Supervisor"];
@@ -214,6 +215,8 @@ export default function AdminFlUsersPanel() {
           Refresh
         </Button>
       </div>
+
+      <HelpTipBlock formKey="field-leadership.user-management" showCounter className="mb-4" />
 
       {/* Add user row */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-4 p-3 bg-slate-50 rounded-md border border-slate-200">

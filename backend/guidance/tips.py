@@ -1659,6 +1659,270 @@ _TIPS: list[dict] = [
             "foreman's account OF the truth.",
     },
 
+
+    # ═════════════════════════════════════════════════════════════════
+    # iter317-A · Field Leadership Portal coaching — operational
+    # convergence with the per-user identity portal shipped in iter314.
+    # This is DISTINCT from `field-leadership.records` above (that
+    # family coaches the HR write-ups/coaching/attendance workflow).
+    # Voice anchor: governed per-user identity, not feature
+    # development; operational accountability, not corporate policy.
+    # Bilingual parity required — every tip below has its ES
+    # counterpart in tips_es.py.
+    # ═════════════════════════════════════════════════════════════════
+
+    # ── field-leadership.portal-login (canonical 4) ──────────────────
+    {
+        "form_key": "field-leadership.portal-login",
+        "kind": "why",
+        "scopes": ["leadership", "hr", "admin"],
+        "title": "This is the per-user portal, not the document gate",
+        "body":
+            "There are two Field Leadership doors and they do "
+            "different jobs. THIS one — Portal Login — uses your "
+            "individual company email and password and unlocks "
+            "operational workflows tied to your name. The other "
+            "door, the shared-password gate at /field-leadership/"
+            "login, opens read-only documents for the crew. Don't "
+            "type the shared crew password into this form; it will "
+            "fail and slow you down.",
+    },
+    {
+        "form_key": "field-leadership.portal-login",
+        "kind": "mistake",
+        "scopes": ["leadership", "hr", "admin"],
+        "title": "No shared accounts — yours only",
+        "body":
+            "Sign in with the company email HR or Admin issued to "
+            "you. Not a coworker's. Not a crew-wide login. Every "
+            "action in here carries your name in the audit trail, "
+            "so logging in as someone else makes their record "
+            "wrong. If you don't have credentials yet, that's an "
+            "HR/Admin task, not a workaround.",
+    },
+    {
+        "form_key": "field-leadership.portal-login",
+        "kind": "next",
+        "scopes": ["leadership", "hr", "admin"],
+        "title": "Forgot the password — what actually happens",
+        "body":
+            "Use the forgot-password link or ask HR/Admin for a "
+            "reset. The reset issues a temporary password and the "
+            "next sign-in forces you to change it before you can "
+            "do anything else. Old passwords stop working the "
+            "instant a reset is issued — that's by design.",
+    },
+    {
+        "form_key": "field-leadership.portal-login",
+        "kind": "escalate",
+        "scopes": ["leadership", "hr", "admin"],
+        "title": "Locked out / wrong portal / wrong account",
+        "body":
+            "If you're locked out, call HR or Admin — they reset "
+            "passwords here; nobody else does. If the page keeps "
+            "rejecting your credentials and you're sure you're "
+            "typing them right, you may be at the wrong door — "
+            "the shared-password gate at /field-leadership/login "
+            "looks similar but accepts a different kind of "
+            "password. Get to the right door before you escalate.",
+    },
+
+    # ── field-leadership.portal-dashboard (canonical 4) ──────────────
+    {
+        "form_key": "field-leadership.portal-dashboard",
+        "kind": "why",
+        "scopes": ["leadership"],
+        "title": "What the portal actually unlocks",
+        "body":
+            "The dashboard is your operational landing surface — "
+            "Daily Reports, Safety Meetings, JHAs, Pre-Ops/DVIRs, "
+            "fleet visibility, dispatch visibility, incident "
+            "reporting, driver qualification (read-only). The "
+            "scope is intentional: enough to run the day from a "
+            "phone, nothing wider. Treat the dashboard as your "
+            "shift desk, not a dashboard of dashboards.",
+    },
+    {
+        "form_key": "field-leadership.portal-dashboard",
+        "kind": "mistake",
+        "scopes": ["leadership"],
+        "title": "Field Leadership access ≠ admin authority",
+        "body":
+            "Signing into this portal does not give you HR, "
+            "payroll, system-settings, or admin-governance "
+            "access — and that's not an oversight. Those "
+            "surfaces stay with the people accountable for them. "
+            "If you find yourself needing something the dashboard "
+            "doesn't show, the answer is to ask, not to assume "
+            "the portal is missing a feature.",
+    },
+    {
+        "form_key": "field-leadership.portal-dashboard",
+        "kind": "next",
+        "scopes": ["leadership"],
+        "title": "Every action carries your name",
+        "body":
+            "Daily Reports, write-ups, equipment sign-outs — "
+            "everything you submit from this portal is signed by "
+            "you in the audit trail. That's the whole point of "
+            "the per-user identity. Submit cleanly, the same way "
+            "you'd want a peer to submit when their record will "
+            "land on your desk.",
+    },
+    {
+        "form_key": "field-leadership.portal-dashboard",
+        "kind": "escalate",
+        "scopes": ["leadership"],
+        "title": "When a workflow seems missing",
+        "body":
+            "If something operationally critical for your shift "
+            "isn't here, that's an HR/Admin conversation, not a "
+            "workaround conversation. Don't sign into someone "
+            "else's portal to do it, and don't paper over it with "
+            "a shared crew login. The fix is a real account or a "
+            "scope change made through the people who own that "
+            "decision.",
+    },
+
+    # ── field-leadership.change-password (why/mistake/next) ──────────
+    {
+        "form_key": "field-leadership.change-password",
+        "kind": "why",
+        "scopes": ["leadership", "hr", "admin"],
+        "title": "Temp passwords are meant to be replaced",
+        "body":
+            "When HR or Admin issues you an account they hand you "
+            "a temporary password and the portal forces you to "
+            "change it the first time you sign in. That's the "
+            "point — the temp is the handoff token; your "
+            "password is what carries your identity from there "
+            "on. Don't leave the temp in place 'just for today.'",
+    },
+    {
+        "form_key": "field-leadership.change-password",
+        "kind": "mistake",
+        "scopes": ["leadership", "hr", "admin"],
+        "title": "Your password is yours — not the crew's",
+        "body":
+            "Don't write it on a clipboard, don't text it to a "
+            "foreman, don't share it 'just so they can pull a "
+            "report.' Every action signed under your name is "
+            "yours operationally — including the ones you didn't "
+            "actually do because someone borrowed your login.",
+    },
+    {
+        "form_key": "field-leadership.change-password",
+        "kind": "next",
+        "scopes": ["leadership", "hr", "admin"],
+        "title": "What changing it actually does",
+        "body":
+            "Setting a new password invalidates the prior "
+            "password and the prior session token immediately. "
+            "You'll be signed back in with a fresh session. If "
+            "you ever suspect someone else has your password, "
+            "change it here — that one action shuts the door.",
+    },
+
+    # ── field-leadership.user-management (canonical 4 · HR/Admin) ────
+    {
+        "form_key": "field-leadership.user-management",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why this panel exists separately",
+        "body":
+            "This is account management for Field Leadership "
+            "Portal logins — issuing, resetting, deactivating "
+            "per-user accounts. It is NOT the place to write "
+            "performance notes; that's Field Leadership Records. "
+            "Keeping the two panels separate is what keeps "
+            "identity decisions clean from performance decisions.",
+    },
+    {
+        "form_key": "field-leadership.user-management",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Deactivate, don't delete",
+        "body":
+            "When someone leaves Field Leadership — termination, "
+            "transfer out, role change — deactivate the account. "
+            "Don't delete it. Deactivation closes the door "
+            "immediately and keeps the audit trail intact; "
+            "deletion (where supported) breaks every record that "
+            "references the user. The audit trail is the proof "
+            "that what happened happened.",
+    },
+    {
+        "form_key": "field-leadership.user-management",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "Resetting a password rotates everything",
+        "body":
+            "When you reset a Field Leader's password, the old "
+            "password dies and any open session ends. The user "
+            "receives a temporary password and is forced to "
+            "change it on next sign-in. Communicate the temp "
+            "through the channel HR uses for credentials — not "
+            "the same channel that delivers project info.",
+    },
+    {
+        "form_key": "field-leadership.user-management",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "Field Leadership access is operationally sensitive",
+        "body":
+            "Issue accounts to people who actually need them — "
+            "Superintendents, Foremen, Truck Bosses, Working "
+            "Supervisors, Field Supervisors. Not 'just in case' "
+            "accounts, not training accounts that never get "
+            "cleaned up. If you're not sure whether someone "
+            "should have access, default to no and talk to the "
+            "supervisor who would benefit from it.",
+    },
+
+    # ── field-leadership.dispatch-visibility (why/next/escalate) ─────
+    {
+        "form_key": "field-leadership.dispatch-visibility",
+        "kind": "why",
+        "scopes": ["leadership"],
+        "title": "Today and tomorrow only — by design",
+        "body":
+            "Dispatch visibility inside the FL Portal is scoped "
+            "to today and tomorrow only, read-only. That's not "
+            "an artificial limit — it's matched to what Field "
+            "Leadership actually needs to run a shift. Anything "
+            "wider than the next 24-48 hours belongs to PM or "
+            "Dispatch, who can see the whole week and own the "
+            "planning conversation.",
+    },
+    {
+        "form_key": "field-leadership.dispatch-visibility",
+        "kind": "next",
+        "scopes": ["leadership"],
+        "title": "Operational coordination — not approvals",
+        "body":
+            "Use the dispatch view to know what's coming and "
+            "where; that's enough to coordinate your crew, your "
+            "equipment, and your day. You can't approve, change, "
+            "or move a dispatch from here — and that's correct. "
+            "Approvals carry their own accountability and stay "
+            "with Dispatch.",
+    },
+    {
+        "form_key": "field-leadership.dispatch-visibility",
+        "kind": "escalate",
+        "scopes": ["leadership"],
+        "title": "When you need more than the next two days",
+        "body":
+            "Crew planning for next week, equipment swaps that "
+            "have to land Thursday, route changes that affect "
+            "next Monday — call PM or Dispatch. Don't try to "
+            "infer a week's plan from a two-day window; the "
+            "window is intentional, the conversation is the way "
+            "around it. That's not friction, it's how planning "
+            "stays accurate.",
+    },
+
+
     # ─────────────────────────────────────────────────────────────────
     # iter218 · crew_eval — migrated from legacy WhyItMattersPanel to
     # the modern HelpTip engine. Voice anchor: a crew evaluation is the

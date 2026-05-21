@@ -171,6 +171,9 @@ async function _fetchTips(formKey) {
   const shopTok = _readToken("masci.shop.token");             if (shopTok) headers["X-Shop-Token"] = shopTok;
   const dispatchTok = _readToken("masci.dispatch.token");     if (dispatchTok) headers["X-Dispatch-Token"] = dispatchTok;
   const leadershipTok = _readToken("masci.leadership.token"); if (leadershipTok) headers["X-Leadership-Token"] = leadershipTok;
+  // iter317-A · Field Leadership Portal token (per-user · iter314) —
+  // distinct from the legacy shared-password leadership token above.
+  const flTok = _readToken("masci.fl.token");                 if (flTok) headers["X-FL-Token"] = flTok;
   const r = await fetch(url, { headers });
   if (!r.ok) return [];
   const j = await r.json();

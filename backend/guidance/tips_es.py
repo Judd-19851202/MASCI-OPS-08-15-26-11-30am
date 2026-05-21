@@ -1200,6 +1200,226 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "como el RELATO del capataz de la verdad.",
     },
 
+
+    # ═════════════════════════════════════════════════════════════════
+    # iter317-A · Field Leadership Portal coaching · ES parity.
+    # Bilingual mirror of the EN families introduced in tips.py:
+    #   field-leadership.portal-login (4 canonical)
+    #   field-leadership.portal-dashboard (4 canonical)
+    #   field-leadership.change-password (why/mistake/next)
+    #   field-leadership.user-management (4 canonical · HR/Admin)
+    #   field-leadership.dispatch-visibility (why/next/escalate)
+    # ═════════════════════════════════════════════════════════════════
+
+    # ── field-leadership.portal-login ────────────────────────────────
+    ("field-leadership.portal-login", "why"): {
+        "title_es": "Este es el portal por usuario, no la puerta de documentos",
+        "body_es":
+            "Hay dos puertas de Field Leadership y hacen trabajos "
+            "diferentes. ESTA — Portal Login — usa su correo y "
+            "contraseña individual de la empresa y desbloquea "
+            "flujos operacionales atados a su nombre. La otra "
+            "puerta, la de contraseña compartida en /field-"
+            "leadership/login, abre documentos de solo lectura "
+            "para la cuadrilla. No escriba la contraseña "
+            "compartida en este formulario; va a fallar y le va a "
+            "hacer perder tiempo.",
+    },
+    ("field-leadership.portal-login", "mistake"): {
+        "title_es": "Nada de cuentas compartidas — solo la suya",
+        "body_es":
+            "Inicie sesión con el correo de la empresa que RH o "
+            "Admin le asignó. No el de un compañero. No un inicio "
+            "de cuadrilla. Cada acción aquí lleva su nombre en el "
+            "rastro de auditoría, así que entrar como otra "
+            "persona hace que el registro de esa persona quede "
+            "mal. Si todavía no tiene credenciales, eso es una "
+            "tarea de RH/Admin, no un atajo.",
+    },
+    ("field-leadership.portal-login", "next"): {
+        "title_es": "Olvidó la contraseña — qué pasa realmente",
+        "body_es":
+            "Use el enlace de olvidé-mi-contraseña o pídale a "
+            "RH/Admin que la reinicie. El reinicio le da una "
+            "contraseña temporal y el siguiente inicio le "
+            "obliga a cambiarla antes de hacer cualquier otra "
+            "cosa. Las contraseñas viejas dejan de funcionar al "
+            "momento del reinicio — eso es por diseño.",
+    },
+    ("field-leadership.portal-login", "escalate"): {
+        "title_es": "Bloqueado / portal equivocado / cuenta equivocada",
+        "body_es":
+            "Si está bloqueado, llame a RH o a Admin — ellos "
+            "reinician contraseñas aquí; nadie más. Si la página "
+            "sigue rechazando sus credenciales y está seguro de "
+            "escribirlas bien, tal vez está en la puerta "
+            "equivocada — la de contraseña compartida en "
+            "/field-leadership/login se ve parecida pero acepta "
+            "otro tipo de contraseña. Llegue a la puerta correcta "
+            "antes de escalar.",
+    },
+
+    # ── field-leadership.portal-dashboard ────────────────────────────
+    ("field-leadership.portal-dashboard", "why"): {
+        "title_es": "Qué desbloquea el portal en realidad",
+        "body_es":
+            "El tablero es su superficie operacional de aterrizaje "
+            "— Daily Reports, Juntas de Seguridad, JHAs, Pre-Ops/"
+            "DVIRs, visibilidad de flota, visibilidad de dispatch, "
+            "reporte de incidentes, calificación de chofer (solo "
+            "lectura). El alcance es a propósito: suficiente para "
+            "correr el día desde un teléfono, nada más amplio. "
+            "Trate el tablero como su escritorio de turno, no como "
+            "un tablero de tableros.",
+    },
+    ("field-leadership.portal-dashboard", "mistake"): {
+        "title_es": "Acceso a Field Leadership ≠ autoridad de Admin",
+        "body_es":
+            "Entrar a este portal no le da acceso a RH, nómina, "
+            "ajustes de sistema o gobernanza Admin — y eso no es "
+            "un descuido. Esas superficies se quedan con las "
+            "personas responsables de ellas. Si se encuentra "
+            "necesitando algo que el tablero no muestra, la "
+            "respuesta es preguntar, no asumir que al portal le "
+            "falta una función.",
+    },
+    ("field-leadership.portal-dashboard", "next"): {
+        "title_es": "Cada acción lleva su nombre",
+        "body_es":
+            "Daily Reports, llamadas de atención, salidas de "
+            "equipo — todo lo que envía desde este portal va "
+            "firmado por usted en el rastro de auditoría. Ese es "
+            "el punto entero de la identidad por usuario. Envíe "
+            "limpio, igual que querría que un compañero envíe "
+            "cuando su registro vaya a llegar a su escritorio.",
+    },
+    ("field-leadership.portal-dashboard", "escalate"): {
+        "title_es": "Cuándo un flujo parece estar faltando",
+        "body_es":
+            "Si algo operacionalmente crítico para su turno no "
+            "está aquí, esa es una conversación de RH/Admin, no "
+            "una conversación de atajo. No entre al portal de "
+            "otra persona para hacerlo, y no lo tape con un "
+            "inicio compartido de cuadrilla. La solución es una "
+            "cuenta de verdad o un cambio de alcance hecho por "
+            "las personas que son dueñas de esa decisión.",
+    },
+
+    # ── field-leadership.change-password ─────────────────────────────
+    ("field-leadership.change-password", "why"): {
+        "title_es": "Las contraseñas temporales son para reemplazarse",
+        "body_es":
+            "Cuando RH o Admin le asigna una cuenta, le entrega "
+            "una contraseña temporal y el portal le obliga a "
+            "cambiarla la primera vez que entra. Ese es el punto "
+            "— la temporal es el token de entrega; su contraseña "
+            "es lo que carga su identidad desde ahí en adelante. "
+            "No deje la temporal puesta 'nada más por hoy.'",
+    },
+    ("field-leadership.change-password", "mistake"): {
+        "title_es": "Su contraseña es suya — no de la cuadrilla",
+        "body_es":
+            "No la escriba en un portapapeles, no se la mande "
+            "por mensaje a un capataz, no la comparta 'nada más "
+            "para que jale un reporte.' Cada acción firmada con "
+            "su nombre es suya operacionalmente — incluyendo las "
+            "que no hizo porque alguien le pidió prestado su "
+            "inicio de sesión.",
+    },
+    ("field-leadership.change-password", "next"): {
+        "title_es": "Qué hace en realidad cambiarla",
+        "body_es":
+            "Poner una contraseña nueva invalida la anterior y "
+            "el token de sesión anterior de inmediato. Lo "
+            "vuelven a meter con una sesión nueva. Si alguna vez "
+            "sospecha que alguien tiene su contraseña, "
+            "cámbiela aquí — esa sola acción cierra la puerta.",
+    },
+
+    # ── field-leadership.user-management (HR / Admin) ────────────────
+    ("field-leadership.user-management", "why"): {
+        "title_es": "Por qué este panel existe aparte",
+        "body_es":
+            "Este es la gestión de cuentas para inicios del "
+            "Portal de Field Leadership — emitir, reiniciar, "
+            "desactivar cuentas por usuario. NO es el lugar para "
+            "anotar notas de desempeño; eso va en Field "
+            "Leadership Records. Mantener los dos paneles "
+            "separados es lo que mantiene las decisiones de "
+            "identidad limpias de las decisiones de desempeño.",
+    },
+    ("field-leadership.user-management", "mistake"): {
+        "title_es": "Desactivar, no borrar",
+        "body_es":
+            "Cuando alguien sale de Field Leadership — "
+            "terminación, transferencia, cambio de rol — "
+            "desactive la cuenta. No la borre. La desactivación "
+            "cierra la puerta de inmediato y deja intacto el "
+            "rastro de auditoría; el borrado (donde aplica) "
+            "rompe cada registro que referencia al usuario. El "
+            "rastro de auditoría es la prueba de que lo que "
+            "pasó pasó.",
+    },
+    ("field-leadership.user-management", "next"): {
+        "title_es": "Reiniciar una contraseña rota todo",
+        "body_es":
+            "Cuando reinicia la contraseña de un Field Leader, "
+            "la contraseña vieja muere y cualquier sesión "
+            "abierta termina. El usuario recibe una contraseña "
+            "temporal y queda obligado a cambiarla en el "
+            "próximo inicio. Comunique la temporal por el canal "
+            "que RH usa para credenciales — no el mismo canal "
+            "donde manda info de proyecto.",
+    },
+    ("field-leadership.user-management", "escalate"): {
+        "title_es": "El acceso de Field Leadership es operacionalmente sensible",
+        "body_es":
+            "Emita cuentas a personas que de verdad las "
+            "necesitan — Superintendents, Foremen, Truck Bosses, "
+            "Working Supervisors, Field Supervisors. No cuentas "
+            "'por si acaso', no cuentas de entrenamiento que "
+            "nunca se limpian. Si no está seguro de si alguien "
+            "debería tener acceso, por defecto que no y hable "
+            "con el supervisor que se beneficiaría.",
+    },
+
+    # ── field-leadership.dispatch-visibility ─────────────────────────
+    ("field-leadership.dispatch-visibility", "why"): {
+        "title_es": "Hoy y mañana solamente — por diseño",
+        "body_es":
+            "La visibilidad de Dispatch dentro del Portal FL "
+            "está delimitada a hoy y mañana solamente, solo "
+            "lectura. Eso no es un límite artificial — coincide "
+            "con lo que Field Leadership necesita realmente para "
+            "correr un turno. Cualquier cosa más amplia que las "
+            "siguientes 24-48 horas le pertenece a PM o a "
+            "Dispatch, que pueden ver la semana entera y son "
+            "dueños de la conversación de planeación.",
+    },
+    ("field-leadership.dispatch-visibility", "next"): {
+        "title_es": "Coordinación operacional — no aprobaciones",
+        "body_es":
+            "Use la vista de dispatch para saber qué viene y "
+            "dónde; con eso alcanza para coordinar su cuadrilla, "
+            "su equipo y su día. No puede aprobar, cambiar ni "
+            "mover un dispatch desde aquí — y eso es correcto. "
+            "Las aprobaciones cargan su propia responsabilidad y "
+            "se quedan con Dispatch.",
+    },
+    ("field-leadership.dispatch-visibility", "escalate"): {
+        "title_es": "Cuándo necesita más que los próximos dos días",
+        "body_es":
+            "Planeación de cuadrilla para la próxima semana, "
+            "cambios de equipo que tienen que caer el jueves, "
+            "cambios de ruta que afectan el próximo lunes — "
+            "llame a PM o a Dispatch. No trate de inferir el "
+            "plan de una semana desde una ventana de dos días; "
+            "la ventana es a propósito, la conversación es la "
+            "manera de moverse alrededor. Eso no es fricción, "
+            "así es como la planeación se queda exacta.",
+    },
+
+
     # ── iter218 · crew_eval (migrated from legacy WhyItMattersPanel) ─
     ("crew_eval", "why"): {
         "title_es": "Por qué importa esta evaluación",
