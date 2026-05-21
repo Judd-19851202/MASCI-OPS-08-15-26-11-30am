@@ -11,13 +11,19 @@ governance, and platform configuration.
 Endpoints (under /api):
 
 PUBLIC (with X-FL-Token):
-  POST   /field-leadership/login                   — email+password → token
-  POST   /field-leadership/change-password         — first login or admin reset
-  POST   /field-leadership/forgot-password         — issue reset email
-  POST   /field-leadership/reset/{token}           — consume reset token
-  GET    /field-leadership/me                      — current FL user
-  GET    /field-leadership/dispatch-today          — today/tomorrow only · read-only
-  GET    /field-leadership/driver-qualification    — proxy to dashboard · read-only
+  POST   /field-leadership/portal/login                 — email+password → token
+  POST   /field-leadership/portal/change-password       — first login or admin reset
+  POST   /field-leadership/portal/forgot-password       — issue reset email
+  POST   /field-leadership/portal/reset/{token}         — consume reset token
+  GET    /field-leadership/portal/me                    — current FL user
+  GET    /field-leadership/portal/dispatch-today        — today/tomorrow only · read-only
+  GET    /field-leadership/portal/driver-qualification  — proxy to dashboard · read-only
+
+NOTE · iter314 path collision resolution: the legacy
+`/api/field-leadership/login` shared-password document-viewer gate
+remains intact under `routes/field_leadership.py`. This new portal
+lives under `/field-leadership/portal/*` to keep the two systems
+running side-by-side without destabilizing the legacy one.
 
 ADMIN/HR (X-Admin-Token OR X-HR-Token):
   GET    /admin/field-leadership-users             — roster
@@ -150,7 +156,7 @@ def build_field_leadership_portal_router(
     # ─────────────────────────────────────────────────────────────────
     # AUTH endpoints (mirror HR exactly)
     # ─────────────────────────────────────────────────────────────────
-    @router.post("/field-leadership/login")
+    @router.post("/field-leadership/portal/login")
     async def fl_login(payload: FLLoginPayload, request: Request):
         email = (payload.email or "").strip().lower()
         if not email or not payload.password:
@@ -179,7 +185,7 @@ def build_field_leadership_portal_router(
             "must_change_password": bool(user.get("must_change_password")),
         }
 
-    @router.post("/field-leadership/change-password")
+    @router.post("/field-leadership/portal/change-password")
     async def fl_change_password(
         payload: FLChangePasswordPayload, actor=Depends(require_fl_user)
     ):
@@ -195,7 +201,7 @@ def build_field_leadership_portal_router(
         new_token = make_fl_user_token(updated["id"], updated["password_hash"])
         return {"ok": True, "token": new_token, "user": public_fl_user_view(updated)}
 
-    @router.post("/field-leadership/forgot-password")
+    @router.post("/field-leadership/portal/forgot-password")
     async def fl_forgot_password(payload: FLForgotPasswordPayload):
         email = (payload.email or "").strip().lower()
         if email:
@@ -205,7 +211,7 @@ def build_field_leadership_portal_router(
                 base = os.environ.get(
                     "PUBLIC_APP_URL", "https://mascidocs.com"
                 ).rstrip("/")
-                reset_url = f"{base}/field-leadership/reset/{token}"
+                reset_url = f"{base}/field-leadership/portal/reset/{token}"
                 if send_email_fn:
                     try:
                         body_html = (
@@ -240,7 +246,7 @@ def build_field_leadership_portal_router(
                     logger.info(f"[FL reset] {user['email']} → {reset_url}")
         return {"ok": True}
 
-    @router.post("/field-leadership/reset/{token}")
+    @router.post("/field-leadership/portal/reset/{token}")
     async def fl_consume_reset(token: str, payload: FLResetPasswordPayload):
         user = await consume_fl_reset_token(db, token)
         if not user:
@@ -251,14 +257,14 @@ def build_field_leadership_portal_router(
         new_token = make_fl_user_token(updated["id"], updated["password_hash"])
         return {"ok": True, "token": new_token, "user": public_fl_user_view(updated)}
 
-    @router.get("/field-leadership/me")
+    @router.get("/field-leadership/portal/me")
     async def fl_me(actor=Depends(require_fl_user)):
         return {"ok": True, "user": public_fl_user_view(actor)}
 
     # ─────────────────────────────────────────────────────────────────
     # OPERATIONAL VISIBILITY (bounded, read-only, FL-scoped)
     # ─────────────────────────────────────────────────────────────────
-    @router.get("/field-leadership/dispatch-today")
+    @router.get("/field-leadership/portal/dispatch-today")
     async def fl_dispatch_today(actor=Depends(require_fl_user)):
         """Read-only dispatch visibility — TODAY and TOMORROW only,
         per operator iter314 bounded mandate. Field Leadership cannot
@@ -280,7 +286,7 @@ def build_field_leadership_portal_router(
             "window": {"today": today.isoformat(), "tomorrow": tomorrow.isoformat()},
         }
 
-    @router.get("/field-leadership/driver-qualification")
+    @router.get("/field-leadership/portal/driver-qualification")
     async def fl_driver_qualification(
         actor=Depends(require_fl_user),
         cdl_holder: Optional[bool] = Query(default=None),
@@ -316,7 +322,7 @@ def build_field_leadership_portal_router(
             logger.info(f"[FL welcome] {user_email} → {temp_password}")
             return
         base = os.environ.get("PUBLIC_APP_URL", "https://mascidocs.com").rstrip("/")
-        login_url = f"{base}/field-leadership/login"
+        login_url = f"{base}/field-leadership/portal/login"
         body_html = (
             f"<p style='margin:0 0 12px'>Hi {name},</p>"
             f"<p style='margin:0 0 12px'>Your MASCI Field Leadership Portal "

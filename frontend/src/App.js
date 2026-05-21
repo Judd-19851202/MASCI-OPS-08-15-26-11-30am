@@ -89,6 +89,10 @@ import AdminMasterHistory from "@/pages/admin/AdminMasterHistory";
 import AdminAnalytics from "@/pages/admin/AdminAnalytics";
 import HrHub from "@/pages/HrHub";
 import HrChangePassword from "@/pages/HrChangePassword";
+import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
+import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
+import FieldLeadershipPortalChangePassword from "@/pages/FieldLeadershipPortalChangePassword";
+import { RequireFl } from "@/components/RequireFl";
 import HrResetPassword from "@/pages/HrResetPassword";
 import HrForgotPassword from "@/pages/HrForgotPassword";
 import HrTimeVerification from "@/pages/HrTimeVerification";
@@ -189,6 +193,7 @@ const AP = (el) => <RequireAdminOrPm>{el}</RequireAdminOrPm>;
 const P = (el) => <RequirePm>{el}</RequirePm>;
 const S = (el) => <RequireShop>{el}</RequireShop>;
 const H = (el) => <RequireHr>{el}</RequireHr>;
+const FL = (el) => <RequireFl>{el}</RequireFl>;
 const SF = (el) => <RequireSafety>{el}</RequireSafety>;
 const DP = (el) => <RequireDispatch>{el}</RequireDispatch>;
 const D = (el) => <RequireDev>{el}</RequireDev>;
@@ -471,6 +476,16 @@ function App() {
             <Route path="/hr/training-records" element={H(<HrTrainingRecords />)} />
             <Route path="/hr/driver-qualification" element={H(<HrDriverQualificationDashboard />)} />
             <Route path="/time-off/public/:token" element={<PublicTimeOff />} />
+
+            {/* ============================================================
+                Field Leadership Portal (iter314) · per-user governed identity.
+                Distinct from /field-leadership/login which is the LEGACY
+                shared-password document gate (preserved untouched).
+                ============================================================ */}
+            <Route path="/field-leadership/portal/login" element={<FieldLeadershipPortalLogin />} />
+            <Route path="/field-leadership/portal/change-password" element={FL(<FieldLeadershipPortalChangePassword />)} />
+            <Route path="/field-leadership/portal/dashboard" element={FL(<FieldLeadershipPortalDashboard />)} />
+            <Route path="/field-leadership/portal" element={FL(<FieldLeadershipPortalDashboard />)} />
 
             {/* ============================================================
                 Safety Portal — isolated cyan-700 scope for Safety

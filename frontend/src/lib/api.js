@@ -7,6 +7,7 @@ import { getJwt, clearJwt } from "@/lib/jwtAuth";
 import { getSafetyFormsToken, clearSafetyFormsToken } from "@/lib/safetyFormsAuth";
 import { getLeadershipToken, clearLeadershipToken } from "@/lib/leadershipAuth";
 import { getHrToken, clearHrToken } from "@/lib/hrAuth";
+import { getFlToken, clearFlToken } from "@/lib/flAuth";
 import { getSafetyToken, clearSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken, clearDispatchToken } from "@/lib/dispatchAuth";
 
@@ -55,6 +56,10 @@ api.interceptors.request.use((config) => {
   if (hrTok) {
     config.headers["X-HR-Token"] = hrTok;
   }
+  const flTok = getFlToken();
+  if (flTok) {
+    config.headers["X-FL-Token"] = flTok;
+  }
   const safetyTok = getSafetyToken();
   if (safetyTok) {
     config.headers["X-Safety-Token"] = safetyTok;
@@ -90,6 +95,7 @@ api.interceptors.response.use(
       if (cfg.headers?.["X-HR-Token"]) clearHrToken();
       if (cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
       if (cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();
+      if (cfg.headers?.["X-FL-Token"]) clearFlToken();
       if (cfg.headers?.Authorization) clearJwt();
     }
     return Promise.reject(err);
