@@ -14979,6 +14979,51 @@ the entire MASCI HUB / ForgedOps platform ecosystem."
 Admin migration tool + read-side compat shim. 14/14 signatures
 moved to R2. Documented for posterity.
 
+## 2026-05-21 — Iter322: Safety Portal Read-Gate RBAC Closure
+
+**Operator bug**: signed-in Safety users were getting
+`"Admin or PM login required"` toast errors when opening Incidents,
+Audits & Inspections, Meetings, and JHAs from `/safety-portal`.
+
+**Root cause**: `routes/safety.py` was gating 8 read endpoints
+(4 list + 4 detail) with `require_admin`, which only accepts
+Admin/PM tokens. Safety reviewers' `X-Safety-Token` was rejected
+at the dep layer before any handler logic ran.
+
+**Fix** (bounded — RBAC NOT weakened):
+- New factory `make_require_safety_admin_or_pm()` in
+  `routes/safety_portal/_deps.py`. Accepts Safety + Admin + PM,
+  returns `401 "Safety, Admin, or PM login required"` on miss.
+- `compute_pm_scope()` updated to treat `_actor_kind="safety_user"`
+  as cross-job (mirrors `shop_user` pattern).
+- `register_safety_routes()` accepts a new optional
+  `require_safety_admin_or_pm=` kwarg and uses it on the 8 read
+  endpoints. DELETE endpoints stay on `require_admin`.
+- New frontend guard `RequireAdminPmOrSafety` wraps
+  `/admin/inspections/:id`, `/admin/meetings/:id`,
+  `/admin/incidents/:id` (detail views the Safety Portal links
+  into). Other `/admin/*` routes stay on `RequireAdminOrPm`.
+- Pytest `test_iter322_safety_read_gate.py` — 18 parametrized
+  assertions; 100% pass. Covers Safety/Admin 200, anon 401,
+  Safety DELETE 401 (RBAC preservation).
+- Verified end-to-end via Playwright operator flow (sign-in →
+  /safety-portal → all 4 tiles → drill into detail → return).
+
+**Job Site Safety Inspection visibility audit (resolved)**:
+- Storage: `db.inspections` (single Mongo collection).
+- API: `POST /api/inspections` (Safety/Admin only · iter236),
+  `GET /api/inspections` and `/api/inspections/{id}` (Safety +
+  Admin + PM read · iter322).
+- Submission entry: `/safety/inspections/new` (authenticated).
+- Review surface: `/safety-portal/audits` — lists every inspection
+  (61 in preview DB), with `Open →` row link, summary cards,
+  filters, and new "NEW SITE INSPECTION" CTA in the header
+  (iter322-C).
+
+**Test credentials note**: seed Safety password `SafetyTest2026!`
+is confirmed stale in preview; admin reset bootstrap is the
+canonical path (documented in `/app/memory/test_credentials.md`).
+
 ## 2026-05-13 — Iter74: ForgedOps™ Standardization
 
 UI + PDF footers + posters flipped to ForgedOps™. LLC retained
