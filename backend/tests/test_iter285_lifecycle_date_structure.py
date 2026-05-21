@@ -45,14 +45,18 @@ def test_separation_type_enum_is_exactly_three_values():
 
 
 def test_lifecycle_date_fields_enumerate_the_five_required_fields():
-    """Audit §2.1 listed exactly 5 missing date fields. iter285 adds
-    all 5 (plus separation_type · which is an enum, not a date)."""
+    """Audit §2.1 listed exactly 5 missing date fields. iter285 added
+    all 5; iter316 added the sixth (rehire_date) as part of the
+    operator-mandated rehire eligibility + reactivation closure."""
     assert set(_LIFECYCLE_DATE_FIELDS) == {
         "original_hire_date",
         "last_day_worked",
         "termination_date",
         "leave_start_date",
         "expected_return_date",
+        # iter316 · rehire-cycle date — protected by validators but
+        # NOT write-once (unlike original_hire_date).
+        "rehire_date",
     }
 
 

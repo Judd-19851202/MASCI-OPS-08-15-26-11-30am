@@ -228,7 +228,11 @@ def test_dashboard_does_not_introduce_new_employee_fields():
         "cdl_expiration_date", "medical_card_expiration_date",
     }
     assert iter287 == {"cdl_endorsements", "cdl_restrictions"}
+    # iter316 · added rehire_date to the lifecycle-date-fields set.
+    # The dashboard iteration STILL does not introduce employee
+    # fields — rehire_date came from the operator-mandated rehire
+    # eligibility closure, not from any dashboard work.
     assert iter285 == {
         "original_hire_date", "last_day_worked", "termination_date",
-        "leave_start_date", "expected_return_date",
+        "leave_start_date", "expected_return_date", "rehire_date",
     }

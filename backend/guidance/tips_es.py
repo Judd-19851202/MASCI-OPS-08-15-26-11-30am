@@ -2120,6 +2120,67 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "decisión correcta la primera vez.",
     },
 
+    # ── iter316 · employee-lifecycle.rehire ──────────────────────────
+    ("employee-lifecycle.rehire", "why"): {
+        "title_es": "Por qué la elegibilidad de recontratación es estructurada, no notas",
+        "body_es":
+            "Dieciocho meses después, un capataz llama y pregunta "
+            "'¿sigue ella en la lista de no-recontratar?' Si esa "
+            "respuesta vive en la memoria de alguien o en un "
+            "párrafo que nadie puede filtrar, la respuesta se "
+            "convierte en una adivinanza. Tres valores explícitos "
+            "— elegible, no elegible, revisión requerida — hacen "
+            "que sea la misma respuesta cada vez, sin importar "
+            "quién pregunte. El valor por defecto es REVISIÓN "
+            "REQUERIDA a propósito: el sistema no debe asumir "
+            "silenciosamente 'elegible' cuando RH no tomó la "
+            "decisión.",
+    },
+    ("employee-lifecycle.rehire", "mistake"): {
+        "title_es": "No elegible vs revisión requerida — no son lo mismo",
+        "body_es":
+            "NO ELEGIBLE significa que RH ya tomó la decisión "
+            "final: esta persona no debe volver. Anote una razón "
+            "corta (patrón de asistencia, violación de política, "
+            "abandono de trabajo) para que RH del futuro sepa el "
+            "porqué. REVISIÓN REQUERIDA significa que la decisión "
+            "todavía no se tomó — tal vez las circunstancias "
+            "fueron confusas, tal vez el supervisor necesita "
+            "opinar. No use 'no elegible' como atajo para 'no me "
+            "dio tiempo de pensarlo'; eso le cierra la puerta a "
+            "la persona en oportunidades futuras que tal vez se "
+            "ganó.",
+    },
+    ("employee-lifecycle.rehire", "next"): {
+        "title_es": "Reactivar en vez de volver a agregar",
+        "body_es":
+            "Si un ex-empleado regresa, BÚSQUELO en la lista de "
+            "inactivos/terminados y reactívelo. No cree un "
+            "registro nuevo. La reactivación preserva la fecha "
+            "original de contratación (protegida por escritura "
+            "única), registra una nueva fecha de recontratación, "
+            "voltea el estado de ciclo de vida, y conserva el "
+            "evento de terminación previo en el historial. El "
+            "sistema ahora le avisa al Agregar Empleado si el "
+            "nombre o correo coincide con un registro inactivo — "
+            "ese aviso es su señal para cambiar de pestaña y "
+            "reactivar.",
+    },
+    ("employee-lifecycle.rehire", "escalate"): {
+        "title_es": "Cuándo la elegibilidad de recontratación no está clara",
+        "body_es":
+            "Si no está seguro si alguien debe quedar marcado "
+            "elegible, NO elegible, o revisión requerida, déjelo "
+            "en revisión requerida y agregue una razón corta. "
+            "Después involucre al supervisor que realmente "
+            "trabajó con el empleado, y a Admin si hay alguna "
+            "duda de exposición legal (separación bajo amenaza, "
+            "historial de reclamos, fricción de acomodo por "
+            "discapacidad). La fecha original de contratación "
+            "queda protegida en cada reactivación — no intente "
+            "sobreescribirla; el sistema lo bloquea a propósito.",
+    },
+
     # ── iter286 · driver-qualification (top family) ──────────────────
     ("driver-qualification", "why"): {
         "title_es": "Por qué la calificación de conductor es estructurada, no notas",

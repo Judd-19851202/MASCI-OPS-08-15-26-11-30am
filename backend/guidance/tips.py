@@ -2916,6 +2916,84 @@ _TIPS: list[dict] = [
 
 
     # ═════════════════════════════════════════════════════════════════
+    # iter316 · employee-lifecycle.rehire · structured rehire eligibility
+    # at termination + controlled reactivation/rehire. Operator-named
+    # gap: tribal-knowledge "they're rehireable" / "don't bring them
+    # back" disappears the moment HR turnover happens. The structured
+    # enum + protected original_hire_date together make the lifecycle
+    # honest across employment cycles. Tone anchor: this is not case
+    # management; it is the answer HR needs in 18 months when someone
+    # asks "should we bring her back?"
+    # ═════════════════════════════════════════════════════════════════
+    {
+        "form_key": "employee-lifecycle.rehire",
+        "kind": "why",
+        "scopes": ["hr", "admin"],
+        "title": "Why rehire eligibility is structured, not stored in notes",
+        "body":
+            "Eighteen months from now, a foreman calls and says 'is "
+            "she still on the do-not-rehire list?' If that answer "
+            "lives in someone's memory or a paragraph nobody can "
+            "filter, the answer becomes a guess. Three explicit "
+            "values — eligible, not eligible, review required — "
+            "make it the same answer every time, no matter who "
+            "asks. The default is REVIEW REQUIRED on purpose: the "
+            "platform must not silently assume eligible when HR did "
+            "not actually decide.",
+    },
+    {
+        "form_key": "employee-lifecycle.rehire",
+        "kind": "mistake",
+        "scopes": ["hr", "admin"],
+        "title": "Not eligible vs review required — they are different",
+        "body":
+            "NOT ELIGIBLE means HR has made a final call: this "
+            "person should not return. Attach a short reason "
+            "(attendance pattern, policy violation, job "
+            "abandonment) so future HR knows the why. REVIEW "
+            "REQUIRED means the call has not been made yet — "
+            "maybe the circumstances were unclear, maybe the "
+            "supervisor needs to weigh in. Don't use 'not "
+            "eligible' as shorthand for 'I didn't have time to "
+            "think about it'; that locks the person out of "
+            "future opportunities they may have earned.",
+    },
+    {
+        "form_key": "employee-lifecycle.rehire",
+        "kind": "next",
+        "scopes": ["hr", "admin"],
+        "title": "Reactivating instead of re-adding",
+        "body":
+            "If a former employee comes back, FIND THEM in the "
+            "inactive/terminated list and reactivate. Do not "
+            "create a new employee record. Reactivation preserves "
+            "the original hire date (write-once protected), "
+            "records a new rehire date, flips lifecycle status, "
+            "and keeps the prior termination event in history. "
+            "The platform now warns you on Add Employee if the "
+            "name or email matches an inactive record — that "
+            "warning is your cue to switch tabs and reactivate.",
+    },
+    {
+        "form_key": "employee-lifecycle.rehire",
+        "kind": "escalate",
+        "scopes": ["hr", "admin"],
+        "title": "When rehire eligibility is unclear",
+        "body":
+            "If you are not sure whether someone should be marked "
+            "eligible, NOT eligible, or review-required, leave it "
+            "at review-required and add a short reason. Then "
+            "involve the supervisor who actually worked with the "
+            "employee, and Admin if there is any legal-exposure "
+            "question (separation under threat, claim history, "
+            "disability-accommodation friction). Original hire "
+            "date stays protected through every reactivation — do "
+            "not try to overwrite it; the system blocks that on "
+            "purpose.",
+    },
+
+
+    # ═════════════════════════════════════════════════════════════════
     # iter286 · driver-qualification coaching family.
     # Top family: the canonical 4 (why/who/next/escalate) anchored on
     # the operational distinction that the iter284 audit identified as

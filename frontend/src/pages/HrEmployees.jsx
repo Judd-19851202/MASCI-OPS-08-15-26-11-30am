@@ -36,7 +36,8 @@ import { MasciLogo } from "@/components/MasciLogo";
 import NotificationBell from "@/components/NotificationBell";
 import {
   listHrEmployees, createHrEmployee, patchHrEmployee,
-  changeHrEmployeeStatus, offboardingSummary, LIFECYCLE_STATUSES,
+  changeHrEmployeeStatus, offboardingSummary, reactivateHrEmployee,
+  LIFECYCLE_STATUSES,
 } from "@/lib/employeesApi";
 import { useRememberedFilter } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
@@ -77,6 +78,7 @@ export default function HrEmployees() {
   const allowed = isHr() || isAdmin();
   const [showInactive, setShowInactive] = useRememberedFilter("hr.employees.show_inactive", false);
   const [statusFilter, setStatusFilter] = useRememberedFilter("hr.employees.status", "all");
+  const [rehireFilter, setRehireFilter] = useRememberedFilter("hr.employees.rehire_eligibility", "all");
   const [q, setQ] = useState("");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -90,13 +92,14 @@ export default function HrEmployees() {
       const r = await listHrEmployees({
         show_inactive: showInactive,
         ...(statusFilter !== "all" ? { lifecycle_status: statusFilter } : {}),
+        ...(rehireFilter !== "all" ? { rehire_eligibility: rehireFilter } : {}),
         ...(q ? { q } : {}),
       });
       setItems(r.items || []);
     } catch (e) {
       toast.error(friendlyError(e, "Could not load employees"));
     } finally { setLoading(false); }
-  }, [allowed, showInactive, statusFilter, q]);
+  }, [allowed, showInactive, statusFilter, rehireFilter, q]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -165,6 +168,17 @@ export default function HrEmployees() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={rehireFilter} onValueChange={setRehireFilter}>
+            <SelectTrigger className="w-[200px] h-9 text-xs" data-testid="hremp-rehire-filter">
+              <SelectValue placeholder="Rehire eligibility" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any rehire status</SelectItem>
+              <SelectItem value="eligible">Rehire Eligible</SelectItem>
+              <SelectItem value="not_eligible">Not Rehire Eligible</SelectItem>
+              <SelectItem value="review_required">Review Required</SelectItem>
+            </SelectContent>
+          </Select>
           <div className="relative flex-1 min-w-[180px]">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
             <Input
@@ -177,7 +191,17 @@ export default function HrEmployees() {
           <Button variant="outline" size="sm" onClick={fetchAll} className="text-xs" data-testid="hremp-refresh">
             <RefreshCw className="w-3.5 h-3.5" />
           </Button>
-          <AddDialog open={addOpen} setOpen={setAddOpen} onSaved={(_e) => { setAddOpen(false); fetchAll(); }} />
+          <AddDialog
+            open={addOpen}
+            setOpen={setAddOpen}
+            onSaved={(e) => {
+              setAddOpen(false);
+              if (e && e.openDrawerId) {
+                setEditId(e.openDrawerId);
+              }
+              fetchAll();
+            }}
+          />
         </div>
 
         {loading ? (
@@ -257,15 +281,36 @@ function AddDialog({ open, setOpen, onSaved }) {
     phone: "", supervisor: "", department: "", default_project_number: "",
     lifecycle_status: "Active", hire_date: "",
   });
-  const submit = async (e) => {
-    e.preventDefault();
+  // iter316 · informational duplicate warning state. When the backend
+  // returns a `possible_existing_inactive` payload we show the
+  // candidate row and let HR either Reactivate or force-create.
+  const [dupCandidate, setDupCandidate] = useState(null);
+
+  const submitInternal = async (force) => {
     if (!form.name.trim()) { toast.error("Name is required"); return; }
     try {
-      const r = await createHrEmployee(form);
+      const r = await createHrEmployee(form, { force });
       toast.success(`Added ${r.name}`);
       onSaved(r);
       setForm({ ...form, name: "", employee_id: "", email: "", phone: "" });
-    } catch (e2) { toast.error(friendlyError(e2, "Could not save employee")); }
+      setDupCandidate(null);
+    } catch (e2) {
+      // iter316 · detect structured inactive-match payload.
+      const detail = e2?.response?.data?.detail;
+      if (detail && typeof detail === "object" && detail.error === "possible_existing_inactive") {
+        setDupCandidate(detail.candidate || null);
+        return;
+      }
+      toast.error(friendlyError(e2, "Could not save employee"));
+    }
+  };
+  const submit = (e) => { e.preventDefault(); submitInternal(false); };
+  const submitForce = () => submitInternal(true);
+  const goReactivate = () => {
+    if (dupCandidate?.id) {
+      setOpen(false);
+      onSaved({ openDrawerId: dupCandidate.id });
+    }
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -328,6 +373,74 @@ function AddDialog({ open, setOpen, onSaved }) {
               <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </div>
           </div>
+          {dupCandidate && (
+            <div
+              className="rounded-md border-2 border-amber-300 bg-amber-50 p-3 text-xs text-amber-900"
+              data-testid="hremp-add-dup-warning"
+            >
+              <div className="font-bold uppercase tracking-wider text-[10px] text-amber-700 mb-1">
+                Possible existing inactive/terminated employee
+              </div>
+              <div>
+                <span className="font-bold">{dupCandidate.name}</span>
+                {dupCandidate.employee_id && (
+                  <span className="text-amber-700"> · ID {dupCandidate.employee_id}</span>
+                )}
+                {dupCandidate.email && (
+                  <span className="text-amber-700"> · {dupCandidate.email}</span>
+                )}
+                <div className="mt-0.5">
+                  Status:{" "}
+                  <span className="font-bold">{dupCandidate.lifecycle_status}</span>
+                  {dupCandidate.termination_date && (
+                    <span className="text-amber-700">
+                      {" "}· terminated {dupCandidate.termination_date}
+                    </span>
+                  )}
+                  {dupCandidate.rehire_eligibility && (
+                    <span className="text-amber-700">
+                      {" "}· rehire eligibility:{" "}
+                      <span className="font-bold">{dupCandidate.rehire_eligibility}</span>
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2 text-amber-900/90">
+                  Reactivate this existing employee instead of creating a duplicate?
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs"
+                  data-testid="hremp-add-dup-reactivate"
+                  onClick={goReactivate}
+                >
+                  Open & reactivate existing record
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs border-amber-500 text-amber-900"
+                  data-testid="hremp-add-dup-force"
+                  onClick={submitForce}
+                >
+                  Create new record anyway
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => setDupCandidate(null)}
+                  data-testid="hremp-add-dup-dismiss"
+                >
+                  Edit details
+                </Button>
+              </div>
+            </div>
+          )}
           <DialogFooter><Button type="submit" data-testid="hremp-add-submit">Save</Button></DialogFooter>
         </form>
       </DialogContent>
@@ -348,8 +461,18 @@ function EmployeeDrawer({ id, onClose }) {
     last_day_worked: "",
     leave_start_date: "",
     expected_return_date: "",
+    // iter316 · rehire eligibility on offboarding transitions.
+    rehire_eligibility: "",
+    rehire_eligibility_reason: "",
   });
   const [saving, setSaving] = useState(false);
+  // iter316 · reactivate-dialog state.
+  const [reactivateOpen, setReactivateOpen] = useState(false);
+  const [reactivateForm, setReactivateForm] = useState({
+    lifecycle_status: "Active",
+    rehire_date: "",
+    reason: "",
+  });
 
   useEffect(() => {
     if (!id) { setEmployee(null); setSummary(null); return; }
@@ -364,6 +487,8 @@ function EmployeeDrawer({ id, onClose }) {
         last_day_worked: "",
         leave_start_date: "",
         expected_return_date: "",
+        rehire_eligibility: "",
+        rehire_eligibility_reason: "",
       });
     }).catch(() => setEmployee(null));
   }, [id]);
@@ -377,6 +502,20 @@ function EmployeeDrawer({ id, onClose }) {
       toast.error(t("Pick a separation type — voluntary, involuntary, or layoff"));
       return;
     }
+    // iter316 · enforce rehire eligibility on offboarding transitions.
+    if (offboardingTransition && !statusForm.rehire_eligibility && !employee.rehire_eligibility) {
+      toast.error(t("Pick a rehire eligibility — Eligible, Not Eligible, or Review Required"));
+      return;
+    }
+    if (
+      offboardingTransition
+      && ["not_eligible", "review_required"].includes(statusForm.rehire_eligibility)
+      && !statusForm.rehire_eligibility_reason.trim()
+      && !employee.rehire_eligibility_reason
+    ) {
+      toast.error(t("Add a short reason for this rehire eligibility decision"));
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
@@ -388,6 +527,9 @@ function EmployeeDrawer({ id, onClose }) {
       if (statusForm.last_day_worked) payload.last_day_worked = statusForm.last_day_worked;
       if (statusForm.leave_start_date) payload.leave_start_date = statusForm.leave_start_date;
       if (statusForm.expected_return_date) payload.expected_return_date = statusForm.expected_return_date;
+      if (statusForm.rehire_eligibility) payload.rehire_eligibility = statusForm.rehire_eligibility;
+      if (statusForm.rehire_eligibility_reason)
+        payload.rehire_eligibility_reason = statusForm.rehire_eligibility_reason;
       const r = await changeHrEmployeeStatus(employee.id, statusForm.lifecycle_status, statusForm.reason, payload);
       if (r.playbook_fired) {
         toast.success(`${t("Status updated")} · ${r.tasks_created} ${t("offboarding tasks created")}`);
@@ -399,6 +541,28 @@ function EmployeeDrawer({ id, onClose }) {
       setEmployee(s.employee);
     } catch (e) {
       toast.error(friendlyError(e, t("Status change failed")));
+    } finally { setSaving(false); }
+  };
+
+  // iter316 · reactivate / rehire action.
+  const submitReactivate = async () => {
+    if (!employee) return;
+    setSaving(true);
+    try {
+      const r = await reactivateHrEmployee(employee.id, {
+        lifecycle_status: reactivateForm.lifecycle_status,
+        rehire_date: reactivateForm.rehire_date || undefined,
+        reason: reactivateForm.reason || undefined,
+      });
+      toast.success(
+        `${t("Reactivated")} · ${t("rehire date")}: ${r.employee?.rehire_date || "—"}`,
+      );
+      setReactivateOpen(false);
+      const s = await offboardingSummary(employee.id);
+      setSummary(s);
+      setEmployee(s.employee);
+    } catch (e) {
+      toast.error(friendlyError(e, t("Reactivation failed")));
     } finally { setSaving(false); }
   };
 
@@ -474,6 +638,61 @@ function EmployeeDrawer({ id, onClose }) {
                     <div className="flex items-center justify-between py-1 text-sm" data-testid="hremp-separation-type-display">
                       <span className="text-slate-600">{t("Separation Type")}</span>
                       <span className="font-mono text-slate-900 font-bold uppercase">{t(employee.separation_type)}</span>
+                    </div>
+                  )}
+                  {/* iter316 · Rehire eligibility display + reactivate action */}
+                  {employee.rehire_eligibility && (
+                    <div className="flex items-center justify-between py-1 text-sm" data-testid="hremp-rehire-eligibility-display">
+                      <span className="text-slate-600">{t("Rehire Eligibility")}</span>
+                      <span className={
+                        "font-mono font-bold uppercase " +
+                        (employee.rehire_eligibility === "eligible"
+                          ? "text-emerald-700"
+                          : employee.rehire_eligibility === "not_eligible"
+                          ? "text-rose-700"
+                          : "text-amber-700")
+                      }>
+                        {t(
+                          employee.rehire_eligibility === "eligible" ? "Rehire Eligible"
+                          : employee.rehire_eligibility === "not_eligible" ? "Not Rehire Eligible"
+                          : "Review Required",
+                        )}
+                      </span>
+                    </div>
+                  )}
+                  {employee.rehire_eligibility_reason && (
+                    <div className="py-1 text-xs" data-testid="hremp-rehire-eligibility-reason-display">
+                      <div className="text-slate-500 font-mono uppercase tracking-wider text-[10px]">{t("Rehire eligibility reason")}</div>
+                      <div className="text-slate-800 mt-0.5">{employee.rehire_eligibility_reason}</div>
+                    </div>
+                  )}
+                  {employee.rehire_date && (
+                    <div className="flex items-center justify-between py-1 text-sm" data-testid="hremp-rehire-date-display">
+                      <span className="text-slate-600">{t("Rehire Date")}</span>
+                      <span className="font-mono text-slate-900 font-bold">{employee.rehire_date}</span>
+                    </div>
+                  )}
+                  {["Inactive", "Terminated", "Resigned", "Retired"].includes(summary?.lifecycle_status) && (
+                    <div className="pt-3 mt-3 border-t border-slate-200" data-testid="hremp-reactivate-block">
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs"
+                        data-testid="hremp-reactivate-trigger"
+                        onClick={() => {
+                          setReactivateForm({
+                            lifecycle_status: "Active",
+                            rehire_date: new Date().toISOString().slice(0, 10),
+                            reason: "",
+                          });
+                          setReactivateOpen(true);
+                        }}
+                      >
+                        {t("Reactivate / Rehire Employee")}
+                      </Button>
+                      <div className="text-xs text-slate-500 mt-1.5">
+                        {t("Preserves original hire date · records new rehire date · keeps prior termination in history")}
+                      </div>
                     </div>
                   )}
 
@@ -598,6 +817,37 @@ function EmployeeDrawer({ id, onClose }) {
                           <Label>{t("Termination Date")}</Label>
                           <Input type="date" value={statusForm.termination_date} onChange={(e) => setStatusForm({ ...statusForm, termination_date: e.target.value })} data-testid="hremp-tx-term-date" />
                         </div>
+                      </div>
+                      {/* iter316 · Rehire eligibility (required on offboarding transitions) */}
+                      <div className="pt-2 mt-1 border-t border-slate-200">
+                        <HelpTipBlock formKey="employee-lifecycle.rehire" />
+                        <Label>{t("Rehire Eligibility")} *</Label>
+                        <Select
+                          value={statusForm.rehire_eligibility}
+                          onValueChange={(v) => setStatusForm({ ...statusForm, rehire_eligibility: v })}
+                        >
+                          <SelectTrigger data-testid="hremp-rehire-eligibility">
+                            <SelectValue placeholder={t("Pick rehire eligibility")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="eligible">{t("Rehire Eligible")}</SelectItem>
+                            <SelectItem value="not_eligible">{t("Not Rehire Eligible")}</SelectItem>
+                            <SelectItem value="review_required">{t("Review Required")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {["not_eligible", "review_required"].includes(statusForm.rehire_eligibility) && (
+                          <div className="mt-2">
+                            <Label>{t("Reason")} *</Label>
+                            <Textarea
+                              rows={2}
+                              value={statusForm.rehire_eligibility_reason}
+                              onChange={(e) => setStatusForm({ ...statusForm, rehire_eligibility_reason: e.target.value })}
+                              placeholder={t("Attendance pattern · policy violation · job abandonment · supervisor review needed · etc.")}
+                              data-testid="hremp-rehire-reason"
+                              maxLength={500}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -725,6 +975,91 @@ function EmployeeDrawer({ id, onClose }) {
                 </TabsContent>
               </div>
             </Tabs>
+            {/* iter316 · Reactivate / rehire dialog */}
+            <Dialog open={reactivateOpen} onOpenChange={setReactivateOpen}>
+              <DialogContent className="sm:max-w-md" data-testid="hremp-reactivate-dialog">
+                <DialogHeader>
+                  <DialogTitle>{t("Reactivate / Rehire Employee")}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <HelpTipBlock formKey="employee-lifecycle.rehire" />
+                  <div className="bg-slate-50 border border-slate-200 rounded-md p-3 text-xs text-slate-700 space-y-1">
+                    <div>
+                      <span className="text-slate-500">{t("Employee")}:</span>{" "}
+                      <span className="font-bold text-slate-900">{employee.name}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">{t("Original Hire Date")}:</span>{" "}
+                      <span className="font-mono">{employee.original_hire_date || "—"}</span>
+                      <span className="text-slate-400 ml-2">{t("(preserved · write-once)")}</span>
+                    </div>
+                    {employee.termination_date && (
+                      <div>
+                        <span className="text-slate-500">{t("Prior Termination Date")}:</span>{" "}
+                        <span className="font-mono">{employee.termination_date}</span>
+                      </div>
+                    )}
+                    {employee.rehire_eligibility && (
+                      <div>
+                        <span className="text-slate-500">{t("Rehire Eligibility")}:</span>{" "}
+                        <span className="font-bold uppercase">{employee.rehire_eligibility}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <Label>{t("New status")} *</Label>
+                    <Select
+                      value={reactivateForm.lifecycle_status}
+                      onValueChange={(v) => setReactivateForm({ ...reactivateForm, lifecycle_status: v })}
+                    >
+                      <SelectTrigger data-testid="hremp-reactivate-status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Active">{t("Active")}</SelectItem>
+                        <SelectItem value="Pending Hire">{t("Pending Hire")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>{t("Rehire Date")} *</Label>
+                    <Input
+                      type="date"
+                      value={reactivateForm.rehire_date}
+                      onChange={(e) => setReactivateForm({ ...reactivateForm, rehire_date: e.target.value })}
+                      data-testid="hremp-reactivate-rehire-date"
+                    />
+                  </div>
+                  <div>
+                    <Label>{t("Reason / note")}</Label>
+                    <Textarea
+                      rows={2}
+                      value={reactivateForm.reason}
+                      onChange={(e) => setReactivateForm({ ...reactivateForm, reason: e.target.value })}
+                      placeholder={t("Operational context recorded in status history")}
+                      data-testid="hremp-reactivate-reason"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setReactivateOpen(false)}
+                    data-testid="hremp-reactivate-cancel"
+                  >
+                    {t("Cancel")}
+                  </Button>
+                  <Button
+                    onClick={submitReactivate}
+                    disabled={saving}
+                    className="bg-emerald-700 hover:bg-emerald-800 text-white"
+                    data-testid="hremp-reactivate-confirm"
+                  >
+                    {saving ? t("Saving…") : t("Reactivate")}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </>
         )}
       </SheetContent>

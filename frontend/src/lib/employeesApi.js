@@ -30,8 +30,24 @@ export async function listHrEmployees(params = {}) {
   const r = await axios.get(`${API}/hr/employees`, { headers: authHeaders(), params });
   return r.data;
 }
-export async function createHrEmployee(body) {
-  const r = await axios.post(`${API}/hr/employees`, body, { headers: authHeaders() });
+export async function createHrEmployee(body, opts = {}) {
+  const { force = false } = opts;
+  const r = await axios.post(
+    `${API}/hr/employees`,
+    body,
+    { headers: authHeaders(), params: force ? { force: "true" } : {} },
+  );
+  return r.data;
+}
+
+// iter316 · Reactivate / rehire — flips an inactive/terminated employee
+// back to Active or Pending Hire, preserving original_hire_date.
+export async function reactivateHrEmployee(id, body) {
+  const r = await axios.post(
+    `${API}/hr/employees/${id}/reactivate`,
+    body,
+    { headers: authHeaders() },
+  );
   return r.data;
 }
 export async function patchHrEmployee(id, patch) {

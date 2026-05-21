@@ -56,6 +56,14 @@ _OFFBOARDING_STATUSES = {"Terminated", "Resigned", "Retired"}
 # iter285 · employment separation taxonomy.
 ALLOWED_SEPARATION_TYPES = {"voluntary", "involuntary", "layoff"}
 
+# iter316 · rehire eligibility taxonomy. Three explicit operational
+# values — no free-text equivalents. `review_required` is the DEFAULT
+# because the platform must NOT assume eligible when HR did not
+# explicitly decide. This field belongs on the termination/offboarding
+# record and travels with the employee across reactivation cycles.
+ALLOWED_REHIRE_ELIGIBILITY = {"eligible", "not_eligible", "review_required"}
+_REHIRE_ELIGIBILITY_REQUIRES_REASON = {"not_eligible", "review_required"}
+
 # iter286 · driver qualification taxonomy. Only meaningful when the
 # employee is flagged as an `approved_company_driver`. The semantic
 # distinction below is the entire reason CDL Holder and Approved
@@ -118,6 +126,7 @@ _LIFECYCLE_DATE_FIELDS = (
     "termination_date",
     "leave_start_date",
     "expected_return_date",
+    "rehire_date",  # iter316 · most-recent rehire/reactivation date
 )
 # Once `original_hire_date` is set to a non-empty string on an employee
 # document, no subsequent PATCH may change it. Audit (iter284 · §2.2 +
@@ -360,6 +369,11 @@ class EmployeeCreate(BaseModel):
     expected_return_date: Optional[str] = None
     separation_type: Optional[str] = None
 
+    # iter316 · rehire eligibility + rehire-cycle date
+    rehire_eligibility: Optional[str] = None
+    rehire_eligibility_reason: Optional[str] = Field(default=None, max_length=500)
+    rehire_date: Optional[str] = None
+
     # iter286 · driver qualification structure
     # CDL Holder ≠ Approved Company Driver. The two flags are
     # intentionally independent — see ALLOWED_DRIVER_STATUSES doc above.
@@ -386,6 +400,7 @@ class EmployeeCreate(BaseModel):
         "original_hire_date", "last_day_worked", "termination_date",
         "leave_start_date", "expected_return_date",
         "cdl_expiration_date", "medical_card_expiration_date",
+        "rehire_date",
     )
     @classmethod
     def _v_date(cls, v: Optional[str]) -> Optional[str]:
@@ -402,6 +417,17 @@ class EmployeeCreate(BaseModel):
             return v
         if v not in ALLOWED_SEPARATION_TYPES:
             raise ValueError(f"separation_type must be one of {sorted(ALLOWED_SEPARATION_TYPES)}")
+        return v
+
+    @field_validator("rehire_eligibility")
+    @classmethod
+    def _v_rehire(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if v not in ALLOWED_REHIRE_ELIGIBILITY:
+            raise ValueError(
+                f"rehire_eligibility must be one of {sorted(ALLOWED_REHIRE_ELIGIBILITY)}"
+            )
         return v
 
     @field_validator("driver_status")
@@ -445,6 +471,11 @@ class EmployeePatch(BaseModel):
     expected_return_date: Optional[str] = None
     separation_type: Optional[str] = None
 
+    # iter316 · rehire eligibility + rehire date (mirror of create-time)
+    rehire_eligibility: Optional[str] = None
+    rehire_eligibility_reason: Optional[str] = Field(default=None, max_length=500)
+    rehire_date: Optional[str] = None
+
     # iter286 · driver qualification (mirror of create-time fields)
     cdl_holder: Optional[bool] = None
     approved_company_driver: Optional[bool] = None
@@ -462,6 +493,7 @@ class EmployeePatch(BaseModel):
         "original_hire_date", "last_day_worked", "termination_date",
         "leave_start_date", "expected_return_date",
         "cdl_expiration_date", "medical_card_expiration_date",
+        "rehire_date",
     )
     @classmethod
     def _v_date(cls, v: Optional[str]) -> Optional[str]:
@@ -478,6 +510,17 @@ class EmployeePatch(BaseModel):
             return v
         if v not in ALLOWED_SEPARATION_TYPES:
             raise ValueError(f"separation_type must be one of {sorted(ALLOWED_SEPARATION_TYPES)}")
+        return v
+
+    @field_validator("rehire_eligibility")
+    @classmethod
+    def _v_rehire(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if v not in ALLOWED_REHIRE_ELIGIBILITY:
+            raise ValueError(
+                f"rehire_eligibility must be one of {sorted(ALLOWED_REHIRE_ELIGIBILITY)}"
+            )
         return v
 
     @field_validator("driver_status")
@@ -513,6 +556,13 @@ class StatusChange(BaseModel):
     expected_return_date: Optional[str] = None
     separation_type: Optional[str] = None
 
+    # iter316 · rehire eligibility — required on any transition into
+    # Terminated/Resigned/Retired unless the employee already carries
+    # one from a prior offboarding cycle. Validation lives in the
+    # route handler so reactivation cycles can carry the prior value.
+    rehire_eligibility: Optional[str] = None
+    rehire_eligibility_reason: Optional[str] = Field(default=None, max_length=500)
+
     @field_validator("lifecycle_status")
     @classmethod
     def _v_status(cls, v: str) -> str:
@@ -541,6 +591,44 @@ class StatusChange(BaseModel):
             raise ValueError(f"separation_type must be one of {sorted(ALLOWED_SEPARATION_TYPES)}")
         return v
 
+    @field_validator("rehire_eligibility")
+    @classmethod
+    def _v_rehire(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if v not in ALLOWED_REHIRE_ELIGIBILITY:
+            raise ValueError(
+                f"rehire_eligibility must be one of {sorted(ALLOWED_REHIRE_ELIGIBILITY)}"
+            )
+        return v
+
+
+# iter316 · Reactivation / rehire payload. Bounded: HR/Admin can flip
+# a previously-inactive/terminated employee back to Active or Pending
+# Hire without creating a duplicate. Original hire date is preserved.
+class ReactivatePayload(BaseModel):
+    lifecycle_status: str = "Active"  # Active or Pending Hire only
+    rehire_date: Optional[str] = None
+    reason: Optional[str] = Field(default=None, max_length=2000)
+
+    @field_validator("lifecycle_status")
+    @classmethod
+    def _v_status(cls, v: str) -> str:
+        if v not in {"Active", "Pending Hire"}:
+            raise ValueError(
+                "reactivation lifecycle_status must be 'Active' or 'Pending Hire'"
+            )
+        return v
+
+    @field_validator("rehire_date")
+    @classmethod
+    def _v_date(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or v == "":
+            return v
+        if not _is_date_string(v):
+            raise ValueError("date must be YYYY-MM-DD")
+        return v
+
 
 # ──────────────────────────────────────────────────────────────────
 # Helpers
@@ -554,6 +642,51 @@ def _strip_id(d: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
 
 def _is_active_for_status(status: str) -> bool:
     return status in _ACTIVE_STATUSES
+
+
+# iter316 · inactive/terminated duplicate-match candidate finder.
+# Used by create_employee when `?force=false` to warn HR they may be
+# duplicating a previously-inactive record. Returns a compact dict
+# (id/name/email/lifecycle_status/last_day_worked/termination_date/
+# rehire_eligibility) or None.
+_INACTIVE_DUP_MATCH_STATUSES = {
+    "Inactive", "Terminated", "Resigned", "Retired",
+}
+
+
+async def _find_inactive_match(
+    db, name: str, email: Optional[str],
+) -> Optional[Dict[str, Any]]:
+    name_clean = (name or "").strip()
+    email_clean = (email or "").strip().lower()
+    if not name_clean and not email_clean:
+        return None
+    or_clauses: List[Dict[str, Any]] = []
+    if name_clean:
+        # Case-insensitive exact match on name.
+        or_clauses.append({
+            "name": {"$regex": f"^{name_clean}$", "$options": "i"},
+        })
+    if email_clean:
+        or_clauses.append({
+            "email": {"$regex": f"^{email_clean}$", "$options": "i"},
+        })
+    if not or_clauses:
+        return None
+    query = {
+        "$and": [
+            {"deleted_at": None},
+            {"$or": or_clauses},
+            {"lifecycle_status": {"$in": list(_INACTIVE_DUP_MATCH_STATUSES)}},
+        ],
+    }
+    candidate = await db.employees.find_one(
+        query,
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "employee_id": 1,
+         "lifecycle_status": 1, "last_day_worked": 1,
+         "termination_date": 1, "rehire_eligibility": 1},
+    )
+    return candidate
 
 
 async def _fan_out_offboarding_playbook(
@@ -626,6 +759,7 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         actor: Dict[str, Any] = Depends(require_hr_or_admin),
         show_inactive: bool = Query(default=False),
         lifecycle_status: Optional[str] = Query(default=None),
+        rehire_eligibility: Optional[str] = Query(default=None),
         q: Optional[str] = Query(default=None, max_length=80),
         limit: int = Query(default=500, ge=1, le=2000),
     ) -> Dict[str, Any]:
@@ -639,6 +773,15 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             ]})
         if lifecycle_status:
             clauses.append({"lifecycle_status": lifecycle_status})
+        # iter316 · rehire-eligibility filter
+        if rehire_eligibility:
+            if rehire_eligibility not in ALLOWED_REHIRE_ELIGIBILITY:
+                raise HTTPException(
+                    400,
+                    f"rehire_eligibility must be one of "
+                    f"{sorted(ALLOWED_REHIRE_ELIGIBILITY)}",
+                )
+            clauses.append({"rehire_eligibility": rehire_eligibility})
         if q:
             clauses.append({"$or": [
                 {"name": {"$regex": q, "$options": "i"}},
@@ -658,15 +801,46 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
     async def create_employee(
         body: EmployeeCreate,
         actor: Dict[str, Any] = Depends(require_hr_or_admin),
+        force: bool = Query(default=False),
     ) -> Dict[str, Any]:
         name = body.name.strip()
-        existing = await db.employees.find_one(
-            {"name": {"$regex": f"^{name}$", "$options": "i"},
-             "deleted_at": None},
+        # iter316 · strict block ONLY for *active* exact-name collisions.
+        # An inactive/terminated record with the same name should drop
+        # to the informational reactivation warning below, not a hard
+        # block — operators should reactivate, not get stonewalled.
+        existing_active = await db.employees.find_one(
+            {
+                "name": {"$regex": f"^{name}$", "$options": "i"},
+                "deleted_at": None,
+                "$or": [
+                    {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
+                    {"lifecycle_status": {"$exists": False},
+                     "is_active": {"$ne": False}},
+                ],
+            },
             {"_id": 0},
         )
-        if existing:
+        if existing_active:
             raise HTTPException(409, f"An employee named '{name}' already exists")
+
+        # iter316 · duplicate prevention — informational warning when
+        # the incoming name OR email matches an inactive/terminated
+        # employee. HR can `?force=true` to bypass after acknowledging.
+        if not force:
+            inactive_match = await _find_inactive_match(db, name, body.email)
+            if inactive_match:
+                raise HTTPException(
+                    409,
+                    {
+                        "error": "possible_existing_inactive",
+                        "message": (
+                            "Possible existing inactive/terminated employee "
+                            "found. Reactivate existing employee instead of "
+                            "creating a duplicate?"
+                        ),
+                        "candidate": inactive_match,
+                    },
+                )
         now = datetime.now(timezone.utc).isoformat()
         doc = {
             "id": str(uuid.uuid4()),
@@ -688,6 +862,10 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "leave_start_date": (body.leave_start_date or None),
             "expected_return_date": (body.expected_return_date or None),
             "separation_type": (body.separation_type or None),
+            # iter316 · rehire eligibility + rehire-cycle date
+            "rehire_eligibility": (body.rehire_eligibility or None),
+            "rehire_eligibility_reason": (body.rehire_eligibility_reason or None),
+            "rehire_date": (body.rehire_date or None),
             # iter286 · driver qualification structure
             "cdl_holder": (body.cdl_holder if body.cdl_holder is not None else False),
             "approved_company_driver": (
@@ -828,6 +1006,46 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 )
             if incoming_sep:
                 date_updates["separation_type"] = incoming_sep
+
+            # iter316 · rehire eligibility is required on every
+            # transition into Terminated/Resigned/Retired so the
+            # platform never silently assumes "eligible". Defaults
+            # to review_required when neither the request nor the
+            # existing record carries a value (mirror of operator
+            # mandate · §"Default" — system must not assume eligible).
+            existing_rehire = (existing.get("rehire_eligibility") or "").strip()
+            incoming_rehire = (body.rehire_eligibility or "").strip()
+            chosen_rehire = incoming_rehire or existing_rehire or "review_required"
+            if chosen_rehire not in ALLOWED_REHIRE_ELIGIBILITY:
+                raise HTTPException(
+                    400,
+                    "rehire_eligibility must be one of "
+                    f"{sorted(ALLOWED_REHIRE_ELIGIBILITY)}",
+                )
+            # Reason is required for not_eligible and review_required.
+            incoming_reason = (
+                body.rehire_eligibility_reason
+                if body.rehire_eligibility_reason is not None
+                else existing.get("rehire_eligibility_reason")
+            )
+            incoming_reason_clean = (incoming_reason or "").strip()
+            if (
+                chosen_rehire in _REHIRE_ELIGIBILITY_REQUIRES_REASON
+                and not incoming_reason_clean
+            ):
+                raise HTTPException(
+                    400,
+                    "rehire_eligibility_reason is required when "
+                    f"rehire_eligibility is {chosen_rehire!r}",
+                )
+            date_updates["rehire_eligibility"] = chosen_rehire
+            if incoming_reason_clean:
+                date_updates["rehire_eligibility_reason"] = incoming_reason_clean
+            elif chosen_rehire == "eligible":
+                # Clean up any stale reason — operator chose Eligible
+                # explicitly, no reason needs to ride along.
+                date_updates["rehire_eligibility_reason"] = None
+
             # Termination date + last day worked default to today if
             # not provided. Both are stored so reporting can use
             # whichever makes sense; HR can edit either via PATCH
@@ -892,6 +1110,96 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "task_ids": tasks_created,
             "playbook_fired": triggers_playbook,
         }
+
+    # ── iter316 · Reactivation / rehire ───────────────────────────────
+    # Bounded action — HR/Admin only. Available when employee is
+    # currently Inactive / Terminated / Resigned / Retired. Preserves
+    # original_hire_date (write-once already enforces this), sets a
+    # new rehire_date, flips lifecycle_status to Active or Pending
+    # Hire, clears termination_date+last_day_worked for the new
+    # cycle, and appends a `kind="reactivate"` event to status_history.
+    # All previously-recorded offboarding events stay in the history;
+    # this is purely additive.
+    _REACTIVATABLE_STATUSES = {"Inactive", "Terminated", "Resigned", "Retired"}
+
+    @router.post("/api/hr/employees/{employee_id}/reactivate")
+    async def reactivate_employee(
+        employee_id: str,
+        body: ReactivatePayload,
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+    ) -> Dict[str, Any]:
+        existing = await db.employees.find_one(
+            {"id": employee_id, "deleted_at": None}, {"_id": 0})
+        if not existing:
+            raise HTTPException(404, "Employee not found")
+        prev_status = existing.get("lifecycle_status") or (
+            "Active" if existing.get("is_active") is not False else "Inactive"
+        )
+        if prev_status not in _REACTIVATABLE_STATUSES:
+            raise HTTPException(
+                409,
+                f"Cannot reactivate an employee whose current status is "
+                f"{prev_status!r}; reactivation is only allowed from "
+                f"{sorted(_REACTIVATABLE_STATUSES)}",
+            )
+        from datetime import date
+        today_iso = date.today().isoformat()
+        rehire_date = body.rehire_date or today_iso
+        now = datetime.now(timezone.utc).isoformat()
+
+        # Original hire date is preserved — _WRITE_ONCE_FIELDS guard
+        # on PATCH protects against accidental overwrite. We do NOT
+        # write original_hire_date here at all (already set).
+
+        set_block: Dict[str, Any] = {
+            "lifecycle_status": body.lifecycle_status,
+            "is_active": _is_active_for_status(body.lifecycle_status),
+            "rehire_date": rehire_date,
+            # New employment cycle starts clean — termination dates
+            # belong to the prior cycle. status_history retains the
+            # full record (incl. the prior termination_date value).
+            "termination_date": None,
+            "last_day_worked": None,
+            "updated_at": now,
+        }
+        entry = {
+            "at": now,
+            "by": actor.get("name") or actor.get("email") or "hr",
+            "from": prev_status,
+            "to": body.lifecycle_status,
+            "reason": body.reason,
+            "kind": "reactivate",
+            "rehire_date": rehire_date,
+            "preserved_original_hire_date": existing.get("original_hire_date"),
+            "preserved_separation_type": existing.get("separation_type"),
+            "preserved_termination_date": existing.get("termination_date"),
+            "preserved_rehire_eligibility": existing.get("rehire_eligibility"),
+        }
+        await db.employees.update_one(
+            {"id": employee_id},
+            {
+                "$set": set_block,
+                "$push": {"status_history": entry},
+            },
+        )
+        # Iter160-style signal (best-effort).
+        try:
+            from lib.operational_signals import record_signal  # noqa: PLC0415
+            await record_signal(
+                db, signal="hr.employee_reactivated",
+                module="hr.lifecycle",
+                dims={
+                    "from_status": (prev_status or "")[:24],
+                    "to_status": (body.lifecycle_status or "")[:24],
+                },
+            )
+        except Exception:
+            pass
+        doc = await db.employees.find_one(
+            {"id": employee_id}, {"_id": 0})
+        out = _strip_id(doc) or {}
+        out["tenure_days"] = _tenure_days(out)
+        return {"ok": True, "employee": out}
 
     @router.get("/api/hr/employees/{employee_id}/offboarding-summary")
     async def offboarding_summary(
@@ -1242,6 +1550,8 @@ async def ensure_employee_lifecycle_indexes(db) -> None:
         await db.employees.create_index("lifecycle_status")
         await db.employees.create_index("supervisor")
         await db.employees.create_index("department")
+        # iter316 · rehire-eligibility filter index.
+        await db.employees.create_index("rehire_eligibility")
     except Exception as e:  # pragma: no cover
         logger.warning("employee-lifecycle index bootstrap failed: %s", e)
 
@@ -1251,6 +1561,7 @@ __all__ = [
     "ensure_employee_lifecycle_indexes",
     "ALLOWED_LIFECYCLE_STATUSES",
     "ALLOWED_SEPARATION_TYPES",
+    "ALLOWED_REHIRE_ELIGIBILITY",
     "ALLOWED_DRIVER_STATUSES",
     "ALLOWED_CDL_ENDORSEMENTS",
     "ALLOWED_CDL_RESTRICTIONS",

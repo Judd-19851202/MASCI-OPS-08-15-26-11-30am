@@ -2,6 +2,117 @@
 
 
 
+## 2026-05-21 — iter316 Rehire Eligibility + Reactivation Closure · CLOSED
+
+### Scope (operator-mandated · employment lifecycle completion)
+Closes the iter285 lifecycle gap: termination now requires a STRUCTURED rehire eligibility decision (so the platform never silently assumes "eligible"), and inactive/terminated employees can be safely reactivated/rehired without creating duplicate records. The new fields ride within the existing employee schema — NO HRIS expansion, NO recruiting system, NO case-management, NO discipline workflow, NO approval chains.
+
+### Backend
+- **`employee_lifecycle.py`** — extended bounded contract:
+  - `ALLOWED_REHIRE_ELIGIBILITY = {eligible, not_eligible, review_required}` exposed at module level + `__all__`.
+  - `_REHIRE_ELIGIBILITY_REQUIRES_REASON = {not_eligible, review_required}` — operator mandate.
+  - Added `rehire_date` to `_LIFECYCLE_DATE_FIELDS` (sixth date; `original_hire_date` remains the sole write-once field).
+  - `EmployeeCreate` + `EmployeePatch` + `StatusChange` accept `rehire_eligibility` + `rehire_eligibility_reason` + `rehire_date` with validators bounded to the allowed set + YYYY-MM-DD format.
+  - `POST /api/hr/employees/{id}/status` enforces on any transition into Terminated/Resigned/Retired:
+    - rehire_eligibility is REQUIRED (defaults to `review_required` rather than `eligible`) — system never silently assumes eligibility.
+    - rehire_eligibility_reason is REQUIRED when value is `not_eligible` or `review_required`.
+    - rehire_eligibility_reason is cleared when operator chooses `eligible` (no stale reason).
+  - **NEW** `POST /api/hr/employees/{id}/reactivate` (`require_hr_or_admin`) — flips employee from `{Inactive, Terminated, Resigned, Retired}` to `{Active, Pending Hire}`:
+    - Preserves `original_hire_date` (write-once already enforces).
+    - Records new `rehire_date` (defaults to today).
+    - Clears `termination_date` + `last_day_worked` on the live record (prior values live on in the status_history audit event).
+    - Appends a `kind="reactivate"` event to `status_history` carrying `preserved_original_hire_date`, `preserved_termination_date`, `preserved_separation_type`, `preserved_rehire_eligibility` for the audit trail.
+    - Emits `hr.employee_reactivated` operational signal (best-effort).
+    - Rejects active→active reactivation (409) and rejects target statuses outside {Active, Pending Hire} (422).
+  - **Duplicate prevention** — `POST /api/hr/employees`:
+    - Strict 409 ONLY when an *active* same-name record exists (preserves iter152 behavior for the active case).
+    - Inactive/terminated same-name OR same-email match now returns structured 409 `{error: "possible_existing_inactive", message: "...", candidate: {...}}` so HR can choose to reactivate. Bypassable with `?force=true` after acknowledging.
+    - Match is case-insensitive on both name and email.
+  - **New filter** — `GET /api/hr/employees?rehire_eligibility=...` returns only matching rows (also rejects invalid values with 400). Index added on `rehire_eligibility`.
+
+### Frontend
+- **`HrEmployees.jsx`**:
+  - New "Any rehire status" filter dropdown (Eligible / Not Eligible / Review Required / all) next to the existing status filter; remembered via `useRememberedFilter`.
+  - Status-change form requires rehire eligibility (and a reason if not_eligible/review_required) before allowing submit; both ride in the status-change payload atomically.
+  - Drawer Details tab displays Rehire Eligibility (color-coded: emerald/rose/amber), Rehire Eligibility Reason, Rehire Date — alongside Original Hire Date, Last Day Worked, Termination Date, Leave dates, Tenure Days.
+  - **NEW** "Reactivate / Rehire Employee" button visible only when employee status is `{Inactive, Terminated, Resigned, Retired}`. Opens a bounded dialog showing the preserved Original Hire Date + prior termination context + rehire eligibility, asking only for new status (Active or Pending Hire), rehire date, and optional reason.
+  - **NEW** Add Employee dialog catches the `possible_existing_inactive` response and renders an amber warning panel showing the inactive candidate (name, employee_id, email, status, last_day_worked, termination_date, rehire_eligibility) with three actions: "Open & reactivate existing record" (routes drawer to candidate), "Create new record anyway" (force=true bypass), "Edit details" (dismiss warning).
+  - `employee-lifecycle.rehire` HelpTipBlock wired into both the status-change separation section and the reactivate dialog.
+- **`employeesApi.js`**:
+  - `createHrEmployee(body, { force })` accepts a force flag (query string).
+  - **NEW** `reactivateHrEmployee(id, body)`.
+
+### Coaching (4 EN + 4 ES tips · `employee-lifecycle.rehire`)
+1. **why** — Why rehire eligibility is structured, not stored in notes (the foreman calling 18 months later).
+2. **mistake** — Not eligible vs review required are different — do not use the first as a synonym for the second.
+3. **next** — Reactivating instead of re-adding — preserves original hire date, audits the prior cycle, no duplicates.
+4. **escalate** — When rehire eligibility is unclear — leave as review-required with a short reason, escalate to supervisor + Admin.
+
+Bilingual parity verified — all 4 tips translated in `tips_es.py`.
+
+### Auditability
+Reuses existing `status_history` array (no new audit collection). Each reactivation pushes a single event:
+```
+{
+  at, by, from, to, reason, kind: "reactivate", rehire_date,
+  preserved_original_hire_date,
+  preserved_separation_type,
+  preserved_termination_date,
+  preserved_rehire_eligibility
+}
+```
+
+Prior offboarding events remain in history untouched — the full lifecycle timeline is queryable.
+
+### Verification (all PASSED · 16 new tests + combined regression)
+- `test_iter316_rehire_eligibility_reactivate.py` (16 tests):
+  - Default-to-review_required + reason-required gate
+  - not_eligible + review_required require reason; eligible does not (and stale reasons cleared)
+  - Invalid rehire_eligibility values rejected (422)
+  - Reactivate preserves original_hire_date, sets rehire_date, clears termination_date+last_day_worked, appends kind=reactivate with all preserved_* fields
+  - Reactivate from non-inactive status → 409
+  - Reactivate to non-{Active, Pending Hire} → 400/422
+  - Write-once on original_hire_date survives a full reactivation cycle
+  - Inactive name-match returns structured `possible_existing_inactive` payload with candidate
+  - Inactive email-match also triggers the warning
+  - Active name collision still produces strict 409 (string detail, not structured)
+  - `?force=true` bypasses the inactive warning
+  - `rehire_eligibility=review_required` filter returns only matching rows; invalid value rejected
+  - Route-module invariants (allowed set, gate, write-once preservation, index)
+  - Frontend invariants (every new test-id present + coaching family wired)
+  - Coaching family present in EN + ES (4 tips each)
+- Combined regression: **105/105 green** across iter306 + iter307 + iter310 + iter312 + iter313 + iter314 + iter316 + iter285 + iter288.
+- Wider lifecycle/driver regression: **164/164 green** across iter224 + iter285 + iter286 + iter287 + iter288 + iter314 + iter316.
+- Boundary verified: Field Leadership token rejected (HTTP 401) on `/api/hr/employees/*/reactivate` in every header slot — HR/Admin only.
+- ESLint + ruff clean on every touched file.
+
+### Files touched (iter316)
+- MOD · `/app/backend/routes/employee_lifecycle.py` (allowed-set + validators + reactivate endpoint + duplicate-warning logic + filter + index)
+- MOD · `/app/backend/guidance/tips.py` (4 EN tips)
+- MOD · `/app/backend/guidance/tips_es.py` (4 ES tips)
+- MOD · `/app/frontend/src/pages/HrEmployees.jsx` (filter dropdown + status-change rehire fields + drawer display + reactivate dialog + add-dialog duplicate warning)
+- MOD · `/app/frontend/src/lib/employeesApi.js` (force param + reactivateHrEmployee)
+- NEW · `/app/backend/tests/test_iter316_rehire_eligibility_reactivate.py` (16 tests)
+- MOD · `/app/backend/tests/test_iter285_lifecycle_date_structure.py` (lifecycle date set updated 5→6 to include rehire_date · operator-mandated)
+- MOD · `/app/backend/tests/test_iter288_driver_qualification_dashboard.py` (same enumeration update)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO onboarding automation, recruiting/applicant tracking, case management, legal-determination engine, discipline workflow changes, payroll integration, benefits logic, approval chains, rehire-scoring, automated eligibility decisions.
+- ❌ NO new audit collection (reused `status_history`).
+- ❌ NO refactor of `_WRITE_ONCE_FIELDS` (still just `original_hire_date`).
+- ❌ NO touching the legacy `/field-leadership/login` shared-password gate.
+- ❌ NO change to pre-existing legacy fixture debt (`test_iter152_employee_lifecycle.py` 4 failing tests + `test_payroll_variance_iter72.py` + `test_rebrand_iter41.py` — all pre-existing iter285/iter72/iter41 debt; intentionally untouched per `STABILIZATION_PRINCIPLES.md`).
+- ❌ NO permissions widening — Field Leadership / PM / Safety / Shop tokens remain blocked from the new reactivate endpoint and the rehire-eligibility filter.
+
+### Operational impact
+HR can now record a structured, filterable answer to "is this person rehireable?" at the moment of termination — not 18 months later when someone asks and the answer has evaporated. When a former employee comes back, HR finds them in the inactive/terminated filter, opens the drawer, and clicks "Reactivate / Rehire Employee" — original hire date is preserved automatically, the new rehire date is recorded, the prior termination event stays in history, and no duplicate record gets created. The Add Employee dialog actively warns HR when they're about to create a duplicate of an inactive person.
+
+### Production impact
+**Preview has it. Production at mascidocs.com still missing until next redeploy.** DB-side: a new `rehire_eligibility` index is auto-created on startup. Existing employee documents need no migration — the new fields default to `None` and the read paths handle their absence gracefully.
+
+
+
 ## 2026-05-21 — iter315 HR Field Leadership User-Management Visibility · CLOSED
 
 ### Scope (bounded visibility/debug closure of iter314)
