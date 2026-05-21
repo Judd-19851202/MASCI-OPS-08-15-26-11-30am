@@ -41,9 +41,10 @@ export default function DispatchHub() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col" data-testid="dispatch-hub">
-      <header className={`bg-slate-950 text-white border-b-4 ${DISPATCH_PAL.hubHeaderBar}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 flex-wrap">
+    <div className="min-h-screen blueprint-bg flex flex-col" data-testid="dispatch-hub">
+      <div className="caution-stripe" />
+      <header className={`bg-slate-900 text-white border-b-4 ${DISPATCH_PAL.hubHeaderBar}`}>
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3 flex-wrap">
           <Link
             to="/"
             className={`inline-flex items-center text-white ${DISPATCH_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`}
@@ -64,20 +65,25 @@ export default function DispatchHub() {
           </button>
           <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
           <div className="flex-1 min-w-0">
-            <div className={`font-mono text-[10px] uppercase tracking-[0.2em] ${DISPATCH_PAL.hubKickerStatic} font-bold`}>
+            <div className={`font-mono text-[10px] uppercase tracking-[0.22em] ${DISPATCH_PAL.hubKickerStatic} font-bold`}>
               Dispatch Portal
             </div>
             <div className="font-display text-lg sm:text-xl font-black leading-tight truncate">
               {user.name || "Dispatcher"}
             </div>
           </div>
-          <PortalSwitcher current="dispatch" />
-          <GlobalSearch accent="dark" />
+          {/* iter321 — Mobile header collapse: hide PortalSwitcher,
+              GlobalSearch, Transfers, Fleet, Guides on <sm. Keep
+              visible: NotificationBell, OfflineIndicator, SignOut. */}
+          <div className="hidden sm:flex items-center gap-2">
+            <PortalSwitcher current="dispatch" />
+            <GlobalSearch accent="dark" />
+          </div>
           <NotificationBell accent="white" />
           <OfflineIndicator />
           <Link
             to="/asset-transfers"
-            className="inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
+            className="hidden sm:inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
             data-testid="dispatch-asset-transfers-link"
           >
             <Truck className="w-3.5 h-3.5 sm:mr-1" />
@@ -85,7 +91,7 @@ export default function DispatchHub() {
           </Link>
           <Link
             to="/dispatch-portal/fleet"
-            className="inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
+            className="hidden sm:inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
             data-testid="dispatch-fleet-link"
           >
             <Truck className="w-3.5 h-3.5 sm:mr-1" />
@@ -93,7 +99,7 @@ export default function DispatchHub() {
           </Link>
           <Link
             to="/guidance"
-            className="inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
+            className="hidden sm:inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
             data-testid="dispatch-training-link"
           >
             <BookOpen className="w-3.5 h-3.5 sm:mr-1" />
@@ -112,20 +118,22 @@ export default function DispatchHub() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4 flex-1 w-full">
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-4 flex-1 w-full">
+        {/* iter321 · calm title card replaces the prior hot
+            `border-2 border-slate-300` block. Left-edge orange stripe
+            preserves the Dispatch identity color while the chrome stays
+            on the platform-family contract. */}
+        <div className="bg-white border border-slate-200 border-l-4 border-l-orange-500 rounded-md p-5">
           <div className="flex items-start gap-3">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-orange-600 text-white shrink-0">
-              <Truck className="w-6 h-6" />
-            </div>
+            <Truck className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
             <div>
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
-                Dispatch Portal · iter132
+              <span className="font-mono text-xs uppercase tracking-[0.22em] text-orange-700 font-bold">
+                Dispatch Portal
               </span>
-              <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">
+              <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
                 Equipment Movement Command Center
               </h1>
-              <p className="text-sm text-slate-600 mt-1">
+              <p className="text-sm text-slate-600 mt-2 max-w-2xl">
                 Availability · transfers · holds · utilization · idle alerts · Motive + MaintainX readiness.
               </p>
             </div>
@@ -152,7 +160,7 @@ export default function DispatchHub() {
         </Tabs>
       </main>
 
-      <footer className="max-w-7xl mx-auto px-4 sm:px-6 py-6 w-full flex flex-col items-center gap-2">
+      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 w-full flex flex-col items-center gap-2">
         <ForgedOpsAttribution variant="footer" />
       </footer>
     </div>

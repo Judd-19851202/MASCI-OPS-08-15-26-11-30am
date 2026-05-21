@@ -44,8 +44,13 @@ cd /app && python -m pytest \
 | 4 | **Field Hub** | `/field` | Public (no auth) | `test_iter319_fl_and_field_calm_pass.py` |
 | 5 | **Shop Hub** | `/shop` | Multi-login token via `localStorage.masci.shop.token` | `test_iter320_shop_qaqc_calm_pass.py` |
 | 6 | **QA/QC Section** | `/qaqc` | Public (no auth) | `test_iter320_shop_qaqc_calm_pass.py` |
+| 7 | **Dispatch Hub** | `/dispatch-portal` | Multi-login token via `localStorage.masci.dispatch.token` | `test_iter321_dispatch_safety_governance_closure.py` |
+| 8 | **Safety Section** (public) | `/safety` | Public (no auth) | `test_iter321_dispatch_safety_governance_closure.py` |
+| 9 | **Safety Forms Hub** | `/safety/forms` | Password-gated (Safety Department) | `test_iter321_dispatch_safety_governance_closure.py` |
 
 **Family contract lock** · `test_platform_family_contract.py` — single read-only invariant suite that mechanically prevents drift across every hub in the family. Verifies the 4 canonical anchors (`border-l-4` calm card · `text-3xl sm:text-4xl` H1 · `tracking-[0.22em]` section heading · neutral KPI chrome) and refuses re-introduction of the hot SectionTile import. Anti-drift protection only — no screenshot testing, no pixel diff, no style bureaucracy.
+
+**Pre-deploy gate** · `/app/.deploy_checks/run_family_contract.sh` (iter321) — tiny bash hook that runs the family contract test. Wire into the redeploy pipeline; exits non-zero on contract violation. README at `/app/.deploy_checks/README.md`.
 
 The hubs currently inside the family contract:
 - `HrHub` (iter317-C)
@@ -54,6 +59,9 @@ The hubs currently inside the family contract:
 - `FieldSection` (iter319)
 - `ShopHub` (iter320)
 - `QaqcSection` (iter320)
+- `DispatchHub` (iter321)
+- `SafetySection` (iter321)
+- `SafetyFormsHub` (iter321)
 
 ---
 

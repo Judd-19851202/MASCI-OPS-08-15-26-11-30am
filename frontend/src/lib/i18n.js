@@ -3610,6 +3610,13 @@ const ES = {
   "Inspection Forms": "Formularios de Inspección",
   "Routed, signed, photographed, and stored": "Enrutado, firmado, fotografiado y almacenado",
 
+  // iter321 · Safety Section Calm Pass (Safety tile governance closure)
+  "Compliance Forms & References": "Formularios y Referencias de Cumplimiento",
+  "Crew-facing OSHA forms · job hazard plans · field references": "Formularios OSHA para la cuadrilla · planes de riesgo del trabajo · referencias de campo",
+  "OPEN PLANS": "ABRIR PLANES",
+  "OPEN CARDS": "ABRIR TARJETAS",
+  "OPEN FORMS": "ABRIR FORMULARIOS",
+
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",

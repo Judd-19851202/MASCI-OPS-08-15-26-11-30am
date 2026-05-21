@@ -2,6 +2,108 @@
 
 
 
+## 2026-05-21 — iter321 · Dispatch Hub Convergence + Safety Tile Governance Closure + Deploy Hook · CLOSED
+
+### Scope (operator-mandated · Platform UX Governance Phase A · iter321 · 3-part delivery)
+Continues platform-family convergence with the three closure items remaining in Phase A:
+1. **Dispatch Hub** — the architectural outlier — converged to the family contract.
+2. **Safety tile governance closure** — refines the two Safety-related public surfaces missed in earlier iterations (`SafetySection.jsx` `/safety` public landing · `SafetyFormsHub.jsx`).
+3. **Pre-deploy contract hook** at `/app/.deploy_checks/run_family_contract.sh` — tiny bash wrapper that runs the family contract test before redeploys.
+
+NO sidebar · NO IA redesign · NO route changes · NO permission changes · NO new features. All Dispatch + SafetySection + SafetyFormsHub testids preserved (regression contract). Family contract now covers **9 hubs**.
+
+### Dispatch Hub changes (the outlier closed)
+- BG: `bg-slate-50` → `blueprint-bg` + `caution-stripe` (family canonical · matches HR/Safety/FL/Field/Shop/QA/QC).
+- Header: `bg-slate-950` → `bg-slate-900` (canonical interior hub).
+- Container width: `max-w-7xl` → `max-w-6xl` (Rule 7 convergence · main + footer + header all converged).
+- Padding: `px-4 sm:px-6 py-3` → `px-5 sm:px-8 py-4` (family canonical).
+- Title block: hot `bg-white border-2 border-slate-300 rounded-md p-5` → calm `bg-white border border-slate-200 border-l-4 border-l-orange-500 rounded-md p-5` (Rule 1 left-edge stripe with orange Dispatch identity color).
+- H1: `text-2xl` → `text-3xl sm:text-4xl` (Rule 3 interior hub).
+- Stale `iter132` kicker leak removed; kicker tracking standardized to `0.22em`.
+- iter203 mobile collapse applied: `PortalSwitcher`, `GlobalSearch`, `Transfers`, `Fleet`, `Guides` Links hidden below `sm:`. `NotificationBell`, `OfflineIndicator`, `SignOut` stay visible.
+- All 13 Dispatch testids preserved (`dispatch-hub`, `dispatch-nav-home`, `dispatch-nav-back`, `dispatch-asset-transfers-link`, `dispatch-fleet-link`, `dispatch-training-link`, `dispatch-logout`, `dh-tab-{overview,utilization,idle,transfers,holds,integrations}`).
+- Tabs / `OperationsCenter` / `DispatchOverviewTab` / etc. left unchanged (sub-tab components stay; they have their own iteration paths).
+
+### Safety tile governance closure changes
+**`SafetySection.jsx` (`/safety` public OSHA-compliance landing)** — the most-trafficked public Safety surface, missed in iter318:
+- Inline `SafetyTile` replaces `SectionTile`. Left-edge stripe palette covers red · redDeep · amber · slate · emerald · cyan.
+- H1: `text-4xl sm:text-5xl` → `text-3xl sm:text-4xl`. Icon chip: `w-14 h-14` → `w-12 h-12`. Kicker tracking standardized.
+- Matched section heading style added ("COMPLIANCE FORMS & REFERENCES · Crew-facing OSHA forms · job hazard plans · field references").
+- CTAs uppercased: "Start Form" → "START FORM" · "Open Plans" → "OPEN PLANS" · "Open Library" → "OPEN LIBRARY" · "Open Cards" → "OPEN CARDS" · "Open Forms" → "OPEN FORMS".
+- All 7 `safety-tile-*` testids preserved · new `safety-section-heading` testid surfaced.
+
+**`SafetyFormsHub.jsx` (`/safety/forms` Safety-Dept gated)**:
+- Inline `FormTile` rewritten from hot chrome (`border-2 border-slate-300 p-6 sm:p-8` + `w-14 h-14` icon chip + `text-2xl` H3 + bottom `border-t-2` divider) to calm family pattern.
+- H1: `text-4xl sm:text-5xl` → `text-3xl sm:text-4xl`.
+- CTAs uppercased: "Start Form" → "START FORM".
+- 2 form-tile testids preserved.
+
+### Platform Family Contract membership · iter321 expansion
+`test_platform_family_contract.py` FAMILY_HUBS list extended from 6 → **9 hubs**:
+- HR Hub (iter317-C) · Safety Hub (iter318) · FL Hub (iter319) · Field Hub (iter319) · Shop Hub (iter320) · QA/QC Section (iter320)
+- **+ Dispatch Hub (iter321)** · **+ Safety Section (iter321)** · **+ Safety Forms Hub (iter321)**
+
+All 7 family-anchor invariants automatically apply to the new members — they pass at green.
+
+### Deploy Contract Hook · NEW
+**`/app/.deploy_checks/run_family_contract.sh`** + `README.md`:
+- 10 lines of bash · runs only `pytest test_platform_family_contract.py` · exits non-zero on contract violation.
+- Live verification: hook executes cleanly · prints `── Contract green · safe to deploy ──` on pass.
+- Strict per operator mandate — NOT a CI runner · NOT a screenshot system · NOT a pixel-diff farm · NOT a style enforcement tower. Anti-drift protection only.
+
+### Bilingual parity (Rule 8)
+Added 5 new ES dictionary entries to `lib/i18n.js`:
+- "Compliance Forms & References" → "Formularios y Referencias de Cumplimiento"
+- "Crew-facing OSHA forms · job hazard plans · field references" → "Formularios OSHA para la cuadrilla · planes de riesgo del trabajo · referencias de campo"
+- "OPEN PLANS" → "ABRIR PLANES"
+- "OPEN CARDS" → "ABRIR TARJETAS"
+- "OPEN FORMS" → "ABRIR FORMULARIOS"
+
+Live ES verification confirmed Safety Section renders fully in Spanish at `/safety` (`SEGURIDAD · CUMPLIMIENTO` · `Seguridad` · `FORMULARIOS Y REFERENCIAS DE CUMPLIMIENTO` · all CTAs translated).
+
+### Verification (all PASSED)
+- ✅ `test_iter321_dispatch_safety_governance_closure.py` (13 tests): Dispatch blueprint-bg/slate-900/max-w-6xl/no-iter132/calm-title/H1/mobile-collapse/testids · SafetySection family contract · SafetyFormsHub calm · deploy hook present + executable.
+- ✅ `test_platform_family_contract.py` (7 tests) — now scanning 9 hubs: all anchors green.
+- ✅ Pre-deploy hook live-tested: `bash /app/.deploy_checks/run_family_contract.sh` → `7 passed in 0.03s · Contract green · safe to deploy`.
+- ✅ Combined regression: **140/140 green** across iter314 + iter316 + iter317-A/B/C + iter318 + iter319 + iter320 + iter321 + platform-family contract.
+- ✅ Live preview screenshots:
+  - Dispatch Desktop: blueprint-bg with caution stripe · header slate-900 · calm orange-stripe title card · `text-3xl/4xl` H1 · no iter132 leak · `OperationsCenter` rendering 4 KPIs (out-of-scope component)
+  - Dispatch Mobile (390): iter203 collapse working — Home/Back/Logo/kicker/Bell+badge/SignOut visible; PortalSwitcher/GlobalSearch/Transfers/Fleet/Guides collapsed
+  - SafetySection Desktop EN: 7 calm tiles with left-edge stripes (red/slate/red-deep/amber/slate/red-deep/red-deep) · uppercase CTAs · matched section heading
+  - SafetySection Desktop ES: `SEGURIDAD · CUMPLIMIENTO` · `FORMULARIOS Y REFERENCIAS DE CUMPLIMIENTO · Formularios OSHA para la cuadrilla · planes de riesgo del trabajo · referencias de campo` · all 7 tiles translated · `INICIAR FORMULARIO`, `ABRIR PLANES`, `ABRIR TARJETAS` CTAs
+- ✅ ESLint clean on `DispatchHub.jsx` · `SafetySection.jsx` · `SafetyFormsHub.jsx`.
+
+### Files touched (iter321)
+- MOD · `/app/frontend/src/pages/DispatchHub.jsx` (BG · header · width · title card · H1 · iter132 leak · iter203 collapse)
+- MOD · `/app/frontend/src/pages/SafetySection.jsx` (full rewrite to calm pattern)
+- MOD · `/app/frontend/src/pages/SafetyFormsHub.jsx` (inline FormTile rewrite to calm pattern + H1 tone + CTA case)
+- MOD · `/app/frontend/src/lib/i18n.js` (5 new ES entries)
+- MOD · `/app/backend/tests/test_platform_family_contract.py` (FAMILY_HUBS 6 → 9)
+- NEW · `/app/backend/tests/test_iter321_dispatch_safety_governance_closure.py` (13 tests)
+- NEW · `/app/.deploy_checks/run_family_contract.sh` (executable; runs contract test)
+- NEW · `/app/.deploy_checks/README.md`
+- DOC · `/app/memory/UX_PLATFORM_FAMILY_REFERENCE.md` (Shop/QA/QC entries already present; added Dispatch + SafetySection + SafetyFormsHub + deploy-hook summary)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO change to Dispatch sub-tab components (`DispatchOverviewTab`, `DispatchUtilizationTab`, etc. — they live in `pages/admin/AdminDispatch.js` and are re-exported; out of iter321 scope)
+- ❌ NO change to `OperationsCenter` shared component (Phase C iter325 will handle)
+- ❌ NO change to `SectionTile` shared component (still used by Hub.jsx public landing — allowed)
+- ❌ NO change to Safety Hub `/safety-portal` (iter318 already on contract; validation only)
+- ❌ NO change to backend, routes, permissions, DB, integrations behavior
+- ❌ NO Phase A continuation (iter322 FL Portal Dashboard still queued)
+- ❌ NO Phase B-E starts
+
+### Operational impact
+Phase A is now **substantially complete**: 9 surfaces (HR · Safety Portal · Safety Section · Safety Forms · FL Portal · Field · Shop · QA/QC · Dispatch) all visually coherent under the family contract. A user moving between any of them experiences identical visual rhythm. Dispatch — the prior architectural outlier — now matches the rest. The Safety tile chrome that crews see daily on `/safety` is no longer drifted from the rest of the platform.
+
+The **pre-deploy contract hook** mechanically prevents contract drift from ever reaching production: any future agent that reverts a calmified hub or introduces hot SectionTile chrome in a family member will fail the deploy gate.
+
+### Production impact
+**Preview has Dispatch + SafetySection + SafetyFormsHub calm passes + deploy hook + expanded family contract. Production at mascidocs.com still missing until next redeploy.** Zero backend / DB / API / permissions changes. CSS / layout refinement + 5 i18n dictionary additions + 1 new test file + 1 new deploy hook + 1 new README. Ships the moment the redeploy lands.
+
+
+
 ## 2026-05-21 — iter320 · Shop Hub + QA/QC Calm Pass + Platform Family Contract Lock · CLOSED
 
 ### Scope (operator-mandated · Platform UX Governance Phase A · iter320 · 4-part delivery)
