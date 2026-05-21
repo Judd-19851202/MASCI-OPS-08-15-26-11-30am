@@ -1,0 +1,51 @@
+{
+  "summary": "iter323 Safety Forms Portal Ownership Closure — backend RBAC fully verified (21/21 tests pass). Frontend anon redirect + legacy login banner + new Safety Portal tile + /safety-portal/forms-records list page all PASS. BLOCKING BUG: detail viewer ViewSafetyForm.jsx still uses legacy gate (isSafetyForms() || isAdmin()) — does NOT honor X-Safety-Token. Safety users get bounced to /safety/forms/login (legacy 1982 wall), which then triggers EnforcePortalScope to wipe their Safety token, cascading into a re-login loop. iter323 acceptance criteria for the drill-row flow and signed-in /safety/forms hub flow are unmet.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Drill into Issuance/Training detail viewer from /safety-portal/forms-records as Safety user",
+        "issue": "ViewSafetyForm.jsx line 42 `const authed = isSafetyForms() || isAdmin();` does NOT include isSafety(). Safety Portal users are bounced to /safety/forms/login (Navigate at line 57). Because /safety/forms/login is in EnforcePortalScope's ALL_LOGIN_PATHS, the Safety token is then wiped (clearAllSessions), breaking the session. Also, downloadPdf (lines 60-77) only sends X-Admin-Token + X-Safety-Forms-Token — never X-Safety-Token — so PDF download will 401 for Safety users too.",
+        "affected_selectors": ["a:has-text('Open')", "/safety/forms/equipment-issuance/:id", "/safety/forms/equipment-training/:id"],
+        "priority": "HIGH"
+      },
+      {
+        "flow": "Direct visit /safety/forms while signed in as Safety user",
+        "issue": "Reproduces after the drill-flow above. After ViewSafetyForm bounces to /safety/forms/login, EnforcePortalScope wipes masci.safety.token. The next time the user visits /safety/forms, SafetyFormsHub's widened gate correctly evaluates isSafety()||isAdmin()||isSafetyForms() — but because the token was just wiped, all three return false, so it redirects to /safety-portal/login?from=safety-forms. The widened gate is correct in isolation; the breakage is upstream in ViewSafetyForm.",
+        "affected_selectors": ["/safety/forms"],
+        "priority": "HIGH"
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter323_safety_forms_portal_gate.py",
+    "/app/backend/tests/test_iter323_safety_forms_extra_smoke.py",
+    "/app/test_reports/pytest/iter323_results.xml",
+    "/app/test_reports/pytest/iter323_extra_smoke.xml"
+  ],
+  "action_items": [
+    "Widen /app/frontend/src/pages/ViewSafetyForm.jsx gate: replace `const authed = isSafetyForms() || isAdmin();` with `const authed = isSafety() || isSafetyForms() || isAdmin();` (import isSafety from '@/lib/safetyAuth').",
+    "In ViewSafetyForm.downloadPdf (~lines 60-77), also send X-Safety-Token header (read via getSafetyToken from @/lib/safetyAuth) so Safety users can download PDFs — backend already accepts it.",
+    "Change ViewSafetyForm.jsx line 57 redirect target from /safety/forms/login to /safety-portal/login?from=safety-forms for consistency with iter323 ownership model AND to avoid the EnforcePortalScope wipe of the Safety token. (Optional: keep /safety/forms/login as fallback for legacy SF-only users, but only if isSafetyForms session-token was the originating identity.)",
+    "After the fix, re-run the Playwright drill-row + direct-/safety/forms tests."
+  ],
+  "critical_code_review_comments": [
+    "iter323's gate widening is incomplete — it covers SafetyFormsHub but NOT the detail viewer ViewSafetyForm. Same pattern needs to propagate to every legacy `isSafetyForms() || isAdmin()` check across the safety-forms page family (suggest grep: `isSafetyForms()` in /app/frontend/src/pages/).",
+    "EnforcePortalScope auto-wiping masci.safety.token when landing on /safety/forms/login is an undesirable interaction for Safety users — they should never end up there. Routing all unauthenticated bounces to /safety-portal/login (the new owner) avoids this entirely."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter323_safety_forms_extra_smoke.py (new — 5 extra smoke tests, all passing)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "70%"},
+  "test_credentials": "Bootstrap path used: POST /api/auth/multi-login with jaymn.judd@mascigc.com / Maddix123! → portal_tokens.safety. Worked first try. PM path not exercised in frontend (PM is intentionally NOT widened; backend tests already confirm 401 for X-PM-Token).",
+  "seed_data_creation": "None. Preview DB already has 33 issuance records + 10 training records.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend RBAC is solid — 16/16 parametrized + 5/5 smoke tests pass against preview. The ONLY remaining issue is frontend: ViewSafetyForm.jsx (detail viewer for /safety/forms/equipment-{issuance,training}/:id) needs gate + PDF download widened to honor X-Safety-Token, and ideally its unauthenticated bounce target moved to /safety-portal/login?from=safety-forms. After the fix re-test by: (1) seeding masci.safety.token via multi-login, (2) visiting /safety-portal/forms-records, (3) clicking any Open → assert detail loads without redirect, (4) re-visit /safety/forms and confirm SafetyFormsHub renders.",
+  "rca of the issue": "ROOT CAUSE: iter323 widened the SafetyFormsHub gate but left ViewSafetyForm.jsx (the per-record detail viewer) on the pre-iter323 gate (`isSafetyForms() || isAdmin()`). When a signed-in Safety user clicks 'Open →' on a row in /safety-portal/forms-records, React Router navigates to /safety/forms/equipment-issuance/:id; ViewSafetyForm's gate fails because Safety token doesn't satisfy isSafetyForms(); it issues <Navigate to='/safety/forms/login' />; EnforcePortalScope sees the user landed on a login path (in ALL_LOGIN_PATHS) and calls clearAllSessions() — wiping masci.safety.token. The user is now de-authed, and every subsequent /safety/forms* visit bounces to /safety-portal/login. REPRO: (1) localStorage.setItem('masci.safety.token', <token>); (2) visit /safety-portal/forms-records (loads fine, 33 records); (3) click any 'Open →'; (4) observe URL becomes /safety/forms/login and Safety token is gone. MITIGATION: widen gate to include isSafety(), add X-Safety-Token to PDF download, and route unauthenticated bounces to /safety-portal/login?from=safety-forms instead of the legacy 1982 wall."
+}

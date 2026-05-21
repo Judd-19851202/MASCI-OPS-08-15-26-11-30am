@@ -169,7 +169,7 @@ export default function SafetySection() {
             to="/safety/forms"
             icon={ShieldCheck}
             title={t("Safety Forms")}
-            desc={t("Equipment Issuance & Accountability + Use & Care Training documentation — password-gated for the Safety Department.")}
+            desc={t("Equipment Issuance & Accountability + Use & Care Training documentation — open from the Safety Portal.")}
             accent="redDeep"
             ctaLabel={t("OPEN FORMS")}
             testId="safety-tile-forms"

@@ -842,15 +842,29 @@ def build_safety_forms_router(db, _is_valid_admin_token):
     _DB_REF = db
     router = APIRouter(prefix="/api/safety-forms", tags=["safety-forms"])
 
-    def _require_safety_or_admin(
+    async def _require_safety_or_admin(
         x_admin_token: Optional[str] = Header(default=None),
         x_safety_forms_token: Optional[str] = Header(default=None),
+        x_safety_token: Optional[str] = Header(default=None),
     ) -> bool:
+        # iter323 · Safety Forms ownership closure — the Safety Portal
+        # user token is now a first-class auth path here. Admin token
+        # works (admin = global). Legacy Safety-Forms token still works
+        # (backwards compat for any field bookmark / automation). PM
+        # token is intentionally NOT accepted on this review model.
         if x_admin_token and _is_valid_admin_token(x_admin_token):
             return True
+        if x_safety_token:
+            from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
+            user = await is_valid_safety_user_token_async(db, x_safety_token)
+            if user:
+                return True
         if x_safety_forms_token and _is_valid_safety_token(x_safety_forms_token):
             return True
-        raise HTTPException(status_code=401, detail="Safety Forms or admin login required")
+        raise HTTPException(
+            status_code=401,
+            detail="Safety Portal, Safety Forms, or admin login required",
+        )
 
     def _require_admin(x_admin_token: Optional[str] = Header(default=None)) -> bool:
         if not x_admin_token or not _is_valid_admin_token(x_admin_token):
@@ -911,7 +925,7 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         date_from: Optional[str] = Query(default=None),
         date_to: Optional[str] = Query(default=None),
         limit: int = Query(default=100, le=500),
-        _: bool = Depends(_require_admin),
+        _: bool = Depends(_require_safety_or_admin),
     ):
         query: Dict[str, Any] = {}
         if employee:
@@ -1067,7 +1081,7 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         date_from: Optional[str] = Query(default=None),
         date_to: Optional[str] = Query(default=None),
         limit: int = Query(default=100, le=500),
-        _: bool = Depends(_require_admin),
+        _: bool = Depends(_require_safety_or_admin),
     ):
         query: Dict[str, Any] = {}
         if employee:

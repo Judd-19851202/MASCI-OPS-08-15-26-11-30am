@@ -19,7 +19,7 @@ import { Link, Navigate } from "react-router-dom";
 import axios from "axios";
 import {
   ShieldAlert, AlertOctagon, ClipboardCheck, Users, FileText,
-  Award, Flame, FolderArchive, BarChart3, Loader2, Mail, GraduationCap, Truck, BookOpen,
+  Award, Flame, FolderArchive, BarChart3, Loader2, Mail, GraduationCap, Truck, BookOpen, Package,
 } from "lucide-react";
 import SafetyShell from "@/components/SafetyShell";
 import IntegrationHealthCard from "@/components/IntegrationHealthCard";
@@ -265,6 +265,19 @@ export default function SafetyHub() {
             accent="redDeep"
             ctaLabel={t("OPEN")}
             testId="safety-tile-extinguishers"
+          />
+          {/* iter323 · Safety Forms ownership closure — review surface
+              for Equipment Issuance + Use & Care Training records. Lets
+              Safety see every form submission tied to an employee, with
+              filters by employee/project/date and drill-in to detail. */}
+          <SafetyTile
+            to="/safety-portal/forms-records"
+            icon={Package}
+            title={t("Equipment & PPE Accountability")}
+            desc={t("Review every Equipment Issuance and Use & Care Training submission — per-employee chain of custody, returns, damages, and chargebacks.")}
+            accent="cyan"
+            ctaLabel={t("OPEN")}
+            testId="safety-tile-forms-records"
           />
           <SafetyTile
             to="/safety-portal/documents"

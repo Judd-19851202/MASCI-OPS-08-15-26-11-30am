@@ -14,6 +14,8 @@ import { LangToggle } from "@/components/LangToggle";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import PortalContextBanner from "@/components/PortalContextBanner";
 import { isSafetyForms, clearSafetyFormsToken } from "@/lib/safetyFormsAuth";
+import { isSafety } from "@/lib/safetyAuth";
+import { isAdmin } from "@/lib/adminAuth";
 import { useT } from "@/lib/i18n";
 
 // iter321 · Safety Forms Hub — calm tile pattern (family contract).
@@ -52,12 +54,20 @@ export default function SafetyFormsHub() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isSafetyForms()) {
-      navigate("/safety/forms/login", { replace: true });
+    // iter323 · Safety Portal ownership — accept any of:
+    //   • Safety Portal user (X-Safety-Token)
+    //   • Admin (X-Admin-Token)
+    //   • Legacy Safety-Forms token (backwards compat)
+    // No portal session anywhere → bounce to Safety Portal login.
+    if (!isSafety() && !isAdmin() && !isSafetyForms()) {
+      navigate("/safety-portal/login?from=safety-forms", { replace: true });
     }
   }, [navigate]);
 
   const signOut = () => {
+    // Only the legacy token is owned by this page. Safety Portal sign-out
+    // happens from /safety-portal; Admin sign-out from /admin. Just clear
+    // the legacy SF token and route back to the Safety section.
     clearSafetyFormsToken();
     navigate("/safety", { replace: true });
   };

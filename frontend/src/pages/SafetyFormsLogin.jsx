@@ -93,9 +93,30 @@ export default function SafetyFormsLogin() {
               </h1>
             </div>
           </div>
-          <p className="text-slate-600 text-sm mt-3 mb-6">
+          <p className="text-slate-600 text-sm mt-3 mb-3">
             {t("Equipment Issuance and Use & Care Training. Password-gated for the Safety Department.")}
           </p>
+          {/* iter323 · Safety Portal ownership notice — primary path is
+              now Safety Portal sign-in. Legacy password kept for
+              backwards compatibility (field bookmarks / automation). */}
+          <div
+            className="mb-5 rounded-md border border-slate-200 border-l-4 border-l-cyan-700 bg-cyan-50/60 p-3"
+            data-testid="safety-forms-portal-notice"
+          >
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-cyan-800 font-bold">
+              {t("Safety Portal Ownership")}
+            </div>
+            <p className="text-xs text-slate-700 mt-1">
+              {t("Safety Forms are now owned by the Safety Portal. Sign in there for the full review experience.")}{" "}
+              <Link
+                to="/safety-portal/login?from=safety-forms"
+                className="font-bold text-cyan-800 underline"
+                data-testid="safety-forms-portal-cta"
+              >
+                {t("Go to Safety Portal sign-in →")}
+              </Link>
+            </p>
+          </div>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="safety-forms-login-form">
             <div>
