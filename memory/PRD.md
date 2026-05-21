@@ -2,6 +2,82 @@
 
 
 
+## 2026-05-21 — iter310 PDF Single-Footer Invariant (Multi-page Incident PDF Rendering Fix) · CLOSED
+
+### Scope (operator-flagged professional-trust hazard · bounded fix)
+Operator reported visual clutter, footer duplication, and stacking on multi-page incident PDFs (`MASCI-incident-T5860_SR_9__I_95-2026-05-19.pdf`, pages 4-6). These PDFs are bound for FDOT / OSHA / insurance / attorneys / owners. NO redesign — rendering stabilization only.
+
+### Root cause
+`backend/pdf_render.py` had TWO active per-page footer renderers:
+1. **CSS `@page @bottom-left`** rule (correct mechanism · once per page in page margin)
+2. **HTML `<div class="ftr">` with `position: fixed; bottom: 0.25in`** — WeasyPrint treats `position: fixed` as fixed-per-page, so the same footer text rendered AGAIN inside content area on every page
+
+Result: footer text printed twice on every page of multi-page PDFs.
+
+### Quantified before/after
+| State | Pages | Total footer renders | Per page |
+|---|---|---|---|
+| BEFORE (operator's PDF) | 6 | 12 | **2× (BUG)** |
+| AFTER (post-fix · same content shape) | 7 | 7 | **1× ✅** |
+
+### Scope · audit of all PDF surfaces
+- `pdf_render.py` — **HAD THE BUG · FIXED** (incident, daily report, safety form, equipment record, QA/QC records)
+- `field_leadership_pdf.py` — clean (@page only)
+- `training_pdf.py` — clean (@page only, 7 page types)
+- `export_pdf_fallback.py` — clean (@page only)
+- `pm_welcome_pdf.py` · `safety_exports.py` · `hub_banners_pdf.py` — clean (single-page documents, `<div class="footer">` is fine)
+
+### Fix applied
+- Removed the `.ftr { position: fixed; bottom: 0.25in; ... }` CSS rule
+- Removed the `<div class="ftr">` HTML block from the rendered template
+- Replaced both with an HTML comment explaining why the redundant footer was removed (preventing future re-introduction)
+- Added `page-break-inside:avoid` to the `last-page-legal` and mascidocs disclaimer divs so they don't split awkwardly across pages
+- Preserved: canonical `@page @bottom-left` footer language, page numbering, brand language, all body content, all photos rendering, mobile-generated PDFs unaffected
+
+### Multi-scenario verification (all PASSED)
+| Scenario | Pages | Footers/page | Status |
+|---|---|---|---|
+| Short 1-page | 1 | [1] | ✅ |
+| Narrative-heavy | 6 | [1,1,1,1,1,1] | ✅ |
+| Photo-heavy | 1 | [1] | ✅ |
+| Long multi-page | 8 | [1,1,1,1,1,1,1,1] | ✅ |
+
+Visual analysis of fixed page 6: *"footer appears one time... layout clean and professional... no visual clutter or duplication."*
+
+### Regression coverage
+- NEW · `test_iter310_pdf_single_footer_invariant.py` (7 tests):
+  - No `position: fixed` `.ftr` rule re-introduced
+  - No `<div class="ftr">` HTML emitted (comment-stripped check)
+  - Canonical `@page @bottom-left` footer + ForgedOps language preserved
+  - `counter(page)` / `counter(pages)` page numbering preserved
+  - `last-page-legal` disclaimer + mascidocs ownership note preserved with `page-break-inside:avoid`
+  - **Runtime: footer marker appears exactly 1× per page across a rendered multi-page PDF**
+  - Runtime: page numbering renders visibly on every page
+- 266/266 combined stabilization regression tests green (iter266 + iter299 + iter302/303/304/305/306/307/310)
+- Pre-existing legacy debt unaffected (test_rebrand_iter41 + test_iter31 — both fail identically pre-fix and post-fix)
+
+### Files touched
+- MOD · `/app/backend/pdf_render.py` (removed `.ftr` CSS rule + `<div class="ftr">` block + added preventive comment)
+- NEW · `/app/backend/tests/test_iter310_pdf_single_footer_invariant.py` (7 tests)
+- MOD · `/app/memory/PRD.md` (this entry)
+
+### Files NOT touched (scope discipline)
+- ❌ NO PDF redesign
+- ❌ NO new layout engine
+- ❌ NO branding changes
+- ❌ NO footer language changes
+- ❌ NO page-margin changes
+- ❌ NO changes to other PDF generators (verified clean)
+- ❌ NO mobile-generated PDF path changes
+
+### Final verdict: ✅ APPROVED FOR REDEPLOY
+The fix is bounded, surgical, regression-locked, and verified across 4 PDF scenarios. The incident PDFs now look clean, stable, intentional, professional, and enterprise-grade — suitable for FDOT, OSHA, insurance carriers, attorneys, owners, municipalities, subcontractors, and claims departments.
+
+### Production impact
+Preview environment now generates correct PDFs. Production (https://mascidocs.com) still has the buggy 2-footer version until next redeploy. **Operator needs to redeploy to ship the fix.**
+
+
+
 ## 2026-05-21 — iter306 (post-deploy) + iter307 Disk Hygiene Cleanup · CLOSED
 
 ### Scope (operator-approved Option A · bounded operational hygiene)

@@ -1337,11 +1337,14 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
                font-family: 'Courier New', monospace; letter-spacing: 0.12em;
                text-transform: uppercase; }}
   .sig-label {{ color: #c8102e; font-weight: 900; }}
-  .ftr {{ position: fixed; bottom: 0.25in; left: 0.5in; right: 0.5in;
-          font-family: 'Courier New', monospace; font-size: 7.5pt;
-          color: #64748b; display: flex; justify-content: space-between;
-          letter-spacing: 0.15em; text-transform: uppercase;
-          border-top: 1px solid #cbd5e1; padding-top: 4px; }}
+  .meta {{ font-family: 'Courier New', monospace; font-size: 8pt;
+          color: #475569; letter-spacing: 0.12em; text-transform: uppercase;
+          margin-bottom: 10px; }}
+  /* NOTE: iter310 · the canonical per-page footer lives in @page
+     @bottom-left / @bottom-right above. Do NOT re-add a `.ftr` div
+     here — WeasyPrint treats `position: fixed` as fixed-per-page,
+     which caused the iter310 double-footer regression that printed
+     the footer text twice on every page of multi-page incident PDFs. */
 </style></head><body>
   <header class="hdr">
     <img src="{logo_uri}" alt="MASCI" />
@@ -1357,21 +1360,24 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     Record ID: {escape(record_id)}
   </div>
   {body}
-  <div class="ftr">
-    <span>Generated through MASCI Operations Platform &mdash; Powered by ForgedOps&trade; | &copy; 2026 ForgedOps&trade;</span>
-  </div>
+  <!-- iter310 · per-page footer comes from @page @bottom-left CSS rule.
+       The redundant `<div class="ftr">` previously here caused
+       footer text to render twice on every page of multi-page PDFs.
+       The last-page legal disclaimer below stays in body flow so it
+       naturally lands on the final page after all body content. -->
   <!-- Last-page only: safety disclaimer + ownership clarification.
        Renders after all body content, so it naturally lands on the
        final page of the record PDF (records are typically 1-2 pages). -->
   <div class="last-page-legal" style="margin-top:0.4in;padding-top:8pt;
        border-top:1px solid #cbd5e1;font-family:'Helvetica','Arial',sans-serif;
-       font-size:8pt;color:#334155;line-height:1.45;font-style:italic;">
+       font-size:8pt;color:#334155;line-height:1.45;font-style:italic;
+       page-break-inside:avoid;">
     This platform and training material are provided as a documentation and
     support tool only and do not replace required safety supervision,
     inspections, or regulatory compliance responsibilities.
   </div>
   <div style="margin-top:6pt;font-family:'Helvetica','Arial',sans-serif;
-       font-size:7pt;color:#475569;">
+       font-size:7pt;color:#475569;page-break-inside:avoid;">
     mascidocs.com is a customer-branded deployment of a platform developed
     by ForgedOps LLC.
   </div>
