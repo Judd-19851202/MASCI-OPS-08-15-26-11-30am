@@ -142,22 +142,23 @@ export default function ShopHub() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12 space-y-6">
+      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 space-y-6">
         <div>
-          <span className={`font-mono text-xs uppercase tracking-[0.25em] ${SHOP_PAL.hubKicker} font-bold`}>
+          <span className={`font-mono text-xs uppercase tracking-[0.22em] ${SHOP_PAL.hubKicker} font-bold`}>
             {t("Shop Console")}
           </span>
-          <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2">
+          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
             {t("Pre-Op & Equipment")}
           </h1>
-          <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
+          <p className="text-slate-600 text-base mt-2 max-w-2xl">
             {t("Every Pre-Op inspection. Sign off on Out-of-Service and Needs-Attention items so jobs can keep moving.")}
           </p>
         </div>
 
         <OperationsCenter compact />
 
-        {/* KPI strip */}
+        {/* KPI strip — Rule 5 neutral chrome. Colored value text retains
+            operational emphasis without dominating. */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="shop-kpi-strip">
           <Kpi label={t("Inspections on file")} value={items.length} />
           <Kpi label={t("Units flagged FAIL")} value={failCount} valueClass="text-red-700" />
@@ -165,32 +166,40 @@ export default function ShopHub() {
           <Kpi label={t("Equipment in fleet")} value={equipmentMaster.count} />
         </div>
 
-        {/* Fleet · DVIR queue · iter251 Phase 3 */}
+        {/* Fleet · DVIR queue — iter320 calm pass: same operational
+            function (one-tap entry to the fleet view) with the
+            platform-family calm card chrome (left-edge stripe + soft
+            border + white bg). */}
         <Link
           to="/shop/fleet"
           data-testid="shop-fleet-link"
-          className="mt-1 group flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 rounded-md bg-white border-2 border-amber-300 hover:border-amber-600 hover:bg-amber-50 transition-colors"
+          className="block rounded-lg border border-slate-200 border-l-4 border-l-amber-500 bg-white p-5 hover:shadow-md hover:-translate-y-0.5 hover:border-slate-300 transition-all duration-150"
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-600 text-white shrink-0">
-              <Truck className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-700 font-bold">
-                {t("Trucking · Fleet")}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3 min-w-0">
+              <Truck className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-amber-700 font-bold">
+                  {t("Trucking · Fleet")}
+                </div>
+                <h3 className="font-display text-lg font-black mt-0.5">
+                  {t("Fleet Repair Queue · grouped by truck")}
+                </h3>
+                <p className="text-sm text-slate-600 mt-1">
+                  {t("DVIR defects per truck · driver notes · current status · severity context.")}
+                </p>
               </div>
-              <div className="font-display text-base sm:text-lg font-bold text-slate-900 leading-tight">
-                {t("Fleet Repair Queue · grouped by truck")}
-              </div>
             </div>
+            <span className="shrink-0 inline-flex items-center h-9 px-3 rounded-md bg-amber-700 hover:bg-amber-800 text-white font-bold uppercase tracking-wide text-xs">
+              {t("Open Fleet View")} →
+            </span>
           </div>
-          <span className="text-xs sm:text-sm font-mono uppercase tracking-[0.18em] text-amber-700 font-bold group-hover:text-amber-900 shrink-0">
-            {t("Open Fleet View")} →
-          </span>
         </Link>
 
-        {/* Tabs */}
-        <div className="flex border-b-2 border-slate-200">
+        {/* Tabs — operationally important for Shop (mechanic switches
+            views many times per shift). Active state calmed from
+            `bg-amber-50` hot fill to no-fill amber underline. */}
+        <div className="flex border-b border-slate-200 overflow-x-auto">
           {[
             { key: "open", label: t("Open Items") },
             { key: "activity", label: t("Activity Feed") },
@@ -204,10 +213,10 @@ export default function ShopHub() {
               key={s.key}
               type="button"
               onClick={() => setTab(s.key)}
-              className={`px-4 py-3 text-xs font-mono uppercase tracking-[0.18em] font-bold border-b-4 -mb-0.5 transition-colors ${
+              className={`px-4 py-3 text-xs font-mono uppercase tracking-[0.18em] font-bold border-b-2 -mb-px transition-colors whitespace-nowrap ${
                 tab === s.key
-                  ? "text-amber-700 border-amber-600 bg-amber-50"
-                  : "text-slate-500 border-transparent hover:bg-slate-50"
+                  ? "text-amber-700 border-amber-600"
+                  : "text-slate-500 border-transparent hover:text-slate-700"
               }`}
               data-testid={`shop-tab-${s.key}`}
             >
@@ -318,9 +327,9 @@ export default function ShopHub() {
 }
 
 const Kpi = ({ label, value, valueClass = "text-slate-900" }) => (
-  <div className="bg-white border-2 border-slate-200 rounded-md px-4 py-3">
-    <div className={`font-display text-3xl font-black ${valueClass}`}>{value}</div>
-    <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500 mt-1">{label}</div>
+  <div className="bg-white border border-slate-200 rounded-md p-4">
+    <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">{label}</div>
+    <div className={`font-display text-3xl font-black mt-1 leading-none ${valueClass}`}>{value}</div>
   </div>
 );
 

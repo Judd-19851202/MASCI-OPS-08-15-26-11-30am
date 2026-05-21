@@ -2,6 +2,110 @@
 
 
 
+## 2026-05-21 — iter320 · Shop Hub + QA/QC Calm Pass + Platform Family Contract Lock · CLOSED
+
+### Scope (operator-mandated · Platform UX Governance Phase A · iter320 · 4-part delivery)
+Continues platform-family convergence with a four-part bounded iteration:
+1. **Shop Hub** calm pass — H1 tone-down · KPI Rule-5 neutralization · Fleet banner converted to calm card · tab active-state demoted.
+2. **QA/QC Section** calm pass — full rewrite to inline calm tile · `SectionTile` removed · uppercase CTA · matched section heading style.
+3. **Safety Hub** validation pass — confirmed already-on-contract (no code change).
+4. **Platform Family Contract Lock** — `test_platform_family_contract.py` mechanical anti-drift suite covering all refined hubs.
+
+NO sidebar · NO IA redesign · NO route changes · NO permission changes · NO new features. All Shop + QA/QC testids preserved (regression contract).
+
+### Shop Hub changes
+- H1: `text-4xl sm:text-5xl` → `text-3xl sm:text-4xl` (Rule 3 interior hub). Kicker tracking standardized to `0.22em`.
+- KPI: hot `border-2 border-slate-200 px-4 py-3` → calm Rule-5 `border border-slate-200 rounded-md p-4` with mono label kicker + 3xl colored value.
+- Fleet · DVIR banner: hot `border-2 border-amber-300 hover:border-amber-600 hover:bg-amber-50` → calm `border border-slate-200 border-l-4 border-l-amber-500 bg-white` with platform-family tile shape (icon · title · subtitle + amber-700 CTA pill). Same one-tap entry, no workflow change.
+- Tabs active state: `bg-amber-50` hot fill removed; underline-only `text-amber-700 border-amber-600` retained. Bottom border softened from `border-b-2` to `border-b`. Added `overflow-x-auto` for narrow viewports.
+- All 14+ Shop testids preserved (`shop-nav-home`, `shop-training-link`, `shop-change-pw-link`, `shop-logout-btn`, `shop-kpi-strip`, `shop-fleet-link`, `shop-tab-{open,activity,trends,recent,equipment,parts,integrations}`, `shop-integrations-tab`).
+- iter203 mobile collapse + `OperationsCenter` + `PortalSwitcher` + `NotificationBell` + `GlobalSearch` left unchanged.
+
+### QA/QC Section changes
+- Full rewrite of `QaqcSection.jsx` to inline calm tile pattern.
+- `SectionTile` import removed; `QaqcTile` inline mirrors HR/Safety/FL/Field calm tile shape.
+- H1: `text-4xl sm:text-5xl` → `text-3xl sm:text-4xl`. Kicker tracking standardized to `0.22em`. Icon chip resized `w-14 h-14` → `w-12 h-12` (matches family).
+- CTA: Title-Case "Start Form" → uppercase "START FORM →" (family contract).
+- Added matched section heading style ("INSPECTION FORMS" · thin slate-200 divider · italic muted subtitle "Routed, signed, photographed, and stored").
+- All 3 `qaqc-tile-*` testids preserved · `qaqc-back-home` testid preserved · new `qaqc-section-heading` testid surfaced.
+
+### Safety Hub validation
+- `SafetyHub.jsx` (iter318) verified still-on-contract via new family-anchor invariants:
+  - `border-l-4` present ✓
+  - KPI Rule-5 neutral chrome present ✓
+  - `tracking-[0.22em]` section heading present ✓
+  - No `SectionTile` import ✓
+- No code change required. iter318 work continues to satisfy the family contract.
+
+### Platform Family Contract Lock · NEW test file
+**`/app/backend/tests/test_platform_family_contract.py`** — 7 read-only invariants scanning all 6 refined hubs (HR · Safety · FL · Field · Shop · QA/QC):
+
+| Anchor | What it locks |
+|---|---|
+| **calm card left-stripe** | `border-l-4` present in every family hub (catches reverts to hot `border-2 border-<accent>-500`) |
+| **no hot SectionTile import** | `from "@/components/SectionTile"` and `<SectionTile` absent in family hubs (Hub.jsx still allowed to use it) |
+| **interior H1 scale** | `text-3xl sm:text-4xl` present in every family hub |
+| **no public-hero H1 leak** | Legacy `text-4xl sm:text-5xl lg:text-6xl` H1 absent from refined interior hubs |
+| **mono kicker section heading** | `tracking-[0.22em]` present (catches drift to 0.18em / 0.25em / 0.3em variants) |
+| **neutral KPI chrome** | Legacy hot KPI patterns absent (`border-2 border-<cyan/red/amber/emerald>-700`, legacy Shop `border-2 border-slate-200 px-4 py-3`) |
+| **membership documented** | Each hub in FAMILY_HUBS appears in `UX_PLATFORM_FAMILY_REFERENCE.md` (membership stays audit-traceable) |
+
+Per operator mandate, contract is intentionally narrow:
+- ❌ No screenshot testing
+- ❌ No pixel-diff
+- ❌ No snapshot suites
+- ❌ No animation enforcement
+- ❌ No layout micromanagement
+- ✅ Only the four canonical platform-family anchors
+
+`FAMILY_HUBS` list is the membership registry — adding a hub requires explicit code change to the test, keeping drift visible.
+
+### Bilingual parity (Rule 8)
+Added 3 new ES dictionary entries to `lib/i18n.js`:
+- "DVIR defects per truck · driver notes · current status · severity context." → "Defectos DVIR por camión · notas del conductor · estado actual · contexto de severidad."
+- "Inspection Forms" → "Formularios de Inspección"
+- "Routed, signed, photographed, and stored" → "Enrutado, firmado, fotografiado y almacenado"
+
+Live ES verification confirmed: QA/QC renders "Formularios de Inspección · Enrutado, firmado, fotografiado y almacenado" + all 3 tile titles + "INICIAR FORMULARIO" CTAs in Spanish; zero English leakage.
+
+### Verification (all PASSED)
+- ✅ `test_iter320_shop_qaqc_calm_pass.py` (12 tests): Shop H1/KPI/Fleet banner/tab calm · QA/QC calm tile/H1/CTA/section heading · Safety still-on-contract · ES entries present.
+- ✅ `test_platform_family_contract.py` (7 tests): all 4 family anchors verified across all 6 family hubs.
+- ✅ Combined regression: **127/127 green** across iter314 + iter316 + iter317-A/B/C + iter318 + iter319 + iter320 + platform-family contract.
+- ✅ Live preview screenshots:
+  - Shop Desktop: H1 calm · KPI Rule-5 chrome · Fleet banner now calm card with left-edge amber stripe · tabs underline-only · 21 FAIL units rendered in red
+  - Shop Mobile: header collapses cleanly · OperationsCenter shows 4 KPIs in 2×2 (out of iter320 scope — shared component)
+  - QA/QC Desktop EN: 3 tiles with blue/amber/slate stripes · "INSPECTION FORMS" section heading · uppercase "START FORM →" CTAs
+  - QA/QC Desktop ES: "QA / QC · ASEGURAMIENTO DE CALIDAD" · "FORMULARIOS DE INSPECCIÓN" · "INICIAR FORMULARIO →" — zero English leakage
+- ✅ ESLint clean on `ShopHub.jsx` · `QaqcSection.jsx` · `lib/i18n.js`.
+
+### Files touched (iter320)
+- MOD · `/app/frontend/src/pages/ShopHub.jsx` (H1 · KPI · Fleet banner · tabs)
+- MOD · `/app/frontend/src/pages/QaqcSection.jsx` (full rewrite to calm pattern)
+- MOD · `/app/frontend/src/lib/i18n.js` (3 new ES entries)
+- NEW · `/app/backend/tests/test_iter320_shop_qaqc_calm_pass.py` (12 tests)
+- NEW · `/app/backend/tests/test_platform_family_contract.py` (7 anti-drift invariants)
+- DOC · `/app/memory/UX_PLATFORM_FAMILY_REFERENCE.md` (added Shop + QA/QC to membership table + family-contract-lock summary)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO change to `SectionTile` shared component (still used by Hub.jsx public landing — allowed)
+- ❌ NO change to Safety Hub code (validation only — invariants confirm contract)
+- ❌ NO change to `OperationsCenter` shared component (cross-portal; out of scope for iter320; Phase C iter325 will unify KPIs platform-wide)
+- ❌ NO change to Shop architecture (tabs stay; integrations stay in their tab — Rule 6 demotion via tab placement is acceptable for tab-driven hubs)
+- ❌ NO change to backend, routes, permissions, DB, integrations behavior
+- ❌ NO Phase A continuation (iter321 Dispatch · iter322 FL Portal still queued)
+
+### Operational impact
+A user moving through HR → Safety → FL → Field → Shop → QA/QC now experiences identical visual rhythm: same calm tile chrome, same H1 sizing, same section heading style, same KPI restraint, same color semantics, same hover behavior. The platform reads as one operational ecosystem at six surfaces.
+
+The **family contract lock** mechanically prevents future agents from accidentally reverting these patterns — adding a refined hub to the family requires explicit membership change, and any drift on an existing member fails the suite. Zero pixel/snapshot bureaucracy; only the four canonical anchors.
+
+### Production impact
+**Preview has Shop + QA/QC calm passes + the contract lock. Production at mascidocs.com still missing until next redeploy.** Zero backend / DB / API / permissions changes. CSS / layout refinement + 3 i18n dictionary additions + 2 new test files. Ships the moment the redeploy lands.
+
+
+
 ## 2026-05-21 — iter319 · FL Hub + Field Hub Calm Pass · Platform Family Reference Pack · CLOSED
 
 ### Scope (operator-mandated · Platform UX Governance Phase A · iter319)

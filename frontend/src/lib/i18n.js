@@ -3605,6 +3605,11 @@ const ES = {
   "OPEN LIBRARY": "ABRIR BIBLIOTECA",
   "OPEN FLEET VIEW": "VER FLOTA",
 
+  // iter320 · Shop + QA/QC Calm Pass
+  "DVIR defects per truck · driver notes · current status · severity context.": "Defectos DVIR por camión · notas del conductor · estado actual · contexto de severidad.",
+  "Inspection Forms": "Formularios de Inspección",
+  "Routed, signed, photographed, and stored": "Enrutado, firmado, fotografiado y almacenado",
+
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",

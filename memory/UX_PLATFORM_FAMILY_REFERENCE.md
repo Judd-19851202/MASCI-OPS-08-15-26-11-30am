@@ -42,6 +42,18 @@ cd /app && python -m pytest \
 | 2 | **Safety Hub** | `/safety-portal` | Multi-login token via `localStorage.masci.safety.token` | `test_iter318_safety_hub_calm_pass.py` |
 | 3 | **Field Leadership Hub** | `/leadership` | Shared password `MASCIGC` at `/leadership/login` | `test_iter319_fl_and_field_calm_pass.py` |
 | 4 | **Field Hub** | `/field` | Public (no auth) | `test_iter319_fl_and_field_calm_pass.py` |
+| 5 | **Shop Hub** | `/shop` | Multi-login token via `localStorage.masci.shop.token` | `test_iter320_shop_qaqc_calm_pass.py` |
+| 6 | **QA/QC Section** | `/qaqc` | Public (no auth) | `test_iter320_shop_qaqc_calm_pass.py` |
+
+**Family contract lock** · `test_platform_family_contract.py` — single read-only invariant suite that mechanically prevents drift across every hub in the family. Verifies the 4 canonical anchors (`border-l-4` calm card · `text-3xl sm:text-4xl` H1 · `tracking-[0.22em]` section heading · neutral KPI chrome) and refuses re-introduction of the hot SectionTile import. Anti-drift protection only — no screenshot testing, no pixel diff, no style bureaucracy.
+
+The hubs currently inside the family contract:
+- `HrHub` (iter317-C)
+- `SafetyHub` (iter318)
+- `FieldLeadershipHub` (iter319)
+- `FieldSection` (iter319)
+- `ShopHub` (iter320)
+- `QaqcSection` (iter320)
 
 ---
 
