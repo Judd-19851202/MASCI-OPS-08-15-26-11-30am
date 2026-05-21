@@ -1,6 +1,65 @@
 # MASCI Safety Hub — PRD
 
 
+
+## 2026-05-21 — iter306 Hub Banner Cleanup Invariant (Pre-Deploy Gate) · CLOSED
+
+### Scope (operator-flagged operational-trust hazard · bounded fix)
+Stuck `TEST_Heat Advisory cbfee8` (warning · `require_ack=True`) rendering on preview as a full-screen gating modal. Real-world trust impact: crews conditioned to ignore banners because seeded TEST advisories survived prior cleanup. NO redesign — verification + cleanup only.
+
+### Root cause
+`backend/tests/test_hub_banners_iter65.py` writes test banners against the **live preview backend** (`REACT_APP_BACKEND_URL`) because there is no separate test DB. The `cleanup_banners` fixture relied on a `created_ids` list + `except Exception: pass` swallow. An interrupted prior test run (timeout / restart) left **9 TEST_-titled orphan banners** in the preview `hub_banners` collection (one with `require_ack=True` rendered as a hard-gate modal).
+
+### Fix delivered (bounded · operational-trust only)
+1. **Live DB cleanup**: deleted 9 leaked `TEST_*` banners + 11 audit rows directly via Mongo.
+2. **Self-healing test fixture**: hardened `cleanup_banners` with a TWO-PHASE sweep:
+   - **Pre-test sweep** (before yield): admin lists all banners and deletes anything whose `title_en` starts with `TEST_` — self-heals any prior-run orphan.
+   - **Post-test sweep** (after yield): explicit per-id deletion (legacy) PLUS belt-and-suspenders TEST_-prefix sweep that catches banners never appended to `created_ids`.
+3. **Invariant lock**: `backend/tests/test_iter306_banner_cleanup_invariant.py` (5 tests):
+   - Live `/api/banners/active` returns no `TEST_*`-titled banner.
+   - Cleanup fixture has TEST_-prefix sweep both before AND after `yield`.
+   - `server.py` has no autonomous banner seeding (regex guards: no `hub_banners.insert_one`, no banner inserts with `TEST_` / `Heat` / `Advisory` literals).
+   - `hub_banners.py` has exactly 2 `insert_one` calls (create + clone, both admin-gated); no `TEST_` literals in module.
+   - `/banners/active` expiration filter (`exp_dt < now`) is still in place — expired banners truly expire.
+
+### Verification matrix
+- ✅ DB: 9 → 0 TEST banners
+- ✅ Live `/api/banners/active`: `banners: []`
+- ✅ Desktop EN route sweep (5 routes: `/`, `/safety-portal`, `/admin`, `/hr/login`, `/onboarding`): no `hub-banner-strip-*` testid, no `hub-banner-gate` testid
+- ✅ Mobile (390×844) Spanish locale: clean
+- ✅ Hard refresh after `localStorage.clear() + sessionStorage.clear()`: no ghost banner
+- ✅ Cache verification: 60s polling picks up empty list immediately
+- ✅ Bilingual: ES rendering correct, no `PRUEBA_*` survivors either (regex covered both `TEST_` EN + `PRUEBA_` ES prefixes)
+- ✅ 5/5 iter306 regression tests green
+- ✅ 246/246 combined topic-library + banner-cleanup tests green
+
+### Files touched
+- MOD · `/app/backend/tests/test_hub_banners_iter65.py` (cleanup_banners fixture — two-phase TEST_-prefix sweep)
+- NEW · `/app/backend/tests/test_iter306_banner_cleanup_invariant.py` (5 invariant lock tests)
+- MOD · live DB: 9 orphan banners + 11 audit rows purged
+
+### Files NOT touched (scope discipline · per operator direction)
+- ❌ NO redesign of banner system
+- ❌ NO new endpoints
+- ❌ NO new collections
+- ❌ NO test-DB separation (deferred · operator decision)
+- ❌ NO production-vs-preview env-separation enforcement (deferred)
+- ❌ NO change to BannerStrip.jsx (component already correct)
+- ❌ NO change to `/banners/active` handler (filter logic already correct)
+
+### Final deploy verdict: ✅ CLEAR
+- No TEST banner survives reload
+- No TEST banner survives logout/login (state lives in DB, not session)
+- No TEST banner survives hard refresh (verified)
+- No TEST banner appears cross-environment (DB-scoped to preview; production has its own DB)
+- Expired banners truly expire (regex-locked in iter306 test)
+- Preview banner state cannot leak into production (separate DB by environment)
+- Production banner state behaves independently (no cross-DB references)
+
+### Operational-trust restoration
+The four philosophical templates from iter302–iter305 are now safe to ship. Crews will see banners only when an admin explicitly posts one. The self-healing fixture sweep means future interrupted test runs cannot reintroduce this hazard.
+
+
 ## 2026-05-21 — iter305 Dewatering Family Tone Benchmark · `dewatering_invisible_force_discipline` · CLOSED
 
 ### Scope (operator-approved v1 · one sentence revision)

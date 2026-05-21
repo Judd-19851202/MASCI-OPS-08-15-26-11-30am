@@ -42,12 +42,65 @@ def admin_headers(admin_token):
 
 @pytest.fixture(scope="module", autouse=True)
 def cleanup_banners(admin_headers):
+    """Idempotent test-banner cleanup.
+
+    Runs in TWO phases:
+
+    1. **Pre-test sweep** (before yield): admin lists all banners and
+       deletes anything whose `title_en` starts with the canonical
+       `TEST_` prefix. This is a self-healing safety net — if a prior
+       test run was interrupted (CTRL-C, timeout, pod restart) and left
+       orphan TEST banners in the preview DB, they get cleaned up
+       before the new run starts. Without this sweep, orphan TEST
+       banners render on every preview page load and condition crews to
+       ignore real advisories — a real operational-trust hazard.
+
+    2. **Post-test sweep** (after yield): explicit per-id deletion
+       (legacy behavior) PLUS a final TEST_-prefix sweep that catches
+       any banner the per-test code created but never appended to
+       `created_ids` (e.g. interrupted test, conditional skip path).
+
+    The TEST_ prefix is the contract — every banner created by this
+    test module uses `_create_banner` which defaults `title_en` to
+    `TEST_Heat Advisory <hex>`. Banners created by the live admin UI
+    or by production traffic NEVER start with `TEST_`, so this sweep
+    is safe to run against the shared preview DB.
+    """
+    def _sweep_test_prefix():
+        try:
+            r = requests.get(f"{BASE_URL}/api/admin/banners", headers=admin_headers, timeout=20)
+            if r.status_code != 200:
+                return
+            for b in (r.json() or {}).get("banners", []) or []:
+                title = (b.get("title_en") or "")
+                if title.startswith("TEST_"):
+                    try:
+                        requests.delete(
+                            f"{BASE_URL}/api/admin/banners/{b['id']}",
+                            headers=admin_headers,
+                            timeout=15,
+                        )
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    # Phase 1 · pre-test sweep — self-heal any prior-run orphan TEST_* banners.
+    _sweep_test_prefix()
+
     yield
+
+    # Phase 2a · explicit per-id cleanup (the original behavior).
     for bid in list(created_ids):
         try:
             requests.delete(f"{BASE_URL}/api/admin/banners/{bid}", headers=admin_headers, timeout=15)
         except Exception:
             pass
+
+    # Phase 2b · belt-and-suspenders TEST_-prefix sweep — catches any
+    # banner the test body created but never appended to created_ids
+    # (e.g. early-exit, conditional skip, exception path).
+    _sweep_test_prefix()
 
 
 def _create_banner(headers, **overrides):
