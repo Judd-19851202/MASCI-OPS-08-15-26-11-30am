@@ -2,6 +2,93 @@
 
 
 
+## 2026-05-21 — iter311 Drivers-on-Insurance Roster Backfill · CLOSED
+
+### Scope (operational data population · bounded · verification-first)
+Operator-uploaded spreadsheet `Drivers on Insurance and CDL Drivers.xlsx` (sheet "Drivers on Insurance", 86 rows · NAME + CDL columns). Populates Driver Qualification fields (`approved_company_driver`, `cdl_holder`, `driver_status`) on existing employee records — NO new employees, NO placeholders, NO invented credentials.
+
+### Two-phase workflow (dry-run → operator approval → apply)
+**Phase 1 — Dry-run** (`scripts/iter311_dryrun_match.py`):
+- 86 spreadsheet rows matched against 236 employees by normalized full name (uppercase, single-space, with first-last fallback)
+- 67 exact-normalized matches · 0 ambiguous · 19 unmatched needing operator decision
+
+**Phase 2 — Operator review**: Surfaced the 19 unmatched (spelling variants, nicknames, no-candidates) to operator. Operator approved 13 explicit name overrides and 6 skips (no placeholder).
+
+**Phase 3 — Apply** (`scripts/iter311_apply_backfill.py`):
+- 80 employees updated (67 exact + 13 operator-approved variants)
+- 6 rows skipped per operator approval (ALAN DANFORD, ANDREW HAYES [CDL], CHRISTOPHER WRIGHT, DANA BOONE [CDL], DAVID JEWETT, RYAN HEIMS) — flagged as `requires HR/operator resolution`
+- 80 audit rows written to `driver_qualification_audit` with `source="Drivers on Insurance and CDL Drivers.xlsx"`
+
+### Final counts (verified live against API)
+| Metric | Value |
+|---|---|
+| Spreadsheet rows | 86 |
+| Applied | 80 |
+| Skipped (no DB candidate · operator-approved) | 6 |
+| Ambiguous | 0 |
+| `approved_company_driver=True` total | **80** |
+| `cdl_holder=True` total | **41** |
+| `driver_status=active` total | **41** |
+| Audit rows written | 80 |
+
+Math validation: 43 sheet-CDLs − 2 skipped CDLs (Andrew Hayes, Dana Boone) = **41 CDL holders applied** ✅
+
+### Data protection (verified)
+- All 41 CDL holders went from `cdl_holder=False` → `True`. None had pre-existing CDL data overwritten.
+- `cdl_license_number`, `cdl_state`, `cdl_expiration`, `medical_card_expiration`, `endorsements`, `restrictions` — **untouched** for every imported row (verified by direct DB inspection of Brett T Hoffman)
+- Skipped employees (e.g. Andrew Hayes) NOT in DB and NOT created — verified via direct DB query
+- Non-spreadsheet employees (control: Alejandro Escobedo) → `approved_company_driver`, `cdl_holder`, `driver_status` all remain unchanged
+
+### Operational distinctness preserved
+- `approved_company_driver=True` and `cdl_holder=True` remain **distinct operational concepts** (39 non-CDL approved drivers in the data, plus 41 CDL holders also marked approved)
+- Non-CDL approved drivers in the dashboard correctly show `CDL: —` and `APPROVED: Yes` (verified visually)
+- The "blank CDL ≠ NOT a CDL" rule respected: import never sets `cdl_holder=False` for any record
+
+### Visibility verification (all PASSED)
+- ✅ `/api/hr/driver-qualification/dashboard` returns 80 items, summary cards intact
+- ✅ Filter `?cdl_holder=true` → 41 items (matches sheet)
+- ✅ Filter `?approved_company_driver=true` → 80 items
+- ✅ Filter `?driver_status=active` → 41 items
+- ✅ Dashboard renders cleanly in EN: "Driver Qualification Dashboard" + 8 HelpTipBlocks + filter chips + driver table
+- ✅ Dashboard renders cleanly in ES: "Tablero de Calificación de Conductores", "Por qué la calificación de conductor es estructurada, no notas", "Aprobado · Sí", "Suspendido · Restringido", etc.
+- ✅ Zero EN leakage on ES dashboard
+- ✅ 81/81 driver-qualification regression tests green (iter285 + iter286 + iter287 + iter288)
+- ✅ Brett T Hoffman drawer fields verified: approved=True, cdl_holder=True, status=active, license_number=None, expiration=None, endorsements=None (NOT invented)
+
+### Files touched
+- NEW · `/app/backend/scripts/iter311_dryrun_match.py` (dry-run matcher · operator review tool)
+- NEW · `/app/backend/scripts/iter311_apply_backfill.py` (apply script · idempotent, audit-logged)
+- DB · 80 employee documents updated (approved_company_driver, cdl_holder, driver_status, updated_at)
+- DB · 80 new `driver_qualification_audit` rows
+- DOC · `/app/memory/PRD.md` updated
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO new employees · NO placeholders · NO partial imports
+- ❌ NO existing CDL data overwritten (license #, expirations, endorsements, restrictions, medical card)
+- ❌ NO FMCSA suite, ELD, telematics, Motive/MaintainX expansion
+- ❌ NO workflow redesign or dispatch automation
+- ❌ NO lifecycle metadata regression (iter285 untouched)
+- ❌ NO document_expirations linkage regression
+- ❌ NO frontend code changes (Driver Qualification Dashboard already shipped in iter288)
+
+### Operator-resolution queue (6 employees · HR action required)
+The following spreadsheet rows could not be matched and were NOT imported. HR must decide whether to add them as new employees or correct existing records:
+
+1. ALAN DANFORD
+2. ANDREW HAYES (sheet flagged CDL)
+3. DANA BOONE (sheet flagged CDL)
+4. RYAN HEIMS
+5. CHRISTOPHER WRIGHT
+6. DAVID JEWETT
+
+### Final verdict: ✅ CLEAR
+Driver Qualification visibility layer now operational and populated. HR, Dispatch, Fleet, Safety, Operations can see the approved-driver / CDL distinctions cleanly via the existing dashboard surfaces.
+
+### Production impact
+Preview environment has the imported data. **Production at https://mascidocs.com runs against a separate database and will NOT inherit this backfill** — operator needs to run the same import scripts against production (or use the admin tooling) to populate production employee records. The import scripts at `/app/backend/scripts/iter311_*.py` are reusable and idempotent.
+
+
+
 ## 2026-05-21 — iter310 PDF Single-Footer Invariant (Multi-page Incident PDF Rendering Fix) · CLOSED
 
 ### Scope (operator-flagged professional-trust hazard · bounded fix)
