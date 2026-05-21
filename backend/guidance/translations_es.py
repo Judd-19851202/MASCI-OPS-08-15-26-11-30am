@@ -309,6 +309,229 @@ TRANSLATIONS_ES: dict[str, dict] = {
         ],
     },
 
+    # ═════════════════════════════════════════════════════════════════
+    # iter317-C · ES parity for the 5 Driver Qualification articles.
+    # ═════════════════════════════════════════════════════════════════
+    "driver-cdl-vs-approved-company-driver": {
+        "title_es": "Titular de CDL vs Chofer Aprobado por la Empresa",
+        "summary_es": "Por qué MASCI rastrea las dos banderas por separado y por qué un CDL solo no sube a un chofer a un camión MASCI.",
+        "body_es": [
+            {"type": "p", "text":
+                "Dos banderas. Dos decisiones separadas. CDL "
+                "Holder significa que el estado licenció al chofer "
+                "para operar un vehículo comercial en esa clase. "
+                "Chofer Aprobado por la Empresa significa que la "
+                "lista de seguros de MASCI, la revisión de MVR, el "
+                "escaneo de tarjeta médica, los resultados del "
+                "antidoping y la firma del supervisor están todos "
+                "en archivo y el chofer está autorizado para "
+                "operar un camión MASCI. Las dos respuestas casi "
+                "nunca caen el mismo día."},
+            {"type": "why", "text":
+                "Confundirlas es el error de despacho más común en "
+                "este espacio. 'Tiene CDL' no es lo mismo que "
+                "'puede manejar hoy.' El tablero muestra las dos "
+                "como columnas separadas para que la respuesta sea "
+                "inequívoca antes de que el camión se mueva."},
+            {"type": "bullets", "items": [
+                "CDL Holder — licencia emitida por el estado, clase + endosos + restricciones en archivo",
+                "Chofer Aprobado por la Empresa — proceso MASCI completo (seguros · MVR · médico · antidoping · supervisor)",
+                "Driver Status — resumen operacional (Activo · Pendiente · Suspendido · Fuera de roster)",
+                "Filtro Tanker-Capable — filtro operacional separado para cargas de dewatering",
+            ]},
+            {"type": "tip", "text":
+                "Cuando un titular de CDL está sentado en "
+                "pendiente-de-aprobación, casi siempre falta una "
+                "pieza del proceso. Abra el panel del chofer; el "
+                "campo faltante está ahí."},
+            {"type": "warn", "text":
+                "Nunca asigne una carga solo con CDL. El CDL "
+                "satisface la ley estatal. La bandera de "
+                "chofer-aprobado satisface el seguro y el proceso "
+                "de MASCI. Las dos tienen que estar en verde "
+                "antes del despacho."},
+            {"type": "next", "items": [
+                "Lea 'Cadencia y Vencimientos de la Tarjeta Médica' — la fecha que se vence más en silencio",
+                "Lea 'Restricciones del Chofer y Escalación' — cuando las restricciones de licencia estatal cambian las opciones de despacho",
+            ]},
+        ],
+    },
+
+    "driver-medical-card-and-expirations": {
+        "title_es": "Cadencia y Vencimientos de la Tarjeta Médica",
+        "summary_es": "Tarjeta médica vencida significa que el chofer no opera un CMV ese día. Cómo el tablero muestra la fecha y cómo Seguridad, RH y Despacho escalan cuando se atrasa.",
+        "body_es": [
+            {"type": "p", "text":
+                "La tarjeta médica del DOT (FMCSA 391.45) corre en "
+                "su propio reloj — típicamente 24 meses, a veces "
+                "más corto si el examinador marcó una condición. "
+                "NO está atada al vencimiento del CDL. Un chofer "
+                "puede tener tres años de CDL y una tarjeta médica "
+                "que vence mañana. El día que la tarjeta vence, "
+                "ese chofer legalmente no puede operar un CMV en "
+                "comercio interestatal."},
+            {"type": "why", "text":
+                "Las dos fechas casi nunca empalman. Tratar la "
+                "tarjeta médica y el CDL como una sola ventana de "
+                "renovación es la forma más común de que una "
+                "tarjeta venza en silencio. El tablero las muestra "
+                "en dos columnas separadas por esa razón."},
+            {"type": "tip", "text":
+                "Use la vista de vencimiento a 60 días, no la del "
+                "día del despacho. La mayoría de las renovaciones "
+                "tardan 1–2 semanas una vez que el examen DOT está "
+                "agendado — y agendar el examen toma su propio "
+                "tiempo."},
+            {"type": "warn", "text":
+                "Tarjeta vencida = chofer no opera un CMV ese día. "
+                "Notifique a Seguridad + RH + Despacho el mismo "
+                "turno. El camino de renovación es un examinador "
+                "médico certificado DOT, examen vigente, "
+                "certificado en archivo con MASCI. Hasta que las "
+                "tres cosas sean verdad, el chofer hace solo "
+                "trabajo de apoyo — este no es un campo de "
+                "'excepción por un día.'"},
+            {"type": "next", "items": [
+                "Si la tarjeta ya venció: saque al chofer de la ruta, agende el examen DOT, documente la conversación.",
+                "Si faltan 30 días: pre-agende el examen ahora — las renovaciones toman tiempo.",
+                "Lea 'Titular de CDL vs Chofer Aprobado por la Empresa' para ver cómo encaja la tarjeta médica en el proceso de aprobación.",
+            ]},
+        ],
+    },
+
+    "driver-tanker-and-endorsements": {
+        "title_es": "Endoso de Tanque y Códigos de Endoso en MASCI",
+        "summary_es": "Por qué el endoso de tanque (N) importa para el trabajo de dewatering de MASCI, y cómo las combinaciones X / H abren las rutas que el CDL básico no.",
+        "body_es": [
+            {"type": "p", "text":
+                "El trabajo de dewatering de MASCI mueve volúmenes "
+                "reales de líquido. El endoso de tanque (N) no es "
+                "una casilla de papeleo — cubre la física de "
+                "transportar un remolque líquido parcialmente "
+                "cargado: oleaje, riesgo de volcadura en una "
+                "curva, desvanecimiento de frenos en bajada. Los "
+                "choferes sin N no corren cargas de dewatering. "
+                "Punto."},
+            {"type": "bullets", "items": [
+                "N — Tanque. Requerido para cualquier carga líquida en bulto por encima del umbral; central a las rutas de dewatering de MASCI.",
+                "H — Hazmat. Requerido para carga peligrosa con cartel. Lleva su propia revisión de TSA.",
+                "X — Tanque Y Hazmat combinados. Requerido cuando líquido peligroso se mueve en un tanque — el único endoso individual que pasa la inspección.",
+                "T — Remolques dobles/triples. Uso específico de equipo, menos común en MASCI.",
+                "P — Pasajero. Rara vez aplicable al trabajo de MASCI.",
+                "S — Autobús escolar. No aplica.",
+            ]},
+            {"type": "tip", "text":
+                "Cuando despacho está emparejando un chofer con "
+                "una carga líquida hazmat (camiones vac jalando "
+                "agua contaminada es el caso común), vea la "
+                "columna de endosos. La respuesta es: o está "
+                "presente la X o la carga va a otro chofer."},
+            {"type": "why", "text":
+                "El tablero muestra los choferes capacitados para "
+                "tanque como un filtro separado porque ese filtro "
+                "realmente importa para la asignación. 'Tiene "
+                "CDL' no alcanza; 'tiene N' es la respuesta "
+                "operacional para dewatering."},
+            {"type": "next", "items": [
+                "Lea 'Restricciones del Chofer y Escalación' — las restricciones pueden descalificar choferes aunque los endosos se vean bien",
+                "Lea 'Titular de CDL vs Chofer Aprobado por la Empresa' — los endosos viven dentro del CDL; la aprobación es un proceso separado",
+            ]},
+        ],
+    },
+
+    "driver-qualification-dashboard-understanding": {
+        "title_es": "Leyendo el Tablero de Calificación del Chofer",
+        "summary_es": "Qué significa cada columna del tablero de Calificación del Chofer, cuándo actuar y qué deliberadamente no hace.",
+        "body_es": [
+            {"type": "p", "text":
+                "El tablero de Calificación del Chofer es el "
+                "resumen operacional de cada campo relevante del "
+                "registro del empleado — CDL holder, chofer "
+                "aprobado, driver status, vencimiento del CDL, "
+                "vencimiento de la tarjeta médica, endosos, "
+                "restricciones, capacitado para tanque. Es la "
+                "superficie que Despacho, Seguridad y RH miran "
+                "antes de que una carga se mueva."},
+            {"type": "bullets", "items": [
+                "Nombre + ID del Empleado — ordenable, buscable",
+                "CDL Holder — bandera sí/no del registro del empleado",
+                "Chofer Aprobado por la Empresa — bandera sí/no, separada del CDL",
+                "Driver Status — resumen operacional (Activo · Pendiente · Suspendido · Fuera de roster)",
+                "Vencimiento del CDL — fecha de renovación estatal",
+                "Vencimiento de Tarjeta Médica — cadencia FMCSA 391.45, INDEPENDIENTE del CDL",
+                "Endosos — códigos N · H · X · T · P · S en el CDL",
+                "Restricciones — códigos L · E · Z en el CDL que limitan el equipo",
+            ]},
+            {"type": "tip", "text":
+                "Vistas de filtro — use los filtros de vencimiento "
+                "a 30 / 60 / 90 días para planear con tiempo. Use "
+                "el filtro de tanker-capable para emparejar cargas "
+                "de dewatering. El tablero es una superficie de "
+                "planeación, no una superficie de rechazo el día "
+                "del despacho."},
+            {"type": "warn", "text":
+                "Lo que este tablero NO es. No es un sistema de "
+                "despacho. No asigna cargas. No revoca "
+                "automáticamente el estatus de chofer-aprobado "
+                "cuando algo vence — esa decisión se queda humana "
+                "a propósito. No hace cumplir la calificación al "
+                "momento de la asignación. Construir cualquiera de "
+                "esas cosas significaría que MASCI ahora es dueño "
+                "de un producto de gestión de transporte, que es "
+                "exactamente a lo que dijimos no."},
+            {"type": "next", "items": [
+                "Export Current View — exporta la lista filtrada como CSV para revisión offline",
+                "Lea el artículo profundo de cada columna: CDL vs Aprobado · Tarjeta Médica · Tanque · Restricciones",
+            ]},
+        ],
+    },
+
+    "driver-restrictions-and-escalation": {
+        "title_es": "Restricciones del Chofer y Escalación",
+        "summary_es": "Qué significan los códigos de restricción del CDL para despacho en MASCI y cómo Seguridad + RH manejan a un chofer que llega a operar equipo que su CDL restringe.",
+        "body_es": [
+            {"type": "p", "text":
+                "Los códigos de restricción del CDL son decisiones "
+                "estatales de licencia — escritos en el CDL porque "
+                "el chofer demostró habilidad en una clase más "
+                "estrecha de equipo que la que la clase completa "
+                "permite. MASCI no las anula con una firma de "
+                "supervisor dispuesto; no son información "
+                "opcional."},
+            {"type": "bullets", "items": [
+                "L — Sin CMV equipado con frenos de aire (la más consecuente operacionalmente en MASCI; la mayor parte de la flota pesada tiene frenos de aire)",
+                "E — Sin transmisión manual (elimina asignaciones de palanca)",
+                "Z — Sin sistema completo de frenos de aire (impacto operacional similar a L; trátese igual)",
+                "K — Solo intraestatal (no puede cruzar líneas estatales)",
+                "M — Sin vehículo de pasajeros Clase A",
+                "N — Sin vehículo de pasajeros Clase A o B",
+                "O — Sin tractor-remolque",
+            ]},
+            {"type": "tip", "text":
+                "Despacho lee la columna de restricciones antes "
+                "de asignar. Es el mismo flujo que leer endosos — "
+                "la columna le dice qué puede y qué no puede "
+                "operar legalmente el chofer, no lo que la "
+                "oficina quisiera que pudiera."},
+            {"type": "warn", "text":
+                "Si un chofer se presenta a operar un equipo que "
+                "su CDL restringe, eso es una parada de Seguridad "
+                "— no una redirección de despacho. Sáquelo del "
+                "camión, documente el desajuste, llévelo a "
+                "RH/Seguridad el mismo día. Dos caminos hacia "
+                "adelante: (1) el chofer pasa por el DMV a quitar "
+                "la restricción, (2) despacho lo emparejea con un "
+                "camión para el que realmente está licenciado. "
+                "Los atajos no son un tercer camino."},
+            {"type": "next", "items": [
+                "Lea 'Titular de CDL vs Chofer Aprobado por la Empresa' — las restricciones viven dentro del CDL; la aprobación es separada",
+                "Lea 'Endoso de Tanque' — endosos + restricciones juntos definen el emparejamiento de equipo",
+            ]},
+        ],
+    },
+
+
+
     # ── Pass 5a · HR + Safety + PM onboarding + login troubleshoot ───
     "onboard-hr-first-week": {
         "title_es": "Personal de RH — Primera Semana",

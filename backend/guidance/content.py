@@ -39,6 +39,11 @@ SECTIONS = [
     {"id": "knowledge",   "title": "Why It Matters",             "icon": "lightbulb"},
     {"id": "reliability", "title": "Backups & Data Portability", "icon": "shield"},
     {"id": "onboarding",  "title": "New User Onboarding",        "icon": "user-plus"},
+    # iter317-C · Driver Qualification / trucking operational articles
+    # (CDL vs Approved, medical card cadence, tanker endorsements,
+    # dashboard interpretation, restrictions & escalation). Scoped to
+    # hr+safety+dispatch+admin via per-article `scopes`.
+    {"id": "trucking",    "title": "Driver Qualification & Trucking", "icon": "truck"},
 ]
 
 
@@ -1858,6 +1863,277 @@ _ARTICLES: list[dict] = [
             "portal-leadership",
             "role-superintendent",
             "role-foreman",
+        ],
+    },
+
+
+
+    # ═════════════════════════════════════════════════════════════════
+    # iter317-C · Driver Qualification operational articles. Five
+    # bounded articles covering the operational distinctions Dispatch,
+    # Safety, HR, and Shop have been holding in tribal knowledge:
+    #   driver-cdl-vs-approved-company-driver
+    #   driver-medical-card-and-expirations
+    #   driver-tanker-and-endorsements
+    #   driver-qualification-dashboard-understanding
+    #   driver-restrictions-and-escalation
+    # Scoped to hr+safety+dispatch+admin (the readers who actually use
+    # the dashboard daily). Bilingual parity in translations_es.py.
+    # ═════════════════════════════════════════════════════════════════
+
+    {
+        "id": "driver-cdl-vs-approved-company-driver",
+        "section": "trucking",
+        "title": "CDL Holder vs Approved Company Driver",
+        "summary": "Why MASCI tracks the two flags separately and why a CDL alone does not put a driver behind the wheel of a MASCI truck.",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "tags": ["driver-qualification", "cdl", "insurance", "dispatch"],
+        "body": [
+            {"type": "p", "text":
+                "Two flags. Two separate decisions. CDL Holder "
+                "means the state has licensed the driver to operate "
+                "a commercial vehicle in that license class. "
+                "Approved Company Driver means MASCI's insurance "
+                "roster, MVR review, medical card scan, drug screen "
+                "results, and supervisor sign-off are all on file "
+                "and the driver is cleared to operate a MASCI "
+                "truck. The two answers almost never land on the "
+                "same day."},
+            {"type": "why", "text":
+                "Conflating them is the most common dispatch error "
+                "in this space. 'He has a CDL' is not the same as "
+                "'he can drive today.' The dashboard surfaces them "
+                "as separate columns so the answer is unambiguous "
+                "before the truck moves."},
+            {"type": "bullets", "items": [
+                "CDL Holder — state-issued license, class + endorsements + restrictions on file",
+                "Approved Company Driver — MASCI runway complete (insurance · MVR · medical · drug screen · supervisor)",
+                "Driver Status — operational rollup (Active · Pending · Suspended · Off-roster)",
+                "Tanker-Capable filter — separate operational filter for dewatering hauls",
+            ]},
+            {"type": "tip", "text":
+                "When a CDL holder is sitting at not-yet-approved, "
+                "the runway is usually missing one piece. Pull the "
+                "drawer; the missing field is right there."},
+            {"type": "warn", "text":
+                "Never assign a load on CDL alone. The CDL "
+                "satisfies state law. The approved-driver flag "
+                "satisfies MASCI's insurance and process. Both "
+                "have to be green before dispatch."},
+            {"type": "next", "items": [
+                "Read 'Medical Card Cadence and Expirations' — the date that lapses most quietly",
+                "Read 'Driver Restrictions and Escalation' — when state-licensing limits change dispatch options",
+            ]},
+        ],
+        "related": [
+            "driver-medical-card-and-expirations",
+            "driver-restrictions-and-escalation",
+            "driver-qualification-dashboard-understanding",
+        ],
+    },
+
+    {
+        "id": "driver-medical-card-and-expirations",
+        "section": "trucking",
+        "title": "Medical Card Cadence and Expirations",
+        "summary": "Medical card lapse means the driver does not operate a CMV that day. How the dashboard surfaces the date and how Safety, HR, and Dispatch escalate when it slips.",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "tags": ["driver-qualification", "medical-card", "expirations", "fmcsa"],
+        "body": [
+            {"type": "p", "text":
+                "The DOT medical card (FMCSA 391.45) runs on its "
+                "own clock — typically 24 months, sometimes shorter "
+                "if the examiner flagged a condition. It is NOT "
+                "tied to CDL expiration. A driver can have three "
+                "years of CDL runway and a medical card that "
+                "lapses tomorrow. The day the card lapses, that "
+                "driver legally cannot operate a CMV in interstate "
+                "commerce."},
+            {"type": "why", "text":
+                "The two dates almost never line up. Treating "
+                "medical-card and CDL as one renewal window is the "
+                "single most common way a card lapses silently. "
+                "The dashboard shows them in two separate columns "
+                "for that reason."},
+            {"type": "tip", "text":
+                "Use the 60-day expiration view, not the day-of-"
+                "dispatch view. Most renewals take 1–2 weeks once "
+                "the DOT exam is scheduled — and getting the exam "
+                "scheduled takes its own time."},
+            {"type": "warn", "text":
+                "Card lapsed = driver does not run a CMV that "
+                "day. Notify Safety + HR + Dispatch the same "
+                "shift. Renewal path is a DOT-certified medical "
+                "examiner, exam current, certificate on file with "
+                "MASCI. Until all three are true, the driver runs "
+                "supporting work only — this is not a one-day "
+                "exception field."},
+            {"type": "next", "items": [
+                "If the card has already lapsed: pull the driver from the route, get the DOT exam scheduled, document the conversation.",
+                "If 30 days out: pre-schedule the exam now — renewals take time.",
+                "Read 'CDL Holder vs Approved Company Driver' for how the medical card fits the broader approval runway.",
+            ]},
+        ],
+        "related": [
+            "driver-cdl-vs-approved-company-driver",
+            "driver-qualification-dashboard-understanding",
+            "driver-restrictions-and-escalation",
+        ],
+    },
+
+    {
+        "id": "driver-tanker-and-endorsements",
+        "section": "trucking",
+        "title": "Tanker Endorsement and Endorsement Codes at MASCI",
+        "summary": "Why the tanker (N) endorsement matters for MASCI dewatering work, and how X / H combinations open the routes the basic CDL cannot.",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "tags": ["driver-qualification", "endorsements", "tanker", "hazmat", "dewatering"],
+        "body": [
+            {"type": "p", "text":
+                "MASCI dewatering work moves real volumes of "
+                "liquid. The tanker endorsement (N) is not a "
+                "paperwork checkbox — it covers the physics of "
+                "hauling a partially-loaded liquid trailer: "
+                "surge, rollover risk on a curve, brake fade on "
+                "a downgrade. Drivers without N do not run "
+                "dewatering loads. Period."},
+            {"type": "bullets", "items": [
+                "N — Tanker. Required for any liquid-bulk haul above the threshold; central to MASCI dewatering routes.",
+                "H — Hazmat. Required for placarded hazardous cargo. Carries its own TSA background check.",
+                "X — Tanker AND Hazmat combined. Required when liquid hazmat moves on a tanker — the only single endorsement that satisfies the inspection.",
+                "T — Double/Triple trailers. Specific equipment use, less common at MASCI.",
+                "P — Passenger. Rarely applicable to MASCI work.",
+                "S — School bus. Not applicable.",
+            ]},
+            {"type": "tip", "text":
+                "When dispatch is matching a driver to a liquid "
+                "hazmat load (vac trucks pulling contaminated "
+                "water is the common case), look at the "
+                "endorsements column. The answer is either X is "
+                "present or the load goes to a different driver."},
+            {"type": "why", "text":
+                "The dashboard surfaces tanker-capable drivers as "
+                "a separate filter because that filter actually "
+                "matters for assignment. 'He has a CDL' is not "
+                "enough; 'he has N' is the operational answer for "
+                "dewatering."},
+            {"type": "next", "items": [
+                "Read 'Driver Restrictions and Escalation' — restrictions can disqualify drivers even when endorsements look right",
+                "Read 'CDL Holder vs Approved Company Driver' — endorsements live inside the CDL; approval is a separate runway",
+            ]},
+        ],
+        "related": [
+            "driver-cdl-vs-approved-company-driver",
+            "driver-restrictions-and-escalation",
+            "driver-qualification-dashboard-understanding",
+        ],
+    },
+
+    {
+        "id": "driver-qualification-dashboard-understanding",
+        "section": "trucking",
+        "title": "Reading the Driver Qualification Dashboard",
+        "summary": "What each column on the Driver Qualification dashboard means, when to act on it, and what it deliberately does not do.",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "tags": ["driver-qualification", "dashboard", "interpretation"],
+        "body": [
+            {"type": "p", "text":
+                "The Driver Qualification dashboard is the "
+                "operational rollup of every driver-relevant field "
+                "on the employee record — CDL holder, approved "
+                "company driver, driver status, CDL expiration, "
+                "medical card expiration, endorsements, "
+                "restrictions, tanker-capable. It is the surface "
+                "Dispatch, Safety, and HR look at before a load "
+                "moves."},
+            {"type": "bullets", "items": [
+                "Name + Employee ID — sortable, searchable",
+                "CDL Holder — yes/no flag from the employee record",
+                "Approved Company Driver — yes/no flag, separate from CDL",
+                "Driver Status — operational rollup (Active · Pending · Suspended · Off-roster)",
+                "CDL Expiration — state CDL renewal date",
+                "Medical Card Expiration — FMCSA 391.45 cadence, INDEPENDENT of CDL",
+                "Endorsements — N · H · X · T · P · S codes on the CDL",
+                "Restrictions — L · E · Z codes on the CDL that limit equipment",
+            ]},
+            {"type": "tip", "text":
+                "Filter views — use the 30 / 60 / 90 day "
+                "expiration filters to plan ahead. Use the "
+                "tanker-capable filter when matching dewatering "
+                "loads. The dashboard is a planning surface, not "
+                "a dispatch-day refusal surface."},
+            {"type": "warn", "text":
+                "What this dashboard is NOT. It is not a dispatch "
+                "system. It does not assign loads. It does not "
+                "auto-revoke approved-driver status when something "
+                "expires — that decision stays human on purpose. "
+                "It does not enforce qualification at the moment "
+                "of assignment. Building any of those would mean "
+                "MASCI now owns a trucking-management product, "
+                "which is exactly what we said no to."},
+            {"type": "next", "items": [
+                "Export Current View — pull the filtered list as CSV for offline review",
+                "Read each column's deep article: CDL vs Approved · Medical Card · Tanker · Restrictions",
+            ]},
+        ],
+        "related": [
+            "driver-cdl-vs-approved-company-driver",
+            "driver-medical-card-and-expirations",
+            "driver-tanker-and-endorsements",
+            "driver-restrictions-and-escalation",
+        ],
+    },
+
+    {
+        "id": "driver-restrictions-and-escalation",
+        "section": "trucking",
+        "title": "Driver Restrictions and Escalation",
+        "summary": "What CDL restriction codes mean for MASCI dispatch and how Safety + HR handle a driver who shows up to operate equipment their CDL restricts.",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "tags": ["driver-qualification", "restrictions", "escalation", "safety-stop"],
+        "body": [
+            {"type": "p", "text":
+                "CDL restriction codes are state-licensing "
+                "decisions — written onto the CDL because the "
+                "driver demonstrated proficiency on a narrower "
+                "class of equipment than the full class allows. "
+                "MASCI does not override them with a willing-"
+                "supervisor signature; they are not optional "
+                "information."},
+            {"type": "bullets", "items": [
+                "L — No air brake equipped CMV (the most operationally consequential at MASCI; most heavy fleet has air brakes)",
+                "E — No manual transmission (eliminates stick-shift assignments)",
+                "Z — No full air brake system (similar operational impact to L; treat the same)",
+                "K — Intrastate only (cannot cross state lines)",
+                "M — No Class A passenger vehicle",
+                "N — No Class A or B passenger vehicle",
+                "O — No tractor-trailer",
+            ]},
+            {"type": "tip", "text":
+                "Dispatch reads the restrictions column before "
+                "assigning. It is the same workflow as reading "
+                "endorsements — the column tells you what the "
+                "driver can and cannot legally operate, not what "
+                "the office wishes they could."},
+            {"type": "warn", "text":
+                "If a driver shows up to operate equipment their "
+                "CDL restricts, that's a Safety stop — not a "
+                "dispatch reroute. Pull them off the truck, "
+                "document the mismatch, bring it to HR/Safety the "
+                "same day. Two paths forward: (1) the driver gets "
+                "the restriction removed at the DMV, (2) dispatch "
+                "matches them to a truck they're actually "
+                "licensed for. Workarounds are not a third path."},
+            {"type": "next", "items": [
+                "Read 'CDL Holder vs Approved Company Driver' — restrictions ride inside the CDL; approval is separate",
+                "Read 'Tanker Endorsement' — endorsements + restrictions together define the equipment match",
+            ]},
+        ],
+        "related": [
+            "driver-cdl-vs-approved-company-driver",
+            "driver-tanker-and-endorsements",
+            "driver-qualification-dashboard-understanding",
+            "driver-medical-card-and-expirations",
         ],
     },
 

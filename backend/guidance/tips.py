@@ -3597,6 +3597,176 @@ _TIPS: list[dict] = [
             "management product, which is exactly what we said no to.",
     },
 
+    # ═════════════════════════════════════════════════════════════════
+    # iter317-C · Driver Qualification coaching gap closures + 2 new
+    # bounded slices (medical-card · tanker). Tone-locked to iter286 /
+    # iter287 / iter288. Bilingual parity required (mirror in
+    # tips_es.py). NO LMS/corporate language.
+    # ═════════════════════════════════════════════════════════════════
+
+    # ── close canonical-4: driver-qualification.cdl-vs-approved ──────
+    {
+        "form_key": "driver-qualification.cdl-vs-approved",
+        "kind": "next",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "title": "Turning a CDL holder into an approved company driver",
+        "body":
+            "CDL on file is the floor, not the finish line. Approved "
+            "company driver status comes from MASCI: insurance roster, "
+            "MVR review, road check, medical card on file, drug "
+            "screen results back, and a supervisor sign-off. None of "
+            "that lives in the CDL itself. The dashboard shows the "
+            "two flags separately so dispatch can see exactly where "
+            "in the runway the driver is — pending approval, not "
+            "yet on insurance, missing MVR — instead of guessing "
+            "from a license-only signal.",
+    },
+    {
+        "form_key": "driver-qualification.cdl-vs-approved",
+        "kind": "escalate",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "title": "When a CDL holder asks why they can't drive yet",
+        "body":
+            "The honest answer is 'you're approved by the state to "
+            "drive a CMV; you're not yet approved by MASCI's "
+            "insurance and process to drive a MASCI truck.' That's "
+            "a Safety + HR conversation, not a dispatch conversation. "
+            "If a driver is sitting in the truck-pending-approval "
+            "limbo longer than a week, raise it to HR — the "
+            "runway is usually missing one piece (MVR, road check, "
+            "medical card scan) that nobody chased down.",
+    },
+
+    # ── close canonical-4: driver-qualification.expirations ──────────
+    {
+        "form_key": "driver-qualification.expirations",
+        "kind": "mistake",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "title": "Waiting on dispatch to be the renewal alarm",
+        "body":
+            "The most common operational mistake here is letting "
+            "the dispatch refusal at 7:00 a.m. be the first time "
+            "anyone realizes a card expired yesterday. By that "
+            "point a driver is sitting in the yard, a load is "
+            "late, and the renewal still takes a week. The "
+            "dashboard surfaces expirations 30 / 60 / 90 days "
+            "out for that exact reason — use the 60-day view, "
+            "not the dispatch-day view. 'We'll renew next week' "
+            "is how next week becomes next month.",
+    },
+
+    # ── close canonical-4: driver-qualification.restrictions ─────────
+    {
+        "form_key": "driver-qualification.restrictions",
+        "kind": "next",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "title": "Restrictions change what dispatch can assign",
+        "body":
+            "Code L (no air brakes) means the driver legally "
+            "cannot operate any truck with air brakes — which is "
+            "most of MASCI's heavy fleet. Code E (no manual) means "
+            "no stick-shift assignment. Code Z (no full air brake "
+            "system) is similar to L. Dispatch reads the "
+            "restrictions column before assigning — it is not "
+            "optional information; it is what keeps an unqualified "
+            "operator out of a truck they aren't licensed to drive.",
+    },
+    {
+        "form_key": "driver-qualification.restrictions",
+        "kind": "escalate",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "title": "When restrictions don't match the assignment",
+        "body":
+            "If a driver shows up to operate a piece of equipment "
+            "their CDL restricts, that's a Safety stop — not a "
+            "dispatch reroute. Pull them off the truck, document "
+            "the mismatch, and bring it to HR/Safety the same day. "
+            "Restrictions are a state-licensing decision; MASCI "
+            "does not override them with a willing-supervisor "
+            "signature. Two paths forward: (1) the driver gets the "
+            "restriction removed at the DMV, (2) dispatch matches "
+            "them to a truck they're actually licensed for. "
+            "Workarounds are not a third path.",
+    },
+
+    # ── NEW slice: driver-qualification.medical-card ─────────────────
+    {
+        "form_key": "driver-qualification.medical-card",
+        "kind": "why",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "title": "Medical card cadence is its own clock",
+        "body":
+            "DOT medical certification (FMCSA 391.45) runs on its "
+            "own schedule — typically 24 months, sometimes shorter "
+            "if the examiner flagged a condition. It is NOT tied "
+            "to CDL expiration. A driver can have 3 years left on "
+            "their CDL and an expired medical card; the moment the "
+            "card expires, that driver legally cannot operate a "
+            "CMV in interstate commerce. Track it separately, "
+            "alert on it separately.",
+    },
+    {
+        "form_key": "driver-qualification.medical-card",
+        "kind": "mistake",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "title": "Treating medical-card and CDL like one date",
+        "body":
+            "The two dates almost never line up. If your renewal "
+            "habit is 'I'll do both at the renewal window,' the "
+            "medical card will lapse silently between CDL "
+            "renewals. The dashboard shows two separate "
+            "expiration columns for that reason — don't read one "
+            "and assume the other.",
+    },
+    {
+        "form_key": "driver-qualification.medical-card",
+        "kind": "escalate",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "title": "Card lapsed — do not drive until cleared",
+        "body":
+            "If the medical card has lapsed: the driver does not "
+            "operate a CMV that day, full stop. Notify Safety + "
+            "HR + Dispatch the same shift. The renewal path is a "
+            "DOT exam at a certified medical examiner; until that "
+            "exam is current and the certificate is on file with "
+            "MASCI, the driver runs supporting work only. This is "
+            "not a 'one-day exception' field.",
+    },
+
+    # ── NEW slice: driver-qualification.tanker ───────────────────────
+    {
+        "form_key": "driver-qualification.tanker",
+        "kind": "why",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "title": "Why tanker endorsement matters at MASCI",
+        "body":
+            "MASCI dewatering work moves real volumes of liquid. "
+            "The tanker endorsement (N) is not a paperwork checkbox "
+            "— it covers the actual physics of hauling a partially-"
+            "loaded liquid trailer: surge, rollover risk on a "
+            "curve, brake fade on a downgrade. Drivers without N "
+            "should not be on dewatering hauls, period. The "
+            "dashboard surfaces tanker-capable drivers as a "
+            "separate filter for exactly this reason.",
+    },
+    {
+        "form_key": "driver-qualification.tanker",
+        "kind": "next",
+        "scopes": ["hr", "safety", "dispatch", "admin"],
+        "title": "Tanker + HazMat — the combination that opens routes",
+        "body":
+            "For loads carrying liquid hazmat (vac trucks pulling "
+            "contaminated water, for example), the relevant "
+            "endorsement is X — tanker AND hazmat combined. N "
+            "alone won't get the driver through the inspection. "
+            "When dispatch is matching a driver to a hazmat liquid "
+            "load, look at the endorsements column — the answer is "
+            "either X is present or the load goes to a different "
+            "driver.",
+    },
+
+
+
     # ─────────────────────────────────────────────────────────────────
     # iter289 · safety-training coaching family.
     #

@@ -2661,6 +2661,152 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "exactamente a lo que dijimos no.",
     },
 
+
+    # ═════════════════════════════════════════════════════════════════
+    # iter317-C · ES parity for driver-qualification gap closures +
+    # two new slices (medical-card · tanker).
+    # ═════════════════════════════════════════════════════════════════
+
+    # ── cdl-vs-approved canonical-4 closure ──────────────────────────
+    ("driver-qualification.cdl-vs-approved", "next"): {
+        "title_es": "Convertir a un titular de CDL en chofer aprobado de la empresa",
+        "body_es":
+            "El CDL en archivo es el piso, no la meta. El estatus "
+            "de chofer aprobado por la empresa lo da MASCI: lista "
+            "de seguros, revisión de MVR, prueba de manejo, tarjeta "
+            "médica en archivo, resultados de prueba antidoping de "
+            "vuelta, y firma del supervisor. Nada de eso vive en "
+            "el CDL mismo. El tablero muestra las dos banderas "
+            "separadas para que despacho vea exactamente en qué "
+            "parte del proceso está el chofer — aprobación "
+            "pendiente, todavía no en seguros, falta MVR — en "
+            "lugar de adivinar desde una señal de solo licencia.",
+    },
+    ("driver-qualification.cdl-vs-approved", "escalate"): {
+        "title_es": "Cuando un titular de CDL pregunta por qué todavía no maneja",
+        "body_es":
+            "La respuesta honesta es 'el estado lo aprobó para "
+            "manejar un CMV; MASCI no lo ha aprobado todavía con "
+            "su proceso y su seguro para manejar un camión MASCI.' "
+            "Eso es una conversación de Seguridad + RH, no de "
+            "despacho. Si un chofer lleva más de una semana en el "
+            "limbo de camión-pendiente-aprobación, súbalo a RH — "
+            "el proceso casi siempre tiene una pieza (MVR, prueba "
+            "de manejo, escaneo de tarjeta médica) que nadie "
+            "persiguió.",
+    },
+
+    # ── expirations canonical-4 closure ──────────────────────────────
+    ("driver-qualification.expirations", "mistake"): {
+        "title_es": "Dejar que el despacho sea la alarma de renovación",
+        "body_es":
+            "El error operacional más común aquí es dejar que el "
+            "rechazo de despacho a las 7:00 a.m. sea la primera "
+            "vez que alguien se da cuenta de que una tarjeta "
+            "venció ayer. A esa hora hay un chofer parado en el "
+            "patio, una carga retrasada, y la renovación todavía "
+            "tarda una semana. El tablero muestra los "
+            "vencimientos a 30 / 60 / 90 días por exactamente esa "
+            "razón — use la vista de 60 días, no la del día del "
+            "despacho. 'La renovamos la próxima semana' es como "
+            "la próxima semana se vuelve el próximo mes.",
+    },
+
+    # ── restrictions canonical-4 closure ─────────────────────────────
+    ("driver-qualification.restrictions", "next"): {
+        "title_es": "Las restricciones cambian lo que despacho puede asignar",
+        "body_es":
+            "El código L (sin frenos de aire) significa que el "
+            "chofer legalmente no puede operar ningún camión con "
+            "frenos de aire — que es la mayoría de la flota "
+            "pesada de MASCI. El código E (sin manual) significa "
+            "nada de transmisión estándar. El código Z (sin "
+            "sistema completo de frenos de aire) es similar al L. "
+            "Despacho lee la columna de restricciones antes de "
+            "asignar — no es información opcional; es lo que "
+            "evita que un operador no calificado se suba a un "
+            "camión para el que no está licenciado.",
+    },
+    ("driver-qualification.restrictions", "escalate"): {
+        "title_es": "Cuando las restricciones no coinciden con la asignación",
+        "body_es":
+            "Si un chofer se presenta a operar un equipo que su "
+            "CDL restringe, eso es una parada de Seguridad — no "
+            "una redirección de despacho. Sáquelo del camión, "
+            "documente el desajuste, y llévelo a RH/Seguridad el "
+            "mismo día. Las restricciones son una decisión "
+            "estatal de licencia; MASCI no las anula con una "
+            "firma de supervisor dispuesto. Dos caminos hacia "
+            "adelante: (1) el chofer pasa por el DMV a quitar la "
+            "restricción, (2) despacho lo emparejea con un camión "
+            "para el que realmente está licenciado. Los atajos no "
+            "son un tercer camino.",
+    },
+
+    # ── NEW slice: medical-card ──────────────────────────────────────
+    ("driver-qualification.medical-card", "why"): {
+        "title_es": "La cadencia de la tarjeta médica es su propio reloj",
+        "body_es":
+            "La certificación médica del DOT (FMCSA 391.45) corre "
+            "en su propio horario — típicamente 24 meses, a veces "
+            "más corto si el examinador marcó una condición. NO "
+            "está atada al vencimiento del CDL. Un chofer puede "
+            "tener 3 años de CDL y una tarjeta médica vencida; al "
+            "momento que la tarjeta vence, ese chofer legalmente "
+            "no puede operar un CMV en comercio interestatal. "
+            "Rastréela por separado, alerte sobre ella por "
+            "separado.",
+    },
+    ("driver-qualification.medical-card", "mistake"): {
+        "title_es": "Tratar tarjeta médica y CDL como una sola fecha",
+        "body_es":
+            "Las dos fechas casi nunca empalman. Si su costumbre "
+            "de renovación es 'lo hago todo en la ventana de "
+            "renovación,' la tarjeta médica se va a vencer en "
+            "silencio entre renovaciones de CDL. El tablero "
+            "muestra dos columnas separadas de vencimiento por "
+            "esa razón — no lea una y asuma la otra.",
+    },
+    ("driver-qualification.medical-card", "escalate"): {
+        "title_es": "Tarjeta vencida — no manejar hasta quedar autorizado",
+        "body_es":
+            "Si la tarjeta médica venció: el chofer no opera un "
+            "CMV ese día, punto. Avise a Seguridad + RH + "
+            "Despacho el mismo turno. El camino de renovación es "
+            "un examen DOT con un examinador médico certificado; "
+            "hasta que ese examen esté vigente y el certificado "
+            "esté en archivo con MASCI, el chofer hace solo "
+            "trabajo de apoyo. Este no es un campo de 'excepción "
+            "por un día.'",
+    },
+
+    # ── NEW slice: tanker ────────────────────────────────────────────
+    ("driver-qualification.tanker", "why"): {
+        "title_es": "Por qué el endoso de tanque importa en MASCI",
+        "body_es":
+            "El trabajo de dewatering de MASCI mueve volúmenes "
+            "reales de líquido. El endoso de tanque (N) no es una "
+            "casilla de papeleo — cubre la física real de "
+            "transportar un remolque líquido parcialmente "
+            "cargado: oleaje, riesgo de volcadura en una curva, "
+            "desvanecimiento de frenos en bajada. Los choferes "
+            "sin N no deben ir en cargas de dewatering, punto. El "
+            "tablero muestra los choferes capacitados para tanque "
+            "como un filtro separado exactamente por esa razón.",
+    },
+    ("driver-qualification.tanker", "next"): {
+        "title_es": "Tanque + HazMat — la combinación que abre rutas",
+        "body_es":
+            "Para cargas de líquido peligroso (camiones vac "
+            "jalando agua contaminada, por ejemplo), el endoso "
+            "relevante es X — tanque Y hazmat combinados. N solo "
+            "no pasa la inspección. Cuando despacho está "
+            "emparejando un chofer con una carga líquida hazmat, "
+            "vea la columna de endosos — la respuesta es: o está "
+            "presente la X, o la carga va a otro chofer.",
+    },
+
+
     # ── iter289 · safety-training ────────────────────────────────────
     ("safety-training", "why"): {
         "title_es": "Por qué los registros de entrenamiento viven como datos estructurados",
