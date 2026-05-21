@@ -159,4 +159,27 @@ export const TOPICS_TRUCKING = [
     references_cited: "OSHA 1926.601 · OSHA 1926.602 · NIOSH Internal Traffic Control · MASCI Site Pedestrian SOP",
     action_items: "Pre-motion walk-around habit reinforced · Kill-zone awareness for ground crew reviewed · New-driver mirror-coverage check assigned · Office-visitor blind-spot rule discussed",
   },
+  // iter304 · dump-bed family tone benchmark (operator-approved)
+  // Philosophical anchor: default-state discipline · names the SEAM between
+  // dump-mode and travel-mode as the actual danger zone. Connects the existing
+  // 5 dump_bed_* topics as symptoms of one underlying transition-discipline
+  // failure. Voice template for any future dump-bed family expansion.
+  {
+    key: "dump_bed_transition_discipline",
+    domain: "trucking",
+    title: "Bed Down Before Travel — The Default-State Discipline",
+    severity: "fatal_risk",
+    category: "Hazard-Specific",
+    role_context: ["driver", "operator", "foreman", "lead"],
+    incident_pattern:
+      "The dangerous moment with a dump bed almost never happens during the dump. The driver is focused, the bed is up because it's supposed to be up, and the operation is going as planned. The dangerous moment is the next thirty seconds. The driver shifts mentally from 'dumping a load' to 'going to the next one' before the truck shifts physically from raised-bed to travel-ready. The bed-up alarm is buzzing — the driver tunes it out. The truck rolls forward six feet to clear the windrow, then twenty feet, then enough that a power line catches the side rail. Or the bed slumps to the right on soft ground that was solid when the truck was empty. Or the next thing the driver remembers is the cab tilting. None of those drivers were reckless. None of them said 'I'll travel with the bed up.' They said 'I thought the bed was down.' The bed didn't get hurt during dumping or during driving. It got hurt in the seam between the two — when the driver's mind had already left the dump and the truck hadn't.",
+    hazards_reviewed:
+      "Overhead strike from raised bed during transition · Power-line contact during short-distance moves · Bridge or structure clearance violation · Tipover on soft ground with partially-raised bed · Conveyor or plant fixed-asset strike · Wind catching raised bed during transition · Tuned-out bed-up alarm · Mirror-skip on repetitive task · Cab-tilt incident from soft-ground transition · Driver mental-mode shift before physical-mode shift",
+    discussion_notes:
+      "• Bed-down isn't the last step of dumping. It's the first step of traveling. The mental order is what fails — the rule is what survives.\n• Mirror-confirm BEFORE motion. The side mirror shows body angle. If the body isn't fully down, the truck doesn't move yet.\n• PTO out before motion. PTO disengage is the physical handshake that says 'travel mode is real now.'\n• The bed-up alarm exists because drivers tune it out. If you hear it after rolling, you stop. Not 'check at the next stop.'\n• 'Just moving a few feet' is the scenario every overhead-strike investigation finds. Six feet finds power lines. Twenty feet finds bridges.\n• Soft ground that held an empty truck doesn't hold a partially-raised one. The center of gravity moves up; the wheelbase doesn't.\n• Night and rain make body angle invisible from the cab. The mirror check is harder, not optional. Get out if you have to.\n• Repetitive-task complacency is real. The driver who has done this 4,000 times skips the mirror check first. Crew leads watch for it.\n• If the bed-up alarm fails, the truck doesn't move. Report it. A silent alarm is the worst possible default state.\n• Bed-down-before-travel is the rule, not a checklist item. The crews that prevent the most incidents put it on the dash in front of the driver.",
+    references_cited:
+      "FMCSA 49 CFR 393 (Vehicle Equipment) · DOT Pre-Trip / Post-Trip Inspection · OSHA 1926.602 (Material Handling Equipment) · Manufacturer Body-Up Alarm Specification · Company Dump-Truck SOP",
+    action_items:
+      "Mirror-confirm-before-motion practice reinforced · PTO disengage discipline confirmed · Bed-up alarm function verified on every dump-truck unit on site · Soft-ground awareness reviewed for current job · Repetitive-task complacency named as the actual failure pattern · 'Bed Down Before Travel' rule posted in cab",
+  },
 ];

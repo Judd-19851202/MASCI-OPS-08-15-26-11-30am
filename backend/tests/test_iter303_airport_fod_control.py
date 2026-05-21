@@ -274,15 +274,18 @@ def test_iter303_no_new_domain_registered():
 
 
 def test_iter303_total_library_grew_to_141():
-    """Aggregator-level sanity: total topic count is now 141 (140 + 1)."""
+    """Aggregator-level sanity: total topic count is now ≥ 141 (140 + 1 from
+    iter303). Range-tolerant so later iterations (iter304 +1, etc.) legitimately
+    grow the library further. iter303's contribution is locked by the dedicated
+    ES-topic-count + existing-topics-untouched tests above."""
     total = 0
     for jsfile in TOPICS_DIR.glob("*.js"):
         if jsfile.name.endswith(".es.js") or jsfile.name.startswith("index"):
             continue
         text = jsfile.read_text()
         total += len(re.findall(r'^\s*key:\s*"', text, re.MULTILINE))
-    assert total == 141, (
-        f"library size drifted: expected 141 (140 + 1 from iter303), got {total}"
+    assert total >= 141, (
+        f"library size regressed below iter303 floor: expected ≥ 141, got {total}"
     )
 
 

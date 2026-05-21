@@ -1,6 +1,74 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-20 — iter304 Dump-Bed Family Tone Benchmark · `dump_bed_transition_discipline` · CLOSED
+
+### Scope (operator-approved v1 · zero revision cycles)
+Operator's #2 priority from iter301 audit (dump-bed family · highest catastrophic-frequency). One new topic appended to existing `trucking` domain. NO new domain. NO chip changes. Voice template for any future dump-bed family expansion.
+
+### Voice template established: **Default-State Discipline / Seam Framing**
+The platform now has THREE distinct operational-philosophy templates:
+1. **Custody-first** (iter302 · lab nuclear gauge) — regulatory-incident potential framing
+2. **Mental-model-first** (iter303 · airport FOD) — cognitive mode mismatch framing
+3. **Default-state discipline** (iter304 · dump-bed transition) — the seam between operational modes framing
+
+### Philosophical anchor
+*"The bed didn't get hurt during dumping or during driving. It got hurt in the seam between the two — when the driver's mind had already left the dump and the truck hadn't."*
+
+Names the cognitive-vs-physical desynchronization as the danger zone. The existing 5 `dump_bed_*` topics now become symptoms of this one underlying transition-discipline failure — exactly the platform philosophy the operator named: *"connect incidents to operating habits, not just list hazards."*
+
+### Veteran-driver authenticity signals
+- *"The dangerous moment is the next thirty seconds"* (specific time window)
+- *"They said 'I thought the bed was down.'"* (verbatim post-incident driver quote)
+- *"PTO disengage is the physical handshake that says 'travel mode is real now.'"* (physical-mental linkage metaphor)
+- *"The bed-up alarm exists because drivers tune it out."* (design-intent + human-failure linkage in one line)
+- *"A silent alarm is the worst possible default state."* (secondary philosophical anchor)
+- *"Six feet finds power lines. Twenty feet finds bridges."* (operational specificity)
+- *"The driver who has done this 4,000 times skips the mirror check first."* (veteran-driver number-specificity for repetitive-task complacency)
+
+### ES discipline
+- ✅ `troca` (operator-approved field-Spanish)
+- ✅ `Bájese si tiene que` (universal imperative)
+- ✅ `costura` preserves the seam metaphor cleanly
+- ✅ `apretón de manos físico` preserves the physical-handshake metaphor
+- ✅ `estado por defecto` preserves "default-state discipline" in ES title
+- ✅ **`Nada más`** instead of `nomás` (iter303 universality discipline carried forward)
+
+### Integration
+- MOD · `/app/frontend/src/lib/topics/trucking.js` (12 → 13 topics)
+- MOD · `/app/frontend/src/lib/topics/trucking.es.js` (12 → 13 ES translations)
+- NO new domain, NO chip changes, NO existing-topic edits
+- Library: 141 → **142 topics**
+
+### Regression
+- **64/64 iter304 regression pytests green** (`test_iter304_dump_bed_transition.py`)
+- **312/312 combined pytests green** across iter278/279/280/281/296/297/299/300/302/303/304
+- ESLint clean
+- Canonical anecdotal anchor *"I forgot the bed was up"* (existing dump_bed_traveling_raised) verified surviving unchanged
+
+### Files touched
+- MOD · `/app/frontend/src/lib/topics/trucking.js`
+- MOD · `/app/frontend/src/lib/topics/trucking.es.js`
+- NEW · `/app/backend/tests/test_iter304_dump_bed_transition.py` (64 tests)
+- MOD · `/app/backend/tests/test_iter303_airport_fod_control.py` (library-size sanity → range-tolerant `≥ 141`)
+- MOD · `/app/memory/PLATFORM_OPERATIONAL_MATURITY_MATRIX.md`
+- Tone-benchmark draft preserved at `/app/memory/DUMP_BED_TONE_BENCHMARK_DRAFT.md`
+
+### Strategic milestone
+The Toolbox Topic Library has formally evolved from "safety content" into **operational cognition and consequence-awareness infrastructure** (operator's strategic characterization). The three philosophical framings now embedded form the structural backbone for future content expansion.
+
+### Deferred per operator priority order
+- **#3 · Dewatering / Wellpoint expansion** ("build culture before incidents") — next benchmark candidate.
+- **#4 · Shop / Mechanic** (jack stands · grinder wheels · hydraulic injection · welding/fire watch · pinch points · LOTO realism).
+- **#5 · Airport full 4-topic set** (3 remaining topics inheriting iter303's voice template).
+- Future dump-bed family expansion (post-dump distraction · windrow-clearing complacency · plant-exit body-angle discipline) — DEFERRED, no current scope.
+- Cluster E + F bilingual closure (~31 placeholder t()-wraps).
+- Lite-backup orphan cleanup decision.
+- Lane B mobile/tablet validation.
+
+---
+
+
 ## 2026-05-20 — iter303 Airport-Domain Tone Benchmark · `airport_fod_control` · CLOSED
 
 ### Scope (operator-approved v2 after one prompt-refined revision)
