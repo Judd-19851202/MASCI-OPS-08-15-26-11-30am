@@ -2,6 +2,68 @@
 
 
 
+## 2026-05-22 — iter343 · FL Login Chrome Rebuild (deployment HOLD lifted) · ✅ APPROVE
+
+### Operator HOLD
+After iter342 routed `/leadership/login` to the modern per-user form, the form itself didn't match the HR/Safety platform-family chrome. Operator HELD deployment pending visual parity proof, complete ES translation, super-admin behavior documentation, clean layout, identity tie-in explanation, manual walkthrough.
+
+### What this iter rebuilt
+**Complete rewrite of `FieldLeadershipPortalLogin.jsx`** to mirror `HrLogin.jsx` structurally:
+- `min-h-screen blueprint-bg flex flex-col` wrapper · `caution-stripe` band
+- `bg-slate-900 border-b-4 border-red-700` header with `max-w-6xl` rhythm + HOME link + dual-size MasciLogo + LangToggle
+- `max-w-md` centered card with red-700 portal badge + "FIELD LEADERSHIP" kicker + bold h1
+- WORK EMAIL + PASSWORD with Mail-icon prefix · `h-12 border-2 focus:ring-red-700`
+- Remember-me checkbox + Forgot password link inline
+- Full-width `h-12 bg-red-700 uppercase tracking-wide` SIGN IN button
+- `PortalLoginHelp portal="leadership"` onboarding section
+- Separator + "Crew using a shared leadership code?" disclosure
+- Footer "MASCI · Field Leadership Portal" + ForgedOps + GlobalFooter (platform-standard double footer)
+- **NEW** admin-aware helper banner: if `isAdmin()` token present, shows "You're already signed in as Admin · Continue to Field Leadership Hub →" instead of demanding re-login
+- **24 new ES translation keys** covering every visible string + every error toast
+
+### Manual walkthrough — 12/12 PASS
+1. ✓ HR login captured (purple-700)
+2. ✓ Safety login captured (cyan accent)
+3. ✓ FL login captured (red-700)
+4. ✓ Side-by-side: only delta is palette
+5. ✓ ES toggle on FL: all 11 required ES phrases · 0 EN leaks
+6. ✓ FL user login (`fieldleader@mascigc.com`/`FieldLead2026!`) → 200, welcome toast, lands `/leadership`
+7. ✓ Super-admin path: by design 401 + `fl-admin-aware` banner explains why
+8. ✓ Forgot password: dialog opens, calm response, no enumeration
+9. ✓ Log out: both tokens cleared
+10. ✓ No ghost session
+11. ✓ Mobile 390: `hasHorizontalOverflow:false`, button full-width
+12. ✓ Footer: 2 footers matches HR=2 + Safety=2 platform standard
+
+### Identity / access tie-in (exact answer)
+- **FL identity stays in `field_leadership_users`** collection (1 user). Master `user_directory` (59 users) does NOT mirror them. Clean separation.
+- **Admin/HR manage FL users** at `/admin/people` → "Field Leadership Users & Logins" (HR also at `/hr/field-leadership-users`). NOT in Admin Access Control's 6-portal grid.
+- **Super-admin tokens** do NOT log in via the FL form (by design — FL is bounded operational identity). But super-admin token already satisfies the FL Hub gate via `isAdmin()`, and the new admin-aware banner tells the admin this.
+- **FL Phase B (architectural)** still deferred — adding `field_leadership` to `user_directory` + 7th Access Control column requires operator-policy decision on duplicate-identity policy.
+
+### Tests
+- **NEW** `/app/backend/tests/test_iter343_fl_login_chrome_rebuild.py` (15 tests · all green)
+- **Cumulative pytest:** 266/266 green (iter32x + iter33x + iter34x)
+- **Deploy gate:** 9/9 green · Contract green · safe to deploy
+- **E2E testing_agent_v3_fork iteration_343.json:** 100% backend · 93% frontend (single ES Playwright click-race; verified live via independent localStorage-seed probe + screenshot — ES works correctly in real browser)
+
+### Final verdict — ✅ APPROVE · deployment HOLD lifted
+**Cumulative pending redeploy at mascidocs.com: iter330 → iter343 (14 bounded iters · zero drift · all regression-locked).**
+
+### Files touched
+- MOD · `/app/frontend/src/pages/FieldLeadershipPortalLogin.jsx` (full rewrite · 313 lines)
+- MOD · `/app/frontend/src/lib/i18n.js` (24 new ES keys)
+- NEW · `/app/backend/tests/test_iter343_fl_login_chrome_rebuild.py` (15 tests)
+- NEW · `/app/memory/FL_LOGIN_CHROME_REBUILD_iter343.md` (full deliverable with side-by-side proof)
+- DOC · `/app/memory/PRD.md`
+
+### Files NOT touched
+- ❌ Backend routes UNTOUCHED · ❌ `lib/leadershipAuth.js` UNTOUCHED · ❌ `lib/flAuth.js` UNTOUCHED · ❌ Collections UNTOUCHED · ❌ Admin Access Control UNTOUCHED · ❌ FL Phase B unified-directory migration STILL DEFERRED
+
+
+
+
+
 ## 2026-05-22 — iter342 · FL Login UX Convergence (P0 fix) · ✅ CONVERGED
 
 ### Operator P0 complaint
