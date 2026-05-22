@@ -44,6 +44,11 @@ export default function NewSafetyEquipmentTraining() {
   const [saving, setSaving] = useState(false);
   const [employees, setEmployees] = useState([]);
 
+  // iter332 · Safety Portal Form-Entry continuity. See sibling page.
+  const fromRecords = (typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("from") === "records");
+  const backPath = fromRecords ? "/safety-portal/forms-records" : "/safety/forms";
+
   // iter323 · Safety Forms ownership — Safety Portal + Admin + legacy.
   const authed = isSafety() || isAdmin() || isSafetyForms();
 
@@ -124,7 +129,12 @@ export default function NewSafetyEquipmentTraining() {
       payload = { ...payload, submit_language: submitLang || "en" };
       const res = await api.post("/safety-forms/equipment-trainings", payload);
       toast.success(t("Submitted — PDF emailed to Safety"));
-      navigate(`/safety/forms/equipment-training/${res.data.id}`);
+      // iter332 · honor "from=records" return.
+      if (fromRecords) {
+        navigate("/safety-portal/forms-records");
+      } else {
+        navigate(`/safety/forms/equipment-training/${res.data.id}`);
+      }
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("Could not submit"));
     } finally {
@@ -138,11 +148,11 @@ export default function NewSafetyEquipmentTraining() {
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-4xl mx-auto px-3 sm:px-8 py-4 flex items-center justify-between gap-2 flex-wrap">
           <button
-            onClick={() => navigate("/safety/forms")}
+            onClick={() => navigate(backPath)}
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="trn-back"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> {fromRecords ? t("Back to Review") : t("Back")}
           </button>
           <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="sm" className="sm:hidden" homeLink="/" />

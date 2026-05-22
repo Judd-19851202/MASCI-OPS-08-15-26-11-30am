@@ -59,6 +59,15 @@ export default function NewSafetyEquipmentIssuance() {
   const [locating, setLocating] = useState(false);
   const [employees, setEmployees] = useState([]);
 
+  // iter332 · Safety Portal Form-Entry continuity. When the user starts
+  // this form from the Safety Portal Records review surface, we honor
+  // `?from=records` so Back + post-submit navigation return them to the
+  // review surface (closing the workflow loop: review → start → submit
+  // → see new record in review).
+  const fromRecords = (typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("from") === "records");
+  const backPath = fromRecords ? "/safety-portal/forms-records" : "/safety/forms";
+
   // iter323 · Safety Forms ownership — Safety Portal + Admin + legacy.
   const authed = isSafety() || isAdmin() || isSafetyForms();
 
@@ -184,7 +193,14 @@ export default function NewSafetyEquipmentIssuance() {
       payload = { ...payload, submit_language: submitLang || "en" };
       const res = await api.post("/safety-forms/equipment-issuances", payload);
       toast.success(t("Submitted — PDF emailed to Safety"));
-      navigate(`/safety/forms/equipment-issuance/${res.data.id}`);
+      // iter332 · honor "from=records" so Safety users land back on the
+      // review surface with the new record visible. Otherwise default to
+      // the just-created detail view (legacy behavior).
+      if (fromRecords) {
+        navigate("/safety-portal/forms-records");
+      } else {
+        navigate(`/safety/forms/equipment-issuance/${res.data.id}`);
+      }
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("Could not submit"));
     } finally {
@@ -198,11 +214,11 @@ export default function NewSafetyEquipmentIssuance() {
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-4xl mx-auto px-3 sm:px-8 py-4 flex items-center justify-between gap-2 flex-wrap">
           <button
-            onClick={() => navigate("/safety/forms")}
+            onClick={() => navigate(backPath)}
             className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="iss-back"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> {fromRecords ? t("Back to Review") : t("Back")}
           </button>
           <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="sm" className="sm:hidden" homeLink="/" />

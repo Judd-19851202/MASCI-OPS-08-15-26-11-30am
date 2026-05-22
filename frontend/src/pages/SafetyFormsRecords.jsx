@@ -12,7 +12,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import {
   HardHat, GraduationCap, Search, Loader2, ChevronRight, Filter,
-  CheckCircle2, AlertTriangle, Package, Clock,
+  CheckCircle2, AlertTriangle, Package, Clock, Plus,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import SafetyShell from "@/components/SafetyShell";
@@ -144,7 +144,11 @@ export default function SafetyFormsRecords() {
           </div>
         </header>
 
-        {/* Tabs */}
+        {/* Tabs + Form-Entry CTAs · iter332 · Safety Portal can now
+            START new forms directly from the review surface. The two
+            entry routes already exist under /safety/forms/* — we just
+            surface them prominently so the workflow loop closes
+            (review → start → submit → return → see the new record). */}
         <div className="flex flex-wrap items-center gap-2" data-testid="safety-forms-records-tabs">
           <TabButton
             value="issuance"
@@ -158,6 +162,23 @@ export default function SafetyFormsRecords() {
             label={t("Use & Care Training")}
             testId="tab-training"
           />
+          <div className="flex-1" />
+          <Link
+            to="/safety/forms/equipment-issuance/new?from=records"
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-cyan-700 text-white font-bold uppercase tracking-wide text-xs hover:bg-cyan-800 transition-colors"
+            data-testid="new-issuance-btn"
+          >
+            <Plus className="w-4 h-4" />
+            {t("NEW EQUIPMENT ISSUANCE")}
+          </Link>
+          <Link
+            to="/safety/forms/equipment-training/new?from=records"
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-cyan-700 text-white font-bold uppercase tracking-wide text-xs hover:bg-cyan-800 transition-colors"
+            data-testid="new-training-btn"
+          >
+            <Plus className="w-4 h-4" />
+            {t("NEW USE & CARE TRAINING")}
+          </Link>
         </div>
 
         {/* Summary */}

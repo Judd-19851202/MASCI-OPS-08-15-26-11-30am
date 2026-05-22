@@ -292,6 +292,80 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                         headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
     # ─────────────────────────────────────────────────────────────────
+    # iter332 · HR READ-ONLY DAILY REPORTS REVIEW
+    # ─────────────────────────────────────────────────────────────────
+    # HR needs visibility into daily reports for payroll cross-checks,
+    # employee labor verification, and subcontractor/vendor attendance —
+    # WITHOUT being granted PM scope, edit/delete/submit/email, or
+    # approval rights. Read-only namespace under /hr/* mirrors the
+    # /hr/field-leadership pattern. Filters: date_from · date_to ·
+    # project · employee · subcontractor · vendor · report_number.
+    @router.get("/hr/daily-reports")
+    async def hr_list_daily_reports(
+        actor=Depends(require_hr_user),
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        project: Optional[str] = None,
+        employee: Optional[str] = None,
+        subcontractor: Optional[str] = None,
+        vendor: Optional[str] = None,
+        report_number: Optional[str] = None,
+        limit: int = 200,
+    ):
+        match: Dict[str, Any] = {}
+        # Date range — daily reports store ISO date in `report_date`.
+        if date_from or date_to:
+            rng: Dict[str, Any] = {}
+            if date_from:
+                rng["$gte"] = date_from
+            if date_to:
+                rng["$lte"] = date_to
+            match["report_date"] = rng
+        if project:
+            needle = project.strip()
+            match["$or"] = [
+                {"project_name": {"$regex": needle, "$options": "i"}},
+                {"project_number": {"$regex": needle, "$options": "i"}},
+            ]
+        if report_number:
+            match["report_number"] = {"$regex": report_number.strip(), "$options": "i"}
+        if employee:
+            # Employee names are nested inside masci_crews[].members[].name
+            # — match if any crew member's name contains the needle.
+            match["masci_crews.members.name"] = {"$regex": employee.strip(), "$options": "i"}
+        if subcontractor:
+            match["subcontractors.name"] = {"$regex": subcontractor.strip(), "$options": "i"}
+        if vendor:
+            match["visitors.name"] = {"$regex": vendor.strip(), "$options": "i"}
+
+        pipeline = [
+            {"$match": match},
+            {"$sort": {"report_date": -1, "created_at": -1}},
+            {"$limit": min(limit, 500)},
+            {"$project": {
+                "_id": 0, "id": 1, "project_name": 1, "project_number": 1,
+                "report_number": 1, "report_date": 1, "prepared_by": 1,
+                "location": 1, "weather_summary": 1, "created_at": 1,
+                "photo_count":   {"$size": {"$ifNull": ["$photos", []]}},
+                "crew_count":    {"$size": {"$ifNull": ["$masci_crews", []]}},
+                "sub_count":     {"$size": {"$ifNull": ["$subcontractors", []]}},
+                "visitor_count": {"$size": {"$ifNull": ["$visitors", []]}},
+            }},
+        ]
+        items = await db.daily_reports.aggregate(pipeline).to_list(500)
+        return {"ok": True, "items": items, "count": len(items)}
+
+    @router.get("/hr/daily-reports/{report_id}")
+    async def hr_get_daily_report(report_id: str, actor=Depends(require_hr_user)):
+        doc = await db.daily_reports.find_one({"id": report_id}, {"_id": 0})
+        if not doc:
+            raise HTTPException(404, "daily report not found")
+        # Read-only view — return the document as-is so HR can see labor
+        # crews, subcontractor names, vendor visits, weather, photos, and
+        # all narrative fields the PM authored. No edit affordance.
+        return doc
+
+    # ─────────────────────────────────────────────────────────────────
     # EMPLOYEE ACCOUNTABILITY — search by name → consolidated record set
     # ─────────────────────────────────────────────────────────────────
     @router.get("/hr/employee-accountability")

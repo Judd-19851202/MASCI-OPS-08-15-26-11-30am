@@ -100,6 +100,7 @@ import HrFieldLeadership from "@/pages/HrFieldLeadership";
 import HrFieldLeadershipUsers from "@/pages/HrFieldLeadershipUsers";
 import HrEmployeeAccountability from "@/pages/HrEmployeeAccountability";
 import HrTrainingRecords from "@/pages/HrTrainingRecords";
+import HrDailyReports, { HrDailyReportDetail } from "@/pages/HrDailyReports";
 import HrPayrollVariance from "@/pages/HrPayrollVariance";
 import HrDriverQualificationDashboard from "@/pages/HrDriverQualificationDashboard";
 import HrTimeOff from "@/pages/HrTimeOff";
@@ -483,6 +484,9 @@ function App() {
             <Route path="/hr/payroll-variance" element={H(<HrPayrollVariance />)} />
             <Route path="/hr/training-records" element={H(<HrTrainingRecords />)} />
             <Route path="/hr/driver-qualification" element={H(<HrDriverQualificationDashboard />)} />
+            {/* iter332 · HR read-only Daily Reports Review */}
+            <Route path="/hr/daily-reports" element={H(<HrDailyReports />)} />
+            <Route path="/hr/daily-reports/:id" element={H(<HrDailyReportDetail />)} />
             <Route path="/time-off/public/:token" element={<PublicTimeOff />} />
 
             {/* ============================================================

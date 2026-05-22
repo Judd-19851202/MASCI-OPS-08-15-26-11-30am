@@ -26,12 +26,22 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
+// iter332 · Phase A · expanded portal grid to include safety + dispatch.
+// These are already in backend ALLOWED_PORTALS, so this is the safe
+// bounded UI fix (no model changes, no auth changes). Field Leadership
+// is intentionally NOT included yet — that's Phase B, scheduled for a
+// follow-up iter once FL multi-login + identity-mirror plumbing lands.
 const PORTAL_OPTIONS = [
-  { key: "admin", label: "Admin", color: "bg-red-700" },
-  { key: "pm",    label: "PM",    color: "bg-red-600" },
-  { key: "shop",  label: "Shop",  color: "bg-orange-600" },
-  { key: "hr",    label: "HR",    color: "bg-purple-700" },
+  { key: "admin",    label: "Admin",    color: "bg-red-700" },
+  { key: "pm",       label: "PM",       color: "bg-red-600" },
+  { key: "shop",     label: "Shop",     color: "bg-orange-600" },
+  { key: "hr",       label: "HR",       color: "bg-purple-700" },
+  { key: "safety",   label: "Safety",   color: "bg-cyan-700" },
+  { key: "dispatch", label: "Dispatch", color: "bg-amber-700" },
 ];
+
+// Empty portals state matching the expanded option set.
+const EMPTY_PORTALS = { admin: false, pm: false, shop: false, hr: false, safety: false, dispatch: false };
 
 function genTempPassword(n = 12) {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
@@ -185,9 +195,9 @@ export default function AdminAccessControlPanel() {
             </h3>
             <p className="text-xs text-slate-600 mt-1 max-w-2xl">
               Multi-portal accounts — give a single email + master password access to
-              any combination of Admin / PM / Shop / HR. Single-portal employees
-              don't need a directory entry; they use the existing portal-specific
-              sign-in pages.
+              any combination of Admin / PM / Shop / HR / Safety / Dispatch. Single-portal
+              employees don't need a directory entry; they use the existing
+              portal-specific sign-in pages.
             </p>
           </div>
         </div>
@@ -319,14 +329,14 @@ export default function AdminAccessControlPanel() {
 function CreateUserDialog({ open, onOpenChange, onCreated }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [portals, setPortals] = useState({ admin: false, pm: false, shop: false, hr: false });
+  const [portals, setPortals] = useState({ ...EMPTY_PORTALS });
   const [delivery, setDelivery] = useState("email"); // 'email' | 'show'
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
   const reset = () => {
     setEmail(""); setName("");
-    setPortals({ admin: false, pm: false, shop: false, hr: false });
+    setPortals({ ...EMPTY_PORTALS });
     setDelivery("email");
     setPassword("");
   };

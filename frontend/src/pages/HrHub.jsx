@@ -2,7 +2,7 @@
 // Employee Accountability · Time Verification · Training Records.
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck, Calculator, CalendarOff, KeyRound, Home, ArrowLeft, BookOpen, Receipt, Truck } from "lucide-react";
+import { Users, Search, Clock, GraduationCap, LogOut, ShieldCheck, Calculator, CalendarOff, KeyRound, Home, ArrowLeft, BookOpen, Receipt, Truck, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -65,6 +65,9 @@ const TILE_DEFS = {
   trainingRecords: { to: "/hr/training-records", icon: GraduationCap, label: "Training Records",
     desc: "Completed tracks · certifications · training compliance roster",
     stripe: "border-l-purple-500", btn: "bg-purple-700 hover:bg-purple-800" },
+  dailyReports: { to: "/hr/daily-reports", icon: ClipboardList, label: "Daily Reports Review",
+    desc: "Read-only daily report visibility for payroll cross-checks · labor crews · subcontractors · vendors · attendance context. No edit or approval.",
+    stripe: "border-l-purple-700", btn: "bg-purple-700 hover:bg-purple-800" },
   driverQual: { to: "/hr/driver-qualification", icon: Truck, label: "Driver Qualification",
     desc: "Read-only operational visibility · CDL holders · approved drivers · endorsements · expirations · tanker-capable list",
     stripe: "border-l-emerald-600", btn: "bg-emerald-800 hover:bg-emerald-900" },
@@ -96,7 +99,7 @@ const TILE_GROUPS = [
     key: "payroll",
     heading: "Payroll / Time",
     sub: "Time, payroll variance, expense tracking, training compliance",
-    tiles: ["poRequests", "timeVerification", "payrollVariance", "trainingRecords"],
+    tiles: ["poRequests", "timeVerification", "payrollVariance", "trainingRecords", "dailyReports"],
   },
   {
     key: "integrations",
