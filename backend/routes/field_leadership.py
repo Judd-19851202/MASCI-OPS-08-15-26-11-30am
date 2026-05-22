@@ -21,6 +21,7 @@ import hmac
 import io
 import logging
 import os
+import asyncio
 import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional, Tuple
@@ -595,7 +596,10 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         body_html = _email_html(rec, kind_label, no_pm_warning)
         attachments = []
         try:
-            pdf_bytes = render_pdf_bytes(rec)
+            # iter331 · same async-offload as the /pdf endpoint — this
+            # path runs from the fire-and-forget email handler but a
+            # blocked render here still consumes the event loop for ~20s.
+            pdf_bytes = await asyncio.to_thread(render_pdf_bytes, rec)
             if pdf_bytes:
                 import base64 as _b64
                 attachments.append({
@@ -830,7 +834,10 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         if not rec:
             raise HTTPException(status_code=404, detail="Record not found")
         try:
-            pdf_bytes = render_pdf_bytes(rec)
+            # iter331 · pre-deploy hot-fix · offload sync PDF render to a
+            # thread pool so the FastAPI event loop stays responsive
+            # (mirror of the hr_portal.py fix · same root cause).
+            pdf_bytes = await asyncio.to_thread(render_pdf_bytes, rec)
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(status_code=500, detail=f"PDF render failed: {exc}")
         if not pdf_bytes:

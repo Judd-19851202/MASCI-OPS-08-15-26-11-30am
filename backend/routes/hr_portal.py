@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import logging
 import os
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional
 
@@ -273,8 +274,15 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         if not d:
             raise HTTPException(404, "record not found")
         try:
+            # iter331 · pre-deploy hot-fix · offload sync PDF render to a
+            # thread pool so the FastAPI event loop stays responsive while
+            # the render runs. Production worker observed at 15-20s for a
+            # single FL PDF on cold-start; blocking the loop that long
+            # cascades into HTTP 520 (Cloudflare) for every other /api/*
+            # request hitting the same worker. asyncio.to_thread matches
+            # the pattern already used by safety_forms PDF endpoints.
             from field_leadership_pdf import render_field_leadership_pdf
-            pdf = render_field_leadership_pdf(d)
+            pdf = await asyncio.to_thread(render_field_leadership_pdf, d)
         except Exception as e:
             raise HTTPException(500, f"PDF render failed: {e}")
         title_seg = (d.get("employee_name") or d.get("kind") or "record")[:40]

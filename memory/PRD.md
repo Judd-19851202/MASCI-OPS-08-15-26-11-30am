@@ -2,6 +2,69 @@
 
 
 
+## 2026-05-22 — iter331 · Live Production Hot-Use Verification + PDF Non-Blocking Hot-Fix · CLOSED
+
+### Scope (operator-mandated · live production health check · production-safe writes only)
+Comprehensive read-only health check across production at `mascidocs.com` (uptime, routes, auth, RBAC, banners, PDFs, bilingual, mobile, visual convergence, performance) with one bounded backend hot-fix surfaced by the sweep.
+
+### Live findings (production)
+| Phase | Result |
+|---|---|
+| Uptime + API health | Static frontend 200 · TTFB 0.27-0.41s · Cloudflare-fronted |
+| Route sweep · 20 public routes | **20/20 HTTP 200** · zero 404s · zero dead ends |
+| Multi-portal auth + RBAC sweep · 9 admin reads + 5 portal reads + 6 anonymous-block probes | **All correct** (200s on authorized · 401s on anonymous · cross-portal write blocked) |
+| Workflow data counts | 6 incidents · 18 meetings · 62 daily reports · 15 equipment inspections · 3 FL records · zero `TEST_DO_NOT_USE` artifacts |
+| Banner state | Memorial Day cultural banner live · bilingual EN+ES stacked broadcast (iter328 live ✓) · no stale test banners |
+| Bilingual | ES toggle works · zero English leakage on homepage after toggle · HTML `lang` switches correctly |
+| iter322 continuity banner | Live · deep-link to `/safety-portal/incidents` shows "SIGN-IN REQUIRED · You selected Incident Reports from Safety Portal · ← BACK TO SAFETY PORTAL" with zero "Admin or PM" leak |
+| Performance (normal endpoints) | <0.5s TTFB |
+
+### Defect surfaced + fixed
+**Production-impacting defect:** Synchronous PDF render inside async FastAPI handlers blocks the event loop for 15-20s on production hardware. While blocked, **every other `/api/*` request on the same worker times out at Cloudflare**, returning HTTP 520 for ~30 seconds until the worker recovers.
+
+**Reproduced live:** 1st FL PDF call → 520 → 4 consecutive 520s on `/api/banners/active`, `/api/jobs`, `/api/admin/check` → 30s later → backend recovered (200) → retry FL PDF → 200 · 19.7s.
+
+**Files affected + fix:**
+- `/app/backend/routes/hr_portal.py:277` — `pdf = render_field_leadership_pdf(d)` → `pdf = await asyncio.to_thread(render_field_leadership_pdf, d)`
+- `/app/backend/routes/field_leadership.py:599` (email handler) + `:837` (PDF endpoint) — same pattern wrapped in `asyncio.to_thread`
+- Matches existing non-blocking pattern in `safety_forms.py` (6 endpoints) + `server.py:11014` (email-report path)
+
+**Live verification on preview after fix:**
+- 10 concurrent FL PDF requests → all HTTP 200 (6-7s each in parallel)
+- During PDF burst, `/api/banners/active` stays responsive at 0.14-1.2s
+- **120/120** backend tests green (iter32x + iter322b + iter330 + iter331 + family contract)
+- 9-hub deploy gate green
+
+### Regression-locked
+NEW · `/app/backend/tests/test_iter331_pdf_non_blocking.py` (5 tests · green):
+- `test_hr_portal_fl_pdf_uses_to_thread`
+- `test_field_leadership_pdf_uses_to_thread`
+- `test_safety_forms_pdf_endpoints_remain_non_blocking` (regression guard for the already-correct safety_forms paths)
+- `test_hr_portal_imports_asyncio`
+- `test_field_leadership_imports_asyncio`
+
+### Verdict
+**APPROVE WITH WATCH** — Platform is safe for heavy operational use today. The PDF defect is bounded, fixed in preview, regression-locked. **Operator must redeploy `mascidocs.com`** to ship the fix to production. Full report at `/app/memory/LIVE_PRODUCTION_HEALTH_CHECK_iter331.md`.
+
+### Files touched (iter331)
+- MOD · `/app/backend/routes/hr_portal.py` (added `import asyncio` · wrapped FL PDF render in `asyncio.to_thread`)
+- MOD · `/app/backend/routes/field_leadership.py` (added `import asyncio` · wrapped 2 sites in `asyncio.to_thread`)
+- NEW · `/app/backend/tests/test_iter331_pdf_non_blocking.py` (5 tests)
+- NEW · `/app/memory/LIVE_PRODUCTION_HEALTH_CHECK_iter331.md` (full readiness report)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO writes to any production record (no fake Daily Reports / Incidents / Meetings / DVIRs / JHAs)
+- ❌ NO real emails triggered · NO users created or modified · NO banners created/deleted on production
+- ❌ NO code pushed directly to production (preview-only · operator must redeploy)
+- ❌ `server.py:976,1017,2489,11389` (ops-manual + pm-welcome PDFs) NOT wrapped — low-traffic admin/dev paths, deferred to future hygiene
+- ❌ NO multi-portal session logins to avoid touching real users' `last_login_at` records
+
+### Production impact
+**Preview has the iter331 fix. Production at mascidocs.com still missing until next redeploy.** Once shipped, the FL PDF endpoint will no longer block the event loop, eliminating the HTTP 520 cascade pattern observed during the audit. Zero backend / DB / API / permissions changes beyond the two surgical `asyncio.to_thread` wraps.
+
+
+
 ## 2026-05-22 — iter330 · Final Pre-Deploy Hard-Use Verification + Dispatch KPI Calm Pass · CLOSED
 
 ### Scope (operator-mandated · final pre-deploy gate · zero new features)
