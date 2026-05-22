@@ -88,7 +88,7 @@ export default function AdminQaqcList() {
           </div>
         </div>
 
-        <div className="bg-white border-2 border-slate-300 rounded-md p-4 mb-4 flex flex-wrap items-end gap-3">
+        <div className="bg-white border border-slate-200 rounded-md p-4 mb-4 flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
             <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold block mb-1">Search</label>
             <div className="relative">
@@ -119,7 +119,7 @@ export default function AdminQaqcList() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-10 text-slate-500 italic">No QA/QC inspections yet.</div>
         ) : (
-          <div className="bg-white border-2 border-slate-300 rounded-md overflow-hidden">
+          <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
             <JobFolderList
               items={filtered}
               dateField="inspection_date"

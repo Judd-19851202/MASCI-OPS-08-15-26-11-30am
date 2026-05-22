@@ -694,7 +694,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           {data.equipment_type && (
             <>
               {savedUnits.length > 0 && (
-                <div className="bg-slate-100 border-2 border-slate-200 rounded-md p-3">
+                <div className="bg-slate-100 border border-slate-200 rounded-md p-3">
                   <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2 flex items-center gap-2">
                     <Wrench className="w-3 h-3" /> {t("Saved units")} ({savedUnits.length})
                   </div>
@@ -939,7 +939,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               • Tap the chip to re-expand. */}
         {data.equipment_type && !tallyCollapsed && (
           <div
-            className="bg-white border-2 border-slate-300 rounded-md px-3 py-2 sm:p-4 flex items-center justify-between gap-2 sm:gap-3 sticky bottom-24 sm:bottom-4 shadow-md z-20"
+            className="bg-white border border-slate-200 rounded-md px-3 py-2 sm:p-4 flex items-center justify-between gap-2 sm:gap-3 sticky bottom-24 sm:bottom-4 shadow-md z-20"
             data-testid="equip-tally-bar"
           >
             <button

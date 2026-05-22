@@ -803,7 +803,7 @@ export default function NewIncident({ publicMode = false }) {
             {ROOT_CAUSE_CATEGORIES.map((opt) => (
               <label
                 key={opt.key}
-                className="flex items-center gap-3 p-3 border-2 border-slate-200 rounded-md hover:border-red-500 cursor-pointer"
+                className="flex items-center gap-3 p-3 border border-slate-200 rounded-md hover:border-red-500 cursor-pointer"
                 data-testid={`root-cause-${opt.key}`}
               >
                 <Checkbox
@@ -837,7 +837,7 @@ export default function NewIncident({ publicMode = false }) {
           {data.witnesses.map((w, i) => (
             <div
               key={i}
-              className="border-2 border-slate-200 rounded-md p-4 space-y-3"
+              className="border border-slate-200 rounded-md p-4 space-y-3"
               data-testid={`witness-${i}`}
             >
               <div className="flex items-center justify-between gap-2">

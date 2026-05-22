@@ -164,7 +164,7 @@ export default function MasterLookupCombobox({
 
       {open && !disabled && (
         <div
-          className="absolute z-30 left-0 right-0 mt-1 bg-white border-2 border-slate-300 rounded-md shadow-lg max-h-64 overflow-y-auto"
+          className="absolute z-30 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-64 overflow-y-auto"
           data-testid={`${testIdPrefix}-dropdown`}
         >
           {loading && (

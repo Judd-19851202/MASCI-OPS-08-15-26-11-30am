@@ -94,7 +94,7 @@ export default function SafetyCaLinksManager({ caId, onChanged }) {
   };
 
   return (
-    <div className="bg-slate-50 border-2 border-slate-200 rounded-md p-3 sm:p-4" data-testid="safety-ca-links-manager">
+    <div className="bg-slate-50 border border-slate-200 rounded-md p-3 sm:p-4" data-testid="safety-ca-links-manager">
       <div className="flex items-center justify-between gap-2 mb-2">
         <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold flex items-center gap-1.5">
           <LinkIcon className="w-3.5 h-3.5" />

@@ -142,7 +142,7 @@ export default function SafetyFireExtImport() {
   return (
     <SafetyShell title="Bulk Import — Fire Extinguishers" kicker="SAFETY · IMPORT WIZARD">
       {/* Intro + template download */}
-      <div className="bg-white border-2 border-slate-300 rounded-md p-4 sm:p-5 mb-5">
+      <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 mb-5">
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="max-w-2xl">
             <h2 className="font-display text-lg font-black text-slate-900 mb-1">
@@ -167,7 +167,7 @@ export default function SafetyFireExtImport() {
       </div>
 
       {/* Step 1 — file picker */}
-      <div className="bg-white border-2 border-slate-300 rounded-md p-4 sm:p-5 mb-5">
+      <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 mb-5">
         <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-600 mb-3">
           Step 1 · Choose File
         </div>
@@ -212,7 +212,7 @@ export default function SafetyFireExtImport() {
 
       {/* Step 2 — preview summary */}
       {preview && !committed && (
-        <div className="bg-white border-2 border-slate-300 rounded-md p-4 sm:p-5 mb-5" data-testid="safety-fe-import-preview-card">
+        <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 mb-5" data-testid="safety-fe-import-preview-card">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-600">
               Step 2 · Review Preview <span className="text-slate-400">({preview.file_name})</span>

@@ -16,14 +16,19 @@ import OperationsCenter from "@/components/OperationsCenter";
 import { getAdminToken } from "@/lib/adminAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 
+// iter326 · platform-wide calm convergence — AdminHub SectionTile
+// migrated from the legacy hot-chrome pattern (border-2 +
+// hover:border-red-700) to the calm family contract (border +
+// border-l-4 red-700 accent stripe + slate-200 borders + slate-300
+// hover). Same visual identity as SafetyHub, HrHub, FieldHub, etc.
 function SectionTile({ to, icon: Icon, label, desc, testId }) {
   return (
     <Link
       to={to}
-      className="group bg-white border-2 border-slate-200 hover:border-red-700 hover:shadow-lg rounded-md p-5 transition-all duration-150 hover:-translate-y-0.5 flex items-start gap-3"
+      className="group bg-white border border-slate-200 border-l-4 border-l-red-700 hover:shadow-md hover:border-slate-300 rounded-md p-5 transition-all duration-150 hover:-translate-y-0.5 flex items-start gap-3"
       data-testid={testId}
     >
-      <div className="inline-flex items-center justify-center w-11 h-11 rounded-md bg-slate-900 group-hover:bg-red-700 text-white shrink-0 transition-colors">
+      <div className="inline-flex items-center justify-center w-11 h-11 rounded-md bg-slate-900 text-white shrink-0">
         <Icon className="w-5 h-5" />
       </div>
       <div className="flex-1 min-w-0">
@@ -32,7 +37,7 @@ function SectionTile({ to, icon: Icon, label, desc, testId }) {
         </h3>
         <p className="text-slate-600 text-xs mt-1.5 leading-snug">{desc}</p>
       </div>
-      <ChevronRight className="w-5 h-5 mt-2 text-slate-300 group-hover:text-red-700 group-hover:translate-x-0.5 transition-all shrink-0" />
+      <ChevronRight className="w-5 h-5 mt-2 text-slate-400 group-hover:text-slate-700 group-hover:translate-x-0.5 transition-all shrink-0" />
     </Link>
   );
 }

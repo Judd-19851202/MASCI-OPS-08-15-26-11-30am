@@ -39,7 +39,7 @@ const EquipmentTrendsPanel = () => {
 
   return (
     <div
-      className="bg-white border-2 border-slate-200 rounded-md overflow-hidden mb-6"
+      className="bg-white border border-slate-200 rounded-md overflow-hidden mb-6"
       data-testid="equipment-trends-panel"
     >
       <div className="bg-slate-900 text-white px-4 py-3 flex items-center gap-3 flex-wrap">

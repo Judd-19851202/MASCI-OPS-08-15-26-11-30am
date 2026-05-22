@@ -44,7 +44,7 @@ const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 fo
 export default function AdminIntegrationCenter() {
   return (
     <AdminShell title="Integration Center" kicker="ADMIN · INTEGRATION CENTER">
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5 mb-5">
         <div className="flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-900 text-white shrink-0">
             <Cable className="w-6 h-6" />
@@ -129,7 +129,7 @@ function ProviderStatusCard({ p, onRefresh }) {
     finally { setTesting(false); onRefresh(); }
   };
   return (
-    <div className="bg-white border-2 border-slate-300 rounded-md p-5" data-testid={`ic-status-${p.provider}`}>
+    <div className="bg-white border border-slate-200 rounded-md p-5" data-testid={`ic-status-${p.provider}`}>
       <div className="flex items-center justify-between mb-3">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
@@ -213,7 +213,7 @@ function ProviderTab({ provider }) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <ToggleBlock
             label="Integration enabled" sub="When off, no syncs run and webhooks reject."
@@ -231,7 +231,7 @@ function ProviderTab({ provider }) {
         </div>
       </div>
 
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-display text-lg font-black">Credentials</h3>
           <Button size="sm" variant="outline" onClick={() => setShowSecrets((s) => !s)} className="h-8">
@@ -268,7 +268,7 @@ function ProviderTab({ provider }) {
         </div>
       </div>
 
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <h3 className="font-display text-lg font-black mb-2">Webhook endpoint</h3>
         <p className="text-sm text-slate-600 mb-2">
           Configure {provider === "motive" ? "Motive" : "MaintainX"} to deliver events to this URL.
@@ -279,7 +279,7 @@ function ProviderTab({ provider }) {
         </div>
       </div>
 
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <h3 className="font-display text-lg font-black mb-2">Internal notes</h3>
         <Textarea
           value={notes} onChange={(e) => setNotes(e.target.value)}
@@ -297,7 +297,7 @@ function ProviderTab({ provider }) {
 
 function ToggleBlock({ label, sub, checked, onChange, readOnly = false, testId }) {
   return (
-    <div className="border-2 border-slate-200 rounded-md p-3">
+    <div className="border border-slate-200 rounded-md p-3">
       <div className="flex items-center justify-between gap-2">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{label}</div>
@@ -425,7 +425,7 @@ function MappingTab({ kind }) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white border-2 border-slate-300 rounded-md p-4">
+      <div className="bg-white border border-slate-200 rounded-md p-4">
         <div className="flex items-center justify-between gap-3 mb-2">
           <div>
             <h3 className="font-display text-lg font-black">
@@ -445,7 +445,7 @@ function MappingTab({ kind }) {
         </div>
       </div>
 
-      <div className="overflow-x-auto bg-white border-2 border-slate-200 rounded-md">
+      <div className="overflow-x-auto bg-white border border-slate-200 rounded-md">
         <table className="w-full text-sm">
           <thead className="bg-slate-100 text-slate-700 text-xs uppercase tracking-[0.15em] font-mono">
             <tr>
@@ -624,7 +624,7 @@ function LogTable({ url, kind }) {
           {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCcw className="w-3.5 h-3.5" />}
         </Button>
       </div>
-      <div className="overflow-x-auto bg-white border-2 border-slate-200 rounded-md">
+      <div className="overflow-x-auto bg-white border border-slate-200 rounded-md">
         <table className="w-full text-sm">
           <thead className="bg-slate-100 text-slate-700 text-xs uppercase tracking-[0.15em] font-mono">
             <tr>
@@ -732,7 +732,7 @@ function CsvTab() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <h3 className="font-display text-lg font-black mb-2 flex items-center gap-2"><FileUp className="w-5 h-5" /> Import mappings from CSV</h3>
         <p className="text-sm text-slate-600 mb-4">
           Bulk-create / bulk-update mappings before the live API is wired. Each CSV must include a <code>masci_equipment_id</code>
@@ -773,7 +773,7 @@ function CsvTab() {
         )}
       </div>
 
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <h3 className="font-display text-lg font-black mb-2 flex items-center gap-2"><FileDown className="w-5 h-5" /> Export to CSV</h3>
         <p className="text-sm text-slate-600 mb-4">
           Hand the unmapped-equipment / unmapped-employees CSV to your Motive or MaintainX account manager
@@ -970,7 +970,7 @@ function WizardTab() {
   return (
     <div className="space-y-4">
       {/* Header / safety banner */}
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <div className="flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-11 h-11 rounded-md bg-slate-900 text-white shrink-0">
             <Wand2 className="w-5 h-5" />
@@ -994,7 +994,7 @@ function WizardTab() {
       </div>
 
       {/* Step 1 — pick source kind + column hints + paste */}
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-3">
           Step 1 · Configure & paste rows
         </h4>
@@ -1054,7 +1054,7 @@ function WizardTab() {
 
       {/* Step 2 — review */}
       {preview && (
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5" data-testid="ic-wizard-preview-panel">
+        <div className="bg-white border border-slate-200 rounded-md p-5" data-testid="ic-wizard-preview-panel">
           <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
             <div>
               <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">
@@ -1177,7 +1177,7 @@ function WizardTab() {
       )}
 
       {/* Recent runs (audit) */}
-      <div className="bg-white border-2 border-slate-200 rounded-md p-4">
+      <div className="bg-white border border-slate-200 rounded-md p-4">
         <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">
           Recent wizard runs (audit)
         </h4>

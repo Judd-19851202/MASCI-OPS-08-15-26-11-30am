@@ -205,7 +205,7 @@ function UploadCard({ meta, onUploaded }) {
   };
 
   return (
-    <div className="mt-5 bg-white border-2 border-slate-200 rounded-md p-4 sm:p-5">
+    <div className="mt-5 bg-white border border-slate-200 rounded-md p-4 sm:p-5">
       <div className="flex items-start gap-3">
         <Upload className="w-5 h-5 text-indigo-700 mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0">

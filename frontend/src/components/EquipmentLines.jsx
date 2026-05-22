@@ -148,7 +148,7 @@ export function EquipmentLines({ value, onChange, lang, t }) {
         return (
           <div
             key={idx}
-            className="border-2 border-slate-300 rounded-md p-4 sm:p-5 bg-white shadow-sm"
+            className="border border-slate-200 rounded-md p-4 sm:p-5 bg-white shadow-sm"
             data-testid={`equipment-line-${idx}`}
           >
             <div className="flex items-start justify-between gap-2 mb-3">
@@ -177,7 +177,7 @@ export function EquipmentLines({ value, onChange, lang, t }) {
                   <button
                     type="button"
                     onClick={() => setOpenCatalogIdx(openCatalogIdx === idx ? null : idx)}
-                    className="w-full h-11 px-3 text-base border-2 border-slate-300 rounded-md flex items-center justify-between bg-white hover:border-blue-500"
+                    className="w-full h-11 px-3 text-base border border-slate-200 rounded-md flex items-center justify-between bg-white hover:border-blue-500"
                     data-testid={`equipment-catalog-trigger-${idx}`}
                   >
                     <span className={line.name ? "text-slate-900" : "text-slate-400"}>
@@ -186,7 +186,7 @@ export function EquipmentLines({ value, onChange, lang, t }) {
                     <ChevronDown className="w-4 h-4 text-slate-400" />
                   </button>
                   {openCatalogIdx === idx && (
-                    <div className="absolute top-12 left-0 right-0 bg-white border-2 border-slate-300 rounded-md shadow-lg z-20 max-h-72 overflow-y-auto">
+                    <div className="absolute top-12 left-0 right-0 bg-white border border-slate-200 rounded-md shadow-lg z-20 max-h-72 overflow-y-auto">
                       <div className="sticky top-0 bg-white p-2 border-b border-slate-200">
                         <div className="relative">
                           <Search className="absolute left-2 top-2.5 w-4 h-4 text-slate-400" />

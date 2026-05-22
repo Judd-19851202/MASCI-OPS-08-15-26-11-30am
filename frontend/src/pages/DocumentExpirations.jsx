@@ -159,7 +159,7 @@ export default function DocumentExpirations() {
           <SummaryTile label={t("Archived")} value={summ.by_status?.Archived ?? 0} icon={Archive} accent="slate" testIdSuffix="archived" />
         </div>
 
-        <div className="bg-white border-2 border-slate-200 rounded-md p-3 sm:p-4 mb-4 flex flex-wrap items-center gap-2.5">
+        <div className="bg-white border border-slate-200 rounded-md p-3 sm:p-4 mb-4 flex flex-wrap items-center gap-2.5">
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="w-[150px] h-9 text-xs" data-testid="docexp-status-filter">
               <SelectValue />
@@ -209,7 +209,7 @@ export default function DocumentExpirations() {
         </div>
 
         {loading ? (
-          <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">{t("Loading…")}</div>
+          <div className="bg-white border border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">{t("Loading…")}</div>
         ) : items.length === 0 ? (
           <EmptyState
             icon={CalendarClock}
@@ -218,7 +218,7 @@ export default function DocumentExpirations() {
             testId="docexp-empty"
           />
         ) : (
-          <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
+          <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-50">
                 <tr className="text-left text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">

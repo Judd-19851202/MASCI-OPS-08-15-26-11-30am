@@ -97,7 +97,7 @@ export default function PreDeploySnapshotPanel() {
 
   if (loading) {
     return (
-      <div className="bg-white border-2 border-slate-200 rounded-md p-4 flex items-center gap-2 text-sm text-slate-500" data-testid="predeploy-loading">
+      <div className="bg-white border border-slate-200 rounded-md p-4 flex items-center gap-2 text-sm text-slate-500" data-testid="predeploy-loading">
         <Loader2 className="w-4 h-4 animate-spin" /> Checking snapshot freshness…
       </div>
     );

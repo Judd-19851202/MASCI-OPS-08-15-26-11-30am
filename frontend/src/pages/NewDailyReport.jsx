@@ -83,7 +83,7 @@ const RepeatBlock = ({
     {rows.map((row, i) => (
       <div
         key={i}
-        className="border-2 border-slate-200 rounded-md p-3 sm:p-4 space-y-2"
+        className="border border-slate-200 rounded-md p-3 sm:p-4 space-y-2"
         data-testid={`${testIdBase}-row-${i}`}
       >
         <div className="flex items-center justify-between gap-2 mb-1">
@@ -763,7 +763,7 @@ export default function NewDailyReport({ publicMode = false }) {
               {data.weather_snapshots.map((s, i) => (
                 <div
                   key={i}
-                  className="border-2 border-slate-200 rounded-md p-3"
+                  className="border border-slate-200 rounded-md p-3"
                   data-testid={`weather-snap-${i}`}
                 >
                   <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-red-700 font-bold">
@@ -1024,7 +1024,7 @@ export default function NewDailyReport({ publicMode = false }) {
               return (
                 <div
                   key={i}
-                  className="border-2 border-slate-200 rounded-md p-3 sm:p-4 space-y-2"
+                  className="border border-slate-200 rounded-md p-3 sm:p-4 space-y-2"
                   data-testid={`crew-row-${i}`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-1">

@@ -186,7 +186,7 @@ export default function OpsTrainingCenter() {
                 <Link
                   key={g.slug}
                   to={`/ops-training/${g.slug}`}
-                  className="group bg-white border-2 border-slate-200 hover:border-indigo-600 hover:shadow-lg rounded-md p-5 transition-all duration-150 hover:-translate-y-0.5 flex flex-col"
+                  className="group bg-white border border-slate-200 border-l-4 border-l-indigo-600 hover:shadow-md hover:border-slate-300 rounded-md p-5 transition-all duration-150 hover:-translate-y-0.5 flex flex-col"
                   data-testid={`ops-training-guide-${g.slug}`}
                 >
                   <div className="flex items-start gap-3 mb-2">

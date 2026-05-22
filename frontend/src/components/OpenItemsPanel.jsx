@@ -57,7 +57,7 @@ const OpenItemsPanel = ({ baseHref = "/admin/equipment", testIdPrefix = "open-it
   };
 
   return (
-    <div className="bg-white border-2 border-slate-200 rounded-md overflow-hidden" data-testid={`${testIdPrefix}-panel`}>
+    <div className="bg-white border border-slate-200 rounded-md overflow-hidden" data-testid={`${testIdPrefix}-panel`}>
       <div className="bg-slate-900 text-white px-4 py-3 flex items-center gap-3 flex-wrap">
         <Wrench className="w-5 h-5 text-amber-400" />
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-400 font-bold flex-1">

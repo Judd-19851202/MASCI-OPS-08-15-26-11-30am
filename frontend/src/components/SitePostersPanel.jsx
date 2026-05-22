@@ -109,7 +109,7 @@ export default function SitePostersPanel() {
 
   return (
     <section
-      className="bg-white border-2 border-slate-300 rounded-md p-6 sm:p-7 mb-12"
+      className="bg-white border border-slate-200 rounded-md p-6 sm:p-7 mb-12"
       data-testid="site-posters-panel"
     >
       <div className="flex items-start justify-between gap-4 flex-wrap mb-5">
@@ -138,7 +138,7 @@ export default function SitePostersPanel() {
         </Link>
       </div>
 
-      <ul className="divide-y-2 divide-slate-100 border-2 border-slate-200 rounded-md overflow-hidden">
+      <ul className="divide-y-2 divide-slate-100 border border-slate-200 rounded-md overflow-hidden">
         {posters.map(({ id, title, desc, where, accent, Icon, open, print, testId }) => (
           <li
             key={id}

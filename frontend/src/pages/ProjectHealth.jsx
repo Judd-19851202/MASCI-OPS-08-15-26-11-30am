@@ -234,7 +234,7 @@ export default function ProjectHealth() {
 
       {/* Loading */}
       {loading && !data && (
-        <div className="border-2 border-slate-200 bg-white p-4 rounded-md font-mono text-xs text-slate-500" data-testid="project-health-loading">
+        <div className="border border-slate-200 bg-white p-4 rounded-md font-mono text-xs text-slate-500" data-testid="project-health-loading">
           Loading project friction map…
         </div>
       )}

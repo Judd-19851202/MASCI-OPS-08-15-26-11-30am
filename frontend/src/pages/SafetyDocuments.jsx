@@ -173,7 +173,7 @@ export default function SafetyDocuments() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="safety-doc-list">
           {filtered.map((doc) => (
-            <div key={doc.id} className="bg-white border-2 border-slate-200 rounded-md p-4" data-testid={`safety-doc-row-${doc.id}`}>
+            <div key={doc.id} className="bg-white border border-slate-200 rounded-md p-4" data-testid={`safety-doc-row-${doc.id}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <span className="inline-block px-2 py-0.5 rounded bg-cyan-100 text-cyan-800 text-[10px] font-mono uppercase tracking-[0.18em] font-bold mb-1">

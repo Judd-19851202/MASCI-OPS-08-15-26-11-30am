@@ -180,7 +180,7 @@ export default function TrenchBoxTabulatedLibrary({ adminMode = false }) {
 
   return (
     <section
-      className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 mb-6"
+      className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 mb-6"
       data-testid="trench-tabulated-library"
     >
       <div className="flex items-center gap-3 mb-4">

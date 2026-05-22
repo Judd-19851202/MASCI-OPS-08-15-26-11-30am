@@ -178,7 +178,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
 
   return (
     <section
-      className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-6 mb-8"
+      className="bg-white border border-slate-200 rounded-md p-5 sm:p-6 mb-8"
       data-testid="compliance-export-panel"
     >
       <div className="flex items-start justify-between gap-3 flex-wrap">

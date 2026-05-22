@@ -37,6 +37,27 @@ FAMILY_HUBS = [
     ("SafetyFormsHub.jsx",     "iter321"),
 ]
 
+# iter326 · tile-chrome-only contract.
+# AdminHub + PmHub are shell-managed (AdminShell / PmShell render the
+# H1 + kicker), so they're NOT in FAMILY_HUBS (which enforces self-
+# rendered headers). They ARE in this calm-tile sub-contract — the
+# left-edge `border-l-4` accent stripe must be present in their tile
+# definitions to certify iter326 convergence.
+CALM_TILE_HUBS = [
+    ("AdminHub.jsx", "iter326"),
+    ("PmHub.jsx",    "iter326"),
+]
+
+
+# iter326 · platform-wide drift sentries. These do NOT enforce per-hub
+# style; they guard the *entire* /pages tree against the two heaviest
+# legacy chrome patterns that the iter326 convergence pass eradicated.
+# Adding a new page that revives either pattern triggers the gate.
+HEAVY_CARD_CHROME_PATTERNS = (
+    "bg-white border-2 border-slate-300 rounded-md",  # eradicated 72 files
+    "bg-white border-2 border-slate-200 rounded-md",  # eradicated layer 2
+)
+
 
 def _src(name: str) -> str:
     p = PAGES / name
@@ -166,3 +187,45 @@ def test_family_contract_membership_documented():
             f"Family contract violation — {hub} not documented in "
             f"UX_PLATFORM_FAMILY_REFERENCE.md (membership must be auditable)"
         )
+
+
+# ─── iter326 · platform-wide heavy-chrome sentry ────────────────────────
+
+
+def test_calm_tile_hubs_use_left_edge_stripe():
+    """AdminHub + PmHub render the calm tile chrome (`border-l-4`
+    accent stripe). These hubs use AdminShell/PmShell wrappers for
+    their H1/kicker, so the broader FAMILY_HUBS anchors don't apply
+    — but the tile chrome must still converge to the family."""
+    failures = []
+    for hub, iter_tag in CALM_TILE_HUBS:
+        src = _src(hub)
+        if "border-l-4" not in src:
+            failures.append(f"{hub} ({iter_tag})")
+    assert not failures, (
+        f"iter326 calm-tile contract violation — missing `border-l-4` in: {failures}"
+    )
+
+
+def test_no_heavy_card_chrome_in_pages_tree():
+    """Reverting to the heavy `bg-white border-2 border-slate-300|200
+    rounded-md` card chrome anywhere in /pages reintroduces the legacy
+    visual heaviness that iter326 eradicated platform-wide. Anti-drift
+    sentry — new pages must use `bg-white border border-slate-200
+    rounded-md` (the calm pattern)."""
+    failures = []
+    for jsx in PAGES.rglob("*.jsx"):
+        # Skip the reference banner/poster surfaces that need a heavier
+        # chrome for printed/poster output (no live drift signal).
+        if jsx.name in {"TrenchBoxPoster.jsx", "JhaPlansPoster.jsx",
+                        "TrainingQrPoster.jsx", "AllPostersPrint.jsx"}:
+            continue
+        src = jsx.read_text()
+        for pattern in HEAVY_CARD_CHROME_PATTERNS:
+            if pattern in src:
+                failures.append(f"{jsx.relative_to(PAGES)} → '{pattern}'")
+    assert not failures, (
+        "iter326 anti-drift violation — heavy card chrome reintroduced "
+        "in /pages. Use `bg-white border border-slate-200 rounded-md` "
+        f"instead. Offenders: {failures}"
+    )

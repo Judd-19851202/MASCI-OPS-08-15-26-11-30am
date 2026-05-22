@@ -107,7 +107,7 @@ export default function SafetyAudits() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white border-2 border-slate-200 rounded-md p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+        <div className="bg-white border border-slate-200 rounded-md p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
           <div className="lg:col-span-2 relative">
             <Search className="absolute left-2 top-2.5 w-3.5 h-3.5 text-slate-400" />
             <Input className="pl-7 h-9" placeholder={t("Search location, inspector, project, notes…")} value={q} onChange={(e) => setQ(e.target.value)} data-testid="audits-search" />
@@ -125,7 +125,7 @@ export default function SafetyAudits() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
+        <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
           {loading ? (
             <div className="text-center py-12 text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
           ) : filtered.length === 0 ? (
@@ -185,7 +185,7 @@ export default function SafetyAudits() {
 
 function SummaryCard({ label, value, icon: Icon, accent, testId }) {
   return (
-    <div className="bg-white border-2 border-slate-300 rounded-md p-3" data-testid={testId}>
+    <div className="bg-white border border-slate-200 rounded-md p-3" data-testid={testId}>
       <div className="flex items-center gap-2">
         <div className={`inline-flex items-center justify-center w-8 h-8 rounded-md ${accent} text-white`}>
           <Icon className="w-4 h-4" />

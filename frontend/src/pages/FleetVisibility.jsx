@@ -223,7 +223,7 @@ function UnitCard({ group, scope, t, expanded, onToggle, onRepairClick, onRtsCli
     : t("—");
   return (
     <div
-      className="bg-white rounded-md border-2 border-slate-200 overflow-hidden shadow-sm"
+      className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm"
       data-testid={`fleet-unit-card-${unit}`}
     >
       <button
@@ -275,7 +275,7 @@ function UnitCard({ group, scope, t, expanded, onToggle, onRepairClick, onRtsCli
               return (
               <li
                 key={d.defect_id || i}
-                className="bg-white border-2 border-slate-200 rounded-md px-3 py-2"
+                className="bg-white border border-slate-200 rounded-md px-3 py-2"
                 data-testid={`fleet-unit-card-${unit}-defect-${i}`}
               >
                 <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -532,7 +532,7 @@ export default function FleetVisibility({ scope = "shop" }) {
 
         {scope === "safety" && (
           <div
-            className="mb-6 bg-white border-2 border-slate-200 rounded-md px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+            className="mb-6 bg-white border border-slate-200 rounded-md px-4 py-3 flex flex-wrap items-center justify-between gap-3"
             data-testid="fleet-safety-governance-bar"
           >
             <div className="flex items-center gap-2 text-sm text-slate-700">

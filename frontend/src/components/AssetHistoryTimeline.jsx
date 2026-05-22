@@ -88,7 +88,7 @@ export default function AssetHistoryTimeline({ kind, masterId, compact = false, 
   const summary = data?.summary || {};
 
   return (
-    <div className="border-2 border-slate-300 rounded-md bg-white" data-testid={`asset-history-${kind}`}>
+    <div className="border border-slate-200 rounded-md bg-white" data-testid={`asset-history-${kind}`}>
       <div className="flex items-center justify-between px-3 py-2 border-b-2 border-slate-200 bg-slate-50">
         <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
           <Clock className="w-3.5 h-3.5" /> Chronological History

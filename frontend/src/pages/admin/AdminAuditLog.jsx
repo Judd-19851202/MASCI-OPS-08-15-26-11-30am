@@ -64,7 +64,7 @@ export default function AdminAuditLog() {
   return (
     <AdminShell title="Audit Log" section="compliance">
       <div className="max-w-7xl mx-auto" data-testid="admin-audit-log-page">
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4 flex items-start gap-3">
+        <div className="bg-white border border-slate-200 rounded-md p-5 mb-4 flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-900 text-white shrink-0">
             <History className="w-6 h-6" />
           </div>
@@ -81,7 +81,7 @@ export default function AdminAuditLog() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white border-2 border-slate-200 rounded-md p-3 mb-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+        <div className="bg-white border border-slate-200 rounded-md p-3 mb-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
           <div className="relative">
             <Search className="absolute left-2 top-2.5 w-3.5 h-3.5 text-slate-400" />
             <Input placeholder="Search any field…" className="pl-7 h-9" value={q} onChange={(e) => setQ(e.target.value)} data-testid="audit-q" />
@@ -117,7 +117,7 @@ export default function AdminAuditLog() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
+        <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
           {loading && !data ? (
             <div className="text-center py-12 text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
           ) : rows.length === 0 ? (

@@ -75,7 +75,7 @@ function DefectContextStrip({ defect, t }) {
   const unit = defect.truck_unit_number || defect.trailer_unit_number || "—";
   const sevIsOos = defect.severity === "oos";
   return (
-    <div className="bg-slate-50 border-2 border-slate-200 rounded-md px-3 py-2.5 mb-4">
+    <div className="bg-slate-50 border border-slate-200 rounded-md px-3 py-2.5 mb-4">
       <div className="flex items-center gap-2 mb-1">
         <span
           className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white ${sevIsOos ? "bg-red-700" : "bg-amber-600"}`}
@@ -168,7 +168,7 @@ export function RepairDrawer({ open, defect, accent, onClose, onSubmit }) {
             value={mechanic}
             onChange={(e) => setMechanic(e.target.value)}
             placeholder={t("Name of the person performing the repair")}
-            className="w-full h-11 px-3 border-2 border-slate-300 rounded-md text-sm focus:border-slate-900 focus:outline-none"
+            className="w-full h-11 px-3 border border-slate-200 rounded-md text-sm focus:border-slate-900 focus:outline-none"
             data-testid="fleet-repair-mechanic-input"
           />
         </div>
@@ -182,7 +182,7 @@ export function RepairDrawer({ open, defect, accent, onClose, onSubmit }) {
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
             placeholder={t("What was inspected and what was done (parts, adjustments, retorques, etc.)")}
-            className="w-full px-3 py-2 border-2 border-slate-300 rounded-md text-sm focus:border-slate-900 focus:outline-none resize-y"
+            className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:border-slate-900 focus:outline-none resize-y"
             data-testid="fleet-repair-notes-input"
           />
           <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 mt-0.5">
@@ -326,7 +326,7 @@ export function RtsDrawer({ open, defect, accent, onClose, onSubmit }) {
             value={dispatcher}
             onChange={(e) => setDispatcher(e.target.value)}
             placeholder={t("Your name")}
-            className="w-full h-11 px-3 border-2 border-slate-300 rounded-md text-sm focus:border-slate-900 focus:outline-none"
+            className="w-full h-11 px-3 border border-slate-200 rounded-md text-sm focus:border-slate-900 focus:outline-none"
             data-testid="fleet-rts-dispatcher-input"
           />
         </div>
@@ -340,7 +340,7 @@ export function RtsDrawer({ open, defect, accent, onClose, onSubmit }) {
             onChange={(e) => setNote(e.target.value)}
             rows={2}
             placeholder={t("Anything Dispatch should record alongside the return-to-service")}
-            className="w-full px-3 py-2 border-2 border-slate-300 rounded-md text-sm focus:border-slate-900 focus:outline-none resize-y"
+            className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:border-slate-900 focus:outline-none resize-y"
             data-testid="fleet-rts-note-input"
           />
         </div>

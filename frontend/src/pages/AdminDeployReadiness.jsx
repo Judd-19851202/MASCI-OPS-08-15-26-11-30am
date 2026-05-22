@@ -93,7 +93,7 @@ export default function AdminDeployReadiness() {
             </div>
 
             {/* Check list */}
-            <div className="bg-white border-2 border-slate-300 rounded-md overflow-hidden" data-testid="deploy-readiness-checks">
+            <div className="bg-white border border-slate-200 rounded-md overflow-hidden" data-testid="deploy-readiness-checks">
               <div className="bg-slate-50 border-b-2 border-slate-200 px-4 py-2 ux-kicker">
                 Detail Checks
               </div>

@@ -152,7 +152,7 @@ export default function CheatSheetCard() {
       {/* Tips + Stop-the-Line */}
       <SectionHeader kicker="03" title={t("Field Tips & Emergency Steps")} subtitle={t("Memorize these.")} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div className="bg-slate-50 print:bg-white border-2 border-slate-300 rounded-md p-5">
+        <div className="bg-slate-50 print:bg-white border border-slate-200 rounded-md p-5">
           <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-slate-700 font-black">
             {t("Tips for Everyone")}
           </div>
@@ -222,7 +222,7 @@ export default function CheatSheetCard() {
 
       {/* Training & Help mini-strip */}
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="border-2 border-slate-200 rounded-md p-3 flex items-center gap-3 bg-slate-50 print:bg-white">
+        <div className="border border-slate-200 rounded-md p-3 flex items-center gap-3 bg-slate-50 print:bg-white">
           <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-900 text-white shrink-0">
             <Building2 className="w-5 h-5" />
           </div>
@@ -231,7 +231,7 @@ export default function CheatSheetCard() {
             {t("Short bilingual lessons for every role — open mascidocs.com/training.")}
           </div>
         </div>
-        <div className="border-2 border-slate-200 rounded-md p-3 flex items-center gap-3 bg-slate-50 print:bg-white">
+        <div className="border border-slate-200 rounded-md p-3 flex items-center gap-3 bg-slate-50 print:bg-white">
           <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-200 text-slate-900 shrink-0">
             <span className="font-display font-black text-base">?</span>
           </div>
@@ -282,7 +282,7 @@ function TileCard({ icon: Icon, eyebrow, title, body, accent }) {
     red:     { bar: "bg-red-700",     bg: "bg-red-700",     pill: "text-red-800 bg-red-100" },
   }[accent] || { bar: "bg-slate-900", bg: "bg-slate-900", pill: "text-slate-700 bg-slate-100" };
   return (
-    <div className="relative bg-white print:bg-white border-2 border-slate-300 rounded-md p-4">
+    <div className="relative bg-white print:bg-white border border-slate-200 rounded-md p-4">
       <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${palette.bar}`} />
       <div className="flex items-start gap-3 mt-1">
         <div className={`inline-flex items-center justify-center w-10 h-10 rounded-md ${palette.bg} text-white shrink-0`}>
@@ -308,7 +308,7 @@ function PortalPillPrint({ icon: Icon, title, body, accent }) {
     slate:  { bg: "bg-slate-900" },
   }[accent] || { bg: "bg-slate-900" };
   return (
-    <div className="bg-white print:bg-white border-2 border-slate-200 rounded-md p-3">
+    <div className="bg-white print:bg-white border border-slate-200 rounded-md p-3">
       <div className="flex items-start gap-2.5">
         <div className={`inline-flex items-center justify-center w-9 h-9 rounded-md ${palette.bg} text-white shrink-0`}>
           <Icon className="w-4.5 h-4.5" />

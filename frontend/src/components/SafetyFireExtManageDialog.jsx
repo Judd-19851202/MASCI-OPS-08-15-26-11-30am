@@ -146,7 +146,7 @@ export default function SafetyFireExtManageDialog({ open, fe, onClose, onChanged
         </DialogHeader>
 
         {/* History PDF */}
-        <div className="bg-slate-50 border-2 border-slate-200 rounded-md p-3 sm:p-4 flex items-center justify-between gap-3">
+        <div className="bg-slate-50 border border-slate-200 rounded-md p-3 sm:p-4 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">
               Printable Unit History
@@ -168,7 +168,7 @@ export default function SafetyFireExtManageDialog({ open, fe, onClose, onChanged
         </div>
 
         {/* Upload */}
-        <div className="bg-white border-2 border-slate-300 rounded-md p-3 sm:p-4 mt-4">
+        <div className="bg-white border border-slate-200 rounded-md p-3 sm:p-4 mt-4">
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600 mb-2">
             Upload Attachment
           </div>

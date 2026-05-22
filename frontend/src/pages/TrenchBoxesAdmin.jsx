@@ -198,13 +198,13 @@ export default function TrenchBoxesAdmin() {
         {loading ? (
           <div className="p-12 flex items-center justify-center text-slate-500"><Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…</div>
         ) : boxes.length === 0 ? (
-          <div className="bg-white border-2 border-slate-300 rounded-md p-10 text-center">
+          <div className="bg-white border border-slate-200 rounded-md p-10 text-center">
             <Box className="w-10 h-10 text-slate-400 mx-auto mb-3" />
             <h3 className="font-display text-xl font-bold text-slate-900">No trench boxes yet</h3>
             <p className="text-slate-600 mt-2">Click "Add Box" to enter the first one.</p>
           </div>
         ) : (
-          <ul className="bg-white border-2 border-slate-300 rounded-md divide-y-2 divide-slate-100">
+          <ul className="bg-white border border-slate-200 rounded-md divide-y-2 divide-slate-100">
             {boxes.map((b) => (
               <li key={b.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3" data-testid={`admin-trench-row-${b.id}`}>
                 <div className="flex-1 min-w-0">

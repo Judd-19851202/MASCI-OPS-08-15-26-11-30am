@@ -142,7 +142,7 @@ export default function FleetDVIRConfirmation() {
 
             {/* Logged defects · calm itemized list */}
             {Array.isArray(s.failedItems) && s.failedItems.length > 0 && (
-              <div className="mt-6 rounded-md border-2 border-slate-200 bg-white" data-testid="dvir-logged-defects">
+              <div className="mt-6 rounded-md border border-slate-200 bg-white" data-testid="dvir-logged-defects">
                 <div className="px-4 py-3 border-b border-slate-200 font-mono text-[11px] uppercase tracking-widest text-slate-600 font-bold">
                   {t("Logged for Shop")}
                 </div>
@@ -223,7 +223,7 @@ export default function FleetDVIRConfirmation() {
 function Chip({ label, value, testId }) {
   return (
     <div
-      className="bg-white border-2 border-slate-200 rounded-md px-3 py-2.5"
+      className="bg-white border border-slate-200 rounded-md px-3 py-2.5"
       data-testid={testId}
     >
       <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500 font-bold">

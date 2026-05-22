@@ -129,7 +129,7 @@ export function SearchableSelect({
 
       {open && (
         <div
-          className="absolute z-30 mt-1 w-full bg-white border-2 border-slate-300 rounded-md shadow-xl overflow-hidden"
+          className="absolute z-30 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-xl overflow-hidden"
           data-testid={testId ? `${testId}-menu` : undefined}
         >
           <div className="p-2 border-b border-slate-200 bg-slate-50">

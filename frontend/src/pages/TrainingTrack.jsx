@@ -210,7 +210,7 @@ function AccessDenied({ track, t, lang }) {
         </div>
       </header>
       <main className="flex-1 flex items-center justify-center px-5 py-12">
-        <div className="max-w-md w-full bg-white border-2 border-slate-300 rounded-md p-8 text-center">
+        <div className="max-w-md w-full bg-white border border-slate-200 rounded-md p-8 text-center">
           <AlertCircle className="w-10 h-10 text-amber-600 mx-auto mb-3" />
           <h2 className="font-display text-2xl font-black text-slate-900">
             {t("This track is password-protected")}
@@ -306,7 +306,7 @@ function LessonCard({ lesson, videoEntry, loadingVideo, t, lang, pick }) {
   const cheatSheet = pick(lesson, "cheatSheet") || [];
   return (
     <article
-      className="bg-white border-2 border-slate-300 rounded-md overflow-hidden print:break-inside-avoid print:border-slate-400"
+      className="bg-white border border-slate-200 rounded-md overflow-hidden print:break-inside-avoid print:border-slate-400"
       data-testid={`lesson-${lesson.slug}`}
     >
       <div className="px-5 sm:px-7 pt-5 sm:pt-7 pb-3">

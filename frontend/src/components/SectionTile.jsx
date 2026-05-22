@@ -50,7 +50,7 @@ export function SectionTile({
   testId,
 }) {
   const a = ACCENTS[accent] || ACCENTS.red;
-  const base = `group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-7 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md flex flex-col h-full ${disabled ? "opacity-60 cursor-not-allowed" : a.ring}`;
+  const base = `group relative bg-white border border-slate-200 rounded-md p-6 sm:p-7 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md flex flex-col h-full ${disabled ? "opacity-60 cursor-not-allowed" : a.ring}`;
   const inner = (
     <>
       <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${a.bar} ${disabled ? "opacity-50" : ""}`} />

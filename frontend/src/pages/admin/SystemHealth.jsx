@@ -32,7 +32,7 @@ export default function SystemHealth() {
   return (
     <AdminShell title="System Health" section="system">
       <div className="max-w-7xl mx-auto" data-testid="admin-system-health-page">
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4 flex items-start gap-3">
+        <div className="bg-white border border-slate-200 rounded-md p-5 mb-4 flex items-start gap-3">
           <div className={`inline-flex items-center justify-center w-12 h-12 rounded-md ${ov.chip} text-white shrink-0`}>
             <Activity className="w-6 h-6" />
           </div>

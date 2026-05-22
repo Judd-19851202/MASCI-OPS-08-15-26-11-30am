@@ -221,7 +221,7 @@ export default function AdminTerminations() {
             </Card>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse bg-white border-2 border-slate-200 rounded-md">
+              <table className="w-full border-collapse bg-white border border-slate-200 rounded-md">
                 <thead className="bg-slate-50">
                   <tr className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-700">
                     <th className="text-left p-3 border-b-2 border-slate-200">{t("Date")}</th>

@@ -33,7 +33,7 @@ export default function NotFound() {
       </header>
 
       <main className="flex-1 max-w-3xl mx-auto w-full px-5 sm:px-8 py-12 sm:py-16">
-        <div className="bg-white border-2 border-slate-300 rounded-md p-6 sm:p-10 shadow-md">
+        <div className="bg-white border border-slate-200 rounded-md p-6 sm:p-10 shadow-md">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-slate-900 text-white mb-5">
             <FileQuestion className="w-7 h-7" />
           </div>
@@ -89,7 +89,7 @@ export default function NotFound() {
                   <Link
                     key={p}
                     to={PORTAL_HOME[p]}
-                    className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-md border-2 border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-colors"
+                    className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-md border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-colors"
                     data-testid={`not-found-portal-${p}`}
                   >
                     <span className="font-bold text-sm text-slate-900">

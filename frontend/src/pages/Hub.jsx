@@ -54,7 +54,7 @@ const BigTile = ({ to, icon: Icon, title, desc, bullets, accent, testId }) => {
   return (
     <Link
       to={to}
-      className="group relative bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex flex-col h-full"
+      className="group relative bg-white border border-slate-200 rounded-md p-5 sm:p-7 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex flex-col h-full"
       data-testid={testId}
     >
       <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${palette.bar}`} />
@@ -98,7 +98,7 @@ const MediumTile = ({ to, icon: Icon, title, desc, accent, testId, kicker }) => 
   return (
     <Link
       to={to}
-      className="group relative bg-white border-2 border-slate-300 rounded-md p-5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex items-start gap-4"
+      className="group relative bg-white border border-slate-200 rounded-md p-5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex items-start gap-4"
       data-testid={testId}
     >
       <div className={`inline-flex items-center justify-center w-12 h-12 rounded-md ${palette.bg} text-white shrink-0`}>
@@ -547,7 +547,7 @@ function ProjectsCard({ testId }) {
   const { t } = useT();
   return (
     <div
-      className="group relative bg-white border-2 border-slate-300 rounded-md p-5 flex items-start gap-4"
+      className="group relative bg-white border border-slate-200 rounded-md p-5 flex items-start gap-4"
       data-testid={testId}
     >
       <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-yellow-500 text-slate-900 shrink-0">

@@ -256,7 +256,7 @@ export default function MasterListPanel({
 
   return (
     <div
-      className="mb-8 bg-white border-2 border-slate-200 rounded-md overflow-hidden shadow-sm"
+      className="mb-8 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm"
       data-testid={`${testIdPrefix}-panel`}
     >
       {/* Header bar */}

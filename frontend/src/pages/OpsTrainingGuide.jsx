@@ -148,7 +148,7 @@ export default function OpsTrainingGuide() {
         </Link>
 
         {loading ? (
-          <div className="text-center py-16 text-slate-500 bg-white border-2 border-slate-200 rounded-md">
+          <div className="text-center py-16 text-slate-500 bg-white border border-slate-200 rounded-md">
             <Loader2 className="w-7 h-7 animate-spin mx-auto" /> {t("Loading…")}
           </div>
         ) : !guide ? (
@@ -156,7 +156,7 @@ export default function OpsTrainingGuide() {
             {t("Guide not found.")}
           </div>
         ) : (
-          <article className="bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8" data-testid="ops-training-guide-article">
+          <article className="bg-white border border-slate-200 rounded-md p-6 sm:p-8" data-testid="ops-training-guide-article">
             <div className="flex items-start gap-3 mb-4">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-indigo-700 text-white shrink-0">
                 <GraduationCap className="w-6 h-6" />

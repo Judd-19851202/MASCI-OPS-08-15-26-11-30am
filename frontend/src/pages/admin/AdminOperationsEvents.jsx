@@ -49,7 +49,7 @@ export default function AdminOperationsEvents() {
   return (
     <AdminShell title="Operations Event Log">
       <div className="max-w-7xl mx-auto" data-testid="admin-events-page">
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4">
+        <div className="bg-white border border-slate-200 rounded-md p-5 mb-4">
           <div className="flex items-start gap-3">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-900 text-white shrink-0">
               <Activity className="w-6 h-6" />
@@ -64,7 +64,7 @@ export default function AdminOperationsEvents() {
           </div>
         </div>
 
-        <div className="bg-white border-2 border-slate-200 rounded-md p-3 mb-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 items-end">
+        <div className="bg-white border border-slate-200 rounded-md p-3 mb-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 items-end">
           <div><label className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold">Type</label><Input value={filters.event_type} onChange={(e) => setFilters({ ...filters, event_type: e.target.value })} placeholder="asset_assigned" className="h-8 text-xs" data-testid="evt-filter-type" /></div>
           <div><label className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold">Severity</label>
             <Select value={filters.severity || "any"} onValueChange={(v) => setFilters({ ...filters, severity: v === "any" ? "" : v })}>
@@ -92,7 +92,7 @@ export default function AdminOperationsEvents() {
           </div>
         </div>
 
-        <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
+        <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
           {loading ? <div className="text-center py-8 text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div> : (
             <table className="w-full text-xs" data-testid="evt-table">
               <thead className="bg-slate-100 text-slate-700 font-mono uppercase tracking-[0.15em]">

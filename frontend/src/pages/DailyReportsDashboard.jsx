@@ -120,7 +120,7 @@ export default function DailyReportsDashboard() {
           <HelpTipBlock formKey="dispatch.daily-report-read" showCounter />
         </div>
 
-        <div className="bg-white border-2 border-slate-300 rounded-md overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
           <div className="px-5 py-4 border-b-2 border-slate-200 flex items-center justify-between">
             <h2 className="font-display text-xl font-bold">
               {t("Recent Reports")}

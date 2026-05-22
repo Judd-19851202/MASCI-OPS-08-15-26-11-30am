@@ -295,7 +295,7 @@ export default function EquipmentMasterPanel() {
 
   return (
     <div
-      className="mb-8 bg-white border-2 border-slate-200 rounded-md overflow-hidden shadow-sm"
+      className="mb-8 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm"
       data-testid="equipment-master-panel"
     >
       {/* Header */}
@@ -537,7 +537,7 @@ export default function EquipmentMasterPanel() {
                       <td className="px-3 py-2 text-right whitespace-nowrap">
                         <Link
                           to={`/admin/assets/${id}`}
-                          className="inline-flex items-center justify-center h-8 w-8 mr-1 border-2 border-slate-300 rounded-md hover:border-slate-700 hover:text-slate-900 text-slate-700"
+                          className="inline-flex items-center justify-center h-8 w-8 mr-1 border border-slate-200 rounded-md hover:border-slate-700 hover:text-slate-900 text-slate-700"
                           title="Unified Asset Profile"
                           data-testid={`equipment-profile-${id}`}
                         >

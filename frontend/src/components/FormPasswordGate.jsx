@@ -58,7 +58,7 @@ export function FormPasswordGate({
       <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
         <form
           onSubmit={onSubmit}
-          className="max-w-md w-full bg-white border-2 border-slate-300 rounded-md p-8 sm:p-10 text-center"
+          className="max-w-md w-full bg-white border border-slate-200 rounded-md p-8 sm:p-10 text-center"
           data-testid="form-password-gate"
         >
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-900 mb-5">

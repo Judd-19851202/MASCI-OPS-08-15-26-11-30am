@@ -139,7 +139,7 @@ export default function ProjectPnlPage() {
 
         {/* Filter bar */}
         <div
-          className="bg-white border-2 border-slate-200 rounded-md p-4 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-3 items-end"
+          className="bg-white border border-slate-200 rounded-md p-4 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-3 items-end"
           data-testid="pnl-filter-bar"
         >
           <div>
@@ -380,7 +380,7 @@ const Tile = ({ icon, label, value, sub, accent }) => (
 );
 
 const Section = ({ icon, title, count, children }) => (
-  <div className="bg-white border-2 border-slate-200 rounded-md overflow-hidden">
+  <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
     <div className="bg-slate-900 text-white px-4 py-2.5 flex items-center gap-2">
       <span className="text-amber-400">{icon}</span>
       <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-400 font-bold flex-1">

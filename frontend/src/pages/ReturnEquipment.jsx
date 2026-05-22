@@ -244,7 +244,7 @@ export default function ReturnEquipment() {
                 return (
                   <div
                     key={idx}
-                    className="border-2 border-slate-200 rounded-md p-3 bg-white"
+                    className="border border-slate-200 rounded-md p-3 bg-white"
                     data-testid={`ret-item-${idx}`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -467,7 +467,7 @@ export default function ReturnEquipment() {
 
 function Section({ title, children, desc }) {
   return (
-    <section className="bg-white border-2 border-slate-300 rounded-md p-4 sm:p-5">
+    <section className="bg-white border border-slate-200 rounded-md p-4 sm:p-5">
       <h2 className="font-display text-lg sm:text-xl font-black text-slate-900 mb-1">{title}</h2>
       {desc && <p className="text-xs text-slate-500 mb-3">{desc}</p>}
       <div className="space-y-3">{children}</div>

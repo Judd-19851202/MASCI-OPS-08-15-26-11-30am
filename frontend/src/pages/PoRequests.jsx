@@ -159,7 +159,7 @@ export default function PoRequests() {
           <SummaryTile label="Closed"           value={summary.by_status?.Closed ?? 0} icon={CheckCircle2}  accent="emerald" />
         </div>
 
-        <div className="bg-white border-2 border-slate-200 rounded-md p-3 sm:p-4 mb-4 space-y-3">
+        <div className="bg-white border border-slate-200 rounded-md p-3 sm:p-4 mb-4 space-y-3">
           {/* Quick-filter chips */}
           <div className="flex flex-wrap items-center gap-1.5" data-testid="po-quick-filters">
             {QUICK_FILTERS.map((f) => (
@@ -263,7 +263,7 @@ export default function PoRequests() {
         </div>
 
         {loading ? (
-          <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">Loading…</div>
+          <div className="bg-white border border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">Loading…</div>
         ) : items.length === 0 ? (
           <EmptyState
             icon={Receipt}
@@ -274,7 +274,7 @@ export default function PoRequests() {
             testId="po-empty"
           />
         ) : (
-          <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
+          <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-50">
                 <tr className="text-left text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">

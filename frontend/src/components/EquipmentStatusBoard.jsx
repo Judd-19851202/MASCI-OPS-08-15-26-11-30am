@@ -63,7 +63,7 @@ export default function EquipmentStatusBoard() {
   if (!data || !data.units || data.units.length === 0) {
     return (
       <section
-        className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-6 mb-8"
+        className="bg-white border border-slate-200 rounded-md p-5 sm:p-6 mb-8"
         data-testid="equipment-status-board"
       >
         <div className="flex items-center gap-3">
@@ -100,7 +100,7 @@ export default function EquipmentStatusBoard() {
 
   return (
     <section
-      className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-6 mb-8"
+      className="bg-white border border-slate-200 rounded-md p-5 sm:p-6 mb-8"
       data-testid="equipment-status-board"
     >
       <button

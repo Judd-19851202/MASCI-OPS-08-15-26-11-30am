@@ -42,10 +42,21 @@ function PmTile({ to, icon: Icon, title, count, sub, accent, testId }) {
     : accent === "redDeep" ? "border-red-900 bg-red-900"
     : accent === "rose"  ? "border-rose-700 bg-rose-700"
     : "border-slate-800 bg-slate-800";
+  // iter326 · calm convergence — PmHub tile now uses the platform
+  // family contract (border border-slate-200 + accent stripe via
+  // border-l-4 + calm slate hover). Mirrors SafetyHub / HrHub /
+  // FieldHub / AdminHub. Tile chrome no longer competes with the
+  // KPI count for visual weight.
+  const stripeCls =
+    accent === "red"     ? "border-l-red-700"
+    : accent === "amber" ? "border-l-amber-600"
+    : accent === "redDeep" ? "border-l-red-900"
+    : accent === "rose"  ? "border-l-rose-700"
+    : "border-l-slate-700";
   return (
     <Link
       to={to}
-      className="group relative bg-white border-2 border-slate-200 hover:border-amber-600 hover:shadow-lg rounded-md p-4 sm:p-5 transition-all duration-150 hover:-translate-y-0.5 flex flex-col"
+      className={`group relative bg-white border border-slate-200 border-l-4 ${stripeCls} hover:shadow-md hover:border-slate-300 rounded-md p-4 sm:p-5 transition-all duration-150 hover:-translate-y-0.5 flex flex-col`}
       data-testid={testId}
     >
       <div className={`inline-flex items-center justify-center w-10 h-10 rounded-md ${accentCls} text-white mb-3`}>

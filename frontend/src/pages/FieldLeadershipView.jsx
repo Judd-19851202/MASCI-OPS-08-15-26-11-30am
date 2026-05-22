@@ -249,7 +249,7 @@ function PhotoLightboxLink({ src, idx, label }) {
       href={resolved}
       target="_blank"
       rel="noopener noreferrer"
-      className="block aspect-square rounded overflow-hidden border-2 border-slate-200 bg-white hover:border-amber-500 transition-colors"
+      className="block aspect-square rounded overflow-hidden border border-slate-200 bg-white hover:border-amber-500 transition-colors"
       title={`${label} ${idx + 1}`}
       data-testid={`photo-${label}-${idx}`}
     >

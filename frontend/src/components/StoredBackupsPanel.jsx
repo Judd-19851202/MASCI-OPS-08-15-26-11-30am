@@ -129,7 +129,7 @@ export default function StoredBackupsPanel() {
       {/* Schedule strip */}
       {sch && (
         <div
-          className="mt-4 bg-slate-50 border-2 border-slate-200 rounded-md px-4 py-3 flex items-center gap-4 flex-wrap text-xs"
+          className="mt-4 bg-slate-50 border border-slate-200 rounded-md px-4 py-3 flex items-center gap-4 flex-wrap text-xs"
           data-testid="backup-schedule"
         >
           <span className="inline-flex items-center gap-1.5 font-mono uppercase tracking-[0.15em] text-slate-600 font-bold">
@@ -173,7 +173,7 @@ export default function StoredBackupsPanel() {
           </p>
         </div>
       ) : (
-        <div className="mt-4 bg-white border-2 border-slate-200 rounded-md overflow-hidden">
+        <div className="mt-4 bg-white border border-slate-200 rounded-md overflow-hidden">
           <div className="px-4 py-2 bg-slate-50 border-b-2 border-slate-100 flex items-center justify-between">
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
               {data.count} {data.count === 1 ? "backup" : "backups"} · {fmtBytes(data.total_bytes)} total

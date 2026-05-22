@@ -116,7 +116,7 @@ export function MentionTextarea({
       />
       {menu && (
         <div
-          className="absolute z-50 left-2 bottom-full mb-2 w-80 max-h-72 overflow-y-auto bg-white border-2 border-slate-300 rounded-md shadow-lg"
+          className="absolute z-50 left-2 bottom-full mb-2 w-80 max-h-72 overflow-y-auto bg-white border border-slate-200 rounded-md shadow-lg"
           data-testid="mention-autocomplete"
         >
           <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-slate-500 font-bold px-3 py-2 border-b border-slate-100">

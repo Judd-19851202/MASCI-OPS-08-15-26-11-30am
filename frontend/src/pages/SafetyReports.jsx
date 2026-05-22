@@ -160,7 +160,7 @@ export default function SafetyReports() {
   return (
     <SafetyShell title={t("Reports & Exports")} kicker={t("Compliance")}>
       <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-4" data-testid="safety-reports-page">
-        <header className="bg-white border-2 border-slate-300 rounded-md p-5 flex items-start gap-3">
+        <header className="bg-white border border-slate-200 rounded-md p-5 flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-purple-700 text-white shrink-0">
             <BarChart3 className="w-6 h-6" />
           </div>
@@ -200,7 +200,7 @@ export default function SafetyReports() {
 
 function ReportTile({ report: r, busy, onRun, t }) {
   return (
-    <div className="bg-white border-2 border-slate-200 rounded-md p-4 flex flex-col" data-testid={`report-tile-${r.key}`}>
+    <div className="bg-white border border-slate-200 rounded-md p-4 flex flex-col" data-testid={`report-tile-${r.key}`}>
       <div className="flex items-center gap-2 mb-2">
         <div className={`inline-flex items-center justify-center w-9 h-9 rounded-md ${r.accent} text-white`}>
           <r.icon className="w-4 h-4" />

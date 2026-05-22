@@ -81,7 +81,7 @@ export default function ViewQaqcInspection() {
           </div>
         </div>
 
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print:border-none print:p-0">
+        <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print:border-none print:p-0">
           <div className="border-b-2 border-emerald-600 pb-3 mb-5">
             <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold">
               QA / QC · {KIND_LABEL[data.inspection_kind] || "QA/QC Inspection"}

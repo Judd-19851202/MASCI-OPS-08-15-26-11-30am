@@ -50,7 +50,7 @@ export default function AdminDispatch() {
   return (
     <AdminShell title="Dispatch Portal">
       <div className="max-w-7xl mx-auto" data-testid="admin-dispatch-page">
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4">
+        <div className="bg-white border border-slate-200 rounded-md p-5 mb-4">
           <div className="flex items-start gap-3">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-900 text-white shrink-0">
               <Truck className="w-6 h-6" />
@@ -138,7 +138,7 @@ export function DispatchOverviewTab() {
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white border-2 border-slate-200 rounded-md p-4">
+        <div className="bg-white border border-slate-200 rounded-md p-4">
           <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Recent transfers</h3>
           {xfers.length === 0 ? <p className="text-sm text-slate-500 italic">No transfers yet.</p> : (
             <ul className="divide-y divide-slate-100 text-xs max-h-64 overflow-y-auto">
@@ -152,7 +152,7 @@ export function DispatchOverviewTab() {
             </ul>
           )}
         </div>
-        <div className="bg-white border-2 border-slate-200 rounded-md p-4">
+        <div className="bg-white border border-slate-200 rounded-md p-4">
           <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Active holds</h3>
           {holds.length === 0 ? <p className="text-sm text-slate-500 italic">No active holds.</p> : (
             <ul className="divide-y divide-slate-100 text-xs max-h-64 overflow-y-auto">
@@ -218,7 +218,7 @@ export function DispatchUtilizationTab() {
           <Button onClick={load} size="sm" variant="outline" className="h-8"><RefreshCcw className="w-3.5 h-3.5" /></Button>
         </div>
       </div>
-      <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
+      <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
         <table className="w-full text-xs">
           <thead className="bg-slate-100 text-slate-700 font-mono uppercase tracking-[0.15em]">
             <tr>
@@ -285,7 +285,7 @@ export function DispatchTransfersTab() {
         <Button onClick={() => setCreating(true)} className="bg-slate-900 hover:bg-slate-800 text-white" data-testid="dp-transfer-new"><Plus className="w-3.5 h-3.5 mr-1" /> New Transfer</Button>
         <Button onClick={load} variant="outline" size="sm"><RefreshCcw className="w-3.5 h-3.5 mr-1" />Refresh</Button>
       </div>
-      <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
+      <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
         {loading ? (
           <div className="text-center py-8 text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
         ) : list.length === 0 ? (
@@ -527,7 +527,7 @@ export function DispatchHoldsTab() {
         <Button onClick={() => setCreating(true)} className="bg-slate-900 hover:bg-slate-800 text-white" data-testid="dp-hold-new"><Plus className="w-3.5 h-3.5 mr-1" /> Apply hold</Button>
         <Button onClick={load} variant="outline" size="sm"><RefreshCcw className="w-3.5 h-3.5 mr-1" />Refresh</Button>
       </div>
-      <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
+      <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
         {loading ? <div className="text-center py-8 text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div> :
           list.length === 0 ? <p className="p-5 text-sm text-slate-500 italic">No active holds.</p> : (
           <table className="w-full text-xs">
@@ -693,7 +693,7 @@ export function DispatchIdleAlertsTab() {
         <Button onClick={load} size="sm" variant="outline" className="h-8 ml-auto"><RefreshCcw className="w-3.5 h-3.5" /></Button>
       </div>
 
-      <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
+      <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
         {loading ? (
           <div className="text-center py-8 text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
         ) : rows.length === 0 ? (

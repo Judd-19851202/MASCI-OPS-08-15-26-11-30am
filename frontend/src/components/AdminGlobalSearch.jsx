@@ -74,7 +74,7 @@ export default function AdminGlobalSearch() {
 
       {open && (
         <div
-          className="absolute right-0 mt-1 w-[28rem] max-w-[92vw] bg-white border-2 border-slate-300 rounded-md shadow-xl z-50 max-h-[70vh] overflow-y-auto"
+          className="absolute right-0 mt-1 w-[28rem] max-w-[92vw] bg-white border border-slate-200 rounded-md shadow-xl z-50 max-h-[70vh] overflow-y-auto"
           data-testid="admin-search-dropdown"
         >
           {loading ? (

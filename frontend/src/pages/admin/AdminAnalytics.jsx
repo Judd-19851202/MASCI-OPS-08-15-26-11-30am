@@ -106,7 +106,7 @@ export default function AdminAnalytics() {
           <select
             value={window}
             onChange={(e) => setWindow(Number(e.target.value))}
-            className="h-9 px-2 border-2 border-slate-300 rounded-md text-xs font-mono bg-white"
+            className="h-9 px-2 border border-slate-200 rounded-md text-xs font-mono bg-white"
             data-testid="analytics-window-select"
           >
             {WINDOW_OPTIONS.map((o) => (
@@ -174,7 +174,7 @@ export default function AdminAnalytics() {
                 const meta = VIEWPORT_LABEL[v.viewport] || { Icon: Activity, label: v.viewport };
                 const Icon = meta.Icon;
                 return (
-                  <li key={v.viewport} className="flex items-center gap-2 px-3 py-2 rounded-md border-2 border-slate-200 bg-slate-50" data-testid={`analytics-viewport-${v.viewport}`}>
+                  <li key={v.viewport} className="flex items-center gap-2 px-3 py-2 rounded-md border border-slate-200 bg-slate-50" data-testid={`analytics-viewport-${v.viewport}`}>
                     <Icon className="w-4 h-4 text-slate-700 shrink-0" />
                     <span className="font-bold text-sm text-slate-900">{meta.label}</span>
                     <span className="ml-auto font-mono text-sm text-slate-700">{v.count.toLocaleString()}</span>
@@ -269,7 +269,7 @@ function KpiCard({ label, value, hint, tone }) {
 
 function Panel({ title, children, className = "" }) {
   return (
-    <div className={`bg-white border-2 border-slate-300 rounded-md ${className}`}>
+    <div className={`bg-white border border-slate-200 rounded-md ${className}`}>
       <div className="bg-slate-50 border-b-2 border-slate-200 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-slate-700">
         {title}
       </div>

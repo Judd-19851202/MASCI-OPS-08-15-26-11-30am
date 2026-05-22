@@ -226,7 +226,7 @@ function PortalSignInDirectory({ lang }) {
           return (
             <div
               key={p.key}
-              className={`group relative bg-white border-2 border-slate-300 rounded-md p-4 ${p.border} hover:shadow-md transition-all`}
+              className={`group relative bg-white border border-slate-200 rounded-md p-4 ${p.border} hover:shadow-md transition-all`}
               data-testid={`guidance-portal-directory-${p.key}`}
             >
               <div className={`absolute inset-y-0 left-0 w-1.5 ${p.accent} rounded-l-sm`} />
@@ -677,7 +677,7 @@ export default function OperationalGuidanceCenter() {
                 <Link
                   key={tk.id}
                   to={`/guidance/${tk.id}`}
-                  className="group relative bg-white border-2 border-slate-300 rounded-md p-4 hover:border-red-700 hover:shadow-md transition-all"
+                  className="group relative bg-white border border-slate-200 rounded-md p-4 hover:border-red-700 hover:shadow-md transition-all"
                   data-testid={`guidance-public-track-${tk.id}`}
                 >
                   <div className="absolute inset-y-0 left-0 w-1 bg-red-700 rounded-l-sm" />
@@ -739,7 +739,7 @@ export default function OperationalGuidanceCenter() {
               <Link
                 key={tk.key}
                 to="/guidance/section/portals"
-                className="group relative bg-white border-2 border-slate-300 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all overflow-hidden"
+                className="group relative bg-white border border-slate-200 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all overflow-hidden"
                 data-testid={`guidance-portal-track-${tk.key}`}
               >
                 <div className={`absolute inset-y-0 left-0 w-1 ${ACCENT_BAND[tk.accent] || "bg-slate-700"}`} />
@@ -773,7 +773,7 @@ export default function OperationalGuidanceCenter() {
               <Link
                 key={s.id}
                 to={`/guidance/section/${s.id}`}
-                className="bg-white border-2 border-slate-300 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all"
+                className="bg-white border border-slate-200 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all"
                 data-testid={`guidance-section-card-${s.id}`}
               >
                 <div className="flex items-start gap-3">

@@ -81,7 +81,7 @@ const KV = ({ label, value, full = false }) => (
 
 const ReportSection = ({ number, title, children }) => (
   <section
-    className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section"
+    className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section"
     data-testid={`view-section-${number}`}
   >
     <div className="flex items-baseline gap-3 mb-4 pb-2 border-b-2 border-slate-200">
@@ -398,7 +398,7 @@ export default function ViewInspection() {
                     src={p}
                     alt={`Inspection Finding ${i + 1}`}
                     filename={`MASCI_Inspection_${(data.id || "").slice(0, 8)}_finding${i + 1}.jpg`}
-                    className="relative w-full aspect-square rounded-md overflow-hidden border-2 border-slate-200 bg-white"
+                    className="relative w-full aspect-square rounded-md overflow-hidden border border-slate-200 bg-white"
                     testId={`view-photo-${i}`}
                   >
                     <img
@@ -422,7 +422,7 @@ export default function ViewInspection() {
               <div className="text-base font-bold text-slate-900 mb-2">
                 {data.inspector_name || "—"}
               </div>
-              <div className="border-2 border-slate-300 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center">
+              <div className="border border-slate-200 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center">
                 {data.inspector_signature ? (
                   <img
                     src={data.inspector_signature}
@@ -442,7 +442,7 @@ export default function ViewInspection() {
               <div className="text-base font-bold text-slate-900 mb-2">
                 {data.foreman_name || "—"}
               </div>
-              <div className="border-2 border-slate-300 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center">
+              <div className="border border-slate-200 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center">
                 {data.foreman_signature ? (
                   <img
                     src={data.foreman_signature}

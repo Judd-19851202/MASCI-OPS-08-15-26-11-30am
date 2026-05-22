@@ -146,7 +146,7 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
           <CheckCircle2 className="w-4 h-4" /> {t("Submitted")}
         </div>
 
-        <div className="bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8">
+        <div className="bg-white border border-slate-200 rounded-md p-6 sm:p-8">
           <div className="flex items-start justify-between gap-4 border-b-4 border-red-700 pb-4 mb-5">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">

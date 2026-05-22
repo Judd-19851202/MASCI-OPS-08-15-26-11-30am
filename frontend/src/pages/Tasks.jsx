@@ -129,7 +129,7 @@ export default function Tasks() {
         </div>
 
         {/* Filters bar */}
-        <div className="bg-white border-2 border-slate-200 rounded-md p-3 sm:p-4 mb-4 flex flex-wrap items-center gap-2.5">
+        <div className="bg-white border border-slate-200 rounded-md p-3 sm:p-4 mb-4 flex flex-wrap items-center gap-2.5">
           <Tabs value={tab} onValueChange={setTab} className="min-w-0">
             <TabsList>
               <TabsTrigger value="open" data-testid="tasks-tab-open">Open</TabsTrigger>
@@ -178,7 +178,7 @@ export default function Tasks() {
 
         {/* List */}
         {loading ? (
-          <div className="bg-white border-2 border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">Loading…</div>
+          <div className="bg-white border border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">Loading…</div>
         ) : items.length === 0 ? (
           <EmptyState
             icon={ClipboardList}
@@ -187,7 +187,7 @@ export default function Tasks() {
             testId="tasks-empty"
           />
         ) : (
-          <ul className="bg-white border-2 border-slate-200 rounded-md divide-y divide-slate-100">
+          <ul className="bg-white border border-slate-200 rounded-md divide-y divide-slate-100">
             {items.map((t) => (
               <li
                 key={t.id}

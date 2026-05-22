@@ -277,7 +277,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {/* Filter bar */}
         <div
-          className="bg-white border-2 border-slate-200 rounded-md p-3 mb-4 flex flex-wrap gap-2 items-center"
+          className="bg-white border border-slate-200 rounded-md p-3 mb-4 flex flex-wrap gap-2 items-center"
           data-testid="photos-filter-bar"
         >
           <Input
@@ -294,7 +294,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
             onChange={(e) =>
               setFilter((p) => ({ ...p, source: e.target.value }))
             }
-            className="h-10 px-3 border-2 border-slate-300 rounded-md font-mono text-sm bg-white"
+            className="h-10 px-3 border border-slate-200 rounded-md font-mono text-sm bg-white"
             data-testid="photos-source-filter"
           >
             <option value="">{t("All sources")}</option>
@@ -330,7 +330,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
               return (
                 <li
                   key={folder.key}
-                  className="bg-white border-2 border-slate-200 rounded-md overflow-hidden"
+                  className="bg-white border border-slate-200 rounded-md overflow-hidden"
                 >
                   <button
                     type="button"
@@ -752,7 +752,7 @@ function EmailDialog({ form, setForm, count, onCancel, onSend, busy }) {
           value={form.note}
           onChange={(e) => setForm({ ...form, note: e.target.value })}
           placeholder={t("Note (optional)")}
-          className="w-full min-h-[80px] p-2 border-2 border-slate-300 rounded-md text-sm"
+          className="w-full min-h-[80px] p-2 border border-slate-200 rounded-md text-sm"
           data-testid="photos-email-note"
         />
         <p className="text-[11px] text-slate-500 font-mono">

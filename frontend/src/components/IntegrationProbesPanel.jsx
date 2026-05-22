@@ -42,7 +42,7 @@ export default function IntegrationProbesPanel() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <div className="bg-white border-2 border-slate-300 rounded-md overflow-hidden" data-testid="integration-probes-panel">
+    <div className="bg-white border border-slate-200 rounded-md overflow-hidden" data-testid="integration-probes-panel">
       <div className="bg-slate-50 border-b-2 border-slate-200 px-4 py-2 flex items-center justify-between flex-wrap gap-2">
         <div className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-slate-700 flex items-center gap-2">
           <Radio className="w-3.5 h-3.5" /> Live Integration Probes

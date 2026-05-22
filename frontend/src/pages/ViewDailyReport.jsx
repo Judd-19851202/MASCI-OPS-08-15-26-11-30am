@@ -60,7 +60,7 @@ function grossNetLine(start, stop, lunchMin) {
 }
 
 const ReportSection = ({ number, title, children }) => (
-  <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print:break-inside-avoid">
+  <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print:break-inside-avoid">
     <div className="flex items-baseline gap-3 mb-4 pb-2 border-b-2 border-slate-200">
       <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
         Section {number}
@@ -307,7 +307,7 @@ export default function ViewDailyReport() {
           {data.weather_snapshots?.length > 0 ? (
             <div className="grid grid-cols-3 gap-3 mt-3">
               {data.weather_snapshots.map((s, i) => (
-                <div key={i} className="border-2 border-slate-200 rounded-md p-3 print-row">
+                <div key={i} className="border border-slate-200 rounded-md p-3 print-row">
                   <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-red-700 font-bold">
                     {s.time}
                   </div>
@@ -562,7 +562,7 @@ export default function ViewDailyReport() {
                   src={p}
                   alt={`Daily Report Photo ${i + 1}`}
                   filename={`MASCI_DR_${(data.id || "").slice(0, 8)}_photo${i + 1}.jpg`}
-                  className="relative w-full aspect-square rounded-md overflow-hidden border-2 border-slate-200 bg-white"
+                  className="relative w-full aspect-square rounded-md overflow-hidden border border-slate-200 bg-white"
                   testId={`view-photo-${i}`}
                 >
                   <img
@@ -585,7 +585,7 @@ export default function ViewDailyReport() {
               <div className="text-base font-bold text-slate-900 mb-2">
                 {data.prepared_by || "—"}
               </div>
-              <div className="border-2 border-slate-300 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center">
+              <div className="border border-slate-200 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center">
                 {data.prepared_by_signature ? (
                   <img
                     src={data.prepared_by_signature}
@@ -604,7 +604,7 @@ export default function ViewDailyReport() {
               <div className="text-base font-bold text-slate-900 mb-2">
                 {data.superintendent || "—"}
               </div>
-              <div className="border-2 border-slate-300 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center">
+              <div className="border border-slate-200 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center">
                 {data.superintendent_signature ? (
                   <img
                     src={data.superintendent_signature}

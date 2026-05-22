@@ -324,7 +324,7 @@ export default function NewSafetyEquipmentIssuance() {
                 return (
                   <div
                     key={idx}
-                    className="border-2 border-slate-200 rounded-md p-3 bg-slate-50"
+                    className="border border-slate-200 rounded-md p-3 bg-slate-50"
                     data-testid={`iss-item-${idx}`}
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
@@ -620,7 +620,7 @@ export default function NewSafetyEquipmentIssuance() {
 
 function Section({ title, children, desc }) {
   return (
-    <section className="bg-white border-2 border-slate-300 rounded-md p-4 sm:p-5">
+    <section className="bg-white border border-slate-200 rounded-md p-4 sm:p-5">
       <h2 className="font-display text-lg sm:text-xl font-black text-slate-900 mb-1">{title}</h2>
       {desc && <p className="text-xs text-slate-500 mb-3">{desc}</p>}
       <div className="space-y-3">{children}</div>

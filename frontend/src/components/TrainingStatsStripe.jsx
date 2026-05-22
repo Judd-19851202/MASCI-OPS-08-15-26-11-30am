@@ -82,7 +82,7 @@ export default function TrainingStatsStripe() {
 
   return (
     <section
-      className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-6 mb-6"
+      className="bg-white border border-slate-200 rounded-md p-5 sm:p-6 mb-6"
       data-testid="training-stats-stripe"
     >
       <div className="flex items-start justify-between gap-4 flex-wrap mb-4">

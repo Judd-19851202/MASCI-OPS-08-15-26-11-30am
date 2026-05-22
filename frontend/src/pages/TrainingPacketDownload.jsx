@@ -222,7 +222,7 @@ function PageFrame({ children }) {
         </div>
       </header>
       <main className="flex-1 flex items-center justify-center px-5 py-14">
-        <div className="bg-white border-2 border-slate-300 rounded-md p-8 sm:p-10 w-full max-w-lg flex items-center justify-center">
+        <div className="bg-white border border-slate-200 rounded-md p-8 sm:p-10 w-full max-w-lg flex items-center justify-center">
           {children}
         </div>
       </main>

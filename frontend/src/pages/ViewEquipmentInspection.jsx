@@ -151,7 +151,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 print:py-0 space-y-5">
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
+        <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">Equipment Pre-Op Inspection</span>
@@ -187,7 +187,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
           </div>
         </div>
 
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
+        <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
           <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Project & Operator</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <KV label="Project" value={data.project_name} />
@@ -198,7 +198,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
           </div>
         </div>
 
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
+        <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
           <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Equipment</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <KV label="Type" value={data.equipment_type} />
@@ -211,7 +211,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
         </div>
 
         {/* Tally */}
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
+        <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
           <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">{t("Inspection Summary")}</h2>
           <div className="flex flex-wrap items-center gap-4">
             <div className="text-center">
@@ -238,7 +238,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
 
         {/* Checklist sections */}
         {Object.entries(data.checklist || {}).map(([sectionTitle, items]) => (
-          <div key={sectionTitle} className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
+          <div key={sectionTitle} className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
             <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">{sectionTitle}</h2>
             <div className="space-y-2">
               {Object.entries(items).map(([item, res]) => {
@@ -302,7 +302,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
         ))}
 
         {(data.deficiency_notes || data.corrective_actions) && (
-          <div className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
+          <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
             <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Notes & Corrective Actions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <KV label="Deficiencies" value={data.deficiency_notes} />
@@ -312,7 +312,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
         )}
 
         {data.photos && data.photos.length > 0 && (
-          <div className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
+          <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
             <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-slate-200">
               <h2 className="font-display text-xl font-black text-slate-900">Photos ({data.photos.length})</h2>
               <PhotoZipDownload
@@ -339,7 +339,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
         )}
 
         {data.operator_signature && (
-          <div className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
+          <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
             <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Sign-Off</h2>
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">Operator: {data.operator_name}</div>
             <img src={resolvePhotoSrc(data.operator_signature)} alt="Operator signature" className="max-h-32 border-b-2 border-slate-300" />

@@ -34,7 +34,7 @@ export default function ThankYou() {
 
       <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
         <div
-          className="max-w-xl w-full bg-white border-2 border-slate-300 rounded-md p-8 sm:p-12 text-center"
+          className="max-w-xl w-full bg-white border border-slate-200 rounded-md p-8 sm:p-12 text-center"
           data-testid="thank-you-card"
         >
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-700 mb-6">

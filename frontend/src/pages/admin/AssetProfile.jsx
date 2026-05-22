@@ -67,7 +67,7 @@ export default function AssetProfile() {
         </div>
 
         {/* Hero */}
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4">
+        <div className="bg-white border border-slate-200 rounded-md p-5 mb-4">
           <div className="flex items-start gap-4 flex-wrap">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-slate-900 text-white shrink-0">
               <Truck className="w-7 h-7" />
@@ -127,7 +127,7 @@ function Field({ label, value }) {
 
 function OverviewSection({ overview }) {
   return (
-    <div className="bg-white border-2 border-slate-200 rounded-md p-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="ap-overview">
+    <div className="bg-white border border-slate-200 rounded-md p-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="ap-overview">
       <Field label="MASCI ID"      value={overview.id} />
       <Field label="Unit #"        value={overview.unit_number} />
       <Field label="Name"          value={overview.name} />
@@ -151,7 +151,7 @@ function DispatchSection({ data }) {
   const transfers = data.transfers || [];
   return (
     <div className="space-y-4" data-testid="ap-dispatch">
-      <div className="bg-white border-2 border-slate-200 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Current Assignment</h3>
         {a ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -175,7 +175,7 @@ function DispatchSection({ data }) {
           </div>
         </div>
       )}
-      <div className="bg-white border-2 border-slate-200 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Transfer history</h3>
         {transfers.length === 0 ? <p className="text-sm text-slate-500 italic">No transfers recorded.</p> : (
           <ul className="divide-y divide-slate-100 text-xs" data-testid="ap-transfer-history">
@@ -261,7 +261,7 @@ function SafetySection({ data }) {
   const cas = data.safety_corrective_actions || [];
   return (
     <div className="space-y-4" data-testid="ap-safety">
-      <div className="bg-white border-2 border-slate-200 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Active safety holds</h3>
         {holds.length === 0 ? <p className="text-sm text-slate-500 italic">No active safety holds.</p> : (
           <ul className="divide-y divide-slate-100 text-xs">
@@ -271,7 +271,7 @@ function SafetySection({ data }) {
           </ul>
         )}
       </div>
-      <div className="bg-white border-2 border-slate-200 rounded-md p-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5">
         <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Linked corrective actions</h3>
         {cas.length === 0 ? <p className="text-sm text-slate-500 italic">No corrective actions linked to this asset.</p> : (
           <ul className="divide-y divide-slate-100 text-xs">
@@ -286,7 +286,7 @@ function SafetySection({ data }) {
 function FieldOpsSection({ data }) {
   const preops = data.recent_preops || [];
   return (
-    <div className="bg-white border-2 border-slate-200 rounded-md p-5" data-testid="ap-field">
+    <div className="bg-white border border-slate-200 rounded-md p-5" data-testid="ap-field">
       <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Recent pre-ops / inspections</h3>
       {preops.length === 0 ? <p className="text-sm text-slate-500 italic">No pre-op records linked.</p> : (
         <ul className="divide-y divide-slate-100 text-xs">
@@ -306,7 +306,7 @@ function FieldOpsSection({ data }) {
 function EventsSection({ data }) {
   const events = data.events || [];
   return (
-    <div className="bg-white border-2 border-slate-200 rounded-md p-5" data-testid="ap-events">
+    <div className="bg-white border border-slate-200 rounded-md p-5" data-testid="ap-events">
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Operations event history</h3>
         <span className="text-xs text-slate-500">Showing {events.length} of {data.events_total_for_asset}</span>

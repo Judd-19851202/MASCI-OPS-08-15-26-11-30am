@@ -151,7 +151,7 @@ export default function JhaPlansPosterCard() {
               : `${uploadedJobs.length} / ${JOB_LIBRARY.length} ${t("jobs covered")}`}
           </div>
         </div>
-        <div className="border-2 border-slate-300 rounded-md overflow-hidden">
+        <div className="border border-slate-200 rounded-md overflow-hidden">
           <table className="w-full text-sm" data-testid="jha-poster-job-table">
             <thead>
               <tr className="bg-slate-900 text-white font-mono text-[10px] uppercase tracking-[0.2em]">

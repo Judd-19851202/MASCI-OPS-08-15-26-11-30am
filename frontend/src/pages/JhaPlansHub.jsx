@@ -136,7 +136,7 @@ export default function JhaPlansHub() {
           </p>
         )}
 
-        <ul className="bg-white border-2 border-slate-300 rounded-md divide-y-2 divide-slate-100 overflow-hidden">
+        <ul className="bg-white border border-slate-200 rounded-md divide-y-2 divide-slate-100 overflow-hidden">
           {filteredJobs.map((job) => {
             const files = filesByProject[job.project_number] || [];
             const hasFiles = files.length > 0;

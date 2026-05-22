@@ -75,7 +75,7 @@ export default function SafetyIncidents() {
   return (
     <SafetyShell title={t("Incidents & Near Misses")} kicker={t("Safety Review")}>
       <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-4" data-testid="safety-incidents-page">
-        <header className="bg-white border-2 border-slate-300 rounded-md p-5 flex items-start gap-3">
+        <header className="bg-white border border-slate-200 rounded-md p-5 flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">
             <ClipboardCheck className="w-6 h-6" />
           </div>
@@ -94,7 +94,7 @@ export default function SafetyIncidents() {
         </header>
 
         {/* Filters */}
-        <div className="bg-white border-2 border-slate-200 rounded-md p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
+        <div className="bg-white border border-slate-200 rounded-md p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
           <div className="lg:col-span-2 relative">
             <Search className="absolute left-2 top-2.5 w-3.5 h-3.5 text-slate-400" />
             <Input className="pl-7 h-9" placeholder={t("Search title, employee, supervisor, job…")} value={q} onChange={(e) => setQ(e.target.value)} data-testid="incidents-search" />
@@ -123,7 +123,7 @@ export default function SafetyIncidents() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border-2 border-slate-200 rounded-md overflow-x-auto">
+        <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
           {loading ? (
             <div className="text-center py-12 text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
           ) : filtered.length === 0 ? (

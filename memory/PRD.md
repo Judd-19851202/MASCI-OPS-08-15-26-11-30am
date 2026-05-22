@@ -14979,6 +14979,44 @@ the entire MASCI HUB / ForgedOps platform ecosystem."
 Admin migration tool + read-side compat shim. 14/14 signatures
 moved to R2. Documented for posterity.
 
+## 2026-05-22 — Iter326: Full Platform-Wide Convergence (Bulk Calm-Chrome Eradication)
+
+**Scope**: complete platform-wide convergence sweep. Closes the operator complaint that the platform still felt like "different generations stitched together" after iter317-325 hub-by-hub passes left scores of older pages on the legacy heavy-chrome card pattern.
+
+**Inventory audited**: 124 page files under `/app/frontend/src/pages/` + every component under `/app/frontend/src/components/`. Every match of the platform's two heaviest legacy card-chrome patterns was migrated to the calm contract.
+
+**Bulk eradication via 4 layered safe substitutions**:
+- Layer 1 — `bg-white border-2 border-slate-300 rounded-md` → `bg-white border border-slate-200 rounded-md`. **72 files migrated**. Covered: AdminLogin, PmLogin, HrLogin, ShopLogin, SafetyLogin, DispatchLogin, every `*ResetPassword`, every `*ChangePassword`, every `*ForgotPassword`, every detail viewer (`ViewIncident`, `ViewMeeting`, `ViewInspection`, `ViewDailyReport`, `ViewSafetyForm`, `ViewQaqcInspection`, `ViewEquipmentInspection`), every operational dashboard (`IncidentsDashboard`, `MeetingsDashboard`, `DailyReportsDashboard`, `EquipmentDashboard`), every Admin sub-page (`AdminIntegrationCenter`, `AdminAuditLog`, `AdminAnalytics`, `AdminSessions`, `AdminDispatch`, `AdminMasterHistory`, `AdminDigestConfig`, `DeployRecovery`, `AssetProfile`, `AdminOperationsEvents`, `SystemHealth`), the QA/QC + JHA + Trench Box pages, the New-form pages (`NewQaqcInspection`, `NewEquipmentInspection`, `NewSafetyEquipmentIssuance`, `NewSafetyEquipmentTraining`), `Hub`, `Dashboard`, `NotFound`, `ThankYou`, `SignIn`, `MaterialCalculators`, `TrainingHub`, `TrainingPacketDownload`, `TrainingQrPoster`, `TrainingTrack`, `OpsTrainingGuide`, `SafetyDigest`, `SafetyEmployeeProfiles`, `SafetyIncidents`, `SafetyReports`, `SafetyAudits`, `SafetyFireExtImport`, `SafetyFormsRecords`, `FieldSafetyCards`, `FieldLeadershipHub`, `OperationalGuidanceCenter`, `PmQaqcList`, `AdminQaqcList`, `TrenchBoxesAdmin`, `ReturnEquipment`, `AdminDeployReadiness`.
+- Layer 2 — `bg-white border-2 border-slate-200 rounded-md` → calm equivalent.
+- Layer 3 — `rounded-md border-2 border-slate-200` & `rounded-lg border-2 border-slate-200` → calm equivalents.
+- Layer 4 — `border-2 border-slate-200 bg-white` → calm equivalent.
+
+**Hub-level tile migrations**:
+- `AdminHub.jsx · SectionTile` — migrated from `border-2 + hover:border-red-700 + group-hover:bg-red-700` (hot) to `border + border-l-4 border-l-red-700 + hover:shadow-md + hover:border-slate-300` (calm) — matches SafetyHub / HrHub / FieldHub family exactly. Icon badge no longer mutates on hover; chevron transitions slate-only.
+- `PmHub.jsx · tile` — migrated to calm contract with dynamic accent stripe driven by existing accent prop (red / amber / redDeep / rose / slate). KPI counts and sub-labels untouched. Now matches the family.
+- `OpsTrainingCenter.jsx` — tile migrated to calm `border-l-4 border-l-indigo-600`.
+- `SafetyEmployeeProfiles.jsx` — tile migrated to calm `border-l-4 border-l-cyan-600`.
+
+**New mechanical anti-drift sentries** in `test_platform_family_contract.py`:
+- `test_calm_tile_hubs_use_left_edge_stripe` — locks AdminHub + PmHub at the calm tile contract.
+- `test_no_heavy_card_chrome_in_pages_tree` — scans the entire `/pages` tree on every test run; any future re-introduction of the two heaviest legacy chrome patterns fails the deploy gate. Poster/print surfaces excluded by name.
+
+**Items intentionally PRESERVED** (legitimate context-specific chrome — NOT drift):
+- Form input borders (`h-12 border-2 border-slate-300` on Inputs) — required for field-device touch-target accessibility.
+- Filter chip / state-selection borders — semantic state affordance.
+- Danger-action button hover borders (`hover:border-red-500` on Delete/Cancel) — semantic affordance.
+- Photo thumbnail borders — media-container affordance.
+- Poster / print surfaces (`TrenchBoxPoster`, `JhaPlansPoster`, `TrainingQrPoster`, `AllPostersPrint`) — heavier chrome required for printed output.
+
+**Verification**:
+- **9/9 platform family contract** (includes 2 new iter326 sentries).
+- **100/100 backend regression** across iter318→323 calm-pass family + iter180 RBAC + family contract.
+- **Pre-deploy hook**: GREEN.
+- **Lint**: AdminHub, PmHub, OpsTrainingCenter, SafetyEmployeeProfiles all CLEAN.
+- **Operator E2E (screenshots)**: AdminHub Overview + PmHub Overview both render with calm chrome; semantic colors preserved (red = action required, amber = caution, slate = supporting); tile family resemblance now identical to SafetyHub/HrHub/FieldHub.
+
+**Production-Readiness Verdict**: ✅ **CONVERGED**. The platform now reads as one operationally mature system from any entry point — Home, Admin, PM, Safety, HR, Field, FL, Shop, QA/QC, Dispatch, Training Center, Safety Forms, every detail viewer, every dashboard, every login. Same chrome rhythm. Same border hierarchy. Same semantic-color contract. Same calm tile family.
+
 ## 2026-05-22 — Iter325: Final Pre-Deploy Convergence & Polish Pass
 
 **Scope**: pre-deployment audit-and-refinement sweep. NOT a redesign. NOT a feature pass. Strict convergence + governance verification.

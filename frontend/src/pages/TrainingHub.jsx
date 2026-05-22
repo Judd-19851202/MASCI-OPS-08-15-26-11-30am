@@ -155,7 +155,7 @@ export default function TrainingHub() {
                 key={track.slug}
                 to={destination}
                 state={unlocked ? undefined : { from: `/training/${track.slug}` }}
-                className={`group relative bg-white border-2 border-slate-300 rounded-md p-6 sm:p-8 transition-all duration-150 hover:-translate-y-0.5 ${accent.split(" ")[1]} flex flex-col`}
+                className={`group relative bg-white border border-slate-200 rounded-md p-6 sm:p-8 transition-all duration-150 hover:-translate-y-0.5 ${accent.split(" ")[1]} flex flex-col`}
                 data-testid={`training-track-${track.slug}`}
               >
                 <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${accent.split(" ")[2]}`} />

@@ -227,7 +227,7 @@ function FieldRenderer({ field, value, onChange, lang, t }) {
     const ratings = (value && typeof value === "object") ? value : {};
     const ropts = (field.rating_options || []).map((o) => l(o, lang));
     return (
-      <div className="space-y-2 border-2 border-slate-200 rounded-md p-3 bg-slate-50">
+      <div className="space-y-2 border border-slate-200 rounded-md p-3 bg-slate-50">
         {field.items.map((it) => (
           <div key={it.key} className="grid grid-cols-1 sm:grid-cols-5 gap-1.5 items-center">
             <div className="sm:col-span-2 text-sm font-semibold text-slate-800">
@@ -266,7 +266,7 @@ function FieldRenderer({ field, value, onChange, lang, t }) {
     // description" only when property_returned__other is true).
     const current = (value && typeof value === "object") ? value : {};
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 border-2 border-slate-200 rounded-md p-3 bg-slate-50"
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 border border-slate-200 rounded-md p-3 bg-slate-50"
            data-testid={`field-${field.name}`}>
         {(field.options || []).map((opt) => {
           const key = opt.key || opt.en;
@@ -949,7 +949,7 @@ export default function FieldLeadershipFormPage() {
                     />
                   )}
                   {form.allow_refusal && (
-                    <div className="rounded-md border-2 border-slate-200 p-3 bg-slate-50 space-y-2">
+                    <div className="rounded-md border border-slate-200 p-3 bg-slate-50 space-y-2">
                       <label className="flex items-center gap-2 text-sm font-bold">
                         <input
                           type="checkbox"

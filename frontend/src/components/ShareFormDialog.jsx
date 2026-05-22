@@ -109,7 +109,7 @@ export const ShareFormDialog = ({
 
         <div className="space-y-5 pt-2">
           {/* QR Code */}
-          <div className="flex flex-col items-center gap-3 py-4 bg-slate-50 border-2 border-slate-200 rounded-md">
+          <div className="flex flex-col items-center gap-3 py-4 bg-slate-50 border border-slate-200 rounded-md">
             <div className="bg-white p-3 border-2 border-slate-900 rounded">
               <QRCodeSVG
                 id="masci-share-qr"

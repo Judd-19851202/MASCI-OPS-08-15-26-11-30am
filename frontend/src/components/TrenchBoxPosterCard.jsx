@@ -150,7 +150,7 @@ export default function TrenchBoxPosterCard() {
 
       {/* How to use the library */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="border-2 border-slate-300 rounded-md p-4 bg-slate-50">
+        <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
           <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-red-700 text-white mb-2">
             <ScanLine className="w-5 h-5" />
           </div>
@@ -161,7 +161,7 @@ export default function TrenchBoxPosterCard() {
             {t("Open your phone camera. Point at the code. Tap the link.")}
           </p>
         </div>
-        <div className="border-2 border-slate-300 rounded-md p-4 bg-slate-50">
+        <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
           <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-red-700 text-white mb-2">
             <Box className="w-5 h-5" />
           </div>
@@ -174,7 +174,7 @@ export default function TrenchBoxPosterCard() {
             )}
           </p>
         </div>
-        <div className="border-2 border-slate-300 rounded-md p-4 bg-slate-50">
+        <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
           <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-red-700 text-white mb-2">
             <BookOpen className="w-5 h-5" />
           </div>

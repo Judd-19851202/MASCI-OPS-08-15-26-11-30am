@@ -149,7 +149,7 @@ export default function AssetTransfers() {
       )}
 
       {loading && !data.items?.length && (
-        <div className="border-2 border-slate-200 bg-white p-4 rounded-md font-mono text-xs text-slate-500">
+        <div className="border border-slate-200 bg-white p-4 rounded-md font-mono text-xs text-slate-500">
           Loading transfers…
         </div>
       )}

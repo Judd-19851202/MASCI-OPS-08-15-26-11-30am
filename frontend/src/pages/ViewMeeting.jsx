@@ -39,7 +39,7 @@ function weatherLabel(code, t) {
 }
 
 const ReportSection = ({ number, title, children }) => (
-  <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print-section">
+  <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
     <div className="flex items-baseline gap-3 mb-4 pb-2 border-b-2 border-slate-200">
       <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
         Section {number}
@@ -323,7 +323,7 @@ export default function ViewMeeting() {
                 {(data.attendees || []).map((a, i) => (
                   <div
                     key={i}
-                    className="border-2 border-slate-200 rounded-md p-3 print-row"
+                    className="border border-slate-200 rounded-md p-3 print-row"
                   >
                     <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
                       {t("Attendee")} {i + 1}
@@ -360,7 +360,7 @@ export default function ViewMeeting() {
                   src={p}
                   alt={`Meeting Photo ${i + 1}`}
                   filename={`MASCI_Meeting_${(data.id || "").slice(0, 8)}_photo${i + 1}.jpg`}
-                  className="relative w-full aspect-square rounded-md overflow-hidden border-2 border-slate-200 bg-white"
+                  className="relative w-full aspect-square rounded-md overflow-hidden border border-slate-200 bg-white"
                   testId={`view-photo-${i}`}
                 >
                   <img src={resolvePhotoSrc(p)} alt={`Photo ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
@@ -376,7 +376,7 @@ export default function ViewMeeting() {
           </div>
           <div className="text-base font-bold text-slate-900 mb-2">{data.conducted_by || "—"}</div>
           <BilingualConsent variant="meeting" />
-          <div className="border-2 border-slate-300 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center max-w-md mt-3">
+          <div className="border border-slate-200 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center max-w-md mt-3">
             {data.conductor_signature ? (
               <img src={resolvePhotoSrc(data.conductor_signature)} alt="Conductor signature" className="max-h-[120px]" />
             ) : (

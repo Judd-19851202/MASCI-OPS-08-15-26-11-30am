@@ -95,7 +95,7 @@ export default function AdminDigestConfig() {
   return (
     <AdminShell title="Weekly Digest" section="system">
       <div className="max-w-3xl mx-auto" data-testid="admin-digest-config-page">
-        <header className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4 flex items-start gap-3">
+        <header className="bg-white border border-slate-200 rounded-md p-5 mb-4 flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-cyan-700 text-white shrink-0">
             <Mail className="w-6 h-6" />
           </div>
@@ -117,7 +117,7 @@ export default function AdminDigestConfig() {
         </header>
 
         {/* Enabled toggle */}
-        <div className="bg-white border-2 border-slate-200 rounded-md p-4 mb-3 flex items-center gap-3">
+        <div className="bg-white border border-slate-200 rounded-md p-4 mb-3 flex items-center gap-3">
           <div className="flex-1">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600 font-bold">Status</div>
             <div className="font-display text-lg font-black">
@@ -140,7 +140,7 @@ export default function AdminDigestConfig() {
         </div>
 
         {/* Recipients */}
-        <div className="bg-white border-2 border-slate-200 rounded-md p-4 mb-3">
+        <div className="bg-white border border-slate-200 rounded-md p-4 mb-3">
           <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">
             Recipients (comma-separated)
           </Label>
@@ -157,7 +157,7 @@ export default function AdminDigestConfig() {
         </div>
 
         {/* Schedule */}
-        <div className="bg-white border-2 border-slate-200 rounded-md p-4 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="bg-white border border-slate-200 rounded-md p-4 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Weekday</Label>
             <Select value={String(cfg.weekday)} onValueChange={(v) => update({ weekday: parseInt(v, 10) })}>
@@ -187,7 +187,7 @@ export default function AdminDigestConfig() {
         </div>
 
         {/* Dashboard URL */}
-        <div className="bg-white border-2 border-slate-200 rounded-md p-4 mb-3">
+        <div className="bg-white border border-slate-200 rounded-md p-4 mb-3">
           <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Dashboard URL</Label>
           <Input
             className="mt-2 h-10 border-2 font-mono"

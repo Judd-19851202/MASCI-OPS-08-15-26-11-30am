@@ -95,7 +95,7 @@ export default function SafetyLogin() {
               protected workflow (rendered only when state.continuity
               is present — zero footprint otherwise). */}
           <AuthRequiredBanner />
-          <div className="bg-white border-2 border-slate-300 rounded-md p-7 sm:p-9 shadow-xl">
+          <div className="bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
           <div className="flex items-center gap-3 mb-2">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-cyan-700 text-white">
               <ShieldAlert className="w-6 h-6" />

@@ -32,7 +32,7 @@ export default function DeployRecovery() {
   return (
     <AdminShell title="Deployment Recovery" section="system">
       <div className="max-w-5xl mx-auto" data-testid="admin-deploy-recovery-page">
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4 flex items-start gap-3">
+        <div className="bg-white border border-slate-200 rounded-md p-5 mb-4 flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-900 text-white shrink-0">
             <Rocket className="w-6 h-6" />
           </div>
@@ -54,7 +54,7 @@ export default function DeployRecovery() {
 
         {/* Current state probe */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-          <div className="bg-white border-2 border-slate-200 rounded-md p-4">
+          <div className="bg-white border border-slate-200 rounded-md p-4">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600 font-bold mb-1">Current build</div>
             <div className="font-display text-lg font-black break-words">{data?.current?.version || "—"}</div>
             <div className="text-xs text-slate-500 font-mono">{data?.current?.built_at || ""}</div>
@@ -66,7 +66,7 @@ export default function DeployRecovery() {
             <div className="font-display text-lg font-black">{(data?.r2?.status || "—").toUpperCase()}</div>
             <div className="text-xs">{data?.r2?.detail || ""}</div>
           </div>
-          <div className="bg-white border-2 border-slate-200 rounded-md p-4">
+          <div className="bg-white border border-slate-200 rounded-md p-4">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600 font-bold mb-1 flex items-center gap-1">
               <HardDrive className="w-3.5 h-3.5" /> Recent backups
             </div>
@@ -76,7 +76,7 @@ export default function DeployRecovery() {
         </div>
 
         {/* Backup chain */}
-        <div className="bg-white border-2 border-slate-200 rounded-md p-4 mb-4">
+        <div className="bg-white border border-slate-200 rounded-md p-4 mb-4">
           <h2 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2 flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" /> Latest successful backups
           </h2>
@@ -98,7 +98,7 @@ export default function DeployRecovery() {
 
         {/* Known-good build history */}
         {(data?.known_good_history || []).length > 0 && (
-          <div className="bg-white border-2 border-slate-200 rounded-md p-4 mb-4">
+          <div className="bg-white border border-slate-200 rounded-md p-4 mb-4">
             <h2 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Known-good build history</h2>
             <ul className="text-xs divide-y divide-slate-100" data-testid="recovery-good-history">
               {data.known_good_history.map((h, i) => (
@@ -113,7 +113,7 @@ export default function DeployRecovery() {
         )}
 
         {/* Rollback playbook */}
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5">
+        <div className="bg-white border border-slate-200 rounded-md p-5">
           <h2 className="font-display text-xl font-black flex items-center gap-2 mb-3">
             <ShieldCheck className="w-5 h-5 text-red-700" /> Rollback playbook
           </h2>

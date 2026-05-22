@@ -206,7 +206,7 @@ export default function OperationsCenter({ compact = false, className = "" }) {
   if (err === "AUTH_REQUIRED") return null; // silent on anon pages
   if (loading) {
     return (
-      <div className={`rounded-md border-2 border-slate-200 bg-white p-3 text-xs text-slate-500 ${className}`} data-testid="ops-center-loading">
+      <div className={`rounded-md border border-slate-200 bg-white p-3 text-xs text-slate-500 ${className}`} data-testid="ops-center-loading">
         Loading operational visibility…
       </div>
     );

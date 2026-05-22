@@ -102,7 +102,7 @@ export default function SafetyEmployeeProfiles() {
           <div className="text-center py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-400" /></div>
         ) : (
           <>
-            <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-6">
+            <div className="bg-white border border-slate-200 rounded-md p-5 mb-6">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-700 font-bold">{t("Employee")}</div>
               <h2 className="font-display text-3xl font-black text-slate-900 mt-1">{profile.employee?.name}</h2>
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600 mt-2">
@@ -201,7 +201,7 @@ export default function SafetyEmployeeProfiles() {
             <button
               key={emp.id}
               onClick={() => openProfile(emp)}
-              className="text-left bg-white border-2 border-slate-200 hover:border-cyan-600 hover:shadow-md rounded-md p-4 transition-all"
+              className="text-left bg-white border border-slate-200 border-l-4 border-l-cyan-600 hover:shadow-md hover:border-slate-300 rounded-md p-4 transition-all"
               data-testid={`safety-emp-card-${emp.id}`}
             >
               <div className="font-display text-lg font-black text-slate-900">{emp.name}</div>

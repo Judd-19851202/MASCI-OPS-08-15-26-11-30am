@@ -124,7 +124,7 @@ export default function AdminTrainingVideos() {
                   return (
                     <div
                       key={l.slug}
-                      className="bg-white border-2 border-slate-200 rounded-md p-4"
+                      className="bg-white border border-slate-200 rounded-md p-4"
                     >
                       <div className="flex items-baseline justify-between gap-3 mb-2 flex-wrap">
                         <div className="min-w-0 flex-1">

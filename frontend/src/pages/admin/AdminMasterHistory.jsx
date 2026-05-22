@@ -90,7 +90,7 @@ export default function AdminMasterHistory({ kind }) {
         </div>
       ) : (
         <>
-          <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-5" data-testid="master-history-header">
+          <div className="bg-white border border-slate-200 rounded-md p-5 mb-5" data-testid="master-history-header">
             <div className="flex items-start gap-3">
               {kind === "equipment"
                 ? <Truck className="w-8 h-8 text-slate-400 mt-1" />

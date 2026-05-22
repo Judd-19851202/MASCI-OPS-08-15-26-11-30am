@@ -577,7 +577,7 @@ export default function NewQaqcInspection() {
 
 function Section({ title, children, desc }) {
   return (
-    <section className="bg-white border-2 border-slate-300 rounded-md p-4 sm:p-5">
+    <section className="bg-white border border-slate-200 rounded-md p-4 sm:p-5">
       <h2 className="font-display text-lg sm:text-xl font-black text-slate-900 mb-1">
         {title}
       </h2>

@@ -183,7 +183,7 @@ export default function RestoreBackupPanel() {
         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
           Source:
         </Label>
-        <div className="inline-flex rounded-md border-2 border-slate-200 overflow-hidden" data-testid="restore-source-toggle">
+        <div className="inline-flex rounded-md border border-slate-200 overflow-hidden" data-testid="restore-source-toggle">
           <button
             type="button"
             onClick={() => setSource("file")}
@@ -212,7 +212,7 @@ export default function RestoreBackupPanel() {
         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
           Mode:
         </Label>
-        <div className="inline-flex rounded-md border-2 border-slate-200 overflow-hidden" data-testid="restore-mode-toggle">
+        <div className="inline-flex rounded-md border border-slate-200 overflow-hidden" data-testid="restore-mode-toggle">
           <button
             type="button"
             onClick={() => setMode("merge")}

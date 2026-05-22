@@ -175,7 +175,7 @@ export default function AdminSafetyUsersPanel() {
   };
 
   return (
-    <div className="border-2 border-slate-300 rounded-md p-5 bg-white" data-testid="admin-safety-users-panel">
+    <div className="border border-slate-200 rounded-md p-5 bg-white" data-testid="admin-safety-users-panel">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-cyan-700 text-white shrink-0">

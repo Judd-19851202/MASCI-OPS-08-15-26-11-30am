@@ -97,7 +97,7 @@ export default function AccessDenied({ attemptedPortal }) {
                   <Link
                     key={p}
                     to={PORTAL_HOME[p]}
-                    className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-md border-2 border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-colors"
+                    className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-md border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-colors"
                     data-testid={`access-denied-portal-${p}`}
                   >
                     <span className="font-bold text-sm text-slate-900">

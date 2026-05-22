@@ -90,7 +90,7 @@ export default function AdminSafetyFormsPanel() {
 
   return (
     <section
-      className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 mb-8 shadow-sm"
+      className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 mb-8 shadow-sm"
       data-testid="admin-safety-forms-panel"
     >
       <div className="flex items-start gap-3 mb-4">
@@ -222,7 +222,7 @@ export default function AdminSafetyFormsPanel() {
       </div>
 
       {/* Records — grouped by job folder */}
-      <div className="border-2 border-slate-200 rounded-md overflow-hidden" data-testid="admin-sf-list">
+      <div className="border border-slate-200 rounded-md overflow-hidden" data-testid="admin-sf-list">
         {loading && items.length === 0 ? (
           <div className="p-10 text-center text-slate-500">
             <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />

@@ -162,7 +162,7 @@ export default function PmQaqcList() {
           />
         ) : (
           <>
-            <div className="bg-white border-2 border-slate-300 rounded-md p-4 mb-4 flex flex-wrap items-end gap-3">
+            <div className="bg-white border border-slate-200 rounded-md p-4 mb-4 flex flex-wrap items-end gap-3">
               <div className="flex-1 min-w-[200px]">
                 <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold block mb-1">
                   Search
@@ -210,7 +210,7 @@ export default function PmQaqcList() {
                 No QA/QC inspections on your jobs yet.
               </div>
             ) : (
-              <div className="bg-white border-2 border-slate-300 rounded-md overflow-hidden">
+              <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
                 <JobFolderList
                   items={filtered}
                   dateField="inspection_date"

@@ -278,7 +278,7 @@ export function EquipmentReturnLines({ value, onChange, lang, t }) {
               </div>
               <div>
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Replacement $")}</Label>
-                <div className="h-10 px-3 flex items-center font-mono text-base font-bold text-slate-900 bg-slate-50 border-2 border-slate-200 rounded-md" data-testid={`equipment-return-rv-${idx}`}>
+                <div className="h-10 px-3 flex items-center font-mono text-base font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-md" data-testid={`equipment-return-rv-${idx}`}>
                   {fmtMoney(rv)}
                 </div>
               </div>

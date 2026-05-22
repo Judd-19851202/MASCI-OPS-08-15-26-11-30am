@@ -327,7 +327,7 @@ export default function AdminPMPanel() {
 
   return (
     <section
-      className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 mb-8 shadow-sm"
+      className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 mb-8 shadow-sm"
       data-testid="admin-pm-panel"
     >
       <div className="flex items-start gap-3 mb-4">

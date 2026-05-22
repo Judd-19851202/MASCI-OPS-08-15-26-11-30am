@@ -54,7 +54,7 @@ export default function CalculatorUsageCard() {
 
   return (
     <section
-      className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 mb-6"
+      className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 mb-6"
       data-testid="calculator-usage-card"
     >
       <header className="flex items-start gap-3 mb-4">

@@ -5,7 +5,7 @@ export const Section = ({ number, title, aside, children, className = "" }) => {
   return (
     <section
       className={cn(
-        "bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7 print:break-inside-avoid",
+        "bg-white border border-slate-200 rounded-md p-5 sm:p-7 print:break-inside-avoid",
         className
       )}
       data-testid={`section-${number}`}

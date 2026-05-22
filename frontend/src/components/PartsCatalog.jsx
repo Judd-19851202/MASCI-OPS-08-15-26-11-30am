@@ -197,7 +197,7 @@ export default function PartsCatalog() {
 
   return (
     <div className="space-y-4" data-testid="parts-catalog">
-      <div className="bg-white border-2 border-slate-200 rounded-md overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
         <div className="bg-slate-900 text-white px-4 py-3 flex items-center gap-3 flex-wrap">
           <Truck className="w-5 h-5 text-amber-400" />
           <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-400 font-bold flex-1">
@@ -262,7 +262,7 @@ export default function PartsCatalog() {
 
       {unit && doc && (
         <>
-          <div className="bg-white border-2 border-slate-200 rounded-md overflow-hidden" data-testid="parts-editor">
+          <div className="bg-white border border-slate-200 rounded-md overflow-hidden" data-testid="parts-editor">
             <div className="bg-amber-50 border-b-2 border-amber-200 px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
               <div>
                 <div className="font-display text-xl font-black text-slate-900">

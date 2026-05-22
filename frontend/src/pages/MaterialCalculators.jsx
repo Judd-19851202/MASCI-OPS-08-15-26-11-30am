@@ -372,7 +372,7 @@ function AggregatePanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7" data-testid="calc-panel-aggregate">
+    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-aggregate">
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Aggregate Calculator")}
       </h2>
@@ -464,7 +464,7 @@ function AsphaltPanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7" data-testid="calc-panel-asphalt">
+    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-asphalt">
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Asphalt Calculator")}
       </h2>
@@ -545,7 +545,7 @@ function ConcretePanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7" data-testid="calc-panel-concrete">
+    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-concrete">
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Concrete Calculator")}
       </h2>
@@ -623,7 +623,7 @@ function TruckLoadPanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7" data-testid="calc-panel-truck-load">
+    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-truck-load">
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Truck Load Calculator")}
       </h2>
@@ -704,7 +704,7 @@ function YieldWastePanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7" data-testid="calc-panel-yield-waste">
+    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-yield-waste">
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Yield / Waste Factor")}
       </h2>
@@ -785,7 +785,7 @@ function ConversionPanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border-2 border-slate-300 rounded-md p-5 sm:p-7" data-testid="calc-panel-conversion">
+    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-conversion">
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Tons ↔ Cubic Yards Conversion")}
       </h2>

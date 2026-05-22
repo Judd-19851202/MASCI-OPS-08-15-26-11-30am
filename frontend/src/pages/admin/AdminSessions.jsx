@@ -108,7 +108,7 @@ export default function AdminSessions() {
     <AdminShell title="Sessions" section="system">
       <div className="max-w-7xl mx-auto" data-testid="admin-sessions-page">
         {/* Header */}
-        <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-4 flex flex-col sm:flex-row sm:items-start gap-3">
+        <div className="bg-white border border-slate-200 rounded-md p-5 mb-4 flex flex-col sm:flex-row sm:items-start gap-3">
           <div
             className={`inline-flex items-center justify-center w-12 h-12 rounded-md text-white shrink-0 ${
               enforcementOn ? "bg-emerald-700" : "bg-slate-500"
@@ -159,7 +159,7 @@ export default function AdminSessions() {
         </div>
 
         {/* Table (desktop) */}
-        <div className="hidden md:block bg-white border-2 border-slate-300 rounded-md overflow-hidden">
+        <div className="hidden md:block bg-white border border-slate-200 rounded-md overflow-hidden">
           <table className="w-full text-sm" data-testid="admin-sessions-table">
             <thead className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
               <tr>
@@ -257,7 +257,7 @@ export default function AdminSessions() {
         {/* Cards (mobile) */}
         <div className="md:hidden space-y-2" data-testid="admin-sessions-mobile-list">
           {sessions.length === 0 && !loading && (
-            <div className="bg-white border-2 border-slate-300 rounded-md p-6 text-center text-slate-500 text-sm">
+            <div className="bg-white border border-slate-200 rounded-md p-6 text-center text-slate-500 text-sm">
               No active sessions on record yet.
             </div>
           )}
@@ -267,7 +267,7 @@ export default function AdminSessions() {
             return (
               <div
                 key={idx}
-                className="bg-white border-2 border-slate-300 rounded-md p-3"
+                className="bg-white border border-slate-200 rounded-md p-3"
                 data-testid={`admin-sessions-card-${idx}`}
               >
                 <div className="flex items-start justify-between gap-2 mb-2">

@@ -332,7 +332,7 @@ export default function FieldSafetyCards() {
           {CARDS.map((card) => (
             <article
               key={card.key}
-              className="bg-white border-2 border-slate-300 rounded-md overflow-hidden flex flex-col shadow-sm hover:shadow-md hover:border-red-700 transition-all duration-150"
+              className="bg-white border border-slate-200 rounded-md overflow-hidden flex flex-col shadow-sm hover:shadow-md hover:border-red-700 transition-all duration-150"
               data-testid={`safety-card-${card.key}`}
             >
               <div className="relative bg-slate-100 border-b-2 border-slate-200 aspect-[8.5/11] overflow-hidden">

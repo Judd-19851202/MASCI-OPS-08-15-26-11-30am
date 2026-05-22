@@ -728,7 +728,7 @@ export default function NewMeeting({ publicMode = false }) {
           {data.attendees.map((a, i) => (
             <div
               key={i}
-              className="border-2 border-slate-200 rounded-md p-4 space-y-3"
+              className="border border-slate-200 rounded-md p-4 space-y-3"
               data-testid={`attendee-${i}`}
             >
               <div className="flex items-center justify-between gap-2">
@@ -804,7 +804,7 @@ export default function NewMeeting({ publicMode = false }) {
           {/* D1 · conducted_by is captured in Section 01. Show read-only
               here so foreman doesn't retype on mobile. */}
           <div
-            className="rounded-lg border-2 border-slate-200 bg-slate-50 px-4 py-3"
+            className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
             data-testid="conducted-by-readonly"
           >
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">

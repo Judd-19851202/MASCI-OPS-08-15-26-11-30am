@@ -72,7 +72,7 @@ export default function SafetyDigest() {
         </Button>
       </div>
 
-      <div className="bg-white border-2 border-slate-300 rounded-md p-5 mb-5">
+      <div className="bg-white border border-slate-200 rounded-md p-5 mb-5">
         <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-700 font-bold mb-3">
           {t("Send a digest now")}
         </div>

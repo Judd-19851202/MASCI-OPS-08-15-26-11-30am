@@ -212,3 +212,28 @@ Per `UX_REFINEMENT_ROADMAP.md` Phase A:
 After Phase A: Phase B (color delta) · Phase C (KpiBlock unification) · Phase D (header chrome) · Phase E (polish).
 
 This reference pack is the contract those iterations must converge against.
+
+---
+
+## iter326 · Platform-Wide Convergence Closure (2026-05-22)
+
+The convergence membership now spans every hub the platform ships:
+- **AdminHub** — SectionTile migrated from hot `border-2 + hover:border-red-700` chrome to the calm contract (`border border-slate-200 border-l-4 border-l-red-700 + hover:shadow-md + hover:border-slate-300`). The ChevronRight no longer mutates color on hover (hot-chrome residue removed). The icon badge no longer transitions to red on hover.
+- **PmHub** — Tile migrated from `border-2 + hover:border-amber-600` to the calm contract with a dynamic accent stripe (`border-l-red-700 / border-l-amber-600 / border-l-red-900 / border-l-rose-700 / border-l-slate-700`) driven by the existing accent prop. Counts and sub-labels preserved.
+
+Platform-wide drift eradication (iter326 bulk sweep):
+- `bg-white border-2 border-slate-300 rounded-md` → `bg-white border border-slate-200 rounded-md` — **72 files migrated**.
+- `bg-white border-2 border-slate-200 rounded-md` → calm equivalent — **additional layer-2 migration**.
+- `rounded-md border-2 border-slate-200` & `rounded-lg border-2 border-slate-200` → calm equivalents — layer-3 cleanup.
+- `border-2 border-slate-200 bg-white` → calm equivalent — layer-4 cleanup.
+- `OpsTrainingCenter.jsx` tile + `SafetyEmployeeProfiles.jsx` tile migrated from hot-chrome (`border-2 + hover:border-<accent>-600`) to calm-card with left-edge stripe.
+
+A new mechanical anti-drift sentry — `test_no_heavy_card_chrome_in_pages_tree` — locks the entire `/pages` tree against any future re-introduction of the heavy patterns. Poster/print surfaces are excluded by name.
+
+Items intentionally NOT changed (legitimate context-specific chrome):
+- Form input borders (`h-12 ... border-2 border-slate-300` on Inputs) — preserved for field-device touch-target accessibility.
+- Filter chip selected-state borders — preserved as state affordance.
+- Danger/action button hover borders (`hover:border-red-500` on Delete/Cancel) — preserved as semantic affordance.
+- Photo thumbnail borders — preserved as media container affordance.
+
+The platform now reads as one converged product end-to-end.

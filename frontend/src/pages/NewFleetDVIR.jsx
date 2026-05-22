@@ -671,7 +671,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                 testId="dvir-tip-coupling"
               />
               {trailers.map((tr, idx) => (
-              <div key={idx} className="border-2 border-slate-200 rounded-md p-4 bg-slate-50/40 mb-4 last:mb-0" data-testid={`dvir-trailer-${idx}`}>
+              <div key={idx} className="border border-slate-200 rounded-md p-4 bg-slate-50/40 mb-4 last:mb-0" data-testid={`dvir-trailer-${idx}`}>
                 <div className="flex items-end justify-between gap-3 mb-3">
                   <div className="flex-1">
                     <Label className="text-sm font-semibold text-slate-800">

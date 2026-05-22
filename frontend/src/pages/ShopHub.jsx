@@ -231,7 +231,7 @@ export default function ShopHub() {
         {tab === "activity" && <ShopActivityFeed baseHref="/shop/equipment" testIdPrefix="shop-activity" />}
         {tab === "trends" && <EquipmentTrendsPanel />}
         {tab === "recent" && (
-          <div className="bg-white border-2 border-slate-200 rounded-md overflow-hidden">
+          <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
             <div className="px-4 py-3 bg-slate-900 text-white flex items-center gap-2">
               <Wrench className="w-5 h-5 text-amber-400" />
               <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-400 font-bold">
@@ -352,7 +352,7 @@ const EquipmentListPanel = ({ master, loading }) => {
   });
 
   return (
-    <div className="bg-white border-2 border-slate-200 rounded-md overflow-hidden" data-testid="shop-equipment-list">
+    <div className="bg-white border border-slate-200 rounded-md overflow-hidden" data-testid="shop-equipment-list">
       <div className="px-4 py-3 bg-slate-900 text-white flex items-center gap-2 flex-wrap">
         <Truck className="w-5 h-5 text-amber-400" />
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-400 font-bold flex-1">

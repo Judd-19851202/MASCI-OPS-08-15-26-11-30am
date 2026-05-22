@@ -190,7 +190,7 @@ export default function SystemHealthBadge() {
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 w-80 bg-white border-2 border-slate-300 rounded-md shadow-xl z-50 p-3"
+          className="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-md shadow-xl z-50 p-3"
           data-testid="system-health-dropdown"
         >
           <div className="flex items-center justify-between mb-2">
