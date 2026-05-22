@@ -14979,6 +14979,75 @@ the entire MASCI HUB / ForgedOps platform ecosystem."
 Admin migration tool + read-side compat shim. 14/14 signatures
 moved to R2. Documented for posterity.
 
+## 2026-05-22 — Iter329: Scheduled Cultural Banner Calendar (Final Banner-System Closure)
+
+**Scope**: lightweight, deterministic auto-activation of major-holiday cultural banners. NO cron, NO calendar UI, NO recurring-event engine, NO new endpoints — single Python module + lazy idempotent hook in `GET /api/banners/active`.
+
+**Supported holidays** (7 entries — all approved major dates):
+| Holiday | Resolver | Window |
+|---|---|---|
+| New Year | Jan 1 | 24h pre · 24h post |
+| Memorial Day | Last Monday of May | 24h · 24h |
+| Independence Day | Jul 4 | 24h · 24h |
+| Labor Day | 1st Monday of September | 24h · 24h |
+| Veterans Day | Nov 11 | 24h · 24h |
+| Thanksgiving | 4th Thursday of November | 24h · 24h |
+| Christmas | Dec 25 | 48h · 48h (covers Eve & Day-after) |
+
+**Implementation files**:
+- **New**: `backend/cultural_banner_calendar.py` — pure config + idempotent `ensure_cultural_banners(db, now=...)` async helper. Holiday copy is mirrored from `frontend/src/lib/hubBannerTemplates.js` (no LLM dependency, no Mongo round-trip for translation).
+- **Updated**: `backend/routes/hub_banners.py` — `GET /api/banners/active` now invokes `ensure_cultural_banners(db)` lazily at the start of every request, swallowing any exceptions so a bad DB call never breaks the banner endpoint.
+- **New**: `backend/tests/test_iter329_cultural_banner_calendar.py` — 14 contract assertions.
+
+**Duplicate-protection behavior**:
+- Before insert, `ensure_cultural_banners` checks Mongo for a banner matching `{template_id, expires_at: {$gte: window_start}}`.
+- If one exists (auto-posted OR manually posted by admin), no-op.
+- Admin can ALWAYS pre-empt the scheduler by posting their own banner with the same `template_id` — the scheduler defers.
+- Calling `ensure_cultural_banners` twice in the same second never duplicates (verified by `test_iter329_ensure_double_call_inserts_only_once`).
+
+**Precedence verification**:
+- Cultural banners ship with `severity="cultural"`, `auto_posted=True`, `auto_posted_iter="iter329"`.
+- The iter328 sev_rank map keeps `cultural = 9` (priority 9 — below every operational tier 0-3).
+- `test_iter329_does_not_alter_severity_rank` mechanically locks the hierarchy contract against drift.
+- Active hurricane / heat / lightning / stand-down banners ALWAYS render on top — verified in iter328 priority-sort regression.
+
+**Expiration verification**:
+- `expires_at` is set to `window_end` ISO string at insert time.
+- The existing `_now()` filter in `list_active_banners` drops the banner automatically once `expires_at < now`.
+- The existing `iter306_banner_cleanup_invariant` job purges stale records — no new cleanup logic needed.
+
+**EN/ES verification**:
+- All 7 entries ship `title_en + title_es + body_en + body_es` curated at source.
+- `test_iter329_every_entry_ships_bilingual_at_source` mechanically asserts every entry has non-empty bilingual copy AND that the ES strings differ from EN (catches accidental copy-paste).
+- The frontend `BannerStrip.jsx` from iter328 still renders both languages stacked simultaneously without language toggle — auto-posted cultural banners render exactly the same way as admin-posted ones.
+
+**Failure modes (all graceful)**:
+- DB unavailable → returns `[]`, logs warning, banner endpoint still responds normally.
+- Insert collision → caught, logged, next request retries.
+- Outside any holiday window → zero work, zero inserts.
+- Manual admin banner already active → scheduler defers.
+
+**Verification**:
+- **iter329 contract**: 14/14 GREEN (date resolvers × 4 · activation window × 2 · bilingual-at-source × 1 · calendar coverage × 1 · ensure idempotency × 5 · severity precedence regression × 1).
+- **Full regression**: 105/105 across iter329 + iter328 + iter65 + iter306 + family contract + iter322 + iter323 + iter318 + iter180.
+- **Backend startup**: clean (no module import errors, no startup failures, supervisor RUNNING).
+- **Live banner endpoint**: `GET /api/banners/active` returns HTTP 200 after backend restart (lazy hook fires cleanly).
+- **Lint**: `cultural_banner_calendar.py` + `hub_banners.py` both CLEAN.
+- **Pre-deploy hook**: GREEN.
+
+**Yearly admin effort**: zero. The scheduler self-activates every approved holiday for the next decade automatically. Retiring a holiday = remove the entry from `CULTURAL_CALENDAR`. Adding a new one = append one entry with `template_id`, `resolver`, and bilingual copy.
+
+**Final Banner-Calendar Verdict**: ✅ **READY · BANNER DEVELOPMENT FROZEN**
+
+The banner system is now complete:
+- iter318-325 calm convergence done.
+- iter326 platform-wide chrome eradication done.
+- iter327 capability-forward voice done.
+- iter328 banner governance V2 done.
+- iter329 scheduled cultural calendar done.
+
+Banner code is FROZEN going forward. Only operational template additions / yearly calendar tweaks need touch the banner system again.
+
 ## 2026-05-22 — Iter328: Banner Governance V2 — Operational Trust Infrastructure
 
 **Scope**: complete refinement of the operator-broadcast banner system. Banners now treated as platform-wide operational trust infrastructure with cultural / remembrance support added at a calm, non-competing tier.

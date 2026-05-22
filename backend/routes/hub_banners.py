@@ -241,7 +241,21 @@ def build_hub_banners_router(db, require_admin_dep: Callable) -> APIRouter:
         false` so the frontend can suppress soft-dismissed banners.
 
         Sorted by severity (critical → info) then created_at desc so the
-        most urgent appears on top when multiple are active."""
+        most urgent appears on top when multiple are active.
+
+        iter329 · cultural-calendar lazy hook — idempotent ensure of
+        any major-holiday banner whose 24h window contains "now".
+        Duplicates are protected (template_id + expires_at overlap),
+        operational severity precedence is unchanged (cultural = 9)."""
+        # iter329 · cultural-calendar lazy idempotent ensure. Failures
+        # are silenced inside the module so a bad DB call never breaks
+        # the banner list endpoint.
+        try:
+            from cultural_banner_calendar import ensure_cultural_banners  # noqa: PLC0415
+            await ensure_cultural_banners(db)
+        except Exception as e:
+            logger.warning(f"[hub-banners] cultural calendar ensure failed: {e}")
+
         now = _now()
         cursor = banners.find({}, {"_id": 0})
         out: List[Dict[str, Any]] = []
