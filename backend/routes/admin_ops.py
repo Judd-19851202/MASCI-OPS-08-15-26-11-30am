@@ -503,6 +503,70 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
             "checked_at": _iso(_now()),
         }
 
+    # ════════════════════════════════════════════════════════════════
+    # iter338 · Admin Reference Lookup
+    # ────────────────────────────────────────────────────────────────
+    # Resolve a canonical reference (the same one shown on the iter335
+    # /thank-you page, iter336 review headers, and iter337 PDFs) into
+    # the matching record so leadership can drop on the right detail
+    # page in one step. ADMIN-ONLY. No public lookup. No QR. No fuzzy
+    # search. Exact-match across the canonical number fields for the 9
+    # supported record kinds, then UUID fallback.
+    LOOKUP_MAP = [
+        # (collection, number_field, kind, frontend_path_template)
+        ("incidents",                  "incident_number",   "incident",          "/admin/incidents/{id}"),
+        ("daily_reports",              "report_number",     "daily-report",      "/admin/daily/{id}"),
+        ("inspections",                "inspection_number", "inspection",        "/admin/inspections/{id}"),
+        ("meetings",                   "meeting_number",    "meeting",           "/admin/meetings/{id}"),
+        ("equipment_inspections",      "inspection_number", "equipment-inspection","/admin/equipment/{id}"),
+        ("jhas",                       "jha_number",        "jha",               "/admin/jha-plans"),
+        ("safety_equipment_issuances", "issuance_number",   "issuance",          "/safety/forms/equipment-issuance/{id}"),
+        ("safety_training_records",    "training_number",   "training",          "/safety/forms/equipment-training/{id}"),
+        ("field_leadership_records",   "record_number",     "field-leadership",  "/admin/field-leadership/{id}"),
+    ]
+
+    @router.get("/lookup", dependencies=[Depends(require_admin)])
+    async def admin_lookup_ref(ref: str = Query(..., min_length=3, max_length=80)):
+        # Normalize — operators may paste with surrounding whitespace or
+        # lower-case the prefix when typing on mobile.
+        needle = (ref or "").strip().upper()
+        if not needle:
+            raise HTTPException(400, "ref required")
+
+        # 1. Exact match across canonical number fields. We also check
+        #    `doc_id` per-collection for legacy records that still carry
+        #    the older identifier.
+        for coll_name, num_field, kind, path_tmpl in LOOKUP_MAP:
+            coll = getattr(db, coll_name)
+            doc = await coll.find_one(
+                {"$or": [{num_field: needle}, {"doc_id": needle}]},
+                {"_id": 0, "id": 1, num_field: 1, "doc_id": 1},
+            )
+            if doc:
+                record_id = doc.get("id") or ""
+                return {
+                    "found": True,
+                    "kind": kind,
+                    "id": record_id,
+                    "ref": needle,
+                    "path": path_tmpl.format(id=record_id) if record_id else path_tmpl,
+                }
+
+        # 2. UUID fallback — operator pasted the record's raw `id`.
+        for coll_name, _, kind, path_tmpl in LOOKUP_MAP:
+            coll = getattr(db, coll_name)
+            doc = await coll.find_one({"id": ref.strip()}, {"_id": 0, "id": 1})
+            if doc:
+                return {
+                    "found": True,
+                    "kind": kind,
+                    "id": doc.get("id") or "",
+                    "ref": ref.strip(),
+                    "path": path_tmpl.format(id=doc.get("id") or ""),
+                }
+
+        return {"found": False, "ref": needle}
+
     return router
 
 
