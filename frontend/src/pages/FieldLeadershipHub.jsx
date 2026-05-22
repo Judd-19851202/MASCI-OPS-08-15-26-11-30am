@@ -40,6 +40,11 @@ import {
   loginLeadership,
   clearLeadershipToken,
 } from "@/lib/leadershipAuth";
+// iter342 · Hub now also accepts the modern per-user FL portal token
+// (iter314). Operators who sign in at /leadership/login (modern email +
+// password) get straight into the Hub without needing the legacy
+// shared-password gate.
+import { getFlToken, clearFlToken } from "@/lib/flAuth";
 import {
   FIELD_LEADERSHIP_FORMS,
   SAFETY_EQUIPMENT_ISSUANCE_LINK,
@@ -320,11 +325,11 @@ export default function FieldLeadershipHub() {
   const { t, lang } = useT();
   const navigate = useNavigate();
   const [authed, setAuthed] = useState(
-    () => Boolean(getLeadershipToken()) || isAdmin() || Boolean(getPmToken())
+    () => Boolean(getLeadershipToken()) || Boolean(getFlToken()) || isAdmin() || Boolean(getPmToken())
   );
 
   useEffect(() => {
-    const next = Boolean(getLeadershipToken()) || isAdmin() || Boolean(getPmToken());
+    const next = Boolean(getLeadershipToken()) || Boolean(getFlToken()) || isAdmin() || Boolean(getPmToken());
     setAuthed(next);
     // Pass 4 — first-class /leadership/login. If not authed, send the
     // user to the dedicated portal door instead of rendering the
@@ -342,6 +347,9 @@ export default function FieldLeadershipHub() {
 
   const signOut = () => {
     clearLeadershipToken();
+    // iter342 · also clear the modern FL portal token so the per-user
+    // session ends cleanly. No silent ghost sessions.
+    try { clearFlToken(); } catch { /* noop */ }
     navigate("/");
   };
 

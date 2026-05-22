@@ -3860,6 +3860,9 @@ const ES = {
   "That report is temporarily unavailable. Try again in a moment.": "Ese reporte no está disponible temporalmente. Intenta de nuevo en un momento.",
   "Your HR session expired. Please sign in again.": "Tu sesión de RH expiró. Por favor, inicia sesión de nuevo.",
 
+  // iter342 · FL login convergence — modern per-user login is now primary
+  "Crew using a shared leadership code? Use the legacy gate →": "¿Tu cuadrilla usa un código compartido? Usa el acceso heredado →",
+
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",

@@ -1,0 +1,36 @@
+{
+  "summary": "iter342 FL Login UX Convergence verified end-to-end. /leadership/login now renders the modern per-user FL form (fl-portal-login + fl-email/fl-password/fl-submit/fl-forgot-link/fl-legacy-login-link all present, legacy leadership-login-form absent). Happy-path E2E login with fieldleader@mascigc.com / FieldLead2026! returns 200 with token + lands user at /leadership Hub (leadership-nav-home tile renders). Sign-out clears BOTH leadership_token + fl_token (only posthog + device id remain in localStorage) and re-visiting /leadership while logged-out correctly redirects to /leadership/login. Backwards-compat URLs intact: /leadership/legacy-login renders legacy shared-password gate (leadership-login-form present), /field-leadership/portal/login still renders modern form. Bilingual ES disclosure exact-match: '¿Tu cuadrilla usa un código compartido? Usa el acceso heredado →' with no English leakage on form chrome (CORREO ELECTRÓNICO, CONTRASEÑA, Iniciar sesión, ¿Olvidó su contraseña?). Mobile 390x844: scrollWidth=clientWidth=390, zero horizontal overflow. Backend RBAC: legacy /api/field-leadership/login wrong pw → 401 'Invalid password' (untouched); per-user /api/field-leadership/portal/login wrong pw → 401 'Invalid email or password' (calm); anon /portal/me → 401. Pytest: 11/11 iter342 + 251/251 cumulative iter32x-34x tests green. Deploy gate run_family_contract.sh = 9/9 green. Operator's P0 chrome-parity success criteria met.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter342_fl_login_convergence.py",
+    "/app/test_reports/pytest/iter342_full_results.xml"
+  ],
+  "action_items": [
+    "[INFRA-OBSERVATION, not iter342] /root partition is at 100% (25M free) — container disk pressure caused secondary screenshot writes to fail mid-test. Does not affect product code; flagging for infra cleanup so future testing agents can capture artifacts."
+  ],
+  "critical_code_review_comments": [
+    "Clean convergence: only App.js routing + 2 .jsx pages + i18n + new regression test were touched, matching the bounded-discipline directive.",
+    "Hub gate correctly accepts FL token in BOTH the useState initializer and the useEffect re-check (getFlToken() called 2x as the regression test enforces), preventing first-paint legacy-gate flash.",
+    "Sign-out cleanly invalidates both token surfaces — verified empirically (localStorage post-signout contains only posthog + device.id, no auth tokens) — eliminating ghost-session class of bugs.",
+    "Calm error sanitization confirmed at the backend (401 → 'Invalid email or password' detail) and in source (FieldLeadershipPortalLogin.jsx:81 maps status 401 → t('Invalid email or password'), 429 → wait message, else → generic). No 500/404 leakage to UI body."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "100%"
+  },
+  "test_credentials": "fieldleader@mascigc.com / FieldLead2026! (per-user FL portal, role=Superintendent) — verified working live against preview backend. Multi-portal master jaymn.judd@mascigc.com / Maddix123! noted but not exercised (not needed for iter342 scope).",
+  "seed_data_creation": "None. No test data created. All live-creds verification used the documented operator account.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter342 is fully green. The modern per-user FL login is now the primary surface at /leadership/login; legacy shared-pw gate lives only at /leadership/legacy-login. If a future iter touches: (a) routing in App.js, (b) FieldLeadershipPortalLogin.jsx, (c) FieldLeadershipHub.jsx token gate, or (d) i18n disclosure copy — re-run test_iter342_fl_login_convergence.py (11 tests, ~0.03s, no network needed). For the live E2E UI flow, the documented FL creds (fieldleader@mascigc.com / FieldLead2026!) land directly in the Hub and signOut cleans both tokens. Note for infra: /root is at 100% disk; consider cleanup before next testing iteration.",
+  "rca of the issue": "N/A — this iteration was an operator-flagged UX convergence task, not a bug. Root motivation: /leadership/login was rendering the legacy single-field shared-password gate (LeadershipLogin.jsx) while iter314's modern per-user form (FieldLeadershipPortalLogin.jsx) lived only at the secondary /field-leadership/portal/login URL that operators never reached from natural nav. Fix mitigated by swapping the route binding so the modern form is now primary and the legacy form is preserved at /leadership/legacy-login for crews that only know the shared code. Hub gate widened to accept the FL per-user token in addition to leadership/admin/PM tokens, and signOut now clears both."
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="6" failures="0" skipped="2" tests="8" time="2.414" timestamp="2026-05-22T14:57:07.485644+00:00" hostname="agent-env-048a8fa0-4afe-49ee-81b3-30f0d0fa8b74"><testcase classname="" name="tests.test_iter129_predeploy_audit" time="0.000"><error message="collection failure">tests/test_iter129_predeploy_audit.py:13: in &lt;module&gt;
+    assert BASE_URL, "REACT_APP_BACKEND_URL not set"
+E   AssertionError: REACT_APP_BACKEND_URL not set
+E   assert ''</error></testcase><testcase classname="" name="tests.test_iter130_admin_ops" time="0.000"><error message="collection failure">tests/test_iter130_admin_ops.py:22: in &lt;module&gt;
+    assert BASE_URL, "REACT_APP_BACKEND_URL not set"
+E   AssertionError: REACT_APP_BACKEND_URL not set
+E   assert ''</error></testcase><testcase classname="" name="tests.test_iter141_history" time="0.000"><error message="collection failure">tests/test_iter141_history.py:17: in &lt;module&gt;
+    BASE_URL = os.environ.get("REACT_APP_BACKEND_URL").rstrip("/")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'rstrip'</error></testcase><testcase classname="" name="tests.test_iter150_tasks_notifications" time="0.000"><error message="collection failure">tests/test_iter150_tasks_notifications.py:15: in &lt;module&gt;
+    BASE_URL = os.environ.get("REACT_APP_BACKEND_URL").rstrip("/")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'rstrip'</error></testcase><testcase classname="" name="tests.test_iter24_bilingual_perf" time="0.000"><skipped message="collection skipped">('/app/backend/tests/test_iter24_bilingual_perf.py', 19, 'Skipped: REACT_APP_BACKEND_URL not set in environment')</skipped></testcase><testcase classname="" name="tests.test_iter36_pre_redeploy" time="0.000"><error message="collection failure">tests/test_iter36_pre_redeploy.py:14: in &lt;module&gt;
+    BASE_URL = os.environ.get("REACT_APP_BACKEND_URL").rstrip("/")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'rstrip'</error></testcase><testcase classname="" name="tests.test_iter48_shop_user_mgmt" time="0.000"><skipped message="collection skipped">('/app/backend/tests/test_iter48_shop_user_mgmt.py', 24, 'Skipped: REACT_APP_BACKEND_URL not set')</skipped></testcase><testcase classname="" name="tests.test_iter51_thumb_signed" time="0.000"><error message="collection failure">tests/test_iter51_thumb_signed.py:28: in &lt;module&gt;
+    BASE_URL = os.environ["REACT_APP_BACKEND_URL"].rstrip("/")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen os&gt;:679: in __getitem__
+    ???
+E   KeyError: 'REACT_APP_BACKEND_URL'</error></testcase></testsuite></testsuites>

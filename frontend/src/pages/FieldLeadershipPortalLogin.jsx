@@ -67,7 +67,11 @@ export default function FieldLeadershipPortalLogin() {
       if (r?.data?.must_change_password) {
         navigate("/field-leadership/portal/change-password", { replace: true });
       } else {
-        navigate("/field-leadership/portal/dashboard", { replace: true });
+        // iter342 · land directly in the Field Leadership Hub. The Hub
+        // gate (FieldLeadershipHub.jsx) now accepts the FL portal token
+        // as proof, so this collapses the previous two-step
+        // "portal-dashboard → hub" navigation into one calm landing.
+        navigate("/leadership", { replace: true });
       }
     } catch (err) {
       const status = err?.response?.status;
@@ -179,6 +183,19 @@ export default function FieldLeadershipPortalLogin() {
         <p className="mt-4 text-[11px] text-slate-500 text-center">
           {t("This portal is for governed operational identity access. The legacy field-leadership document viewer is unchanged.")}
         </p>
+        {/* iter342 · backwards-compat disclosure — crews that only know
+            the shared MASCIGC leadership code can still reach the legacy
+            gate. Hidden behind a calm secondary link so the modern
+            per-user flow is the visible primary UX. */}
+        <div className="mt-3 text-center">
+          <Link
+            to="/leadership/legacy-login"
+            className="text-[11px] text-slate-500 hover:text-slate-800 underline"
+            data-testid="fl-legacy-login-link"
+          >
+            {t("Crew using a shared leadership code? Use the legacy gate →")}
+          </Link>
+        </div>
       </div>
       <ForgedOpsAttribution />
       <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
