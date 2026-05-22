@@ -66,6 +66,7 @@ import ShopResetPassword from "@/pages/ShopResetPassword";
 import HrLogin from "@/pages/HrLogin";
 import SignIn from "@/pages/SignIn";
 import AdminPeople from "@/pages/admin/AdminPeople";
+import AdminPromoAssets from "@/pages/admin/AdminPromoAssets";
 import AdminJobs from "@/pages/admin/AdminJobs";
 import AdminEquipment from "@/pages/admin/AdminEquipment";
 import AdminEmail from "@/pages/admin/AdminEmail";
@@ -338,6 +339,7 @@ function App() {
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={A(<AdminHub />)} />
             <Route path="/admin/people" element={A(<AdminPeople />)} />
+            <Route path="/admin/promo-assets" element={A(<AdminPromoAssets />)} />
             <Route path="/admin/jobs" element={A(<AdminJobs />)} />
             <Route path="/admin/equipment" element={A(<AdminEquipment />)} />
             <Route path="/admin/email" element={A(<AdminEmail />)} />

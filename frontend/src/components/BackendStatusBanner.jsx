@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { useCaptureMode } from "@/lib/captureMode";
 
 /**
  * BackendStatusBanner
@@ -21,6 +22,7 @@ const POLL_MS = 15000;
 export default function BackendStatusBanner() {
   // null = unknown, "up" = healthy, "down" = unreachable, "recovered" = just came back
   const [status, setStatus] = useState(null);
+  const captureMode = useCaptureMode();
 
   useEffect(() => {
     const url = `${process.env.REACT_APP_BACKEND_URL}/api/health`;
@@ -67,6 +69,8 @@ export default function BackendStatusBanner() {
     };
   }, []);
 
+  // iter347 · capture-mode hides chrome so promo clips stay clean.
+  if (captureMode) return null;
   if (status !== "down" && status !== "recovered") return null;
 
   const isDown = status === "down";

@@ -9471,6 +9471,15 @@ from routes.operations_center import build_operations_center_router  # noqa: E40
 app.include_router(build_operations_center_router(db, _require_any_portal_token))
 
 
+# ─── Promo Asset Library (iter347) ───────────────────────────────────
+# Admin-only media-asset library for organizing/downloading cinematic
+# platform clips that feed the long-form MASCI promo film + homepage
+# hero loop. Reuses the existing R2 client; new key prefix
+# `promo-assets/` + new mongo collection `promo_assets`.
+from routes.promo_assets import build_promo_assets_router  # noqa: E402
+app.include_router(build_promo_assets_router(db, require_admin_strict))
+
+
 # ─── Operational Signals (iter160 — Phase 2.5 · Operational Signal Density) ──
 # Admin-only aggregation of operational events recorded at fan-out tap points.
 # Reuses db.usage_events collection (kind='operational_signal'). No new

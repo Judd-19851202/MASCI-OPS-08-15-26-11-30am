@@ -14,7 +14,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Building2, Wrench, Mail, BookOpen, ClipboardCheck,
   ShieldCheck, LogOut, Menu as MenuIcon, Home, Cable, Truck, Activity,
-  Rocket, History, GraduationCap, ListChecks, ChartBar, Map,
+  Rocket, History, GraduationCap, ListChecks, ChartBar, Map, Film,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -62,6 +62,7 @@ const SECTIONS = [
   { key: "analytics", to: "/admin/analytics", icon: ChartBar, label: "Usage Analytics", desc: "Operational insight · routes · portals · friction" },
   { key: "operational-guidance", to: "/guidance", icon: GraduationCap, label: "Operational Guidance Center", desc: "RBAC-aware portal training · operator guides · troubleshooting" },
   { key: "operational-inventory", to: "/admin/operational-inventory", icon: Map, label: "Operational Inventory", desc: "Live governance dashboard · 10-field coverage matrix · drift detection" },
+  { key: "promo-assets", to: "/admin/promo-assets", icon: Film, label: "Promo Assets", desc: "Cinematic platform clips · hero loops · social cuts · editor-ready library" },
 ];
 
 export { SECTIONS };

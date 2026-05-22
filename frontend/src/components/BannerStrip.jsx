@@ -4,6 +4,7 @@ import { API } from "@/lib/api";
 import { getDeviceId } from "@/lib/deviceId";
 import { useT } from "@/lib/i18n";
 import { SEVERITY_META } from "@/lib/hubBannerTemplates";
+import { useCaptureMode } from "@/lib/captureMode";
 
 /**
  * BannerStrip — top-of-page operational broadcast strip.
@@ -34,6 +35,7 @@ const SEVERITY_ICON = {
 
 export default function BannerStrip() {
   const { lang } = useT();
+  const captureMode = useCaptureMode();
   const [banners, setBanners] = useState([]);
   const deviceId = getDeviceId();
 
@@ -69,6 +71,11 @@ export default function BannerStrip() {
   });
   const top = byPriority[0];
 
+  // iter347 · `?capture=1` capture-mode hides operational banners so
+  // platform clips for the promo film stay clean. The data still polls
+  // (so toggling capture off reveals the latest active banner instantly)
+  // — we just don't render. Zero footprint when capture mode is off.
+  if (captureMode) return null;
   if (!top) return null;
 
   const meta = SEVERITY_META[top.severity] || SEVERITY_META.advisory;

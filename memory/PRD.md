@@ -2,6 +2,38 @@
 
 
 
+## 2026-05-22 — iter347 · Promo Asset Library + Capture Mode · ✅ APPROVE
+
+Long-term media-asset workflow for the cinematic MASCI Operations Platform promo film. Platform team scope (capture/organize/host/handoff); video editing/VO/music remain external scope as discussed.
+
+### Backend
+- **NEW** `/api/admin/promo-assets/*` admin-strict routes: list (filter by category/visibility/tag/search), upload (multipart → R2, 500MB cap), get-with-presigned-URL, patch metadata, delete (R2 + mongo), categories enum, download redirect, manifest.json export.
+- **NEW** `promo_assets_storage.py` — thin layer on existing R2 client (`photo_storage`); new key prefix `promo-assets/`; new mongo collection `promo_assets`.
+- 26 bounded categories (HR / Safety / Field / Hero Loops / Social Cuts / Final Exports / etc).
+
+### Frontend
+- **NEW** `/admin/promo-assets` page — calm slate-700 chrome, At-A-Glance stats (total / categories / public / storage MB), filters (search + category + visibility), card grid, upload/preview/edit/delete modals, manifest JSON export.
+- **NEW** `<PromoHeroLoop />` component (env-driven, zero footprint until wired) — homepage hero loop + click-to-open modal with the full film. Three env vars: `REACT_APP_PROMO_HERO_LOOP_URL` / `REACT_APP_PROMO_FULL_VIDEO_URL` / `REACT_APP_PROMO_POSTER_URL`.
+- AdminShell sidebar gets new "Promo Assets" link.
+
+### Capture-mode (follow-up after user feedback)
+- **NEW** `lib/captureMode.js` + `useCaptureMode()` hook.
+- `?capture=1` appended to any URL hides BannerStrip / BackendStatusBanner / PersistenceHealthBanner — clean platform footage without disabling banners for normal operators. Sticky for the tab session via sessionStorage. `?capture=0` exits.
+- Documented in the production brief.
+
+### Production brief
+- **NEW** `/app/memory/MASCI_OPS_FILM_PRODUCTION_BRIEF.md` — 14-section editor handoff: voiceover script, 60–75 sec shot list with timecodes, 24-clip capture plan, on-screen text, music direction, transition rules, export matrix (5 cuts), naming conventions, embed wiring instructions, success conditions.
+
+### Tests · iter347
+- **NEW** `test_iter347_promo_asset_library.py` (13/13 PASS) — source-level structural locks + E2E CRUD lifecycle against R2 + capture-mode wiring proof + brief structure verification.
+- **Cumulative iter340 → 347:** 93/93 PASS · deploy gate green.
+
+### Strict-boundary discipline
+- ❌ NOT shipped: final film, voiceover audio, music, color grade, motion graphics (out of platform-team scope).
+- ✅ Shipped: every piece of plumbing the editor needs.
+
+---
+
 ## 2026-05-22 — iter346 · FINAL OPTIONAL CLOSEOUT · ✅ APPROVE
 
 This is the FINAL optional closeout of the platform. Split into two bounded

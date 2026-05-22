@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
+import { useCaptureMode } from "@/lib/captureMode";
 
 /**
  * PersistenceHealthBanner — prominent warning when the app is running with
@@ -14,6 +15,7 @@ import { useT } from "@/lib/i18n";
  */
 export default function PersistenceHealthBanner() {
   const { t } = useT();
+  const captureMode = useCaptureMode();
   const [status, setStatus] = useState(null);
   const [downloading, setDownloading] = useState(false);
 
@@ -61,6 +63,10 @@ export default function PersistenceHealthBanner() {
     }
   };
 
+  // iter347 · capture-mode hides operational chrome so promo clips
+  // stay clean (admins capturing screen recordings for the cinematic
+  // film append `?capture=1` to suppress every banner).
+  if (captureMode) return null;
   if (!status) return null;
 
   // Happy path — Atlas / external Mongo, no banner needed
