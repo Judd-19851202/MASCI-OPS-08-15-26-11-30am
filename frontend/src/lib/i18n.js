@@ -3846,6 +3846,15 @@ const ES = {
   // iter335 · Submission tracking reference label
   "Ref": "Ref.",
 
+  // iter338 · Admin Reference Lookup
+  "Admin Utility": "Utilidad de Admin",
+  "Find Record by Ref": "Buscar Registro por Ref.",
+  "Paste a canonical reference to jump straight to the record.": "Pega una referencia canónica para ir directo al registro.",
+  "Paste Ref · INC-2026-0517-002": "Pega Ref. · INC-2026-0517-002",
+  "Find": "Buscar",
+  "No active record matches Ref": "Ningún registro activo coincide con Ref.",
+  "Lookup unavailable. Try again in a moment.": "Búsqueda no disponible. Intenta de nuevo en un momento.",
+
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",

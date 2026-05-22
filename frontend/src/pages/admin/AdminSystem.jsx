@@ -19,6 +19,7 @@ import CloudArchivesPanel from "@/components/CloudArchivesPanel";
 import AdminBackupVerificationPanel from "@/components/AdminBackupVerificationPanel";
 import RestoreBackupPanel from "@/components/RestoreBackupPanel";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
+import AdminReferenceLookup from "@/components/AdminReferenceLookup";
 
 export default function AdminSystem() {
   return (
@@ -35,6 +36,8 @@ export default function AdminSystem() {
       }
     >
       <div className="space-y-4">
+        {/* iter338 · Admin Reference Lookup — top of System tools */}
+        <AdminReferenceLookup />
         {/* Pre-deploy snapshot freshness — top priority */}
         <PreDeploySnapshotPanel />
         {/* Persistence banner — auto-renders only on ephemeral Mongo */}
