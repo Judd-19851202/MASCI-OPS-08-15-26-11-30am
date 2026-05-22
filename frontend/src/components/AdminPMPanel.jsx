@@ -427,7 +427,7 @@ export default function AdminPMPanel() {
 
       {/* PM list */}
       <div className="overflow-x-auto rounded border border-slate-200">
-        <table className="w-full text-sm" data-testid="pm-table">
+        <table className="w-full min-w-[900px] text-sm" data-testid="pm-table">
           <thead className="bg-slate-100">
             <tr className="text-left font-mono text-[10px] uppercase tracking-wide text-slate-700">
               <th className="px-3 py-2">Name</th>

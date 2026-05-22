@@ -113,7 +113,7 @@ export default function AdminShell({ title, section, children, intro }) {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col">
+    <div className="min-h-screen blueprint-bg flex flex-col overflow-x-clip">
       <div className="caution-stripe" />
 
       {/* Top bar — red gradient, sticky on scroll for context */}

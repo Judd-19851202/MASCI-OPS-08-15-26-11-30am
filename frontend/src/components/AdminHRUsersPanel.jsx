@@ -226,7 +226,7 @@ export default function AdminHRUsersPanel() {
 
       {/* User list */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[900px] text-sm">
           <thead className="bg-slate-100 text-slate-700 text-xs uppercase tracking-[0.15em] font-mono">
             <tr>
               <th className="text-left px-3 py-2">Name</th>

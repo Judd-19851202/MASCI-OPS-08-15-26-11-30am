@@ -2,6 +2,35 @@
 
 
 
+## 2026-05-22 — iter349 · P0 Live Layout Defect · ✅ APPROVE
+
+**Root cause:** Every wide admin/portal table rendered with `w-full` and **no `min-w-[…]` floor**. With many columns (Access Control = 10, Unified Directory = 8, portal panels = 6-7, employee roster = 7), the cells then truncated AND the page-level body scrollbar appeared on narrow viewports because each cell's intrinsic content overflowed its squeezed column.
+
+**Fix (responsive strategy: explicit table floor + inner-scroll affordance):**
+- Added `min-w-[1200px]` to AccessControl table (10 cols incl 7 portals)
+- Added `min-w-[1100px]` to Unified Directory table
+- Added `min-w-[900px]` to HR, Safety, PM, Shop, Dispatch, Field Leadership, MasterList (Employee Roster) tables
+- Removed `overflow-hidden` from `MasterListPanel` outer card (was clipping right edge)
+- Changed `MasterListPanel` inner scroll wrapper from `overflow-x-auto` → `overflow-auto` (so the `max-h-[460px]` region scrolls vertically without fighting page scroll → no more "stranded footer" appearance)
+- Added `overflow-x-clip` safety net to AdminShell outer container so a future misbehaving child can never blow out the page body again
+
+**Files fixed (9):** `AdminAccessControlPanel`, `AdminUnifiedDirectoryPanel`, `AdminFieldLeadershipUsersPanel`, `AdminHRUsersPanel`, `AdminSafetyUsersPanel`, `AdminShopUsersPanel`, `AdminDispatchUsersPanel`, `AdminPMPanel`, `MasterListPanel`, `AdminShell`
+
+**Live viewport proof — zero page-level horizontal overflow at any of the 5 required widths:**
+| Viewport | Result |
+|---|---|
+| Desktop 1920 | ✅ inner=1920 bodyScroll=1920 |
+| Laptop 1366 | ✅ inner=1366 bodyScroll=1366 |
+| iPad landscape 1180 | ✅ inner=1180 bodyScroll=1180 |
+| iPad portrait 820 | ✅ inner=820 bodyScroll=820 |
+| Mobile 390 | ✅ inner=390 bodyScroll=390 |
+
+**Tests · iter349**
+- **NEW** `test_iter349_admin_people_layout.py` (4/4 PASS) — locks the `min-w-[…]` floor on every wide table, AdminShell `overflow-x-clip`, MasterListPanel card-overflow removal, inner-scroll wrapper signature
+- **Cumulative iter346 → 349:** 50/50 PASS · deploy gate 9/9 green
+
+---
+
 ## 2026-05-22 — iter347 · Promo Asset Library + Capture Mode · ✅ APPROVE
 
 Long-term media-asset workflow for the cinematic MASCI Operations Platform promo film. Platform team scope (capture/organize/host/handoff); video editing/VO/music remain external scope as discussed.

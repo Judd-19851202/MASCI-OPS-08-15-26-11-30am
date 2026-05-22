@@ -257,7 +257,7 @@ export default function MasterListPanel({
 
   return (
     <div
-      className="mb-8 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm"
+      className="mb-8 bg-white border border-slate-200 rounded-md shadow-sm"
       data-testid={`${testIdPrefix}-panel`}
     >
       {/* Header bar */}
@@ -445,8 +445,8 @@ export default function MasterListPanel({
               Archive is empty — nothing to restore.
             </p>
           ) : (
-            <div className="overflow-x-auto border-2 border-slate-200 rounded max-h-[460px]">
-              <table className="w-full text-sm">
+            <div className="overflow-auto border-2 border-slate-200 rounded max-h-[460px]">
+              <table className="w-full min-w-[900px] text-sm">
                 <thead className="sticky top-0 bg-slate-50 z-[1]">
                   <tr>
                     {fields.map((f) => (
@@ -504,8 +504,8 @@ export default function MasterListPanel({
             {emptyState}
           </p>
         ) : (
-          <div className="overflow-x-auto border-2 border-slate-200 rounded max-h-[460px]">
-            <table className="w-full text-sm">
+          <div className="overflow-auto border-2 border-slate-200 rounded max-h-[460px]">
+            <table className="w-full min-w-[900px] text-sm">
               <thead className="sticky top-0 bg-slate-50 z-[1]">
                 <tr>
                   {fields.map((f) => (

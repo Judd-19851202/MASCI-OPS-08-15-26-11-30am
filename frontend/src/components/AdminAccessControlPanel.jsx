@@ -225,7 +225,7 @@ export default function AdminAccessControlPanel() {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[1200px] text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left">
                 <th className="py-2 pr-3 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">User</th>
