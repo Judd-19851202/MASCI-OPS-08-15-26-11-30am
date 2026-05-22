@@ -2,6 +2,91 @@
 
 
 
+## 2026-05-22 — iter336 · Review-Side Reference Continuity · CLOSED
+
+### Scope (operator-mandated · final loop-closure layer · iter335 mirror)
+Surfaced the same canonical record identifier shown on the iter335 `/thank-you` page at the top of every detail/review page. When a field crew calls Safety/PM/HR citing "INC-2026-0517-002", the reviewer can now instantly spot-match the open record — the operational communication loop is closed.
+
+### Visual rhythm (review-side now mirrors submit-side)
+
+**Submit-side (iter335):**
+```
+✓ DAILY REPORT · ON FILE
+Filed.
+Operations, payroll, and project leadership can now review today's activity.
+Ref · DR-2026-0517-014
+```
+
+**Review-side (iter336):**
+```
+Ref · DR-2026-0517-014                              ← iter336
+DAILY JOB REPORT (h1)
+```
+
+### Implementation
+- **NEW shared component** · `/app/frontend/src/components/RefKicker.jsx` (30 LOC, reusable, graceful absence, EN/ES-aware via `t()`)
+- **7 detail surfaces wired** with the unified pattern:
+  - `ViewIncident.jsx` (testid `view-incident-ref`)
+  - `ViewDailyReport.jsx` (testid `view-daily-ref`)
+  - `ViewInspection.jsx` (testid `view-inspection-ref`)
+  - `ViewMeeting.jsx` (testid `view-meeting-ref`)
+  - `ViewEquipmentInspection.jsx` (testid `view-equip-inspection-ref`)
+  - `ViewSafetyForm.jsx` (testid `view-safety-form-ref` · **replaces legacy** "Form Ref: {id}" line)
+  - `HrDailyReports.jsx::HrDailyReportDetail` (testid `hr-dr-detail-ref`)
+- **Same canonical ID chain** as iter335 (no parallel numbering) — `*_number || id`
+- **Graceful absence** — when no recordId, component returns `null` (no placeholder)
+- **Mobile-friendly** — `whitespace-nowrap` keeps the ID intact on a single line for canonical short IDs (`INC-2026-0517-002`), preserving the screenshot/copy semantics
+
+### Bilingual (ES) parity
+Reuses the iter335 `Ref → Ref.` translation key. No additional ES work needed.
+
+### Defects found + fixed during E2E
+**Testing agent flagged 2 issues — both fixed in the same iter:**
+
+1. **HIGH · ViewSafetyForm position regression** — RefKicker was mounted *after* the H1 (positional inversion vs spec). **Fix:** moved the `<RefKicker>` block from after `</h1>` to before `<h1>`, matching the other 6 surfaces.
+
+2. **MEDIUM · UUID-fallback wrap on mobile 390** — Legacy records without canonical per-formType numbers (using UUID fallback) wrapped mid-ID at hyphens on mobile 390. **Fix:** added `whitespace-nowrap` to the ID span in `RefKicker.jsx` so the ID stays as one solid block — preserving screenshot value. Canonical short IDs (the standard going forward) fit cleanly without overflow.
+
+### Tests
+**Backend regression:** 186/186 green (iter32x → iter336 + family contract)
+**Deploy gate:** 9/9 green
+**ESLint:** clean on all 8 touched JS files + new component
+**E2E (testing_agent_v3_fork iteration_336.json):** Initial **6/7 surfaces PASS · 1 HIGH defect fixed in same iter** · all post-fix verifications green
+- All 7 detail surfaces mount RefKicker
+- Submit-side ↔ review-side symmetry confirmed (`thank-you-reference` + `view-incident-ref` render identical visual pattern)
+- ES translation `Ref. · <ID>` confirmed live
+- Legacy `Form Ref:` line gone from ViewSafetyForm
+- No forbidden new routes (`/lookup`, `/track`, `/reference/:id`, etc.) — verified by App.js scan
+
+### Files touched (iter336)
+- NEW · `/app/frontend/src/components/RefKicker.jsx` (reusable component · 32 LOC)
+- MOD · `/app/frontend/src/pages/ViewIncident.jsx` (RefKicker mount above H1)
+- MOD · `/app/frontend/src/pages/ViewDailyReport.jsx` (same)
+- MOD · `/app/frontend/src/pages/ViewInspection.jsx` (same)
+- MOD · `/app/frontend/src/pages/ViewMeeting.jsx` (same)
+- MOD · `/app/frontend/src/pages/ViewEquipmentInspection.jsx` (same)
+- MOD · `/app/frontend/src/pages/ViewSafetyForm.jsx` (RefKicker REPLACES legacy "Form Ref:" line · positioned above H1)
+- MOD · `/app/frontend/src/pages/HrDailyReports.jsx` (HrDailyReportDetail RefKicker mount)
+- NEW · `/app/backend/tests/test_iter336_review_side_reference.py` (11 regression tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO new pages · NO new routes · NO new backend endpoints
+- ❌ NO QR · NO email · NO SMS · NO status trackers · NO public lookup
+- ❌ NO redesign — same calm-family chrome on every detail page
+
+### Production impact
+**Preview has iter336. Production at mascidocs.com still missing until next redeploy.** Cumulative pending redeploy: iter330 → iter336 (7 bounded iters · zero backend/auth/DB/API drift · all regression-locked).
+
+**The submission-continuity layer is now fully complete:**
+- iter334 · Thank-you continuity messaging
+- iter335 · Screenshot-able tracking reference on submission
+- iter336 · Same reference visible on review side
+
+Field crews file → see Ref → screenshot → call in. Safety/PM/HR open the record → see the same Ref → spot-match instantly. The platform now feels operationally complete, connected, accountable, and continuity-aware from submission through review.
+
+
+
 ## 2026-05-22 — iter335 · Submission Tracking Reference Continuity · CLOSED
 
 ### Scope (operator-mandated · lightweight display-only continuity · iter334 layer)

@@ -153,19 +153,19 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
               <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
                 {t("Safety Department")}
               </span>
-              <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
-                {isTraining
-                  ? t("Equipment Use & Care Training")
-                  : t("Safety Equipment Issuance & Accountability")}
-              </h1>
-              {/* iter336 · review-side reference continuity · replaces
-                  the legacy "Form Ref: …" line with the unified RefKicker
-                  used across all detail/review surfaces. */}
+              {/* iter336 · review-side reference continuity · positioned
+                  ABOVE the H1 to match the other 6 detail surfaces
+                  (unified pattern). */}
               <RefKicker
                 recordId={doc.issuance_number || doc.training_number || doc.id}
                 testId="view-safety-form-ref"
                 className="mt-1"
               />
+              <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 leading-tight mt-1">
+                {isTraining
+                  ? t("Equipment Use & Care Training")
+                  : t("Safety Equipment Issuance & Accountability")}
+              </h1>
             </div>
             <Button
               onClick={() => downloadPdf("/pdf")}

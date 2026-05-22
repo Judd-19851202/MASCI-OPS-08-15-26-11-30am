@@ -23,7 +23,7 @@ export function RefKicker({ recordId, testId = "ref-kicker", className = "" }) {
       data-testid={testId}
     >
       <span className="text-slate-400">{t("Ref")} · </span>
-      <span className="text-slate-700 font-bold select-all">{recordId}</span>
+      <span className="text-slate-700 font-bold select-all whitespace-nowrap">{recordId}</span>
     </p>
   );
 }
