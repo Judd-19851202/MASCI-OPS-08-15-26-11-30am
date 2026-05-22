@@ -1,0 +1,24 @@
+name,email,original_title,assigned_role,user_id,must_change_password,is_active,temp_password
+ALLEN SMATHERS,allensmathers@masciae.com,SUPERVISOR,Field Supervisor,2528df60-cfc8-466a-a850-316a405942e7,True,True,tJpVNMSCMU
+ANTHONY GOES,anthonygoes.masci@yando.com,MILLING FOREMAN,Foreman,22185c63-76e2-4fd9-acb7-0cddae94b453,True,True,4LaH59PvDY
+BRIAN HARDING,bhardin.masci@yahoo.com,SUPERVISOR,Field Supervisor,9287962c-95aa-41a5-b414-91737ff8ae03,True,True,w4PkYi4J6M
+CARLOS MEZA,cmeza-masci@yahoo.com,FOREMAN,Foreman,4cbdb4e8-e3a3-470e-8124-8385df2c9bfc,True,True,S9LdUqo9TT
+CHRISTOPHER GAINES,christophergaines.masci@yahoo.com,FOREMAN,Foreman,36c6a521-a900-4468-8d00-209a405162bc,True,True,FdHzCUCabL
+DANIEL TABORES,dtabores-masci@yahoo.com,FOREMAN,Foreman,2f925be7-75af-4cd1-b877-cffbea6de9b2,True,True,q3bX6o5AkM
+DAVID HINSON,chinson_masci@yahoo.com,CONCRETE FINISHER,Foreman,d9ea52be-bee3-47d1-94e3-f6f7a1555700,True,True,Kw98KK2nK3
+"DULIER ""IVAN"" LOPEZ",ivanlopez_masci@yahoo.com,FOREMAN,Foreman,b0a2aaf4-ec29-4165-8511-aef7698564e4,True,True,DAFSzNYP3b
+HECTOR MEZA *,hector_meza-masci@yahoo.com,FOREMAN,Foreman,0368434c-5362-4c91-85ac-753bf8b6656a,True,True,cJH7g9TDMG
+"JAMES ""TACO"" OLORTEGUI",j.oloreque@yahoo.com,SUPERVISOR,Field Supervisor,6e3275ba-13da-4eb1-b0ce-fe228d1ebeaa,True,True,UCkxAD7qbh
+JASON CABRERA,icabrera.masci@yahoo.com,FOREMAN,Foreman,38de270f-8d70-49fd-a960-4654396afdc7,True,True,fkF5ecQwWs
+JESSIE ROBERTS,jroberts.masci@yahoo.com,SUPERVISOR,Field Supervisor,68054f93-05ae-4c7d-bfb9-f64f7d8fa533,True,True,b9qSGiSgAk
+JONATHAN MOLERO,jmolero_masci@yahoo.com,MILLING MACH,Foreman,2efbfd2e-56de-4095-a5a5-e3d2170ae00b,True,True,JDKHF4Qg2V
+JOSEPH ROTELLA,urotella-masci@yahoo.com,OP/FOREMAN,Foreman,0d884fc3-2a15-460f-b069-8023e72dc5ae,True,True,aTG5oi8Kq6
+LEANDRO JUAREZ,ijuarez@masciad.com,2ND MILL FOREMAN,Foreman,9177c973-735b-474d-b1d9-4f922f6c0589,True,True,jo4xLnSugR
+LEONARD WITKOWSKI,lennywitkowski@mascigc.com,SUPERVISOR,Field Supervisor,bac2238d-8160-40ef-84f1-8a84c18ecf18,True,True,DSCEaVKeub
+LEONARDO CHAVEZ,chavez-masci@yahoo.com,FOREMAN,Foreman,317480ac-6bea-4198-98ea-3c294328cf38,True,True,PzwRSi9JUM
+MICHAEL TRAIL,mtrail-masci@yahoo.com,SUPERVISOR,Field Supervisor,20101063-1dc6-41a7-aa87-8f854baf4a4e,True,True,SgmZkGbrnu
+RAFAEL MEZA,rmeza_masci@yahoo.com,FOREMAN/EXC OP,Foreman,665fa7da-47f3-4b1e-af7a-f1265496b111,True,True,7j7DygaA9J
+RICARDO MALDONADO,rmaldonado_masci@yahoo.com,SUPERVISOR,Field Supervisor,5c128352-3dd7-4b94-89b6-5341c1c0ada7,True,True,5H25LVCHtJ
+RICH SANCHEZ,richsanchez@mascigc.com,SUPERVISOR,Field Supervisor,afd257fc-1b31-4dd4-9b79-11367f8727f2,True,True,qN8oNoSrfP
+ROBERT SCHUR,rschur_masci@yahoo.com,WORKING FOREMAN,Working Supervisor,9bc24939-5c66-47ff-b977-45e508997f72,True,True,nJshZvwUTE
+WILLIAM F MILLER,wmiller-masci@yahoo.com,FOREMAN,Foreman,15d8054e-f7af-45ce-8f3b-69639589f766,True,True,XtNpQLA9DY
