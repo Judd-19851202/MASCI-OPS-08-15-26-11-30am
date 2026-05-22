@@ -2,6 +2,80 @@
 
 
 
+## 2026-05-22 — iter333 · Final Operational Coaching Convergence · CLOSED
+
+### Scope (operator-mandated · bounded coaching refinement · iter327 voice anchor)
+Final maturity pass — refined helper text, intro sub-headers, submit-success toasts, key textarea placeholders, and empty states across the six Tier-1 forms (Incident, Daily Report, Inspection, DVIR, Equipment Issuance, Equipment Training) plus two empty-state surfaces. The platform now speaks with one operationally-mature voice anchored to the iter327 homepage capability copy.
+
+### Refinements applied
+
+**A · Submit-success continuity toasts** (replaced 5 generic toasts with workflow-continuity language):
+- Incident: "Incident report saved" → "Incident report filed · Safety + PM notified · visible under Incidents"
+- Daily Report: "Daily report saved" → "Daily report filed · PM distribution sent · visible under Daily Reports"
+- Inspection: "Inspection saved" → "Inspection filed · graded · visible under Audits & Inspections"
+- Safety Forms Issuance: "Submitted — PDF emailed to Safety" → "Issuance filed · PDF emailed to Safety · visible in Safety Forms Records"
+- Safety Forms Training: same pattern
+
+**B · Tier-1 form intro sub-headers** (added 4 iter327-voice operational sub-headers under H1s):
+- Incident: "Every detail filed here protects the crew, the project, and the company. Write it the way you'd want to read it six months from now."
+- Daily Report: "One report per crew, per day. Capture labor, subs, materials, weather, and photos so payroll and PM coordination run clean tomorrow."
+- Inspection: "A walking record of what's safe, what isn't, and what was fixed today. Honest grades drive better jobs."
+- DVIR: "Walk it before you roll it. Mark every item honestly. A FAIL today is a downed truck — and a tomorrow you can plan for, not one that surprises you."
+
+**C · "What good looks like" placeholders** (sharpened 4 high-impact textarea hints):
+- Incident description: "What happened, who was involved, what equipment or materials were present, and what was done in the moment. Write it like you'd brief the Safety Manager on a phone call."
+- Incident corrective actions: "Specific changes that prevent this from happening again — training, procedure updates, equipment fixes, supervision changes."
+- Inspection corrective notes: "What was the issue, where on site, what was done about it, and who owns the follow-up. Specific beats general — name the location, the trade, the action."
+- DVIR defect description: "Describe the defect — what you saw, heard, or felt. Where on the unit. When it started. Be specific so Shop knows what to grab."
+
+**D · Empty-state next-action guidance**:
+- IncidentsDashboard: "No incidents on file yet" → "Nothing filed yet today." + paragraph explaining what belongs there
+- HR Daily Reports: "No daily reports match these filters." → "Try a wider date range or clear all filters to see everything on file."
+
+**E · Bilingual ES parity** (14 new ES translations · operationally natural Spanish, zero robotic translation).
+
+### Visual + UX governance maintained
+- All refinements use `text-sm text-slate-600 mt-1.5 max-w-2xl leading-snug` for sub-headers — calm hierarchy, mobile-friendly
+- Zero LMS / tutorial / walkthrough panels added (explicitly forbidden by operator)
+- Zero new components, zero new routes, zero new dashboards
+- Mobile 390 verified — `scrollWidth==clientWidth==390` on /incidents/new and /daily/new
+
+### Tests
+**Backend regression:** 155/155 green (iter32x + iter322b + iter330 + iter331 + iter332 + iter333 + family contract)
+**Deploy gate:** 9/9 green
+**ESLint:** clean on all 4 Tier-1 form files
+**E2E (testing_agent_v3_fork iteration_333.json):** 100% PASS · 9/9 acceptance items verified
+- All 4 form intros render correctly with iter327 voice
+- All 4 high-impact placeholder refinements verified
+- 2 empty states verified (source + DOM where session permits)
+- ES translations render without English leakage
+- Mobile 390 zero horizontal overflow on tested forms
+
+### Files touched (iter333)
+- MOD · `/app/frontend/src/pages/NewIncident.jsx` (intro sub-header + 2 placeholders + continuity toast)
+- MOD · `/app/frontend/src/pages/NewDailyReport.jsx` (intro sub-header + continuity toast)
+- MOD · `/app/frontend/src/pages/NewInspection.jsx` (intro sub-header + corrective placeholder + continuity toast)
+- MOD · `/app/frontend/src/pages/NewFleetDVIR.jsx` (intro + defect placeholder)
+- MOD · `/app/frontend/src/pages/NewSafetyEquipmentIssuance.jsx` (continuity toast)
+- MOD · `/app/frontend/src/pages/NewSafetyEquipmentTraining.jsx` (continuity toast)
+- MOD · `/app/frontend/src/pages/IncidentsDashboard.jsx` (empty state)
+- MOD · `/app/frontend/src/pages/HrDailyReports.jsx` (empty state)
+- MOD · `/app/frontend/src/lib/i18n.js` (14 new ES translations)
+- NEW · `/app/backend/tests/test_iter333_coaching_convergence.py` (19 regression tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO new features · NO workflow redesign · NO new dashboards
+- ❌ NO LMS / tutorial / onboarding panels (explicit out-of-scope per operator)
+- ❌ NO Toolbox Meetings · Corrective Actions · PO Requests · Driver Qualification · FL Records · Time Off (Tier-2, deferred)
+- ❌ NO backend changes (zero RBAC / API / model drift)
+- ❌ NO PDF footer rewrites (current footers already operationally mature: "MASCI General Contractors Inc. · 386-322-4500 · mascidocs.com · Generated through MASCI Operations Platform")
+
+### Production impact
+**Preview has iter333. Production at mascidocs.com still missing until next redeploy.** Cumulative pending redeploy: iter330 (Dispatch KPI calm) + iter331 (PDF non-blocking hot-fix) + iter332 (3 workflow/access gap closures) + iter333 (coaching convergence). Zero destructive migration, no model changes, no auth-architecture shifts. The platform now speaks with one operationally-mature voice from homepage tile to Tier-1 form intros to submit-success continuity.
+
+
+
 ## 2026-05-22 — iter332 · Three Workflow/Access Gap Closures · CLOSED
 
 ### Scope (operator-mandated · bounded access-management convergence)
