@@ -3863,6 +3863,33 @@ const ES = {
   // iter342 · FL login convergence — modern per-user login is now primary
   "Crew using a shared leadership code? Use the legacy gate →": "¿Tu cuadrilla usa un código compartido? Usa el acceso heredado →",
 
+  // iter343 · FL login chrome rebuild — full platform-family parity with HR
+  "Field Leadership": "Liderazgo de Campo",
+  "Field Leadership Sign In": "Inicio de Sesión · Liderazgo de Campo",
+  "Sign in with your MASCI work email. For approved Field Leadership personnel — Superintendents, Foremen, Truck Bosses, and Working Supervisors. If this is your first time, the admin or HR will give you a temporary password — you'll choose your own on first login.":
+    "Inicia sesión con tu correo de trabajo de MASCI. Solo para personal aprobado de Liderazgo de Campo — Superintendentes, Capataces, Jefes de Camión y Supervisores Operativos. Si es tu primera vez, el admin o RH te darán una contraseña temporal — eligirás la tuya al iniciar sesión por primera vez.",
+  "Enter your work email and password": "Ingresa tu correo de trabajo y contraseña",
+  "Invalid email or password": "Correo o contraseña incorrectos",
+  "Account is disabled — call the office to reactivate": "Cuenta deshabilitada — llama a la oficina para reactivarla",
+  "Too many attempts — wait a minute and try again": "Demasiados intentos — espera un minuto e intenta de nuevo",
+  "Request timed out — server is cold-starting, try again": "Se agotó el tiempo de espera — el servidor está iniciando, intenta de nuevo",
+  "Can't reach server — check your internet": "No se puede conectar al servidor — revisa tu internet",
+  "Sign in failed — try again or call the office": "Inicio de sesión fallido — intenta de nuevo o llama a la oficina",
+  "Your session expired. Please sign in again.": "Tu sesión expiró. Por favor, inicia sesión de nuevo.",
+  "Welcome,": "Bienvenido,",
+  "Field Leader": "Líder de Campo",
+  "Forgot password? Click the link above and we'll email you a reset. Or call the office — admin or HR can issue a fresh temp password from the console.":
+    "¿Olvidaste tu contraseña? Haz clic en el enlace arriba y te enviaremos un correo para restablecerla. O llama a la oficina — el admin o RH pueden emitir una contraseña temporal nueva desde la consola.",
+  "Enter your work email. If we have you on file with an active Field Leadership account, we'll email you a one-time link to set a new password. Link expires in 30 minutes.":
+    "Ingresa tu correo de trabajo. Si te tenemos en archivo con una cuenta activa de Liderazgo de Campo, te enviaremos un enlace de un solo uso para establecer una nueva contraseña. El enlace expira en 30 minutos.",
+  "Couldn't send reset email — try again or call the office": "No se pudo enviar el correo de restablecimiento — intenta de nuevo o llama a la oficina",
+  "If that email is on file, a reset link is on its way.": "Si ese correo está en archivo, un enlace de restablecimiento está en camino.",
+  "MASCI · Field Leadership Portal": "MASCI · Portal de Liderazgo de Campo",
+  "You're already signed in as Admin": "Ya iniciaste sesión como Admin",
+  "Admin tokens already satisfy the Field Leadership Hub gate — you do not need to sign in here.":
+    "Los tokens de Admin ya cumplen con el acceso al Centro de Liderazgo de Campo — no necesitas iniciar sesión aquí.",
+  "Continue to Field Leadership Hub": "Continuar al Centro de Liderazgo de Campo",
+
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",

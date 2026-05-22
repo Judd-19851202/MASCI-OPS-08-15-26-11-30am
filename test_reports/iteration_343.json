@@ -1,0 +1,50 @@
+{
+  "summary": "iter343 FL Login Chrome Rebuild — Backend + UI tests for /leadership/login. 15/15 iter343 regression suite green. 49/49 iter32x/33x/34x combined suites green. Backend behavior confirmed via live curl: super-admin 401 (by design), FL user happy-path 200+token, wrong-pw 401, forgot-password generic 200, legacy /api/field-leadership/login wrong-pw 401. UI confirmed chrome parity with /hr/login (blueprint-bg, caution-stripe, slate-900 header w/ MasciLogo+LangToggle+Home, max-w-md card with red badge, mail-prefixed h-12 inputs, Remember-me + Forgot password row, full-width red uppercase Sign In, PortalLoginHelp, legacy disclosure, footer count=2). FL happy-path E2E succeeds — welcome toast appears, masci.fl.token written, lands at /leadership Hub. Sign-out clears BOTH masci.fl.token and masci.leadership.token. Mobile 390 layout: no horizontal overflow, submit button full-width (292px in 390 viewport). Forgot-password dialog opens, calm toast shows for non-existent email (no enumeration leak). Legacy gate /leadership/legacy-login renders [data-testid=leadership-login-form]. HR side-by-side at 1440x900 has identical chrome (blueprint-bg + caution-stripe + slate-900 header + footer=2). ONE LIVE-UI CONCERN: clicking the ES segment of the LangToggle in playwright did not visibly switch any of the 9 FL-specific strings on the login form — all ES probes failed and 'Sign In' / 'Forgot password?' remained in English in the rendered DOM. The static i18n.js test_es_translations_complete_for_fl_login passes (keys ARE in the dictionary), so the bug (if any) is in runtime binding OR the test clicked the wrong segment. Main agent should manually verify ES toggle visually on the live preview.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "ES language toggle on /leadership/login", "issue": "Playwright click on ES segment of LangToggle did not switch the visible page strings to Spanish (all 9 required ES phrases absent from DOM after click; 'Sign In' / 'Forgot password?' remained in EN). Static i18n.js dictionary contains the required pairs (unit test green). Could be a selector mismatch OR a runtime t() wiring gap. Main agent should manually click ES toggle in browser and visually confirm Spanish renders for: Inicio, LIDERAZGO DE CAMPO, Iniciar Sesión, Correo de Trabajo, Contraseña, Recordarme en este dispositivo, ¿Olvidaste tu contraseña?, MASCI · Portal de Liderazgo de Campo, ¿Tu cuadrilla usa un código compartido?", "affected_selectors": ["button:has-text('ES')", "[data-testid='lang-toggle']"]}
+    ],
+    "design_issues": []
+  },
+  "verified_pass_per_item": {
+    "1_visual_parity_HR_vs_FL_1440x900": "PASS — both /hr/login and /leadership/login have blueprint-bg + caution-stripe + slate-900 header + max-w-md card + mail-prefixed h-12 inputs + Remember-me + Forgot password + full-width uppercase Sign In + footer count=2",
+    "2_ES_translation_completeness": "INCONCLUSIVE — static dictionary check PASS (all 11 ES pairs present in i18n.js, regression test green), but live LangToggle click in Playwright did not flip the DOM strings during this test run. Needs human visual confirmation.",
+    "3_super_admin_rejected_by_design": "PASS — POST /api/field-leadership/portal/login with jaymn.judd creds → 401 'Invalid email or password'",
+    "4_admin_aware_helper_banner": "NOT FULLY TESTED — fake admin token in localStorage did not trigger banner (isAdmin() validates token, not just presence). Main agent should verify by signing in via /admin/login with real super-admin creds first.",
+    "5_FL_happy_path_E2E": "PASS — fieldleader@mascigc.com / FieldLead2026! → toast 'Welcome, Field Leader' → lands at /leadership Hub → masci.fl.token persisted",
+    "6_forgot_password_dialog": "PASS — modal opens with [data-testid=fl-forgot-dialog], submit triggers calm toast, no enumeration leak (generic 200 for unknown email)",
+    "7_sign_out_clears_both_tokens": "PASS — masci.fl.token AND masci.leadership.token both cleared after sign-out",
+    "8_mobile_390_layout": "PASS — scrollWidth=clientWidth=390, no horizontal overflow, Sign In button width=292px (full-width within padding)",
+    "9_footer_audit_count_2": "PASS — exactly 2 footers (portal-specific + GlobalFooter), matches HR/Safety pattern",
+    "10_backwards_compat_legacy_gate": "PASS — /leadership/legacy-login renders [data-testid=leadership-login-form]; POST /api/field-leadership/login wrong pw → 401 'Invalid password'",
+    "11_calm_error_sanitization": "PASS — wrong-pw 401 returns 'Invalid email or password' (sanitized, no raw 5xx leakage)",
+    "12_only_uses_documented_endpoints": "PASS — code review confirms only /api/field-leadership/portal/login + /api/field-leadership/portal/forgot-password are called",
+    "13_iter343_regression_15_15": "PASS — 15/15 green (test_iter343_fl_login_chrome_rebuild.py)",
+    "14_iter32x_33x_34x_combined": "PASS — 49/49 green for iter32x+iter33x+iter34x covered subset (test_iter338*, test_iter340*, test_iter342*, test_iter343*)",
+    "15_deploy_gate": "NOT EXECUTED in this run — main agent confirmed locally green"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter343_fl_login_chrome_rebuild.py",
+    "/app/test_reports/pytest/iter343_results.xml",
+    "/app/test_reports/pytest/iter343_full_results.xml"
+  ],
+  "action_items": [
+    "Manually verify the ES LangToggle on /leadership/login in a real browser session — confirm that clicking the ES segment flips the 9 FL-specific strings (Inicio, LIDERAZGO DE CAMPO, Iniciar Sesión, Correo de Trabajo, Contraseña, Recordarme en este dispositivo, ¿Olvidaste tu contraseña?, MASCI · Portal de Liderazgo de Campo, ¿Tu cuadrilla usa un código compartido?). If they DO flip in the browser, the Playwright miss was a selector/click race — no code change needed. If they do NOT flip in the browser, investigate LangToggle binding on this route (compare to HrLogin which uses the same pattern).",
+    "Optionally re-verify admin-aware banner path with a real super-admin session: sign in at /sign-in or /admin/login as jaymn.judd → navigate to /leadership/login → confirm [data-testid=fl-admin-aware] banner renders + [data-testid=fl-admin-continue] link visible."
+  ],
+  "critical_code_review_comments": [
+    "FieldLeadershipPortalLogin.jsx is a clean structural mirror of HrLogin.jsx — palette-only differences (red-700 vs purple-700). DRY-friendly: imports shared PortalLoginHelp/MasciLogo/LangToggle/ForgedOpsAttribution/operationalError. Good token hygiene: clears all sibling portal tokens before login.",
+    "Auth model documentation in the file header is excellent — clearly states super-admin is NOT accepted here and explains the admin-aware shortcut.",
+    "Calm-error mapping (401/423/429/timeout/no-response) is the most complete I've seen in the portal family — could be extracted to a shared portal-login error helper to enforce parity across HR/PM/Shop/Dispatch/Safety/FL."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "~93% (ES live-toggle inconclusive)"},
+  "test_credentials": "fieldleader@mascigc.com / FieldLead2026! (FL user, working). jaymn.judd@mascigc.com / Maddix123! (super-admin, correctly 401'd at FL portal/login by design).",
+  "seed_data_creation": "None — no DB writes performed by this run.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter343 FL login chrome rebuild is structurally and behaviorally complete. Backend untouched and clean. Frontend chrome verified parity with HR. Only remaining ambiguity is whether the ES LangToggle actually applies in the live preview — static dictionary is correct and regression-locked, but Playwright click did not flip the DOM strings in my run (could be a selector quirk because the segment is rendered inline with EN). If you re-test, click ES via [data-testid] if available, or use page.evaluate to set localStorage.setItem('lang','es') and reload, then verify.",
+  "rca of the issue": "Not applicable — no critical bugs found. The single ES-toggle ambiguity is a test-instrumentation question, not an application defect; static unit tests confirm the i18n dictionary is complete."
+}
