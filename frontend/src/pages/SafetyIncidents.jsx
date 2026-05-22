@@ -16,6 +16,7 @@ import {
 import SafetyShell from "@/components/SafetyShell";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
+import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -52,7 +53,9 @@ export default function SafetyIncidents() {
         const r = await axios.get(`${API}/incidents`, auth());
         setItems(Array.isArray(r.data) ? r.data : []);
       } catch (e) {
-        toast.error(e?.response?.data?.detail || t("Failed to load incidents"));
+        toast.error(operationalError(e,
+          t("Incidents temporarily unavailable. Try again in a moment."),
+          t("Your Safety session expired. Please sign in again.")));
       } finally { setLoading(false); }
     })();
   }, []);  // eslint-disable-line

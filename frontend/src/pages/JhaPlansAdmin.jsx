@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MasciLogo } from "@/components/MasciLogo";
 import HubBackLink from "@/components/HubBackLink";
 import { api } from "@/lib/api";
+import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 
 const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -87,7 +88,9 @@ export default function JhaPlansAdmin() {
       setGroups(r.data?.projects || []);
       setJobs(j.data?.items || []);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Failed to load JHP library");
+      toast.error(operationalError(e,
+        "JHP library temporarily unavailable. Try again in a moment.",
+        "Your admin session expired. Please sign in again."));
     } finally {
       setLoading(false);
     }
@@ -175,7 +178,9 @@ export default function JhaPlansAdmin() {
       await refresh();
       setOpenMap((m) => ({ ...m, [project_number]: true }));
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Upload failed");
+      toast.error(operationalError(err,
+        "Upload temporarily unavailable. Try again in a moment.",
+        "Your admin session expired. Please sign in again."));
     } finally {
       setBusyJob(null);
     }
@@ -194,7 +199,9 @@ export default function JhaPlansAdmin() {
       toast.success(`Deleted ${file.filename}`);
       await refresh();
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Delete failed");
+      toast.error(operationalError(err,
+        "Delete temporarily unavailable. Try again in a moment.",
+        "Your admin session expired. Please sign in again."));
     } finally {
       setBusyJob(null);
     }

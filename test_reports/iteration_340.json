@@ -1,0 +1,42 @@
+{
+  "summary": "iter340 final completion + reliability hardening verified end-to-end. Shared operationalError() sanitizer wired across 10 portal pages and 14 catch sites. 4 sync PDF renders wrapped in asyncio.to_thread. All 6 iter340 pytest cases green, 49/49 iter335-iter340 file-level tests green, 278/281 broader iter32-iter34 regression tests green (3 pre-existing failures unrelated to iter340 in master_lists_crud auth/seed drift). Backend endpoints behave correctly (ops-manual.pdf 401-gated, admin lookup resolves canonical Ref, HR daily-reports returns 104 live records). Frontend: HR Daily Reports loads 106 rows cleanly, /safety-portal/{audits,incidents,forms-records} render without banned FastAPI defaults, /admin/dispatch shows all 6 expected tabs, /admin/system mounts the iter338 Reference Lookup widget at top. Mobile 390 sweep is clean across all 6 portal routes (sw=cw=390, zero overflow). ES toggle works on /hr/daily-reports, /safety-portal/audits, /thank-you. iter337 'Ref · INC-2026-0517-002' canonical chain visible on incident detail page. 404 route-stub on HR DR confirms no raw 'Not Found' leak to user toast. Deploy gate green (9/9).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/incidents (anon)", "issue": "Returns 401 anon, but iter340 review_request anticipated 200 ('publicly listable historically'). Currently the endpoint is gated — likely intentional security tightening but worth confirming with operator/E1 whether public list should be restored."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/admin/incidents/<id> in ES", "issues": ["'EDIT PROJECT' button text remains in English when language is toggled to ES. Minor i18n leak — not iter340 scope but worth noting for future bilingual sweeps."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter340_final_completion_hardening.py",
+    "/app/backend/tests/test_iter339_hr_daily_reports_calm_errors.py",
+    "/app/backend/tests/test_iter338_admin_reference_lookup.py",
+    "/app/backend/tests/test_iter337_pdf_header_reference.py",
+    "/app/backend/tests/test_iter336_review_side_reference.py",
+    "/app/backend/tests/test_iter335_tracking_reference.py"
+  ],
+  "action_items": [
+    "(Optional) Confirm with operator whether anon GET /api/incidents was intentionally locked to 401 (matches multi-portal security model) or if review_request expectation of public listing should be restored.",
+    "(Optional, post-iter340) Localize 'EDIT PROJECT' button on /admin/incidents/<id> for ES — minor English leak observed in screenshot."
+  ],
+  "critical_code_review_comments": [
+    "/app/frontend/src/lib/errors.js — Clean, single-purpose 57-line module. Default + named export, correct RAW_FASTAPI_DEFAULTS set covering all 7 required strings. 401/403 routed to session-expired message, 404 + no-response + raw FastAPI default all collapse to fallback. Good defensive pattern.",
+    "Sanitizer correctly preserves operator-authored 4xx detail strings (field validation, business rule violations) — does NOT over-sanitize.",
+    "asyncio.to_thread wrapping in server.py PDF endpoints (ops-manual GETs lines 973-998, snapshot 1008-1026, PM welcome PDF 2491-2511) prevents event-loop blocking on sync ReportLab renders — significant reliability win for mobile/spotty connections.",
+    "10 refactored portal pages all import operationalError from @/lib/errors with no duplicated inline copies left (verified via test_no_raw_detail_toasts_remain_in_target_pages)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "98.9% (278/281 iter32-iter34 + 6/6 iter340 + 9/9 deploy gate + live endpoint checks)", "frontend": "100% for iter340 scope (sanitizer wiring, 6 portal pages, mobile sweep, ES toggle)"},
+  "test_credentials": "Admin: POST /api/admin/login {password: MASCI1982!}. Multi-portal: jaymn.judd@mascigc.com / Maddix123! → portal_tokens.{admin,pm,shop,hr,safety,dispatch}. localStorage keys for frontend: masci.{portal}.token (NOT hr_token/safety_token).",
+  "seed_data_creation": "None — full live preview, no seed data created.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter340 closes 3 of 8 deferred items: (1) shared operationalError sanitizer at /app/frontend/src/lib/errors.js, (2) 10 portal pages refactored to use it, (3) 4 sync PDF endpoints async-wrapped. Two intentionally deferred items remain: FL Phase B unified directory + 27 admin-internal catch blocks. Frontend portal tokens use localStorage key pattern 'masci.{admin|pm|shop|hr|safety|dispatch}.token' — NOT the shorthand 'hr_token' style; testing agent should seed under correct key or pages will show portal sign-in gate. Deploy gate /app/.deploy_checks/run_family_contract.sh exits 0 with '9 passed · Contract green'. Three pre-existing iter32 master_lists failures (test_employee_pm_can_edit returning 401, test_equipment_master_shop_can_crud, test_export_works_with_pm_token) appear to be seed/auth drift unrelated to iter340 — should be investigated separately in a master-lists-focused iteration.",
+  "rca_of_the_issue": "N/A — iter340 is a completion + hardening sweep, not a bug fix. All target deliverables verified working."
+}

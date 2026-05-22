@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MasciLogo } from "@/components/MasciLogo";
 import HubBackLink, { useHubHome } from "@/components/HubBackLink";
 import { api } from "@/lib/api";
+import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 import TrenchBoxTabulatedLibrary from "@/components/TrenchBoxTabulatedLibrary";
 
@@ -90,7 +91,9 @@ export default function TrenchBoxesAdmin() {
       refresh();
     } catch (e) {
       console.error(e);
-      toast.error(e?.response?.data?.detail || "Save failed");
+      toast.error(operationalError(e,
+        "Save temporarily unavailable. Try again in a moment.",
+        "Your admin session expired. Please sign in again."));
     } finally {
       setSaving(false);
     }

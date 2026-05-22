@@ -971,9 +971,11 @@ async def dev_check(_: bool = Depends(require_dev)):
 
 
 @api_router.get("/dev/ops-manual.pdf")
-def dev_ops_manual_pdf(_: bool = Depends(require_dev)):
+async def dev_ops_manual_pdf(_: bool = Depends(require_dev)):
     from ops_manual import render_ops_manual_pdf
-    pdf = render_ops_manual_pdf()
+    # iter340 · wrap sync PDF render in to_thread so the event loop stays
+    # responsive (mirrors iter331 fix in routes/field_leadership.py).
+    pdf = await asyncio.to_thread(render_ops_manual_pdf)
     return _FastAPIResponse(
         content=pdf,
         media_type="application/pdf",
@@ -985,9 +987,9 @@ def dev_ops_manual_pdf(_: bool = Depends(require_dev)):
 
 
 @api_router.get("/dev/ops-manual.docx")
-def dev_ops_manual_docx(_: bool = Depends(require_dev)):
+async def dev_ops_manual_docx(_: bool = Depends(require_dev)):
     from ops_manual import render_ops_manual_docx
-    docx = render_ops_manual_docx()
+    docx = await asyncio.to_thread(render_ops_manual_docx)
     return _FastAPIResponse(
         content=docx,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -1014,8 +1016,9 @@ async def dev_ops_manual_snapshot(
     note = ""
     if isinstance(body, dict):
         note = str(body.get("note", ""))[:500]
-    pdf = render_ops_manual_pdf()
-    docx = render_ops_manual_docx()
+    # iter340 · keep event loop responsive during snapshot generation
+    pdf = await asyncio.to_thread(render_ops_manual_pdf)
+    docx = await asyncio.to_thread(render_ops_manual_docx)
     snap = {
         "id": uuid.uuid4().hex,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -2486,7 +2489,9 @@ async def admin_pm_welcome_pdf(
         or "https://mascidocs.com"
     )
     try:
-        pdf_bytes = render_pm_welcome_pdf(
+        # iter340 · wrap sync PDF render to keep event loop responsive
+        pdf_bytes = await asyncio.to_thread(
+            render_pm_welcome_pdf,
             public_pm_view(updated),
             temp_password=plain,
             portal_url=portal_url,

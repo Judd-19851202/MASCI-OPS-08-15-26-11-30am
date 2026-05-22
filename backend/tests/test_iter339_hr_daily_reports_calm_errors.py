@@ -46,12 +46,14 @@ def test_backend_route_gated_by_require_hr_user():
 
 def test_frontend_uses_operational_error_sanitizer():
     src = HR_PAGE.read_text()
-    # The sanitizer must exist
-    assert "function operationalError" in src
-    # All four raw FastAPI defaults must be filtered
+    # iter340 · sanitizer now lives in shared util /app/frontend/src/lib/errors.js
+    assert 'from "@/lib/errors"' in src
+    assert "import { operationalError }" in src
+    # The shared util must contain all four raw FastAPI defaults
+    errors_js = (ROOT / "frontend/src/lib/errors.js").read_text()
     for raw in ('"Not Found"', '"Method Not Allowed"',
                 '"Internal Server Error"', '"Unprocessable Entity"'):
-        assert raw in src, f"sanitizer missing branch for {raw}"
+        assert raw in errors_js, f"shared sanitizer missing branch for {raw}"
 
 
 def test_frontend_no_longer_leaks_raw_detail_in_toast():

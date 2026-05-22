@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { operationalError } from "@/lib/errors";
 import { HelpTipBlock } from "@/components/HelpTip";
 
 const STATUS_PILL = {
@@ -275,7 +276,7 @@ export function DispatchTransfersTab() {
       toast.success(`Transfer ${decision}d`);
       load();
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Decision failed");
+      toast.error(operationalError(e, "Decision temporarily unavailable. Try again in a moment.", "Your Dispatch session expired. Please sign in again."));
     }
   };
 
@@ -377,7 +378,7 @@ function CreateTransferDialog({ open, onClose }) {
       toast.success("Transfer request created");
       onClose();
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Create failed");
+      toast.error(operationalError(e, "Create temporarily unavailable. Try again in a moment.", "Your Dispatch session expired. Please sign in again."));
     } finally { setSubmitting(false); }
   };
 
@@ -448,20 +449,20 @@ export function DispatchHoldsTab() {
   const release = async (hid) => {
     const note = window.prompt("Resolution note (optional)") || "";
     try { await api.post(`/operations/holds/${hid}/release`, { resolution: note }); toast.success("Hold released"); load(); }
-    catch (e) { toast.error(e?.response?.data?.detail || "Release failed"); }
+    catch (e) { toast.error(operationalError(e, "Release temporarily unavailable. Try again in a moment.", "Your Dispatch session expired. Please sign in again.")); }
   };
 
   const approve = async (hid) => {
     if (!window.confirm("Approve this pending hold? The asset will be marked Maintenance/Safety Hold immediately.")) return;
     try { await api.post(`/operations/holds/${hid}/approve`, { note: "" }); toast.success("Hold approved"); load(); }
-    catch (e) { toast.error(e?.response?.data?.detail || "Approve failed"); }
+    catch (e) { toast.error(operationalError(e, "Approve temporarily unavailable. Try again in a moment.", "Your Dispatch session expired. Please sign in again.")); }
   };
 
   const dismiss = async (hid) => {
     const reason = window.prompt("Reason for dismissing this pending hold (REQUIRED):");
     if (!reason || !reason.trim()) { toast.error("Dismissal reason required"); return; }
     try { await api.post(`/operations/holds/${hid}/dismiss`, { reason }); toast.success("Hold dismissed"); load(); }
-    catch (e) { toast.error(e?.response?.data?.detail || "Dismiss failed"); }
+    catch (e) { toast.error(operationalError(e, "Dismiss temporarily unavailable. Try again in a moment.", "Your Dispatch session expired. Please sign in again.")); }
   };
 
   return (
@@ -590,7 +591,7 @@ function CreateHoldDialog({ open, onClose }) {
     if (!assetId || !reason) { toast.error("Asset and reason required"); return; }
     setSubmitting(true);
     try { await api.post("/operations/holds", { asset_id: assetId, kind, reason, severity }); toast.success("Hold applied"); onClose(); }
-    catch (e) { toast.error(e?.response?.data?.detail || "Apply failed"); }
+    catch (e) { toast.error(operationalError(e, "Apply temporarily unavailable. Try again in a moment.", "Your Dispatch session expired. Please sign in again.")); }
     finally { setSubmitting(false); }
   };
 

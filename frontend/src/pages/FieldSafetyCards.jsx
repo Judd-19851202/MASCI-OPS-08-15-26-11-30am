@@ -17,6 +17,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
+import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 
 /**
@@ -134,7 +135,9 @@ function EmailCardDialog({ open, onOpenChange, card, mode = "single" }) {
       }
       onOpenChange(false);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Email send failed");
+      toast.error(operationalError(e,
+        "Email send temporarily unavailable. Try again in a moment.",
+        "Your session expired. Please sign in again."));
     } finally {
       setSending(false);
     }

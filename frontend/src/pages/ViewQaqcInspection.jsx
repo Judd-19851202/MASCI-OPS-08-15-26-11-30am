@@ -8,6 +8,7 @@ import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
+import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { formatDateLong } from "@/lib/utils";
@@ -43,7 +44,9 @@ export default function ViewQaqcInspection() {
       toast.success(t("Deleted."));
       window.location.href = "/admin/qaqc";
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Failed");
+      toast.error(operationalError(e,
+        t("Delete temporarily unavailable. Try again in a moment."),
+        t("Your session expired. Please sign in again.")));
     }
   }
 

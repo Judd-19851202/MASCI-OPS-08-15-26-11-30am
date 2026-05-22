@@ -22,6 +22,7 @@ import {
   isAgingAccountability,
   accountabilityClassLabels,
 } from "@/lib/safetyAccountabilityClass";
+import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -70,7 +71,9 @@ export default function SafetyFormsRecords() {
         setItems(data);
       } catch (e) {
         if (alive) {
-          toast.error(e?.response?.data?.detail || t("Failed to load Safety Forms records"));
+          toast.error(operationalError(e,
+            t("Safety Forms records temporarily unavailable. Try again in a moment."),
+            t("Your Safety session expired. Please sign in again.")));
           setItems([]);
         }
       } finally {

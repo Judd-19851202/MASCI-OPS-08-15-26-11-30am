@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import SafetyShell from "@/components/SafetyShell";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
+import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 import axios from "axios";
 
@@ -150,7 +151,9 @@ export default function SafetyReports() {
           description: t("This export is awaiting backend wiring. The underlying data is available — open the linked module to print."),
         });
       } else {
-        toast.error(e?.response?.data?.detail || t("Export failed"));
+        toast.error(operationalError(e,
+          t("Export temporarily unavailable. Try again in a moment."),
+          t("Your Safety session expired. Please sign in again.")));
       }
     } finally {
       setBusy((b) => ({ ...b, [`${r.key}:${fmt}`]: false }));
