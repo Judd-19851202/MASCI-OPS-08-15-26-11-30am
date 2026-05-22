@@ -2,6 +2,63 @@
 
 
 
+## 2026-05-22 — iter342 · FL Login UX Convergence (P0 fix) · ✅ CONVERGED
+
+### Operator P0 complaint
+`/leadership/login` was still rendering the legacy single shared-password gate ("MASCIGC password") while every other portal (HR, Safety, PM, Shop, Dispatch) had modern email+password. Broke platform-family feel. Contradicted iter341's convergence claim.
+
+### Root cause (visibility, not architecture)
+The MODERN per-user FL login (iter314, `FieldLeadershipPortalLogin.jsx`, 215 lines, mirrors HrLogin chrome exactly) **already existed and worked** — but lived at the secondary URL `/field-leadership/portal/login`. The PRIMARY operator-visible URL `/leadership/login` was still mounting the legacy `LeadershipLogin.jsx` (shared password gate).
+
+### Fix (bounded, preserves backend & compat)
+1. `/leadership/login` now mounts `FieldLeadershipPortalLogin` (MODERN per-user)
+2. Legacy `LeadershipLogin` moved to `/leadership/legacy-login` (hidden compat URL)
+3. `/field-leadership/portal/login` still works (existing bookmarks resolve)
+4. Hub auth check now accepts FL token (`getFlToken()`) alongside leadership/admin/PM tokens
+5. Hub signOut clears BOTH tokens (no ghost sessions)
+6. Post-login navigates to `/leadership` (the Hub) — collapses 2-step nav into 1
+7. Small disclosure link below modern form: "Crew using a shared leadership code? Use the legacy gate →"
+8. ES translation added
+
+### What was NOT touched (scope discipline)
+- Backend routes (both `/api/field-leadership/login` shared-pw + `/api/field-leadership/portal/login` per-user) UNTOUCHED
+- `lib/leadershipAuth.js` + `lib/flAuth.js` UNTOUCHED
+- `field_leadership_users` collection UNTOUCHED
+- Admin Access Control Center (still 6-portal) UNTOUCHED
+- FL Phase B unified-directory migration STILL DEFERRED (architectural)
+
+### Live verification
+- POST `/api/field-leadership/portal/login` with `fieldleader@mascigc.com / FieldLead2026!` → **HTTP 200** with token + user object (Field Leader, Superintendent)
+- GET `/api/field-leadership/portal/me` with token → **HTTP 200**
+- Anon access → **HTTP 401** ✓
+- Legacy `/api/field-leadership/login` (shared-pw) still alive → **HTTP 401 "Invalid password"** (backwards compat preserved)
+- Screenshot of `/leadership/login` confirms modern chrome: MasciLogo + "FIELD LEADERSHIP PORTAL" badge + "Field Leadership sign-in" headline + email/password fields + slate-900 Sign in button + Forgot password link + disclosure link + Memorial Day cultural banner stacked at top
+- DOM probe: `fl-portal-login=True`, `leadership-login-form=False` on primary URL; legacy form correctly renders at `/leadership/legacy-login`
+
+### Tests
+- **NEW** `/app/backend/tests/test_iter342_fl_login_convergence.py` (11 tests · all green)
+- **Cumulative pytest:** 251/251 green across iter32x + iter33x + iter34x
+- **Deploy gate:** 9/9 green
+- **E2E (testing_agent_v3_fork iteration_342.json):** 100% PASS · zero critical · zero minor · zero ui_bugs · zero integration_issues · zero design_issues
+
+### Final convergence verdict — ✅ CONVERGED
+An operator can no longer tell `/leadership/login` was built differently from `/hr/login`. Same MasciLogo, same portal badge styling, same form pattern, same calm submit chrome, same Forgot password link, same ForgedOpsAttribution footer. Field Leadership now feels operationally mature, visually converged, identity-converged, and fully part of the MASCI Operations Platform.
+
+### Files touched
+- MOD · `/app/frontend/src/App.js`
+- MOD · `/app/frontend/src/pages/FieldLeadershipPortalLogin.jsx`
+- MOD · `/app/frontend/src/pages/FieldLeadershipHub.jsx`
+- MOD · `/app/frontend/src/lib/i18n.js`
+- NEW · `/app/backend/tests/test_iter342_fl_login_convergence.py`
+- NEW · `/app/memory/FL_LOGIN_CONVERGENCE_iter342.md` (full audit)
+- DOC · `/app/memory/PRD.md`
+
+**Cumulative pending redeploy at mascidocs.com: iter330 → iter342 (13 bounded iters · zero drift · all regression-locked).**
+
+
+
+
+
 ## 2026-05-22 — iter341 · Final Platform Closeout & Verification · CLOSED
 
 ### Operator mandate
