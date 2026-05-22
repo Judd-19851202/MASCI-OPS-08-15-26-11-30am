@@ -2,6 +2,112 @@
 
 
 
+## 2026-05-22 — iter338 · Admin Reference Lookup + Final Operational Closure · CLOSED
+
+### Scope (operator-mandated · bounded admin utility · closes the iter335→iter337 continuity loop)
+A small, calm, **admin-only** utility on `/admin/system` that resolves a pasted canonical reference (`INC-2026-0517-002`, `DR-2026-0517-014`, etc.) to the matching record and **redirects immediately** to its detail page. NOT a global search. NOT public. NOT fuzzy. Exact-match across 9 canonical number fields + UUID fallback.
+
+### How it closes the loop
+| Step | Surface | iter |
+|---|---|---|
+| Crew submits, screenshots `Ref · INC-2026-0517-002` | `/thank-you` | iter335 |
+| Crew calls Safety/PM/HR and reads the Ref aloud | (verbal) | — |
+| Admin/Safety leadership opens `/admin/system`, pastes `INC-2026-0517-002`, hits FIND | **iter338** widget | **iter338** |
+| Admin lands directly on `/admin/incidents/<id>` with `Ref · INC-2026-0517-002` kicker visible | detail page | iter336 |
+| Admin exports PDF · header carries `Ref · INC-2026-0517-002` | PDF | iter337 |
+
+**The submit → call-in → resolve → review → archive loop is fully closed.**
+
+### Backend (single calm route)
+**`GET /api/admin/lookup?ref=<value>`** — `Depends(require_admin)` · returns `{found, kind, id, ref, path}` or `{found:false, ref}`. Implemented in `/app/backend/routes/admin_ops.py` (LOOKUP_MAP at lines 515-526, route at 528-568).
+
+**LOOKUP_MAP (9 collections × canonical field × target path):**
+- `incidents.incident_number` → `/admin/incidents/{id}`
+- `daily_reports.report_number` → `/admin/daily/{id}`
+- `inspections.inspection_number` → `/admin/inspections/{id}`
+- `meetings.meeting_number` → `/admin/meetings/{id}`
+- `equipment_inspections.inspection_number` → `/admin/equipment/{id}`
+- `jhas.jha_number` → `/admin/jha-plans`
+- `safety_equipment_issuances.issuance_number` → `/safety/forms/equipment-issuance/{id}`
+- `safety_training_records.training_number` → `/safety/forms/equipment-training/{id}`
+- `field_leadership_records.record_number` → `/admin/field-leadership/{id}`
+
+**Robustness:** input is upper-cased + trimmed (mobile-paste tolerant); each `find_one` also checks legacy `doc_id`; UUID fallback iterates LOOKUP_MAP querying by raw `id` for operators who paste a record's raw UUID.
+
+**Live verification (curl):**
+- Seeded `INC-2026-0517-002` on a preview incident → `{"found":true,"kind":"incident","id":"d9626eeb-...","path":"/admin/incidents/d9626eeb-..."}` ✓
+- ` inc-2026-0517-002 ` (whitespace + lowercase) resolves identically ✓
+- UUID `42e3a8e6-dc41-4cc4-bb57-0d5c4be3d0f8` → `{"found":true,"kind":"daily-report",...}` ✓ (fallback)
+- Missing ref `INC-2099-0101-999` → `{"found":false,"ref":"INC-2099-0101-999"}` ✓
+- Anonymous (no token) → **HTTP 401** ✓
+- `X-PM-Token: fake` → **HTTP 401** ✓ (admin-only enforced)
+
+### Frontend (compact calm card)
+**NEW** `/app/frontend/src/components/AdminReferenceLookup.jsx` (95 LOC, single calm card, slate-700 left-edge stripe, mono input, FIND button, calm error block — NO toasts, NO modals, NO history).
+
+**Visual contract:**
+```
+ADMIN UTILITY                                   ← uppercase tracking kicker
+Find Record by Ref                              ← bold h2
+Paste a canonical reference to jump straight to the record.
+
+[ Paste Ref · INC-2026-0517-002          ]  [🔍 FIND]
+```
+On success → `navigate(r.data.path)` (immediate, no confirmation). On miss → calm mono block `No active record matches Ref · DOES-NOT-EXIST-9999` (slate-50 chrome, sits below the form).
+
+**Mounted** at the top of `/admin/system` in `AdminSystem.jsx` (above `PreDeploySnapshotPanel`).
+
+**Testids:** `admin-reference-lookup` · `admin-lookup-input` · `admin-lookup-submit` · `admin-lookup-error`.
+
+### Bilingual (ES) parity
+7 new ES keys appended to iter338 block in `lib/i18n.js`:
+- `Admin Utility → Utilidad de Admin`
+- `Find Record by Ref → Buscar Registro por Ref.`
+- `Paste a canonical reference to jump straight to the record. → Pega una referencia canónica para ir directo al registro.`
+- `Paste Ref · INC-2026-0517-002 → Pega Ref. · INC-2026-0517-002`
+- `Find → Buscar`
+- `No active record matches Ref → Ningún registro activo coincide con Ref.`
+- `Lookup unavailable. Try again in a moment. → Búsqueda no disponible. Intenta de nuevo en un momento.`
+
+### E2E + Final Operational Sweep (testing_agent_v3_fork iteration_338.json · **100% PASS**)
+
+**Backend (6/6 PASS):**
+- RBAC anon = 401 ✓ · RBAC PM token = 401 ✓ · Seeded INC-ref returns kind=incident ✓ · UUID fallback graceful ✓ · Graceful miss `{found:false}` ✓ · Whitespace + lowercase normalization ✓
+
+**Frontend (8/8 PASS):**
+- Widget mounts above PreDeploySnapshotPanel ✓ · All 4 testids present ✓ · Successful lookup navigates to `/admin/incidents/d9626eeb-37a8-4e55-a5bb-3ea74f46ccd3` ✓ · Failed lookup shows calm error block ✓ · Submit disabled when empty ✓ · ES bilingual all 7 keys resolve with zero English leakage ✓ · Mobile 390×844 `scrollWidth==clientWidth==390` ✓ · Anonymous `/admin/system` bounces to login ✓ · No public `/lookup`, `/track`, `/reference/...` route leak ✓
+
+**Final iter330→iter338 Operational Sweep (5/5 PASS):**
+- iter335 `/thank-you` Ref continuity intact ✓
+- iter336 RefKicker live-verified: `Ref · INC-2026-0517-002` renders on `/admin/incidents/<id>` ✓
+- iter337 PDFs (`/api/safety-forms/equipment-issuances/<id>/pdf` + `/api/field-leadership/<id>/pdf`) still return valid `%PDF` binaries ✓
+- Deploy gate `bash /app/.deploy_checks/run_family_contract.sh` → **Contract green · safe to deploy** ✓
+- Pytest regression: **111/111 PASS** across `test_iter322b` + `test_iter330..test_iter338` ✓
+
+### Files touched (iter338)
+- NEW · `/app/frontend/src/components/AdminReferenceLookup.jsx` (95 LOC · calm card · navigate-on-success)
+- MOD · `/app/frontend/src/pages/admin/AdminSystem.jsx` (mount widget at top of stack)
+- MOD · `/app/frontend/src/lib/i18n.js` (7 ES keys appended to iter338 block)
+- MOD · `/app/backend/routes/admin_ops.py` (LOOKUP_MAP + `GET /lookup` route · admin-gated)
+- NEW · `/app/backend/tests/test_iter338_admin_reference_lookup.py` (8 regression tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO global search · NO public lookup · NO QR · NO tracking portal · NO fuzzy search
+- ❌ NO new pages · NO header widget · NO sidebar · NO toolbar · NO command palette
+- ❌ NO analytics · NO lookup history · NO usage logging · NO recent-refs panel
+- ❌ NO new collections · NO new model fields · NO write endpoints
+- ❌ NO RBAC widening — STRICTLY admin-only (`Depends(require_admin)`)
+
+### Production impact
+**Preview has iter338. Production at mascidocs.com still missing until next redeploy.** Cumulative pending redeploy: **iter330 → iter338 (9 bounded iters · zero backend/auth/DB/API drift · all regression-locked).** Once shipped, Admin/Safety leadership can resolve any canonical Ref pasted from a phone call, screenshot, or PDF directly to the record in one operation.
+
+**The submission → review → archive continuity layer is now operationally complete and accountable.**
+
+
+
+
+
 ## 2026-05-22 — iter337 · PDF Header Reference Continuity · CLOSED
 
 ### Scope (operator-mandated · final document-continuity layer · iter335/336 mirror in PDFs)
