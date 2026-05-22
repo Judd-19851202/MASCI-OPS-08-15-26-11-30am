@@ -120,7 +120,7 @@ export default function TrainingHub() {
               existing role-track URLs (/training/<slug> still works). */}
           <Link
             to="/guidance"
-            className="mt-5 flex items-center gap-3 bg-amber-50 border-2 border-amber-300 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all group"
+            className="mt-5 flex items-center gap-3 bg-amber-50 border border-amber-300 border-l-4 border-l-amber-600 rounded-md p-4 hover:bg-amber-100 hover:border-l-amber-700 hover:shadow-md transition-all group"
             data-testid="training-hub-guidance-banner"
           >
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">

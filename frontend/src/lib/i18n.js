@@ -2316,6 +2316,48 @@ const ES = {
   "Safety, Admin, or PM login required":
     "Se requiere inicio de sesión de Seguridad, Admin o PM",
 
+  // ── iter327 · Hub capability-forward voice (Homepage Phase D) ─────
+  // Capability-forward tile copy that communicates operational power
+  // instead of generic department names. Field-readable Spanish.
+  "End-of-day reports, safety enforcement, equipment tracking, quality control, and complete documentation — captured in the field, routed automatically, and stored in one operational system.":
+    "Reportes de fin de día, cumplimiento de seguridad, control de equipo, control de calidad y documentación completa — capturado en campo, ruteado automáticamente y archivado en un solo sistema operativo.",
+  "What every crew on site does today.":
+    "Lo que cada cuadrilla en el sitio hace hoy.",
+  "File end-of-day reports, log equipment walk-arounds, and capture crew, weather, and production from the job site.":
+    "Presente reportes de fin de día, registre revisiones de equipo, y capture cuadrilla, clima y producción desde la obra.",
+  "Run quality inspections on concrete, asphalt, rebar, and subcontractor work — signed, photographed, routed, and archived.":
+    "Ejecute inspecciones de calidad en concreto, asfalto, refuerzo y trabajo de subcontratistas — firmadas, fotografiadas, ruteadas y archivadas.",
+  "File toolbox talks, JHAs, incident reports, and trench-box plans — directly from the truck or trailer.":
+    "Presente charlas de seguridad, JHAs, reportes de incidentes y planes de trincheras — directamente desde la camioneta o el remolque.",
+  "For foremen, supervisors, and superintendents running the work.":
+    "Para capataces, supervisores y superintendentes que dirigen el trabajo.",
+  "Track crew accountability, employee documentation, equipment custody, recognition, and workforce decisions.":
+    "Registre responsabilidad de cuadrilla, documentación de empleados, custodia de equipo, reconocimiento y decisiones de personal.",
+  "Manage jobs, PO requests, daily reports, inspections, photos, and project compliance.":
+    "Administre obras, solicitudes de OC, reportes diarios, inspecciones, fotos y cumplimiento del proyecto.",
+  "Run the mechanic queue — repairs, parts, PMs, and fleet readiness.":
+    "Maneje la cola del taller — reparaciones, refacciones, mantenimientos preventivos y disponibilidad de flota.",
+  "Employee records, onboarding, payroll cross-checks, and workforce documentation.":
+    "Expedientes de empleados, inducción, verificación de nómina y documentación de personal.",
+  "Incidents, audits, inspections, PPE accountability, training, and corrective actions.":
+    "Incidentes, auditorías, inspecciones, responsabilidad de PPE, capacitación y acciones correctivas.",
+  "Equipment movement, DVIRs, transfers, utilization, and operational readiness.":
+    "Movimiento de equipo, DVIRs, transferencias, utilización y disponibilidad operativa.",
+  "System administration — users, roles, integrations, audit logs, and exports.":
+    "Administración del sistema — usuarios, roles, integraciones, registros de auditoría y exportaciones.",
+  "Sign-in required. Showing the portals you're authorized for.":
+    "Inicio de sesión requerido. Mostrando los portales para los que está autorizado.",
+  "Sign-in required. Office, mechanic, HR, Safety, Dispatch, and Admin operations.":
+    "Inicio de sesión requerido. Operaciones de oficina, taller, RR.HH., Seguridad, Despacho y Administración.",
+  "Operator guides, training, and contact info — always available, no sign-in required.":
+    "Guías para operadores, capacitación e información de contacto — siempre disponibles, sin inicio de sesión.",
+  "Office phone, address, and after-hours operations contact.":
+    "Teléfono de oficina, dirección y contacto operativo después de horas.",
+  "Role-based operator playbooks, portal walk-throughs, and field cheat references.":
+    "Guías por rol, recorridos de portales y referencias rápidas de campo.",
+  "The one-page operations summary pinned in every site trailer.":
+    "El resumen operativo de una página fijado en cada remolque de obra.",
+
   "Open Forms": "Abrir Formularios",
   "Equipment Issuance": "Emisión de Equipo",
   "Use & Care Training": "Capacitación de Uso y Cuidado",

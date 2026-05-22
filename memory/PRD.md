@@ -14979,6 +14979,60 @@ the entire MASCI HUB / ForgedOps platform ecosystem."
 Admin migration tool + read-side compat shim. 14/14 signatures
 moved to R2. Documented for posterity.
 
+## 2026-05-22 — Iter327: Final Platform Experience Polish & Operational Identity
+
+**Scope**: final experience layer. Homepage capability-forward voice rewrite + remaining border softening + Training/Guidance family convergence + EN/ES catalog parity for every new string.
+
+**Homepage refinements (Hub.jsx)**:
+- Hero subtitle rewritten capability-forward — communicates "end-of-day reports, safety enforcement, equipment tracking, quality control, and complete documentation — captured in the field, routed automatically, and stored in one operational system" instead of the older generic phrasing.
+- BigTile descriptions rewritten with operational verbs:
+  - **Field** → "File end-of-day reports, log equipment walk-arounds, and capture crew, weather, and production from the job site."
+  - **QA/QC** → "Run quality inspections on concrete, asphalt, rebar, and subcontractor work — signed, photographed, routed, and archived."
+  - **Safety** → "File toolbox talks, JHAs, incident reports, and trench-box plans — directly from the truck or trailer."
+- MediumTile description (Field Leadership) capability-forward — "Track crew accountability, employee documentation, equipment custody, recognition, and workforce decisions."
+- PortalPill descriptions rewritten across all 6 office portals (PM, Shop, HR, Safety, Dispatch, Admin) — each now communicates *operational capability*, not just department names.
+- Section header subtitles tightened to operational tone:
+  - 01 *"What every crew on site does today."*
+  - 02 *"For foremen, supervisors, and superintendents running the work."*
+  - 03 *"Sign-in required. Office, mechanic, HR, Safety, Dispatch, and Admin operations."*
+  - 04 *"Operator guides, training, and contact info — always available, no sign-in required."*
+- ReferenceLink descriptions sharpened — Operational Guidance Center now reads *"Role-based operator playbooks, portal walk-throughs, and field cheat references"*; Cheat Sheet reads *"The one-page operations summary pinned in every site trailer."*
+- Remaining `border-2` on Hub.jsx softened to the family contract: PortalPill, ReferenceLink, Need Help button, Day-1 Start Here strip (now uses calm `border + border-l-4 border-l-amber-600` pattern matching the rest of the platform).
+
+**Training / Guidance convergence**:
+- TrainingHub Day-1 strip migrated to the same calm `border + border-l-4 border-l-amber-600` pattern used on the Hub homepage — bilateral family resemblance verified.
+- TrainingHub QR/print/empty-state heavier borders preserved intentionally (semantic affordance for printable surfaces).
+- OperationalGuidanceCenter + OpsTrainingGuide already family-compliant from the iter326 bulk sweep.
+
+**Bilingual catalog (iter327 block)** — 18 net new entries added to `lib/i18n.js`, covering: capability-forward subtitle, all section header subtitles, all 3 BigTile descriptions, all 6 PortalPill descriptions, Reference section subtitle, Need Help description, both ReferenceLink descriptions, MediumTile description. ES tone matches operational voice (field-readable, formal-imperative verbs: *"Presente, Ejecute, Administre, Maneje, Registre"*).
+
+**Operational voice audit**:
+- Removed: *"if safety is on your mind, it lives here"* (informal/marketing tone).
+- Removed: *"Documented, signed, photographed, routed, and stored"* (descriptive list) → replaced with verb-led *"Run quality inspections on concrete, asphalt, rebar, and subcontractor work — signed, photographed, routed, and archived."*
+- Removed: *"The mechanic's console for the MASCI equipment fleet."* (generic) → *"Run the mechanic queue — repairs, parts, PMs, and fleet readiness."*
+- Removed: *"The MASCI office console."* (generic) → *"System administration — users, roles, integrations, audit logs, and exports."*
+- Removed: *"Safety command center — incidents, audits, corrective actions, training."* (generic list) → *"Incidents, audits, inspections, PPE accountability, training, and corrective actions."* (full coverage including iter322/323/324 accountability radar).
+
+**Verification**:
+- Platform family contract: 9/9 GREEN.
+- Backend regression suite: 55/55 (iter318 + 322 + 323 + family contract).
+- Frontend lint: CLEAN on Hub.jsx, TrainingHub.jsx, i18n.js.
+- Pre-deploy hook: GREEN.
+- Desktop EN screenshot: hero reads as operationally commanding, tile copy is capability-forward.
+- Desktop ES screenshot: 100% Spanish, no English leakage, field-readable tone.
+
+**Final Operational Identity Verdict**: ✅ **READY FOR DEPLOYMENT TO EXECUTIVES / OWNERS / AUDITORS**
+
+Landing on the homepage now communicates the platform's full operational power in 8 seconds:
+- Hero tells you what the platform does.
+- Subtitle tells you the scope (reports, safety, equipment, quality, documentation, one system).
+- Section 01 communicates *what crews do today*.
+- Section 02 communicates *what leadership does*.
+- Section 03 communicates *the office operations infrastructure*.
+- Section 04 communicates *reference + training availability* (no sign-in barrier to learning).
+
+The platform looks, sounds, and feels like one operationally mature system built intentionally by operators for operators.
+
 ## 2026-05-22 — Iter326: Full Platform-Wide Convergence (Bulk Calm-Chrome Eradication)
 
 **Scope**: complete platform-wide convergence sweep. Closes the operator complaint that the platform still felt like "different generations stitched together" after iter317-325 hub-by-hub passes left scores of older pages on the legacy heavy-chrome card pattern.

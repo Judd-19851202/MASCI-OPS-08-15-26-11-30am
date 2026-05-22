@@ -152,7 +152,7 @@ const PortalPill = ({ to, icon: Icon, title, desc, kind, testId, signedIn, signe
   return (
     <Link
       to={to}
-      className={`group bg-white border-2 ${signedIn ? "border-slate-400" : "border-slate-200"} rounded-md p-3.5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex items-start gap-3`}
+      className={`group bg-white border ${signedIn ? "border-slate-300" : "border-slate-200"} rounded-md p-3.5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex items-start gap-3`}
       data-testid={testId}
     >
       {inner}
@@ -264,7 +264,7 @@ export default function Hub() {
             )}
           </h1>
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
-            {t("Daily reports, safety enforcement, equipment tracking, training, and complete documentation — automatically captured, routed, and stored in one system.")}
+            {t("End-of-day reports, safety enforcement, equipment tracking, quality control, and complete documentation — captured in the field, routed automatically, and stored in one operational system.")}
           </p>
         </div>
 
@@ -279,7 +279,7 @@ export default function Hub() {
           <Link
             to="/guidance/role-new-employee"
             data-testid="hub-day-one-start-here"
-            className="group flex items-center gap-3 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 hover:border-amber-500 rounded-md px-4 py-3 mb-8 transition-all"
+            className="group flex items-center gap-3 bg-amber-50 hover:bg-amber-100 border border-amber-300 border-l-4 border-l-amber-600 hover:border-l-amber-700 rounded-md px-4 py-3 mb-8 transition-all"
           >
             <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-600 text-white shrink-0">
               <MapPin className="w-5 h-5" />
@@ -300,13 +300,13 @@ export default function Hub() {
         )}
 
         {/* SECTION 1 — Today in the Field */}
-        <SectionHeader kicker="01" title={t("Today in the Field")} subtitle={t("Submissions every crew on site needs today.")} />
+        <SectionHeader kicker="01" title={t("Today in the Field")} subtitle={t("What every crew on site does today.")} />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-10">
           <BigTile
             to="/field"
             icon={HardHat}
             title={t("Field")}
-            desc={t("End-of-day reports and equipment walk-arounds for the crew on the ground.")}
+            desc={t("File end-of-day reports, log equipment walk-arounds, and capture crew, weather, and production from the job site.")}
             accent="amber"
             testId="hub-section-field"
           />
@@ -314,7 +314,7 @@ export default function Hub() {
             to="/qaqc"
             icon={ClipboardCheck}
             title={t("QA / QC")}
-            desc={t("Quality inspections for concrete, rebar, and subcontractor work — documented, signed, photographed, routed, and stored.")}
+            desc={t("Run quality inspections on concrete, asphalt, rebar, and subcontractor work — signed, photographed, routed, and archived.")}
             accent="emerald"
             testId="hub-section-qc"
           />
@@ -322,21 +322,21 @@ export default function Hub() {
             to="/safety"
             icon={Shield}
             title={t("Safety")}
-            desc={t("Inspections, toolbox talks, incident reports, JHPs, and trench-box guidance — if safety is on your mind, it lives here.")}
+            desc={t("File toolbox talks, JHAs, incident reports, and trench-box plans — directly from the truck or trailer.")}
             accent="red"
             testId="hub-section-safety"
           />
         </div>
 
         {/* SECTION 2 — Leadership Tools */}
-        <SectionHeader kicker="02" title={t("Leadership Tools")} subtitle={t("For foremen, supervisors, and superintendents in the field.")} />
+        <SectionHeader kicker="02" title={t("Leadership Tools")} subtitle={t("For foremen, supervisors, and superintendents running the work.")} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-10">
           <MediumTile
             to="/leadership"
             icon={UserCheck}
             kicker={t("MASCI Field Leadership")}
             title={t("Field Leadership")}
-            desc={t("Crew accountability, employee documentation, equipment responsibility, recognition, and workforce-management forms.")}
+            desc={t("Track crew accountability, employee documentation, equipment custody, recognition, and workforce decisions.")}
             accent="slate"
             testId="hub-section-leadership"
           />
@@ -353,22 +353,22 @@ export default function Hub() {
           const authed = isSignedInAnywhere() ? authorizedPortals() : null;
           const portalDefs = [
             { kind: "pm", to: "/pm/login", icon: ClipboardList, title: t("PM Portal"),
-              desc: t("The project-management workspace for MASCI office staff."),
+              desc: t("Manage jobs, PO requests, daily reports, inspections, photos, and project compliance."),
               testId: "hub-section-pm", signedInLabel: t("Open Portal") },
             { kind: "shop", to: "/shop/login", icon: Wrench, title: t("Shop"),
-              desc: t("The mechanic's console for the MASCI equipment fleet."),
+              desc: t("Run the mechanic queue — repairs, parts, PMs, and fleet readiness."),
               testId: "hub-section-shop", signedInLabel: t("Open Console") },
             { kind: "hr", to: "/hr/login", icon: Users, title: t("HR Portal"),
-              desc: t("Employee records and payroll cross-check for MASCI HR."),
+              desc: t("Employee records, onboarding, payroll cross-checks, and workforce documentation."),
               testId: "hub-section-hr", signedInLabel: t("Open Portal") },
             { kind: "safety", to: session?.kind === "safety" ? "/safety-portal" : "/safety-portal/login", icon: ShieldAlert, title: t("Safety Portal"),
-              desc: t("Safety command center — incidents, audits, corrective actions, training."),
+              desc: t("Incidents, audits, inspections, PPE accountability, training, and corrective actions."),
               testId: "hub-section-safety-portal", signedInLabel: t("Open Portal") },
             { kind: "dispatch", to: session?.kind === "dispatch" ? "/dispatch-portal" : "/dispatch-portal/login", icon: Truck, title: t("Dispatch"),
-              desc: t("Equipment movement, availability, transfers, and utilization."),
+              desc: t("Equipment movement, DVIRs, transfers, utilization, and operational readiness."),
               testId: "hub-section-dispatch-portal", signedInLabel: t("Open Portal") },
             { kind: "admin", to: "/admin/login", icon: ClipboardList, title: t("Admin"),
-              desc: t("The MASCI office console."),
+              desc: t("System administration — users, roles, integrations, audit logs, and exports."),
               testId: "hub-section-admin", signedInLabel: t("Open Console") },
           ];
           const yours = authed ? portalDefs.filter((p) => authed.includes(p.kind)) : portalDefs;
@@ -379,7 +379,7 @@ export default function Hub() {
               <SectionHeader
                 kicker="03"
                 title={authed ? t("Your Portals") : t("Office Portals")}
-                subtitle={authed ? t("Sign-in required. Showing portals you're authorized for.") : t("Sign-in required. For office staff, mechanics, HR, Safety, and Dispatch.")}
+                subtitle={authed ? t("Sign-in required. Showing the portals you're authorized for.") : t("Sign-in required. Office, mechanic, HR, Safety, Dispatch, and Admin operations.")}
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 mb-6">
                 {yours.map((p) => (
@@ -420,13 +420,13 @@ export default function Hub() {
         })()}
 
         {/* SECTION 4 — Reference strip */}
-        <SectionHeader kicker="04" title={t("Reference")} subtitle={t("Always available — no sign-in needed.")} />
+        <SectionHeader kicker="04" title={t("Reference")} subtitle={t("Operator guides, training, and contact info — always available, no sign-in required.")} />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
           <CompanyInfoDialog
             trigger={(
               <button
                 type="button"
-                className="group flex items-start gap-3 bg-white border-2 border-slate-200 hover:border-slate-400 hover:shadow-md rounded-md p-4 transition-all duration-150 hover:-translate-y-0.5 text-left w-full"
+                className="group flex items-start gap-3 bg-white border border-slate-200 hover:border-slate-400 hover:shadow-md rounded-md p-4 transition-all duration-150 hover:-translate-y-0.5 text-left w-full"
                 data-testid="hub-need-help"
               >
                 <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-200 text-slate-800 shrink-0">
@@ -434,7 +434,7 @@ export default function Hub() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display text-base font-black tracking-tight text-slate-900">{t("Need Help?")}</h3>
-                  <p className="text-slate-600 text-xs mt-1 leading-snug">{t("Office phone, address, and after-hours contact.")}</p>
+                  <p className="text-slate-600 text-xs mt-1 leading-snug">{t("Office phone, address, and after-hours operations contact.")}</p>
                 </div>
                 <ArrowRight className="w-5 h-5 mt-2 text-slate-700 group-hover:translate-x-1 transition-transform shrink-0" />
               </button>
@@ -444,14 +444,14 @@ export default function Hub() {
             to="/guidance"
             icon={GraduationCap}
             title={t("Operational Guidance Center")}
-            desc={t("RBAC-aware portal training, role-based help, and operator guides.")}
+            desc={t("Role-based operator playbooks, portal walk-throughs, and field cheat references.")}
             testId="hub-section-training"
           />
           <ReferenceLink
             to="/cheatsheet"
             icon={BookOpen}
             title={t("Cheat Sheet")}
-            desc={t("The one-pager pinned in every site trailer.")}
+            desc={t("The one-page operations summary pinned in every site trailer.")}
             testId="hub-cheatsheet-link"
           />
         </div>
@@ -479,7 +479,7 @@ function ReferenceLink({ to, icon: Icon, title, desc, testId }) {
   return (
     <Link
       to={to}
-      className="group flex items-start gap-3 bg-white border-2 border-slate-200 hover:border-slate-400 hover:shadow-md rounded-md p-4 transition-all duration-150 hover:-translate-y-0.5"
+      className="group flex items-start gap-3 bg-white border border-slate-200 hover:border-slate-400 hover:shadow-md rounded-md p-4 transition-all duration-150 hover:-translate-y-0.5"
       data-testid={testId}
     >
       <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-200 text-slate-800 shrink-0">
