@@ -71,7 +71,7 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────────────────────────────
 # Pydantic models
 # ─────────────────────────────────────────────────────────────────────
-SEVERITY_VALUES = {"info", "advisory", "warning", "critical"}
+SEVERITY_VALUES = {"info", "advisory", "warning", "critical", "cultural"}
 
 
 class BannerIn(BaseModel):
@@ -272,7 +272,11 @@ def build_hub_banners_router(db, require_admin_dep: Callable) -> APIRouter:
             b.pop("dismisses", None)
             out.append(b)
 
-        sev_rank = {"critical": 0, "warning": 1, "advisory": 2, "info": 3}
+        # iter328 · cultural banners ALWAYS sort below operational
+        # severity. The rank reflects platform priority (lower = wins)
+        # so a Memorial Day banner can never visually outrank a
+        # hurricane / heat warning / lightning advisory.
+        sev_rank = {"critical": 0, "warning": 1, "advisory": 2, "info": 3, "cultural": 9}
         # Single-pass sort: highest severity first, then newest first.
         # (negating the str is awkward — use a tuple of (rank, -ts_int)
         # by reverse-sorting on created_at since Python sort is stable.)

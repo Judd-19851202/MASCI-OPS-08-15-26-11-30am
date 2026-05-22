@@ -14979,6 +14979,66 @@ the entire MASCI HUB / ForgedOps platform ecosystem."
 Admin migration tool + read-side compat shim. 14/14 signatures
 moved to R2. Documented for posterity.
 
+## 2026-05-22 — Iter328: Banner Governance V2 — Operational Trust Infrastructure
+
+**Scope**: complete refinement of the operator-broadcast banner system. Banners now treated as platform-wide operational trust infrastructure with cultural / remembrance support added at a calm, non-competing tier.
+
+**Operational banner copy — refined to calm, mature, field-experienced voice**:
+- All 13 operational templates rewritten with no exclamation marks, no alarmism, direct verbs, and bilingual EN+ES copy at the source. Heat advisory, heat warning, hurricane watch, hurricane warning, lightning, flood watch, air quality, FAA/FOD, OSHA visit, stand-down, illness reporting, operational notice, holiday closure.
+- Tone matches "experienced operations / safety leader talking to crews" — *"Take a 10-minute shaded break every hour. Drink water every 15 minutes. Watch your crew for cramps, dizziness, or confusion — stop work and call your foreman if anyone shows symptoms."*
+
+**Holiday / cultural banner system — added as a non-competing tier**:
+- 8 new templates: Memorial Day, Independence Day, Labor Day, Veterans Day, Thanksgiving, Christmas, New Year, National Work Zone Awareness Week.
+- All ship with curated EN + ES copy at source — NO LLM dependency.
+- Tone: respectful, grounded, concise, mature. No emoji, no exclamation marks, no clichés. Example: *"Memorial Day reminds us that freedom and opportunity were secured through sacrifice. We honor the men and women who gave their lives in service to our nation. Have a safe weekend, and look out for one another."*
+
+**Bilingual broadcast mode**:
+- `BannerStrip.jsx` rewritten to render EN + ES **simultaneously**, regardless of user language toggle. These are workforce-wide operational messages, not page-localized content.
+- Spanish renders italic / opacity-90 below English as a clear hierarchy.
+- Single-language banners (legacy / pre-translation) fall back to EN-only without empty stubs.
+- Acknowledge button shows bilingual label: `I Acknowledge · Reconozco`.
+
+**Severity hierarchy (strict precedence)**:
+| Tier | Priority | Chrome |
+|---|---|---|
+| Critical | 1 | `bg-red-50 border-l-4 border-l-red-800` |
+| Warning | 2 | `bg-red-50 border-l-4 border-l-red-700` |
+| Advisory | 3 | `bg-amber-50 border-l-4 border-l-amber-600` |
+| Info | 4 | `bg-blue-50 border-l-4 border-l-blue-700` |
+| **Cultural** | **9** | `bg-slate-50 border-l-4 border-l-slate-700` |
+
+Cultural ALWAYS yields to operational. A Memorial Day banner can never visually outrank an active hurricane, heat warning, lightning advisory, or stand-down. Enforced in:
+- Backend: `sev_rank` map in `routes/hub_banners.py` (cultural = 9; rest 0–3).
+- Frontend: `SEVERITY_META[*].priority` in `lib/hubBannerTemplates.js` (cultural = 9; rest 1–4).
+- Test: `test_iter328_frontend_has_cultural_in_severity_meta` mechanically asserts cultural > all operational tiers.
+
+**Visual governance — calm chrome conversion**:
+- Eliminated all `bg-red-700 text-white` / `bg-amber-500 text-slate-900` / `bg-red-950 text-red-100` full-bleed bright slabs.
+- Every severity now uses the platform family contract: `bg-<color>-50 border-l-4 border-l-<color>-<accent>`.
+- Banners sit calmly inside the platform's visual rhythm instead of dominating the top of every page.
+- Sentry test `test_iter328_calm_chrome_no_full_bleed_bright_bars` mechanically blocks future regressions.
+
+**Stale / test banner protection**:
+- DELETE `/api/admin/banners/{id}` is the canonical cleanup path; PATCH does not accept a `disabled` field (verified during this iter). Test cleanup pattern updated accordingly.
+- 15 stale ITER328 smoke banners purged at the end of the iter via the corrected DELETE flow.
+
+**Verification**:
+- **iter328 contract tests**: 7/7 GREEN (backend severity validation × 3, frontend severity meta, holiday template bilingual at source, BannerStrip bilingual rendering, calm chrome sentry).
+- **Full regression**: 91/91 GREEN across hub_banners + iter306 banner cleanup invariant + iter328 + platform family + iter322/323/318 calm-pass + iter180 RBAC.
+- **Pre-deploy hook**: GREEN (9/9 family contract).
+- **Frontend lint**: CLEAN on `BannerStrip.jsx` + `hubBannerTemplates.js`.
+- **Live operator-flow screenshot**: posted a real Memorial Day cultural banner and verified bilingual broadcast rendering with calm slate chrome on the homepage hero — captured the EN + ES copy stacked exactly as designed.
+
+**Files**:
+- New: `frontend/src/lib/hubBannerTemplates.js` (rewritten — 13 operational + 8 cultural templates, all bilingual at source).
+- New: `frontend/src/components/BannerStrip.jsx` (rewritten — bilingual broadcast, calm chrome, strict priority sort).
+- Updated: `backend/routes/hub_banners.py` (cultural severity whitelist, cultural priority = 9 in sev_rank).
+- New: `backend/tests/test_iter328_banner_governance_v2.py` (7 contract assertions).
+
+**Final Banner Governance Verdict**: ✅ **DEPLOYMENT-READY**
+
+The banner system now reads as **operational trust infrastructure**: calm, mature, bilingual at source, strictly hierarchy-respecting. Crews see banners and feel informed, respected, prepared, and connected to the operation — not spammed, not preached at, not overwhelmed.
+
 ## 2026-05-22 — Iter327: Final Platform Experience Polish & Operational Identity
 
 **Scope**: final experience layer. Homepage capability-forward voice rewrite + remaining border softening + Training/Guidance family convergence + EN/ES catalog parity for every new string.

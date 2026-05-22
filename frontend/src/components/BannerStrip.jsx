@@ -1,34 +1,31 @@
 import { useEffect, useState, useCallback } from "react";
-import { X, Info, AlertTriangle, AlertOctagon, OctagonAlert, CheckCircle2 } from "lucide-react";
+import { X, Info, AlertTriangle, AlertOctagon, OctagonAlert, CheckCircle2, Flag } from "lucide-react";
 import { API } from "@/lib/api";
 import { getDeviceId } from "@/lib/deviceId";
 import { useT } from "@/lib/i18n";
 import { SEVERITY_META } from "@/lib/hubBannerTemplates";
 
 /**
- * BannerStrip — sticky top-of-page strip showing the highest-severity
- * active hub banner. Two display modes:
+ * BannerStrip — top-of-page operational broadcast strip.
  *
- *  1. require_ack === false:
- *     Renders as a thin colored strip with title + body + Dismiss
- *     button. Dismissing hides the banner for this device (admin still
- *     sees impression + dismiss count in the audit panel) but the
- *     dismissal does NOT count as an acknowledgment.
+ * iter328 · Banner Governance V2:
+ *   • BILINGUAL BROADCAST — every banner renders EN and ES stacked,
+ *     regardless of the user's language toggle. These are operational
+ *     messages aimed at the entire workforce, not page-localized
+ *     content.
+ *   • CALM CHROME — left-edge severity stripe + soft fill instead of
+ *     full-bleed bright bars. Cultural / holiday banners use a slate
+ *     stripe and never visually compete with operational alerts.
+ *   • STRICT PRIORITY — banners sort by SEVERITY_META[*].priority
+ *     (lower = higher). Cultural is priority 9 and ALWAYS yields to
+ *     hurricanes, heat warnings, lightning, stand-downs, etc.
+ *   • Hard-gate modal still triggers for `require_ack`; cultural
+ *     banners never require_ack by template design.
  *
- *  2. require_ack === true:
- *     Renders the strip + a full-screen modal that blocks every other
- *     interaction until the user clicks "I acknowledge". This is the
- *     hard gate used for CRITICAL stand-downs and OSHA / Hurricane
- *     situations where MASCI needs proof the crew saw the message.
- *
- * Polling: refetch active banners every 60 seconds so a banner posted
- * mid-shift shows up on field devices without a page reload.
- *
- * Bilingual: each banner has English + Spanish copy generated server-
- * side via Claude. We pick whichever matches the global LangToggle
- * setting via the `useT` hook.
+ * Polling: refetch active banners every 60 seconds.
  */
 const SEVERITY_ICON = {
+  cultural: Flag,
   info: Info,
   advisory: AlertTriangle,
   warning: AlertOctagon,
@@ -57,19 +54,35 @@ export default function BannerStrip() {
     return () => clearInterval(t);
   }, [load]);
 
-  // Pick the highest-severity un-dismissed un-acked banner to show as
-  // the visible strip. Required-ack banners always win over soft ones.
+  // iter328 · pick the highest-priority un-dismissed un-acked banner
+  // using SEVERITY_META priority (lower = higher). Required-ack
+  // banners still win over soft ones at the same severity tier so
+  // hurricanes never get buried by an advisory.
   const visible = banners.filter((b) => !b.dismissed && !b.acknowledged);
-  const requiredAck = visible.find((b) => b.require_ack);
-  const softTop = visible.find((b) => !b.require_ack);
-  const top = requiredAck || softTop;
+  const byPriority = [...visible].sort((a, b) => {
+    const ap = (SEVERITY_META[a.severity] || {}).priority ?? 99;
+    const bp = (SEVERITY_META[b.severity] || {}).priority ?? 99;
+    if (ap !== bp) return ap - bp;
+    // Same priority — required-ack wins.
+    if (a.require_ack !== b.require_ack) return a.require_ack ? -1 : 1;
+    return 0;
+  });
+  const top = byPriority[0];
 
   if (!top) return null;
 
   const meta = SEVERITY_META[top.severity] || SEVERITY_META.advisory;
   const Icon = SEVERITY_ICON[top.severity] || AlertTriangle;
-  const title = lang === "es" ? top.title_es || top.title_en : top.title_en;
-  const body = lang === "es" ? top.body_es || top.body_en : top.body_en;
+  const titleEn = top.title_en || "";
+  const titleEs = top.title_es || titleEn;
+  const bodyEn = top.body_en || "";
+  const bodyEs = top.body_es || bodyEn;
+
+  // iter328 · BILINGUAL BROADCAST — never collapse to a single language.
+  // Single-language banners (titleEs missing/blank/identical to titleEn)
+  // fall back to showing only the English line so we don't render an
+  // empty ES stub.
+  const showBilingual = (esText, enText) => Boolean(esText) && esText !== enText;
 
   const acknowledge = async () => {
     try {
@@ -115,24 +128,34 @@ export default function BannerStrip() {
         aria-modal="true"
       >
         <div
-          className={`max-w-2xl w-full rounded-lg border-4 ${meta.cls_bar} shadow-2xl ${
+          className={`max-w-2xl w-full rounded-md border ${meta.cls_bar} bg-white shadow-2xl ${
             meta.pulse ? "animate-pulse-slow" : ""
           }`}
           data-testid={`hub-banner-${top.severity}`}
         >
           <div className="p-6 sm:p-8">
             <div className="flex items-start gap-4">
-              <Icon className="w-10 h-10 sm:w-12 sm:h-12 shrink-0" />
+              <Icon className="w-9 h-9 sm:w-10 sm:h-10 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.25em] opacity-75 mb-1">
                   {meta.label}
                 </div>
-                <h2 className="font-display text-xl sm:text-3xl font-black leading-tight break-words">
-                  {title}
+                <h2 className="font-display text-xl sm:text-2xl font-black leading-tight break-words">
+                  {titleEn}
                 </h2>
-                {body && (
+                {showBilingual(titleEs, titleEn) && (
+                  <h3 className="font-display text-lg sm:text-xl font-bold leading-tight break-words opacity-90 mt-1">
+                    {titleEs}
+                  </h3>
+                )}
+                {bodyEn && (
                   <p className="mt-3 text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
-                    {body}
+                    {bodyEn}
+                  </p>
+                )}
+                {showBilingual(bodyEs, bodyEn) && (
+                  <p className="mt-2 text-sm sm:text-base leading-relaxed whitespace-pre-wrap italic opacity-90">
+                    {bodyEs}
                   </p>
                 )}
               </div>
@@ -140,11 +163,11 @@ export default function BannerStrip() {
 
             <button
               onClick={acknowledge}
-              className={`mt-6 w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-bold uppercase tracking-wider text-sm border-b-2 border-black/40 ${meta.cls_btn}`}
+              className={`mt-6 w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-bold uppercase tracking-wider text-sm ${meta.cls_btn}`}
               data-testid="hub-banner-ack-btn"
             >
               <CheckCircle2 className="w-4 h-4" />
-              {lang === "es" ? "RECONOZCO" : "I Acknowledge"}
+              I Acknowledge · Reconozco
             </button>
           </div>
         </div>
@@ -155,26 +178,39 @@ export default function BannerStrip() {
   // ── Soft sticky strip ─────────────────────────────────────────
   return (
     <div
-      className={`sticky top-0 z-[80] border-b-2 ${meta.cls_bar} print:hidden`}
+      className={`sticky top-0 z-[80] border-b ${meta.cls_bar} print:hidden`}
       data-testid={`hub-banner-strip-${top.severity}`}
       role="status"
     >
       <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 flex items-start gap-3">
         <Icon className="w-5 h-5 mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0">
-          <div className="text-sm sm:text-base font-bold leading-tight break-words">
-            {title}
+          <div className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.22em] opacity-70 font-bold leading-none mb-1">
+            {meta.label}
           </div>
-          {body && (
-            <div className="text-xs sm:text-sm opacity-95 leading-snug mt-0.5 line-clamp-2 sm:line-clamp-none">
-              {body}
+          <div className="text-sm sm:text-base font-bold leading-tight break-words">
+            {titleEn}
+          </div>
+          {showBilingual(titleEs, titleEn) && (
+            <div className="text-xs sm:text-sm font-semibold leading-tight break-words opacity-85 mt-0.5">
+              {titleEs}
+            </div>
+          )}
+          {bodyEn && (
+            <div className="text-xs sm:text-sm opacity-95 leading-snug mt-1 line-clamp-3 sm:line-clamp-none">
+              {bodyEn}
+            </div>
+          )}
+          {showBilingual(bodyEs, bodyEn) && (
+            <div className="text-xs sm:text-sm opacity-80 italic leading-snug mt-0.5 line-clamp-3 sm:line-clamp-none">
+              {bodyEs}
             </div>
           )}
         </div>
         <button
           onClick={dismiss}
-          className="shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full hover:bg-black/15 transition-colors"
-          aria-label={lang === "es" ? "Cerrar aviso" : "Dismiss banner"}
+          className="shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full hover:bg-black/10 transition-colors"
+          aria-label="Dismiss / Cerrar"
           data-testid="hub-banner-dismiss-btn"
         >
           <X className="w-4 h-4" />
