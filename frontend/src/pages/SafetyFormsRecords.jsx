@@ -12,12 +12,16 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import {
   HardHat, GraduationCap, Search, Loader2, ChevronRight, Filter,
-  CheckCircle2, AlertTriangle, Package,
+  CheckCircle2, AlertTriangle, Package, Clock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import SafetyShell from "@/components/SafetyShell";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
+import {
+  isAgingAccountability,
+  accountabilityClassLabels,
+} from "@/lib/safetyAccountabilityClass";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -96,7 +100,9 @@ export default function SafetyFormsRecords() {
     if (tab === "issuance") {
       const issued = filtered.filter((r) => !r.return).length;
       const returned = filtered.filter((r) => r.return).length;
-      return { primary: filtered.length, issued, returned };
+      // iter324 · aging signal — serialized/recoverable PPE out > 90 days.
+      const aging = filtered.filter((r) => isAgingAccountability(r, 90)).length;
+      return { primary: filtered.length, issued, returned, aging };
     }
     return { primary: filtered.length };
   }, [filtered, tab]);
@@ -179,6 +185,17 @@ export default function SafetyFormsRecords() {
                 accent="bg-emerald-700"
                 testId="forms-summary-returned"
               />
+              {/* iter324 · accountability aging signal — subtle, quiet,
+                  consumable-PPE-excluded. Renders even when 0 so the
+                  contract is visible (the badge stays muted at 0). */}
+              <SummaryCard
+                label={t("Aging (>90d)")}
+                value={totalsLine.aging || 0}
+                icon={Clock}
+                accent={(totalsLine.aging || 0) > 0 ? "bg-amber-500" : "bg-slate-400"}
+                testId="forms-summary-aging"
+                hint={t("Serialized PPE — consumables excluded")}
+              />
             </>
           )}
         </div>
@@ -245,6 +262,7 @@ export default function SafetyFormsRecords() {
 }
 
 function IssuanceTable({ rows, t }) {
+  const lang = (typeof navigator !== "undefined" && navigator.language || "").startsWith("es") ? "es" : "en";
   return (
     <table className="w-full text-sm" data-testid="issuance-table">
       <thead className="bg-slate-100 text-slate-700 font-mono uppercase tracking-[0.15em] text-[10px]">
@@ -262,10 +280,26 @@ function IssuanceTable({ rows, t }) {
         {rows.map((r, idx) => {
           const status = issuanceStatus(r);
           const itemCount = Array.isArray(r.items) ? r.items.length : 0;
+          // iter324 · subtle per-row aging indicator. Only renders when
+          // the row qualifies (serialized PPE, > 90d, no return). The
+          // indicator is informational, not alarming.
+          const isAging = isAgingAccountability(r, 90);
+          const agingClasses = isAging ? accountabilityClassLabels(r, lang) : [];
           return (
             <tr key={r.id || idx} className="border-t border-slate-100 hover:bg-slate-50" data-testid={`issuance-row-${idx}`}>
               <td className="px-3 py-2 font-mono text-xs text-slate-600 whitespace-nowrap">
-                {r.issued_date || "—"}
+                <div className="flex items-center gap-1.5">
+                  <span>{r.issued_date || "—"}</span>
+                  {isAging && (
+                    <span
+                      className="inline-flex items-center px-1.5 h-4 rounded-sm bg-amber-50 border border-amber-300 text-amber-900 text-[9px] font-mono tracking-wide uppercase"
+                      title={`${t("Aging accountability item")}: ${agingClasses.join(", ")}`}
+                      data-testid={`issuance-aging-${idx}`}
+                    >
+                      {t("90d+")}
+                    </span>
+                  )}
+                </div>
               </td>
               <td className="px-3 py-2 font-bold truncate max-w-[12rem]">
                 {r.employee_name || "—"}
@@ -346,7 +380,7 @@ function TrainingTable({ rows, t }) {
   );
 }
 
-function SummaryCard({ label, value, icon: Icon, accent, testId }) {
+function SummaryCard({ label, value, icon: Icon, accent, testId, hint }) {
   return (
     <div className="bg-white border-2 border-slate-300 rounded-md p-3" data-testid={testId}>
       <div className="flex items-center gap-2">
@@ -358,6 +392,9 @@ function SummaryCard({ label, value, icon: Icon, accent, testId }) {
         </div>
       </div>
       <div className="font-display text-2xl font-black mt-1">{value}</div>
+      {hint && (
+        <div className="text-[10px] text-slate-500 italic mt-0.5">{hint}</div>
+      )}
     </div>
   );
 }

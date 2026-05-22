@@ -74,7 +74,7 @@ const BTN = {
   purple:  "bg-purple-700 hover:bg-purple-800",
 };
 
-function SafetyTile({ to, icon: Icon, title, desc, accent = "cyan", ctaLabel = "OPEN", testId }) {
+function SafetyTile({ to, icon: Icon, title, desc, accent = "cyan", ctaLabel = "OPEN", testId, badge }) {
   const stripe = STRIPE[accent] || STRIPE.cyan;
   const btn = BTN[accent] || BTN.cyan;
   return (
@@ -86,7 +86,22 @@ function SafetyTile({ to, icon: Icon, title, desc, accent = "cyan", ctaLabel = "
       <div className="flex items-start gap-3">
         <Icon className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
         <div className="flex-1 min-w-0">
-          <h3 className="font-display text-lg font-black">{title}</h3>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-display text-lg font-black">{title}</h3>
+            {/* iter324 · Optional passive accountability badge.
+                Subtle amber count + label. Quiet by design — must
+                NEVER become a warning beacon or pulse animation. */}
+            {badge && badge.count > 0 && (
+              <span
+                className="inline-flex items-center gap-1 px-2 h-5 rounded-full border border-yellow-400 bg-yellow-50 text-yellow-900 font-mono text-[10px] tracking-wide uppercase shrink-0"
+                title={badge.tooltip || ""}
+                data-testid={`${testId}-aging-badge`}
+              >
+                <span className="font-bold tabular-nums">{badge.count}</span>
+                <span className="font-semibold">{badge.label}</span>
+              </span>
+            )}
+          </div>
           <p className="text-sm text-slate-600 mt-1">{desc}</p>
           <span className={`mt-3 inline-flex items-center h-9 px-3 rounded-md ${btn} text-white font-bold uppercase tracking-wide text-xs`}>
             {ctaLabel} →
@@ -123,6 +138,10 @@ export default function SafetyHub() {
   const { t } = useT();
   const [kpis, setKpis] = useState(null);
   const [loading, setLoading] = useState(true);
+  // iter324 · accountability aging signal — count of issuances that are
+  // (a) still out, (b) > 90 days old, and (c) include at least one
+  // serialized/recoverable PPE class. Consumable PPE never raises.
+  const [agingCount, setAgingCount] = useState(0);
 
   useEffect(() => {
     if (!isSafety()) return;
@@ -137,6 +156,21 @@ export default function SafetyHub() {
         if (alive) setKpis({ error: true });
       } finally {
         if (alive) setLoading(false);
+      }
+    })();
+    // Parallel · accountability aging fetch. Independent of overview;
+    // failure is silent (badge simply stays at 0).
+    (async () => {
+      try {
+        const { isAgingAccountability } = await import("@/lib/safetyAccountabilityClass");
+        const resp = await axios.get(`${API}/safety-forms/equipment-issuances`, {
+          headers: { "X-Safety-Token": getSafetyToken() },
+        });
+        const list = Array.isArray(resp.data?.items) ? resp.data.items : [];
+        const count = list.filter((rec) => isAgingAccountability(rec, 90)).length;
+        if (alive) setAgingCount(count);
+      } catch (e) {
+        if (alive) setAgingCount(0);
       }
     })();
     return () => {
@@ -278,6 +312,17 @@ export default function SafetyHub() {
             accent="cyan"
             ctaLabel={t("OPEN")}
             testId="safety-tile-forms-records"
+            badge={
+              agingCount > 0
+                ? {
+                    count: agingCount,
+                    label: t("aging"),
+                    tooltip: t(
+                      "Serialized / recoverable PPE issued more than 90 days ago without a return logged. Consumable PPE excluded."
+                    ),
+                  }
+                : null
+            }
           />
           <SafetyTile
             to="/safety-portal/documents"

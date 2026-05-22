@@ -14979,6 +14979,36 @@ the entire MASCI HUB / ForgedOps platform ecosystem."
 Admin migration tool + read-side compat shim. 14/14 signatures
 moved to R2. Documented for posterity.
 
+## 2026-05-22 — Iter324: Equipment & PPE Accountability Aging Visibility (Bounded Enhancement)
+
+**Operator request**: A subtle, opt-out-friendly aging signal on the new `/safety-portal/forms-records` surface so Safety reviewers can spot serialized/recoverable PPE that's been out > 90 days without a return logged — **without** generating noise on consumable PPE.
+
+**Governance contract (locked)**:
+- **Excluded (consumable / daily-use PPE)** — NEVER raises an aging signal:
+  hard hats · safety glasses · goggles · safety vests · hi-vis · class 2/3 vests · gloves · ear plugs · earmuffs · hearing protection · dust masks · disposable N95 / masks · steel-toe boots · basic rain coats · poly boots · knee pads · sunscreen · water bottles · cooling towels.
+- **Included (serialized / recoverable accountability classes)** — `getAccountabilityClass()`:
+  Fall Protection (harness · lanyard · SRL · self-retracting · retractable · anchor point · rope grab · fall arrest) · Respiratory (respirator · PAPR · SCBA · supplied-air · half/full-face · reusable N95) · Gas Monitor (4-gas · multi-gas · H2S · CO · LEL · BW Clip · Ventis) · Confined Space (tripod · winch · blower · ventilator) · FR/Arc-Flash (arc-flash · FR coverall/jacket/pant/suit/hood/gear · flame-resistant · CAT 2/3/4) · Traffic-Control Specialty (spotter kit · flagger kit · cone cart) · Calibrated Device (calibrated · bump test · sound level meter · dosimeter · calibrated torque wrench) · Welding (welding hood/helmet/shield · auto-darkening).
+
+**Alert logic** — passive visibility only, no infra:
+- `isAgingAccountability(record, thresholdDays=90)` = `!return` AND `daysSince(issued_date) > 90` AND `items[].some(isAccountabilityItem)`.
+- SafetyHub tile: small yellow pill (`bg-yellow-50` border-yellow-400) showing `{count} AGING` — only when > 0, hidden otherwise.
+- Records page: new "Aging (>90d)" summary card + per-row 90D+ micro-pill on qualifying issuance rows, with tooltip listing the matched classes (EN/ES).
+
+**No alert infra**: no modal · no push · no email · no escalation engine · no dashboard takeover. Tile badge animates only the existing hover (no pulse), tooltip is the only extra surface.
+
+**Files added/changed**:
+- `lib/safetyAccountabilityClass.js` — pure classifier with explicit inclusion list + consumable exclusions. Single source of truth.
+- `lib/safetyAccountabilityClass.test.js` — **55 unit assertions** locking the governance contract (20 consumables stay silent · 21 accountability items classify · 6 aging edge cases · 4 real-data-shape field tests · 4 helper tests).
+- `pages/SafetyHub.jsx` — parallel fetch of issuance list → compute aging count → pass as optional `badge` prop. SafetyTile now accepts an optional subtle pill.
+- `pages/SafetyFormsRecords.jsx` — accountability summary card + per-row 90D+ pill with class-label tooltip (EN/ES).
+
+**Verification**:
+- Unit: 55/55 classifier tests pass.
+- Backend regression: 53/53 across iter180/iter318/iter322/iter323/family contract.
+- Live preview: seeded a 172-day-old issuance with a Harness + Hard Hat. **Result: count = 1** (the Harness fires; the Hard Hat stays silent). All 13 pre-existing 127-day-old Hard Hat issuances correctly produced zero signal — no consumable noise.
+- iter318 calm-tile contract preserved (swapped badge to `bg-yellow-50` after detecting the broad amber-50 grep rule).
+- Mobile (414×896): badge + per-row pill render cleanly, summary cards stack 2→4 responsive.
+
 ## 2026-05-22 — Iter323: Safety Forms Ownership Closure (1982 → Safety Portal)
 
 **Operator bug**: Safety Forms tab still used the legacy `SAFETY_FORMS_PASSWORD=1982` shared-password gate, inconsistent with the Safety Portal sign-in model and creating "submit and disappear" perception — Safety users could file Equipment Issuance / Use & Care Training forms but had no Safety Portal review surface.
