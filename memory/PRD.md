@@ -14979,6 +14979,43 @@ the entire MASCI HUB / ForgedOps platform ecosystem."
 Admin migration tool + read-side compat shim. 14/14 signatures
 moved to R2. Documented for posterity.
 
+## 2026-05-22 — Iter323: Safety Forms Ownership Closure (1982 → Safety Portal)
+
+**Operator bug**: Safety Forms tab still used the legacy `SAFETY_FORMS_PASSWORD=1982` shared-password gate, inconsistent with the Safety Portal sign-in model and creating "submit and disappear" perception — Safety users could file Equipment Issuance / Use & Care Training forms but had no Safety Portal review surface.
+
+**Root cause**: `routes/safety_forms.py` dep `_require_safety_or_admin` accepted only `X-Admin-Token` and legacy `X-Safety-Forms-Token`. The Safety Portal user token (`X-Safety-Token`) was rejected. List endpoints were admin-only. No Safety Portal review surface existed for the two collections.
+
+**Fix** (bounded, RBAC NOT weakened):
+- Backend: dep widened to accept `X-Safety-Token` (Safety Portal user, validated via `safety_users.is_valid_safety_user_token_async`). Admin still works. Legacy SF token still works (backwards compat). **PM intentionally NOT widened.**
+- Backend: `GET /api/safety-forms/equipment-issuances` and `GET /api/safety-forms/equipment-trainings` promoted from `_require_admin` → `_require_safety_or_admin`.
+- Frontend: 4 pages widened to `isSafety() || isAdmin() || isSafetyForms()` and unauthenticated bounces routed to `/safety-portal/login?from=safety-forms` (NOT legacy `/safety/forms/login` which EnforcePortalScope would have wiped):
+  - `SafetyFormsHub.jsx`
+  - `ViewSafetyForm.jsx`
+  - `NewSafetyEquipmentIssuance.jsx`
+  - `NewSafetyEquipmentTraining.jsx`
+  - `ReturnEquipment.jsx`
+- `ViewSafetyForm.downloadPdf` now sends `X-Safety-Token` for Safety users.
+- `SafetyFormsLogin.jsx` legacy 1982 form preserved (per user instruction) but now displays a prominent cyan-bordered "Safety Portal Ownership" notice with a CTA → `/safety-portal/login?from=safety-forms`.
+- `SafetySection.jsx` tile copy updated — removed "password-gated" wording.
+- **New Safety Portal review surface**: `/safety-portal/forms-records` with Issuance + Training tabs, search/employee/date filters, summary cards (Records · Currently Issued · Returned), status pills (issued/returned/damaged/lost), drill-row to existing detail viewers.
+- **New SafetyHub tile**: "Equipment & PPE Accountability" in Compliance & Records group (`data-testid="safety-tile-forms-records"`, cyan accent · border-l-4 calm pattern preserved).
+
+**Storage / review answer (the operator's key question)**:
+- Equipment Use & Care Training Documentation → `db.safety_equipment_trainings` · `POST /api/safety-forms/equipment-trainings` · reviewable at `/safety-portal/forms-records` → Use & Care Training tab → drill to `/safety/forms/equipment-training/:id` · tied to `employee_id` + `employee_name` + `project_name`.
+- Safety Equipment Issuance & Accountability → `db.safety_equipment_issuances` · `POST /api/safety-forms/equipment-issuances` · reviewable at `/safety-portal/forms-records` → Equipment Issuance tab · per-item status (issued/returned/damaged/lost) + chargeback amounts visible · drill to `/safety/forms/equipment-issuance/:id`.
+
+**Verification**:
+- Backend: `test_iter323_safety_forms_portal_gate.py` — **16/16 passing** (Safety/Admin/legacy 200, anon/PM 401, write surface preserved).
+- Regression: iter180 + iter318 + iter322 + iter120 + family contract = **67/67 passing**.
+- Frontend E2E (testing_agent_v3_fork): **9/9 Playwright scenarios** clean — drill-row preserves Safety token, new-form gates accept Safety, anonymous bounces hit the new Portal login target, PDF download works with Safety token. Report `/app/test_reports/iteration_324.json` · `retest_needed: false`.
+
+**Bilingual + Mobile**: every new label wired through `t()`. Records page uses `overflow-x-auto` table with summary cards stacking 2→4 columns responsive — verified at 414×896 and 768×1024 in the retest.
+
+**Items intentionally NOT done** (per user directive):
+- `SAFETY_FORMS_PASSWORD` env var preserved (no env deletion).
+- `/safety/forms/login` UI route preserved (banner-only nudge).
+- PM access NOT widened to this review model.
+
 ## 2026-05-21 — Iter322: Safety Portal Read-Gate RBAC Closure
 
 **Operator bug**: signed-in Safety users were getting
