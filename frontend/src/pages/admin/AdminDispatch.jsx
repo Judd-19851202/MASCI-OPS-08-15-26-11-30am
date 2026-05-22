@@ -114,15 +114,18 @@ export function DispatchOverviewTab() {
   if (loading) return <div className="text-center text-slate-500 py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
 
   const totals = util?.totals || {};
+  // iter330 · pre-deploy KPI normalization · convert heavy `border-2 border-<accent>-300`
+  // chrome to family-contract calm pattern: `border border-slate-200` + left-edge stripe
+  // + colored value text. Matches iter317c HR · iter318 Safety · iter320 Shop KPI strips.
   const cards = [
-    { label: "Total Active Assets", value: util?.fleet_size || 0, cls: "border-slate-300" },
-    { label: "Available",           value: totals.Available || 0, cls: "border-emerald-300" },
-    { label: "Assigned",            value: totals.Assigned || 0,  cls: "border-blue-300" },
-    { label: "Pending Transfer",    value: totals["Pending Transfer"] || 0, cls: "border-cyan-300" },
-    { label: "In Transit",          value: totals["In Transit"] || 0, cls: "border-violet-300" },
-    { label: "Safety Hold",         value: totals["Safety Hold"] || 0, cls: "border-red-300" },
-    { label: "Maintenance Hold",    value: totals["Maintenance Hold"] || 0, cls: "border-amber-300" },
-    { label: "Open Transfers",      value: xfers.filter(x => !["Completed","Denied","Cancelled"].includes(x.status)).length, cls: "border-slate-300" },
+    { label: "Total Active Assets", value: util?.fleet_size || 0, stripe: "border-l-slate-500",   valueCls: "text-slate-900" },
+    { label: "Available",           value: totals.Available || 0, stripe: "border-l-emerald-500", valueCls: "text-emerald-700" },
+    { label: "Assigned",            value: totals.Assigned || 0,  stripe: "border-l-blue-500",    valueCls: "text-blue-700" },
+    { label: "Pending Transfer",    value: totals["Pending Transfer"] || 0, stripe: "border-l-cyan-500",   valueCls: "text-cyan-700" },
+    { label: "In Transit",          value: totals["In Transit"] || 0,       stripe: "border-l-violet-500", valueCls: "text-violet-700" },
+    { label: "Safety Hold",         value: totals["Safety Hold"] || 0,      stripe: "border-l-red-500",    valueCls: "text-red-700" },
+    { label: "Maintenance Hold",    value: totals["Maintenance Hold"] || 0, stripe: "border-l-amber-500",  valueCls: "text-amber-700" },
+    { label: "Open Transfers",      value: xfers.filter(x => !["Completed","Denied","Cancelled"].includes(x.status)).length, stripe: "border-l-slate-500", valueCls: "text-slate-900" },
   ];
   return (
     <div className="space-y-4" data-testid="dp-overview">
@@ -131,9 +134,9 @@ export function DispatchOverviewTab() {
       <HelpTipBlock formKey="dispatch.handoff" showCounter />
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map((c) => (
-          <div key={c.label} className={`bg-white border-2 ${c.cls} rounded-md p-4`}>
+          <div key={c.label} className={`bg-white border border-slate-200 border-l-4 ${c.stripe} rounded-md p-4`}>
             <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold">{c.label}</div>
-            <div className="font-display text-3xl font-black text-slate-900 mt-1">{c.value}</div>
+            <div className={`font-display text-3xl font-black mt-1 ${c.valueCls}`}>{c.value}</div>
           </div>
         ))}
       </div>

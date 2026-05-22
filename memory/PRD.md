@@ -2,6 +2,63 @@
 
 
 
+## 2026-05-22 — iter330 · Final Pre-Deploy Hard-Use Verification + Dispatch KPI Calm Pass · CLOSED
+
+### Scope (operator-mandated · final pre-deploy gate · zero new features)
+Comprehensive QA sweep across all routes, RBAC paths, banners, mobile/tablet layouts, PDFs, and bilingual parity covering work from iter322 through iter329. The sweep produced a structured deployment-readiness report with verdict `APPROVE`. One minor defect was discovered, fixed surgically, and regression-locked within the same session.
+
+### Sweep results (5 phases · all green)
+
+| Phase | Check | Result |
+|---|---|---|
+| 1 | Mechanical contract sweep — `bash /app/.deploy_checks/run_family_contract.sh` | **9/9 green** · "Contract green · safe to deploy" |
+| 1 | iter32x + iter322b + iter330 + family-contract pytest | **115/115 green** in 10.37s |
+| 2 | Backend API + RBAC sweep (curl) — 8 endpoints across 4 token types | **all HTTP 200** · iter322 Safety read-gate verified · iter329 cultural banner lazy activation confirmed (Memorial Day live) |
+| 3 | Frontend workflow + visual sweep (testing_agent_v3_fork) — route sweep, banner stack, continuity banner, family contract visual, mobile responsiveness, RBAC, safety forms records, PDF download | **7/8 PASS** initial · 1 defect (dispatch KPI · see below) fixed → **8/8 PASS** retest |
+| 4 | PDF export audit — Equipment Issuance · Equipment Training · FL Record | All 3 valid `%PDF...%%EOF` binaries · no footer overlap / clipping |
+| 5 | Final readiness report | Written to `/app/memory/PRE_DEPLOY_READINESS_iter330.md` |
+
+### Defect found + fixed (the one bug surfaced by the sweep)
+**File:** `/app/frontend/src/pages/admin/AdminDispatch.jsx` (lines 116-138)
+**Defect:** 8 KPI cards rendered with legacy `bg-white border-2 ${c.cls} rounded-md p-4` (thick colored borders) — violated family-contract Rule-5 calm KPI pattern that all other 8 family hubs adhere to.
+**Root cause:** AdminDispatch.jsx was missed in the iter317-C → iter321 family-contract refactor sweep. iter321 normalized the DispatchHub shell but not the internal `OperationsCenter` sub-tab KPI grid.
+**Fix:**
+```jsx
+// Before
+className={`bg-white border-2 ${c.cls} rounded-md p-4`}
+// After
+className={`bg-white border border-slate-200 border-l-4 ${c.stripe} rounded-md p-4`}
+```
+Plus colored value text (`text-emerald-700`, `text-cyan-700` etc.) for operational emphasis without dominating chrome. Matches iter317c HR · iter318 Safety · iter320 Shop KPI strips exactly.
+
+### Regression lock
+NEW · `/app/backend/tests/test_iter330_dispatch_kpi_calm.py` (5 tests · all green):
+- Asserts the calm `border border-slate-200 border-l-4` pattern is present
+- Forbids the legacy `border-2 ${c.cls}` template
+- Verifies all 7 expected stripe colors are declared
+- Confirms colored value text classes are present
+
+### Verdict
+**APPROVE** for production deployment. The MASCI Operations Platform is production-ready for heavy daily operational use at mascidocs.com. All work from iter322-329 is verified live in preview. The iter330 defect was fixed, regression-tested, and locked in within the same session.
+
+### Files touched (iter330)
+- MOD · `/app/frontend/src/pages/admin/AdminDispatch.jsx` (KPI strip calm pattern · colored value text)
+- NEW · `/app/backend/tests/test_iter330_dispatch_kpi_calm.py` (5 tests)
+- NEW · `/app/memory/PRE_DEPLOY_READINESS_iter330.md` (full readiness report)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO new features · NO refactor beyond the single KPI fix
+- ❌ NO backend / route / DB / permission / integration changes
+- ❌ NO banner-system rewrite
+- ❌ NO tutorial / modal / popup additions
+- ❌ NO LMS or coaching content expansion
+
+### Production impact
+**Preview has the iter330 fix. Production at mascidocs.com still missing until next redeploy.** Zero backend / DB / API / permissions changes. Pure CSS / layout refinement on one JSX file + 1 new regression test file + 1 new readiness report. Ships the moment the redeploy lands.
+
+
+
 ## 2026-05-21 — iter322-B · Workflow Continuity Wiring Completion · CLOSED
 
 ### Root cause of why iter322 didn't fully solve the operator complaint
