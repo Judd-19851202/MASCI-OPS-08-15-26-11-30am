@@ -2,6 +2,79 @@
 
 
 
+## 2026-05-22 — iter334 · Public Submission Thank-You Continuity Refinement · CLOSED
+
+### Scope (operator-mandated · final public-facing copy convergence · iter327 voice anchor)
+Single-purpose copy refinement on the shared `/thank-you` confirmation page that every public submission lands on. The page now speaks iter327 voice and communicates exactly which operational teams have visibility — collapsing soft-positivity SaaS phrasing into field-proven continuity messaging.
+
+### Before / After
+
+| Aspect | Before | After |
+|---|---|---|
+| Headline | "Thank you." | **"Filed."** |
+| Kicker | "INSPECTION SUBMITTED" | **"INSPECTION · ON FILE"** |
+| Project line | "Your inspection for [project] has been recorded." | Project name only (no soft-positivity verbiage) |
+| Continuity | "The MASCI safety team has been notified. Stay safe out there." | **Per-formType operational continuity** (e.g., Incident → "Safety has it. If additional information is needed, the team will follow up.") |
+| Primary button | "SUBMIT ANOTHER" | **"FILE ANOTHER"** |
+
+### Per-formType continuity map (10 entries · `CONTINUITY_LINE`)
+- **Incident Report** → *"Safety has it. If additional information is needed, the team will follow up."*
+- **Daily Report** → *"Operations, payroll, and project leadership can now review today's activity."*
+- **Inspection** → *"Findings and corrective actions are now visible in Safety Review."*
+- **Equipment Issuance** → *"Issuance recorded. Equipment accountability and return status are now tracked."*
+- **Equipment Training** → *"Training recorded. Use and care accountability is now tracked."*
+- **Equipment Pre-Op Inspection** → *"Pre-op log filed. Shop and supervision have visibility for the day's run."*
+- **Site Safety Meeting / Toolbox Meeting** → *"Meeting recorded. Attendance and topics are now on file."*
+- **DVIR** → *"Defect log filed. Shop has visibility for tomorrow's planning."*
+- **JHA** → *"JHA filed. The plan is available for the crew and Safety review."*
+- **Default fallback** → *"The right people have visibility. You're done unless contacted."*
+
+### Bilingual (ES) parity
+17 new ES keys added to `i18n.js`:
+- `"Filed." → "Archivado."`
+- `"On file" → "En archivo"`
+- `"File Another" → "Archivar Otro"`
+- Every continuity line translated to operationally natural Spanish (e.g., Incident → *"Seguridad lo tiene. Si se necesita información adicional, el equipo dará seguimiento."*)
+- formType label translations added so the kicker reads "Reporte de Accidente · En archivo" in ES
+
+### Visual contract preserved
+- Caution stripe at top · `bg-slate-900` header with `border-b-4 border-red-700`
+- Single calm white card (`bg-white border border-slate-200 rounded-md p-8 sm:p-12`)
+- Green checkmark circle (20w × 20h)
+- 2-button footer (File Another + Close Window) — same family-contract chrome
+- No new components · no progress trackers · no marketing footers · no confetti
+
+### Tests
+**Backend regression:** 165/165 green (iter32x → iter334 + family contract)
+**Deploy gate:** 9/9 green
+**ESLint:** clean on `ThankYou.jsx`
+**E2E (testing_agent_v3_fork iteration_334.json):** 100% PASS · all 7 requirements
+- Default render verified live (headline · kicker · continuity · buttons)
+- Per-formType branches verified in EN + ES via `history.replaceState` route-state injection
+- Generic wording confirmed ABSENT from rendered DOM
+- ES translations render with zero English leakage on the card
+- Mobile 390 zero horizontal overflow · card stacks cleanly
+- Backend sanity (`GET /api/banners/active` HTTP 200) preserved
+
+### Files touched (iter334)
+- REWRITE · `/app/frontend/src/pages/ThankYou.jsx` (107 → 117 LOC · CONTINUITY_LINE map + iter327 voice + 4 new testids)
+- MOD · `/app/frontend/src/lib/i18n.js` (17 new ES keys appended to iter334 block)
+- NEW · `/app/backend/tests/test_iter334_thank_you_continuity.py` (10 regression tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO new pages · NO new routes · NO new backend endpoints
+- ❌ NO submission workflow changes · NO notification system · NO new emails
+- ❌ NO progress tracker · NO timeline · NO marketing language · NO illustrations · NO onboarding
+- ❌ NO redesign — same card chrome · same buttons · same icons
+
+### Production impact
+**Preview has iter334. Production at mascidocs.com still missing until next redeploy.** Cumulative pending redeploy: iter330 (Dispatch KPI calm) + iter331 (PDF non-blocking hot-fix) + iter332 (3 workflow/access gap closures) + iter333 (coaching convergence) + iter334 (thank-you continuity). Five bounded iters · zero backend/auth/DB/API drift · all regression-locked.
+
+**The platform's public-facing voice is now fully converged** — from the homepage capability copy ("Run Every Job. Control Every Detail. Protect Everything.") through Tier-1 form intros, key textarea placeholders, submit-success toasts, empty states, and now the final thank-you continuity page.
+
+
+
 ## 2026-05-22 — iter333 · Final Operational Coaching Convergence · CLOSED
 
 ### Scope (operator-mandated · bounded coaching refinement · iter327 voice anchor)
