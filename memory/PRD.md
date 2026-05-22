@@ -2,6 +2,99 @@
 
 
 
+## 2026-05-22 — iter332 · Three Workflow/Access Gap Closures · CLOSED
+
+### Scope (operator-mandated · bounded access-management convergence)
+Three real platform gaps closed in a single bounded iter, no architectural rewrites, no destructive migration:
+1. **Safety Forms entry buttons** on `/safety-portal/forms-records` (the iter323 review surface was read-only; users now have prominent CTAs to START new forms).
+2. **HR read-only Daily Reports** under a new `/api/hr/*` namespace + `/hr/daily-reports` UI + new HR tile.
+3. **AdminAccessControlPanel Phase A** — expanded portal-grant grid to 6 portals (added safety + dispatch). Field Leadership intentionally deferred to Phase B.
+
+### Issue 1 · Safety Forms Entry
+**File:** `/app/frontend/src/pages/SafetyFormsRecords.jsx`
+**Change:** Added 2 prominent CTA buttons next to the tabs:
+- `data-testid="new-issuance-btn"` → `/safety/forms/equipment-issuance/new?from=records`
+- `data-testid="new-training-btn"` → `/safety/forms/equipment-training/new?from=records`
+
+**Continuity helper:** Both `NewSafetyEquipmentIssuance.jsx` and `NewSafetyEquipmentTraining.jsx` now read `?from=records`:
+- Back button reads "Back to Review" + routes to `/safety-portal/forms-records`
+- Post-submit navigation returns to the review surface (closing the loop: review → start → submit → see new record)
+- Legacy flow preserved when `?from=records` is absent
+
+### Issue 2 · HR Read-Only Daily Reports
+**Backend** · `/app/backend/routes/hr_portal.py`:
+- `GET /api/hr/daily-reports` · gated `require_hr_user` · 6 filters: `date_from · date_to · project · employee · subcontractor · vendor · report_number` · `limit` capped at 500
+- `GET /api/hr/daily-reports/{id}` · returns the full document for read-only display
+- NO POST/PATCH/PUT/DELETE — write surface intentionally absent
+
+**Frontend** · NEW `/app/frontend/src/pages/HrDailyReports.jsx`:
+- List page with KPI strip (Reports · Crews · Subs · Visitors) + 6 filter inputs + sortable table
+- Detail viewer (`HrDailyReportDetail` export) renders project · date · weather · crews · subs · vendors · narrative · photos
+- "This is a read-only HR view. To edit or send this report, the PM must use the PM Portal." notice on every detail page
+- New HR tile in `payroll` group on `HrHub.jsx` ("Daily Reports Review")
+- Routes registered in `App.js` under `RequireHr` guard
+
+**Live RBAC verification (curl):**
+| Probe | Result |
+|---|---|
+| HR token GET list | 200 (62 records) |
+| Anonymous GET list | 401 |
+| Safety token GET list | 401 (HR-only) |
+| HR token POST | 405 (no write endpoint) |
+| HR token on admin `/api/daily-reports` | 401 (admin-only path unchanged) |
+| Admin token on admin `/api/daily-reports` | 200 (unaffected) |
+
+### Issue 3 · AdminAccessControlPanel Phase A
+**File:** `/app/frontend/src/components/AdminAccessControlPanel.jsx`
+**Change:** `PORTAL_OPTIONS` expanded from 4 → 6 portals (added safety + dispatch). `EMPTY_PORTALS` constant added. `CreateUserDialog` initial state uses the expanded set so new users can be granted any of the 6 portals in one dialog.
+
+**Live verification (curl):**
+- Picked existing single-portal user (`iter243-260243-e3f01d@masci-test.local` with `["safety"]`)
+- PATCH `/admin/directory/{id}` with `portals: ["dispatch","safety"]` → HTTP 200, persisted
+- Re-fetch confirms `portals: ["dispatch","safety"]` ✓
+- Restored to original `["safety"]` to leave the platform clean
+
+**Phase B deferred (per operator):** field_leadership NOT added to `ALLOWED_PORTALS`, multi-login, identity-mirror, or the panel UI. Scheduled for a follow-up iter once FL auth plumbing is converged.
+
+### Bilingual (ES) parity
+Added 30+ ES translations to `/app/frontend/src/lib/i18n.js`:
+- "NEW EQUIPMENT ISSUANCE" → "NUEVA ENTREGA DE EQUIPO"
+- "NEW USE & CARE TRAINING" → "NUEVA CAPACITACIÓN DE USO Y CUIDADO"
+- "Back to Review" → "Volver a Revisión"
+- "Daily Reports Review" → "Revisión de Reportes Diarios"
+- All 6 HR filter labels, KPI labels, detail-page section headings, read-only notice — all translated
+
+### Tests
+**Backend regression:** 138/138 green (iter32x + iter322b + iter330 + iter331 + iter332 + family contract)
+**Deploy gate:** 9/9 green
+**ESLint:** clean on all touched JS files (`HrDailyReports.jsx`, `HrHub.jsx`, `SafetyFormsRecords.jsx`, `AdminAccessControlPanel.jsx`, `NewSafetyEquipmentIssuance.jsx`, `NewSafetyEquipmentTraining.jsx`, `App.js`)
+**Ruff:** clean on `hr_portal.py`
+
+**E2E (testing_agent_v3_fork iteration_332.json):** 100% PASS frontend
+- Safety Forms · 2 CTA buttons visible · correct URLs · "Back to Review" label · Back returns to /safety-portal/forms-records (both forms)
+- HR Daily Reports · tile present in payroll group · h1=Daily Reports Review · KPI strip + all 7 testids for 6 filters · 104 rows loaded · Apply/Clear work · detail page is read-only with the explicit notice · zero write controls
+- Admin Access Control · table now shows 6 columns (Admin/PM/Shop/HR/Safety/Dispatch) · create dialog has 6 checkboxes · field_leadership intentionally absent
+- Bilingual ES · all new strings translate correctly · zero English leakage
+- Mobile 390×844 · `scrollWidth==clientWidth==390` on both /safety-portal/forms-records and /hr/daily-reports · no horizontal overflow
+
+### Files touched (iter332)
+- MOD · `/app/frontend/src/pages/SafetyFormsRecords.jsx` (2 CTA buttons)
+- MOD · `/app/frontend/src/pages/NewSafetyEquipmentIssuance.jsx` (`fromRecords` detection + Back/redirect)
+- MOD · `/app/frontend/src/pages/NewSafetyEquipmentTraining.jsx` (same)
+- NEW · `/app/frontend/src/pages/HrDailyReports.jsx` (list + detail · 407 LOC · read-only)
+- MOD · `/app/frontend/src/pages/HrHub.jsx` (new `dailyReports` tile in payroll group · ClipboardList icon)
+- MOD · `/app/frontend/src/App.js` (2 new routes under RequireHr)
+- MOD · `/app/frontend/src/components/AdminAccessControlPanel.jsx` (PORTAL_OPTIONS + EMPTY_PORTALS expanded · description copy updated)
+- MOD · `/app/frontend/src/lib/i18n.js` (30+ ES keys appended)
+- MOD · `/app/backend/routes/hr_portal.py` (2 new GET routes · 6 filters · `require_hr_user` gate)
+- NEW · `/app/backend/tests/test_iter332_workflow_access_gaps.py` (17 regression tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Production impact
+**Preview has iter332. Production at mascidocs.com still missing until next redeploy.** Cumulative pending redeploy: iter330 (Dispatch KPI calm) + iter331 (PDF non-blocking hot-fix) + iter332 (these 3 gap closures). Zero destructive migration, no model changes, no auth-architecture shifts.
+
+
+
 ## 2026-05-22 — iter331 · Live Production Hot-Use Verification + PDF Non-Blocking Hot-Fix · CLOSED
 
 ### Scope (operator-mandated · live production health check · production-safe writes only)
