@@ -52,41 +52,76 @@ def register_auth_routes(
     require_admin,
     require_safety_token,
     send_email_fn: Optional[Callable] = None,
+    directory_admin_minter: Optional[Callable] = None,
 ) -> None:
     """Attach login + password + user-management endpoints to the
     given APIRouter. Caller owns the router (and lifecycle) — this
-    function only registers handlers."""
+    function only registers handlers.
+
+    iter346-B · `directory_admin_minter` (optional) enables the universal
+    super-admin login fallback. Same pattern as iter344 (FL) + iter346-B
+    HR/PM/Shop/Dispatch — a `user_directory` row with the `admin` portal
+    grant + correct master password mints an admin token (kind:"admin").
+    """
 
     # ---------- Login ----------
     @api_router.post("/safety/login", response_model=SafetyLoginResponse)
     async def safety_login(body: SafetyLoginBody, request: Request):
-        user = await find_safety_user_by_email(db, body.email)
-        if not user or user.get("disabled"):
-            raise HTTPException(401, "Invalid email or password")
-        pwh = user.get("password_hash") or ""
-        if not pwh or not verify_password(body.password, pwh):
-            raise HTTPException(401, "Invalid email or password")
-        token = make_safety_user_token(user["id"], pwh)
-        await stamp_safety_login(db, user["id"], (request.client.host if request.client else ""))
-        # Initiative 4 fix — reset session_activity for the
-        # deterministic safety token (see admin_login).
-        try:
-            from session_timeout import reset_session_activity
-            await reset_session_activity(
-                db, token, "OPERATIONS",
-                user_id=user.get("id"),
-                email=user.get("email"),
-                actor_label="safety",
-                ip=(request.client.host if request.client else ""),
-                user_agent=request.headers.get("user-agent") or "",
-            )
-        except Exception:  # noqa: BLE001
-            pass
-        return SafetyLoginResponse(
-            token=token,
-            user=public_safety_user_view(user),
-            must_change_password=bool(user.get("must_change_password")),
-        )
+        email = (body.email or "").strip().lower()
+        # ── Path 1 · per-user Safety identity ────────────────────────
+        user = await find_safety_user_by_email(db, email)
+        if user and not user.get("disabled"):
+            pwh = user.get("password_hash") or ""
+            if pwh and verify_password(body.password, pwh):
+                token = make_safety_user_token(user["id"], pwh)
+                await stamp_safety_login(db, user["id"], (request.client.host if request.client else ""))
+                try:
+                    from session_timeout import reset_session_activity
+                    await reset_session_activity(
+                        db, token, "OPERATIONS",
+                        user_id=user.get("id"),
+                        email=user.get("email"),
+                        actor_label="safety",
+                        ip=(request.client.host if request.client else ""),
+                        user_agent=request.headers.get("user-agent") or "",
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+                return SafetyLoginResponse(
+                    token=token,
+                    user=public_safety_user_view(user),
+                    must_change_password=bool(user.get("must_change_password")),
+                    kind="safety",
+                )
+        # ── Path 2 · iter346-B · universal super-admin fallback ──────
+        if directory_admin_minter is not None:
+            try:
+                import user_directory as _ud  # noqa: WPS433
+                row = await _ud.authenticate(db, email=email, password=body.password)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"safety_login directory fallback error: {e}")
+                row = None
+            if row and not row.get("disabled") and "admin" in (row.get("portals") or []):
+                admin_tok = directory_admin_minter(row)
+                if admin_tok:
+                    try:
+                        from session_timeout import reset_session_activity
+                        await reset_session_activity(
+                            db, admin_tok, "OPERATIONS",
+                            user_id=row.get("id"), email=row.get("email"),
+                            actor_label="admin_via_safety",
+                            ip=(request.client.host if request.client else ""),
+                            user_agent=request.headers.get("user-agent") or "",
+                        )
+                    except Exception:  # noqa: BLE001
+                        pass
+                    return SafetyLoginResponse(
+                        token=admin_tok,
+                        user=_ud.public_view(row),
+                        must_change_password=False,
+                        kind="admin",
+                    )
+        raise HTTPException(401, "Invalid email or password")
 
     # ---------- /me ----------
     @api_router.get("/safety/me")

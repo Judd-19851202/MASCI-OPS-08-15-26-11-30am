@@ -5,6 +5,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
 
 const fmtBytes = (n) => {
@@ -52,7 +53,7 @@ export default function StoredBackupsPanel() {
       );
       await load();
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Backup failed");
+      toast.error(operationalError(e, "Backup failed"));
     } finally {
       setBusy(false);
     }

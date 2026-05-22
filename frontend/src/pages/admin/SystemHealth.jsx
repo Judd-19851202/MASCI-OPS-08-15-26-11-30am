@@ -7,6 +7,7 @@ import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 const STATUS = {
   green:  { cls: "border-emerald-300 bg-emerald-50", chip: "bg-emerald-700", Icon: CheckCircle2, label: "OK" },
@@ -21,7 +22,7 @@ export default function SystemHealth() {
   const load = async () => {
     setLoading(true);
     try { setData((await api.get("/admin/system-health")).data); }
-    catch (e) { toast.error(e?.response?.data?.detail || "Failed to load health"); }
+    catch (e) { toast.error(operationalError(e, "Failed to load health")); }
     finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);

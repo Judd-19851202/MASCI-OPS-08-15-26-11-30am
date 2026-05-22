@@ -3895,6 +3895,28 @@ const ES = {
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",
   "This report has": "Este reporte tiene",
   "photo(s) attached (≈": "foto(s) adjunta(s) (≈",
+
+  // iter346-A · EditProjectDialog i18n closure (English leak fix)
+  "Edit Project": "Editar Proyecto",
+  "Re-tag this report": "Re-etiquetar este reporte",
+  "Change the project this record is filed under. Signatures, photos, narrative, and checklist data stay untouched.": "Cambia el proyecto bajo el cual está archivado este registro. Las firmas, fotos, narrativa y datos de la lista de verificación permanecen intactos.",
+  "Currently filed under": "Actualmente archivado bajo",
+  "Move to": "Mover a",
+  "Project name is required": "Se requiere el nombre del proyecto",
+  "Project updated": "Proyecto actualizado",
+  "Failed to update project — try again": "No se pudo actualizar el proyecto — intenta de nuevo",
+
+  // iter346-A · AdminAccessStatsTile (admin-only quick visibility)
+  "Access Control · Quick Stats": "Control de Acceso · Estadísticas Rápidas",
+  "Total Users": "Usuarios Totales",
+  "Total Grants": "Permisos Totales",
+  "Cross-Portal": "Multi-Portal",
+  "Disabled": "Deshabilitados",
+  "Access stats temporarily unavailable.": "Estadísticas de acceso no disponibles temporalmente.",
+
+  // iter346-B · universal super-admin login fallback (welcome toast
+  // when super-admin signs in via any portal login).
+  "Welcome, Admin": "Bienvenido, Administrador",
 };
 
 const DICTS = { es: ES, en: {} };

@@ -52,6 +52,9 @@ class DispatchLoginResponse(BaseModel):
     token: str
     user: dict
     must_change_password: bool
+    # iter346-B · universal super-admin fallback. "dispatch" for native,
+    # "admin" when super-admin signed in via this gate.
+    kind: str = "dispatch"
 
 
 class PasswordChangeBody(BaseModel):
@@ -99,40 +102,73 @@ def make_require_dispatch_token(db) -> Callable[..., dict]:
     return _require_dispatch_token
 
 
-def build_dispatch_router(db, require_admin) -> APIRouter:
-    """Build the /api/dispatch/* + /api/admin/dispatch-users/* router."""
+def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Callable] = None) -> APIRouter:
+    """Build the /api/dispatch/* + /api/admin/dispatch-users/* router.
+
+    iter346-B · `directory_admin_minter` enables universal super-admin
+    login fallback (same pattern as iter344 FL + iter346-B HR/Safety).
+    """
     router = APIRouter(prefix="/api", tags=["dispatch-portal"])
     require_dispatch_token = make_require_dispatch_token(db)
 
     # ═══ Login ═══
     @router.post("/dispatch/login", response_model=DispatchLoginResponse)
     async def dispatch_login(body: DispatchLoginBody, request: Request):
-        user = await find_dispatch_user_by_email(db, body.email)
-        if not user or user.get("disabled"):
-            raise HTTPException(401, "Invalid email or password")
-        pwh = user.get("password_hash") or ""
-        if not pwh or not verify_password(body.password, pwh):
-            raise HTTPException(401, "Invalid email or password")
-        token = make_dispatch_user_token(user["id"], pwh)
-        await stamp_dispatch_login(db, user["id"], (request.client.host if request.client else ""))
-        # Initiative 4 fix — reset session_activity for deterministic token.
-        try:
-            from session_timeout import reset_session_activity
-            await reset_session_activity(
-                db, token, "OPERATIONS",
-                user_id=user.get("id"),
-                email=user.get("email"),
-                actor_label="dispatch",
-                ip=(request.client.host if request.client else ""),
-                user_agent=request.headers.get("user-agent") or "",
-            )
-        except Exception:  # noqa: BLE001
-            pass
-        return DispatchLoginResponse(
-            token=token,
-            user=public_dispatch_user_view(user),
-            must_change_password=bool(user.get("must_change_password")),
-        )
+        email = (body.email or "").strip().lower()
+        # ── Path 1 · per-user Dispatch identity ──────────────────────
+        user = await find_dispatch_user_by_email(db, email)
+        if user and not user.get("disabled"):
+            pwh = user.get("password_hash") or ""
+            if pwh and verify_password(body.password, pwh):
+                token = make_dispatch_user_token(user["id"], pwh)
+                await stamp_dispatch_login(db, user["id"], (request.client.host if request.client else ""))
+                try:
+                    from session_timeout import reset_session_activity
+                    await reset_session_activity(
+                        db, token, "OPERATIONS",
+                        user_id=user.get("id"),
+                        email=user.get("email"),
+                        actor_label="dispatch",
+                        ip=(request.client.host if request.client else ""),
+                        user_agent=request.headers.get("user-agent") or "",
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+                return DispatchLoginResponse(
+                    token=token,
+                    user=public_dispatch_user_view(user),
+                    must_change_password=bool(user.get("must_change_password")),
+                    kind="dispatch",
+                )
+        # ── Path 2 · iter346-B · universal super-admin fallback ──────
+        if directory_admin_minter is not None:
+            try:
+                import user_directory as _ud  # noqa: WPS433
+                row = await _ud.authenticate(db, email=email, password=body.password)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"dispatch_login directory fallback error: {e}")
+                row = None
+            if row and not row.get("disabled") and "admin" in (row.get("portals") or []):
+                admin_tok = directory_admin_minter(row)
+                if admin_tok:
+                    try:
+                        from session_timeout import reset_session_activity
+                        await reset_session_activity(
+                            db, admin_tok, "OPERATIONS",
+                            user_id=row.get("id"), email=row.get("email"),
+                            actor_label="admin_via_dispatch",
+                            ip=(request.client.host if request.client else ""),
+                            user_agent=request.headers.get("user-agent") or "",
+                        )
+                    except Exception:  # noqa: BLE001
+                        pass
+                    return DispatchLoginResponse(
+                        token=admin_tok,
+                        user=_ud.public_view(row),
+                        must_change_password=False,
+                        kind="admin",
+                    )
+        raise HTTPException(401, "Invalid email or password")
 
     @router.get("/dispatch/me")
     async def dispatch_me(user: dict = Depends(require_dispatch_token)):

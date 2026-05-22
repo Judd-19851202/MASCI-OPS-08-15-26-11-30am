@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 /**
  * AdminJobMasterPanel — manage MASCI active jobs.
@@ -81,7 +82,7 @@ export default function AdminJobMasterPanel() {
       setArchive(ar.data?.items || []);
       setRetainDays(ar.data?.retain_days || 14);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Failed to load jobs / PMs");
+      toast.error(operationalError(e, "Failed to load jobs / PMs"));
     } finally {
       setLoading(false);
     }

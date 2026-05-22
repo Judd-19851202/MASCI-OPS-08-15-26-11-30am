@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
 
 /**
@@ -44,7 +45,7 @@ export default function CrewRecoveryPanel() {
       const r = await api.get("/admin/crew-recovery/status");
       setStatus(r.data);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Failed to load status");
+      toast.error(operationalError(e, "Failed to load status"));
     } finally {
       setLoading(false);
     }

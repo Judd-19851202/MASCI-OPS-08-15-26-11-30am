@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 import WhereUsedPanel from "@/components/WhereUsedPanel";
 import AssetHistoryTimeline from "@/components/AssetHistoryTimeline";
 
@@ -121,7 +122,7 @@ export default function EquipmentMasterPanel() {
       setArchive(archR.data?.items || []);
       setRetainDays(archR.data?.retain_days || 14);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Failed to load fleet");
+      toast.error(operationalError(e, "Failed to load fleet"));
     } finally {
       setLoading(false);
     }

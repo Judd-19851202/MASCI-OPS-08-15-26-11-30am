@@ -30,6 +30,7 @@ import {
 import AdminShell from "@/components/AdminShell";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 const STATUS_COLOR = {
   Connected:               "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -102,7 +103,7 @@ function OverviewTab() {
   const refresh = async () => {
     setLoading(true);
     try { setData((await api.get("/admin/integrations/overview")).data); }
-    catch (e) { toast.error(e?.response?.data?.detail || "Could not load overview"); }
+    catch (e) { toast.error(operationalError(e, "Could not load overview")); }
     finally { setLoading(false); }
   };
   useEffect(() => { refresh(); }, []);
@@ -125,7 +126,7 @@ function ProviderStatusCard({ p, onRefresh }) {
       const r = await api.post(`/admin/integrations/${p.provider}/test`);
       if (r.data?.ok) toast.success(r.data?.message || "Connection OK");
       else toast.warning(r.data?.message || r.data?.status || "Test returned no-op (stub)");
-    } catch (e) { toast.error(e?.response?.data?.detail || "Test failed"); }
+    } catch (e) { toast.error(operationalError(e, "Test failed")); }
     finally { setTesting(false); onRefresh(); }
   };
   return (
@@ -203,7 +204,7 @@ function ProviderTab({ provider }) {
       const r = await api.patch(`/admin/integrations/${provider}`, patch);
       setDoc(r.data); setApiKey(""); setWebhookSecret("");
       toast.success("Saved");
-    } catch (e) { toast.error(e?.response?.data?.detail || "Save failed"); }
+    } catch (e) { toast.error(operationalError(e, "Save failed")); }
     finally { setSaving(false); }
   };
 
@@ -368,7 +369,7 @@ function MappingTab({ kind }) {
       const [m, u] = await Promise.all([api.get(listUrl), api.get(unmappedUrl)]);
       setMappings(Array.isArray(m.data) ? m.data : []);
       setUnmapped(Array.isArray(u.data) ? u.data : []);
-    } catch (e) { toast.error(e?.response?.data?.detail || "Could not load"); }
+    } catch (e) { toast.error(operationalError(e, "Could not load")); }
     finally { setLoading(false); }
   };
   useEffect(() => { refresh(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kind]);
@@ -409,7 +410,7 @@ function MappingTab({ kind }) {
         toast.success("Mapping updated");
       }
       close(); refresh();
-    } catch (e) { toast.error(e?.response?.data?.detail || "Save failed"); }
+    } catch (e) { toast.error(operationalError(e, "Save failed")); }
     finally { setSaving(false); }
   };
 
@@ -418,7 +419,7 @@ function MappingTab({ kind }) {
     try {
       await api.delete(`${listUrl}/${m.id}`);
       toast.success("Removed"); refresh();
-    } catch (e) { toast.error(e?.response?.data?.detail || "Delete failed"); }
+    } catch (e) { toast.error(operationalError(e, "Delete failed")); }
   };
 
   if (loading) return <div className="text-center py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-400" /></div>;
@@ -704,7 +705,7 @@ function CsvTab() {
       });
       setResult(r.data);
       toast.success(`Imported · created ${r.data.records_created}, updated ${r.data.records_updated}`);
-    } catch (e) { toast.error(e?.response?.data?.detail || "Import failed"); }
+    } catch (e) { toast.error(operationalError(e, "Import failed")); }
     finally { setUploading(false); }
   };
 
@@ -727,7 +728,7 @@ function CsvTab() {
       document.body.appendChild(a); a.click(); a.remove();
       window.URL.revokeObjectURL(url);
       toast.success(`${label} exported`);
-    } catch (e) { toast.error(e?.response?.data?.detail || "Export failed"); }
+    } catch (e) { toast.error(operationalError(e, "Export failed")); }
   };
 
   return (

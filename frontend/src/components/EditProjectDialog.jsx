@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { JobPicker } from "@/components/JobPicker";
 import { api } from "@/lib/api";
+import { useT } from "@/lib/i18n";
+import { operationalError } from "@/lib/errors";
 
 /**
  * Re-tag the project on an already-submitted record. Used when a foreman
@@ -25,6 +27,7 @@ import { api } from "@/lib/api";
  * exactly as the foreman submitted them.
  */
 export function EditProjectDialog({ kind, recordId, current, onSaved }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [job, setJob] = useState({
     project_name: current?.project_name || "",
@@ -47,7 +50,7 @@ export function EditProjectDialog({ kind, recordId, current, onSaved }) {
 
   const handleSave = async () => {
     if (!job.project_name?.trim()) {
-      toast.error("Project name is required");
+      toast.error(t("Project name is required"));
       return;
     }
     setSaving(true);
@@ -56,13 +59,11 @@ export function EditProjectDialog({ kind, recordId, current, onSaved }) {
         `/admin/records/${kind}/${recordId}/project`,
         job,
       );
-      toast.success("Project updated");
+      toast.success(t("Project updated"));
       setOpen(false);
       onSaved?.(res.data?.record);
     } catch (e) {
-      toast.error(
-        e?.response?.data?.detail || "Failed to update project — try again",
-      );
+      toast.error(operationalError(e, t("Failed to update project — try again")));
     } finally {
       setSaving(false);
     }
@@ -77,23 +78,22 @@ export function EditProjectDialog({ kind, recordId, current, onSaved }) {
         className="border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-bold uppercase tracking-wide text-xs h-9"
         data-testid="edit-project-btn"
       >
-        <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit Project
+        <Pencil className="w-3.5 h-3.5 mr-1.5" /> {t("Edit Project")}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg" data-testid="edit-project-dialog">
           <DialogHeader>
             <DialogTitle className="font-display text-xl font-black uppercase tracking-tight">
-              Re-tag this report
+              {t("Re-tag this report")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2 text-sm">
             <p className="text-slate-600 leading-relaxed">
-              Change the project this record is filed under. Signatures,
-              photos, narrative, and checklist data stay untouched.
+              {t("Change the project this record is filed under. Signatures, photos, narrative, and checklist data stay untouched.")}
             </p>
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-1">
-                Currently filed under
+                {t("Currently filed under")}
               </div>
               <div className="px-3 py-2 rounded bg-slate-100 border-l-2 border-slate-400 font-mono text-[12px] text-slate-700">
                 {current?.project_name || "—"}
@@ -102,7 +102,7 @@ export function EditProjectDialog({ kind, recordId, current, onSaved }) {
             </div>
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-1">
-                Move to
+                {t("Move to")}
               </div>
               <JobPicker
                 projectName={job.project_name}
@@ -119,7 +119,7 @@ export function EditProjectDialog({ kind, recordId, current, onSaved }) {
               disabled={saving}
               data-testid="edit-project-cancel"
             >
-              <X className="w-4 h-4 mr-1" /> Cancel
+              <X className="w-4 h-4 mr-1" /> {t("Cancel")}
             </Button>
             <Button
               type="button"
@@ -128,7 +128,7 @@ export function EditProjectDialog({ kind, recordId, current, onSaved }) {
               className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
               data-testid="edit-project-save"
             >
-              <Save className="w-4 h-4 mr-1" /> {saving ? "Saving…" : "Save"}
+              <Save className="w-4 h-4 mr-1" /> {saving ? t("Saving…") : t("Save")}
             </Button>
           </DialogFooter>
         </DialogContent>

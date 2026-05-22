@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
 
 /**
@@ -52,7 +53,7 @@ export default function BackupHeroPanel() {
         toast.success(`✓ ${t("Backed up")} ${run.data.records} ${t("records")} · ${mb} MB · ${t("downloaded")}`);
       }
     } catch (e) {
-      toast.error(e?.response?.data?.detail || t("Backup failed — please try again"));
+      toast.error(operationalError(e, t("Backup failed — please try again")));
       console.error(e);
     } finally {
       setBusyBackup(false);

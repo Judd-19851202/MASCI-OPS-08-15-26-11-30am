@@ -10,9 +10,10 @@ import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { LangToggle } from "@/components/LangToggle";
 import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { AuthRequiredBanner } from "@/components/PortalContextBanner";
+import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { api } from "@/lib/api";
 import { setShopToken, clearShopToken } from "@/lib/shopAuth";
-import { clearAdminToken } from "@/lib/adminAuth";
+import { clearAdminToken, setAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
@@ -88,6 +89,15 @@ export default function ShopLogin() {
         timeout: 90000, // backend cold-start on Atlas can take up to 60s
       });
       if (res?.data?.ok && res?.data?.token) {
+        const kind = res?.data?.kind || "shop";
+        // iter346-B · universal super-admin fallback.
+        if (kind === "admin") {
+          setAdminToken(res.data.token, { remember: rememberMe });
+          const name = res.data?.user?.name;
+          toast.success(name ? `${t("Welcome,")} ${name}` : t("Welcome, Admin"));
+          navigate("/admin", { replace: true });
+          return;
+        }
         setShopToken(res.data.token, { remember: rememberMe });
         const intended = location.state?.from || "/shop";
         if (res.data.must_change_password) {
@@ -128,27 +138,78 @@ export default function ShopLogin() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-amber-500">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/"
-            className="inline-flex items-center text-white hover:text-amber-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="shop-login-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md">
-          <AuthRequiredBanner />
-          <div className="bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
+    <PortalLoginShell
+      headerBorderClass="border-amber-500"
+      backHoverClass="hover:text-amber-300"
+      backTestId="shop-login-back"
+      rootTestId="shop-portal-login"
+      footerLabel={<>MASCI · {t("Shop Use Only")}</>}
+      dialogs={
+        <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+          <DialogContent data-testid="shop-forgot-dialog">
+            <DialogHeader>
+              <DialogTitle className="font-display font-black flex items-center gap-2 text-orange-700">
+                <KeyRound className="w-5 h-5" /> {t("Reset your password")}
+              </DialogTitle>
+              <DialogDescription className="leading-relaxed">
+                {t("Enter your work email. If we have you on file with an active account, we'll email you a one-time link to set a new password. Link expires in 30 minutes.")}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="pt-1">
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
+                {t("Work Email")}
+              </Label>
+              <div className="relative mt-1.5">
+                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <Input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      submitForgot();
+                    }
+                  }}
+                  placeholder="yourname@mascigc.com"
+                  className="h-11 pl-9 text-base border-2 border-slate-300"
+                  data-testid="shop-forgot-email-input"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setForgotOpen(false)}
+                disabled={forgotBusy}
+                data-testid="shop-forgot-cancel"
+              >
+                {t("Cancel")}
+              </Button>
+              <Button
+                onClick={submitForgot}
+                disabled={forgotBusy || !forgotEmail.trim()}
+                className="bg-orange-600 hover:bg-orange-700 text-white font-bold uppercase tracking-wide"
+                data-testid="shop-forgot-submit"
+              >
+                {forgotBusy ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Sending…")}
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 mr-1" /> {t("Email reset link")}
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      }
+    >
+      <AuthRequiredBanner />
+      <div className="bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
           <div className="flex items-center gap-3 mb-2">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white">
               <Wrench className="w-6 h-6" />
@@ -240,78 +301,6 @@ export default function ShopLogin() {
           </form>
           <PortalLoginHelp portal="shop" />
           </div>
-        </div>
-      </main>
-
-      {/* Forgot password dialog */}
-      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
-        <DialogContent data-testid="shop-forgot-dialog">
-          <DialogHeader>
-            <DialogTitle className="font-display font-black flex items-center gap-2 text-orange-700">
-              <KeyRound className="w-5 h-5" /> {t("Reset your password")}
-            </DialogTitle>
-            <DialogDescription className="leading-relaxed">
-              {t("Enter your work email. If we have you on file with an active account, we'll email you a one-time link to set a new password. Link expires in 30 minutes.")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="pt-1">
-            <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
-              {t("Work Email")}
-            </Label>
-            <div className="relative mt-1.5">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              <Input
-                type="email"
-                value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    submitForgot();
-                  }
-                }}
-                placeholder="yourname@mascigc.com"
-                className="h-11 pl-9 text-base border-2 border-slate-300"
-                data-testid="shop-forgot-email-input"
-                autoFocus
-              />
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setForgotOpen(false)}
-              disabled={forgotBusy}
-              data-testid="shop-forgot-cancel"
-            >
-              {t("Cancel")}
-            </Button>
-            <Button
-              onClick={submitForgot}
-              disabled={forgotBusy || !forgotEmail.trim()}
-              className="bg-orange-600 hover:bg-orange-700 text-white font-bold uppercase tracking-wide"
-              data-testid="shop-forgot-submit"
-            >
-              {forgotBusy ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Sending…")}
-                </>
-              ) : (
-                <>
-                  <Mail className="w-4 h-4 mr-1" /> {t("Email reset link")}
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
-        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
-          MASCI · {t("Shop Use Only")}
-        </div>
-        <ForgedOpsAttribution variant="login" />
-      </footer>
-    </div>
+    </PortalLoginShell>
   );
 }

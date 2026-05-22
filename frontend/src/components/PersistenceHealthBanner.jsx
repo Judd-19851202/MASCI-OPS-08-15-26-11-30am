@@ -3,6 +3,7 @@ import { AlertTriangle, ShieldCheck, Download, Loader2, Mail, ExternalLink } fro
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
 
 /**
@@ -54,7 +55,7 @@ export default function PersistenceHealthBanner() {
         toast.warning(t("Email step skipped — check BACKUP_EMAIL_TO + RESEND_API_KEY."));
       }
     } catch (e) {
-      toast.error(e?.response?.data?.detail || t("Backup failed"));
+      toast.error(operationalError(e, t("Backup failed")));
     } finally {
       setDownloading(false);
     }

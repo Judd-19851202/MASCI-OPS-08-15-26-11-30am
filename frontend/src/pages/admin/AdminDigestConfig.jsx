@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -28,7 +29,7 @@ export default function AdminDigestConfig() {
   const load = async () => {
     setLoading(true);
     try { setCfg((await api.get("/admin/digest-settings")).data); }
-    catch (e) { toast.error(e?.response?.data?.detail || "Failed to load digest settings"); }
+    catch (e) { toast.error(operationalError(e, "Failed to load digest settings")); }
     finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
@@ -48,7 +49,7 @@ export default function AdminDigestConfig() {
       setCfg(r.data);
       toast.success("Digest settings saved");
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Save failed");
+      toast.error(operationalError(e, "Save failed"));
     } finally { setSaving(false); }
   };
 
@@ -68,7 +69,7 @@ export default function AdminDigestConfig() {
       }
       await load();
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Send failed");
+      toast.error(operationalError(e, "Send failed"));
     } finally { setSending(false); }
   };
 
@@ -78,7 +79,7 @@ export default function AdminDigestConfig() {
       setPreviewHtml(r.data?.html || "<p>No preview available.</p>");
       setShowPreview(true);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Preview failed");
+      toast.error(operationalError(e, "Preview failed"));
     }
   };
 

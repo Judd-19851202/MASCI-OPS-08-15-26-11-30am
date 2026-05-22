@@ -31,6 +31,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { LangToggle } from "@/components/LangToggle";
+import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setFlToken, setFlUser, clearFlToken } from "@/lib/flAuth";
@@ -138,26 +139,68 @@ export default function FieldLeadershipPortalLogin() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col" data-testid="fl-portal-login">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/"
-            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="fl-login-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md">
-          {adminAware ? (
+    <PortalLoginShell
+      headerBorderClass="border-red-700"
+      backHoverClass="hover:text-red-300"
+      backTestId="fl-login-back"
+      rootTestId="fl-portal-login"
+      footerLabel={t("MASCI · Field Leadership Portal")}
+      dialogs={
+        <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+          <DialogContent data-testid="fl-forgot-dialog">
+            <DialogHeader>
+              <DialogTitle className="font-display font-black flex items-center gap-2 text-red-700">
+                <KeyRound className="w-5 h-5" /> {t("Reset your password")}
+              </DialogTitle>
+              <DialogDescription className="leading-relaxed">
+                {t("Enter your work email. If we have you on file with an active Field Leadership account, we'll email you a one-time link to set a new password. Link expires in 30 minutes.")}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="pt-1">
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
+                {t("Work Email")}
+              </Label>
+              <div className="relative mt-1.5">
+                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <Input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      submitForgot();
+                    }
+                  }}
+                  placeholder="yourname@mascigc.com"
+                  className="h-11 pl-9 text-base border-2 border-slate-300"
+                  data-testid="fl-forgot-email"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setForgotOpen(false)} disabled={forgotBusy}>
+                {t("Cancel")}
+              </Button>
+              <Button
+                onClick={submitForgot}
+                disabled={forgotBusy || !forgotEmail.trim()}
+                className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
+                data-testid="fl-forgot-submit"
+              >
+                {forgotBusy ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Sending…")}</>
+                ) : (
+                  <><Mail className="w-4 h-4 mr-1" /> {t("Email reset link")}</>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      }
+    >
+      {adminAware ? (
             <div
               className="mb-4 bg-amber-50 border-l-4 border-amber-500 rounded p-3 text-xs text-slate-800"
               data-testid="fl-admin-aware"
@@ -284,68 +327,6 @@ export default function FieldLeadershipPortalLogin() {
               </Link>
             </div>
           </div>
-        </div>
-      </main>
-
-      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
-        <DialogContent data-testid="fl-forgot-dialog">
-          <DialogHeader>
-            <DialogTitle className="font-display font-black flex items-center gap-2 text-red-700">
-              <KeyRound className="w-5 h-5" /> {t("Reset your password")}
-            </DialogTitle>
-            <DialogDescription className="leading-relaxed">
-              {t("Enter your work email. If we have you on file with an active Field Leadership account, we'll email you a one-time link to set a new password. Link expires in 30 minutes.")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="pt-1">
-            <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
-              {t("Work Email")}
-            </Label>
-            <div className="relative mt-1.5">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              <Input
-                type="email"
-                value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    submitForgot();
-                  }
-                }}
-                placeholder="yourname@mascigc.com"
-                className="h-11 pl-9 text-base border-2 border-slate-300"
-                data-testid="fl-forgot-email"
-                autoFocus
-              />
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setForgotOpen(false)} disabled={forgotBusy}>
-              {t("Cancel")}
-            </Button>
-            <Button
-              onClick={submitForgot}
-              disabled={forgotBusy || !forgotEmail.trim()}
-              className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
-              data-testid="fl-forgot-submit"
-            >
-              {forgotBusy ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Sending…")}</>
-              ) : (
-                <><Mail className="w-4 h-4 mr-1" /> {t("Email reset link")}</>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
-        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
-          {t("MASCI · Field Leadership Portal")}
-        </div>
-        <ForgedOpsAttribution variant="login" />
-      </footer>
-    </div>
+    </PortalLoginShell>
   );
 }

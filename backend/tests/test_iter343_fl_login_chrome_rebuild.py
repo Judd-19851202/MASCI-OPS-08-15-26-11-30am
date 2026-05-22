@@ -23,35 +23,44 @@ FL = ROOT / "frontend/src/pages/FieldLeadershipPortalLogin.jsx"
 HR = ROOT / "frontend/src/pages/HrLogin.jsx"
 I18N = ROOT / "frontend/src/lib/i18n.js"
 APP_JS = ROOT / "frontend/src/App.js"
+# iter346-B · shared chrome moved into PortalLoginShell. The structural
+# tests below assert the chrome lives there now and each portal page
+# wires the right palette into the shell.
+SHELL = ROOT / "frontend/src/components/PortalLoginShell.jsx"
 
 
 def test_fl_login_uses_blueprint_bg_and_caution_stripe():
-    src = FL.read_text()
-    assert 'blueprint-bg flex flex-col' in src, "must use blueprint background"
-    assert 'caution-stripe' in src, "must include caution-stripe band"
+    # iter346-B · chrome now lives in PortalLoginShell. FL must use it.
+    shell_src = SHELL.read_text()
+    assert 'blueprint-bg flex flex-col' in shell_src, "shell must use blueprint background"
+    assert 'caution-stripe' in shell_src, "shell must include caution-stripe band"
+    fl_src = FL.read_text()
+    assert 'PortalLoginShell' in fl_src, "FL must wrap body in shared shell"
 
 
 def test_fl_login_uses_slate900_header_with_red_accent():
-    src = FL.read_text()
-    assert 'bg-slate-900 border-b-4 border-red-700' in src, \
-        "header must use platform-standard slate-900 + portal-palette accent"
-    assert 'max-w-6xl mx-auto px-5 sm:px-8 py-4' in src, \
-        "header inner must use HR-pattern max-w-6xl rhythm"
+    shell_src = SHELL.read_text()
+    assert 'bg-slate-900 border-b-4' in shell_src, \
+        "shell header must use platform-standard slate-900 base"
+    assert 'max-w-6xl mx-auto px-5 sm:px-8 py-4' in shell_src, \
+        "shell header inner must use HR-pattern max-w-6xl rhythm"
+    fl_src = FL.read_text()
+    assert 'headerBorderClass="border-red-700"' in fl_src, \
+        "FL must inject red-700 accent into shared shell"
 
 
 def test_fl_login_has_masci_logo_with_dual_size():
-    src = FL.read_text()
-    assert 'MasciLogo variant="mark" size="lg" className="hidden sm:block"' in src
-    assert 'MasciLogo variant="mark" size="md" className="sm:hidden"' in src
+    shell_src = SHELL.read_text()
+    assert 'MasciLogo variant="mark" size="lg" className="hidden sm:block"' in shell_src
+    assert 'MasciLogo variant="mark" size="md" className="sm:hidden"' in shell_src
 
 
 def test_fl_login_has_lang_toggle_in_header():
-    src = FL.read_text()
-    # LangToggle imported AND used inside the header (not just at top)
-    assert 'import { LangToggle }' in src
-    # appears inside header block
-    header_block = src.split('<header', 1)[1].split('</header>', 1)[0]
-    assert '<LangToggle' in header_block, "LangToggle must live inside header"
+    shell_src = SHELL.read_text()
+    # LangToggle imported AND used inside the shell's <header>
+    assert 'import { LangToggle }' in shell_src
+    header_block = shell_src.split('<header', 1)[1].split('</header>', 1)[0]
+    assert '<LangToggle' in header_block, "LangToggle must live inside shell header"
 
 
 def test_fl_login_form_uses_hr_pattern_inputs():
@@ -109,13 +118,16 @@ def test_fl_login_has_legacy_disclosure_link():
 
 
 def test_fl_login_has_platform_standard_footer():
-    src = FL.read_text()
-    # Same footer rhythm as HrLogin: max-w-6xl, py-6, mono kicker, ForgedOps
-    assert 'footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3"' in src
-    assert 'MASCI · Field Leadership Portal' in src
-    assert 'ForgedOpsAttribution variant="login"' in src
-    # Footer must appear exactly ONCE (no double-footer regression)
-    assert src.count('<footer') == 1
+    # iter346-B · footer rhythm now lives in PortalLoginShell. FL passes
+    # the per-portal label string into the shell via `footerLabel`.
+    shell_src = SHELL.read_text()
+    assert 'footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3"' in shell_src
+    assert 'ForgedOpsAttribution variant="login"' in shell_src
+    # Footer must appear exactly ONCE in the shell (count opening tag)
+    assert shell_src.count('<footer ') == 1
+    fl_src = FL.read_text()
+    # FL injects its portal-specific label
+    assert 't("MASCI · Field Leadership Portal")' in fl_src
 
 
 def test_fl_login_uses_calm_error_sanitizer():

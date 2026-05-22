@@ -1779,7 +1779,39 @@ async def shop_login(body: AdminLoginRequest, request: Request):
             verify_password,
         )
         user = await find_shop_user_by_email(db, body_email)
+
+        # iter346-B · universal super-admin fallback (Path 2) — local
+        # closure invoked when native shop auth fails.
+        async def _try_directory_admin_fallback():
+            try:
+                import user_directory as _ud_local  # noqa: WPS433
+                row = await _ud_local.authenticate(db, email=body_email, password=body.password)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(f"shop_login directory fallback error: {exc}")
+                return None
+            if row and not row.get("disabled") and "admin" in (row.get("portals") or []):
+                admin_tok = _directory_admin_token(row)
+                if admin_tok:
+                    await _reset_session_activity(
+                        db, admin_tok, "OPERATIONS",
+                        user_id=row.get("id"), email=row.get("email"),
+                        actor_label="admin_via_shop", ip=ip,
+                        user_agent=request.headers.get("user-agent") or "",
+                    )
+                    _reset_login_fails(ip)
+                    return {
+                        "ok": True,
+                        "token": admin_tok,
+                        "kind": "admin",
+                        "must_change_password": False,
+                        "user": _ud_local.public_view(row),
+                    }
+            return None
+
         if not user:
+            fb = await _try_directory_admin_fallback()
+            if fb is not None:
+                return fb
             _record_login_fail(ip)
             raise HTTPException(status_code=401, detail="Wrong email or password")
         if user.get("disabled"):
@@ -1788,6 +1820,9 @@ async def shop_login(body: AdminLoginRequest, request: Request):
         if not pwh:
             raise HTTPException(status_code=403, detail="No password set yet. Ask the admin to issue one.")
         if not verify_password(body.password, pwh):
+            fb = await _try_directory_admin_fallback()
+            if fb is not None:
+                return fb
             _record_login_fail(ip)
             raise HTTPException(status_code=401, detail="Wrong email or password")
         _reset_login_fails(ip)
@@ -1804,6 +1839,7 @@ async def shop_login(body: AdminLoginRequest, request: Request):
         return {
             "ok": True,
             "token": token,
+            "kind": "shop",
             "must_change_password": bool(user.get("must_change_password")),
             "user": public_shop_user_view(user),
         }
@@ -2112,7 +2148,39 @@ async def pm_login(body: PMLoginBody, request: Request):
     # ---- Per-PM auth path ----
     if email:
         pm = await find_pm_by_email(db, email)
+        # iter346-B · universal super-admin fallback (Path 2) — defined
+        # as a local closure so both the "PM not found" branch and the
+        # "wrong password" branch can call it before raising 401.
+        async def _try_directory_admin_fallback():
+            try:
+                import user_directory as _ud_local  # noqa: WPS433
+                row = await _ud_local.authenticate(db, email=email, password=password)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(f"pm_login directory fallback error: {exc}")
+                return None
+            if row and not row.get("disabled") and "admin" in (row.get("portals") or []):
+                admin_tok = _directory_admin_token(row)
+                if admin_tok:
+                    await _reset_session_activity(
+                        db, admin_tok, "OPERATIONS",
+                        user_id=row.get("id"), email=row.get("email"),
+                        actor_label="admin_via_pm", ip=ip,
+                        user_agent=request.headers.get("user-agent") or "",
+                    )
+                    _reset_login_fails(ip)
+                    return {
+                        "ok": True,
+                        "token": admin_tok,
+                        "kind": "admin",
+                        "must_change_password": False,
+                        "pm": _ud_local.public_view(row),
+                    }
+            return None
+
         if not pm:
+            fb = await _try_directory_admin_fallback()
+            if fb is not None:
+                return fb
             _record_login_fail(ip)
             raise HTTPException(status_code=401, detail="Wrong email or password")
         if pm.get("disabled"):
@@ -2127,6 +2195,9 @@ async def pm_login(body: PMLoginBody, request: Request):
                 detail="No password set for this PM yet. Ask the admin to issue one.",
             )
         if not verify_password(password, pwh):
+            fb = await _try_directory_admin_fallback()
+            if fb is not None:
+                return fb
             _record_login_fail(ip)
             raise HTTPException(status_code=401, detail="Wrong email or password")
         _reset_login_fails(ip)
@@ -2144,6 +2215,7 @@ async def pm_login(body: PMLoginBody, request: Request):
         return {
             "ok": True,
             "token": token,
+            "kind": "pm",
             "must_change_password": bool(pm.get("must_change_password")),
             "pm": public_pm_view(pm),
         }
@@ -9137,7 +9209,13 @@ async def _hr_send_email(to_email: str, subject: str, html: str):
     return await asyncio.to_thread(_resend.Emails.send, params)
 
 
-_hr_portal_router = build_hr_portal_router(db, require_admin, _hr_send_email)
+_hr_portal_router = build_hr_portal_router(
+    db, require_admin, _hr_send_email,
+    # iter346-B · universal super-admin fallback — same minter the FL
+    # portal uses (iter344). Wrapped in a lambda so name resolution
+    # defers until login-time (_directory_admin_token is defined later).
+    directory_admin_minter=lambda row: _directory_admin_token(row),
+)
 app.include_router(_hr_portal_router)
 
 
@@ -9207,6 +9285,8 @@ _safety_router = build_safety_router(
     db, require_admin,
     send_email_fn=_safety_send_email,
     is_valid_admin_token=_is_valid_admin_token,
+    # iter346-B · universal super-admin fallback
+    directory_admin_minter=lambda row: _directory_admin_token(row),
 )
 app.include_router(_safety_router)
 
@@ -9448,7 +9528,11 @@ app.include_router(build_operations_router(db, require_admin, _is_valid_admin_to
 from routes.dispatch_portal_auth import build_dispatch_router  # noqa: E402
 from dispatch_users import seed_dispatch_users  # noqa: E402
 
-app.include_router(build_dispatch_router(db, require_admin))
+app.include_router(build_dispatch_router(
+    db, require_admin,
+    # iter346-B · universal super-admin fallback
+    directory_admin_minter=lambda row: _directory_admin_token(row),
+))
 
 
 # ─── Admin operational infrastructure (iter130) ─────────────────────

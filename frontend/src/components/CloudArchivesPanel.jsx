@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 const fmtBytes = (n) => {
   if (!n) return "0 B";
@@ -92,7 +93,7 @@ export default function CloudArchivesPanel() {
         await loadState();
       }
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Build failed");
+      toast.error(operationalError(e, "Build failed"));
     } finally {
       setBusy(false);
     }

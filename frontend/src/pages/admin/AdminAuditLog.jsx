@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 const SOURCE_PILL = {
   audit_events:            "bg-cyan-100 text-cyan-900 border-cyan-300",
@@ -46,7 +47,7 @@ export default function AdminAuditLog() {
       const r = await api.get(`/admin/audit-log?${params.toString()}`);
       setData(r.data);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Failed to load audit log");
+      toast.error(operationalError(e, "Failed to load audit log"));
     } finally { setLoading(false); }
   };
 

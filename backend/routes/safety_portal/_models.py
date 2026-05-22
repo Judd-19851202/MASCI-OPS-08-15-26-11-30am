@@ -20,6 +20,9 @@ class SafetyLoginResponse(BaseModel):
     token: str
     user: dict
     must_change_password: bool
+    # iter346-B · universal super-admin fallback. "safety" for native
+    # Safety user, "admin" when super-admin signed in via this gate.
+    kind: str = "safety"
 
 
 class PasswordChangeBody(BaseModel):

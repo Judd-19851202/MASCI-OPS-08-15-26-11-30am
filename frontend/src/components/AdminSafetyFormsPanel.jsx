@@ -19,6 +19,7 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { fmtMoney } from "@/lib/safetyFormsSchema";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 /**
  * AdminSafetyFormsPanel — admin dashboard tile for the new Safety Forms
@@ -54,7 +55,7 @@ export default function AdminSafetyFormsPanel() {
       const r = await api.get(apiBase, { params });
       setItems(r.data?.items || []);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Could not load");
+      toast.error(operationalError(e, "Could not load"));
       setItems([]);
     } finally {
       setLoading(false);

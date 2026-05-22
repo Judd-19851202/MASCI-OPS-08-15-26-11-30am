@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 const STATUS_CLS = {
   green:  "bg-emerald-50 border-emerald-300 text-emerald-900",
@@ -24,7 +25,7 @@ export default function DeployRecovery() {
   const load = async () => {
     setLoading(true);
     try { setData((await api.get("/admin/deploy-recovery")).data); }
-    catch (e) { toast.error(e?.response?.data?.detail || "Failed to load recovery state"); }
+    catch (e) { toast.error(operationalError(e, "Failed to load recovery state")); }
     finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);

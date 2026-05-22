@@ -14,6 +14,7 @@ import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { LangToggle } from "@/components/LangToggle";
 import { AuthRequiredBanner } from "@/components/PortalContextBanner";
+import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { toast } from "sonner";
 import axios from "axios";
 import { useT } from "@/lib/i18n";
@@ -22,6 +23,7 @@ import {
   setSafetyUser,
   isSafety,
 } from "@/lib/safetyAuth";
+import { setAdminToken } from "@/lib/adminAuth";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -47,6 +49,16 @@ export default function SafetyLogin() {
         email: email.trim(),
         password,
       });
+      // iter346-B · universal super-admin fallback. Backend returns
+      // kind:"admin" when a super-admin signed in via this gate.
+      const kind = r?.data?.kind || "safety";
+      if (kind === "admin") {
+        setAdminToken(r.data.token, { remember });
+        const name = r.data?.user?.name;
+        toast.success(name ? `${t("Welcome,")} ${name}` : t("Welcome, Admin"));
+        nav("/admin", { replace: true });
+        return;
+      }
       setSafetyToken(r.data.token, remember);
       setSafetyUser(r.data.user);
       toast.success(t("Welcome to the Safety Portal"));
@@ -72,30 +84,18 @@ export default function SafetyLogin() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-cyan-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/"
-            className="inline-flex items-center text-white hover:text-cyan-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="safety-login-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md">
-          {/* iter322-B · context-aware banner when redirected from a
-              protected workflow (rendered only when state.continuity
-              is present — zero footprint otherwise). */}
-          <AuthRequiredBanner />
-          <div className="bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
+    <PortalLoginShell
+      headerBorderClass="border-cyan-700"
+      backHoverClass="hover:text-cyan-300"
+      backTestId="safety-login-back"
+      rootTestId="safety-portal-login"
+      footerLabel={t("MASCI · Safety Portal")}
+    >
+      {/* iter322-B · context-aware banner when redirected from a
+          protected workflow (rendered only when state.continuity
+          is present — zero footprint otherwise). */}
+      <AuthRequiredBanner />
+      <div className="bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
           <div className="flex items-center gap-3 mb-2">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-cyan-700 text-white">
               <ShieldAlert className="w-6 h-6" />
@@ -181,16 +181,7 @@ export default function SafetyLogin() {
             </Button>
           </form>
           <PortalLoginHelp portal="safety" />
-          </div>
-        </div>
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
-        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
-          {t("MASCI · Safety Portal")}
-        </div>
-        <ForgedOpsAttribution variant="login" />
-      </footer>
-    </div>
+      </div>
+    </PortalLoginShell>
   );
 }

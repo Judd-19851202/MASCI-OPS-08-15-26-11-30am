@@ -2,6 +2,37 @@
 
 
 
+## 2026-05-22 — iter346 · FINAL OPTIONAL CLOSEOUT · ✅ APPROVE
+
+This is the FINAL optional closeout of the platform. Split into two bounded
+mini-iters; both green; 80/80 iter340→346 pytest pass; deploy gate green.
+
+### iter346-A · Final Hygiene / Visibility · ✅
+1. **Shared `operationalError()` sanitizer applied to 30 admin-internal catch sites** across 19 files (AdminJobMasterPanel, CrewRecoveryPanel, PreDeploySnapshotPanel, AdminSafetyFormsPanel, CloudArchivesPanel, AdminPMPanel, BackupHeroPanel, PersistenceHealthBanner, DateAuditPanel, StoredBackupsPanel, EquipmentMasterPanel, MasterListPanel, AdminDigestConfig (4), AdminIntegrationCenter (8), AdminAuditLog, SystemHealth, AdminSessions, DeployRecovery, AdminTrainingVideos). Coverage proof: `grep -rn "toast.error(e?.response?.data?.detail" src/` → 0 matches.
+2. **EDIT PROJECT English leak in ES fixed** — `EditProjectDialog.jsx` wraps every string in `t()`; 8 new ES keys added.
+3. **Access-Control Quick Stats tile** — NEW `components/AdminAccessStatsTile.jsx` mounted on `/admin/people`. Reads existing `/api/admin/directory` (no new backend). Shows: total users (61) · total grants (67) · cross-portal (1) · disabled (0). Calm slate-700 stripe + mono numerals.
+
+### iter346-B · Login Shell + Universal Super-Admin Fallback · ✅
+4. **Shared `<PortalLoginShell />`** — NEW `components/PortalLoginShell.jsx`. HR/Safety/PM/Shop/Dispatch/FL all wrap body in it. Invisible refactor — palette accents passed as literal class strings (`headerBorderClass="border-purple-700"` etc) so Tailwind scanner finds them. Structural prevention of future portal-login UI drift.
+5. **Universal super-admin login fallback** — Path 2 extended from FL (iter344) to HR/Safety/PM/Shop/Dispatch. When native portal login fails AND email is in `user_directory` AND row has `admin` grant + correct master password, mint admin token (`kind:"admin"`). Frontend stores via `setAdminToken()` and routes to `/admin`. RBAC preserved: only `admin` grant unlocks; non-admin/wrong-pw/disabled all return 401.
+
+### Tests · iter346
+- **NEW** `test_iter346a_final_hygiene_closeout.py` (9/9 PASS)
+- **NEW** `test_iter346b_login_shell_and_super_admin.py` (24/24 PASS)
+- **Updated** `test_iter343_fl_login_chrome_rebuild.py` (5 tests refactored to read shell — 15/15 PASS)
+- **Cumulative iter340→346:** 80/80 PASS · deploy gate 9/9 green
+
+### Files touched
+NEW frontend: `components/AdminAccessStatsTile.jsx`, `components/PortalLoginShell.jsx`
+NEW tests: 2 test files (33 tests)
+Modified: 27 frontend files + 5 backend files
+Final report: `/app/memory/FINAL_OPTIONAL_CLOSEOUT_iter346.md`
+
+### Cumulative pending redeploy after iter346
+iter330 → iter346 (all hygiene, FL convergence, FL super-admin, FL hybrid unified access, final optional closeout).
+
+---
+
 ## 2026-05-22 — iter345 · FL Phase B · Hybrid Unified Access Control · ✅ APPROVE
 
 ### Operator policy lock (1a · 2a · 3b)

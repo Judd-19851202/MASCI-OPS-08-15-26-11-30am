@@ -104,11 +104,18 @@ def _client_ip(req: Request) -> str:
         return ""
 
 
-def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optional[Callable] = None) -> APIRouter:
+def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optional[Callable] = None, directory_admin_minter: Optional[Callable] = None) -> APIRouter:
     """Assemble the HR portal router. `db` = motor db; `require_admin_dep`
     = the FastAPI admin-only dependency from server.py; `send_email_fn`
     = optional `async (to, subject, html) -> None` for credential
-    delivery — falls back to log-only when not provided."""
+    delivery — falls back to log-only when not provided.
+
+    iter346-B · `directory_admin_minter` (optional) enables the universal
+    super-admin login fallback: if native HR login fails and the email
+    belongs to a `user_directory` row with the `admin` portal grant +
+    correct master password, mint an admin token (kind:"admin"). Same
+    pattern that iter344 introduced on the FL portal — extended here so
+    super-admin can sign in via any portal login screen."""
     router = APIRouter(prefix="/api", tags=["hr-portal"])
 
     # ─── HR token resolver (used by every HR endpoint) ───────────────
@@ -131,34 +138,66 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         if not email or not payload.password:
             raise HTTPException(400, "email and password required")
         user = await find_hr_user_by_email(db, email)
-        if not user or user.get("disabled") or not user.get("is_active", True):
-            raise HTTPException(401, "Invalid email or password")
-        pwh = user.get("password_hash")
-        if not pwh or not verify_password(payload.password, pwh):
-            raise HTTPException(401, "Invalid email or password")
-        token = make_hr_user_token(user["id"], pwh)
-        await stamp_hr_login(db, user["id"], _client_ip(request))
-        # Initiative 4 fix — HR tokens are deterministic per
-        # (user_id, password_hash). Reset session_activity so a
-        # post-idle re-login doesn't inherit a stale row.
-        try:
-            from session_timeout import reset_session_activity
-            await reset_session_activity(
-                db, token, "ADMIN_HR",
-                user_id=user.get("id"),
-                email=user.get("email"),
-                actor_label="hr",
-                ip=_client_ip(request),
-                user_agent=request.headers.get("user-agent") or "",
-            )
-        except Exception:  # noqa: BLE001
-            pass
-        return {
-            "ok": True,
-            "token": token,
-            "user": public_hr_user_view(user),
-            "must_change_password": bool(user.get("must_change_password")),
-        }
+        # ── Path 1 · per-user HR identity ────────────────────────────
+        if user and not user.get("disabled") and user.get("is_active", True):
+            pwh = user.get("password_hash")
+            if pwh and verify_password(payload.password, pwh):
+                token = make_hr_user_token(user["id"], pwh)
+                await stamp_hr_login(db, user["id"], _client_ip(request))
+                try:
+                    from session_timeout import reset_session_activity
+                    await reset_session_activity(
+                        db, token, "ADMIN_HR",
+                        user_id=user.get("id"),
+                        email=user.get("email"),
+                        actor_label="hr",
+                        ip=_client_ip(request),
+                        user_agent=request.headers.get("user-agent") or "",
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+                return {
+                    "ok": True,
+                    "token": token,
+                    "kind": "hr",
+                    "user": public_hr_user_view(user),
+                    "must_change_password": bool(user.get("must_change_password")),
+                }
+        # ── Path 2 · iter346-B · universal super-admin fallback ──────
+        # If native HR login didn't authenticate, check the master
+        # `user_directory`. A user with the `admin` portal grant whose
+        # master password verifies is signed in as Admin (same admin
+        # token /api/admin/* routes accept). Only `admin` grant unlocks
+        # the fallback — non-admin directory users still get 401.
+        if directory_admin_minter is not None:
+            try:
+                import user_directory as _ud  # noqa: WPS433
+                row = await _ud.authenticate(db, email=email, password=payload.password)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"hr_login directory fallback error: {e}")
+                row = None
+            if row and not row.get("disabled") and "admin" in (row.get("portals") or []):
+                admin_tok = directory_admin_minter(row)
+                if admin_tok:
+                    try:
+                        from session_timeout import reset_session_activity
+                        await reset_session_activity(
+                            db, admin_tok, "ADMIN_HR",
+                            user_id=row.get("id"), email=row.get("email"),
+                            actor_label="admin_via_hr",
+                            ip=_client_ip(request),
+                            user_agent=request.headers.get("user-agent") or "",
+                        )
+                    except Exception:  # noqa: BLE001
+                        pass
+                    return {
+                        "ok": True,
+                        "token": admin_tok,
+                        "kind": "admin",
+                        "user": _ud.public_view(row),
+                        "must_change_password": False,
+                    }
+        raise HTTPException(401, "Invalid email or password")
 
     @router.post("/hr/change-password")
     async def hr_change_password(payload: ChangePasswordPayload, actor=Depends(require_hr_user)):

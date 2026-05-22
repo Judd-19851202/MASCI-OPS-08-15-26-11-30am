@@ -19,6 +19,7 @@ import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 import { TroubleshootingLink } from "@/components/guidance";
 
 const STATUS_STYLE = {
@@ -93,7 +94,7 @@ export default function AdminSessions() {
     try {
       setData((await api.get("/admin/sessions/recent?limit=50")).data);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Failed to load sessions");
+      toast.error(operationalError(e, "Failed to load sessions"));
     } finally {
       setLoading(false);
     }

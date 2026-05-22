@@ -8,6 +8,7 @@ import AdminFieldLeadershipUsersPanel from "@/components/AdminFieldLeadershipUse
 import AdminSafetyUsersPanel from "@/components/AdminSafetyUsersPanel";
 import AdminDispatchUsersPanel from "@/components/AdminDispatchUsersPanel";
 import AdminAccessControlPanel from "@/components/AdminAccessControlPanel";
+import AdminAccessStatsTile from "@/components/AdminAccessStatsTile";
 import AdminUnifiedDirectoryPanel from "@/components/AdminUnifiedDirectoryPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 
@@ -25,6 +26,7 @@ export default function AdminPeople() {
       }
     >
       <div className="space-y-4">
+        <AdminAccessStatsTile />
         <AdminAccessControlPanel />
         <AdminUnifiedDirectoryPanel />
         <AdminPMPanel />

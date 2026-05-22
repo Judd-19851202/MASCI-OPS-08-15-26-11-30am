@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
 
 /**
@@ -42,7 +43,7 @@ export default function DateAuditPanel() {
       setData(r.data);
       setAppliedIds(new Set());
     } catch (e) {
-      toast.error(e?.response?.data?.detail || e?.message || "Scan failed");
+      toast.error(operationalError(e, e?.message || "Scan failed"));
     } finally {
       setBusy(false);
     }
@@ -65,7 +66,7 @@ export default function DateAuditPanel() {
         `Fixed ${row.label} · ${row.project_name || row.id} → ${row.suggested_date}`,
       );
     } catch (e) {
-      toast.error(e?.response?.data?.detail || e?.message || "Apply failed");
+      toast.error(operationalError(e, e?.message || "Apply failed"));
     }
   };
 

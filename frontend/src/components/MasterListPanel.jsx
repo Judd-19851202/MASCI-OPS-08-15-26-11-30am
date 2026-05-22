@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 /**
  * MasterListPanel — generic single-add + table + edit + delete + bulk-replace
@@ -109,7 +110,7 @@ export default function MasterListPanel({
       setArchive(archiveR.data?.items || []);
       setRetainDays(archiveR.data?.retain_days || 14);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || `Failed to load ${entitySingular} list`);
+      toast.error(operationalError(e, `Failed to load ${entitySingular} list`));
     } finally {
       setLoading(false);
     }

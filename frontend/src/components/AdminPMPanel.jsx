@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 /**
  * AdminPMPanel — manage MASCI Project Managers (the email routing roster).
@@ -105,7 +106,7 @@ export default function AdminPMPanel() {
         })
         .catch(() => {});
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Failed to load PMs");
+      toast.error(operationalError(e, "Failed to load PMs"));
     } finally {
       setLoading(false);
     }

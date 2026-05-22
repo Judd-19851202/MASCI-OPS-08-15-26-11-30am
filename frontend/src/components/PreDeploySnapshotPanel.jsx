@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 function fmtAge(ts) {
   if (!ts) return null;
@@ -91,7 +92,7 @@ export default function PreDeploySnapshotPanel() {
       }
     } catch (e) {
       setBuilding(false);
-      toast.error(e?.response?.data?.detail || "Snapshot failed");
+      toast.error(operationalError(e, "Snapshot failed"));
     }
   };
 

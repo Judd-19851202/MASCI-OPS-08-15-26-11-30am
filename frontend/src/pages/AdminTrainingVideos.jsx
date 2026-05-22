@@ -7,6 +7,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { api } from "@/lib/api";
 import { LESSONS, TRACKS } from "@/data/training";
 import { toast } from "sonner";
+import { operationalError } from "@/lib/errors";
 
 /**
  * AdminTrainingVideos — paste YouTube / Loom / Vimeo / Wistia URLs per
@@ -42,7 +43,7 @@ export default function AdminTrainingVideos() {
       setVideos(res?.data?.videos || {});
       toast.success("Training videos saved");
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Could not save videos");
+      toast.error(operationalError(e, "Could not save videos"));
     } finally {
       setSaving(false);
     }
