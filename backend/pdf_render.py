@@ -1259,7 +1259,36 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
         body = _render_generic(title, record)
 
     record_id = (record.get("id") or "")[:8].upper()
-    doc_id = (record.get("doc_id") or "").strip()
+    # iter337 · PDF Header Reference Continuity. Surface the SAME
+    # canonical identifier shown on the iter335 /thank-you submission
+    # page and the iter336 review-side detail headers. Same fallback
+    # chain so paper + screen + PDF stay in lock-step. Graceful absence
+    # if nothing canonical exists yet (legacy records pre-numbering).
+    canonical_ref = (
+        record.get("incident_number")
+        or record.get("report_number")
+        or record.get("inspection_number")
+        or record.get("meeting_number")
+        or record.get("issuance_number")
+        or record.get("training_number")
+        or record.get("jha_number")
+        or record.get("doc_id")
+        or (record.get("id") or "")
+    ).strip() if isinstance(
+        record.get("incident_number")
+        or record.get("report_number")
+        or record.get("inspection_number")
+        or record.get("meeting_number")
+        or record.get("issuance_number")
+        or record.get("training_number")
+        or record.get("jha_number")
+        or record.get("doc_id")
+        or record.get("id"),
+        str,
+    ) else ""
+    # Legacy `doc_id` retained for backward compatibility with the email
+    # subject builder + audit logs.
+    doc_id = (record.get("doc_id") or "").strip()  # noqa: F841 — used by callers via record dict
     project = (
         record.get("project_name")
         or record.get("project")
@@ -1351,7 +1380,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     <div class="hdr-r">
       <div class="hdr-title">{escape(title)}</div>
       <div class="hdr-kicker">MASCI Operations Platform</div>
-      {('<div class="hdr-docid" style="font-family:Courier New,monospace;font-size:11pt;font-weight:900;color:#c8102e;letter-spacing:0.05em;margin-top:6px">' + escape(doc_id) + '</div>') if doc_id else ''}
+      {('<div class="hdr-docid" style="font-family:Courier New,monospace;font-size:11pt;font-weight:900;color:#c8102e;letter-spacing:0.05em;margin-top:6px">Ref &middot; ' + escape(canonical_ref) + '</div>') if canonical_ref else ''}
     </div>
   </header>
   <div class="meta">

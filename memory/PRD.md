@@ -2,6 +2,85 @@
 
 
 
+## 2026-05-22 — iter337 · PDF Header Reference Continuity · CLOSED
+
+### Scope (operator-mandated · final document-continuity layer · iter335/336 mirror in PDFs)
+Surfaced the same canonical record identifier shown on the iter335 `/thank-you` page and the iter336 review-side detail headers into the **header of every generated PDF**. The operational reference now travels with the record across submit → review → screenshot → PDF export → printed copy → archive → FDOT/FAA/OSHA/insurance/legal review. **Digitally and physically, the continuity loop is closed.**
+
+### Visual rhythm (PDF header now mirrors thank-you + review)
+
+**iter335 thank-you:** `Ref · INC-2026-0517-002`
+**iter336 review detail:** `Ref · INC-2026-0517-002`
+**iter337 PDF header:** `Ref · INC-2026-0517-002`
+
+### Implementation
+Three PDF render paths updated:
+
+1. **`/app/backend/pdf_render.py`** (main path used by Incident · Daily Report · Inspection · Meeting · Equipment Pre-Op)
+   - New `canonical_ref` computation chained: `incident_number → report_number → inspection_number → meeting_number → issuance_number → training_number → jha_number → doc_id → id`
+   - Header markup now renders `Ref &middot; <canonical_ref>` in the existing red kicker chrome
+   - Legacy `doc_id` variable retained for email-subject + audit-log backward compatibility
+
+2. **`/app/backend/routes/safety_forms.py`** (Issuance + Training PDF inline templates)
+   - Issuance template: chain `issuance_number → doc_id → id`
+   - Training template: chain `training_number → doc_id → id`
+   - Sub-line replaces legacy `Form Ref: {id}` with `Ref · <canonical>`
+   - Right-side duplicate `doc_id` block removed (single source of truth)
+
+3. **`/app/backend/field_leadership_pdf.py`** (FL write-ups + safety contacts + warning notices)
+   - Header right-block: chain `record_number → doc_id → id`
+   - Block conditionally renders only when at least one identifier exists (graceful absence per spec)
+
+### Live verification (preview)
+- **Safety Forms Issuance PDF** (`SEI-2026-00034`): rendered with `Ref · SEI-2026-00034` in header ✓ · text-layer extraction confirms ✓ · legacy "Form Ref:" string absent ✓ · 1.13s render (non-blocking — iter331 fix still in effect)
+- **FL Record PDF** (`FLW-2026-00083`): rendered with `Ref · FLW-2026-00083` in header ✓ · text-layer extraction confirms ✓ · 1.29s render
+- Visual consistency: same red `font-family:Courier New,monospace;font-weight:900` kicker chrome used in iter335/336
+
+### Bilingual + Mobile/Print governance
+- `Ref` label uses HTML middot entity (`Ref &middot; <ID>`) — universal across EN/ES (no translation of the canonical ID itself, per spec)
+- PDF layout untouched · same margins · same logo position · same pagination · no template redesign
+- Mobile downloads unaffected · header doesn't overlap · no footer drift · no clipping
+
+### Graceful absence
+Every render path conditionally omits the `Ref · ` line when no canonical ID exists — no `REF-PENDING`, no `NO-REF-YET`, no `PLACEHOLDER-REF` (verified by regression test).
+
+### Tests
+**Backend regression:** 195/195 green (iter32x → iter337 + family contract)
+**Deploy gate:** 9/9 green
+**Ruff:** clean on all 3 touched backend files
+**Live PDF smoke (curl):** Safety Forms Issuance + FL Record both verified text-layer contains `Ref ·` and is gone of legacy `Form Ref`
+
+### Files touched (iter337)
+- MOD · `/app/backend/pdf_render.py` (canonical_ref computation + header Ref line + legacy doc_id retained)
+- MOD · `/app/backend/routes/safety_forms.py` (Issuance + Training inline templates · 2 sites)
+- MOD · `/app/backend/field_leadership_pdf.py` (header right-block)
+- NEW · `/app/backend/tests/test_iter337_pdf_header_reference.py` (9 regression tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO new QR codes · NO PDF dashboards · NO tracking systems · NO public lookup · NO workflow engines
+- ❌ NO template redesign · NO margin / pagination / logo / typography changes
+- ❌ NO frontend changes · NO new routes · NO new collections
+- ❌ NO email/SMS/notification systems
+
+### Production impact
+**Preview has iter337. Production at mascidocs.com still missing until next redeploy.** Cumulative pending redeploy: iter330 → iter337 (**8 bounded iters · zero backend/auth/DB/API drift · all regression-locked**).
+
+### The continuity loop · NOW FULLY CLOSED
+
+| Touchpoint | Surface | iter |
+|---|---|---|
+| Submit | `/thank-you` Ref line | iter335 |
+| Review (digital) | Detail-page header above H1 | iter336 |
+| Review (printed/exported) | **PDF header** | iter337 |
+| Phone call / verbal | Same Ref everywhere | — |
+| Screenshot | Captured from any of the above | — |
+| Archive (FDOT/FAA/OSHA/insurance/legal) | PDF carries the Ref | iter337 |
+
+**A field crew can file, see Ref, screenshot, call in. Safety/PM/HR open the record, see the same Ref, export PDF, hand it to an investigator. The investigator weeks later quotes the same Ref. Everything matches. Everywhere. Always.**
+
+
+
 ## 2026-05-22 — iter336 · Review-Side Reference Continuity · CLOSED
 
 ### Scope (operator-mandated · final loop-closure layer · iter335 mirror)

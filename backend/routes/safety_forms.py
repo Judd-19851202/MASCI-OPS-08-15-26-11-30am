@@ -329,16 +329,23 @@ def render_issuance_pdf(rec: Dict[str, Any]) -> bytes:
     emp_sig = rec.get("employee_signature") or ""
     sup_sig = rec.get("supervisor_signature") or ""
 
+    # iter337 · PDF Header Reference Continuity · same canonical chain as iter335/336.
+    canonical_ref = (
+        rec.get("issuance_number")
+        or rec.get("doc_id")
+        or rec.get("id")
+        or ""
+    )
+
     html_doc = f"""<!doctype html><html><head><meta charset='utf-8'><style>{_BASE_CSS}</style></head>
     <body>
       <div class='head'>
         <div>
           <div class='eyebrow'>MASCI · Safety Department</div>
           <h1>Safety Equipment Issuance &amp; Accountability</h1>
-          <p class='sub'>Form Ref: {_safe(rec.get('id'))}</p>
+          <p class='sub'>{('Ref &middot; ' + _safe(canonical_ref)) if canonical_ref else ''}</p>
         </div>
         <div style='text-align:right'>
-          {('<div style="font-family:Courier New,monospace;font-size:13pt;font-weight:900;color:#c8102e;letter-spacing:.05em;margin-bottom:6pt">' + _safe(rec.get('doc_id') or '') + '</div>') if rec.get('doc_id') else ''}
           <div class='logo'><img src='{_logo_data_uri()}' /></div>
         </div>
       </div>
@@ -589,6 +596,14 @@ def render_training_pdf(rec: Dict[str, Any]) -> bytes:
     emp_sig = rec.get("employee_signature") or ""
     ins_sig = rec.get("instructor_signature") or ""
 
+    # iter337 · PDF Header Reference Continuity · same canonical chain as iter335/336.
+    canonical_ref = (
+        rec.get("training_number")
+        or rec.get("doc_id")
+        or rec.get("id")
+        or ""
+    )
+
     html_doc = f"""<!doctype html><html><head><meta charset='utf-8'><style>{_BASE_CSS}
     .topics {{ display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; margin: 4px 0; }}
     </style></head>
@@ -597,10 +612,9 @@ def render_training_pdf(rec: Dict[str, Any]) -> bytes:
         <div>
           <div class='eyebrow'>MASCI · Safety Department</div>
           <h1>Equipment Use &amp; Care Training</h1>
-          <p class='sub'>Form Ref: {_safe(rec.get('id'))}</p>
+          <p class='sub'>{('Ref &middot; ' + _safe(canonical_ref)) if canonical_ref else ''}</p>
         </div>
         <div style='text-align:right'>
-          {('<div style="font-family:Courier New,monospace;font-size:13pt;font-weight:900;color:#c8102e;letter-spacing:.05em;margin-bottom:6pt">' + _safe(rec.get('doc_id') or '') + '</div>') if rec.get('doc_id') else ''}
           <div class='logo'><img src='{_logo_data_uri()}' /></div>
         </div>
       </div>
