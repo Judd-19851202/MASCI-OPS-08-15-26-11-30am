@@ -3855,6 +3855,11 @@ const ES = {
   "No active record matches Ref": "Ningún registro activo coincide con Ref.",
   "Lookup unavailable. Try again in a moment.": "Búsqueda no disponible. Intenta de nuevo en un momento.",
 
+  // iter339 · HR Daily Reports calm error sanitization (no raw "Not Found" leak)
+  "Daily Reports temporarily unavailable. Try again in a moment.": "Los Reportes Diarios no están disponibles temporalmente. Intenta de nuevo en un momento.",
+  "That report is temporarily unavailable. Try again in a moment.": "Ese reporte no está disponible temporalmente. Intenta de nuevo en un momento.",
+  "Your HR session expired. Please sign in again.": "Tu sesión de RH expiró. Por favor, inicia sesión de nuevo.",
+
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",

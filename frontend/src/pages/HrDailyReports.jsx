@@ -31,6 +31,35 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const HR_PAL = paletteFor("hr");
 const auth = () => ({ headers: { "X-HR-Token": getHrToken() } });
 
+// Sanitize axios error → operationally-calm message. NEVER leak raw
+// FastAPI defaults like "Not Found", "Internal Server Error", or
+// "Method Not Allowed" to operators — those strings make production
+// look broken even when the cause is a transient deploy-skew window
+// (frontend ahead of backend) or an expired session. iter339 fix.
+function operationalError(e, fallback, expiredMsg) {
+  const status = e?.response?.status;
+  const detail = e?.response?.data?.detail;
+  // 401 / 403 → session boundary, not a server defect.
+  if (status === 401 || status === 403) return expiredMsg;
+  // 404 from a route that should exist = deploy-skew or stale build.
+  // Suppress raw "Not Found" — fall through to operational wording.
+  if (status === 404) return fallback;
+  // 5xx / network → fallback wording (still avoid raw stack-ish text).
+  if (!detail || typeof detail !== "string") return fallback;
+  // Keep operator-authored 4xx messages that are clearly NOT FastAPI
+  // defaults (e.g., field-validation feedback like "report_id required").
+  const stripped = detail.trim();
+  if (
+    stripped === "Not Found" ||
+    stripped === "Method Not Allowed" ||
+    stripped === "Internal Server Error" ||
+    stripped === "Unprocessable Entity"
+  ) {
+    return fallback;
+  }
+  return stripped;
+}
+
 export default function HrDailyReports() {
   const { t } = useT();
   const nav = useNavigate();
@@ -60,7 +89,11 @@ export default function HrDailyReports() {
       const r = await axios.get(`${API}/hr/daily-reports`, { ...auth(), params });
       setItems(Array.isArray(r.data?.items) ? r.data.items : []);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || t("Failed to load daily reports"));
+      toast.error(operationalError(
+        e,
+        t("Daily Reports temporarily unavailable. Try again in a moment."),
+        t("Your HR session expired. Please sign in again.")
+      ));
       setItems([]);
     } finally {
       setLoading(false);
@@ -251,7 +284,11 @@ export function HrDailyReportDetail() {
         const r = await axios.get(`${API}/hr/daily-reports/${id}`, auth());
         setDoc(r.data);
       } catch (e) {
-        toast.error(e?.response?.data?.detail || t("Failed to load report"));
+        toast.error(operationalError(
+          e,
+          t("That report is temporarily unavailable. Try again in a moment."),
+          t("Your HR session expired. Please sign in again.")
+        ));
       } finally {
         setLoading(false);
       }

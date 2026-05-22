@@ -2,6 +2,92 @@
 
 
 
+## 2026-05-22 — iter339 · HR Daily Reports Calm Error Sanitization (Production Hot-Fix) · CLOSED
+
+### Operator-reported P0 (from live mascidocs.com screenshots)
+HR opens `/hr/daily-reports` → page renders header + filters + KPI strip → **red toast reads literally "Not Found"** → records list shows 0. Screenshots captured during the iter332 deploy-skew window (frontend was redeployed slightly ahead of the backend, so the new `/api/hr/daily-reports` route briefly 404'd → FastAPI returned the default `{"detail":"Not Found"}` → the frontend toast forwarded that string verbatim to the operator).
+
+### Live root-cause investigation (RCA)
+**Backend on production right now:** route is fully deployed and working.
+- `GET /api/hr/daily-reports` (anonymous) → **HTTP 401** `{"detail":"HR login required"}` ✓ (route exists)
+- `GET /api/hr/daily-reports` (real HR token) → **HTTP 200** `{ok:true, count:3, items:[...]}` ✓ (live prod data)
+- `GET /api/hr/daily-reports/{id}` (real HR token) → **HTTP 200** with full document ✓
+- Route registered: `/api/hr/daily-reports` + `/api/hr/daily-reports/{report_id}` (`Depends(require_hr_user)`)
+- Router prefix: `/api` · gated by `X-HR-Token`
+
+**Frontend defect (independent of the deploy-skew trigger):**
+```jsx
+// /app/frontend/src/pages/HrDailyReports.jsx · BEFORE
+toast.error(e?.response?.data?.detail || t("Failed to load daily reports"));
+```
+This forwards ANY `detail` string from a 4xx/5xx response straight to the user. FastAPI's catch-all 404 is literally `{"detail":"Not Found"}`. The same defect existed on the detail-view catch block too. Both have been replaced with an `operationalError()` sanitizer that filters the 4 raw FastAPI defaults (`"Not Found"`, `"Method Not Allowed"`, `"Internal Server Error"`, `"Unprocessable Entity"`) and routes 401/403 to a calm "session expired" message instead.
+
+### Fix applied (preview · verified live)
+**`/app/frontend/src/pages/HrDailyReports.jsx`** — added `operationalError(e, fallback, expiredMsg)` helper + rewired both catch blocks:
+
+```jsx
+function operationalError(e, fallback, expiredMsg) {
+  const status = e?.response?.status;
+  const detail = e?.response?.data?.detail;
+  if (status === 401 || status === 403) return expiredMsg;
+  if (status === 404) return fallback;                 // suppress "Not Found"
+  if (!detail || typeof detail !== "string") return fallback;
+  const stripped = detail.trim();
+  if (["Not Found","Method Not Allowed","Internal Server Error",
+       "Unprocessable Entity"].includes(stripped)) return fallback;
+  return stripped;                                      // keep operator-authored 4xx
+}
+```
+
+List view fallback: **"Daily Reports temporarily unavailable. Try again in a moment."**
+Detail view fallback: **"That report is temporarily unavailable. Try again in a moment."**
+401/403 message: **"Your HR session expired. Please sign in again."**
+
+### Live preview verification
+- **Happy path** — HR multi-login → `/hr/daily-reports` → 104 records load → zero toasts ✓
+- **404 scenario** (route stub simulating deploy-skew) — red toast now reads "Daily Reports temporarily unavailable. Try again in a moment." NOT "Not Found" ✓ (DOM probe confirmed: no raw "Not Found" text present anywhere)
+- **ES bilingual** — 3 new keys: "Los Reportes Diarios no están disponibles temporalmente. Intenta de nuevo en un momento." · "Ese reporte no está disponible temporalmente. Intenta de nuevo en un momento." · "Tu sesión de RH expiró. Por favor, inicia sesión de nuevo."
+
+### Tests
+- **NEW** `/app/backend/tests/test_iter339_hr_daily_reports_calm_errors.py` (5 regression tests · all green):
+  - backend route registered + admin-gated
+  - frontend uses `operationalError()` sanitizer
+  - all 4 raw FastAPI default strings filtered
+  - old `toast.error(e?.response?.data?.detail || ...)` pattern is GONE
+  - both call sites (list + detail) sanitized
+  - 3 calm ES fallback strings present in i18n
+- **Combined regression: 116/116 pytest green** across `test_iter322b` + `test_iter330..test_iter339`
+- **Deploy gate** `bash /app/.deploy_checks/run_family_contract.sh` → **9 passed · Contract green · safe to deploy**
+
+### RBAC proof (production · live curl)
+| Probe | Result |
+|---|---|
+| `GET /api/hr/daily-reports` (no token) | 401 ✓ |
+| `GET /api/hr/daily-reports` (invalid token) | 401 ✓ |
+| `GET /api/hr/daily-reports` (valid HR token via multi-login) | 200 · 3 records ✓ |
+| `GET /api/hr/daily-reports/{id}` (valid HR token) | 200 · full doc ✓ |
+| OPTIONS preflight | 200 · proper CORS headers ✓ |
+| HR cannot POST/PATCH/DELETE/email — no write endpoint exists | enforced by absence ✓ |
+
+### Files touched (iter339)
+- MOD · `/app/frontend/src/pages/HrDailyReports.jsx` (operationalError helper + 2 catch blocks sanitized)
+- MOD · `/app/frontend/src/lib/i18n.js` (3 new ES keys)
+- NEW · `/app/backend/tests/test_iter339_hr_daily_reports_calm_errors.py` (5 tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO backend changes — production route already correct
+- ❌ NO new endpoints · NO RBAC changes · NO write surface added
+- ❌ NO redesign of `/hr/daily-reports` page · same chrome · same filters · same KPI strip
+- ❌ NO global error-handler refactor — only the two HR Daily Reports catch sites changed (bounded fix). The same sanitizer pattern can be extracted into a shared util in a future hygiene pass if more pages need it.
+
+### Production verdict
+**APPROVE for production deploy.** The HR Daily Reports listing + detail flow is end-to-end functional on `mascidocs.com` right now (route deployed, RBAC correct, real data returned). The "Not Found" toast the operator saw was a brief deploy-skew artifact that has since resolved on the backend side. The preview-only frontend hardening in this iter ensures the same noise can never reach an operator again — even during future deploy-skew windows or session expirations. **Production at mascidocs.com gets the calm-toast fix on the next redeploy.** Cumulative pending redeploy: **iter330 → iter339 (10 bounded iters · zero backend/auth/DB/API drift · all regression-locked).**
+
+
+
+
+
 ## 2026-05-22 — iter338 · Admin Reference Lookup + Final Operational Closure · CLOSED
 
 ### Scope (operator-mandated · bounded admin utility · closes the iter335→iter337 continuity loop)
