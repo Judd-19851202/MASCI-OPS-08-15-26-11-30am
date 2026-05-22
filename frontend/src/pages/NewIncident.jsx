@@ -225,6 +225,7 @@ export default function NewIncident({ publicMode = false }) {
               projectName: payload.project_name,
               formType: "Incident Report",
               returnTo: "/incidents/submit",
+              recordId: r.data?.incident_number || r.data?.id || "",
             },
             replace: true,
           });
@@ -246,6 +247,7 @@ export default function NewIncident({ publicMode = false }) {
             projectName: payload.project_name,
             formType: "Incident Report",
             returnTo: "/incidents/submit",
+            recordId: r.data?.incident_number || r.data?.id || "",
           },
           replace: true,
         });

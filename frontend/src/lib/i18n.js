@@ -3843,6 +3843,8 @@ const ES = {
   "Equipment Issuance": "Entrega de Equipo",
   "Equipment Training": "Capacitación de Equipo",
   "Toolbox Meeting": "Reunión de Caja de Herramientas",
+  // iter335 · Submission tracking reference label
+  "Ref": "Ref.",
 
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",

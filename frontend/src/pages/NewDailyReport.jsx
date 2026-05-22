@@ -483,6 +483,7 @@ export default function NewDailyReport({ publicMode = false }) {
               projectName: payload.project_name,
               formType: "Daily Report",
               returnTo: "/daily/submit",
+              recordId: r.data?.report_number || r.data?.id || "",
             },
             replace: true,
           });
@@ -506,6 +507,7 @@ export default function NewDailyReport({ publicMode = false }) {
             projectName: payload.project_name,
             formType: "Daily Report",
             returnTo: "/daily/submit",
+            recordId: r.data?.report_number || r.data?.id || "",
           },
           replace: true,
         });

@@ -165,7 +165,12 @@ export default function NewInspection({ publicMode = false }) {
       toast.success(t("Inspection filed · graded · visible under Audits & Inspections"));
       if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
-          state: { projectName: payload.project_name, grade },
+          state: {
+            projectName: payload.project_name,
+            grade,
+            formType: "Inspection",
+            recordId: res.data?.inspection_number || res.data?.id || "",
+          },
           replace: true,
         });
       } else {

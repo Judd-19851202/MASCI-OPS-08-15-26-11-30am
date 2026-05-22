@@ -471,6 +471,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
             projectName: payload.project_name,
             formType: "Equipment Pre-Op Inspection",
             returnTo: "/equipment/submit",
+            recordId: res.data?.inspection_number || res.data?.id || "",
           },
           replace: true,
         });

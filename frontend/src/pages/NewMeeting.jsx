@@ -263,6 +263,7 @@ export default function NewMeeting({ publicMode = false }) {
             projectName: payload.project_name,
             formType: "Site Safety Meeting",
             returnTo: "/meetings/submit",
+            recordId: res.data?.meeting_number || res.data?.id || "",
           },
           replace: true,
         });
