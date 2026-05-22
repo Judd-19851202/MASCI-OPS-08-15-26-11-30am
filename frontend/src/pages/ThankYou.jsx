@@ -6,20 +6,41 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 
+// iter334 · Public Submission Thank-You Continuity Refinement
+// ────────────────────────────────────────────────────────────
+// Per-formType continuity messaging that matches the iter327
+// homepage capability voice: calm, direct, field-proven, no fake
+// positivity, no corporate SaaS phrasing. The user lands here after
+// public form submission and should feel: filed correctly, the right
+// people have visibility, you're done unless contacted.
+//
+// The HEADLINE collapses to one word ("Filed.") which lets the
+// continuity sub-line carry the operational specifics.
+//
+// Both EN and ES strings live in i18n.js and translate via t().
+
+const CONTINUITY_LINE = {
+  "Incident Report":              "Safety has it. If additional information is needed, the team will follow up.",
+  "Daily Report":                 "Operations, payroll, and project leadership can now review today's activity.",
+  "Inspection":                   "Findings and corrective actions are now visible in Safety Review.",
+  "Equipment Issuance":           "Issuance recorded. Equipment accountability and return status are now tracked.",
+  "Equipment Training":           "Training recorded. Use and care accountability is now tracked.",
+  "Equipment Pre-Op Inspection":  "Pre-op log filed. Shop and supervision have visibility for the day's run.",
+  "Site Safety Meeting":          "Meeting recorded. Attendance and topics are now on file.",
+  "DVIR":                         "Defect log filed. Shop has visibility for tomorrow's planning.",
+  "Toolbox Meeting":              "Meeting recorded. Attendance and topics are now on file.",
+  "JHA":                          "JHA filed. The plan is available for the crew and Safety review.",
+};
+
 export default function ThankYou() {
-  const { t, lang } = useT();
+  const { t } = useT();
   const { state } = useLocation();
   const projectName = state?.projectName || "";
   const formType = state?.formType || "Inspection";
   const returnTo = state?.returnTo || "/submit";
 
-  // Localized form-type label. The English word comes from the calling form
-  // (NewInspection, NewMeeting, …) and is also stored on the backend. We
-  // show the Spanish translation on this confirmation screen only.
-  const formTypeLocalized = t(formType);
-  const formTypeLower = lang === "es"
-    ? formTypeLocalized.toLowerCase()
-    : formType.toLowerCase();
+  const continuityLine = CONTINUITY_LINE[formType]
+    || "The right people have visibility. You're done unless contacted.";
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -40,33 +61,28 @@ export default function ThankYou() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-700 mb-6">
             <CheckCircle2 className="w-12 h-12 text-white" />
           </div>
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
-            {formTypeLocalized} {t("Submitted")}
+          <span
+            className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold"
+            data-testid="thank-you-kicker"
+          >
+            {t(formType)} · {t("On file")}
           </span>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2">
-            {t("Thank you.")}
+          <h1
+            className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2"
+            data-testid="thank-you-headline"
+          >
+            {t("Filed.")}
           </h1>
           {projectName && (
-            <p className="text-slate-700 text-base mt-3">
-              {lang === "es" ? (
-                <>
-                  {"Su "}
-                  <span className="font-bold">{formTypeLower}</span>
-                  {" para "}
-                  <span className="font-bold">{projectName}</span>
-                  {" ha sido registrado."}
-                </>
-              ) : (
-                <>
-                  {"Your "}{formTypeLower}{" for "}
-                  <span className="font-bold">{projectName}</span>
-                  {" has been recorded."}
-                </>
-              )}
+            <p className="text-slate-700 text-base mt-3" data-testid="thank-you-project">
+              {projectName}
             </p>
           )}
-          <p className="text-slate-600 text-sm mt-4 leading-relaxed">
-            {t("The MASCI safety team has been notified. Stay safe out there.")}
+          <p
+            className="text-slate-600 text-sm mt-4 leading-relaxed max-w-md mx-auto"
+            data-testid="thank-you-continuity"
+          >
+            {t(continuityLine)}
           </p>
 
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -77,7 +93,7 @@ export default function ThankYou() {
             >
               <Link to={returnTo}>
                 <ClipboardCheck className="w-4 h-4 mr-2" />
-                {t("Submit Another")}
+                {t("File Another")}
               </Link>
             </Button>
             <Button
@@ -90,14 +106,6 @@ export default function ThankYou() {
                 {t("Close Window")}
               </a>
             </Button>
-          </div>
-
-          <div className="mt-10 pt-6 border-t-2 border-slate-100 font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold flex items-center justify-center gap-2 flex-wrap" hidden>
-            <span>{t("No Guesswork.")}</span>
-            <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span>{t("No Missed Steps.")}</span>
-            <span className="w-1 h-1 rounded-full bg-red-700" />
-            <span>{t("No Excuses.")}</span>
           </div>
         </div>
       </main>

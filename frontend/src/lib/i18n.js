@@ -3823,6 +3823,27 @@ const ES = {
   // ─ Empty-state guidance ─
   "No daily reports match these filters. Try a wider date range or clear all filters to see everything on file.": "Ningún reporte diario coincide con estos filtros. Prueba un rango de fechas más amplio o limpia todos los filtros para ver todo en archivo.",
 
+  // iter334 · Public Submission Thank-You Continuity · iter327 voice
+  "Filed.": "Archivado.",
+  "On file": "En archivo",
+  "File Another": "Archivar Otro",
+  "Safety has it. If additional information is needed, the team will follow up.": "Seguridad lo tiene. Si se necesita información adicional, el equipo dará seguimiento.",
+  "Operations, payroll, and project leadership can now review today's activity.": "Operaciones, nómina y liderazgo del proyecto ya pueden revisar la actividad de hoy.",
+  "Findings and corrective actions are now visible in Safety Review.": "Los hallazgos y las acciones correctivas ya están visibles en Revisión de Seguridad.",
+  "Issuance recorded. Equipment accountability and return status are now tracked.": "Entrega registrada. La responsabilidad del equipo y el estado de devolución ya están en seguimiento.",
+  "Training recorded. Use and care accountability is now tracked.": "Capacitación registrada. La responsabilidad de uso y cuidado ya está en seguimiento.",
+  "Defect log filed. Shop has visibility for tomorrow's planning.": "Registro de defecto archivado. El Taller tiene visibilidad para la planeación de mañana.",
+  "Meeting recorded. Attendance and topics are now on file.": "Reunión registrada. La asistencia y los temas ya están en archivo.",
+  "JHA filed. The plan is available for the crew and Safety review.": "JHA archivada. El plan está disponible para la cuadrilla y la revisión de Seguridad.",
+  "Pre-op log filed. Shop and supervision have visibility for the day's run.": "Inspección pre-operacional archivada. El Taller y la supervisión tienen visibilidad para la jornada.",
+  "The right people have visibility. You're done unless contacted.": "Las personas correctas tienen visibilidad. Has terminado a menos que te contacten.",
+  // formType label translations (used by t(formType) in the kicker)
+  "Incident Report": "Reporte de Accidente",
+  "Daily Report": "Reporte Diario",
+  "Equipment Issuance": "Entrega de Equipo",
+  "Equipment Training": "Capacitación de Equipo",
+  "Toolbox Meeting": "Reunión de Caja de Herramientas",
+
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",
