@@ -98,8 +98,8 @@ export default function ThankYou() {
               className="mt-4 font-mono text-xs uppercase tracking-[0.18em] text-slate-500"
               data-testid="thank-you-reference"
             >
-              <span className="text-slate-400">{t("Ref")} ·</span>
-              <span className="ml-1.5 text-slate-700 font-bold select-all">{recordId}</span>
+              <span className="text-slate-400">{t("Ref")} · </span>
+              <span className="text-slate-700 font-bold select-all">{recordId}</span>
             </p>
           )}
 

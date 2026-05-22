@@ -2,6 +2,85 @@
 
 
 
+## 2026-05-22 — iter335 · Submission Tracking Reference Continuity · CLOSED
+
+### Scope (operator-mandated · lightweight display-only continuity · iter334 layer)
+Added a single subdued tracking-reference line to the shared `/thank-you` page so field crews can screenshot proof-of-submission. Five form-entry pages now thread the canonical record identifier (backend-issued `report_number` / `incident_number` / etc) through router state. NO new pages · NO tracking portal · NO lookup system · NO QR · NO emails · NO backend changes.
+
+### Visual rhythm achieved
+```
+✓ INSPECTION · ON FILE
+Filed.
+Findings and corrective actions are now visible in Safety Review.
+Ref · DR-2026-0517-014                       ← iter335 (subdued, screenshot-friendly)
+[FILE ANOTHER]  [CLOSE WINDOW]
+```
+
+### Form wiring (5 forms now thread recordId)
+| Form | Canonical fallback chain |
+|---|---|
+| `NewIncident.jsx` (2 navigate sites) | `r.data?.incident_number \|\| r.data?.id` |
+| `NewDailyReport.jsx` (2 navigate sites) | `r.data?.report_number \|\| r.data?.id` |
+| `NewInspection.jsx` | `res.data?.inspection_number \|\| res.data?.id` |
+| `NewEquipmentInspection.jsx` | `res.data?.inspection_number \|\| res.data?.id` |
+| `NewMeeting.jsx` | `res.data?.meeting_number \|\| res.data?.id` |
+
+Each form prefers the backend-issued canonical number (e.g., `DR-2026-0517-014`) and falls back gracefully to the UUID `id` if the per-formType numbering hasn't been issued. **No client-side ID fabrication.** No `Math.random`, no `Date.now()`, no `crypto.randomUUID` in the recordId chain — verified by regression test.
+
+### Graceful absence
+When a form does NOT pass `recordId` (e.g., legacy navigate calls or future surfaces), the reference element is **conditionally omitted** — no placeholder, no "(none)", no blank chrome. Default `/thank-you` renders cleanly with kicker + headline + continuity line only.
+
+### Styling
+```
+className="mt-4 font-mono text-xs uppercase tracking-[0.18em] text-slate-500"
+```
+- Subdued · sits below the continuity line · matches the iter327 platform-family
+- Two-span structure: muted label (`text-slate-400`) · bolder ID (`text-slate-700 font-bold`) with `select-all` so mobile tap-and-hold copies the entire ID
+- Screenshot-friendly · fits inline on iPhone 390 width without wrapping for typical 18-char IDs
+
+### Bilingual (ES) parity
+1 new ES key:
+- `"Ref" → "Ref."` (period form per operator example)
+- Reference reads `Ref. · DR-2026-0517-014` in Spanish
+- The recordId itself remains unchanged (it's an operational identifier, not localized content)
+
+### Tests
+**Backend regression:** 175/175 green (iter32x → iter335 + family contract)
+**Deploy gate:** 9/9 green
+**ESLint:** clean on all 6 touched JS files
+**E2E (testing_agent_v3_fork iteration_335.json):** 100% PASS · 8/8 review checks
+- Default graceful omission (no recordId) ✓
+- EN reference renders under continuity for Daily Report / Incident / JHA branches ✓
+- Per-formType continuity correctness preserved across all three branches ✓
+- `select-all` class verified on the recordId span ✓
+- Mobile 390 zero horizontal overflow · no wrap mid-ID · above-fold visible ✓
+- ES `Ref.` translation verified live ✓
+- No tracking-portal routes added (verified via App.js scan) ✓
+
+### Files touched (iter335)
+- MOD · `/app/frontend/src/pages/ThankYou.jsx` (recordId from state + subdued reference render block)
+- MOD · `/app/frontend/src/pages/NewIncident.jsx` (recordId in 2 navigate calls)
+- MOD · `/app/frontend/src/pages/NewDailyReport.jsx` (recordId in 2 navigate calls)
+- MOD · `/app/frontend/src/pages/NewInspection.jsx` (recordId)
+- MOD · `/app/frontend/src/pages/NewEquipmentInspection.jsx` (recordId)
+- MOD · `/app/frontend/src/pages/NewMeeting.jsx` (recordId)
+- MOD · `/app/frontend/src/lib/i18n.js` (Ref → Ref.)
+- NEW · `/app/backend/tests/test_iter335_tracking_reference.py` (10 regression tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ NO new pages · NO `/track`, `/lookup`, `/reference/:id`, `/claim/:id`, `/proof/:id` routes (verified by regression test)
+- ❌ NO backend endpoints · NO new collections · NO new model fields
+- ❌ NO email · NO SMS · NO QR · NO status tracker · NO public lookup
+- ❌ NO redesign of /thank-you · still 132 LOC, still calm-family card chrome, still 2-button footer
+
+### Production impact
+**Preview has iter335. Production at mascidocs.com still missing until next redeploy.** Cumulative pending redeploy: iter330 (Dispatch KPI calm) + iter331 (PDF non-blocking hot-fix) + iter332 (3 workflow/access gap closures) + iter333 (coaching convergence) + iter334 (thank-you continuity) + iter335 (tracking reference). Six bounded iters · zero backend/auth/DB/API drift · all regression-locked. After redeploy, field crews who submit anonymously from job-site phones will have a screenshot-able `Ref · ID` reference they can save for their own log.
+
+**The final submission-continuity refinement layer is now complete.** Submission → continuity messaging → tracking reference. The platform now closes the workflow loop for every public submitter — they know it filed, they know who has visibility, and they have proof.
+
+
+
 ## 2026-05-22 — iter334 · Public Submission Thank-You Continuity Refinement · CLOSED
 
 ### Scope (operator-mandated · final public-facing copy convergence · iter327 voice anchor)
