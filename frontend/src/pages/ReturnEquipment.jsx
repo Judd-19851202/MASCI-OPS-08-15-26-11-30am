@@ -20,6 +20,7 @@ import { useT, getLang } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { isSafetyForms } from "@/lib/safetyFormsAuth";
 import { isAdmin } from "@/lib/adminAuth";
+import { isSafety } from "@/lib/safetyAuth";
 import {
   RETURN_STATUSES,
   buildReturnDefaults,
@@ -46,7 +47,8 @@ export default function ReturnEquipment() {
   const { id } = useParams();
   const { t, lang } = useT();
   const navigate = useNavigate();
-  const authed = isSafetyForms() || isAdmin();
+  // iter323 · Safety Forms ownership — Safety Portal + Admin + legacy.
+  const authed = isSafety() || isSafetyForms() || isAdmin();
 
   const [issuance, setIssuance] = useState(null);
   const [data, setData] = useState(null);
@@ -73,7 +75,7 @@ export default function ReturnEquipment() {
 
   const cb = useMemo(() => computeChargeback(data?.items || []), [data]);
 
-  if (!authed) return <Navigate to="/safety/forms/login" replace />;
+  if (!authed) return <Navigate to="/safety-portal/login?from=safety-forms" replace />;
   if (loadErr) {
     return (
       <div className="min-h-screen blueprint-bg p-8">

@@ -22,6 +22,8 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import { useT, getLang } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { isSafetyForms } from "@/lib/safetyFormsAuth";
+import { isSafety } from "@/lib/safetyAuth";
+import { isAdmin } from "@/lib/adminAuth";
 import {
   ITEM_TYPES,
   TRAINING_TYPES,
@@ -42,7 +44,8 @@ export default function NewSafetyEquipmentTraining() {
   const [saving, setSaving] = useState(false);
   const [employees, setEmployees] = useState([]);
 
-  const authed = isSafetyForms();
+  // iter323 · Safety Forms ownership — Safety Portal + Admin + legacy.
+  const authed = isSafety() || isAdmin() || isSafetyForms();
 
   useEffect(() => {
     if (!authed) return;
@@ -53,7 +56,7 @@ export default function NewSafetyEquipmentTraining() {
   }, [authed]);
 
   if (!authed) {
-    return <Navigate to="/safety/forms/login" replace />;
+    return <Navigate to="/safety-portal/login?from=safety-forms" replace />;
   }
 
   const update = (patch) => setData((d) => ({ ...d, ...patch }));

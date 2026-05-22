@@ -15,6 +15,7 @@ import { useT } from "@/lib/i18n";
 import { api, API } from "@/lib/api";
 import { isSafetyForms, getSafetyFormsToken } from "@/lib/safetyFormsAuth";
 import { isAdmin, getAdminToken } from "@/lib/adminAuth";
+import { isSafety, getSafetyToken } from "@/lib/safetyAuth";
 import { fmtMoney } from "@/lib/safetyFormsSchema";
 import { formatDateLong } from "@/lib/utils";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
@@ -39,7 +40,11 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
   const [err, setErr] = useState("");
   const [downloading, setDownloading] = useState(false);
 
-  const authed = isSafetyForms() || isAdmin();
+  // iter323 · Safety Forms ownership — Safety Portal users are now
+  // a first-class auth identity on this detail viewer. Admin still
+  // works (global); legacy Safety-Forms token still works (backwards
+  // compat). PM intentionally NOT included (preserves boundary).
+  const authed = isSafety() || isSafetyForms() || isAdmin();
   const isTraining = kind === "training";
   const apiBase = isTraining
     ? "/safety-forms/equipment-trainings"
@@ -54,7 +59,11 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
   }, [authed, apiBase, id]);
 
   if (!authed) {
-    return <Navigate to="/safety/forms/login" replace />;
+    // iter323 · route unauthenticated bounces to the Safety Portal
+    // login (the new owner) — NOT the legacy /safety/forms/login
+    // (which EnforcePortalScope would treat as a portal-login path
+    // and wipe an unrelated Safety token from an in-flight race).
+    return <Navigate to="/safety-portal/login?from=safety-forms" replace />;
   }
 
   const downloadPdf = async (subPath = "/pdf", suffix = "") => {
@@ -63,8 +72,12 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
       const headers = {};
       const adminTok = getAdminToken();
       const sfTok = getSafetyFormsToken();
+      const safetyTok = getSafetyToken();
       if (adminTok) headers["X-Admin-Token"] = adminTok;
       if (sfTok) headers["X-Safety-Forms-Token"] = sfTok;
+      // iter323 · include Safety Portal token so PDF downloads work
+      // for signed-in Safety reviewers (backend already accepts it).
+      if (safetyTok) headers["X-Safety-Token"] = safetyTok;
       const res = await fetch(`${API}${apiBase}/${id}${subPath}`, { headers });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();

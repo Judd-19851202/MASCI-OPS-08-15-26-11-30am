@@ -1,0 +1,27 @@
+{
+  "summary": "iter323 Safety Forms ownership closure RETEST — FULLY CLOSED. All 4 frontend pages (ViewSafetyForm, NewSafetyEquipmentIssuance, NewSafetyEquipmentTraining, ReturnEquipment) now use widened gate `isSafety() || isAdmin() || isSafetyForms()` and bounce unauthenticated users to /safety-portal/login?from=safety-forms (NOT legacy /safety/forms/login). ViewSafetyForm.downloadPdf now includes X-Safety-Token. Backend RBAC unchanged (21/21 pytest pass). Frontend Playwright E2E exercised all 9 acceptance scenarios — every assertion green. Optional PDF smoke also passes: GET /api/safety-forms/equipment-issuances/{id}/pdf with X-Safety-Token → 200, application/pdf, 1.2MB.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter323_safety_forms_portal_gate.py",
+    "/app/backend/tests/test_iter323_safety_forms_extra_smoke.py",
+    "/app/test_reports/pytest/iter324_iter323_retest.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Gate widening is now consistently applied across all 4 safety-forms pages — good propagation. Recommend extracting the gate into a single helper (e.g., `lib/safetyFormsAccess.js → canAccessSafetyForms()`) so future additions stay in sync automatically.",
+    "Bounce target /safety-portal/login?from=safety-forms is consistent across all 5 surfaces (ViewSafetyForm, NewSafetyEquipmentIssuance, NewSafetyEquipmentTraining, ReturnEquipment, SafetyFormsHub) — recommend the legacy /safety/forms/login route be either removed or kept strictly behind an opt-in legacy flag now that EnforcePortalScope wiping is no longer reachable in the happy path."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Used POST /api/auth/multi-login with jaymn.judd@mascigc.com / Maddix123! → portal_tokens.safety. Worked first try (preferred bootstrap path per /app/memory/test_credentials.md).",
+  "seed_data_creation": "None. Preview DB has 33 issuance + 10 training records already.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter323 closure is COMPLETE. Backend: 21/21 pytest pass. Frontend: drill-row + new-form + anon redirect + PDF download all verified. No follow-up needed unless main agent introduces new safety-forms pages — those should reuse the same `isSafety()||isAdmin()||isSafetyForms()` gate and `/safety-portal/login?from=safety-forms` bounce target.",
+  "rca of the issue": "PRIOR ROOT CAUSE (iter323 first round): ViewSafetyForm.jsx used legacy gate `isSafetyForms()||isAdmin()`, bouncing Safety users to /safety/forms/login which EnforcePortalScope treated as a login path and wiped masci.safety.token. MITIGATION APPLIED: (1) gate widened in all 4 affected files to include isSafety(); (2) bounce target changed to /safety-portal/login?from=safety-forms; (3) ViewSafetyForm.downloadPdf now reads getSafetyToken() and sends X-Safety-Token header. VERIFICATION: Playwright confirms localStorage.masci.safety.token survives the entire drill-row → detail → back → new-form flow."
+}
