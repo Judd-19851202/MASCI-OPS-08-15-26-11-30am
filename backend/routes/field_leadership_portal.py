@@ -191,6 +191,13 @@ def build_field_leadership_portal_router(
         #   token (same one /api/admin/* routes accept). The Hub gate
         #   already accepts admin tokens via isAdmin(). No duplicate
         #   FL identity is created. ──────────────────────────────────
+        # ── Path 3 · iter345 · FL Phase B Hybrid · directory-granted FL
+        #   For any directory user with `field_leadership` portal grant
+        #   (PM/HR/Safety/Shop/Dispatch/etc. who have been granted FL
+        #   access by Admin Access Control), mint an X-FL-Token bound
+        #   to their MASTER user_directory password_hash. One person,
+        #   one master password, multiple approved portal accesses.
+        #   No duplicate field_leadership_users row created.
         if directory_admin_minter is not None:
             try:
                 import user_directory as _ud  # noqa: WPS433
@@ -198,23 +205,59 @@ def build_field_leadership_portal_router(
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"fl_login directory fallback error: {e}")
                 row = None
-            if row and "admin" in (row.get("portals") or []):
-                admin_tok = directory_admin_minter(row)
-                if admin_tok:
+            if row and not row.get("disabled"):
+                row_portals = row.get("portals") or []
+                # Path 2 · admin grant → admin token
+                if "admin" in row_portals:
+                    admin_tok = directory_admin_minter(row)
+                    if admin_tok:
+                        try:
+                            from session_timeout import reset_session_activity
+                            await reset_session_activity(
+                                db, admin_tok, "ADMIN_HR",
+                                user_id=row.get("id"), email=row.get("email"),
+                                actor_label="admin_via_fl",
+                                ip=_client_ip(request),
+                                user_agent=request.headers.get("user-agent") or "",
+                            )
+                        except Exception:  # noqa: BLE001
+                            pass
+                        return {
+                            "ok": True, "token": admin_tok, "kind": "admin",
+                            "user": _ud.public_view(row),
+                            "must_change_password": False,
+                        }
+                # Path 3 · directory-granted FL → FL token tied to master pwh
+                if "field_leadership" in row_portals:
+                    pwh = row.get("password_hash") or ""
+                    fl_tok = make_fl_user_token(row["id"], pwh)
                     try:
                         from session_timeout import reset_session_activity
                         await reset_session_activity(
-                            db, admin_tok, "ADMIN_HR",
+                            db, fl_tok, "ADMIN_FL",
                             user_id=row.get("id"), email=row.get("email"),
-                            actor_label="admin_via_fl",
+                            actor_label="field_leadership_via_directory",
                             ip=_client_ip(request),
                             user_agent=request.headers.get("user-agent") or "",
                         )
                     except Exception:  # noqa: BLE001
                         pass
+                    # Build a calm public view bridging directory shape
+                    # to the FL UI's expected user object.
+                    pub = _ud.public_view(row)
                     return {
-                        "ok": True, "token": admin_tok, "kind": "admin",
-                        "user": _ud.public_view(row),
+                        "ok": True, "token": fl_tok, "kind": "fl",
+                        "user": {
+                            "id": pub.get("id"),
+                            "email": pub.get("email"),
+                            "name": pub.get("name") or pub.get("email"),
+                            "role": "Cross-Portal Grant",
+                            "is_active": True,
+                            "disabled": bool(pub.get("disabled")),
+                            "must_change_password": False,
+                            "directory_user": True,
+                            "granted_portals": pub.get("portals") or [],
+                        },
                         "must_change_password": False,
                     }
         # ── Final · calm rejection ─────────────────────────────────

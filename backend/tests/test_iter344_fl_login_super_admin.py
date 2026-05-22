@@ -41,8 +41,14 @@ def test_backend_fl_login_falls_back_to_user_directory():
     # Falls back to user_directory.authenticate
     assert "import user_directory as _ud" in src
     assert "await _ud.authenticate(db, email=email, password=payload.password)" in src
-    # Only admins (not HR/PM/Safety/Dispatch/Shop-only) bypass
-    assert '"admin" in (row.get("portals") or [])' in src
+    # Only admins (not HR/PM/Safety/Dispatch/Shop-only) bypass via Path 2.
+    # iter345 · Phase B Hybrid landed Path 3 below this check, so the
+    # admin gate now reads `row_portals` (set after the unified
+    # disabled-check). Both shapes are valid.
+    assert (
+        '"admin" in (row.get("portals") or [])' in src
+        or '"admin" in row_portals' in src
+    )
     # Returns kind:"admin" so frontend knows which token domain
     assert '"kind": "admin"' in src
     # FL happy path returns kind:"fl"

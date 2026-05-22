@@ -139,12 +139,12 @@ def test_admin_access_panel_includes_dispatch():
     assert '{ key: "dispatch"' in src
 
 
-def test_admin_access_panel_phase_b_deferred():
-    """Phase B (field_leadership) is intentionally NOT in this iter."""
+def test_admin_access_panel_phase_b_now_includes_field_leadership():
+    """iter345 · Phase B Hybrid COMPLETED — field_leadership is now the
+    7th portal column in Admin Access Control per operator policy lock."""
     src = (ROOT / "frontend" / "src" / "components" / "AdminAccessControlPanel.jsx").read_text(encoding="utf-8")
-    # The portal option list should NOT yet have field_leadership.
-    assert '{ key: "field_leadership"' not in src, (
-        "field_leadership should be deferred to Phase B per operator scope"
+    assert '{ key: "field_leadership"' in src, (
+        "iter345 Phase B Hybrid added field_leadership as the 7th portal column"
     )
 
 

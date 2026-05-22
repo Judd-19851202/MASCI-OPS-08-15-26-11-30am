@@ -149,15 +149,41 @@ async def is_valid_fl_user_token_async(db, token: str) -> Optional[dict]:
         return None
     user_id, _ = parsed
     user = await db.field_leadership_users.find_one({"id": user_id}, {"_id": 0})
-    if not user or user.get("disabled"):
+    if user and not user.get("disabled"):
+        pwh = user.get("password_hash") or ""
+        if pwh:
+            expected = make_fl_user_token(user_id, pwh)
+            if hmac.compare_digest(token, expected):
+                return user
+    # iter345 · FL Phase B · Hybrid · validate directory-granted FL tokens.
+    # If the embedded id isn't in field_leadership_users, look it up in
+    # user_directory and require an active `field_leadership` portal
+    # grant. The token must still HMAC against the directory user's
+    # current password_hash (so revoking via password reset cascades).
+    dir_user = await db.user_directory.find_one({"id": user_id}, {"_id": 0})
+    if not dir_user or dir_user.get("disabled"):
         return None
-    pwh = user.get("password_hash") or ""
+    if "field_leadership" not in (dir_user.get("portals") or []):
+        return None
+    pwh = dir_user.get("password_hash") or ""
     if not pwh:
         return None
     expected = make_fl_user_token(user_id, pwh)
     if not hmac.compare_digest(token, expected):
         return None
-    return user
+    # Return a normalized FL-user-shaped view so downstream code that
+    # reads `user["id"]`, `user["email"]`, etc. keeps working unchanged.
+    return {
+        "id": dir_user.get("id"),
+        "email": dir_user.get("email"),
+        "name": dir_user.get("name") or dir_user.get("email"),
+        "role": "Cross-Portal Grant",
+        "is_active": True,
+        "disabled": bool(dir_user.get("disabled")),
+        "must_change_password": False,
+        "_directory_user": True,
+        "granted_portals": dir_user.get("portals") or [],
+    }
 
 
 # ----- DB ops ----------------------------------------------------------

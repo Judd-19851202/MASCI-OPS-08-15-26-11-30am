@@ -218,6 +218,25 @@ export default function AdminFlUsersPanel() {
 
       <HelpTipBlock formKey="field-leadership.user-management" showCounter className="mb-4" />
 
+      {/* iter345 · FL Phase B advisory — direct cross-portal users to
+          Admin Access Control so they don't get a duplicate identity
+          here. Calm slate panel, not an alert. */}
+      <div
+        className="mb-4 bg-slate-50 border-l-4 border-slate-700 rounded p-3 text-xs text-slate-800"
+        data-testid="fl-users-cross-portal-advisory"
+      >
+        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold mb-1">
+          Cross-portal users
+        </div>
+        <p className="leading-snug">
+          For employees who already have another portal login (PM, HR, Safety, Shop, or Dispatch),
+          use <strong>Admin Access Control</strong> to grant <strong>Field Leadership</strong> access
+          to the same account. They'll sign in at <code className="bg-white px-1 py-0.5 rounded border">/leadership/login</code> with
+          their existing master password. This panel is for <em>native</em> Field Leadership users
+          (no other portal access).
+        </p>
+      </div>
+
       {/* Add user row */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-4 p-3 bg-slate-50 rounded-md border border-slate-200">
         <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name" className={inputCls} data-testid="admin-hr-add-name" />

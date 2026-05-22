@@ -38,6 +38,11 @@ const PORTAL_OPTIONS = [
   { key: "hr",       label: "HR",       color: "bg-purple-700" },
   { key: "safety",   label: "Safety",   color: "bg-cyan-700" },
   { key: "dispatch", label: "Dispatch", color: "bg-amber-700" },
+  // iter345 · FL Phase B · Hybrid · 7th column. Granting this lets
+  // any directory user sign in at /leadership/login with their
+  // master password and enter the Field Leadership Hub without
+  // creating a duplicate field_leadership_users row.
+  { key: "field_leadership", label: "Field Leadership", color: "bg-red-800" },
 ];
 
 // Empty portals state matching the expanded option set.

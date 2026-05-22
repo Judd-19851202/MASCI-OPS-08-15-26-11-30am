@@ -2,6 +2,73 @@
 
 
 
+## 2026-05-22 — iter345 · FL Phase B · Hybrid Unified Access Control · ✅ APPROVE
+
+### Operator policy lock (1a · 2a · 3b)
+- **1a:** FL token binds to user's MASTER directory password (single-pw cascade)
+- **2a:** `field_leadership` surfaces in `/api/auth/me-directory` + `/api/auth/multi-login` responses
+- **3b:** HR FL Users panel kept with calm cross-portal advisory note
+
+### Implementation — Option C (Hybrid)
+1. **`user_directory.ALLOWED_PORTALS`** adds `"field_leadership"` (7 values now)
+2. **Admin Access Control Panel** adds 7th column "Field Leadership" with grant/revoke checkbox
+3. **Multi-login** (`auth_directory_routes.py`) accepts `field_leadership_token_minter` param; when user has FL grant, mints X-FL-Token and adds to `portal_tokens.field_leadership`
+4. **FL backend Path 3** — if Path 1 (native) fails and Path 2 (admin) doesn't apply, directory users with `field_leadership` grant authenticate via master password and receive X-FL-Token tied to their master `password_hash`
+5. **FL token validator** (`is_valid_fl_user_token_async`) extended — if id not in `field_leadership_users`, validates against `user_directory.password_hash` requiring `field_leadership` grant
+6. **HR FL Users panel** gains calm advisory routing cross-portal users to Admin Access Control
+7. **Identity mirror UNTOUCHED** — no auto-promotion of legacy FL users (avoids accidental mass grant)
+
+### Live test results (13/13 PASS · preview)
+- Test user `fl-crossportal-test3@mascigc.com` (PM + FL grants, master pw) → Path 3 fires → kind:"fl" · role:"Cross-Portal Grant" · directory_user:true · granted_portals:[field_leadership,pm]
+- `/api/field-leadership/portal/me` with Path 3 token → 200 + full user object
+- `/api/field-leadership/portal/dispatch-today` with Path 3 token → 200 (Hub operational route works)
+- Multi-login mints both `pm` AND `field_leadership` tokens
+- After REVOKE (PATCH portals=[pm]) → FL login → 401 · multi-login no longer mints FL token
+- No duplicate `field_leadership_users` row created (count=0)
+- Disabled directory user → 401
+- Native FL user (`fieldleader@mascigc.com`) still works (Path 1)
+- Super-admin still works (Path 2 unchanged)
+
+### Live UI proof (screenshots)
+- `/admin/people` Access Control Center renders **7 portal columns**: Admin · PM · Shop · HR · Safety · Dispatch · Field Leadership
+- HR FL Users panel shows calm advisory: "For employees who already have another portal login… use Admin Access Control to grant Field Leadership access to the same account."
+
+### Tests · regression
+- **NEW** `test_iter345_fl_phase_b_hybrid.py` (9 tests · all green)
+- **MOD** `test_iter332_workflow_access_gaps.py` (`_phase_b_deferred` → `_now_includes_field_leadership`)
+- **MOD** `test_iter344_fl_login_super_admin.py` (1 regex updated for reformatted check)
+- **Cumulative iter314 + iter32x + iter33x + iter34x:** 305/305 green
+- **Deploy gate:** 9/9 green · Contract green · safe to deploy
+
+### Files touched (iter345)
+- MOD · `/app/backend/user_directory.py` (ALLOWED_PORTALS)
+- MOD · `/app/backend/routes/auth_directory_routes.py` (minter + fan-out + session tier)
+- MOD · `/app/backend/routes/field_leadership_portal.py` (Path 3)
+- MOD · `/app/backend/field_leadership_users.py` (validator extension)
+- MOD · `/app/backend/server.py` (_directory_fl_token wiring)
+- MOD · `/app/frontend/src/components/AdminAccessControlPanel.jsx` (7th column)
+- MOD · `/app/frontend/src/components/AdminFieldLeadershipUsersPanel.jsx` (cross-portal advisory)
+- NEW · `/app/backend/tests/test_iter345_fl_phase_b_hybrid.py` (9 tests)
+- NEW · `/app/memory/FL_PHASE_B_HYBRID_iter345.md` (full deliverable)
+- DOC · `/app/memory/PRD.md`
+
+### Files NOT touched (scope discipline)
+- ❌ `field_leadership_users` collection (native FL untouched)
+- ❌ `user_directory` schema (only `portals` array gains new values)
+- ❌ `lib/identity_mirror.py` (still excludes FL · no auto-promotion)
+- ❌ `lib/leadershipAuth.js` · `lib/flAuth.js` · `lib/adminAuth.js`
+- ❌ Legacy backend route `/api/field-leadership/login` (shared-pw)
+- ❌ Legacy frontend route `/leadership/legacy-login`
+
+### Verdict
+✅ **APPROVE · deployment-ready.** The platform now supports **one person, one master login, multiple approved portal accesses, including Field Leadership.**
+
+**Cumulative pending redeploy at mascidocs.com: iter330 → iter345 (16 bounded iters · zero drift · all regression-locked).**
+
+
+
+
+
 ## 2026-05-22 — iter344 · FL Login Super-Admin Access (P0 HOLD-blocker) · ✅ APPROVE
 
 ### Operator HOLD reason

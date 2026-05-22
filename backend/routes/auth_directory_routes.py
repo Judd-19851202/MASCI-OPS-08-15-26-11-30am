@@ -79,6 +79,7 @@ def build_auth_directory_router(
     safety_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
     dispatch_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
     admin_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
+    field_leadership_token_minter: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None,
     send_email_fn: Optional[Callable] = None,
     render_portal_email_fn: Optional[Callable] = None,
 ) -> APIRouter:
@@ -204,6 +205,12 @@ def build_auth_directory_router(
                 tokens["dispatch"] = await _maybe_await(dispatch_token_minter(row))
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"[multi-login] dispatch minter failed: {e}")
+        # iter345 · FL Phase B · Hybrid · directory-granted FL token
+        if "field_leadership" in portals and field_leadership_token_minter:
+            try:
+                tokens["field_leadership"] = await _maybe_await(field_leadership_token_minter(row))
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[multi-login] field_leadership minter failed: {e}")
         return tokens
 
     @router.post("/api/auth/multi-login")
@@ -234,6 +241,7 @@ def build_auth_directory_router(
                 "admin": "ADMIN_HR", "hr": "ADMIN_HR",
                 "pm": "OPERATIONS", "shop": "OPERATIONS",
                 "safety": "OPERATIONS", "dispatch": "OPERATIONS",
+                "field_leadership": "ADMIN_FL",
             }
             _ua = request.headers.get("user-agent") or ""
             _ip = _client_ip(request)

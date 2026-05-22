@@ -10647,6 +10647,23 @@ async def _directory_send_email(to: str, subject: str, html: str) -> None:
     await asyncio.to_thread(_resend.Emails.send, params)
 
 
+def _directory_fl_token(row: Dict[str, Any]) -> Optional[str]:
+    """iter345 · FL Phase B · Hybrid · mint X-FL-Token for a
+    directory user who has the `field_leadership` portal grant. The
+    token is bound to the user's master password_hash so it cascades
+    when the master password changes. The FL Hub gate already accepts
+    this format via getFlToken()."""
+    pwh = row.get("password_hash") or ""
+    uid = row.get("id") or ""
+    if not pwh or not uid:
+        return None
+    try:
+        from routes.field_leadership_portal import make_fl_user_token
+        return make_fl_user_token(uid, pwh)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 _auth_directory_router = build_auth_directory_router(
     db,
     require_admin_strict_dep=require_admin_strict,
@@ -10656,6 +10673,7 @@ _auth_directory_router = build_auth_directory_router(
     safety_token_minter=_directory_safety_token,
     dispatch_token_minter=_directory_dispatch_token,
     admin_token_minter=_directory_admin_token,
+    field_leadership_token_minter=_directory_fl_token,
     send_email_fn=_directory_send_email,
     render_portal_email_fn=render_portal_email,
 )
