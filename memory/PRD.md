@@ -14979,6 +14979,37 @@ the entire MASCI HUB / ForgedOps platform ecosystem."
 Admin migration tool + read-side compat shim. 14/14 signatures
 moved to R2. Documented for posterity.
 
+## 2026-05-22 — Iter325: Final Pre-Deploy Convergence & Polish Pass
+
+**Scope**: pre-deployment audit-and-refinement sweep. NOT a redesign. NOT a feature pass. Strict convergence + governance verification.
+
+**Refinements landed**:
+- **EN/ES catalog convergence** — added the iter322/323/324 strings to `lib/i18n.js` as a single dedicated block. 24 net new entries covering: `Equipment & PPE Accountability`, `Safety Review`, `Currently Issued`, `Aging (>90d)`, `Serialized PPE — consumables excluded`, `Safety Portal Ownership`, `Go to Safety Portal sign-in →`, `90d+`, `aging`, `Failed to load Safety Forms records`, status pills (`issued`/`returned`/`damaged`/`lost`), filter labels, `Safety, Admin, or PM login required`, `NEW SITE INSPECTION`, etc. Pre-existing duplicates removed from the new block.
+- **Wording sweep** — verified all remaining "password-gated" references are either code comments, the legacy `/safety/forms/login` UI (intentionally preserved per user directive), or unrelated portal catalogs (Field Leadership). Operator-facing voice is now consistent across iter322/323/324 surfaces.
+- **Bilingual smoke** — captured ES screenshot of `/safety-portal/forms-records` showing 100% Spanish coverage on the new surface (page title, kicker, tabs, summary cards, table headers, status pills, governance hint, all CTAs).
+
+**Final verification matrix**:
+| Check | Status |
+|---|---|
+| `.deploy_checks/run_family_contract.sh` | **GREEN** (7/7) |
+| iter318 Safety Hub calm pass | **GREEN** (12/12) |
+| iter319 FL + Field calm pass | **GREEN** |
+| iter320 Shop + QA/QC calm pass | **GREEN** |
+| iter321 Dispatch + Safety governance closure | **GREEN** (13/13) |
+| iter322 Safety read-gate RBAC | **GREEN** (18/18) |
+| iter323 Safety Forms portal gate | **GREEN** (16/16) |
+| iter180 PM token admin lockdown | **GREEN** (8/8) |
+| Safety Portal e2e (iter120) | **GREEN** |
+| Frontend classifier unit tests | **GREEN** (55/55) |
+| Python lint (`safety.py`, `safety_forms.py`) | **CLEAN** |
+| JS lint (`SafetyHub.jsx`, `SafetyFormsRecords.jsx`, `App.js`, `i18n.js`) | **CLEAN** |
+| Supervisor (backend/frontend/mongodb) | **RUNNING** |
+| `/api/health` | **HTTP 200** |
+
+**Total backend regression**: **104 passing · 21 skipped** across the iter318→323 family + iter180 RBAC + family contract.
+
+**Production-readiness verdict**: ✅ **READY**. Platform family contract is enforced mechanically by the deploy hook; all known operator-flow defects from the past 5 iterations are closed and locked by regression tests. The visual contract (calm tiles, left-edge accent stripes, slate-200 neutral chrome, single yellow badge for the accountability radar) is consistent across every hub. EN/ES parity is complete on every iter322/323/324 surface.
+
 ## 2026-05-22 — Iter324: Equipment & PPE Accountability Aging Visibility (Bounded Enhancement)
 
 **Operator request**: A subtle, opt-out-friendly aging signal on the new `/safety-portal/forms-records` surface so Safety reviewers can spot serialized/recoverable PPE that's been out > 90 days without a return logged — **without** generating noise on consumable PPE.

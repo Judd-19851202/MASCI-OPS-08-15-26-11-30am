@@ -2270,6 +2270,52 @@ const ES = {
   "Welcome to Safety Forms": "Bienvenido a Formularios de Seguridad",
   "Equipment Issuance and Use & Care Training. Password-gated for the Safety Department.":
     "Emisión de Equipo y Capacitación de Uso y Cuidado. Acceso por contraseña para el Departamento de Seguridad.",
+
+  // ── iter322 / 323 / 324 · Safety Portal Ownership + Accountability ─────
+  // Strings added when the Safety Portal absorbed Safety Forms ownership
+  // and gained the Equipment & PPE Accountability review surface. Keys
+  // are exact English UI strings — translations follow the platform's
+  // operational, field-readable voice (concise, direct, non-corporate).
+  "Equipment & PPE Accountability":
+    "Responsabilidad de Equipo y PPE",
+  "Equipment Issuance & Accountability + Use & Care Training documentation — open from the Safety Portal.":
+    "Emisión y Responsabilidad de Equipo + Capacitación de Uso y Cuidado — disponible desde el Portal de Seguridad.",
+  "Review every Equipment Issuance and Use & Care Training submission — per-employee chain of custody, returns, damages, and chargebacks.":
+    "Revise cada emisión de equipo y capacitación — cadena de custodia por empleado, devoluciones, daños y cargos.",
+  "Every Equipment Issuance and Use & Care Training record filed through Safety Forms. Filter by employee, project, or date — drill in for the full PDF and check-in/return status.":
+    "Cada registro de Emisión de Equipo y Capacitación filtrado por empleado, proyecto o fecha — abra para ver el PDF y el estado de devolución.",
+  "Safety Review": "Revisión de Seguridad",
+  "Safety Portal": "Portal de Seguridad",
+  "Safety Portal Ownership": "Propiedad del Portal de Seguridad",
+  "Safety Forms are now owned by the Safety Portal. Sign in there for the full review experience.":
+    "Los Formularios de Seguridad ahora pertenecen al Portal de Seguridad. Inicie sesión allí para la experiencia completa de revisión.",
+  "Go to Safety Portal sign-in →": "Ir al inicio de sesión del Portal de Seguridad →",
+  "Currently Issued": "Actualmente Emitido",
+  "Aging (>90d)": "Vencido (>90d)",
+  "Serialized PPE — consumables excluded":
+    "PPE Serializado — consumibles excluidos",
+  "Search employee, project, instructor…":
+    "Buscar empleado, proyecto, instructor…",
+  "Employee filter": "Filtro de Empleado",
+  "Instructor": "Instructor",
+  "Training Type": "Tipo de Capacitación",
+  "No records match these filters.":
+    "Ningún registro coincide con estos filtros.",
+  "records shown": "registros mostrados",
+  "Failed to load Safety Forms records":
+    "No se pudieron cargar los registros de Formularios de Seguridad",
+  "issued": "emitido",
+  "returned": "devuelto",
+  "damaged": "dañado",
+  "lost": "perdido",
+  "Aging accountability item": "Equipo de responsabilidad vencido",
+  "90d+": "90d+",
+  "aging": "vencido",
+  "NEW SITE INSPECTION": "NUEVA INSPECCIÓN DE SITIO",
+  // iter322 — auth continuity banner copy
+  "Safety, Admin, or PM login required":
+    "Se requiere inicio de sesión de Seguridad, Admin o PM",
+
   "Open Forms": "Abrir Formularios",
   "Equipment Issuance": "Emisión de Equipo",
   "Use & Care Training": "Capacitación de Uso y Cuidado",
