@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { Printer, Loader2, Trash2, Mail, AlertOctagon, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import { RefKicker } from "@/components/RefKicker";
 import BackLink from "@/components/BackLink";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -155,6 +156,12 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">Equipment Pre-Op Inspection</span>
+              {/* iter336 · review-side reference continuity */}
+              <RefKicker
+                recordId={data.inspection_number || data.id}
+                testId="view-equip-inspection-ref"
+                className="mt-1"
+              />
               <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
                 {data.equipment_type} · {data.equipment_unit}
               </h1>

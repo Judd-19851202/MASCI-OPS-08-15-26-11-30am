@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
+import { RefKicker } from "@/components/RefKicker";
 import { getHrToken } from "@/lib/hrAuth";
 import { useT } from "@/lib/i18n";
 import { paletteFor } from "@/lib/portalPalette";
@@ -296,6 +297,12 @@ export function HrDailyReportDetail() {
                   </span>
                 )}
               </div>
+              {/* iter336 · review-side reference continuity */}
+              <RefKicker
+                recordId={doc.report_number || doc.id}
+                testId="hr-dr-detail-ref"
+                className="mt-1"
+              />
               <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight mt-0.5">
                 {doc.project_name || "—"}
               </h1>

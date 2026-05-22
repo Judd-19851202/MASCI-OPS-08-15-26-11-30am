@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { Printer, Loader2, Trash2, MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import { RefKicker } from "@/components/RefKicker";
 import BackLink from "@/components/BackLink";
 import { useHubHome } from "@/components/HubBackLink";
 import { api } from "@/lib/api";
@@ -167,7 +168,13 @@ export default function ViewMeeting() {
           <div className="flex-1">
             <MasciLogo variant="mark" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink={hubHome} />
             <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
-            <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-4">
+            {/* iter336 · review-side reference continuity */}
+            <RefKicker
+              recordId={data.meeting_number || data.id}
+              testId="view-meeting-ref"
+              className="mt-4"
+            />
+            <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-1">
               {t("Site Safety Meeting Record")}
             </h1>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">

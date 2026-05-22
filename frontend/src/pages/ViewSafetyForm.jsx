@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import { RefKicker } from "@/components/RefKicker";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api, API } from "@/lib/api";
@@ -157,7 +158,14 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
                   ? t("Equipment Use & Care Training")
                   : t("Safety Equipment Issuance & Accountability")}
               </h1>
-              <p className="text-xs font-mono text-slate-500 mt-1">{t("Form Ref")}: {doc.id}</p>
+              {/* iter336 · review-side reference continuity · replaces
+                  the legacy "Form Ref: …" line with the unified RefKicker
+                  used across all detail/review surfaces. */}
+              <RefKicker
+                recordId={doc.issuance_number || doc.training_number || doc.id}
+                testId="view-safety-form-ref"
+                className="mt-1"
+              />
             </div>
             <Button
               onClick={() => downloadPdf("/pdf")}
