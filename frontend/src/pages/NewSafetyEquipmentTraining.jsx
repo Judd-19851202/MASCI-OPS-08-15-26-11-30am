@@ -128,8 +128,7 @@ export default function NewSafetyEquipmentTraining() {
       }
       payload = { ...payload, submit_language: submitLang || "en" };
       const res = await api.post("/safety-forms/equipment-trainings", payload);
-      toast.success(t("Submitted — PDF emailed to Safety"));
-      // iter332 · honor "from=records" return.
+      toast.success(t("Training filed · PDF emailed to Safety · visible in Safety Forms Records"));
       if (fromRecords) {
         navigate("/safety-portal/forms-records");
       } else {

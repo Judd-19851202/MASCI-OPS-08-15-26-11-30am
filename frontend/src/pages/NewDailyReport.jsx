@@ -492,7 +492,7 @@ export default function NewDailyReport({ publicMode = false }) {
         return;
       }
       const res = { data: r.data };
-      toast.success("Daily report saved");
+      toast.success(t("Daily report filed · PM distribution sent · visible under Daily Reports"));
       await commit();
       idempotencyKeyRef.current = null;
       // iter148 — remember this project for the next visit
@@ -600,6 +600,10 @@ export default function NewDailyReport({ publicMode = false }) {
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
             {t("Daily Job Report")}
           </h1>
+          {/* iter333 · operational sub-header · iter327 voice */}
+          <p className="text-sm text-slate-600 mt-1.5 max-w-2xl leading-snug">
+            {t("One report per crew, per day. Capture labor, subs, materials, weather, and photos so payroll and PM coordination run clean tomorrow.")}
+          </p>
         </div>
 
         {/* 01 — Report info */}

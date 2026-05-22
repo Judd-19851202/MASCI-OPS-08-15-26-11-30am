@@ -116,11 +116,10 @@ export default function IncidentsDashboard() {
                 <AlertOctagon className="w-8 h-8 text-white" />
               </div>
               <h3 className="font-display text-2xl font-bold text-slate-900">
-                No incidents on file yet
+                Nothing filed yet today.
               </h3>
               <p className="text-slate-600 mt-2 max-w-md mx-auto">
-                Document any near miss, injury, property damage or
-                environmental release — small or large.
+                Every near miss, injury, property damage, or environmental release belongs here. Small details written now save big problems later.
               </p>
               <Button
                 onClick={() => navigate("/incidents/new")}

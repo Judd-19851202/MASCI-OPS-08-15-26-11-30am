@@ -234,7 +234,7 @@ export default function NewIncident({ publicMode = false }) {
         return;
       }
       const res = { data: r.data };
-      toast.success("Incident report saved");
+      toast.success(t("Incident report filed · Safety + PM notified · visible under Incidents"));
       await commit();
       idempotencyKeyRef.current = null;
       // iter147 — telemetry on the most-used safety form
@@ -318,6 +318,10 @@ export default function NewIncident({ publicMode = false }) {
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
             {t("Accident / Incident Report")}
           </h1>
+          {/* iter333 · operational sub-header · iter327 capability-forward voice */}
+          <p className="text-sm text-slate-600 mt-1.5 max-w-2xl leading-snug">
+            {t("Every detail filed here protects the crew, the project, and the company. Write it the way you'd want to read it six months from now.")}
+          </p>
           <div className="mt-3 flex items-start gap-2 p-3 border-2 border-amber-300 bg-amber-50 rounded-md">
             <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
             <p className="text-sm text-amber-900 leading-snug">
@@ -744,7 +748,7 @@ export default function NewIncident({ publicMode = false }) {
               value={data.description}
               onChange={(e) => set("description", e.target.value)}
               className="min-h-[160px] text-base border-2 border-slate-300"
-              placeholder="Describe in detail what was happening, what changed, what occurred. Include sequence of events."
+              placeholder={t("What happened, who was involved, what equipment or materials were present, and what was done in the moment. Write it like you'd brief the Safety Manager on a phone call.")}
               data-testid="input-description"
             />
           </div>
@@ -906,7 +910,7 @@ export default function NewIncident({ publicMode = false }) {
               value={data.corrective_actions}
               onChange={(e) => set("corrective_actions", e.target.value)}
               className="min-h-[100px] text-base border-2 border-slate-300"
-              placeholder="Training, procedure changes, engineering controls..."
+              placeholder={t("Specific changes that prevent this from happening again — training, procedure updates, equipment fixes, supervision changes.")}
               data-testid="input-corrective"
             />
           </div>

@@ -164,7 +164,7 @@ export default function HrDailyReports() {
           ) : items.length === 0 ? (
             <div className="p-10 text-center text-slate-500" data-testid="hr-dr-empty">
               <Filter className="w-8 h-8 mx-auto mb-2 opacity-40" />
-              <p className="italic">{t("No daily reports match these filters.")}</p>
+              <p className="italic">{t("No daily reports match these filters. Try a wider date range or clear all filters to see everything on file.")}</p>
             </div>
           ) : (
             <table className="w-full text-sm">

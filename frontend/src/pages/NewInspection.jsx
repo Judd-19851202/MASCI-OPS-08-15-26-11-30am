@@ -162,7 +162,7 @@ export default function NewInspection({ publicMode = false }) {
       }
       payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/inspections", payload);
-      toast.success("Inspection saved");
+      toast.success(t("Inspection filed · graded · visible under Audits & Inspections"));
       if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
           state: { projectName: payload.project_name, grade },
@@ -219,6 +219,10 @@ export default function NewInspection({ publicMode = false }) {
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
             {t("Job Site Safety Inspection")}
           </h1>
+          {/* iter333 · operational sub-header · iter327 voice */}
+          <p className="text-sm text-slate-600 mt-1.5 max-w-2xl leading-snug">
+            {t("A walking record of what's safe, what isn't, and what was fixed today. Honest grades drive better jobs.")}
+          </p>
         </div>
 
         {/* Live grade banner */}
@@ -567,7 +571,7 @@ export default function NewInspection({ publicMode = false }) {
               value={data.corrective_action_notes}
               onChange={(e) => set("corrective_action_notes", e.target.value)}
               className="min-h-[120px] text-base border-2 border-slate-300"
-              placeholder="Describe issue, location, immediate action taken, and follow-up required."
+              placeholder={t("What was the issue, where on site, what was done about it, and who owns the follow-up. Specific beats general — name the location, the trade, the action.")}
               data-testid="input-corrective-notes"
             />
           </div>

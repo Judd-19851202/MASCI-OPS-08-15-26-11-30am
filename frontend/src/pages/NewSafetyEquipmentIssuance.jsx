@@ -192,10 +192,7 @@ export default function NewSafetyEquipmentIssuance() {
       }
       payload = { ...payload, submit_language: submitLang || "en" };
       const res = await api.post("/safety-forms/equipment-issuances", payload);
-      toast.success(t("Submitted — PDF emailed to Safety"));
-      // iter332 · honor "from=records" so Safety users land back on the
-      // review surface with the new record visible. Otherwise default to
-      // the just-created detail view (legacy behavior).
+      toast.success(t("Issuance filed · PDF emailed to Safety · visible in Safety Forms Records"));
       if (fromRecords) {
         navigate("/safety-portal/forms-records");
       } else {

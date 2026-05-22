@@ -492,7 +492,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
               {formCopy.pageTitle}
             </h1>
             <p className="text-slate-600 text-sm sm:text-base mt-1.5">
-              {formCopy.helpHeader || t("Walk around your truck before you roll. Mark every item. Anything FAIL gets logged so Shop can keep us on the road.")}
+              {formCopy.helpHeader || t("Walk it before you roll it. Mark every item honestly. A FAIL today is a downed truck — and a tomorrow you can plan for, not one that surprises you.")}
             </p>
           </div>
         </div>
@@ -820,7 +820,7 @@ function DVIRItem({ item, value, onChange, detail, onDetailNote, onDetailPhotos,
         <div className="ml-0 sm:ml-2 mt-2 space-y-2" data-testid={`${tid}-defect`}>
           <Input
             className="h-12 text-base border-2 border-amber-300 bg-amber-50/40"
-            placeholder={t("Describe the defect — what you saw / heard / felt (10+ chars)")}
+            placeholder={t("Describe the defect — what you saw, heard, or felt. Where on the unit. When it started. Be specific so Shop knows what to grab.")}
             value={detail?.note || ""}
             onChange={(e) => onDetailNote(e.target.value)}
             data-testid={`${tid}-note`}

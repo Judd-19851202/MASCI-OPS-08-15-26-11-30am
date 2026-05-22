@@ -3803,6 +3803,26 @@ const ES = {
   "Crew": "Cuadrilla",
   "This is a read-only HR view. To edit or send this report, the PM must use the PM Portal.": "Esta es una vista de solo lectura para RH. Para editar o enviar este reporte, el PM debe usar el Portal de PM.",
 
+  // iter333 · Final Operational Coaching Convergence · iter327 voice
+  // ─ Submit-success continuity toasts ─
+  "Incident report filed · Safety + PM notified · visible under Incidents": "Reporte de accidente archivado · Seguridad + PM notificados · visible en Incidentes",
+  "Daily report filed · PM distribution sent · visible under Daily Reports": "Reporte diario archivado · distribución de PM enviada · visible en Reportes Diarios",
+  "Inspection filed · graded · visible under Audits & Inspections": "Inspección archivada · calificada · visible en Auditorías e Inspecciones",
+  "Issuance filed · PDF emailed to Safety · visible in Safety Forms Records": "Entrega archivada · PDF enviado a Seguridad · visible en Registros de Formularios",
+  "Training filed · PDF emailed to Safety · visible in Safety Forms Records": "Capacitación archivada · PDF enviado a Seguridad · visible en Registros de Formularios",
+  // ─ Tier-1 form intros ─
+  "Every detail filed here protects the crew, the project, and the company. Write it the way you'd want to read it six months from now.": "Cada detalle archivado aquí protege a la cuadrilla, al proyecto y a la empresa. Escríbelo como te gustaría leerlo dentro de seis meses.",
+  "One report per crew, per day. Capture labor, subs, materials, weather, and photos so payroll and PM coordination run clean tomorrow.": "Un reporte por cuadrilla, por día. Captura mano de obra, subs, materiales, clima y fotos para que la nómina y la coordinación del PM corran limpias mañana.",
+  "A walking record of what's safe, what isn't, and what was fixed today. Honest grades drive better jobs.": "Un registro caminado de lo que es seguro, lo que no, y lo que se corrigió hoy. Las calificaciones honestas hacen mejores trabajos.",
+  "Walk it before you roll it. Mark every item honestly. A FAIL today is a downed truck — and a tomorrow you can plan for, not one that surprises you.": "Camínalo antes de moverlo. Marca cada ítem honestamente. Un FALLO hoy es un camión fuera — y un mañana que puedes planear, no uno que te sorprenda.",
+  // ─ "What good looks like" placeholders ─
+  "What happened, who was involved, what equipment or materials were present, and what was done in the moment. Write it like you'd brief the Safety Manager on a phone call.": "Qué pasó, quién estuvo involucrado, qué equipo o materiales estaban presentes, y qué se hizo en el momento. Escríbelo como si le informaras al Gerente de Seguridad por teléfono.",
+  "Specific changes that prevent this from happening again — training, procedure updates, equipment fixes, supervision changes.": "Cambios específicos que previenen que esto vuelva a pasar — capacitación, actualizaciones de procedimiento, reparaciones de equipo, cambios de supervisión.",
+  "What was the issue, where on site, what was done about it, and who owns the follow-up. Specific beats general — name the location, the trade, the action.": "Cuál fue el problema, dónde en el sitio, qué se hizo al respecto, y quién dirige el seguimiento. Específico le gana a general — nombra el lugar, el oficio, la acción.",
+  "Describe the defect — what you saw, heard, or felt. Where on the unit. When it started. Be specific so Shop knows what to grab.": "Describe el defecto — qué viste, escuchaste o sentiste. Dónde en la unidad. Cuándo empezó. Sé específico para que el Taller sepa qué traer.",
+  // ─ Empty-state guidance ─
+  "No daily reports match these filters. Try a wider date range or clear all filters to see everything on file.": "Ningún reporte diario coincide con estos filtros. Prueba un rango de fechas más amplio o limpia todos los filtros para ver todo en archivo.",
+
   // J · NewDailyReport.jsx (composite size-warning sentence)
   " estimated).": " estimado).",
   "Still submittable. For very large evidence sets consider splitting into multiple reports so each stays well under the size limit.": "Aún se puede enviar. Para conjuntos de evidencia muy grandes, considere dividir en varios reportes para que cada uno quede bien por debajo del límite de tamaño.",
