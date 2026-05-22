@@ -25,9 +25,12 @@ API_URL = os.environ.get(
     "API_URL",
     "https://safety-audit-mobile-1.preview.emergentagent.com",
 ).rstrip("/")
-SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
-SUPER_ADMIN_PASSWORD = "Maddix123!"
-OUTPUT_CSV = "/app/memory/iter348_fl_bulk_create_results.csv"
+SUPER_ADMIN_EMAIL = os.environ.get("MASCI_ADMIN_EMAIL", "jaymn.judd@mascigc.com")
+SUPER_ADMIN_PASSWORD = os.environ.get("MASCI_ADMIN_PASSWORD", "Maddix123!")
+OUTPUT_CSV = os.environ.get(
+    "OUTPUT_CSV",
+    "/app/memory/iter348_fl_bulk_create_results.csv",
+)
 
 # Roster — verbatim from doc03667520260521092721.pdf
 # Field is preserved exactly as-supplied; operator will correct typos later.
