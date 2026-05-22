@@ -34,7 +34,7 @@ import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setFlToken, setFlUser, clearFlToken } from "@/lib/flAuth";
-import { isAdmin, clearAdminToken } from "@/lib/adminAuth";
+import { isAdmin, clearAdminToken, setAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearShopToken } from "@/lib/shopAuth";
 import { clearHrToken } from "@/lib/hrAuth";
@@ -100,10 +100,19 @@ export default function FieldLeadershipPortalLogin() {
       );
       const tok = r?.data?.token;
       const user = r?.data?.user || null;
+      const kind = r?.data?.kind || "fl";
       if (!tok) throw new Error("missing-token");
-      setFlToken(tok, rememberMe);
-      setFlUser(user);
-      toast.success(`${t("Welcome,")} ${user?.name || t("Field Leader")}`);
+      if (kind === "admin") {
+        // iter344 · Super-admin signed in via FL screen. Store as admin
+        // token (the Hub gate accepts admin via isAdmin()). Do NOT mint
+        // an FL identity — admin is a different identity domain.
+        setAdminToken(tok, { remember: rememberMe });
+        toast.success(`${t("Welcome,")} ${user?.name || t("Admin")}`);
+      } else {
+        setFlToken(tok, rememberMe);
+        setFlUser(user);
+        toast.success(`${t("Welcome,")} ${user?.name || t("Field Leader")}`);
+      }
       if (r?.data?.must_change_password) {
         navigate("/field-leadership/portal/change-password", { replace: true });
       } else {

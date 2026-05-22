@@ -9155,7 +9155,11 @@ async def _seed_field_leadership_users():
 
 
 _fl_portal_router = build_field_leadership_portal_router(
-    db, require_admin, _hr_send_email
+    db, require_admin, _hr_send_email,
+    # iter344 · lazy reference — `_directory_admin_token` is defined
+    # later in this file (line ~10510). Wrapping in a lambda defers
+    # name resolution until the FL login route actually fires.
+    directory_admin_minter=lambda row: _directory_admin_token(row),
 )
 app.include_router(_fl_portal_router)
 

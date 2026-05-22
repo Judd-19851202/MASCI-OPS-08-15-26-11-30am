@@ -2,6 +2,58 @@
 
 
 
+## 2026-05-22 — iter344 · FL Login Super-Admin Access (P0 HOLD-blocker) · ✅ APPROVE
+
+### Operator HOLD reason
+Even after iter343 chrome rebuild, `jaymn.judd@mascigc.com / Maddix123!` still failed at the FL login form with "Invalid email or password". Operator expectation: super-admin should access every portal.
+
+### Root cause
+The FL backend route `POST /api/field-leadership/portal/login` only authenticated against `field_leadership_users`. Super-admin lives in `user_directory`. No bridge existed.
+
+### Fix — two-path auth in `fl_login`
+- **Path 1:** per-user FL identity against `field_leadership_users` (unchanged)
+- **Path 2 (iter344 NEW):** if Path 1 fails AND user has `admin` portal grant in `user_directory` → mint admin token via `_directory_admin_token(row)` (same minter `/api/auth/multi-login` uses)
+- Response includes `kind: "fl"` or `kind: "admin"` so frontend stores token in the correct domain
+- Frontend reads `kind`, branches: `setAdminToken()` for admin OR `setFlToken()` for FL
+- Hub gate already accepts admin tokens via `isAdmin()` (since iter342) — no duplicate identity created
+
+### RBAC boundary preserved
+Only `admin` portal grant unlocks the fallback. Live-verified rejections:
+- Wrong password against super-admin email → 401 calm
+- HR-only directory user (`hrmanager@mascigc.com`) → 401 calm
+- PM-only / Dispatch-only / Safety-only directory users → 401 calm
+- Unknown user → 401 calm
+
+### Live proof
+- **`POST /api/field-leadership/portal/login` with super-admin creds** → HTTP 200 · `kind:"admin"` · token · user with portals `['admin','dispatch','hr','pm','safety','shop']`
+- **Same token works on `/api/admin/system-health`** → HTTP 200 (identity domain unified, RBAC unchanged)
+- **Browser E2E + screenshot** (`/tmp/iter344_super_admin_landed.jpg`): super-admin enters credentials at `/leadership/login` → green toast "Welcome, Super Admin" → lands at `/leadership` (FL Hub fully rendered) → `localStorage.masci.admin.token` set · `localStorage.masci.fl.token` = None (no duplicate identity)
+
+### Tests · regression · deploy gate
+- **NEW** `test_iter344_fl_login_super_admin.py` (6 tests · all green)
+- **Cumulative:** 266/266 pytest green across iter32x + iter33x + iter34x
+- **iter314 + iter342 + iter343 + iter344 combined suite:** 56/56 green
+- **Deploy gate:** 9/9 green · Contract green · safe to deploy
+- **ESLint:** clean
+
+### Files touched
+- MOD · `/app/backend/routes/field_leadership_portal.py` (two-path auth + new optional `directory_admin_minter` param)
+- MOD · `/app/backend/server.py` (lazy lambda wiring for `_directory_admin_token`)
+- MOD · `/app/frontend/src/pages/FieldLeadershipPortalLogin.jsx` (read `kind` · branch token storage)
+- NEW · `/app/backend/tests/test_iter344_fl_login_super_admin.py` (6 tests)
+- NEW · `/app/memory/FL_LOGIN_SUPER_ADMIN_iter344.md` (full deliverable)
+- DOC · `/app/memory/PRD.md`
+
+### Files NOT touched
+- ❌ `user_directory` collection · ❌ `field_leadership_users` collection · ❌ `lib/leadershipAuth.js` · ❌ `lib/flAuth.js` · ❌ `lib/adminAuth.js` · ❌ `/api/admin/login` route · ❌ `/api/auth/multi-login` route · ❌ Admin Access Control Center
+
+### Verdict
+**✅ APPROVE · deployment HOLD can be lifted.** Cumulative pending redeploy at mascidocs.com: **iter330 → iter344 (15 bounded iters · zero drift · all regression-locked).**
+
+
+
+
+
 ## 2026-05-22 — iter343 · FL Login Chrome Rebuild (deployment HOLD lifted) · ✅ APPROVE
 
 ### Operator HOLD

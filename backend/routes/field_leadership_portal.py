@@ -113,6 +113,7 @@ def build_field_leadership_portal_router(
     db,
     require_admin_dep: Callable,
     send_email_fn: Optional[Callable] = None,
+    directory_admin_minter: Optional[Callable] = None,
 ) -> APIRouter:
     """Assemble the Field Leadership portal router."""
     router = APIRouter(prefix="/api", tags=["field-leadership-portal"])
@@ -161,29 +162,63 @@ def build_field_leadership_portal_router(
         email = (payload.email or "").strip().lower()
         if not email or not payload.password:
             raise HTTPException(400, "email and password required")
+        # ── Path 1 · per-user FL identity (field_leadership_users) ──
         user = await find_fl_user_by_email(db, email)
-        if not user or user.get("disabled") or not user.get("is_active", True):
-            raise HTTPException(401, "Invalid email or password")
-        pwh = user.get("password_hash")
-        if not pwh or not verify_password(payload.password, pwh):
-            raise HTTPException(401, "Invalid email or password")
-        token = make_fl_user_token(user["id"], pwh)
-        await stamp_fl_login(db, user["id"], _client_ip(request))
-        try:
-            from session_timeout import reset_session_activity
-            await reset_session_activity(
-                db, token, "ADMIN_FL",
-                user_id=user.get("id"), email=user.get("email"),
-                actor_label="field_leadership", ip=_client_ip(request),
-                user_agent=request.headers.get("user-agent") or "",
-            )
-        except Exception:  # noqa: BLE001
-            pass
-        return {
-            "ok": True, "token": token,
-            "user": public_fl_user_view(user),
-            "must_change_password": bool(user.get("must_change_password")),
-        }
+        if user and not user.get("disabled") and user.get("is_active", True):
+            pwh = user.get("password_hash")
+            if pwh and verify_password(payload.password, pwh):
+                token = make_fl_user_token(user["id"], pwh)
+                await stamp_fl_login(db, user["id"], _client_ip(request))
+                try:
+                    from session_timeout import reset_session_activity
+                    await reset_session_activity(
+                        db, token, "ADMIN_FL",
+                        user_id=user.get("id"), email=user.get("email"),
+                        actor_label="field_leadership", ip=_client_ip(request),
+                        user_agent=request.headers.get("user-agent") or "",
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+                return {
+                    "ok": True, "token": token, "kind": "fl",
+                    "user": public_fl_user_view(user),
+                    "must_change_password": bool(user.get("must_change_password")),
+                }
+        # ── Path 2 · iter344 · master-directory fallback (super-admin
+        #   accessing FL portal via the unified login screen). Admin
+        #   credentials authenticate against `user_directory`; if the
+        #   user has the `admin` portal grant, we mint a regular admin
+        #   token (same one /api/admin/* routes accept). The Hub gate
+        #   already accepts admin tokens via isAdmin(). No duplicate
+        #   FL identity is created. ──────────────────────────────────
+        if directory_admin_minter is not None:
+            try:
+                import user_directory as _ud  # noqa: WPS433
+                row = await _ud.authenticate(db, email=email, password=payload.password)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"fl_login directory fallback error: {e}")
+                row = None
+            if row and "admin" in (row.get("portals") or []):
+                admin_tok = directory_admin_minter(row)
+                if admin_tok:
+                    try:
+                        from session_timeout import reset_session_activity
+                        await reset_session_activity(
+                            db, admin_tok, "ADMIN_HR",
+                            user_id=row.get("id"), email=row.get("email"),
+                            actor_label="admin_via_fl",
+                            ip=_client_ip(request),
+                            user_agent=request.headers.get("user-agent") or "",
+                        )
+                    except Exception:  # noqa: BLE001
+                        pass
+                    return {
+                        "ok": True, "token": admin_tok, "kind": "admin",
+                        "user": _ud.public_view(row),
+                        "must_change_password": False,
+                    }
+        # ── Final · calm rejection ─────────────────────────────────
+        raise HTTPException(401, "Invalid email or password")
 
     @router.post("/field-leadership/portal/change-password")
     async def fl_change_password(
