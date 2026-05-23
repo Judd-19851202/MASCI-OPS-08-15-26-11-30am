@@ -2,6 +2,92 @@
 
 
 
+## 2026-05-23 — iter354 · Phase 2 P0+P1 — Compliance Gap Detector + Governance Health · ✅ COMPLETE
+
+### Operator P0 (proactive cross-portal contradiction detection)
+Builds the operational intelligence layer that proactively detects accountability
+problems before humans discover them manually. Strictly read-only over existing
+source-of-truth collections — no duplication, no governance authority shift, no
+silent automation. Admin-strict gate.
+
+### Backend (`/app/backend/routes/governance.py`, 743 LOC, new module)
+- **Detector engine** with 10 named rules:
+  - `DRV_MED_EXPIRED` / `DRV_MED_EXPIRING` (critical / high)
+  - `DRV_CDL_EXPIRED` / `DRV_CDL_EXPIRING` (critical / high)
+  - `TRN_EXPIRED` (high) — active employee with ≥1 expired training record
+  - `PPE_MISSING` (medium) — active field employee with zero PPE issuances
+  - `INC_CLOSED_CAPA_OPEN` (high) — incident marked closed but linked CAPA still open
+  - `CAPA_OVERDUE` (high) — open CAPA past due_date
+  - `EMP_ARCHIVED_ACTIVE` (medium) — soft-deleted but still flagged active
+  - `EMP_DUP_NAMES` (low) — duplicate active employee identities
+- **Idempotent upsert** — finding id is `sha1(rule_id|entity_kind|entity_id)[:24]`;
+  re-scan preserves status/acknowledge/resolve state. Conditions that disappear
+  are auto-resolved with `resolved_by="system_auto"`. Findings that re-trigger
+  after auto-resolve are reopened.
+- **Persistence collections**: `compliance_findings` (the findings themselves) +
+  `compliance_scans` (last 50 scan-run logs).
+- **Endpoints (admin-strict only)**:
+  - `POST /api/admin/compliance/scan` — runs every detector, returns rule_counts + severity_counts
+  - `GET  /api/admin/compliance/findings` — filterable list (status / severity / rule_id / category / entity_kind / q)
+  - `GET  /api/admin/compliance/findings/{id}` — detail
+  - `POST /api/admin/compliance/findings/{id}/acknowledge` — body `{note}`
+  - `POST /api/admin/compliance/findings/{id}/resolve` — body `{note}`
+  - `GET  /api/admin/governance/summary` — convergence_score (0-100), health_label, severity/status/category/rule counts, last_scan, rule_catalog
+- **Convergence score formula**: 100 − (critical × 20) − (high × 8) − (medium × 3) − (low × 1), clamped 0-100. Health label maps 90+/70+/40+/<40 → healthy/fair/degraded/critical.
+
+### Frontend
+- **`/admin/governance`** (`/app/frontend/src/pages/admin/AdminGovernance.jsx`, 230 LOC)
+  - Convergence score banner with health label + total open + last-scan-rel + Run-scan-now + View-findings buttons.
+  - 5-tile severity strip (critical/high/medium/low/info) — each tile deep-links into the findings list filtered by severity.
+  - 3 status pills (open/acknowledged/resolved) — each deep-links into the findings list filtered by status.
+  - Open-by-rule table sorted by count desc — each row deep-links by rule_id.
+  - Last-scan stats footer (detected / upserts / auto-resolved).
+- **`/admin/compliance-findings`** (`/app/frontend/src/pages/admin/AdminComplianceFindings.jsx`, 270 LOC)
+  - 5-field filter bar (severity / status / rule_id / category / search) with URL-deep-linking — every filter value is mirrored to the URL bar so admins can share filtered views.
+  - Findings grouped by severity with sticky group headers.
+  - Per-row inline Acknowledge + Resolve buttons (resolved rows have neither).
+  - Shadcn Dialog flow for acknowledge/resolve with optional note field and `sonner` toast confirmation.
+  - Empty state when filters narrow to zero / detector finds no contradictions.
+- **AdminShell nav**: new `governance` section (orange ShieldCheck icon) wired in `/app/frontend/src/components/AdminShell.jsx`.
+- **App.js**: 2 new routes registered under the admin RequireAdmin guard.
+
+### RBAC matrix (live-verified)
+| Endpoint                                | Admin | PM    | HR    | FL    | Anon  |
+|---|---|---|---|---|---|
+| POST `/api/admin/compliance/scan`       | ✅    | ❌ 401 | ❌ 401 | ❌ 401 | ❌ 401 |
+| GET  `/api/admin/compliance/findings`   | ✅    | ❌ 401 | ❌ 401 | ❌ 401 | ❌ 401 |
+| POST `…/findings/{id}/acknowledge`      | ✅    | ❌ 401 | ❌ 401 | ❌ 401 | ❌ 401 |
+| POST `…/findings/{id}/resolve`          | ✅    | ❌ 401 | ❌ 401 | ❌ 401 | ❌ 401 |
+| GET  `/api/admin/governance/summary`    | ✅    | ❌ 401 | ❌ 401 | ❌ 401 | ❌ 401 |
+
+### Tests · iter354
+- **NEW** `/app/backend/tests/test_iter354_governance_phase2.py` — **12/12 PASS** (RBAC × 2, scan + idempotency × 2, list/detail/filter × 4, ack→resolve mutation chain × 1, resolved-view filter × 1, summary shape × 1, search-narrowing × 1).
+- **Phase 1 regression** (`test_iter353def_phase1_convergence.py`): **34/34 PASS** unchanged — no cross-iteration regression.
+- **Testing agent v3** (`/app/test_reports/iteration_356.json`): backend **100%** + frontend **100%**. Verified data-testid coverage, filter bar with URL deep-linking, ack/resolve dialog flow, mobile 390px responsiveness, AdminShell nav integration, RBAC redirect for unauthenticated access.
+
+### Live preview detection (real signal, not synthetic)
+First scan against preview DB surfaced **308 real operational gaps**:
+- 235 × `PPE_MISSING` (active employees with zero PPE accountability)
+- 73 × `EMP_ARCHIVED_ACTIVE` (soft-deleted but still flagged active)
+Convergence score: **0/100** (Critical) — preview DB carries real legacy data.
+
+### Polish applied post-testing-agent
+- Aligned `EMP_ARCHIVED_ACTIVE` description text to use the word "archived"
+  (was "soft-deleted") so operator search queries match expectations.
+
+### Deferred to subsequent iterations (per spec)
+- Phase 2 P2 — Operator ↔ Employee Linkage Enforcement
+- Phase 2 P3 — Incident → CAPA → Closeout Lifecycle Enforcement
+- Phase 2 P4 — Auth Gate Consolidation
+- Phase 2 P5 — MFA + Portal Grant Governance
+- Phase 2 P6 — Operational Intelligence Notifications (digest fan-out of findings)
+- Phase 2 P7 — Architectural hardening / `pm_portal.py` extraction
+- Detector rules requiring new instrumentation: equipment-operation-without-training,
+  FL-without-leadership-training, workflow-dead-end consumer tracking.
+
+---
+
+
 ## 2026-05-23 — iter353e-UI · PM Crew Compliance Page · ✅ COMPLETE
 
 ### Frontend completion (this session, fork)

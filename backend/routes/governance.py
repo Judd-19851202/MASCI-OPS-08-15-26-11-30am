@@ -370,7 +370,7 @@ async def _detect_employee_anomalies(db) -> List[Dict[str, Any]]:
             "entity_id": emp.get("id") or "",
             "entity_name": emp.get("name") or "(unnamed)",
             "description": (
-                f"{emp.get('name') or '(unnamed)'} is soft-deleted (deleted_at="
+                f"{emp.get('name') or '(unnamed)'} is archived (soft-deleted, deleted_at="
                 f"{emp.get('deleted_at')}) but is_active=true. Restore or finalize archival."
             ),
             "source": {"deleted_at": emp.get("deleted_at"), "is_active": True},
