@@ -147,7 +147,7 @@ export default function PmCrewCompliance() {
 
   return (
     <PmShell
-      title="My Crew Compliance"
+      title={t("My Crew Compliance")}
       section="overview"
       intro={
         <div className="flex items-start gap-3">

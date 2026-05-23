@@ -2,6 +2,29 @@
 
 
 
+## 2026-05-23 — iter353e-UI · PM Crew Compliance Page · ✅ COMPLETE
+
+### Frontend completion (this session, fork)
+- **`/app/frontend/src/pages/PmCrewCompliance.jsx`** — fully implemented read-only PM operational awareness surface (route `/pm/crew-compliance`).
+  - Uses `PmShell` with `t("My Crew Compliance")` title.
+  - 5 summary tiles (crew size · expiring ≤30d · expired · open CAPAs · PPE records) with click-through filters.
+  - Read-only banner with scope pill (`My crew · 180d` for PM, `Admin all` for admin).
+  - Search bar filters across all three tabs (Training / PPE / CAPAs).
+  - Click expiring/expired tile → auto-applies filter chip on Training tab with `Clear filter` action.
+  - Desktop tables + mobile card variants for Training.
+  - Deep-link from employee name → `/hr/employees/{id}/accountability`.
+  - 4-endpoint parallel fetch: `/pm/crew/summary` · `/pm/crew/training-records` · `/pm/crew/ppe` · `/pm/crew/capas`.
+- **`/app/frontend/src/pages/PmHub.jsx`** — `My Crew Compliance` hero card with inline summary tiles (`pm-crew-compliance-card`).
+- **Bug fix:** `CrewTrainingTable` had `useT()` called after early return (rules-of-hooks compile error) — moved hook above the early return. Page now compiles + renders.
+- **ES localization parity (`/app/frontend/src/lib/i18n.js`):** added ~40 ES translations covering the entire PmCrewCompliance surface — title, banner copy, all tile labels, scope pill (`My crew · 180d` / `Admin all`), tab labels, filter chips, empty-state messages, table headers, severity values, search/refresh labels. Verified ES toggle → entire page renders Spanish including PmShell header.
+
+### Testing · iter353e-UI
+- **Testing agent v3 (frontend) report:** `/app/test_reports/iteration_355.json` — 17/18 PASS. RBAC clean (4/4 endpoints 401-no-token, 4/4 endpoints 200 PM/admin token). Read-only contract verified (0 edit/delete/close buttons in DOM). 1 ES localization gap flagged → FIXED + main-agent self-verified via screenshot (`TITLE = "Cumplimiento de Mi Cuadrilla"`, banner + tiles + tabs + empty-state all Spanish).
+- **Backend:** unchanged from Phase 1 iter353e backend ship (still 34/34 in `test_iter353def_phase1_convergence.py`).
+
+---
+
+
 ## 2026-05-23 — Phase 1 Operational Convergence (iter353d · iter353e · iter353f) · ✅ APPROVE
 
 ### Operator P0 (cross-portal visibility convergence · no write expansion)
