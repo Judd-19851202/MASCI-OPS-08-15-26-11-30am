@@ -434,9 +434,17 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                         "project_number": rec.get("project_number"),
                     })
 
-        # Training records (training_track_records collection)
+        # Training records — UNION of Safety source-of-truth
+        # (safety_training_records) + legacy HR curriculums
+        # (training_track_records). Before iter350 this only read
+        # training_track_records, so OSHA/CPR/AED/equipment training
+        # entered by Safety was INVISIBLE to HR.
         trainings: List[Dict[str, Any]] = []
+        async for t in db.safety_training_records.find({"employee_name": rx}, {"_id": 0}).sort("completed_date", -1).limit(200):
+            t["source"] = "safety"
+            trainings.append(t)
         async for t in db.training_track_records.find({"employee_name": rx}, {"_id": 0}).sort("completed_at", -1).limit(200):
+            t["source"] = "track"
             trainings.append(t)
 
         # Safety form equipment-issuance records
@@ -745,24 +753,210 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                         headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
     # ─────────────────────────────────────────────────────────────────
-    # TRAINING RECORDS
+    # TRAINING RECORDS · iter350 — Live Data Visibility Fix
     # ─────────────────────────────────────────────────────────────────
+    # HR's Training Records view must reflect the COMPLETE training
+    # picture for accountability and payroll cross-checks. Before
+    # iter350, this endpoint ONLY queried `training_track_records`
+    # (HR's internal Operational Guidance Center curriculums). Safety
+    # writes training certifications (OSHA, CPR/AED, equipment) to
+    # `safety_training_records` — these were INVISIBLE to HR despite
+    # being the actual source-of-truth for compliance.
+    #
+    # Fix: UNION both collections + enrich every row with linkage
+    # metadata (Primary: employee_id · Fallback: name+email · graceful
+    # None) so HR sees every training record tied to every roster
+    # employee regardless of which portal wrote it. Read-only —
+    # HR cannot mutate safety records, and no write paths exist on
+    # /api/hr/training-records.
     @router.get("/hr/training-records")
     async def hr_training_records(
         actor=Depends(require_hr_user),
         employee: Optional[str] = None,
         track: Optional[str] = None,
+        source: Optional[str] = None,   # "safety" | "track" | None=both
+        limit: int = 500,
+    ):
+        from lib.employee_linkage import attach_employee_links  # noqa: PLC0415
+
+        cap = min(limit, 1000)
+
+        # ── Safety source-of-truth: safety_training_records ──────────
+        safety_rows: List[Dict[str, Any]] = []
+        if (source or "").lower() != "track":
+            q_safety: Dict[str, Any] = {}
+            if employee:
+                q_safety["employee_name"] = {"$regex": employee, "$options": "i"}
+            async for d in db.safety_training_records.find(
+                q_safety, {"_id": 0},
+            ).sort("completed_date", -1).limit(cap):
+                # Normalize the row to the unified HR shape so the
+                # frontend doesn't need a per-source branch.
+                safety_rows.append({
+                    "id": d.get("id"),
+                    "source": "safety",
+                    "employee_id": d.get("employee_id"),
+                    "employee_master_id": d.get("employee_master_id"),
+                    "employee_name": d.get("employee_name"),
+                    # Map safety fields → unified shape
+                    "training_name": d.get("training_name"),
+                    "track_slug": None,
+                    "track_name": d.get("training_name"),
+                    "certification_type": d.get("certification_type"),
+                    "completed_at": d.get("completed_date"),
+                    "completed_date": d.get("completed_date"),
+                    "expiration_date": d.get("expiration_date"),
+                    "issued_by": d.get("issued_by"),
+                    "score": None,
+                    "certificate_file_id": d.get("certificate_file_id"),
+                    "created_by_name": d.get("created_by_name"),
+                    "created_at": d.get("created_at"),
+                })
+
+        # ── HR legacy source: training_track_records ─────────────────
+        track_rows: List[Dict[str, Any]] = []
+        if (source or "").lower() != "safety":
+            q_track: Dict[str, Any] = {}
+            if employee:
+                q_track["employee_name"] = {"$regex": employee, "$options": "i"}
+            if track:
+                q_track["track_slug"] = track
+            async for d in db.training_track_records.find(
+                q_track, {"_id": 0},
+            ).sort("completed_at", -1).limit(cap):
+                track_rows.append({
+                    "id": d.get("id"),
+                    "source": "track",
+                    "employee_id": d.get("employee_id"),
+                    "employee_master_id": d.get("employee_master_id"),
+                    "employee_name": d.get("employee_name"),
+                    "training_name": d.get("track_name") or d.get("track_slug"),
+                    "track_slug": d.get("track_slug"),
+                    "track_name": d.get("track_name"),
+                    "certification_type": d.get("certification_type") or "TRACK",
+                    "completed_at": d.get("completed_at"),
+                    "completed_date": (d.get("completed_at") or "")[:10] if d.get("completed_at") else None,
+                    "expiration_date": d.get("expiration_date"),
+                    "issued_by": d.get("issued_by"),
+                    "score": d.get("score"),
+                    "certificate_file_id": None,
+                    "created_by_name": d.get("created_by_name"),
+                    "created_at": d.get("created_at"),
+                })
+
+        # ── Sort union by best-available date desc, then enrich ──────
+        union = safety_rows + track_rows
+        union.sort(
+            key=lambda r: (r.get("completed_at") or r.get("created_at") or ""),
+            reverse=True,
+        )
+        union = union[:cap]
+        union = await attach_employee_links(db, union)
+
+        # Tiny source breakdown for the HR header strip.
+        counts = {
+            "safety": len(safety_rows),
+            "track": len(track_rows),
+            "total": len(union),
+            "unlinked": sum(1 for r in union if r.get("linkage_method") == "unlinked"),
+        }
+        return {"ok": True, "items": union, "count": len(union), "counts": counts}
+
+    # ─────────────────────────────────────────────────────────────────
+    # SAFETY DOCUMENTS · iter350 — Cross-portal read-only HR surface
+    # ─────────────────────────────────────────────────────────────────
+    # `/api/safety/documents` ALREADY accepts HR tokens via the
+    # `require_safety_or_hr_or_admin` gate (see safety_portal/_deps.py)
+    # — the `/hr/safety-records` page uses it directly. But for
+    # consistency with the iter350 contract (HR has a dedicated
+    # read-only namespace under /api/hr/*) we surface a calm, bounded
+    # /api/hr/safety-documents alias that proxies the same data with
+    # the HR-token-only gate. NO write paths exist here — HR cannot
+    # POST, PATCH, or DELETE safety documents from this surface.
+    @router.get("/hr/safety-documents")
+    async def hr_safety_documents(
+        actor=Depends(require_hr_user),
+        category: Optional[str] = None,
+        q: Optional[str] = None,
+        employee: Optional[str] = None,
         limit: int = 500,
     ):
         query: Dict[str, Any] = {}
+        if category:
+            query["category"] = category
+        if q:
+            needle = q.strip()
+            query["$or"] = [
+                {"title":       {"$regex": needle, "$options": "i"}},
+                {"description": {"$regex": needle, "$options": "i"}},
+                {"filename":    {"$regex": needle, "$options": "i"}},
+                {"tags":        {"$regex": needle, "$options": "i"}},
+            ]
+        # safety_documents are a global library — they don't carry
+        # employee_id directly. We expose them all to HR and let the
+        # UI filter by category / search. When the `employee` filter
+        # is supplied, we narrow to records whose title/description
+        # contains the needle (defensive — safety_documents do not
+        # have an employee field in the schema).
         if employee:
-            query["employee_name"] = {"$regex": employee, "$options": "i"}
-        if track:
-            query["track_slug"] = track
-        out = []
-        async for d in db.training_track_records.find(query, {"_id": 0}).sort("completed_at", -1).limit(min(limit, 1000)):
-            out.append(d)
-        return {"ok": True, "items": out, "count": len(out)}
+            emp_needle = employee.strip()
+            query.setdefault("$or", []).extend([
+                {"title":       {"$regex": emp_needle, "$options": "i"}},
+                {"description": {"$regex": emp_needle, "$options": "i"}},
+            ])
+
+        items: List[Dict[str, Any]] = []
+        # Project file_data OUT — listing is metadata only.
+        async for d in db.safety_documents.find(
+            query, {"_id": 0, "file_data": 0},
+        ).sort("uploaded_at", -1).limit(min(limit, 2000)):
+            items.append(d)
+
+        # Tiny summary cards for the HR header strip.
+        today = datetime.now(timezone.utc).isoformat()[:10]
+        thirty = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()[:10]
+        expiring = 0
+        expired = 0
+        for d in items:
+            exp = d.get("expiration_date")
+            if not exp:
+                continue
+            if exp < today:
+                expired += 1
+            elif exp <= thirty:
+                expiring += 1
+        return {
+            "ok": True, "items": items, "count": len(items),
+            "summary": {
+                "total": len(items),
+                "expiring_30d": expiring,
+                "expired": expired,
+            },
+        }
+
+    @router.get("/hr/safety-documents/{doc_id}/download")
+    async def hr_safety_document_download(doc_id: str, actor=Depends(require_hr_user)):
+        from fastapi.responses import Response
+        import safety_doc_storage  # noqa: PLC0415
+        doc = await db.safety_documents.find_one({"id": doc_id}, {"_id": 0})
+        if not doc:
+            raise HTTPException(404, "document not found")
+        ref = doc.get("file_data") or ""
+        try:
+            raw = await safety_doc_storage.read_doc_bytes(ref)
+        except (ValueError, RuntimeError) as e:
+            logger.exception(f"[hr-safety-doc] download read failed for {doc_id}: {e}")
+            raise HTTPException(500, "Stored file is unreadable")
+        ct = doc.get("content_type", "application/octet-stream")
+        fname = doc.get("filename", "document")
+        return Response(
+            content=raw,
+            media_type=ct,
+            headers={
+                "Content-Disposition": f'attachment; filename="{fname}"',
+                "Cache-Control": "no-store",
+            },
+        )
 
     # ─────────────────────────────────────────────────────────────────
     # ADMIN — HR user management
