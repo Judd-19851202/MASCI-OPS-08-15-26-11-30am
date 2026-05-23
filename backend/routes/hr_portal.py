@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional
@@ -104,7 +105,7 @@ def _client_ip(req: Request) -> str:
         return ""
 
 
-def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optional[Callable] = None, directory_admin_minter: Optional[Callable] = None) -> APIRouter:
+def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optional[Callable] = None, directory_admin_minter: Optional[Callable] = None, require_safety_or_hr_or_admin_dep: Optional[Callable] = None) -> APIRouter:
     """Assemble the HR portal router. `db` = motor db; `require_admin_dep`
     = the FastAPI admin-only dependency from server.py; `send_email_fn`
     = optional `async (to, subject, html) -> None` for credential
@@ -117,6 +118,16 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
     pattern that iter344 introduced on the FL portal — extended here so
     super-admin can sign in via any portal login screen."""
     router = APIRouter(prefix="/api", tags=["hr-portal"])
+
+    # ─── Shared accountability gate (iter353c) ───────────────────────
+    # Accepts HR, Safety, or Admin tokens. Either injected by server.py
+    # (preferred — uses the same minter as the safety portal) or built
+    # locally so the router stays self-contained for tests.
+    if require_safety_or_hr_or_admin_dep is not None:
+        require_safety_or_hr_or_admin = require_safety_or_hr_or_admin_dep
+    else:
+        from routes.safety_portal._deps import make_require_safety_or_hr_or_admin  # noqa: PLC0415
+        require_safety_or_hr_or_admin = make_require_safety_or_hr_or_admin(db)
 
     # ─── HR token resolver (used by every HR endpoint) ───────────────
     async def require_hr_user(
@@ -482,6 +493,436 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             "trainings": trainings,
             "safety_issuances": safety_issuances,
         }
+
+    # ─────────────────────────────────────────────────────────────────
+    # iter353c · UNIFIED EMPLOYEE ACCOUNTABILITY TIMELINE
+    # ─────────────────────────────────────────────────────────────────
+    # This is the operational system of record for one employee.
+    # Aggregates from 8+ source collections; source systems remain
+    # authoritative. NEVER duplicates data into a new collection —
+    # every read is live. Linkage uses the iter350 standard
+    # (employee_id → employee_master_id → name+email → name).
+    #
+    # RBAC: HR + Admin + Safety can view. Operator policy: Safety is
+    # shared accountability owner (iter353a). PM / Dispatch / Shop /
+    # FL still blocked at this endpoint — they go through their own
+    # portal-specific surfaces.
+    @router.get("/hr/employees/{emp_id}/accountability/timeline")
+    async def hr_employee_accountability_timeline(
+        emp_id: str,
+        actor: Dict[str, Any] = Depends(require_safety_or_hr_or_admin),
+    ):
+        from lib.employee_linkage import normalize_name, normalize_email  # noqa: PLC0415
+
+        emp = await db.employees.find_one({"id": emp_id}, {"_id": 0})
+        if not emp:
+            emp = await db.employees.find_one({"employee_id": emp_id}, {"_id": 0})
+        if not emp:
+            raise HTTPException(404, "Employee not found")
+
+        ename = emp.get("name") or ""
+        n_norm = normalize_name(ename)
+        e_norm = normalize_email(emp.get("email"))
+        name_rx = {"$regex": f"^{re.escape(ename)}$" if ename else "", "$options": "i"} if ename else None
+
+        # Tolerant linkage filter — applied to every source.
+        def _emp_filter(extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+            ors = [
+                {"employee_id": emp_id},
+                {"employee_id": emp.get("employee_id") or "__none__"},
+                {"employee_master_id": emp_id},
+            ]
+            if ename:
+                ors.append({"employee_name": name_rx})
+            if e_norm:
+                ors.append({"employee_email": {"$regex": f"^{re.escape(e_norm)}$", "$options": "i"}})
+            base: Dict[str, Any] = {"$or": ors}
+            if extra:
+                base.update(extra)
+            return base
+
+        events: List[Dict[str, Any]] = []
+
+        def _push(*, ts, kind, category, title, description="", source,
+                  source_id=None, status=None, expiration_date=None,
+                  attachment=None, src_doc: Optional[Dict[str, Any]] = None):
+            sd = src_doc or {}
+            events.append({
+                "id": f"{kind}-{source_id or ''}-{ts or ''}"[:120],
+                "ts": ts,
+                "kind": kind,
+                "category": category,
+                "title": title,
+                "description": description,
+                "source": source,
+                "source_id": source_id,
+                "status": status,
+                "expiration_date": expiration_date,
+                "attachment": attachment,
+                "created_by": sd.get("created_by") or sd.get("created_by_name"),
+                "created_by_role": (sd.get("created_by_role") or "legacy").lower(),
+                "originating_portal": (sd.get("originating_portal") or sd.get("created_by_role") or "legacy").lower(),
+                "updated_by": sd.get("updated_by"),
+                "updated_by_role": (sd.get("updated_by_role") or "").lower() or None,
+                "linkage_method": sd.get("linkage_method"),
+                "archived": (
+                    (sd.get("category") == "Archived")
+                    or "[archived " in (sd.get("notes") or "")
+                    or "[archived " in (sd.get("description") or "")
+                ),
+            })
+
+        q = _emp_filter()
+
+        # 1 · Safety training records
+        async for d in db.safety_training_records.find(q, {"_id": 0}).limit(500):
+            _push(
+                ts=d.get("completed_date") or d.get("created_at"),
+                kind="safety_training", category="Training",
+                title=d.get("training_name") or "Training Record",
+                description=d.get("certification_type") or "",
+                source="safety_training_records", source_id=d.get("id"),
+                expiration_date=d.get("expiration_date"),
+                attachment=d.get("certificate_file_id"),
+                src_doc=d,
+            )
+
+        # 2 · Training track records (HR curriculums)
+        async for d in db.training_track_records.find(q, {"_id": 0}).limit(500):
+            _push(
+                ts=(d.get("completed_at") or "")[:10] or d.get("created_at"),
+                kind="training_track", category="Training",
+                title=d.get("track_name") or d.get("track_slug") or "Training Track",
+                description=d.get("certification_type") or "",
+                source="training_track_records", source_id=d.get("id"),
+                expiration_date=d.get("expiration_date"),
+                src_doc=d,
+            )
+
+        # 3 · PPE / equipment issuance (safety_equipment_issuances)
+        async for d in db.safety_equipment_issuances.find(q, {"_id": 0}).limit(500):
+            items = d.get("items") or []
+            item_summary = ", ".join((i.get("description") or "") for i in items if i.get("description"))[:140]
+            _push(
+                ts=d.get("issued_date") or d.get("created_at"),
+                kind="ppe_issuance", category="PPE & Equipment",
+                title="PPE Issued",
+                description=item_summary,
+                source="safety_equipment_issuances", source_id=d.get("id"),
+                src_doc=d,
+            )
+
+        # 4 · Equipment use-and-care training
+        async for d in db.safety_equipment_trainings.find(q, {"_id": 0}).limit(500):
+            _push(
+                ts=d.get("trained_date") or d.get("created_at"),
+                kind="equipment_training", category="Training",
+                title=d.get("equipment_name") or "Equipment Training",
+                description="Use & care acknowledgment",
+                source="safety_equipment_trainings", source_id=d.get("id"),
+                src_doc=d,
+            )
+
+        # 5 · Incidents
+        try:
+            async for d in db.incidents.find(q, {"_id": 0}).limit(500):
+                _push(
+                    ts=d.get("incident_date") or d.get("created_at"),
+                    kind="incident", category="Incidents",
+                    title=d.get("incident_type") or "Incident",
+                    description=(d.get("description") or "")[:200],
+                    source="incidents", source_id=d.get("id"),
+                    status=d.get("status"),
+                    src_doc=d,
+                )
+        except Exception:  # collection may not exist in all envs
+            pass
+
+        # 6 · Field Leadership records (write-ups, terminations, approved-driver forms, equipment checkouts, etc.)
+        try:
+            async for d in db.field_leadership_records.find(q, {"_id": 0}).limit(500):
+                _push(
+                    ts=d.get("occurred_at") or d.get("created_at"),
+                    kind=f"fl_{d.get('kind') or 'record'}",
+                    category="Field Leadership",
+                    title=(d.get("kind") or "FL Record").replace("_", " ").title(),
+                    description=(d.get("notes") or "")[:200],
+                    source="field_leadership_records", source_id=d.get("id"),
+                    src_doc=d,
+                )
+        except Exception:
+            pass
+
+        # 7 · CDL / driver-qualification status snapshot (from employee doc)
+        # NOT a per-event row — but we surface the CDL fields in current_state.
+        # We also add expiration-tied virtual events when CDL/medical card
+        # has an expiration date so they appear on the timeline.
+        if emp.get("cdl_expiration_date"):
+            _push(
+                ts=emp.get("cdl_expiration_date"),
+                kind="cdl_expiration", category="Driver Qualification",
+                title="CDL Expiration",
+                description=f"State {emp.get('cdl_state') or '—'} · License {emp.get('cdl_license_number') or '—'}",
+                source="employees", source_id=emp.get("id"),
+                expiration_date=emp.get("cdl_expiration_date"),
+                status="active" if (emp.get("cdl_holder") and emp.get("cdl_expiration_date", "")) >= datetime.now(timezone.utc).isoformat()[:10] else "expired",
+                src_doc={"created_by_role": "hr"},
+            )
+        if emp.get("medical_card_expiration_date"):
+            _push(
+                ts=emp.get("medical_card_expiration_date"),
+                kind="medical_card_expiration", category="Driver Qualification",
+                title="Medical Card Expiration",
+                description="DOT medical card expiration tracked on roster",
+                source="employees", source_id=emp.get("id"),
+                expiration_date=emp.get("medical_card_expiration_date"),
+                src_doc={"created_by_role": "hr"},
+            )
+
+        # 8 · Status history on the employee doc (HR lifecycle audit chain)
+        for h in (emp.get("status_history") or []):
+            _push(
+                ts=h.get("ts"),
+                kind="status_change", category="HR Lifecycle",
+                title=(h.get("kind") or "Status Change").replace("_", " ").title(),
+                description=", ".join(h.get("fields") or []),
+                source="employees.status_history", source_id=h.get("ts"),
+                src_doc={
+                    "created_by": h.get("actor"),
+                    "created_by_role": h.get("actor_role") or "hr",
+                },
+            )
+
+        # Sort DESC by ts (string ISO-8601 sort is stable for dates)
+        events.sort(key=lambda e: (e.get("ts") or ""), reverse=True)
+
+        # Compute current_state + expirations + counts
+        today = datetime.now(timezone.utc).isoformat()[:10]
+        in_30 = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()[:10]
+        in_90 = (datetime.now(timezone.utc) + timedelta(days=90)).isoformat()[:10]
+
+        expiring = [
+            e for e in events
+            if e.get("expiration_date") and today <= e["expiration_date"] <= in_90
+        ]
+        expired = [
+            e for e in events
+            if e.get("expiration_date") and e["expiration_date"] < today
+        ]
+
+        # Category counts
+        cat_counts: Dict[str, int] = {}
+        for e in events:
+            cat_counts[e["category"]] = cat_counts.get(e["category"], 0) + 1
+
+        current_state = {
+            "lifecycle_status": emp.get("lifecycle_status"),
+            "is_active": emp.get("is_active") if "is_active" in emp else True,
+            "cdl_holder": bool(emp.get("cdl_holder")),
+            "approved_company_driver": bool(emp.get("approved_company_driver")),
+            "driver_status": emp.get("driver_status") or None,
+            "cdl_state": emp.get("cdl_state") or None,
+            "cdl_license_number": emp.get("cdl_license_number") or None,
+            "cdl_expiration_date": emp.get("cdl_expiration_date") or None,
+            "medical_card_expiration_date": emp.get("medical_card_expiration_date") or None,
+            "cdl_endorsements": emp.get("cdl_endorsements") or [],
+            "cdl_restrictions": emp.get("cdl_restrictions") or [],
+            "expiring_within_90d": len(expiring),
+            "expired": len(expired),
+            "last_training": next((e["ts"] for e in events if e["category"] == "Training" and not e.get("archived")), None),
+            "last_ppe_issuance": next((e["ts"] for e in events if e["kind"] == "ppe_issuance"), None),
+            "last_incident": next((e["ts"] for e in events if e["kind"] == "incident"), None),
+        }
+
+        return {
+            "ok": True,
+            "employee": {
+                "id": emp.get("id"),
+                "name": emp.get("name"),
+                "employee_id": emp.get("employee_id"),
+                "email": emp.get("email"),
+                "trade": emp.get("trade"),
+                "department": emp.get("department"),
+                "supervisor": emp.get("supervisor"),
+                "crew": emp.get("crew"),
+                "hire_date": emp.get("hire_date"),
+                "lifecycle_status": emp.get("lifecycle_status"),
+            },
+            "current_state": current_state,
+            "category_counts": cat_counts,
+            "total_events": len(events),
+            "events": events,
+            "expiring_within_90d": expiring,
+            "expired_items": expired,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "viewer": {
+                "actor": actor.get("email") or actor.get("name") or "unknown",
+                "role": (actor.get("_actor") or actor.get("role") or "").lower(),
+            },
+        }
+
+    # iter353c · HR Compliance Brief PDF — first-class export.
+    # Uses the same timeline data; renders to a portable reportlab PDF
+    # suitable for OSHA / DOT / insurance / FAA / legal / onboarding
+    # verification. NEVER mutates source collections.
+    @router.get("/hr/employees/{emp_id}/accountability/brief.pdf")
+    async def hr_employee_compliance_brief_pdf(
+        emp_id: str,
+        actor: Dict[str, Any] = Depends(require_safety_or_hr_or_admin),
+    ):
+        from fastapi.responses import Response  # noqa: PLC0415
+        from io import BytesIO  # noqa: PLC0415
+        from reportlab.lib.pagesizes import letter  # noqa: PLC0415
+        from reportlab.lib import colors  # noqa: PLC0415
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle  # noqa: PLC0415
+        from reportlab.lib.units import inch  # noqa: PLC0415
+        from reportlab.platypus import (  # noqa: PLC0415
+            SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak,
+        )
+
+        # Reuse the timeline handler logic by calling it directly so the
+        # PDF stays in lockstep with the API. We pass `actor` so RBAC
+        # is consistent.
+        payload = await hr_employee_accountability_timeline(emp_id, actor=actor)
+        emp = payload["employee"]
+        cs = payload["current_state"]
+        events = payload["events"]
+
+        buf = BytesIO()
+        doc = SimpleDocTemplate(
+            buf, pagesize=letter,
+            leftMargin=0.6 * inch, rightMargin=0.6 * inch,
+            topMargin=0.6 * inch, bottomMargin=0.6 * inch,
+            title=f"HR Compliance Brief — {emp.get('name') or emp_id}",
+        )
+        styles = getSampleStyleSheet()
+        h1 = ParagraphStyle("h1", parent=styles["Heading1"], fontSize=18, textColor=colors.HexColor("#5b21b6"), spaceAfter=4)
+        h2 = ParagraphStyle("h2", parent=styles["Heading2"], fontSize=11, textColor=colors.HexColor("#1e293b"), spaceBefore=12, spaceAfter=4, fontName="Helvetica-Bold")
+        body = ParagraphStyle("body", parent=styles["BodyText"], fontSize=9, leading=12)
+        small = ParagraphStyle("small", parent=styles["BodyText"], fontSize=7.5, leading=10, textColor=colors.HexColor("#64748b"))
+
+        story = []
+        story.append(Paragraph("HR Compliance Brief", h1))
+        story.append(Paragraph(
+            f"<b>{emp.get('name') or '—'}</b> · "
+            f"{emp.get('trade') or '—'} · "
+            f"Employee ID {emp.get('employee_id') or emp.get('id') or '—'}",
+            body,
+        ))
+        story.append(Paragraph(
+            f"Generated {payload['generated_at'][:19].replace('T',' ')} UTC · "
+            f"Viewer: {payload['viewer']['actor']} ({payload['viewer']['role']})",
+            small,
+        ))
+        story.append(Spacer(1, 8))
+
+        # Section 1 · Employee profile
+        story.append(Paragraph("1 · Employee Profile", h2))
+        profile_rows = [
+            ["Lifecycle Status", emp.get("lifecycle_status") or "—",
+             "Department", emp.get("department") or "—"],
+            ["Trade", emp.get("trade") or "—",
+             "Supervisor", emp.get("supervisor") or "—"],
+            ["Email", emp.get("email") or "—",
+             "Hire Date", emp.get("hire_date") or "—"],
+        ]
+        t1 = Table(profile_rows, colWidths=[1.1 * inch, 2.4 * inch, 1.1 * inch, 2.4 * inch])
+        t1.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f1f5f9")),
+            ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#f1f5f9")),
+            ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+            ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e2e8f0")),
+            ("LEFTPADDING", (0, 0), (-1, -1), 5), ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+            ("TOPPADDING", (0, 0), (-1, -1), 3), ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ]))
+        story.append(t1)
+
+        # Section 2 · Driver Qualification / CDL
+        story.append(Paragraph("2 · Driver Qualification / CDL", h2))
+        dq_rows = [
+            ["CDL Holder", "Yes" if cs["cdl_holder"] else "No",
+             "Approved Driver", "Yes" if cs["approved_company_driver"] else "No"],
+            ["Driver Status", cs["driver_status"] or "—",
+             "State", cs["cdl_state"] or "—"],
+            ["License #", cs["cdl_license_number"] or "—",
+             "Endorsements", ", ".join(cs["cdl_endorsements"]) or "—"],
+            ["CDL Expiration", cs["cdl_expiration_date"] or "—",
+             "Medical Card Expiration", cs["medical_card_expiration_date"] or "—"],
+        ]
+        t2 = Table(dq_rows, colWidths=[1.4 * inch, 2.1 * inch, 1.4 * inch, 2.1 * inch])
+        t2.setStyle(t1.style)
+        story.append(t2)
+
+        # Section 3 · Expiration Watch
+        story.append(Paragraph("3 · Expiration Watch (next 90 days · expired)", h2))
+        exp = payload.get("expiring_within_90d", []) + payload.get("expired_items", [])
+        if exp:
+            exp_data = [["Item", "Date", "Category", "Status"]]
+            for e in exp[:30]:
+                today = datetime.now(timezone.utc).isoformat()[:10]
+                status = "EXPIRED" if e["expiration_date"] < today else "Expiring"
+                exp_data.append([e.get("title", "")[:40], e.get("expiration_date", ""), e.get("category", ""), status])
+            te = Table(exp_data, colWidths=[3.0 * inch, 1.0 * inch, 1.6 * inch, 1.4 * inch])
+            te.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#fef3c7")),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e2e8f0")),
+            ]))
+            story.append(te)
+        else:
+            story.append(Paragraph("No items expiring within 90 days. ✓", body))
+
+        # Section 4..N · Per-category timeline
+        section_n = 4
+        for cat in ("Training", "PPE & Equipment", "Incidents", "Field Leadership", "HR Lifecycle"):
+            cat_events = [e for e in events if e.get("category") == cat]
+            if not cat_events:
+                continue
+            story.append(Paragraph(f"{section_n} · {cat}", h2))
+            section_n += 1
+            data = [["Date", "Title", "Status / Detail", "Entered By"]]
+            for e in cat_events[:50]:
+                role = (e.get("created_by_role") or "—").upper()
+                status = e.get("expiration_date") or e.get("status") or ""
+                title = e.get("title", "")
+                if e.get("archived"):
+                    title = f"{title} (ARCHIVED)"
+                data.append([
+                    (e.get("ts") or "")[:10], title[:55],
+                    f"{e.get('description', '')[:50]} {status}".strip(),
+                    role,
+                ])
+            tb = Table(data, colWidths=[0.9 * inch, 2.7 * inch, 2.4 * inch, 0.9 * inch])
+            tb.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#ede9fe")),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 7.5),
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e2e8f0")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]))
+            story.append(tb)
+
+        story.append(Spacer(1, 16))
+        story.append(Paragraph(
+            "MASCI Operations Platform · Compliance Brief is a point-in-time snapshot. "
+            "Source records remain authoritative. For corrections, contact HR or Safety.",
+            small,
+        ))
+        doc.build(story)
+        buf.seek(0)
+        return Response(
+            content=buf.read(),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition":
+                    f'attachment; filename="HR_Compliance_Brief_{(emp.get("name") or emp_id).replace(" ", "_")}.pdf"',
+                "Cache-Control": "no-store",
+            },
+        )
 
     # ─────────────────────────────────────────────────────────────────
     # TIME VERIFICATION — supervisor-reported hours from Daily Reports

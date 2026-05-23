@@ -9209,12 +9209,20 @@ async def _hr_send_email(to_email: str, subject: str, html: str):
     return await asyncio.to_thread(_resend.Emails.send, params)
 
 
+# iter353c · need the shared HR+Safety+Admin gate factory available
+# BEFORE the HR portal router is built (the safety_exports section
+# below imports the same symbol; this is just an earlier import).
+from routes.safety_portal._deps import make_require_safety_or_hr_or_admin  # noqa: E402
+
 _hr_portal_router = build_hr_portal_router(
     db, require_admin, _hr_send_email,
     # iter346-B · universal super-admin fallback — same minter the FL
     # portal uses (iter344). Wrapped in a lambda so name resolution
     # defers until login-time (_directory_admin_token is defined later).
     directory_admin_minter=lambda row: _directory_admin_token(row),
+    # iter353c · shared accountability gate (HR + Safety + Admin) used
+    # by the unified employee timeline + compliance brief endpoints.
+    require_safety_or_hr_or_admin_dep=make_require_safety_or_hr_or_admin(db, _is_valid_admin_token),
 )
 app.include_router(_hr_portal_router)
 
