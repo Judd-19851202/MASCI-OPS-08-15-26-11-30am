@@ -1344,8 +1344,22 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "$or": [
                 {"cdl_holder": True},
                 {"approved_company_driver": True},
-                {"cdl_expiration_date": {"$ne": None, "$exists": True}},
-                {"medical_card_expiration_date": {"$ne": None, "$exists": True}},
+                # iter350 hardening: a stored value must be a real date
+                # (truthy non-empty string), not None and not "". Before
+                # this fix, an employee whose CDL date was cleared in the
+                # HR roster (PATCH normalizes null → "") would stay
+                # permanently visible on the dashboard with a blank
+                # expiration column. The $nin clause excludes both.
+                {"cdl_expiration_date":           {"$nin": [None, ""]}},
+                {"medical_card_expiration_date":  {"$nin": [None, ""]}},
+                # iter350 — also accept structured driver_status as a
+                # qualification signal (an HR coordinator marking an
+                # employee "active|restricted|suspended|inactive" is
+                # explicitly tagging them as a driver).
+                {"driver_status":                 {"$nin": [None, ""]}},
+                # iter350 — and any CDL license number presence (HR
+                # often records the number before they get the dates).
+                {"cdl_license_number":            {"$nin": [None, ""]}},
             ],
         }
 

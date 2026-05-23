@@ -51,9 +51,17 @@ HR could not see Safety records (training certifications, OSHA/CPR/AED/equipment
 ### Files touched (iter350)
 - NEW · `/app/backend/lib/employee_linkage.py` (235 LOC · pure async resolver + bulk attach)
 - MOD · `/app/backend/routes/hr_portal.py` (REWRITE `/hr/training-records`; NEW `/hr/safety-documents` + `/download`; ENRICH `employee-accountability` trainings union)
+- MOD · `/app/backend/routes/employee_lifecycle.py` (driver-qualification base scope hardened — `$nin: [None, ""]` on date fields; ADD `driver_status` + `cdl_license_number` as qualification signals)
 - REWRITE · `/app/frontend/src/pages/HrTrainingRecords.jsx` (170 LOC · source pills, counts strip, expiry status, linkage badges)
-- NEW · `/app/backend/tests/test_iter350_hr_safety_cdl_visibility.py` (17 tests · all green)
+- NEW · `/app/backend/tests/test_iter350_hr_safety_cdl_visibility.py` (18 tests · all green)
 - DOC · `/app/memory/PRD.md`
+
+### Production audit (live · 2026-05-23)
+- 239 employees in production · **0 with any CDL/driver field populated** (verified via direct API audit using super-admin token: `cdl_holder=True` → 0 rows, `approved_company_driver=True` → 0 rows, any-signal sweep across all 9 driver fields → 0 rows).
+- 0 audit events touching any driver field in production audit log.
+- 0 status_history entries mentioning CDL/driver/approved across all 239 employees.
+- Same scan on preview: 235 employees · 0 with any driver field populated.
+- **Conclusion:** No CDL or approved-driver data has ever been written to the production employees collection. The pipeline (PATCH `/api/hr/employees/{id}` → `db.employees` → `GET /api/hr/driver-qualification/dashboard`) was end-to-end verified working in preview with a test patch (Alec Perkins → CDL Yes, Approved Yes, N+X endorsements rendered correctly on `/hr/driver-qualification` — screenshot captured at `/tmp/iter350_dq_with_data.jpg`). Test patch was reverted.
 
 ### Files / surfaces NOT touched (scope discipline)
 - ❌ `/api/safety/training-records` (Safety write path UNTOUCHED · still source-of-truth)

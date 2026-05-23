@@ -300,7 +300,9 @@ def test_live_hr_safety_documents_endpoint(admin_tokens):
 def test_live_hr_driver_qualification_dashboard(admin_tokens):
     """HR token authorizes the driver-qualification dashboard. The
     base scope only surfaces employees who actually have a driver
-    signal — never the full roster."""
+    signal — never the full roster. iter350 hardening: empty strings
+    are NOT a signal (a cleared field shouldn't keep an employee on
+    the dashboard with a blank expiration column)."""
     r = requests.get(
         f"{API}/hr/driver-qualification/dashboard?limit=10",
         headers={"X-HR-Token": admin_tokens["hr"]},
@@ -310,18 +312,49 @@ def test_live_hr_driver_qualification_dashboard(admin_tokens):
     data = r.json()
     assert "items" in data and "summary" in data
     # Every returned row must carry at least one driver-qualification
-    # field — base scope discipline.
+    # field with a TRUTHY value — base scope discipline (no empty
+    # strings, no None).
     for item in data["items"][:20]:
         has_signal = bool(
             item.get("cdl_holder")
             or item.get("approved_company_driver")
-            or item.get("cdl_expiration_date")
-            or item.get("medical_card_expiration_date")
+            or (item.get("cdl_expiration_date") or "").strip()
+            or (item.get("medical_card_expiration_date") or "").strip()
+            or (item.get("driver_status") or "").strip()
+            or (item.get("cdl_license_number") or "").strip()
         )
         assert has_signal, (
             f"driver-qualification returned employee without any driver "
-            f"signal — base scope leak: {item.get('id')}"
+            f"signal — base scope leak: {item.get('id')} → {item}"
         )
+
+
+def test_driver_qualification_base_scope_excludes_empty_strings():
+    """Source-level lock — iter350 hardening must use $nin: [None, '']
+    on cdl_expiration_date AND medical_card_expiration_date so a
+    cleared field (PATCH normalizes null → '') doesn't keep an
+    employee on the dashboard with a blank expiration column."""
+    src = (Path(__file__).parent.parent / "routes" / "employee_lifecycle.py").read_text()
+    # Locate the driver_qualification_dashboard handler.
+    idx = src.find("def driver_qualification_dashboard")
+    assert idx >= 0, "driver_qualification_dashboard handler missing"
+    # Block runs until the next @router decorator.
+    end = src.find("@router.", idx + 1)
+    block = src[idx:end if end > 0 else idx + 8000]
+    # New hardened markers must be present:
+    assert '"cdl_expiration_date":' in block and '"$nin": [None, ""]' in block, (
+        "iter350 hardening missing on cdl_expiration_date — empty "
+        "strings still leak into the base scope"
+    )
+    assert '"medical_card_expiration_date":' in block, "medical_card check missing"
+    assert '"driver_status":' in block, (
+        "driver_status not in base $or scope — HR-tagged drivers without "
+        "expiration dates would be invisible"
+    )
+    assert '"cdl_license_number":' in block, (
+        "cdl_license_number not in base $or scope — early CDL entries "
+        "(license recorded before expiration) would be invisible"
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────
