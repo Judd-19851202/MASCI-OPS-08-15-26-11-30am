@@ -2,6 +2,70 @@
 
 
 
+## 2026-05-23 — iter353b-availability · "Drivers Available Right Now" Tile · ✅ APPROVE
+
+### Operator P0 (operational dispatch intelligence)
+Answers the single most important real-world dispatch + FL question — *"Who can I LEGALLY and OPERATIONALLY send out right now?"* — as a first-class metric with one-click filter, instead of requiring 3+ filter selections and mental reconciliation.
+
+### Availability predicate (locked in code AND test)
+A driver counts as available right now ONLY when **ALL** are true:
+1. `driver_status == "active"`
+2. `approved_company_driver == true`
+3. `lifecycle_status in ("Active", None)` AND `is_active in (True, None)` (employee-level active)
+4. If `cdl_holder == true` → `cdl_expiration_date >= today` (CDL must be valid)
+5. `medical_card_expiration_date` is empty OR `>= today` (no recorded card OK for non-DOT work; recorded card must be valid)
+
+### What shipped
+
+**Backend (`lib/driver_qualification.py`)**
+- New `available_now: bool` param on `fetch_driver_qualification_dashboard(...)` — applies the 5-rule predicate as a Mongo `$and` clause.
+- 3 new summary keys returned on EVERY response: `available_now`, `available_now_cdl`, `available_now_non_cdl`.
+- Wired through to both `/api/dispatch/driver-qualification` and `/api/field-leadership/portal/driver-qualification`.
+
+**Frontend (`DriverQualificationReadOnlyView.jsx`)**
+- Prominent emerald **hero tile** at the top of the page (above the existing 5 summary cards): "DRIVERS AVAILABLE RIGHT NOW · `<total>` · `<cdl>` CDL · `<non_cdl>` non-CDL approved".
+- Click-to-filter: clicking the tile toggles `available_now=true` on the table query AND inverts the tile to solid emerald with text "Showing dispatchable only — click to clear".
+- Used by BOTH Dispatch and FL portals — single component, identical behavior.
+
+### Visual proof (smoke screenshot · live preview)
+- Default: tile shows `1 · 1 CDL · 0 non-CDL approved` (one seeded clean driver), table has 3 rows (Alec, Bryan, smoke-avail).
+- After click: tile turns solid emerald, table filters to 1 row (only the clean driver), text changes to "Showing dispatchable only — click to clear".
+
+### Tests · iter353b-availability
+- **NEW** `/app/backend/tests/test_iter353b_availability_tile.py` — 17/17 PASS:
+  - 1 summary-shape lock (3 keys exposed)
+  - 2 happy-path inclusion (CDL + non-CDL)
+  - **9 parametrized exclusion rules** seeded via HR POST: suspended · restricted · inactive · empty driver_status · non-approved · expired CDL · expired medical card · terminated lifecycle · inactive lifecycle
+  - 2 parity tests (Dispatch == FL across all 3 availability keys; HR endpoint compatibility)
+  - 1 filter-count parity (summary count === filtered list count)
+  - 1 read-only contract lock (POST/PATCH/DELETE on the availability filter endpoint)
+  - 1 frontend-tile presence lock
+- **Testing agent v3 verdict:** Backend 100% (17/17) · Frontend 100% (tile renders both portals · click toggles fill · table filters correctly · 2nd click restores · parity holds · mobile 390 · ES). Zero critical/minor frontend issues. One non-blocking observation: testing-agent confused about FL credential because it tried `/api/auth/multi-login` (HR/Admin only) instead of `/api/field-leadership/portal/login` (the correct FL endpoint, already documented in test_credentials.md).
+- **Cumulative iter350 + iter352 + iter353a + iter353a-UI + iter353b + iter353b-availability + iter353c: 123/123 PASS**.
+
+### Boundaries enforced
+- ✅ Read-only contract preserved — no write peers added.
+- ✅ Predicate matches operator-stated rules exactly.
+- ✅ Dispatch + FL see identical numbers (shared helper).
+- ✅ HR / Admin authority unchanged.
+- ❌ NO new collection · NO PM/Shop/anon access granted · NO edit/import affordances added.
+
+### Files touched
+- MOD · `/app/backend/lib/driver_qualification.py` (+50 LOC · 5-rule predicate + 3 summary keys + filter param)
+- MOD · `/app/backend/routes/dispatch_portal_auth.py` (+1 param wiring)
+- MOD · `/app/backend/routes/field_leadership_portal.py` (+1 param wiring)
+- MOD · `/app/frontend/src/components/DriverQualificationReadOnlyView.jsx` (+60 LOC · hero tile + click-to-filter)
+- MOD · `/app/frontend/src/lib/i18n.js` (28 new ES keys)
+- NEW · `/app/backend/tests/test_iter353b_availability_tile.py` (17 tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Verdict
+✅ **APPROVE.** Dispatch and Field Leadership now have first-class operational readiness intelligence. The "who can I send right now" question is now a single emerald tile + one click — exactly what dispatchers and crew leads need under pressure.
+
+**Cumulative pending redeploy at mascidocs.com: iter330 → iter353c · iter353b · iter353b-availability (24 bounded iters · zero drift · all regression-locked).**
+
+
+
 ## 2026-05-23 — iter353b · Dispatch + Field Leadership Read-Only Driver Qualification Visibility · ✅ APPROVE
 
 ### Operator P1 (Phase 2 #3 · the foundation BEFORE the FL accountability mini-widget)
