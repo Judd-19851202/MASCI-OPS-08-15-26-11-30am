@@ -2,6 +2,76 @@
 
 
 
+## 2026-05-23 — iter351 · PROD CDL/Approved Driver Bulk Load · ✅ APPROVE (LIVE PRODUCTION)
+
+### Operator P0
+After iter350 closed the visibility code defect, the HR Driver Qualification dashboard still showed 0 rows in production. Cause was the second-order problem: no CDL/approved-driver data had ever been written to the production `employees` collection. The original "Drivers on Insurance and CDL Drivers.xlsx" had been uploaded but the data-load step never executed against production.
+
+### Source
+`Drivers on Insurance and CDL Drivers.xlsx` (from job artifacts) · sheet `Drivers on Insurance` · 86 driver rows · column B `CDL` marker → 43 marked CDL.
+
+### Semantics
+- All 86 rows = insured drivers = `approved_company_driver = True`, `driver_status = "active"`.
+- 43 rows with `"CDL"` marker = `cdl_holder = True`.
+- 43 rows blank = `cdl_holder = False`.
+- License #, state, expirations, endorsements, restrictions were NOT in the source — left null / [] (per operator rule: "no guessing, no inventing").
+
+### Matching ladder (multi-tier; no employee creation)
+1. exact normalized name (`name_exact`) — 55 matches
+2. last + first-initial (`last_first_initial`) — 21 matches
+3. last + first 3 chars (`last_first_three`) — 0 matches
+4. suffix/middle-initial stripped (`stripped_suffix_middle`) — 2 matches (Robert Castellow → Robert Castellow Iii; Terrance Williams → Terrance J Williams)
+5. source-name is prefix of roster (`prefix_of_roster`) — 1 match (Jaime Licona → Jaime Licona-montemayor)
+6. typo on last name (single substitution/insertion/deletion/transposition) — 2 (Kyle Mcdaniels → Kyle Mcdaniel; Wesley Bruaw → Wesley K Brauw)
+7. typo on first name — 1 (Terral Williams → Terrall Williams)
+
+### Production load result (PATCH `/api/hr/employees/{id}` via HR token)
+| Metric | Value |
+|---|---|
+| Source rows | 86 |
+| Matched in production roster | **82** (95%) |
+| `approved_company_driver=True` after load | **82** ✅ |
+| `cdl_holder=True` after load | **43** ✅ |
+| `driver_status="active"` after load | **82** ✅ |
+| Failed PATCH | 0 |
+| Unmatched (not in employees roster · NOT auto-created) | 4 (Alan Danford, Christopher Wright, David Jewett, Ryan Heims) |
+| Duplicate employees created | **0** (employee count unchanged: 239 → 239) |
+| HR Driver Qualification dashboard count | **82** ✅ |
+
+### Live production proof
+- `GET /api/hr/driver-qualification/dashboard` → count: 82 · 43 CDL · 39 non-CDL approved
+- Filter `cdl_holder=true` → 43 ✅
+- Filter `cdl_holder=false&approved=true` → 39 ✅
+- Search `q=Hoffman` → Brett T Hoffman (cdl=True, approved=True) ✅
+- CSV export → HTTP 200, 94 lines (header + 82 rows + 11 blank/trailing) ✅
+- Screenshot of live `https://mascidocs.com/hr/driver-qualification` shows 82 named drivers rendering with CDL Yes/—, Approved Yes, ACTIVE status (saved `/tmp/iter351_PROD_dq.jpg`).
+- Summary tiles (CDL Expiring 30d / Medical Expiring 30d / Tanker-Capable) show 0 because the source xlsx didn't contain expirations or endorsements — operator confirmed this is expected (data wasn't in the file).
+
+### 4 unmatched names (require operator action)
+None of these exist in the production `employees` collection. Loader did NOT auto-create them per operator rule "Do not create new employees unless absolutely necessary":
+- ALAN DANFORD
+- CHRISTOPHER WRIGHT (note: chriswright@mascigc.com exists as a PM in `project_managers`, but not as an employee in `employees`)
+- DAVID JEWETT
+- RYAN HEIMS
+
+These need to be added to HR Employee Directory first, then re-run the loader. The loader is idempotent and re-runnable.
+
+### Files added (iter351)
+- NEW · `/app/scripts/iter351_load_cdl_drivers.py` (276 LOC · multi-tier matcher · idempotent · dry-run flag · target switch preview|prod)
+- NEW · `/app/memory/iter351_cdl_load_PROD.json` (complete audit trail · per-row match method + result)
+- DOC · `/app/memory/PRD.md`
+
+### Files NOT touched (scope discipline)
+- ❌ Backend code untouched (iter350 pipeline already worked end-to-end)
+- ❌ Frontend untouched
+- ❌ No new employees created (4 unmatched names reported for operator)
+- ❌ No unrelated employee fields overwritten (PATCH limited to 3 fields: `approved_company_driver`, `cdl_holder`, `driver_status`)
+
+### Verdict
+✅ **APPROVE · LIVE PRODUCTION VERIFIED.** HR Driver Qualification dashboard now shows 82 approved drivers (43 CDL holders) on mascidocs.com. The visible-data P0 is closed.
+
+
+
 ## 2026-05-23 — iter350 · P0 HR Safety + CDL + Certificate Visibility Convergence · ✅ APPROVE
 
 ### Operator P0 defect
