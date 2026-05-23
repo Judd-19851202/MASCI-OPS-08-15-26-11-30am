@@ -512,7 +512,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         emp_id: str,
         actor: Dict[str, Any] = Depends(require_safety_or_hr_or_admin),
     ):
-        from lib.employee_linkage import normalize_name, normalize_email  # noqa: PLC0415
+        from lib.employee_linkage import normalize_email  # noqa: PLC0415
 
         emp = await db.employees.find_one({"id": emp_id}, {"_id": 0})
         if not emp:
@@ -521,7 +521,6 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             raise HTTPException(404, "Employee not found")
 
         ename = emp.get("name") or ""
-        n_norm = normalize_name(ename)
         e_norm = normalize_email(emp.get("email"))
         name_rx = {"$regex": f"^{re.escape(ename)}$" if ename else "", "$options": "i"} if ename else None
 
@@ -665,7 +664,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                 description=f"State {emp.get('cdl_state') or '—'} · License {emp.get('cdl_license_number') or '—'}",
                 source="employees", source_id=emp.get("id"),
                 expiration_date=emp.get("cdl_expiration_date"),
-                status="active" if (emp.get("cdl_holder") and emp.get("cdl_expiration_date", "")) >= datetime.now(timezone.utc).isoformat()[:10] else "expired",
+                status="active" if (emp.get("cdl_holder") and (emp.get("cdl_expiration_date") or "") >= datetime.now(timezone.utc).isoformat()[:10]) else "expired",
                 src_doc={"created_by_role": "hr"},
             )
         if emp.get("medical_card_expiration_date"):
@@ -698,7 +697,6 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
 
         # Compute current_state + expirations + counts
         today = datetime.now(timezone.utc).isoformat()[:10]
-        in_30 = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()[:10]
         in_90 = (datetime.now(timezone.utc) + timedelta(days=90)).isoformat()[:10]
 
         expiring = [
@@ -826,8 +824,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             ["Email", emp.get("email") or "—",
              "Hire Date", emp.get("hire_date") or "—"],
         ]
-        t1 = Table(profile_rows, colWidths=[1.1 * inch, 2.4 * inch, 1.1 * inch, 2.4 * inch])
-        t1.setStyle(TableStyle([
+        profile_style = TableStyle([
             ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f1f5f9")),
             ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#f1f5f9")),
             ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
@@ -837,7 +834,9 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e2e8f0")),
             ("LEFTPADDING", (0, 0), (-1, -1), 5), ("RIGHTPADDING", (0, 0), (-1, -1), 5),
             ("TOPPADDING", (0, 0), (-1, -1), 3), ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-        ]))
+        ])
+        t1 = Table(profile_rows, colWidths=[1.1 * inch, 2.4 * inch, 1.1 * inch, 2.4 * inch])
+        t1.setStyle(profile_style)
         story.append(t1)
 
         # Section 2 · Driver Qualification / CDL
@@ -853,7 +852,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
              "Medical Card Expiration", cs["medical_card_expiration_date"] or "—"],
         ]
         t2 = Table(dq_rows, colWidths=[1.4 * inch, 2.1 * inch, 1.4 * inch, 2.1 * inch])
-        t2.setStyle(t1.style)
+        t2.setStyle(profile_style)
         story.append(t2)
 
         # Section 3 · Expiration Watch

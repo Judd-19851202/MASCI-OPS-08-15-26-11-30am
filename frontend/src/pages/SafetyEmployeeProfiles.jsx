@@ -6,7 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import {
   Users, Loader2, AlertTriangle, Award, ClipboardCheck,
-  Wrench, AlertOctagon, ArrowLeft, Filter,
+  Wrench, AlertOctagon, ArrowLeft, Filter, FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,9 +95,20 @@ export default function SafetyEmployeeProfiles() {
   if (selected) {
     return (
       <SafetyShell title="Employee Safety Profile" kicker="SAFETY · EMPLOYEE PROFILE">
-        <Button variant="outline" onClick={() => { setSelected(null); setProfile(null); }} className="mb-4" data-testid="safety-emp-back">
-          <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back to employee list")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <Button variant="outline" onClick={() => { setSelected(null); setProfile(null); }} data-testid="safety-emp-back">
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back to employee list")}
+          </Button>
+          {/* iter353c · cross-portal entry into the unified accountability timeline.
+              Safety token already in localStorage; the timeline page accepts it. */}
+          <Link
+            to={`/hr/employees/${selected}/accountability`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 border-2 border-cyan-700 bg-cyan-50 hover:bg-cyan-100 text-cyan-900 rounded text-xs font-mono uppercase tracking-wider"
+            data-testid="safety-emp-accountability-link"
+          >
+            <FileText className="w-3.5 h-3.5" /> {t("Employee Accountability Timeline")}
+          </Link>
+        </div>
         {profileLoading || !profile ? (
           <div className="text-center py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-400" /></div>
         ) : (

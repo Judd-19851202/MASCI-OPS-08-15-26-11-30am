@@ -223,6 +223,7 @@ export default function HrEmployees() {
                   <th className="px-4 py-2.5">Trade / Role</th>
                   <th className="px-4 py-2.5">Crew</th>
                   <th className="px-4 py-2.5">Supervisor</th>
+                  <th className="px-4 py-2.5">Accountability</th>
                   <th className="px-4 py-2.5"></th>
                 </tr>
               </thead>
@@ -243,6 +244,16 @@ export default function HrEmployees() {
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.trade || "—"} {e.role && <span className="text-slate-400">· {e.role}</span>}</td>
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.crew || "—"}</td>
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.supervisor || "—"}</td>
+                      <td className="px-4 py-2.5">
+                        <Link
+                          to={`/hr/employees/${e.id}/accountability`}
+                          onClick={(ev) => ev.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider text-purple-800 hover:text-purple-900 hover:underline"
+                          data-testid={`hremp-acct-link-${e.id}`}
+                        >
+                          <ClipboardList className="w-3 h-3" /> Accountability
+                        </Link>
+                      </td>
                       <td className="px-4 py-2.5"><ChevronRight className="w-4 h-4 text-slate-300" /></td>
                     </tr>
                   );
@@ -591,6 +602,14 @@ function EmployeeDrawer({ id, onClose }) {
                 {employee.trade && <span className="text-slate-600">{employee.trade}</span>}
                 {employee.employee_id && <span className="text-slate-500 font-mono text-[10px]">#{employee.employee_id}</span>}
               </div>
+              {/* iter353c · View Accountability Timeline */}
+              <Link
+                to={`/hr/employees/${id}/accountability`}
+                className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 border border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded text-xs font-mono uppercase tracking-wider w-fit"
+                data-testid="hremp-drawer-acct-link"
+              >
+                <ClipboardList className="w-3.5 h-3.5" /> View Accountability Timeline
+              </Link>
             </SheetHeader>
             <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col">
               <TabsList className="rounded-none border-b border-slate-200 px-5">
