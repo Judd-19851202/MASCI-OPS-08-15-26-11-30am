@@ -29,6 +29,7 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { LifecycleGuide } from "@/components/LifecycleGuide";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -171,7 +172,7 @@ export default function HrEmployeeAccountabilityTimeline() {
   const counts = data?.category_counts || {};
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           <Button
@@ -206,6 +207,19 @@ export default function HrEmployeeAccountabilityTimeline() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-5 space-y-5">
+        {/* iter365 · operational coaching uniformity — short, field-direct. */}
+        <LifecycleGuide
+          id="employee-accountability-timeline"
+          icon={History}
+          accent="indigo"
+          title={t("How this timeline works")}
+          summary={t("One employee · every operational record from every portal · read-only.")}
+          sections={[
+            { label: t("Why this matters"), body: t("If a CAPA, training, PPE, incident, or CDL/medical event touches this person, it shows up here. This is how the platform builds trust in the roster.") },
+            { label: t("Source of truth"), body: t("Corrections happen in the original portal — this view aggregates, it doesn't edit. The role pill on each row shows where the record was written.") },
+          ]}
+        />
+
         {/* Shared-authority intro */}
         <div
           className="border-l-4 border-purple-700 bg-purple-50 px-4 py-2.5 text-xs text-purple-900"

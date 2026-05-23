@@ -1,6 +1,74 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter365 · Operational Convergence Cleanup Pass · ✅ COMPLETE
+
+### Strategic intent
+Per operator's stabilization directive: *"The platform should feel simpler, cleaner, more connected, easier to trust. NOT more advanced."* Three small surgical tasks, zero new systems, zero new APIs.
+
+### P1 · Mobile/layout friction fixes
+Surgical CSS — defensive `overflow-x-hidden` on outermost wrapper + `min-w-0` / `shrink-0` on flex children where appropriate. **No redesigns.** Files touched:
+- `/app/frontend/src/pages/FieldLeadershipPortalDashboard.jsx` — outer wrapper + search row fix
+- `/app/frontend/src/pages/NewIncident.jsx` — outer wrapper fix (closes the 13px overflow flagged by iter364 frontend tester)
+- `/app/frontend/src/components/PmShell.jsx` — covers PM Crew Compliance
+- `/app/frontend/src/pages/HrEmployeeAccountabilityTimeline.jsx`
+
+**Live-verified at 390px**: FL Dashboard = **0px overflow**. Incident form = **0px overflow**.
+
+### P2 · LifecycleGuide retrofits (5 surfaces, short & field-direct)
+One coaching banner per surface — 1 summary line + 1-2 short sections. Bilingual via existing `useT()`. Dismissible via localStorage. Hidden in print on report pages.
+- `/app/frontend/src/pages/ViewIncident.jsx` — **Incident lifecycle** (rose) · "Reported → Linked CAPA(s) → Verified → Closed. Closing without a verified CAPA is blocked."
+- `/app/frontend/src/pages/HrEmployeeAccountabilityTimeline.jsx` — **How this timeline works** (indigo) · "One employee · every operational record from every portal · read-only."
+- `/app/frontend/src/pages/PmCrewCompliance.jsx` — **How your crew compliance view works** (amber) · "Read-only roll-up of everyone on your projects' daily reports in the last 180 days."
+- `/app/frontend/src/components/DriverQualificationReadOnlyView.jsx` — **How driver readiness works** (emerald) · "A driver is dispatchable only when active, approved, CDL valid (if CDL holder), and medical card valid." *(Single retrofit covers BOTH the Dispatch Readiness page and the FL Driver Qualification page — they share this component.)*
+
+**Live-verified**: Incident Detail page renders the coaching banner with the rose accent and the one-line summary as designed.
+
+### P3 · Tiny Linkage Health ambient signal
+ONE small pill added to the existing `/admin/governance` Convergence Score banner. **No new API, no new query** — derived client-side from already-loaded `summary.rule_counts` (sum of `EMP_LINK_UNRESOLVABLE` + `EMP_LINK_AMBIGUOUS` + `EMP_LINK_MISSING_ID`). Color reflects health:
+- **Emerald** when linkage open = 0 ("Clean")
+- **Amber** when 1–9 ("N open")
+- **Rose** when ≥10 ("N open")
+
+Pill is a `<Link>` that deep-links into the existing filtered findings view. No new dashboard, no new reporting system — just ambient operational visibility, exactly per operator's "92% roster-linked this week" example.
+
+**Live-verified**: Pill renders "IDENTITY LINKAGE · 8 open" in amber against the real preview data (8 open `EMP_LINK_UNRESOLVABLE` findings).
+
+### Tests
+- **Cumulative regression** (iter354 → iter363 → iter364): **61/61 PASS** in 47s. Zero changes to backend logic in iter365 — purely UX surgery.
+- **Live smoke**:
+  - `/admin/governance` shows the new linkage pill (8 open · amber)
+  - `/field-leadership/portal` at 390px = 0px horizontal overflow
+  - `/incidents/new` at 390px = 0px horizontal overflow
+  - `/admin/incidents/{id}` shows the new LifecycleGuide coaching banner
+
+### Discipline note (per operator's stabilization directive)
+- NO new dashboards.
+- NO new APIs.
+- NO new endpoints.
+- NO new collections.
+- NO architecture changes.
+- 1 client-side derivation (4 LOC) for the linkage signal.
+- 4 short coaching banners (1 component reused with different props).
+- 4 small CSS fixes (`overflow-x-hidden`, `min-w-0`, `shrink-0`).
+
+### Files touched (iter365)
+- MOD · `/app/frontend/src/pages/FieldLeadershipPortalDashboard.jsx`
+- MOD · `/app/frontend/src/pages/NewIncident.jsx`
+- MOD · `/app/frontend/src/components/PmShell.jsx`
+- MOD · `/app/frontend/src/pages/HrEmployeeAccountabilityTimeline.jsx`
+- MOD · `/app/frontend/src/pages/ViewIncident.jsx`
+- MOD · `/app/frontend/src/pages/PmCrewCompliance.jsx`
+- MOD · `/app/frontend/src/components/DriverQualificationReadOnlyView.jsx`
+- MOD · `/app/frontend/src/pages/admin/AdminGovernance.jsx`
+- DOC · `/app/memory/PRD.md`
+
+### Verdict
+✅ **APPROVE.** The platform feels simpler and more connected. Five major operational surfaces now carry the same coaching language. Two mobile pages no longer overflow on 390px. The Governance banner gained a tiny ambient signal that tells operators at a glance whether the linkage discipline is holding — without spawning a new dashboard, a new API, or a new workflow. Convergence + stabilization mission: on track.
+
+---
+
+
 ## 2026-05-23 — iter364 · P1 Controlled Linkage Migration · 4 surfaces · ✅ COMPLETE
 
 ### Strategic intent

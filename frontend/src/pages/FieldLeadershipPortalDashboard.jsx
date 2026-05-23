@@ -37,16 +37,16 @@ function FlAccountabilityLookup() {
     }
   };
   return (
-    <div className="space-y-2">
-      <div className="flex gap-2">
+    <div className="space-y-2 min-w-0">
+      <div className="flex gap-2 min-w-0">
         <Input
           value={q} onChange={(e) => setQ(e.target.value)}
           placeholder={t("Search by name or employee ID")}
           onKeyDown={(e) => e.key === "Enter" && search()}
-          className="h-9 text-sm"
+          className="h-9 text-sm min-w-0 flex-1"
           data-testid="fl-lookup-input"
         />
-        <Button onClick={search} disabled={searching || !q.trim()} size="sm" data-testid="fl-lookup-go">
+        <Button onClick={search} disabled={searching || !q.trim()} size="sm" data-testid="fl-lookup-go" className="shrink-0">
           <Search className="w-3.5 h-3.5 mr-1" /> {searching ? t("…") : t("Search")}
         </Button>
       </div>
@@ -122,7 +122,7 @@ export default function FieldLeadershipPortalDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col" data-testid="fl-portal-dashboard">
+    <div className="min-h-screen bg-slate-50 flex flex-col overflow-x-hidden" data-testid="fl-portal-dashboard">
       <div className="bg-white border-b border-slate-200 px-4 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">

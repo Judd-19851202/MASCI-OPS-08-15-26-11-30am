@@ -273,7 +273,7 @@ export default function NewIncident({ publicMode = false }) {
     );
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32">
+    <div className="min-h-screen bg-slate-50 pb-32 overflow-x-hidden">
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">

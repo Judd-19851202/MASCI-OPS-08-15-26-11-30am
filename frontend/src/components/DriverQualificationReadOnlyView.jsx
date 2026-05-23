@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
+import { LifecycleGuide } from "@/components/LifecycleGuide";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -133,6 +134,20 @@ export default function DriverQualificationReadOnlyView({
 
   return (
     <div className="space-y-4" data-testid={`${testidPrefix}-view`}>
+      {/* iter365 · operational coaching uniformity — short, field-direct.
+          Used by both Dispatch + FL portals via the shared component. */}
+      <LifecycleGuide
+        id={`driver-qualification-${testidPrefix || "view"}`}
+        icon={ShieldCheck}
+        accent="emerald"
+        title={t("How driver readiness works")}
+        summary={t("A driver is dispatchable only when active, approved, CDL valid (if CDL holder), and medical card valid.")}
+        sections={[
+          { label: t("Why this matters"), body: t("Sending an unqualified driver creates legal and safety exposure. The emerald tile above is your one-click 'who can I send right now' answer.") },
+          { label: t("Read-only"), body: t("Status, CDL, and medical-card data are owned by HR. To correct anything, contact HR — this view never edits the source.") },
+        ]}
+      />
+
       {/* iter353b-availability · "Drivers Available Right Now" hero tile.
           The single most important operational question for Dispatch +
           FL — "who can I legally and operationally send out right now?"

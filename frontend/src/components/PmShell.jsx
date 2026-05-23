@@ -89,7 +89,7 @@ export default function PmShell({ title, section, children, intro }) {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col">
+    <div className="min-h-screen blueprint-bg flex flex-col overflow-x-hidden">
       <div className="caution-stripe" />
 
       <header className="sticky top-0 z-30 bg-slate-900 border-b-4 border-amber-600 shadow-lg">

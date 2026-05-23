@@ -163,6 +163,23 @@ export default function AdminGovernance() {
     [sevCounts]
   );
 
+  // iter365 · ambient linkage-health signal — derived from already-loaded
+  // rule_counts. No new API, no new query. Counts open findings across
+  // the 3 employee-linkage rules (iter355) introduced by the entry-time
+  // EmployeeRosterField program.
+  const linkageOpen = useMemo(() => {
+    return (
+      (ruleCounts.EMP_LINK_UNRESOLVABLE || 0) +
+      (ruleCounts.EMP_LINK_AMBIGUOUS || 0) +
+      (ruleCounts.EMP_LINK_MISSING_ID || 0)
+    );
+  }, [ruleCounts]);
+  const linkageTint = linkageOpen === 0
+    ? "bg-emerald-600 text-white border-emerald-700"
+    : linkageOpen < 10
+      ? "bg-amber-500 text-white border-amber-600"
+      : "bg-rose-600 text-white border-rose-700";
+
   const lastScan = summary?.last_scan;
   const lastScanRel = useMemo(() => {
     if (!lastScan?.finished_at) return "—";
@@ -214,6 +231,22 @@ export default function AdminGovernance() {
             <div className="font-mono text-[10px] uppercase tracking-wider opacity-70">Total Open</div>
             <div className="font-display text-lg font-black leading-none" data-testid="gov-total-open">{totalOpen}</div>
           </div>
+          {/* iter365 · Linkage Health ambient signal. One small pill, click-through
+              to the filtered findings view. No new API; uses already-loaded data. */}
+          <Link
+            to="/admin/compliance-findings?rule_id=EMP_LINK_UNRESOLVABLE"
+            className={`px-3 py-1.5 border-2 rounded inline-flex items-center gap-2 hover:opacity-90 transition-opacity ${linkageTint}`}
+            data-testid="gov-linkage-pill"
+            title="Open employee-identity linkage findings"
+          >
+            <Link2 className="w-4 h-4" />
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-wider opacity-90">Identity Linkage</div>
+              <div className="font-display text-lg font-black leading-none" data-testid="gov-linkage-open">
+                {linkageOpen === 0 ? "Clean" : `${linkageOpen} open`}
+              </div>
+            </div>
+          </Link>
           <div className="ml-auto flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-700 inline-flex items-center gap-1">
               <Clock className="w-3 h-3" /> Last scan: <strong data-testid="gov-last-scan-rel">{lastScanRel}</strong>

@@ -19,6 +19,8 @@ import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
 import { usePageTitle } from "@/lib/usePageTitle";
+import { LifecycleGuide } from "@/components/LifecycleGuide";
+import { Users as UsersIcon } from "lucide-react";
 
 function SeverityPill({ value, kind = "info" }) {
   const tints = {
@@ -161,6 +163,18 @@ export default function PmCrewCompliance() {
       }
     >
       <div className="space-y-4 mt-5" data-testid="pm-crew-compliance">
+        {/* iter365 · operational coaching uniformity — short, field-direct. */}
+        <LifecycleGuide
+          id="pm-crew-compliance"
+          icon={UsersIcon}
+          accent="amber"
+          title={t("How your crew compliance view works")}
+          summary={t("Read-only roll-up of everyone on your projects' daily reports in the last 180 days.")}
+          sections={[
+            { label: t("Why this matters"), body: t("If someone on your crew has an expired training or missing PPE, you see it before the field does. Corrections happen in HR / Safety — not here.") },
+          ]}
+        />
+
         {/* Summary tiles */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" data-testid="pm-crew-summary">
           <SummaryTile

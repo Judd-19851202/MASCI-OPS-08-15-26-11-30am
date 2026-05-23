@@ -21,6 +21,8 @@ import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { useT } from "@/lib/i18n";
+import { LifecycleGuide } from "@/components/LifecycleGuide";
+import { AlertOctagon } from "lucide-react";
 import {
   SEVERITY_LEVELS,
   ROOT_CAUSE_CATEGORIES,
@@ -159,6 +161,21 @@ export default function ViewIncident() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
+        {/* iter365 · operational coaching uniformity — short, field-direct.
+            Hidden on print so the official report PDF stays clean. */}
+        <div className="print:hidden">
+          <LifecycleGuide
+            id="incident-detail"
+            icon={AlertOctagon}
+            accent="rose"
+            title={t("Incident lifecycle")}
+            summary={t("Reported → Linked CAPA(s) → Verified → Closed. Closing without a verified CAPA is blocked.")}
+            sections={[
+              { label: t("Why this matters"), body: t("Every incident is tied to corrective actions. Closing the loop is how the crew learns and the next shift stays safe.") },
+              { label: t("Downstream"), body: t("Safety, the PM, HR (for OSHA recordables), and the involved employee's accountability timeline all see this record.") },
+            ]}
+          />
+        </div>
         <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
             <MasciLogo
