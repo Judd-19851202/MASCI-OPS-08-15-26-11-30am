@@ -96,7 +96,9 @@ export default function EmployeeRosterField({
   };
 
   const pick = (item) => {
-    const name = item.label || item.raw?.name || query;
+    // /api/master-lookup/employees returns flat {id, name, employee_id, trade, role, email}.
+    // Tolerate legacy `{label, raw:{name}}` shape too in case any caller wraps.
+    const name = item.name || item.label || item.raw?.name || query;
     onChange?.({ id: item.id, name, linked: true });
     setQuery(name);
     setOpen(false);
@@ -133,7 +135,12 @@ export default function EmployeeRosterField({
             {loading ? (
               <div className="px-3 py-2 text-xs font-mono text-slate-500">{t("Searching…")}</div>
             ) : null}
-            {results.map((item) => (
+            {results.map((item) => {
+              // Flat shape from /api/master-lookup/employees: {id, name, employee_id, trade, role, email}.
+              const displayName = item.name || item.label || item.raw?.name || "";
+              const subRole = item.role || item.trade || item.raw?.position || "";
+              const subEmail = item.email || item.raw?.email || "";
+              return (
               <button
                 type="button"
                 key={item.id}
@@ -141,14 +148,15 @@ export default function EmployeeRosterField({
                 className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-slate-100 last:border-b-0"
                 data-testid={`${testId}-suggestion-${item.id}`}
               >
-                <div className="text-sm font-semibold text-slate-900">{item.label}</div>
-                {item.raw?.position || item.raw?.email ? (
+                <div className="text-sm font-semibold text-slate-900">{displayName}</div>
+                {subRole || subEmail ? (
                   <div className="text-[11px] font-mono text-slate-500">
-                    {item.raw?.position || ""} {item.raw?.email ? `· ${item.raw.email}` : ""}
+                    {subRole}{subRole && subEmail ? " · " : ""}{subEmail}
                   </div>
                 ) : null}
               </button>
-            ))}
+              );
+            })}
             {!loading && results.length === 0 ? (
               <div className="px-3 py-2 text-xs font-mono text-slate-500">{t("No roster match.")}</div>
             ) : null}
@@ -165,7 +173,7 @@ export default function EmployeeRosterField({
         <div className="mt-1 text-[11px] text-amber-700 leading-snug" data-testid={`${testId}-unresolved-warning`}>
           <span className="font-mono font-bold uppercase tracking-wider">{t("Not in roster")}.</span>{" "}
           {t("Saved as free-text. This will appear as an EMP_LINK_UNRESOLVABLE finding in Governance Health until you either pick from the roster or add this person to the employee master.")}{" "}
-          <a href="/admin/operational-language#capa" target="_blank" rel="noreferrer" className="underline">
+          <a href="/admin/operational-language#roster_backed_selector" target="_blank" rel="noreferrer" className="underline">
             {t("What does this mean?")}
           </a>
         </div>
