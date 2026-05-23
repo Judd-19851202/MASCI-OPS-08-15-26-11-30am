@@ -54,6 +54,7 @@ import PmLogin from "@/pages/PmLogin";
 import PmChangePassword from "@/pages/PmChangePassword";
 import PmResetPassword from "@/pages/PmResetPassword";
 import PmHub from "@/pages/PmHub";
+import PmCrewCompliance from "@/pages/PmCrewCompliance";
 import PmFieldLeadership from "@/pages/PmFieldLeadership";
 import {
   PmJobs, PmFleet, PmPeople, PmSuppliers, PmPosters, PmRouting, PmComplianceExport,
@@ -427,6 +428,8 @@ function App() {
             <Route path="/pm/reset/:token" element={<PmResetPassword />} />
             <Route path="/pm/change-password" element={P(<PmChangePassword />)} />
             <Route path="/pm" element={P(<PmHub />)} />
+            {/* iter353e-UI · PM Crew Compliance Lens (read-only) */}
+            <Route path="/pm/crew-compliance" element={P(<PmCrewCompliance />)} />
             {/* iter105 — PM Console sub-routes (mirrors AdminConsole layout) */}
             <Route path="/pm/jobs"               element={P(<PmJobs />)} />
             <Route path="/pm/field-leadership"   element={P(<PmFieldLeadership />)} />

@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import {
   ClipboardCheck, Users, AlertOctagon, ClipboardList, Wrench, Box,
   FileText, ArrowRight, Loader2, ShieldCheck, Image as ImageIcon,
-  UserCheck, Briefcase, GraduationCap, Activity, Truck,
+  UserCheck, Briefcase, GraduationCap, Activity, Truck, AlertTriangle, CircleSlash,
 } from "lucide-react";
 import PmShell from "@/components/PmShell";
 import OperationsCenter from "@/components/OperationsCenter";
@@ -81,6 +81,7 @@ function PmTile({ to, icon: Icon, title, count, sub, accent, testId }) {
 export default function PmHub() {
   usePageTitle("PM · MASCI");
   const [counts, setCounts] = useState({});
+  const [crewSummary, setCrewSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -90,7 +91,7 @@ export default function PmHub() {
         // route already filters by PM scope server-side, so .length is the
         // count for tiles. Failed calls fall back to 0 so the page never
         // dies on a partial outage.
-        const [insp, mtg, jha, tb, inc, dr, eq, qa] = await Promise.all([
+        const [insp, mtg, jha, tb, inc, dr, eq, qa, crew] = await Promise.all([
           api.get("/inspections").catch(() => ({ data: [] })),
           api.get("/meetings").catch(() => ({ data: [] })),
           api.get("/job-hazard-plans").catch(() => ({ data: [] })),
@@ -99,6 +100,8 @@ export default function PmHub() {
           api.get("/daily-reports").catch(() => ({ data: [] })),
           api.get("/equipment-inspections").catch(() => ({ data: [] })),
           api.get("/qaqc-inspections").catch(() => ({ data: [] })),
+          // iter353e-UI · crew compliance roll-up (best-effort)
+          api.get("/pm/crew/summary").catch(() => ({ data: null })),
         ]);
         const len = (x) => (Array.isArray(x?.data) ? x.data.length : 0);
         setCounts({
@@ -106,6 +109,7 @@ export default function PmHub() {
           trenchBoxes: len(tb), incidents: len(inc), daily: len(dr),
           equipment: len(eq), qaqc: len(qa),
         });
+        setCrewSummary(crew?.data || null);
       } catch { /* tiles still render with em-dash */ }
       setLoading(false);
     })();
@@ -137,6 +141,70 @@ export default function PmHub() {
       ) : (
         <>
           <OperationsCenter compact className="mt-5" />
+
+          {/* iter353e-UI · My Crew Compliance — operational accountability awareness */}
+          <Link
+            to="/pm/crew-compliance"
+            className="block bg-white border-2 border-amber-600 rounded-md p-4 sm:p-5 mt-5 hover:shadow-md transition-shadow group"
+            data-testid="pm-crew-compliance-card"
+          >
+            <div className="flex items-start gap-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-600 text-white shrink-0">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-display text-base sm:text-lg font-black tracking-tight text-slate-900">
+                    My Crew Compliance
+                  </h3>
+                  <span className="px-1.5 py-0.5 border border-slate-200 bg-slate-50 rounded text-[10px] font-mono uppercase tracking-wider text-slate-600">
+                    Read-only · 180d scope
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 mt-1">
+                  Operational accountability awareness for crews on your projects — training currency, PPE, CAPA exposure, expirations.
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3" data-testid="pm-crew-compliance-card-tiles">
+                  <div data-testid="pm-crew-card-tile-crew">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold flex items-center gap-1">
+                      <Users className="w-3 h-3" /> Crew (180d)
+                    </div>
+                    <div className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
+                      {crewSummary?.crew_size ?? "—"}
+                    </div>
+                  </div>
+                  <div data-testid="pm-crew-card-tile-expiring">
+                    <div className={`font-mono text-[10px] uppercase tracking-[0.18em] font-bold flex items-center gap-1 ${crewSummary?.expiring_30d ? "text-amber-700" : "text-slate-500"}`}>
+                      <AlertTriangle className="w-3 h-3" /> Expiring ≤30d
+                    </div>
+                    <div className={`font-display text-2xl font-black leading-none mt-1 ${crewSummary?.expiring_30d ? "text-amber-700" : "text-slate-900"}`}>
+                      {crewSummary?.expiring_30d ?? "—"}
+                    </div>
+                  </div>
+                  <div data-testid="pm-crew-card-tile-expired">
+                    <div className={`font-mono text-[10px] uppercase tracking-[0.18em] font-bold flex items-center gap-1 ${crewSummary?.expired ? "text-rose-700" : "text-slate-500"}`}>
+                      <CircleSlash className="w-3 h-3" /> Expired
+                    </div>
+                    <div className={`font-display text-2xl font-black leading-none mt-1 ${crewSummary?.expired ? "text-rose-700" : "text-slate-900"}`}>
+                      {crewSummary?.expired ?? "—"}
+                    </div>
+                  </div>
+                  <div data-testid="pm-crew-card-tile-capas">
+                    <div className={`font-mono text-[10px] uppercase tracking-[0.18em] font-bold flex items-center gap-1 ${crewSummary?.open_capas ? "text-amber-700" : "text-slate-500"}`}>
+                      <ClipboardCheck className="w-3 h-3" /> Open CAPAs
+                    </div>
+                    <div className={`font-display text-2xl font-black leading-none mt-1 ${crewSummary?.open_capas ? "text-amber-700" : "text-slate-900"}`}>
+                      {crewSummary?.open_capas ?? "—"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-700 font-bold flex items-center gap-1 group-hover:gap-2 transition-all whitespace-nowrap">
+                Open <ArrowRight className="w-3 h-3" />
+              </div>
+            </div>
+          </Link>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-5" data-testid="pm-tile-grid">
             {FORM_TILES.map((t) => (
               <PmTile
