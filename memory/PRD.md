@@ -1,6 +1,53 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter377 · Phase 4D iteration 1 · PM read-only routes extraction ✅
+
+### Outcome
+First successful one-route-family extraction from server.py. **194 LOC reduction** in server.py (12,259 → 12,065). Behavior byte-for-byte identical to pre-extraction (verified by functional + shape parity tests). Zero auth drift.
+
+### Extracted
+- `/api/pm/check` · `/api/pm/me`
+- `/api/pm/crew/training-records` · `/api/pm/crew/ppe` · `/api/pm/crew/capas` · `/api/pm/crew/summary`
+- Helper `_pm_crew_employee_names(actor, days=180)` (iter353e PM Crew Compliance Lens scoping)
+- **Destination:** `/app/backend/routes/pm_routes.py` — `build_pm_router(db, require_admin_dep, require_admin_async_dep)` factory.
+
+### Why these 6 (lowest-risk subset)
+- Read-only (no state mutation, no audit-side-effects).
+- Consume already-factored `require_admin` / `require_admin_async` dependencies.
+- Zero coupling to module-level helpers (`_client_ip`, `_check_login_lockout`, `_record_login_failure`, `_directory_admin_token`, `_clear_session_activity` are not used).
+- Login/forgot/reset/change/logout routes left in server.py for iter378 — they have shared-helper coupling that must move as a unit.
+
+### Regression
+`tests/test_iter377_pm_routes_extraction.py` — 21/21 PASS:
+- 4 functional parity tests (admin unlocks all 6 routes, anon denied, safety rejected, dispatch rejected).
+- 6 response-shape tests (exact key/value matching).
+- 3 query-limit tests (lower/upper bound validation).
+- 8 source-level guards (file exists, factory exists, handlers in new file, handlers removed from server.py, non-extracted routes preserved, helper migrated, mount wired, guard against re-introduction).
+
+**Cumulative**: iter354 → iter377 = **171/171 PASS** in ~95s.
+
+### P0 deferred to operator
+Phase 4B production deploy requires operator action (set `MFA_ENCRYPTION_KEY` in prod env, run 10-item checklist, smoke-test). Handoff document published: `/app/memory/PHASE4B_OPERATOR_HANDOFF.md` (3-step P0 + post-deploy comms template + rollback procedure + audit-log query examples).
+
+### Files touched
+- `/app/backend/routes/pm_routes.py` — NEW (factory pattern).
+- `/app/backend/server.py` — removed 190 LOC of extracted routes + helper; added 10 LOC to import and mount the new router.
+- `/app/backend/tests/test_iter377_pm_routes_extraction.py` — NEW (21 tests).
+- `/app/memory/PHASE4D_EXTRACTION_TRACKER.md` — NEW (server.py size watch + per-iteration log + future planned iterations iter378-iter381+).
+- `/app/memory/PHASE4B_OPERATOR_HANDOFF.md` — NEW (operator-facing P0 instructions).
+
+### Next iteration roadmap
+- 🟧 **iter378** · PM auth lifecycle routes (login/logout/forgot/reset/change-password). Medium risk — has IP lockout + directory super-admin fallback + session-activity coupling. Recommend dedicated iteration with parity test covering lockout behavior.
+- 🟨 **iter379** · Governance routes (`/api/governance/*`, ~600 LOC) — low risk (already has its own helper module).
+- 🟨 **iter380** · Notifications routes (`/api/notifications/*`, ~400 LOC) — low risk.
+- 🟨 **iter381** · Shared lookup services (`/api/master-lookup/*`, ~500 LOC) — low risk.
+- **Architectural goal**: shrink server.py from 12,065 LOC to <4,000 LOC across 5-8 iterations.
+
+---
+
+
+
 ## 2026-05-23 — iter375 + iter376 · Phase 4B (MFA TOTP) + Phase 4C (Deploy Readiness) · ✅ COMPLETE
 
 ### iter375 · Phase 4B · Super-admin TOTP MFA
