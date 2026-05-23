@@ -9739,6 +9739,14 @@ _admin_ops_router = build_admin_ops_router(db, require_admin_strict)
 app.include_router(_admin_ops_router)
 
 
+# ─── Phase 2 P0+P1 · Compliance Gap Detector + Governance Health ────
+# Cross-portal contradiction detection engine. Strict admin gate —
+# governance findings + the convergence dashboard live admin-only.
+from routes.governance import build_governance_router  # noqa: E402
+
+app.include_router(build_governance_router(db, require_admin_strict))
+
+
 # ─── Synthetic health monitor (iter132) ─────────────────────────────
 # Polls system_health every 60 s, fires Resend alerts on sustained red.
 from health_monitor import start_health_monitor_loop  # noqa: E402

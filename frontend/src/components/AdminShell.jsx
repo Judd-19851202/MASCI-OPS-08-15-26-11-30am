@@ -62,6 +62,7 @@ const SECTIONS = [
   { key: "analytics", to: "/admin/analytics", icon: ChartBar, label: "Usage Analytics", desc: "Operational insight · routes · portals · friction" },
   { key: "operational-guidance", to: "/guidance", icon: GraduationCap, label: "Operational Guidance Center", desc: "RBAC-aware portal training · operator guides · troubleshooting" },
   { key: "operational-inventory", to: "/admin/operational-inventory", icon: Map, label: "Operational Inventory", desc: "Live governance dashboard · 10-field coverage matrix · drift detection" },
+  { key: "governance", to: "/admin/governance", icon: ShieldCheck, label: "Governance Health", desc: "Compliance gap detector · cross-portal contradictions · convergence score" },
   { key: "promo-assets", to: "/admin/promo-assets", icon: Film, label: "Promo Assets", desc: "Cinematic platform clips · hero loops · social cuts · editor-ready library" },
 ];
 
