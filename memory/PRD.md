@@ -2,6 +2,94 @@
 
 
 
+## 2026-05-23 — iter353c · Unified Employee Accountability Timeline + HR Compliance Brief PDF · ✅ APPROVE
+
+### Operator P0 (Phase 2 #2 · system-of-record centerpiece)
+Closes GAP-014 from the Phase 1 governance audit: the platform now answers the single operational question "Show me everything about this employee — onboarding, training, certs, incidents, PPE, CDL, lifecycle." Strict aggregation-only — NO new source-of-truth collection.
+
+### What shipped
+
+**Backend (`/app/backend/routes/hr_portal.py` · finished pre-context-cutoff drafts)**
+- `GET /api/hr/employees/{id}/accountability/timeline` — single endpoint, aggregates 8 sources:
+  1. `safety_training_records` (Safety OSHA/CPR/AED + iter353a HR writes)
+  2. `training_track_records` (HR curriculums)
+  3. `safety_equipment_issuances` (PPE)
+  4. `safety_equipment_trainings` (use & care)
+  5. `incidents` (employee-involved)
+  6. `field_leadership_records` (write-ups, terminations, approved-driver forms, etc.)
+  7. `employees.status_history` (HR lifecycle audit chain)
+  8. `employees.{cdl_expiration_date, medical_card_expiration_date}` (driver-qual virtual events)
+  - Tolerant linkage: queries by `employee_id` OR `employee_master_id` OR normalized `employee_name`+`employee_email`.
+  - Every event row carries `created_by`, `created_by_role`, `originating_portal`, `updated_by`, `updated_by_role`, `linkage_method`, `archived` (audit attribution surfaced).
+  - Returns `current_state` (CDL · approved-driver · expirations · last training/PPE/incident), `category_counts`, `total_events`, `expiring_within_90d`, `expired_items`, `viewer.{actor, role}`.
+- `GET /api/hr/employees/{id}/accountability/brief.pdf` — `reportlab` PDF, 4+ sections (Employee Profile · Driver Qualification / CDL · Expiration Watch · per-category timeline). 4.9KB sample, `Content-Disposition: attachment; filename="HR_Compliance_Brief_<Name>.pdf"`. Wrapped in actor-attribution footer for audit.
+
+**RBAC (`make_require_safety_or_hr_or_admin`)**
+- ✅ HR · Safety · Admin → 200
+- ❌ PM / Shop / Dispatch / FL / anonymous → 401
+- Read-only contract enforced: POST/PATCH/DELETE return 405.
+
+**Server wiring fix-up (session-cutoff blocker resolved)**
+- Backend was crashing on boot with `NameError: require_safety_or_hr_or_admin` and missing `import re`. Fixed by adding `import re` to hr_portal.py, accepting a `require_safety_or_hr_or_admin_dep` builder param, and threading `make_require_safety_or_hr_or_admin(db, _is_valid_admin_token)` from server.py at mount time. Also fixed 2 follow-on logic bugs the prior agent left mid-edit (TypeError on CDL date comparison; `t1.style` reportlab AttributeError → factored out shared `profile_style = TableStyle(...)`).
+
+**Frontend (`HrEmployeeAccountabilityTimeline.jsx` · NEW · 360 LOC)**
+- Route `/hr/employees/:id/accountability` — multi-role inline auth (`isHr() || isSafety() || isAdmin()`); fall-through is the standard AccessDenied screen.
+- Calm purple shared-authority intro strip.
+- Employee header card (name · trade · crew · supervisor · emp ID · lifecycle status pill).
+- 6 status tiles: CDL Holder · Approved Driver · CDL Expires · Medical Card · Expiring ≤90d · Expired (color-tinted on signal).
+- Expiration Watch amber strip when anything expiring/expired exists.
+- 7 timeline tabs: All · Training · PPE · Incidents · FL Records · Driver Qual · HR Lifecycle (counts surfaced per tab).
+- Desktop table layout (≥sm) + mobile card layout (<sm) using `data-testid="acct-card-…"`.
+- Audit-attribution role pills on every row: HR (purple) · Safety (cyan) · Admin (slate) · PM (indigo) · FL (red) · Legacy (slate-light).
+- Archived rows render dimmed with calm `ARCHIVED` pill.
+- `Compliance Brief PDF` download button with toast feedback.
+- ES translations: 30 new keys in `lib/i18n.js`.
+
+**Entry points (3 surfaces)**
+- HR Employee Directory row → inline `Accountability` link (`hremp-acct-link-<id>`) with `stopPropagation` so it does NOT open the drawer.
+- HR Employee Drawer header → `View Accountability Timeline` button (`hremp-drawer-acct-link`).
+- Safety Employee Profile → `Employee Accountability Timeline` button (`safety-emp-accountability-link`) — Safety token already in localStorage so cross-portal nav works without any HR write authority being granted.
+
+### Tests · iter353c
+- **NEW** `/app/backend/tests/test_iter353c_employee_timeline_and_brief.py` — 22/22 PASS:
+  - 5 source-level locks (routes registered · shared gate used · 6 collections aggregated · employee lifecycle aggregated · reportlab used)
+  - 3 live aggregation E2E (HR shape · attribution shape · archived-record visibility through full HR create → archive → timeline read loop)
+  - 5 RBAC matrix (HR allowed · Safety allowed · Admin allowed · PM blocked · anon blocked)
+  - 3 PDF surface (magic-bytes · title metadata · attachment filename)
+  - 2 read-only contract locks (timeline + brief.pdf reject POST/PATCH/DELETE)
+  - 4 frontend route + entry-point locks
+- **NEW** (added by testing agent) `/app/backend/tests/test_iter353c_e2e_rbac_and_attribution.py` — 9/9 PASS (additional cross-portal RBAC + attribution coverage).
+- **Cumulative iter350 + iter352 + iter353a + iter353a-UI + iter353c: 82/82 PASS**.
+- **Testing agent v3 verdict:** Backend 100% (31/31 across both files) · Frontend 100% (11/11 acceptance items: page load, tab switching, tab filtering math, PDF download, all 3 entry points, RBAC denial, mobile 390 card layout, ES locale).
+
+### Boundaries enforced (operator rules)
+- ✅ Aggregation only — NO new source-of-truth collection
+- ✅ HR + Safety + Admin shared read
+- ❌ NO HR hard-delete authority added (writes still go through iter353a archive pattern)
+- ❌ NO PM / Shop / Dispatch / FL write or read access expanded
+- ❌ NO change to Safety governance ownership (incidents / JHAs / CAPAs still Safety-only)
+- ❌ NO Compliance Gap Detector built yet (queued)
+- ❌ NO Governance Health Tile built yet (queued)
+
+### Files touched (iter353c)
+- MOD · `/app/backend/routes/hr_portal.py` (+ `import re`, 350-LOC timeline + brief.pdf endpoints, wire `require_safety_or_hr_or_admin_dep` builder param, fix 2 follow-on bugs)
+- MOD · `/app/backend/server.py` (import + pass `make_require_safety_or_hr_or_admin(db, _is_valid_admin_token)` into HR portal router)
+- NEW · `/app/frontend/src/pages/HrEmployeeAccountabilityTimeline.jsx` (360 LOC)
+- MOD · `/app/frontend/src/App.js` (route registration)
+- MOD · `/app/frontend/src/pages/HrEmployees.jsx` (Accountability link on every row + drawer header button)
+- MOD · `/app/frontend/src/pages/SafetyEmployeeProfiles.jsx` (Safety entry point button)
+- MOD · `/app/frontend/src/lib/i18n.js` (30 ES keys)
+- NEW · `/app/backend/tests/test_iter353c_employee_timeline_and_brief.py` (22 tests · all green)
+- NEW · `/app/backend/tests/test_iter353c_e2e_rbac_and_attribution.py` (9 tests · all green · added by testing agent)
+- DOC · `/app/memory/PRD.md`
+
+### Verdict
+✅ **APPROVE.** The platform now has its operational employee system of record. HR + Safety + DOT / OSHA / insurance audits can pull a complete per-employee timeline + signed PDF brief in two clicks. Source collections remain authoritative; the timeline is pure read aggregation.
+
+**Cumulative pending redeploy at mascidocs.com: iter330 → iter353c (22 bounded iters · zero drift · all regression-locked).**
+
+
+
 ## 2026-05-23 — iter353a-UI · HR Safety Records write surface · ✅ APPROVE
 
 ### Operator P0 (Phase 2 #1.5)
