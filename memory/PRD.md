@@ -1,6 +1,58 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter372 · Phase 4A · Safety Family Auth Consolidation · ✅ COMPLETE
+
+### Outcome
+Safety is the highest-traffic auth family — handled with extra caution. **Only the narrow fleet-ops safety gate** was migrated (true logic duplication). The richer write-side, multi-role read, and PM-aware read factories were all left untouched (intentional differences). **Zero permission drift. Zero lifecycle breakage. Zero portal visibility change.**
+
+### Inventory & decisions
+| Helper | Type | Action |
+|---|---|---|
+| `make_require_safety_token` | canonical safety-only | KEEP |
+| `make_require_safety_or_admin` (`_deps.py`) | richer write-side, returns `_actor` shape | KEEP |
+| `make_require_safety_or_hr_or_admin` | shared HR/Safety read | KEEP (already factored) |
+| `make_require_safety_admin_or_pm` | iter322 Safety+Admin+PM read | KEEP |
+| **`_require_safety_or_admin_fleet`** (server.py) | duplicate auth chain logic, narrow `role` shape | **MIGRATED → factory** |
+| `_li_require_uploader` | specialized HR/Safety/Admin upload | KEEP |
+| `_require_any_fleet_portal` | 4-way aggregator | KEEP — iter374 |
+
+### Migration executed
+- Added `make_require_safety_or_admin_fleet(db, is_valid_admin_token_fn)` to `routes/safety_portal/_deps.py`. Preserves the exact `{role:...}` return shape and admin-first ordering of the original fleet wrapper.
+- `server.py` imports the factory at module load, builds `_shared_safety_or_admin_fleet` once, and `_require_safety_or_admin_fleet` wrapper delegates to it (signature preserved for `fleet_ops.py` kwargs injection).
+- Distinct from `make_require_safety_or_admin` (richer write-side gate, `_actor` shape) — both coexist; consumers depend on different return-shape contracts.
+
+### Regression coverage (21/21 PASS)
+- **Fleet gate**: anon 401, admin OK, safety OK, dispatch rejected, shop rejected.
+- **Richer write surfaces** (untouched): site inspection POST denies anon, topic library admin reads OK.
+- **iter322 read gate** (`safety_admin_or_pm`): `/api/incidents` accepts admin AND safety (locks original iter322 fix from regressing); anon rejected.
+- **HR/Safety/Admin shared visibility**: `/api/safety/training-records` accepts admin AND safety AND HR; anon rejected.
+- **Source-level**: shared factory exists, richer factory preserved with `_actor` shape, server.py delegates, all 4 canonical safety factories still defined.
+
+### Live smoke verification
+- `/api/safety/fleet/emergency-equipment` — admin 200 · safety 200 · dispatch 401 · anon 401.
+- `/api/incidents` — admin 200 · safety 200 · anon 401.
+- `/api/safety/training-records` — admin 200 · safety 200 · hr 200 · anon 401.
+
+### Files touched
+- `/app/backend/routes/safety_portal/_deps.py` — added `make_require_safety_or_admin_fleet` factory; richer factory unchanged.
+- `/app/backend/server.py` — fleet wrapper now delegates to shared factory.
+- `/app/backend/tests/test_iter372_safety_or_admin_parity.py` — NEW (21 tests).
+- `/app/memory/AUTH_CONSOLIDATION_PROGRESS.md` — updated.
+
+### Cumulative regression health
+**iter354 → iter372: 121/121 pytest items PASS** in ~34s.
+
+### Next iteration roadmap
+- `iter373` — `require_hr_or_admin` factory extraction (inline in server.py).
+- `iter374` — Auth hardening review checkpoint (no code; full drift report).
+- P4B — MFA TOTP for super-admins.
+- P4D — server.py architectural extraction.
+
+---
+
+
+
 ## 2026-05-23 — iter370 (FINISHED) + iter371 · Phase 4A · Auth Consolidation · ✅ COMPLETE
 
 ### Outcome

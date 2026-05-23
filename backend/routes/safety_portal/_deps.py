@@ -47,6 +47,45 @@ def make_require_safety_or_admin(
     return _require_safety_or_admin
 
 
+def make_require_safety_or_admin_fleet(
+    db, is_valid_admin_token: Optional[Callable[[str], bool]] = None,
+) -> Callable[..., Awaitable[dict]]:
+    """iter372 · Canonical narrow Safety+Admin fleet-ops gate factory.
+
+    Mirrors the dispatch (iter370) and shop (iter371) patterns. Single
+    source of truth for the fleet_ops safety gate.
+
+    Semantically distinct from `make_require_safety_or_admin` above:
+      • This gate is used ONLY by fleet_ops.py via kwargs injection.
+      • Return shape uses the "role" key family (consistent with the
+        dispatch + shop fleet gates):
+            – Admin token  → {"role": "admin"}
+            – Safety token → {"role": "safety", **user}
+      • Admin is checked FIRST (matches the dispatch/shop ordering).
+      • Otherwise → HTTPException(401, "Safety or Admin auth required").
+
+    The richer `make_require_safety_or_admin` above keeps its "_actor"
+    return shape because its consumers (site-inspection POST, topic
+    library, notifications) read that shape. Do NOT collapse the two —
+    they serve different surfaces.
+    """
+
+    async def _require_safety_or_admin_fleet(
+        request: Request,
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+    ) -> dict:
+        if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
+            return {"role": "admin"}
+        if x_safety_token:
+            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            if u:
+                return {"role": "safety", **u}
+        raise HTTPException(401, "Safety or Admin auth required")
+
+    return _require_safety_or_admin_fleet
+
+
 def make_require_safety_admin_or_pm(
     db, is_valid_admin_token: Optional[Callable[[str], bool]] = None,
     is_valid_pm_token: Optional[Callable[[str], bool]] = None,

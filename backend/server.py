@@ -10691,22 +10691,31 @@ async def _require_dispatch_or_admin(
     )
 
 
+# iter372 · Canonical shared Safety+Admin fleet-ops gate (single source
+# of truth). Mirrors iter370 (dispatch) and iter371 (shop) patterns.
+# Built once at module load — delegated by `_require_safety_or_admin_fleet`.
+from routes.safety_portal._deps import (  # noqa: E402
+    make_require_safety_or_admin_fleet as _make_safety_or_admin_fleet,
+)
+_shared_safety_or_admin_fleet = _make_safety_or_admin_fleet(db, _is_valid_admin_token)
+
+
 async def _require_safety_or_admin_fleet(
     request: Request,
     x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
     x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
 ) -> Dict[str, Any]:
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
-        return {"role": "admin"}
-    if x_safety_token:
-        try:
-            from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
-            u = await is_valid_safety_user_token_async(db, x_safety_token)
-            if u:
-                return {"role": "safety", **u}
-        except Exception:
-            pass
-    raise HTTPException(401, "Safety or Admin auth required")
+    """iter372 · Delegates to the canonical shared factory in
+    routes/safety_portal/_deps.make_require_safety_or_admin_fleet so the
+    fleet-ops safety gate has a SINGLE source of truth. The wrapper
+    signature is preserved because fleet_ops.py wires this in via
+    kwargs at router construction.
+    """
+    return await _shared_safety_or_admin_fleet(
+        request,
+        x_admin_token=x_admin_token,
+        x_safety_token=x_safety_token,
+    )
 
 
 # Shop gate — narrow admin/shop fleet-ops gate (distinct from
