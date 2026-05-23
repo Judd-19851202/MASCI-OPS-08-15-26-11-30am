@@ -30,6 +30,7 @@ import { JobPicker } from "@/components/JobPicker";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { SupplierCombo } from "@/components/SupplierCombo";
 import MasterLookupCombobox from "@/components/MasterLookupCombobox";
+import EmployeeRosterField from "@/components/EmployeeRosterField";
 import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
 import { useT, getLang } from "@/lib/i18n";
@@ -584,40 +585,28 @@ export default function NewIncident({ publicMode = false }) {
         {isInjury && (
           <Section number="03" title={t("Person Involved")}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                  Name
-                </Label>
-                <Input
-                  value={data.person_name}
-                  onChange={(e) => set("person_name", e.target.value)}
-                  className={inputCls}
-                  data-testid="input-person-name"
+              <div className="sm:col-span-2">
+                {/* iter359 · Unified roster-first selector with operational
+                    coaching baked in. Free-text fallback preserved for
+                    subcontractors / non-employees, but the downstream
+                    consequence (EMP_LINK_UNRESOLVABLE finding) is visible
+                    at entry time, not after the fact. */}
+                <EmployeeRosterField
+                  label={t("Name") + " · " + t("Linked to employee master")}
+                  value={{
+                    id: data.employee_master_id || "",
+                    name: data.person_name || "",
+                    linked: !!data.employee_master_id,
+                  }}
+                  onChange={({ id, name, linked }) => {
+                    set("person_name", name);
+                    set("employee_master_id", linked ? id : "");
+                    set("employee_master_label", linked ? name : "");
+                  }}
+                  placeholder={t("Type name to search roster")}
+                  required
+                  testId="input-person-roster"
                 />
-              </div>
-              <div>
-                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                  Link to MASCI Employee (optional)
-                </Label>
-                <div className="mt-1">
-                  <MasterLookupCombobox
-                    kind="employees"
-                    value={data.employee_master_id}
-                    displayValue={data.employee_master_label}
-                    onPick={(item) => {
-                      set("employee_master_id", item.id);
-                      set("employee_master_label", item.label);
-                      // Convenience: if person_name is empty, prefill from master
-                      if (item.id && !data.person_name && item.raw) {
-                        const nm = item.raw.name || `${item.raw.first_name || ""} ${item.raw.last_name || ""}`.trim();
-                        if (nm) set("person_name", nm);
-                      }
-                    }}
-                    onClear={() => { set("employee_master_id", ""); set("employee_master_label", ""); }}
-                    placeholder="Search by name / email / employee ID"
-                    testIdPrefix="input-person-master"
-                  />
-                </div>
               </div>
               <div>
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">

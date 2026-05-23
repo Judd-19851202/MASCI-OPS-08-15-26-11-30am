@@ -4082,6 +4082,16 @@ const ES = {
   "How to use it": "Cómo usarlo",
   "Search the bar below. Or deep-link to a specific entry — every entry has an anchor like /admin/operational-language#capa.": "Busca en la barra de abajo. O usa un enlace directo a una entrada específica — cada entrada tiene un ancla como /admin/operational-language#capa.",
   "Vocabulary drift between departments is the cheapest source of operational chaos in a multi-portal platform. One word, one meaning, everywhere — every time.": "La deriva de vocabulario entre departamentos es la fuente más barata de caos operativo en una plataforma multi-portal. Una palabra, un significado, en todas partes — cada vez.",
+
+  // iter359 · UI-level Employee Linkage Enforcement (EmployeeRosterField).
+  "Linked to employee master": "Vinculado al maestro de empleados",
+  "Type name to search roster": "Escribe un nombre para buscar en el roster",
+  "Searching…": "Buscando…",
+  "No roster match.": "Sin coincidencia en el roster.",
+  "Linked to roster": "Vinculado al roster",
+  "Not in roster": "No está en el roster",
+  "Saved as free-text. This will appear as an EMP_LINK_UNRESOLVABLE finding in Governance Health until you either pick from the roster or add this person to the employee master.": "Guardado como texto libre. Esto aparecerá como un hallazgo EMP_LINK_UNRESOLVABLE en Salud de Gobernanza hasta que selecciones del roster o agregues a esta persona al maestro de empleados.",
+  "What does this mean?": "¿Qué significa esto?",
 };
 
 const DICTS = { es: ES, en: {} };

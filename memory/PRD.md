@@ -2,6 +2,58 @@
 
 
 
+## 2026-05-23 — iter359 · Phase 2 P2 — UI-Level Employee Linkage Enforcement (proof-of-pattern) · ✅ COMPLETE
+
+### Strategic intent
+iter355 added detection + backfill for free-text identity drift. iter359 adds the **third leg of the linkage stool**: prevention at data-entry time. The deliverable is a reusable component that unifies the legacy "type name + optionally pick master" pattern into one atomic interaction, with operational coaching baked in that makes the downstream governance consequence visible at entry time. The pattern is proved on one strategic surface (Safety Incident form); remaining surfaces become mechanical follow-up iterations.
+
+### Frontend (`/app/frontend/src/components/EmployeeRosterField.jsx`, NEW, ~180 LOC)
+**Operational architecture**: one input field, two captured values, three states.
+- Single search input, debounced (200ms) against `/api/master-lookup/employees`
+- When user picks from suggestions → stores `{id, name, linked:true}`; emerald checkmark; "Linked to roster · employee_id=…"
+- When user types free-text and doesn't pick → stores `{id:'', name, linked:false}`; amber warning; inline coaching: *"Saved as free-text. This will appear as an EMP_LINK_UNRESOLVABLE finding in Governance Health until you either pick from the roster or add this person to the employee master."* + link to glossary
+- Mobile-first: tap-friendly suggestions panel, no excessive clicks, free-text fallback never blocks field workflows
+- Outside-click closes suggestion panel; debounce prevents network thrash on typing
+
+### Wiring (`/app/frontend/src/pages/NewIncident.jsx`)
+- Section 03 "Person Involved" now uses a single `EmployeeRosterField` instead of separate `Input` (person_name) + `MasterLookupCombobox` (employee_master_id) fields
+- onChange syncs both `person_name` and `employee_master_id` atomically — there is no longer a code path where a name is captured without considering the master linkage
+- Existing form state shape is preserved (no API change) → backend untouched
+
+### Glossary entry (12th entry on `/admin/operational-language`)
+- **Roster-backed Selector / Selector respaldado por el roster**
+- Documents the pattern: what it is, where it sits in the workflow, who owns the wiring, what the downstream effect is
+- LifecycleGuide on the incident form can deep-link to `/admin/operational-language#roster_backed_selector` for field-level training
+
+### i18n
+8 new ES translations for the EmployeeRosterField chrome (label, placeholder, search/empty states, linked status, unresolved warning, glossary link).
+
+### Tests · iter359
+- **NEW** `/app/backend/tests/test_iter359_employee_roster_field.py` — **4/4 PASS** in 0.6s:
+  - `/api/master-lookup/employees?q=...` returns items
+  - Item shape contract preserved (`id` + `label`|`name`|`raw`)
+  - Empty query is safe (200/400/422, never 500)
+  - `limit` parameter respected
+- Cumulative iter354-359 regression: **44/44 PASS** in 22s. Zero cross-iteration breakage.
+
+### Operational consequence
+Field workers no longer have a silent path to identity drift. They can still enter subcontractor / non-employee names freely (so safety reporting never stalls), but they see *at the moment of entry* exactly what the downstream consequence will be — and have a one-click path to the roster suggestion when the person IS in the master.
+
+### Pattern is ready for the remaining surfaces
+Same component, same props, drop-in:
+- Daily Reports `crew_members[]` (multi-select variant — small extension)
+- PPE issuance `employee_name`
+- Training records `employee_name`
+- Toolbox Talks attendance
+- Pre-Op forms `operator`
+- QA/QC inspector
+- Shop / FL workflows
+
+Each migration is ~10 lines + import. The hard part (component design + operational coaching architecture) is done.
+
+---
+
+
 ## 2026-05-23 — iter358 · Phase 2 P1-ext + Operational Language Glossary · ✅ COMPLETE
 
 ### Strategic intent

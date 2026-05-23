@@ -121,6 +121,15 @@ const ENTRIES = [
     downstream: "FL DQ view, PM Crew Compliance, FL accountability widgets, FL notifications digest.",
   },
   {
+    id: "roster_backed_selector",
+    en: "Roster-backed Selector",
+    es: "Selector respaldado por el roster",
+    operational: "An input pattern that captures an employee reference by searching the active employee master, returning both a canonical employee_id AND a name snapshot in a single interaction. Falls back to free-text for subcontractors/non-employees with a visible unlinked warning.",
+    lifecycle: "Used at data-entry time on every operational form (Incident, PPE, Training, Daily Report crew, etc.). Replaces the legacy pattern of free-text name + optional master-link as two separate fields — eliminates the silent path where users typed a name and skipped the link.",
+    accountability: "Builder of any new form owns the EmployeeRosterField wiring. The component itself enforces the linkage contract — there is no \"forgot to link\" path because the same UI captures both values atomically.",
+    downstream: "When the user picks from the roster, the record stores employee_id and the EMP_LINK_UNRESOLVABLE detector never fires for that record. When the user free-texts, the warning at entry time tells them the downstream finding will appear. Net effect: identity drift becomes impossible-by-accident.",
+  },
+  {
     id: "verified",
     en: "Verified",
     es: "Verificada",
