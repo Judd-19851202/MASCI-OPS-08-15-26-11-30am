@@ -130,15 +130,11 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         require_safety_or_hr_or_admin = make_require_safety_or_hr_or_admin(db)
 
     # ─── HR token resolver (used by every HR endpoint) ───────────────
-    async def require_hr_user(
-        x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
-    ) -> Dict[str, Any]:
-        if not x_hr_token:
-            raise HTTPException(401, "HR login required")
-        user = await is_valid_hr_user_token_async(db, x_hr_token)
-        if not user:
-            raise HTTPException(401, "HR session expired or invalid")
-        return {**user, "_actor_kind": "hr_user"}
+    # iter373 · Delegates to the canonical shared factory in
+    # routes/hr_portal_deps.make_require_hr_user so the HR-only gate
+    # has a SINGLE source of truth (mirrors iter370/371/372 patterns).
+    from routes.hr_portal_deps import make_require_hr_user  # noqa: PLC0415
+    require_hr_user = make_require_hr_user(db)
 
     # ─────────────────────────────────────────────────────────────────
     # AUTH endpoints

@@ -1,6 +1,43 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter373 + iter374 · Phase 4A · CLOSED ✅
+
+### iter373 · HR Family Consolidation
+**Inventory found** that the user's prior mental model was stale — `require_hr_or_admin` is NOT in server.py. It exists as two intentionally distinct closures (employee_lifecycle filter-on-aggregator pattern vs field_leadership direct admin/HR chain). Per directive "If any helper is ambiguous, leave it alone and document why", these were preserved.
+
+**Single safe extraction:** `require_hr_user` closure in `routes/hr_portal.py` (the foundational HR-only token resolver) → migrated to `make_require_hr_user(db)` factory in new `routes/hr_portal_deps.py` (mirrors `make_require_safety_token`).
+
+- Return shape `{**user, "_actor_kind": "hr_user"}` preserved.
+- 401 error messages preserved verbatim.
+- Two ambiguous `require_hr_or_admin` closures documented in `hr_portal_deps.py` module docstring AND locked by source-level regression guards.
+
+**Regression**: `tests/test_iter373_hr_user_parity.py` — 13/13 PASS. Live smoke: `/api/hr/me` (hr 200, admin 401, anon 401), `/api/hr/training-records` (hr 200, anon 401). HR portal is HR-only by design — admin tokens correctly rejected.
+
+### iter374 · Auth Hardening Review Checkpoint
+**Report-only iteration.** Full audit published to `/app/memory/ITER374_AUTH_HARDENING_REVIEW.md`:
+- 3 aggregator gates audited (`make_require_any_portal_token`, `_require_any_fleet_portal`, `_require_fleet_submitter`) — recommendation: **KEEP AS-IS**, distinct semantics each.
+- 3 closure gates documented (`_li_require_uploader`, two `require_hr_or_admin` variants) — intentional.
+- 3 admin variants (`require_admin`, `require_admin_async`, `require_admin_strict`) — recommendation: **KEEP three-variant shape**.
+- Cross-portal isolation matrix published (15 surface families). **Zero permission drift across iter370→iter374.**
+- Audit log integrity verified.
+
+### Phase 4A · sign-off (closed)
+- 4 fleet-style gates consolidated to shared factories (dispatch, shop, safety, HR).
+- R7 admin-strict vulnerability closed (fail-closed on empty env var).
+- **134/134 cumulative regression tests PASS** (~57s).
+- Zero permission drift across all surfaces.
+- All intentional differences documented and source-level locked.
+
+### Next iteration roadmap (operator decision)
+- **P4B** · MFA TOTP for super-admins — highest trust-reinforcement win. Needs integration choice.
+- **P4D** · `server.py` extraction — `server.py` is 12k+ LOC; high refactor risk, one router at a time.
+- **P4C** · production parity — playbook ready, awaiting operator deploy.
+
+---
+
+
+
 ## 2026-05-23 — iter372 · Phase 4A · Safety Family Auth Consolidation · ✅ COMPLETE
 
 ### Outcome

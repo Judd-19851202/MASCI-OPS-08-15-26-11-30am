@@ -1,6 +1,6 @@
 # AUTH CONSOLIDATION PROGRESS
-**Phase 4A · iter370 + iter371 + iter372**
-**Status:** Dispatch / Shop / Safety fleet families ALL CONSOLIDATED · zero behavior drift.
+**Phase 4A · iter370–iter374 · ✅ COMPLETE**
+**Status:** Dispatch / Shop / Safety / HR families ALL CONSOLIDATED · Phase 4A wrapped via iter374 audit checkpoint · zero behavior drift.
 
 The complete inventory of authorization patterns in the MASCI backend, with execution progress tracked per iteration.
 
@@ -13,9 +13,9 @@ The complete inventory of authorization patterns in the MASCI backend, with exec
 | iter369 | Inventory + auth regression lock (16 tests) | ✅ |
 | iter370 | R7 fix (admin-strict fail-closed) · dispatch_or_admin shared factory + delegation + regression lock | ✅ |
 | iter371 | shop_or_admin fleet shared factory + delegation · richer `require_shop_or_admin` preserved | ✅ |
-| **iter372** | safety_or_admin fleet shared factory + delegation · richer write/read gates preserved | ✅ |
-| iter373 | hr_or_admin + safety_admin_or_pm | 🟡 planned |
-| iter374 | Auth hardening review checkpoint (no code) | 🟡 planned |
+| iter372 | safety_or_admin fleet shared factory + delegation · richer write/read gates preserved | ✅ |
+| **iter373** | `make_require_hr_user` shared factory · hr_portal delegates · two `require_hr_or_admin` closures documented as intentionally distinct | ✅ |
+| **iter374** | Auth Hardening Review checkpoint (REPORT ONLY) · Phase 4A signed off · see `ITER374_AUTH_HARDENING_REVIEW.md` | ✅ |
 
 ---
 
@@ -147,7 +147,7 @@ The factory + delegation pattern is now proven for dispatch (iter370), shop (ite
 
 ## Cumulative regression health
 
-iter354 → iter372: **121/121 pytest items PASS** in ~34s.
+iter354 → iter374: **134/134 pytest items PASS** in ~57s. **Phase 4A complete.**
 
 - iter354 governance phase2 — 5 tests
 - iter355 employee linkage — 5 tests
@@ -162,6 +162,65 @@ iter354 → iter372: **121/121 pytest items PASS** in ~34s.
 - iter370 R7 admin-strict fail-closed — 4 tests
 - iter370 dispatch_or_admin parity — 8 tests
 - iter371 shop_or_admin fleet parity — 7 tests
-- **iter372 safety_or_admin fleet parity — 21 tests** (NEW)
+- iter372 safety_or_admin fleet parity — 21 tests
+- **iter373 hr_user factory parity — 13 tests** (NEW)
+- iter374 — report-only, no new tests
 
-This suite must remain green throughout iter373+ work.
+---
+
+## iter373 deliverables · ✅ COMPLETE
+
+### HR family inventory (after careful audit)
+
+| Helper | Location | Type | Action |
+|---|---|---|---|
+| **`require_hr_user`** (closure) | `routes/hr_portal.py` L133 | canonical HR-only token resolver | **MIGRATED to factory** |
+| `require_hr_or_admin` (closure) | `routes/employee_lifecycle.py` L760 | filter-on-aggregator (`require_any_portal_token` + filter) · 403 error | KEEP — intentional pattern |
+| `require_hr_or_admin` (closure) | `routes/field_leadership_portal.py` L135 | direct admin/HR chain · exception-swallow on PM-only · 401 error | KEEP — tightly coupled |
+| `make_require_safety_or_hr_or_admin` | `routes/safety_portal/_deps.py` | shared HR/Safety read | KEEP (already factored) |
+
+### Migration executed
+- **Canonical factory:** `routes/hr_portal_deps.py · make_require_hr_user(db)`.
+  - Mirrors `make_require_safety_token` shape and behavior.
+  - Returns `{**user, "_actor_kind": "hr_user"}`.
+  - 401 "HR login required" / "HR session expired or invalid" preserved verbatim.
+- `routes/hr_portal.py` → imports factory, builds `require_hr_user = make_require_hr_user(db)`. No inline closure body.
+- The two `require_hr_or_admin` closures left INTENTIONALLY UNCHANGED. Rationale documented in `routes/hr_portal_deps.py` module docstring AND locked by 2 source-level regression tests.
+
+### Regression lock: `tests/test_iter373_hr_user_parity.py` — 13/13 PASS
+- **HR-only gate (5 tests):** anon denied, HR accepted on `/api/hr/me` + `/api/hr/training-records`, safety/admin rejected on `/api/hr/me` (HR portal is HR-only).
+- **Shared HR/Safety/Admin surface unchanged (3 tests):** admin/safety/HR all accepted on `/api/safety/training-records`.
+- **Source-level (5 tests):** factory exists with `_actor_kind=hr_user` shape, hr_portal delegates, employee_lifecycle's filter-on-aggregator closure preserved, field_leadership's direct-chain closure preserved, `make_require_safety_or_hr_or_admin` factory still canonical.
+
+### Live smoke verification
+- `/api/hr/me` — hr 200 · admin 401 (HR portal is HR-only) · anon 401.
+- `/api/hr/training-records` — hr 200 · anon 401.
+
+**Zero permission drift. Zero portal visibility change.**
+
+---
+
+## iter374 deliverables · ✅ COMPLETE (REPORT ONLY)
+
+Full audit checkpoint published to `/app/memory/ITER374_AUTH_HARDENING_REVIEW.md`. Highlights:
+
+- **3 aggregator gates** audited (`make_require_any_portal_token`, `_require_any_fleet_portal`, `_require_fleet_submitter`). All have distinct semantics — recommendation: **DO NOT consolidate further** without operator approval.
+- **3 intentional closure gates** preserved (`_li_require_uploader`, two `require_hr_or_admin` variants). Documented rationale for each.
+- **3 admin variants** (`require_admin`, `require_admin_async`, `require_admin_strict`) — recommendation: **KEEP three-variant shape** (PM-policy + return-shape differences are intentional).
+- **Cross-portal isolation matrix** documented for all 15 surface families. Zero permission expansion or removal across iter370→iter374.
+- **Audit log integrity** verified — all factories raise identical exceptions with identical messages; audit middleware attribution unchanged.
+
+### Recommended next steps (operator decision)
+- **P4B · MFA TOTP for super-admins** — highest trust-reinforcement win.
+- **P4D · server.py architectural extraction** — `server.py` is 12k+ LOC.
+- **P4C · production parity** — playbook ready, awaiting operator deploy.
+
+---
+
+## Phase 4A sign-off
+
+✅ 4 fleet-style gates consolidated to shared factories.
+✅ R7 admin-strict vulnerability closed.
+✅ 134/134 cumulative regression tests passing.
+✅ Zero permission drift across all surfaces.
+✅ All intentional differences documented and locked.
