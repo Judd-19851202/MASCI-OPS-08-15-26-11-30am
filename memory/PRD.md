@@ -1,6 +1,65 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter363 · P0 VERIFICATION + Critical Roster Dropdown Fix · ✅ COMPLETE
+
+### Strategic intent
+Per operator directive: *"Verify what already shipped before adding more. Not page-renders — operational lifecycle verification. Actually create records and verify persistence."* This iteration closes the verification gap left by iter359–iter362 (six EmployeeRosterField / EmployeeCombo migrations that had only been smoke-tested with screenshots).
+
+### Critical bug found + fixed (`/app/frontend/src/components/EmployeeRosterField.jsx`)
+- **API contract drift** — the component was authored against a legacy `{id, label, raw:{name, position, email}}` envelope, but `/api/master-lookup/employees` returns flat `{id, name, employee_id, trade, role, email}`. The mismatch was silent because React renders `undefined` as empty string → suggestion rows were **visually blank** but still clickable. The picker's `|| query` fallback masked the bug for full-name searches but corrupted picks for partial-name searches.
+- **Fix (3 surgical edits)**:
+  - `pick()` now reads `item.name || item.label || item.raw?.name || query` (line 101) — defensive ordering preserves legacy callers.
+  - Suggestion row render block (lines 137–156) resolves `displayName`, `subRole`, `subEmail` from flat fields with legacy fallbacks.
+  - Glossary anchor corrected: `/admin/operational-language#capa` → `/admin/operational-language#roster_backed_selector` (operator-flagged in iter363 request).
+
+### Backend submit-and-persist lifecycle harness (NEW)
+`/app/backend/tests/test_iter363_employee_linkage_persistence.py` — **11/11 PASS**:
+- Acquires a real roster employee via `/api/master-lookup/employees` (and asserts the renderable-name contract).
+- POSTs both **linked** (with employee_id) and **free-text** payloads to all 6 form endpoints; round-trip GET on the safety-forms surfaces to verify field persistence:
+  - `POST /api/incidents` — `employee_master_id` persists for linked / absent for free-text.
+  - `POST /api/daily-reports` — `masci_crews[].employee_id` persists per row.
+  - `POST /api/meetings` — `attendees[].employee_id` persists per row.
+  - `POST /api/equipment-inspections` — `operator_id` persists for linked / absent for free-text.
+  - `POST /api/safety-forms/equipment-issuances` (PPE) — `employee_id` persists via GET round-trip.
+  - `POST /api/safety-forms/equipment-trainings` (Training) — `employee_id` persists via GET round-trip.
+- One regression lock test asserts the roster endpoint keeps emitting a renderable `name`/`label`/`raw.name` field so the UI dropdown can never silently break again.
+
+### Frontend lifecycle verification (testing_agent_v3_fork — `/app/test_reports/iteration_364.json`)
+Frontend 100% on all retest items:
+- Dropdown rows now show employee NAMES (verified on Incidents, PPE Issuance, Training).
+- EmployeeCombo path verified end-to-end on Pre-Op operator (pick → emerald linked → edit → amber unlinked).
+- Glossary anchor href confirmed = `/admin/operational-language#roster_backed_selector`.
+- ES localization renders Spanish chrome ('Vinculado al roster', 'No está en el roster', etc.).
+- 390px mobile: suggestion dropdown fits viewport.
+- Debounce confirmed (~1 API call per typing burst, not per keystroke).
+- 0 console / network 4xx/5xx errors during entire test run.
+- Minor non-blocking observation: 13px horizontal overflow on `/incidents/new` at 390px (NOT caused by the roster field — unrelated fixed-width element on the page; queued as P3 polish).
+
+### Cumulative regression
+iter354 + iter355 + iter356 + iter357 + iter358 + iter359 + iter363 → **55/55 PASS** in 40s.
+
+### Operational consequence
+The full 6-form Employee Linkage Enforcement program (iter359 → iter362) is now operationally verified, not just code-complete. Field workflows submit cleanly, picked employees persist with canonical `employee_id`, free-text fallbacks persist without fabricating ids, governance findings will surface unresolved free-text correctly, and the visual coaching loop (picker → indicator → glossary deep-link) renders as intended in EN + ES on desktop + mobile.
+
+### Discipline note (per operator's stabilization directive)
+- NO new features introduced.
+- NO new dashboards / digests / detection rules added.
+- ONE bug fixed (3-line API contract patch).
+- ONE regression-locking test file added.
+- Pattern preserved end-to-end: same component, same coaching, same lifecycle language.
+
+### Files touched (iter363)
+- MOD · `/app/frontend/src/components/EmployeeRosterField.jsx` (pick + render contract + glossary anchor)
+- NEW · `/app/backend/tests/test_iter363_employee_linkage_persistence.py` (11 lifecycle tests)
+- DOC · `/app/memory/PRD.md`
+
+### Verdict
+✅ **APPROVE.** iter359–iter362 Employee Linkage Enforcement is end-to-end verified. Ready to proceed to P1 controlled migrations (QA/QC → CAPA → Dispatch → Shop → FL).
+
+---
+
+
 
 ## 2026-05-23 — iter361 · Phase 2 P1 — PPE Issuance Linkage Enforcement · ✅ COMPLETE
 
