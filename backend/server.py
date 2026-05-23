@@ -11021,6 +11021,17 @@ _auth_directory_router = build_auth_directory_router(
 app.include_router(_auth_directory_router)
 
 
+# iter375 · Phase 4B · MFA TOTP router for super-admin directory users.
+# Mounts /api/admin/mfa/* (admin-strict gated) and /api/auth/mfa/verify-login (public).
+from routes.mfa_routes import build_mfa_router  # noqa: E402
+_mfa_router = build_mfa_router(
+    db,
+    require_admin_strict_dep=require_admin_strict,
+    mint_all_portal_tokens_fn=_auth_directory_router._mint_all_portal_tokens,  # type: ignore[attr-defined]
+)
+app.include_router(_mfa_router)
+
+
 # Phase K4a (iter176) — Unified Directory read-only surface. Surfaces
 # the K1-mirrored unified `user_directory` (with mirrored/managed
 # classification + K1 metadata) and the K3 role-template catalog to

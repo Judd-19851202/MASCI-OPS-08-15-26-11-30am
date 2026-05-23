@@ -226,6 +226,30 @@ def build_auth_directory_router(
                 user_agent=request.headers.get("user-agent"),
             )
             raise HTTPException(status_code=401, detail="Invalid email or password.")
+        # iter375 · Phase 4B — TOTP MFA gate for super-admin directory users.
+        # If MFA is enabled, do NOT mint portal tokens. Return a short-lived
+        # challenge token; the frontend must POST /api/auth/mfa/verify-login
+        # with a TOTP (or recovery) code to receive portal tokens.
+        cfg = row.get("mfa") or {}
+        if cfg.get("enabled"):
+            try:
+                import mfa as _mfa  # noqa: PLC0415
+                challenge = _mfa.mint_challenge_token(row["id"])
+                await _mfa.write_audit(
+                    db, user_id=row["id"], user_email=row.get("email"),
+                    event="LOGIN_MFA_CHALLENGE_ISSUED",
+                    ip=_client_ip(request),
+                    user_agent=request.headers.get("user-agent"),
+                )
+            except Exception as e:  # noqa: BLE001
+                logger.error(f"[multi-login] failed to mint MFA challenge: {e}")
+                raise HTTPException(status_code=500, detail="MFA challenge unavailable")
+            return {
+                "ok": True,
+                "mfa_required": True,
+                "mfa_challenge_token": challenge,
+                "user": {"email": row.get("email"), "name": row.get("name")},
+            }
         # Mint per-portal tokens + directory session token
         portal_tokens = await _mint_all(row)
         session_token = ud.make_directory_token()
@@ -555,6 +579,11 @@ def build_auth_directory_router(
             action=action,
         )
         return {"ok": True, "entries": rows}
+
+    # iter375 · Expose the internal portal-token minter so the MFA router
+    # can re-mint tokens after successful TOTP verification (preserves the
+    # exact same logic as multi-login).
+    router._mint_all_portal_tokens = _mint_all  # type: ignore[attr-defined]
 
     return router
 

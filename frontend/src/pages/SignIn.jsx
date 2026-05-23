@@ -36,6 +36,12 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  // iter375 · MFA challenge state
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaChallenge, setMfaChallenge] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaUseRecovery, setMfaUseRecovery] = useState(false);
+  const [mfaUserName, setMfaUserName] = useState("");
 
   useEffect(() => {
     // Iter88 — Removed mount-time token wipe. See AdminLogin.jsx rationale.
@@ -57,6 +63,14 @@ export default function SignIn() {
         { email: email.trim().toLowerCase(), password },
         { timeout: 90000 }
       );
+      // iter375 · MFA gate — if super-admin has MFA enabled, swap to challenge UI
+      if (res?.data?.ok && res.data.mfa_required) {
+        setMfaChallenge(res.data.mfa_challenge_token || "");
+        setMfaUserName(res.data?.user?.name || res.data?.user?.email || "");
+        setMfaRequired(true);
+        setSubmitting(false);
+        return;
+      }
       if (res?.data?.ok) {
         applyMultiLoginResponse(res.data, rememberMe);
         const user = res.data.user;
@@ -86,6 +100,50 @@ export default function SignIn() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // iter375 · Phase 4B — verify MFA challenge
+  const onMfaSubmit = async (e) => {
+    e.preventDefault();
+    const code = (mfaCode || "").trim();
+    if (!code) {
+      toast.error(t(mfaUseRecovery ? "Enter a recovery code" : "Enter the 6-digit code"));
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const payload = mfaUseRecovery
+        ? { challenge_token: mfaChallenge, recovery_code: code }
+        : { challenge_token: mfaChallenge, code };
+      const res = await api.post("/auth/mfa/verify-login", payload, { timeout: 30000 });
+      if (res?.data?.ok) {
+        applyMultiLoginResponse(res.data, rememberMe);
+        toast.success(`${t("Welcome")} ${res.data?.user?.name || ""}`, { duration: 4000 });
+        navigate(landingFor(res.data.user), { replace: true });
+      } else {
+        toast.error(t("MFA verification failed"));
+      }
+    } catch (err) {
+      const detail = err?.response?.data?.detail;
+      const status = err?.response?.status;
+      const msg =
+        status === 423
+          ? t("MFA locked due to repeated failures. Try again in a few minutes.")
+          : typeof detail === "string"
+          ? detail
+          : t("Invalid MFA code");
+      toast.error(msg, { duration: 6000 });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const cancelMfaChallenge = () => {
+    setMfaRequired(false);
+    setMfaChallenge("");
+    setMfaCode("");
+    setMfaUseRecovery(false);
+    setMfaUserName("");
   };
 
   return (
@@ -125,6 +183,68 @@ export default function SignIn() {
             {t("Multi-portal sign-in for accounts with access to more than one portal. Single-portal employees, use your portal's direct sign-in page (linked below).")}
           </p>
 
+          {/* iter375 · MFA challenge UI — replaces the password form when a super-admin needs a TOTP code */}
+          {mfaRequired ? (
+            <form onSubmit={onMfaSubmit} className="space-y-4" data-testid="mfa-challenge-form">
+              <div className="rounded-md border-2 border-red-700 bg-red-50 px-4 py-3">
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-800 font-bold">
+                  {t("Multi-Factor Authentication Required")}
+                </div>
+                <div className="text-sm text-slate-700 mt-1">
+                  {mfaUserName ? `${mfaUserName} · ` : ""}
+                  {mfaUseRecovery
+                    ? t("Enter one of your recovery codes.")
+                    : t("Open your authenticator app and enter the 6-digit code.")}
+                </div>
+              </div>
+              <div>
+                <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                  {mfaUseRecovery ? t("Recovery Code") : t("Authenticator Code")}
+                </Label>
+                <Input
+                  type="text"
+                  inputMode={mfaUseRecovery ? "text" : "numeric"}
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(mfaUseRecovery ? e.target.value.toUpperCase() : e.target.value)}
+                  autoFocus
+                  autoComplete="one-time-code"
+                  placeholder={mfaUseRecovery ? "XXXX-XXXX-XX" : "123456"}
+                  maxLength={mfaUseRecovery ? 12 : 6}
+                  className="mt-2 h-12 text-lg font-mono tracking-widest text-center border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-700"
+                  data-testid="mfa-code-input"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => { setMfaUseRecovery((v) => !v); setMfaCode(""); }}
+                className="text-xs font-mono uppercase tracking-wide text-red-700 hover:text-red-900 font-bold"
+                data-testid="mfa-toggle-recovery"
+              >
+                {mfaUseRecovery
+                  ? t("Use authenticator code instead")
+                  : t("Use a recovery code")}
+              </button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={cancelMfaChallenge}
+                  className="flex-1 h-12 font-mono uppercase tracking-wide font-bold"
+                  data-testid="mfa-cancel-btn"
+                >
+                  {t("Cancel")}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submitting || !mfaCode}
+                  className="flex-1 h-12 bg-red-700 hover:bg-red-800 font-mono uppercase tracking-wide font-bold"
+                  data-testid="mfa-verify-btn"
+                >
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : t("Verify")}
+                </Button>
+              </div>
+            </form>
+          ) : (
           <form onSubmit={onSubmit} className="space-y-4" data-testid="signin-form">
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
@@ -186,6 +306,7 @@ export default function SignIn() {
               )}
             </Button>
           </form>
+          )}
 
           <div className="mt-8 pt-6 border-t border-slate-200">
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-2">

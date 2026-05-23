@@ -68,6 +68,14 @@ api.interceptors.request.use((config) => {
   if (dispatchTok) {
     config.headers["X-Dispatch-Token"] = dispatchTok;
   }
+  // iter375 · Phase 4B · directory session token (used by MFA management routes)
+  try {
+    const dirTok = window.localStorage.getItem("masci.directory.token") ||
+                   window.sessionStorage.getItem("masci.directory.token");
+    if (dirTok) {
+      config.headers["X-Directory-Token"] = dirTok;
+    }
+  } catch (_e) { /* ignore */ }
   const jwt = getJwt();
   if (jwt && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${jwt}`;

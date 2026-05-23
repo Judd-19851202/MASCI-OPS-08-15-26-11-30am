@@ -100,10 +100,13 @@ Pygments==2.20.0
 PyJWT==2.12.1
 pymongo==4.5.0
 PyMuPDF==1.27.2.3
+pyotp==2.9.0
 pyparsing==3.3.2
 pypdf==6.10.2
 pyphen==0.17.2
+pypng==0.20220715.0
 pytest==9.0.3
+pytest-timeout==2.4.0
 python-dateutil==2.9.0.post0
 python-docx==1.2.0
 python-dotenv==1.2.2
@@ -111,8 +114,10 @@ python-jose==3.5.0
 python-multipart==0.0.24
 pytokens==0.4.1
 PyYAML==6.0.3
+qrcode==7.4.2
 referencing==0.37.0
 regex==2026.4.4
+reportlab==4.5.1
 requests==2.33.1
 requests-oauthlib==2.0.0
 resend==2.29.0
@@ -151,4 +156,3 @@ xlrd==2.0.2
 yarl==1.23.0
 zipp==3.23.0
 zopfli==0.4.1
-reportlab==4.5.1

@@ -1,6 +1,61 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter375 + iter376 · Phase 4B (MFA TOTP) + Phase 4C (Deploy Readiness) · ✅ COMPLETE
+
+### iter375 · Phase 4B · Super-admin TOTP MFA
+**Backend (new):**
+- `/app/backend/mfa.py` — Pure module: pyotp TOTP generation/verification (1-step window), Fernet-encrypted secret storage (key from `MFA_ENCRYPTION_KEY` env), bcrypt-hashed recovery codes (10 codes per enrollment, 10 chars), short-lived challenge tokens for login (5-min TTL), lockout helpers (5 failures = 10-min lock), audit-log writer.
+- `/app/backend/routes/mfa_routes.py` — 5 admin-strict endpoints (`/admin/mfa/status`, `/enroll/start`, `/enroll/verify`, `/disable`, `/regenerate-recovery`) plus 1 public endpoint (`/auth/mfa/verify-login`).
+- `routes/auth_directory_routes.py` — multi-login now detects `user.mfa.enabled=true` and returns `{mfa_required, mfa_challenge_token}` INSTEAD of minting portal tokens. The verify endpoint then mints portal tokens after TOTP success.
+- `server.py` — wires the MFA router.
+- New deps: `pyotp==2.9.0`, `qrcode==7.4.2` (already had bcrypt + cryptography).
+- New env: `MFA_ENCRYPTION_KEY` (Fernet key).
+- New collection: `mfa_audit_events` (append-only).
+- New `user_directory.mfa` subdoc.
+
+**Frontend (new):**
+- `/app/frontend/src/pages/admin/AdminMfa.jsx` — Single-page super-admin self-service: status, enroll (QR code + manual key + recovery codes), verify, disable, regenerate-recovery codes.
+- `/app/frontend/src/pages/SignIn.jsx` — Detects `mfa_required` response, swaps to MFA challenge UI (TOTP code OR recovery code), then verifies and proceeds.
+- `/app/frontend/src/lib/api.js` — Interceptor now attaches `X-Directory-Token` (required for MFA admin-side endpoints).
+- `/app/frontend/src/App.js` — wired `/admin/mfa` route.
+
+**Security primitives:**
+- TOTP only (no SMS, no magic-link — per directive).
+- Super-admin directory users only (no expansion to other portals).
+- Login-time MFA only (no step-up — per Simplicity directive).
+- Constant-time TOTP comparison (pyotp default), bcrypt-hashed recovery codes.
+- Lockout: 5 consecutive failures → 10-minute cool-down.
+- All events audit-logged: ENROLLMENT_STARTED/COMPLETED, TOTP_VERIFY_SUCCESS/FAILURE, RECOVERY_CODE_USED/FAILURE, MFA_DISABLED, RECOVERY_CODES_REGENERATED, LOGIN_MFA_CHALLENGE_ISSUED, MFA_LOCKED_HIT.
+
+**Regression**: 16/16 new MFA tests pass; cumulative iter354→iter375 = **150/150 PASS** in ~62s. Includes full enrollment → login → verify → recovery-code → disable cycle.
+
+**Live smoke**: Frontend `/admin/mfa` route renders; admin gate enforces correctly.
+
+### iter376 · Phase 4C · Production Parity & Deploy Readiness
+Report published to `/app/memory/ITER376_PHASE4C_DEPLOY_READINESS.md`. Highlights:
+- All Phase 4 changes are **additive** — no breaking migrations.
+- Single new env var: `MFA_ENCRYPTION_KEY` (must be set before production deploy).
+- Cross-portal isolation matrix verified across 15 surface families.
+- Rollback plan documented for every Phase 4 component (<5 min each).
+- Operator deployment checklist provided (10 items).
+- Known operational gaps documented (shared-password break-glass, universal super-admin fallback) — explicit "leave as-is per Simplicity" decisions.
+
+### Phase 4D · Architectural Extraction — DEFERRED
+Per directive "no massive rewrite" + "one route family at a time" + "regression locked after every extraction" — Phase 4D requires a dedicated multi-iteration cycle (estimated 5–8 iterations across 1–2 weeks). Recommended sequencing documented in iter376 deploy readiness report: PM → Governance → Notifications → Shared lookups → remaining families. **Recommendation: do not start Phase 4D until MFA has been in production for ≥1 week without incident.**
+
+### Cumulative regression health
+**iter354 → iter375: 150/150 pytest items PASS** in ~62s.
+
+### Next Action Items
+- 🟧 P0 — **Operator**: Set `MFA_ENCRYPTION_KEY` in production env. Execute the 10-item deploy checklist in `ITER376_PHASE4C_DEPLOY_READINESS.md`. Smoke-test MFA enrollment in pre-prod.
+- 🟨 P1 — **iter377+ Phase 4D**: Begin one-route-family-at-a-time extraction from `server.py` (12,259 LOC). Recommended order: PM → Governance → Notifications → Shared lookups → remaining.
+- 🟦 P2 — Consider step-up MFA on individual critical actions only if a future incident demonstrates need.
+
+---
+
+
+
 ## 2026-05-23 — iter373 + iter374 · Phase 4A · CLOSED ✅
 
 ### iter373 · HR Family Consolidation
