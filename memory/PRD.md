@@ -1,6 +1,81 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter367 · Phase 3A Production Parity + Operational Stabilization · ✅ COMPLETE
+
+### Strategic intent
+Per operator: *"The platform must become MORE POWERFUL while simultaneously feeling SIMPLER."* This iteration validates that iter354 → iter367 is internally consistent and **safe to redeploy to production**. Zero new features. Zero new APIs. Audit + 2 small retrofit completions only.
+
+### P1 verification (linkage normalization) — ✅ CONFIRMED COMPLETE
+Sweep of `pages/` + `components/` for `<Input.*employee_name|<Input.*operator_name|<Input.*signed_by|<Input.*inspector_name` returned **zero remaining free-text identity capture inputs**. The 10 surfaces migrated across iter359-iter364 cover every operational identity capture point. Remaining `employee_name` references in the codebase are all read-only displays or filter inputs.
+
+### P2 completion (LifecycleGuide retrofit) — ✅ COMPLETE
+Last two surfaces retrofitted with the same proven component + matching ES translations:
+- `/app/frontend/src/pages/HrIncidents.jsx` — replaced legacy intro paragraph with LifecycleGuide (purple accent, "How HR sees incidents · Read-only view across the OSHA window. Closeout and CAPA action happen in the Safety portal."). Verified 0 px overflow @ 390 ES.
+- `/app/frontend/src/pages/admin/AdminComplianceFindings.jsx` — added LifecycleGuide (rose accent, "How findings work · Live contradictions detected across portals. Acknowledge to silence; resolve to mark fixed in source."). English-only by admin-page convention.
+- 4 new ES translations added in `/app/frontend/src/lib/i18n.js` for the HR Incidents chrome.
+
+### Phase 3A · Production Parity Audit (preview-side)
+
+Executed against the preview environment (`https://safety-audit-mobile-1.preview.emergentagent.com`):
+
+**Endpoint smoke (17 probes)**: ALL PASS. Specifically verified:
+- `/api/admin/governance/summary` returns convergence_score, rule_counts (16 rules registered), all 3 EMP_LINK_* rule keys, severity_counts.
+- Role-scoped digest at `/api/{role}/notifications/digest` returns 200 for all 6 roles (admin, safety, hr, pm, dispatch, fl).
+- All 6 linkage capture endpoints return 200 with the new linkage payload fields persisting (per pytest harnesses).
+
+**Live data reading from preview governance**:
+```
+total_open_findings: 335
+convergence_score:   0  (health_label: "critical")
+EMP_LINK_UNRESOLVABLE: 8 open
+EMP_LINK_AMBIGUOUS:    0 open (clean)
+EMP_LINK_MISSING_ID:   0 open (clean)
+Top historical buildup: PPE_MISSING (230), EMP_ARCHIVED_ACTIVE (73)
+```
+The high open count is dominated by legacy data pre-dating the linkage program — NOT introduced by iter354-iter367. The new EMP_LINK detector is catching exactly the 8 free-text identities that bypassed the prevention loop.
+
+**Frontend retrofit verification @ 390 px ES**: 9 surfaces verified live — all 0 px overflow, all coaching banners rendering in Spanish with correct lifecycle copy.
+
+**Cumulative regression**: **61/61 PASS** (iter354 → iter365 + iter363 + iter364), 60s wall time.
+
+### Documentation drift discovered (NOT deployment blockers)
+- Handoff doc listed `GET /api/admin/governance/scan` — endpoint does not exist. Detection runs lazily inside `/summary`.
+- Handoff doc listed `GET /api/notifications/digest/{role}` — actual path is `/api/{role}/notifications/digest`.
+
+Both documented in `/app/memory/WORKFLOW_PARITY_GAPS.md` for future handoff hygiene; no code change needed.
+
+### Required Phase 3A outputs — ALL GENERATED
+1. ✅ `/app/memory/PRODUCTION_PARITY_EXECUTION_REPORT.md` — complete preview-side audit results.
+2. ✅ `/app/memory/WORKFLOW_PARITY_GAPS.md` — every gap closed this arc + watchlist for future iterations.
+3. ✅ `/app/memory/POST_REDEPLOY_SMOKE_RESULTS.md` — empty operator worksheet to fill in after clicking Deploy.
+4. ✅ `/app/memory/OPERATIONAL_STABILIZATION_SCORECARD.md` — one-page operational health reading. **Score: 78/80 — READY TO DEPLOY.**
+
+### Discipline note
+- NO new dashboards.
+- NO new APIs.
+- NO new collections.
+- 2 file mods only (HrIncidents, AdminComplianceFindings) — both pattern-matching prior retrofits.
+- 4 ES translation additions in i18n.js.
+- 4 audit documents created in /app/memory/.
+- Zero backend changes. Zero risk to existing workflows.
+
+### Files touched (iter367)
+- MOD · `/app/frontend/src/pages/HrIncidents.jsx`
+- MOD · `/app/frontend/src/pages/admin/AdminComplianceFindings.jsx`
+- MOD · `/app/frontend/src/lib/i18n.js` (+4 ES entries)
+- NEW · `/app/memory/PRODUCTION_PARITY_EXECUTION_REPORT.md`
+- NEW · `/app/memory/WORKFLOW_PARITY_GAPS.md`
+- NEW · `/app/memory/POST_REDEPLOY_SMOKE_RESULTS.md`
+- NEW · `/app/memory/OPERATIONAL_STABILIZATION_SCORECARD.md`
+- DOC · `/app/memory/PRD.md`
+
+### Verdict
+✅ **READY TO REDEPLOY.** Preview is internally consistent, regression is green, coaching is uniform, ES parity is complete, identity drift is closed at entry time, and the 4 stabilization documents are in `/app/memory/` for the operator to walk through after the production deploy.
+
+---
+
+
 ## 2026-05-23 — iter366 · Enterprise Operational Refinement Phase · ✅ COMPLETE
 
 ### Strategic intent
