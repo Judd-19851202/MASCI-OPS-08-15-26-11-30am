@@ -2,6 +2,85 @@
 
 
 
+## 2026-05-23 — iter353b · Dispatch + Field Leadership Read-Only Driver Qualification Visibility · ✅ APPROVE
+
+### Operator P1 (Phase 2 #3 · the foundation BEFORE the FL accountability mini-widget)
+Closes GAP-004 + GAP-005 from the Phase 1 governance audit: Dispatch and Field Leadership now have bounded, read-only access to the approved-driver / CDL roster — so a dispatcher or crew lead can verify driver qualification readiness BEFORE assigning or sending someone to work. NO write, NO edit, NO import, NO upload. Same data source as HR — no duplicate collection.
+
+### What shipped
+
+**Backend**
+- **NEW** `/app/backend/lib/driver_qualification.py` — shared `fetch_driver_qualification_dashboard(db, ...)` async helper. Single source of truth for the driver-qualification read query. Honors the iter350-hardened base scope (`$nin: [None, ""]` on every signal field). 12 ALLOWED_DRIVER_STATUSES + 6 ALLOWED_CDL_ENDORSEMENTS constants kept in sync with the HR endpoint.
+- **NEW** `GET /api/dispatch/driver-qualification` — Dispatch+Admin gated read endpoint. Filters: cdl_holder · approved · driver_status · endorsement · expiring_cdl_30d · expiring_medical_30d · q · limit. Returns `{ok, items, count, summary, as_of, viewer_role: "dispatch"}`. Combined gate (`require_dispatch_or_admin` built inline) accepts X-Dispatch-Token OR X-Admin-Token; rejects HR / PM / Shop / FL / anonymous.
+- **UPGRADED** `GET /api/field-leadership/portal/driver-qualification` — the slim iter314 version replaced with the shared-helper call. Now returns the SAME rich payload shape (items + count + summary + as_of) as Dispatch and HR. FL-token-only gate, no broadening of FL authority.
+- **WIRING** `server.py` threads `is_valid_admin_token_fn=_is_valid_admin_token` into `build_dispatch_router(...)`.
+
+**RBAC matrix (live-verified)**
+| Token | `/api/dispatch/...` | `/api/field-leadership/...` | `/api/hr/driver-qualification/dashboard` |
+|---|---|---|---|
+| Dispatch | ✅ 200 | ❌ 401 | ❌ 403 |
+| FL | ❌ 401 | ✅ 200 | ❌ 401 |
+| HR | ❌ 401 | ❌ 401 | ✅ 200 |
+| Admin | ✅ 200 | ❌ 401 (FL gate is FL-only) | ✅ 200 |
+| PM / Shop / Anon | ❌ 401 | ❌ 401 | ❌ 401 |
+
+**Read-only contract enforced**
+- POST/PATCH/DELETE on both new endpoints → 405/401.
+- Shared frontend component contains zero `axios.post/patch/delete` calls (lock-tested).
+- No edit/import/upload affordances visible anywhere on the Dispatch/FL surfaces.
+
+**Frontend**
+- **NEW** `/app/frontend/src/components/DriverQualificationReadOnlyView.jsx` — shared read-only view (290 LOC). Read-only banner · 5 summary tiles (Drivers in scope · CDL ≤30d · Medical ≤30d · Restricted · Suspended) · search + 3 filter dropdowns (CDL · Approved · Status) · desktop table (min-w-900px) · mobile card layout · expiring/expired date highlighting (amber ≤30d, rose if past). All strings wrapped in `t()`.
+- **NEW** `/app/frontend/src/pages/DispatchDriverQualification.jsx` — Dispatch wrapper · orange-500 accent · header link back to `/dispatch-portal` · uses X-Dispatch-Token via `getDispatchToken()`.
+- **NEW** `/app/frontend/src/pages/FieldLeadershipDriverQualification.jsx` — FL wrapper · red-700 accent · header link back to `/field-leadership/portal` · uses X-FL-Token via `getFlToken()`.
+- **ROUTES** in App.js: `/dispatch-portal/driver-qualification` (DP wrapper) + `/field-leadership/portal/driver-qualification` (FL wrapper).
+- **ENTRY POINTS**
+  - Dispatch Hub header now has a calm orange `Drivers` link (`dispatch-driver-qual-link`).
+  - FL Dashboard `fl-card-driver-qual` card is now clickable with a visible CTA `Open Driver Readiness →` (`fl-card-driver-qual-cta`).
+
+**Data parity proof (operator P0 boundary)**
+Dispatch count = FL count = HR count = **2** in preview (Alec Perkins, Bryan Waczkowski). Summary tiles identical across all three portals (verified by `test_parity_dispatch_fl_hr`). Shared helper guarantees no drift.
+
+### Tests · iter353b
+- **NEW** `/app/backend/tests/test_iter353b_dispatch_fl_driver_qualification.py` — 24/24 PASS:
+  - 5 source-level locks (helper exists · Dispatch endpoint registered · FL uses helper · gate accepts only Dispatch+Admin · server threads admin validator)
+  - 11 RBAC matrix tests (Dispatch+Admin allowed · FL allowed · HR/PM/anon blocked on each endpoint · HR endpoint unchanged · Dispatch blocked from HR endpoint)
+  - 1 parity test (Dispatch == FL == HR counts + identical summary)
+  - 2 filter pass-through tests (cdl_holder · invalid driver_status → 400)
+  - 2 read-only contract locks (POST/PATCH/DELETE rejected on both endpoints)
+  - 4 frontend wiring locks (routes registered · Dispatch Hub link · FL dashboard link · shared component used by both)
+- **Testing agent v3 verdict:** Backend 100% (24/24) · Frontend 100% (all 15 acceptance items: page load · 5 tiles · 4 filters · search · refresh · entry points · RBAC denial · parity · mobile 390 cards · ES locale · no write affordances).
+- **Cumulative iter350 + iter352 + iter353a + iter353a-UI + iter353c + iter353b: 106/106 PASS** at backend pytest.
+
+### Boundaries enforced (operator rules)
+- ✅ Read-only — Dispatch + FL can SEE driver qualification but cannot edit, import, upload, modify CDL/medical/approved-driver/status
+- ✅ Same source as HR — NO duplicate collection
+- ✅ HR + Admin retain ALL existing management/import authority unchanged
+- ❌ NO Shop / PM / anonymous access
+- ❌ NO CSV export added for Dispatch/FL (deferred — operator policy "only if approved")
+- ❌ NO FL Accountability mini-widget yet (queued for next iter)
+
+### Files touched (iter353b)
+- NEW · `/app/backend/lib/driver_qualification.py` (145 LOC · shared helper)
+- MOD · `/app/backend/routes/dispatch_portal_auth.py` (+42 LOC · combined Dispatch+Admin gate · GET endpoint)
+- MOD · `/app/backend/routes/field_leadership_portal.py` (slim endpoint replaced with shared-helper call · richer payload)
+- MOD · `/app/backend/server.py` (pass `is_valid_admin_token_fn`)
+- NEW · `/app/frontend/src/components/DriverQualificationReadOnlyView.jsx` (290 LOC · single shared view)
+- NEW · `/app/frontend/src/pages/DispatchDriverQualification.jsx` (45 LOC · thin wrapper)
+- NEW · `/app/frontend/src/pages/FieldLeadershipDriverQualification.jsx` (45 LOC · thin wrapper)
+- MOD · `/app/frontend/src/pages/DispatchHub.jsx` (Drivers header link + ShieldCheck icon import)
+- MOD · `/app/frontend/src/pages/FieldLeadershipPortalDashboard.jsx` (DQ card clickable + CTA)
+- MOD · `/app/frontend/src/App.js` (2 new routes registered)
+- NEW · `/app/backend/tests/test_iter353b_dispatch_fl_driver_qualification.py` (24 tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Verdict
+✅ **APPROVE.** Dispatch and FL now have the controlled, read-only Driver Qualification visibility they need to verify driver readiness before assignment — without expanding either portal's write authority. The foundation is in place for the FL Employee Accountability mini-widget (queued next).
+
+**Cumulative pending redeploy at mascidocs.com: iter330 → iter353c · iter353b (23 bounded iters · zero drift · all regression-locked).**
+
+
+
 ## 2026-05-23 — iter353c · Unified Employee Accountability Timeline + HR Compliance Brief PDF · ✅ APPROVE
 
 ### Operator P0 (Phase 2 #2 · system-of-record centerpiece)
