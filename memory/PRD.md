@@ -2,6 +2,37 @@
 
 
 
+## 2026-05-23 — iter361 · Phase 2 P1 — PPE Issuance Linkage Enforcement · ✅ COMPLETE
+
+### Strategic intent
+Continue P1 linkage normalization. Per directive's simplicity rule: one surface, surgical, no scope creep. PPE Issuance was the next highest-traffic free-text identity-drift source (235 of preview's 306 PPE_MISSING findings originated from records using free-text employee names).
+
+### Change (`/app/frontend/src/pages/NewSafetyEquipmentIssuance.jsx`)
+- **Replaced** the legacy two-field pattern (HTML5 `<datalist>` name input + separate manual "Employee ID (optional)" input — the textbook silent-failure path) with **one `EmployeeRosterField`** that captures both atomically
+- Same component reused from iter359. No new abstractions.
+- Form state shape preserved: `data.employee_name` and `data.employee_id` still both populate exactly as the backend expects — zero backend / schema change
+
+### Operational consequence
+PPE issuances submitted after this iteration are linkage-clean by construction. Free-text fallback still allowed for subcontractors (with visible governance-finding consequence shown inline), so field workflows are never blocked.
+
+### Tests
+- Cumulative iter354-iter359 regression: **44/44 PASS** in 23s (no changes to backend; existing tests still cover RBAC, lifecycle, detector, digest, roster lookup).
+- Live smoke: free-text input triggers the inline EMP_LINK_UNRESOLVABLE warning + glossary link. Pattern works identically to iter359.
+
+### Discipline note (per directive)
+Per iter361's "simplicity enforcement" directive: NO new dashboards, NO new digests, NO new detection rules added this iteration. Single-purpose migration that closes a real operational gap (silent identity drift on PPE) and stops. Pattern is identical to iter359 — operators learning the platform see the same coaching language on every form.
+
+### Remaining linkage migrations (all mechanical, same component, ~15 LOC each)
+- Training records
+- Toolbox Talks attendance
+- Pre-Op operator
+- QA/QC inspector
+- Shop / FL workflows
+- CAPA ownership form
+
+---
+
+
 ## 2026-05-23 — iter360 · Phase 2 P2 — Daily Report Crew Linkage Enforcement (largest remaining identity-drift source) · ✅ COMPLETE
 
 ### Strategic intent
