@@ -2,6 +2,66 @@
 
 
 
+## 2026-05-23 — iter353a-UI · HR Safety Records write surface · ✅ APPROVE
+
+### Operator P0 (Phase 2 #1.5)
+Surface the iter353a backend authority in the UI so HR's shared accountability is operationally usable, not "technically possible but hidden."
+
+### What changed (one file)
+`/app/frontend/src/pages/HrSafetyRecords.jsx` — full rewrite (222 → 359 LOC):
+- **Intro strip** — calm purple shared-authority banner explaining the new model
+- **`+ Add Training Record`** button → inline form (7 fields: employee dropdown · training name · cert type · completed date · expiration date · issued by · notes). Submits to `POST /api/safety/training-records` which iter353a now accepts via HR token.
+- **`+ Upload Safety Document`** button → inline form (file picker + title + category dropdown + description + tags). Submits to `POST /api/safety/documents` (multipart).
+- **Audit attribution surfaced** — each row + card shows the role-pill badge (HR / Safety / Admin / Legacy) of who entered it. Hover tooltip shows the actor email.
+- **Archive pattern (no hard delete)** — per-row `Archive` button calls PATCH with a calm `[archived YYYY-MM-DD]` marker added to notes/description and `category="Archived"` for documents. Records remain discoverable; not destroyed. HR delete buttons are NEVER rendered.
+- **Archived rows render dimmed** with an `ARCHIVED` pill so operators see what's no longer active.
+
+### End-to-end lifecycle verified (live preview)
+| # | Step | Result |
+|---|---|---|
+| 1 | HR creates training via the page form | ✅ `created_by_role: "hr"` lands |
+| 2 | Both HR and Safety read the new record (cross-portal visibility) | ✅ both see it |
+| 3 | HR archives via PATCH (the new pattern) | ✅ `updated_by_role: "hr"` lands |
+| 4 | Archived record still discoverable in lists | ✅ marked, not destroyed |
+| 5 | iter350 HR `/training-records` union endpoint surfaces it | ✅ |
+| 6 | HR DELETE blocked | ✅ HTTP 401 |
+| 7 | Safety DELETE works (governance owner authority) | ✅ HTTP 200 |
+
+### Tests · iter353a-UI (5/5 PASS)
+`/app/backend/tests/test_iter353a_ui_hr_safety_records.py`:
+- Add Training button + form + correct POST endpoint
+- Upload Document button + form + correct POST endpoint
+- Archive uses PATCH (NOT axios.delete — operator-policy lock)
+- Audit attribution rendered (`created_by_role` + `ROLE_PILL` + `ARCHIVED` pill)
+- Calm intro strip present
+
+**Cumulative iter350 + iter352 + iter353a + iter353a-UI: 51/51 PASS.**
+
+### UX boundaries enforced
+- ✅ Unified shared-authority intro strip
+- ✅ Same page surfaces both reads + writes (no new page hop)
+- ✅ Mobile-responsive (forms use `grid-cols-1 sm:grid-cols-2`)
+- ✅ ES (Spanish) translations wired through `useT()` — strings are `t()`-wrapped
+- ❌ NO hard-delete buttons exist on the page
+- ❌ NO Safety governance surfaces (incidents/JHAs/CAPAs) leaked into HR view
+
+### Files touched
+- REWRITE · `/app/frontend/src/pages/HrSafetyRecords.jsx` (222 → 359 LOC)
+- NEW · `/app/backend/tests/test_iter353a_ui_hr_safety_records.py` (5 tests)
+- DOC · `/app/memory/PRD.md`
+
+### Production redeploy ships (cumulative pending)
+- iter350 (HR union endpoints + employee linkage standard)
+- iter352 (CDL Roster Importer + dashboard hardening)
+- iter353a backend (HR shared write authority on training/documents/PPE)
+- iter353a-UI (this — HR Safety Records becomes a true operational surface)
+- 21 bounded iterations from iter330 forward
+
+### Verdict
+✅ **APPROVE iter353a-UI.** HR shared accountability authority is now visible, usable, and audited in the browser.
+
+
+
 ## 2026-05-23 — iter353a · Phase 2 P0 Shared Employee Accountability · ✅ APPROVE (backend)
 
 ### Operator P0 (Phase 2 #1)
