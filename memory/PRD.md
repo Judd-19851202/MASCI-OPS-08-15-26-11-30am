@@ -1,6 +1,55 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter380 + iter381 · Phase 4D continued ✅
+
+### iter380 · PO Digest admin routes extraction
+Extracted the 2 PO digest admin endpoints (`/api/admin/po-digest/preview` + `/api/admin/po-digest/run-now`) to new `routes/po_digest_admin.py` via `build_po_digest_admin_router(db, require_admin_dep, require_admin_strict_dep, send_email_fn)` factory. Dry-run guard, portal-URL resolution fallback chain, and `AUTO_EMAIL_REPORTS` env gate preserved byte-identically. **31 LOC removed.**
+
+### iter381 · Admin shared lookup extraction
+Extracted `/api/admin/find-by-doc-id` to new `routes/admin_lookups.py` via `build_admin_lookups_router(db, require_admin_dep)` factory. Inline 10-collection conditional chain refactored into a clean `_COLLECTION_ROUTES` dict table (still byte-identical behavior: jha → `?focus=<id>` query, unknown → `/admin?doc_id=<id>` fallback). **56 LOC removed.**
+
+### Phase 4D · 5-iteration progress
+
+| iter | Family | Δ LOC |
+|---|---|---|
+| iter377 | PM read-only | −194 |
+| iter378 | PM auth lifecycle | −341 |
+| iter379 | Governance + operational inventory | −61 |
+| iter380 | PO digest admin | −31 |
+| iter381 | Admin shared lookup | −56 |
+| **TOTAL** | | **−683 LOC** |
+
+**server.py: 12,259 → 11,576 LOC** (−5.6% across 5 iterations).
+**Cumulative regression: 218/218 PASS** in ~106s.
+**Zero behavior drift across all extractions.**
+
+### iter382+ · Roadmap (operator pick-and-execute)
+| Family | Routes | Est. Δ | Risk |
+|---|---|---|---|
+| `/admin/project-managers/*` | 10 | ~600 LOC | medium |
+| `/api/legacy-imports/*` | 9 | ~390 LOC | medium-high (file + OCR) |
+| `/admin/jobs/*` | 9 | ~400 LOC | low-medium |
+| `/admin/suppliers/*` | 8 | ~350 LOC | low |
+| `/admin/equipment-master/*` | 8 | ~500 LOC | medium (richer shop gate) |
+| `/admin/employees/*` | 8 | ~450 LOC | medium (HR-shared visibility) |
+| `/admin/shop-users/*` | 7 | ~300 LOC | low |
+| `/admin/backups/*` | 6 | ~400 LOC | medium (file + cron) |
+| Smaller clusters (trench-boxes, JHA, calculators, projects, sessions, ops-manual) | ~30 | ~1,500 LOC | mixed |
+
+Hitting the architectural goal of **<4,000 LOC** in server.py requires roughly 6 more iterations. Per directive: **one family per iteration, with parity lock, full regression suite green, behavior identical.**
+
+### Files touched (this session)
+- `/app/backend/routes/po_digest_admin.py` — NEW.
+- `/app/backend/routes/admin_lookups.py` — NEW.
+- `/app/backend/server.py` — 87 LOC removed across 2 surgical extractions; 8 LOC of mount wiring added.
+- `/app/backend/tests/test_iter380_381_extraction.py` — NEW (17 tests).
+- `/app/memory/PHASE4D_EXTRACTION_TRACKER.md` — updated.
+
+---
+
+
+
 ## 2026-05-23 — iter378 + iter379 · Phase 4D continued ✅
 
 ### iter378 · PM auth-lifecycle extraction

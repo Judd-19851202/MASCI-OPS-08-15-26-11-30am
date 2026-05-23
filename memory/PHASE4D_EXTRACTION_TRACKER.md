@@ -18,10 +18,26 @@ This file tracks one-route-family-at-a-time extraction from server.py. Each iter
 | Pre-iter370 baseline | ~12,230 | — | — |
 | iter375 (MFA wiring added) | 12,259 | +29 | +29 |
 | iter377 (PM read-only extraction) | 12,065 | −194 | −165 |
-| **iter378 (PM auth-lifecycle extraction)** | **11,724** | **−341** | **−506** |
-| **iter379 (Governance inventory + guidance telemetry)** | **11,663** | **−61** | **−567** |
+| iter378 (PM auth-lifecycle extraction) | 11,724 | −341 | −506 |
+| iter379 (Governance inventory + guidance telemetry) | 11,663 | −61 | −567 |
+| **iter380 (PO digest admin)** | **11,632** | **−31** | **−598** |
+| **iter381 (Admin shared lookup)** | **11,576** | **−56** | **−654** |
 
-Pattern proven safe across 3 iterations. Cumulative regression: **201/201 PASS** (was 171 pre-iter378, +18 iter378 + 12 iter379).
+Pattern proven safe across 5 iterations (iter377-iter381). Cumulative regression: **218/218 PASS** in ~106s.
+
+**Remaining inventory** (sorted by route count in server.py):
+
+| Family | Routes | Risk | Iteration target |
+|---|---|---|---|
+| `/admin/project-managers/*` | 10 | medium (admin CRUD) | iter382 |
+| `/api/legacy-imports/*` | 9 | medium-high (file storage + OCR coupling) | iter383 |
+| `/admin/jobs/*` | 9 | low-medium (admin CRUD) | iter384 |
+| `/admin/suppliers/*` | 8 | low (admin CRUD) | iter385 |
+| `/admin/equipment-master/*` | 8 | medium (richer shop gate) | iter386 |
+| `/admin/employees/*` | 8 | medium (HR-shared visibility) | iter387 |
+| `/admin/shop-users/*` | 7 | low | iter388 |
+| `/admin/backups/*` | 6 | medium (file + cron coupling) | iter389 |
+| Various smaller clusters | ~30 | mixed | iter390+ |
 
 ---
 
@@ -115,7 +131,26 @@ Pattern proven safe across 3 iterations. Cumulative regression: **201/201 PASS**
 
 ---
 
-### iter380+ · Notifications routes (planned next)
+### iter380 · PO digest admin · ✅ COMPLETE
+
+**Extracted to** `/app/backend/routes/po_digest_admin.py` via `build_po_digest_admin_router(db, require_admin_dep, require_admin_strict_dep, send_email_fn)`:
+- `GET  /api/admin/po-digest/preview` (admin gate)
+- `POST /api/admin/po-digest/run-now?dry_run=<bool>` (admin-strict gate)
+
+Preserved: dry-run guard (iter247 P1-A), portal URL resolution fallback chain (`PORTAL_PUBLIC_URL` → `PUBLIC_BASE_URL` → `https://mascidocs.com`), AUTO_EMAIL_REPORTS env gate honored via the original `_po_digest_send_email` injected as `send_email_fn`. **31 LOC removed.**
+
+---
+
+### iter381 · Admin shared lookup · ✅ COMPLETE
+
+**Extracted to** `/app/backend/routes/admin_lookups.py` via `build_admin_lookups_router(db, require_admin_dep)`:
+- `GET /api/admin/find-by-doc-id?doc_id=<str>` (admin gate)
+
+Preserved: the inline 10-collection conditional chain was refactored into a `_COLLECTION_ROUTES` table for clarity but behaves byte-identically (jha collections still produce `/admin/jha-plans?focus=<id>` query-string form, fallback `/admin?doc_id=<id>` preserved). **56 LOC removed.**
+
+---
+
+### iter382+ · Remaining operational families (planned roadmap)
 
 **Candidates**: `/api/notifications/*` (~400 LOC).
 **Coupling**: low (`notifications` helper module already exists).

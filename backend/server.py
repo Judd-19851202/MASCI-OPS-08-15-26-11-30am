@@ -9413,48 +9413,16 @@ async def _start_po_digest_cron():
         logger.exception(f"[po-digest] failed to start: {e}")
 
 
-@app.get("/api/admin/po-digest/preview")
-async def admin_preview_po_digest(_: bool = Depends(require_admin)):
-    """Admin-only preview of the upcoming PO digest. Returns the per-
-    recipient summary (no email send, no Resend quota spent). Lets
-    operators verify scope/counts before the Monday fire.
-
-    NOTE: registered on `app` (not `api_router`) because this block
-    runs AFTER `app.include_router(api_router)` — see line 9899 for
-    the same pattern with find-by-doc-id."""
-    portal_url = (os.environ.get("PORTAL_PUBLIC_URL")
-                  or os.environ.get("PUBLIC_BASE_URL")
-                  or "https://mascidocs.com").rstrip("/")
-    results = await send_po_digest_once(db, None, portal_url=portal_url, dry_run=True)
-    return {"ok": True, **results}
-
-
-@app.post("/api/admin/po-digest/run-now")
-async def admin_run_po_digest_now(
-    dry_run: bool = False,
-    _: bool = Depends(require_admin_strict),
-):
-    """Admin-only · explicit fire of the PO digest right now.
-
-    iter247 P1-A · Operator-approved dry-run guard.
-      • `?dry_run=true`  → log-only, ZERO Resend quota burned. Returns
-        the same per-recipient summary as /preview. Use this for
-        verification, walkthroughs, and demo runs.
-      • default (no query)→ real send, honors AUTO_EMAIL_REPORTS env
-        gate (preview env logs-only · production sends via Resend).
-
-    Without `?dry_run=true`, callers MUST expect real emails to fire
-    on any environment where AUTO_EMAIL_REPORTS=true."""
-    portal_url = (os.environ.get("PORTAL_PUBLIC_URL")
-                  or os.environ.get("PUBLIC_BASE_URL")
-                  or "https://mascidocs.com").rstrip("/")
-    results = await send_po_digest_once(
-        db,
-        None if dry_run else _po_digest_send_email,
-        portal_url=portal_url,
-        dry_run=dry_run,
-    )
-    return {"ok": True, **results}
+# iter380 · /api/admin/po-digest/preview and /api/admin/po-digest/run-now
+# extracted to routes/po_digest_admin.py.
+from routes.po_digest_admin import build_po_digest_admin_router  # noqa: E402
+_po_digest_admin_router = build_po_digest_admin_router(
+    db,
+    require_admin_dep=require_admin,
+    require_admin_strict_dep=require_admin_strict,
+    send_email_fn=_po_digest_send_email,
+)
+app.include_router(_po_digest_admin_router)
 
 
 # ─── HR Payroll Variance (iter72) ────────────────────────────────────
@@ -10564,65 +10532,10 @@ async def _backfill_doc_ids() -> None:
         logger.warning(f"[doc_ids] startup backfill failed: {e}")
 
 
-# Admin-only doc-ID lookup powering the global search bar at /admin home.
-# NOTE: declared on `app` (not `api_router`) because this block runs AFTER
-# `app.include_router(api_router)` and FastAPI doesn't pick up routes
-# added to an already-included router.
-@app.get("/api/admin/find-by-doc-id")
-async def admin_find_by_doc_id(doc_id: str, _: bool = Depends(require_admin)):
-    """Resolve a human-readable doc ID to the underlying record.
-
-    Returns ``{found, collection, id, doc_id, route}`` where ``route``
-    is the frontend path the admin UI should navigate to. Missing IDs
-    return ``{found: false}``.
-    """
-    from doc_ids import find_record_by_doc_id
-
-    rec = await find_record_by_doc_id(db, doc_id)
-    if not rec:
-        return {"found": False}
-
-    # Frontend route per-collection. Every path here MUST exist in
-    # /app/frontend/src/App.js — iter54 testing caught a regression where
-    # /daily-reports/<id> was returned but App.js only registered
-    # /admin/daily/<id>. Keep this map next to the App.js routes.
-    coll = rec.get("collection") or ""
-    rid = rec.get("id") or ""
-    kind = rec.get("kind") or ""
-    if coll == "field_leadership_records":
-        route = f"/admin/leadership/records/{rid}"
-    elif coll == "daily_reports":
-        route = f"/admin/daily/{rid}"
-    elif coll == "equipment_inspections":
-        route = f"/admin/equipment/{rid}"
-    elif coll == "qaqc_inspections":
-        route = f"/admin/qaqc/{rid}"
-    elif coll == "inspections":
-        route = f"/admin/inspections/{rid}"
-    elif coll == "meetings":
-        route = f"/admin/meetings/{rid}"
-    elif coll == "jhas":
-        # JHA admin dashboard auto-opens by ?focus=<id>.
-        route = f"/admin/jha-plans?focus={rid}"
-    elif coll == "incidents":
-        route = f"/admin/incidents/{rid}"
-    elif coll == "safety_equipment_issuances":
-        route = f"/admin/safety/issuance/{rid}"
-    elif coll == "safety_equipment_trainings":
-        route = f"/admin/safety/training/{rid}"
-    else:
-        route = f"/admin?doc_id={rec.get('doc_id')}"
-
-    return {
-        "found": True,
-        "collection": coll,
-        "id": rid,
-        "doc_id": rec.get("doc_id"),
-        "kind": kind,
-        "project_number": rec.get("project_number"),
-        "project_name": rec.get("project_name"),
-        "route": route,
-    }
+# iter381 · /api/admin/find-by-doc-id extracted to routes/admin_lookups.py.
+from routes.admin_lookups import build_admin_lookups_router  # noqa: E402
+_admin_lookups_router = build_admin_lookups_router(db, require_admin)
+app.include_router(_admin_lookups_router)
 
 
 # ============================================================
