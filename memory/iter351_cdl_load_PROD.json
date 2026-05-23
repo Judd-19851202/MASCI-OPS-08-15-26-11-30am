@@ -4,6 +4,13 @@
   "rows_cdl_marker": 43,
   "matched": [
     {
+      "src": "ALAN DANFORD",
+      "emp_id": "a5291fe7-d566-4737-af34-05556fb71db6",
+      "emp_name": "Alan Danford",
+      "cdl": false,
+      "method": "name_exact"
+    },
+    {
       "src": "ALEC PERKINS",
       "emp_id": "7b2e17a5-8c99-47a5-b810-98398c70542d",
       "emp_name": "Alec Perkins",
@@ -88,6 +95,13 @@
       "method": "name_exact"
     },
     {
+      "src": "CHRISTOPHER WRIGHT",
+      "emp_id": "8140340d-9059-4b4f-be7e-f708e26da39c",
+      "emp_name": "Christopher Wright",
+      "cdl": false,
+      "method": "name_exact"
+    },
+    {
       "src": "CODY RAYBORN",
       "emp_id": "f0120669-6649-462d-8f43-8ad31eb7321f",
       "emp_name": "Cody Rayborn",
@@ -142,6 +156,13 @@
       "emp_name": "David J. Hout",
       "cdl": false,
       "method": "last_first_initial"
+    },
+    {
+      "src": "DAVID JEWETT",
+      "emp_id": "f22c8664-ad9e-4a2f-aba1-01146520f727",
+      "emp_name": "David Jewett",
+      "cdl": false,
+      "method": "name_exact"
     },
     {
       "src": "DAVID LEMBKE",
@@ -501,6 +522,13 @@
       "method": "stripped_suffix_middle"
     },
     {
+      "src": "RYAN HEIMS",
+      "emp_id": "24179d0a-b2b7-4af6-88b8-94ef8ac1c10d",
+      "emp_name": "Ryan Heims",
+      "cdl": false,
+      "method": "name_exact"
+    },
+    {
       "src": "SCOTT MCLANE",
       "emp_id": "7255cf43-a9f6-45eb-9d05-ac964167849d",
       "emp_name": "Scott Mclane",
@@ -578,28 +606,7 @@
       "method": "name_exact"
     }
   ],
-  "unmatched": [
-    {
-      "src": "ALAN DANFORD",
-      "cdl": false,
-      "reason": "unmatched"
-    },
-    {
-      "src": "CHRISTOPHER WRIGHT",
-      "cdl": false,
-      "reason": "unmatched"
-    },
-    {
-      "src": "DAVID JEWETT",
-      "cdl": false,
-      "reason": "unmatched"
-    },
-    {
-      "src": "RYAN HEIMS",
-      "cdl": false,
-      "reason": "unmatched"
-    }
-  ],
+  "unmatched": [],
   "failed": [],
-  "updated_count": 82
+  "updated_count": 86
 }

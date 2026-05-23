@@ -104,6 +104,7 @@ import HrTrainingRecords from "@/pages/HrTrainingRecords";
 import HrDailyReports, { HrDailyReportDetail } from "@/pages/HrDailyReports";
 import HrPayrollVariance from "@/pages/HrPayrollVariance";
 import HrDriverQualificationDashboard from "@/pages/HrDriverQualificationDashboard";
+import HrDriverQualificationImport from "@/pages/HrDriverQualificationImport";
 import HrTimeOff from "@/pages/HrTimeOff";
 import PublicTimeOff from "@/pages/PublicTimeOff";
 import SafetyLogin from "@/pages/SafetyLogin";
@@ -486,6 +487,7 @@ function App() {
             <Route path="/hr/payroll-variance" element={H(<HrPayrollVariance />)} />
             <Route path="/hr/training-records" element={H(<HrTrainingRecords />)} />
             <Route path="/hr/driver-qualification" element={H(<HrDriverQualificationDashboard />)} />
+            <Route path="/hr/driver-qualification/import" element={H(<HrDriverQualificationImport />)} />
             {/* iter332 · HR read-only Daily Reports Review */}
             <Route path="/hr/daily-reports" element={H(<HrDailyReports />)} />
             <Route path="/hr/daily-reports/:id" element={H(<HrDailyReportDetail />)} />

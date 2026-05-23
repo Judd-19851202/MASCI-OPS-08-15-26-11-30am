@@ -3,7 +3,8 @@
 // + 5 tiny summary cards. NOT a dispatch system, NOT a compliance
 // platform — read the coaching family for the boundary discipline.
 import React, { useCallback, useEffect, useState } from "react";
-import { Loader2, Search, Truck, AlertTriangle, Clock, Ban, ShieldX, Download } from "lucide-react";
+import { Loader2, Search, Truck, AlertTriangle, Clock, Ban, ShieldX, Download, Upload } from "lucide-react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -241,6 +242,18 @@ export default function HrDriverQualificationDashboard() {
             {exporting ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Download className="w-3.5 h-3.5 mr-1" />}
             {t("Export Current View → CSV")}
           </Button>
+          {/* iter352 — self-service roster importer entry point. */}
+          <Link to="/hr/driver-qualification/import" data-testid="dq-import-link">
+            <Button
+              variant="outline"
+              className="h-7 text-xs border-emerald-700 text-emerald-700 hover:bg-emerald-50"
+              title={t("Upload XLSX or CSV roster — preview matches, confirm, audit.")}
+              data-testid="dq-import-btn"
+            >
+              <Upload className="w-3.5 h-3.5 mr-1" />
+              {t("Import Roster")}
+            </Button>
+          </Link>
         </div>
       </Card>
 

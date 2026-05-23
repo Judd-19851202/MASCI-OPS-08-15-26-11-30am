@@ -36,7 +36,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, File, Form, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field, field_validator
 
 logger = logging.getLogger(__name__)
@@ -46,6 +46,16 @@ ALLOWED_LIFECYCLE_STATUSES = {
     "Terminated", "Resigned", "Retired", "Seasonal",
     "Leave of Absence",
 }
+
+
+# iter352 · CDL roster import apply payload. Defined at module scope
+# so FastAPI's TypeAdapter can resolve the ForwardRef in the route
+# handler signature.
+class CdlImportApplyPayload(BaseModel):
+    preview_token: str
+    skip_rows: List[int] = Field(default_factory=list)
+    create_unmatched: bool = False
+    model_config = {"extra": "ignore"}
 
 # Statuses that count as "actively employed" for dropdown filtering.
 _ACTIVE_STATUSES = {"Active", "Pending Hire", "Seasonal", "Leave of Absence"}
@@ -1555,6 +1565,323 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             },
         )
 
+    # ─────────────────────────────────────────────────────────────────
+    # CDL / DRIVER QUALIFICATION ROSTER IMPORTER · iter352
+    # ─────────────────────────────────────────────────────────────────
+    # Self-service replacement for the one-off iter351 loader script.
+    # Allows HR + Admin to upload an XLSX or CSV roster, preview the
+    # 7-tier match results, then apply the writes after explicit
+    # confirmation. Every apply produces a durable audit record in
+    # `driver_qualification_imports` AND individual field-level
+    # admin_audit_log entries (one per touched field) so the existing
+    # /admin/audit UI surfaces the changes alongside other HR edits.
+    #
+    # Endpoints:
+    #   POST /api/hr/driver-qualification/import/preview   — multipart
+    #   POST /api/hr/driver-qualification/import/apply     — JSON
+    #   GET  /api/hr/driver-qualification/import/audit     — list
+    #   GET  /api/hr/driver-qualification/import/audit/{id}— detail
+    #
+    # RBAC: HR or Admin tokens ONLY (require_hr_or_admin). PM / Safety /
+    # Dispatch / Shop / FL / anonymous all return 403.
+    from lib import cdl_importer  # noqa: PLC0415
+    import uuid as _uuid  # noqa: PLC0415
+
+    @router.post("/api/hr/driver-qualification/import/preview")
+    async def cdl_import_preview(
+        file: UploadFile = File(...),
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+    ):
+        """Parse + match the uploaded roster. NO database writes."""
+        raw = await file.read()
+        if not raw:
+            raise HTTPException(400, "Empty file")
+        if len(raw) > 5 * 1024 * 1024:
+            raise HTTPException(400, "File too large (5 MB max)")
+        fname = (file.filename or "").lower()
+        try:
+            if fname.endswith(".xlsx"):
+                rows, source_columns = cdl_importer.parse_xlsx(raw)
+            elif fname.endswith(".csv"):
+                rows, source_columns = cdl_importer.parse_csv(raw)
+            else:
+                raise HTTPException(400, "Only .xlsx and .csv files are supported")
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        except Exception as e:  # noqa: BLE001
+            logger.exception("[cdl-import] parse failed: %s", e)
+            raise HTTPException(400, "Could not read uploaded file")
+
+        if not rows:
+            return {
+                "ok": True, "preview_token": None,
+                "file_name": file.filename, "source_columns": source_columns,
+                "row_count": 0, "preview": [], "warnings": ["File has no data rows."],
+            }
+
+        # Load roster once, build indexes.
+        all_emps: List[Dict[str, Any]] = []
+        async for e in db.employees.find({"deleted_at": None}, {"_id": 0}):
+            all_emps.append(e)
+        idx = cdl_importer.build_indexes(all_emps)
+
+        preview: List[Dict[str, Any]] = []
+        method_counts: Dict[str, int] = {}
+        matched_n = 0
+        ambiguous_n = 0
+        unmatched_n = 0
+        no_change_n = 0
+        for r in rows:
+            emp, method, conf = cdl_importer.match_row(r, idx)
+            method_counts[method] = method_counts.get(method, 0) + 1
+            entry: Dict[str, Any] = {
+                "source_name": r.get("raw_name"),
+                "source_employee_id": r.get("employee_id"),
+                "source_email": r.get("email"),
+                "match_method": method,
+                "match_confidence": conf,
+                "warnings": [],
+            }
+            if emp:
+                matched_n += 1
+                payload, diff = cdl_importer.build_payload(r, emp, source_columns)
+                entry["employee_id"] = emp.get("id")
+                entry["employee_name"] = emp.get("name")
+                entry["employee_trade"] = emp.get("trade")
+                entry["fields_to_update"] = payload
+                entry["diff"] = diff
+                if "ambiguous" in method:
+                    ambiguous_n += 1
+                    entry["warnings"].append("Multiple roster matches share this name — verify before applying.")
+                if conf == "low" and "ambiguous" not in method:
+                    entry["warnings"].append("Low-confidence match — verify before applying.")
+                if not payload:
+                    no_change_n += 1
+                    entry["warnings"].append("All source fields already match the roster (no change).")
+            else:
+                unmatched_n += 1
+                entry["employee_id"] = None
+                entry["employee_name"] = None
+                entry["fields_to_update"] = {}
+                entry["diff"] = {}
+                entry["warnings"].append("No matching employee found.")
+            preview.append(entry)
+
+        token = str(_uuid.uuid4())
+        await db.driver_qualification_import_previews.insert_one({
+            "id": token,
+            "uploaded_by": actor.get("email") or actor.get("user_id"),
+            "uploaded_by_role": actor.get("_actor") or actor.get("role"),
+            "file_name": file.filename,
+            "source_columns": source_columns,
+            "preview": preview,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        return {
+            "ok": True,
+            "preview_token": token,
+            "file_name": file.filename,
+            "source_columns": source_columns,
+            "row_count": len(rows),
+            "summary": {
+                "matched": matched_n,
+                "unmatched": unmatched_n,
+                "ambiguous": ambiguous_n,
+                "no_change": no_change_n,
+                "method_counts": method_counts,
+            },
+            "preview": preview,
+        }
+
+    @router.post("/api/hr/driver-qualification/import/apply")
+    async def cdl_import_apply(
+        body: CdlImportApplyPayload = Body(...),
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+    ):
+        """Apply the previously-previewed import. Writes:
+          1. employees.* driver fields
+          2. employees.status_history (one entry per touched employee)
+          3. admin_audit_log (one entry per touched field)
+          4. driver_qualification_imports (one audit record)
+        """
+        prev = await db.driver_qualification_import_previews.find_one(
+            {"id": body.preview_token}, {"_id": 0}
+        )
+        if not prev:
+            raise HTTPException(404, "Preview not found or expired")
+        # Soft per-actor check — anyone with HR/Admin role can apply
+        # any of their own previews; cross-actor apply is permitted
+        # since both roles are trusted operational owners.
+
+        skip = set(body.skip_rows)
+        source_columns = prev.get("source_columns") or []
+        now = datetime.now(timezone.utc).isoformat()
+        actor_email = actor.get("email") or actor.get("user_id") or "unknown"
+        actor_role = actor.get("_actor") or actor.get("role") or "hr"
+
+        updated_n = 0
+        created_n = 0
+        skipped_n = 0
+        no_change_n = 0
+        errors: List[Dict[str, Any]] = []
+        per_row_results: List[Dict[str, Any]] = []
+
+        for i, entry in enumerate(prev.get("preview") or []):
+            if i in skip:
+                skipped_n += 1
+                per_row_results.append({"row": i, "action": "skipped", "name": entry.get("source_name")})
+                continue
+            emp_id = entry.get("employee_id")
+            payload = entry.get("fields_to_update") or {}
+
+            # Handle create-unmatched opt-in
+            if not emp_id:
+                if not body.create_unmatched:
+                    skipped_n += 1
+                    per_row_results.append({"row": i, "action": "skipped_unmatched", "name": entry.get("source_name")})
+                    continue
+                new_id = str(_uuid.uuid4())
+                new_emp = {
+                    "id": new_id,
+                    "name": entry.get("source_name"),
+                    "is_active": True,
+                    "lifecycle_status": "Active",
+                    "created_at": now,
+                    "created_by": actor_email,
+                    "created_via": "driver_qualification_import",
+                    "deleted_at": None,
+                }
+                # Apply payload to the new doc
+                for k, v in payload.items():
+                    new_emp[k] = v
+                try:
+                    await db.employees.insert_one(new_emp)
+                    new_emp.pop("_id", None)
+                    created_n += 1
+                    per_row_results.append({
+                        "row": i, "action": "created",
+                        "employee_id": new_id, "name": entry.get("source_name"),
+                        "fields": list(payload.keys()),
+                    })
+                except Exception as e:  # noqa: BLE001
+                    errors.append({"row": i, "name": entry.get("source_name"), "error": str(e)})
+                continue
+
+            # Matched row — apply PATCH equivalent
+            if not payload:
+                no_change_n += 1
+                per_row_results.append({"row": i, "action": "no_change", "employee_id": emp_id, "name": entry.get("employee_name")})
+                continue
+            try:
+                # Fetch current snapshot for accurate before-values
+                current = await db.employees.find_one({"id": emp_id}, {"_id": 0})
+                if not current:
+                    errors.append({"row": i, "employee_id": emp_id, "error": "employee not found (deleted between preview and apply)"})
+                    continue
+                # Build status_history entry — same calm-tone format
+                # already used by other employee mutations.
+                fields_changed = list(payload.keys())
+                history_entry = {
+                    "ts": now,
+                    "actor": actor_email,
+                    "actor_role": actor_role,
+                    "kind": "driver_qualification_import",
+                    "source_file": prev.get("file_name"),
+                    "fields": fields_changed,
+                    "diff": entry.get("diff") or {},
+                }
+                update_doc = {"$set": payload, "$push": {"status_history": history_entry}}
+                await db.employees.update_one({"id": emp_id}, update_doc)
+                updated_n += 1
+                per_row_results.append({
+                    "row": i, "action": "updated", "employee_id": emp_id,
+                    "name": entry.get("employee_name"), "fields": fields_changed,
+                })
+                # Field-level admin_audit_log entries — one per field so
+                # filtering by field type works in /admin/audit.
+                for fname_, change in (entry.get("diff") or {}).items():
+                    try:
+                        await db.admin_audit_log.insert_one({
+                            "id": str(_uuid.uuid4()),
+                            "ts": now,
+                            "actor": actor_email,
+                            "actor_role": actor_role,
+                            "action": "driver_qualification_field_update",
+                            "kind": "employee.driver_qualification",
+                            "target_kind": "employee",
+                            "target_id": emp_id,
+                            "target_name": entry.get("employee_name"),
+                            "field": fname_,
+                            "before": change.get("before"),
+                            "after": change.get("after"),
+                            "source": "import",
+                            "source_file": prev.get("file_name"),
+                        })
+                    except Exception:  # pragma: no cover
+                        pass  # best-effort audit; don't block the write
+            except Exception as e:  # noqa: BLE001
+                errors.append({"row": i, "employee_id": emp_id, "error": str(e)})
+
+        audit_id = str(_uuid.uuid4())
+        audit_doc = {
+            "id": audit_id,
+            "ts": now,
+            "uploaded_by": actor_email,
+            "uploaded_by_role": actor_role,
+            "file_name": prev.get("file_name"),
+            "source_columns": source_columns,
+            "row_count": len(prev.get("preview") or []),
+            "matched_count": sum(1 for e in (prev.get("preview") or []) if e.get("employee_id")),
+            "unmatched_count": sum(1 for e in (prev.get("preview") or []) if not e.get("employee_id")),
+            "updated_count": updated_n,
+            "created_count": created_n,
+            "skipped_count": skipped_n,
+            "no_change_count": no_change_n,
+            "errors_count": len(errors),
+            "errors": errors,
+            "per_row_results": per_row_results,
+        }
+        await db.driver_qualification_imports.insert_one(audit_doc)
+
+        # Best-effort cleanup of the now-consumed preview.
+        try:
+            await db.driver_qualification_import_previews.delete_one({"id": body.preview_token})
+        except Exception:  # pragma: no cover
+            pass
+
+        return {
+            "ok": True,
+            "audit_id": audit_id,
+            "summary": {
+                "updated": updated_n,
+                "created": created_n,
+                "skipped": skipped_n,
+                "no_change": no_change_n,
+                "errors": len(errors),
+            },
+            "errors": errors,
+        }
+
+    @router.get("/api/hr/driver-qualification/import/audit")
+    async def cdl_import_audit_list(
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+        limit: int = Query(default=50, ge=1, le=200),
+    ):
+        items: List[Dict[str, Any]] = []
+        async for d in db.driver_qualification_imports.find({}, {"_id": 0, "per_row_results": 0}).sort("ts", -1).limit(limit):
+            items.append(d)
+        return {"ok": True, "items": items, "count": len(items)}
+
+    @router.get("/api/hr/driver-qualification/import/audit/{audit_id}")
+    async def cdl_import_audit_detail(
+        audit_id: str,
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+    ):
+        d = await db.driver_qualification_imports.find_one({"id": audit_id}, {"_id": 0})
+        if not d:
+            raise HTTPException(404, "Audit record not found")
+        return d
+
     # ── Lifecycle index bootstrap helper ─────────────────────────────
     return router
 
@@ -1566,6 +1893,13 @@ async def ensure_employee_lifecycle_indexes(db) -> None:
         await db.employees.create_index("department")
         # iter316 · rehire-eligibility filter index.
         await db.employees.create_index("rehire_eligibility")
+        # iter352 · CDL import audit + preview indexes.
+        await db.driver_qualification_imports.create_index("ts")
+        await db.driver_qualification_imports.create_index("uploaded_by")
+        await db.driver_qualification_import_previews.create_index("id", unique=True)
+        await db.driver_qualification_import_previews.create_index(
+            "created_at", expireAfterSeconds=3600,  # 1h TTL
+        )
     except Exception as e:  # pragma: no cover
         logger.warning("employee-lifecycle index bootstrap failed: %s", e)
 

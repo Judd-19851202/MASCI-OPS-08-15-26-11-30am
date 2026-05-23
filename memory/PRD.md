@@ -2,6 +2,81 @@
 
 
 
+## 2026-05-23 — iter352 · Add 4 Drivers + CDL Roster Importer · ✅ APPROVE
+
+### Part 1 · Production driver-roster gap closure
+Added the 4 names that didn't exist in the production `employees` collection (Alan Danford, Christopher Wright, David Jewett, Ryan Heims) via `POST /api/hr/employees` with minimal safe payloads (name + active status only — no invented phone/email/trade/license). Then re-ran the iter351 loader:
+
+| Metric | Before | After |
+|---|---|---|
+| Employees total | 239 | **243** (+4 new) |
+| `approved_company_driver=true` | 82 | **86 / 86** ✅ |
+| `cdl_holder=true` | 43 | **43** ✅ |
+| `driver_status="active"` | 82 | **86** ✅ |
+| `/api/hr/driver-qualification/dashboard` count | 82 | **86** ✅ |
+| Duplicate employees | 0 | **0** ✅ |
+| Unmatched source rows | 4 | **0 / 86** ✅ |
+| CSV export | 94 lines | **98 lines** (86 data + 1 header) ✅ |
+
+### Part 2 · Self-service CDL Roster Importer (the iter351 script is now legacy)
+Backend (`/api/hr/driver-qualification/import/*`):
+- `POST /preview` — multipart XLSX/CSV upload → parse → 7-tier match → JSON preview (NO writes). Issues a `preview_token` that TTL-expires after 60 minutes.
+- `POST /apply` — JSON body `{preview_token, skip_rows[], create_unmatched}` → writes employee driver fields + employee.status_history + field-level admin_audit_log entries + `driver_qualification_imports` audit record.
+- `GET /audit` — list recent imports (metadata only).
+- `GET /audit/{id}` — fetch one import with per-row results.
+
+RBAC: `require_hr_or_admin` on ALL 4 endpoints. PM / Safety / Shop / Dispatch / FL / anonymous → 401/403.
+
+Frontend (`/hr/driver-qualification/import`):
+- 3-step calm workflow: Upload → Preview → Apply.
+- Preview table shows: Source Name · Matched Employee · Match Method · Confidence pill (high/medium/low/none) · Fields-to-Update with before→after diff · Warnings (ambiguous, low-confidence, no-change).
+- Per-row "Apply" checkboxes (unmatched rows auto-skipped by default).
+- "Create minimal employee records for unmatched rows" toggle — OFF by default (operator rule: no silent auto-create).
+- Apply Result card with 5 outcome counts (Updated, Created, Skipped, No Change, Errors).
+- Audit History table at the bottom — every import ever run, with role attribution.
+- Entry point button "Import Roster" added to `/hr/driver-qualification` next to "Export Current View → CSV".
+
+Shared lib (`/app/backend/lib/cdl_importer.py`):
+- XLSX + CSV parser with header aliasing (e.g. "CDL", "cdl_holder", "Has CDL" all resolve).
+- Pure 7-tier matcher (lifted from iter351 script — single source of truth now).
+- Boolean / date / endorsement-code normalization.
+- `build_payload()` — only includes fields whose column is present in the source AND whose value differs from existing. NEVER overwrites a populated field with a blank cell.
+
+### Audit trail (operator requirement)
+Every apply writes:
+1. `employees.<driver_fields>` (the actual data)
+2. `employees.status_history` — calm-tone entry `{ts, actor, actor_role, kind:"driver_qualification_import", source_file, fields, diff}`
+3. `admin_audit_log` — one row per touched field with `action:"driver_qualification_field_update"`, target_id, before, after, source_file. Surfaces alongside other HR edits at `/admin/audit`.
+4. `driver_qualification_imports` — durable per-import receipt: file_name, uploaded_by, uploaded_by_role, ts, row_count, matched/updated/skipped/created/no_change/errors counts, per_row_results array.
+
+### RBAC change (operator-approved policy update)
+HR is now an **operational manager** for Driver Qualification / CDL — can run imports, edit driver fields, view audit. Admin retains full system authority. PM / Safety / Dispatch / Shop / FL still blocked from this surface. The iter350 read-only lock test was updated to scope to the dashboard URL only (importer URLs are explicitly write-capable under the new policy).
+
+### Tests · iter352
+**NEW** `/app/backend/tests/test_iter352_cdl_roster_importer.py` (16/16 PASS):
+- Lib unit tests: parser (XLSX + CSV with header aliasing), 7-tier matcher, payload builder (preserves unrelated fields, skips blanks).
+- Source-level locks: all 4 routes registered, all use `require_hr_or_admin`.
+- Live E2E: HR can preview+apply · Admin can preview+apply · idempotent re-preview shows no_change · skip_rows honored · invalid token → 404 · dashboard reflects updates · field-level admin_audit_log entries land.
+- RBAC: PM / Safety / anonymous all rejected.
+
+**Cumulative iter288–iter352 sweep: 122/122 PASS** (incl. updated iter288 + iter350 locks for the new policy).
+
+### Files (iter352)
+- NEW · `/app/backend/lib/cdl_importer.py` (414 LOC · parser + matcher + payload builder)
+- MOD · `/app/backend/routes/employee_lifecycle.py` (+~280 LOC importer block · module-scope `CdlImportApplyPayload` · 2 new TTL/audit indexes)
+- NEW · `/app/frontend/src/pages/HrDriverQualificationImport.jsx` (368 LOC · 3-step workflow + audit history)
+- MOD · `/app/frontend/src/pages/HrDriverQualificationDashboard.jsx` ("Import Roster" entry-point button)
+- MOD · `/app/frontend/src/App.js` (`/hr/driver-qualification/import` route)
+- NEW · `/app/backend/tests/test_iter352_cdl_roster_importer.py` (16 tests · 100% green)
+- MOD · `/app/backend/tests/test_iter288_driver_qualification_dashboard.py` (scope-narrowed lock)
+- MOD · `/app/backend/tests/test_iter350_hr_safety_cdl_visibility.py` (scope-narrowed lock)
+- DOC · `/app/memory/PRD.md`
+
+### Verdict
+✅ **APPROVE.** Part 1 already live in production. Part 3 ready in preview; needs a redeploy to surface at mascidocs.com. The platform now owns the entire roster lifecycle end-to-end via UI — no more one-off scripts.
+
+
+
 ## 2026-05-23 — iter351 · PROD CDL/Approved Driver Bulk Load · ✅ APPROVE (LIVE PRODUCTION)
 
 ### Operator P0

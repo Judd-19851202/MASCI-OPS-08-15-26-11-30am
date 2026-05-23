@@ -159,16 +159,35 @@ def test_dashboard_route_is_get_only():
 
 def test_iter288_does_not_introduce_a_second_expiration_collection():
     """The audit (and the iter286 mirror infrastructure) committed to a
-    single canonical expiration system. iter288 must NOT add new
-    Mongo collections — it reads from the same employees + the
-    iter286-mirrored document_expirations rows."""
+    single canonical expiration system. iter288 (the read dashboard)
+    must NOT add new Mongo collections.
+
+    iter352 NOTE: the operator-approved CDL Roster Importer (also
+    living in employee_lifecycle.py) DOES write
+    `driver_qualification_imports` audit records + uses
+    `driver_qualification_import_previews` for ephemeral preview
+    tokens. Those are audit/orchestration collections — NOT a second
+    expiration collection — and they are scoped to a different code
+    block ("CDL / DRIVER QUALIFICATION ROSTER IMPORTER"). The lock
+    below is intentionally scoped to the READ dashboard only."""
     import routes.employee_lifecycle as el
     src = pathlib.Path(el.__file__).read_text()
     # Sanity scan: no `db.<new_collection>.insert_*` calls introduced
     # for the dashboard. The dashboard endpoint only does .find /
     # .count_documents against existing collections.
     dashboard_block = src.split("Driver Qualification operational dashboard")[1]
-    dashboard_block = dashboard_block.split("Lifecycle index bootstrap helper")[0]
+    # End the slice at the next major operational section — either
+    # the iter312 CSV export or the iter352 importer block, whichever
+    # comes first. Before iter352 the next marker was always the
+    # Lifecycle index bootstrap helper.
+    cut_markers = [
+        "CDL / DRIVER QUALIFICATION ROSTER IMPORTER",  # iter352
+        "Lifecycle index bootstrap helper",
+    ]
+    for marker in cut_markers:
+        if marker in dashboard_block:
+            dashboard_block = dashboard_block.split(marker)[0]
+            break
     # The dashboard handler should not insert / update / delete.
     forbidden = ["insert_one", "insert_many", "update_one", "update_many", "delete_one", "delete_many"]
     hits = [w for w in forbidden if w in dashboard_block]

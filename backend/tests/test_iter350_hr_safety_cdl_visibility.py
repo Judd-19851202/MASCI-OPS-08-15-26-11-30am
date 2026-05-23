@@ -207,18 +207,32 @@ def test_hr_training_records_is_read_only():
 
 
 def test_hr_driver_qualification_is_read_only():
-    """employee_lifecycle.py — /hr/driver-qualification/dashboard must
-    have NO write peer endpoints under /hr/driver-qualification/*."""
+    """employee_lifecycle.py — /hr/driver-qualification/dashboard
+    itself must have NO write peer endpoints under
+    /hr/driver-qualification/* AT THE DASHBOARD URL.
+
+    iter352 NOTE: the operator-approved CDL Roster Importer adds two
+    POST endpoints UNDER /hr/driver-qualification/import/* (preview
+    and apply). Those are explicitly OPERATIONAL write surfaces gated
+    by require_hr_or_admin and audited via driver_qualification_imports
+    — they are part of the new HR-as-operational-manager policy. The
+    dashboard URL itself remains read-only."""
     src = (Path(__file__).parent.parent / "routes" / "employee_lifecycle.py").read_text()
+    # Locate ONLY the dashboard block — exclude the importer block.
+    dash_idx = src.find('@router.get("/api/hr/driver-qualification/dashboard")')
+    assert dash_idx >= 0, "dashboard endpoint must exist"
+    importer_idx = src.find("CDL / DRIVER QUALIFICATION ROSTER IMPORTER")
+    end = importer_idx if importer_idx > dash_idx else len(src)
+    dash_block = src[dash_idx:end]
     forbidden = [
-        '@router.post("/api/hr/driver-qualification',
-        '@router.patch("/api/hr/driver-qualification',
-        '@router.delete("/api/hr/driver-qualification',
-        '@router.put("/api/hr/driver-qualification',
+        '@router.post("/api/hr/driver-qualification/dashboard',
+        '@router.patch("/api/hr/driver-qualification/dashboard',
+        '@router.delete("/api/hr/driver-qualification/dashboard',
+        '@router.put("/api/hr/driver-qualification/dashboard',
     ]
     for sig in forbidden:
-        assert sig not in src, (
-            f"HR read-only contract violated: {sig} found in employee_lifecycle.py"
+        assert sig not in dash_block, (
+            f"Dashboard endpoint must remain read-only: {sig} found"
         )
 
 
