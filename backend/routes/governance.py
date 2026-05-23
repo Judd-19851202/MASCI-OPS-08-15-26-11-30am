@@ -1286,6 +1286,75 @@ def build_governance_router(db, require_admin_strict):
             "rule_catalog": RULE_CATALOG,
         }
 
+    # ════════════════════════════════════════════════════════════════
+    # iter379 · Operational Inventory & Guidance Telemetry
+    # ──────────────────────────────────────────────────────────────
+    # Extracted from server.py L652-L721 (operational inventory routes +
+    # guidance search-misses). All admin-strict. Pure registry inspection
+    # for the inventory routes; DB read + aggregation for search-misses.
+    # ════════════════════════════════════════════════════════════════
+
+    @router.get("/api/admin/operational-inventory",
+                dependencies=[Depends(require_admin_strict)])
+    async def admin_operational_inventory():
+        """Full operational inventory snapshot: portals × user types ×
+        public routes × workflows × translation readiness × drift.
+
+        Read-only; pure registry inspection; never touches DB."""
+        from governance.inventory import compute_full_inventory  # noqa: PLC0415
+        return compute_full_inventory()
+
+    @router.get("/api/admin/operational-inventory/portals",
+                dependencies=[Depends(require_admin_strict)])
+    async def admin_operational_inventory_portals():
+        """Portal-only matrix (10-field coverage per portal). Lightweight
+        endpoint for the 'Portals' tab on the dashboard."""
+        from governance.inventory import compute_portal_matrix  # noqa: PLC0415
+        return {"portals": compute_portal_matrix()}
+
+    @router.get("/api/admin/operational-inventory/translation",
+                dependencies=[Depends(require_admin_strict)])
+    async def admin_operational_inventory_translation():
+        """Translation-readiness snapshot (system-wide aggregates + per
+        section + per scope). Tracks Pass 3 progress as body_es lands."""
+        from governance.inventory import compute_translation_readiness  # noqa: PLC0415
+        return compute_translation_readiness()
+
+    @router.get("/api/admin/operational-inventory/drift",
+                dependencies=[Depends(require_admin_strict)])
+    async def admin_operational_inventory_drift():
+        """Drift signal: portals/articles/routes/workflows missing required
+        coverage fields. Severity-tagged for triage."""
+        from governance.inventory import compute_drift  # noqa: PLC0415
+        return compute_drift()
+
+    @router.get("/api/admin/guidance/search-misses",
+                dependencies=[Depends(require_admin_strict)])
+    async def admin_guidance_search_misses(limit: int = 100):
+        """List recent zero-result guidance searches. Operational gap-intel.
+
+        Returns the most-recent {limit} miss rows, plus an aggregated count
+        of distinct queries (case-folded) so the highest-demand gaps surface
+        first.
+        """
+        safe_limit = max(1, min(int(limit or 100), 500))
+        cursor = db.guidance_search_misses.find(
+            {}, {"_id": 0}
+        ).sort("ts", -1).limit(safe_limit)
+        rows = await cursor.to_list(safe_limit)
+        # Aggregate by normalized query
+        agg: dict = {}
+        for r in rows:
+            key = (r.get("query") or "").strip().lower()
+            if not key:
+                continue
+            agg[key] = agg.get(key, 0) + 1
+        top = sorted(
+            ({"query": k, "count": v} for k, v in agg.items()),
+            key=lambda x: -x["count"],
+        )
+        return {"recent": rows, "top": top[:50], "count": len(rows)}
+
     return router
 
 

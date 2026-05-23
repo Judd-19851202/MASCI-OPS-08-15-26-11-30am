@@ -1,6 +1,43 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter378 + iter379 · Phase 4D continued ✅
+
+### iter378 · PM auth-lifecycle extraction
+Extended `routes/pm_routes.py` with 5 auth-lifecycle routes (`/pm/login`, `/pm/forgot-password`, `/pm/reset-password`, `/pm/change-password`, `/pm/logout`) via a `login_deps` dict that passes the 9 server.py module-level helpers (IP lockout, directory admin fallback, session activity helpers, render_portal_email). **341 LOC removed from server.py.** Behavior byte-identical (verified: wrong-pw 401 "Wrong email or password", anti-enumeration generic 200 on forgot, invalid-token 400 on reset, per-PM session required for change-password, audit event on logout). Body models (PMLoginBody/PMChangePasswordBody/PMForgotPasswordBody/PMResetPasswordBody) moved with them. 18/18 new regression tests PASS.
+
+### iter379 · Governance & operational inventory extraction
+Extended `routes/governance.py` with 4 operational inventory routes + the guidance search-misses telemetry endpoint. All admin-strict gated; pure delegation to `governance.inventory` module + simple DB read/aggregation. **61 LOC removed from server.py.** 12/12 new regression tests PASS.
+
+### Phase 4D cumulative progress
+- **server.py: 12,259 → 11,663 LOC (−596 LOC, −4.9%)** across 3 iterations.
+- **Cumulative regression: 171 → 201 PASS** in ~101s.
+- **Zero permission drift. Zero behavior drift. Zero auth-flow regressions.**
+
+### Files touched
+- `/app/backend/routes/pm_routes.py` — extended factory with `login_deps` kwarg + 5 auth-lifecycle routes + 4 body models.
+- `/app/backend/server.py` — removed 5 PM-portal route handlers + 4 body models + 4 operational-inventory routes + 1 guidance route. Total: 596 LOC removed across iter378+iter379.
+- `/app/backend/routes/governance.py` — appended 5 new routes inside existing factory.
+- `/app/backend/tests/test_iter377_pm_routes_extraction.py` — updated source guard (iter378 extracted what iter377 deferred).
+- `/app/backend/tests/test_iter378_pm_auth_extraction.py` — NEW (18 tests).
+- `/app/backend/tests/test_iter379_governance_extraction.py` — NEW (12 tests).
+- `/app/memory/PHASE4D_EXTRACTION_TRACKER.md` — updated.
+
+### Next iteration roadmap
+- 🟨 **iter380** · Notifications routes (`/api/notifications/*`, ~400 LOC) — low risk.
+- 🟨 **iter381** · Shared lookup services (`/api/master-lookup/*`, ~500 LOC) — low risk.
+- 🟫 **iter382+** · Remaining route families (daily reports, inspections, JHAs, employee CRUD, audit endpoints) — incrementally with parity locks.
+- **Architectural goal**: shrink server.py from 11,663 LOC to <4,000 LOC across 4–6 more iterations.
+
+### Operator P0 still pending
+- Set `MFA_ENCRYPTION_KEY` in production env.
+- Execute the 10-item deploy checklist in `PHASE4B_OPERATOR_HANDOFF.md`.
+- Smoke-test MFA enrollment in pre-prod before announcing to staff.
+
+---
+
+
+
 ## 2026-05-23 — iter377 · Phase 4D iteration 1 · PM read-only routes extraction ✅
 
 ### Outcome

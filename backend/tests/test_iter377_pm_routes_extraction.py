@@ -242,8 +242,18 @@ class TestExtractionFoundation:
             )
 
     def test_server_py_still_owns_non_extracted_pm_routes(self):
-        """iter378 candidates — must remain in server.py until then."""
+        """iter377-locked baseline. Updated in iter378: ALL 5 PM auth-
+        lifecycle routes (/pm/login, /pm/forgot-password, /pm/reset-password,
+        /pm/change-password, /pm/logout) have now been extracted as well.
+        The ONLY remaining PM-related route in server.py is the
+        admin-side set-password route, which belongs to the admin family
+        and is not a PM-portal endpoint."""
         src = Path("/app/backend/server.py").read_text()
+        # Admin-side PM management route still here.
+        assert '@api_router.post("/admin/project-managers/{pm_id}/set-password")' in src, (
+            "admin set-password route must remain in server.py (admin family)"
+        )
+        # All 5 PM-portal auth routes are now in pm_routes.py.
         for path_marker in [
             '@api_router.post("/pm/login")',
             '@api_router.post("/pm/forgot-password")',
@@ -251,8 +261,8 @@ class TestExtractionFoundation:
             '@api_router.post("/pm/change-password")',
             '@api_router.post("/pm/logout")',
         ]:
-            assert path_marker in src, (
-                f"{path_marker} unexpectedly missing from server.py"
+            assert path_marker not in src, (
+                f"{path_marker} re-introduced in server.py — iter378 extraction must hold"
             )
 
     def test_server_py_no_longer_owns_crew_helper(self):

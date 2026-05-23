@@ -13,13 +13,15 @@ This file tracks one-route-family-at-a-time extraction from server.py. Each iter
 
 ## server.py size watch
 
-| Iteration | Lines | Δ |
-|---|---|---|
-| Pre-iter370 baseline | ~12,230 | — |
-| iter375 (MFA wiring added) | 12,259 | +29 |
-| **iter377 (PM read-only extraction)** | **12,065** | **−194** |
+| Iteration | Lines | Δ | Cumulative |
+|---|---|---|---|
+| Pre-iter370 baseline | ~12,230 | — | — |
+| iter375 (MFA wiring added) | 12,259 | +29 | +29 |
+| iter377 (PM read-only extraction) | 12,065 | −194 | −165 |
+| **iter378 (PM auth-lifecycle extraction)** | **11,724** | **−341** | **−506** |
+| **iter379 (Governance inventory + guidance telemetry)** | **11,663** | **−61** | **−567** |
 
-First measurable reduction. Pattern proven safe.
+Pattern proven safe across 3 iterations. Cumulative regression: **201/201 PASS** (was 171 pre-iter378, +18 iter378 + 12 iter379).
 
 ---
 
@@ -54,33 +56,66 @@ First measurable reduction. Pattern proven safe.
 
 ---
 
-### iter378 · PM auth lifecycle routes (planned)
+### iter378 · PM auth-lifecycle routes · ✅ COMPLETE
 
-**Candidates** (login/logout/password lifecycle — must move as a unit because of shared coupling):
-- `/pm/login` (uses `_check_login_lockout`, `_record_login_failure`, `_directory_admin_token`)
-- `/pm/forgot-password`
-- `/pm/reset-password`
-- `/pm/change-password`
-- `/pm/logout` (uses `_clear_session_activity`)
+**Extracted from server.py → routes/pm_routes.py (extended factory):**
+- `POST /pm/login` (per-PM bcrypt + legacy shared-pw + universal super-admin fallback)
+- `POST /pm/forgot-password` (Resend email + 30-min HMAC token; anti-enumeration generic response)
+- `POST /pm/reset-password` (token consumption + fresh per-PM token issued)
+- `POST /pm/change-password` (PM self-service rotation, requires per-PM session)
+- `POST /pm/logout` (audit + session_activity clearance)
+- Body models: PMLoginBody, PMChangePasswordBody, PMForgotPasswordBody, PMResetPasswordBody
 
-**Strategy:**
-- Pass shared helpers (`_client_ip`, `_check_login_lockout`, `_record_login_failure`, `_directory_admin_token`, `_clear_session_activity`) as factory kwargs to `build_pm_router` (already extracted) and extend it with login routes.
-- Alternative: separate `routes/pm_auth_routes.py` to keep concerns split.
-- Add parity lock covering: login success, login wrong password, lockout after N failures, directory super-admin fallback, change-password rotation, logout audit event.
+**Coupling resolved via `login_deps` dict** passed to `build_pm_router`:
+- `client_ip_fn`, `check_login_lockout_fn`, `record_login_fail_fn`, `reset_login_fails_fn`
+- `directory_admin_token_fn` (universal super-admin fallback)
+- `reset_session_activity_fn`, `clear_session_activity_fn`
+- `pm_token_for_fn`, `render_portal_email_fn`
 
-**Risk**: medium — login surface is high-traffic and has subtle directory fallback behavior. Recommend dedicated iteration.
+**Why a deps dict instead of 9 positional kwargs:** keeps the factory signature manageable + makes it explicit which routes are auth-lifecycle vs read-only.
+
+**Behavior preserved:**
+- Wrong email/password → 401 "Wrong email or password" (exact string).
+- Disabled PM → 403.
+- PM with no password → 403 "No password set...".
+- No email + SHARED_LOGIN disabled → 400 "Email is required.".
+- IP lockout still triggers identically.
+- Universal super-admin fallback (iter346-B) still mints admin token when directory user matches.
+- /pm/forgot-password always returns generic success (anti-enumeration).
+
+**Regression**: `tests/test_iter378_pm_auth_extraction.py` — 18/18 PASS.
+- 4 functional /pm/login tests.
+- 2 forgot-password tests (generic success regardless of email).
+- 2 reset-password tests (invalid token, short password).
+- 2 change-password tests (auth required, admin session rejected).
+- 2 logout tests (auth required, admin session accepted).
+- 7 source-level guards (handlers moved, body models moved, server.py no longer owns 5 decorators, login_deps wired, admin set-password still in server.py).
+
+**Live smoke**: All 5 routes respond identically pre/post extraction (wrong-pw 401, no-email 400 or 423 lockout, forgot/reset behavior identical).
 
 ---
 
-### iter379 · Governance routes (planned)
+### iter379 · Governance & Operational Inventory routes · ✅ COMPLETE
 
-**Candidates**: `/api/governance/*` (~600 LOC).
-**Coupling**: low (governance has its own module `governance/inventory.py`).
-**Risk**: low.
+**Extracted from server.py → routes/governance.py (extended existing factory):**
+- `GET /api/admin/operational-inventory` — full system snapshot (compute_full_inventory)
+- `GET /api/admin/operational-inventory/portals` — portal × 10-field matrix
+- `GET /api/admin/operational-inventory/translation` — ES translation readiness
+- `GET /api/admin/operational-inventory/drift` — coverage drift signal
+- `GET /api/admin/guidance/search-misses` — zero-result search telemetry + aggregation
+
+**Why these 5: extremely low coupling.** Pure delegation to `governance.inventory` (4 routes) + a simple `db.guidance_search_misses` read + aggregation (1 route). All admin-strict gated. Zero state mutation.
+
+**Regression**: `tests/test_iter379_governance_extraction.py` — 12/12 PASS.
+- 3 functional parity tests (admin unlocks, anon denied, dispatch token rejected for cross-portal isolation).
+- 5 response-shape tests (one per route).
+- 4 source-level guards (5 handlers in new file, 5 gone from server.py, governance router still mounted, pre-existing compliance routes preserved).
+
+**Live smoke**: All 5 routes return 200 with admin token, 401 without.
 
 ---
 
-### iter380 · Notifications routes (planned)
+### iter380+ · Notifications routes (planned next)
 
 **Candidates**: `/api/notifications/*` (~400 LOC).
 **Coupling**: low (`notifications` helper module already exists).
