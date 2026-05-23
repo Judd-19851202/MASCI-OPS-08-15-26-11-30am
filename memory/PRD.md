@@ -2,6 +2,84 @@
 
 
 
+## 2026-05-23 — Phase 1 Operational Convergence (iter353d · iter353e · iter353f) · ✅ APPROVE
+
+### Operator P0 (cross-portal visibility convergence · no write expansion)
+Closes the Tier-1 gaps surfaced by the hostile audit: FL is no longer "DQ-rich, training/PPE-blind"; PM has scoped compliance visibility for their crews; HR has direct OSHA / labor reach. Strictly read-only — no governance authority shifted; no source-of-truth duplication. Three iters, one combined ship.
+
+### iter353d · FL Operational Accountability Expansion
+**Backend (`routes/field_leadership_portal.py` +95 LOC):**
+- `GET /api/field-leadership/portal/employee/{id}/snapshot` — compact accountability payload (CDL/medical readiness · training currency · PPE · 1y incident count · expired/expiring counts · readiness predicate). FL token only.
+- `GET /api/field-leadership/portal/incidents-recent` — read-only 14-day default (max 90d) incidents window.
+- `GET /api/field-leadership/portal/notifications-recent` — FL situational awareness on `recipient_role in (fl, safety, pm)` notifications.
+
+**Frontend:**
+- **NEW** `/app/frontend/src/components/FlAccountabilityWidget.jsx` (185 LOC) — calm operational readiness card. Readiness badge (Dispatchable / Not dispatchable) · CDL/Medical/Approved/Status rows · training/PPE/expiring/expired counts · 1y incident count · expired-items rose strip · `Open full accountability timeline →` deep link.
+- **Mounted on TWO surfaces** (operator-explicit 1c):
+  - FL Driver Readiness page (`/field-leadership/portal/driver-qualification`) — row click opens a right-side drawer (`fl-widget-drawer`).
+  - FL Dashboard (`/field-leadership/portal`) — new `fl-card-acct-lookup` card with search + result picker + inline widget.
+- Shared `DriverQualificationReadOnlyView.jsx` extended with optional `onRowClick` prop (zero impact on Dispatch usage).
+
+### iter353e · PM Crew Compliance Lens
+**Backend (`server.py` +175 LOC):**
+- **Project-scoped crew resolver** (operator-explicit 3a): every employee name appearing on a daily report submitted under PM's assigned projects in the last 180 days. Admin token bypasses the scope (`scope="admin_all"`).
+- `GET /api/pm/crew/training-records` · `GET /api/pm/crew/ppe` · `GET /api/pm/crew/capas` · `GET /api/pm/crew/summary` — scoped read with `{ok, items, count, scope, crew_size}` shape. Summary returns expiring_30d / expired / open_capas / ppe_records counts for the PM's crew.
+
+### iter353f · HR OSHA & Labor Reach
+**Backend (`routes/hr_portal.py` +85 LOC):**
+- `GET /api/hr/incidents` — windowed (1-1825 days · default 365 for OSHA 300) · severity + status filters · `q` search across person/project/description. Summary returns `total_in_window`, `recordable_in_window`, `open_in_window`.
+- `GET /api/hr/corrective-actions` — HR read-only CAPA list with open-count summary.
+- (`/api/hr/daily-reports` already existed — iter353f relies on pre-existing iter332 endpoint, no duplicate created.)
+
+**Frontend (operator-explicit 2a · full dedicated page):**
+- **NEW** `/app/frontend/src/pages/HrIncidents.jsx` (200 LOC) at route `/hr/incidents`. 4 summary tiles · 4 filters (search · window · severity · status) · table with date/person/project/severity/status/description · **CSV export** of the filtered view.
+
+### RBAC matrix (live-verified)
+| Endpoint | HR | Safety | PM | FL | Admin | Anon |
+|---|---|---|---|---|---|---|
+| FL `/employee/{id}/snapshot` | ❌ | ❌ | ❌ | ✅ | (via super) | ❌ |
+| FL `/incidents-recent` | ❌ | ❌ | ❌ | ✅ | (via super) | ❌ |
+| PM `/pm/crew/*` | ❌ | ❌ | ✅ | ❌ | ✅ admin_all | ❌ |
+| HR `/hr/incidents` · `/hr/corrective-actions` | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
+
+### Tests · Phase 1
+- **NEW** `/app/backend/tests/test_iter353def_phase1_convergence.py` — 34/34 PASS across 4 test classes (FL snapshot · FL incidents/notifications · PM crew lens · HR OSHA reach + frontend wiring locks).
+- **Testing agent v3 verdict:** Backend 100% (34/34) · Frontend 100% (FL lookup card flow · FL DQ drawer flow · HR Incidents tiles+filters+search+window change+severity+CSV download) · Production drift confirmed at 404 for new endpoints.
+- **Cumulative iter350 + iter352 + iter353a + iter353a-UI + iter353b + iter353b-availability + iter353c + iter353d/e/f: 123/123 PASS**.
+
+### Pre-deploy operator checklist
+**NEW** `/app/memory/PRE_REDEPLOY_CHECKLIST.md` — 5-minute, non-engineer-runnable smoke covering pre-deploy validation, sequence, smoke probes (404→401 flip on 8 endpoints), per-portal login checks, role-based UI verification (D1-D5), mobile + ES parity, and rollback procedure.
+
+### Boundaries enforced
+- ✅ Strictly read-only — no write peers added.
+- ✅ Source-of-truth respected — every new endpoint queries existing collections.
+- ✅ No portal gained any write/edit/delete authority.
+- ✅ Shared FL widget contains zero axios.post/patch/delete.
+- ❌ NO Phase 2 work executed (Compliance Gap Detector · Governance Health Tile · Dispatch movement reconciliation queued).
+- ❌ NO Phase 3 work executed (auth consolidation · MFA · linkage enforcement · closeout ladder enforcement queued).
+
+### Files touched (Phase 1)
+- MOD · `/app/backend/routes/field_leadership_portal.py` (+95 LOC · 3 FL endpoints + import re/timedelta)
+- MOD · `/app/backend/server.py` (+175 LOC · 4 PM crew endpoints + `_pm_crew_employee_names` helper · Query import)
+- MOD · `/app/backend/routes/hr_portal.py` (+85 LOC · 2 HR endpoints — incidents + CAPAs)
+- NEW · `/app/frontend/src/components/FlAccountabilityWidget.jsx` (185 LOC)
+- NEW · `/app/frontend/src/pages/HrIncidents.jsx` (200 LOC)
+- MOD · `/app/frontend/src/pages/FieldLeadershipDriverQualification.jsx` (drawer + SheetTitle a11y fix)
+- MOD · `/app/frontend/src/pages/FieldLeadershipPortalDashboard.jsx` (inline FlAccountabilityLookup component + lookup card)
+- MOD · `/app/frontend/src/components/DriverQualificationReadOnlyView.jsx` (+onRowClick prop · backward-compatible default null)
+- MOD · `/app/frontend/src/App.js` (+1 route)
+- NEW · `/app/backend/tests/test_iter353def_phase1_convergence.py` (34 tests · all green)
+- NEW · `/app/memory/PRE_REDEPLOY_CHECKLIST.md`
+- DOC · `/app/memory/PRD.md`
+
+### Minor follow-ups queued (non-blocking · testing-agent noted)
+- FL Dashboard `<main>` wrapper has a small horizontal overflow at 390px width — pre-existing dashboard layout, NOT introduced by this iter. Sweep `overflow-x` on the FL dashboard outer wrapper in a polish iter.
+
+### Verdict
+✅ **APPROVE.** Phase 1 of the Final Operational Convergence Implementation Program is operationally complete. The three highest-impact cross-portal visibility gaps from the hostile audit are closed. The platform is ready for the production redeploy that unlocks all 24 bounded iters from iter330 → iter353c · iter353b · iter353b-availability · iter353d/e/f.
+
+
+
 ## 2026-05-23 — FINAL ENTERPRISE OPERATIONAL CONTINUITY + CONVERGENCE AUDIT · ✅ COMPLETE
 
 ### Operator P0 (hostile workflow verification — NOT a QA pass)

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, HardHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { MasciLogo } from "@/components/MasciLogo";
 import DriverQualificationReadOnlyView from "@/components/DriverQualificationReadOnlyView";
 import FlAccountabilityWidget from "@/components/FlAccountabilityWidget";
@@ -49,6 +49,7 @@ export default function FieldLeadershipDriverQualification() {
       {/* iter353d · accountability mini-widget drawer */}
       <Sheet open={!!drawerEmp} onOpenChange={(v) => !v && setDrawerEmp(null)}>
         <SheetContent side="right" className="w-full sm:max-w-md p-0" data-testid="fl-widget-drawer">
+          <SheetTitle className="sr-only">Employee Accountability</SheetTitle>
           {drawerEmp ? (
             <div className="p-4 h-full overflow-y-auto">
               <FlAccountabilityWidget employeeId={drawerEmp.id} onClose={() => setDrawerEmp(null)} />
