@@ -4125,6 +4125,13 @@ const ES = {
 
   // iter364 · FL records linkage indicator strings.
   "Saved as free-text. This will appear as an EMP_LINK_UNRESOLVABLE finding in Governance Health until you either pick from the roster or add this person to the employee master.": "Guardado como texto libre. Aparecerá como hallazgo EMP_LINK_UNRESOLVABLE en Salud de Gobernanza hasta que selecciones del roster o agregues a esta persona al maestro de empleados.",
+
+  // iter367 · LifecycleGuide retrofit · HR Incidents.
+  "HR · OSHA & Labor": "RR. HH. · OSHA y Laboral",
+  "How HR sees incidents": "Cómo ve RR. HH. los incidentes",
+  "Read-only view across the OSHA window. Closeout and CAPA action happen in the Safety portal.": "Vista de solo lectura sobre la ventana de OSHA. El cierre y la acción CAPA ocurren en el portal de Seguridad.",
+  "HR owns OSHA recordkeeping and labor-side accountability. Spotting a recordable here triggers the 300/301 workflow even though the incident itself is owned by Safety.": "RR. HH. es responsable del registro OSHA y la rendición de cuentas laboral. Detectar un caso registrable aquí dispara el flujo 300/301 aunque el incidente sea propiedad de Seguridad.",
+  "Every row links straight to the original Safety incident. If something looks wrong, fix it in Safety — this view aggregates and never edits.": "Cada fila enlaza directamente con el incidente original en Seguridad. Si algo se ve incorrecto, corrígelo en Seguridad — esta vista agrega y nunca edita.",
 };
 
 const DICTS = { es: ES, en: {} };

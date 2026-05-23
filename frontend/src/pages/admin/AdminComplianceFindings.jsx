@@ -18,6 +18,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import AdminShell from "@/components/AdminShell";
+import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { usePageTitle } from "@/lib/usePageTitle";
@@ -156,6 +157,21 @@ export default function AdminComplianceFindings() {
       }
     >
       <div className="space-y-4 mt-5" data-testid="admin-compliance-findings">
+        {/* iter367 · operational coaching uniformity — short, field-direct.
+            Admin page convention is English-only (no t() wrapper), matching
+            the rest of /admin/*. */}
+        <LifecycleGuide
+          id="admin-compliance-findings"
+          icon={AlertOctagon}
+          accent="rose"
+          title="How findings work"
+          summary="Live contradictions detected across portals. Acknowledge to silence; resolve to mark fixed in source."
+          sections={[
+            { label: "Why this matters", body: "Each finding maps to a specific detector rule (CAPA overdue, identity drift, expired CDL, etc). A clean board here means cross-portal accountability is healthy." },
+            { label: "Lifecycle", body: "Open → Acknowledged (silenced, still visible) → Resolved (marked fixed). Findings auto-disappear when the underlying condition is corrected at the source." },
+          ]}
+        />
+
         {/* Filter bar */}
         <div className="bg-white border border-slate-200 rounded-md p-3 space-y-3" data-testid="findings-filter-bar">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">

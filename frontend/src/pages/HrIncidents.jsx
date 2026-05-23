@@ -17,6 +17,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { getHrToken } from "@/lib/hrAuth";
 import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
+import { LifecycleGuide } from "@/components/LifecycleGuide";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -112,8 +113,22 @@ export default function HrIncidents() {
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-purple-700 font-bold">{t("HR · OSHA & Labor")}</div>
           <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 mt-1">{t("Incidents")}</h1>
-          <p className="text-sm text-slate-600 mt-1">{t("Read-only HR view across the configured window. For closeout and CAPA action, use the Safety portal.")}</p>
+          {/* iter367 · legacy intro paragraph replaced by the LifecycleGuide below
+              to honor the "one coaching surface per page" directive. */}
         </div>
+
+        {/* iter367 · operational coaching uniformity — short, field-direct. */}
+        <LifecycleGuide
+          id="hr-incidents"
+          icon={AlertTriangle}
+          accent="purple"
+          title={t("How HR sees incidents")}
+          summary={t("Read-only view across the OSHA window. Closeout and CAPA action happen in the Safety portal.")}
+          sections={[
+            { label: t("Why this matters"), body: t("HR owns OSHA recordkeeping and labor-side accountability. Spotting a recordable here triggers the 300/301 workflow even though the incident itself is owned by Safety.") },
+            { label: t("Source of truth"), body: t("Every row links straight to the original Safety incident. If something looks wrong, fix it in Safety — this view aggregates and never edits.") },
+          ]}
+        />
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="hr-inc-summary">
           <SummaryCard icon={FileText} label={t("In window")} value={data.summary?.total_in_window ?? 0} tint="slate" testid="hr-inc-tile-total" />
