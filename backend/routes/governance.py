@@ -65,6 +65,12 @@ RULE_CATALOG: Dict[str, Dict[str, str]] = {
     "CAPA_OVERDUE":     {"category": "capa",     "severity": "high",     "title": "CAPA past due date"},
     "EMP_ARCHIVED_ACTIVE": {"category": "employee", "severity": "medium", "title": "Archived employee still flagged active"},
     "EMP_DUP_NAMES":    {"category": "employee", "severity": "low",      "title": "Duplicate active employee names"},
+    # iter355 — Operator ↔ Employee Linkage Enforcement (Phase 2 P2).
+    # Surfaces free-text employee references that cannot be linked to a
+    # canonical employee, or that map ambiguously to multiple employees.
+    "EMP_LINK_UNRESOLVABLE": {"category": "linkage", "severity": "high",   "title": "Employee name on records does not match any active employee"},
+    "EMP_LINK_AMBIGUOUS":    {"category": "linkage", "severity": "high",   "title": "Employee name on records matches multiple active employees"},
+    "EMP_LINK_MISSING_ID":   {"category": "linkage", "severity": "medium", "title": "Record stores employee_name but no employee_id (backfillable)"},
 }
 
 
@@ -409,6 +415,259 @@ async def _detect_employee_anomalies(db) -> List[Dict[str, Any]]:
     return out
 
 
+# ---------------------------------------------------------------------------
+# iter355 — Operator ↔ Employee Linkage Enforcement (Phase 2 P2).
+#
+# Free-text employee references across operational records (training,
+# PPE issuance, CAPAs, incident person-involved, daily-report crew rosters)
+# are the highest-risk identity-drift surface on the platform. This
+# detector resolves every distinct employee name found across those
+# collections against the active employee master, then classifies each
+# distinct name as:
+#   - linked         : matches exactly one active employee → optional backfill candidate
+#   - ambiguous      : matches >1 active employees → operator must disambiguate
+#   - unresolvable   : matches 0 active employees → likely typo / archived / stale
+#
+# One finding per problematic name (NOT per record) — keeps the dashboard
+# focused on the identity gap, with the source dict enumerating affected
+# collections + record counts so admins know what to clean up.
+# ---------------------------------------------------------------------------
+
+# Each entry: (collection, name_fields[], id_field, kind_label)
+# id_field is the column we'd backfill when name → unique active employee.
+LINKAGE_SOURCES = [
+    ("safety_training_records", ["employee_name"],                                  "employee_id",  "training"),
+    ("safety_equipment_issuances", ["employee_name"],                               "employee_id",  "ppe"),
+    ("corrective_actions",      ["linked_employee_name", "employee_name"],          "employee_id",  "capa"),
+    ("incidents",               ["person_name", "person_involved"],                 "employee_id",  "incident"),
+]
+
+
+def _norm_name(s: Any) -> str:
+    if not isinstance(s, str):
+        return ""
+    return " ".join(s.strip().lower().split())
+
+
+async def _detect_employee_linkage(db) -> List[Dict[str, Any]]:
+    """EMP_LINK_UNRESOLVABLE · EMP_LINK_AMBIGUOUS · EMP_LINK_MISSING_ID.
+
+    Walks the linkage sources above, builds an in-memory name → {collection: count}
+    map, then classifies each name against the active-employee master.
+    """
+    out: List[Dict[str, Any]] = []
+
+    # Step 1 — build the active employee master index. We map normalized
+    # name → list of employee documents (need the list so we can detect
+    # ambiguous matches).
+    name_index: Dict[str, List[Dict[str, Any]]] = {}
+    async for emp in db.employees.find(
+        {"deleted_at": None, "is_active": {"$ne": False}},
+        {"_id": 0, "id": 1, "name": 1},
+    ).limit(5000):
+        n = _norm_name(emp.get("name"))
+        if not n:
+            continue
+        name_index.setdefault(n, []).append(emp)
+
+    # Step 2 — walk every linkage source and tally records per normalized name.
+    # name_evidence: {norm_name: {"raw": "best raw spelling",
+    #                              "collections": {"training": N, ...},
+    #                              "missing_id_count": N}}
+    name_evidence: Dict[str, Dict[str, Any]] = {}
+
+    for coll_name, name_fields, id_field, kind in LINKAGE_SOURCES:
+        # Project the fields we need + the id field for the missing-id signal.
+        proj = {"_id": 0, id_field: 1}
+        for f in name_fields:
+            proj[f] = 1
+        async for doc in db[coll_name].find({}, proj).limit(20000):
+            # Collect any name candidate from this doc (a record might have
+            # multiple name fields like linked_employee_name + employee_name).
+            raw_candidates: List[str] = []
+            for f in name_fields:
+                v = doc.get(f)
+                if isinstance(v, str) and v.strip():
+                    raw_candidates.append(v.strip())
+            if not raw_candidates:
+                continue
+            id_present = bool(doc.get(id_field))
+            # Use the first non-empty candidate as the canonical raw.
+            raw = raw_candidates[0]
+            n = _norm_name(raw)
+            if not n:
+                continue
+            slot = name_evidence.setdefault(n, {
+                "raw": raw, "collections": {}, "missing_id_count": 0,
+            })
+            slot["collections"][kind] = slot["collections"].get(kind, 0) + 1
+            if not id_present:
+                slot["missing_id_count"] += 1
+
+    # Step 3 — classify each distinct name found across operational records.
+    for n, ev in name_evidence.items():
+        matches = name_index.get(n, [])
+        raw = ev["raw"]
+        total_records = sum(ev["collections"].values())
+        coll_summary = ", ".join(
+            f"{k}={v}" for k, v in sorted(ev["collections"].items())
+        )
+
+        if len(matches) == 0:
+            out.append({
+                "rule_id": "EMP_LINK_UNRESOLVABLE",
+                "entity_kind": "linkage",
+                "entity_id": f"unresolvable:{n}",
+                "entity_name": raw,
+                "description": (
+                    f"'{raw}' appears on {total_records} operational record"
+                    f"{'s' if total_records != 1 else ''} ({coll_summary}) but does "
+                    f"not match any active employee. Likely typo, archived person, "
+                    f"or subcontractor not in the employee master."
+                ),
+                "source": {
+                    "name_norm": n, "raw": raw,
+                    "collections": ev["collections"],
+                    "record_count": total_records,
+                },
+            })
+        elif len(matches) > 1:
+            ids = [m.get("id", "") for m in matches if m.get("id")]
+            out.append({
+                "rule_id": "EMP_LINK_AMBIGUOUS",
+                "entity_kind": "linkage",
+                "entity_id": f"ambiguous:{n}",
+                "entity_name": raw,
+                "description": (
+                    f"'{raw}' appears on {total_records} record"
+                    f"{'s' if total_records != 1 else ''} ({coll_summary}) but "
+                    f"matches {len(matches)} active employees. Cannot safely "
+                    f"backfill — operator must disambiguate."
+                ),
+                "source": {
+                    "name_norm": n, "raw": raw,
+                    "matched_employee_ids": ids,
+                    "match_count": len(matches),
+                    "collections": ev["collections"],
+                    "record_count": total_records,
+                },
+            })
+        else:
+            # Unique linkable name. Only flag if at least one record is
+            # missing its employee_id — those are the backfill candidates.
+            if ev["missing_id_count"] > 0:
+                emp = matches[0]
+                out.append({
+                    "rule_id": "EMP_LINK_MISSING_ID",
+                    "entity_kind": "linkage",
+                    "entity_id": f"missing_id:{n}",
+                    "entity_name": raw,
+                    "description": (
+                        f"'{raw}' is uniquely linkable to {emp.get('name') or raw} "
+                        f"(employee_id={emp.get('id')}) but {ev['missing_id_count']} "
+                        f"record{'s' if ev['missing_id_count'] != 1 else ''} "
+                        f"({coll_summary}) still store the name without the id. "
+                        f"Backfillable via POST /api/admin/compliance/backfill-employee-links."
+                    ),
+                    "source": {
+                        "name_norm": n, "raw": raw,
+                        "target_employee_id": emp.get("id"),
+                        "missing_id_count": ev["missing_id_count"],
+                        "collections": ev["collections"],
+                    },
+                })
+    return out
+
+
+async def _backfill_employee_links(db, dry_run: bool = True) -> Dict[str, Any]:
+    """Resolve every uniquely-linkable employee name on operational records
+    and set the employee_id column where it is missing/empty. Returns
+    per-collection update counts.
+
+    Safe by default — dry_run=True returns the would-be counts without
+    mutating. Setting dry_run=False mutates the records.
+    """
+    # Re-resolve the active employee master inline (we cannot trust the
+    # detector having run recently — backfill must be a stand-alone call).
+    name_index: Dict[str, str] = {}
+    dup_names: set = set()
+    async for emp in db.employees.find(
+        {"deleted_at": None, "is_active": {"$ne": False}},
+        {"_id": 0, "id": 1, "name": 1},
+    ).limit(5000):
+        n = _norm_name(emp.get("name"))
+        emp_id = emp.get("id")
+        if not (n and emp_id):
+            continue
+        if n in name_index and name_index[n] != emp_id:
+            dup_names.add(n)
+        name_index[n] = emp_id
+    # Drop ambiguous names so we never mis-link them.
+    for n in dup_names:
+        name_index.pop(n, None)
+
+    per_collection: Dict[str, Dict[str, int]] = {}
+
+    for coll_name, name_fields, id_field, _kind in LINKAGE_SOURCES:
+        scanned = 0
+        backfilled = 0
+        skipped_no_match = 0
+        skipped_ambiguous = 0
+        proj = {"_id": 0, "id": 1, id_field: 1}
+        for f in name_fields:
+            proj[f] = 1
+        cursor = db[coll_name].find({}, proj).limit(20000)
+        async for doc in cursor:
+            scanned += 1
+            if doc.get(id_field):
+                continue  # already linked
+            # Pick the first non-empty name we find.
+            name_raw = ""
+            for f in name_fields:
+                v = doc.get(f)
+                if isinstance(v, str) and v.strip():
+                    name_raw = v.strip()
+                    break
+            if not name_raw:
+                continue
+            n = _norm_name(name_raw)
+            target = name_index.get(n)
+            if not target:
+                # Could be unresolvable or ambiguous.
+                if n in dup_names:
+                    skipped_ambiguous += 1
+                else:
+                    skipped_no_match += 1
+                continue
+            doc_pk = doc.get("id")
+            if not doc_pk:
+                continue
+            if not dry_run:
+                await db[coll_name].update_one(
+                    {"id": doc_pk},
+                    {"$set": {id_field: target,
+                              "linkage_backfilled_at": _now_iso()}},
+                )
+            backfilled += 1
+        per_collection[coll_name] = {
+            "scanned": scanned, "backfilled": backfilled,
+            "skipped_no_match": skipped_no_match,
+            "skipped_ambiguous": skipped_ambiguous,
+        }
+
+    total_backfilled = sum(
+        v["backfilled"] for v in per_collection.values()
+    )
+    return {
+        "ok": True,
+        "dry_run": dry_run,
+        "total_backfilled": total_backfilled,
+        "active_unique_names": len(name_index),
+        "ambiguous_names_skipped": len(dup_names),
+        "per_collection": per_collection,
+    }
+
+
 DETECTORS = [
     _detect_driver_expirations,
     _detect_training_expired,
@@ -416,6 +675,7 @@ DETECTORS = [
     _detect_capa_overdue,
     _detect_incident_closed_capa_open,
     _detect_employee_anomalies,
+    _detect_employee_linkage,
 ]
 
 
@@ -557,6 +817,10 @@ class ResolvePayload(BaseModel):
     note: Optional[str] = Field(default=None, max_length=1000)
 
 
+class BackfillPayload(BaseModel):
+    dry_run: bool = Field(default=True)
+
+
 # ---------------------------------------------------------------------------
 # Router factory
 # ---------------------------------------------------------------------------
@@ -569,6 +833,19 @@ def build_governance_router(db, require_admin_strict):
     async def run_scan_endpoint():
         summary = await _run_scan(db)
         return {"ok": True, **summary}
+
+    @router.post("/api/admin/compliance/backfill-employee-links",
+                 dependencies=[Depends(require_admin_strict)])
+    async def backfill_employee_links(body: BackfillPayload):
+        """iter355 · Operator ↔ Employee Linkage Enforcement.
+
+        Sets employee_id on every operational record whose employee_name
+        uniquely resolves to one active employee. Idempotent — records
+        already carrying employee_id are skipped. Ambiguous names are
+        never touched. dry_run=True (default) returns the would-be counts
+        without mutating.
+        """
+        return await _backfill_employee_links(db, dry_run=bool(body.dry_run))
 
     @router.get("/api/admin/compliance/findings",
                 dependencies=[Depends(require_admin_strict)])

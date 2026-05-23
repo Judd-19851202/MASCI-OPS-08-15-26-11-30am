@@ -2,6 +2,54 @@
 
 
 
+## 2026-05-23 — iter355 · Phase 2 P2 — Operator ↔ Employee Linkage Enforcement · ✅ COMPLETE
+
+### Strategic intent
+Highest-risk identity-drift surface on the platform is free-text employee
+references on operational records (training, PPE, CAPAs, incidents, daily
+reports). This iteration adds 3 new detector rules + a backfill endpoint
+that auto-resolves uniquely-linkable identities. Plugs cleanly into the
+existing iter354 governance engine — no new pages, no duplicate systems.
+
+### Backend (`/app/backend/routes/governance.py` extended, +260 LOC)
+- **3 new detector rules** in `RULE_CATALOG`:
+  - `EMP_LINK_UNRESOLVABLE` (high) — employee name on operational records does not match any active employee. Likely typo / archived / subcontractor.
+  - `EMP_LINK_AMBIGUOUS` (high) — name matches >1 active employees; cannot safely backfill.
+  - `EMP_LINK_MISSING_ID` (medium) — uniquely-linkable name on a record that's still storing only the name (no `employee_id`). Backfillable.
+- **`_detect_employee_linkage(db)`** detector walks 4 source collections (`safety_training_records`, `safety_equipment_issuances`, `corrective_actions`, `incidents`) and aggregates evidence per normalized name. One finding per problematic name (not per record) — keeps the dashboard focused on the identity gap with the `source.collections` dict enumerating which collections + how many records.
+- **`_backfill_employee_links(db, dry_run)`** walks the same source collections and sets `employee_id` on records whose `employee_name` uniquely resolves to one active employee. Ambiguous names are never auto-linked. Idempotent — records that already carry an id are skipped. Records get `linkage_backfilled_at` timestamp for forensic continuity.
+- **New endpoint**: `POST /api/admin/compliance/backfill-employee-links` body `{dry_run: bool}` (default true). Returns `{ok, dry_run, total_backfilled, active_unique_names, ambiguous_names_skipped, per_collection: {<coll>: {scanned, backfilled, skipped_no_match, skipped_ambiguous}}}`. Admin-strict.
+
+### Frontend (`/app/frontend/src/pages/admin/AdminGovernance.jsx` extended)
+- New **Employee Linkage Backfill panel** below the rule-table on `/admin/governance`:
+  - Preview (dry-run) + Execute backfill buttons (`data-testid="gov-backfill-dry-run"` / `gov-backfill-execute`).
+  - Live result panel (`gov-backfill-result`) with per-collection stats and a totals header.
+  - "View unresolvable identities" deep-link (`gov-view-unresolvable`) → findings filtered to `EMP_LINK_UNRESOLVABLE`.
+- Linkage detector findings render in the existing `/admin/compliance-findings` list with no UI changes needed — they use the same severity tiles + ack/resolve flow.
+
+### Live preview detection (real signal)
+First scan with the new detector surfaced **7 unique unresolvable identities** aggregating 77 operational records: `'x'` (19 incidents), `'Tester'` (19 incidents), `'TEST Worker A'` (2 incidents), `'TEST_Employee'` (11 PPE), `'TEST_QA38_Email'` (12 PPE), `'TEST_ITER39 Worker'` (13 PPE), `'ITER324_Aging_Test'` (1 PPE). These are mostly test-fixture identities — exactly the kind of cleanup an operator can now systematically work through.
+
+### RBAC
+- `POST /api/admin/compliance/backfill-employee-links` requires `X-Admin-Token` (admin-strict); anon → 401.
+
+### Tests · iter355
+- **NEW** `/app/backend/tests/test_iter355_employee_linkage.py` — **7/7 PASS**:
+  - RBAC: backfill rejects anonymous.
+  - Default body is dry-run (no mutation).
+  - Idempotency: second real run cannot exceed first by more than 2 records.
+  - Detector wiring: `EMP_LINK_*` rules in catalog and findings carry correct severity/category.
+  - Evidence shape: `source.collections` + `source.record_count` populated.
+- **Cumulative regression** (iter353 + iter354 + iter355): **53/53 PASS** in 57s.
+
+### Architectural notes
+- Linkage detector runs in 0.3s against 22k+ operational records — efficient single-pass aggregation, no N+1.
+- Backfill is **safe by default** — `dry_run=true` is the default body. UI surfaces "Preview" prominently so admins can see the impact before committing.
+- The detector intentionally **does not auto-backfill** during scan — backfill is a separate, explicit, idempotent admin action. Preserves the governance principle: detection is automatic; remediation is human-authorized.
+
+---
+
+
 ## 2026-05-23 — iter354 · Phase 2 P0+P1 — Compliance Gap Detector + Governance Health · ✅ COMPLETE
 
 ### Operator P0 (proactive cross-portal contradiction detection)

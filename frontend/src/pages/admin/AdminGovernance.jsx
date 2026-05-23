@@ -16,7 +16,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ShieldCheck, AlertTriangle, AlertOctagon, CheckCircle2, Activity,
-  RefreshCw, ArrowRight, Eye, Clock,
+  RefreshCw, ArrowRight, Eye, Clock, Link2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminShell from "@/components/AdminShell";
@@ -103,6 +103,8 @@ export default function AdminGovernance() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillResult, setBackfillResult] = useState(null);
   const [err, setErr] = useState("");
 
   const load = useCallback(async () => {
@@ -128,6 +130,23 @@ export default function AdminGovernance() {
       setErr(operationalError(e, "Scan failed."));
     } finally {
       setScanning(false);
+    }
+  }, [load]);
+
+  const runBackfill = useCallback(async (dryRun) => {
+    setBackfilling(true); setErr(""); setBackfillResult(null);
+    try {
+      const { data } = await api.post(
+        "/admin/compliance/backfill-employee-links",
+        { dry_run: !!dryRun }
+      );
+      setBackfillResult(data);
+      // Refresh summary if we actually mutated.
+      if (!dryRun) await load();
+    } catch (e) {
+      setErr(operationalError(e, "Backfill failed."));
+    } finally {
+      setBackfilling(false);
     }
   }, [load]);
 
@@ -265,6 +284,55 @@ export default function AdminGovernance() {
               : ""}
           </div>
         ) : null}
+
+        {/* iter355 · Employee linkage backfill panel */}
+        <div className="bg-white border border-slate-200 border-l-4 border-l-indigo-600 rounded-md p-4" data-testid="gov-backfill-panel">
+          <div className="flex items-start gap-3">
+            <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-indigo-600 text-white shrink-0">
+              <Link2 className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-display text-base font-black tracking-tight text-slate-900">Employee Linkage Backfill</h3>
+              <p className="text-xs text-slate-600 mt-1 leading-snug">
+                Walks every operational record (training · PPE · CAPAs · incidents) and writes <code className="font-mono text-[11px]">employee_id</code> on records whose <code className="font-mono text-[11px]">employee_name</code> uniquely resolves to one active employee. Ambiguous names are never auto-linked. Idempotent. Pair with the <code className="font-mono text-[11px]">EMP_LINK_*</code> detector findings above to clean up identity drift.
+              </p>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <Button variant="outline" size="sm" onClick={() => runBackfill(true)} disabled={backfilling} data-testid="gov-backfill-dry-run">
+                  <Link2 className={`w-4 h-4 mr-1.5 ${backfilling ? "animate-spin" : ""}`} />
+                  Preview (dry-run)
+                </Button>
+                <Button size="sm" onClick={() => runBackfill(false)} disabled={backfilling} data-testid="gov-backfill-execute">
+                  <Link2 className={`w-4 h-4 mr-1.5 ${backfilling ? "animate-spin" : ""}`} />
+                  Execute backfill
+                </Button>
+                {backfillResult ? (
+                  <Link to="/admin/compliance-findings?rule_id=EMP_LINK_UNRESOLVABLE">
+                    <Button variant="ghost" size="sm" data-testid="gov-view-unresolvable">
+                      View unresolvable identities <ArrowRight className="w-3 h-3 ml-1" />
+                    </Button>
+                  </Link>
+                ) : null}
+              </div>
+              {backfillResult ? (
+                <div className="mt-3 bg-slate-50 border border-slate-200 rounded p-3 text-xs font-mono text-slate-700 space-y-1" data-testid="gov-backfill-result">
+                  <div>
+                    {backfillResult.dry_run ? "DRY-RUN" : "EXECUTED"} ·
+                    total backfilled: <strong>{backfillResult.total_backfilled}</strong> ·
+                    active unique names: {backfillResult.active_unique_names} ·
+                    ambiguous skipped: {backfillResult.ambiguous_names_skipped}
+                  </div>
+                  {Object.entries(backfillResult.per_collection || {}).map(([k, v]) => (
+                    <div key={k} className="pl-4">
+                      <span className="text-slate-500">{k}:</span>{" "}
+                      scanned {v.scanned} · backfilled <strong>{v.backfilled}</strong> ·
+                      no-match {v.skipped_no_match} · ambiguous {v.skipped_ambiguous}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
       </div>
     </AdminShell>
   );
