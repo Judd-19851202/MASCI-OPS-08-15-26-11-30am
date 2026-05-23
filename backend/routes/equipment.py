@@ -87,6 +87,7 @@ class ShopSignoffPayload(BaseModel):
     section: str
     item: str
     signed_by: str
+    signed_by_employee_id: Optional[str] = ""  # iter364 · canonical roster employee_id on shop sign-off
     notes: Optional[str] = ""
     action_taken: Optional[str] = ""
 
@@ -489,6 +490,7 @@ def register_equipment_routes(
             "section": payload.section,
             "item": payload.item,
             "signed_by": payload.signed_by.strip(),
+            "signed_by_employee_id": (payload.signed_by_employee_id or "").strip(),
             "signed_at": datetime.now(timezone.utc).isoformat(),
             "notes": (payload.notes or "").strip(),
             "action_taken": (payload.action_taken or "").strip(),

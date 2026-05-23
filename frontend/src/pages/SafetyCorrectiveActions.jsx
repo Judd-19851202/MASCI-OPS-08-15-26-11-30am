@@ -30,6 +30,7 @@ import SafetyShell from "@/components/SafetyShell";
 import SafetyCaLinksManager from "@/components/SafetyCaLinksManager";
 import SignatureCapture from "@/components/SignatureCapture";
 import MasterLookupCombobox from "@/components/MasterLookupCombobox";
+import EmployeeRosterField from "@/components/EmployeeRosterField";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { HelpTip } from "@/components/ui/HelpTip";
 import { HelpTipBlock } from "@/components/HelpTip";
@@ -569,11 +570,30 @@ export default function SafetyCorrectiveActions() {
               </div>
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Assigned to (name)")}</Label>
-                <Input
-                  value={dlg.form.assigned_to_name}
-                  onChange={(e) => setDlg((d) => ({ ...d, form: { ...d.form, assigned_to_name: e.target.value } }))}
-                  className={`${inputCls} mt-1`}
-                  data-testid="safety-ca-form-assignee-name"
+                {/* iter364 · CAPA assignee captured atomically (name + canonical
+                    employee_id) via the same roster-first selector used on
+                    Incidents / PPE / Training / Pre-Op / QA-QC. Free-text
+                    fallback preserved for subcontractor / external owners. */}
+                <EmployeeRosterField
+                  label=""
+                  value={{
+                    id: dlg.form.employee_master_id || "",
+                    name: dlg.form.assigned_to_name || "",
+                    linked: !!dlg.form.employee_master_id,
+                  }}
+                  onChange={({ id, name, linked }) => {
+                    setDlg((d) => ({
+                      ...d,
+                      form: {
+                        ...d.form,
+                        assigned_to_name: name,
+                        employee_master_id: linked ? id : "",
+                        employee_master_label: linked ? name : "",
+                      },
+                    }));
+                  }}
+                  placeholder={t("Type name to search roster")}
+                  testId="safety-ca-form-assignee-roster"
                 />
               </div>
               <div>

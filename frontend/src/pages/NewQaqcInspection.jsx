@@ -20,6 +20,7 @@ import { JobPicker } from "@/components/JobPicker";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { SupplierCombo } from "@/components/SupplierCombo";
+import EmployeeRosterField from "@/components/EmployeeRosterField";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -67,6 +68,7 @@ export default function NewQaqcInspection() {
     inspection_date: todayLocalIso(),
     inspection_time: new Date().toTimeString().slice(0, 5),
     inspector_name: "",
+    inspector_id: "", // iter364 · canonical roster employee_id, set on pick
     work_activity: "",
     work_area: "",
     weather_conditions: "",
@@ -333,11 +335,25 @@ export default function NewQaqcInspection() {
             </Row>
             <Row>
               <Field label={t("Inspector Name")} required>
-                <Input
-                  className={inputCls}
-                  value={data.inspector_name}
-                  onChange={(e) => update({ inspector_name: e.target.value })}
-                  data-testid="qaqc-inspector"
+                {/* iter364 · QA/QC inspector identity captured atomically
+                    (name + canonical employee_id) via the same roster-first
+                    selector used on Incidents / PPE / Training / Pre-Op. */}
+                <EmployeeRosterField
+                  label=""
+                  value={{
+                    id: data.inspector_id || "",
+                    name: data.inspector_name || "",
+                    linked: !!data.inspector_id,
+                  }}
+                  onChange={({ id, name, linked }) => {
+                    update({
+                      inspector_name: name,
+                      inspector_id: linked ? id : "",
+                    });
+                  }}
+                  placeholder={t("Type name to search roster")}
+                  required
+                  testId="qaqc-inspector"
                 />
               </Field>
               <Field label={t("Work Area / Station")} required>

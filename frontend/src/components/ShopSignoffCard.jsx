@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { CheckCircle2, AlertOctagon, AlertTriangle, Loader2, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import EmployeeRosterField from "@/components/EmployeeRosterField";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -32,6 +33,7 @@ export default function ShopSignoffCard({
   const { t } = useT();
   const canSignOff = isShop() || isAdmin();
   const [signedBy, setSignedBy] = useState("");
+  const [signedByEmployeeId, setSignedByEmployeeId] = useState(""); // iter364 · canonical roster id
   const [action, setAction] = useState(ACTION_KEYS[0]);
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
@@ -60,6 +62,7 @@ export default function ShopSignoffCard({
         section,
         item,
         signed_by: signedBy.trim(),
+        signed_by_employee_id: signedByEmployeeId || "",
         action_taken: action,
         notes: notes.trim(),
       };
@@ -145,12 +148,18 @@ export default function ShopSignoffCard({
         {sevPill}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <Input
-          value={signedBy}
-          onChange={(e) => setSignedBy(e.target.value)}
+        {/* iter364 · Shop sign-off identity captured atomically (name +
+            canonical employee_id) via the same roster-first selector
+            used on Incidents / PPE / Training / Pre-Op / QA-QC / CAPA. */}
+        <EmployeeRosterField
+          label=""
+          value={{ id: signedByEmployeeId, name: signedBy, linked: !!signedByEmployeeId }}
+          onChange={({ id, name, linked }) => {
+            setSignedBy(name);
+            setSignedByEmployeeId(linked ? id : "");
+          }}
           placeholder={t("Your name (mechanic / shop)")}
-          className="h-9 text-sm border-amber-300 focus-visible:ring-amber-500"
-          data-testid={`signoff-by-${section}-${item}`}
+          testId={`signoff-by-${section}-${item}-roster`}
         />
         <select
           value={action}

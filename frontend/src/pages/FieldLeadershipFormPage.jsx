@@ -817,6 +817,23 @@ export default function FieldLeadershipFormPage() {
                     />
                   </div>
                 )}
+                {/* iter364 · Uniform linkage status indicator — matches the
+                    coaching pattern used on every other form's
+                    EmployeeRosterField. No behavior change, no API change. */}
+                {selectedEmp ? (
+                  <div className="mt-1 text-[10px] text-emerald-700 font-mono inline-flex items-center gap-1" data-testid="field-employee-linked">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                    {t("Linked to roster")}
+                  </div>
+                ) : employeeNameOverride.trim() ? (
+                  <div className="mt-1 text-[11px] text-amber-700 leading-snug" data-testid="field-employee-unlinked">
+                    <span className="font-mono font-bold uppercase tracking-wider">{t("Not in roster")}.</span>{" "}
+                    {t("Saved as free-text. This will appear as an EMP_LINK_UNRESOLVABLE finding in Governance Health until you either pick from the roster or add this person to the employee master.")}{" "}
+                    <a href="/admin/operational-language#roster_backed_selector" target="_blank" rel="noreferrer" className="underline">
+                      {t("What does this mean?")}
+                    </a>
+                  </div>
+                ) : null}
                 <div className="mt-3">
                   <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                     {t("Position")}
