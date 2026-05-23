@@ -10,11 +10,13 @@ import {
   CloudSun,
   AlertTriangle,
   Camera,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { MasciLogo } from "@/components/MasciLogo";
 import { Section } from "@/components/Section";
 import { YesNo } from "@/components/YesNo";
@@ -1020,7 +1022,33 @@ export default function NewDailyReport({ publicMode = false }) {
         {/* 04 — MASCI Crews */}
         <Section number="04" title={t("MASCI Crews on Site")}>
           <HelpTipBlock formKey="daily-report.crew" className="mb-3" />
-          <div className="space-y-3">
+          {/* iter360 · operational coaching for the crew-linkage discipline */}
+          <LifecycleGuide
+            id="daily-report-crew-linkage"
+            icon={Users}
+            accent="indigo"
+            title={t("Crew identity linkage")}
+            summary={t("Pick each crew member from the roster suggestions when possible — linked names propagate accountability automatically.")}
+            sections={[
+              {
+                label: t("Roles"),
+                body: t("PMs and field leadership own daily-report submission. The crew names captured here feed every downstream surface that tracks who-was-where: HR accountability timelines, PM crew compliance, payroll reconciliation, and OSHA recordkeeping if an incident is later linked to today's date."),
+              },
+              {
+                label: t("Why linkage matters"),
+                body: t("Names typed without picking from the roster become EMP_LINK_UNRESOLVABLE findings in Governance Health. Names picked from the roster carry the canonical employee_id, which makes accountability propagate to the right person automatically across every portal."),
+              },
+              {
+                label: t("Subcontractors"),
+                body: t("Free-text is allowed and intentionally never blocked — subcontractors aren't in the employee master. The amber indicator below the name just tells you the linkage state so the daily report still ships fast."),
+              },
+              {
+                label: t("Downstream visibility"),
+                body: t("Linked crew rows appear inside that employee's Accountability Timeline, on the PM Crew Compliance lens for the project, and (if relevant) inside any incident investigation that references today's date."),
+              },
+            ]}
+          />
+          <div className="space-y-3 mt-3">
             {data.masci_crews.map((row, i) => {
               const auto = computeHours(row.start_time, row.stop_time, row.lunch_minutes);
               if (auto && auto !== row.hours) {
@@ -1055,13 +1083,40 @@ export default function NewDailyReport({ publicMode = false }) {
                       </Label>
                       <EmployeeCombo
                         value={row.name || ""}
-                        onChange={(v) => crews.update(i, "name", v)}
+                        onChange={(v) => {
+                          // iter360 · linkage continuity — if the user types over
+                          // the name after a pick, clear the linked id so we
+                          // don't carry a stale linkage.
+                          crews.update(i, "name", v);
+                          if (row.employee_id && v !== row.name) {
+                            crews.update(i, "employee_id", "");
+                          }
+                        }}
                         onPick={(emp) => {
-                          // Auto-fill trade & role if the picked employee has them
+                          // iter360 · capture canonical employee_id on the
+                          // crew row so this surface stops contributing to
+                          // EMP_LINK_UNRESOLVABLE findings.
+                          if (emp.id || emp.employee_id) {
+                            crews.update(i, "employee_id", emp.id || emp.employee_id);
+                          }
                           if (emp.trade && !row.trade) crews.update(i, "trade", emp.trade);
                         }}
                         testId={`crew-name-${i}`}
                       />
+                      {/* Linkage status indicator — operational coaching at entry time */}
+                      {(row.name || "").trim() ? (
+                        row.employee_id ? (
+                          <div className="mt-1 text-[10px] text-emerald-700 font-mono inline-flex items-center gap-1" data-testid={`crew-linked-${i}`}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                            {t("Linked to roster")}
+                          </div>
+                        ) : (
+                          <div className="mt-1 text-[10px] text-amber-700 font-mono inline-flex items-center gap-1" data-testid={`crew-unlinked-${i}`}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                            {t("Not in roster — will create governance finding")}
+                          </div>
+                        )
+                      ) : null}
                     </div>
                     <div>
                       <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">

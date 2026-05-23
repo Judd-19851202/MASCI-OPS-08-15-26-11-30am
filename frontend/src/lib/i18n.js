@@ -4092,6 +4092,17 @@ const ES = {
   "Not in roster": "No está en el roster",
   "Saved as free-text. This will appear as an EMP_LINK_UNRESOLVABLE finding in Governance Health until you either pick from the roster or add this person to the employee master.": "Guardado como texto libre. Esto aparecerá como un hallazgo EMP_LINK_UNRESOLVABLE en Salud de Gobernanza hasta que selecciones del roster o agregues a esta persona al maestro de empleados.",
   "What does this mean?": "¿Qué significa esto?",
+
+  // iter360 · Daily Report crew linkage.
+  "Not in roster — will create governance finding": "No está en el roster — creará un hallazgo de gobernanza",
+  "Crew identity linkage": "Vinculación de identidad de la cuadrilla",
+  "Pick each crew member from the roster suggestions when possible — linked names propagate accountability automatically.": "Selecciona cada miembro de la cuadrilla desde las sugerencias del roster cuando sea posible — los nombres vinculados propagan la responsabilidad automáticamente.",
+  "PMs and field leadership own daily-report submission. The crew names captured here feed every downstream surface that tracks who-was-where: HR accountability timelines, PM crew compliance, payroll reconciliation, and OSHA recordkeeping if an incident is later linked to today's date.": "Los PM y el liderazgo de campo son responsables del envío del reporte diario. Los nombres de la cuadrilla capturados aquí alimentan cada vista descendente que rastrea quién estuvo dónde: líneas de tiempo de responsabilidad de RRHH, cumplimiento de cuadrilla del PM, conciliación de nómina, y registros OSHA si un incidente se vincula después a la fecha de hoy.",
+  "Why linkage matters": "Por qué importa la vinculación",
+  "Names typed without picking from the roster become EMP_LINK_UNRESOLVABLE findings in Governance Health. Names picked from the roster carry the canonical employee_id, which makes accountability propagate to the right person automatically across every portal.": "Los nombres escritos sin seleccionar del roster se convierten en hallazgos EMP_LINK_UNRESOLVABLE en Salud de Gobernanza. Los nombres seleccionados del roster llevan el employee_id canónico, lo que hace que la responsabilidad se propague automáticamente a la persona correcta en todos los portales.",
+  "Subcontractors": "Subcontratistas",
+  "Free-text is allowed and intentionally never blocked — subcontractors aren't in the employee master. The amber indicator below the name just tells you the linkage state so the daily report still ships fast.": "El texto libre está permitido y nunca se bloquea intencionalmente — los subcontratistas no están en el maestro de empleados. El indicador ámbar debajo del nombre solo te dice el estado de vinculación para que el reporte diario siga saliendo rápido.",
+  "Linked crew rows appear inside that employee's Accountability Timeline, on the PM Crew Compliance lens for the project, and (if relevant) inside any incident investigation that references today's date.": "Las filas de cuadrilla vinculadas aparecen dentro de la Línea de Tiempo de Responsabilidad de ese empleado, en el lente de Cumplimiento de Cuadrilla del PM para el proyecto, y (si aplica) dentro de cualquier investigación de incidente que haga referencia a la fecha de hoy.",
 };
 
 const DICTS = { es: ES, en: {} };

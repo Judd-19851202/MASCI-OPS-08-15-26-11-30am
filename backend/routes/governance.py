@@ -421,7 +421,120 @@ async def _detect_employee_anomalies(db) -> List[Dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
-# iter355 — Operator ↔ Employee Linkage Enforcement (Phase 2 P2).
+# iter360 — Daily Report crew linkage scan (nested array variant).
+# Extends the iter355 linkage detector to scan daily_reports.masci_crews[].
+# Reuses the EMP_LINK_* rule ids so findings flow into the same
+# acknowledge/resolve/backfill UX without a new finding category.
+# ---------------------------------------------------------------------------
+
+async def _detect_daily_report_crew_linkage(db) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+
+    # Active employee name index (same shape as _detect_employee_linkage).
+    name_index: Dict[str, List[Dict[str, Any]]] = {}
+    async for emp in db.employees.find(
+        {"deleted_at": None, "is_active": {"$ne": False}},
+        {"_id": 0, "id": 1, "name": 1},
+    ).limit(5000):
+        n = _norm_name(emp.get("name"))
+        if n:
+            name_index.setdefault(n, []).append(emp)
+
+    # Aggregate per-name evidence across daily_reports.masci_crews[].
+    # masci_crews stores {name, trade, hours, ..., employee_id (iter360)}.
+    name_evidence: Dict[str, Dict[str, Any]] = {}
+    async for dr in db.daily_reports.find(
+        {"masci_crews": {"$exists": True, "$ne": []}},
+        {"_id": 0, "id": 1, "masci_crews": 1, "report_date": 1},
+    ).limit(2000):
+        for row in (dr.get("masci_crews") or []):
+            raw = (row.get("name") or "").strip()
+            if not raw:
+                continue
+            n = _norm_name(raw)
+            if not n:
+                continue
+            slot = name_evidence.setdefault(n, {
+                "raw": raw, "count": 0, "missing_id_count": 0,
+                "sample_reports": [],
+            })
+            slot["count"] += 1
+            if not row.get("employee_id"):
+                slot["missing_id_count"] += 1
+            if len(slot["sample_reports"]) < 3:
+                slot["sample_reports"].append({
+                    "report_id": dr.get("id"),
+                    "report_date": dr.get("report_date") or "",
+                })
+
+    # Classify exactly like _detect_employee_linkage so findings land
+    # under the existing EMP_LINK_* rule ids.
+    for n, ev in name_evidence.items():
+        matches = name_index.get(n, [])
+        raw = ev["raw"]
+        total = ev["count"]
+
+        if len(matches) == 0:
+            out.append({
+                "rule_id": "EMP_LINK_UNRESOLVABLE",
+                "entity_kind": "linkage",
+                "entity_id": f"unresolvable:dr:{n}",
+                "entity_name": raw,
+                "description": (
+                    f"'{raw}' appears on {total} daily report crew row"
+                    f"{'s' if total != 1 else ''} but does not match any "
+                    f"active employee. Likely typo, archived person, or "
+                    f"subcontractor not in the employee master."
+                ),
+                "source": {
+                    "name_norm": n, "raw": raw, "record_count": total,
+                    "collections": {"daily_reports": total},
+                    "sample_reports": ev["sample_reports"],
+                },
+            })
+        elif len(matches) > 1:
+            ids = [m.get("id", "") for m in matches if m.get("id")]
+            out.append({
+                "rule_id": "EMP_LINK_AMBIGUOUS",
+                "entity_kind": "linkage",
+                "entity_id": f"ambiguous:dr:{n}",
+                "entity_name": raw,
+                "description": (
+                    f"'{raw}' appears on {total} daily report crew row"
+                    f"{'s' if total != 1 else ''} but matches "
+                    f"{len(matches)} active employees. Operator must disambiguate."
+                ),
+                "source": {
+                    "name_norm": n, "raw": raw,
+                    "matched_employee_ids": ids,
+                    "match_count": len(matches),
+                    "collections": {"daily_reports": total},
+                    "sample_reports": ev["sample_reports"],
+                },
+            })
+        elif ev["missing_id_count"] > 0:
+            emp = matches[0]
+            out.append({
+                "rule_id": "EMP_LINK_MISSING_ID",
+                "entity_kind": "linkage",
+                "entity_id": f"missing_id:dr:{n}",
+                "entity_name": raw,
+                "description": (
+                    f"'{raw}' is uniquely linkable to {emp.get('name') or raw} "
+                    f"(employee_id={emp.get('id')}) but {ev['missing_id_count']} "
+                    f"daily report crew row{'s' if ev['missing_id_count'] != 1 else ''} "
+                    f"still store the name without the id. The frontend now "
+                    f"captures employee_id at entry — only historic rows should appear here."
+                ),
+                "source": {
+                    "name_norm": n, "raw": raw,
+                    "target_employee_id": emp.get("id"),
+                    "missing_id_count": ev["missing_id_count"],
+                    "collections": {"daily_reports": ev["missing_id_count"]},
+                    "sample_reports": ev["sample_reports"],
+                },
+            })
+    return out
 #
 # Free-text employee references across operational records (training,
 # PPE issuance, CAPAs, incident person-involved, daily-report crew rosters)
@@ -834,6 +947,7 @@ DETECTORS = [
     _detect_incident_closed_capa_open,
     _detect_employee_anomalies,
     _detect_employee_linkage,
+    _detect_daily_report_crew_linkage,
     _detect_incident_lifecycle,
 ]
 

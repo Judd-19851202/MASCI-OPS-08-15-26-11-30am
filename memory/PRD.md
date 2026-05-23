@@ -2,6 +2,49 @@
 
 
 
+## 2026-05-23 — iter360 · Phase 2 P2 — Daily Report Crew Linkage Enforcement (largest remaining identity-drift source) · ✅ COMPLETE
+
+### Strategic intent
+iter359 proved the `EmployeeRosterField` pattern on the Safety Incident form. iter360 extends linkage discipline to the directive's explicit "high priority" target: **Daily Report `crew_members[]`** — explicitly named as "likely the largest remaining identity-drift source in the platform." The Daily Report's crew section is row-based (per-employee hours data), so the right fix is NOT a multi-select chip pattern (which would regress UX) but a **surgical upgrade** that captures `employee_id` on each existing crew row + adds visible linkage status + adds a backend detector for the nested-array surface.
+
+### Frontend (`/app/frontend/src/pages/NewDailyReport.jsx`)
+- Section 04 "MASCI Crews on Site" `EmployeeCombo onPick` now writes **`employee_id`** to the crew row state (previously discarded the id even when the user picked from suggestions — the original silent-failure source)
+- Section 04 `EmployeeCombo onChange` clears a stale `employee_id` when the user edits the name after picking (preserves linkage integrity)
+- Each crew row now has an **inline linkage status indicator** below the name:
+  - Emerald dot + "Linked to roster" when `employee_id` is set
+  - Amber dot + "Not in roster — will create governance finding" when only free-text is present
+- New `LifecycleGuide` (indigo accent, Users icon) at the top of Section 04 with 4 standard sections (Roles · Why linkage matters · Subcontractors · Downstream visibility) explaining the linkage discipline in field-direct language
+
+### Backend (`/app/backend/routes/governance.py` extended +120 LOC)
+- New detector **`_detect_daily_report_crew_linkage`** scans `daily_reports.masci_crews[]` and reuses the same `EMP_LINK_UNRESOLVABLE` / `EMP_LINK_AMBIGUOUS` / `EMP_LINK_MISSING_ID` rule ids so findings flow into the existing acknowledge/resolve/backfill UX without inventing a new category
+- Stable entity_id prefix `unresolvable:dr:` / `ambiguous:dr:` / `missing_id:dr:` so findings from this surface are distinguishable from the iter355 detector but live alongside in the same dashboard
+- Each finding includes `sample_reports[]` evidence (up to 3 daily report ids + dates) so admins can drill straight from the finding to the offending report
+- Registered in `DETECTORS` list — runs on every scan
+
+### i18n
+9 new ES translations (crew identity linkage banner with all 4 sections + indicator + warning strings).
+
+### Tests
+- Cumulative iter354-359 regression: **44/44 PASS** in 24s (validated linkage detector still clean after the new nested-array scan was added; new detector returns `detector_errors == {}`).
+- Live scan validation: detector runs cleanly, surfaces 0 new findings against the preview DB (no daily reports with crew names exist there yet) — infrastructure ready, will produce signal as daily reports accumulate in production.
+
+### Operational consequence
+The frontend now captures canonical employee_id at entry time → all NEW daily reports going forward are linkage-clean by construction. The backend detector measures linkage drift on historic daily reports → admins see exactly which historic records need cleanup. This is the full end-to-end coverage of the directive's "Complete Employee Linkage Enforcement" P1 priority for the highest-volume surface.
+
+### Pattern repeatability for remaining surfaces
+Same minimal-risk pattern (capture id on pick + status indicator + LifecycleGuide) applies cleanly to:
+- PPE issuance form
+- Training record form  
+- Toolbox Talk attendance
+- Pre-Op operator field
+- QA/QC inspector field
+- Shop / FL workflows
+
+Each migration is now ~20 LOC + 1 import. The component infrastructure is complete.
+
+---
+
+
 ## 2026-05-23 — iter359 · Phase 2 P2 — UI-Level Employee Linkage Enforcement (proof-of-pattern) · ✅ COMPLETE
 
 ### Strategic intent
