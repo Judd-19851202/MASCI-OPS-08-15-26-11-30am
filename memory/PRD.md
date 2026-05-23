@@ -2,6 +2,71 @@
 
 
 
+## 2026-05-23 — iter353 · Phase 1 Platform Governance Audit · ✅ COMPLETE (read-only)
+
+### Scope
+Operator-directed platform-wide governance audit BEFORE any further permission/RBAC changes. Strict no-mutations Phase 1.
+
+### Method
+- Parsed **262 backend route handlers** across 48 route modules with a dedicated parser (`/app/scripts/audit_route_gates.py`)
+- Classified each route by auth gate (18 distinct gates) and gate category (16 categories: ADMIN, ADMIN_STRICT, HR, HR+ADMIN, SAFETY, SAFETY+HR+ADMIN, SHOP+ADMIN, DISPATCH+ADMIN, FIELD_LEADERSHIP, PM, ANY_PORTAL, etc.)
+- Cross-referenced every route against `/app/backend/server.py` + `/app/backend/lib/rbac.py` + per-portal user collections (`hr_users`, `safety_users`, `pm_users`, `shop_users`, `dispatch_users`, `field_leadership_users`)
+- Verified production parity against `mascidocs.com` via 5 negative RBAC tests (all passed — no production bypass found)
+- Enumerated 130 frontend pages + 219 frontend routes
+
+### Deliverables
+| Document | LOC | Purpose |
+|---|---:|---|
+| `/app/memory/PLATFORM_RBAC_AUDIT.md` | 14 KB | Route inventory, gate classification, coverage matrix, live preview/prod drift |
+| `/app/memory/PLATFORM_OWNERSHIP_MATRIX.md` | 12 KB | Per-system View/Create/Edit/Delete/Approve/Export/Import matrix by 8 roles |
+| `/app/memory/SHARED_GOVERNANCE_GAPS.md` | 14 KB | **20 prioritized gaps (P0/P1/P2)** with proposed Phase 2 fixes |
+| `/app/memory/EMPLOYEE_ACCOUNTABILITY_ARCHITECTURE.md` | 11 KB | Unified per-employee timeline endpoint + page design |
+| `/app/memory/AUTH_AND_PORTAL_GOVERNANCE.md` | 13 KB | 7-portal token model · 18-gate inventory · MFA + audit gaps · Phase 2 consolidation plan |
+| `/app/memory/iter353_routes_audit_full.csv` | 19 KB | Raw 262-row route+gate+path CSV (machine-readable) |
+| `/app/scripts/audit_route_gates.py` | NEW | Re-runnable audit script (regenerates CSV any time) |
+
+### Top-level findings
+- ✅ **No production RBAC bypass discovered.** All 5 negative tests at mascidocs.com returned correct 401/403.
+- ✅ **No unprotected admin endpoint.** Every admin mutation is behind `require_admin` or `require_admin_strict_dep`.
+- ✅ **Step-up MFA scaffolding exists** — wraps backups, audit deletion, R2 state, promo assets.
+- ⚠ **20 prioritized gaps** documented in SHARED_GOVERNANCE_GAPS.md:
+  - **3 P0 (operator-blocking):** GAP-001 (HR cannot create safety training), GAP-002 (HR cannot upload safety docs), GAP-014 (no unified employee timeline)
+  - **9 P1 (operational friction):** Dispatch/FL DQ visibility, QA/QC undedicated auth, employee bulk import, expiration monitoring cron, super-admin MFA, portal-grant audit trail, audit-role consistency, HR PPE issuance
+  - **8 P2 (architectural debt):** duplicated admin/HR/Safety gate variants, inline gate redefinitions, FL legacy auth sunset, soft-delete policy, PM crew CDL visibility, public defect rate limit, opaque `require_write` gate
+
+### Phase 2 work breakdown (proposed, awaiting operator approval)
+| iter | Closes | Priority |
+|---|---|---|
+| iter353a | GAP-001 · GAP-002 · GAP-003 (HR+Safety shared accountability writes) | P0 |
+| iter353b | GAP-004 · GAP-005 (Dispatch + FL view-only DQ) | P1 |
+| iter353c | GAP-014 (unified employee accountability timeline) | P0 |
+| iter354 | GAP-008..012 (auth gate consolidation into `lib/rbac_gates.py`) | P2 |
+| iter355 | GAP-007 (QA/QC dedicated auth) | P1 |
+| iter356 | GAP-017 (expiration monitor + insurance export packet) | P1 |
+| iter357 | GAP-018 · GAP-019 (super-admin MFA + portal-grant audit) | P1 |
+| iter358 | GAP-015 · GAP-016 (audit-role + soft-delete consistency) | P2 |
+| iter359 | GAP-013 (HR employee bulk import — generalize iter352 pattern) | P1 |
+| iter360 | GAP-006 · GAP-020 (PM crew CDL · public-surface rate limits) | P2 |
+
+### Hard boundaries (locked · no Phase 2 changes)
+- ❌ Admin / RBAC / User Directory remains Admin-only
+- ❌ Hub banners remain Admin-only
+- ❌ Backups + DR remain Admin-strict (step-up MFA)
+- ❌ Audit log writes remain Admin-strict
+- ❌ HR will NOT gain auth/security authority (per operator policy)
+
+### Files NOT touched (Phase 1 read-only discipline)
+- ❌ No route file modified
+- ❌ No auth helper modified
+- ❌ No collection schema modified
+- ❌ No frontend code modified
+- ❌ No tests added (no behavior changed)
+
+### Verdict
+✅ **APPROVE Phase 1 — read for operator review.** Awaiting sign-off on the Phase 2 priorities + sequencing.
+
+
+
 ## 2026-05-23 — iter352 · Add 4 Drivers + CDL Roster Importer · ✅ APPROVE
 
 ### Part 1 · Production driver-roster gap closure
