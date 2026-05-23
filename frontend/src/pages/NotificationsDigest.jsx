@@ -24,6 +24,30 @@ import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 
+const TOKEN_KEYS = [
+  // Order = preference. Operational tokens come first (their digests are
+  // tighter / more actionable); admin is the fallback so super-admins
+  // still get a digest on any portal context.
+  { role: "safety",   key: "masci.safety.token",   endpoint: "/safety/notifications/digest" },
+  { role: "hr",       key: "masci.hr.token",       endpoint: "/hr/notifications/digest" },
+  { role: "pm",       key: "masci.pm.token",       endpoint: "/pm/notifications/digest" },
+  { role: "dispatch", key: "masci.dispatch.token", endpoint: "/dispatch/notifications/digest" },
+  { role: "fl",       key: "masci.fl.token",       endpoint: "/fl/notifications/digest" },
+];
+
+function pickRoleAndEndpoint() {
+  for (const { role, key, endpoint } of TOKEN_KEYS) {
+    try {
+      if (localStorage.getItem(key)) return { role, endpoint };
+    } catch { /* ignore */ }
+  }
+  // Safety: also accept the cached helper (some portals store under
+  // a different key than the constants above).
+  if (getSafetyToken()) return { role: "safety", endpoint: "/safety/notifications/digest" };
+  if (getAdminToken())  return { role: "admin",  endpoint: "/admin/notifications/digest" };
+  return null;
+}
+
 const SEVERITY_TINTS = {
   critical: "border-rose-500 bg-rose-50 text-rose-900",
   high:     "border-amber-500 bg-amber-50 text-amber-900",
@@ -39,14 +63,6 @@ const SEVERITY_ICON = {
   low:      ShieldAlert,
   info:     CheckCircle2,
 };
-
-function pickRoleAndEndpoint() {
-  // Preference order: Safety token (most operational), then Admin (broadest).
-  // HR / PM / Dispatch / FL will be added here when their endpoints ship.
-  if (getSafetyToken()) return { role: "safety", endpoint: "/safety/notifications/digest" };
-  if (getAdminToken())  return { role: "admin",  endpoint: "/admin/notifications/digest" };
-  return null;
-}
 
 function SeverityBadge({ severity }) {
   const Icon = SEVERITY_ICON[severity] || CheckCircle2;
@@ -232,6 +248,70 @@ export default function NotificationsDigest() {
               ["capas_without_owner",       t("No owner"),            "medium"],
               ["incidents_closed_capa_open", t("Closed w/ open CAPA"), "high"],
               ["trainings_expired",         t("Expired training"),    "high"],
+            ].map(([key, label, sev]) => (
+              <div key={key} className={`border-2 rounded-md p-3 ${SEVERITY_TINTS[sev]}`}>
+                <div className="font-mono text-[10px] uppercase tracking-wider font-bold opacity-80">{label}</div>
+                <div className="font-display text-2xl font-black leading-none mt-1">{summary[key] ?? 0}</div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {target.role === "hr" ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3" data-testid="notif-hr-summary">
+            {[
+              ["linkage_failures",                t("Linkage failures"),    "high"],
+              ["driver_qualification_expired",    t("Driver creds expired"),"critical"],
+              ["driver_qualification_expiring_30d", t("Expiring ≤30d"),     "high"],
+              ["archived_active",                 t("Archived but active"), "medium"],
+              ["trainings_expired",               t("Expired training"),    "high"],
+            ].map(([key, label, sev]) => (
+              <div key={key} className={`border-2 rounded-md p-3 ${SEVERITY_TINTS[sev]}`}>
+                <div className="font-mono text-[10px] uppercase tracking-wider font-bold opacity-80">{label}</div>
+                <div className="font-display text-2xl font-black leading-none mt-1">{summary[key] ?? 0}</div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {target.role === "pm" ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="notif-pm-summary">
+            {[
+              ["capa_overdue",       t("CAPAs past due"),    "high"],
+              ["trainings_expired",  t("Expired training"),  "high"],
+              ["ppe_missing",        t("No PPE"),            "medium"],
+              ["driver_unavailable", t("Drivers unavailable"),"high"],
+            ].map(([key, label, sev]) => (
+              <div key={key} className={`border-2 rounded-md p-3 ${SEVERITY_TINTS[sev]}`}>
+                <div className="font-mono text-[10px] uppercase tracking-wider font-bold opacity-80">{label}</div>
+                <div className="font-display text-2xl font-black leading-none mt-1">{summary[key] ?? 0}</div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {target.role === "dispatch" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" data-testid="notif-dispatch-summary">
+            {[
+              ["med_card_expired", t("Med card expired"), "critical"],
+              ["cdl_expired",      t("CDL expired"),       "critical"],
+              ["expiring_30d",     t("Expiring ≤30d"),     "high"],
+            ].map(([key, label, sev]) => (
+              <div key={key} className={`border-2 rounded-md p-3 ${SEVERITY_TINTS[sev]}`}>
+                <div className="font-mono text-[10px] uppercase tracking-wider font-bold opacity-80">{label}</div>
+                <div className="font-display text-2xl font-black leading-none mt-1">{summary[key] ?? 0}</div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {target.role === "fl" ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="notif-fl-summary">
+            {[
+              ["trainings_expired",      t("Expired training"),  "high"],
+              ["ppe_missing",            t("No PPE"),            "medium"],
+              ["driver_unavailable",     t("Drivers unavailable"),"high"],
+              ["incidents_needing_capa", t("Incidents need CAPA"),"high"],
             ].map(([key, label, sev]) => (
               <div key={key} className={`border-2 rounded-md p-3 ${SEVERITY_TINTS[sev]}`}>
                 <div className="font-mono text-[10px] uppercase tracking-wider font-bold opacity-80">{label}</div>

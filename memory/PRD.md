@@ -2,6 +2,68 @@
 
 
 
+## 2026-05-23 — iter358 · Phase 2 P1-ext + Operational Language Glossary · ✅ COMPLETE
+
+### Strategic intent
+Complete the role-scoped intelligence layer (HR/PM/Dispatch/FL digest expansion) and materialize the "one operational language" platform principle as a working canonical-vocabulary surface. Defers high-risk items (auth consolidation, MFA, refactor, redeploy) to dedicated iterations.
+
+### Backend (`/app/backend/routes/notifications.py` extended +250 LOC)
+**4 new role digest builders** + **4 new endpoints** (all admin-previewable, all reject anonymous with 401):
+
+- `_build_hr_digest(db)` → `GET /api/hr/notifications/digest`
+  - Sections (auto-suppressed when empty): linkage_failures · driver_qualification_expired · driver_qualification_expiring · archived_active · training_expired
+- `_build_pm_digest(db, scope_user)` → `GET /api/pm/notifications/digest`
+  - Sections: capa_overdue · training_expired · ppe_missing · driver_unavailable
+  - `scope_user` echo for future project-scoped slicing
+- `_build_dispatch_digest(db)` → `GET /api/dispatch/notifications/digest`
+  - Sections: med_card_expired · cdl_expired · expiring_30d
+- `_build_fl_digest(db, scope_user)` → `GET /api/fl/notifications/digest`
+  - Sections: training_expired · ppe_missing · driver_unavailable · incidents_needing_capa
+
+All four endpoints accept their role's portal token OR an admin token for operational preview (super-admin oversight pattern). Every section maps 1:1 to a detector rule so noise is mechanically impossible.
+
+### Frontend
+- `NotificationsDigest.jsx` extended with role-aware endpoint selection across all 6 portals (Safety → HR → PM → Dispatch → FL → Admin fallback). Per-role summary tile strips added: HR (5 tiles) · PM (4 tiles) · Dispatch (3 tiles) · FL (4 tiles), each color-coded by severity.
+- **NEW** `/app/frontend/src/pages/admin/AdminOperationalLanguage.jsx` (~220 LOC) — canonical operational vocabulary at `/admin/operational-language`:
+  - 11 glossary entries covering Accountability Timeline · Archive · CAPA · Closeout · Compliance Finding · Convergence Score · Driver Qualified · Governance Score · Lifecycle Guide · Operational Readiness · Verified
+  - Each entry has 4 standard fields (Operational meaning · Lifecycle meaning · Accountability · Downstream visibility) + EN + ES name
+  - Entries are versioned in code (Git commit = audit trail) — explicit architectural decision per the directive
+  - Live search filter narrows entries by any term across all fields
+  - Each entry has a stable anchor (`#capa`, `#archive`, etc.) for direct linking from LifecycleGuides
+  - Leads with its own LifecycleGuide explaining why the glossary exists + how to use it
+- AdminShell nav: new `Operational Language` section (BookOpen icon)
+
+### i18n
+40 new ES translations covering:
+- 10 new digest-summary tile labels (HR/PM/Dispatch/FL)
+- 6 glossary chrome strings (Operational meaning, Lifecycle meaning, Accountability, Downstream visibility, Search prompt, empty state)
+- 7 glossary self-coaching strings (banner intro, sections explaining maintenance + use + why-it-matters)
+
+### Live signal validation (real preview data)
+Curl-tested each new endpoint with admin token:
+- HR digest: total=78 · 2 sections (5 linkage failures + 73 archived-active)
+- PM digest: total=230 · 1 section (230 PPE missing)
+- Dispatch digest: total=0 · 0 sections (clean — no driver expirations in preview)
+- FL digest: total=249 · 2 sections (230 PPE missing + 19 incidents-need-CAPA)
+
+Each digest's section list adapts to the role's operational priorities — no noise, no irrelevant alerts.
+
+### Tests · iter358
+- **NEW** `/app/backend/tests/test_iter358_digest_expansion.py` — **7/7 PASS**:
+  - All 4 endpoints reject anonymous (401)
+  - All 4 endpoints accept admin preview with correct envelope (role + summary + sections + generated_at)
+  - Each role's summary carries its required keys (HR × 5, PM × 4, Dispatch × 3, FL × 4)
+  - Section items[] all carry the keys the UI renders (id, rule_id, severity, entity_name)
+- Cumulative regression iter354-358: **40/40 PASS** on re-run (one transient 10s connect-timeout to the preview ingress occurred mid-suite and cleared on retry; not a code regression).
+
+### Architectural notes
+- The notifications router now uses a unified accept-portal-or-admin gate pattern across all 6 endpoints — pattern is ready for future portals without rework.
+- Operational Language glossary is intentionally codebase-versioned rather than CMS-backed: Git history IS the audit trail, ES parity is enforceable at PR time, no DB migration to add entries.
+- Frontend pickRoleAndEndpoint() respects portal preference order (Safety > HR > PM > Dispatch > FL > Admin) so power users with multi-portal tokens see their most-operational digest first.
+
+---
+
+
 ## 2026-05-23 — iter357 · Phase 2 P1 — Operational Intelligence Notifications · ✅ COMPLETE
 
 ### Strategic intent

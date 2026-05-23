@@ -4054,6 +4054,34 @@ const ES = {
   "Expired training": "Capacitación vencida",
   "No operational signal today.": "No hay señal operativa hoy.",
   "Every monitored rule is clean for your role. Detection runs continuously — this surface refreshes the moment something changes.": "Cada regla monitoreada está limpia para tu rol. La detección corre de forma continua — esta vista se actualiza en cuanto algo cambia.",
+
+  // iter358 · digest expansion (HR / PM / Dispatch / FL summary tile labels).
+  "Linkage failures": "Fallas de vinculación",
+  "Driver creds expired": "Credenciales de conductor vencidas",
+  "Expiring ≤30d": "Vence en ≤30d",
+  "Archived but active": "Archivado pero activo",
+  "CAPAs past due": "CAPAs vencidas",
+  "No PPE": "Sin EPP",
+  "Drivers unavailable": "Conductores no disponibles",
+  "Med card expired": "Tarjeta médica vencida",
+  "CDL expired": "CDL vencido",
+  "Incidents need CAPA": "Incidentes necesitan CAPA",
+
+  // iter358 · Operational Language glossary.
+  "Operational meaning": "Significado operativo",
+  "Lifecycle meaning": "Significado en el ciclo de vida",
+  "Accountability": "Responsabilidad",
+  "Search any term, definition, or workflow concept": "Busca cualquier término, definición o concepto de flujo de trabajo",
+  "No glossary entries match. Try a broader term.": "Ningún término del glosario coincide. Intenta con un término más amplio.",
+  "One vocabulary across the platform. \"Archive\" means the same thing in HR as in Safety; \"Closeout\" means the same thing on a CAPA as on an incident; \"Driver Qualified\" means the same thing in Dispatch as in FL. This page is the canonical reference — every LifecycleGuide should link to the relevant entry here.": "Un vocabulario en toda la plataforma. \"Archivar\" significa lo mismo en RRHH que en Seguridad; \"Cierre\" significa lo mismo en una CAPA que en un incidente; \"Conductor Cualificado\" significa lo mismo en Despacho que en FL. Esta página es la referencia canónica — cada Guía de Ciclo de Vida debería enlazar a la entrada relevante aquí.",
+  "Why this glossary exists": "Por qué existe este glosario",
+  "Single source of operational truth · EN + ES parity · versioned in code.": "Fuente única de verdad operativa · paridad EN + ES · versionado en código.",
+  "Every operational term the platform uses, with the same meaning in every portal. When in doubt, link here from a LifecycleGuide, an internal Slack thread, or a meeting deck.": "Cada término operativo que usa la plataforma, con el mismo significado en cada portal. En caso de duda, enlaza aquí desde una Guía de Ciclo de Vida, un hilo interno de Slack o una presentación de reunión.",
+  "How it's maintained": "Cómo se mantiene",
+  "Entries live in the codebase, not a CMS. Adding or changing a definition is a Git commit — the commit history IS the audit trail. ES parity is required for every entry.": "Las entradas viven en el código fuente, no en un CMS. Añadir o cambiar una definición es un commit de Git — el historial de commits ES el registro de auditoría. La paridad ES es obligatoria para cada entrada.",
+  "How to use it": "Cómo usarlo",
+  "Search the bar below. Or deep-link to a specific entry — every entry has an anchor like /admin/operational-language#capa.": "Busca en la barra de abajo. O usa un enlace directo a una entrada específica — cada entrada tiene un ancla como /admin/operational-language#capa.",
+  "Vocabulary drift between departments is the cheapest source of operational chaos in a multi-portal platform. One word, one meaning, everywhere — every time.": "La deriva de vocabulario entre departamentos es la fuente más barata de caos operativo en una plataforma multi-portal. Una palabra, un significado, en todas partes — cada vez.",
 };
 
 const DICTS = { es: ES, en: {} };

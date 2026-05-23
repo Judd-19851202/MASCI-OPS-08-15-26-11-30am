@@ -87,6 +87,7 @@ import AdminGuidanceCoverage from "@/pages/admin/AdminGuidanceCoverage";
 import AdminOperationalInventory from "@/pages/admin/AdminOperationalInventory";
 import AdminGovernance from "@/pages/admin/AdminGovernance";
 import AdminComplianceFindings from "@/pages/admin/AdminComplianceFindings";
+import AdminOperationalLanguage from "@/pages/admin/AdminOperationalLanguage";
 import NotificationsDigest from "@/pages/NotificationsDigest";
 import OperationalGuidanceCenter from "@/pages/guidance/OperationalGuidanceCenter";
 import DeployRecovery from "@/pages/admin/DeployRecovery";
@@ -370,6 +371,7 @@ function App() {
             {/* Phase 2 · Compliance Gap Detector + Governance Health (admin-strict) */}
             <Route path="/admin/governance" element={A(<AdminGovernance />)} />
             <Route path="/admin/compliance-findings" element={A(<AdminComplianceFindings />)} />
+            <Route path="/admin/operational-language" element={A(<AdminOperationalLanguage />)} />
             {/* Operational Guidance Center (iter190 — Training/Help overhaul Phase A).
                 Public route — backend enforces RBAC per article.
                 The 3-slot route handles: hub home, section, article. */}
