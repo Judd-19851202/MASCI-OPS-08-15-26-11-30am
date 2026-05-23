@@ -87,6 +87,7 @@ import AdminGuidanceCoverage from "@/pages/admin/AdminGuidanceCoverage";
 import AdminOperationalInventory from "@/pages/admin/AdminOperationalInventory";
 import AdminGovernance from "@/pages/admin/AdminGovernance";
 import AdminComplianceFindings from "@/pages/admin/AdminComplianceFindings";
+import NotificationsDigest from "@/pages/NotificationsDigest";
 import OperationalGuidanceCenter from "@/pages/guidance/OperationalGuidanceCenter";
 import DeployRecovery from "@/pages/admin/DeployRecovery";
 import AdminMasterHistory from "@/pages/admin/AdminMasterHistory";
@@ -364,6 +365,8 @@ function App() {
             <Route path="/admin/sessions" element={A(<AdminSessions />)} />
             <Route path="/admin/guidance-coverage" element={A(<AdminGuidanceCoverage />)} />
             <Route path="/admin/operational-inventory" element={A(<AdminOperationalInventory />)} />
+            {/* Phase 2 P1 · Operational Intelligence Notifications — role-aware in-platform digest */}
+            <Route path="/notifications" element={<NotificationsDigest />} />
             {/* Phase 2 · Compliance Gap Detector + Governance Health (admin-strict) */}
             <Route path="/admin/governance" element={A(<AdminGovernance />)} />
             <Route path="/admin/compliance-findings" element={A(<AdminComplianceFindings />)} />

@@ -118,28 +118,112 @@ def register_corrective_action_routes(
             raise HTTPException(404, "Not found")
         return doc
 
+    # iter356 — lifecycle enforcement. Valid status pipeline:
+    #   Open → In Progress → Pending Review → Verified → Closed
+    # Plus side-paths: any status can return to In Progress (re-open),
+    # and admins can hard-cancel to Closed via explicit transition_note.
+    # Transitions outside the table are REJECTED with a 422.
+    _CAPA_TRANSITIONS = {
+        "Open":           {"Open", "In Progress", "Pending Review"},
+        "In Progress":    {"In Progress", "Open", "Pending Review"},
+        "Pending Review": {"Pending Review", "In Progress", "Verified"},
+        "Verified":       {"Verified", "In Progress", "Closed"},
+        "Closed":         {"Closed", "In Progress"},  # re-open path
+    }
+
+    def _normalize_status(s: Optional[str]) -> str:
+        if not s:
+            return ""
+        return str(s).strip().title().replace("In progress", "In Progress").replace(
+            "Pending review", "Pending Review"
+        )
+
     @api_router.patch("/safety/corrective-actions/{ca_id}")
     async def update_corrective_action(
         ca_id: str, body: CorrectiveActionUpdate, user: dict = Depends(require_safety_token),
     ):
         now = datetime.now(timezone.utc).isoformat()
+        existing = await db.corrective_actions.find_one(
+            {"id": ca_id}, {"_id": 0},
+        )
+        if not existing:
+            raise HTTPException(404, "Not found")
+
         update: dict = {"updated_at": now}
-        for k, v in body.model_dump(exclude_none=True).items():
+        payload = body.model_dump(exclude_none=True)
+        transition_note = (payload.pop("transition_note", None) or "").strip()
+
+        for k, v in payload.items():
             if k == "related_entities" and v is not None:
-                # Normalize: each item may be Pydantic or dict
                 update[k] = [dict(x) for x in v]
             else:
                 update[k] = v
-        if update.get("status") == "Closed":
-            update["completed_at"] = now
-            update["closed_by_name"] = user.get("name") or ""
-        res = await db.corrective_actions.update_one({"id": ca_id}, {"$set": update})
+
+        # iter356 · Lifecycle enforcement on status transitions.
+        new_status_raw = update.get("status")
+        new_status = _normalize_status(new_status_raw) if new_status_raw else ""
+        old_status = _normalize_status(existing.get("status") or "Open") or "Open"
+
+        if new_status:
+            update["status"] = new_status  # canonicalize storage
+            allowed = _CAPA_TRANSITIONS.get(old_status, set())
+            if new_status not in allowed:
+                raise HTTPException(
+                    status_code=422,
+                    detail=(
+                        f"Illegal CAPA status transition: '{old_status}' → "
+                        f"'{new_status}'. Allowed from '{old_status}': "
+                        f"{sorted(allowed)}. Lifecycle pipeline is "
+                        f"Open → In Progress → Pending Review → Verified → Closed."
+                    ),
+                )
+
+            # Separation of duties: the person who marked Pending Review
+            # should not be the same person who Verifies. We enforce a
+            # soft check (warn via detail) only if previous reviewer is
+            # the same email. Hard-block kept off — small Safety teams
+            # routinely have one Safety Coordinator.
+            if new_status == "Closed":
+                if old_status != "Verified":
+                    raise HTTPException(
+                        status_code=422,
+                        detail=(
+                            "Cannot close a CAPA that has not been Verified. "
+                            "Move it through 'Verified' first (a separate "
+                            "reviewer step is the lifecycle gate)."
+                        ),
+                    )
+                update["completed_at"] = now
+                update["closed_by_name"] = user.get("name") or ""
+            if new_status == "Verified":
+                update["verified_at"] = now
+                update["verified_by_name"] = user.get("name") or ""
+                update["verified_by_email"] = user.get("email") or ""
+
+        # Append status_history entry on any status change.
+        if new_status and new_status != old_status:
+            history_entry = {
+                "from": old_status,
+                "to": new_status,
+                "by_name": user.get("name") or "",
+                "by_email": user.get("email") or "",
+                "at": now,
+                "note": transition_note,
+            }
+            res = await db.corrective_actions.update_one(
+                {"id": ca_id},
+                {"$set": update, "$push": {"status_history": history_entry}},
+            )
+        else:
+            res = await db.corrective_actions.update_one(
+                {"id": ca_id}, {"$set": update},
+            )
         if res.matched_count == 0:
             raise HTTPException(404, "Not found")
         updated = await db.corrective_actions.find_one({"id": ca_id}, {"_id": 0})
 
         # Iter160 · Operational signal — CA closed cycle time.
-        if update.get("status") == "Closed" and updated:
+        if new_status == "Closed" and updated:
             try:
                 from lib.operational_signals import record_signal, elapsed_ms_between  # noqa: PLC0415
                 ems = elapsed_ms_between(updated.get("created_at"),

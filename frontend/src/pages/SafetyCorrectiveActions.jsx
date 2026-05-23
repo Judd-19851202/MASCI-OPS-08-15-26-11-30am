@@ -39,16 +39,19 @@ import { Link } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { WhyItMattersPanel } from "@/components/guidance";
+import { LifecycleGuide } from "@/components/LifecycleGuide";
+import { ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const auth = () => ({ headers: { "X-Safety-Token": getSafetyToken() } });
 
-const STATUS_OPTIONS = ["Open", "In Progress", "Pending Review", "Closed"];
+const STATUS_OPTIONS = ["Open", "In Progress", "Pending Review", "Verified", "Closed"];
 const STATUS_COLORS = {
   Open:             { dot: "bg-red-600",     pill: "bg-red-100 text-red-800 border-red-300" },
   "In Progress":    { dot: "bg-amber-500",   pill: "bg-amber-100 text-amber-900 border-amber-300" },
   "Pending Review": { dot: "bg-blue-600",    pill: "bg-blue-100 text-blue-800 border-blue-300" },
+  Verified:         { dot: "bg-violet-600",  pill: "bg-violet-100 text-violet-900 border-violet-300" },
   Closed:           { dot: "bg-emerald-600", pill: "bg-emerald-100 text-emerald-900 border-emerald-300" },
 };
 const PRIORITY_OPTIONS = ["Low", "Medium", "High", "Critical"];
@@ -277,13 +280,14 @@ export default function SafetyCorrectiveActions() {
     { id: "Open",           label: "Open",           count: counts.Open || 0 },
     { id: "In Progress",    label: "In Progress",    count: counts["In Progress"] || 0 },
     { id: "Pending Review", label: "Pending Review", count: counts["Pending Review"] || 0 },
+    { id: "Verified",       label: "Verified",       count: counts.Verified || 0 },
     { id: "Closed",         label: "Closed",         count: counts.Closed || 0 },
     { id: "Overdue",        label: "Overdue",        count: counts.Overdue || 0, danger: true },
   ];
 
   return (
     <SafetyShell title="Corrective Actions" kicker="SAFETY · CORRECTIVE ACTION REGISTER">
-      <div className="mb-5">
+      <div className="mb-5 space-y-3">
         <WhyItMattersPanel title="Why Corrective Actions matter">
           <p>
             A Corrective Action is the proof that an incident, audit finding,
@@ -295,11 +299,37 @@ export default function SafetyCorrectiveActions() {
             </Link>
           </p>
         </WhyItMattersPanel>
+        {/* iter356 · permanent operational coaching standard */}
+        <LifecycleGuide
+          id="capa-lifecycle"
+          icon={ClipboardCheck}
+          accent="indigo"
+          title={t("CAPA Lifecycle")}
+          summary={t("Open → In Progress → Pending Review → Verified → Closed (illegal jumps are blocked)")}
+          sections={[
+            {
+              label: t("Roles"),
+              body: t("Safety owns CAPA governance — create, edit, advance, verify, close. HR adds labor/accountability notes only (no Safety override). PM and FL get read-only visibility on records affecting their crews. Admin keeps supervisory authority."),
+            },
+            {
+              label: t("Lifecycle gate"),
+              body: t("A CAPA cannot move directly from Pending Review to Closed. It must pass through Verified — a separate review step that confirms the corrective work actually happened. The verifier is stamped onto the record."),
+            },
+            {
+              label: t("Downstream visibility"),
+              body: t("Open and Verified CAPAs surface on the PM Crew Compliance lens, HR Accountability Timeline, Governance Health dashboard, and Compliance Findings. Closed CAPAs remain in the audit trail forever."),
+            },
+            {
+              label: t("Why this matters"),
+              body: t("Open CAPAs that never close are silent operational debt. Severe incidents without a CAPA are a governance failure surfaced by Governance Health. Every status change is appended to the CAPA's status_history for OSHA / DOT / insurance review."),
+            },
+          ]}
+        />
       </div>
       <div className="flex flex-col sm:flex-row gap-3 mb-5 items-start sm:items-center justify-between">
         <p className="text-slate-600 text-sm sm:text-base max-w-2xl leading-relaxed">
           {t("Track every safety deficiency to resolution. Auto-link CAs to incidents, audits, inspections, training records, and meetings. The pipeline is")}{" "}
-          <span className="font-mono text-xs uppercase tracking-[0.18em] font-bold">{t("Open → In Progress → Pending Review → Closed")}</span>.
+          <span className="font-mono text-xs uppercase tracking-[0.18em] font-bold">{t("Open → In Progress → Pending Review → Verified → Closed")}</span>.
         </p>
         <Button
           onClick={openCreate}

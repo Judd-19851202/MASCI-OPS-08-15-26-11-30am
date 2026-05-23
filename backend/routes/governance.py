@@ -71,6 +71,11 @@ RULE_CATALOG: Dict[str, Dict[str, str]] = {
     "EMP_LINK_UNRESOLVABLE": {"category": "linkage", "severity": "high",   "title": "Employee name on records does not match any active employee"},
     "EMP_LINK_AMBIGUOUS":    {"category": "linkage", "severity": "high",   "title": "Employee name on records matches multiple active employees"},
     "EMP_LINK_MISSING_ID":   {"category": "linkage", "severity": "medium", "title": "Record stores employee_name but no employee_id (backfillable)"},
+    # iter356 — Incident → CAPA → Closeout Lifecycle Enforcement (Phase 2 P0/P3).
+    # Three rules tighten the corrective-action accountability chain.
+    "INC_NEEDS_CAPA":           {"category": "lifecycle", "severity": "critical", "title": "Severe incident has no linked CAPA"},
+    "CAPA_AWAITING_VERIFICATION": {"category": "lifecycle", "severity": "medium",   "title": "CAPA stuck in Pending Review beyond 7 days"},
+    "CAPA_NO_OWNER":            {"category": "lifecycle", "severity": "medium",   "title": "Open CAPA has no assigned owner"},
 }
 
 
@@ -668,6 +673,159 @@ async def _backfill_employee_links(db, dry_run: bool = True) -> Dict[str, Any]:
     }
 
 
+# ---------------------------------------------------------------------------
+# iter356 — Incident → CAPA → Closeout Lifecycle Enforcement (Phase 2 P0).
+#
+# Three rules that surface lifecycle continuity breaks:
+#  - INC_NEEDS_CAPA           severe incident (High / Critical / OSHA Recordable)
+#                             with zero CAPAs linked back.
+#  - CAPA_AWAITING_VERIFICATION CAPA sitting in 'Pending Review' for >7 days
+#                             (operator forgot to verify + close).
+#  - CAPA_NO_OWNER            open/in-progress CAPA with no assigned_to_name.
+#
+# Together with the existing INC_CLOSED_CAPA_OPEN + CAPA_OVERDUE rules, these
+# close the silent-failure loops on the incident → corrective-action chain.
+# ---------------------------------------------------------------------------
+
+SEVERE_INCIDENT_SEVERITIES = {"high", "critical", "severe"}
+
+
+def _incident_severity_is_severe(inc: Dict[str, Any]) -> bool:
+    sev = str(inc.get("severity") or "").strip().lower()
+    if sev in SEVERE_INCIDENT_SEVERITIES:
+        return True
+    rec = inc.get("osha_recordable")
+    if isinstance(rec, bool):
+        return rec
+    if isinstance(rec, str) and rec.strip().lower() in {"yes", "true", "1"}:
+        return True
+    return False
+
+
+async def _detect_incident_lifecycle(db) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+    today = _today_iso()
+
+    # Rule 1: INC_NEEDS_CAPA — severe incidents w/ zero linked CAPAs.
+    cursor = db.incidents.find(
+        {},
+        {"_id": 0, "id": 1, "description": 1, "severity": 1,
+         "osha_recordable": 1, "incident_date": 1, "date_occurred": 1,
+         "person_name": 1, "person_involved": 1, "project_name": 1,
+         "status": 1},
+    ).limit(2000)
+    async for inc in cursor:
+        if not _incident_severity_is_severe(inc):
+            continue
+        inc_pk = inc.get("id")
+        if not inc_pk:
+            continue
+        linked = await db.corrective_actions.count_documents({
+            "$or": [
+                {"incident_id": inc_pk},
+                {"source_kind": "incident", "source_id": inc_pk},
+                {"related_entities": {"$elemMatch": {"kind": "incident", "id": inc_pk}}},
+            ],
+        })
+        if linked > 0:
+            continue
+        person = inc.get("person_name") or inc.get("person_involved") or "(unknown)"
+        when = inc.get("incident_date") or inc.get("date_occurred") or ""
+        out.append({
+            "rule_id": "INC_NEEDS_CAPA",
+            "entity_kind": "incident",
+            "entity_id": inc_pk,
+            "entity_name": (inc.get("description") or f"Incident {inc_pk[:8]}")[:120],
+            "description": (
+                f"Severe incident on {when or 'unknown date'} (severity="
+                f"{inc.get('severity') or 'n/a'}, recordable="
+                f"{inc.get('osha_recordable') or 'n/a'}, person={person}) "
+                f"has no linked corrective action. Lifecycle rule: every "
+                f"High / Critical / OSHA-recordable incident must spawn a "
+                f"CAPA before closeout."
+            ),
+            "source": {
+                "severity": inc.get("severity"),
+                "osha_recordable": inc.get("osha_recordable"),
+                "incident_date": when,
+                "person": person,
+                "project_name": inc.get("project_name"),
+                "incident_status": inc.get("status"),
+            },
+        })
+
+    # Rule 2: CAPA_AWAITING_VERIFICATION — Pending Review > 7 days.
+    cutoff_7d = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    cursor = db.corrective_actions.find(
+        {"status": {"$in": ["Pending Review", "pending_review", "pending review"]},
+         "updated_at": {"$lt": cutoff_7d}},
+        {"_id": 0},
+    ).limit(500)
+    async for capa in cursor:
+        capa_id = capa.get("id") or ""
+        title = capa.get("title") or capa.get("description") or "(untitled CAPA)"
+        owner = capa.get("assigned_to_name") or capa.get("owner") or "(unassigned)"
+        stuck_days = "—"
+        try:
+            ts = capa.get("updated_at") or capa.get("created_at")
+            if ts:
+                stuck = datetime.now(timezone.utc) - datetime.fromisoformat(
+                    str(ts).replace("Z", "+00:00")
+                )
+                stuck_days = str(int(stuck.total_seconds() / 86400))
+        except Exception:
+            pass
+        out.append({
+            "rule_id": "CAPA_AWAITING_VERIFICATION",
+            "entity_kind": "capa",
+            "entity_id": capa_id,
+            "entity_name": title[:120],
+            "description": (
+                f"CAPA '{title[:80]}' has been in 'Pending Review' for "
+                f"{stuck_days} day(s). Owner: {owner}. Lifecycle rule: a "
+                f"second reviewer must Verify the work before status moves "
+                f"to Closed."
+            ),
+            "source": {
+                "status": capa.get("status"),
+                "updated_at": capa.get("updated_at"),
+                "owner": owner,
+                "project_number": capa.get("project_number"),
+            },
+        })
+
+    # Rule 3: CAPA_NO_OWNER — open/in-progress with no assigned_to_name.
+    cursor = db.corrective_actions.find(
+        {"status": {"$nin": ["Closed", "closed", "Verified", "verified",
+                              "completed", "resolved"]},
+         "$or": [{"assigned_to_name": {"$in": [None, ""]}},
+                 {"assigned_to_name": {"$exists": False}}]},
+        {"_id": 0},
+    ).limit(500)
+    async for capa in cursor:
+        capa_id = capa.get("id") or ""
+        title = capa.get("title") or capa.get("description") or "(untitled CAPA)"
+        out.append({
+            "rule_id": "CAPA_NO_OWNER",
+            "entity_kind": "capa",
+            "entity_id": capa_id,
+            "entity_name": title[:120],
+            "description": (
+                f"CAPA '{title[:80]}' is {capa.get('status') or 'open'} but "
+                f"has no assigned owner. Lifecycle rule: every active CAPA "
+                f"must have a responsible person before Pending Review."
+            ),
+            "source": {
+                "status": capa.get("status"),
+                "due_date": capa.get("due_date"),
+                "priority": capa.get("priority"),
+                "project_number": capa.get("project_number"),
+            },
+        })
+    _ = today  # unused but reserved
+    return out
+
+
 DETECTORS = [
     _detect_driver_expirations,
     _detect_training_expired,
@@ -676,6 +834,7 @@ DETECTORS = [
     _detect_incident_closed_capa_open,
     _detect_employee_anomalies,
     _detect_employee_linkage,
+    _detect_incident_lifecycle,
 ]
 
 

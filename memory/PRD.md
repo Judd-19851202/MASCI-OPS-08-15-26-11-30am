@@ -2,6 +2,152 @@
 
 
 
+## 2026-05-23 — iter357 · Phase 2 P1 — Operational Intelligence Notifications · ✅ COMPLETE
+
+### Strategic intent
+Convert the detection engine (iter354-356) from a "pull" surface (operators must
+visit /admin/governance) into a "push" surface — a role-scoped operational
+digest that surfaces today's actionable risk. **In-platform first** (no email
+infrastructure needed for v1); email fan-out is a sequel iteration.
+
+### Backend (`/app/backend/routes/notifications.py`, NEW, ~290 LOC)
+**Pattern**: Each role gets a `_build_<role>_digest(db, scope_user=None)` function
+that returns a uniform envelope:
+```
+{ ok, role, generated_at, summary: {...}, sections: [
+  { key, severity, title, body, count, action_url, rule_ids?, items? }
+] }
+```
+Sections are populated only when their underlying detector rule has open findings
+— so the digest is naturally noise-free.
+
+**Admin digest** (`/api/admin/notifications/digest`, admin-strict):
+- `governance_score` section — always present, includes Δ vs previous scan (real overnight delta signal)
+- `critical_findings` section — when severity_counts.critical > 0 (top-5 sample rows)
+- `linkage_failures` section — EMP_LINK_UNRESOLVABLE + EMP_LINK_AMBIGUOUS aggregate
+- `incident_lifecycle` section — INC_NEEDS_CAPA aggregate
+- `scan_freshness` warning when last scan is >36h old
+
+**Safety digest** (`/api/safety/notifications/digest`, safety-or-admin):
+- 6 deterministic sections each mapped 1:1 to a detector rule:
+  - `capa_overdue` → `CAPA_OVERDUE` (high)
+  - `incidents_needing_capa` → `INC_NEEDS_CAPA` (critical)
+  - `capa_awaiting_verification` → `CAPA_AWAITING_VERIFICATION` (medium)
+  - `capa_no_owner` → `CAPA_NO_OWNER` (medium)
+  - `incident_closed_capa_open` → `INC_CLOSED_CAPA_OPEN` (high)
+  - `training_expired` → `TRN_EXPIRED` (high)
+- Each section includes a sample of 5 finding rows + an action_url that deep-links to the relevant remediation surface (Safety Corrective Actions tab, Compliance Findings filter, etc).
+
+### Frontend (`/app/frontend/src/pages/NotificationsDigest.jsx`, NEW, ~230 LOC)
+- Single role-aware page on `/notifications`
+- Auto-picks endpoint based on which portal token is present (Safety first, then Admin) — extension point ready for HR / PM / Dispatch / FL
+- Permanent operational-coaching standard: leads with a `LifecycleGuide` (amber accent) containing 4 standard sections (What this is · How items are chosen · What to do · Why this matters), 20+ ES translations
+- Admin layout: convergence score banner with severity tint + critical/high/medium/low breakdown
+- Safety layout: 6-tile counter strip color-coded by severity (Overdue · Need a CAPA · Pending verification · No owner · Closed w/ open CAPA · Expired training)
+- Section cards with severity badge, title, body, "View" action button, optional inline 5-item sample list (entity name · rule_id · description · last_detected timestamp)
+- Empty state: "No operational signal today" + emerald checkmark when zero sections
+- Sign-in gate when no portal token present (graceful guidance, not 401 wall)
+
+### Live signal validation (real preview data, not mocked)
+- Admin digest payload returned: score=0/100/critical · 344 total open · Δ −8 vs previous scan · 4 sections active
+- Safety digest payload: 2 active sections (20 INC_NEEDS_CAPA critical + 16 CAPA_NO_OWNER medium) — exactly the operational priorities the safety team needs to start their day
+
+### RBAC matrix
+| Endpoint                                     | Admin | Safety | HR | PM | FL | Dispatch | Anon |
+|---|---|---|---|---|---|---|---|
+| GET `/api/admin/notifications/digest`        | ✅    | ❌    | ❌ | ❌ | ❌ | ❌      | ❌ 401 |
+| GET `/api/safety/notifications/digest`       | ✅ (via safety-or-admin) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ 401 |
+
+### i18n
+24 new ES translations covering the entire notifications surface (header, coaching banner body, all 6 safety tile labels, empty-state copy, severity terms). Full parity verified — switching `localStorage.masci.lang = 'es'` renders the page in Spanish.
+
+### Tests · iter357
+- **NEW** `/app/backend/tests/test_iter357_notifications_digest.py` — **7/7 PASS**:
+  - RBAC × 2 (admin + safety reject anon)
+  - Shape × 2 (admin envelope + safety envelope conform)
+  - **Determinism**: safety digest counts match live finding counts (all 6 rule mappings verified)
+  - Conditional shape: critical_findings section appears IFF severity_counts.critical > 0
+  - Item shape: every `items[]` entry carries the keys the UI renders (id, rule_id, severity, entity_name)
+- Cumulative regression iter353d/e/f + iter354 + iter355 + iter356 + iter357: **67/67 PASS** in 124s. Zero cross-iteration breakage.
+
+### Architectural notes / extension path
+- Adding HR / PM / Dispatch / FL is mechanical: write `_build_<role>_digest(db, scope_user=None)`, wire an endpoint on the role's portal-token gate, add a layout branch in `pickRoleAndEndpoint()` on the frontend. No core architecture change.
+- The `scope_user=None` arg is reserved for PM (project-scoped) + FL (region/assignment-scoped) implementations.
+- Email/SMS/Slack fan-out is a separate iteration. The digest payload is already in the shape an email template would consume — no rework needed.
+
+---
+
+
+## 2026-05-23 — iter356 · Phase 2 P0 — Incident → CAPA → Closeout Lifecycle Enforcement + Permanent Operational Coaching Standard · ✅ COMPLETE
+
+### Strategic intent
+Two coupled deliverables in one iteration:
+
+1. **Lifecycle enforcement** so CAPAs cannot silently collapse to Closed and severe incidents cannot exist without a corrective-action chain. The detection engine alone (iter354) was passive; iter356 adds **active backend enforcement** on the CAPA update endpoint.
+2. **Permanent platform standard**: every new operational surface from this point on must ship with an embedded `LifecycleGuide` component that explains roles, lifecycle, downstream visibility, and accountability in field-direct language with ES parity. This iteration's CAPA page is the first surface to receive it.
+
+### Backend (`/app/backend/routes/governance.py` extended + `/app/backend/routes/safety_portal/corrective_actions.py` hardened)
+
+**3 new detector rules** added to `RULE_CATALOG` (`category="lifecycle"`):
+- `INC_NEEDS_CAPA` (critical) — incident with severity High / Critical / OSHA-recordable and zero linked CAPAs
+- `CAPA_AWAITING_VERIFICATION` (medium) — CAPA stuck in `Pending Review` >7 days
+- `CAPA_NO_OWNER` (medium) — open/in-progress CAPA with no `assigned_to_name`
+
+**`_detect_incident_lifecycle(db)`** detector walks the incidents collection, classifies severity (severity field OR `osha_recordable=true`), and counts linked CAPAs via 3 different linkage shapes (`incident_id`, `source_kind=incident`/`source_id`, `related_entities[]`).
+
+**CAPA lifecycle pipeline upgraded** to a 5-state, audit-enforced flow:
+- `Open → In Progress → Pending Review → Verified → Closed`
+- Reverse path `* → In Progress` is allowed (re-open semantics)
+- All other transitions return **HTTP 422** with a precise error message
+- `Closed` requires the prior state to be `Verified` — closing without verification is hard-rejected
+- `Verified` transition stamps `verified_at`, `verified_by_name`, `verified_by_email`
+- `Closed` continues to stamp `completed_at` + `closed_by_name`
+- Every status change appends an entry to **`status_history[]`** with `{from, to, by_name, by_email, at, note}` — append-only audit array
+- `transition_note` field added to the patch body so reviewers can attach context with their action (lands in status_history, not on the doc top-level)
+- Non-status PATCH calls do NOT mutate status_history (verified by test)
+
+### Frontend
+**NEW** `/app/frontend/src/components/LifecycleGuide.jsx` — reusable operational-coaching component with:
+- Collapsible card pattern (one-line summary collapsed; sections expanded)
+- 5 accent colors (indigo/amber/emerald/rose/slate) for cross-portal tone parity
+- localStorage-keyed dismissal so users only see each guide as long as they want it
+- Bilingual via existing `useT()` (all coaching strings translated EN ↔ ES)
+- Mobile-friendly (single column, no horizontal overflow, large tap target on toggle)
+- 4 standard sections that EVERY future use should fill: **Roles · Lifecycle gate · Downstream visibility · Why this matters**
+
+**Wired into** `/app/frontend/src/pages/SafetyCorrectiveActions.jsx`:
+- New `CAPA Lifecycle` indigo coaching banner above the tab strip
+- New `Verified` status tab between `Pending Review` and `Closed` (5-tab pipeline)
+- `STATUS_OPTIONS` extended to include `Verified` with violet styling
+- Pipeline summary text in page header updated to the 5-state flow
+
+### i18n (ES parity per the new permanent standard)
+12 new translations added covering the LifecycleGuide chrome ("Lifecycle Guide", "Don't show this again") and the full CAPA coaching body (roles, lifecycle gate, downstream, why-it-matters paragraphs).
+
+### Tests · iter356
+**NEW** `/app/backend/tests/test_iter356_capa_lifecycle.py` — **7/7 PASS**:
+- Catalog registers the 3 new rules with category=lifecycle
+- Detector runs cleanly (`detector_errors == {}`)
+- Legal transition Open → In Progress accepted with note appended to history
+- Illegal transition Open → Closed rejected with 422
+- Cannot close without verified — both halves verified (PR→Closed = 422, PR→Verified→Closed = 200, stamps verified_at + completed_at, history has both transitions)
+- Status history is append-only (non-status patches do NOT alter it)
+- Closed → In Progress re-open path works
+
+**Cumulative regression** iter353 + iter354 + iter355 + iter356: **60/60 PASS** in 77s.
+
+### RBAC matrix (unchanged from iter354 — lifecycle enforcement is gate-level)
+| Endpoint                            | Admin | Safety | HR    | PM    | FL    | Anon  |
+|---|---|---|---|---|---|---|
+| PATCH `/api/safety/corrective-actions/{id}` (lifecycle-enforced) | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| GET `/api/admin/compliance/findings?rule_id=INC_NEEDS_CAPA` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+### Permanent operational coaching standard — applied from this iteration forward
+Every new feature, workflow, dashboard, or surface MUST ship with a `LifecycleGuide` (or equivalent inline coaching component) that explains roles, lifecycle, downstream visibility, and accountability. No silent workflows. No contextless dashboards. ES parity is non-negotiable.
+
+---
+
+
 ## 2026-05-23 — iter355 · Phase 2 P2 — Operator ↔ Employee Linkage Enforcement · ✅ COMPLETE
 
 ### Strategic intent

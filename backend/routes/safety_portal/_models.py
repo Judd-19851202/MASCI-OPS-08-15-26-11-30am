@@ -113,6 +113,10 @@ class CorrectiveActionUpdate(BaseModel):
     related_entities: Optional[List[RelatedEntity]] = None
     equipment_master_id: Optional[str] = None
     employee_master_id: Optional[str] = None
+    # iter356 — Incident → CAPA → Closeout lifecycle enforcement.
+    # When the actor advances status (especially to Verified / Closed),
+    # they can attach a short note that gets stamped onto status_history.
+    transition_note: Optional[str] = None
 
 
 # ── Phase 3 — Fire Extinguishers ─────────────────────────────────────

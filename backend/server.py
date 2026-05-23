@@ -9747,6 +9747,19 @@ from routes.governance import build_governance_router  # noqa: E402
 app.include_router(build_governance_router(db, require_admin_strict))
 
 
+# ─── Phase 2 P1 · Operational Intelligence Notifications ─────────────
+# Role-scoped digest engine over the existing findings + lifecycle state.
+# Admin + Safety in this iteration; HR/PM/Dispatch/FL follow the same
+# pattern and can be added incrementally without an architectural change.
+from routes.notifications import build_notifications_router  # noqa: E402
+from routes.safety_portal._deps import make_require_safety_or_admin  # noqa: E402
+
+_notif_safety_gate = make_require_safety_or_admin(db, _is_valid_admin_token)
+app.include_router(build_notifications_router(
+    db, require_admin_strict, _notif_safety_gate,
+))
+
+
 # ─── Synthetic health monitor (iter132) ─────────────────────────────
 # Polls system_health every 60 s, fires Resend alerts on sustained red.
 from health_monitor import start_health_monitor_loop  # noqa: E402
