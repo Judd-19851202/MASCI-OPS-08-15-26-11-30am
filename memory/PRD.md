@@ -1,6 +1,48 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter370 (FINISHED) + iter371 · Phase 4A · Auth Consolidation · ✅ COMPLETE
+
+### Outcome
+Two-iteration consolidation sweep completed in one session. **No permission drift.** Cumulative regression suite: **100/100 PASS**.
+
+### iter370 (now FINISHED — the prior session left the regression lock but skipped the code migration)
+- Extracted `make_require_dispatch_or_admin(db, is_valid_admin_token_fn)` factory at module scope of `routes/dispatch_portal_auth.py`.
+- `dispatch_portal_auth.build_dispatch_router` closure replaced with `require_dispatch_or_admin = make_require_dispatch_or_admin(db, is_valid_admin_token_fn)`.
+- `server.py` `_require_dispatch_or_admin` wrapper now delegates to the same factory output (signature preserved for `fleet_ops.py` kwargs injection).
+- Regression lock `test_iter370_dispatch_or_admin_parity.py` updated to lock the new consolidated shape — 8/8 PASS.
+- Live verification: `/api/dispatch/driver-qualification` (closure consumer) and `/api/dispatch/fleet/status` (fleet_ops consumer) both return 200 with admin token, 401 without — behavior identical pre/post-refactor.
+
+### iter371 (NEW)
+- Created `routes/shop_portal_deps.py` with `make_require_shop_or_admin_fleet(db, is_valid_admin_token_fn, shop_token_for_fn)` factory.
+- `server.py` `_require_shop_or_admin_fleet` wrapper now delegates to the factory output.
+- **The richer `require_shop_or_admin` (admin/shop/PM chain + iter180 admin-namespace lockdown) was intentionally NOT touched** — it serves a different surface (equipment master, parts, inspections) where PM project-scoping is required.
+- Regression lock `test_iter371_shop_or_admin_parity.py` — 7/7 PASS:
+  - Functional: no-token → 401, admin → 200, dispatch token rejected (cross-portal isolation).
+  - Source-level: factory exists, wrapper delegates (no inline role dict), richer gate preserved with its iter180 lockdown.
+
+### Files touched
+- `/app/backend/routes/dispatch_portal_auth.py` — added `make_require_dispatch_or_admin`, removed inline closure body.
+- `/app/backend/server.py` — added module-load factory import + `_shared_dispatch_or_admin`/`_shared_shop_or_admin_fleet`; both wrappers now delegate.
+- `/app/backend/routes/shop_portal_deps.py` — NEW (canonical shop fleet-gate factory).
+- `/app/backend/tests/test_iter370_dispatch_or_admin_parity.py` — updated source-level guards to lock new consolidated shape.
+- `/app/backend/tests/test_iter371_shop_or_admin_parity.py` — NEW.
+- `/app/memory/AUTH_CONSOLIDATION_PROGRESS.md` — updated.
+
+### Pattern proven (applies to iter372+)
+Each "or-admin" fleet-ops gate gets a `make_require_X_or_admin*` factory at module scope in the portal's deps file. `server.py` builds the gate once at module load and the wrapper function delegates (preserves FastAPI kwargs-injection signature). One regression lock per iteration.
+
+### Next iteration roadmap
+- `iter372` — safety_or_admin family (highest-traffic). Apply the same pattern.
+- `iter373` — hr_or_admin + safety_admin_or_pm.
+- `iter374` — Auth hardening review checkpoint (no code).
+- P4B — MFA TOTP for super-admins.
+- P4D — server.py architectural extraction (12k+ LOC).
+
+---
+
+
+
 ## 2026-05-23 — iter370 · Phase 4A · R7 Closed + Dispatch Parity Locked · ✅ COMPLETE
 
 ### Strategic intent

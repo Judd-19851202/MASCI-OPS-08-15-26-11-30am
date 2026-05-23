@@ -10667,22 +10667,28 @@ async def _require_fleet_submitter(
     return {"role": "public", "actor_id": "", "name": ""}
 
 
+# iter370 · Canonical shared dispatch+admin gate (single source of truth).
+# Built once at module load — delegated by `_require_dispatch_or_admin`.
+from routes.dispatch_portal_auth import (  # noqa: E402
+    make_require_dispatch_or_admin as _make_dispatch_or_admin,
+)
+_shared_dispatch_or_admin = _make_dispatch_or_admin(db, _is_valid_admin_token)
+
+
 async def _require_dispatch_or_admin(
     request: Request,
     x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
     x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
 ) -> Dict[str, Any]:
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
-        return {"role": "admin"}
-    if x_dispatch_token:
-        try:
-            from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
-            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
-            if u:
-                return {"role": "dispatch", **u}
-        except Exception:
-            pass
-    raise HTTPException(401, "Dispatch or Admin auth required")
+    """iter370 · Delegates to the canonical shared factory in
+    routes/dispatch_portal_auth.make_require_dispatch_or_admin so the
+    gate has a SINGLE source of truth. The wrapper signature is preserved
+    because fleet_ops.py wires this in via kwargs at router construction.
+    """
+    return await _shared_dispatch_or_admin(
+        x_dispatch_token=x_dispatch_token,
+        x_admin_token=x_admin_token,
+    )
 
 
 async def _require_safety_or_admin_fleet(
@@ -10703,20 +10709,34 @@ async def _require_safety_or_admin_fleet(
     raise HTTPException(401, "Safety or Admin auth required")
 
 
-# Shop gate — reuses existing require_shop_or_admin (admin/shop/pm token chain)
+# Shop gate — narrow admin/shop fleet-ops gate (distinct from
+# require_shop_or_admin which also accepts PM tokens + has admin-namespace
+# lockdown). iter371 · Delegates to the canonical shared factory in
+# routes/shop_portal_deps.make_require_shop_or_admin_fleet.
+from routes.shop_portal_deps import (  # noqa: E402
+    make_require_shop_or_admin_fleet as _make_shop_or_admin_fleet,
+)
+_shared_shop_or_admin_fleet = _make_shop_or_admin_fleet(
+    db, _is_valid_admin_token, _shop_token_for,
+)
+
+
 async def _require_shop_or_admin_fleet(
     request: Request,
     x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
     x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
 ) -> Dict[str, Any]:
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
-        return {"role": "admin"}
-    if x_shop_token:
-        # Same HMAC pattern as require_shop_or_admin above
-        shop_pw = os.environ.get("SHOP_PASSWORD", "")
-        if shop_pw and x_shop_token == _shop_token_for(shop_pw):
-            return {"role": "shop"}
-    raise HTTPException(401, "Shop or Admin auth required")
+    """iter371 · Delegates to the canonical shared factory in
+    routes/shop_portal_deps.make_require_shop_or_admin_fleet so the
+    fleet-ops shop gate has a SINGLE source of truth. The wrapper
+    signature is preserved because fleet_ops.py wires this in via
+    kwargs at router construction.
+    """
+    return await _shared_shop_or_admin_fleet(
+        request,
+        x_admin_token=x_admin_token,
+        x_shop_token=x_shop_token,
+    )
 
 
 # Phase 4 · multi-portal READ gate. Any of admin / shop / dispatch /

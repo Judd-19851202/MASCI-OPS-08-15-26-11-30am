@@ -1,6 +1,6 @@
 # AUTH CONSOLIDATION PROGRESS
-**Phase 4A · iter370**
-**Status:** R7 CLOSED · dispatch_or_admin parity LOCKED · zero behavior drift.
+**Phase 4A · iter370 + iter371**
+**Status:** Dispatch family CONSOLIDATED · Shop fleet-gate CONSOLIDATED · zero behavior drift.
 
 The complete inventory of authorization patterns in the MASCI backend, with execution progress tracked per iteration.
 
@@ -11,8 +11,9 @@ The complete inventory of authorization patterns in the MASCI backend, with exec
 | Iter | Work | Status |
 |---|---|---|
 | iter369 | Inventory + auth regression lock (16 tests) | ✅ |
-| **iter370** | R7 fix (admin-strict fail-closed) + dispatch_or_admin parity lock (11 tests) | ✅ |
-| iter371 | shop_or_admin family consolidation | 🟡 planned |
+| iter370 | R7 fix (admin-strict fail-closed) + dispatch_or_admin parity lock (11 tests) | ✅ |
+| **iter370 (completed)** | Dispatch shared factory `make_require_dispatch_or_admin` extracted · both consumers delegate · regression lock updated to lock new shape | ✅ |
+| **iter371** | Shop fleet-gate shared factory `make_require_shop_or_admin_fleet` extracted · 7-test regression lock added · richer `require_shop_or_admin` intentionally preserved | ✅ |
 | iter372 | safety_or_admin family consolidation (highest-traffic) | 🟡 planned |
 | iter373 | hr_or_admin + safety_admin_or_pm | 🟡 planned |
 | iter374 | Auth hardening review checkpoint (no code) | 🟡 planned |
@@ -25,31 +26,38 @@ The complete inventory of authorization patterns in the MASCI backend, with exec
 - **Before:** `if not expected_pw: return True` — empty env var = admin bypass.
 - **After:** explicit `HTTPException(503, "Admin authentication not configured")`.
 - **Location:** `/app/backend/server.py` L368-401 (require_admin_strict).
-- **Regression lock:** `/app/backend/tests/test_iter370_r7_admin_strict_fail_closed.py` — 4/4 PASS:
-  - Source-level guard: no future refactor can re-introduce the escape hatch shape.
-  - Functional: valid admin token still unlocks (no breaking change).
-  - Functional: no token still denies (401 unchanged).
-  - Functional: PM token still rejected on admin-strict surface.
+- **Regression lock:** `/app/backend/tests/test_iter370_r7_admin_strict_fail_closed.py` — 4/4 PASS.
 
-### Dispatch_or_admin parity lock
-- **Discovery:** Two `dispatch_or_admin` gates exist:
-  1. `routes/dispatch_portal_auth.py` L117 (closure inside `build_dispatch_router` factory)
-  2. `server.py` L10670 `_require_dispatch_or_admin` (free function, used by `routes/fleet_ops.py`)
-- **Decision:** **No code merge this iteration.** Both have identical semantics but live in different scopes. Merging requires moving the closure to module scope — bigger refactor.
-- **Locked instead:** `/app/backend/tests/test_iter370_dispatch_or_admin_parity.py` — 7/7 PASS:
-  - Both routes deny without token (parity).
-  - Both routes accept admin token identically (parity).
-  - Both routes reject safety token identically (cross-portal isolation parity).
-  - Both source files keep their definitions (no accidental removal).
-  - Both return identical `{role: 'admin'}` / `{role: 'dispatch', ...}` shape.
+### Dispatch_or_admin consolidation — FINISHED iter370
+- **Canonical factory:** `routes/dispatch_portal_auth.make_require_dispatch_or_admin(db, is_valid_admin_token_fn)` — single source of truth for the role-dict shape and semantics.
+- **dispatch_portal_auth.build_dispatch_router** → uses `require_dispatch_or_admin = make_require_dispatch_or_admin(db, is_valid_admin_token_fn)`. No closure body.
+- **server.py** → imports the factory at module load, builds `_shared_dispatch_or_admin` once, and `_require_dispatch_or_admin` wrapper delegates to it (keeps signature for fleet_ops kwargs injection).
+- **Regression lock:** `/app/backend/tests/test_iter370_dispatch_or_admin_parity.py` — 8/8 PASS:
+  - Functional: deny without token, accept admin, reject safety (cross-portal isolation) on BOTH variants.
+  - Source-level: shared factory exists, both consumers reference it, server.py wrapper no longer contains the role-dict literal.
 
-The parity lock means iter371+ can merge these two functions safely; any drift will fail this test.
+---
+
+## iter371 deliverables · ✅ COMPLETE
+
+### Shop fleet-gate consolidation
+**Key insight:** The two shop gates are NOT semantically equal (unlike dispatch):
+- `server.py require_shop_or_admin` → richer chain (admin/shop-HMAC/shop-user/PM-token/per-PM-doc) + iter180 admin-namespace lockdown.
+- `_require_shop_or_admin_fleet` → narrow (admin/shop-HMAC only), `{role: ...}` dict shape. Used only by fleet_ops.
+
+The narrow fleet gate was extracted into a shared factory; the richer gate was intentionally NOT touched.
+
+- **Canonical factory:** `routes/shop_portal_deps.make_require_shop_or_admin_fleet(db, is_valid_admin_token_fn, shop_token_for_fn)`.
+- **server.py** → imports the factory at module load, builds `_shared_shop_or_admin_fleet` once, and `_require_shop_or_admin_fleet` wrapper delegates to it.
+- **Regression lock:** `/app/backend/tests/test_iter371_shop_or_admin_parity.py` — 7/7 PASS:
+  - Functional: deny without token, accept admin, reject dispatch (cross-portal isolation).
+  - Source-level: shared factory exists, server.py wrapper delegates (no inline role dict), the richer `require_shop_or_admin` is preserved with its iter180 admin-namespace lockdown.
 
 ---
 
 ## Discovered auth dependency functions (23 total)
 
-(See iter369 baseline below — UNCHANGED in iter370.)
+(See iter369 baseline below — UNCHANGED in iter370/iter371.)
 
 ### Single-portal gates (clean baseline — these are the canonical "owns this portal" checks)
 
@@ -68,42 +76,37 @@ The parity lock means iter371+ can merge these two functions safely; any drift w
 
 ### Combined / "or-admin" gates (consolidation target)
 
-| Function | Variants | iter370 Status |
+| Function | Variants | Status |
 |---|---|---|
-| `require_dispatch_or_admin` | 2 implementations (closure + free function) | 🔒 parity LOCKED iter370 · merge possible iter371+ |
+| `require_dispatch_or_admin` | shared factory + 2 delegating consumers | ✅ CONSOLIDATED iter370 |
+| `_require_shop_or_admin_fleet` | shared factory + delegating wrapper | ✅ CONSOLIDATED iter371 |
+| `require_shop_or_admin` (richer) | inline (admin+shop+PM, namespace lockdown) | 🔒 KEEP (different surface) |
 | `require_safety_or_admin` | 1 canonical (`_deps.py`) + 1 wrapper (`_require_safety_or_admin_fleet`) | similar pattern · audit iter372 |
 | `require_safety_or_hr_or_admin` | 1 implementation (`_deps.py`) | review iter373 |
 | `require_hr_or_admin` | inline in server.py | audit iter373 |
-| `require_shop_or_admin` | inline + `_require_shop_or_admin_fleet` wrapper | similar pattern · audit iter371 |
 | `require_safety_admin_or_pm` | inline | audit iter373 |
 | `require_any_portal_token` | server.py | review iter374 |
 | `require_any_fleet_portal` | server.py | review iter374 |
 | `require_any_portal` | server.py | review iter374 |
 
-### Misc / specialized
-
-(unchanged from iter369)
-
 ---
 
-## Architectural pattern emerging
+## Architectural pattern emerging (refined post-iter371)
 
-After iter370 discovery, the pattern is clearer:
-- Each "or-admin" gate has a **canonical** implementation (inside its portal module factory) AND a **fleet-ops wrapper** (in server.py) for the cross-portal `fleet_ops.py` consumer.
-- The wrappers exist because `fleet_ops.py` receives gate dependencies via kwargs, but the canonical closures live inside their own factory.
+The consolidation pattern is now proven across TWO portals:
 
-**Proposed iter371-iter373 consolidation pattern:**
-1. For each portal (dispatch, shop, safety, hr): extract its `_or_admin` gate from the closure into module scope, parametrized on `db`.
-2. server.py's wrapper then delegates: `_require_X_or_admin = make_require_X_or_admin(db)`.
-3. Run parity lock from iter370 — must stay green.
+1. Each "or-admin" fleet-ops gate has a **canonical factory** at module scope (in the portal's deps file).
+2. The factory takes `db` and `is_valid_admin_token_fn` (plus any portal-specific token helpers).
+3. server.py's wrapper function survives for FastAPI's kwargs-injection contract with `fleet_ops.py`, but its body now delegates to the factory output.
+4. A regression lock per iteration locks (a) factory existence, (b) consumer delegation, (c) cross-portal isolation.
 
-This is a 2-3 hour refactor across iter371-iter373. Each iteration migrates ONE portal.
+**Next:** iter372 applies the same pattern to safety (highest-traffic).
 
 ---
 
 ## Cumulative regression health
 
-iter354 → iter370: **92/92 pytest items PASS** in 45s.
+iter354 → iter371: **100/100 pytest items PASS** in ~55s.
 
 - iter354 governance phase2 — 5 tests
 - iter355 employee linkage — 5 tests
@@ -115,7 +118,8 @@ iter354 → iter370: **92/92 pytest items PASS** in 45s.
 - iter364 p1 linkage persistence — 6 tests
 - iter368 incident-capa reverse link — 4 tests
 - iter369 auth regression lock — 16 tests
-- **iter370 R7 admin-strict fail-closed — 4 tests** (NEW)
-- **iter370 dispatch_or_admin parity — 7 tests** (NEW)
+- iter370 R7 admin-strict fail-closed — 4 tests
+- iter370 dispatch_or_admin parity (updated for consolidated shape) — 8 tests
+- **iter371 shop_or_admin fleet parity — 7 tests** (NEW)
 
-This suite must remain green throughout iter371+ work.
+This suite must remain green throughout iter372+ work.

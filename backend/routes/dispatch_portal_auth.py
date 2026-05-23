@@ -102,6 +102,36 @@ def make_require_dispatch_token(db) -> Callable[..., dict]:
     return _require_dispatch_token
 
 
+def make_require_dispatch_or_admin(
+    db, is_valid_admin_token_fn: Optional[Callable[[str], bool]] = None,
+) -> Callable[..., dict]:
+    """iter370 · Canonical shared "dispatch OR admin" gate factory.
+
+    Single source of truth for both:
+      • dispatch_portal_auth.build_dispatch_router (portal-local consumer)
+      • server.py `_require_dispatch_or_admin` (fleet_ops consumer)
+
+    Semantics (locked by tests/test_iter370_dispatch_or_admin_parity.py):
+      • Admin token (valid) → {"role": "admin"}
+      • Dispatch token (valid) → {"role": "dispatch", **user}
+      • Otherwise → HTTPException(401, "Dispatch or Admin auth required")
+    """
+
+    async def _require_dispatch_or_admin(
+        x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    ) -> dict:
+        if x_admin_token and is_valid_admin_token_fn and is_valid_admin_token_fn(x_admin_token):
+            return {"role": "admin"}
+        if x_dispatch_token:
+            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+            if u:
+                return {"role": "dispatch", **u}
+        raise HTTPException(401, "Dispatch or Admin auth required")
+
+    return _require_dispatch_or_admin
+
+
 def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Callable] = None, is_valid_admin_token_fn: Optional[Callable[[str], bool]] = None) -> APIRouter:
     """Build the /api/dispatch/* + /api/admin/dispatch-users/* router.
 
@@ -114,17 +144,10 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
     # iter353b · combined Dispatch + Admin read gate for the bounded
     # driver-qualification visibility surface. Admin tokens have always
     # implicitly been the "global view" — we keep that contract.
-    async def require_dispatch_or_admin(
-        x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
-        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
-    ) -> dict:
-        if x_admin_token and is_valid_admin_token_fn and is_valid_admin_token_fn(x_admin_token):
-            return {"role": "admin"}
-        if x_dispatch_token:
-            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
-            if u:
-                return {"role": "dispatch", **u}
-        raise HTTPException(401, "Dispatch or Admin auth required")
+    # iter370 · Delegates to the canonical shared factory
+    # `make_require_dispatch_or_admin` so the gate has a SINGLE source
+    # of truth (mirrored in server.py for fleet_ops consumer).
+    require_dispatch_or_admin = make_require_dispatch_or_admin(db, is_valid_admin_token_fn)
 
     # ═══ Login ═══
     @router.post("/dispatch/login", response_model=DispatchLoginResponse)
@@ -334,4 +357,8 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
     return router
 
 
-__all__ = ["build_dispatch_router", "make_require_dispatch_token"]
+__all__ = [
+    "build_dispatch_router",
+    "make_require_dispatch_token",
+    "make_require_dispatch_or_admin",
+]

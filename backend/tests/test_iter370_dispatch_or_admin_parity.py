@@ -121,33 +121,52 @@ class TestDispatchOrAdminParity:
 
 
 class TestConsolidationFoundation:
-    """Document the source-level shape that future iter371+ consolidation
-    must preserve. Code-level guard rails."""
+    """iter370 final shape — both gates now delegate to a single shared
+    factory `make_require_dispatch_or_admin` in routes/dispatch_portal_auth.py.
+    Any future drift (re-introducing duplicate role-dict logic in either
+    file) will fail these guards."""
 
-    def test_dispatch_portal_auth_defines_require_dispatch_or_admin(self):
+    def test_shared_factory_exists(self):
         src = Path("/app/backend/routes/dispatch_portal_auth.py").read_text()
-        assert "async def require_dispatch_or_admin(" in src, (
-            "dispatch_portal_auth must keep its require_dispatch_or_admin closure"
+        assert "def make_require_dispatch_or_admin(" in src, (
+            "shared factory must remain canonical source of truth"
+        )
+        # Role-shape lives in the factory body only.
+        assert '"role": "admin"' in src, "factory must return role='admin'"
+        assert '"role": "dispatch"' in src, "factory must return role='dispatch'"
+
+    def test_dispatch_portal_auth_uses_shared_factory(self):
+        src = Path("/app/backend/routes/dispatch_portal_auth.py").read_text()
+        assert "require_dispatch_or_admin = make_require_dispatch_or_admin(" in src, (
+            "dispatch_portal_auth.build_dispatch_router must delegate to the shared factory"
         )
 
-    def test_server_py_defines_require_dispatch_or_admin_wrapper(self):
+    def test_server_py_uses_shared_factory(self):
         src = Path("/app/backend/server.py").read_text()
+        assert "_make_dispatch_or_admin(db, _is_valid_admin_token)" in src, (
+            "server.py must build its dispatch_or_admin gate from the shared factory"
+        )
         assert "async def _require_dispatch_or_admin(" in src, (
             "server.py must keep its _require_dispatch_or_admin wrapper "
             "(used by fleet_ops via kwargs injection)"
         )
 
-    def test_both_variants_return_same_role_shape(self):
-        """Lock the response dict shape. Both must return {role:'admin'}
-        or {role:'dispatch', ...}. Future consolidation must preserve this."""
-        for path in [
-            "/app/backend/routes/dispatch_portal_auth.py",
-            "/app/backend/server.py",
-        ]:
-            src = Path(path).read_text()
-            assert '"role": "admin"' in src or "'role': 'admin'" in src, (
-                f"{path} must return role='admin' on admin path"
-            )
-            assert '"role": "dispatch"' in src or "'role': 'dispatch'" in src, (
-                f"{path} must return role='dispatch' on dispatch path"
-            )
+    def test_server_py_no_longer_duplicates_role_dict(self):
+        """The role-dict literals for dispatch_or_admin should now live
+        ONLY in the shared factory. server.py's wrapper must delegate."""
+        src = Path("/app/backend/server.py").read_text()
+        # Locate the _require_dispatch_or_admin function body.
+        idx = src.find("async def _require_dispatch_or_admin(")
+        assert idx >= 0
+        # Take next ~30 lines as the body window.
+        body = src[idx:idx + 1200]
+        assert "_shared_dispatch_or_admin" in body, (
+            "server.py wrapper must delegate to the shared gate"
+        )
+        # The literal "role": "dispatch" must NOT appear inside this
+        # wrapper anymore — that means it's still building its own dict.
+        # We allow it elsewhere in server.py (other gates), but not here.
+        assert '"role": "dispatch"' not in body[:1000], (
+            "server.py wrapper must not rebuild the dispatch role dict — "
+            "must delegate to make_require_dispatch_or_admin"
+        )
