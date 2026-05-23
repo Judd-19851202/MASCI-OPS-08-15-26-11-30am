@@ -102,7 +102,7 @@ def make_require_dispatch_token(db) -> Callable[..., dict]:
     return _require_dispatch_token
 
 
-def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Callable] = None) -> APIRouter:
+def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Callable] = None, is_valid_admin_token_fn: Optional[Callable[[str], bool]] = None) -> APIRouter:
     """Build the /api/dispatch/* + /api/admin/dispatch-users/* router.
 
     iter346-B · `directory_admin_minter` enables universal super-admin
@@ -110,6 +110,21 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
     """
     router = APIRouter(prefix="/api", tags=["dispatch-portal"])
     require_dispatch_token = make_require_dispatch_token(db)
+
+    # iter353b · combined Dispatch + Admin read gate for the bounded
+    # driver-qualification visibility surface. Admin tokens have always
+    # implicitly been the "global view" — we keep that contract.
+    async def require_dispatch_or_admin(
+        x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    ) -> dict:
+        if x_admin_token and is_valid_admin_token_fn and is_valid_admin_token_fn(x_admin_token):
+            return {"role": "admin"}
+        if x_dispatch_token:
+            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+            if u:
+                return {"role": "dispatch", **u}
+        raise HTTPException(401, "Dispatch or Admin auth required")
 
     # ═══ Login ═══
     @router.post("/dispatch/login", response_model=DispatchLoginResponse)
@@ -280,6 +295,39 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
         if not ok:
             raise HTTPException(404, "Not found")
         return {"ok": True}
+
+    # ═══ iter353b · Read-only Driver Qualification visibility ═══
+    # Dispatch is read-only on this surface. Same shared helper as HR
+    # + Field Leadership. No write peer exists — no PATCH, no POST,
+    # no DELETE, no import. Bounded operational visibility for
+    # assignment / route prep.
+    from fastapi import Query as _Query  # noqa: PLC0415
+    from lib.driver_qualification import fetch_driver_qualification_dashboard  # noqa: PLC0415
+
+    @router.get("/dispatch/driver-qualification")
+    async def dispatch_driver_qualification(
+        actor: dict = Depends(require_dispatch_or_admin),
+        cdl_holder: Optional[bool] = _Query(default=None),
+        approved: Optional[bool] = _Query(default=None),
+        driver_status: Optional[str] = _Query(default=None),
+        endorsement: Optional[str] = _Query(default=None),
+        expiring_cdl_30d: Optional[bool] = _Query(default=None),
+        expiring_medical_30d: Optional[bool] = _Query(default=None),
+        q: Optional[str] = _Query(default=None, max_length=80),
+        limit: int = _Query(default=500, ge=1, le=2000),
+    ):
+        try:
+            payload = await fetch_driver_qualification_dashboard(
+                db,
+                cdl_holder=cdl_holder, approved=approved,
+                driver_status=driver_status, endorsement=endorsement,
+                expiring_cdl_30d=expiring_cdl_30d,
+                expiring_medical_30d=expiring_medical_30d,
+                q=q, limit=limit,
+            )
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        return {"ok": True, **payload, "viewer_role": "dispatch"}
 
     return router
 

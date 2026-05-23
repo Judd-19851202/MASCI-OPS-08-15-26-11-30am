@@ -115,7 +115,7 @@ export default function FieldLeadershipPortalDashboard() {
                 </div>
               </CardContent>
             </Card>
-            <Card data-testid="fl-card-driver-qual">
+            <Card data-testid="fl-card-driver-qual" className="cursor-pointer hover:border-red-300 hover:shadow-sm transition-all" onClick={() => navigate("/field-leadership/portal/driver-qualification")}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-slate-600" /> {t("Driver Qualification")}
@@ -128,6 +128,9 @@ export default function FieldLeadershipPortalDashboard() {
                 </div>
                 <div className="text-xs text-slate-600 mt-1">
                   {t("approved/CDL drivers in scope")}
+                </div>
+                <div className="text-[11px] text-red-700 font-mono uppercase tracking-wider mt-2" data-testid="fl-card-driver-qual-cta">
+                  {t("Open Driver Readiness →")}
                 </div>
               </CardContent>
             </Card>

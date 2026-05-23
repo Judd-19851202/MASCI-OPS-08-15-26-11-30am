@@ -92,6 +92,7 @@ import HrHub from "@/pages/HrHub";
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
+import FieldLeadershipDriverQualification from "@/pages/FieldLeadershipDriverQualification";
 import FieldLeadershipPortalChangePassword from "@/pages/FieldLeadershipPortalChangePassword";
 import { RequireFl } from "@/components/RequireFl";
 import HrResetPassword from "@/pages/HrResetPassword";
@@ -112,6 +113,7 @@ import SafetyLogin from "@/pages/SafetyLogin";
 import DispatchLogin from "@/pages/DispatchLogin";
 import LeadershipLogin from "@/pages/LeadershipLogin";
 import DispatchHub from "@/pages/DispatchHub";
+import DispatchDriverQualification from "@/pages/DispatchDriverQualification";
 import DispatchChangePassword from "@/pages/DispatchChangePassword";
 import DispatchForgotPassword from "@/pages/DispatchForgotPassword";
 import DispatchResetPassword from "@/pages/DispatchResetPassword";
@@ -503,6 +505,8 @@ function App() {
             <Route path="/field-leadership/portal/change-password" element={FL(<FieldLeadershipPortalChangePassword />)} />
             <Route path="/field-leadership/portal/dashboard" element={FL(<FieldLeadershipPortalDashboard />)} />
             <Route path="/field-leadership/portal" element={FL(<FieldLeadershipPortalDashboard />)} />
+            {/* iter353b · FL read-only Driver Readiness view */}
+            <Route path="/field-leadership/portal/driver-qualification" element={FL(<FieldLeadershipDriverQualification />)} />
 
             {/* ============================================================
                 Safety Portal — isolated cyan-700 scope for Safety
@@ -554,6 +558,8 @@ function App() {
             <Route path="/dispatch-portal/change-password" element={DP(<DispatchChangePassword />)} />
             <Route path="/dispatch-portal" element={DP(<DispatchHub />)} />
             <Route path="/dispatch-portal/fleet" element={DP(<FleetVisibility scope="dispatch" />)} />
+            {/* iter353b · Dispatch read-only Approved Drivers / CDL Readiness */}
+            <Route path="/dispatch-portal/driver-qualification" element={DP(<DispatchDriverQualification />)} />
 
             {/* ============================================================
                 Training Hub — landing is public, tracks gate per audience

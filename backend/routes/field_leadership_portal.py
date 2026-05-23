@@ -370,27 +370,29 @@ def build_field_leadership_portal_router(
         cdl_holder: Optional[bool] = Query(default=None),
         approved: Optional[bool] = Query(default=None),
         driver_status: Optional[str] = Query(default=None),
+        endorsement: Optional[str] = Query(default=None),
+        expiring_cdl_30d: Optional[bool] = Query(default=None),
+        expiring_medical_30d: Optional[bool] = Query(default=None),
+        q: Optional[str] = Query(default=None, max_length=80),
         limit: int = Query(default=500, ge=1, le=2000),
     ):
-        """Read-only proxy to the driver-qualification dashboard.
-        FL users get the same view as HR but cannot modify."""
-        q: Dict[str, Any] = {}
-        if cdl_holder is not None:
-            q["cdl_holder"] = cdl_holder
-        if approved is not None:
-            q["approved_company_driver"] = approved
-        if driver_status:
-            q["driver_status"] = driver_status
-        items = []
-        async for e in db.employees.find(
-            q,
-            {"_id": 0, "id": 1, "name": 1, "approved_company_driver": 1,
-             "cdl_holder": 1, "driver_status": 1, "cdl_endorsements": 1,
-             "cdl_restrictions": 1, "cdl_expiration_date": 1,
-             "medical_card_expiration_date": 1},
-        ).limit(min(limit, 2000)):
-            items.append(e)
-        return {"ok": True, "items": items, "count": len(items)}
+        """iter353b · Read-only driver-qualification dashboard for FL.
+        Uses the SAME shared helper as HR + Dispatch — identical
+        data, identical filters, identical summary. FL has zero
+        write authority on this surface (no PATCH peer exists)."""
+        from lib.driver_qualification import fetch_driver_qualification_dashboard  # noqa: PLC0415
+        try:
+            payload = await fetch_driver_qualification_dashboard(
+                db,
+                cdl_holder=cdl_holder, approved=approved,
+                driver_status=driver_status, endorsement=endorsement,
+                expiring_cdl_30d=expiring_cdl_30d,
+                expiring_medical_30d=expiring_medical_30d,
+                q=q, limit=limit,
+            )
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        return {"ok": True, **payload, "viewer_role": "field_leadership"}
 
     # ─────────────────────────────────────────────────────────────────
     # ADMIN/HR — FL user management (HR + Admin both can manage)

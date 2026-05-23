@@ -5,7 +5,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
-  Truck, Send, ShieldAlert, Activity, LogOut, Clock, Home, ArrowLeft, Plug, BookOpen,
+  Truck, Send, ShieldAlert, Activity, LogOut, Clock, Home, ArrowLeft, Plug, BookOpen, ShieldCheck,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -96,6 +96,15 @@ export default function DispatchHub() {
           >
             <Truck className="w-3.5 h-3.5 sm:mr-1" />
             <span className="hidden sm:inline">Fleet</span>
+          </Link>
+          {/* iter353b · read-only Approved Drivers / CDL Readiness */}
+          <Link
+            to="/dispatch-portal/driver-qualification"
+            className="hidden sm:inline-flex items-center h-9 px-3 rounded-md border-2 border-orange-400/60 bg-orange-500/10 text-white hover:bg-orange-500/20 text-xs font-bold uppercase tracking-wide"
+            data-testid="dispatch-driver-qual-link"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 sm:mr-1" />
+            <span className="hidden sm:inline">Drivers</span>
           </Link>
           <Link
             to="/guidance?from=dispatch"

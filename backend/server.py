@@ -9549,6 +9549,8 @@ app.include_router(build_dispatch_router(
     db, require_admin,
     # iter346-B · universal super-admin fallback
     directory_admin_minter=lambda row: _directory_admin_token(row),
+    # iter353b · admin tokens accepted on the read-only DQ surface.
+    is_valid_admin_token_fn=_is_valid_admin_token,
 ))
 
 
