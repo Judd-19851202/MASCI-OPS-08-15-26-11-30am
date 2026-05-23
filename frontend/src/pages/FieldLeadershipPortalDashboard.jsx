@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, LogOut, HardHat, Truck, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Loader2, LogOut, HardHat, Truck, ShieldCheck, AlertTriangle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
@@ -9,8 +10,70 @@ import { LangToggle } from "@/components/LangToggle";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
-import { getFlUser, clearFlToken } from "@/lib/flAuth";
+import { getFlUser, clearFlToken, getFlToken } from "@/lib/flAuth";
 import { toast } from "sonner";
+import FlAccountabilityWidget from "@/components/FlAccountabilityWidget";
+
+// iter353d · inline lookup helper (queries the FL DQ endpoint to
+// resolve a name → employee_id, then renders the mini-widget).
+function FlAccountabilityLookup() {
+  const { t } = useT();
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState([]);
+  const [picked, setPicked] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const search = async () => {
+    if (!q.trim()) return;
+    setSearching(true);
+    try {
+      const url = `${process.env.REACT_APP_BACKEND_URL}/api/field-leadership/portal/driver-qualification?q=${encodeURIComponent(q.trim())}&limit=10`;
+      const r = await fetch(url, { headers: { "X-FL-Token": getFlToken() || "" } });
+      const d = await r.json();
+      setResults((d.items || []).slice(0, 10));
+    } catch (e) {
+      toast.error(t("Search failed"));
+    } finally {
+      setSearching(false);
+    }
+  };
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <Input
+          value={q} onChange={(e) => setQ(e.target.value)}
+          placeholder={t("Search by name or employee ID")}
+          onKeyDown={(e) => e.key === "Enter" && search()}
+          className="h-9 text-sm"
+          data-testid="fl-lookup-input"
+        />
+        <Button onClick={search} disabled={searching || !q.trim()} size="sm" data-testid="fl-lookup-go">
+          <Search className="w-3.5 h-3.5 mr-1" /> {searching ? t("…") : t("Search")}
+        </Button>
+      </div>
+      {!picked && results.length > 0 ? (
+        <div className="space-y-1" data-testid="fl-lookup-results">
+          {results.map((e) => (
+            <button
+              key={e.id}
+              type="button"
+              onClick={() => setPicked(e)}
+              className="w-full text-left flex items-center justify-between p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-sm"
+              data-testid={`fl-lookup-result-${e.id}`}
+            >
+              <span className="font-semibold">{e.name}</span>
+              <span className="text-[10px] font-mono text-slate-500">{e.trade || ""}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {picked ? (
+        <div data-testid="fl-lookup-widget-wrap">
+          <FlAccountabilityWidget employeeId={picked.id} onClose={() => setPicked(null)} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 /**
  * Field Leadership Portal Dashboard (iter314)
@@ -162,6 +225,21 @@ export default function FieldLeadershipPortalDashboard() {
                 </Button>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* iter353d · Employee Accountability Lookup card */}
+        <Card data-testid="fl-card-acct-lookup" className="mt-6 border-2 border-red-300">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-red-700" /> {t("Employee Accountability Lookup")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-slate-600 mb-2">
+              {t("Look up any employee to see CDL/medical readiness, training currency, PPE, recent incidents, and the full accountability timeline.")}
+            </p>
+            <FlAccountabilityLookup />
           </CardContent>
         </Card>
       </div>

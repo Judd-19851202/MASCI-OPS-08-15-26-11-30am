@@ -41,7 +41,8 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
+import re
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, Request
@@ -395,6 +396,176 @@ def build_field_leadership_portal_router(
         except ValueError as e:
             raise HTTPException(400, str(e))
         return {"ok": True, **payload, "viewer_role": "field_leadership"}
+
+    # ═══════════════════════════════════════════════════════════════════
+    # iter353d · FL Operational Accountability Expansion
+    # ───────────────────────────────────────────────────────────────────
+    # FL has been DQ-aware since iter353b but operationally blind to
+    # the same employee's training/PPE/incidents/expirations. These
+    # read-only endpoints close the audit gap WITHOUT granting FL any
+    # HR write authority, Safety governance authority, or admin
+    # authority. All endpoints are read-only — no write peers.
+    # ═══════════════════════════════════════════════════════════════════
+
+    @router.get("/field-leadership/portal/employee/{emp_id}/snapshot")
+    async def fl_employee_snapshot(
+        emp_id: str,
+        actor=Depends(require_fl_user),
+    ):
+        """Compact accountability snapshot for ONE employee — the
+        operational payload behind the FL Accountability Mini-Widget.
+        Returns: CDL/medical readiness · training currency · PPE
+        last-issued · recent incident count · expirations. Strictly
+        a read aggregation; mutations happen in HR / Safety only."""
+        emp = await db.employees.find_one({"id": emp_id, "deleted_at": None},
+                                          {"_id": 0, "id": 1, "name": 1,
+                                           "trade": 1, "crew": 1,
+                                           "employee_id": 1,
+                                           "lifecycle_status": 1,
+                                           "cdl_holder": 1,
+                                           "approved_company_driver": 1,
+                                           "driver_status": 1,
+                                           "cdl_expiration_date": 1,
+                                           "medical_card_expiration_date": 1,
+                                           "cdl_endorsements": 1})
+        if not emp:
+            raise HTTPException(404, "Employee not found")
+
+        # Iter350 employee-linkage standard: match by employee_id OR
+        # normalized name+email.
+        ename = (emp.get("name") or "").strip()
+        link_or = [{"employee_id": emp_id}, {"employee_master_id": emp_id}]
+        if ename:
+            link_or.append({"employee_name": ename})
+
+        today = datetime.now(timezone.utc).isoformat()[:10]
+        cutoff_30d = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()[:10]
+        cutoff_90d = (datetime.now(timezone.utc) + timedelta(days=90)).isoformat()[:10]
+
+        # Training currency
+        training = []
+        async for r in db.safety_training_records.find(
+            {"$or": link_or},
+            {"_id": 0, "id": 1, "training_name": 1, "certification_type": 1,
+             "completed_date": 1, "expiration_date": 1, "notes": 1},
+        ).sort("completed_date", -1).limit(50):
+            training.append(r)
+        # Track records (HR-curated)
+        track = []
+        async for r in db.training_track_records.find(
+            {"$or": link_or},
+            {"_id": 0, "id": 1, "training_name": 1, "completed_date": 1,
+             "expiration_date": 1},
+        ).sort("completed_date", -1).limit(20):
+            track.append(r)
+
+        # PPE
+        ppe = []
+        async for r in db.safety_equipment_issuances.find(
+            {"$or": link_or},
+            {"_id": 0, "id": 1, "equipment_type": 1, "issued_date": 1,
+             "size": 1, "condition": 1},
+        ).sort("issued_date", -1).limit(20):
+            ppe.append(r)
+
+        # Recent incidents — incidents store `person_name` string only
+        incidents_count = 0
+        if ename:
+            incidents_count = await db.incidents.count_documents({
+                "person_name": {"$regex": f"^{re.escape(ename)}$", "$options": "i"},
+                "incident_date": {"$gte": (datetime.now(timezone.utc) - timedelta(days=365)).isoformat()[:10]},
+            })
+
+        # Expirations summary
+        expiring_30d = []
+        expired = []
+        for r in training + track:
+            exp = r.get("expiration_date") or ""
+            if not exp:
+                continue
+            if exp < today:
+                expired.append({"title": r.get("training_name") or r.get("certification_type") or "Training",
+                                "expiration_date": exp})
+            elif exp <= cutoff_30d:
+                expiring_30d.append({"title": r.get("training_name") or r.get("certification_type") or "Training",
+                                     "expiration_date": exp})
+        cdl_exp = emp.get("cdl_expiration_date") or ""
+        med_exp = emp.get("medical_card_expiration_date") or ""
+        if cdl_exp and cdl_exp < today:
+            expired.append({"title": "CDL", "expiration_date": cdl_exp})
+        elif cdl_exp and cdl_exp <= cutoff_30d:
+            expiring_30d.append({"title": "CDL", "expiration_date": cdl_exp})
+        if med_exp and med_exp < today:
+            expired.append({"title": "Medical Card", "expiration_date": med_exp})
+        elif med_exp and med_exp <= cutoff_30d:
+            expiring_30d.append({"title": "Medical Card", "expiration_date": med_exp})
+
+        # Readiness gate (same predicate as iter353b-availability)
+        ready = (
+            emp.get("driver_status") == "active"
+            and emp.get("approved_company_driver") is True
+            and (not emp.get("cdl_holder") or (cdl_exp and cdl_exp >= today))
+            and (not med_exp or med_exp >= today)
+            and not expired
+        )
+
+        return {
+            "ok": True,
+            "viewer_role": "field_leadership",
+            "employee": emp,
+            "readiness": {
+                "available_now": bool(ready),
+                "expired_count": len(expired),
+                "expiring_within_30d": len(expiring_30d),
+                "training_record_count": len(training),
+                "track_record_count": len(track),
+                "ppe_record_count": len(ppe),
+                "incident_count_last_365d": incidents_count,
+            },
+            "training": training[:10],
+            "ppe": ppe[:10],
+            "expiring_30d": expiring_30d,
+            "expired": expired,
+            "as_of": today,
+        }
+
+    @router.get("/field-leadership/portal/incidents-recent")
+    async def fl_incidents_recent(
+        actor=Depends(require_fl_user),
+        days: int = Query(default=14, ge=1, le=90),
+        limit: int = Query(default=100, ge=1, le=500),
+    ):
+        """iter353d · FL read-only window into recent incidents.
+        Default 14d, max 90d. No filter / closeout / edit authority."""
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()[:10]
+        items = []
+        async for r in db.incidents.find(
+            {"incident_date": {"$gte": cutoff}},
+            {"_id": 0, "id": 1, "incident_date": 1, "person_name": 1,
+             "incident_type": 1, "severity": 1, "project_name": 1,
+             "description": 1, "status": 1},
+        ).sort("incident_date", -1).limit(limit):
+            items.append(r)
+        return {"ok": True, "items": items, "count": len(items),
+                "window_days": days, "viewer_role": "field_leadership"}
+
+    @router.get("/field-leadership/portal/notifications-recent")
+    async def fl_notifications_recent(
+        actor=Depends(require_fl_user),
+        limit: int = Query(default=50, ge=1, le=200),
+    ):
+        """iter353d · FL read-only notifications view. Returns the
+        last N notifications where recipient_role is `fl` OR
+        `safety` OR `pm` (FL needs operational situational awareness
+        on what the rest of the team is being notified about)."""
+        items = []
+        async for r in db.notifications.find(
+            {"recipient_role": {"$in": ["fl", "safety", "pm"]}},
+            {"_id": 0},
+        ).sort("created_at", -1).limit(limit):
+            items.append(r)
+        return {"ok": True, "items": items, "count": len(items),
+                "viewer_role": "field_leadership"}
 
     # ─────────────────────────────────────────────────────────────────
     # ADMIN/HR — FL user management (HR + Admin both can manage)

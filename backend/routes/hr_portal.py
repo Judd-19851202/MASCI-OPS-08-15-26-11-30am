@@ -1500,4 +1500,100 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             raise HTTPException(404, "user not found")
         return {"ok": True}
 
+    # ════════════════════════════════════════════════════════════════
+    # iter353f · HR OSHA & Labor Reach
+    # ──────────────────────────────────────────────────────────────
+    # HR has been unable to list incidents / CAPAs / daily-reports
+    # directly — they could only reach them via the iter353c
+    # accountability timeline (per-employee drill-down). OSHA 300/301
+    # prep is fundamentally an aggregate query. These read-only
+    # proxies give HR direct list visibility WITHOUT granting Safety
+    # closeout authority.
+    # ════════════════════════════════════════════════════════════════
+
+    @router.get("/hr/incidents")
+    async def hr_incidents(
+        actor: Dict[str, Any] = Depends(require_hr_user),
+        days: int = Query(default=365, ge=1, le=1825),
+        severity: Optional[str] = Query(default=None),
+        status: Optional[str] = Query(default=None),
+        q: Optional[str] = Query(default=None, max_length=80),
+        limit: int = Query(default=500, ge=1, le=2000),
+    ):
+        """HR read-only incident list. Default 365d window for OSHA
+        300 annual prep. Filters by severity, status, and free-text
+        search (person, project, description)."""
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()[:10]
+        query: Dict[str, Any] = {"incident_date": {"$gte": cutoff}}
+        if severity:
+            query["severity"] = severity
+        if status:
+            query["status"] = status
+        if q and q.strip():
+            qq = q.strip()
+            query["$or"] = [
+                {"person_name": {"$regex": qq, "$options": "i"}},
+                {"project_name": {"$regex": qq, "$options": "i"}},
+                {"description": {"$regex": qq, "$options": "i"}},
+            ]
+        items = []
+        async for r in db.incidents.find(
+            query,
+            {"_id": 0},
+        ).sort("incident_date", -1).limit(limit):
+            items.append(r)
+        # OSHA-relevant summary
+        all_recent = await db.incidents.count_documents({
+            "incident_date": {"$gte": cutoff}
+        })
+        recordable = await db.incidents.count_documents({
+            "incident_date": {"$gte": cutoff},
+            "$or": [{"recordable": True},
+                    {"severity": {"$in": ["recordable", "lost_time", "fatality"]}}],
+        })
+        open_count = await db.incidents.count_documents({
+            "incident_date": {"$gte": cutoff},
+            "status": {"$nin": ["closed", "resolved", "verified"]},
+        })
+        return {
+            "ok": True,
+            "items": items,
+            "count": len(items),
+            "summary": {
+                "total_in_window": all_recent,
+                "recordable_in_window": recordable,
+                "open_in_window": open_count,
+            },
+            "window_days": days,
+            "as_of": datetime.now(timezone.utc).isoformat()[:10],
+            "viewer": {"actor": actor.get("email") or actor.get("user_id"), "role": "hr"},
+        }
+
+    @router.get("/hr/corrective-actions")
+    async def hr_corrective_actions(
+        actor: Dict[str, Any] = Depends(require_hr_user),
+        status: Optional[str] = Query(default=None),
+        limit: int = Query(default=500, ge=1, le=2000),
+    ):
+        """HR read-only CAPA list — covers closeout audit trails for
+        OSHA + insurance reviews. No closeout authority on HR side."""
+        query: Dict[str, Any] = {}
+        if status:
+            query["status"] = status
+        items = []
+        async for r in db.corrective_actions.find(
+            query, {"_id": 0},
+        ).sort("created_at", -1).limit(limit):
+            items.append(r)
+        open_count = await db.corrective_actions.count_documents({
+            "status": {"$nin": ["closed", "completed", "verified"]}
+        })
+        return {
+            "ok": True,
+            "items": items,
+            "count": len(items),
+            "summary": {"open": open_count, "total": len(items)},
+            "viewer": {"actor": actor.get("email"), "role": "hr"},
+        }
+
     return router

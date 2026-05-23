@@ -1,18 +1,20 @@
 // iter353b · Field Leadership Portal · Driver Readiness page.
-// Route: /field-leadership/portal/driver-qualification
-// Read-only view backed by GET /api/field-leadership/portal/driver-qualification.
-import React from "react";
+// iter353d · row click opens FL Accountability Mini-Widget drawer.
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, HardHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MasciLogo } from "@/components/MasciLogo";
 import DriverQualificationReadOnlyView from "@/components/DriverQualificationReadOnlyView";
+import FlAccountabilityWidget from "@/components/FlAccountabilityWidget";
 import { getFlToken } from "@/lib/flAuth";
 import { useT } from "@/lib/i18n";
 
 export default function FieldLeadershipDriverQualification() {
   const { t } = useT();
   const nav = useNavigate();
+  const [drawerEmp, setDrawerEmp] = useState(null);
   const authHeaders = () => ({ "X-FL-Token": getFlToken() || "" });
 
   return (
@@ -40,8 +42,20 @@ export default function FieldLeadershipDriverQualification() {
           authHeaders={authHeaders}
           accent="red"
           testidPrefix="dq-fl"
+          onRowClick={(emp) => setDrawerEmp(emp)}
         />
       </main>
+
+      {/* iter353d · accountability mini-widget drawer */}
+      <Sheet open={!!drawerEmp} onOpenChange={(v) => !v && setDrawerEmp(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-md p-0" data-testid="fl-widget-drawer">
+          {drawerEmp ? (
+            <div className="p-4 h-full overflow-y-auto">
+              <FlAccountabilityWidget employeeId={drawerEmp.id} onClose={() => setDrawerEmp(null)} />
+            </div>
+          ) : null}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

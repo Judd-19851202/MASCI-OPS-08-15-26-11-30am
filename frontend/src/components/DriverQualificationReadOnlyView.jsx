@@ -87,6 +87,7 @@ export default function DriverQualificationReadOnlyView({
   authHeaders,
   accent = "slate",
   testidPrefix = "dq",
+  onRowClick = null,
 }) {
   const { t } = useT();
   const [data, setData] = useState({ items: [], count: 0, summary: {}, as_of: "" });
@@ -285,7 +286,9 @@ export default function DriverQualificationReadOnlyView({
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {data.items.map((e) => (
-                  <tr key={e.id} data-testid={`${testidPrefix}-row-${e.id}`}>
+                  <tr key={e.id} data-testid={`${testidPrefix}-row-${e.id}`}
+                      onClick={onRowClick ? () => onRowClick(e) : undefined}
+                      className={onRowClick ? "cursor-pointer hover:bg-slate-50" : ""}>
                     <td className="px-3 py-2 font-semibold text-slate-900">
                       {e.name}
                       {e.employee_id ? <span className="ml-2 text-[10px] font-mono text-slate-400">#{e.employee_id}</span> : null}
@@ -308,7 +311,10 @@ export default function DriverQualificationReadOnlyView({
           {/* Mobile cards */}
           <div className="sm:hidden space-y-2" data-testid={`${testidPrefix}-cards`}>
             {data.items.map((e) => (
-              <div key={e.id} className="bg-white border border-slate-200 rounded-md p-3" data-testid={`${testidPrefix}-card-${e.id}`}>
+              <div key={e.id}
+                   className={`bg-white border border-slate-200 rounded-md p-3 ${onRowClick ? "cursor-pointer hover:border-slate-400" : ""}`}
+                   onClick={onRowClick ? () => onRowClick(e) : undefined}
+                   data-testid={`${testidPrefix}-card-${e.id}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="font-semibold text-slate-900">{e.name}</div>
                   <div className="flex flex-wrap gap-1">

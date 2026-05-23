@@ -102,6 +102,7 @@ import HrFieldLeadership from "@/pages/HrFieldLeadership";
 import HrFieldLeadershipUsers from "@/pages/HrFieldLeadershipUsers";
 import HrEmployeeAccountability from "@/pages/HrEmployeeAccountability";
 import HrEmployeeAccountabilityTimeline from "@/pages/HrEmployeeAccountabilityTimeline";
+import HrIncidents from "@/pages/HrIncidents";
 import HrTrainingRecords from "@/pages/HrTrainingRecords";
 import HrDailyReports, { HrDailyReportDetail } from "@/pages/HrDailyReports";
 import HrPayrollVariance from "@/pages/HrPayrollVariance";
@@ -627,6 +628,8 @@ function App() {
             {/* iter353c · Unified Employee Accountability Timeline (HR + Safety + Admin)
                 The component does its own multi-role auth check (no H/SF wrapper). */}
             <Route path="/hr/employees/:id/accountability" element={<HrEmployeeAccountabilityTimeline />} />
+            {/* iter353f · HR OSHA & Labor — read-only incidents list */}
+            <Route path="/hr/incidents" element={H(<HrIncidents />)} />
             {/* PO Requests — Iter153 (Phase 2.5 · Phase D) */}
             <Route path="/po-requests" element={<PoRequests />} />
             {/* Project Health — Phase H · per-project friction view.
