@@ -66,6 +66,10 @@ export default function ViewIncident() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
+  // iter368 · reverse-link from incident → CAPAs that cite it as source.
+  // Closes the operational convergence gap where the incident detail
+  // page never surfaced which CAPAs were tracking its follow-up.
+  const [linkedCapas, setLinkedCapas] = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -84,6 +88,22 @@ export default function ViewIncident() {
       alive = false;
     };
   }, [id, navigate, listUrl, t]);
+
+  // iter368 · Fetch linked CAPAs in parallel. Non-blocking; tolerates
+  // permission errors so subcontractor / public-form viewers don't see
+  // a noisy failure.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await api.get(`/safety/corrective-actions?source_kind=incident&source_id=${id}`);
+        if (alive) setLinkedCapas(Array.isArray(r.data) ? r.data : []);
+      } catch {
+        if (alive) setLinkedCapas([]);
+      }
+    })();
+    return () => { alive = false; };
+  }, [id]);
 
   // Auto-print after the page renders if we landed here via ?autoprint=1
   useEffect(() => {
@@ -404,6 +424,40 @@ export default function ViewIncident() {
                 }
               />
             </div>
+
+            {/* iter368 · Linked CAPAs (reverse-lookup) — closes the
+                operational convergence gap where the incident detail
+                page never surfaced which CAPAs were tracking it.
+                Hidden in print so the official report stays unchanged. */}
+            {linkedCapas.length > 0 && (
+              <div className="print:hidden border-t border-slate-200 pt-4 mt-4" data-testid="incident-linked-capas">
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-rose-700 font-bold mb-2">
+                  {t("Linked CAPAs")} · {linkedCapas.length}
+                </div>
+                <div className="space-y-2">
+                  {linkedCapas.map((c) => (
+                    <div
+                      key={c.id}
+                      className="border border-slate-200 rounded-md px-3 py-2 text-sm hover:bg-slate-50"
+                      data-testid={`linked-capa-${c.id}`}
+                    >
+                      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                        <div className="font-semibold text-slate-900">{c.title || "—"}</div>
+                        <span className="font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border bg-slate-50">
+                          {c.status || "Open"}
+                        </span>
+                      </div>
+                      {c.assigned_to_name ? (
+                        <div className="text-xs text-slate-600 mt-1">
+                          {t("Owner")}: {c.assigned_to_name}
+                          {c.due_date ? ` · ${t("Due")} ${c.due_date}` : ""}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </ReportSection>
 

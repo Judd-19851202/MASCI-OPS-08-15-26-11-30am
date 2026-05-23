@@ -22,6 +22,8 @@ def register_corrective_action_routes(
         status: Optional[str] = None,
         equipment_master_id: Optional[str] = None,  # iter139 filter
         employee_master_id: Optional[str] = None,   # iter139 filter
+        source_kind: Optional[str] = None,          # iter368 filter — reverse-link from incident detail
+        source_id: Optional[str] = None,            # iter368 filter — reverse-link from incident detail
         _: dict = Depends(require_safety_token),
     ):
         q: dict = {}
@@ -31,6 +33,10 @@ def register_corrective_action_routes(
             q["equipment_master_id"] = equipment_master_id
         if employee_master_id:
             q["employee_master_id"] = employee_master_id
+        if source_kind:
+            q["source_kind"] = source_kind.strip()
+        if source_id:
+            q["source_id"] = source_id.strip()
         return await db.corrective_actions.find(q, {"_id": 0}).sort("created_at", -1).to_list(1000)
 
     @api_router.post("/safety/corrective-actions")
