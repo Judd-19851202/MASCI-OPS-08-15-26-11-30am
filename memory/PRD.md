@@ -2,6 +2,54 @@
 
 
 
+## 2026-05-23 — FINAL ENTERPRISE OPERATIONAL CONTINUITY + CONVERGENCE AUDIT · ✅ COMPLETE
+
+### Operator P0 (hostile workflow verification — NOT a QA pass)
+Eight deliverable governance documents produced under explicit operator directive to "try to break the platform operationally" — uncovering hidden continuity gaps, downstream visibility blind spots, broken lifecycle propagation, portal drift, and "technically works but operationally broken" workflows.
+
+### Method
+Live multi-token cross-portal API probing against 13 hot endpoints across 6 portal roles (Admin/HR/Safety/PM/FL/Dispatch/Shop/anon) · production parity probes against `mascidocs.com` · source-code lifecycle tracing across 44 route modules · 113 collections referenced · 637 router declarations · 222 frontend routes.
+
+### Headline findings
+1. 🔴 **PRODUCTION DRIFT — every iter350+ improvement is preview-only.** `mascidocs.com` returns 404 on accountability timeline, Compliance Brief PDF, Dispatch DQ, CDL Roster Importer apply, and richer FL DQ payload. Single biggest unlock on the platform.
+2. 🔴 **FL just got DQ visibility (iter353b) but is BLIND to the same driver's training, PPE, incidents, tasks, and notifications.** Operationally inconsistent.
+3. 🔴 **HR cannot list incidents directly.** Only through iter353c timeline drill-down. No HR-wide OSHA 300 prep view.
+4. 🔴 **PM cannot verify crew training/PPE.** PM cannot answer "can my crew legally do this job?" from within PM portal.
+5. 🔴 **FL receives ZERO notifications.** `recipient_role` enum observed only `safety`, `pm`. Field leaders never get digital escalations.
+6. 🟡 **Operator-employee linkage on Pre-Op / Daily Reports / Incidents is informal.** Free-text name only — accountability trail goes silent for the most data-rich surfaces.
+7. 🟡 **Incident → CAPA → closeout ladder is theoretical, not enforced.**
+
+### Deliverable documents produced
+| Document | Path |
+|---|---|
+| Master audit + executive summary | `/app/memory/FINAL_OPERATIONAL_CONVERGENCE_AUDIT.md` |
+| Workflow lifecycle map (9 domains) | `/app/memory/WORKFLOW_LIFECYCLE_MAP.md` |
+| Cross-portal operational gaps + live RBAC matrix | `/app/memory/CROSS_PORTAL_OPERATIONAL_GAPS.md` |
+| Workflow failures + dead ends (DE-1 through DE-12) | `/app/memory/WORKFLOW_FAILURES_AND_DEAD_ENDS.md` |
+| Production drift report (preview vs prod endpoint delta) | `/app/memory/PRODUCTION_DRIFT_REPORT.md` |
+| Operational readiness scorecard (0–5 per domain) | `/app/memory/OPERATIONAL_READINESS_SCORECARD.md` |
+| Employee accountability continuity map | `/app/memory/EMPLOYEE_ACCOUNTABILITY_CONTINUITY.md` |
+| Role × workflow interaction matrix (CAN vs SHOULD) | `/app/memory/WORKFLOW_INTERACTION_MATRIX.md` |
+
+### Audit verdict
+**Preview platform: 3.2 / 5 enterprise-ready.** Strong on auth, employee accountability, driver qualification. Weak on cross-portal notification fan-out and FL/PM read reach.
+**Production platform: 2.1 / 5 enterprise-ready.** Same code skeleton, but missing every iter350+ continuity improvement.
+
+### Tier-1 remediation order proposed (queued · not implemented in this iter)
+1. **Production redeploy** — closes ~50% of all scorecard gaps in one click.
+2. **FL Accountability Mini-Widget + extensions** (training/PPE/incidents/tasks scoped read) — closes GAPs 8–14 from the interaction matrix.
+3. **PM Crew Compliance Lens** (scoped read on training/PPE/CAPAs for PM's jobs) — closes GAPs 5–7.
+4. **HR OSHA & Labor Reach** (HR direct read on incidents/CAPAs/daily-reports/notifications) — closes GAPs 1–4.
+5. **Dispatch Movement Reconciliation** (Dispatch 7-day daily-reports read) — closes GAPs 15–16.
+6. **Operator-employee linkage** on Pre-Op + Daily Reports + Incidents at write-time using `lib/employee_linkage`.
+7. **Closeout ladder enforcement**: incident → linked CAPA(s) → all closed → incident.status="closed".
+8. **Governance Health Tile** at `/admin/governance` reflecting these gap close-states.
+
+### Verdict
+✅ **COMPLETE.** Eight governance documents produced under hostile-audit protocol. The platform now has a master operational continuity architecture map identifying every known gap, drift, dead-end, and silo — ready for the operator to drive the next tranche of bounded iters from a known starting state.
+
+
+
 ## 2026-05-23 — iter353b-availability · "Drivers Available Right Now" Tile · ✅ APPROVE
 
 ### Operator P0 (operational dispatch intelligence)
