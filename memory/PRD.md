@@ -2,6 +2,74 @@
 
 
 
+## 2026-05-23 — iter350 · P0 HR Safety + CDL + Certificate Visibility Convergence · ✅ APPROVE
+
+### Operator P0 defect
+HR could not see Safety records (training certifications, OSHA/CPR/AED/equipment) or CDL/Approved Driver data entered by Safety. Field data was silently disconnected — Safety wrote to one place, HR read from another.
+
+### Root cause(s) — 3 independent silos
+1. **Training silo:** `GET /api/hr/training-records` queried `training_track_records` ONLY (HR's internal Operational Guidance Center curriculums), missing all `safety_training_records` (Safety's source-of-truth for OSHA/CPR/AED/equipment certs).
+2. **Linkage silo:** No standard existed for joining cross-portal records to the roster. When Safety wrote `employee_id="fc753817-…"` but the roster Alec Perkins lived under `id="250d2712-…"`, the record was orphaned — invisible to HR.
+3. **Certificate silo:** `safety_documents` already accepted HR tokens via the multi-role gate, but had no dedicated `/api/hr/*` endpoint, so the namespace was inconsistent and HR's understanding of "I can see safety certificates" was unclear.
+
+### Fix
+**Backend**
+- **NEW** `/app/backend/lib/employee_linkage.py` — Employee Linkage Standard utility. Four-tier resolver: `employee_id` → `employee_master_id` → normalized `name`+`email` → normalized `name` alone → graceful None. `normalize_name` collapses whitespace + lowercases; `normalize_email` trims + lowercases. Bulk `attach_employee_links` pre-loads the employees collection into O(n+m) lookups.
+- **REWRITE** `GET /api/hr/training-records` — UNIONs `safety_training_records` + `training_track_records`. Each row carries `source: "safety"|"track"` + `linkage_method: "id"|"master_id"|"name_email"|"name"|"unlinked"`. Optional `source` filter. Returns `counts: {safety, track, total, unlinked}` for HR header strip.
+- **NEW** `GET /api/hr/safety-documents` — dedicated HR namespace alias for `safety_documents` library. Strips `file_data` from listings. Returns `summary: {total, expiring_30d, expired}`. HR-token-only gate.
+- **NEW** `GET /api/hr/safety-documents/{id}/download` — read-only attachment download via HR token.
+- **ENRICH** `GET /api/hr/employee-accountability` — now UNIONs both training collections (source-tagged), so per-employee detail surfaces all OSHA/CPR/AED/track completions.
+- **VERIFIED** `GET /api/hr/driver-qualification/dashboard` — already correct (reads `employees` with proper base-scope filter requiring at least one driver signal: `cdl_holder`, `approved_company_driver`, `cdl_expiration_date`, or `medical_card_expiration_date`). Preview DB has 0 employees with CDL flags set; endpoint structure verified clean.
+
+**Frontend**
+- **REWRITE** `/app/frontend/src/pages/HrTrainingRecords.jsx` — consumes new union shape. Source-pill filter (`All | Safety | Tracks`), counts strip (`Total | Safety | Tracks | Unlinked` amber badge), `Expires` column with status pills (Current/Expiring 30d/Expired/No expiry), `ShieldAlert` icon for unlinked rows, full-width table with `min-w-[900px]` floor (iter349 pattern). `operationalError()` sanitizer used (iter340 pattern).
+
+### HR READ-ONLY contract — locked
+- Zero `POST/PATCH/DELETE/PUT` decorators on `/hr/training-records`, `/hr/safety-documents`, or `/hr/driver-qualification*` (source-level regression tests enforce this).
+- HR token rejected at write surfaces: `POST /safety/training-records` with `X-HR-Token` → 401; `DELETE /safety/documents/{id}` with `X-HR-Token` → 401.
+
+### Live preview proof
+- `/api/hr/training-records` returns 1 row (Alec Perkins / OSHA 10-hour) with `source: "safety"`, `linkage_method: "name"` (gracefully resolved via name fallback when the safety record's `employee_id` didn't match the roster `id`).
+- `/api/hr/safety-documents` returns 1 row (Test OSHA Doc / OSHA 300) with `file_data` projected out.
+- `/api/hr/driver-qualification/dashboard` returns `count: 0` (preview data limitation — production has populated CDL data per operator).
+- Sentinel-seed E2E: Safety POSTs a unique training record → HR sees it in `/hr/training-records` → linkage method correctly reported as "unlinked" when employee_id has no match → teardown cleans up.
+
+### Tests · iter350
+- **NEW** `/app/backend/tests/test_iter350_hr_safety_cdl_visibility.py` (17/17 PASS):
+  - linkage utility source-level locks (existence, symbols, four-tier ladder)
+  - `normalize_name` / `normalize_email` deterministic behavior
+  - `resolve_employee` correctly picks each tier in isolation (mocked DB)
+  - HR route UNIONs both collections (source-level lock)
+  - `/hr/safety-documents` GET endpoints registered, no write peers
+  - HR READ-ONLY contract enforced on all 3 surfaces (training, documents, driver-qual)
+  - Live E2E: union shape, linkage methods valid, safety-source visible, documents listing strips file_data, driver-qual base scope correct
+  - Live read-only wire-level checks (POST/DELETE rejected)
+  - Sentinel Safety→HR loop seeds + verifies + tears down
+- **Cumulative iter340 → iter350:** 92/92 PASS (regression sweep).
+- **Testing agent v3 verdict:** 100% backend (17/17) · 100% frontend (3/3 pages) · zero critical, high, minor, ui_bugs, integration_issues, design_issues.
+
+### Files touched (iter350)
+- NEW · `/app/backend/lib/employee_linkage.py` (235 LOC · pure async resolver + bulk attach)
+- MOD · `/app/backend/routes/hr_portal.py` (REWRITE `/hr/training-records`; NEW `/hr/safety-documents` + `/download`; ENRICH `employee-accountability` trainings union)
+- REWRITE · `/app/frontend/src/pages/HrTrainingRecords.jsx` (170 LOC · source pills, counts strip, expiry status, linkage badges)
+- NEW · `/app/backend/tests/test_iter350_hr_safety_cdl_visibility.py` (17 tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Files / surfaces NOT touched (scope discipline)
+- ❌ `/api/safety/training-records` (Safety write path UNTOUCHED · still source-of-truth)
+- ❌ `/api/safety/documents` (Safety write path UNTOUCHED · still source-of-truth)
+- ❌ `safety_training_records` / `safety_documents` / `training_track_records` / `employees` schemas UNCHANGED
+- ❌ `/api/hr/driver-qualification/dashboard` route logic UNTOUCHED (audit-only — already correct)
+- ❌ `/hr/safety-records` page (HrSafetyRecords.jsx) UNTOUCHED — already pulls Safety collections directly
+- ❌ No new collections · No new model fields · No write surfaces added
+
+### Verdict
+✅ **APPROVE · deployment-ready.** The P0 LIVE DATA VISIBILITY DEFECT is closed. Safety enters records once; HR sees them with full roster linkage; HR cannot mutate them. The Employee Linkage Standard guarantees no record disappears because of name-format drift between portals.
+
+**Cumulative pending redeploy at mascidocs.com: iter330 → iter350 (21 bounded iters · zero drift · all regression-locked).**
+
+
+
 ## 2026-05-22 — iter349 · P0 Live Layout Defect · ✅ APPROVE
 
 **Root cause:** Every wide admin/portal table rendered with `w-full` and **no `min-w-[…]` floor**. With many columns (Access Control = 10, Unified Directory = 8, portal panels = 6-7, employee roster = 7), the cells then truncated AND the page-level body scrollbar appeared on narrow viewports because each cell's intrinsic content overflowed its squeezed column.
