@@ -151,19 +151,12 @@ export default function PmCrewCompliance() {
     <PmShell
       title={t("My Crew Compliance")}
       section="overview"
-      intro={
-        <div className="flex items-start gap-3">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-600 text-white shrink-0">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div className="text-sm text-slate-700 leading-relaxed">
-            {t("Read-only operational awareness for the crews on your projects. Scope: every employee on a daily report under your projects in the last 180 days. For corrections, contact HR or Safety — this view is read-only.")}
-          </div>
-        </div>
-      }
     >
       <div className="space-y-4 mt-5" data-testid="pm-crew-compliance">
-        {/* iter365 · operational coaching uniformity — short, field-direct. */}
+        {/* iter365 · operational coaching uniformity — short, field-direct.
+            iter366 · This is now the SINGLE coaching surface on this page —
+            the legacy redundant intro paragraph was removed to honor the
+            "no duplicated messaging" directive. */}
         <LifecycleGuide
           id="pm-crew-compliance"
           icon={UsersIcon}

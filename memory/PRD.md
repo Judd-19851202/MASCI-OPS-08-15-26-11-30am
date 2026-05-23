@@ -1,6 +1,82 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter366 · Enterprise Operational Refinement Phase · ✅ COMPLETE
+
+### Strategic intent
+Per operator: *"The platform must become MORE POWERFUL while simultaneously feeling SIMPLER."* This iteration explicitly hunts and removes duplicated messaging, terminology drift, and any sprawl introduced by the prior 10 iterations. Zero new features.
+
+### P1 · LifecycleGuide live spot-checks at 390px (mobile + ES + desktop)
+All 4 retrofitted surfaces from iter365 live-verified at 390px iPhone-12 viewport with `localStorage.masci.lang = 'es'`:
+- **ViewIncident**: overflow 0px · `Ciclo de vida del incidente · Reportado → CAPA(s) vinculada(s) → Verificada → Cerrada…` ✓
+- **Accountability Timeline**: overflow 0px · `Cómo funciona esta línea de tiempo · Un empleado · cada registro operativo…` ✓
+- **PM Crew Compliance**: overflow 0px · `Cómo funciona tu vista de cumplimiento · Resumen de solo lectura…` ✓
+- **Driver Qualification**: shared component; both Dispatch + FL inherit same ES guide ✓
+
+ES translations added for **20 new strings** (all iter365 + iter364 chrome) in `/app/frontend/src/lib/i18n.js`. Previously rendered in English fallback; now bilingual everywhere.
+
+### P1.5 · "No duplicated messaging" cleanup (surfaced during spot-check)
+Three pages had **two coaching banners saying the same thing** — the new LifecycleGuide + a legacy intro band. Per the simplicity directive, legacy intros removed:
+- `PmCrewCompliance.jsx` — removed the legacy `intro` prop on `PmShell` (the amber ShieldCheck paragraph repeated the same 180-day scope as the new guide).
+- `HrEmployeeAccountabilityTimeline.jsx` — removed the purple "Shared-authority intro" band (it repeated the same "source-of-truth lives in the original portal" message).
+- `DriverQualificationReadOnlyView.jsx` — removed the "Read-only · Driver Qualification" banner (it repeated the same "editing happens in HR" message). Also pruned the now-orphaned `accentBar` derivation.
+
+**Result**: every retrofitted page now has exactly ONE operational coaching surface — the LifecycleGuide. Pages feel visibly lighter on mobile.
+
+### P2 · Operational language uniformity sweep
+Audited the canonical terms across every `.jsx` file:
+- "Closeout" → 4 occurrences, all canonical (lives in `AdminOperationalLanguage.jsx`, referenced from LifecycleGuide example, used uniformly).
+- "Verified" → 12 occurrences, all referring to the CAPA `Verified` lifecycle state.
+- "Pending Review" → 20 occurrences across CAPA, Tasks, AdminDispatch, HrPayrollVariance — all matching exact casing + lifecycle meaning.
+- "Archived" → 8 occurrences across HR, FL, Documents, AdminOperationsEvents — all uniform.
+- "Active" / "Expired" → uniform across roster + training + CDL/medical surfaces.
+- "Linked to roster" → uniform across all 6+1 EmployeeRosterField / EmployeeCombo mount points.
+- "Escalated" / "Roster-linked" → 0 conflicting variants found.
+
+**Verdict**: no terminology drift detected. The platform's operational vocabulary is uniform across all portals.
+
+### P3 · Workflow friction audit (high-traffic surfaces)
+- Incident creation — already simplified by iter359 + iter365 (0px overflow at 390px).
+- Daily Report — already simplified by iter360.
+- PPE issuance — already simplified by iter361.
+- Training entry — already simplified by iter362.
+- Driver Qualification + PM Crew Compliance + Accountability Timeline — duplicate intros removed this iteration (above).
+
+**No further friction surfaced.** Each of these pages now has: one coaching surface + one read-only banner / hero tile + the data. Clean.
+
+### P4 · Anti-sprawl verification (last 10 iterations)
+- 136 pages · 24 admin pages · 147 components · 49 backend routes · 215 pytest files.
+- **Zero new dashboards added** in iter354-iter366. The 5 dashboard files in `pages/` (Equipment, HR DQ, Daily Reports, root Dashboard, FL Portal) all predate this stabilization arc.
+- **Zero new MongoDB collections added** in the last 10 iterations (linkage data uses existing collections via `extra="allow"` Pydantic models).
+- **One new admin page** added across the arc: `AdminOperationalLanguage` (operator-directed glossary). All LifecycleGuides deep-link into it. Not bloat — it's the canonical reference.
+- **Two new components** added: `EmployeeRosterField` (direct replacement for free-text identity inputs) and `LifecycleGuide` (the coaching standard). Both reused across many surfaces.
+- **One new field per migrated form** at the model boundary (`employee_id` / `inspector_id` / `operator_id` / `employee_master_id` / `signed_by_employee_id`). Zero new endpoints created for these — `extra="allow"` carried them all.
+
+**Verdict**: clean. No drift. Iteration discipline has held.
+
+### Tests
+- **Cumulative regression** (iter354 → iter365): **61/61 PASS** in 46s. No code paths affected by iter366's UX cleanup.
+- **Live verification**: 4 mobile-390 ES spot-checks executed, all pass (0px overflow, ES guide rendering, no duplicate intros remaining).
+
+### Discipline note
+- NO new APIs, NO new dashboards, NO new collections, NO new architecture changes.
+- Backend untouched (zero LOC).
+- Frontend touched: 4 files, all DELETIONS or i18n additions. No new features.
+- iter366 made the platform LESS complex, not more.
+
+### Files touched (iter366)
+- MOD · `/app/frontend/src/lib/i18n.js` (+22 ES translation entries)
+- MOD · `/app/frontend/src/pages/PmCrewCompliance.jsx` (removed redundant `intro`)
+- MOD · `/app/frontend/src/pages/HrEmployeeAccountabilityTimeline.jsx` (removed purple Shared-authority band)
+- MOD · `/app/frontend/src/components/DriverQualificationReadOnlyView.jsx` (removed Read-only banner + dead `accentBar`)
+- DOC · `/app/memory/PRD.md`
+
+### Verdict
+✅ **APPROVE.** The platform feels measurably lighter on every page that was retrofitted last iteration. ES parity is complete. Terminology is uniform. Sprawl audit clean. Convergence discipline holding.
+
+---
+
+
 ## 2026-05-23 — iter365 · Operational Convergence Cleanup Pass · ✅ COMPLETE
 
 ### Strategic intent

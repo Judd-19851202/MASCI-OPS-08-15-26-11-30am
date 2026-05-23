@@ -220,14 +220,9 @@ export default function HrEmployeeAccountabilityTimeline() {
           ]}
         />
 
-        {/* Shared-authority intro */}
-        <div
-          className="border-l-4 border-purple-700 bg-purple-50 px-4 py-2.5 text-xs text-purple-900"
-          data-testid="acct-shared-intro"
-        >
-          <strong>{t("Employee Accountability Timeline.")}</strong>{" "}
-          {t("Aggregated read-only view of training, PPE, incidents, CDL/medical, Field Leadership, and HR lifecycle events. Source records remain authoritative — corrections are made in their original portal.")}
-        </div>
+        {/* iter366 · legacy "Shared-authority intro" purple band removed —
+            the LifecycleGuide above is now the single operational coaching
+            surface on this page (no duplicated messaging). */}
 
         {/* Employee header card */}
         {loading && !data ? (

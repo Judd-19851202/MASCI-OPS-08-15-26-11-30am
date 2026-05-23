@@ -4103,6 +4103,28 @@ const ES = {
   "Subcontractors": "Subcontratistas",
   "Free-text is allowed and intentionally never blocked — subcontractors aren't in the employee master. The amber indicator below the name just tells you the linkage state so the daily report still ships fast.": "El texto libre está permitido y nunca se bloquea intencionalmente — los subcontratistas no están en el maestro de empleados. El indicador ámbar debajo del nombre solo te dice el estado de vinculación para que el reporte diario siga saliendo rápido.",
   "Linked crew rows appear inside that employee's Accountability Timeline, on the PM Crew Compliance lens for the project, and (if relevant) inside any incident investigation that references today's date.": "Las filas de cuadrilla vinculadas aparecen dentro de la Línea de Tiempo de Responsabilidad de ese empleado, en el lente de Cumplimiento de Cuadrilla del PM para el proyecto, y (si aplica) dentro de cualquier investigación de incidente que haga referencia a la fecha de hoy.",
+
+  // iter365 · LifecycleGuide retrofits (Incident Detail, Accountability Timeline, PM Crew Compliance, Driver Qualification / Dispatch Readiness).
+  "Incident lifecycle": "Ciclo de vida del incidente",
+  "Reported → Linked CAPA(s) → Verified → Closed. Closing without a verified CAPA is blocked.": "Reportado → CAPA(s) vinculada(s) → Verificada → Cerrada. No se permite cerrar sin una CAPA verificada.",
+  "Every incident is tied to corrective actions. Closing the loop is how the crew learns and the next shift stays safe.": "Cada incidente está vinculado a acciones correctivas. Cerrar el ciclo es como la cuadrilla aprende y el próximo turno se mantiene seguro.",
+  "Downstream": "Aguas abajo",
+  "Safety, the PM, HR (for OSHA recordables), and the involved employee's accountability timeline all see this record.": "Seguridad, el PM, RRHH (para registros OSHA) y la línea de tiempo de responsabilidad del empleado involucrado ven este registro.",
+  "How this timeline works": "Cómo funciona esta línea de tiempo",
+  "One employee · every operational record from every portal · read-only.": "Un empleado · cada registro operativo de cada portal · solo lectura.",
+  "If a CAPA, training, PPE, incident, or CDL/medical event touches this person, it shows up here. This is how the platform builds trust in the roster.": "Si una CAPA, capacitación, EPP, incidente o evento de CDL/médico afecta a esta persona, aparece aquí. Así es como la plataforma construye confianza en el roster.",
+  "Source of truth": "Fuente de la verdad",
+  "Corrections happen in the original portal — this view aggregates, it doesn't edit. The role pill on each row shows where the record was written.": "Las correcciones ocurren en el portal original — esta vista agrega, no edita. La etiqueta de rol en cada fila muestra dónde se escribió el registro.",
+  "How your crew compliance view works": "Cómo funciona tu vista de cumplimiento de cuadrilla",
+  "Read-only roll-up of everyone on your projects' daily reports in the last 180 days.": "Resumen de solo lectura de todos los que están en los reportes diarios de tus proyectos en los últimos 180 días.",
+  "If someone on your crew has an expired training or missing PPE, you see it before the field does. Corrections happen in HR / Safety — not here.": "Si alguien en tu cuadrilla tiene una capacitación vencida o le falta EPP, lo ves antes que el campo. Las correcciones ocurren en RRHH / Seguridad — no aquí.",
+  "How driver readiness works": "Cómo funciona la disponibilidad del conductor",
+  "A driver is dispatchable only when active, approved, CDL valid (if CDL holder), and medical card valid.": "Un conductor está disponible para despacho solo cuando está activo, aprobado, con CDL vigente (si tiene CDL) y con tarjeta médica vigente.",
+  "Sending an unqualified driver creates legal and safety exposure. The emerald tile above is your one-click 'who can I send right now' answer.": "Enviar a un conductor no calificado crea exposición legal y de seguridad. La tarjeta verde arriba es tu respuesta de un clic a '¿a quién puedo enviar ahora mismo?'.",
+  "Status, CDL, and medical-card data are owned by HR. To correct anything, contact HR — this view never edits the source.": "Los datos de estado, CDL y tarjeta médica son propiedad de RRHH. Para corregir algo, contacta a RRHH — esta vista nunca edita la fuente.",
+
+  // iter364 · FL records linkage indicator strings.
+  "Saved as free-text. This will appear as an EMP_LINK_UNRESOLVABLE finding in Governance Health until you either pick from the roster or add this person to the employee master.": "Guardado como texto libre. Aparecerá como hallazgo EMP_LINK_UNRESOLVABLE en Salud de Gobernanza hasta que selecciones del roster o agregues a esta persona al maestro de empleados.",
 };
 
 const DICTS = { es: ES, en: {} };

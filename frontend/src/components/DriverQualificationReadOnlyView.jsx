@@ -126,12 +126,6 @@ export default function DriverQualificationReadOnlyView({
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [params]);
 
-  const accentBar = {
-    orange: "border-l-orange-500",
-    red:    "border-l-red-700",
-    slate:  "border-l-slate-500",
-  }[accent] || "border-l-slate-500";
-
   return (
     <div className="space-y-4" data-testid={`${testidPrefix}-view`}>
       {/* iter365 · operational coaching uniformity — short, field-direct.
@@ -191,18 +185,9 @@ export default function DriverQualificationReadOnlyView({
         </div>
       </button>
 
-      {/* Read-only banner */}
-      <div
-        className={`bg-white border border-slate-200 border-l-4 ${accentBar} rounded-md p-4`}
-        data-testid={`${testidPrefix}-banner`}
-      >
-        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold flex items-center gap-1.5">
-          <ShieldCheck className="w-3 h-3" /> {t("Read-only · Driver Qualification")}
-        </div>
-        <div className="text-sm text-slate-700 mt-1">
-          {t("Verify approved-driver and CDL readiness before sending or assigning someone to work. Editing happens in HR — corrections are made there.")}
-        </div>
-      </div>
+      {/* iter366 · legacy "Read-only" banner removed — the LifecycleGuide
+          above now carries the read-only/source-of-truth coaching in the
+          uniform shape used everywhere else (no duplicated messaging). */}
 
       {/* Summary tiles */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" data-testid={`${testidPrefix}-summary`}>
