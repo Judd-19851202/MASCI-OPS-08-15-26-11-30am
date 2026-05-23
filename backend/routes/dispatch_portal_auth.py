@@ -313,6 +313,7 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
         endorsement: Optional[str] = _Query(default=None),
         expiring_cdl_30d: Optional[bool] = _Query(default=None),
         expiring_medical_30d: Optional[bool] = _Query(default=None),
+        available_now: Optional[bool] = _Query(default=None),
         q: Optional[str] = _Query(default=None, max_length=80),
         limit: int = _Query(default=500, ge=1, le=2000),
     ):
@@ -323,6 +324,7 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
                 driver_status=driver_status, endorsement=endorsement,
                 expiring_cdl_30d=expiring_cdl_30d,
                 expiring_medical_30d=expiring_medical_30d,
+                available_now=available_now,
                 q=q, limit=limit,
             )
         except ValueError as e:

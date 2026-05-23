@@ -73,6 +73,7 @@ async def fetch_driver_qualification_dashboard(
     endorsement: Optional[str] = None,
     expiring_cdl_30d: Optional[bool] = None,
     expiring_medical_30d: Optional[bool] = None,
+    available_now: Optional[bool] = None,
     q: Optional[str] = None,
     limit: int = 500,
 ) -> Dict[str, Any]:
@@ -86,6 +87,43 @@ async def fetch_driver_qualification_dashboard(
     today = date.today()
     today_iso = today.isoformat()
     cutoff_30d = (today + timedelta(days=30)).isoformat()
+
+    # iter353b-availability · "Drivers Available Right Now" predicate.
+    # A driver counts as dispatchable when ALL are true:
+    #   - driver_status == "active"
+    #   - approved_company_driver == true
+    #   - employee record is not soft-deleted / inactive lifecycle
+    #   - if CDL holder, CDL expiration ≥ today (sentinel "" / None
+    #     for a CDL holder fails this check — operationally correct)
+    #   - if medical card expiration is recorded, it must be ≥ today
+    #     (no recorded date is acceptable for non-DOT-regulated work)
+    available_now_clauses: List[Dict[str, Any]] = [
+        {"driver_status": "active"},
+        {"approved_company_driver": True},
+        # employee active — accepts lifecycle_status="Active" OR
+        # employees seeded before the lifecycle field existed (None).
+        {"$or": [
+            {"lifecycle_status": "Active"},
+            {"lifecycle_status": {"$exists": False}},
+            {"lifecycle_status": None},
+        ]},
+        {"$or": [
+            {"is_active": True},
+            {"is_active": {"$exists": False}},
+            {"is_active": None},
+        ]},
+        # CDL valid (either non-CDL holder OR CDL date in the future)
+        {"$or": [
+            {"cdl_holder": {"$ne": True}},
+            {"cdl_expiration_date": {"$gte": today_iso}},
+        ]},
+        # Medical card valid (either not recorded OR date in the future)
+        {"$or": [
+            {"medical_card_expiration_date": {"$in": [None, ""]}},
+            {"medical_card_expiration_date": {"$exists": False}},
+            {"medical_card_expiration_date": {"$gte": today_iso}},
+        ]},
+    ]
 
     base = _base_scope()
     clauses: List[Dict[str, Any]] = [base]
@@ -119,6 +157,8 @@ async def fetch_driver_qualification_dashboard(
             {"employee_id": {"$regex": q, "$options": "i"}},
             {"cdl_license_number": {"$regex": q, "$options": "i"}},
         ]})
+    if available_now:
+        clauses.extend(available_now_clauses)
 
     final = {"$and": clauses}
     safe_limit = max(1, min(int(limit or 500), 2000))
@@ -139,6 +179,14 @@ async def fetch_driver_qualification_dashboard(
         "suspended": await _count({"driver_status": "suspended"}),
         "tanker_capable": await _count({
             "cdl_endorsements": {"$in": ["N", "X"]}
+        }),
+        # iter353b-availability · Dispatch-grade readiness counts.
+        "available_now": await _count({"$and": available_now_clauses}),
+        "available_now_cdl": await _count({
+            "$and": available_now_clauses + [{"cdl_holder": True}]
+        }),
+        "available_now_non_cdl": await _count({
+            "$and": available_now_clauses + [{"cdl_holder": {"$ne": True}}]
         }),
     }
 

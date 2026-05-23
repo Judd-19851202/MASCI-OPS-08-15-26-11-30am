@@ -373,6 +373,7 @@ def build_field_leadership_portal_router(
         endorsement: Optional[str] = Query(default=None),
         expiring_cdl_30d: Optional[bool] = Query(default=None),
         expiring_medical_30d: Optional[bool] = Query(default=None),
+        available_now: Optional[bool] = Query(default=None),
         q: Optional[str] = Query(default=None, max_length=80),
         limit: int = Query(default=500, ge=1, le=2000),
     ):
@@ -388,6 +389,7 @@ def build_field_leadership_portal_router(
                 driver_status=driver_status, endorsement=endorsement,
                 expiring_cdl_30d=expiring_cdl_30d,
                 expiring_medical_30d=expiring_medical_30d,
+                available_now=available_now,
                 q=q, limit=limit,
             )
         except ValueError as e:

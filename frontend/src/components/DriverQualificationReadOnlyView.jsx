@@ -8,7 +8,7 @@
 // dates where data exists.
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Search, Filter, RefreshCw, AlertTriangle, ShieldCheck, Truck, FileX } from "lucide-react";
+import { Search, Filter, RefreshCw, AlertTriangle, ShieldCheck, Truck, FileX, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -98,6 +98,7 @@ export default function DriverQualificationReadOnlyView({
   const [cdl, setCdl] = useState("any");             // any|true|false
   const [approved, setApproved] = useState("any");   // any|true|false
   const [status, setStatus] = useState("any");       // any|active|restricted|suspended|inactive
+  const [availableOnly, setAvailableOnly] = useState(false);  // iter353b-availability tile filter
 
   const params = useMemo(() => {
     const p = { limit: 500 };
@@ -105,8 +106,9 @@ export default function DriverQualificationReadOnlyView({
     if (cdl !== "any") p.cdl_holder = cdl;
     if (approved !== "any") p.approved = approved;
     if (status !== "any") p.driver_status = status;
+    if (availableOnly) p.available_now = true;
     return p;
-  }, [q, cdl, approved, status]);
+  }, [q, cdl, approved, status, availableOnly]);
 
   const load = async () => {
     setLoading(true); setErr("");
@@ -130,6 +132,49 @@ export default function DriverQualificationReadOnlyView({
 
   return (
     <div className="space-y-4" data-testid={`${testidPrefix}-view`}>
+      {/* iter353b-availability · "Drivers Available Right Now" hero tile.
+          The single most important operational question for Dispatch +
+          FL — "who can I legally and operationally send out right now?"
+          Click to filter the table down to currently-dispatchable
+          drivers only. */}
+      <button
+        type="button"
+        onClick={() => setAvailableOnly((v) => !v)}
+        className={`w-full text-left border-2 rounded-md p-4 transition-colors group ${
+          availableOnly
+            ? "border-emerald-600 bg-emerald-600 text-white"
+            : "border-emerald-500 bg-emerald-50 hover:bg-emerald-100 text-emerald-950"
+        }`}
+        data-testid={`${testidPrefix}-availability-tile`}
+      >
+        <div className="flex items-start gap-4">
+          <Zap className={`w-7 h-7 mt-1 shrink-0 ${availableOnly ? "text-white" : "text-emerald-700"}`} />
+          <div className="flex-1 min-w-0">
+            <div className={`font-mono text-[10px] uppercase tracking-[0.22em] font-bold ${availableOnly ? "text-emerald-100" : "text-emerald-800"}`}>
+              {t("Drivers Available Right Now")}
+            </div>
+            <div className="flex items-baseline gap-3 mt-1 flex-wrap">
+              <div className="font-display text-4xl font-black leading-none" data-testid={`${testidPrefix}-availability-total`}>
+                {data.summary?.available_now ?? 0}
+              </div>
+              <div className={`text-xs ${availableOnly ? "text-emerald-100" : "text-emerald-800"}`}>
+                <span className="font-mono">
+                  <strong data-testid={`${testidPrefix}-availability-cdl`}>{data.summary?.available_now_cdl ?? 0}</strong> {t("CDL")}
+                  {" · "}
+                  <strong data-testid={`${testidPrefix}-availability-non-cdl`}>{data.summary?.available_now_non_cdl ?? 0}</strong> {t("non-CDL approved")}
+                </span>
+              </div>
+            </div>
+            <div className={`text-xs mt-1.5 ${availableOnly ? "text-emerald-50" : "text-emerald-900"}`}>
+              {t("Active · approved · CDL valid · medical valid")} ·{" "}
+              <span className="underline underline-offset-2 group-hover:font-bold">
+                {availableOnly ? t("Showing dispatchable only — click to clear") : t("Click to filter")}
+              </span>
+            </div>
+          </div>
+        </div>
+      </button>
+
       {/* Read-only banner */}
       <div
         className={`bg-white border border-slate-200 border-l-4 ${accentBar} rounded-md p-4`}
