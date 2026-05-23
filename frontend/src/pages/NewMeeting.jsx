@@ -145,7 +145,7 @@ export default function NewMeeting({ publicMode = false }) {
   const addAttendee = () =>
     setData((p) => ({
       ...p,
-      attendees: [...p.attendees, { name: "", signature: "" }],
+      attendees: [...p.attendees, { name: "", employee_id: "", signature: "" }],
     }));
   const updateAttendee = (i, k, v) =>
     setData((p) => ({
@@ -749,10 +749,35 @@ export default function NewMeeting({ publicMode = false }) {
               </div>
               <EmployeeCombo
                 value={a.name}
-                onChange={(v) => updateAttendee(i, "name", v)}
+                onChange={(v) => {
+                  updateAttendee(i, "name", v);
+                  // iter362 · drop stale id when name is edited after pick.
+                  if (a.employee_id && v !== a.name) {
+                    updateAttendee(i, "employee_id", "");
+                  }
+                }}
+                onPick={(emp) => {
+                  // iter362 · capture canonical employee_id on the attendee row.
+                  if (emp.id || emp.employee_id) {
+                    updateAttendee(i, "employee_id", emp.id || emp.employee_id);
+                  }
+                }}
                 placeholder={t("Type or pick an employee…")}
                 testId={`attendee-name-${i}`}
               />
+              {(a.name || "").trim() ? (
+                a.employee_id ? (
+                  <div className="text-[10px] text-emerald-700 font-mono inline-flex items-center gap-1" data-testid={`attendee-linked-${i}`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                    {t("Linked to roster")}
+                  </div>
+                ) : (
+                  <div className="text-[10px] text-amber-700 font-mono inline-flex items-center gap-1" data-testid={`attendee-unlinked-${i}`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                    {t("Not in roster — will create governance finding")}
+                  </div>
+                )
+              ) : null}
               <BilingualConsent variant="meeting" />
               <SignaturePad
                 value={a.signature}

@@ -161,6 +161,7 @@ const buildDefaults = () => ({
   inspection_date: todayIso(),
   inspection_time: nowHm(),
   operator_name: "",
+  operator_id: "",
   equipment_type: "",
   equipment_unit: "",
   equipment_make: "",
@@ -667,10 +668,31 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Operator Name *")}</Label>
               <EmployeeCombo
                 value={data.operator_name}
-                onChange={(v) => set("operator_name", v)}
+                onChange={(v) => {
+                  set("operator_name", v);
+                  // iter362 · clear stale linkage if name is edited after pick.
+                  if (data.operator_id && v !== data.operator_name) set("operator_id", "");
+                }}
+                onPick={(emp) => {
+                  // iter362 · capture canonical employee_id atomically.
+                  if (emp.id || emp.employee_id) set("operator_id", emp.id || emp.employee_id);
+                }}
                 placeholder={t("Type or pick from roster…")}
                 testId="input-operator-name"
               />
+              {(data.operator_name || "").trim() ? (
+                data.operator_id ? (
+                  <div className="mt-1 text-[10px] text-emerald-700 font-mono inline-flex items-center gap-1" data-testid="operator-linked">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                    {t("Linked to roster")}
+                  </div>
+                ) : (
+                  <div className="mt-1 text-[10px] text-amber-700 font-mono inline-flex items-center gap-1" data-testid="operator-unlinked">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                    {t("Not in roster — will create governance finding")}
+                  </div>
+                )
+              ) : null}
             </div>
           </div>
         </Section>

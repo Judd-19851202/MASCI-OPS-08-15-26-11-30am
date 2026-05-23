@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import EmployeeRosterField from "@/components/EmployeeRosterField";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { HelpTipBlock } from "@/components/HelpTip";
@@ -180,25 +181,20 @@ export default function NewSafetyEquipmentTraining() {
           <Section title={t("Employee")}>
             <Row>
               <Field label={t("Employee Name")} required>
-                <Input
-                  list="trn-employee-list"
-                  className={inputCls}
-                  value={data.employee_name}
-                  onChange={(e) => update({ employee_name: e.target.value })}
-                  data-testid="trn-employee-name"
-                />
-                <datalist id="trn-employee-list">
-                  {employees.map((emp) => (
-                    <option key={emp.id || emp.name} value={emp.name || ""} />
-                  ))}
-                </datalist>
-              </Field>
-              <Field label={t("Employee ID (optional)")}>
-                <Input
-                  className={inputCls}
-                  value={data.employee_id}
-                  onChange={(e) => update({ employee_id: e.target.value })}
-                  data-testid="trn-employee-id"
+                {/* iter362 · linkage continuity — atomic name + id capture */}
+                <EmployeeRosterField
+                  value={{
+                    id: data.employee_id || "",
+                    name: data.employee_name || "",
+                    linked: !!data.employee_id,
+                  }}
+                  onChange={({ id, name }) => {
+                    update({ employee_name: name, employee_id: id });
+                  }}
+                  label=""
+                  placeholder={t("Type name to search roster")}
+                  required
+                  testId="trn-employee-roster"
                 />
               </Field>
             </Row>
