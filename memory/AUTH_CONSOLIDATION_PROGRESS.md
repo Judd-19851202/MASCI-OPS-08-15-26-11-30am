@@ -1,120 +1,121 @@
 # AUTH CONSOLIDATION PROGRESS
-**Phase 4A · iter369**
-**Status:** Inventory + regression lock complete. No code changed.
+**Phase 4A · iter370**
+**Status:** R7 CLOSED · dispatch_or_admin parity LOCKED · zero behavior drift.
 
-The complete inventory of authorization patterns in the MASCI backend, categorized for the incremental consolidation work scheduled for iter370+.
+The complete inventory of authorization patterns in the MASCI backend, with execution progress tracked per iteration.
+
+---
+
+## Progress by iteration
+
+| Iter | Work | Status |
+|---|---|---|
+| iter369 | Inventory + auth regression lock (16 tests) | ✅ |
+| **iter370** | R7 fix (admin-strict fail-closed) + dispatch_or_admin parity lock (11 tests) | ✅ |
+| iter371 | shop_or_admin family consolidation | 🟡 planned |
+| iter372 | safety_or_admin family consolidation (highest-traffic) | 🟡 planned |
+| iter373 | hr_or_admin + safety_admin_or_pm | 🟡 planned |
+| iter374 | Auth hardening review checkpoint (no code) | 🟡 planned |
+
+---
+
+## iter370 deliverables · ✅ COMPLETE
+
+### R7 fix — `require_admin_strict` now fails CLOSED
+- **Before:** `if not expected_pw: return True` — empty env var = admin bypass.
+- **After:** explicit `HTTPException(503, "Admin authentication not configured")`.
+- **Location:** `/app/backend/server.py` L368-401 (require_admin_strict).
+- **Regression lock:** `/app/backend/tests/test_iter370_r7_admin_strict_fail_closed.py` — 4/4 PASS:
+  - Source-level guard: no future refactor can re-introduce the escape hatch shape.
+  - Functional: valid admin token still unlocks (no breaking change).
+  - Functional: no token still denies (401 unchanged).
+  - Functional: PM token still rejected on admin-strict surface.
+
+### Dispatch_or_admin parity lock
+- **Discovery:** Two `dispatch_or_admin` gates exist:
+  1. `routes/dispatch_portal_auth.py` L117 (closure inside `build_dispatch_router` factory)
+  2. `server.py` L10670 `_require_dispatch_or_admin` (free function, used by `routes/fleet_ops.py`)
+- **Decision:** **No code merge this iteration.** Both have identical semantics but live in different scopes. Merging requires moving the closure to module scope — bigger refactor.
+- **Locked instead:** `/app/backend/tests/test_iter370_dispatch_or_admin_parity.py` — 7/7 PASS:
+  - Both routes deny without token (parity).
+  - Both routes accept admin token identically (parity).
+  - Both routes reject safety token identically (cross-portal isolation parity).
+  - Both source files keep their definitions (no accidental removal).
+  - Both return identical `{role: 'admin'}` / `{role: 'dispatch', ...}` shape.
+
+The parity lock means iter371+ can merge these two functions safely; any drift will fail this test.
 
 ---
 
 ## Discovered auth dependency functions (23 total)
 
+(See iter369 baseline below — UNCHANGED in iter370.)
+
 ### Single-portal gates (clean baseline — these are the canonical "owns this portal" checks)
 
-| Function | Defined in | Behavior |
-|---|---|---|
-| `require_admin` | `server.py` L264 | Admin token OR PM token EXCEPT on `/api/admin/*` paths (iter180 lockdown) |
-| `require_admin_async` | `server.py` L334 | Same as above but returns PM doc instead of `True` |
-| `require_admin_strict` | `server.py` L368 | Admin only · PM tokens rejected |
-| `require_safety_token` | `routes/safety_portal/_deps.py` `make_require_safety_token` | Safety portal token only |
-| `require_dispatch_token` | `server.py` | Dispatch token only |
-| `require_hr_user` | `server.py` | HR token only |
-| `require_fl_user` | `routes/field_leadership.py` | FL token only |
-| `require_shop_token` | `server.py` | Shop token only |
-| `require_dev` | `server.py` | Dev-only routes (gated by env var) |
-| `require_caller` | `server.py` | Generic caller-identity extraction (used by audit logs) |
+| Function | Defined in | Behavior | Status |
+|---|---|---|---|
+| `require_admin` | `server.py` L264 | Admin OR PM EXCEPT on `/api/admin/*` (iter180 lockdown) | KEEP |
+| `require_admin_async` | `server.py` L334 | Same as above but returns PM doc instead of `True` | KEEP |
+| `require_admin_strict` | `server.py` L368 | Admin only · PM tokens rejected · **iter370 R7 fixed** | KEEP, hardened |
+| `require_safety_token` | `routes/safety_portal/_deps.py` | Safety portal token only | KEEP |
+| `require_dispatch_token` | `routes/dispatch_portal_auth.py` factory | Dispatch token only | KEEP |
+| `require_hr_user` | `server.py` | HR token only | KEEP |
+| `require_fl_user` | `routes/field_leadership.py` | FL token only | KEEP |
+| `require_shop_token` | `server.py` | Shop token only | KEEP |
+| `require_dev` | `server.py` | Dev-only routes (gated by env var) | KEEP |
+| `require_caller` | `server.py` | Generic caller-identity extraction (used by audit logs) | KEEP |
 
-### Combined / "or-admin" gates (the explosion zone — target of P4A consolidation)
+### Combined / "or-admin" gates (consolidation target)
 
-| Function | Defined in | Behavior |
+| Function | Variants | iter370 Status |
 |---|---|---|
-| `require_safety_or_admin` | `routes/safety_portal/_deps.py` `make_require_safety_or_admin` | Safety OR admin |
-| `require_safety_or_hr_or_admin` | `routes/safety_portal/_deps.py` | Safety OR HR OR admin |
-| `require_hr_or_admin` | `server.py` (likely inline) | HR OR admin |
-| `require_dispatch_or_admin` | `server.py` (likely inline) | Dispatch OR admin |
-| `require_shop_or_admin` | `server.py` (likely inline) | Shop OR admin |
-| `require_safety_admin_or_pm` | `server.py` (likely inline) | Safety OR admin OR PM |
-| `require_any_portal_token` | `server.py` | Any portal token accepted |
-| `require_any_fleet_portal` | `server.py` | Dispatch OR Shop OR admin |
-| `require_any_portal` | `server.py` | Alias / similar to `require_any_portal_token` |
+| `require_dispatch_or_admin` | 2 implementations (closure + free function) | 🔒 parity LOCKED iter370 · merge possible iter371+ |
+| `require_safety_or_admin` | 1 canonical (`_deps.py`) + 1 wrapper (`_require_safety_or_admin_fleet`) | similar pattern · audit iter372 |
+| `require_safety_or_hr_or_admin` | 1 implementation (`_deps.py`) | review iter373 |
+| `require_hr_or_admin` | inline in server.py | audit iter373 |
+| `require_shop_or_admin` | inline + `_require_shop_or_admin_fleet` wrapper | similar pattern · audit iter371 |
+| `require_safety_admin_or_pm` | inline | audit iter373 |
+| `require_any_portal_token` | server.py | review iter374 |
+| `require_any_fleet_portal` | server.py | review iter374 |
+| `require_any_portal` | server.py | review iter374 |
 
 ### Misc / specialized
 
-| Function | Defined in | Behavior |
-|---|---|---|
-| `require_signed_in_or_public` | `server.py` | Accepts logged-in or fully public routes |
-| `require_write` | `server.py` | Wraps generic write-side authorization |
-| `require_token` | `server.py` | Generic token check helper |
+(unchanged from iter369)
 
 ---
 
-## Categorization (for consolidation)
+## Architectural pattern emerging
 
-### Category A · Single-portal (LEAVE AS-IS)
-The 10 single-portal gates above are CLEAN. Each one captures one ownership concept and is easy to understand. **Do not consolidate.**
+After iter370 discovery, the pattern is clearer:
+- Each "or-admin" gate has a **canonical** implementation (inside its portal module factory) AND a **fleet-ops wrapper** (in server.py) for the cross-portal `fleet_ops.py` consumer.
+- The wrappers exist because `fleet_ops.py` receives gate dependencies via kwargs, but the canonical closures live inside their own factory.
 
-### Category B · "or-admin" family (CONSOLIDATE in iter370-372)
-The 6 "X or admin" variants share an identical pattern: try portal-X check, fall back to admin check. They could all be replaced by a single factory:
+**Proposed iter371-iter373 consolidation pattern:**
+1. For each portal (dispatch, shop, safety, hr): extract its `_or_admin` gate from the closure into module scope, parametrized on `db`.
+2. server.py's wrapper then delegates: `_require_X_or_admin = make_require_X_or_admin(db)`.
+3. Run parity lock from iter370 — must stay green.
 
-```python
-def make_require_any(db, *checks):
-    """Returns a FastAPI dependency that passes if any of the
-    listed token checks succeeds. Order matters — first match wins."""
-    async def _check(request: Request):
-        for check in checks:
-            try:
-                return await check(request)
-            except HTTPException:
-                continue
-        raise HTTPException(status_code=401, detail="auth required")
-    return _check
-```
-
-Then `require_safety_or_admin = make_require_any(db, require_safety_token, require_admin)` and similar.
-
-**Migration risk:** LOW if and only if each existing function has IDENTICAL semantic behavior. iter369 regression lock catches any drift.
-
-### Category C · "any portal" family (REVIEW)
-`require_any_portal_token`, `require_any_fleet_portal`, `require_any_portal` may be aliases or genuinely different. iter370 should grep all callers and verify they're not subtly differentiated. If aliases → consolidate. If subtly different → KEEP and document.
-
-### Category D · Admin variants (LIKELY KEEP)
-`require_admin` vs `require_admin_strict` vs `require_admin_async` are tuned for specific risk levels. **My recommendation: keep as-is.** Consolidating these into one function with a `strict=True` parameter would obscure the per-route intent. Operator decides during iter374.
+This is a 2-3 hour refactor across iter371-iter373. Each iteration migrates ONE portal.
 
 ---
 
-## What the regression lock proves
+## Cumulative regression health
 
-`/app/backend/tests/test_iter369_auth_regression_lock.py` exercises the 6 portal entry-points:
+iter354 → iter370: **92/92 pytest items PASS** in 45s.
 
-| Gate | Tests | Status |
-|---|---|---|
-| `require_admin_strict` (via `/api/admin/backups`) | 3 (deny / unlock / safety-token-fails) | ✅ |
-| `require_admin` on `/admin/*` (via `/api/admin/governance/summary`) | 2 (deny / unlock) | ✅ |
-| `require_safety_token` (via `/api/safety/corrective-actions`) | 3 (deny / unlock / dispatch-token-fails) | ✅ |
-| `require_hr_user` (via `/api/hr/incidents`) | 2 (deny / unlock) | ✅ |
-| `require_dispatch_token` (via `/api/dispatch/driver-qualification`) | 2 (deny / unlock) | ✅ |
-| `require_fl_user` indirectly (via `/api/fl/notifications/digest`) | 2 (deny / admin-unlocks) | ✅ |
-| Public routes (negative control) | 2 (no-auth still 200) | ✅ |
+- iter354 governance phase2 — 5 tests
+- iter355 employee linkage — 5 tests
+- iter356 capa lifecycle — 11 tests
+- iter357 notifications digest — 5 tests
+- iter358 digest expansion — 6 tests
+- iter359 employee roster field — 5 tests
+- iter363 employee linkage persistence — 11 tests
+- iter364 p1 linkage persistence — 6 tests
+- iter368 incident-capa reverse link — 4 tests
+- iter369 auth regression lock — 16 tests
+- **iter370 R7 admin-strict fail-closed — 4 tests** (NEW)
+- **iter370 dispatch_or_admin parity — 7 tests** (NEW)
 
-**Tests bypass the conftest auto-injection patcher** using raw urllib + a browser-like User-Agent (the ingress WAF blocks `Python-urllib/...`). Any future refactor that breaks gate semantics will fail this suite.
-
----
-
-## Critical implementation notes for iter370+
-
-1. **DO NOT change the iter180 `/admin/*` lockdown** — `require_admin` accepts PM tokens EXCEPT on `/api/admin/*` paths. That's intentional and field-tested.
-2. **DO NOT collapse the 3 admin variants without explicit operator approval.** Their differences (returns True vs doc, accepts PM vs strict) are intentional.
-3. **Migrate one family at a time, regression-test after each, commit only if green.**
-4. **If iter369 regression lock fires red after a refactor, revert immediately.** Auth bugs cost trust.
-5. **No permission expansion.** Phase 4 makes auth MORE consistent, not MORE permissive.
-
----
-
-## Estimated effort
-
-- iter370 (dispatch_or_admin consolidation): 1 iteration · ~60 min · low risk
-- iter371 (shop_or_admin consolidation): 1 iteration · ~60 min · low risk
-- iter372 (safety_or_admin consolidation): 1-2 iterations · 90 min · medium risk
-- iter373 (hr_or_admin + safety_admin_or_pm): 1-2 iterations · 90 min · medium risk
-- iter374 (decision point on admin variants): 1 iteration · 30 min · review only
-
-**Total: 5-7 iterations, all reversible at the regression-lock boundary.**
+This suite must remain green throughout iter371+ work.

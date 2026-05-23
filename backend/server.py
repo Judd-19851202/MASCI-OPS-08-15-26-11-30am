@@ -370,10 +370,23 @@ async def require_admin_strict(
     x_admin_token: Optional[str] = Header(default=None),
 ):
     """Admin-only gate — used on backup & recovery endpoints. PM tokens are
-    rejected here so a project manager cannot download or restore backups."""
+    rejected here so a project manager cannot download or restore backups.
+
+    iter370 R7 hardening — fails CLOSED if ``ADMIN_PASSWORD`` env is unset.
+    Previously this gate returned True on empty password as a dev convenience,
+    which created a critical bypass risk if production ever shipped without
+    the password configured."""
     expected_pw = os.environ.get("ADMIN_PASSWORD", "")
     if not expected_pw:
-        return True
+        # iter370 R7 — fail closed instead of bypassing. Operators must
+        # explicitly configure the admin password for any environment that
+        # uses admin-strict routes (backups, recovery, MFA gateways).
+        await _record_access_denial(db, request, namespace="admin",
+                                    reason="admin_password_unconfigured")
+        raise HTTPException(
+            status_code=503,
+            detail="Admin authentication not configured",
+        )
     if not x_admin_token:
         # Phase 2 Initiative 5b-minimal — log denied attempts on the
         # highest-risk gate too.

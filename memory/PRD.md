@@ -1,6 +1,89 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-23 — iter370 · Phase 4A · R7 Closed + Dispatch Parity Locked · ✅ COMPLETE
+
+### Strategic intent
+Operator's iter370 directive: *"FIRST: Close R7 immediately. THEN: Begin dispatch_or_admin family consolidation. Incremental only. No behavior drift."* Executed surgically in two phases.
+
+### Phase 1 · R7 fix (`require_admin_strict` fails CLOSED)
+**Before** (`server.py` L368-401):
+```python
+expected_pw = os.environ.get("ADMIN_PASSWORD", "")
+if not expected_pw:
+    return True  # ← CRITICAL: empty env var = admin bypass
+```
+**After**:
+```python
+expected_pw = os.environ.get("ADMIN_PASSWORD", "")
+if not expected_pw:
+    await _record_access_denial(db, request, namespace="admin",
+                                reason="admin_password_unconfigured")
+    raise HTTPException(
+        status_code=503,
+        detail="Admin authentication not configured",
+    )
+```
+
+Production attack surface closed. If `ADMIN_PASSWORD` is ever unset/empty in prod, the entire admin surface returns 503 instead of being wide-open.
+
+**4 regression tests** in `test_iter370_r7_admin_strict_fail_closed.py`:
+1. Source-level guard — future refactors cannot re-introduce the `return True` escape hatch shape.
+2. Functional — valid admin token still unlocks (no breaking change).
+3. Functional — no token still denies 401 (unchanged).
+4. Functional — PM token still rejected on admin-strict surface (unchanged).
+
+**Live verification**: `/api/admin/backups` with admin token → 200. Without token → 401. R7 closed without breaking any path.
+
+### Phase 2 · Dispatch_or_admin family consolidation (KICKOFF)
+**Discovery during audit**: TWO `dispatch_or_admin` gates with identical semantics live in different scopes:
+1. `routes/dispatch_portal_auth.py` L117 — closure inside `build_dispatch_router(...)` factory.
+2. `server.py` L10670 — free function `_require_dispatch_or_admin` used by `routes/fleet_ops.py` via kwargs injection.
+
+**Decision**: Per "incremental + no behavior drift" rule — DO NOT merge code this iteration. The merge requires moving a closure to module scope, which is bigger refactor. Instead, **lock them as semantically equivalent** so iter371+ can safely consolidate.
+
+**7 regression tests** in `test_iter370_dispatch_or_admin_parity.py`:
+- Both routes deny without token (parity).
+- Both routes accept admin token identically (parity).
+- Both routes reject safety token identically (cross-portal isolation parity).
+- Both source files keep their definitions (no accidental removal during refactor).
+- Both return identical `{role: 'admin'}` / `{role: 'dispatch', ...}` shape (response parity).
+
+### Architectural pattern observed
+Each `*_or_admin` gate has TWO implementations:
+- **Canonical** inside the owning portal's factory closure.
+- **Fleet-ops wrapper** in `server.py` for the `fleet_ops.py` consumer.
+
+Proposed iter371-iter373 work: extract each portal's gate to module scope (parametrized on `db`), then have the server.py wrapper delegate. Same pattern, repeated per portal, regression-locked each step.
+
+### Tests
+- iter370 R7: 4/4 PASS
+- iter370 dispatch parity: 7/7 PASS
+- Cumulative (iter354 → iter370): **92/92 PASS** in 45s
+
+### Discipline note
+- 1 security fix (R7) — 9-line surgical change in `server.py`.
+- 0 auth code merges (parity locked instead — safer foundation for iter371+).
+- 0 new endpoints.
+- 0 new collections.
+- 0 new dashboards.
+- 2 new test files (11 new tests · all PASS).
+- 1 doc update (`AUTH_CONSOLIDATION_PROGRESS.md` + `PHASE4_HARDENING_TRACKER.md`).
+
+### Files touched (iter370)
+- MOD · `/app/backend/server.py` (require_admin_strict R7 fix, +9 LOC)
+- NEW · `/app/backend/tests/test_iter370_r7_admin_strict_fail_closed.py` (4 tests)
+- NEW · `/app/backend/tests/test_iter370_dispatch_or_admin_parity.py` (7 tests)
+- MOD · `/app/memory/AUTH_CONSOLIDATION_PROGRESS.md`
+- MOD · `/app/memory/PHASE4_HARDENING_TRACKER.md`
+- DOC · `/app/memory/PRD.md`
+
+### Verdict
+✅ **PHASE 4A IN PROGRESS · ZERO DRIFT.** R7 closed safely, dispatch family parity locked. iter371 can now extract the dispatch closure to module scope without behavior risk — any drift fails the iter370 parity tests immediately.
+
+---
+
+
 ## 2026-05-23 — iter369 · Phase 4 Enterprise Hardening Kickoff · ✅ COMPLETE
 
 ### Strategic intent

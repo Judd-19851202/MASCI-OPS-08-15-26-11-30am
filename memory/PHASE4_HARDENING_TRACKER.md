@@ -10,7 +10,7 @@ The master tracker for Phase 4 enterprise hardening work. Updated each iteration
 
 | Track | Status | Iterations | Owner |
 |---|---|---|---|
-| P4A · Auth Gate Consolidation | 🟡 PLANNED · regression lock laid iter369 | iter370+ | E1 incremental |
+| P4A · Auth Gate Consolidation | 🟢 IN PROGRESS · R7 fixed iter370, dispatch parity locked | iter371+ | E1 incremental |
 | P4B · MFA + Portal Governance | 🔴 NOT STARTED · needs integration choice | TBD | operator decision |
 | P4C · Production Parity Finalization | 🟡 PLAYBOOK READY · pending operator deploy | one-shot after deploy | operator |
 | P4D · Architectural Hardening | 🔴 NOT STARTED · `server.py` 12k+ LOC | TBD | careful refactor |
