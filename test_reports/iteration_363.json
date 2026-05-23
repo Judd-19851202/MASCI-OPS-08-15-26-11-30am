@@ -1,0 +1,57 @@
+{
+  "summary": "Frontend lifecycle verification of EmployeeRosterField + EmployeeCombo migrations (iter359-iter362). Tested 3 of 6 forms (public, no-auth): Incidents (RosterField), Daily Reports (Combo), Pre-Op Equipment (Combo). Confirmed one CRITICAL UI bug in EmployeeRosterField that affects Incidents, PPE, and Training forms. EmployeeCombo paths on Daily Reports and Pre-Op work end-to-end. Auth-gated forms (PPE, Training, Meetings) were not exercised in this run.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "EmployeeRosterField.jsx",
+        "issue": "CRITICAL: Suggestion dropdown items render with EMPTY visible text. API GET /api/master-lookup/employees?q=... returns items shaped {id, name, employee_id, trade, role, email}, but the component (line 144) renders `{item.label}` and references `item.raw?.position` / `item.raw?.email` (line 145). Both are undefined, so users see a blank row, click it blind, and the pick handler at line 99 falls back to `query` for the name. Verified at /incidents/new with input-person-roster-input: suggestion innerText = ''. Linked status indicator still works (it uses value.id from the pick payload), so the bug is purely visual/UX — but it makes the linked-pick path effectively unusable for partial-name searches.",
+        "selector": "[data-testid^=\"input-person-roster-suggestion-\"]",
+        "priority": "HIGH"
+      },
+      {
+        "component": "EmployeeRosterField.jsx",
+        "issue": "Glossary 'What does this mean?' link href = `/admin/operational-language#capa`. Operator flagged in request that the correct anchor is likely `#roster_backed_selector`. Confirmed present but not validated to scroll to relevant section. Low-severity polish per operator's own note.",
+        "selector": "[data-testid=\"input-person-roster-unresolved-warning\"] a",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Incident submit + GET persistence verification",
+        "issue": "Could not verify happy-path submission (linked employee) reaching /api/incidents because many required incident form fields (reported_by, what_happened, severity, etc.) were not populated, and clicking SUBMIT produced no POST and no visible validation toast. Persistence step was NOT exercised on any of the 6 forms in this iteration. Operator explicitly required this; needs re-test after the suggestion-label bug is fixed.",
+        "affected_selectors": ["button:has-text('SUBMIT')"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "FIX EmployeeRosterField.jsx lines 99 & 144-148: read `item.name` (with fallback to `item.label`) instead of `item.label`, and use top-level `item.role`/`item.trade`/`item.email` instead of `item.raw?.position`/`item.raw?.email`. This unblocks Incidents (input-person-roster), PPE Issuance, and Training visibility of suggestion rows.",
+    "After the fix, re-test all 3 EmployeeRosterField forms (Incidents, PPE, Training) end-to-end: search → suggestion visible with name text → pick → linked status → SUBMIT → 200 → GET to verify employee_master_id (or employee_id) persisted.",
+    "Verify free-text submit path on all 6 forms persists name with empty employee_id.",
+    "Run Meetings (/meetings/new) and PPE/Training (safety-forms 1982 gate) flows — not exercised in this iteration due to scope/time.",
+    "Run ES localization spot-check (`localStorage.setItem('masci.lang','es')`) — not exercised.",
+    "Run 390px mobile viewport check on all 6 forms — not exercised.",
+    "Optional: fix glossary anchor `/admin/operational-language#capa` → `#roster_backed_selector` (low priority polish)."
+  ],
+  "critical_code_review_comments": [
+    "EmployeeRosterField.jsx contract drift: the component was authored against a `{id,label,raw:{name,position,email}}` response shape but the actual /api/master-lookup/employees endpoint emits `{id,name,employee_id,trade,role,email}`. Either align the backend to wrap in `{id,label,raw}` OR (preferred, less blast radius) adapt the component to read flat fields.",
+    "EmployeeRosterField pick() fallback name = `item.label || item.raw?.name || query` masks the contract bug because if the user typed a full exact name, `query` happens to be correct — but partial-name picks will save the partial as the canonical name. This is a hidden data-quality risk.",
+    "Submit-and-verify lifecycle was NOT exercised in this iteration despite being the explicit operator directive. Main agent must instrument a happy-path test that fills the minimal required fields per form and asserts the POST response + a follow-up GET. Recommend doing this in a pytest+requests harness rather than Playwright for reliability."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "skipped",
+    "frontend": "50% — 3 of 6 forms verified at component-interaction level; 0 of 6 verified at submit-and-persist level"
+  },
+  "test_credentials": "Public routes (no auth used): /incidents/new, /daily/new, /equipment/new",
+  "seed_data_creation": "None — used existing roster employee 'Alec Perkins' (id=250d2712-...) from production seed data via GET /api/master-lookup/employees?q=Alec.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "PRIORITY 1: Re-test EmployeeRosterField on /incidents/new after the field-name fix — verify the suggestion dropdown now shows the employee NAME (e.g. 'Alec Perkins') in each row, not blank. PRIORITY 2: Execute the full submit-and-GET cycle on every one of the 6 forms (this iteration only proved the component renders/picks/clears, NOT that POST persists employee_id correctly). Use the testid prefixes that are ACTUALLY rendered: Incidents=`input-person-roster*` (NOT `employee-roster-field*` as the review_request implies — the page passes a custom testId prop). Daily Reports crew row testids: `crew-name-{i}-input`, `crew-add`, with linked/unlinked indicators on the row. Pre-Op: `input-operator-name-input`, `operator-linked`, `operator-unlinked`. LifecycleGuide on Daily Reports has testid `lifecycle-guide-daily-report-crew-linkage`. PPE/Training require safety-forms gate (POST /api/safety-forms/login {password:'1982'}). Meetings requires admin/safety auth.",
+  "rca of the issue": "ROOT CAUSE — EmployeeRosterField.jsx was implemented to consume a `{items:[{id,label,raw:{name,position,email}}]}` response shape (consistent with other master-lookup endpoints that wrap a label), but /api/master-lookup/employees in server.py returns `{items:[{id, name, employee_id, trade, role, email}]}` — flat fields, no `label`, no `raw`. The mismatch is silent because: (a) React renders `undefined` as empty string, so the row is visually blank but still clickable; (b) the pick() handler has a `|| query` fallback that masks the missing name in many real cases. REPRODUCTION: Open /incidents/new → scroll to Section 03 Person Involved → type 'Alec' in the roster input → observe the suggestion dropdown contains one row with NO visible text. MITIGATION: One-line code change in EmployeeRosterField.jsx — replace `{item.label}` with `{item.name || item.label}` on line 144, update line 145 to read `item.role || item.trade` / `item.email`, and update line 99 to prefer `item.name`. No backend change required."
+}
