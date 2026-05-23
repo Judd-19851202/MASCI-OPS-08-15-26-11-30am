@@ -36,6 +36,12 @@ def register_document_routes(
     api_router: APIRouter, db, require_safety_token, require_safety_or_hr_or_admin,
 ) -> None:
 
+    # iter353a · Shared HR+Safety+Admin write gate for the safety
+    # document library. DELETE remains gated by `require_safety_token`
+    # — operator policy excludes HR from hard-delete authority on
+    # accountability records.
+    _gate_write = require_safety_or_hr_or_admin
+
     @api_router.get("/safety/documents")
     async def list_safety_documents(
         category: Optional[str] = None,
@@ -55,7 +61,7 @@ def register_document_routes(
         category: str = Form("General"),
         description: str = Form(""),
         tags: str = Form(""),
-        user: dict = Depends(require_safety_token),
+        user: dict = Depends(_gate_write),
     ):
         raw = await file.read()
         if not raw:
@@ -99,6 +105,10 @@ def register_document_routes(
             file_data = f"data:{content_type};base64,{b64}"
 
         now = datetime.now(timezone.utc).isoformat()
+        # iter353a · canonical actor-audit attribution.
+        actor_role = (user.get("_actor") or user.get("role") or "safety").lower()
+        actor_email = user.get("email") or ""
+        actor_name = user.get("name") or actor_email or ""
         doc = {
             "id": doc_id,
             "title": (title or filename or "Untitled").strip(),
@@ -110,9 +120,17 @@ def register_document_routes(
             "file_size": len(raw),
             "file_data": file_data,
             "storage_backend": storage_backend,
-            "uploaded_by_name": user.get("name") or "",
-            "uploaded_by_email": user.get("email") or "",
+            # Legacy fields (preserved)
+            "uploaded_by_name": actor_name,
+            "uploaded_by_email": actor_email,
+            # iter353a · canonical actor_audit attribution
+            "created_by": actor_email,
+            "created_by_role": actor_role,
+            "originating_portal": actor_role,
+            "updated_by": actor_email,
+            "updated_by_role": actor_role,
             "uploaded_at": now,
+            "updated_at": now,
         }
         await db.safety_documents.insert_one(doc)
         # Return summary (no file_data — that can be huge for inline records)
@@ -122,12 +140,17 @@ def register_document_routes(
 
     @api_router.patch("/safety/documents/{doc_id}")
     async def update_safety_document(
-        doc_id: str, body: SafetyDocumentUpdate, _: dict = Depends(require_safety_token),
+        doc_id: str, body: SafetyDocumentUpdate, user: dict = Depends(_gate_write),
     ):
         update = {k: v for k, v in body.dict(exclude_none=True).items()}
         if not update:
             raise HTTPException(400, "No changes")
+        # iter353a · attribute every edit
+        actor_role = (user.get("_actor") or user.get("role") or "safety").lower()
+        actor_email = user.get("email") or ""
         update["updated_at"] = datetime.now(timezone.utc).isoformat()
+        update["updated_by"] = actor_email
+        update["updated_by_role"] = actor_role
         res = await db.safety_documents.update_one({"id": doc_id}, {"$set": update})
         if res.matched_count == 0:
             raise HTTPException(404, "Not found")
@@ -163,6 +186,8 @@ def register_document_routes(
     async def delete_safety_document(
         doc_id: str, _: dict = Depends(require_safety_token),
     ):
+        # iter353a NOTE: DELETE remains Safety+Admin only.
+        # HR has no hard-delete authority; HR should archive/supersede via PATCH.
         # Best-effort R2 cleanup BEFORE the DB delete — if R2 errors we
         # still want the record gone. Inline base64 records skip R2.
         doc = await db.safety_documents.find_one({"id": doc_id}, {"_id": 0, "file_data": 1})

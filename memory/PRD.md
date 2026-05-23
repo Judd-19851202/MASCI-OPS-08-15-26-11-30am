@@ -2,6 +2,64 @@
 
 
 
+## 2026-05-23 — iter353a · Phase 2 P0 Shared Employee Accountability · ✅ APPROVE (backend)
+
+### Operator P0 (Phase 2 #1)
+Closes 3 P0 gaps from Phase 1 audit:
+- **GAP-001** — HR cannot create/edit safety_training_records
+- **GAP-002** — HR cannot upload/edit safety_documents
+- **GAP-003** — HR cannot create PPE issuances via safety_forms
+
+### What changed (backend only this iter)
+**`/app/backend/routes/safety_portal/training.py`**
+- `POST /api/safety/training-records` → gate now `_gate_write = require_safety_or_hr_or_admin` (was `require_safety_token`)
+- `PATCH /api/safety/training-records/{id}` → same shared gate
+- `DELETE /api/safety/training-records/{id}` → **REMAINS** `require_safety_token` (operator policy: HR has NO hard-delete authority)
+- Every write now captures canonical actor_audit fields: `created_by`, `created_by_role`, `originating_portal`, `updated_by`, `updated_by_role` — alongside the legacy `created_by_name` for back-compat
+
+**`/app/backend/routes/safety_portal/documents.py`**
+- `POST /api/safety/documents` (upload) → shared gate
+- `PATCH /api/safety/documents/{id}` → shared gate
+- `DELETE /api/safety/documents/{id}` → REMAINS Safety+Admin only
+- Same audit attribution
+
+**`/app/backend/routes/safety_forms.py`** (PPE / equipment training)
+- `_require_safety_or_admin` gate extended to also accept `X-HR-Token` (validates against `hr_users`)
+- PM / Shop / Dispatch / FL / anonymous all still rejected
+
+### Strict boundaries enforced (operator rules)
+- ✅ HR can create, edit, upload — operational unlock
+- ❌ HR cannot hard-delete training records (PATCH-to-archive is the future path)
+- ❌ HR cannot hard-delete safety documents (Safety+Admin only)
+- ❌ HR cannot manage Safety governance / incidents / JHAs / CAPAs (those weren't touched)
+- ❌ HR cannot administer Safety users / auth (Admin-only · unchanged)
+
+### Tests · iter353a (12/12 PASS)
+`/app/backend/tests/test_iter353a_shared_accountability.py`:
+- 3 source-level locks: training routes use shared gate, document routes use shared gate, safety_forms gate accepts HR token
+- 9 live E2E: HR creates+edits safety training, HR cannot delete training, PM blocked, HR edits safety documents, HR cannot delete docs, safety-forms gate accepts HR, blocks PM, anonymous fully blocked, actor_audit fields land
+
+**Cumulative iter288–iter353a regression sweep: 113/113 PASS** (incl. iter350 + iter352 locks updated to reflect the new policy).
+
+### Files touched
+- MOD · `/app/backend/routes/safety_portal/training.py` (gate swap + actor_audit)
+- MOD · `/app/backend/routes/safety_portal/documents.py` (gate swap + actor_audit)
+- MOD · `/app/backend/routes/safety_forms.py` (extend gate to accept HR token)
+- MOD · `/app/backend/tests/test_iter350_hr_safety_cdl_visibility.py` (policy-flip locks updated)
+- NEW · `/app/backend/tests/test_iter353a_shared_accountability.py` (12 tests · all green)
+- DOC · `/app/memory/PRD.md`
+
+### Files NOT touched (atomic-review discipline)
+- ❌ NO frontend changes (HR-facing write UI deferred to iter353a-UI)
+- ❌ NO changes to Safety portal native UI (Safety still owns its workflows)
+- ❌ NO changes to incidents / JHAs / inspections / CAPAs (operator policy: Safety-only authority)
+- ❌ NO new collections · NO schema migrations (additive fields only)
+
+### Verdict
+✅ **APPROVE backend** — wire-level shared authority is live. HR/Admin can immediately exercise the new write paths via any HTTP client / future UI / iter352 importer pattern.
+
+
+
 ## 2026-05-23 — iter353 · Phase 1 Platform Governance Audit · ✅ COMPLETE (read-only)
 
 ### Scope

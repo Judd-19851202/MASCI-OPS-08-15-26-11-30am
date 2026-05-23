@@ -390,17 +390,16 @@ def test_live_hr_cannot_post_training_record(admin_tokens):
 
 
 def test_live_hr_cannot_delete_safety_document(admin_tokens):
-    """HR token must not be able to mutate safety_documents via the
-    Safety write routes (/safety/documents/{id} DELETE requires
-    X-Safety-Token, not X-HR-Token)."""
+    """HR token must not be able to DELETE safety documents — iter353a
+    policy explicitly says HR has no hard-delete authority. DELETE
+    remains gated by `require_safety_token` (Safety+Admin only)."""
     fake_id = str(uuid.uuid4())
     r = requests.delete(
         f"{API}/safety/documents/{fake_id}",
         headers={"X-HR-Token": admin_tokens["hr"]},
         timeout=10,
     )
-    # Either 401 (gate refused HR token for a write) or 404 (route
-    # doesn't accept HR token, gate runs first → 401 typical).
+    # 401 (gate refused HR token for a write) typical.
     assert r.status_code in (401, 403, 404), (
         f"HR token unexpectedly accepted by safety DELETE — got "
         f"{r.status_code} {r.text}"
@@ -408,18 +407,40 @@ def test_live_hr_cannot_delete_safety_document(admin_tokens):
 
 
 def test_live_hr_cannot_post_safety_training_record(admin_tokens):
-    """HR token must not POST a safety_training_record via the Safety
-    write surface."""
+    """iter353a NOTE: operator policy CHANGED — HR is now a shared
+    operational owner of employee accountability records, including
+    safety_training_records (GAP-001 closed). HR CAN now POST.
+    What HR still CANNOT do is hard-DELETE (no destructive authority).
+
+    This test was originally an iter350 read-only lock; iter353a
+    flipped the policy. The lock has been moved to
+    test_iter353a_shared_accountability.py::
+    test_live_hr_cannot_delete_safety_training. This test now
+    inverts to assert the NEW contract."""
+    # HR POST must SUCCEED (200) — new shared write authority.
     r = requests.post(
         f"{API}/safety/training-records",
-        headers={"X-HR-Token": admin_tokens["hr"]},
-        json={"employee_id": "x", "training_name": "x"},
+        headers={"X-HR-Token": admin_tokens["hr"], "Content-Type": "application/json"},
+        json={
+            "employee_id": "iter353a-from-iter350-test",
+            "employee_name": "iter353a policy flip",
+            "training_name": f"iter353a-flip-{uuid.uuid4().hex[:6]}",
+            "completed_date": "2026-01-01",
+        },
         timeout=10,
     )
-    assert r.status_code in (401, 403, 405), (
-        f"Safety POST accepted HR token — wrote a training record! got "
-        f"{r.status_code} {r.text}"
+    assert r.status_code == 200, (
+        f"iter353a policy change — HR POST /safety/training-records must "
+        f"now succeed. Got {r.status_code} {r.text}"
     )
+    # Teardown via Safety token (HR still can't delete)
+    rec_id = r.json().get("id")
+    if rec_id:
+        requests.delete(
+            f"{API}/safety/training-records/{rec_id}",
+            headers={"X-Safety-Token": admin_tokens["safety"]},
+            timeout=10,
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────

@@ -860,12 +860,16 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         x_admin_token: Optional[str] = Header(default=None),
         x_safety_forms_token: Optional[str] = Header(default=None),
         x_safety_token: Optional[str] = Header(default=None),
+        x_hr_token: Optional[str] = Header(default=None),
     ) -> bool:
         # iter323 · Safety Forms ownership closure — the Safety Portal
         # user token is now a first-class auth path here. Admin token
         # works (admin = global). Legacy Safety-Forms token still works
         # (backwards compat for any field bookmark / automation). PM
         # token is intentionally NOT accepted on this review model.
+        # iter353a · HR token is now also accepted (operator policy:
+        # HR is shared operational owner of employee accountability
+        # records, including PPE issuance + equipment training).
         if x_admin_token and _is_valid_admin_token(x_admin_token):
             return True
         if x_safety_token:
@@ -873,11 +877,16 @@ def build_safety_forms_router(db, _is_valid_admin_token):
             user = await is_valid_safety_user_token_async(db, x_safety_token)
             if user:
                 return True
+        if x_hr_token:
+            from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
+            user = await is_valid_hr_user_token_async(db, x_hr_token)
+            if user:
+                return True
         if x_safety_forms_token and _is_valid_safety_token(x_safety_forms_token):
             return True
         raise HTTPException(
             status_code=401,
-            detail="Safety Portal, Safety Forms, or admin login required",
+            detail="Safety Portal, HR Portal, Safety Forms, or admin login required",
         )
 
     def _require_admin(x_admin_token: Optional[str] = Header(default=None)) -> bool:
