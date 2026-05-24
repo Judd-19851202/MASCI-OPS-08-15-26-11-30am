@@ -218,10 +218,121 @@ next per the operator's lane order: **a → e → b → d → c**.
 - 🟢 **iter398 · Lane E · Restraint/tone pass.** ✅ shipped — see iter398 addendum above.
 - 🟢 **iter399 · Lane B · Mobile-first usability sweep.** ✅ shipped — see iter399 addendum above.
 - 🟢 **iter400 · Lane D · Motive integration strategy refresh (DOC ONLY) + AUDIT_GUARDRAILS.md doctrine index.** ✅ shipped — see iter400 addendum above.
-- 🟢 **iter401 · Phase 12.8 · Driver Self-Start Operational Entry.** ✅ shipped — see iter401 addendum below. (Lane C deferred per operator directive — driver entry was the missing operational bridge and took priority.)
-- 🔵 **iter402+ · Lane C · Post-deploy operational stabilization instrumentation** (deferred).
+- 🟢 **iter401 · Phase 12.8 · Driver Self-Start Operational Entry.** ✅ shipped.
+- 🟢 **iter402 · Phase 12.9 · Driver Operational Identity Convergence.** ✅ shipped — see iter402 addendum below.
+- 🔵 **Backlog · Lane C · Post-deploy operational stabilization instrumentation** (deferred).
 - 🔵 **Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
 - 🔵 **Backlog · 14-day post-live ops review** of Safety/FL/HR tile decisions.
+
+---
+
+# iter402 addendum · Phase 12.9 · Driver Operational Identity Convergence ✅ (2026-05-24)
+
+## Scope
+
+Refine the iter401 ShiftStart form from 4 free-text inputs to 4 platform-linked searchable dropdowns with "Add temporary" fallbacks. The dropdowns source from the platform's canonical records (`employees` + `equipment_master`) so the operational identity captured at shift start naturally converges with the rest of the MASCI platform.
+
+Restraint absolute: NO new collections, NO admin workflows, NO approval chains, NO asset governance. The "Add temporary" path preserves operational continuity for subs / rentals / off-roster drivers — exactly per the directive's "operational continuity matters more than perfect asset governance."
+
+## Files shipped
+
+### Backend (3 files)
+
+| File | Change | Why |
+|---|---|---|
+| `/app/backend/driver_sessions.py` | `create_driver_session` extended with optional `employee_id`, `truck_unit_pk`, `trailer_unit_pk` reference IDs | Capture canonical platform IDs when the driver picks from the dropdown — preserves audit/continuity link to HR + fleet records. |
+| `/app/backend/routes/dispatch_driver.py` | New public `GET /api/dispatch/driver/shift-lookups` endpoint + `StartShiftRequest` extended with the 3 optional reference IDs | The dropdowns' data source. Privacy contract: drivers require q ≥ 2 chars (no anonymous roster dump); truck/trailer/hauler lists are operational assets and return without query. |
+| `/app/backend/tests/test_iter402_shift_lookups.py` | NEW · 10 backend tests | Privacy contract, list shape, q filter narrowing, MASCI-first hauler ordering, optional ref IDs accepted by start-shift. |
+
+### Frontend (1 file)
+
+| File | Change | Why |
+|---|---|---|
+| `/app/frontend/src/pages/driver/ShiftStart.jsx` | Rewritten to use new `SearchableSelect` component for all 4 fields. Driver requires 2-char typeahead; truck + hauler prefetch full list; trailer remains optional; hauler defaults to "MASCI". 56 px input chrome retained from iter399 mobile sweep. Selected state shows amber border + "change" affordance + temp marker. | The Phase 12.9 operational identity convergence. |
+
+## Privacy + restraint contract
+
+| Concern | How it's handled |
+|---|---|
+| Anonymous roster dump | Driver list returns `[]` until `q ≥ 2 chars`. Projection is locked to `{name, employee_id}` only — no PII fields exposed. |
+| Offboarded employees in dropdown | Filtered out (`lifecycle_status ∉ {OFFBOARDED, TERMINATED, DECEASED}` + `is_active != false`). |
+| Trucks / trailers visible publicly | They are operational assets; equipment_master's category schema already segregates them; the existing `/api/fleet/units` endpoint is also public-accessible. No new exposure. |
+| Hauler list "MASCI" precedence | Composed at request time; MASCI sorted first, rest alphabetical. No new collection. |
+| Add temporary path | Submits free-text only; no record created in employees / equipment_master. Operational continuity preserved without ERP behavior. |
+
+## Phase 12.9 doctrine gate · 20-check audit
+
+| # | Check | Status |
+|---|---|---|
+| 1 | Look like platform | 🟢 same slate/amber, same 56 px inputs from iter399 |
+| 2 | Feel like platform | 🟢 calm select + "Add temporary" matches the operator-honest tone |
+| 3 | Operational calmness | 🟢 no spam, no toasts, debounce typeahead (180 ms) |
+| 4 | Low cognitive load | 🟢 4 selects, one button, same field labels |
+| 5 | Operational trust | 🟢 audit trail captures both the picked employee_id AND the free-text fallback |
+| 6 | Role discipline | 🟢 no role visibility changes |
+| 7 | Avoid ERP | 🟢 no record creation, no approval, no admin workflow |
+| 8 | Avoid analytics drift | 🟢 no metrics |
+| 9 | Avoid dashboard sprawl | 🟢 same one form |
+| 10 | Downstream continuity | 🟢 same shift session shape; downstream consumers unchanged |
+| 11 | Mobile-first | 🟢 verified 390 px: typeahead returns 15 drivers on "ja", truck prefetch shows 25, "change" affordance amber-bordered |
+| 12 | Restraint doctrine | 🟢 ONE new endpoint, ZERO new collections |
+| 13 | Natural integration | 🟢 reuses `db.employees` + `db.equipment_master` exactly as the platform already does |
+| 14 | Driver understanding | 🟢 type or pick, with familiar dropdown + amber Add temp call-to-action |
+| 15 | Superintendent trust | 🟢 dropdown enforces canonical names where possible, temp clearly marked |
+| 16 | Validate-don't-surveil | 🟢 no GPS, no tracking; identity is self-declared even when picked from dropdown |
+| 17 | Avoid operational noise | 🟢 no alerts, no banners |
+| 18 | Strengthen operational continuity | 🟢 captures `employee_id` linking shift back to HR records when available |
+| 19 | Operational honesty | 🟢 temp entries clearly labeled (`temp` tag in selected state) |
+| 20 | Foundational doctrine | 🟢 Phase 12.9 directive matched literally |
+
+**All 20 checks: PASS.**
+
+## Verification
+
+```bash
+# Full iter402 + every prior DLS regression
+cd /app/backend
+python -m pytest tests/test_iter402_shift_lookups.py \
+                 tests/test_iter401_shift_start.py \
+                 tests/test_iter392_dls_foundation.py \
+                 tests/test_iter393_driver_session.py \
+                 tests/test_iter395_governance.py \
+                 tests/test_iter396_convergence.py -q
+# 70 / 70 PASS in 16.31 s ✅
+
+# Scanners on the new code
+python3 /app/scripts/operator_vocabulary_scanner.py --paths frontend/src/pages/driver/ShiftStart.jsx
+# → 0 hits ✅
+python3 /app/scripts/touch_target_audit.py --paths frontend/src/pages/driver/ShiftStart.jsx
+# → clean ✅
+
+# ESLint + Ruff on touched files → ✅ clean
+# Live smoke at 390 px:
+#   - "ja" returns 15 driver options (Alejandro Escobedo, Elias Barajas, Jacqueline Bloodworth …)
+#   - truck prefetch returns 25 fleet units (DPT002-6387, DPT007-8803, …)
+#   - selected state shows amber border + "change" affordance
+```
+
+## Restraint discipline maintained
+
+- ❌ No new collection (employees + equipment_master + sessions extended in place)
+- ❌ No admin workflow / approval / asset governance
+- ❌ No employee record creation through the driver flow
+- ❌ No truck record creation through the driver flow
+- ❌ No role visibility changes
+- ❌ No Motive activation
+- ❌ No analytics / dashboards / charts
+- ❌ No notification fan-out changes
+
+## What iter402 leaves behind
+
+1. **Platform-linked operational identity**: when the driver picks from the dropdown, the shift session captures the canonical `employee_id` / `truck_unit_pk` / `trailer_unit_pk` so the shift truly belongs to MASCI's operational record.
+2. **Free-text fallback preserved**: temp entries still flow through; no roster gating; operational continuity always wins.
+3. **Privacy contract for the public lookup**: drivers require q ≥ 2 chars, projection is locked to `{name, employee_id}` only.
+4. **0 behavior changes** for prior iters (60 prior tests still PASS).
+5. **Future Motive compatibility intact**: synthetic `driver_id` + truck_id continuity unchanged.
+
+
 
 ---
 

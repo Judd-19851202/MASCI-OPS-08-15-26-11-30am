@@ -1,6 +1,77 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter402 · Phase 12.9 · Driver Operational Identity Convergence ✅
+
+### Mission
+Refine iter401 ShiftStart from 4 free-text inputs to 4 platform-linked searchable dropdowns with "Add temporary" fallback. The shift now naturally captures canonical IDs from `db.employees` + `db.equipment_master` when the driver picks from the dropdown — strengthening operational identity continuity across the platform — while keeping the free-text path as a fallback for subs, rentals, and off-roster drivers.
+
+### Doctrine reinforced (Phase 12.9)
+- Operational continuity > perfect asset governance. "Add temporary" is a feature, not a workaround.
+- Privacy restraint: driver dropdown requires q ≥ 2 chars (no anonymous roster dump). Projection locked to `{name, employee_id}` — zero PII.
+- No new collections. No admin workflow. No approval chain. No asset governance system.
+- 20-point Phase 12.9 doctrine gate: ALL 20 PASS.
+
+### Files shipped
+- **MOD** `/app/backend/driver_sessions.py` — `create_driver_session` extended with optional `employee_id`, `truck_unit_pk`, `trailer_unit_pk` reference IDs (preserves audit link back to HR + fleet when dropdown was used).
+- **MOD** `/app/backend/routes/dispatch_driver.py` — 
+  - **NEW** public `GET /api/dispatch/driver/shift-lookups` endpoint returning `{drivers, trucks, trailers, haulers}`.
+  - `StartShiftRequest` extended with 3 optional reference IDs.
+  - Privacy contract: drivers require q ≥ 2 chars; offboarded/terminated/inactive employees filtered out; projection scrubbed to non-PII fields only.
+  - Haulers composed at request time (MASCI sorted first; distinct values from `equipment_master.company`).
+- **NEW** `/app/backend/tests/test_iter402_shift_lookups.py` — 10 backend tests (public access, privacy contract, list shapes, q filter narrowing, MASCI-first ordering, optional ref IDs accepted by start-shift).
+- **MOD** `/app/frontend/src/pages/driver/ShiftStart.jsx` — full rewrite to use new `SearchableSelect` component for all 4 fields. Driver typeahead requires 2 chars; truck + hauler prefetch full list; trailer optional; hauler defaults to "MASCI". Selected state shows amber border + "change" affordance + `temp` marker for temporary entries.
+
+### Privacy contract
+- Driver list returns `[]` until `q ≥ 2 chars` — no anonymous roster dump.
+- Projection locked to `{name, employee_id}` — no PII fields exposed.
+- Offboarded / terminated / inactive employees filtered out.
+- Trucks / trailers public (already public via `/api/fleet/units`).
+- Add temporary path: free-text submission only, no record creation.
+
+### Phase 12.9 doctrine gate · 20-check audit
+**All 20 checks: PASS.** Documented in `PHASE12_CONTINUITY_AUDIT.md` iter402 addendum.
+
+### Tests · 70 / 70 PASS in 16.31 s
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+- iter401 driver self-start 9/9 (untouched)
+- **iter402 shift lookups 10/10 (new)**
+ESLint clean on `ShiftStart.jsx`. Ruff clean on `routes/dispatch_driver.py` and the new test file. Both audit guardrails clean. Live smoke at 390 px: `ja` returns 15 driver matches, truck prefetch shows 25 fleet units, selected state correct.
+
+### What iter402 explicitly did NOT do (restraint enforced)
+- ❌ No new collection
+- ❌ No employee record creation through driver flow
+- ❌ No truck/trailer record creation through driver flow
+- ❌ No admin workflow / approval / asset governance
+- ❌ No role visibility changes
+- ❌ No Motive activation
+- ❌ No analytics / dashboards / charts
+- ❌ No notification fan-out changes
+- ❌ No EN→ES sweep (consistent with backlog i18n iter)
+
+### Phase 12 lane order — current state
+1. iter397 · Lane A · Cross-platform continuity audit ✅
+2. iter398 · Lane E · Restraint / tone pass ✅
+3. iter399 · Lane B · Mobile-first DLS usability sweep ✅
+4. iter400 · Lane D · Motive doc refresh + audit doctrine index ✅
+5. iter401 · Phase 12.8 · Driver self-start operational entry ✅
+6. iter402 · Phase 12.9 · Driver operational identity convergence ✅
+7. **Lane C · Post-deploy operational stabilization instrumentation** — deferred to backlog.
+
+### Next Action Items
+- 🔵 **P2 — Backlog · Lane C · Post-deploy stabilization instrumentation.** Week 1/2/4 checklist. Optional `/admin/dls-health` page only if it stays under "one page, no new data".
+- 🔵 **P3 — Backlog · DLS UI i18n sweep.** Wrap operational chrome (including `ShiftStart.jsx`) in `t()`.
+- 🔵 **P3 — Backlog · 14-day post-live-ops review** of Safety/FL/HR tile decisions.
+- 🟠 **P2 — Backlog · `server.py` Phase 4D extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — Backlog · 233 inherited pytest isolation failures.**
+- 🟡 **P2 — Backlog · Shift start QR card generator.** One admin tool screen that prints a PDF page with the `/shift` URL as a big QR code per tenant — stickers go on truck doors so the public URL is physically reachable without typing. ~150 LOC, no new collections.
+
+---
+
+
 ## 2026-05-24 — iter401 · Phase 12.8 · Driver Self-Start Operational Entry ✅
 
 ### Mission

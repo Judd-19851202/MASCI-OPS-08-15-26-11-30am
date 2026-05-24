@@ -51,12 +51,22 @@ class SessionExchangeRequest(BaseModel):
 
 
 class StartShiftRequest(BaseModel):
-    """iter401 · Phase 12.8 · driver self-start (no dispatcher needed)."""
+    """iter401 · Phase 12.8 · driver self-start (no dispatcher needed).
+
+    iter402 · Phase 12.9 · optional reference IDs link the shift to the
+    canonical employee + equipment records so operational identity stays
+    consistent across the platform. Free-text fallbacks preserved for
+    subs / temp drivers / rentals that aren't in the system yet."""
     driver_name: str = Field(..., min_length=1, max_length=120)
     truck_id: str = Field(..., min_length=1, max_length=64)
     company: Optional[str] = Field(default="", max_length=120)
     trailer_id: Optional[str] = Field(default="", max_length=64)
     material: Optional[str] = Field(default="", max_length=120)
+    # iter402 · platform-linked identity (all optional; "Add temporary"
+    # entries simply omit these and remain free-text-only).
+    employee_id: Optional[str] = Field(default="", max_length=64)
+    truck_unit_pk: Optional[str] = Field(default="", max_length=64)
+    trailer_unit_pk: Optional[str] = Field(default="", max_length=64)
 
 
 class DriverTransitionRequest(BaseModel):
@@ -225,6 +235,9 @@ def build_driver_router(
             company=body.company or None,
             trailer_id=body.trailer_id or None,
             material=body.material or None,
+            employee_id=body.employee_id or None,
+            truck_unit_pk=body.truck_unit_pk or None,
+            trailer_unit_pk=body.trailer_unit_pk or None,
         )
 
         # Land the driver directly on their assignment if one exists.
@@ -257,6 +270,137 @@ def build_driver_router(
                 "material": (body.material or "").strip() or None,
             },
             "assignment": assignment,
+        }
+
+    # ────────────────────────────────────────────────────────────────
+    # iter402 · Phase 12.9 · Shift-start lookups (public · narrow scope)
+    # ────────────────────────────────────────────────────────────────
+    @router.get("/shift-lookups")
+    async def shift_lookups_route(
+        q: Optional[str] = None,
+        limit: int = 25,
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        """Public · powers the iter402 Shift Start dropdowns.
+
+        Returned shape:
+          { drivers:  [{employee_id, name}]      // q required (≥ 2 chars)
+            trucks:   [{unit_pk, unit_number, label, company}]
+            trailers: [{unit_pk, unit_number, label, company}]
+            haulers:  [{name}]                   // MASCI + distinct companies
+          }
+
+        Privacy contract:
+          • Driver list NEVER returns the full employee roster.
+            ``q`` < 2 chars → empty list. Limited to ``limit`` rows.
+            Projection includes ONLY name + employee_id — no PII.
+          • Truck / trailer lists are operational assets — fine to show.
+          • Hauler list is composed at request time (no new collection).
+        """
+        import re as _re
+        tenant_id = _resolve_tenant(x_tenant_id)  # noqa: F841 · reserved for tenant-aware filtering when employees collect tenant_id
+        cap = max(1, min(int(limit or 25), 50))
+        q_clean = (q or "").strip()
+
+        # ── drivers (privacy-restrained search) ─────────────────────
+        drivers: List[Dict[str, Any]] = []
+        if len(q_clean) >= 2:
+            rx = {"$regex": _re.escape(q_clean), "$options": "i"}
+            emp_query: Dict[str, Any] = {
+                "deleted_at": None,
+                "$or": [
+                    {"name": rx},
+                    {"employee_id": rx},
+                ],
+            }
+            # Best-effort: filter to active statuses if the field exists.
+            # The DB still returns rows that pre-date lifecycle_status
+                # (legacy) — those are operationally fine.
+            try:
+                cur = (
+                    db.employees
+                    .find(emp_query, {"_id": 0, "id": 1, "employee_id": 1, "name": 1, "lifecycle_status": 1, "is_active": 1})
+                    .sort("name", 1)
+                    .limit(cap)
+                )
+                async for emp in cur:
+                    if emp.get("lifecycle_status") in (
+                        "OFFBOARDED", "TERMINATED", "DECEASED",
+                    ):
+                        continue
+                    if emp.get("is_active") is False:
+                        continue
+                    name = (emp.get("name") or "").strip()
+                    if not name:
+                        continue
+                    drivers.append({
+                        "employee_id": emp.get("employee_id") or emp.get("id") or "",
+                        "name": name,
+                    })
+            except Exception:
+                drivers = []
+
+        # ── trucks + trailers (operational assets, full list) ───────
+        truck_categories = [
+            "Dump Trucks", "Tractor Trailer Trucks", "Service Trucks",
+            "Pickup Trucks", "Flatbed Trucks", "Water Trucks",
+            "Misc Trucks", "Supervisor / Mgmt Trucks",
+        ]
+        trailer_categories = ["Trailers"]
+        unit_query: Dict[str, Any] = {
+            "category": {"$in": truck_categories + trailer_categories},
+        }
+        if q_clean:
+            rx = {"$regex": _re.escape(q_clean), "$options": "i"}
+            unit_query["$or"] = [
+                {"unit_number": rx},
+                {"display_label": rx},
+                {"make_model": rx},
+            ]
+        trucks: List[Dict[str, Any]] = []
+        trailers: List[Dict[str, Any]] = []
+        company_set: set[str] = {"MASCI"}
+        try:
+            cur = (
+                db.equipment_master
+                .find(unit_query, {"_id": 0, "id": 1, "unit_number": 1,
+                                   "category": 1, "make_model": 1,
+                                   "display_label": 1, "company": 1})
+                .sort("unit_number", 1)
+                .limit(max(cap * 4, 50))
+            )
+            async for u in cur:
+                unit_pk = u.get("id") or ""
+                num = (u.get("unit_number") or "").strip()
+                if not num:
+                    continue
+                label = (u.get("display_label") or u.get("make_model") or "").strip()
+                co = (u.get("company") or "").strip()
+                if co:
+                    company_set.add(co)
+                entry = {
+                    "unit_pk": unit_pk,
+                    "unit_number": num,
+                    "label": label,
+                    "company": co or "",
+                }
+                if u.get("category") in trailer_categories:
+                    if len(trailers) < cap:
+                        trailers.append(entry)
+                else:
+                    if len(trucks) < cap:
+                        trucks.append(entry)
+        except Exception:
+            pass
+
+        haulers = [{"name": n} for n in sorted(company_set, key=lambda s: (s != "MASCI", s.lower()))]
+
+        return {
+            "ok": True,
+            "drivers": drivers,
+            "trucks": trucks,
+            "trailers": trailers,
+            "haulers": haulers,
         }
 
     # ────────────────────────────────────────────────────────────────

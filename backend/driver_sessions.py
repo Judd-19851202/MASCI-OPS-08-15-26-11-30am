@@ -254,6 +254,9 @@ async def create_driver_session(
     company: Optional[str] = None,
     trailer_id: Optional[str] = None,
     material: Optional[str] = None,
+    employee_id: Optional[str] = None,
+    truck_unit_pk: Optional[str] = None,
+    trailer_unit_pk: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Persist a fresh driver session row and return
     ``{session_id, token, expires_at}``. The session token is rebuilt
@@ -262,7 +265,13 @@ async def create_driver_session(
     ``origin`` differentiates dispatcher-minted magic-link sessions
     (``"magic_link"``) from driver-self-started shift sessions
     (``"self_start"``). ``company``, ``trailer_id``, ``material`` are
-    optional shift metadata captured at self-start time (iter401)."""
+    optional shift metadata captured at self-start time (iter401).
+
+    ``employee_id`` / ``truck_unit_pk`` / ``trailer_unit_pk`` are
+    optional canonical references (iter402 · Phase 12.9) that link the
+    shift to the platform's employee + equipment records when the
+    driver picked from the dropdown. Temp / off-roster entries omit
+    them and the session is still operationally valid."""
     session_id = str(uuid.uuid4())
     issued_at = now_dt()
     expires_at = issued_at + timedelta(seconds=ttl_seconds)
@@ -284,6 +293,9 @@ async def create_driver_session(
         "company": (company or "").strip() or None,
         "trailer_id": (trailer_id or "").strip() or None,
         "material": (material or "").strip() or None,
+        "employee_id": (employee_id or "").strip() or None,
+        "truck_unit_pk": (truck_unit_pk or "").strip() or None,
+        "trailer_unit_pk": (trailer_unit_pk or "").strip() or None,
     }
     await db.dispatch_driver_sessions.insert_one(doc)
     token = make_session_token(session_id=session_id, driver_id=driver_id)
