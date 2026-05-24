@@ -1,6 +1,81 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter413 · Phase 17 · Full Platform Convergence + Operational Integrity Audit ✅
+
+### Mission
+Phase 17 is explicit: **AUDIT phase, not BUILD phase.** Conduct a complete system-wide operational integrity audit before scale rollout. Find ALL gaps first, then prioritize surgically. Zero code changes, zero new endpoints, zero new collections.
+
+### Doctrine reinforced (Phase 17)
+- "**DO NOT fix everything immediately. FIRST find ALL gaps. THEN prioritize surgically.**" — directive honored literally
+- "**This phase is AUDIT, CONVERGENCE, CONTINUITY, OPERATIONAL INTEGRITY ONLY.**" — zero code shipped
+- "**Older systems should NOT feel older. Everything should feel modern, connected, unified.**" — assessed and surgically queued as backlog
+
+### 8 audit memos shipped
+All files at `/app/memory/`:
+
+1. **`FULL_PLATFORM_CONVERGENCE_AUDIT.md`** — Executive verdict + hard evidence inventory (130/130 tests · 0 T2/T3 ERP-language hits · 234 routes · 3,526 i18n keys) + cross-system connection matrix → **PASS**
+2. **`ROLE_VISIBILITY_AUDIT.md`** — Per-role "sees / cannot see" matrix + role-creep scan (`grep -r "DispatchLifecycleTile" pages/safety/` = 0 hits) → **PASS**
+3. **`COACHING_AND_VERBIAGE_AUDIT.md`** — Coaching presence by surface + 8-item vocabulary swap table (Equipment Movement Command Center → Dispatch Command, etc.) + scanner findings (16 T1 expected, 0 T2/T3) → **PASS**
+4. **`ENGLISH_SPANISH_CONTINUITY_AUDIT.md`** — Driver / dispatch / PM / shop flow EN ↔ ES verification + submitted-data normalization audit + free-text-note assumption documented → **PASS**
+5. **`LEGACY_ALIGNMENT_AUDIT.md`** — Pre-Phase-12 module audit (Daily Report · Safety detail · HR Qual · Inspections) — operationally correct but aesthetically pre-Phase-12 → **PASS with non-blocking observations**
+6. **`OPERATIONAL_DEAD_END_AUDIT.md`** — All 5 haul types end-to-end verified + "what happens next?" answered for every workflow + 2 minor cul-de-sacs surfaced (forgotten sign-out, reassignment-during-WAITING) → **PASS**
+7. **`SYSTEM_CONTINUITY_MATRIX.md`** — Single-page source-of-truth map: data layer → assignment fields → downstream consumers → cross-portal tile mounting matrix
+8. **`DAY-1_DEPLOYMENT_READINESS_AUDIT.md`** — Pre-flight checklist (30 min before · first 30 min of ops · mid-morning pulse · end-of-day pulse) + 12-row readiness verification matrix + known acceptable risks → **🟢 GO FOR DAY-1**
+
+### Hard evidence captured today
+- Backend parity-lock: **130 / 130 PASS** (per-file run · the documented testing strategy)
+- Operator vocabulary scanner: 16 T1 hits (all `iter###` source-comments · expected) · **0 T2/T3** ERP-language flags
+- Touch-target audit: **Clean**
+- ESLint + Ruff: Clean across all Phase 12-17 files
+- 234 frontend routes · 3,526 EN→ES i18n keys
+- All 5 haul types issuable end-to-end · verified by testing-agent in iter408/410
+
+### Cross-portal continuity verified (Phase 17 final pass)
+| Connection | Tile / endpoint | Status |
+|---|---|---|
+| Dispatch ↔ Drivers | iter393 magic-link + iter401 self-start | ✅ |
+| Dispatch ↔ PM | iter396 + iter409 (project-scoped) | ✅ |
+| Dispatch ↔ Shop | iter396 BREAKDOWN signals | ✅ |
+| Dispatch ↔ Governance | iter395 + iter411 Operational Attention | ✅ |
+| Field Tile ↔ Driver Shift | iter403/404 Trucking Operations lane | ✅ |
+| PM ↔ Haul Activity | iter409 PmHaulActivityTile | ✅ |
+| Operational Memory ↔ All systems | Seeded + historical merge across 5 haul types | ✅ |
+
+### Backlog from Phase 17 (queued, not blocking)
+- 🟠 **P2** — Stale `dispatch_driver_sessions` reaper (forgotten driver sign-out cleanup)
+- 🟠 **P2** — Inspections + Daily Report form chrome modernization
+- 🟠 **P2** — Safety detail page card-rhythm alignment
+- 🟠 **P2** — `DispatchHub.jsx` + `AssignmentCreateDrawer.jsx` component extraction
+- 🟠 **P2** — `server.py` Phase 4D extractions (`/api/legacy-imports/*`)
+- 🔵 **P3** — Translation coverage sweep across legacy forms
+- 🔵 **P3** — Reassignment-during-WAITING UX shortcut
+- 🔵 **P3** — 233 inherited pytest isolation failures
+
+**Every P2/P3 item is contingent on the Day-1 debrief naming it as real friction.** Restraint doctrine: don't fix what real ops hasn't surfaced.
+
+### Phase doctrine timeline (current state · ROLLOUT-READY)
+1. iter397-405 · Phases 12-13.2 ✅
+2. iter406+iter407 · Phase 14 ✅
+3. iter408 · Phase 14.1 + 14.2 ✅
+4. iter409 · Phase 14.3 · PM Haul Activity ✅
+5. iter410 · Phase 15.1 · Tanker / Liquid Asphalt ✅
+6. iter411 · Phase 16 · Dispatch Command Portal IA ✅
+7. iter412 · Phase 16.1 · DLS Health Summary + Day-1 Debrief Doc ✅
+8. **iter413 · Phase 17 · Full Platform Convergence Audit ✅**
+
+### Verdict
+**🟢 PLATFORM IS DEPLOYABLE FOR DAY-1.**
+
+All 8 Phase 17 audits reach PASS or PASS-with-non-blocking observations. Restraint discipline held across 17 iterations. The most valuable next action is **running the platform tomorrow morning and filing the debrief same day** — not building anything more.
+
+### Next Action Items
+- 🟡 **P1 — DAY-1 LIVE OPS DEBRIEF** (run platform · capture 10 answers · file as `DLS_DAY1_LIVE_OPS_DEBRIEF_YYYY-MM-DD.md`)
+- 🟠 **P2** — Backlog items above, **contingent on Day-1 debrief naming demand**
+
+---
+
+
 ## 2026-05-24 — iter412 · Phase 16.1 · DLS Health Summary + Day-1 Debrief Doc ✅
 
 ### Mission
