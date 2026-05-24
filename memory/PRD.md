@@ -1,6 +1,61 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — Phase 7 · Operational Excellence + Restraint Sprint ✅
+
+### Mission
+World-class polish + restraint mode. **No new features.** Catalog what's already operationally green, what should stay quiet, and what should NOT be built right now. Three discipline documents shipped.
+
+### Deliverables (three canonical documents)
+
+**1. `/app/memory/FINAL_OPERATIONAL_FRICTION_AUDIT.md`**
+Walked 14 high-frequency workflows (Daily Reports · Incidents Near-Miss · Incidents Serious · PPE · CAPA · PM Crew Compliance · Dispatch Readiness · DQ File · Accountability Timeline · Notifications · Toolbox · Pre-Op · QA/QC · Shop Defects) and rated each across 4 axes (Friction · Mobile · Clarity · Trust/Risk). **All 14 workflows: LEAVE ALONE.** Verified 8 cross-cutting lifecycles are unbroken. Documented the red/rose tone inconsistency as P3 backlog (not Phase 7 scope).
+
+**2. `/app/memory/OPERATIONAL_SIGNAL_DISCIPLINE_REVIEW.md`**
+Catalogued every banner, bell, governance finding, and toast/modal across the platform. **Verdict: every signal currently fires correctly. No signal needs suppression, aggregation, downgrade, or elevation in this sprint.** Pinned a 60-day post-deploy re-review of digest cadence + INFO-tier daily-report bell volume.
+
+**3. `/app/memory/DO_NOT_BUILD_YET.md`**
+The restraint doctrine. 11 categories of features that should NOT be built right now: giant analytics dashboards · AI assistants · gamification · new portals · settings panels · offline-first sync · expanded email/SMS/push · UI redesign · expanded analytics · workflow scoring · expanded glossary/wiki/training content. Includes operator + engineering review-gate guidance and a 60-day pin to re-read.
+
+### WS-by-WS outcomes
+- **WS1 Final Operational Friction Audit:** Doc shipped. 14/14 workflows green.
+- **WS2 Trust + Confidence Hardening:** Audited. All allowed improvements (autosave indicator · draft recovery · upload-state visibility · idempotency dedup · payload warning · submit-disabled-while-saving) already in place from prior phases. No code change.
+- **WS3 Operational Intelligence Refinement:** Doc shipped. All signals are correctly tiered.
+- **WS4 Leadership Readiness Surfaces:** Reviewed. Existing surfaces (Governance Health card · Notifications bell · Accountability Timeline · CSV exports) cover one-glance leadership needs. New tile NOT built per restraint doctrine. Available as future opt-in.
+- **WS5 Field Adoption Optimization:** Jargon sweep performed. Codebase already field-direct (prior phases pruned the obvious robotic strings). Only "in accordance with applicable Florida law and FLSA" remains — intentional legal disclaimer, must stay.
+- **WS6 Consistency + Visual Unification:** Red (~388 uses) and Rose (~30 uses) co-exist as the two danger palettes. Documented as canonical rule: `red` = hard blocks/safety stops, `rose` = needs-action-but-not-blocking. Not a redesign — clarification only.
+- **WS7 Do-Not-Build Review:** Doc shipped.
+- **WS8 World-Class Field Experience Pass:** Phase 6 already audited 5 mobile workflows at 390 px. No new fixes warranted.
+
+### Files touched (Phase 7 · final delta)
+- NEW · `memory/FINAL_OPERATIONAL_FRICTION_AUDIT.md`
+- NEW · `memory/OPERATIONAL_SIGNAL_DISCIPLINE_REVIEW.md`
+- NEW · `memory/DO_NOT_BUILD_YET.md`
+- MOD · `memory/PRD.md` (this entry)
+
+Zero code changes. Zero schema changes. Zero new endpoints. Zero new collections.
+
+### Testing
+- Three documents created and verified on disk (sizes 11.5 KB / 12.7 KB / 8.2 KB).
+- Backend health: `/api/health` returns 200 ok.
+- Supervisor: backend + frontend + mongodb + nginx-code-proxy all RUNNING.
+- No code changes means no lint/regression needed.
+
+### Discipline notes
+- Stayed inside Phase 7 scope. No drift into iter383, full-suite test debt, or analytics.
+- Resisted building Leadership Readiness Tile + Field Shadow Run admin entry (both were tempting; both deferred per restraint doctrine).
+- The single most valuable Phase 7 output is `DO_NOT_BUILD_YET.md` — every future operator request now gets filtered against it.
+
+### Next Action Items
+- 🟢 **P0 — Operator:** Phase 5D + Phase 6 + Phase 7 all green. Production deploy authorized.
+- 🟡 **P1 — Operator:** Run the 5 field-shadow tests from `FIELD_SHADOW_VALIDATION_KIT.md` with real users.
+- 🟠 **P2 — Engineering:** Resume iter383 `/api/legacy-imports/*` extraction.
+- 🔵 **P3 — Engineering, post-60-days:** Re-read `OPERATIONAL_SIGNAL_DISCIPLINE_REVIEW.md` + `DO_NOT_BUILD_YET.md`. Update based on live operational data.
+- 🔵 **P3 — Engineering, eventually:** Extract completion-banner derivations into custom hooks; resolve 233 inherited pytest isolation failures.
+
+---
+
+
 ## 2026-05-24 — Phase 6 · Field Adoption + Operational Value Sprint ✅
 
 ### Mission
